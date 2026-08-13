@@ -1,0 +1,32 @@
+# SwiftFormat configuration — MCP Router
+#
+# Deliberately conservative. Formatting rules that rewrite structure (rather than whitespace)
+# create noisy diffs across a fleet of parallel runners, and a rule nobody agreed to is a rule
+# that gets disabled the first time it fires on something important.
+
+--swiftversion 6.0
+
+# Match the documentation-comment style already used through the kit.
+--maxwidth 110
+--wraparguments before-first
+--wrapparameters before-first
+--wrapcollections preserve
+--closingparen balanced
+
+--indent 4
+--trimwhitespace always
+--stripunusedargs closure-only
+--self remove
+--commas inline
+
+# `import` order is worth enforcing: it is mechanical and it removes a whole class of
+# merge conflict between runners touching the same file.
+--importgrouping testable-bottom
+
+--exclude .build,DerivedData,build,node_modules,dist,.worktrees
+
+# Structural rewrites are disabled on purpose. Both of these expand a readable one-liner
+# (`var id: String { name }`, a guard that fits on a line) into three, which makes the diff noisy
+# without catching anything. This file sticks to whitespace and ordering, where the tool is
+# unambiguously right and nobody argues with the result.
+--disable wrapPropertyBodies,wrapIfStatementBodies

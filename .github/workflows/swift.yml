@@ -1,0 +1,76 @@
+name: Swift
+
+on:
+  push:
+    branches: [main]
+    paths: ['app/**', 'scripts/acceptance/**', 'Makefile', '.swiftlint.yml', '.swiftformat', '.github/workflows/swift.yml', 'DESIGN.md']
+  pull_request:
+    paths: ['app/**', 'scripts/acceptance/**', 'Makefile', '.swiftlint.yml', '.swiftformat', '.github/workflows/swift.yml', 'DESIGN.md']
+  workflow_dispatch:
+
+concurrency:
+  group: swift-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Deliberately NOT pinned to the newest Xcode. Hosted runners lag behind local machines,
+      # and the deployment targets here (macOS 15, iOS 18) only need Xcode 16+. Pinning an exact
+      # version is how this workflow starts failing for a reason that has nothing to do with the
+      # code.
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -p
+          xcodebuild -version
+          swift --version
+
+      - name: Install tools
+        run: brew install xcodegen swiftlint swiftformat
+
+      # The same Makefile targets developers run. CI re-implementing the commands is how CI and
+      # local builds drift until only one of them is trusted.
+      - name: Lint
+        run: make lint
+
+      - name: Build macOS (Debug)
+        run: make build-mac
+
+      - name: Build macOS (Release, unsigned)
+        run: make build-mac-release
+
+      - name: Build iOS (Simulator)
+        run: make build-ios
+
+      # This also guards the design-token parity suite: it reads DESIGN.md, so an edit to the
+      # design document that changes a value without changing the code fails here.
+      - name: Test
+        run: make test
+
+      # Launches both shells and checks each renders a value that came from the shared library.
+      #
+      # A hosted runner has no Accessibility grant, so this may legitimately be unable to run. The
+      # script says which happened with its exit code, and this step keeps the two apart: a failed
+      # assertion fails the job, an environment that cannot run the check is reported and skipped.
+      # Treating "no permission" as a build failure would train everyone to ignore a red run;
+      # treating a real failure as "skipped" would be worse.
+      - name: Acceptance (both shells render a kit value)
+        run: |
+          set +e
+          ./scripts/acceptance/shells.sh
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "acceptance: passed"
+          elif [ "$code" -eq 2 ]; then
+            echo "::warning::acceptance could not run in this environment (exit 2) — not a pass"
+          else
+            echo "::error::acceptance failed (exit $code)"
+            exit "$code"
+          fi
+

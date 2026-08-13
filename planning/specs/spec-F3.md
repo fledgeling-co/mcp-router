@@ -144,3 +144,42 @@ Implementation plan: `planning/plans/plan-F3.md` (Plan size: Standard).
 No scope narrowing: every clause A1–A25 and every triage assumption is carried by a step. The plan's
 "Out of scope" list repeats only what the spec already excluded — skills, marketplaces and pairing
 models, the UI itself, and any change to the TypeScript router.
+
+
+---
+
+## Pause checkpoint — 2026-08-14
+
+Written by the ORCHESTRATOR, not the runner: the runner died mid-turn on a gateway 503
+(`no-eligible-account`, 9 of 11 accounts over reserve) and could not write its own.
+
+**Pipeline position.** Phases 1-3 DONE. Phase 4 implementation COMPLETE and green — the
+runner's last words before the 503 were: *"`make all` green — lint, both app builds, 93
+tests. Now the red-green pass: every new guard has to be seen to fail, or it isn't a
+guard."* It died entering the red-green proving pass.
+
+**State on disk.** Branch `ai/f3`, 1 commit `2e7d9f3` — a RESCUE commit written by the
+orchestrator, because the runner died with **28 files uncommitted and nothing on the
+branch**. That commit is not a completed phase; it is preservation. `make test` exit 0
+with **93 tests**.
+
+Landed in it: `LiveControlAPIClient`, `ControlEventStream`, `ControlTokenStore`,
+`FixtureControlAPIClient` + fixtures, `RegistryModels`, `ServerStateTracker`, a
+`ControlProbe` target, and seven test files (client, copy, fixture, stream, token,
+fixture-client, `HTTPStub`).
+
+**Diagnosed but unfixed.** None recorded — the implementation was green when it died.
+
+**Next three steps.**
+1. The red-green proving pass it was entering: every new guard must be SEEN to fail. A
+   suite that cannot fail is not evidence, and 93 green tests prove nothing until this runs.
+2. Phase 5 gap-fix against the spec, then the Phase D out-of-family critic.
+3. Phase 6 acceptance evidence, then Phase 7 commit and STOP before merge.
+
+**Gotchas.** The gateway pool is shared with another live fleet in `~/Dev/hopper`; a 503
+here is capacity, not your code. The `ServerPatch` test proving `command`/`args`/`env` can
+never be encoded is a STANDING CONSTRAINT — keep it green.
+
+**Re-read before continuing** (paths only): `planning/features-to-triage/F3-control-client.md`,
+`planning/specs/spec-F3.md`, `planning/plans/plan-F3.md`, `src/control.ts` (the wire
+authority), `planning/practices/SWIFT_PRACTICES.md`.

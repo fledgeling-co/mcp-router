@@ -2,9 +2,10 @@
 #
 # One-line install for mcp-router.
 #
-#   curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/install.sh | bash
+#   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/install.sh)"
 #
 # What it does, in order, and nothing else:
+#   0. fetches the source into ~/.local/share/mcp-router, if you piped this in
 #   1. builds the router
 #   2. copies your stdio MCP servers out of ~/.claude.json into the router's own list
 #   3. indexes them once, so `tools/list` can be served with nothing running
@@ -28,17 +29,40 @@ NODE_BIN="$(command -v node)"
 NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
 (( NODE_MAJOR >= 20 )) || die "Node $NODE_MAJOR is too old; this needs 20 or newer (tested on 22)."
 
-# Resolve the repo root from this script's own location, so the agents point at
-# wherever the user actually cloned it rather than a path baked in by the author.
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-[[ -f "$REPO_ROOT/package.json" ]] || die "Cannot find package.json above $0 — run this from a clone of the repo."
+# ---------------------------------------------------------------- source
+# Resolve the repo from this script's own location so the launchd agents point
+# at wherever it actually lives rather than a path baked in by the author. When
+# the script arrives down a pipe there is no file on disk to resolve from, so
+# BASH_SOURCE is unusable and the source has to be fetched.
+REPO_URL="${MCP_ROUTER_REPO:-https://github.com/fledgeling-co/mcp-router.git}"
+APP_DIR="${MCP_ROUTER_HOME:-$HOME/.local/share/mcp-router}"
+REPO_ROOT=""
+if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
+  CANDIDATE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  [[ -f "$CANDIDATE/package.json" ]] && REPO_ROOT="$CANDIDATE"
+fi
+
+if [[ -z "$REPO_ROOT" ]]; then
+  command -v git >/dev/null 2>&1 || die "git not found on PATH, and it is needed to fetch the source."
+  if [[ -d "$APP_DIR/.git" ]]; then
+    say "updating $APP_DIR"
+    git -C "$APP_DIR" fetch --quiet origin
+    git -C "$APP_DIR" reset --quiet --hard origin/HEAD
+  else
+    say "fetching $REPO_URL -> $APP_DIR"
+    mkdir -p "$(dirname "$APP_DIR")"
+    git clone --quiet --depth 1 "$REPO_URL" "$APP_DIR"
+  fi
+  REPO_ROOT="$APP_DIR"
+fi
+[[ -f "$REPO_ROOT/package.json" ]] || die "no package.json at $REPO_ROOT — the source is not where it should be."
 
 ROUTER_HOME="$HOME/.claude/mcp-router"
 CLAUDE_JSON="$HOME/.claude.json"
 AGENTS="$HOME/Library/LaunchAgents"
 PORT="${MCP_ROUTER_PORT:-8879}"
 
-say "repo    $REPO_ROOT"
+say "source  $REPO_ROOT"
 say "node    $NODE_BIN (v$(node -p 'process.versions.node'))"
 say "port    $PORT"
 mkdir -p "$ROUTER_HOME" "$AGENTS"

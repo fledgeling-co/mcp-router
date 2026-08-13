@@ -53,20 +53,27 @@ flowchart LR
 ## Install
 
 ```bash
-git clone https://github.com/fledgeling-co/mcp-router.git && cd mcp-router && ./scripts/install.sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/install.sh)"
 ```
 
-That builds the router, copies your stdio servers out of `~/.claude.json`, indexes them once, writes two launchd agents with this machine's own absolute paths, loads them, and adds a single `router` entry to `~/.claude.json`. It backs that file up first.
+That fetches the source to `~/.local/share/mcp-router`, builds it, copies your stdio servers out of `~/.claude.json`, indexes them once, writes two launchd agents with this machine's own absolute paths, loads them, and adds a single `router` entry to `~/.claude.json`. It backs that file up first.
 
 Start a new Claude Code session afterwards; a running session fetches its tool list once at init and won't see the change.
+
+Already have a clone? `./scripts/install.sh` from inside it works the same way and skips the fetch, so the agents point at your working copy.
 
 **Note:** the installer is macOS-only because it uses launchd. On Linux, `npm run build` then run `node dist/index.js serve` under systemd; everything else in the router is platform-neutral.
 
 ### Uninstall
 
 ```bash
-./scripts/uninstall.sh          # restore your servers, remove the agents
-./scripts/uninstall.sh --purge  # ...and delete ~/.claude/mcp-router as well
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/uninstall.sh)"
+```
+
+Add `--purge` to also delete `~/.claude/mcp-router` and the fetched source:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/uninstall.sh)" mcp-router --purge
 ```
 
 The restore is the half that matters. Every stdio server the router adopted is written back into `~/.claude.json` before the agents go, so you're left with a working setup rather than no MCP servers at all. It won't overwrite a name you've since defined by hand.
@@ -165,6 +172,16 @@ mcpr import && mcpr index
 ```
 
 A re-index reaches the running router without a restart: `serve` stats the manifest on each `tools/list` and re-reads it when the mtime moves, keeping the previous manifest if the new one won't parse. Adding a *new* upstream is the one change that needs a restart, because the upstream list is read once at startup, and the watcher does that restart itself.
+
+**Removing** a server means taking it out of `~/.claude/mcp-router/servers.json`, since that is where it lives now rather than `~/.claude.json`:
+
+```bash
+node -e 'const f=process.env.HOME+"/.claude/mcp-router/servers.json",d=require(f);delete d.mcpServers["my-server"];require("fs").writeFileSync(f,JSON.stringify(d,null,2))'
+mcpr index --force
+launchctl kickstart -k "gui/$UID/gg.rhodes.mcp-router"
+```
+
+Worth saying that the reason people reach for this has mostly gone. Removing a server used to be how you stopped paying for one you rarely called, because every declared server started at session init whether you touched it or not. Under the router an unused server costs a few kilobytes of cached tool schema and nothing else: no process, no memory, no startup time. So the honest advice is to leave it, unless the tools themselves are cluttering the model's tool list or the server has become a liability.
 
 ---
 

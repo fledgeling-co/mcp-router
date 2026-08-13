@@ -2,8 +2,14 @@
 #
 # Remove mcp-router and put everything back the way it was.
 #
-#   ./scripts/uninstall.sh            # restore servers, remove agents, keep state
-#   ./scripts/uninstall.sh --purge    # ...and delete ~/.claude/mcp-router entirely
+#   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/uninstall.sh)"
+#
+# Add --purge to also delete the router's state and the fetched source:
+#
+#   /bin/bash -c "$(curl -fsSL .../uninstall.sh)" mcp-router --purge
+#
+# This script needs nothing but itself: it reads ~/.claude/mcp-router/servers.json
+# and talks to launchctl, so it works piped straight from curl with no clone.
 #
 # The important half is the restore: every stdio server the router adopted is
 # written back into ~/.claude.json before the agents go, so Claude Code is left
@@ -15,9 +21,12 @@ say()  { printf '%s==>%s %s\n' "$GRN" "$RST" "$1"; }
 warn() { printf '%s!!!%s %s\n' "$YLW" "$RST" "$1"; }
 
 PURGE=0
-[[ "${1:-}" == "--purge" ]] && PURGE=1
+for arg in "$@"; do
+  [[ "$arg" == "--purge" ]] && PURGE=1
+done
 
 ROUTER_HOME="$HOME/.claude/mcp-router"
+APP_DIR="${MCP_ROUTER_HOME:-$HOME/.local/share/mcp-router}"
 CLAUDE_JSON="$HOME/.claude.json"
 AGENTS="$HOME/Library/LaunchAgents"
 SERVERS="$ROUTER_HOME/servers.json"
@@ -68,6 +77,10 @@ fi
 if (( PURGE )); then
   rm -rf "$ROUTER_HOME"
   say "deleted $ROUTER_HOME"
+  if [[ -d "$APP_DIR" ]]; then
+    rm -rf "$APP_DIR"
+    say "deleted $APP_DIR"
+  fi
 else
   printf '%sKept %s (config, manifest, logs, backups). Use --purge to delete it.%s\n' "$DIM" "$ROUTER_HOME" "$RST"
 fi

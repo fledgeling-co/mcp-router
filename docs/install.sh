@@ -2,7 +2,7 @@
 #
 # One-line install for mcp-router.
 #
-#   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/install.sh)"
+#   /bin/bash -c "$(curl -fsSL https://fledgeling-co.github.io/mcp-router/install.sh)"
 #
 # What it does, in order, and nothing else:
 #   0. fetches the source into ~/.local/share/mcp-router, if you piped this in
@@ -12,7 +12,7 @@
 #   4. writes two launchd agents with THIS machine's absolute paths and loads them
 #   5. adds a single `router` HTTP entry to ~/.claude.json
 #
-# It backs ~/.claude.json up before touching it, and `scripts/uninstall.sh`
+# It backs ~/.claude.json up before touching it, and `docs/uninstall.sh`
 # puts every server back where it came from.
 set -euo pipefail
 

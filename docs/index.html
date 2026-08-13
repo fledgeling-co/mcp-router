@@ -344,7 +344,7 @@ footer .wrap{display:flex; justify-content:space-between; gap:var(--s-4); flex-w
       <div class="install">
         <div class="install-label">Install</div>
         <div class="cmd">
-          <code id="cmd-install"><span class="dim">/bin/bash -c</span> <span class="warm">"$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/install.sh)"</span></code>
+          <code id="cmd-install"><span class="dim">/bin/bash -c</span> <span class="warm">"$(curl -fsSL https://fledgeling-co.github.io/mcp-router/install.sh)"</span></code>
           <button class="copy" id="copy-hero" aria-label="Copy the install command">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>
           </button>
@@ -554,7 +554,7 @@ footer .wrap{display:flex; justify-content:space-between; gap:var(--s-4); flex-w
 
     <div class="install">
       <div class="cmd">
-        <code><span class="dim">/bin/bash -c</span> <span class="warm">"$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/install.sh)"</span></code>
+        <code><span class="dim">/bin/bash -c</span> <span class="warm">"$(curl -fsSL https://fledgeling-co.github.io/mcp-router/install.sh)"</span></code>
         <button class="copy" id="copy-foot" aria-label="Copy the install command">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>
         </button>
@@ -583,7 +583,7 @@ footer .wrap{display:flex; justify-content:space-between; gap:var(--s-4); flex-w
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ─────────────────────────── copy buttons */
-const CMD = '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/install.sh)"';
+const CMD = '/bin/bash -c "$(curl -fsSL https://fledgeling-co.github.io/mcp-router/install.sh)"';
 const TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 7"/></svg>';
 for (const id of ['copy-hero','copy-foot']) {
   const btn = document.getElementById(id); if (!btn) continue;

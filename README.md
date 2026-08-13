@@ -53,27 +53,27 @@ flowchart LR
 ## Install
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/install.sh)"
+/bin/bash -c "$(curl -fsSL https://fledgeling-co.github.io/mcp-router/install.sh)"
 ```
 
 That fetches the source to `~/.local/share/mcp-router`, builds it, copies your stdio servers out of `~/.claude.json`, indexes them once, writes two launchd agents with this machine's own absolute paths, loads them, and adds a single `router` entry to `~/.claude.json`. It backs that file up first.
 
 Start a new Claude Code session afterwards; a running session fetches its tool list once at init and won't see the change.
 
-Already have a clone? `./scripts/install.sh` from inside it works the same way and skips the fetch, so the agents point at your working copy.
+Already have a clone? `./docs/install.sh` from inside it works the same way and skips the fetch, so the agents point at your working copy.
 
 **Note:** the installer is macOS-only because it uses launchd. On Linux, `npm run build` then run `node dist/index.js serve` under systemd; everything else in the router is platform-neutral.
 
 ### Uninstall
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/uninstall.sh)"
+/bin/bash -c "$(curl -fsSL https://fledgeling-co.github.io/mcp-router/uninstall.sh)"
 ```
 
 Add `--purge` to also delete `~/.claude/mcp-router` and the fetched source:
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/uninstall.sh)" mcp-router --purge
+/bin/bash -c "$(curl -fsSL https://fledgeling-co.github.io/mcp-router/uninstall.sh)" mcp-router --purge
 ```
 
 The restore is the half that matters. Every stdio server the router adopted is written back into `~/.claude.json` before the agents go, so you're left with a working setup rather than no MCP servers at all. It won't overwrite a name you've since defined by hand.
@@ -224,7 +224,7 @@ Nine checks against a running router using the SDK's own client, which is the sa
 | `src/pool.ts` | Child lifecycle: single-flight spawn, idle reaping |
 | `src/router.ts` | The stateless HTTP layer and how a dead upstream is contained |
 | `src/watch.ts` | The adoption watcher and its refusal behaviour |
-| `scripts/install.sh` | What the one-liner actually does, in order |
+| `docs/install.sh` | What the one-liner actually does, in order (and what GitHub Pages serves) |
 
 ---
 
@@ -236,7 +236,7 @@ The mark is a manifold: cool glass conduits converge from the left into one hub,
 
 It lives in `design/icon/`, alongside the layered SVG master, its build script, the alternate takes, and `audit.html`, where every take is scored against the 12-point macOS icon rubric at 128 / 64 / 48 / 32 / 16, losers included with the reason they lost.
 
-`design/marketing/index.html` is a single-page explanation of the same idea for people who don't know what MCP is. Self-contained; open it in a browser.
+[fledgeling-co.github.io/mcp-router](https://fledgeling-co.github.io/mcp-router/) is a single-page explanation of the same idea for someone who doesn't know what MCP is. It lives in `docs/`, which is also what serves the install script.
 
 <br clear="left" />
 

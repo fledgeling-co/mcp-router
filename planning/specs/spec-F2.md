@@ -170,3 +170,40 @@ No scope narrowing: the plan carries every clause of the feature description and
 assumption. Its "Out of scope" entries are the two shared-surface changes triage already recorded as
 report-only (the prototype's decorative use of indicator colours, and the pre-existing dark-appearance
 shortfall of `--fail`/`--accent` as text on a raised surface), plus unrelated router work.
+
+
+---
+
+## Pause checkpoint — 2026-08-14
+
+Written by the ORCHESTRATOR, not the runner: the runner died mid-turn on a gateway 503
+(`no-eligible-account`, 9 of 11 accounts over reserve) and could not write its own.
+
+**Pipeline position.** Phases 1-3 DONE (design representation, triage, plan — commit
+`a723ee4`). Phase 4 DONE through checkpoint 1 (`aee928f`, `fb5215b`). Phase 5 gap-fix was
+IN FLIGHT: the runner had just recorded two codex lane failures (deadline, then empty `-o`
+file, both times) and, per protocol, was running the Phase D completeness critic as a
+logged in-family downgrade when it died.
+
+**State on disk.** Branch `ai/f2`, 3 commits, worktree CLEAN, `make test` exit 0 with
+**65 tests**. Nothing is uncommitted.
+
+**Diagnosed but unfixed.** Nothing outstanding was recorded. The last completed act was
+"All four guards proven to fail and restored green", so the red-green pass on checkpoint
+1 is done.
+
+**Next three steps.**
+1. Re-run the Phase D completeness critic. The codex lane failed TWICE at `max` on
+   deadline/empty output — go straight to a single-question scoped call at `high`, or log
+   the in-family downgrade, rather than burning a third turn on the same lane.
+2. Finish the presentation layer the earlier agent had started: the `MCPRouterUI` target
+   and its bindings.
+3. Phase 6 acceptance evidence, then Phase 7 commit and STOP before merge.
+
+**Gotchas.** The gateway pool is shared with another live fleet in `~/Dev/hopper`; a 503
+here is capacity, not your code. `make acceptance` needs an Accessibility grant and fails
+safe (exit 2) without one.
+
+**Re-read before continuing** (paths only): `planning/features-to-triage/F2-design-system.md`,
+`planning/specs/spec-F2.md`, `planning/plans/plan-F2.md`, `DESIGN.md`,
+`planning/practices/SWIFT_PRACTICES.md`.

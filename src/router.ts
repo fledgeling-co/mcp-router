@@ -6,9 +6,11 @@ import {
   ListToolsRequestSchema,
   type CallToolResult,
 } from '@modelcontextprotocol/sdk/types.js';
-import type { RouterConfig } from './config.js';
-import { ChildPool } from './pool.js';
-import { splitToolName, unionTools, type ManifestStore } from './manifest.js';
+import type { RouterConfig, UpstreamConfig } from './config.js';
+import { UpstreamPool } from './pool.js';
+import { splitToolName, unionTools, visibleTo, placardFor, type ManifestStore } from './manifest.js';
+import { ClientResolver, UsageStore, projectOf } from './usage.js';
+import { handleControl, controlToken, isControlPath } from './control.js';
 import { log } from './log.js';
 
 const MCP_PATH = '/mcp';
@@ -51,21 +53,29 @@ function json(res: ServerResponse, status: number, body: unknown): void {
 /**
  * Builds a fresh MCP Server for one HTTP request.
  *
- * The server object is cheap and per-request; the expensive state (spawned upstream
- * children) lives in the shared pool, which is what lets ten Claude sessions share
- * one copy of each server instead of forking their own.
+ * The server object is cheap and per-request; the expensive state (live upstreams)
+ * lives in the shared pool, which is what lets ten Claude sessions share one copy
+ * of each server instead of forking their own. Being per-request is also what makes
+ * attribution possible: this closure knows which socket it is answering, so it can
+ * name the process and directory behind every call it records.
  */
-function buildMcpServer(cfg: RouterConfig, manifest: ManifestStore, pool: ChildPool): Server {
-  const server = new Server(
-    { name: 'mcp-router', version: '0.1.0' },
-    { capabilities: { tools: {} } }
-  );
+function buildMcpServer(
+  cfg: RouterConfig,
+  manifest: ManifestStore,
+  pool: UpstreamPool,
+  usage: UsageStore,
+  identify: () => Promise<{ pid?: number; cwd?: string; client?: string }>
+): Server {
+  const server = new Server({ name: 'mcp-router', version: '0.1.0' }, { capabilities: { tools: {} } });
 
   // Read through the store, not a snapshot: a `mcp-router index` run while this
-  // process is up must reach the next client that lists tools.
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: unionTools(manifest.current(), cfg.upstreams),
-  }));
+  // process is up must reach the next client that lists tools. The caller's own
+  // directory is part of the answer, because a scoped server is served to some
+  // projects and not others.
+  server.setRequestHandler(ListToolsRequestSchema, async () => {
+    const who = await identify().catch(() => ({}) as { cwd?: string });
+    return { tools: unionTools(manifest.current(), cfg.upstreams, { cwd: who.cwd }) };
+  });
 
   server.setRequestHandler(CallToolRequestSchema, async (request): Promise<CallToolResult> => {
     const fullName = request.params.name;
@@ -78,26 +88,103 @@ function buildMcpServer(cfg: RouterConfig, manifest: ManifestStore, pool: ChildP
     }
 
     const { server: serverName, tool } = split;
+    const upstream = cfg.upstreams.find((u) => u.name === serverName);
+
+    // A scoped server is not merely hidden from the list — it does not run for a
+    // caller outside its projects. Hiding alone would leave it callable by any agent
+    // that learned the name from somewhere else.
+    if (upstream) {
+      const who = await identify().catch(() => ({}) as { cwd?: string });
+      if (!visibleTo(upstream, who.cwd)) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: 'text',
+              text: `Upstream "${serverName}" is not available in this project${who.cwd ? ` (${who.cwd})` : ''}.`,
+            },
+          ],
+        };
+      }
+    }
+
+    /*
+     * A placarded server answers instead of running. The error is written for the
+     * model rather than for a log: it names the fault and the substitute, so the
+     * assistant reroutes on this attempt rather than retrying a tool that cannot
+     * work and spending the turn discovering that.
+     */
+    const placard = upstream ? placardFor(upstream, manifest.current().servers[serverName]) : undefined;
+    if (placard) {
+      return {
+        isError: true,
+        content: [
+          {
+            type: 'text',
+            text:
+              `Tool "${tool}" is INOPERATIVE: ${placard.reason}.` +
+              (placard.substitute ? ` Use ${placard.substitute} instead.` : '') +
+              ` Do not retry this tool; it will keep returning this.`,
+          },
+        ],
+      };
+    }
+
+    const t0 = Date.now();
+    // Read before the call: after it the upstream is live either way, so this is
+    // the only moment at which "did this call pay the start-up cost" is knowable.
+    const cold = !pool.isLive(serverName);
+    let ok = true;
+    let err: string | undefined;
+
     try {
-      // First call for this upstream in this idle window is what spawns it.
+      // First call for this upstream in this idle window is what starts it.
       // pool.call, not acquire + callTool: the pool has to know a request is
-      // outstanding or its idle reaper will close the child mid-call.
-      const result = await pool.call(serverName, {
+      // outstanding or its idle reaper will close the upstream mid-call.
+      const result = (await pool.call(serverName, {
         name: tool,
         arguments: request.params.arguments ?? {},
-      });
-      return result as CallToolResult;
-    } catch (err) {
-      const message = (err as Error).message;
-      log.error(`call ${serverName}${'__'}${tool} failed: ${message}`);
+      })) as CallToolResult;
+      // A tool that reports its own failure is a failure in the record. Counting
+      // it as a success would make the error rate a measure of transport health
+      // rather than of whether the tool worked.
+      if (result.isError) {
+        ok = false;
+        err = 'tool reported an error';
+      }
+      return result;
+    } catch (e) {
+      ok = false;
+      err = (e as Error).message;
+      log.error(`call ${serverName}__${tool} failed: ${err}`);
       // A dead upstream is reported as a tool error, never as a router crash:
       // one broken server must not take the other nine down with it.
       return {
         isError: true,
         content: [
-          { type: 'text', text: `Upstream "${serverName}" failed to handle "${tool}": ${message}` },
+          { type: 'text', text: `Upstream "${serverName}" failed to handle "${tool}": ${err}` },
         ],
       };
+    } finally {
+      // Attribution must never delay or break a call, so it runs after the result
+      // is on its way and swallows everything.
+      void identify()
+        .then((who) => {
+          usage.record({
+            ts: new Date(t0).toISOString(),
+            server: serverName,
+            tool,
+            ok,
+            ms: Date.now() - t0,
+            cold,
+            pid: who.pid,
+            cwd: who.cwd,
+            project: projectOf(who.cwd),
+            client: who.client,
+            err,
+          });
+        })
+        .catch(() => undefined);
     }
   });
 
@@ -107,7 +194,9 @@ function buildMcpServer(cfg: RouterConfig, manifest: ManifestStore, pool: ChildP
 export async function startRouter(
   cfg: RouterConfig,
   manifest: ManifestStore,
-  pool: ChildPool
+  pool: UpstreamPool,
+  upstreams: Map<string, UpstreamConfig>,
+  usage: UsageStore
 ): Promise<{ close: () => Promise<void> }> {
   /*
    * Binding to loopback is not on its own enough to keep a browser out. A page the
@@ -126,9 +215,26 @@ export async function startRouter(
     ]),
   ];
 
+  const resolver = new ClientResolver();
+  const token = controlToken();
+  const deps = { cfg, upstreams, pool, manifest, usage };
+
   const http = createServer((req, res) => {
     void (async () => {
       const url = new URL(req.url ?? '/', `http://${cfg.host}:${cfg.port}`);
+
+      /*
+       * Start identifying the caller now, while it is certainly still alive.
+       *
+       * The lookup asks the OS who holds the other end of this socket, so it can
+       * only answer while that process exists. Deferring it to the end of a tool
+       * call — the natural place, since that is where the record is written — loses
+       * every short-lived client: the answer arrives after the process has gone and
+       * the call is logged with no project against it. The result is cached on the
+       * socket, so awaiting it later costs nothing.
+       */
+      const identity = resolver.identify(req.socket);
+      identity.catch(() => undefined);
 
       if (url.pathname === '/health') {
         return json(res, 200, { ok: true, upstreams: cfg.upstreams.length });
@@ -139,21 +245,36 @@ export async function startRouter(
           port: cfg.port,
           idleMs: cfg.idleMs,
           children: pool.status(),
+          pendingAuth: pool.pending(),
           tools: unionTools(manifest.current(), cfg.upstreams).length,
         });
       }
+
+      // The control API mutates config and streams the call log, so it is handled
+      // before the MCP endpoint and carries its own token check. Its body is only
+      // read on its own paths: the request stream can be consumed exactly once, and
+      // draining it here for a /mcp POST leaves the MCP transport waiting forever
+      // on an "end" event that has already fired.
+      if (isControlPath(url.pathname)) {
+        const controlBody =
+          req.method === 'POST' || req.method === 'PATCH'
+            ? await readBody(req).catch(() => undefined)
+            : undefined;
+        if (await handleControl(req, res, url, controlBody, deps, token)) return;
+      }
+
       if (url.pathname !== MCP_PATH) {
         return json(res, 404, { error: `not found; MCP endpoint is ${MCP_PATH}` });
       }
 
       // Stateless: a transport and server per request, so concurrent Claude sessions
-      // never share MCP session state. Only the child pool is shared.
+      // never share MCP session state. Only the upstream pool is shared.
       const transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: undefined,
         enableDnsRebindingProtection: true,
         allowedHosts,
       });
-      const server = buildMcpServer(cfg, manifest, pool);
+      const server = buildMcpServer(cfg, manifest, pool, usage, () => identity);
 
       res.on('close', () => {
         void transport.close().catch(() => undefined);
@@ -187,10 +308,24 @@ export async function startRouter(
     });
   });
 
+  /*
+   * Identify a caller the instant its connection is accepted, not when its first
+   * request is parsed. The lookup asks the OS who holds the other end of the socket,
+   * so it can only answer while that process is alive, and it takes about 80ms — long
+   * enough to lose a race against a client that fires one fast call and exits. Doing
+   * it at accept time buys the whole request-parse and tool-call duration. A real MCP
+   * client holds its connection for the session and would never have raced; a short
+   * one-shot client is exactly the case this protects.
+   */
+  http.on('connection', (socket) => {
+    void resolver.identify(socket).catch(() => undefined);
+  });
+
   log.info(`mcp-router listening on http://${cfg.host}:${cfg.port}${MCP_PATH}`);
 
   return {
     close: async () => {
+      usage.flush();
       await new Promise<void>((resolve) => http.close(() => resolve()));
       await pool.shutdown();
     },

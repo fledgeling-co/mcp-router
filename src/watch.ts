@@ -31,8 +31,15 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { ROUTER_HOME, DEFAULT_CONFIG_PATH, upstreamHash, type UpstreamConfig } from './config.js';
-import { ChildPool } from './pool.js';
+import {
+  ROUTER_HOME,
+  DEFAULT_CONFIG_PATH,
+  upstreamHash,
+  parseServer,
+  isSelfReference,
+  type UpstreamConfig,
+} from './config.js';
+import { UpstreamPool } from './pool.js';
 import { buildManifest, loadManifest, saveManifest, isStale, type Manifest } from './manifest.js';
 
 const CLAUDE_JSON = join(homedir(), '.claude.json');
@@ -134,12 +141,18 @@ function writeAtomic(path: string, contents: string, mode = 0o600): void {
   renameSync(tmp, path);
 }
 
-function isStdio(s: RawServer): boolean {
-  return (s.type ?? 'stdio') === 'stdio' && typeof s.command === 'string' && s.command.length > 0;
-}
-
-function toUpstream(name: string, s: RawServer): UpstreamConfig {
-  return { name, command: s.command as string, args: s.args ?? [], env: s.env ?? {}, cwd: s.cwd };
+/**
+ * Both transports are adoptable now. The one thing that must never be adopted is
+ * the router's own entry in ~/.claude.json, which would make it proxy to itself.
+ */
+function candidateOf(name: string, s: RawServer, port: number): UpstreamConfig | undefined {
+  if (isSelfReference(name, s, port)) return undefined;
+  const parsed = parseServer(name, s);
+  if ('reason' in parsed) {
+    watchLog(`skipped "${name}": ${parsed.reason}`);
+    return undefined;
+  }
+  return parsed.upstream;
 }
 
 export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> {
@@ -166,22 +179,17 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
     return;
   }
 
-  const candidates: Array<{ name: string; server: RawServer }> = [];
+  const routerPort = 8879;
+  const candidates: Array<{ name: string; server: RawServer; upstream: UpstreamConfig }> = [];
   for (const [name, s] of Object.entries(servers)) {
     if (RESERVED.has(name)) continue;
-    // HTTP/SSE entries are already shared endpoints carrying their own auth; routing
-    // them through here would add a hop and strip that context. They stay put.
-    if (!isStdio(s)) continue;
-    if (!/^[A-Za-z0-9_-]+$/.test(name)) {
-      watchLog(`skipped "${name}": not [A-Za-z0-9_-]+, cannot be a tool namespace`);
-      continue;
-    }
-    candidates.push({ name, server: s });
+    const upstream = candidateOf(name, s, routerPort);
+    if (upstream) candidates.push({ name, server: s, upstream });
   }
 
   if (candidates.length === 0) {
     saveState({ ...state, mcpServersHash: hash });
-    if (opts.verbose) process.stdout.write('no stdio entries to adopt\n');
+    if (opts.verbose) process.stdout.write('no entries to adopt\n');
     return;
   }
 
@@ -207,8 +215,7 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
   const toIndex: UpstreamConfig[] = [];
   const backedOff: string[] = [];
 
-  for (const { name, server } of candidates) {
-    const upstream = toUpstream(name, server);
+  for (const { name, server, upstream } of candidates) {
     const failure = failures[name];
     if (failure && failure.hash === upstreamHash(upstream) && now - failure.at < FAILURE_BACKOFF_MS) {
       backedOff.push(name);
@@ -222,7 +229,7 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
   // has proved it starts and answers `tools/list` — otherwise a typo'd command would
   // be silently swallowed out of user scope and into a config that cannot serve it.
   if (toIndex.length > 0) {
-    const pool = new ChildPool(
+    const pool = new UpstreamPool(
       new Map(toIndex.map((u) => [u.name, u])),
       60_000,
       (routerCfg.startupTimeoutMs as number) ?? 60_000
@@ -296,7 +303,7 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
     const removed: string[] = [];
     for (const name of adopted) {
       const staging = staged[name];
-      if (!staging || !isStdio(staging) || RESERVED.has(name)) continue;
+      if (!staging || 'reason' in parseServer(name, staging) || RESERVED.has(name)) continue;
       /*
        * Only remove what is still exactly what was indexed. Indexing spawns a
        * child and waits for it to initialize, so the window is seconds — long

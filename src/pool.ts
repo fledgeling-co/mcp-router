@@ -1,34 +1,52 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import type { UpstreamConfig } from './config.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
+import { UnauthorizedError } from '@modelcontextprotocol/sdk/client/auth.js';
+import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import { isStdio, type UpstreamConfig, type HttpUpstream, type StdioUpstream } from './config.js';
+import { FileOAuthProvider } from './auth.js';
 import { log } from './log.js';
 
-export interface ChildHandle {
+export interface UpstreamHandle {
   client: Client;
-  transport: StdioClientTransport;
+  transport: Transport;
   startedAt: number;
   lastUsedAt: number;
   calls: number;
 }
 
 interface PoolEntry {
-  handle?: ChildHandle;
-  /** Single-flight: concurrent callers await the same spawn rather than racing two children. */
-  starting?: Promise<ChildHandle>;
+  handle?: UpstreamHandle;
+  /** Single-flight: concurrent callers await the same connect rather than racing two. */
+  starting?: Promise<UpstreamHandle>;
   reapTimer?: NodeJS.Timeout;
-  /** Calls currently awaiting a response on this child. Never reap above zero. */
+  /** Calls currently awaiting a response on this upstream. Never reap above zero. */
   inFlight: number;
 }
 
+/** An HTTP upstream that answered 401 and wants the user to authorize in a browser. */
+export interface PendingAuth {
+  server: string;
+  url: string;
+  at: string;
+}
+
 /**
- * Owns the lifecycle of every stdio upstream: nothing is spawned until a tool on
- * that server is actually called, and each child is closed again once it has been
- * idle past its window. This is the whole point of the router — a session that
- * never touches a server never pays for it.
+ * Owns the lifecycle of every upstream.
+ *
+ * For stdio that is the whole point of the router: nothing is spawned until a tool
+ * on that server is actually called, and each child is closed again once it has been
+ * idle past its window, so a session that never touches a server never pays for it.
+ *
+ * For HTTP there is no process to save — that transport already multiplexes. What
+ * pooling buys there is the connection itself: one initialize handshake and one
+ * OAuth token exchange serve every session, instead of one per window.
  */
-export class ChildPool {
+export class UpstreamPool {
   private entries = new Map<string, PoolEntry>();
   private shuttingDown = false;
+  private pendingAuth = new Map<string, PendingAuth>();
 
   constructor(
     private upstreams: Map<string, UpstreamConfig>,
@@ -37,7 +55,7 @@ export class ChildPool {
   ) {}
 
   /** Environment for a child: the router's own env, then the server's overrides. */
-  private buildEnv(u: UpstreamConfig): Record<string, string> {
+  private buildEnv(u: StdioUpstream): Record<string, string> {
     const env: Record<string, string> = {};
     for (const [k, v] of Object.entries(process.env)) {
       if (typeof v === 'string') env[k] = v;
@@ -45,7 +63,16 @@ export class ChildPool {
     return { ...env, ...u.env };
   }
 
-  async acquire(serverName: string): Promise<ChildHandle> {
+  /** Servers currently waiting on a browser authorization, for `/servers` to report. */
+  pending(): PendingAuth[] {
+    return [...this.pendingAuth.values()];
+  }
+
+  clearPending(server: string): void {
+    this.pendingAuth.delete(server);
+  }
+
+  async acquire(serverName: string): Promise<UpstreamHandle> {
     if (this.shuttingDown) throw new Error('router is shutting down');
 
     const u = this.upstreams.get(serverName);
@@ -63,7 +90,7 @@ export class ChildPool {
     }
     if (entry.starting) return entry.starting;
 
-    entry.starting = this.spawn(u)
+    entry.starting = this.open(u)
       .then((handle) => {
         const e = this.entries.get(serverName);
         if (e) {
@@ -71,6 +98,7 @@ export class ChildPool {
           e.starting = undefined;
           this.touch(serverName, e);
         }
+        this.pendingAuth.delete(serverName);
         return handle;
       })
       .catch((err) => {
@@ -82,28 +110,63 @@ export class ChildPool {
     return entry.starting;
   }
 
-  private async spawn(u: UpstreamConfig): Promise<ChildHandle> {
+  /** Build the transport for one upstream. stdio spawns a process; http/sse do not. */
+  private makeTransport(u: UpstreamConfig): Transport {
+    if (isStdio(u)) {
+      const t = new StdioClientTransport({
+        command: u.command,
+        args: u.args,
+        env: this.buildEnv(u),
+        cwd: u.cwd,
+        stderr: 'pipe',
+      });
+      // Drain the child's stderr so a chatty server cannot fill its pipe buffer and wedge.
+      t.stderr?.on('data', (chunk: Buffer) => {
+        const text = chunk.toString().trim();
+        if (text) log.debug(`[${u.name}] ${text.slice(0, 400)}`);
+      });
+      return t;
+    }
+
+    const http = u as HttpUpstream;
+    /*
+     * `serve` runs under launchd with no user attached, so it cannot open a browser
+     * and must not try. It records the authorization URL instead; `/servers` reports
+     * it and `mcp-router auth <name>` — or the app — is what actually completes the
+     * flow. The alternative, silently failing every call on a server whose token
+     * expired, is the one behaviour there is no way to diagnose from the outside.
+     */
+    const authProvider =
+      http.oauth === false
+        ? undefined
+        : new FileOAuthProvider(u.name, (url) => {
+            this.pendingAuth.set(u.name, {
+              server: u.name,
+              url: url.toString(),
+              at: new Date().toISOString(),
+            });
+            log.warn(`upstream "${u.name}" needs authorization — run \`mcp-router auth ${u.name}\``);
+          });
+
+    const opts = {
+      authProvider,
+      requestInit: Object.keys(http.headers).length ? { headers: http.headers } : undefined,
+    };
+    return http.transport === 'sse'
+      ? new SSEClientTransport(new URL(http.url), opts)
+      : new StreamableHTTPClientTransport(new URL(http.url), opts);
+  }
+
+  private async open(u: UpstreamConfig): Promise<UpstreamHandle> {
     const t0 = Date.now();
-    log.info(`spawning upstream "${u.name}" (${u.command} ${u.args.join(' ')})`.slice(0, 200));
-
-    const transport = new StdioClientTransport({
-      command: u.command,
-      args: u.args,
-      env: this.buildEnv(u),
-      cwd: u.cwd,
-      stderr: 'pipe',
-    });
-
-    const client = new Client(
-      { name: 'mcp-router', version: '0.1.0' },
-      { capabilities: {} }
+    log.info(
+      isStdio(u)
+        ? `spawning upstream "${u.name}" (${u.command} ${u.args.join(' ')})`.slice(0, 200)
+        : `connecting upstream "${u.name}" (${u.transport} ${u.url})`.slice(0, 200)
     );
 
-    // Drain the child's stderr so a chatty server cannot fill its pipe buffer and wedge.
-    transport.stderr?.on('data', (chunk: Buffer) => {
-      const text = chunk.toString().trim();
-      if (text) log.debug(`[${u.name}] ${text.slice(0, 400)}`);
-    });
+    const transport = this.makeTransport(u);
+    const client = new Client({ name: 'mcp-router', version: '0.1.0' }, { capabilities: {} });
 
     const timeoutMs = u.startupTimeoutMs ?? this.startupTimeoutMs;
     let timer: NodeJS.Timeout | undefined;
@@ -118,11 +181,16 @@ export class ChildPool {
         }),
       ]);
     } catch (err) {
-      // A failed spawn must not leave a half-open child behind.
+      // A failed connect must not leave a half-open child or socket behind.
       try {
         await transport.close();
       } catch {
         /* already dead */
+      }
+      if (err instanceof UnauthorizedError) {
+        throw new Error(
+          `upstream "${u.name}" is not authorized. Run \`mcp-router auth ${u.name}\` to sign in.`
+        );
       }
       throw err;
     } finally {
@@ -132,17 +200,17 @@ export class ChildPool {
     log.info(`upstream "${u.name}" ready in ${Date.now() - t0}ms`);
 
     /*
-     * A child that exits on its own — crash, its own idle timeout, a killed
-     * process — leaves an entry whose client is dead. Without this the pool keeps
-     * handing that client out and every call to the server fails until the idle
-     * timer happens to fire, which is up to idleMs of hard failures for a server
-     * that would work if it were simply respawned. Evicting on close means the
-     * next call spawns a fresh one.
+     * An upstream that goes away on its own — a crashed child, its own idle timeout,
+     * a dropped HTTP session — leaves an entry whose client is dead. Without this the
+     * pool keeps handing that client out and every call fails until the idle timer
+     * happens to fire, which is up to idleMs of hard failures for a server that would
+     * work if it were simply reconnected. Evicting on close means the next call opens
+     * a fresh one.
      */
     transport.onclose = () => {
       const e = this.entries.get(u.name);
       if (!e?.handle || e.handle.transport !== transport) return; // already reaped
-      log.warn(`upstream "${u.name}" exited on its own; evicting so the next call respawns it`);
+      log.warn(`upstream "${u.name}" closed on its own; evicting so the next call reopens it`);
       if (e.reapTimer) clearTimeout(e.reapTimer);
       e.reapTimer = undefined;
       e.handle = undefined;
@@ -153,9 +221,9 @@ export class ChildPool {
   }
 
   /**
-   * Run one tool call, holding the child open for as long as it takes.
+   * Run one tool call, holding the upstream open for as long as it takes.
    *
-   * The idle timer is armed when a child is acquired, not when its work finishes,
+   * The idle timer is armed when an upstream is acquired, not when its work finishes,
    * so without this accounting a call that runs longer than idleMs (5 minutes by
    * default) has its own child closed underneath it and fails. That is not
    * hypothetical: a Deep Research run is documented at 4 to 60 minutes, and a
@@ -188,6 +256,11 @@ export class ChildPool {
     }
   }
 
+  /** True when this upstream is live right now — used to label a call as a cold start. */
+  isLive(serverName: string): boolean {
+    return !!this.entries.get(serverName)?.handle;
+  }
+
   /** Reset the idle clock. Called on every use, so a busy server stays warm. */
   private touch(serverName: string, entry: PoolEntry): void {
     if (entry.handle) {
@@ -197,19 +270,74 @@ export class ChildPool {
     this.armReap(serverName, entry);
   }
 
-  /** (Re)start the idle countdown. A child with work outstanding is never armed. */
+  /** (Re)start the idle countdown. An upstream with work outstanding is never armed. */
   private armReap(serverName: string, entry: PoolEntry): void {
     if (entry.reapTimer) clearTimeout(entry.reapTimer);
     entry.reapTimer = undefined;
     if (entry.inFlight > 0) return;
 
-    const idleMs = this.upstreams.get(serverName)?.idleMs ?? this.defaultIdleMs;
+    const u = this.upstreams.get(serverName);
+    // A warm server is one the user has committed to paying for. Reaping it would
+    // undo the only thing it was kept open to buy.
+    if (u?.warm) return;
+
+    const idleMs = u?.idleMs ?? this.defaultIdleMs;
     if (idleMs <= 0) return; // 0 disables reaping for this server
 
     entry.reapTimer = setTimeout(() => {
       void this.reap(serverName);
     }, idleMs);
     entry.reapTimer.unref();
+  }
+
+  /**
+   * Open every server marked warm.
+   *
+   * Failures are logged and swallowed: a warm server that will not start is a
+   * problem to report, never a reason the router does not come up.
+   */
+  async warmUp(): Promise<void> {
+    const warm = [...this.upstreams.values()].filter((u) => u.warm);
+    if (!warm.length) return;
+    log.info(`pre-opening ${warm.length} warm upstream(s): ${warm.map((u) => u.name).join(', ')}`);
+    await Promise.all(
+      warm.map((u) =>
+        this.acquire(u.name).catch((err: Error) =>
+          log.warn(`warm upstream "${u.name}" did not start: ${err.message}`)
+        )
+      )
+    );
+  }
+
+  /**
+   * Resident size of each live stdio child, in MB.
+   *
+   * One `ps` for every pid rather than one per server: the warm set is a budget the
+   * user sets in memory, so the number behind it has to be measured. HTTP upstreams
+   * have no local process and are reported as 0 rather than guessed at.
+   */
+  async residentMb(): Promise<Record<string, number>> {
+    const pids: Array<[string, number]> = [];
+    for (const [name, entry] of this.entries) {
+      const pid = (entry.handle?.transport as { pid?: number } | undefined)?.pid;
+      if (pid) pids.push([name, pid]);
+    }
+    if (!pids.length) return {};
+    const { execFile } = await import('node:child_process');
+    const out = await new Promise<string>((resolve) => {
+      execFile(
+        '/bin/ps',
+        ['-o', 'pid=,rss=', '-p', pids.map(([, p]) => p).join(',')],
+        { timeout: 2000 },
+        (err, stdout) => resolve(err ? '' : stdout)
+      );
+    });
+    const rssByPid = new Map<number, number>();
+    for (const line of out.trim().split('\n')) {
+      const [pid, rss] = line.trim().split(/\s+/).map(Number);
+      if (pid && rss) rssByPid.set(pid, Math.round(rss / 1024));
+    }
+    return Object.fromEntries(pids.map(([name, pid]) => [name, rssByPid.get(pid) ?? 0]));
   }
 
   private async reap(serverName: string, force = false): Promise<void> {
@@ -226,8 +354,9 @@ export class ChildPool {
     handle.transport.onclose = undefined;
 
     const aliveMs = Date.now() - handle.startedAt;
+    const kind = isStdio(this.upstreams.get(serverName)!) ? 'child' : 'connection';
     log.info(
-      `reaping idle upstream "${serverName}" after ${handle.calls} call(s), ${Math.round(aliveMs / 1000)}s alive`
+      `closing idle ${kind} "${serverName}" after ${handle.calls} call(s), ${Math.round(aliveMs / 1000)}s alive`
     );
     try {
       await handle.client.close();
@@ -241,21 +370,40 @@ export class ChildPool {
     }
   }
 
-  status(): Array<{ name: string; state: string; calls: number; idleSec: number }> {
-    const out: Array<{ name: string; state: string; calls: number; idleSec: number }> = [];
-    for (const name of this.upstreams.keys()) {
+  /**
+   * A snapshot of every upstream's live state.
+   *
+   * `callsServed` and `inFlight` are different questions and were previously conflated:
+   * the control API reported the lifetime counter under the name `liveCalls`, so an
+   * idle server that had answered three calls an hour ago read as three calls in
+   * flight. Only `inFlight` blocks the reaper, so only `inFlight` should ever be
+   * presented as work outstanding.
+   */
+  status(): Array<{
+    name: string;
+    transport: string;
+    state: string;
+    callsServed: number;
+    inFlight: number;
+    idleSec: number;
+  }> {
+    const out: ReturnType<UpstreamPool['status']> = [];
+    for (const [name, u] of this.upstreams) {
       const e = this.entries.get(name);
+      const transport = u.transport;
       if (e?.handle) {
         out.push({
           name,
+          transport,
           state: 'running',
-          calls: e.handle.calls,
+          callsServed: e.handle.calls,
+          inFlight: e.inFlight,
           idleSec: Math.round((Date.now() - e.handle.lastUsedAt) / 1000),
         });
       } else if (e?.starting) {
-        out.push({ name, state: 'starting', calls: 0, idleSec: 0 });
+        out.push({ name, transport, state: 'starting', callsServed: 0, inFlight: e.inFlight, idleSec: 0 });
       } else {
-        out.push({ name, state: 'idle', calls: 0, idleSec: 0 });
+        out.push({ name, transport, state: 'idle', callsServed: 0, inFlight: 0, idleSec: 0 });
       }
     }
     return out;
@@ -266,7 +414,7 @@ export class ChildPool {
     const names = [...this.entries.keys()];
 
     /*
-     * Await any spawn still in flight before reaping. reap() returns immediately
+     * Await any connect still in flight before reaping. reap() returns immediately
      * when there is no handle yet, so a child being spawned as SIGTERM arrives
      * (launchd restarting the router on a config change, landing during a first
      * call) would finish starting after shutdown resolved and process.exit ran —
@@ -280,7 +428,7 @@ export class ChildPool {
         try {
           await e.starting;
         } catch {
-          /* the spawn failed, so there is nothing to close */
+          /* the connect failed, so there is nothing to close */
         }
       })
     );

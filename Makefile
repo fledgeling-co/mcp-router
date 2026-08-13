@@ -52,17 +52,46 @@ build-ios: generate
 	  -destination '$(IOS_DEST)' -derivedDataPath $(DERIVED) $(UNSIGNED) build
 
 ## Swift Testing reports success for a suite that executed zero tests, so a target that silently
-## stops matching its test files exits 0 and the gate says "passed". Counting the enumerated tests
-## first turns that into a failure. `swift test list` is used rather than scraping run output
-## because its format is stable across toolchain versions.
+## stops matching its test files exits 0 and the gate says "passed". This guard closes that, and
+## three narrower holes the obvious version of it leaves open.
+##
+## A listing that *fails* must not read as a suite with no tests: the two want opposite responses,
+## and discarding stderr turns a compile error into "zero tests discovered", pointing whoever reads
+## it at the wrong problem. So the listing's status is checked on its own, with its diagnostics kept.
+##
+## Discovery is also not execution. A suite whose tests are all disabled discovers many and runs
+## none, which is the same silent pass by a different route — so the count that decides the gate is
+## read from the xUnit report `swift test` writes, which is a machine-readable artifact of what
+## actually ran rather than a scrape of human-readable output whose format is free to change.
 test:
-	@cd $(APP_DIR) && count=$$(swift test list 2>/dev/null | grep -cE '\(\)$$' || true); \
-	  echo "discovered $$count tests"; \
-	  if [ "$$count" -eq 0 ]; then \
+	@set -eu -o pipefail; cd $(APP_DIR); \
+	  if ! listing=$$(swift test list 2>&1); then \
+	    echo "error: could not enumerate tests — this is a build or toolchain failure, not an empty suite:"; \
+	    echo "$$listing"; exit 1; \
+	  fi; \
+	  discovered=$$(printf '%s\n' "$$listing" | grep -cE '\(\)$$' || true); \
+	  echo "discovered $$discovered tests"; \
+	  if [ "$$discovered" -eq 0 ]; then \
 	    echo "error: zero tests discovered — the suite is not running, which is a failure, not a pass"; \
 	    exit 1; \
 	  fi
-	cd $(APP_DIR) && swift test
+	@set -eu -o pipefail; cd $(APP_DIR); \
+	  dir="$$(mktemp -d -t mcprouter-xunit)"; \
+	  trap 'rm -rf "$$dir"' EXIT; \
+	  swift test --xunit-output "$$dir/report.xml"; \
+	  reports=$$(find "$$dir" -name '*.xml' -size +0c); \
+	  if [ -z "$$reports" ]; then \
+	    echo "error: swift test wrote no xUnit report, so the number of tests that ran is unknown"; \
+	    exit 1; \
+	  fi; \
+	  ran=$$(cat $$reports \
+	         | sed -n 's/.*<testsuite [^>]*tests="\([0-9]*\)".*/\1/p' \
+	         | awk '{ total += $$1 } END { print total + 0 }'); \
+	  echo "executed $$ran tests"; \
+	  if [ "$$ran" -eq 0 ]; then \
+	    echo "error: zero tests executed — a suite can discover tests and run none of them"; \
+	    exit 1; \
+	  fi
 
 lint: tools
 	swiftformat --lint . --config .swiftformat

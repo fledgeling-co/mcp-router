@@ -13,7 +13,12 @@ struct ControlContractTests {
     /// actually gets sent, so the encoder is what gets asserted.
     @Test("an encoded ServerPatch can never carry command, args or env")
     func patchCannotRewriteACommandLine() throws {
-        let patch = ServerPatch(warm: true, projects: ["/tmp/a", "/tmp/b"], acceptPendingChange: true)
+        let patch = ServerPatch(
+            projects: ["/tmp/a", "/tmp/b"],
+            warm: true,
+            idleMs: 30000,
+            placard: Placard(reason: "under review")
+        )
         let data = try JSONEncoder().encode(patch)
         let object = try #require(
             try JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -29,16 +34,70 @@ struct ControlContractTests {
                 """
             )
         }
-        #expect(Set(object.keys).isSubset(of: ["warm", "projects", "acceptPendingChange"]))
+        #expect(Set(object.keys).isSubset(of: ServerPatch.permittedWireKeys))
     }
 
-    @Test("a fully-populated patch still encodes only its three permitted fields")
+    /// The shape is checked against the router's own handler rather than against itself: the
+    /// TypeScript `PATCH /servers/:name` reads `projects`, `warm`, `idleMs` and `placard`, and
+    /// silently ignores anything else. A field here that the router does not read produces a call
+    /// that returns 200 and changes nothing, which is worse than a failure.
+    @Test("a fully-populated patch encodes exactly the keys the router reads")
     func patchKeysAreExactlyThePermittedOnes() throws {
         let data = try JSONEncoder().encode(
-            ServerPatch(warm: false, projects: [], acceptPendingChange: false)
+            ServerPatch(projects: [], warm: false, idleMs: 0, placard: Placard(reason: "x"))
         )
         let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
-        #expect(Set(object.keys) == ["warm", "projects", "acceptPendingChange"])
+        #expect(Set(object.keys) == ServerPatch.permittedWireKeys)
+    }
+
+    /// The stored-property check that the encoded-JSON check cannot make.
+    ///
+    /// Adding `public var command: String?` and leaving it nil is invisible to every assertion
+    /// above — the synthesised encoder omits nil optionals, so the key set is unchanged and the
+    /// suite stays green until the day a caller assigns it. Reflection sees the property whether
+    /// or not it currently has a value, which is exactly the gap the encoder cannot cover.
+    @Test("no stored property is named after a forbidden wire key")
+    func noForbiddenStoredProperty() {
+        let labels = Mirror(reflecting: ServerPatch()).children.compactMap(\.label)
+        for label in labels {
+            #expect(
+                !ServerPatch.forbiddenWireKeys.contains(label),
+                "ServerPatch has a stored property '\(label)' — nil today, on the wire tomorrow"
+            )
+        }
+        #expect(
+            Set(labels) == ServerPatch.permittedWireKeys,
+            "stored properties and permitted wire keys have diverged: \(labels.sorted())"
+        )
+    }
+
+    /// `encodedBody()` is the path the app uses, so it is the path that gets tested. The assertions
+    /// above encode with a locally-constructed encoder, which proves nothing about a caller that
+    /// brings its own — this one exercises the real seam.
+    @Test("encodedBody produces only permitted keys")
+    func encodedBodyIsAllowlisted() throws {
+        let data = try ServerPatch(projects: ["/tmp/a"], warm: true).encodedBody()
+        let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        #expect(Set(object.keys).isSubset(of: ServerPatch.permittedWireKeys))
+        #expect(object["projects"] != nil)
+        #expect(object["warm"] != nil)
+    }
+
+    /// The allowlist has to be able to *fail*, or it is decoration.
+    ///
+    /// There is no way to make `ServerPatch` itself emit a forbidden key without editing it, which
+    /// is the point of the design — so the check is exercised on an equivalent encode-and-inspect
+    /// of a shape that does carry one, proving the comparison rejects what it claims to reject
+    /// rather than merely never being handed anything bad.
+    @Test("the wire-key check rejects a body carrying a forbidden key")
+    func allowlistRejectsForbiddenKeys() throws {
+        struct Rogue: Encodable { var command: String }
+        let data = try JSONEncoder().encode(Rogue(command: "/bin/sh"))
+        let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let keys = Set(object.keys)
+
+        #expect(!keys.isDisjoint(with: ServerPatch.forbiddenWireKeys))
+        #expect(!keys.subtracting(ServerPatch.permittedWireKeys).isEmpty)
     }
 
     /// A shape the decoder does not recognise must fail loudly. The TypeScript router shipped a

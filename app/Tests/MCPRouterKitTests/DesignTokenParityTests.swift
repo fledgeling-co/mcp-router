@@ -88,13 +88,41 @@ struct DesignTokenParityTests {
     /// gap is visible in the source instead of being implied by a parser that quietly skips them.
     static let metricRowsNotMachineChecked = ["Sidebar selection", "Control ladder"]
 
+    /// The name sets must match **exactly**, which is stronger than checking each side contains
+    /// the other's entries one at a time.
+    ///
+    /// The earlier form let a documented metric with no enum case pass silently: the per-row loop
+    /// did `guard let token = MetricToken(rawValue:) else { continue }`, so adding
+    /// `| Inspector width | 320pt |` to the document left the suite green while the document
+    /// specified a token the code did not have. Comparing the sets is what closes that.
+    @Test("the documented metric names and the enum cases are the same set")
+    func metricNameSetsMatchExactly() throws {
+        let rows = try DesignDocParser.metricRows(in: Self.documentText())
+        let documented = Set(
+            rows.map(\.element).filter { !Self.metricRowsNotMachineChecked.contains($0) }
+        )
+        let inCode = Set(MetricToken.allCases.map(\.rawValue))
+
+        #expect(
+            documented.subtracting(inCode).isEmpty,
+            "DESIGN.md documents metrics with no MetricToken: \(documented.subtracting(inCode).sorted())"
+        )
+        #expect(
+            inCode.subtracting(documented).isEmpty,
+            "MetricToken cases with no documented row: \(inCode.subtracting(documented).sorted())"
+        )
+    }
+
     @Test("chrome metrics match the leading scalar of their documented value")
     func metricsDocumentToCode() throws {
         let rows = try DesignDocParser.metricRows(in: Self.documentText())
         #expect(!rows.isEmpty, "parsed no chrome-geometry rows")
 
         for row in rows where !Self.metricRowsNotMachineChecked.contains(row.element) {
-            guard let token = MetricToken(rawValue: row.element) else { continue }
+            guard let token = MetricToken(rawValue: row.element) else {
+                Issue.record("DESIGN.md documents metric '\(row.element)' but no MetricToken defines it")
+                continue
+            }
             guard let scalar = row.leadingScalar else {
                 Issue.record("\(row.element) has a MetricToken but its documented value is prose")
                 continue
@@ -106,11 +134,13 @@ struct DesignTokenParityTests {
         }
     }
 
-    @Test("every MetricToken case traces back to a row in DESIGN.md")
-    func metricsCodeToDocument() throws {
-        let documented = try Set(DesignDocParser.metricRows(in: Self.documentText()).map(\.element))
-        for token in MetricToken.allCases {
-            #expect(documented.contains(token.rawValue), "MetricToken.\(token) has no row in DESIGN.md")
+    @Test("an excluded row must not also have a token — exclusion is not a way past the check")
+    func exclusionsHaveNoToken() {
+        for name in Self.metricRowsNotMachineChecked {
+            #expect(
+                MetricToken(rawValue: name) == nil,
+                "\(name) is on the exclusion list AND has a MetricToken — its value would never be checked"
+            )
         }
     }
 
@@ -127,6 +157,28 @@ struct DesignTokenParityTests {
                 """
             )
         }
+    }
+
+    // MARK: - Whole-registry name-set parity
+
+    @Test("the documented colour names and the enum cases are the same set")
+    func colorNameSetsMatchExactly() throws {
+        let documented = try Set(DesignDocParser.colorRows(in: Self.documentText()).map(\.name))
+        let inCode = Set(ColorToken.allCases.map(\.rawValue))
+        #expect(
+            documented.symmetricDifference(inCode).isEmpty,
+            "colour registry and DESIGN.md disagree on: \(documented.symmetricDifference(inCode).sorted())"
+        )
+    }
+
+    @Test("the documented type roles and the enum cases are the same set")
+    func typeNameSetsMatchExactly() throws {
+        let documented = try Set(DesignDocParser.typeRows(in: Self.documentText()).map(\.role))
+        let inCode = Set(TypeToken.allCases.map(\.rawValue))
+        #expect(
+            documented.symmetricDifference(inCode).isEmpty,
+            "type ladder and DESIGN.md disagree on: \(documented.symmetricDifference(inCode).sorted())"
+        )
     }
 }
 
@@ -148,6 +200,30 @@ struct DesignDocParserTests {
         #expect(DesignDocParser.canonicalHex("`#fff`") == "#FFFFFF")
         #expect(DesignDocParser.canonicalHex("#1E1E1E") == "#1E1E1E")
         #expect(DesignDocParser.canonicalHex("not a colour") == nil)
+    }
+
+    /// The label tiers carry the colour and its alpha in one cell. How much whitespace sits between
+    /// them is a typographic choice, not a value — so every spacing of the same pair must parse to
+    /// the same colour and the same alpha.
+    ///
+    /// This is the false-failure the parser used to have: taking the first space-delimited token
+    /// made `#FFF@7.5%` a single token that failed the hex check and threw, so re-spacing a cell —
+    /// an edit that changes nothing — turned the suite red.
+    @Test("the spacing between a colour and its alpha is not significant")
+    func hexAndOpacityAreSpacingInsensitive() {
+        let forms = ["`#FFF` @7.5%", "`#FFF`@7.5%", "`#FFF`  @ 7.5%", "#fff @7.5%"]
+        for form in forms {
+            #expect(
+                DesignDocParser.canonicalHex(form) == "#FFFFFF",
+                "hex not recovered from '\(form)'"
+            )
+            #expect(
+                DesignDocParser.opacity(in: form) == 0.075,
+                "opacity not recovered from '\(form)'"
+            )
+        }
+        // A cell stating no alpha is fully opaque, and must not be confused with 0.
+        #expect(DesignDocParser.opacity(in: "`#1E1E1E`") == nil)
     }
 
     @Test("a leading scalar is read only when the cell begins with a number")

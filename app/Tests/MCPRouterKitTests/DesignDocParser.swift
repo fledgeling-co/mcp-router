@@ -87,20 +87,41 @@ enum DesignDocParser {
 
     /// `#FFF` and `#FFFFFF` are the same colour; canonicalise to six upper-case digits.
     ///
-    /// Takes only the leading hex token, because the label-tier rows carry the alpha in the same
-    /// cell as the colour — `#FFF @7.5%`.
+    /// Extracts the hex **by syntax** rather than by taking the first space-delimited token,
+    /// because the label-tier rows carry the alpha in the same cell as the colour and the spacing
+    /// between them is not meaningful: `#FFF @7.5%` and `#FFF@7.5%` are the same value, and a
+    /// parser that split on whitespace would fail the second one — a false failure caused by an
+    /// edit that changed nothing.
     static func canonicalHex(_ raw: String) -> String? {
         let s = normalise(raw).uppercased()
-        guard let first = s.split(separator: " ").first.map(String.init), first.hasPrefix("#") else {
-            return nil
+        guard let hash = s.firstIndex(of: "#") else { return nil }
+        var digits = ""
+        for ch in s[s.index(after: hash)...] {
+            guard ch.isHexDigit, digits.count < 6 else { break }
+            digits.append(ch)
         }
-        let digits = String(first.dropFirst())
-        guard !digits.isEmpty, digits.allSatisfy(\.isHexDigit) else { return nil }
         switch digits.count {
         case 3: return "#" + digits.map { "\($0)\($0)" }.joined()
         case 6: return "#" + digits
         default: return nil
         }
+    }
+
+    /// The alpha written alongside a colour, as a fraction. Nil when the cell states none, which
+    /// means fully opaque. Whitespace around the `@` is not significant.
+    static func opacity(in raw: String) -> Double? {
+        let s = normalise(raw)
+        guard let at = s.firstIndex(of: "@") else { return nil }
+        var number = ""
+        for ch in s[s.index(after: at)...] {
+            if ch.isNumber || ch == "." { number.append(ch) } else if ch == " ", number.isEmpty {
+                continue
+            } else {
+                break
+            }
+        }
+        guard let value = Double(number) else { return nil }
+        return value / 100.0
     }
 
     /// The first number appearing in a cell, or nil when the cell does not begin with one.
@@ -166,17 +187,7 @@ enum DesignDocParser {
                 guard let hex = canonicalHex(value) else {
                     throw ParseError.unparsableCell(row: line, cell: value)
                 }
-                var opacity = 1.0
-                if let at = value.firstIndex(of: "@") {
-                    let pct = value[value.index(after: at)...]
-                        .replacingOccurrences(of: "%", with: "")
-                        .trimmingCharacters(in: .whitespaces)
-                    guard let v = Double(pct) else {
-                        throw ParseError.unparsableCell(row: line, cell: value)
-                    }
-                    opacity = v / 100.0
-                }
-                rows.append(ColorRow(name: c[0], hex: hex, opacity: opacity))
+                rows.append(ColorRow(name: c[0], hex: hex, opacity: opacity(in: value) ?? 1.0))
             }
         }
         return rows

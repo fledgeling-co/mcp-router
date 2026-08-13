@@ -60,4 +60,11 @@ public protocol ControlAPIClient: Sendable {
 
     /// Change the settings a control API is permitted to change.
     func patch(server name: String, _ patch: ServerPatch) async throws(ControlAPIError) -> MCPServer
+
+    /// Accept a server's held tool-surface change.
+    ///
+    /// Deliberately its own operation rather than a field on `ServerPatch`: the router exposes it
+    /// as a separate call, and folding it into the patch body would produce a request that looks
+    /// like it worked and changes nothing.
+    func approvePendingChange(server name: String) async throws(ControlAPIError) -> MCPServer
 }

@@ -39,7 +39,7 @@ struct FoundationView: View {
 
             Text(
                 """
-                The workspace and shared library are in place. The server board, \
+                The generated project and shared library are in place. The server board, \
                 activity and settings arrive with the surfaces built on top of this.
                 """
             )

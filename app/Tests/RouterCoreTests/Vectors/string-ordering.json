@@ -1,0 +1,84 @@
+{
+  "description": "Array.prototype.sort with (a<b?-1:a>b?1:0) — the reference comparator.",
+  "cases": [
+    {
+      "id": "ordering-0",
+      "input": [
+        "b",
+        "a",
+        "c"
+      ],
+      "sorted": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    {
+      "id": "ordering-1",
+      "input": [
+        "B",
+        "a"
+      ],
+      "sorted": [
+        "B",
+        "a"
+      ]
+    },
+    {
+      "id": "ordering-2",
+      "input": [
+        "😀",
+        ""
+      ],
+      "sorted": [
+        "😀",
+        ""
+      ]
+    },
+    {
+      "id": "ordering-3",
+      "input": [
+        "",
+        "😀"
+      ],
+      "sorted": [
+        "😀",
+        ""
+      ]
+    },
+    {
+      "id": "ordering-4",
+      "input": [
+        "é",
+        "é"
+      ],
+      "sorted": [
+        "é",
+        "é"
+      ]
+    },
+    {
+      "id": "ordering-5",
+      "input": [
+        "",
+        "a"
+      ],
+      "sorted": [
+        "",
+        "a"
+      ]
+    },
+    {
+      "id": "ordering-6",
+      "input": [
+        "a",
+        "ab"
+      ],
+      "sorted": [
+        "a",
+        "ab"
+      ]
+    }
+  ]
+}

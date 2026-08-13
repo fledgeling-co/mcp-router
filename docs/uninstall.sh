@@ -62,6 +62,8 @@ if [[ -f "$SERVERS" && -f "$CLAUDE_JSON" ]]; then
       claude.mcpServers[name] = cfg;
       n++;
     }
+    // Both names: "router" is what installs before 2026-08-13 wrote.
+    delete claude.mcpServers["mcp-router"];
     delete claude.mcpServers.router;
     // Preserve the original permissions; writeFileSync on a new temp file would
     // otherwise take the umask default and widen a 0600 config to 0644.

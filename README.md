@@ -56,7 +56,7 @@ flowchart LR
 /bin/bash -c "$(curl -fsSL https://mcp-router.fledgeling.app/install.sh)"
 ```
 
-That fetches the source to `~/.local/share/mcp-router`, builds it, copies your stdio servers out of `~/.claude.json`, indexes them once, writes two launchd agents with this machine's own absolute paths, loads them, and adds a single `router` entry to `~/.claude.json`. It backs that file up first.
+That fetches the source to `~/.local/share/mcp-router`, builds it, copies your stdio servers out of `~/.claude.json`, indexes them once, writes two launchd agents with this machine's own absolute paths, loads them, and adds a single `mcp-router` entry to `~/.claude.json`. It backs that file up first.
 
 Start a new Claude Code session afterwards; a running session fetches its tool list once at init and won't see the change.
 
@@ -146,7 +146,7 @@ Three things the watcher deliberately leaves alone:
 | Not adopted | Why |
 |---|---|
 | HTTP/SSE entries | They already pool on their own transport and carry their own OAuth; another hop would strip that context |
-| The `router` entry itself | It would proxy to itself |
+| The `mcp-router` entry itself | It would proxy to itself |
 | Project scope (`.mcp.json`) and local scope | Deliberately scoped to one repo; that's the point of them |
 
 `~/.claude.json` is ~268 KB, holds live session state for every project, and Claude Code rewrites it constantly. So the watcher hashes **only** the `mcpServers` object and exits in about 100 ms when it's unchanged, which is nearly every fire. It backs the file up before writing, writes via temp file plus rename, re-reads immediately before writing so concurrent session state survives, and abandons the run without writing anything if the parse fails.

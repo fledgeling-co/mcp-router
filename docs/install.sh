@@ -10,7 +10,7 @@
 #   2. copies your stdio MCP servers out of ~/.claude.json into the router's own list
 #   3. indexes them once, so `tools/list` can be served with nothing running
 #   4. writes two launchd agents with THIS machine's absolute paths and loads them
-#   5. adds a single `router` HTTP entry to ~/.claude.json
+#   5. adds a single `mcp-router` HTTP entry to ~/.claude.json
 #
 # It backs ~/.claude.json up before touching it, and `docs/uninstall.sh`
 # puts every server back where it came from.
@@ -137,13 +137,20 @@ if [[ -f "$CLAUDE_JSON" ]]; then
   cp "$CLAUDE_JSON" "$BACKUP"
   say "backed up ~/.claude.json -> $(basename "$BACKUP")"
   # Re-read and rewrite in one pass: this file holds live session state for every
-  # project and Claude Code rewrites it constantly, so touch only mcpServers.router.
+  # project and Claude Code rewrites it constantly, so touch only the router key.
   node -e '
     const fs = require("fs");
     const p = process.argv[1], port = process.argv[2];
     const d = JSON.parse(fs.readFileSync(p, "utf8"));
     d.mcpServers = d.mcpServers || {};
-    d.mcpServers.router = { type: "http", url: `http://127.0.0.1:${port}/mcp` };
+    d.mcpServers["mcp-router"] = { type: "http", url: `http://127.0.0.1:${port}/mcp` };
+    // Earlier installs called this entry "router", which reads like a stray
+    // config key next to eleven servers named after what they do. Drop the old
+    // name so an upgrade does not leave two entries pointing at one endpoint,
+    // which would double every tool in the list.
+    if (d.mcpServers.router && d.mcpServers.router.url === d.mcpServers["mcp-router"].url) {
+      delete d.mcpServers.router;
+    }
     // Carry the original permissions onto the replacement. A temp file plus rename
     // gets fresh 0644 from the umask otherwise, so a ~/.claude.json the user keeps
     // at 0600 — the file this comment describes as holding live session state for

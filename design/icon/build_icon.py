@@ -92,10 +92,34 @@ def stroked(paths, width, **attrs) -> str:
     )
 
 
-def svg() -> str:
+def svg(bare: bool = False) -> str:
+    """The manifold. `bare` drops the tile: no squircle clip, no ground, no rim,
+    so the object stands on transparency.
+
+    That variant exists because a raster of this object carries its own ground,
+    and a ground is a plate. Place the raster anywhere and the plate comes with
+    it: bleed it off the viewport and you have merely moved the rectangle, and
+    fading its edges is impossible on the left, where the object touches. The
+    marketing page needs the object with nothing behind it, which is a build
+    flag rather than a crop.
+    """
     inbound = [conduit(ey, hy) for ey, hy in CONDUITS]
     stubs = [f'M{LIVE["x0"]},{y} L{DORMANT_X1},{y}' for y in DORMANT]
     live = f'M{LIVE["x0"]},{LIVE["y"]} L{LIVE["x1"]},{LIVE["y"]}'
+
+    open_g = "<g>" if bare else '<g clip-path="url(#tile)">'
+    bg_layer = (
+        ""
+        if bare
+        else f"""    <g id="bg">
+      <path d="{SQUIRCLE}" fill="url(#ground)"/>
+    </g>"""
+    )
+    rim_stroke = (
+        ""
+        if bare
+        else f'      <path d="{SQUIRCLE}" fill="none" stroke="url(#rim)" stroke-width="7"/>'
+    )
 
     # Every dormant run, drawn white, becomes the mask the keylines live inside —
     # so a keyline hugs its own curve instead of wandering off it.
@@ -166,12 +190,10 @@ def svg() -> str:
     </mask>
   </defs>
 
-  <g clip-path="url(#tile)">
+  {open_g}
 
     <!-- ========================================================== bg -->
-    <g id="bg">
-      <path d="{SQUIRCLE}" fill="url(#ground)"/>
-    </g>
+{bg_layer}
 
     <!-- ========================================================== mid -->
     <!-- dormant plumbing: three lines in, two short stubs out -->
@@ -250,7 +272,7 @@ def svg() -> str:
       <path d="M{HUB['x'] + 36},{HUB['y'] + 26} Q{HUB_CX},{HUB['y'] + 7} {HUB_R - 36},{HUB['y'] + 26}"
             stroke="#E4E2FA" stroke-opacity="0.58" stroke-width="7"
             stroke-linecap="round" fill="none"/>
-      <path d="{SQUIRCLE}" fill="none" stroke="url(#rim)" stroke-width="7"/>
+{rim_stroke}
     </g>
 
   </g>
@@ -262,3 +284,7 @@ if __name__ == "__main__":
     out = HERE / "icon-a-manifold.svg"
     out.write_text(svg())
     print(f"wrote {out}")
+
+    bare = HERE / "manifold-bare.svg"
+    bare.write_text(svg(bare=True))
+    print(f"wrote {bare}")

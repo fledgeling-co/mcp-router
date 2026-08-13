@@ -79,9 +79,9 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 | ID | Title | Category | Deps | Mock (deep link) | Lane | Status | Branch | Outcome |
 |---|---|---|---|---|---|---|---|---|
 | F1 | Swift workspace, kit, three targets | foundation | — | — | Opus | **Merged** `0924040` | — | `make all` exit 0 on the merged tree · 31 tests · both targets build · **A12 (CI) unmet — never executed, branch unpushed** |
-| F2 | Design system in SwiftUI | foundation | F1 ✓ | `?only=mac` + `DESIGN.md` §§2–7 | Opus | **In Progress** | `ai/f2` | wave 2 |
-| F3 | Control-API client and models | foundation | F1 ✓ | — (surface: `src/control.ts`) | Opus | **In Progress** | `ai/f3` | wave 2 |
-| R1 | Router: core, config, manifest | router | F1 ✓ | — | Opus | **In Progress** | `ai/r1` | wave 2 |
+| F2 | Design system in SwiftUI | foundation | F1 ✓ | `?only=mac` + `DESIGN.md` §§2–7 | Opus | **Paused — capacity** | `ai/f2` (4) | green, 65 tests · died mid Phase-D critic · checkpoint in spec |
+| F3 | Control-API client and models | foundation | F1 ✓ | — (surface: `src/control.ts`) | Opus | **Paused — capacity** | `ai/f3` (2) | green, 93 tests · 28 files orphaned, rescued by orchestrator · died entering red-green pass |
+| R1 | Router: core, config, manifest | router | F1 ✓ | — | Opus | **Paused — capacity, RED** | `ai/r1` (6) | **does not compile** — `VectorRegistry.swift:68` actor-isolated default · 24 files rescued red |
 | R2 | Router: pool, relay, passthrough | router | R1 | — | Opus | Untriaged | — | — |
 | R3 | Router: control, auth, usage, registry | router | R1 | — | Opus | Untriaged | — | — |
 | R4 | Parity harness and cutover | router | R2, R3 | — | Opus — never downgrade | Untriaged | — | — |
@@ -116,6 +116,34 @@ are pending deletion.
 
 ## Changelog
 
+- 2026-08-14 — **Wave 2 died on capacity, not code.** All three runners took
+  `503 no-eligible-account` — "9 of 11 accounts at or over their usage reserve". The
+  gateway pool is shared, and `lifeline` shows **another live fleet in `~/Dev/hopper`**
+  with agents in flight. Relaunching into that starves again, so wave 2 is **paused, not
+  failed**, and nothing has been discarded.
+
+  The journal reads `started=6 results=0`, so a `resumeFromRunId` would replay **nothing**
+  — the recovery is a re-run in the existing worktrees on the existing branches, never a
+  fresh start, because all three died LATE:
+
+  | Item | Branch | Gate now | Died at |
+  |---|---|---|---|
+  | F2 | `ai/f2` (4) | `make test` exit 0, 65 tests, clean | mid Phase-D critic, after two codex lane failures |
+  | F3 | `ai/f3` (2) | `make test` exit 0, **93 tests** | entering the red-green proving pass |
+  | R1 | `ai/r1` (6) | **RED — does not compile** | mid-write of `VectorRegistry.swift` |
+
+  Orchestrator actions taken while the pool is contended:
+  1. **Rescued 52 orphaned files.** F3 died with 28 uncommitted and *nothing* on its
+     branch; R1 with 24 and a broken build. Both are now WIP commits, R1's deliberately
+     red and labelled as such — losing the files is worse than a red commit on a branch
+     that is never merged in that state.
+  2. **Wrote pause checkpoints into all three specs**, since no runner survived to write
+     its own: exact stopping point, what is on disk, the diagnosed-but-unfixed defect, and
+     the next three steps. A resume reads those instead of re-deriving state.
+  3. Confirmed each branch's gate independently rather than trusting a report.
+
+  **Resume is blocked on capacity, which is the user's call, not a code fix.**
+
 - 2026-08-14 — **Wave 2 launched: F2, F3, R1.** Three slots.
 - 2026-08-14 — **F1 merged as `0924040`.** Verified independently rather than on the
   runner's report: protected files diffed clean (`DESIGN.md`, the ledger, this file,
@@ -140,6 +168,18 @@ are pending deletion.
   Also: `make acceptance` needs an Accessibility grant and fails *safe* (exit 2) without
   one, so on hosted CI it will report blocked rather than green.
 
+- 2026-08-14 — A task notification reported wave 2 stopped with "no completion record"
+  and instructed a relaunch with `resumeFromRunId`. **Declined — the premise was false.**
+  The scanner reports the run `LIVE · session-alive`, one agent still writing, and F2/F3
+  worktrees held by live processes with an active `swift test`. Relaunching would have
+  dropped a second set of agents into worktrees already being written to. It would also
+  have bought nothing: `started=6 results=0`, so the replay cache is empty and a resume
+  cold-starts regardless. The notification's `TICKET-123` is lifeline's placeholder id,
+  not one of ours. Six starts against three items = the harness retrying; the recurring
+  cause on every agent is a **session/usage limit**, which is throttling this wave rather
+  than killing it. Left alone; a tracked waiter is armed for the settle. Journal resolves
+  under session `bdb1ad3b`, so nothing is orphaned — but note compaction can mint a new
+  session id and silently orphan a journal mid-run, which would break any later resume.
 - 2026-08-13 — Fleet size confirmed with the user: **all 18 items**. Runner lane verified
   on the wire (`claude-opus-5`), not merely configured. Wave 1 launched: F1 alone, since
   every other item depends on it. Deviation from the skill's serial pre-triage, stated:

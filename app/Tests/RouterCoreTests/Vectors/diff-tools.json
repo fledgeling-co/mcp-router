@@ -1,0 +1,209 @@
+{
+  "description": "diffTools(before, after) — the returned array, as JSON.stringify writes it.",
+  "cases": [
+    {
+      "id": "no-change",
+      "before": [
+        {
+          "name": "a",
+          "description": "d"
+        }
+      ],
+      "after": [
+        {
+          "name": "a",
+          "description": "d"
+        }
+      ],
+      "diff": "[]"
+    },
+    {
+      "id": "added",
+      "before": [],
+      "after": [
+        {
+          "name": "a",
+          "description": "new"
+        }
+      ],
+      "diff": "[{\"kind\":\"added\",\"name\":\"a\",\"after\":{\"description\":\"new\",\"schema\":\"{}\"}}]"
+    },
+    {
+      "id": "removed",
+      "before": [
+        {
+          "name": "a",
+          "description": "gone",
+          "inputSchema": {
+            "type": "object"
+          }
+        }
+      ],
+      "after": [],
+      "diff": "[{\"kind\":\"removed\",\"name\":\"a\",\"before\":{\"description\":\"gone\"}}]"
+    },
+    {
+      "id": "changed-description",
+      "before": [
+        {
+          "name": "a",
+          "description": "old"
+        }
+      ],
+      "after": [
+        {
+          "name": "a",
+          "description": "new"
+        }
+      ],
+      "diff": "[{\"kind\":\"changed\",\"name\":\"a\",\"before\":{\"description\":\"old\",\"schema\":\"{}\"},\"after\":{\"description\":\"new\",\"schema\":\"{}\"}}]"
+    },
+    {
+      "id": "changed-schema-only",
+      "before": [
+        {
+          "name": "a",
+          "description": "d",
+          "inputSchema": {
+            "a": 1
+          }
+        }
+      ],
+      "after": [
+        {
+          "name": "a",
+          "description": "d",
+          "inputSchema": {
+            "a": 2
+          }
+        }
+      ],
+      "diff": "[{\"kind\":\"changed\",\"name\":\"a\",\"before\":{\"description\":\"d\",\"schema\":\"{\\\"a\\\":1}\"},\"after\":{\"description\":\"d\",\"schema\":\"{\\\"a\\\":2}\"}}]"
+    },
+    {
+      "id": "ordering-mixed",
+      "before": [
+        {
+          "name": "r1"
+        },
+        {
+          "name": "k",
+          "description": "old"
+        },
+        {
+          "name": "r2"
+        }
+      ],
+      "after": [
+        {
+          "name": "z",
+          "description": "added-z"
+        },
+        {
+          "name": "k",
+          "description": "new"
+        },
+        {
+          "name": "a",
+          "description": "added-a"
+        }
+      ],
+      "diff": "[{\"kind\":\"added\",\"name\":\"z\",\"after\":{\"description\":\"added-z\",\"schema\":\"{}\"}},{\"kind\":\"changed\",\"name\":\"k\",\"before\":{\"description\":\"old\",\"schema\":\"{}\"},\"after\":{\"description\":\"new\",\"schema\":\"{}\"}},{\"kind\":\"added\",\"name\":\"a\",\"after\":{\"description\":\"added-a\",\"schema\":\"{}\"}},{\"kind\":\"removed\",\"name\":\"r1\",\"before\":{}},{\"kind\":\"removed\",\"name\":\"r2\",\"before\":{}}]"
+    },
+    {
+      "id": "invisible-zero-width",
+      "before": [],
+      "after": [
+        {
+          "name": "a",
+          "description": "safe​text"
+        }
+      ],
+      "diff": "[{\"kind\":\"added\",\"name\":\"a\",\"after\":{\"description\":\"safe​text\",\"schema\":\"{}\"},\"invisible\":[\"U+200B\"]}]"
+    },
+    {
+      "id": "invisible-u2066-negative",
+      "before": [],
+      "after": [
+        {
+          "name": "a",
+          "description": "safe⁦text"
+        }
+      ],
+      "diff": "[{\"kind\":\"added\",\"name\":\"a\",\"after\":{\"description\":\"safe⁦text\",\"schema\":\"{}\"}}]"
+    },
+    {
+      "id": "invisible-deduped-by-first-occurrence",
+      "before": [],
+      "after": [
+        {
+          "name": "a",
+          "description": "​﻿​­"
+        }
+      ],
+      "diff": "[{\"kind\":\"added\",\"name\":\"a\",\"after\":{\"description\":\"​﻿​­\",\"schema\":\"{}\"},\"invisible\":[\"U+200B\",\"U+FEFF\",\"U+00AD\"]}]"
+    },
+    {
+      "id": "invisible-not-reported-on-removal",
+      "before": [
+        {
+          "name": "a",
+          "description": "bad​text"
+        }
+      ],
+      "after": [],
+      "diff": "[{\"kind\":\"removed\",\"name\":\"a\",\"before\":{\"description\":\"bad​text\"}}]"
+    },
+    {
+      "id": "invisible-not-reported-from-old-description",
+      "before": [
+        {
+          "name": "a",
+          "description": "bad​text"
+        }
+      ],
+      "after": [
+        {
+          "name": "a",
+          "description": "clean"
+        }
+      ],
+      "diff": "[{\"kind\":\"changed\",\"name\":\"a\",\"before\":{\"description\":\"bad​text\",\"schema\":\"{}\"},\"after\":{\"description\":\"clean\",\"schema\":\"{}\"}}]"
+    },
+    {
+      "id": "absent-to-null-description",
+      "before": [
+        {
+          "name": "a"
+        }
+      ],
+      "after": [
+        {
+          "name": "a",
+          "description": null
+        }
+      ],
+      "diff": "[{\"kind\":\"changed\",\"name\":\"a\",\"before\":{\"schema\":\"{}\"},\"after\":{\"description\":null,\"schema\":\"{}\"}}]"
+    },
+    {
+      "id": "duplicate-names-collapse",
+      "before": [
+        {
+          "name": "a",
+          "description": "one"
+        }
+      ],
+      "after": [
+        {
+          "name": "a",
+          "description": "two"
+        },
+        {
+          "name": "a",
+          "description": "three"
+        }
+      ],
+      "diff": "[{\"kind\":\"changed\",\"name\":\"a\",\"before\":{\"description\":\"one\",\"schema\":\"{}\"},\"after\":{\"description\":\"three\",\"schema\":\"{}\"}}]"
+    }
+  ]
+}

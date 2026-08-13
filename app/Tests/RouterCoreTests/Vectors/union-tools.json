@@ -1,0 +1,297 @@
+{
+  "description": "unionTools(manifest, upstreams, {cwd}) — the served list, as JSON.stringify writes it.",
+  "cases": [
+    {
+      "id": "plain",
+      "servers": {
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "one",
+              "description": "does one"
+            }
+          ]
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a"
+        }
+      ],
+      "cwd": null,
+      "union": "[{\"name\":\"a__one\",\"description\":\"[a] does one\"}]"
+    },
+    {
+      "id": "description-falls-back-to-name",
+      "servers": {
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "one"
+            }
+          ]
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a"
+        }
+      ],
+      "cwd": null,
+      "union": "[{\"name\":\"a__one\",\"description\":\"[a] one\"}]"
+    },
+    {
+      "id": "empty-description-is-kept",
+      "servers": {
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "one",
+              "description": ""
+            }
+          ]
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a"
+        }
+      ],
+      "cwd": null,
+      "union": "[{\"name\":\"a__one\",\"description\":\"[a] \"}]"
+    },
+    {
+      "id": "other-members-survive",
+      "servers": {
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "one",
+              "description": "d",
+              "inputSchema": {
+                "z": 1,
+                "a": 2
+              },
+              "title": "T",
+              "x-vendor": {
+                "keep": true
+              }
+            }
+          ]
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a"
+        }
+      ],
+      "cwd": null,
+      "union": "[{\"name\":\"a__one\",\"description\":\"[a] d\",\"inputSchema\":{\"z\":1,\"a\":2},\"title\":\"T\",\"x-vendor\":{\"keep\":true}}]"
+    },
+    {
+      "id": "declared-placard",
+      "servers": {
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "one",
+              "description": "d"
+            }
+          ],
+          "error": "entry error"
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a",
+          "placard": {
+            "reason": "under repair",
+            "substitute": "other-server"
+          }
+        }
+      ],
+      "cwd": null,
+      "union": "[{\"name\":\"a__one\",\"description\":\"[a] INOPERATIVE — under repair. Use other-server instead. (When working: d)\"}]"
+    },
+    {
+      "id": "declared-placard-no-substitute",
+      "servers": {
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "one",
+              "description": "d"
+            }
+          ]
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a",
+          "placard": {
+            "reason": "under repair"
+          }
+        }
+      ],
+      "cwd": null,
+      "union": "[{\"name\":\"a__one\",\"description\":\"[a] INOPERATIVE — under repair. (When working: d)\"}]"
+    },
+    {
+      "id": "entry-error-placard-with-tools",
+      "servers": {
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "one",
+              "description": "d"
+            }
+          ],
+          "error": "boom"
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a"
+        }
+      ],
+      "cwd": null,
+      "union": "[{\"name\":\"a__one\",\"description\":\"[a] INOPERATIVE — boom. (When working: d)\"}]"
+    },
+    {
+      "id": "unreachable-placard-after-failure",
+      "servers": {
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [],
+          "error": "boom"
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a"
+        }
+      ],
+      "cwd": null,
+      "union": "[]"
+    },
+    {
+      "id": "empty-error-no-placard",
+      "servers": {
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "one",
+              "description": "d"
+            }
+          ],
+          "error": ""
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a"
+        }
+      ],
+      "cwd": null,
+      "union": "[{\"name\":\"a__one\",\"description\":\"[a] d\"}]"
+    },
+    {
+      "id": "absent-entry-skipped",
+      "servers": {},
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a"
+        }
+      ],
+      "cwd": null,
+      "union": "[]"
+    },
+    {
+      "id": "scoped-out",
+      "servers": {
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "one"
+            }
+          ]
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a",
+          "projects": [
+            "/other"
+          ]
+        }
+      ],
+      "cwd": "/here",
+      "union": "[]"
+    },
+    {
+      "id": "two-servers-keep-upstream-order",
+      "servers": {
+        "b": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "x"
+            }
+          ]
+        },
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "y"
+            }
+          ]
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a"
+        },
+        {
+          "transport": "stdio",
+          "name": "b"
+        }
+      ],
+      "cwd": null,
+      "union": "[{\"name\":\"a__y\",\"description\":\"[a] y\"},{\"name\":\"b__x\",\"description\":\"[b] x\"}]"
+    }
+  ]
+}

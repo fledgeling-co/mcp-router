@@ -67,6 +67,16 @@ extension JSString: CustomStringConvertible {
 }
 
 public extension JSString {
+    /// Concatenation over code units.
+    ///
+    /// Not the same as joining the `String` forms and converting back: a lone surrogate cannot
+    /// survive `String`, so building a namespaced tool name that way would replace it with U+FFFD
+    /// and change the bytes served to a client. JavaScript's `+` on strings is code-unit
+    /// concatenation, and so is this.
+    static func + (lhs: JSString, rhs: JSString) -> JSString {
+        JSString(units: lhs.units + rhs.units)
+    }
+
     /// Whether this key is an *array index* in the sense that decides JavaScript's property
     /// enumeration order: `String(UInt32(key)) == key`, excluding `"4294967295"`.
     ///

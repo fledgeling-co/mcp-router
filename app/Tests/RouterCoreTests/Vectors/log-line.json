@@ -1,0 +1,45 @@
+{
+  "description": "The bytes src/log.ts writes to stderr, captured from the reference itself.",
+  "cases": [
+    {
+      "id": "manifest-unreadable",
+      "level": "warn",
+      "line": "2025-08-13T15:46:40.123Z warn  manifest at /p/manifest.json unreadable (bad); rebuilding\n"
+    },
+    {
+      "id": "manifest-reloaded",
+      "level": "info",
+      "line": "2025-08-13T15:46:40.123Z info  manifest reloaded: 3 servers cached\n"
+    },
+    {
+      "id": "manifest-reload-failed",
+      "level": "warn",
+      "line": "2025-08-13T15:46:40.123Z warn  manifest reload failed (bad); serving the previous one\n"
+    },
+    {
+      "id": "manifest-current",
+      "level": "debug",
+      "line": "2025-08-13T15:46:40.123Z debug manifest for \"alpha\" is current; not spawning\n"
+    },
+    {
+      "id": "server-indexed",
+      "level": "info",
+      "line": "2025-08-13T15:46:40.123Z info  indexed \"alpha\": 7 tools\n"
+    },
+    {
+      "id": "server-surface-changed",
+      "level": "warn",
+      "line": "2025-08-13T15:46:40.123Z warn  \"alpha\" changed its tool surface (2 change(s)); serving the approved one until it is accepted\n"
+    },
+    {
+      "id": "server-index-failed",
+      "level": "error",
+      "line": "2025-08-13T15:46:40.123Z error failed to index \"alpha\": spawn failed\n"
+    },
+    {
+      "id": "debug-suppressed-when-quiet",
+      "level": "debug",
+      "line": ""
+    }
+  ]
+}

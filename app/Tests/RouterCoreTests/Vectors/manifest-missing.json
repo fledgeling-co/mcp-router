@@ -1,0 +1,9 @@
+{
+  "description": "loadManifest on a path that does not exist.",
+  "cases": [
+    {
+      "id": "absent",
+      "loaded": "{\"version\":1,\"servers\":{}}"
+    }
+  ]
+}

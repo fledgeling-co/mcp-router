@@ -16,7 +16,7 @@ UNSIGNED   := CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 IOS_DEST   ?= generic/platform=iOS Simulator
 MAC_DEST   ?= platform=macOS
 
-.PHONY: all tools generate build build-mac build-mac-release build-ios test parity parity-regen acceptance lint format clean
+.PHONY: all tools generate build build-mac build-mac-release build-ios test parity parity-regen mutation acceptance lint format clean
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
 all: tools lint build test parity
@@ -157,6 +157,16 @@ parity-regen:
 	    echo "       matches what the TypeScript reference produces."; \
 	    exit 1; \
 	  fi
+
+## Every named behaviour is load-bearing — plan P6.
+##
+## Breaks the behaviour each named vector guards, one at a time, and requires the gate to go red.
+## A vector that is present, unique and compared still proves nothing until this passes; that is the
+## difference between a corpus and a decoration.
+##
+## Kept out of `all` because each mutation is a rebuild plus a test run. Run it before a merge.
+mutation:
+	./scripts/parity/mutation-gate.sh
 
 ## Launches both shells and asserts each renders a value that came from MCPRouterKit.
 ##

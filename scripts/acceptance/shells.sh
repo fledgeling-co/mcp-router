@@ -45,10 +45,17 @@ pass() { echo "  ok — $*"; }
 
 # Read the token from source. An unreadable token is a harness failure, not a passing test: without
 # it there is nothing to compare against, and defaulting to a literal would assert a stale copy.
-EXPECTED_HEX="$(grep -oE 'case \.ground: *"#[0-9A-Fa-f]{6}"' \
+#
+# Scoped to the `hex` property's own switch. `ColorToken` now carries two appearances, so a bare
+# grep for `case .ground:` matches the dark value AND the light one and yields a two-line string
+# that can never equal a sampled pixel — a harness that fails against every colour it is given.
+EXPECTED_HEX="$(sed -n '/var hex: String/,/^    }/p' \
   "$APP_DIR/Sources/MCPRouterKit/Design/ColorToken.swift" \
+  | grep -oE 'case \.ground: *"#[0-9A-Fa-f]{6}"' \
   | grep -oE '#[0-9A-Fa-f]{6}' | tr '[:lower:]' '[:upper:]' || true)"
 [ -n "$EXPECTED_HEX" ] || blocked "could not read ColorToken.ground from source — nothing to assert against"
+[ "$(printf '%s' "$EXPECTED_HEX" | wc -l)" -eq 0 ] \
+  || blocked "ColorToken.ground read as more than one value — the extraction is ambiguous"
 echo "expecting ColorToken.ground = $EXPECTED_HEX"
 
 # ---------------------------------------------------------------- pixel sampler
@@ -80,6 +87,46 @@ SWIFT
 
 sample_pixel() { swift "$WORK/sample.swift" "$1" "$2" "$3"; }
 
+# ---------------------------------------------------------------- static: the gallery is Debug-only
+
+# These two run BEFORE anything that needs a screen, deliberately. They are the only assertions here
+# that a locked or headless machine can still make, and they carry acceptance criterion 9 on their
+# own — so a session that cannot render still produces real evidence instead of nothing.
+#
+# Checked against the built binaries rather than the source: `#if DEBUG` around the wrong brace
+# still compiles, and grepping the source would agree with itself.
+
+echo
+echo "the gallery is compiled into Debug only"
+
+GALLERY_ID="mcprouter-design-gallery"
+REL_APP="$APP_DIR/.derived/Build/Products/Release/MCPRouter.app"
+
+# Search every Mach-O in the bundle, not just `Contents/MacOS/<name>`.
+#
+# An Xcode 16 Debug build puts the app's actual code in `MCPRouter.debug.dylib` and leaves a ~40KB
+# launcher stub at the executable path. Checking only that stub reports "the gallery is not
+# compiled in" for a build that contains it — a false failure that points at the feature instead of
+# at the measurement. Release has no such split, so the same sweep covers both.
+bundle_contains() {
+    local bundle="$1" needle="$2" f
+    while IFS= read -r f; do
+        if strings -a "$f" 2>/dev/null | grep -qF "$needle"; then return 0; fi
+    done < <(find "$bundle" -type f -perm +111)
+    return 1
+}
+
+[ -d "$MAC_APP" ] || blocked "no built app at $MAC_APP — run 'make build-mac' first"
+bundle_contains "$MAC_APP" "$GALLERY_ID" \
+  || fail "no binary in the Debug bundle contains '$GALLERY_ID' — the gallery is not compiled in"
+pass "Debug bundle contains the gallery"
+
+[ -d "$REL_APP" ] || blocked "no Release build at $REL_APP — run 'make build-mac-release' first"
+if bundle_contains "$REL_APP" "$GALLERY_ID"; then
+    fail "the Release bundle contains '$GALLERY_ID' — the Debug-only gallery is shipping"
+fi
+pass "Release bundle does not contain the gallery"
+
 # ---------------------------------------------------------------- macOS
 
 echo
@@ -93,6 +140,27 @@ echo "macOS shell"
 osascript -e "tell application id \"$MAC_BUNDLE_ID\" to quit" >/dev/null 2>&1 || true
 pkill -f 'MCPRouter.app/Contents/MacOS/MCPRouter' >/dev/null 2>&1 || true
 sleep 1
+
+# Preflight the screen lock. macOS does not composite windows for an app launched into a locked
+# session, so every window assertion below fails — and fails as "the window never appeared", which
+# reads as a broken app rather than a machine nobody is logged into. This script already refuses to
+# report a missing permission as a failed assertion; a locked screen is the same class of problem
+# and gets the same treatment.
+cat > "$WORK/session.swift" <<'SWIFT'
+import CoreGraphics
+import Foundation
+let d = CGSessionCopyCurrentDictionary() as? [String: Any] ?? [:]
+let locked = (d["CGSSessionScreenIsLocked"] as? Int) ?? 0
+let onConsole = (d["kCGSSessionOnConsoleKey"] as? Int) ?? 0
+if d.isEmpty { print("nosession") } else if locked == 1 { print("locked") }
+else if onConsole != 1 { print("notconsole") } else { print("ok") }
+SWIFT
+SESSION_STATE="$(swift "$WORK/session.swift" 2>/dev/null || echo unknown)"
+case "$SESSION_STATE" in
+    locked)     blocked "the screen is locked — macOS will not composite a window for a launched app. Unlock and re-run." ;;
+    nosession)  blocked "no GUI session (headless or SSH) — the window assertions need a logged-in console session" ;;
+    notconsole) blocked "this session does not own the console — windows cannot be rendered here" ;;
+esac
 
 # Preflight the Accessibility grant. Without it every AX query returns empty, which is
 # indistinguishable from "the element is missing" — so it must be its own outcome.
@@ -159,6 +227,63 @@ pass "rendered background = $GOT = ColorToken.ground"
 
 osascript -e "tell application id \"$MAC_BUNDLE_ID\" to quit" >/dev/null 2>&1 || true
 
+# ---------------------------------------------------------------- the design gallery
+
+# The rendered half of the gallery's evidence. The Debug-only claim was already settled above,
+# without needing a screen; what is left is the part only a running window can show — that the
+# gallery opens, and that its LIGHT appearance actually renders the light ground.
+#
+# That last assertion is the only one in the repository proving the authored light appearance
+# reaches a screen. The parity suite proves the values exist and match the document; it cannot
+# prove anything drew them.
+
+echo
+echo "design gallery"
+
+# Read the light ground out of the token, for the same reason the dark one is read: a literal here
+# would be a second copy of a design value, free to drift from the one the suite checks.
+EXPECTED_LIGHT="$(sed -n '/var lightHex: String/,/^    }/p' \
+  "$APP_DIR/Sources/MCPRouterKit/Design/ColorToken.swift" \
+  | grep -oE 'case \.ground: *"#[0-9A-Fa-f]{6}"' \
+  | grep -oE '#[0-9A-Fa-f]{6}' | tr '[:lower:]' '[:upper:]' || true)"
+[ -n "$EXPECTED_LIGHT" ] || blocked "could not read ColorToken.ground's light value from source"
+echo "expecting light ColorToken.ground = $EXPECTED_LIGHT"
+
+# Launch Debug with the gallery forced into its light appearance, then open the window.
+open -n "$MAC_APP" --args --gallery-appearance light
+sleep 2
+
+if ! osascript -e 'tell application "System Events" to tell process "MCPRouter" to click menu item "Design system" of menu "Window" of menu bar 1' >/dev/null 2>&1; then
+    blocked "could not reach the Design system item in the Window menu"
+fi
+
+GALLERY_READY=""
+for _ in $(seq 1 30); do
+    if osascript -e 'tell application "System Events" to tell process "MCPRouter" to get name of windows' 2>/dev/null | grep -q 'Design system'; then
+        GALLERY_READY=1; break
+    fi
+    sleep 0.5
+done
+[ -n "$GALLERY_READY" ] || fail "the design gallery window never appeared"
+sleep 2
+pass "gallery window opened from the menu bar"
+
+GB="$(osascript -e 'tell application "System Events" to tell process "MCPRouter" to get {position, size} of (first window whose name is "Design system")')"
+GX="$(echo "$GB" | cut -d, -f1 | tr -d ' ')"
+GY="$(echo "$GB" | cut -d, -f2 | tr -d ' ')"
+GW="$(echo "$GB" | cut -d, -f3 | tr -d ' ')"
+GH="$(echo "$GB" | cut -d, -f4 | tr -d ' ')"
+screencapture -o -x -R "$GX,$GY,$GW,$GH" "$WORK/gallery.png"
+
+# Sampled low in the detail pane: clear of the swatch rows and right of the sidebar. The capture is
+# 2x on a Retina display, so these are image pixels rather than points.
+GOT_LIGHT="$(sample_pixel "$WORK/gallery.png" "$((GW * 2 - 40))" "$((GH * 2 - 40))")"
+[ "$GOT_LIGHT" = "$EXPECTED_LIGHT" ] \
+  || fail "the gallery's light appearance rendered $GOT_LIGHT, expected $EXPECTED_LIGHT"
+pass "light appearance rendered $GOT_LIGHT = ColorToken.ground (light)"
+
+osascript -e "tell application id \"$MAC_BUNDLE_ID\" to quit" >/dev/null 2>&1 || true
+
 # ---------------------------------------------------------------- iOS
 
 echo
@@ -190,3 +315,4 @@ xcrun simctl terminate "$SIM_ID" "$IOS_BUNDLE_ID" >/dev/null 2>&1 || true
 
 echo
 echo "acceptance: both shells render ColorToken.ground ($EXPECTED_HEX) — A5, A15 hold"
+echo "acceptance: the gallery is Debug-only and its light appearance renders $EXPECTED_LIGHT"

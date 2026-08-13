@@ -18,6 +18,11 @@ public enum MetricToken: String, CaseIterable, Sendable {
     case popoverRadius = "Popover radius"
     case tableRows = "Table rows"
 
+    /// The Servers board's row. Its own row in the document rather than prose inside `Table rows`,
+    /// because the loading skeleton has to reproduce it exactly — a skeleton at a different height
+    /// makes the board jump when the data lands, which is the one thing a skeleton exists to avoid.
+    case serversRow = "Servers row"
+
     // The control ladder, one row per size.
     case controlMini = "Control mini"
     case controlSmall = "Control small"
@@ -38,6 +43,7 @@ public enum MetricToken: String, CaseIterable, Sendable {
         case .sidebar: 256
         case .popoverRadius: 20
         case .tableRows: 24
+        case .serversRow: 56
         case .controlMini: 16
         case .controlSmall: 20
         case .controlRegular: 24
@@ -51,6 +57,6 @@ public enum MetricToken: String, CaseIterable, Sendable {
 
     /// The five control sizes, smallest first — the ladder a control style selects from.
     public static let controlLadder: [MetricToken] = [
-        .controlMini, .controlSmall, .controlRegular, .controlLarge, .controlExtraLarge,
+        .controlMini, .controlSmall, .controlRegular, .controlLarge, .controlExtraLarge
     ]
 }

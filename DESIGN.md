@@ -150,12 +150,15 @@ leaks into prose.
 | Sidebar selection inset | 4pt |
 | Focus ring | 2pt |
 | Popover radius | 20 · card radius 10–14 · concentric children |
-| Table rows | 24–28pt for dense lists; the Servers board runs 56 to carry the breaker |
+| Table rows | 24–28pt for dense lists |
+| Servers row | 56pt (4 + 48 breaker housing + 4) |
 
 Selection is an inset rounded fill at the radius and side inset above. The control ladder
 and the selection fill used to be written as prose in one cell each — unreadable to the
 parity check, and therefore free to drift. They are individual rows now because the design
-system builds controls from them.
+system builds controls from them. The Servers board's 56pt row is a row of its own for the
+same reason: the loading skeleton has to match the populated row's height exactly or the
+board jumps when data lands, and a height buried in another cell's prose cannot be checked.
 
 Concentric corners throughout: child radius = parent radius − padding.
 

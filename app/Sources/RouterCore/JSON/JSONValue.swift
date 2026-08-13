@@ -75,8 +75,8 @@ public extension JSONValue {
     /// `{"version":1,"servers":[]}` is accepted by the reference and parity is the default.
     var isObjectOrArray: Bool {
         switch self {
-        case .object, .array: return true
-        default: return false
+        case .object, .array: true
+        default: false
         }
     }
 
@@ -84,12 +84,12 @@ public extension JSONValue {
     /// `mcpServers` actually is.
     var typeName: String {
         switch self {
-        case .null: return "null"
-        case .bool: return "boolean"
-        case .number: return "number"
-        case .string: return "string"
-        case .array: return "array"
-        case .object: return "object"
+        case .null: "null"
+        case .bool: "boolean"
+        case .number: "number"
+        case .string: "string"
+        case .array: "array"
+        case .object: "object"
         }
     }
 }

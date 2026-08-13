@@ -102,8 +102,13 @@ struct AnyRawJSON: Decodable {
     struct AnyKey: CodingKey {
         var stringValue: String
         var intValue: Int?
-        init?(stringValue: String) { self.stringValue = stringValue }
-        init?(intValue: Int) { self.intValue = intValue; stringValue = String(intValue) }
+        init?(stringValue: String) {
+            self.stringValue = stringValue
+        }
+
+        init?(intValue: Int) {
+            self.intValue = intValue; stringValue = String(intValue)
+        }
     }
 }
 
@@ -115,13 +120,14 @@ struct ConfigParityTests {
     func rejectionReasons() throws {
         let vectors = try Vectors.load("parse-server", as: ParseServerVectors.self)
         var checked = 0
-        for testCase in vectors.cases where testCase.reason != nil {
+        for testCase in vectors.cases {
+            guard let expectedReason = testCase.reason else { continue }
             let parsed = ServerParser.parse(name: testCase.name, raw: testCase.raw.value)
             guard case let .skipped(reason) = parsed else {
                 Issue.record("\(testCase.id): adopted a server the reference rejected")
                 continue
             }
-            #expect(Array(reason.utf8) == Array(testCase.reason!.utf8), "\(testCase.id)")
+            #expect(Array(reason.utf8) == Array(expectedReason.utf8), "\(testCase.id)")
             checked += 1
         }
         #expect(checked > 0, "the corpus must contain rejections, or this test proves nothing")
@@ -131,22 +137,47 @@ struct ConfigParityTests {
     func adoptedServersMatchInEveryField() throws {
         let vectors = try Vectors.load("parse-server", as: ParseServerVectors.self)
         var checked = 0
-        for testCase in vectors.cases where testCase.upstream != nil {
+        for testCase in vectors.cases {
+            guard let expectedUpstream = testCase.upstream?.value else { continue }
             let parsed = ServerParser.parse(name: testCase.name, raw: testCase.raw.value)
             guard case let .upstream(upstream) = parsed else {
                 Issue.record("\(testCase.id): rejected a server the reference adopted")
                 continue
             }
-            let expected = testCase.upstream!.value
-            expectField(expected, "transport", equals: .string(JSString(upstream.transport.rawValue)), testCase.id)
+            let expected = expectedUpstream
+            expectField(
+                expected,
+                "transport",
+                equals: .string(JSString(upstream.transport.rawValue)),
+                testCase.id
+            )
             expectField(expected, "name", equals: .string(JSString(upstream.name)), testCase.id)
-            expectField(expected, "cwd", equals: upstream.cwd.map { .string(JSString($0)) } ?? .null, testCase.id)
-            expectField(expected, "url", equals: upstream.url.map { .string(JSString($0)) } ?? .null, testCase.id)
+            expectField(
+                expected,
+                "cwd",
+                equals: upstream.cwd.map { .string(JSString($0)) } ?? .null,
+                testCase.id
+            )
+            expectField(
+                expected,
+                "url",
+                equals: upstream.url.map { .string(JSString($0)) } ?? .null,
+                testCase.id
+            )
             expectField(expected, "oauth", equals: upstream.oauth.map { .bool($0) } ?? .null, testCase.id)
             expectField(expected, "warm", equals: upstream.warm.map { .bool($0) } ?? .null, testCase.id)
-            expectField(expected, "idleMs", equals: upstream.idleMs.map { .number(Double($0)) } ?? .null, testCase.id)
-            expectField(expected, "startupTimeoutMs",
-                        equals: upstream.startupTimeoutMs.map { .number(Double($0)) } ?? .null, testCase.id)
+            expectField(
+                expected,
+                "idleMs",
+                equals: upstream.idleMs.map { .number(Double($0)) } ?? .null,
+                testCase.id
+            )
+            expectField(
+                expected,
+                "startupTimeoutMs",
+                equals: upstream.startupTimeoutMs.map { .number(Double($0)) } ?? .null,
+                testCase.id
+            )
             checked += 1
         }
         #expect(checked > 0)
@@ -154,8 +185,10 @@ struct ConfigParityTests {
 
     private func expectField(_ expected: JSONValue, _ key: String, equals actual: JSONValue, _ id: String) {
         let want = expected.member(key) ?? .null
-        #expect(JSStringify.compact(want) == JSStringify.compact(actual),
-                "\(id).\(key): produced \(JSStringify.compact(actual)), expected \(JSStringify.compact(want))")
+        #expect(
+            JSStringify.compact(want) == JSStringify.compact(actual),
+            "\(id).\(key): produced \(JSStringify.compact(actual)), expected \(JSStringify.compact(want))"
+        )
     }
 
     // MARK: upstreamHash
@@ -166,7 +199,10 @@ struct ConfigParityTests {
         var checked = 0
         for testCase in vectors.cases {
             guard let expected = testCase.hash else { continue }
-            guard case let .upstream(upstream) = ServerParser.parse(name: testCase.name, raw: testCase.raw.value)
+            guard case let .upstream(upstream) = ServerParser.parse(
+                name: testCase.name,
+                raw: testCase.raw.value
+            )
             else { continue }
             #expect(UpstreamHash.hash(upstream) == expected, "\(testCase.id)")
             checked += 1
@@ -181,14 +217,24 @@ struct ConfigParityTests {
         let vectors = try Vectors.load("upstream-hash", as: UpstreamHashVectors.self)
         let byID = Dictionary(uniqueKeysWithValues: vectors.cases.map { ($0.id, $0.hash) })
 
-        for excluded in ["excluded-name", "excluded-warm", "excluded-idle", "excluded-projects", "excluded-placard"] {
+        for excluded in [
+            "excluded-name",
+            "excluded-warm",
+            "excluded-idle",
+            "excluded-projects",
+            "excluded-placard"
+        ] {
             #expect(byID["cwd-absent"] == byID[excluded], "\(excluded) must not change the hash")
         }
         #expect(byID["args-order-za"] != byID["args-order-az"], "argument order is significant")
-        #expect(byID["env-key-order-irrelevant-a"] == byID["env-key-order-irrelevant-b"],
-                "env keys are sorted, so their order in the file is not significant")
-        #expect(byID["env-value-changes-hash"] != byID["env-value-changed"],
-                "an env value change must invalidate the cached tool list")
+        #expect(
+            byID["env-key-order-irrelevant-a"] == byID["env-key-order-irrelevant-b"],
+            "env keys are sorted, so their order in the file is not significant"
+        )
+        #expect(
+            byID["env-value-changes-hash"] != byID["env-value-changed"],
+            "an env value change must invalidate the cached tool list"
+        )
         #expect(byID["http-transport"] != byID["sse-transport"], "http and sse are different transports")
         #expect(byID["cwd-absent"] != byID["cwd-present"])
     }
@@ -199,7 +245,11 @@ struct ConfigParityTests {
     func selfReference() throws {
         let vectors = try Vectors.load("self-reference", as: SelfReferenceVectors.self)
         for testCase in vectors.cases {
-            let result = SelfReference.isSelfReference(name: testCase.name, raw: testCase.raw.value, port: testCase.port)
+            let result = SelfReference.isSelfReference(
+                name: testCase.name,
+                raw: testCase.raw.value,
+                port: testCase.port
+            )
             #expect(result == testCase.result, "\(testCase.id): got \(result), expected \(testCase.result)")
         }
     }
@@ -211,7 +261,10 @@ struct ConfigParityTests {
         let vectors = try Vectors.load("url-parse", as: URLVectors.self)
         for testCase in vectors.cases {
             let parsed = JSURL(testCase.input)
-            #expect((parsed != nil) == testCase.ok, "\(testCase.id): \(testCase.input.debugDescription) parseability")
+            #expect(
+                (parsed != nil) == testCase.ok,
+                "\(testCase.id): \(testCase.input.debugDescription) parseability"
+            )
             guard let parsed, testCase.ok else { continue }
             #expect(parsed.host == testCase.hostname, "\(testCase.id) host")
             #expect(parsed.port == testCase.port, "\(testCase.id) port")

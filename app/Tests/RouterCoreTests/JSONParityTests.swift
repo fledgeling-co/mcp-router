@@ -12,7 +12,10 @@ enum Vectors {
         guard let url = Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Vectors")
             ?? Bundle.module.url(forResource: name, withExtension: "json")
         else {
-            Issue.record("vector file \(name).json is missing — the corpus cannot be allowed to shrink silently")
+            Issue
+                .record(
+                    "vector file \(name).json is missing — the corpus cannot be allowed to shrink silently"
+                )
             throw VectorError.missing(name)
         }
         return try JSONDecoder().decode(type, from: Data(contentsOf: url))
@@ -53,7 +56,10 @@ struct JSONParityTests {
     private func expectSameBytes(_ actual: String, _ expected: String, _ label: String) {
         let actualBytes = Array(actual.utf8)
         let expectedBytes = Array(expected.utf8)
-        #expect(actualBytes == expectedBytes, "\(label): produced \(actual.debugDescription), expected \(expected.debugDescription)")
+        #expect(
+            actualBytes == expectedBytes,
+            "\(label): produced \(actual.debugDescription), expected \(expected.debugDescription)"
+        )
     }
 
     @Test("every document re-serialises to the bytes JSON.stringify produces")
@@ -81,7 +87,7 @@ struct JSONParityTests {
         for testCase in vectors.cases {
             let sorted = testCase.input.map { JSString($0) }.sorted()
             let expected = testCase.sorted.map { JSString($0) }
-            let got = sorted.map { $0.string }
+            let got = sorted.map(\.string)
             #expect(sorted == expected, "\(testCase.id): got \(got), expected \(testCase.sorted)")
         }
     }
@@ -90,12 +96,16 @@ struct JSONParityTests {
     /// through a vector — an emoji leads with code unit `0xD83D`, below `0xE000`, so it sorts
     /// first; by Unicode scalar it would sort last.
     @Test("a supplementary character sorts before a private-use one")
-    func utf16OrderingBeatsScalarOrdering() {
+    func utf16OrderingBeatsScalarOrdering() throws {
         let emoji = JSString("\u{1F600}")
         let privateUse = JSString("\u{E000}")
         #expect(emoji < privateUse)
-        #expect(emoji.string.unicodeScalars.first!.value > privateUse.string.unicodeScalars.first!.value,
-                "by scalar value the order is the other way round, which is the divergence being guarded")
+        let emojiScalar = try #require(emoji.string.unicodeScalars.first?.value)
+        let privateScalar = try #require(privateUse.string.unicodeScalars.first?.value)
+        #expect(
+            emojiScalar > privateScalar,
+            "by scalar value the order is the other way round, which is the divergence being guarded"
+        )
     }
 
     /// Swift considers these two strings equal. JavaScript keeps them as separate keys, so
@@ -105,7 +115,10 @@ struct JSONParityTests {
         let precomposed = JSString("\u{00E9}")
         let decomposed = JSString("e\u{0301}")
         #expect(precomposed != decomposed)
-        #expect(precomposed.string == decomposed.string, "Swift's String does treat them as equal — that is the trap")
+        #expect(
+            precomposed.string == decomposed.string,
+            "Swift's String does treat them as equal — that is the trap"
+        )
     }
 
     @Test("a lone surrogate survives a parse and re-serialises escaped")

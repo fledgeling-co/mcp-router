@@ -80,12 +80,12 @@ public enum JSNumber {
             // Integral with no fractional part: the digits, then the zeros that pad them out.
             return text + String(repeating: "0", count: n - k)
         }
-        if 0 < n, n <= 21 {
+        if n > 0, n <= 21 {
             // The point falls inside the digits.
             let index = text.index(text.startIndex, offsetBy: n)
             return text[..<index] + "." + text[index...]
         }
-        if -6 < n, n <= 0 {
+        if n > -6, n <= 0 {
             // Small enough to write plainly: "0." then the zeros the point implies.
             return "0." + String(repeating: "0", count: -n) + text
         }

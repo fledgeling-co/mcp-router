@@ -17,9 +17,8 @@ import Foundation
 /// re-index.
 public enum UpstreamHash {
     public static func hash(_ upstream: UpstreamConfig) -> String {
-        let material: JSONValue
-        if upstream.isStdio {
-            material = .array([
+        let material: JSONValue = if upstream.isStdio {
+            .array([
                 .string(JSString("stdio")),
                 upstream.raw.member("command") ?? .null,
                 upstream.raw.member("args") ?? .array([]),
@@ -29,7 +28,7 @@ public enum UpstreamHash {
                 sortedEntries(upstream.raw.member("env"))
             ])
         } else {
-            material = .array([
+            .array([
                 .string(JSString(upstream.transport.rawValue)),
                 upstream.raw.member("url") ?? .null,
                 sortedEntries(upstream.raw.member("headers"))

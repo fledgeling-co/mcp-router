@@ -25,19 +25,19 @@ public enum ConfigProblem: Error, Sendable, Equatable, CustomStringConvertible {
     public var description: String {
         switch self {
         case let .missingFile(path):
-            return "No server list at \(path). Run `mcp-router import` to generate one from ~/.claude.json."
+            "No server list at \(path). Run `mcp-router import` to generate one from ~/.claude.json."
         case let .unreadable(path, reason):
-            return "\(path) could not be read (\(reason)). Nothing was loaded."
+            "\(path) could not be read (\(reason)). Nothing was loaded."
         case let .notJSON(path, reason):
-            return "\(path) is not valid JSON (\(reason)). Nothing was loaded."
+            "\(path) is not valid JSON (\(reason)). Nothing was loaded."
         case let .unrecognisedShape(path, .missingKey):
-            return "\(path) has no \"mcpServers\" object. The servers look like they are at the "
+            "\(path) has no \"mcpServers\" object. The servers look like they are at the "
                 + "top level — wrap them in \"mcpServers\": { … }. Nothing was loaded."
         case let .unrecognisedShape(path, .wrongType(kind)):
-            return "\(path) has an \"mcpServers\" that is a \(kind), not an object of servers. "
+            "\(path) has an \"mcpServers\" that is a \(kind), not an object of servers. "
                 + "Nothing was loaded."
         case let .malformedServerEntry(path, name):
-            return "\(path) declares \"\(name)\" as null rather than as a server. Nothing was loaded."
+            "\(path) declares \"\(name)\" as null rather than as a server. Nothing was loaded."
         }
     }
 }
@@ -141,7 +141,8 @@ public enum ConfigLoader {
     }
 
     private static func intMember(_ raw: JSONValue, _ key: String) -> Int? {
-        guard let value = raw.member(key), case let .number(number) = value, number.isFinite else { return nil }
+        guard let value = raw.member(key), case let .number(number) = value,
+              number.isFinite else { return nil }
         return Int(number)
     }
 

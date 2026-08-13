@@ -40,41 +40,58 @@ public enum JSStringify {
         }
     }
 
-    private static func writeArray(_ elements: [JSONValue], into out: inout String, indent: Int?, depth: Int) {
+    private static func writeArray(
+        _ elements: [JSONValue],
+        into out: inout String,
+        indent: Int?,
+        depth: Int
+    ) {
         guard !elements.isEmpty else {
             out += "[]"
             return
         }
-        let (open, separator, close) = punctuation(indent: indent, depth: depth)
-        out += "[" + open
+        let marks = punctuation(indent: indent, depth: depth)
+        out += "[" + marks.open
         for (offset, element) in elements.enumerated() {
-            if offset > 0 { out += separator }
+            if offset > 0 { out += marks.separator }
             write(element, into: &out, indent: indent, depth: depth + 1)
         }
-        out += close + "]"
+        out += marks.close + "]"
     }
 
-    private static func writeObject(_ members: [JSONMember], into out: inout String, indent: Int?, depth: Int) {
+    private static func writeObject(
+        _ members: [JSONMember],
+        into out: inout String,
+        indent: Int?,
+        depth: Int
+    ) {
         guard !members.isEmpty else {
             out += "{}"
             return
         }
-        let (open, separator, close) = punctuation(indent: indent, depth: depth)
-        out += "{" + open
+        let marks = punctuation(indent: indent, depth: depth)
+        out += "{" + marks.open
         for (offset, member) in members.enumerated() {
-            if offset > 0 { out += separator }
+            if offset > 0 { out += marks.separator }
             writeString(member.key, into: &out)
             out += indent == nil ? ":" : ": "
             write(member.value, into: &out, indent: indent, depth: depth + 1)
         }
-        out += close + "}"
+        out += marks.close + "}"
     }
 
-    private static func punctuation(indent: Int?, depth: Int) -> (open: String, separator: String, close: String) {
-        guard let indent else { return ("", ",", "") }
+    /// The three pieces of whitespace a container needs, named rather than positional.
+    private struct Punctuation {
+        let open: String
+        let separator: String
+        let close: String
+    }
+
+    private static func punctuation(indent: Int?, depth: Int) -> Punctuation {
+        guard let indent else { return Punctuation(open: "", separator: ",", close: "") }
         let inner = String(repeating: " ", count: indent * (depth + 1))
         let outer = String(repeating: " ", count: indent * depth)
-        return ("\n" + inner, ",\n" + inner, "\n" + outer)
+        return Punctuation(open: "\n" + inner, separator: ",\n" + inner, close: "\n" + outer)
     }
 
     private static func writeString(_ text: JSString, into out: inout String) {
@@ -83,41 +100,61 @@ public enum JSStringify {
         var index = 0
         while index < units.count {
             let unit = units[index]
-            switch unit {
-            case 0x22: out += "\\\""
-            case 0x5C: out += "\\\\"
-            case 0x08: out += "\\b"
-            case 0x09: out += "\\t"
-            case 0x0A: out += "\\n"
-            case 0x0C: out += "\\f"
-            case 0x0D: out += "\\r"
-            case 0x00 ... 0x1F:
+            if let escaped = shortEscape(unit) {
+                out += escaped
+                index += 1
+                continue
+            }
+            // A high surrogate is only a character if a low one follows. Paired, the two units
+            // become one scalar and are emitted as UTF-8; unpaired, the unit is not a character at
+            // all and JavaScript writes it back as an escape.
+            if isHighSurrogate(unit), index + 1 < units.count, isLowSurrogate(units[index + 1]) {
+                appendPair(high: unit, low: units[index + 1], into: &out)
+                index += 2
+                continue
+            }
+            if isHighSurrogate(unit) || isLowSurrogate(unit) {
                 out += escape(unit)
-            case 0xD800 ... 0xDBFF:
-                // A high surrogate is only a character if a low one follows. Paired, the two units
-                // become one scalar and are emitted as UTF-8; unpaired, the unit is not a
-                // character at all and JavaScript writes it back as an escape.
-                if index + 1 < units.count, (0xDC00 ... 0xDFFF).contains(units[index + 1]) {
-                    let high = UInt32(unit) - 0xD800
-                    let low = UInt32(units[index + 1]) - 0xDC00
-                    let scalarValue = 0x10000 + (high << 10) + low
-                    if let scalar = Unicode.Scalar(scalarValue) {
-                        out.unicodeScalars.append(scalar)
-                    }
-                    index += 2
-                    continue
-                }
-                out += escape(unit)
-            case 0xDC00 ... 0xDFFF:
-                out += escape(unit)
-            default:
-                if let scalar = Unicode.Scalar(UInt32(unit)) {
-                    out.unicodeScalars.append(scalar)
-                }
+                index += 1
+                continue
+            }
+            if let scalar = Unicode.Scalar(UInt32(unit)) {
+                out.unicodeScalars.append(scalar)
             }
             index += 1
         }
         out += "\""
+    }
+
+    private static func isHighSurrogate(_ unit: UInt16) -> Bool {
+        (0xD800 ... 0xDBFF).contains(unit)
+    }
+
+    private static func isLowSurrogate(_ unit: UInt16) -> Bool {
+        (0xDC00 ... 0xDFFF).contains(unit)
+    }
+
+    private static func appendPair(high: UInt16, low: UInt16, into out: inout String) {
+        let lead = UInt32(high) - 0xD800
+        let trail = UInt32(low) - 0xDC00
+        if let scalar = Unicode.Scalar(0x10000 + (lead << 10) + trail) {
+            out.unicodeScalars.append(scalar)
+        }
+    }
+
+    /// The escapes JavaScript spells with a letter, plus the `\u` form every other control takes.
+    private static func shortEscape(_ unit: UInt16) -> String? {
+        switch unit {
+        case 0x22: "\\\""
+        case 0x5C: "\\\\"
+        case 0x08: "\\b"
+        case 0x09: "\\t"
+        case 0x0A: "\\n"
+        case 0x0C: "\\f"
+        case 0x0D: "\\r"
+        case 0x00 ... 0x1F: escape(unit)
+        default: nil
+        }
     }
 
     /// `\uXXXX` with **lowercase** hex, which is what JavaScript emits — `""`, not

@@ -5,9 +5,13 @@ import Foundation
 ///
 /// Foundation's `URL` is a different specification and disagrees in ways that matter here: it
 /// accepts strings `new URL()` rejects, and it reports a port that was written out even when that
-/// port is the scheme's default. The second one decides ``SelfReference``, where the reference
-/// compares against the port *as reported* — so `http://localhost:80` is not a self-reference for
-/// port 80, because WHATWG reports its port as empty.
+/// port is the scheme's default. The second decides ``SelfReference``, where the reference compares
+/// against the port *as reported* — so `http://localhost:80` is not a self-reference for port 80.
+///
+/// Every rule below is pinned by a vector generated from `new URL()` itself, and three of them were
+/// found that way rather than reasoned: a non-special scheme still parses a host when `//` is
+/// written, a port is normalised before it is compared against the scheme default, and only the
+/// first two slashes are the authority marker.
 struct JSURL {
     let scheme: String
     /// Includes the brackets for an IPv6 address, as `URL.hostname` does.
@@ -18,71 +22,86 @@ struct JSURL {
     private static let defaultPorts: [String: String] = [
         "http": "80", "https": "443", "ws": "80", "wss": "443", "ftp": "21"
     ]
+
     private static let specialSchemes: Set<String> = ["http", "https", "ws", "wss", "ftp", "file"]
 
     init?(_ text: String) {
         // Leading and trailing C0 controls and spaces are stripped before parsing.
         let trimmed = text.trimmingCharacters(in: CharacterSet(charactersIn: "\u{0}...\u{20}"))
         guard let colon = trimmed.firstIndex(of: ":") else { return nil }
+
         let rawScheme = String(trimmed[trimmed.startIndex ..< colon]).lowercased()
         guard Self.isValidScheme(rawScheme) else { return nil }
         scheme = rawScheme
 
-        var rest = String(trimmed[trimmed.index(after: colon)...])
+        let rest = String(trimmed[trimmed.index(after: colon)...])
         let isSpecial = Self.specialSchemes.contains(rawScheme)
 
+        guard let authority = Self.authority(in: rest, isSpecial: isSpecial) else {
+            // A non-special scheme with no `//` is opaque: `mailto:a@b` has no host.
+            host = ""
+            port = ""
+            return
+        }
+
+        let split = Self.split(authority: authority)
+        guard let hostPart = split.host else { return nil }
+        // `file:` is the one special scheme allowed an empty host; every other special one throws.
+        guard !hostPart.isEmpty || !isSpecial || rawScheme == "file" else { return nil }
+        guard split.port.isEmpty || split.port.allSatisfy(\.isNumber) else { return nil }
+
+        host = hostPart.lowercased()
+        // Normalise *first*, then compare: `http://host:00080` is port 80, the default for http, so
+        // it is reported as empty — while `http://host:0` is reported as `0`.
+        let normalised = Self.normalisedPort(split.port)
+        port = normalised == Self.defaultPorts[rawScheme] ? "" : normalised
+    }
+
+    /// The authority slice, or nil when this URL has none at all.
+    private static func authority(in rest: String, isSpecial: Bool) -> String? {
+        var remainder = rest
         if isSpecial {
             // A special scheme tolerates a missing or singular slash — `http:/example.com` reaches
             // the same place as `http://example.com` — but only **two** are the authority marker.
             // Consuming a third would swallow the path: `file:///tmp/x` has an empty host and a
             // path of `/tmp/x`, not a host of `tmp`.
             var consumed = 0
-            while consumed < 2, rest.hasPrefix("/") {
-                rest.removeFirst()
+            while consumed < 2, remainder.hasPrefix("/") {
+                remainder.removeFirst()
                 consumed += 1
             }
-        } else if rest.hasPrefix("//") {
-            // A non-special scheme still parses an authority when one is written: `x://y` has
-            // hostname `y`. Only a scheme with no `//` at all is opaque.
-            rest.removeFirst(2)
+        } else if remainder.hasPrefix("//") {
+            remainder.removeFirst(2)
         } else {
-            host = ""
-            port = ""
-            return
+            return nil
         }
+        let end = remainder.firstIndex { $0 == "/" || $0 == "?" || $0 == "#" } ?? remainder.endIndex
+        return String(remainder[remainder.startIndex ..< end])
+    }
 
-        // The authority ends at the first path, query or fragment delimiter.
-        let authorityEnd = rest.firstIndex { $0 == "/" || $0 == "?" || $0 == "#" } ?? rest.endIndex
-        var authority = String(rest[rest.startIndex ..< authorityEnd])
-
-        // Userinfo is discarded; the last `@` separates it from the host.
-        if let at = authority.lastIndex(of: "@") {
-            authority = String(authority[authority.index(after: at)...])
-        }
-
+    /// Splits an authority into host and port. A nil host means the brackets were unbalanced.
+    private static func split(authority: String) -> (host: String?, port: String) {
         var hostPart = authority
-        var portPart = ""
+        // Userinfo is discarded; the last `@` separates it from the host.
+        if let at = hostPart.lastIndex(of: "@") {
+            hostPart = String(hostPart[hostPart.index(after: at)...])
+        }
+
         if hostPart.hasPrefix("[") {
-            guard let close = hostPart.firstIndex(of: "]") else { return nil }
+            guard let close = hostPart.firstIndex(of: "]") else { return (nil, "") }
             let after = hostPart.index(after: close)
+            var portPart = ""
             if after < hostPart.endIndex, hostPart[after] == ":" {
                 portPart = String(hostPart[hostPart.index(after: after)...])
             }
-            hostPart = String(hostPart[hostPart.startIndex ... close])
-        } else if let colonIndex = hostPart.lastIndex(of: ":") {
-            portPart = String(hostPart[hostPart.index(after: colonIndex)...])
-            hostPart = String(hostPart[hostPart.startIndex ..< colonIndex])
+            return (String(hostPart[hostPart.startIndex ... close]), portPart)
         }
 
-        // `file:` is the one special scheme allowed an empty host; every other special one throws.
-        guard !hostPart.isEmpty || !isSpecial || rawScheme == "file" else { return nil }
-        guard portPart.isEmpty || portPart.allSatisfy(\.isNumber) else { return nil }
-
-        host = hostPart.lowercased()
-        // Normalise *first*, then compare: `http://host:00080` is port 80, which is the default for
-        // http, so it is reported as empty — while `http://host:0` is reported as `0`.
-        let normalised = Self.normalisedPort(portPart)
-        port = normalised == Self.defaultPorts[rawScheme] ? "" : normalised
+        if let colon = hostPart.lastIndex(of: ":") {
+            let portPart = String(hostPart[hostPart.index(after: colon)...])
+            return (String(hostPart[hostPart.startIndex ..< colon]), portPart)
+        }
+        return (hostPart, "")
     }
 
     private static func normalisedPort(_ text: String) -> String {

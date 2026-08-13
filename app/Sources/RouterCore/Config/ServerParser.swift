@@ -28,12 +28,11 @@ public enum ServerParser {
         }
 
         let declaredType = raw.member("type")
-        let typeName: String
-        if let declaredType, declaredType != .null {
-            typeName = declaredType.jsDisplayString
+        let typeName: String = if let declaredType, declaredType != .null {
+            declaredType.jsDisplayString
         } else {
             // Nullish on `type`, but *truthy* on `url` — so `url: ""` selects stdio.
-            typeName = (raw.member("url")?.isTruthy ?? false) ? "http" : "stdio"
+            (raw.member("url")?.isTruthy ?? false) ? "http" : "stdio"
         }
 
         let common = commonFields(name: name, raw: raw)

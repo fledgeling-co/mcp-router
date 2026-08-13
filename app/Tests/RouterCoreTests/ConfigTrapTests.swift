@@ -35,7 +35,10 @@ struct ConfigTrapTests {
         try withTemporaryConfig(flat) { path in
             do {
                 let loaded = try load(path)
-                Issue.record("loaded \(loaded.config.upstreams.count) servers instead of failing — this is the trap")
+                Issue
+                    .record(
+                        "loaded \(loaded.config.upstreams.count) servers instead of failing — the trap"
+                    )
             } catch let problem as ConfigProblem {
                 guard case let .unrecognisedShape(_, found) = problem, found == .missingKey else {
                     Issue.record("wrong failure: \(problem)")
@@ -50,8 +53,10 @@ struct ConfigTrapTests {
 
     /// The defect a decoder that special-cased the recorded fixture would still have. Every one of
     /// these is a shape whose obvious handling is "no servers found".
-    @Test("an mcpServers that is present but not an object is an error, not an empty config",
-          arguments: [#""bad""#, "[]", "null", "7", "true"])
+    @Test(
+        "an mcpServers that is present but not an object is an error, not an empty config",
+        arguments: [#""bad""#, "[]", "null", "7", "true"]
+    )
     func nonObjectMCPServersIsAnError(_ literal: String) throws {
         try withTemporaryConfig("{\"mcpServers\": \(literal)}") { path in
             do {
@@ -153,7 +158,7 @@ struct ConfigTrapTests {
         try withTemporaryConfig(#"{"port": 0, "host": "", "idleMs": 0, "mcpServers": {}}"#) { path in
             let loaded = try load(path)
             #expect(loaded.config.port == 0)
-            #expect(loaded.config.host == "")
+            #expect(loaded.config.host.isEmpty)
             #expect(loaded.config.idleMs == 0)
             #expect(loaded.config.startupTimeoutMs == RouterHome.defaultStartupTimeoutMs)
         }
@@ -170,7 +175,10 @@ struct ConfigTrapTests {
                 home: RouterHome(root: "/tmp/router-home")
             )
             #expect(overridden.config.port == 9999)
-            #expect(overridden.config.host == RouterHome.defaultHost, "unset fields still fall to the default")
+            #expect(
+                overridden.config.host == RouterHome.defaultHost,
+                "unset fields still fall to the default"
+            )
         }
     }
 
@@ -223,8 +231,10 @@ struct ConfigWriterTests {
                 port: 8879, host: "127.0.0.1", idleMs: 300_000, toPath: path
             )
 
-            let reloaded = try ConfigLoader.load(options: .init(configPath: path),
-                                                 home: RouterHome(root: "/tmp/h"))
+            let reloaded = try ConfigLoader.load(
+                options: .init(configPath: path),
+                home: RouterHome(root: "/tmp/h")
+            )
             #expect(reloaded.config.startupTimeoutMs == 1234, "a supported setting survived the rewrite")
             #expect(reloaded.config.upstreams.map(\.name) == ["a"])
 
@@ -237,8 +247,10 @@ struct ConfigWriterTests {
     func writeIsCleanAndAtomic() throws {
         try inTemporaryDirectory { path in
             try ConfigWriter.write(servers: [], port: 1, host: "h", idleMs: 2, toPath: path)
-            let reloaded = try ConfigLoader.load(options: .init(configPath: path),
-                                                 home: RouterHome(root: "/tmp/h"))
+            let reloaded = try ConfigLoader.load(
+                options: .init(configPath: path),
+                home: RouterHome(root: "/tmp/h")
+            )
             #expect(reloaded.declaresNoServers)
             #expect(reloaded.config.port == 1)
 
@@ -261,7 +273,8 @@ struct ConfigWriterTests {
                 .filter { $0.contains(".bak-") }
             #expect(backups.count == 1)
             let restored = try JSONParser.parse(
-                Data(contentsOf: URL(fileURLWithPath: (directory as NSString).appendingPathComponent(backups[0])))
+                Data(contentsOf: URL(fileURLWithPath: (directory as NSString)
+                        .appendingPathComponent(backups[0])))
             )
             #expect(restored.member("mcpServers")?.member("old") != nil, "the backup holds the previous list")
         }

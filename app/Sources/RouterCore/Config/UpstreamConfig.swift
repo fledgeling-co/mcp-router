@@ -98,9 +98,10 @@ public struct RouterHome: Sendable, Hashable {
         self.root = root
     }
 
-    public init(environment: [String: String] = ProcessInfo.processInfo.environment,
-                homeDirectory: String = NSHomeDirectory())
-    {
+    public init(
+        environment: [String: String] = ProcessInfo.processInfo.environment,
+        homeDirectory: String = NSHomeDirectory()
+    ) {
         if let override = environment["MCP_ROUTER_HOME"], !override.isEmpty {
             root = override
         } else {
@@ -122,7 +123,7 @@ public struct RouterHome: Sendable, Hashable {
     public static let defaultPort = 8879
     public static let defaultHost = "127.0.0.1"
     public static let defaultIdleMs = 300_000
-    public static let defaultStartupTimeoutMs = 60_000
+    public static let defaultStartupTimeoutMs = 60000
 }
 
 public extension JSONValue {
@@ -130,22 +131,22 @@ public extension JSONValue {
     /// rejects an empty string, and `s.url ? 'http' : 'stdio'` selects stdio for `url: ""`.
     var isTruthy: Bool {
         switch self {
-        case .null: return false
-        case let .bool(flag): return flag
-        case let .number(value): return value != 0 && !value.isNaN
-        case let .string(text): return !text.isEmpty
-        case .array, .object: return true
+        case .null: false
+        case let .bool(flag): flag
+        case let .number(value): value != 0 && !value.isNaN
+        case let .string(text): !text.isEmpty
+        case .array, .object: true
         }
     }
 
     /// How a template literal would render this value, used for the reason strings.
     var jsDisplayString: String {
         switch self {
-        case .null: return "null"
-        case let .bool(flag): return flag ? "true" : "false"
-        case let .number(value): return JSNumber.string(value)
-        case let .string(text): return text.string
-        case .array, .object: return JSStringify.compact(self)
+        case .null: "null"
+        case let .bool(flag): flag ? "true" : "false"
+        case let .number(value): JSNumber.string(value)
+        case let .string(text): text.string
+        case .array, .object: JSStringify.compact(self)
         }
     }
 

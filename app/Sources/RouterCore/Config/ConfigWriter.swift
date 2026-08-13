@@ -98,10 +98,10 @@ public enum ConfigWriter {
         public var description: String {
             switch self {
             case let .backupFailed(path, reason):
-                return "Could not back up the existing server list to \(path) (\(reason)). "
+                "Could not back up the existing server list to \(path) (\(reason)). "
                     + "Nothing was written — the current list is unchanged."
             case let .writeFailed(path, reason):
-                return "Could not write the server list to \(path) (\(reason))."
+                "Could not write the server list to \(path) (\(reason))."
             }
         }
     }
@@ -126,11 +126,7 @@ public enum ConfigWriter {
         }
 
         var members: [JSONMember] = []
-        if fileSystem.fileExists(atPath: path),
-           let existing = try? fileSystem.readFile(atPath: path),
-           let parsed = try? JSONParser.parse(existing),
-           case let .object(existingMembers) = parsed
-        {
+        if let existingMembers = existingTopLevel(path: path, fileSystem: fileSystem) {
             members = existingMembers
             try backUp(path: path, fileSystem: fileSystem, now: now)
         }
@@ -150,6 +146,16 @@ public enum ConfigWriter {
         } catch {
             throw WriteProblem.writeFailed(path: path, reason: error.localizedDescription)
         }
+    }
+
+    /// The top-level members already in the file, when there is a readable object there.
+    private static func existingTopLevel(path: String, fileSystem: FileSystem) -> [JSONMember]? {
+        guard fileSystem.fileExists(atPath: path),
+              let existing = try? fileSystem.readFile(atPath: path),
+              let parsed = try? JSONParser.parse(existing),
+              case let .object(members) = parsed
+        else { return nil }
+        return members
     }
 
     /// Copies the current file aside before it is replaced, keeping the most recent few.

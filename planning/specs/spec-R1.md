@@ -446,3 +446,46 @@ Reported to the orchestrator rather than registered here:
 3. **`ManifestStore` has two latent defects** worth fixing after parity: a malformed file at
    construction records its stamp and so never retries, and a deleted file leaves the previous
    manifest with a stale stamp. Depends on R4.
+
+
+---
+
+## Pause checkpoint — 2026-08-14
+
+Written by the ORCHESTRATOR, not the runner: the runner died mid-turn on a gateway 503
+(`no-eligible-account`, 9 of 11 accounts over reserve) and could not write its own.
+
+**Pipeline position.** Phases 1-3 DONE. Phase 4 DONE across four commits (`0972472` JSON
+foundation proven byte-for-byte against `JSON.stringify`, `90ee914` config with the flat
+`servers.json` trap closed, `c35f6b3` client-config discovery, `3933d74` progress note).
+Phase 5 gap-fix was IN FLIGHT: the runner was writing the **vector registry** — its own
+words, *"P6's defence against a corpus that passes a name check while proving nothing"* —
+when it died mid-file.
+
+**State on disk.** Branch `ai/r1`, 5 commits. The fifth (`WIP: RouterCore mid gap-fix`) is
+an orchestrator RESCUE of 24 uncommitted files and **the tree does not compile**:
+
+```
+RouterCoreTests/VectorRegistry.swift:68:16
+error: actor-isolated default value in a nonisolated context
+```
+
+It was committed red deliberately — losing 24 files is worse than a red commit on a branch
+that is never merged in this state.
+
+**Diagnosed but unfixed.** That compile error. It is a half-written file, not a design
+problem: the runner was interrupted mid-write.
+
+**Next three steps.**
+1. Fix `VectorRegistry.swift:68` — the actor-isolated default value — and get `make test`
+   back to exit 0 before anything else. Nothing downstream is meaningful until it compiles.
+2. Finish the vector registry it was building, then the rest of Phase 5 gap-fix.
+3. Phase 6 acceptance, Phase 7 commit, STOP before merge.
+
+**Gotchas.** The gateway pool is shared with another live fleet in `~/Dev/hopper`; a 503
+here is capacity, not your code. `src/`, `install.sh` and `package.json` are OFF LIMITS —
+the TypeScript router stays the installed default until R4's parity gate passes.
+
+**Re-read before continuing** (paths only): `planning/features-to-triage/R1-router-core.md`,
+`planning/specs/spec-R1.md`, `planning/plans/plan-R1.md`, `src/config.ts` and
+`src/manifest.ts` (the reference implementations), `planning/practices/SWIFT_PRACTICES.md`.

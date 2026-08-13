@@ -32,3 +32,11 @@ manifest.json
 # the evidence and are committed; the residual/edge bitmaps are 21 MB of
 # regenerable diagnostic imagery and stay local.
 design/icon/runs/**/*.png
+
+# Xcode / Swift
+.build/
+DerivedData/
+*.xcuserdatad
+xcuserdata/
+*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+.swiftpm/

@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Conduit — iOS surfaces</title>
+<style>
+/* Same Instrument Panel direction, adapted: the phone is a triage tool, not a
+   control surface. It can put things in a queue and nothing else, so every
+   screen's strongest verb is "send to Mac". */
+:root{
+  --ground:#111316; --panel:#1A1D21; --raised:#22262C; --raised-2:#2A2F36;
+  --line:rgba(255,255,255,.08); --line-strong:rgba(255,255,255,.15);
+  --t1:#EAECEF; --t2:#9BA1AA; --t3:#6A7079; --t4:#494E56;
+  --live:#3FB950; --attn:#E3A008; --fail:#F85149; --accent:#5B8DEF;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0C0D0F;color:var(--t1);font:14px/1.45 var(--sans);
+  -webkit-font-smoothing:antialiased;padding:48px 40px 96px}
+h1.sheet{font:600 22px var(--sans);letter-spacing:-.2px;margin-bottom:6px}
+p.sheet{color:var(--t2);max-width:70ch;margin-bottom:36px;font-size:13px}
+.spec{margin:48px 0 12px;padding-top:22px;border-top:1px solid var(--line)}
+.spec h2{font:600 15px var(--sans);letter-spacing:-.1px}
+.spec p{color:var(--t2);font-size:12.5px;max-width:78ch;margin-top:5px}
+.spec .q{color:var(--t3);font-size:11.5px;margin-top:7px;font-style:italic}
+.row{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;margin-top:20px}
+.cap{color:var(--t3);font:500 11px var(--sans);margin-top:9px;letter-spacing:.2px;
+  max-width:300px}
+
+/* ── device ────────────────────────────────────────────────── */
+.ph{width:300px;height:640px;background:var(--ground);border-radius:36px;
+  border:1px solid rgba(255,255,255,.1);overflow:hidden;display:flex;
+  flex-direction:column;position:relative;
+  box-shadow:0 20px 52px rgba(0,0,0,.6)}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);
+  width:88px;height:24px;background:#000;border-radius:14px;z-index:9}
+.stat{display:flex;padding:12px 22px 0;font:600 11px var(--sans);
+  align-items:center;justify-content:space-between}
+.stat .r{display:flex;gap:4px;align-items:center;color:var(--t2);font-size:10px}
+.nav{padding:8px 18px 10px;display:flex;align-items:flex-end;gap:9px}
+.nav h3{font:700 26px var(--sans);letter-spacing:-.6px}
+.nav .sp{margin-left:auto;display:flex;gap:12px;align-items:center;padding-bottom:5px}
+.sub{padding:0 18px 10px;color:var(--t2);font-size:12.5px}
+.body{flex:1;overflow:hidden;padding:0 18px}
+.tabs{display:flex;padding:9px 8px 24px;border-top:1px solid var(--line);
+  background:rgba(0,0,0,.32)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  font:500 9.5px var(--sans);color:var(--t3)}
+.tab .g{font-size:17px;line-height:1}
+.tab.on{color:var(--accent)}
+.tab .bd{position:absolute;margin:-3px 0 0 13px;width:14px;height:14px;border-radius:7px;
+  background:var(--attn);color:#1A1206;font:700 9px var(--sans);display:grid;place-items:center}
+
+/* ── content atoms ─────────────────────────────────────────── */
+.srch{background:rgba(255,255,255,.07);border-radius:10px;padding:7px 11px;
+  color:var(--t3);font-size:13.5px;display:flex;gap:7px;align-items:center;margin-bottom:14px}
+.lbl{font:600 10px var(--sans);letter-spacing:.5px;text-transform:uppercase;
+  color:var(--t4);margin:16px 0 8px}
+.ico{width:38px;height:38px;border-radius:9px;flex-shrink:0;
+  background:linear-gradient(140deg,#3A4048,#24272C);border:1px solid var(--line-strong)}
+.ico.b{background:linear-gradient(140deg,#2E4A7A,#1E2E4A)}
+.ico.g{background:linear-gradient(140deg,#2A5138,#1C3324)}
+.ico.o{background:linear-gradient(140deg,#5A4320,#332714)}
+.ico.sm{width:28px;height:28px;border-radius:7px}
+.li{display:flex;gap:11px;align-items:center;padding:9px 0;
+  border-bottom:1px solid rgba(255,255,255,.05)}
+.li .tx{flex:1;min-width:0}
+.li b{font-weight:600;font-size:14px;display:block;letter-spacing:-.1px}
+.li span{font-size:11.5px;color:var(--t3);display:block;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.rk{font:700 15px var(--mono);color:var(--t4);width:20px;text-align:center;flex-shrink:0}
+.dl{font:600 11px var(--mono);flex-shrink:0}.dl.u{color:var(--live)}.dl.d{color:var(--fail)}
+.ev{display:inline-flex;align-items:center;gap:3px;font:600 9.5px var(--sans);
+  padding:1.5px 6px;border-radius:9px;border:1px solid var(--line-strong);color:var(--t3)}
+.ev.pass{color:var(--live);border-color:rgba(63,185,80,.35);background:rgba(63,185,80,.1)}
+.ev.none{border-style:dashed;color:var(--t4)}
+.chip{display:inline-block;padding:4px 11px;border-radius:16px;font-size:12.5px;
+  background:rgba(255,255,255,.07);color:var(--t2);margin:0 6px 6px 0}
+.chip.on{background:var(--accent);color:#fff;font-weight:500}
+.m{font:12px var(--mono)}.t2{color:var(--t2)}.t3{color:var(--t3)}
+
+/* ── the triage deck ──────────────────────────────────────── */
+.deck{position:relative;height:390px;margin-top:6px}
+.crd{position:absolute;inset:0;background:var(--raised);border-radius:18px;
+  border:1px solid var(--line-strong);padding:17px;
+  box-shadow:0 12px 28px rgba(0,0,0,.45)}
+.crd.b2{transform:scale(.945) translateY(13px);opacity:.55;z-index:1}
+.crd.b3{transform:scale(.89) translateY(26px);opacity:.28;z-index:0}
+.crd.top{z-index:2;transform:rotate(-3.5deg) translateX(-16px)}
+.stamp{position:absolute;top:15px;right:15px;padding:4px 11px;border-radius:6px;
+  font:700 12px var(--sans);letter-spacing:.6px;transform:rotate(9deg)}
+.stamp.q{border:2px solid var(--live);color:var(--live);background:rgba(63,185,80,.12)}
+.verbs{display:flex;justify-content:space-between;padding:16px 22px 0;text-align:center}
+.verb{font:600 10.5px var(--sans);color:var(--t3);display:flex;flex-direction:column;
+  align-items:center;gap:5px}
+.verb .k{width:44px;height:44px;border-radius:22px;border:1.5px solid var(--line-strong);
+  display:grid;place-items:center;font-size:17px}
+.verb.no .k{border-color:rgba(248,81,73,.45);color:var(--fail)}
+.verb.yes .k{border-color:rgba(63,185,80,.5);color:var(--live)}
+.verb.later .k{color:var(--t2)}
+
+/* ── capability sheet ─────────────────────────────────────── */
+.wants{background:rgba(227,160,8,.08);border:1px solid rgba(227,160,8,.28);
+  border-radius:11px;padding:11px;margin-top:12px}
+.wants h5{font:600 11.5px var(--sans);margin-bottom:7px;color:var(--attn)}
+.wl{display:flex;gap:8px;align-items:flex-start;padding:3.5px 0;font-size:12.5px}
+.wl .i{color:var(--attn);flex-shrink:0;width:11px}
+.cta{display:block;text-align:center;padding:12px;border-radius:12px;
+  background:var(--accent);color:#fff;font:600 15px var(--sans);margin-top:14px}
+.cta.sec{background:rgba(255,255,255,.08);color:var(--t1);font-weight:500;margin-top:8px}
+.note{font-size:11.5px;color:var(--t3);text-align:center;margin-top:9px;line-height:1.5}
+
+/* ── queue rows ───────────────────────────────────────────── */
+.qs{font:600 10px var(--sans);padding:2px 7px;border-radius:5px;flex-shrink:0}
+.qs.w{background:rgba(227,160,8,.16);color:var(--attn)}
+.qs.d{background:rgba(63,185,80,.16);color:var(--live)}
+.qs.x{background:rgba(248,81,73,.16);color:var(--fail)}
+
+/* ── pairing ──────────────────────────────────────────────── */
+.qr{width:150px;height:150px;border-radius:11px;background:#fff;padding:10px;margin:6px auto 0;
+  display:grid;grid-template:repeat(11,1fr)/repeat(11,1fr);gap:2px}
+.qr i{background:#0C0D0F;border-radius:1px}.qr i.o{background:transparent}
+.warn{display:flex;gap:8px;padding:10px;border-radius:10px;margin-top:14px;
+  background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.26);
+  font-size:12px;color:#FFC7C3;line-height:1.45}
+.clock{display:flex;gap:7px;align-items:center;justify-content:center;margin-top:12px}
+.ring{width:15px;height:15px;border-radius:50%;border:2px solid var(--line-strong);
+  border-top-color:var(--attn)}
+
+/* ── empty / error ────────────────────────────────────────── */
+.empty{text-align:center;padding:58px 22px 0}
+.empty .g{font-size:34px;opacity:.3;margin-bottom:12px}
+.empty b{font:600 16px var(--sans);display:block;margin-bottom:6px}
+.empty p{color:var(--t2);font-size:12.5px;line-height:1.55}
+
+/* skeleton */
+.sk{background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.1),rgba(255,255,255,.05));
+  border-radius:5px;height:11px}
+</style>
+</head>
+<body>
+
+<h1 class="sheet">Conduit — iOS surfaces</h1>
+<p class="sheet">The phone is a triage tool, not a control surface. It finds things, judges them, and
+puts them in a queue that only the Mac can act on. Every screen is built around that one honest
+verb, which is also the security posture: a lost or unlocked phone still cannot install code on
+the laptop.</p>
+
+<!-- ═══════════════════════════════════ 1. DISCOVER + TRENDING ══ -->
+<div class="spec">
+  <h2>1 · Discover — the same two bands as the Mac, at thumb reach</h2>
+  <p>Editorial and measured stay separated here too, and trending still carries its window
+  and its sign. No row has an action on it: tapping opens the thing, and the only button in
+  the app is on the detail screen. The rank column is the affordance that makes a ranked list
+  scannable without turning it into a store shelf.</p>
+  <p class="q">Question: what is worth a look? · Worst state: offline, which shows the last
+  fetch with its age rather than an empty list.</p>
+</div>
+<div class="row">
+
+  <div>
+    <div class="ph"><div class="notch"></div>
+      <div class="stat"><span>9:41</span><span class="r">▮▮▮ ⌁ 84%</span></div>
+      <div class="nav"><h3>Discover</h3><div class="sp"><span class="t2">⌥</span></div></div>
+      <div class="body">
+        <div class="srch"><span>⌕</span><span>Skills and servers</span></div>
+        <div>
+          <span class="chip on">All</span><span class="chip">Design</span>
+          <span class="chip">Research</span><span class="chip">Test</span>
+        </div>
+        <div class="lbl">Trending · 7 days</div>
+        <div class="li"><span class="rk">1</span><span class="ico o"></span>
+          <div class="tx"><b>context-budget</b><span>@sourcegraph · 4,102 installs</span></div>
+          <span class="dl u">+218%</span></div>
+        <div class="li"><span class="rk">2</span><span class="ico b"></span>
+          <div class="tx"><b>sql-explain</b><span>@planetscale · 9,880 installs</span></div>
+          <span class="dl u">+64%</span></div>
+        <div class="li"><span class="rk">3</span><span class="ico"></span>
+          <div class="tx"><b>changelog-writer</b><span>@unknown · no licence</span></div>
+          <span class="dl u">+41%</span></div>
+        <div class="li"><span class="rk">4</span><span class="ico g"></span>
+          <div class="tx"><b>a11y-audit</b><span>@deque · 12,301 installs</span></div>
+          <span class="dl d">−8%</span></div>
+        <div class="lbl">Recently added</div>
+        <div class="li"><span class="ico b"></span>
+          <div class="tx"><b>spec-drift</b><span>Diffs delivered code against its spec</span></div>
+          <span class="ev none">no eval</span></div>
+      </div>
+      <div class="tabs">
+        <div class="tab on"><span class="g">✦</span>Discover</div>
+        <div class="tab"><span class="g">⧉</span>Triage</div>
+        <div class="tab"><span class="g">⌸</span><span class="bd">3</span>Queue</div>
+        <div class="tab"><span class="g">◇</span>Library</div>
+        <div class="tab"><span class="g">⚙</span>Settings</div>
+      </div>
+    </div>
+    <div class="cap">Signed delta and an explicit window — trending is a derivative, not a level</div>
+  </div>
+
+  <div>
+    <div class="ph"><div class="notch"></div>
+      <div class="stat"><span>9:41</span><span class="r">⚠ Offline</span></div>
+      <div class="nav"><h3>Discover</h3></div>
+      <div class="body">
+        <div style="display:flex;gap:8px;padding:9px 11px;border-radius:10px;margin-bottom:14px;
+          background:rgba(227,160,8,.1);border:1px solid rgba(227,160,8,.26);font-size:12px;color:#F3D79A">
+          <span>⚠</span><span>No connection. Showing what was cached 3 hours ago; the ranking
+          has almost certainly moved.</span></div>
+        <div class="lbl" style="margin-top:0">Trending · 7 days · as of 06:38</div>
+        <div class="li" style="opacity:.55"><span class="rk">1</span><span class="ico o"></span>
+          <div class="tx"><b>context-budget</b><span>@sourcegraph</span></div>
+          <span class="t3 m">—</span></div>
+        <div class="li" style="opacity:.55"><span class="rk">2</span><span class="ico b"></span>
+          <div class="tx"><b>sql-explain</b><span>@planetscale</span></div>
+          <span class="t3 m">—</span></div>
+        <div class="li" style="opacity:.55"><span class="rk">3</span><span class="ico"></span>
+          <div class="tx"><b>changelog-writer</b><span>@unknown</span></div>
+          <span class="t3 m">—</span></div>
+        <div class="note" style="margin-top:22px">Deltas are hidden rather than shown stale.
+        A three-hour-old percentage looks exactly like a live one.</div>
+      </div>
+      <div class="tabs">
+        <div class="tab on"><span class="g">✦</span>Discover</div>
+        <div class="tab"><span class="g">⧉</span>Triage</div>
+        <div class="tab"><span class="g">⌸</span>Queue</div>
+        <div class="tab"><span class="g">◇</span>Library</div>
+        <div class="tab"><span class="g">⚙</span>Settings</div>
+      </div>
+    </div>
+    <div class="cap">Offline · the delta column empties rather than lying by three hours</div>
+  </div>
+
+  <div>
+    <div class="ph"><div class="notch"></div>
+      <div class="stat"><span>9:41</span><span class="r">▮▮▮ ⌁ 84%</span></div>
+      <div class="nav"><h3>Discover</h3></div>
+      <div class="body">
+        <div class="srch"><span>⌕</span><span style="color:var(--t1)">postgres migration</span></div>
+        <div class="lbl" style="margin-top:2px">Searching</div>
+        <div class="li"><span class="sk" style="width:28px;height:28px;border-radius:7px"></span>
+          <div class="tx"><span class="sk" style="width:64%;margin-bottom:6px"></span>
+          <span class="sk" style="width:42%;height:9px"></span></div></div>
+        <div class="li"><span class="sk" style="width:28px;height:28px;border-radius:7px"></span>
+          <div class="tx"><span class="sk" style="width:52%;margin-bottom:6px"></span>
+          <span class="sk" style="width:36%;height:9px"></span></div></div>
+        <div class="li"><span class="sk" style="width:28px;height:28px;border-radius:7px"></span>
+          <div class="tx"><span class="sk" style="width:58%;margin-bottom:6px"></span>
+          <span class="sk" style="width:30%;height:9px"></span></div></div>
+      </div>
+      <div class="tabs">
+        <div class="tab on"><span class="g">✦</span>Discover</div>
+        <div class="tab"><span class="g">⧉</span>Triage</div>
+        <div class="tab"><span class="g">⌸</span>Queue</div>
+        <div class="tab"><span class="g">◇</span>Library</div>
+        <div class="tab"><span class="g">⚙</span>Settings</div>
+      </div>
+    </div>
+    <div class="cap">Loading · three rows of real geometry, not a spinner over nothing</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════ 2. TRIAGE DECK ══ -->
+<div class="spec">
+  <h2>2 · Triage — yes, no, later</h2>
+  <p>The phone's own shape. Away from the Mac the only useful judgment is three-way, so the
+  surface is a deck with three verbs rather than a store you browse. <b>Swiping right stamps
+  QUEUED, not INSTALLED</b>, and the card says so — this is the screen where a dishonest verb
+  would do the most damage. Every card carries the eval mark and the capability line before
+  any marketing copy, so the decision is made on the two facts that matter.</p>
+  <p class="q">Question: worth my Mac's attention, yes or no? · Worst state: the deck runs out,
+  which is a finished job and reads like one.</p>
+</div>
+<div class="row">
+
+  <div>
+    <div class="ph"><div class="notch"></div>
+      <div class="stat"><span>9:41</span><span class="r">▮▮▮ ⌁ 84%</span></div>
+      <div class="nav"><h3>Triage</h3><div class="sp"><span class="t3 m">4 left</span></div></div>
+      <div class="body">
+        <div class="deck">
+          <div class="crd b3"></div>
+          <div class="crd b2"></div>
+          <div class="crd top">
+            <div class="stamp q">QUEUED</div>
+            <span class="ico o" style="width:46px;height:46px;border-radius:11px"></span>
+            <div style="font:700 20px var(--sans);letter-spacing:-.3px;margin-top:11px">context-budget</div>
+            <div class="t3" style="font-size:12.5px;margin-top:2px">@sourcegraph · MIT · 4,102 installs</div>
+            <div style="display:flex;gap:6px;margin-top:10px">
+              <span class="ev pass">✓ 6/6 evals</span><span class="ev">skill</span></div>
+            <div style="font-size:13.5px;color:var(--t2);margin-top:12px;line-height:1.5">
+              Watches how much of the context window a long session is spending and where,
+              then names the three biggest consumers.</div>
+            <div class="wants" style="margin-top:14px">
+              <h5>What it can do once installed</h5>
+              <div class="wl"><span class="i">›</span><span>Read files in the project it runs in</span></div>
+              <div class="wl"><span class="i">›</span><span>No network access</span></div>
+              <div class="wl"><span class="i">›</span><span>No shell</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="verbs">
+          <div class="verb no"><span class="k">✕</span>Not for me</div>
+          <div class="verb later"><span class="k">↓</span>Later</div>
+          <div class="verb yes"><span class="k">✓</span>Send to Mac</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="g">✦</span>Discover</div>
+        <div class="tab on"><span class="g">⧉</span>Triage</div>
+        <div class="tab"><span class="g">⌸</span><span class="bd">3</span>Queue</div>
+        <div class="tab"><span class="g">◇</span>Library</div>
+        <div class="tab"><span class="g">⚙</span>Settings</div>
+      </div>
+    </div>
+    <div class="cap">Mid-swipe · the stamp says QUEUED because that is what the gesture does</div>
+  </div>
+
+  <div>
+    <div class="ph"><div class="notch"></div>
+      <div class="stat"><span>9:41</span><span class="r">▮▮▮ ⌁ 84%</span></div>
+      <div class="nav"><h3>Triage</h3></div>
+      <div class="body">
+        <div class="empty">
+          <div class="g">✓</div>
+          <b>Deck clear</b>
+          <p>You've been through everything new since Tuesday. Three are waiting on your Mac.</p>
+          <div class="cta sec" style="margin-top:20px">Review the queue</div>
+          <div class="note">New skills land here as your marketplaces publish them.
+          There's nothing to pull.</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="g">✦</span>Discover</div>
+        <div class="tab on"><span class="g">⧉</span>Triage</div>
+        <div class="tab"><span class="g">⌸</span><span class="bd">3</span>Queue</div>
+        <div class="tab"><span class="g">◇</span>Library</div>
+        <div class="tab"><span class="g">⚙</span>Settings</div>
+      </div>
+    </div>
+    <div class="cap">Empty · a finished job, with the next action rather than an illustration</div>
+  </div>
+
+  <div>
+    <div class="ph"><div class="notch"></div>
+      <div class="stat"><span>9:41</span><span class="r">▮▮▮ ⌁ 84%</span></div>
+      <div class="nav" style="padding-bottom:4px"><span class="t2" style="font-size:15px">‹ Triage</span></div>
+      <div class="body">
+        <div style="display:flex;gap:12px;align-items:center;margin-top:6px">
+          <span class="ico" style="width:52px;height:52px;border-radius:12px"></span>
+          <div><div style="font:700 19px var(--sans);letter-spacing:-.3px">changelog-writer</div>
+          <div class="t3" style="font-size:12px">@unknown · <span style="color:var(--fail)">no licence file</span></div></div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:11px">
+          <span class="ev none">never evaluated</span><span class="ev">skill</span></div>
+        <div class="wants" style="border-color:rgba(248,81,73,.3);background:rgba(248,81,73,.07)">
+          <h5 style="color:var(--fail)">What it can do once installed</h5>
+          <div class="wl"><span class="i" style="color:var(--fail)">›</span><span>Run shell commands</span></div>
+          <div class="wl"><span class="i" style="color:var(--fail)">›</span><span>Contact <span class="m">api.changelog.dev</span></span></div>
+          <div class="wl"><span class="i" style="color:var(--fail)">›</span><span>Read anywhere in the repo, including <span class="m">.env</span></span></div>
+        </div>
+        <div style="font-size:13px;color:var(--t2);margin-top:13px;line-height:1.5">
+          Reads a git range and writes release notes in your project's own style.</div>
+        <div class="cta">Send to Mac for review</div>
+        <div class="note">Nothing installs from your phone. This lands in a queue and your
+        Mac shows you the same three lines again before anything runs.</div>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="g">✦</span>Discover</div>
+        <div class="tab on"><span class="g">⧉</span>Triage</div>
+        <div class="tab"><span class="g">⌸</span>Queue</div>
+        <div class="tab"><span class="g">◇</span>Library</div>
+        <div class="tab"><span class="g">⚙</span>Settings</div>
+      </div>
+    </div>
+    <div class="cap">Detail · capability above description, and the honest note under the button</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════ 3. QUEUE + LIBRARY ══ -->
+<div class="spec">
+  <h2>3 · Queue and Library — what you sent, and what you already run</h2>
+  <p>The queue is the phone's only writable state, so it shows a real status per item rather
+  than a hopeful checkmark: waiting, installed, or declined at the Mac with the reason. The
+  library is read-only on the phone — you can see what runs and where, and you cannot change
+  it from here, which is stated rather than implied by greyed controls.</p>
+  <p class="q">Question: did that land? · Worst state: declined at the Mac, which arrives with
+  the reason attached.</p>
+</div>
+<div class="row">
+
+  <div>
+    <div class="ph"><div class="notch"></div>
+      <div class="stat"><span>9:41</span><span class="r">▮▮▮ ⌁ 84%</span></div>
+      <div class="nav"><h3>Queue</h3></div>
+      <div class="sub">Waiting on <b style="font-weight:600">Luke's MacBook Pro</b> · last seen 4m ago</div>
+      <div class="body">
+        <div class="lbl" style="margin-top:0">Waiting</div>
+        <div class="li"><span class="ico o sm"></span>
+          <div class="tx"><b>context-budget</b><span>sent 2h ago · on the train</span></div>
+          <span class="qs w">WAITING</span></div>
+        <div class="li"><span class="ico sm"></span>
+          <div class="tx"><b>changelog-writer</b><span>sent 2h ago</span></div>
+          <span class="qs w">WAITING</span></div>
+        <div class="li"><span class="ico b sm"></span>
+          <div class="tx"><b>spec-drift</b><span>sent yesterday</span></div>
+          <span class="qs w">WAITING</span></div>
+        <div class="lbl">Done</div>
+        <div class="li"><span class="ico g sm"></span>
+          <div class="tx"><b>a11y-audit</b><span>installed into Claude Code, Cursor</span></div>
+          <span class="qs d">ADDED</span></div>
+        <div class="li" style="align-items:flex-start">
+          <span class="ico sm" style="margin-top:2px"></span>
+          <div class="tx"><b>pr-summariser</b>
+            <span style="white-space:normal;color:var(--t2);line-height:1.45;margin-top:2px">
+            You declined it: repo changed owner between publish and review.</span></div>
+          <span class="qs x" style="margin-top:2px">NO</span></div>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="g">✦</span>Discover</div>
+        <div class="tab"><span class="g">⧉</span>Triage</div>
+        <div class="tab on"><span class="g">⌸</span>Queue</div>
+        <div class="tab"><span class="g">◇</span>Library</div>
+        <div class="tab"><span class="g">⚙</span>Settings</div>
+      </div>
+    </div>
+    <div class="cap">Three states, and a decline carries its reason back to the phone</div>
+  </div>
+
+  <div>
+    <div class="ph"><div class="notch"></div>
+      <div class="stat"><span>9:41</span><span class="r">▮▮▮ ⌁ 84%</span></div>
+      <div class="nav"><h3>Library</h3></div>
+      <div class="sub">31 skills · 13 servers · read-only from here</div>
+      <div class="body">
+        <div class="srch"><span>⌕</span><span>Filter</span></div>
+        <div class="li"><span class="ico o sm"></span>
+          <div class="tx"><b>create-mac-icon</b><span>CC · CX &nbsp;·&nbsp; 14 runs</span></div>
+          <span class="ev pass">✓</span></div>
+        <div class="li"><span class="ico b sm"></span>
+          <div class="tx"><b>trawl</b><span style="color:var(--attn)">2.3.0 held for review at the Mac</span></div>
+          <span class="ev pass">✓</span></div>
+        <div class="li"><span class="ico g sm"></span>
+          <div class="tx"><b>design-craft</b><span>CC · OC &nbsp;·&nbsp; 62 runs</span></div>
+          <span class="ev pass">✓</span></div>
+        <div class="li"><span class="ico sm"></span>
+          <div class="tx"><b>mac-doctor</b><span>CC &nbsp;·&nbsp; never run</span></div>
+          <span class="ev none">—</span></div>
+        <div class="li"><span class="ico sm"></span>
+          <div class="tx"><b>obscura</b><span>server · 31 tools · running now</span></div>
+          <span class="ev pass">✓</span></div>
+        <div class="note" style="margin-top:16px">Installing, updating and removing all happen
+        at your Mac. This is the same list, so you know what you're carrying.</div>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="g">✦</span>Discover</div>
+        <div class="tab"><span class="g">⧉</span>Triage</div>
+        <div class="tab"><span class="g">⌸</span>Queue</div>
+        <div class="tab on"><span class="g">◇</span>Library</div>
+        <div class="tab"><span class="g">⚙</span>Settings</div>
+      </div>
+    </div>
+    <div class="cap">Read-only, and it says so instead of showing controls that do nothing</div>
+  </div>
+
+  <div>
+    <div class="ph"><div class="notch"></div>
+      <div class="stat"><span>9:41</span><span class="r">▮▮▮ ⌁ 84%</span></div>
+      <div class="nav"><h3>Queue</h3></div>
+      <div class="body">
+        <div class="empty">
+          <div class="g">⌸</div>
+          <b>Nothing waiting</b>
+          <p>Things you send from Triage or Discover collect here until you're back at your Mac.</p>
+          <div class="cta sec" style="margin-top:20px">Go to Triage</div>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="g">✦</span>Discover</div>
+        <div class="tab"><span class="g">⧉</span>Triage</div>
+        <div class="tab on"><span class="g">⌸</span>Queue</div>
+        <div class="tab"><span class="g">◇</span>Library</div>
+        <div class="tab"><span class="g">⚙</span>Settings</div>
+      </div>
+    </div>
+    <div class="cap">Empty queue · states the mechanism, since it is not obvious on first run</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════ 4. PAIRING + SETTINGS ══ -->
+<div class="spec">
+  <h2>4 · Pairing and Settings — the highest-stakes screen in the app</h2>
+  <p>The pairing code grants a remote party a channel into the queue on someone's laptop. That
+  is a bigger grant than a browser sync, so the two honesties Brave ships are the floor here:
+  the warning is in plain language and names the consequence, and the expiry clock runs
+  visibly while you are looking at it. The fallback ladder is scan → type a code → name the
+  exact menu path on the Mac, because the third rung is what rescues a person whose camera
+  fails.</p>
+  <p class="q">Question: is this the right Mac, and is anyone else able to use this code? ·
+  Worst state: the code expires while you are reading it, which the ring shows before it
+  happens.</p>
+</div>
+<div class="row">
+
+  <div>
+    <div class="ph"><div class="notch"></div>
+      <div class="stat"><span>9:41</span><span class="r">▮▮▮ ⌁ 84%</span></div>
+      <div class="nav" style="padding-bottom:4px"><span class="t2" style="font-size:15px">‹ Settings</span></div>
+      <div class="body">
+        <div style="font:700 22px var(--sans);letter-spacing:-.4px;margin-top:4px">Pair with your Mac</div>
+        <div class="t2" style="font-size:13px;margin-top:5px;line-height:1.5">
+          On the Mac, open Conduit → Settings → <b style="font-weight:600">Pair iPhone</b>,
+          then point this camera at the code it shows.</div>
+        <div style="width:100%;height:172px;border-radius:14px;margin-top:14px;
+          border:1.5px dashed var(--line-strong);display:grid;place-items:center;
+          background:rgba(0,0,0,.28)">
+          <div style="text-align:center"><div style="font-size:26px;opacity:.35">⛶</div>
+          <div class="t3" style="font-size:12px;margin-top:6px">Point at the code on your Mac</div></div>
+        </div>
+        <div class="warn">
+          <span style="color:var(--fail)">⚠</span>
+          <span>Treat that code like a password. Anyone who scans it can put items into
+          your Mac's queue until it expires.</span></div>
+        <div class="cta sec">Can't scan? Type the code</div>
+        <div class="note">No Mac shown yet? Make sure Conduit is running there and both
+        devices are on the same network.</div>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="g">✦</span>Discover</div>
+        <div class="tab"><span class="g">⧉</span>Triage</div>
+        <div class="tab"><span class="g">⌸</span>Queue</div>
+        <div class="tab"><span class="g">◇</span>Library</div>
+        <div class="tab on"><span class="g">⚙</span>Settings</div>
+      </div>
+    </div>
+    <div class="cap">Scanner · warning before the affordance, and the exact menu path on the other device</div>
+  </div>
+
+  <div>
+    <div class="ph"><div class="notch"></div>
+      <div class="stat"><span>9:41</span><span class="r">▮▮▮ ⌁ 84%</span></div>
+      <div class="nav" style="padding-bottom:4px"><span class="t2" style="font-size:15px">‹ Back</span></div>
+      <div class="body">
+        <div style="font:700 22px var(--sans);letter-spacing:-.4px;margin-top:4px">Or show this to your Mac</div>
+        <div class="t2" style="font-size:13px;margin-top:5px">Use the Mac's camera, or type the
+        code below into it.</div>
+        <div class="qr">
+          <i></i><i></i><i></i><i class="o"></i><i></i><i class="o"></i><i></i><i class="o"></i><i></i><i></i><i></i>
+          <i></i><i class="o"></i><i></i><i></i><i class="o"></i><i></i><i></i><i class="o"></i><i></i><i class="o"></i><i></i>
+          <i></i><i class="o"></i><i></i><i class="o"></i><i></i><i></i><i class="o"></i><i></i><i></i><i class="o"></i><i></i>
+          <i></i><i></i><i></i><i></i><i class="o"></i><i class="o"></i><i></i><i class="o"></i><i></i><i></i><i></i>
+          <i class="o"></i><i class="o"></i><i class="o"></i><i></i><i></i><i class="o"></i><i></i><i></i><i class="o"></i><i class="o"></i><i class="o"></i>
+          <i></i><i></i><i class="o"></i><i></i><i class="o"></i><i></i><i class="o"></i><i></i><i></i><i class="o"></i><i></i>
+          <i class="o"></i><i></i><i></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i class="o"></i><i></i><i class="o"></i>
+          <i></i><i class="o"></i><i></i><i></i><i class="o"></i><i class="o"></i><i></i><i></i><i></i><i class="o"></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i><i class="o"></i><i></i><i class="o"></i><i></i><i></i><i></i>
+          <i></i><i class="o"></i><i></i><i class="o"></i><i></i><i></i><i class="o"></i><i></i><i class="o"></i><i class="o"></i><i></i>
+          <i></i><i></i><i></i><i class="o"></i><i></i><i class="o"></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div style="text-align:center;font:700 22px var(--mono);letter-spacing:5px;margin-top:14px">
+          K7QN·4FMD</div>
+        <div class="clock"><span class="ring"></span>
+          <span class="m t2">expires in 4:52</span></div>
+        <div class="warn" style="margin-top:14px">
+          <span style="color:var(--fail)">⚠</span>
+          <span>Anyone who reads this code can queue items on your Mac until it expires.
+          Don't photograph it or send it on.</span></div>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="g">✦</span>Discover</div>
+        <div class="tab"><span class="g">⧉</span>Triage</div>
+        <div class="tab"><span class="g">⌸</span>Queue</div>
+        <div class="tab"><span class="g">◇</span>Library</div>
+        <div class="tab on"><span class="g">⚙</span>Settings</div>
+      </div>
+    </div>
+    <div class="cap">Fallback rung · the clock is visible for exactly as long as the grant is</div>
+  </div>
+
+  <div>
+    <div class="ph"><div class="notch"></div>
+      <div class="stat"><span>9:41</span><span class="r">▮▮▮ ⌁ 84%</span></div>
+      <div class="nav"><h3>Settings</h3></div>
+      <div class="body">
+        <div class="lbl" style="margin-top:2px">Paired Mac</div>
+        <div class="li"><span class="ico b sm"></span>
+          <div class="tx"><b>Luke's MacBook Pro</b><span>paired 12 Aug · last seen 4m ago</span></div>
+          <span class="t3">›</span></div>
+        <div style="padding:9px 0;font-size:13.5px;color:var(--fail)">Unpair this Mac</div>
+
+        <div class="lbl">Notifications</div>
+        <div class="li"><div class="tx"><b style="font-weight:500;font-size:13.5px">When an update is held</b>
+          <span style="white-space:normal;line-height:1.4">A version asked for capability it
+          didn't have before</span></div>
+          <span style="width:38px;height:22px;border-radius:11px;background:var(--live);flex-shrink:0"></span></div>
+        <div class="li"><div class="tx"><b style="font-weight:500;font-size:13.5px">When a queued item is decided</b>
+          <span style="white-space:normal;line-height:1.4">Installed or declined at the Mac</span></div>
+          <span style="width:38px;height:22px;border-radius:11px;background:var(--live);flex-shrink:0"></span></div>
+        <div class="li"><div class="tx"><b style="font-weight:500;font-size:13.5px">Trending digest</b>
+          <span style="white-space:normal;line-height:1.4">Weekly, Fridays</span></div>
+          <span style="width:38px;height:22px;border-radius:11px;background:rgba(255,255,255,.13);flex-shrink:0"></span></div>
+
+        <div class="lbl">About</div>
+        <div class="note" style="text-align:left;margin-top:2px">Conduit for iPhone 1.0.
+        This app can queue items and read your library. It cannot install, update, or remove
+        anything — that happens only at your Mac.</div>
+      </div>
+      <div class="tabs">
+        <div class="tab"><span class="g">✦</span>Discover</div>
+        <div class="tab"><span class="g">⧉</span>Triage</div>
+        <div class="tab"><span class="g">⌸</span>Queue</div>
+        <div class="tab"><span class="g">◇</span>Library</div>
+        <div class="tab on"><span class="g">⚙</span>Settings</div>
+      </div>
+    </div>
+    <div class="cap">The capability statement is in About, in plain words, not buried in a privacy policy</div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════ MOTION ══ -->
+<div class="spec">
+  <h2>Motion spec</h2>
+  <p><b>Card swipe:</b> rotation tracks the drag at 0.06°/px capped at 12°; the stamp fades in
+  over the first 40pt of travel and is at full opacity by 90pt, so the verb is legible before
+  the commit point rather than after it. Release below threshold springs back at response 0.3 /
+  damping 0.75. <b>Send-to-Mac:</b> the card flies to the Queue tab and the tab badge increments
+  as it arrives — one motion, one meaning, no separate toast. <b>Queue status change:</b> the
+  pill cross-fades in place over 200ms; the row does not move, because a row that reorders under
+  the thumb is a row you tap by accident. <b>Pairing clock:</b> the ring sweeps continuously and
+  turns amber under 60s, red under 15s. <b>Pull to refresh</b> on Discover only; the other tabs
+  have nothing to fetch. Under <span class="m">Reduce Motion</span> the deck cross-fades between
+  cards and the send animation becomes a badge increment with a haptic.</p>
+</div>
+
+</body>
+</html>

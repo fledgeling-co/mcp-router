@@ -1,0 +1,57 @@
+name: MCPRouter
+options:
+  bundleIdPrefix: gg.rhodes.mcp-router
+  deploymentTarget:
+    macOS: "15.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: "$(DEVELOPMENT_TEAM)"
+    CODE_SIGN_STYLE: Manual
+    SWIFT_STRICT_CONCURRENCY: complete
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+
+targets:
+  MCPRouter:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources
+    info:
+      path: Info.plist
+      properties:
+        CFBundleName: mcp-router
+        CFBundleDisplayName: mcp-router
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        LSMinimumSystemVersion: "15.0"
+        NSHumanReadableCopyright: "MIT"
+        # Not an agent: this app has a real window as well as a menu bar item, so
+        # LSUIElement would take away the Dock icon people use to get back to it.
+        LSUIElement: false
+        NSSupportsAutomaticTermination: false
+        NSSupportsSuddenTermination: false
+    entitlements:
+      path: MCPRouter.entitlements
+      properties:
+        # Deliberately NOT sandboxed, and this is a distribution decision rather
+        # than a shortcut. The app's whole job is to read ~/.claude/mcp-router —
+        # the server list, the manifest, the 0600 control token — and to talk to a
+        # loopback daemon. A sandboxed build reaches none of that without a
+        # user-granted bookmark for a directory the user has no reason to think
+        # about, so this ships Developer ID direct rather than through the Mac App
+        # Store. Hardened runtime stays on.
+        com.apple.security.app-sandbox: false
+        com.apple.security.network.client: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: gg.rhodes.mcp-router.app
+        ENABLE_HARDENED_RUNTIME: YES
+        COMBINE_HIDPI_IMAGES: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_NSPrincipalClass: NSApplication

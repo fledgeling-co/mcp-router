@@ -1,0 +1,395 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2A2DC53B3BCB45B05C770AF6 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFD05EF4E4F96EDBF77330BA /* Models.swift */; };
+		42711F6F79C9E9231A3D33E2 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7552E3A0C7B509C3285380B8 /* Theme.swift */; };
+		58C09F22E9601762BA40AD19 /* ServersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB51F839AD0F829E0B57A2A5 /* ServersView.swift */; };
+		6D9AE43E5586D013143A8CA9 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28DD892157B8273109C2D339 /* RootView.swift */; };
+		74B8ED5BC500E833426F4D79 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C739B2C102F9752F235D23BD /* MenuBarView.swift */; };
+		91A79629818239356A7D92CD /* RouterClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D432CE2DC6074C1A99FF99A7 /* RouterClient.swift */; };
+		9FBD77FB84751DA02531ED39 /* ServerDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93E9A32E15D457DDCE7D1CA /* ServerDetailView.swift */; };
+		A66EA47BB090432A45F0C257 /* MCPRouterApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 623588B0F9403E06DB428E73 /* MCPRouterApp.swift */; };
+		A7B5EDF8139CB3CBE12A00F3 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123CFA36EEC0ADB08D4C59FF /* SettingsView.swift */; };
+		B8614D4735F5999282726B2B /* ActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52FB9F39B74E5F6765A072BA /* ActivityView.swift */; };
+		C373CF51E511B17962A10622 /* RouterStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7350FA9DB7300B244732A4B /* RouterStore.swift */; };
+		C862304182FD4709113562B6 /* CleanupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE4209195DE024B327238299 /* CleanupView.swift */; };
+		DF79D4A8FA576F58F28B93F6 /* DiscoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1EA7B297D05B7BB80BB4EC /* DiscoverView.swift */; };
+		FDC69A99824B9ABCC6A2333D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5C59E46E115999DBA95E46D6 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		123CFA36EEC0ADB08D4C59FF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		28DD892157B8273109C2D339 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		52FB9F39B74E5F6765A072BA /* ActivityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityView.swift; sourceTree = "<group>"; };
+		5C59E46E115999DBA95E46D6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		623588B0F9403E06DB428E73 /* MCPRouterApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPRouterApp.swift; sourceTree = "<group>"; };
+		7552E3A0C7B509C3285380B8 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		938F4DEA043F6C16C7B0D2DD /* MCPRouter.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MCPRouter.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A93E9A32E15D457DDCE7D1CA /* ServerDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServerDetailView.swift; sourceTree = "<group>"; };
+		B7350FA9DB7300B244732A4B /* RouterStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterStore.swift; sourceTree = "<group>"; };
+		BB1EA7B297D05B7BB80BB4EC /* DiscoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverView.swift; sourceTree = "<group>"; };
+		C739B2C102F9752F235D23BD /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		CB51F839AD0F829E0B57A2A5 /* ServersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServersView.swift; sourceTree = "<group>"; };
+		D432CE2DC6074C1A99FF99A7 /* RouterClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterClient.swift; sourceTree = "<group>"; };
+		DE4209195DE024B327238299 /* CleanupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanupView.swift; sourceTree = "<group>"; };
+		DFD05EF4E4F96EDBF77330BA /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		014B2B10C2D132488493CE45 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				DFD05EF4E4F96EDBF77330BA /* Models.swift */,
+				D432CE2DC6074C1A99FF99A7 /* RouterClient.swift */,
+				B7350FA9DB7300B244732A4B /* RouterStore.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		0700AFE93A4045FCDB34C7B5 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				014B2B10C2D132488493CE45 /* Core */,
+				98529C93395718444D689797 /* Design */,
+				3916DC6E0F5CD419681B9256 /* MenuBar */,
+				7DCA89830FD8FDD9A9F337AF /* Window */,
+				5C59E46E115999DBA95E46D6 /* Assets.xcassets */,
+				623588B0F9403E06DB428E73 /* MCPRouterApp.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+		1F989BB3E9AD3408A1EA0474 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				938F4DEA043F6C16C7B0D2DD /* MCPRouter.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3916DC6E0F5CD419681B9256 /* MenuBar */ = {
+			isa = PBXGroup;
+			children = (
+				C739B2C102F9752F235D23BD /* MenuBarView.swift */,
+			);
+			path = MenuBar;
+			sourceTree = "<group>";
+		};
+		7DCA89830FD8FDD9A9F337AF /* Window */ = {
+			isa = PBXGroup;
+			children = (
+				52FB9F39B74E5F6765A072BA /* ActivityView.swift */,
+				DE4209195DE024B327238299 /* CleanupView.swift */,
+				BB1EA7B297D05B7BB80BB4EC /* DiscoverView.swift */,
+				28DD892157B8273109C2D339 /* RootView.swift */,
+				A93E9A32E15D457DDCE7D1CA /* ServerDetailView.swift */,
+				CB51F839AD0F829E0B57A2A5 /* ServersView.swift */,
+				123CFA36EEC0ADB08D4C59FF /* SettingsView.swift */,
+			);
+			path = Window;
+			sourceTree = "<group>";
+		};
+		98529C93395718444D689797 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				7552E3A0C7B509C3285380B8 /* Theme.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		CC5DAD64FE68D17A495E2058 = {
+			isa = PBXGroup;
+			children = (
+				0700AFE93A4045FCDB34C7B5 /* Sources */,
+				1F989BB3E9AD3408A1EA0474 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		09015F99AC11D865EC0CF3BD /* MCPRouter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 47D845FB36FACEB965426A3A /* Build configuration list for PBXNativeTarget "MCPRouter" */;
+			buildPhases = (
+				01F35A6A3821F357BEDF4891 /* Sources */,
+				E8B4D55B11C5A7DF0379A15C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MCPRouter;
+			packageProductDependencies = (
+			);
+			productName = MCPRouter;
+			productReference = 938F4DEA043F6C16C7B0D2DD /* MCPRouter.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		EF373CFAD8A923D11A1F4F5D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					09015F99AC11D865EC0CF3BD = {
+						DevelopmentTeam = "$(DEVELOPMENT_TEAM)";
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = 4157561FF6132FEB16917A51 /* Build configuration list for PBXProject "MCPRouter" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = CC5DAD64FE68D17A495E2058;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1F989BB3E9AD3408A1EA0474 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				09015F99AC11D865EC0CF3BD /* MCPRouter */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E8B4D55B11C5A7DF0379A15C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FDC69A99824B9ABCC6A2333D /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		01F35A6A3821F357BEDF4891 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B8614D4735F5999282726B2B /* ActivityView.swift in Sources */,
+				C862304182FD4709113562B6 /* CleanupView.swift in Sources */,
+				DF79D4A8FA576F58F28B93F6 /* DiscoverView.swift in Sources */,
+				A66EA47BB090432A45F0C257 /* MCPRouterApp.swift in Sources */,
+				74B8ED5BC500E833426F4D79 /* MenuBarView.swift in Sources */,
+				2A2DC53B3BCB45B05C770AF6 /* Models.swift in Sources */,
+				6D9AE43E5586D013143A8CA9 /* RootView.swift in Sources */,
+				91A79629818239356A7D92CD /* RouterClient.swift in Sources */,
+				C373CF51E511B17962A10622 /* RouterStore.swift in Sources */,
+				9FBD77FB84751DA02531ED39 /* ServerDetailView.swift in Sources */,
+				58C09F22E9601762BA40AD19 /* ServersView.swift in Sources */,
+				A7B5EDF8139CB3CBE12A00F3 /* SettingsView.swift in Sources */,
+				42711F6F79C9E9231A3D33E2 /* Theme.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		21B53EAE8D53AFBF6FCDDFDA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		270C6AF3DE44289E427A3D17 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = MCPRouter.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "gg.rhodes.mcp-router.app";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		8DE9532C8FC103D279BC9951 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = MCPRouter.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "gg.rhodes.mcp-router.app";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		AD6E9CD1F4E5BE96AB7392F9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4157561FF6132FEB16917A51 /* Build configuration list for PBXProject "MCPRouter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				21B53EAE8D53AFBF6FCDDFDA /* Debug */,
+				AD6E9CD1F4E5BE96AB7392F9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		47D845FB36FACEB965426A3A /* Build configuration list for PBXNativeTarget "MCPRouter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8DE9532C8FC103D279BC9951 /* Debug */,
+				270C6AF3DE44289E427A3D17 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = EF373CFAD8A923D11A1F4F5D /* Project object */;
+}

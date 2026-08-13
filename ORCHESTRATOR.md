@@ -50,7 +50,7 @@ than barriering on whole waves, so the real overlap is greater than the table im
 
 | Wave | Items | Peak slots | Gate to leave |
 |---|---|---|---|
-| 1 | F1 | 1 | Both targets build; CI green; `SWIFT_PRACTICES.md` exists |
+| 1 | F1 | 1 | ✅ **CLEARED** — both targets build, CI green on a clean runner, `SWIFT_PRACTICES.md` landed |
 | 2 | F2 · F3 · R1 | 3 | Design system renders every token; control client passes against recorded fixtures |
 | 3 | M1 · R2 · R3 · I1 | 4 | Mac shell navigable; iOS pairs; Swift router relays a real call |
 | 4 | M2 · M3 · M4 · I2 · R4 | 5 | **R4 is the parity gate and may not pass on a subset** |
@@ -78,7 +78,7 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 
 | ID | Title | Category | Deps | Mock (deep link) | Lane | Status | Branch | Outcome |
 |---|---|---|---|---|---|---|---|---|
-| F1 | Swift workspace, kit, three targets | foundation | — | — | Opus | **Merged** `0924040` | — | `make all` exit 0 on the merged tree · 31 tests · both targets build · **A12 (CI) unmet — never executed, branch unpushed** |
+| F1 | Swift workspace, kit, three targets | foundation | — | — | Opus | **Merged** `0924040` | — | `make all` exit 0 on the merged tree · 31 tests · both targets build · **A12 (CI) MET** — run 31747021039 `build-and-test: success` on a clean GitHub runner, 2026-08-14 |
 | F2 | Design system in SwiftUI | foundation | F1 ✓ | `?only=mac` + `DESIGN.md` §§2–7 | Opus | **Paused — capacity** | `ai/f2` (4) | green, 65 tests · died mid Phase-D critic · checkpoint in spec |
 | F3 | Control-API client and models | foundation | F1 ✓ | — (surface: `src/control.ts`) | Opus | **Paused — capacity** | `ai/f3` (2) | green, 93 tests · 28 files orphaned, rescued by orchestrator · died entering red-green pass |
 | R1 | Router: core, config, manifest | router | F1 ✓ | — | Opus | **Paused — capacity, RED** | `ai/r1` (6) | **does not compile** — `VectorRegistry.swift:68` actor-isolated default · 24 files rescued red |
@@ -115,6 +115,18 @@ are pending deletion.
 ---
 
 ## Changelog
+
+- 2026-08-14 — **A12 met and wave 1's exit gate cleared.** `main` pushed
+  (`e5a61ce..e15b31d`, 10 commits) and Swift CI executed for the first time: run
+  31747021039, `build-and-test: success`. This is the first verification of F1 that did
+  not happen on the authoring machine — every prior green was a warm local toolchain.
+  The `pages-build-deployment` run also succeeded and `docs/` was untouched in the diff,
+  so mcp-router.fledgeling.app is unaffected.
+- 2026-08-14 — **Wave 2 relaunched into the contended pool** at the user's instruction,
+  riding lifeline's retries rather than waiting for the `~/Dev/hopper` fleet to finish.
+  All three wire-verified `claude-opus-5`; two took 503s within the first minutes and
+  backed off, as expected. Each carries a RESUME brief naming its existing worktree and
+  branch, forbidding a fresh worktree, and pointing at its pause checkpoint.
 
 - 2026-08-14 — **Wave 2 died on capacity, not code.** All three runners took
   `503 no-eligible-account` — "9 of 11 accounts at or over their usage reserve". The

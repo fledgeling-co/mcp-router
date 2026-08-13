@@ -144,7 +144,12 @@ p{margin:0}
   background:linear-gradient(90deg, var(--ink-050) 4%, rgba(20,18,31,.82) 38%, rgba(20,18,31,0) 64%);
 }
 .hero .wrap{position:relative; z-index:1; display:grid; grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr); gap:var(--s-7); align-items:center}
-.hero-copy{display:flex; flex-direction:column; gap:var(--s-5); max-width:40ch}
+/* The reading measure belongs to the prose, not to the whole column. Binding
+   the install field to 40ch left it 428px wide, which is 44 monospace
+   characters, and the 53-character URL then broke across two lines and made
+   the command three. */
+.hero-copy{display:flex; flex-direction:column; gap:var(--s-5)}
+.hero-copy .lede{max-width:40ch}
 .hero h1 .warm{
   background:linear-gradient(96deg,var(--amber-100),var(--amber-300));
   -webkit-background-clip:text; background-clip:text; color:transparent;
@@ -292,14 +297,19 @@ footer{padding:var(--s-6) 0 var(--s-8); border-top:1px solid rgba(196,194,228,.0
 footer .wrap{display:flex; justify-content:space-between; gap:var(--s-4); flex-wrap:wrap}
 
 /* ─────────────────────────────────────────────── responsive */
-@media (max-width:900px){
+/* The hero stacks at 1100 rather than 900. Two columns below that leaves the
+   install field under ~500px, which cannot hold the URL on one line, and the
+   command goes to three. The rest of the layout still breaks at 900. */
+@media (max-width:1100px){
   .hero .wrap{grid-template-columns:1fr; gap:var(--s-7)}
-  .hero-art{order:-1; aspect-ratio:16/10}
-  .hero-art img{width:min(52%,240px)}
-  /* Portrait puts the rig directly behind the copy, so it drops to atmosphere
-     and the scrim runs vertically instead of across. */
-  #stage{opacity:.2}
+  .hero-art{order:-1; aspect-ratio:16/9}
+  .hero-art img{width:min(46%,230px)}
+  #stage{opacity:.22}
   .hero::after{background:linear-gradient(180deg, rgba(20,18,31,.25) 0%, rgba(20,18,31,.9) 34%, var(--ink-050) 70%)}
+}
+@media (max-width:900px){
+  .hero-art{aspect-ratio:16/10}
+  .hero-art img{width:min(52%,240px)}
   .wires,.migrate{grid-template-columns:1fr}
   .migrate-arrow{transform:rotate(90deg); height:56px}
   .steps{grid-template-columns:1fr}
@@ -309,6 +319,9 @@ footer .wrap{display:flex; justify-content:space-between; gap:var(--s-4); flex-w
   .wrap{padding:0 var(--s-5)}
   .stats{gap:var(--s-6)}
   .swarm-shell{padding:var(--s-5)}
+  /* A phone cannot hold the URL on one line at any readable size, so the
+     command is three lines here rather than two. 12px keeps it to three. */
+  .cmd code{font-size:12px}
 }
 
 /* Static baseline: every element above is visible, and every claim readable,

@@ -78,10 +78,10 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 
 | ID | Title | Category | Deps | Mock (deep link) | Lane | Status | Branch | Outcome |
 |---|---|---|---|---|---|---|---|---|
-| F1 | Swift workspace, kit, three targets | foundation | — | — | Opus | **In Progress** | `ai/f1` | run `wf_408f0578-1fb` · wire-verified `claude-opus-5` |
-| F2 | Design system in SwiftUI | foundation | F1 | `?only=mac` + `DESIGN.md` §§2–7 | Opus | Untriaged | — | — |
-| F3 | Control-API client and models | foundation | F1 | — (surface: `src/control.ts`) | Opus | Untriaged | — | — |
-| R1 | Router: core, config, manifest | router | F1 | — | Opus | Untriaged | — | — |
+| F1 | Swift workspace, kit, three targets | foundation | — | — | Opus | **Merged** `0924040` | — | `make all` exit 0 on the merged tree · 31 tests · both targets build · **A12 (CI) unmet — never executed, branch unpushed** |
+| F2 | Design system in SwiftUI | foundation | F1 ✓ | `?only=mac` + `DESIGN.md` §§2–7 | Opus | **In Progress** | `ai/f2` | wave 2 |
+| F3 | Control-API client and models | foundation | F1 ✓ | — (surface: `src/control.ts`) | Opus | **In Progress** | `ai/f3` | wave 2 |
+| R1 | Router: core, config, manifest | router | F1 ✓ | — | Opus | **In Progress** | `ai/r1` | wave 2 |
 | R2 | Router: pool, relay, passthrough | router | R1 | — | Opus | Untriaged | — | — |
 | R3 | Router: control, auth, usage, registry | router | R1 | — | Opus | Untriaged | — | — |
 | R4 | Parity harness and cutover | router | R2, R3 | — | Opus — never downgrade | Untriaged | — | — |
@@ -115,6 +115,30 @@ are pending deletion.
 ---
 
 ## Changelog
+
+- 2026-08-14 — **Wave 2 launched: F2, F3, R1.** Three slots.
+- 2026-08-14 — **F1 merged as `0924040`.** Verified independently rather than on the
+  runner's report: protected files diffed clean (`DESIGN.md`, the ledger, this file,
+  `install.sh`, `package.json`, `src/`), `make all` re-run to exit 0 on the **merged**
+  tree, and the token-parity gate proved able to fail — changing `DESIGN.md`'s ground
+  colour by one digit fails the suite. A gate that cannot fail is not evidence.
+  Four things the run surfaced, recorded rather than smoothed over:
+  1. **Two runner attempts died and were retried by the harness** before the third
+     returned; the journal holds three `started` entries and one `result`. The surviving
+     runner correctly read the on-disk work as a resume rather than restarting.
+  2. **A runner wrote to this file, which its prompt forbids.** Its content was accurate
+     and has been absorbed here, but the edit was reverted and re-authored by the
+     orchestrator. Ownership is reasserted at every merge rather than trusted to the
+     instruction — that is the control that actually holds.
+  3. **A12 (CI) has never executed.** The workflow is delivered and calls the same
+     Makefile targets, but nothing is pushed, so wave 1's "CI green" exit gate is
+     **not met**. Recorded as unmet, not waived.
+  4. **~1,800 lines of the earlier hand-rolled scaffold were deleted** (`ServersView`,
+     `DiscoverView`, `ServerDetailView`, `MenuBarView`, `ActivityView`, `CleanupView`,
+     `SettingsView`, `RootView`). Consistent with the brief, and recoverable from
+     `97d4a55` — M1–M8 may want it as reference.
+  Also: `make acceptance` needs an Accessibility grant and fails *safe* (exit 2) without
+  one, so on hosted CI it will report blocked rather than green.
 
 - 2026-08-13 — Fleet size confirmed with the user: **all 18 items**. Runner lane verified
   on the wire (`claude-opus-5`), not merely configured. Wave 1 launched: F1 alone, since

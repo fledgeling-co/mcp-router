@@ -1,7 +1,7 @@
 # R1: Swift router — core, config, manifest
 
 **ID:** R1
-**Status:** In Review — built, gated and accepted on `ai/r1`; held before merge for the orchestrator to serialise finalisation
+**Status:** In Progress — **partially delivered** on `ai/r1` and NOT ready to merge. The JSON foundation, config and client-config discovery are done, gated and green; the manifest and the log are not implemented. See Progress.
 **Created:** 2026-08-14
 **Last updated:** 2026-08-14
 
@@ -371,3 +371,78 @@ corpus is ASCII, and the reference and the port would have agreed on all of them
 | Silent-wrongness risk | b17–b21 | **Accepted** — new P8. TypeScript cannot be the oracle for D1–D5, so each divergence gets its own contract test with fault injection; one end-to-end integration test over reordered members and unmodeled fields catches a delegated agent quietly reaching for `JSONSerialization` and bypassing the ordered representation; `ManifestStore` is driven as stateful *traces* over an injected clock and filesystem; and every named vector is **mutation-tested** — the behaviour it guards is broken, the gate must go red, then it is restored. A vector that cannot be made to fail is reported as a decoration |
 
 Accepted 34 · partially rejected 0 · rejected 0 · escalated 0.
+
+---
+
+## Progress — 2026-08-14
+
+**Status: partially delivered on `ai/r1`, green at every commit, and NOT ready to merge.**
+Three of the plan's phases landed; two did not. The branch is coherent — `make all` is green,
+`src/` is untouched, and every commit is independently sound — but the spec is not fully
+delivered, so it must not be merged as if it were.
+
+### What landed
+
+| Phase | State | Commit |
+|---|---|---|
+| P1 · JSON foundation | **Done**, fuzz-proven byte-for-byte against `JSON.stringify` | `0972472` |
+| P2 · Config | **Done**, differential against `dist/config.js` | `90ee914` |
+| P4 · Discovery | **Done**, both TOML shapes, real 24,753-line config parses | `c35f6b3` |
+| P3 · Manifest | **Not started** | — |
+| P5 · Log | **Not started** | — |
+| P6 · Vector registry + mutation gate | **Partial** — vectors generated and committed; the registry, fingerprints and mutation gate are not built | — |
+| P7 · Wiring and guardrails | **Done** | `90ee914` |
+| P8 · Divergence contracts, integration path, stateful traces | **Not started** | — |
+
+### Clause coverage
+
+| Clauses | State |
+|---|---|
+| A1–A6 · both named traps | **Met.** Flat map, non-object `mcpServers`, four distinguishable outcomes, both TOML key shapes, `declaresNone`, six clients |
+| A7–A16 · config | **Met**, differentially |
+| A17–A29 · manifest | **Not met** — not implemented |
+| A30–A34 · log | **Not met** — not implemented |
+| A35, A36, A38 · standing constraints | **Met**, verified: `git diff main -- src/ install.sh package.json` is empty; the SDK pin is `exact: "0.12.1"`; `project.yml` never names `RouterCore` |
+| A37 · SDK type is not the persistence type | **Not met** — needs `CachedTool`, which is P3 |
+| A39 · vectors generated, not hand-written | **Met** — `scripts/parity/generate-vectors.mjs`, 109 committed cases, `dist/` still ignored |
+| A40 · corpus completeness | **Partial** — vectors exist for the N rows the delivered phases cover (N1, N2, N3, N9, N12, N13); N4–N8 and N11 belong to the manifest |
+| A41 · gate green with the count reported | **Partial** — `make all` green, 66 tests executed, but there is no dedicated `parity` target reporting a registry count |
+| D1, D3 · divergences | **Met and tested** |
+| D2, D4, D5 · divergences | **Not met** — manifest and log |
+
+### Evidence
+
+- `make all` → tools, lint (**0 violations in 31 files**), both app targets built, **66 tests
+  executed** in 9 suites.
+- **Red-green, both recorded rather than asserted.** Flipping the `\u` escape to uppercase turns
+  the JSON suite red with a byte-level diff on four vectors. Restoring the reference's
+  `raw.mcpServers ?? {}` turns the config suite red with *"loaded 0 servers instead of failing —
+  the trap"*. Both restored, `git diff` clean.
+- The vector generator found three real defects in the URL reader that no hand-written expectation
+  would have: `x://y` parses a host for a non-special scheme, `http://host:00080` normalises before
+  it is compared against the scheme default, and only the first two slashes are the authority
+  marker, so `file:///tmp/x` has an empty host.
+
+### What the next runner needs
+
+Everything outstanding is specified in `planning/plans/plan-R1.md` — P3, P5, P6 and P8, with their
+rule tables written out. The three landed phases give it a foundation it should not have to
+revisit: `JSString`, the ordered `JSONValue`, `JSStringify` and the vector generator are exactly
+what the manifest's `toolsDigest` and lossless `CachedTool` are built on, and the generator already
+takes a `MCP_ROUTER_DIST` override so it can drive `dist/manifest.js` from the main checkout.
+
+### Deferred children discovered
+
+Reported to the orchestrator rather than registered here:
+
+1. **An indexing failure destroys a server's approved tools.** `buildManifest`'s failure branch
+   writes `tools: []`, and `unionTools` skips an empty-tools entry *before* applying a placard — so
+   the "inoperative, use X instead" placard the code carefully constructs is unreachable through
+   the normal failure path. Ported faithfully rather than fixed, because the parity gate has to run
+   against the reference's real behaviour first. Depends on R4.
+2. **R2's ingestion must capture raw wire JSON.** If the pool decodes tools into the SDK's `Tool`,
+   unmodeled fields are gone before this item's cache sees them, and A18's lossless round-trip
+   preserves only what the SDK already kept. Depends on R2.
+3. **`ManifestStore` has two latent defects** worth fixing after parity: a malformed file at
+   construction records its stamp and so never retries, and a deleted file leaves the previous
+   manifest with a stale stamp. Depends on R4.

@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mcp-router icon — contact sheet &amp; audit</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; padding: 40px; background: #0b1418; color: #d7e3e7; font: 14px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+  h1 { font-size: 22px; font-weight: 650; margin: 0 0 4px; }
+  h2 { font-size: 13px; font-weight: 600; color: #7fa0aa; text-transform: uppercase; letter-spacing: .06em; margin: 36px 0 14px; }
+  .sub { color: #7fa0aa; margin-bottom: 32px; max-width: 900px; }
+  .sheet { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 860px; }
+  th, td { text-align: left; padding: 14px 16px; border-bottom: 1px solid #1c2d33; vertical-align: middle; }
+  th { color: #7fa0aa; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  .take { font-weight: 650; white-space: nowrap; }
+  .take small { display: block; font-weight: 400; color: #7fa0aa; }
+  .renders { display: flex; align-items: center; gap: 18px; }
+  .renders figure { margin: 0; text-align: center; }
+  .renders img { display: block; background: #08252e; border-radius: 8px; }
+  .renders img.zoom { image-rendering: pixelated; border: 1px solid #1c2d33; }
+  .renders figcaption { color: #7fa0aa; font-size: 11px; margin-top: 4px; }
+  .score { font-variant-numeric: tabular-nums; font-weight: 650; white-space: nowrap; }
+  .ship { color: #ffd98f; }
+  .fail { color: #e0826a; }
+  .verdict { max-width: 420px; color: #a9bec5; }
+  .rec { margin-top: 28px; padding: 18px 20px; border: 1px solid #2a4a54; border-radius: 12px; background: #0e1c22; max-width: 900px; }
+  .rec strong { color: #ffd98f; }
+  .heroes { display: flex; gap: 24px; flex-wrap: wrap; }
+  .heroes figure { margin: 0; }
+  .heroes img { display: block; width: 200px; height: 200px; border-radius: 14px; background: #08252e; }
+  .heroes figcaption { color: #7fa0aa; font-size: 11px; margin-top: 6px; text-align: center; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .rubric { margin-top: 28px; color: #7fa0aa; font-size: 12px; max-width: 900px; }
+  .loop { margin-top: 28px; color: #a9bec5; font-size: 13px; max-width: 900px; }
+  .loop li { margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<h1>mcp-router icon — contact sheet &amp; audit</h1>
+<div class="sub">Direction "Tahoe gel-glass, dark register — the manifold" · one shared spec, three engines · every take audited on real renders at 1024 / 128 / 64 / 48 / 32 / 16. The device is subject-mined: three cool-glass conduits converge from the left into one hub, and on the right exactly one branch is lit while two sit dormant. Many-to-one on the way in, lazy-wake on the way out.</div>
+
+<h2>Heroes at 1024</h2>
+<div class="heroes">
+  <figure><img src="audit-renders/a-1024.png" alt="Take A at 1024px"><figcaption>A — layered SVG master</figcaption></figure>
+  <figure><img src="audit-renders/c1-1024.png" alt="Take C1 at 1024px"><figcaption>C1 — SHIPS as the decorative mark</figcaption></figure>
+  <figure><img src="audit-renders/c2-1024.png" alt="Take C2 at 1024px"><figcaption>C2 — raster, composition fails</figcaption></figure>
+  <figure><img src="audit-renders/b-1024.png" alt="Take B at 1024px"><figcaption>B — Arrow vector</figcaption></figure>
+</div>
+
+<h2>The size ladder</h2>
+<div class="sheet"><table>
+  <caption class="visually-hidden">Icon variation takes with renders, rubric scores and verdicts</caption>
+  <tr><th scope="col">Take</th><th scope="col">Renders at 128 / 64 / 48 / 32 / 16 css px (2&times; retina sources), plus the 16px squint magnified</th><th scope="col">Rubric</th><th scope="col">Verdict</th></tr>
+
+  <tr>
+    <td class="take">A · icon-a-manifold.svg<small>hand-authored layered SVG — the master</small></td>
+    <td class="renders">
+      <figure><img src="audit-renders/a-256.png" width="128" height="128" alt="A at 128px"><figcaption>128</figcaption></figure>
+      <figure><img src="audit-renders/a-128.png" width="64" height="64" alt="A at 64px"><figcaption>64</figcaption></figure>
+      <figure><img src="audit-renders/a-96.png" width="48" height="48" alt="A at 48px"><figcaption>48</figcaption></figure>
+      <figure><img src="audit-renders/a-64.png" width="32" height="32" alt="A at 32px"><figcaption>32</figcaption></figure>
+      <figure><img src="audit-renders/a-32.png" width="16" height="16" alt="A at 16px"><figcaption>16</figcaption></figure>
+      <figure><img class="zoom" src="audit-renders/a-32.png" width="96" height="96" alt="A 16px render magnified"><figcaption>16 &times;6</figcaption></figure>
+    </td>
+    <td class="score">11 / 12</td>
+    <td class="verdict">Passes all four non-negotiables. Four real layers (bg / mid / fg / highlight), identity carried by silhouette and value with the amber as the last 10%, so it survives Dark / Clear / Tinted where a flat raster cannot. <strong>Docked on #4:</strong> at 16px the three inbound conduits merge into one band and the manifold reduces to "hub plus one lit branch" — still identifiable, but information is genuinely lost. Absorbed from the other engines: the stepped S-jog routing (B and C1 converged on it independently), the all-edge tube rim, and the tightened emission.</td>
+  </tr>
+
+  <tr>
+    <td class="take ship">C1 · icon.png<small>GPT Image 2, corpus-referenced — SHIPS as the decorative mark</small></td>
+    <td class="renders">
+      <figure><img src="audit-renders/c1-256.png" width="128" height="128" alt="C1 at 128px"><figcaption>128</figcaption></figure>
+      <figure><img src="audit-renders/c1-128.png" width="64" height="64" alt="C1 at 64px"><figcaption>64</figcaption></figure>
+      <figure><img src="audit-renders/c1-96.png" width="48" height="48" alt="C1 at 48px"><figcaption>48</figcaption></figure>
+      <figure><img src="audit-renders/c1-64.png" width="32" height="32" alt="C1 at 32px"><figcaption>32</figcaption></figure>
+      <figure><img src="audit-renders/c1-32.png" width="16" height="16" alt="C1 at 16px"><figcaption>16</figcaption></figure>
+      <figure><img class="zoom" src="audit-renders/c1-32.png" width="96" height="96" alt="C1 16px render magnified"><figcaption>16 &times;6</figcaption></figure>
+    </td>
+    <td class="score ship">10 / 12</td>
+    <td class="verdict">The best material in the set and the reason the fidelity loop ran: genuinely translucent frosted hub, tubes that read as round, and emission that lights both the hub's flank and the ground. <strong>Fails #10</strong> by construction — it is a flat pre-masked raster and a large share of its identity lives in the glow, which dies under system tinting. <strong>Fails #1</strong> marginally: it has no tile of its own, so the squircle had to be applied at audit time. Its values were ported into A over eleven measured rounds; the owner then chose C1 itself for the README and repo tile, where #10 has no compositor to act on it.</td>
+  </tr>
+
+  <tr>
+    <td class="take fail">C2 · icon-c2-raster.png<small>GPT Image 2, second take</small></td>
+    <td class="renders">
+      <figure><img src="audit-renders/c2-256.png" width="128" height="128" alt="C2 at 128px"><figcaption>128</figcaption></figure>
+      <figure><img src="audit-renders/c2-128.png" width="64" height="64" alt="C2 at 64px"><figcaption>64</figcaption></figure>
+      <figure><img src="audit-renders/c2-96.png" width="48" height="48" alt="C2 at 48px"><figcaption>48</figcaption></figure>
+      <figure><img src="audit-renders/c2-64.png" width="32" height="32" alt="C2 at 32px"><figcaption>32</figcaption></figure>
+      <figure><img src="audit-renders/c2-32.png" width="16" height="16" alt="C2 at 16px"><figcaption>16</figcaption></figure>
+      <figure><img class="zoom" src="audit-renders/c2-32.png" width="96" height="96" alt="C2 16px render magnified"><figcaption>16 &times;6</figcaption></figure>
+    </td>
+    <td class="score fail">7 / 12</td>
+    <td class="verdict">Lost on composition, not material. <strong>Hard-fails #2:</strong> the focal occupies roughly 85% of the tile width and the conduits run off the left edge, so there is no safe zone and the convergence has nowhere to happen. Also fails #10 as a flat raster. It is the most legible take at 32px purely because everything in it is oversized, which is not a virtue the other sizes share.</td>
+  </tr>
+
+  <tr>
+    <td class="take fail">B · icon-b-arrow.svg<small>Arrow 1.1 vector take</small></td>
+    <td class="renders">
+      <figure><img src="audit-renders/b-256.png" width="128" height="128" alt="B at 128px"><figcaption>128</figcaption></figure>
+      <figure><img src="audit-renders/b-128.png" width="64" height="64" alt="B at 64px"><figcaption>64</figcaption></figure>
+      <figure><img src="audit-renders/b-96.png" width="48" height="48" alt="B at 48px"><figcaption>48</figcaption></figure>
+      <figure><img src="audit-renders/b-64.png" width="32" height="32" alt="B at 32px"><figcaption>32</figcaption></figure>
+      <figure><img src="audit-renders/b-32.png" width="16" height="16" alt="B at 16px"><figcaption>16</figcaption></figure>
+      <figure><img class="zoom" src="audit-renders/b-32.png" width="96" height="96" alt="B 16px render magnified"><figcaption>16 &times;6</figcaption></figure>
+    </td>
+    <td class="score fail">4 / 12</td>
+    <td class="verdict">Hard-fails three non-negotiables. <strong>#1:</strong> no tile at all — the artwork floats on transparency, so there is no mask to design inside. <strong>#2:</strong> a stray white arrow artefact sits outside the composition in the upper left. <strong>#4:</strong> thin symmetric bars smear into a spider at 32px. <strong>#7</strong> follows from #1, since figure-ground needs a ground. It also read the brief symmetrically — bars entering and leaving in equal number says "a bus", not "many-to-one". <strong>Salvaged:</strong> its stepped S-jog conduit language, which is a stronger routing read than the smooth curve the master started with, and which C1 arrived at independently.</td>
+  </tr>
+
+</table></div>
+
+<div class="rec"><strong>Shipped: C1 (icon.png), by the owner's call, after the loop closed.</strong> This is a <em>decorative</em> mark — a README header and a repo tile, rendered as a PNG by GitHub, with no macOS compositor downstream — so #10 variant robustness, the check C1 fails and A passes, has nothing to act on here. What is left once that check is set aside is material, and C1 holds a more saturated periwinkle in the tubes and a denser glow than the master ever reached. <strong>A remains the master</strong> and is what to reach for if this ever becomes a real app icon: it is the only genuinely layered take, it is regenerable from <code>build_icon.py</code> where geometry and material are named constants, and it passes all four non-negotiables. Liabilities carried by shipping C1: it is a flat pre-masked raster, so it cannot survive Dark / Clear / Tinted and must never be handed to Icon Composer; it had no tile of its own, so its squircle was applied at audit time and the crop into empty ground is doing work the artwork did not author; and at 1.2 MB it is a heavy README asset next to the 23 KB SVG.</div>
+
+<div class="rec"><strong>Runner-up: A (icon-a-manifold.svg) — the layered master.</strong> Passes all four non-negotiables, four real layers, identity in silhouette and value with the amber as the last 10%. Known liabilities: the 16px read collapses the three inbound conduits into one band, so the manifold idea does not survive menu-bar size; the composition is a wide horizontal band, leaving the upper and lower thirds of the tile empty, which is legal for a wide glyph but is the thing to challenge first if this is ever reworked; and the whole fidelity comparison was against one raster take, so "closer to C1" is not the same as "better in absolute terms".</div>
+
+<div class="loop">
+  <strong>Fidelity loop — eight accepted rounds against C1, two rejected by the gate.</strong>
+  Scored with <code>fidelity.py</code> at 1024 / 256 / 128 / 32 / 16; each round changed one class only, and every round was Pareto-gated against the previous.
+  <ol>
+    <li><strong>Geometry and material port.</strong> C1's S-jog routing, all-edge tube rim, stronger emission and lit hub shoulder, rebuilt into the master.</li>
+    <li><strong>Emission.</strong> The round-1 bloom washed the right third of the tile; radii cut to a third and moved to the tight blur.</li>
+    <li><strong>Value.</strong> The size ladder showed C1 beating the master everywhere small, and the mechanism was value rather than material — the glass and hub sat too close to the ground.</li>
+    <li><strong>Hub material.</strong> Four-stop gradient, translucent core, doubled rim stroke. ACCEPT +0.037.</li>
+    <li><strong>Proportion.</strong> C1 carries a far higher hub-to-conduit ratio. First attempt <strong>REJECTED</strong>: composite gained +0.108 but 16px self-contrast fell 7% because the bars thinned. Re-run with the wider hub and only a light thinning. ACCEPT +0.044.</li>
+    <li><strong>Depth.</strong> Cast shadows under every run — the thing most responsible for C1 reading as objects and the master reading as a diagram. First attempt <strong>REJECTED</strong> on the same 16px contrast floor; softened, with the glass lifted to compensate. ACCEPT.</li>
+    <li><strong>Ground and hub level.</strong> Ground moved from warm charcoal to deep indigo-navy; the hub's interior was lighter than its rim, which is inverted. ACCEPT +0.089.</li>
+    <li><strong>Emission, again.</strong> White-hot core and a halo that reaches the ground.</li>
+    <li><strong>Cylindrical shading.</strong> The runs read as flat ribbons because one gradient spanned the whole glyph rather than each bar's thickness, and a stroke gradient cannot follow a curve. Rebuilt as masked bands: lit upper face, keyline, shaded underside. ACCEPT +0.075 — the largest material win in the run.</li>
+    <li><strong>Glass shell.</strong> The hub was still a milky slab washing over everything; dropped to a shell with a bright rim and an interior darker than the runs behind it. The live branch shortened and fattened so its glow stays dense. ACCEPT +0.011.</li>
+    <li><strong>Hub mass.</strong> The shell cost the hub weight at 32 and 16, where the reference's hub is the anchor; a little opacity given back. ACCEPT +0.008.</li>
+  </ol>
+  <strong>Result:</strong> composite 0.5749 → 0.6149 at 1024, 0.5925 → 0.6851 at 256, 0.6519 → 0.7437 at 128, 0.8850 → 0.9071 at 32, 0.9016 → 0.9208 at 16. Pixel diff against C1 fell from 12.98% to 8.48% of the frame.
+  Stopped here: the last two rounds returned under +0.012 each, and what is left is C1's more saturated periwinkle and a hotter glow, neither of which the 12-point rubric rewards. The rubric outranks the reference, and the 16px contrast floor rejected two rounds the composite would have accepted — which is the guard working, not a nuisance.
+</div>
+
+<div class="rubric">Rubric: the 12-point icon audit from icon-directions.md (mask discipline, grid, silhouette, 16px identity, single light model, palette discipline, figure-ground, depth coherence, era coherence, variant robustness, personality, no-text) — checks 1–4 non-negotiable, delivery bar ≥10/12. Raster takes audited on their squircle-masked 1024 versions. Renders produced by <code>python3 audit_sheet.py render .</code> (1024 / 256 / 128 / 96 / 64 / 32 sources); verified by its <code>check</code> subcommand.</div>
+</body>
+</html>

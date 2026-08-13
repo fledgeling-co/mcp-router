@@ -1,0 +1,55 @@
+{
+  "candidate": "icon-a-manifold.svg",
+  "reference": "audit-renders/c1-1024.png",
+  "tier": "numpy (no torch: luminance+ssim+edges only)",
+  "metric_version": 2,
+  "label": "cylinder",
+  "sizes": {
+    "1024": {
+      "lum_delta": 0.0615,
+      "ssim": 0.7792,
+      "edge_f1": 0.1416,
+      "mask_iou": 1.0,
+      "self_contrast": 0.3963,
+      "ref_self_contrast": 0.382,
+      "composite": 0.611
+    },
+    "256": {
+      "lum_delta": 0.0598,
+      "ssim": 0.707,
+      "edge_f1": 0.5173,
+      "mask_iou": 0.9997,
+      "self_contrast": 0.3963,
+      "ref_self_contrast": 0.3617,
+      "composite": 0.6784
+    },
+    "128": {
+      "lum_delta": 0.0583,
+      "ssim": 0.6911,
+      "edge_f1": 0.7752,
+      "mask_iou": 0.9992,
+      "self_contrast": 0.3963,
+      "ref_self_contrast": 0.3557,
+      "composite": 0.7386
+    },
+    "32": {
+      "lum_delta": 0.0547,
+      "ssim": 0.7543,
+      "edge_f1": 0.9984,
+      "mask_iou": 1.0,
+      "self_contrast": 0.3846,
+      "ref_self_contrast": 0.2999,
+      "composite": 0.9052
+    },
+    "16": {
+      "lum_delta": 0.0526,
+      "ssim": 0.8026,
+      "edge_f1": 1.0,
+      "mask_iou": 1.0,
+      "self_contrast": 0.3583,
+      "ref_self_contrast": 0.2698,
+      "composite": 0.9191
+    }
+  },
+  "render_hash": "b33e0dc04a46b78c"
+}

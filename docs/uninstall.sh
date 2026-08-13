@@ -63,7 +63,11 @@ if [[ -f "$SERVERS" && -f "$CLAUDE_JSON" ]]; then
       n++;
     }
     delete claude.mcpServers.router;
-    fs.writeFileSync(claudePath + ".tmp", JSON.stringify(claude, null, 2));
+    // Preserve the original permissions; writeFileSync on a new temp file would
+    // otherwise take the umask default and widen a 0600 config to 0644.
+    const mode = fs.statSync(claudePath).mode & 0o777;
+    fs.writeFileSync(claudePath + ".tmp", JSON.stringify(claude, null, 2), { mode });
+    fs.chmodSync(claudePath + ".tmp", mode);
     fs.renameSync(claudePath + ".tmp", claudePath);
     console.log(n);
   ' "$CLAUDE_JSON" "$SERVERS")"

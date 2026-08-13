@@ -80,8 +80,9 @@ function buildMcpServer(cfg: RouterConfig, manifest: ManifestStore, pool: ChildP
     const { server: serverName, tool } = split;
     try {
       // First call for this upstream in this idle window is what spawns it.
-      const handle = await pool.acquire(serverName);
-      const result = await handle.client.callTool({
+      // pool.call, not acquire + callTool: the pool has to know a request is
+      // outstanding or its idle reaper will close the child mid-call.
+      const result = await pool.call(serverName, {
         name: tool,
         arguments: request.params.arguments ?? {},
       });
@@ -108,6 +109,23 @@ export async function startRouter(
   manifest: ManifestStore,
   pool: ChildPool
 ): Promise<{ close: () => Promise<void> }> {
+  /*
+   * Binding to loopback is not on its own enough to keep a browser out. A page the
+   * user visits can point a hostname it controls at 127.0.0.1; the request is then
+   * same-origin by the browser's reckoning, so no CORS preflight stands in the way
+   * and a plain POST reaches this endpoint — which runs every MCP server the user
+   * owns, with the user's full environment. The Host header is what distinguishes
+   * that request from a real local client, so it is checked.
+   */
+  const allowedHosts = [
+    ...new Set([
+      `${cfg.host}:${cfg.port}`,
+      `127.0.0.1:${cfg.port}`,
+      `localhost:${cfg.port}`,
+      `[::1]:${cfg.port}`,
+    ]),
+  ];
+
   const http = createServer((req, res) => {
     void (async () => {
       const url = new URL(req.url ?? '/', `http://${cfg.host}:${cfg.port}`);
@@ -130,7 +148,11 @@ export async function startRouter(
 
       // Stateless: a transport and server per request, so concurrent Claude sessions
       // never share MCP session state. Only the child pool is shared.
-      const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: undefined,
+        enableDnsRebindingProtection: true,
+        allowedHosts,
+      });
       const server = buildMcpServer(cfg, manifest, pool);
 
       res.on('close', () => {

@@ -16,6 +16,8 @@ interface PoolEntry {
   /** Single-flight: concurrent callers await the same spawn rather than racing two children. */
   starting?: Promise<ChildHandle>;
   reapTimer?: NodeJS.Timeout;
+  /** Calls currently awaiting a response on this child. Never reap above zero. */
+  inFlight: number;
 }
 
 /**
@@ -51,7 +53,7 @@ export class ChildPool {
 
     let entry = this.entries.get(serverName);
     if (!entry) {
-      entry = {};
+      entry = { inFlight: 0 };
       this.entries.set(serverName, entry);
     }
 
@@ -128,7 +130,62 @@ export class ChildPool {
     }
 
     log.info(`upstream "${u.name}" ready in ${Date.now() - t0}ms`);
+
+    /*
+     * A child that exits on its own — crash, its own idle timeout, a killed
+     * process — leaves an entry whose client is dead. Without this the pool keeps
+     * handing that client out and every call to the server fails until the idle
+     * timer happens to fire, which is up to idleMs of hard failures for a server
+     * that would work if it were simply respawned. Evicting on close means the
+     * next call spawns a fresh one.
+     */
+    transport.onclose = () => {
+      const e = this.entries.get(u.name);
+      if (!e?.handle || e.handle.transport !== transport) return; // already reaped
+      log.warn(`upstream "${u.name}" exited on its own; evicting so the next call respawns it`);
+      if (e.reapTimer) clearTimeout(e.reapTimer);
+      e.reapTimer = undefined;
+      e.handle = undefined;
+      e.inFlight = 0;
+    };
+
     return { client, transport, startedAt: t0, lastUsedAt: Date.now(), calls: 0 };
+  }
+
+  /**
+   * Run one tool call, holding the child open for as long as it takes.
+   *
+   * The idle timer is armed when a child is acquired, not when its work finishes,
+   * so without this accounting a call that runs longer than idleMs (5 minutes by
+   * default) has its own child closed underneath it and fails. That is not
+   * hypothetical: a Deep Research run is documented at 4 to 60 minutes, and a
+   * sandboxed agent call takes a timeout up to 900 seconds. Every one of those
+   * would have died at the five-minute mark.
+   */
+  async call(
+    serverName: string,
+    params: Parameters<Client['callTool']>[0]
+  ): Promise<Awaited<ReturnType<Client['callTool']>>> {
+    const handle = await this.acquire(serverName);
+
+    const entry = this.entries.get(serverName);
+    if (entry) {
+      entry.inFlight += 1;
+      if (entry.reapTimer) clearTimeout(entry.reapTimer);
+      entry.reapTimer = undefined;
+    }
+
+    try {
+      return await handle.client.callTool(params);
+    } finally {
+      const e = this.entries.get(serverName);
+      if (e) {
+        e.inFlight = Math.max(0, e.inFlight - 1);
+        // Re-arm from completion, so the idle window measures time since the last
+        // call ended rather than since it started.
+        if (e.inFlight === 0 && e.handle) this.armReap(serverName, e);
+      }
+    }
   }
 
   /** Reset the idle clock. Called on every use, so a busy server stays warm. */
@@ -137,7 +194,14 @@ export class ChildPool {
       entry.handle.lastUsedAt = Date.now();
       entry.handle.calls += 1;
     }
+    this.armReap(serverName, entry);
+  }
+
+  /** (Re)start the idle countdown. A child with work outstanding is never armed. */
+  private armReap(serverName: string, entry: PoolEntry): void {
     if (entry.reapTimer) clearTimeout(entry.reapTimer);
+    entry.reapTimer = undefined;
+    if (entry.inFlight > 0) return;
 
     const idleMs = this.upstreams.get(serverName)?.idleMs ?? this.defaultIdleMs;
     if (idleMs <= 0) return; // 0 disables reaping for this server
@@ -148,13 +212,18 @@ export class ChildPool {
     entry.reapTimer.unref();
   }
 
-  private async reap(serverName: string): Promise<void> {
+  private async reap(serverName: string, force = false): Promise<void> {
     const entry = this.entries.get(serverName);
     if (!entry?.handle) return;
+    // Belt and braces: armReap already refuses to schedule above zero. Shutdown
+    // forces, because leaving a child open there is the orphan this avoids.
+    if (!force && entry.inFlight > 0) return;
 
     const { handle } = entry;
     entry.handle = undefined;
     entry.reapTimer = undefined;
+    // The close below fires transport.onclose; this keeps it from double-evicting.
+    handle.transport.onclose = undefined;
 
     const aliveMs = Date.now() - handle.startedAt;
     log.info(
@@ -195,6 +264,27 @@ export class ChildPool {
   async shutdown(): Promise<void> {
     this.shuttingDown = true;
     const names = [...this.entries.keys()];
-    await Promise.all(names.map((n) => this.reap(n)));
+
+    /*
+     * Await any spawn still in flight before reaping. reap() returns immediately
+     * when there is no handle yet, so a child being spawned as SIGTERM arrives
+     * (launchd restarting the router on a config change, landing during a first
+     * call) would finish starting after shutdown resolved and process.exit ran —
+     * orphaned, with nothing left to close it. On this machine stdin EOF is not
+     * reliable liveness for an stdio MCP server, so that orphan can persist.
+     */
+    await Promise.all(
+      names.map(async (n) => {
+        const e = this.entries.get(n);
+        if (!e?.starting) return;
+        try {
+          await e.starting;
+        } catch {
+          /* the spawn failed, so there is nothing to close */
+        }
+      })
+    );
+
+    await Promise.all(names.map((n) => this.reap(n, true)));
   }
 }

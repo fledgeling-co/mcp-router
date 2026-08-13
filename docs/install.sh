@@ -144,7 +144,13 @@ if [[ -f "$CLAUDE_JSON" ]]; then
     const d = JSON.parse(fs.readFileSync(p, "utf8"));
     d.mcpServers = d.mcpServers || {};
     d.mcpServers.router = { type: "http", url: `http://127.0.0.1:${port}/mcp` };
-    fs.writeFileSync(p + ".tmp", JSON.stringify(d, null, 2));
+    // Carry the original permissions onto the replacement. A temp file plus rename
+    // gets fresh 0644 from the umask otherwise, so a ~/.claude.json the user keeps
+    // at 0600 — the file this comment describes as holding live session state for
+    // every project — comes back world-readable.
+    const mode = fs.statSync(p).mode & 0o777;
+    fs.writeFileSync(p + ".tmp", JSON.stringify(d, null, 2), { mode });
+    fs.chmodSync(p + ".tmp", mode);
     fs.renameSync(p + ".tmp", p);
   ' "$CLAUDE_JSON" "$PORT"
   say "added the router entry to ~/.claude.json"

@@ -251,6 +251,8 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
 
   // Adopt = present in the manifest, error-free, at the current config identity.
   const adopted: string[] = [];
+  /** What each adopted name looked like when it was indexed, to compare before deleting. */
+  const adoptedDef = new Map<string, RawServer>();
   const pending: string[] = [...backedOff];
   let configChanged = false;
   for (const { name, server, upstream } of live) {
@@ -260,6 +262,7 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
       continue;
     }
     adopted.push(name);
+    adoptedDef.set(name, server);
     if (JSON.stringify(stable(routerServers[name])) !== JSON.stringify(stable(server))) {
       routerServers[name] = server;
       configChanged = true;
@@ -292,12 +295,24 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
     const staged = (fresh2.mcpServers ?? {}) as Record<string, RawServer>;
     const removed: string[] = [];
     for (const name of adopted) {
-      // Only remove what is still exactly what was indexed; if it changed under us,
-      // the next fire will pick the new definition up.
-      if (staged[name] && isStdio(staged[name]) && !RESERVED.has(name)) {
-        delete staged[name];
-        removed.push(name);
+      const staging = staged[name];
+      if (!staging || !isStdio(staging) || RESERVED.has(name)) continue;
+      /*
+       * Only remove what is still exactly what was indexed. Indexing spawns a
+       * child and waits for it to initialize, so the window is seconds — long
+       * enough for someone to correct the entry they just added. Deleting an
+       * edited definition would throw that edit away with nothing to recover it
+       * from: the router would hold the pre-edit version and the file it was
+       * typed into would no longer have it. Leaving it puts the name back in
+       * `pending`, which withholds the state hash so the next fire re-indexes it.
+       */
+      if (JSON.stringify(stable(staging)) !== JSON.stringify(stable(adoptedDef.get(name)))) {
+        watchLog(`"${name}" changed in ~/.claude.json while it was being indexed; left it there for the next fire`);
+        pending.push(name);
+        continue;
       }
+      delete staged[name];
+      removed.push(name);
     }
 
     if (removed.length > 0) {

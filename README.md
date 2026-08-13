@@ -188,7 +188,7 @@ Worth saying that the reason people reach for this has mostly gone. Removing a s
 ## What it deliberately doesn't do
 
 - **It doesn't proxy HTTP/SSE upstreams.** Those are already shared endpoints with their own auth; routing them through here adds a hop and strips their OAuth context.
-- **It doesn't bind beyond loopback.** This endpoint runs every MCP server you own, with your environment. It must not be reachable from the network.
+- **It doesn't bind beyond loopback.** This endpoint runs every MCP server you own, with your environment. It must not be reachable from the network. Loopback alone isn't quite enough, though: a web page can point a hostname it controls at `127.0.0.1`, which makes the request same-origin and skips the preflight that would otherwise stop it. So the `Host` header is checked too, and anything that isn't this router's own address gets a 403.
 - **It doesn't proxy prompts or resources**, only tools.
 - **It doesn't cover Claude Desktop.** That app's per-server schema requires `command` and has no `url` or `type` field, so an HTTP entry fails validation and gets dropped with a "Some MCP servers could not be loaded" dialog. Remote servers reach Desktop through Settings > Connectors instead.
 
@@ -209,10 +209,13 @@ A dead or broken upstream returns a JSON-RPC tool error naming the server. It do
 ## Tests
 
 ```bash
-node scripts/e2e.mjs
+node scripts/e2e.mjs        # against a running router
+node scripts/e2e-idle.mjs   # self-contained; starts its own router
 ```
 
-Nine checks against a running router using the SDK's own client, which is the same one Claude Code uses: initialize, `tools/list` served from cache, namespacing, `tools/call`, that the called upstream started, **that no other upstream started**, and that an unknown server errors without crashing the router.
+Ten checks against a running router using the SDK's own client, which is the same one Claude Code uses: initialize, `tools/list` served from cache, namespacing, `tools/call`, that the called upstream started, **that no other upstream started**, and that an unknown server errors without crashing the router.
+
+`e2e-idle.mjs` is a regression check with its own upstream and its own `HOME`, so it touches nothing you have configured. It proves a call that runs longer than the idle window is not cut off by the reaper — before the pool counted in-flight calls, a six-second call against a two-second window came back as `MCP error -32000: Connection closed`, which at the default five-minute window meant every long-running tool call died at five minutes.
 
 ---
 

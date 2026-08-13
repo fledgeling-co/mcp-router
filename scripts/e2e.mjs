@@ -37,16 +37,24 @@ check(
   `${tools.filter((t) => !t.name.includes('__')).length} unnamespaced`
 );
 
-const target = tools.find((t) => t.name.startsWith('lifeline__'));
-check('a known upstream tool is present', !!target, target?.name);
+/* Pick a read-only tool deliberately rather than whichever happens to sort first.
+   The first `lifeline__` tool is `lifeline__lifeline_dequeue`, which removes an
+   item from a queue; an end-to-end check should not be relying on its arguments
+   being invalid in order to be harmless. */
+const READ_ONLY = /__(lifeline_status|lifeline_queue_list|lifeline_template_list)$/;
+const target =
+  tools.find((t) => READ_ONLY.test(t.name)) ?? tools.find((t) => t.name.startsWith('lifeline__'));
+check('a known read-only upstream tool is present', !!target, target?.name);
 
 if (target) {
+  const targetServer = target.name.slice(0, target.name.indexOf('__'));
   const res = await client.callTool({ name: target.name, arguments: {} });
   check('tools/call returns content', Array.isArray(res.content) && res.content.length > 0);
+  check('tools/call on a healthy upstream is not an error', res.isError !== true);
 
   const after = await status();
   const spawned = running(after);
-  check('the called upstream is now running', spawned.includes('lifeline'), spawned.join(', ') || 'none');
+  check('the called upstream is now running', spawned.includes(targetServer), spawned.join(', ') || 'none');
   check(
     'no other upstream was spawned',
     spawned.length === 1,

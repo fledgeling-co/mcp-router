@@ -79,12 +79,26 @@ function cmdImport(): void {
   }
 }
 
+/** A flag that is present but not a finite number is an error, not a silent NaN.
+ *  `--port abc` would otherwise reach http.listen(NaN), which binds an arbitrary
+ *  ephemeral port: the router comes up looking healthy and no client can reach it. */
+function numArg(name: string): number | undefined {
+  const raw = arg(name);
+  if (raw === undefined) return undefined;
+  const n = Number(raw);
+  if (!Number.isFinite(n)) {
+    process.stderr.write(`--${name} expects a number, got "${raw}"\n`);
+    process.exit(2);
+  }
+  return n;
+}
+
 async function withPool<T>(
   fn: (pool: ChildPool, upstreams: UpstreamConfig[], cfgPath: string) => Promise<T>
 ): Promise<T> {
   const { config, skipped } = loadConfig({
-    port: arg('port') ? Number(arg('port')) : undefined,
-    idleMs: arg('idle-ms') ? Number(arg('idle-ms')) : undefined,
+    port: numArg('port'),
+    idleMs: numArg('idle-ms'),
   });
   configureLogging(config.logPath, has('verbose'));
   if (skipped.length) log.warn(`not proxied: ${skipped.join(', ')}`);
@@ -158,7 +172,7 @@ async function cmdServe(): Promise<void> {
 }
 
 async function cmdStatus(): Promise<void> {
-  const port = Number(arg('port') ?? 8879);
+  const port = numArg('port') ?? 8879;
   try {
     const res = await fetch(`http://127.0.0.1:${port}/status`);
     const body = (await res.json()) as {

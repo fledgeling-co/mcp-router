@@ -655,7 +655,7 @@ addEventListener('scroll', () => nav.classList.toggle('on', scrollY > 520), {pas
    than you can count them, which is the point the number alone does not make. */
 const TOTAL = 190, USED = 12;
 const grid = document.getElementById('dots');
-const canvas3d = document.getElementById('swarm3d');
+let canvas3d = document.getElementById('swarm3d');
 
 /* Seeded rather than random, so the twelve that were ever touched fall in the
    same places every load and the flat and dimensional versions agree. */
@@ -671,7 +671,13 @@ while (usedSet.size < USED) usedSet.add(Math.floor(srnd() * TOTAL));
 const CAN_3D = !REDUCED && (() => {
   try {
     const c = document.createElement('canvas');
-    return !!(c.getContext('webgl2') || c.getContext('webgl'));
+    const g = c.getContext('webgl2') || c.getContext('webgl');
+    if (!g) return false;
+    /* Release it again. A probe that keeps its context alive for the life of the
+       page burns one of the browser's small number of concurrent contexts to
+       answer a yes/no question. */
+    g.getExtension('WEBGL_lose_context')?.loseContext();
+    return true;
   } catch { return false; }
 })();
 
@@ -822,6 +828,17 @@ if (CAN_3D) {
     live.gl.dispose();
     live.gl.forceContextLoss();
     live = null;
+    /* forceContextLoss genuinely releases the GPU context, which is the honest
+       version of the claim this section makes — but a canvas whose context was
+       lost that way does not hand out a fresh one on the next getContext, it
+       needs restoreContext. Reusing this element would leave the section
+       permanently blank on the way back up, with no grid behind it to fall back
+       to. So the element is replaced rather than reused. */
+    const fresh = document.createElement('canvas');
+    fresh.id = 'swarm3d';
+    fresh.setAttribute('aria-hidden', 'true');
+    canvas3d.replaceWith(fresh);
+    canvas3d = fresh;
   };
 
   const build = async () => {

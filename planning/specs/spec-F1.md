@@ -184,6 +184,37 @@ they protected was broken.
 | Q5 | Release artifacts deferred (MEDIUM) | The formal deferral is now the committed record (the scope-narrowing note above), not an untracked claim | Packaging reported as a deferred child |
 | Q5 | "Workspace" vs project (LOW) | **Wording amended to match the artifact.** XcodeGen 2.45.4 emits a `.xcodeproj` only; a standalone `.xcworkspace` would have to be hand-authored and tracked, which contradicts A1's "no hand-edited project file tracked in git". The shared library is a local SwiftPM package the generated project references directly, which is what a workspace would have been for | `xcodegen --version` → 2.45.4; `app/project.yml` declares the local package; both app targets link `MCPRouterKit` |
 
+### Second out-of-family review round — 2026-08-14
+
+The fixes above were sent back to the same out-of-family reviewer. It returned **MATERIAL
+DEFECTS** a second time, with two findings that were both real. They are recorded here because a
+gate that only ever confirms the author is not a gate.
+
+*Lane accounting, stated rather than hidden.* Two `max`-effort attempts produced **no output**: the
+run exhausted its turn budget inside the 600s bound (the first spent it dispatching its own
+verifier subagents). Per the effort ladder the gate was re-run **once at `high` with a
+single-question scope over three files**, which returned in ~90s — the same downgrade, for the same
+reason, that the triage gate recorded. **This round's verdict is `high`, not `max`.** Both findings
+below were independently reproduced locally before being fixed, so the evidence does not rest on
+the reviewer's word.
+
+| # | Finding | Assessment | Resolution + evidence |
+|---|---|---|---|
+| a | `encodedBody()` validates `data` and then returns it, but the only test of it passed `warm: true`. A bypass conditioned on a value the test never supplies — `if warm == false { return … }` — puts `command` on the wire with the suite green | **Real, as a coverage defect.** The proposed edit is sabotage-level, but the coverage gap it exploits is genuine: one input does not exercise a function's input space | The test now pushes **seven** representative shapes through `encodedBody()` — empty, each field alone, both `warm` values, fully populated. **Red-green:** injecting the reviewer's exact edit fails two shapes, naming the key (`encodedBody put a forbidden key on the wire … ["command", "warm"]`); removed → 31 green |
+| b | The discovery count matched only lines ending in `()`, the Swift Testing spelling. A healthy XCTest-style listing (`Suite/testName`) counts zero, so the gate **fails a suite that is fine** | **Real.** This is the false-failure direction of the same brittleness the first round flagged, which the first fix did not address | Discovery now counts non-blank listing lines; the shape of a line was never the signal. **Red-green:** XCTest-style listing counts 2 under the new rule and **0** under the old one; an empty listing still counts 0 and still fails |
+
+Accepted 2 · rejected 0. One correction carried back into the record above: the first round's
+executed-count fix read `tests="N"` and ignored `skipped="N"`, so a suite that skipped every test
+would have reported them as executed. The real report does carry `skipped`, and the count now
+subtracts it — verified on a synthetic report where `tests=2 skipped=2` yields `executed=0`, and on
+multi-suite input where `(5-2)+(4-1)` yields 6.
+
+**What is still not proven, stated plainly:** nothing expressible in Swift stops a future edit from
+adding an early `return` above the validation in `encodedBody()`. The tests remove the cheap
+version of that mistake — a bypass hiding in an untested input — and no more than that. The
+server-side rule is the durable one, and it belongs to the router item: the control API should
+reject unknown keys rather than silently ignore them.
+
 ### Unproven claims — stated rather than dressed up
 
 - **A12 (CI) is configured, not demonstrated.** `.github/workflows/swift.yml` calls the same

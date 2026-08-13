@@ -74,13 +74,43 @@ struct ControlContractTests {
     /// `encodedBody()` is the path the app uses, so it is the path that gets tested. The assertions
     /// above encode with a locally-constructed encoder, which proves nothing about a caller that
     /// brings its own — this one exercises the real seam.
-    @Test("encodedBody produces only permitted keys")
+    ///
+    /// Every representative shape goes through it, not one. A single-input test is defeated by a
+    /// bypass conditioned on a value it never supplies — `if warm == false { return … }` sails past
+    /// a test that only ever passes `warm: true` — so the empty patch, each field alone, and the
+    /// fully-populated patch are all pushed through the same door.
+    ///
+    /// What this does **not** prove: that no future edit can bypass the check. Nothing expressible
+    /// here prevents someone adding an early `return` above the validation. What it does is remove
+    /// the cheap version of that mistake, where a bypass hides in an input nobody tests.
+    @Test("encodedBody emits only permitted keys, for every shape a patch can take")
     func encodedBodyIsAllowlisted() throws {
-        let data = try ServerPatch(projects: ["/tmp/a"], warm: true).encodedBody()
-        let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
-        #expect(Set(object.keys).isSubset(of: ServerPatch.permittedWireKeys))
-        #expect(object["projects"] != nil)
-        #expect(object["warm"] != nil)
+        let shapes: [ServerPatch] = [
+            ServerPatch(),
+            ServerPatch(projects: ["/tmp/a"]),
+            ServerPatch(warm: true),
+            ServerPatch(warm: false),
+            ServerPatch(idleMs: 0),
+            ServerPatch(placard: Placard(reason: "under review")),
+            ServerPatch(projects: [], warm: false, idleMs: 30000, placard: Placard(reason: "x"))
+        ]
+
+        for patch in shapes {
+            let data = try patch.encodedBody()
+            let object = try #require(
+                try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                "encodedBody did not produce a JSON object for \(patch)"
+            )
+            let keys = Set(object.keys)
+            #expect(
+                keys.isDisjoint(with: ServerPatch.forbiddenWireKeys),
+                "encodedBody put a forbidden key on the wire for \(patch): \(keys.sorted())"
+            )
+            #expect(
+                keys.isSubset(of: ServerPatch.permittedWireKeys),
+                "encodedBody emitted an unpermitted key for \(patch): \(keys.sorted())"
+            )
+        }
     }
 
     /// The allowlist has to be able to *fail*, or it is decoration.

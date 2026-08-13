@@ -53,26 +53,31 @@ build-ios: generate
 
 ## Swift Testing reports success for a suite that executed zero tests, so a target that silently
 ## stops matching its test files exits 0 and the gate says "passed". This guard closes that, and
-## three narrower holes the obvious version of it leaves open.
+## the narrower holes the obvious version of it leaves open.
 ##
 ## A listing that *fails* must not read as a suite with no tests: the two want opposite responses,
 ## and discarding stderr turns a compile error into "zero tests discovered", pointing whoever reads
 ## it at the wrong problem. So the listing's status is checked on its own, with its diagnostics kept.
 ##
-## Discovery is also not execution. A suite whose tests are all disabled discovers many and runs
-## none, which is the same silent pass by a different route — so the count that decides the gate is
-## read from the xUnit report `swift test` writes, which is a machine-readable artifact of what
-## actually ran rather than a scrape of human-readable output whose format is free to change.
+## Discovery is counted as non-blank listing lines rather than by matching a naming convention. An
+## earlier version required each line to end in `()`, which is the Swift Testing spelling — a
+## healthy XCTest-style listing (`Suite/testName`) counted as zero and failed a suite that was fine.
+## The shape of a line is not the signal; whether the listing produced anything is.
+##
+## Discovery is also not execution, and that is the gap the count below closes: a suite can
+## enumerate thirty tests and run none of them, whether disabled or skipped. The gating number is
+## therefore read from the xUnit report — an artifact of what actually ran — with skipped
+## subtracted, rather than inferred from human-readable output whose format is free to change.
 test:
 	@set -eu -o pipefail; cd $(APP_DIR); \
 	  if ! listing=$$(swift test list 2>&1); then \
 	    echo "error: could not enumerate tests — this is a build or toolchain failure, not an empty suite:"; \
 	    echo "$$listing"; exit 1; \
 	  fi; \
-	  discovered=$$(printf '%s\n' "$$listing" | grep -cE '\(\)$$' || true); \
-	  echo "discovered $$discovered tests"; \
+	  discovered=$$(printf '%s\n' "$$listing" | grep -cE '[^[:space:]]' || true); \
+	  echo "discovered $$discovered test lines"; \
 	  if [ "$$discovered" -eq 0 ]; then \
-	    echo "error: zero tests discovered — the suite is not running, which is a failure, not a pass"; \
+	    echo "error: the listing was empty — the suite is not running, which is a failure, not a pass"; \
 	    exit 1; \
 	  fi
 	@set -eu -o pipefail; cd $(APP_DIR); \
@@ -85,11 +90,16 @@ test:
 	    exit 1; \
 	  fi; \
 	  ran=$$(cat $$reports \
-	         | sed -n 's/.*<testsuite [^>]*tests="\([0-9]*\)".*/\1/p' \
-	         | awk '{ total += $$1 } END { print total + 0 }'); \
+	         | grep -oE '<testsuite [^>]*>' \
+	         | awk '{ \
+	             t = 0; s = 0; \
+	             if (match($$0, /tests="[0-9]+"/))   { t = substr($$0, RSTART + 7, RLENGTH - 8) } \
+	             if (match($$0, /skipped="[0-9]+"/)) { s = substr($$0, RSTART + 9, RLENGTH - 10) } \
+	             total += t - s \
+	           } END { print total + 0 }'); \
 	  echo "executed $$ran tests"; \
 	  if [ "$$ran" -eq 0 ]; then \
-	    echo "error: zero tests executed — a suite can discover tests and run none of them"; \
+	    echo "error: zero tests executed — a suite can discover tests, skip every one, and still exit 0"; \
 	    exit 1; \
 	  fi
 

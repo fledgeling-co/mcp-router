@@ -2,7 +2,7 @@
 #
 # One-line install for mcp-router.
 #
-#   /bin/bash -c "$(curl -fsSL https://fledgeling-co.github.io/mcp-router/install.sh)"
+#   /bin/bash -c "$(curl -fsSL https://mcp-router.fledgeling.app/install.sh)"
 #
 # What it does, in order, and nothing else:
 #   0. fetches the source into ~/.local/share/mcp-router, if you piped this in

@@ -53,7 +53,7 @@ flowchart LR
 ## Install
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://fledgeling-co.github.io/mcp-router/install.sh)"
+/bin/bash -c "$(curl -fsSL https://mcp-router.fledgeling.app/install.sh)"
 ```
 
 That fetches the source to `~/.local/share/mcp-router`, builds it, copies your stdio servers out of `~/.claude.json`, indexes them once, writes two launchd agents with this machine's own absolute paths, loads them, and adds a single `router` entry to `~/.claude.json`. It backs that file up first.
@@ -67,13 +67,13 @@ Already have a clone? `./docs/install.sh` from inside it works the same way and 
 ### Uninstall
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://fledgeling-co.github.io/mcp-router/uninstall.sh)"
+/bin/bash -c "$(curl -fsSL https://mcp-router.fledgeling.app/uninstall.sh)"
 ```
 
 Add `--purge` to also delete `~/.claude/mcp-router` and the fetched source:
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://fledgeling-co.github.io/mcp-router/uninstall.sh)" mcp-router --purge
+/bin/bash -c "$(curl -fsSL https://mcp-router.fledgeling.app/uninstall.sh)" mcp-router --purge
 ```
 
 The restore is the half that matters. Every stdio server the router adopted is written back into `~/.claude.json` before the agents go, so you're left with a working setup rather than no MCP servers at all. It won't overwrite a name you've since defined by hand.
@@ -239,7 +239,7 @@ The mark is a manifold: cool glass conduits converge from the left into one hub,
 
 It lives in `design/icon/`, alongside the layered SVG master, its build script, the alternate takes, and `audit.html`, where every take is scored against the 12-point macOS icon rubric at 128 / 64 / 48 / 32 / 16, losers included with the reason they lost.
 
-[fledgeling-co.github.io/mcp-router](https://fledgeling-co.github.io/mcp-router/) is a single-page explanation of the same idea for someone who doesn't know what MCP is. It lives in `docs/`, which is also what serves the install script.
+[mcp-router.fledgeling.app](https://mcp-router.fledgeling.app/) is a single-page explanation of the same idea for someone who doesn't know what MCP is. It lives in `docs/`, which is also what serves the install script.
 
 <br clear="left" />
 

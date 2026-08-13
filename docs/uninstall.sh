@@ -2,7 +2,7 @@
 #
 # Remove mcp-router and put everything back the way it was.
 #
-#   /bin/bash -c "$(curl -fsSL https://fledgeling-co.github.io/mcp-router/uninstall.sh)"
+#   /bin/bash -c "$(curl -fsSL https://mcp-router.fledgeling.app/uninstall.sh)"
 #
 # Add --purge to also delete the router's state and the fetched source:
 #

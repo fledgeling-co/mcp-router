@@ -113,6 +113,7 @@ test:
 ## the check. Collapsing those is how "no Accessibility permission" gets reported as a broken app.
 acceptance: build-mac
 	./scripts/acceptance/shells.sh
+	./scripts/acceptance/control-client.sh
 
 lint: tools
 	swiftformat --lint . --config .swiftformat

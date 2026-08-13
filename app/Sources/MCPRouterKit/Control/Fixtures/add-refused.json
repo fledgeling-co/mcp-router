@@ -1,0 +1,1 @@
+{"error":"spawn /nonexistent/binary-that-cannot-start ENOENT","hint":"retry with ?force=1 to add it anyway"}

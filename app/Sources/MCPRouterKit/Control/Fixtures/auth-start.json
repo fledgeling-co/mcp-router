@@ -1,0 +1,1 @@
+{"server":"fixture-oauth","authorizationUrl":"http://127.0.0.1:8972/authorize?response_type=code&client_id=fixture-client&code_challenge=Ouk77pSGXEpROYB-0ZKxoeYpZ6INgelJgpVL_gHeyPQ&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A8880%2Fcallback&resource=http%3A%2F%2F127.0.0.1%3A8972%2Fmcp"}

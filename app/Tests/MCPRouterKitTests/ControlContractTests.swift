@@ -151,6 +151,60 @@ struct ControlContractTests {
         }
     }
 
+    /// The widened protocol adds exactly one type that carries a command line, and this is what
+    /// keeps that from being a way around the guarantee above.
+    ///
+    /// `NewServer` and `ServerPatch` are deliberately unrelated types rather than one being a
+    /// superset of the other. Declaring a server is an explicit act with its own surface; editing
+    /// one is not allowed to quietly become that act by gaining a field. Because they share no
+    /// shape, no future edit can widen a patch into an installer — there is nothing to widen.
+    @Test("adding a server is the only shape that carries a command, and it is not a patch")
+    func newServerIsTheSoleCommandCarrier() throws {
+        // It genuinely carries one — otherwise adding a server could not work at all.
+        let new = NewServer(name: "x", command: "/bin/echo", args: ["hi"], env: ["K": "v"])
+        let object = try #require(
+            try JSONSerialization.jsonObject(with: JSONEncoder().encode(new)) as? [String: Any]
+        )
+        #expect(object["command"] != nil)
+        #expect(object["args"] != nil)
+        #expect(object["env"] != nil)
+
+        let patchLabels = Set(Mirror(reflecting: ServerPatch()).children.compactMap(\.label))
+        let newLabels = Set(Mirror(reflecting: new).children.compactMap(\.label))
+        #expect(
+            !newLabels.isDisjoint(with: ServerPatch.forbiddenWireKeys),
+            "this test is pointless if NewServer stopped carrying a command line"
+        )
+        #expect(
+            patchLabels.isDisjoint(with: ServerPatch.forbiddenWireKeys),
+            "a command-carrying field appeared on the patch type"
+        )
+        // The two shapes do overlap, and legitimately: `projects` and `warm` are settable when a
+        // server is declared and editable afterwards, so the router reads them on both routes. What
+        // must never overlap is a field a patch is not allowed to send — anything shared has to be
+        // something the patch allowlist already permits.
+        let shared = patchLabels.intersection(newLabels)
+        #expect(
+            shared.isSubset(of: ServerPatch.permittedWireKeys),
+            """
+            the two request shapes share a field the patch allowlist does not permit: \
+            \(shared.subtracting(ServerPatch.permittedWireKeys).sorted())
+            """
+        )
+    }
+
+    /// The wider surface, checked for the hole the widening could have opened: the client now has
+    /// fourteen operations, and none of them may offer a second route to a command line.
+    @Test("the patch path stays allowlisted now that the protocol is wider")
+    func patchStaysAllowlistedAcrossTheWiderSurface() throws {
+        let encoded = try ServerPatch(projects: ["/tmp/a"], warm: true).encodedBody()
+        let keys = try Set(
+            (JSONSerialization.jsonObject(with: encoded) as? [String: Any] ?? [:]).keys
+        )
+        #expect(keys.isSubset(of: ServerPatch.permittedWireKeys))
+        #expect(keys.isDisjoint(with: ServerPatch.forbiddenWireKeys))
+    }
+
     @Test("the offline case is distinguishable from every other failure")
     func routerNotRunningIsItsOwnCase() {
         #expect(ControlAPIError.routerNotRunning != ControlAPIError.transport(detail: "refused"))

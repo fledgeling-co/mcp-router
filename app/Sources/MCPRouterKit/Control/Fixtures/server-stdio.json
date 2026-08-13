@@ -1,0 +1,1 @@
+{"name":"fixture-stdio","transport":"stdio","state":"idle","inFlight":0,"callsServed":0,"idleSec":0,"command":"/bin/echo","args":["hello"],"envKeys":["FIXTURE_KEY"],"hash":"6b87e26b4ff6050f","tools":0,"toolNames":[],"projects":[],"warm":false,"auth":{"supported":false,"authorized":true},"usage":{"calls":0,"errors":0,"projects":{}}}

@@ -16,7 +16,7 @@ UNSIGNED   := CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 IOS_DEST   ?= generic/platform=iOS Simulator
 MAC_DEST   ?= platform=macOS
 
-.PHONY: all tools generate build build-mac build-mac-release build-ios test lint format clean
+.PHONY: all tools generate build build-mac build-mac-release build-ios test acceptance lint format clean
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
 all: tools lint build test
@@ -102,6 +102,17 @@ test:
 	    echo "error: zero tests executed — a suite can discover tests, skip every one, and still exit 0"; \
 	    exit 1; \
 	  fi
+
+## Launches both shells and asserts each renders a value that came from MCPRouterKit.
+##
+## Kept out of `all` because it needs things a build does not: a GUI session, an Accessibility
+## grant, and a booted simulator. It is not optional though — a linker success is not evidence that
+## the shared library reached the screen, which is the whole of A5 and A15.
+##
+## It distinguishes its outcomes: 1 is a failed assertion, 2 is an environment that could not run
+## the check. Collapsing those is how "no Accessibility permission" gets reported as a broken app.
+acceptance: build-mac
+	./scripts/acceptance/shells.sh
 
 lint: tools
 	swiftformat --lint . --config .swiftformat

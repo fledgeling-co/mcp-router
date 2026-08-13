@@ -1,9 +1,9 @@
 # F1: Swift workspace, shared kit, and the three targets
 
 **ID:** F1
-**Status:** Ready for Work
+**Status:** In Review — built, gated and accepted on `ai/f1`; held before merge for the orchestrator to serialise finalisation
 **Created:** 2026-08-13
-**Last updated:** 2026-08-13
+**Last updated:** 2026-08-14
 
 ## Feature description
 
@@ -225,7 +225,6 @@ reject unknown keys rather than silently ignore them.
   re-run during gap-fix, but a repository cannot itself preserve a screenshot's provenance.
 
 ### Deferred children discovered
-
 Reported to the orchestrator rather than registered here (the ledger has a single writer):
 
 1. **Signed, notarized macOS packaging** — archive → Developer ID sign → notarize → staple → DMG,
@@ -235,3 +234,69 @@ Reported to the orchestrator rather than registered here (the ledger has a singl
 2. **A machine-readable token block in `DESIGN.md`** — the critic's proposed fix for parsing
    free-form markdown. It is a shared-surface change this item may not make, so it is reported.
    The parser is hardened instead, which is the part that was in scope.
+
+---
+
+## Acceptance — 2026-08-14
+
+Native lane, not web: there is no web surface, no Playwright harness and nothing to serve. The
+acceptance question for F1 is narrow and specific — *did the shared library reach the screen* — and
+it is the one question a build gate structurally cannot answer.
+
+**What was added:** `scripts/acceptance/shells.sh`, wired as `make acceptance` and invoked as a CI
+step. It launches both shells and asserts each renders a value that came from `MCPRouterKit`. This
+replaces the hand-run screenshot that previously stood behind A5 and A15.
+
+**Two oracles, because neither is sufficient alone.** The rendered pixel is sampled and compared to
+`ColorToken.ground`, read out of the source rather than pinned as a copy, so the gate follows the
+token. The accessibility tree is walked for the on-screen strings. Only the first proves anything
+*drew* — Apple states the accessibility tree is not necessarily one-to-one with what a sighted user
+sees, so a green AX walk over a window that painted nothing is possible, and dropping the pixel
+assertion would leave this asserting much less than it appears to.
+
+**Run record.** Green twice directly and twice through `make acceptance`; the whole `make all` gate
+green alongside it (0 lint violations across 12 files, BUILD SUCCEEDED for both targets, 31 tests
+executed).
+
+**Red-green, because a gate that cannot fail is decoration.** `ColorToken.ground` was changed
+`#1E1E1E` → `#1E1E1F` — one digit — without rebuilding, reproducing the real drift case where the
+token moves and the screen does not. The gate failed: `macOS background rendered #1E1E1E, expected
+ColorToken.ground #1E1E1F`, exit 1. Restored → green.
+
+### Clause evidence after acceptance
+
+| Clause | Evidence | Re-runnable? |
+|---|---|---|
+| A1, A10, A11, A14 | `make all`, `make test`'s own guards, `swift package show-dependencies` | Yes — `make all` |
+| A2, A3, A19 | `make build-mac` / `build-ios` / `build-mac-release` | Yes — `make all` (A19 via its own target) |
+| A4, A8, A9, A16 | 31 tests in 4 suites, including the parity and control-contract suites | Yes — `make test` |
+| **A5, A15** | **Both shells launched; rendered background sampled = `#1E1E1E` = `ColorToken.ground`; AX tree carries the on-screen strings** | **Yes — `make acceptance` (was hand-run before)** |
+| A6a, A6b, A7, A17, A18 | Entitlement files and `xcodebuild -showBuildSettings` | Hand-run — asserted by reading generated settings, not yet a script |
+| A12 | Workflow file calls the same Makefile targets | **No — never executed; the branch is unpushed** |
+| A13 | `planning/practices/SWIFT_PRACTICES.md` | File review |
+
+### Sweeps — ran, or skipped with the reason
+
+Scaled to the feature, as the method requires. F1 is two deliberately temporary launch screens with
+no data, no network calls, no interaction, no roles and no realtime, so most sweeps have nothing to
+act on. Recording that is the point; a sweep silently skipped reads as a sweep passed.
+
+| Sweep | Outcome |
+|---|---|
+| 6a State matrix | **Skipped** — the shells have exactly one state. There is no empty, loading, error or partial to force, because nothing is fetched. The nine-state matrix belongs to the surfaces built on this one |
+| 6b Fault injection | **Skipped** — no network call, no I/O, nothing to fail. The shells read a constant |
+| 6c Interaction integrity | **Skipped** — zero interactive elements. The AX walk confirms this rather than assuming it: the tree carries static text and no controls |
+| 6d Keyboard + a11y floor | **Partial.** The AX walk establishes the strings are exposed to assistive technology. A contrast/Dynamic Type audit needs `performAccessibilityAudit()`, which needs an XCUITest target this item does not add — named as a gap, not swept under |
+| 6e Data-shape stress | **Ran, at the library layer** — the parser suite covers shorthand/full hex, four spacings of a colour+alpha pair, prose-valued cells, separator and header rows, and a missing document. The shells render no data |
+| 6f Security surface | **Ran, at the contract layer** — the control-API PATCH shape cannot carry `command`, `args` or `env`, asserted three ways with the bypass exercised. There is no running surface to probe yet |
+| 6g Multi-user / realtime | **Skipped** — no accounts, no sharing, no realtime channel in this item |
+
+**Rendered-quality review: deliberately not run, and named rather than skipped silently.** The two
+screens are scaffolding that the shell items replace wholesale, and their conformance to the design
+document is already machine-checked in both directions by the token parity suite. A judged visual
+review belongs to the first item that ships a real surface. That is a scope call, not a clean bill
+of visual health.
+
+**Axes held constant, so the run record does not imply breadth it lacks:** one appearance (dark —
+the product has no light appearance yet), one macOS window size, one simulator device, one
+appearance-independent colour sample per shell. Dynamic Type was not varied.

@@ -3,9 +3,9 @@ name: Swift
 on:
   push:
     branches: [main]
-    paths: ['app/**', 'Makefile', '.swiftlint.yml', '.swiftformat', '.github/workflows/swift.yml', 'DESIGN.md']
+    paths: ['app/**', 'scripts/acceptance/**', 'Makefile', '.swiftlint.yml', '.swiftformat', '.github/workflows/swift.yml', 'DESIGN.md']
   pull_request:
-    paths: ['app/**', 'Makefile', '.swiftlint.yml', '.swiftformat', '.github/workflows/swift.yml', 'DESIGN.md']
+    paths: ['app/**', 'scripts/acceptance/**', 'Makefile', '.swiftlint.yml', '.swiftformat', '.github/workflows/swift.yml', 'DESIGN.md']
   workflow_dispatch:
 
 concurrency:
@@ -51,3 +51,26 @@ jobs:
       # design document that changes a value without changing the code fails here.
       - name: Test
         run: make test
+
+      # Launches both shells and checks each renders a value that came from the shared library.
+      #
+      # A hosted runner has no Accessibility grant, so this may legitimately be unable to run. The
+      # script says which happened with its exit code, and this step keeps the two apart: a failed
+      # assertion fails the job, an environment that cannot run the check is reported and skipped.
+      # Treating "no permission" as a build failure would train everyone to ignore a red run;
+      # treating a real failure as "skipped" would be worse.
+      - name: Acceptance (both shells render a kit value)
+        run: |
+          set +e
+          ./scripts/acceptance/shells.sh
+          code=$?
+          set -e
+          if [ "$code" -eq 0 ]; then
+            echo "acceptance: passed"
+          elif [ "$code" -eq 2 ]; then
+            echo "::warning::acceptance could not run in this environment (exit 2) — not a pass"
+          else
+            echo "::error::acceptance failed (exit $code)"
+            exit "$code"
+          fi
+

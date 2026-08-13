@@ -183,3 +183,93 @@ never be encoded is a STANDING CONSTRAINT — keep it green.
 **Re-read before continuing** (paths only): `planning/features-to-triage/F3-control-client.md`,
 `planning/specs/spec-F3.md`, `planning/plans/plan-F3.md`, `src/control.ts` (the wire
 authority), `planning/practices/SWIFT_PRACTICES.md`.
+
+---
+
+## Red-green proving pass — 2026-08-14
+
+The pass the previous runner died entering. 93 green tests proved nothing until each guard had
+been *seen to fail* (`SWIFT_PRACTICES.md` §7), so every guarded behaviour was broken one at a time
+and the suite re-run. The harness is committed as `scripts/red-green.py` and is re-runnable:
+`python3 scripts/red-green.py --json out.json`. It mutates **implementation only** — a mutation
+that edits a test proves nothing — and restores the file afterwards.
+
+**Result: 34 mutations, 34 killed.** First run killed only 17 of 29, and the twelve survivors are
+the reason this pass exists. Three were real holes in the tests, three were my expectations being
+wrong about which test owns a clause, three were equivalent mutants, and three were harness faults.
+
+### The three real holes, and what closed them
+
+| # | Clause | The hole | Fix |
+|---|---|---|---|
+| G1 | A11 | Every stream test built a `ReconnectPolicy` with **explicit** values, so the stated defaults were unasserted. The ceiling could move to 30000s and the attempt cap to 600 with the whole suite green — and A11's numbers are the clause. | New test `the stated policy is the one you get without asking` pins 500ms / 30s / 6 and re-checks the curve through the defaults. |
+| G2 | A5 | The "no token in `UserDefaults`" test drove only `InMemoryTokenStore`, so `KeychainTokenStore.write` — the implementation that ships — was never called. A `UserDefaults.standard.set(token, …)` added to it left the suite green. A negative assertion that never runs the code it negates is worse than none, because it reports having checked. | The test now drives the real store through write/read/delete before sweeping `UserDefaults`, and the key-name check strips hyphens (the literal key `control-token` slipped the old `contains("controltoken")` test). |
+| G3 | A13 | `a call record for a server the router never listed invents nothing` asserted only that no **row was added**. A merge resolving an unknown name onto a different server adds no row, and would have marked the wrong server running unnoticed. | The test now also asserts the listed server's state is untouched. |
+| G4 | A12 | `heartbeat and greeting comments are ignored` collected **records only**, so a comment line made to emit `.phase(.live)` produced three spurious events and the test still passed. "Ignored" has to mean no event of any kind. | The test now asserts the whole event sequence — records, phases and total count. |
+
+### Findings that were not defects
+
+- **A12's comment skip is over-determined.** Deleting `if line.hasPrefix(":")` changes nothing
+  observable, because the `data:` guard drops comment lines anyway and a comment that reached the
+  decoder would fail it and be skipped. Heartbeats cannot become records by any single edit. The
+  reachable regression is a comment emitting a *phase*, which is what G4 now catches.
+- **`allowlistRejectsForbiddenKeys` deliberately never calls `encodedBody()`** — its own doc
+  comment says so — so mutating that check cannot reach it. `encodedBody`'s two guards are proven
+  instead by M27b (a forbidden key on the wire) and M28 (a merely-unpermitted one).
+- **A nil `command` field is omitted by the encoder**, which is precisely the hole the
+  stored-property check exists to close. One mutation cannot trip both halves; M27 and M27b are
+  the two halves.
+- **The tracker cannot invent a row by construction** — no code path builds an `MCPServer`; it only
+  ever moves ones a poll supplied. That is stronger than a test, and the test covers the reachable
+  corruption instead.
+
+### Harness note worth keeping
+
+The `UserDefaults` mutation writes to the test host's own domain
+(`swiftpm-testing-helper`), which **survives the file restore** and then fails the *next* run for a
+reason belonging to the previous one. The harness now scrubs it after every run. It cost a
+confusing red; a mutation that touches a store outliving the process needs an explicit undo.
+
+### The ledger
+
+Every row: the mutation was applied, the suite ran, the named test went red, the file was restored.
+
+| # | Clause | Guarded behaviour broken | File | Test that caught it |
+|---|---|---|---|---|
+| M01 | A2 | a refused loopback connection is its own case, not a generic transport error | `LiveControlAPIClient.swift` | a refused connection is routerNotRunning |
+| M02 | A3 | a 401 is unauthorized and nothing else | `LiveControlAPIClient.swift` | a 401 is unauthorized (+1) |
+| M03 | A4 | an unreadable shape fails loudly rather than as any other error | `LiveControlAPIClient.swift` | a shape this version doesn't understand fails loudly |
+| M04 | A8 | a mutating request announces a JSON body — the router's CSRF defence | `LiveControlAPIClient.swift` | a mutating request carries the bearer token and the JSON content type |
+| M05 | A8 | every request carries the bearer token | `LiveControlAPIClient.swift` | a mutating request carries the bearer token and the JSON content type |
+| M06 | A8 | a read does not announce a body it is not sending | `LiveControlAPIClient.swift` | a read does not need to announce a JSON body |
+| M07 | A6 | an unchanged token is not retried — the loop guard | `LiveControlAPIClient.swift` | an unchanged token is not retried |
+| M08 | A6 | the retry happens exactly once, tracked per call | `LiveControlAPIClient.swift` | a rotated token is re-read and the request retried exactly once |
+| M09 | A16 | the router's advice on a refused add survives into the error | `LiveControlAPIClient.swift` | a router error carries its status, its message, and the hint |
+| M10 | A9 | a server name needing encoding still reaches its route | `LiveControlAPIClient.swift` | a server name needing encoding still reaches the right route |
+| M11 | A12 | heartbeat and greeting comments are skipped rather than decoded | `ControlEventStream.swift` | heartbeat and greeting comments are ignored |
+| M12 | A11 | the backoff doubles | `ControlEventStream.swift` | the delay doubles from the first retry |
+| M13 | A11 | the backoff holds at a 30s ceiling | `ControlEventStream.swift` | the stated policy is the one you get without asking |
+| M14 | A11 | retrying stops after the stated number of consecutive failures | `ControlEventStream.swift` | the stated policy is the one you get without asking |
+| M15 | A11 | a connection that delivered anything resets the consecutive count | `ControlEventStream.swift` | a connection that delivered anything resets |
+| M16 | A10 | records are yielded as they arrive, not batched at the end | `ControlEventStream.swift` | events arrive as they happen |
+| M17 | A13 | an arriving call corrects an idle server to running | `ServerStateTracker.swift` | a call record marks an idle server running |
+| M18 | A13 | a call for a server the router never listed invents nothing | `ServerStateTracker.swift` | a call record for a server the router never listed invents nothing |
+| M19 | A13 | a poll is authoritative — a dropped server leaves no stale row | `ServerStateTracker.swift` | a poll removing a server removes it |
+| M20 | A13 | the router's own ordering is preserved | `ServerStateTracker.swift` | the router's own ordering is preserved |
+| M21 | A7 | a token is logged by its shape, never its value | `ControlTokenStore.swift` | the log records that a token exists and its length |
+| M22 | A7 | an absent token is described as absent, not as an empty one | `ControlTokenStore.swift` | redaction describes an absent token as absent |
+| M23 | A5 | the token goes to the Keychain and never to UserDefaults | `ControlTokenStore.swift` | no token-shaped value is ever written to UserDefaults |
+| M24 | A5 | the token file is read as the router writes it | `ControlTokenStore.swift` | the token file is read as the router writes it |
+| M25 | A5 | MCP_ROUTER_HOME moves the token file | `ControlTokenStore.swift` | MCP_ROUTER_HOME moves the token file |
+| M26 | A23 | an unrecognised registry source fails decoding rather than defaulting | `RegistryModels.swift` | an unrecognised registry source fails decoding |
+| M27 | A20 | a patch can never carry command, args or env | `ServerPatch.swift` | no stored property is named after a forbidden wire key (+1) |
+| M27b | A20 | a non-nil forbidden field reaches the encoded JSON and is caught there | `ServerPatch.swift` | an encoded ServerPatch can never carry command (+2) |
+| M28 | A20 | encodedBody's allowlist rejects a key that is merely unexpected | `ServerPatch.swift` | encodedBody emits only permitted keys (+1) |
+| M30 | A15 | a recording nothing decodes is a failure, not an unused file | `orphan-shape.json` | no recording exists that nothing decodes |
+| M29 | A19 | the offline scenario refuses in the one way that has its own surface | `FixtureControlAPIClient.swift` | the offline scenario refuses in the one way |
+| M31 | A25 | the approved wording is the wording the client returns | `ControlAPIClient.swift` | the two whole-screen conditions read exactly as approved (+1) |
+| M32 | A22 | an in-flight authorization on the servers response is modelled, not dropped | `Models.swift` | every fixture round-trips without losing or inventing a field (+1) |
+| M33 | A21 | approve returns a count, not a server — F1's protocol assumed wrong | `Models.swift` | every fixture round-trips without losing or inventing a field (+1) |
+
+**Gate after the pass:** `make all` exit **0** — tools, lint, macOS build, iOS build, and
+`executed 94 tests` (93 before, plus the defaults test G1 added).

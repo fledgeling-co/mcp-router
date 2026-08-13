@@ -48,6 +48,13 @@ struct ControlTokenTests {
 
     /// The negative half of A5. A round-trip through the Keychain proves the token *can* live
     /// there; it does not prove a copy was not also left somewhere unprotected on the way.
+    ///
+    /// It drives **both** stores, and the second one is the reason this test is worth having. An
+    /// earlier version exercised only the in-memory double, so `KeychainTokenStore.write` — the
+    /// implementation that actually ships — was never called: the red-green pass added a
+    /// `UserDefaults.standard.set(token, …)` line to it and the whole suite stayed green. A
+    /// negative assertion that never runs the code it is negating is worse than no assertion,
+    /// because it reports having checked.
     @Test("no token-shaped value is ever written to UserDefaults")
     func nothingReachesUserDefaults() async throws {
         let secret = "token-\(UUID().uuidString)"
@@ -63,13 +70,29 @@ struct ControlTokenTests {
         )
         _ = try await client.servers()
 
+        // The store the app ships with, driven through every method that handles the value.
+        let keychainSecret = "token-\(UUID().uuidString)"
+        let store = Self.uniqueStore()
+        try await store.write(keychainSecret)
+        _ = try await store.read()
+        try await store.delete()
+
+        UserDefaults.standard.synchronize()
         let defaults = UserDefaults.standard.dictionaryRepresentation()
         for (key, value) in defaults {
             if let text = value as? String {
                 #expect(text != secret, "the token was written to UserDefaults under \(key)")
+                #expect(
+                    text != keychainSecret,
+                    "the Keychain store left a copy of the token in UserDefaults under \(key)"
+                )
             }
             #expect(
                 !key.lowercased().contains("controltoken"),
+                "a key named for the control token exists in UserDefaults: \(key)"
+            )
+            #expect(
+                !key.lowercased().replacingOccurrences(of: "-", with: "").contains("controltoken"),
                 "a key named for the control token exists in UserDefaults: \(key)"
             )
         }

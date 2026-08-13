@@ -74,6 +74,12 @@ struct ControlStreamTests {
 
     /// The router keeps the socket open with comment lines. Decoding them would produce a steady
     /// trickle of parse failures that look exactly like a router gone wrong.
+    /// Asserts the **whole** event sequence, not just the records in it.
+    ///
+    /// An earlier version collected records only, and the red-green pass walked straight through
+    /// it: a comment line made to `yield(.phase(.live))` produced three spurious events and the
+    /// test still passed, because it never looked at anything but records. "Ignored" has to mean
+    /// no event of any kind, or the assertion only covers half the clause.
     @Test("heartbeat and greeting comments are ignored rather than decoded")
     func heartbeatsAreSkipped() async throws {
         let stub = try HTTPStub()
@@ -95,23 +101,54 @@ struct ControlStreamTests {
             )
         )
 
-        var records: [CallRecord] = []
+        // The body ends after five lines and the stream reconnects, so the run is bounded by the
+        // first phase that is not `.live` rather than by a record count — counting records is what
+        // let the spurious events through in the first place.
+        var events: [StreamEvent] = []
         collect: for await event in subject.events() {
             switch event {
-            case let .record(record):
-                records.append(record)
-                if records.count == 2 { break collect }
-            case .phase(.reconnecting), .phase(.disconnected):
-                break collect
-            case .phase(.live):
-                continue
+            case .phase(.reconnecting), .phase(.disconnected): break collect
+            default: events.append(event)
             }
         }
 
+        let records = events.compactMap { event -> CallRecord? in
+            guard case let .record(record) = event else { return nil }
+            return record
+        }
         #expect(records.map(\.tool) == ["one", "two"], "a comment line was decoded as an event")
+
+        // Three comment lines went past. The only phase in the sequence is the one the connection
+        // itself accounts for: it opened.
+        let phases = events.compactMap { event -> StreamPhase? in
+            guard case let .phase(phase) = event else { return nil }
+            return phase
+        }
+        #expect(phases == [.live], "a comment line produced a phase event of its own: \(phases)")
+        #expect(events.count == 3, "the stream emitted something no line accounts for: \(events)")
     }
 
     // MARK: - The retry policy
+
+    /// The stated policy is the *default* one, and until this existed nothing pinned it.
+    ///
+    /// Every other test here builds a policy with explicit values, so the numbers A11 states —
+    /// half a second, a thirty-second ceiling, six attempts — could have been changed to anything
+    /// at all and the whole suite would have stayed green. The red-green pass found that by moving
+    /// the ceiling to 30000s and the cap to 600 and watching nothing go red.
+    @Test("the stated policy is the one you get without asking")
+    func defaultPolicyIsTheStatedOne() {
+        let policy = ReconnectPolicy()
+
+        #expect(policy.initialDelay == .milliseconds(500))
+        #expect(policy.ceiling == .seconds(30))
+        #expect(policy.maximumAttempts == 6)
+
+        // And the defaults produce the stated curve, ceiling included.
+        #expect(policy.delay(forAttempt: 1) == .milliseconds(500))
+        #expect(policy.delay(forAttempt: 7) == .seconds(30))
+        #expect(policy.delay(forAttempt: 100) == .seconds(30))
+    }
 
     @Test("the delay doubles from the first retry and then holds at the ceiling")
     func backoffDoublesAndHolds() {

@@ -51,16 +51,24 @@ struct ServerStateTrackerTests {
 
     /// The rule that keeps the merge honest. A record naming something the router never declared
     /// would otherwise conjure a row for a server that does not exist.
+    ///
+    /// It asserts both halves, because the first alone is weak: a merge that resolved an unknown
+    /// name onto *some other* server adds no row and would have passed a count-only check while
+    /// silently marking the wrong server running. The red-green pass caught exactly that.
     @Test("a call record for a server the router never listed invents nothing")
     func unknownServersAreNotInvented() async throws {
         let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
-        try await tracker.apply(poll: response([server("alpha")]))
+        try await tracker.apply(poll: response([server("alpha", state: .idle)]))
 
         await tracker.apply(record: record(for: "ghost"))
 
         let state = await tracker.state()
         #expect(state.servers.count == 1, "a row was invented for a server no source reported")
         #expect(state.servers.first?.name == "alpha")
+        #expect(
+            state.servers.first?.state == .idle,
+            "a record for an unlisted server changed a server that was listed"
+        )
     }
 
     @Test("a poll removing a server removes it, rather than leaving a stale row behind")

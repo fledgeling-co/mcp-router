@@ -98,6 +98,63 @@ public struct BreakerGeometry: Sendable, Equatable {
     public var risesWithOvershoot: Bool { riseDamping < 1.0 }
     public var fallsWithoutOvershoot: Bool { fallDamping >= 1.0 }
     public var risesFasterThanItFalls: Bool { riseResponse < fallResponse }
+
+    // MARK: - Motion, as a decision rather than as a view
+
+    /// One spring's parameters.
+    public struct Spring: Sendable, Equatable {
+        public let response: Double
+        public let damping: Double
+    }
+
+    /// Which spring carries a transition to `raised`, or `nil` when motion is suppressed.
+    ///
+    /// This is a **pure function on purpose.** The choice used to live inside the view as a
+    /// computed property reading `@Environment(\.accessibilityReduceMotion)`, which cannot be
+    /// exercised without a host — so "Reduce Motion removes the animation and keeps the state
+    /// change" was a claim no test could settle. Pulled out here it is checkable headlessly, and
+    /// the view is left doing nothing but applying the answer.
+    ///
+    /// Reduce Motion returns `nil` — the *animation* goes. The state change is applied by the
+    /// caller regardless, which is what `DESIGN.md` §7 requires: the motion goes, never the meaning.
+    public func spring(raised: Bool, reduceMotion: Bool) -> Spring? {
+        guard !reduceMotion else { return nil }
+        return raised
+            ? Spring(response: riseResponse, damping: riseDamping)
+            : Spring(response: fallResponse, damping: fallDamping)
+    }
+
+    // MARK: - Parity
+
+    /// Every dimension, keyed by the name `DESIGN.md` records it under.
+    ///
+    /// Built from the stored properties rather than written out as a list a test keeps its own copy
+    /// of: the parity suite compares this key set against the document's row set in both
+    /// directions, so a dimension added here without a row — or a row added without a dimension —
+    /// is a failure rather than something nobody notices.
+    public var documentedValues: [String: Double] {
+        [
+            "Breaker housing width": housingWidth,
+            "Breaker housing height": housingHeight,
+            "Breaker housing radius": housingRadius,
+            "Breaker lamp boss": lampBossHeight,
+            "Breaker lamp diameter": lampDiameter,
+            "Breaker slot inset leading": slotInsetLeading,
+            "Breaker slot inset top": slotInsetTop,
+            "Breaker slot inset trailing": slotInsetTrailing,
+            "Breaker slot inset bottom": slotInsetBottom,
+            "Breaker slot radius": slotRadius,
+            "Breaker toggle inset horizontal": toggleInsetHorizontal,
+            "Breaker toggle height": toggleHeight,
+            "Breaker toggle radius": toggleRadius,
+            "Breaker toggle resting offset": toggleRestingOffset,
+            "Breaker toggle raised offset": toggleRaisedOffset,
+            "Breaker rise response": riseResponse,
+            "Breaker rise damping": riseDamping,
+            "Breaker fall response": fallResponse,
+            "Breaker fall damping": fallDamping
+        ]
+    }
 }
 
 /// What a breaker is showing. One dormant state and three lit ones, each bound to the colour token

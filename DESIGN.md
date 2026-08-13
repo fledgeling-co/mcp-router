@@ -162,6 +162,45 @@ board jumps when data lands, and a height buried in another cell's prose cannot 
 
 Concentric corners throughout: child radius = parent radius − padding.
 
+### Breaker geometry `(specified)`
+
+The signature element's construction, recorded value by value. It is here rather than in
+prose because two prototype rounds failed on *construction* — the lever covering its own
+track, the housing reading as a hole, the lamp drawn outside the housing and clipped — and
+a dimension no check can read is a dimension free to drift back.
+
+| Element | Value |
+|---|---|
+| Breaker housing width | 30pt |
+| Breaker housing height | 48pt |
+| Breaker housing radius | 5pt |
+| Breaker lamp boss | 8pt |
+| Breaker lamp diameter | 6pt |
+| Breaker slot inset leading | 4pt |
+| Breaker slot inset top | 11pt |
+| Breaker slot inset trailing | 4pt |
+| Breaker slot inset bottom | 3pt |
+| Breaker slot radius | 3pt |
+| Breaker toggle inset horizontal | 4pt |
+| Breaker toggle height | 15pt |
+| Breaker toggle radius | 2.5pt |
+| Breaker toggle resting offset | 4pt |
+| Breaker toggle raised offset | 19pt |
+| Breaker rise response | 0.18s |
+| Breaker rise damping | 0.62 |
+| Breaker fall response | 0.6s |
+| Breaker fall damping | 1.0 |
+
+The slot is 22 × 34 and the toggle 22 × 15, both derived from the insets above. **The slot
+is at least as wide as the toggle and strictly taller** — that is what leaves a recess
+visible above the lever when it is down and below it when up, lit or not, and it is the
+invariant a dormant row depends on. The lamp boss (8pt) is mounted on the plate inside the
+housing, never overhanging it.
+
+The two springs are §7's, given here as the numbers the code actually uses: rising is fast
+and overshoots (damping below 1), falling is slow and settles (damping at 1). Reduce Motion
+removes the animation and never the state change.
+
 
 ---
 

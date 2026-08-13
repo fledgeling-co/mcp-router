@@ -207,3 +207,89 @@ safe (exit 2) without one.
 **Re-read before continuing** (paths only): `planning/features-to-triage/F2-design-system.md`,
 `planning/specs/spec-F2.md`, `planning/plans/plan-F2.md`, `DESIGN.md`,
 `planning/practices/SWIFT_PRACTICES.md`.
+
+---
+
+## Progress — 2026-08-14 (resumed after the gateway 503)
+
+Picked up from the pause checkpoint above. Phases 1–4 were already on disk; this pass ran the
+Phase D completeness critic, resolved what it found, and produced the acceptance evidence.
+
+### Out-of-family completeness critic
+
+`gpt-5.6-sol`, read-only, scoped to three questions over the delivered code and the two acceptance
+lists. **Logged downgrade:** `max` effort had already failed twice on this item (deadline, then an
+empty output file), so this ran at `high` with a narrowed scope rather than burning a third turn.
+Wire-verified from the session log: `"model":"gpt-5.6-sol"`, `"reasoning_effort":"high"`.
+
+**Verdict: MATERIAL DEFECTS — 17 findings. Accepted 13 · rejected 2 · folded 2.** Each was checked
+against the source before being accepted; the two rejections are recorded with their reasons rather
+than quietly dropped.
+
+| # | Finding | Outcome |
+|---|---|---|
+| 1 | "Every breaker dimension is parity-checked" had no check — only invariants | Accepted. `### Breaker geometry` table (19 rows) + `breakerRows` parser + set-and-value parity. |
+| 2 | Nothing stopped a shell regrowing a private colour bridge | Accepted. Lint rule over both shells. |
+| 3 | "Light reproduces dark's measured contrast" was never computed | Accepted. WCAG luminance + compositing; every documented ratio recomputed from the shipped value. |
+| 4 | "`MCPRouterKit` imports no UI framework" was unenforced | Accepted. Lint rule. |
+| 5 | `lightIsAuthored` exempted `.raised`, which never needed it | Accepted. Exemption narrowed to `.onAccent`. |
+| 6 | Nothing asserted `--onAccent` is white in *both* appearances | Accepted. Positive assertion + the dark 3.23:1 deviation pinned. |
+| 7 | Hover polarity used the red byte as a luminance proxy | Accepted. Real relative luminance. |
+| 8 | Lint missed `Color.white`, `.foregroundStyle(.red)`, `Font.custom(size:)`, `.font(.title)` | Accepted. Four new patterns. |
+| 9 | The authored icon was skipped by the drawing check | Accepted. `ConduitMark` path asserted non-empty and full-frame. |
+| 10 | Reduce Motion was untestable inside the view | Accepted. Extracted to `spring(raised:reduceMotion:)`, a pure function, and tested. |
+| 11 | Empty/partial/error copy was length-checked, not verbatim | Accepted. Asserted exactly. |
+| 12 | The Debug-only gallery claim was proven for macOS only | Accepted. iOS bundle sweep added. |
+| 13 | `SurfaceState` had no exhaustive switch; gallery listed states by hand | Accepted. `StateContainer` switches over all nine; the gallery drives off `allCases`. |
+| 14 | Gallery sections had no per-section identifiers | Accepted. Derived per case. |
+| 15 | Control geometry "not proven to come from tokens" | **Rejected.** `selectionFill`, `focusRing` and `ControlScale.height` all read `MetricToken` today; the finding describes a hypothetical future hardcode, and the lint that would catch it cannot tell a design radius from a 1pt hairline. |
+| 16 | Breaker invariants checked only `.standard`, not "every state" | **Rejected.** Slot and toggle dimensions are state-independent by construction; only the offset varies, and `recessVisibleThroughout` already checks both ends of the travel. |
+
+### Red-green proof
+
+Every new guard was seen to fail before it was trusted. 13 of 13 proven — each broken, observed red,
+restored, observed green.
+
+Swift: documented light contrast ratio · breaker housing height · reduce-motion suppression ·
+`onAccent` light value · `ConduitMark` path · empty-state title · section-identifier uniqueness.
+Lint: named SwiftUI colour · shorthand system colour · system text style · `Font.custom` size ·
+`MCPRouterKit` UI import · shell colour bridge.
+
+### Three harness defects found while producing the evidence
+
+All three made the gate lie, and none would have been visible from a passing run.
+
+1. **The pixel gate was photographing the desktop.** `screencapture -R <rect>` captures a screen
+   *region*, so it returned whatever was on top at those coordinates — a run reported the background
+   as `#292C33`, which is the terminal's colour; the saved capture contained a terminal and a
+   keychain dialog and no part of the app. Every accessibility assertion passed in the same run,
+   because the AX tree does not care what is on top. Now captured by window id (`-l`), which reads
+   the window's own backing store. No region fallback: a fallback restores the failure silently.
+2. **`bundle_contains` was a coin flip.** `strings … | grep -q` under `pipefail` returns 141 when
+   `grep -q` exits at the first match and `strings` writes into the closed pipe — so a *successful*
+   match intermittently read as failure. Three identical runs against one unchanged bundle gave two
+   passes and one failure. The dangerous half is the Release assertion, which is `if
+   bundle_contains …; then fail`: a suppressed match there is a silent pass, so the check that the
+   gallery is not shipping could never have caught it shipping. Now a direct binary `grep -qaF`.
+3. **The iOS assertion measured the simulator's setting, not the app.** It asserted the dark ground
+   unconditionally, which was correct only while every surface took the dark value regardless of the
+   device. With dynamic colours it failed reporting `#ECECEE` — the light ground rendering correctly
+   on a simulator in light mode. Now it forces each appearance in turn, which is strictly better
+   evidence: the phone is asked for dark and answers dark, asked for light and answers light.
+
+### One product change fell out of the evidence
+
+The gallery window titled itself after the selected section, so the Window menu offered "Design
+system" and opened a window called "Colour" — a window you cannot find again in the menu that opened
+it. The title is now stable and the section rides in `navigationSubtitle`, which is where macOS puts
+that context anyway.
+
+### Gate evidence
+
+- `make all` — lint 0 violations in 26 files, `no-raw-design-values: clean`, both platforms build,
+  **75 tests in 14 suites** (was 65 at the pause).
+- `make acceptance` — 11 assertions, exit 0, **six consecutive runs** confirming the flake is gone:
+  macOS renders `#1E1E1E`; the gallery's light appearance renders `#ECECEE`; iOS renders `#1E1E1E`
+  in dark and `#ECECEE` in light; the gallery is in both Debug bundles and absent from Release.
+
+Stopped before merge, per the fleet protocol.

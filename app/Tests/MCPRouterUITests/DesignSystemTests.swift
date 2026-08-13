@@ -53,6 +53,25 @@ struct IconTests {
         #expect(!name.contains("trash"))
         #expect(!name.contains("bin"))
     }
+
+    /// The authored icon, held to the same standard as the system ones.
+    ///
+    /// `systemSymbolsResolve` skips every authored icon by construction — `guard let name =
+    /// icon.systemName else { continue }` — so the one icon this project draws itself was the one
+    /// icon nothing checked. An empty `path(in:)` renders exactly like a wrong SF Symbol name: an
+    /// invisible icon and a green suite.
+    @Test("the authored mark actually draws something")
+    func conduitMarkDraws() {
+        let box = CGRect(x: 0, y: 0, width: 100, height: 100)
+        let path = ConduitMark().path(in: box)
+        #expect(!path.isEmpty, "ConduitMark draws nothing — it would render as a blank square")
+
+        // And it fills the frame it is given rather than being a dot in a corner: the mark is two
+        // runs converging into one, so it has to span most of both axes to read as that.
+        let bounds = path.boundingRect
+        #expect(bounds.width >= box.width * 0.6, "the mark spans \(bounds.width) of 100 horizontally")
+        #expect(bounds.height >= box.height * 0.5, "the mark spans \(bounds.height) of 100 vertically")
+    }
 }
 
 /// The colour binding, checked at the value level.
@@ -183,6 +202,38 @@ struct SurfaceStateTests {
         }
     }
 
+    /// The copy itself, verbatim.
+    ///
+    /// The length check above is a floor, not a check: it passes for any forty-one characters, so
+    /// `partial.detail` could become unrelated prose and stay green. The spec fixes this wording —
+    /// it is the deliverable, not an illustration of one — so it is asserted exactly, the way
+    /// `offline` already was.
+    @Test("the empty, partial and error states carry the specified wording")
+    func copyIsVerbatim() {
+        #expect(ServersBoardCopy.empty.title == "No servers declared yet")
+        #expect(ServersBoardCopy.empty.detail == """
+        MCP Router reads the servers your agents already have configured. \
+        Point it at a config, or declare one by hand.
+        """)
+
+        #expect(ServersBoardCopy.partial.title == "6 of 8 servers loaded")
+        #expect(ServersBoardCopy.partial.detail == """
+        Two entries name a transport this version does not read. \
+        The other six are live and usable.
+        """)
+
+        #expect(ServersBoardCopy.error.title == "Could not read servers.json")
+        #expect(ServersBoardCopy.error.detail == """
+        The file is there but line 12 is not valid JSON, so nothing was loaded rather than \
+        some of it. Fix the line and it will reload on its own.
+        """)
+
+        // The error names the line and says it will recover on its own — §6 requires an error to
+        // state what happened *and* what happens next, and "line 12" is the part that makes it
+        // actionable rather than sympathetic.
+        #expect(ServersBoardCopy.error.detail.contains("line 12"))
+    }
+
     /// §6: buttons are verb-first and name the action; `…` means "opens a further view".
     @Test("action labels are verb-first and sentence case")
     func actionLabelsFollowTheWordRules() {
@@ -250,5 +301,30 @@ struct DesignGalleryTests {
     @Test("the gallery identifier is a stable literal the harness can grep")
     func identifierIsGreppable() {
         #expect(DesignGallery.galleryIdentifier == "mcprouter-design-gallery")
+    }
+
+    /// Each section carries its own identifier, so the harness can name what it is looking at.
+    ///
+    /// The root identifier alone only proves *a* gallery opened. Six distinct section identifiers
+    /// are what let an acceptance assertion say which panel it sampled — and deriving them from the
+    /// case means a seventh section cannot arrive without one.
+    @Test("every section has its own stable identifier")
+    func sectionIdentifiersAreDistinct() {
+        let identifiers = DesignGallery.Section.allCases.map(DesignGallery.identifier(for:))
+        #expect(Set(identifiers).count == DesignGallery.Section.allCases.count)
+        #expect(identifiers.allSatisfy { $0.hasPrefix("gallery-section-") })
+        #expect(identifiers.contains("gallery-section-breaker"))
+        // Distinct from the root, or a grep for one would match the other.
+        #expect(!identifiers.contains(DesignGallery.galleryIdentifier))
+    }
+
+    /// The nine states reach the gallery through the enum rather than through nine hand-placed
+    /// blocks, so the section cannot render eight of them.
+    @Test("every state has a title, and the set rendered is the whole set")
+    func everyStateIsTitledAndRendered() {
+        let titles = SurfaceState.allCases.map { StateSection.title(for: $0) }
+        #expect(titles.count == 9)
+        #expect(Set(titles).count == 9, "two states share a title — one of them is mislabelled")
+        #expect(titles.allSatisfy { !$0.isEmpty })
     }
 }

@@ -218,6 +218,65 @@ public struct OverflowRow: View {
     }
 }
 
+/// The populated board — the state every screen remembers to build.
+public struct PopulatedBoard: View {
+    public init() {}
+
+    public var body: some View {
+        VStack(spacing: 1) {
+            OverflowRow(name: "filesystem", state: .running)
+            OverflowRow(name: "github", state: .dormant)
+            OverflowRow(name: "sentry", state: .tripped)
+        }
+        .background(ColorToken.panel.color)
+    }
+}
+
+/// One state, rendered — and the reason `SurfaceState` is an enum.
+///
+/// The nine containers above are each usable on their own, but nothing tied them to the nine cases,
+/// so "a surface cannot ship populated-only by accident" rested on a convention. This is the switch
+/// that makes it structural: a tenth state added to `SurfaceState` stops this compiling until it is
+/// given something to draw, which is exactly the moment someone should be deciding what it looks
+/// like rather than three screens later.
+///
+/// `action` is what the state's one offer does. Nil is legitimate — four of the nine offer nothing.
+public struct StateContainer: View {
+    private let state: SurfaceState
+    private let action: (() -> Void)?
+
+    public init(_ state: SurfaceState, action: (() -> Void)? = nil) {
+        self.state = state
+        self.action = action
+    }
+
+    public var body: some View {
+        switch state {
+        case .populated:
+            PopulatedBoard()
+        case .empty:
+            MessageState(ServersBoardCopy.empty, icon: .conduit, action: action)
+        case .loading:
+            SkeletonRows()
+        case .partial:
+            MessageState(ServersBoardCopy.partial, icon: .warn, tint: .attention, action: action)
+        case .error:
+            MessageState(ServersBoardCopy.error, icon: .bang, tint: .fail, action: action)
+        case .success:
+            // §5: the change happens in place — the lever rises, the subtitle changes. No toast.
+            OverflowRow(name: "filesystem", state: .running)
+                .background(ColorToken.panel.color)
+        case .offline:
+            MessageState(ServersBoardCopy.offline, icon: .bolt, tint: .attention, action: action)
+        case .disabled:
+            DisabledAction()
+        case .overflow:
+            OverflowRow()
+                .background(ColorToken.panel.color)
+        }
+    }
+}
+
 /// The disabled case: dimmed where it is, with the reason readable rather than hidden.
 public struct DisabledAction: View {
     private let label: String

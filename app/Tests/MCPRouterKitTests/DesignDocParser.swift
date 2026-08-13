@@ -27,6 +27,11 @@ enum DesignDocParser {
         let opacity: Double
         let lightHex: String
         let lightOpacity: Double
+        /// The measured light-appearance contrast ratio the document claims for this token.
+        ///
+        /// Nil where the document states none — `--ground` is what everything else is measured
+        /// *against*, so it has no ratio of its own.
+        let documentedLightContrast: Double?
     }
 
     struct TypeRow: Equatable {
@@ -251,12 +256,20 @@ enum DesignDocParser {
                 guard let lightHex = canonicalHex(light) else {
                     throw ParseError.unparsableCell(row: line, cell: light)
                 }
+                // The measured ratio is documentation rather than a token, so a table without the
+                // column is not an error — but where the column exists the value is checked, which
+                // is what makes the authored-light claim a measurement instead of an assertion.
+                var contrast: Double?
+                if let i = columns["contrast (light)"], i < c.count {
+                    contrast = leadingScalar(c[i])
+                }
                 rows.append(ColorRow(
                     name: c[0],
                     hex: darkHex,
                     opacity: opacity(in: dark) ?? 1.0,
                     lightHex: lightHex,
-                    lightOpacity: opacity(in: light) ?? 1.0
+                    lightOpacity: opacity(in: light) ?? 1.0,
+                    documentedLightContrast: contrast
                 ))
             }
         }
@@ -285,6 +298,21 @@ enum DesignDocParser {
     static func metricRows(in text: String) throws -> [MetricRow] {
         var rows: [MetricRow] = []
         for line in try tableLines(in: text, under: "Chrome geometry") {
+            guard let c = cells(of: line), c.count >= 2 else { continue }
+            if c[0] == "Element" { continue }
+            rows.append(MetricRow(element: c[0], leadingScalar: leadingScalar(c[1])))
+        }
+        return rows
+    }
+
+    /// The breaker's construction, one row per dimension.
+    ///
+    /// A separate table from chrome geometry because it is component construction rather than app
+    /// chrome, and because mixing nineteen breaker rows into the chrome ladder would bury the four
+    /// values a window actually lays out with. Same shape, so the same row rules apply.
+    static func breakerRows(in text: String) throws -> [MetricRow] {
+        var rows: [MetricRow] = []
+        for line in try tableLines(in: text, under: "Breaker geometry") {
             guard let c = cells(of: line), c.count >= 2 else { continue }
             if c[0] == "Element" { continue }
             rows.append(MetricRow(element: c[0], leadingScalar: leadingScalar(c[1])))

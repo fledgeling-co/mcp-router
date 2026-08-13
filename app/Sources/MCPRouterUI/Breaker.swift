@@ -37,13 +37,15 @@ public struct Breaker: View {
     /// Rising is fast with a slight overshoot; falling is slow and settles. Chosen on the state
     /// being moved *to*, which is what makes one flick use one spring and the return use the other.
     ///
-    /// `nil` under Reduce Motion, which removes the animation and leaves the state change intact —
-    /// `DESIGN.md` §7 requires the motion to go, never the meaning.
+    /// The decision itself lives in `BreakerGeometry.spring(raised:reduceMotion:)` so it can be
+    /// tested without a host — this only applies the answer. `nil` under Reduce Motion removes the
+    /// animation and leaves the state change intact; `DESIGN.md` §7 requires the motion to go,
+    /// never the meaning.
     private var transition: Animation? {
-        guard !reduceMotion else { return nil }
-        return state.isRaised
-            ? .spring(response: geometry.riseResponse, dampingFraction: geometry.riseDamping)
-            : .spring(response: geometry.fallResponse, dampingFraction: geometry.fallDamping)
+        guard let spring = geometry.spring(raised: state.isRaised, reduceMotion: reduceMotion) else {
+            return nil
+        }
+        return .spring(response: spring.response, dampingFraction: spring.damping)
     }
 
     private var toggleOffsetInSlot: Double {

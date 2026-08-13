@@ -219,43 +219,35 @@
 
     /// All nine, with the servers board's real copy. Placeholder copy hides both layout and
     /// comprehension failures, so there is none here.
+    ///
+    /// Driven off `SurfaceState.allCases` rather than a hand-written list of nine blocks. The
+    /// previous form could lose a state to a careless edit and still look complete; this one cannot
+    /// render eight, and a tenth state added to the enum appears here without anyone remembering to
+    /// add it.
     struct StateSection: View {
         var body: some View {
             VStack(alignment: .leading, spacing: 0) {
-                GalleryGroup(title: "Default — the populated board") {
-                    VStack(spacing: 1) {
-                        OverflowRow(name: "filesystem", state: .running)
-                        OverflowRow(name: "github", state: .dormant)
-                        OverflowRow(name: "sentry", state: .tripped)
+                ForEach(SurfaceState.allCases, id: \.self) { state in
+                    GalleryGroup(title: Self.title(for: state)) {
+                        StateContainer(state)
                     }
-                    .background(ColorToken.panel.color)
                 }
-                GalleryGroup(title: "Empty") {
-                    MessageState(ServersBoardCopy.empty, icon: .conduit)
-                }
-                GalleryGroup(title: "Loading — skeleton at the real row geometry, never a spinner") {
-                    SkeletonRows()
-                }
-                GalleryGroup(title: "Partial") {
-                    MessageState(ServersBoardCopy.partial, icon: .warn, tint: .attention)
-                }
-                GalleryGroup(title: "Error") {
-                    MessageState(ServersBoardCopy.error, icon: .bang, tint: .fail)
-                }
-                GalleryGroup(title: "Success — in place, no toast") {
-                    OverflowRow(name: "filesystem", state: .running)
-                        .background(ColorToken.panel.color)
-                }
-                GalleryGroup(title: "Offline — the router is not running") {
-                    MessageState(ServersBoardCopy.offline, icon: .bolt, tint: .attention)
-                }
-                GalleryGroup(title: "Disabled") {
-                    DisabledAction()
-                }
-                GalleryGroup(title: "Overflow — truncates, row height never moves") {
-                    OverflowRow()
-                        .background(ColorToken.panel.color)
-                }
+            }
+        }
+
+        /// What each state is showing, said plainly. A switch rather than a dictionary, so a new
+        /// state cannot arrive here untitled.
+        static func title(for state: SurfaceState) -> String {
+            switch state {
+            case .populated: "Default — the populated board"
+            case .empty: "Empty"
+            case .loading: "Loading — skeleton at the real row geometry, never a spinner"
+            case .partial: "Partial"
+            case .error: "Error"
+            case .success: "Success — in place, no toast"
+            case .offline: "Offline — the router is not running"
+            case .disabled: "Disabled"
+            case .overflow: "Overflow — truncates, row height never moves"
             }
         }
     }

@@ -134,7 +134,13 @@
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                     .background(ColorToken.ground.color)
                     .preferredColorScheme(appearance.colorScheme)
-                    .navigationTitle(selection.rawValue)
+                    // The window keeps ONE name and the section rides in the subtitle. Setting the
+                    // title to the selection renamed the window as you clicked around — so the
+                    // Window menu offered "Design system", and the window it opened was called
+                    // "Colour". A window you cannot find again in the menu that opened it is the
+                    // failure; the subtitle is where macOS puts this kind of context anyway.
+                    .navigationTitle("Design system")
+                    .navigationSubtitle(selection.rawValue)
                     .toolbar { appearancePicker }
             }
         #endif
@@ -161,6 +167,17 @@
                 }
             }
             .background(ColorToken.ground.color)
+            // One stable identifier per section, not just on the root. The harness needs to name the
+            // section it is looking at; without these it can only assert that *a* gallery opened.
+            .accessibilityIdentifier(Self.identifier(for: section))
+        }
+
+        /// The accessibility identifier for one section's panel.
+        ///
+        /// Derived from the case rather than written out, so a seventh section cannot arrive
+        /// without one.
+        public static func identifier(for section: Section) -> String {
+            "gallery-section-\(section.rawValue.lowercased())"
         }
     }
 

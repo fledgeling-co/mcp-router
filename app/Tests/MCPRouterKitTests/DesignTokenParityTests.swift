@@ -42,48 +42,6 @@ struct DesignTokenParityTests {
         }
     }
 
-    /// The authored-not-inverted claim, asserted rather than asserted-about.
-    ///
-    /// If light were an inversion, every token would differ from its dark counterpart by a
-    /// mechanical rule. It is not: the four indicator hues are re-solved, and the tiers carry
-    /// different alphas precisely so they land on the same *measured ratio*. This test holds the
-    /// two properties that would break first if someone "simplified" light into a flip.
-    @Test("light is authored, not derived from dark")
-    func lightIsAuthored() {
-        for token in ColorToken.allCases {
-            #expect(
-                !(token.hex == token.lightHex && token.opacity == token.lightOpacity)
-                    || token == .onAccent || token == .raised,
-                "\(token.rawValue) is identical in both appearances — light was not authored for it"
-            )
-        }
-        // The four indicator hues must be genuinely different colours, not the same hue dimmed:
-        // reused unchanged they measure 1.71–2.91:1 on the light ground, against 4.5:1 for a label.
-        for token in [ColorToken.accent, .live, .attention, .fail] {
-            #expect(
-                token.hex != token.lightHex,
-                "\(token.rawValue) reuses its dark value in light, where it is unreadable"
-            )
-        }
-    }
-
-    /// The one direction reversal in the system, pinned so it cannot be "fixed" by someone
-    /// making light consistent with dark.
-    @Test("emphasis moves away from the ground: lighter in dark, darker in light")
-    func hoverPolarityReverses() {
-        func luminanceProxy(_ hex: String) -> Int {
-            Int(hex.dropFirst().prefix(2), radix: 16) ?? 0
-        }
-        #expect(
-            luminanceProxy(ColorToken.raised2.hex) > luminanceProxy(ColorToken.raised.hex),
-            "in dark, the emphasized surface must be lighter than the resting one"
-        )
-        #expect(
-            luminanceProxy(ColorToken.raised2.lightHex) < luminanceProxy(ColorToken.raised.lightHex),
-            "in light, the resting surface is white, so emphasis can only darken"
-        )
-    }
-
     @Test("every ColorToken case traces back to a row in DESIGN.md")
     func colorsCodeToDocument() throws {
         let documented = try Set(DesignDocParser.colorRows(in: Self.documentText()).map(\.name))

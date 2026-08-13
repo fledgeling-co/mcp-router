@@ -214,22 +214,38 @@ p{margin:0}
 .board-list li{
   display:grid; grid-template-columns:9px 1fr auto; align-items:center; gap:var(--s-3);
   padding:3.5px var(--s-4); font-size:12px; color:var(--fg-2);
-  transition:background .3s var(--ease), color .3s var(--ease);
+  transition:background .35s var(--ease), color .35s var(--ease);
 }
 .board-list .dot{
   width:5px; height:5px; border-radius:50%; background:var(--glass-dim);
-  justify-self:center; transition:background .3s var(--ease), box-shadow .3s var(--ease);
+  justify-self:center; transition:background .35s var(--ease), box-shadow .35s var(--ease);
 }
-.board-list .n{color:var(--fg-3); font-size:11.5px; font-variant-numeric:tabular-nums}
+/* The tool count and the tool name occupy one grid cell and crossfade. Nothing
+   is added to the row, so nothing below it moves.
+   The first version revealed the tool name on its own line by going from
+   height:0 to height:auto. auto is not an animatable length, so it snapped
+   rather than eased, and the snap pushed every row beneath it: measured at a
+   20px jump in the board's height, twice per cycle. That was the jank. A fixed
+   column width also keeps the name column still while the status text changes
+   length under it. */
+.board-list .st{display:grid; justify-items:end; width:16ch; font-variant-numeric:tabular-nums}
+.board-list .st > *{grid-area:1/1; transition:opacity .3s var(--ease)}
+.board-list .n{color:var(--fg-3); font-size:11.5px}
+.board-list .call{font-size:11px; color:var(--amber-200); opacity:0; white-space:nowrap}
+.board-list li.busy .n{opacity:0}
+.board-list li.busy .call{opacity:1}
+/* Waking: the dot pulses while the server is being started, and the status
+   reads "starting" rather than a tool name, because at that instant no tool has
+   run yet. This is the only part of the product a visitor cannot infer. */
+.board-list li.starting{background:rgba(196,194,228,.045)}
+.board-list li.starting .call{color:var(--fg-3)}
+.board-list li.starting .dot{background:var(--glass-lit); animation:waking .85s var(--ease) infinite}
+@keyframes waking{
+  0%,100%{transform:scale(1); opacity:.55}
+  50%    {transform:scale(1.55); opacity:1}
+}
 .board-list li.live{background:rgba(239,154,49,.09); color:var(--amber-100)}
 .board-list li.live .dot{background:var(--amber-300); box-shadow:0 0 0 3px rgba(239,154,49,.18)}
-.board-list li.live .n{color:var(--amber-200)}
-/* The called tool's name, revealed only while that server is awake. */
-.board-list .call{
-  grid-column:2/4; font-size:11px; color:var(--amber-200); opacity:0;
-  height:0; overflow:hidden; transition:opacity .25s var(--ease);
-}
-.board-list li.live .call{opacity:.9; height:auto; padding-top:2px}
 .board-foot{
   display:flex; align-items:center; gap:var(--s-4); flex-wrap:wrap;
   padding:11px var(--s-4); border-top:1px solid rgba(196,194,228,.09);
@@ -459,17 +475,17 @@ footer .wrap{display:flex; justify-content:space-between; gap:var(--s-4); flex-w
     <div class="board" role="img" aria-label="The router's status: eleven MCP servers configured, 135 tools available, nothing running. One server wakes when a tool on it is called, then goes back to sleep.">
       <div class="board-head"><b>mcp-router</b> <span class="port">127.0.0.1:8879</span></div>
       <ul class="board-list" id="board-list" aria-hidden="true">
-        <li data-tool="deep_research"><i class="dot"></i><span>dossier</span><span class="n">39</span><span class="call"></span></li>
-        <li data-tool="browser_navigate"><i class="dot"></i><span>obscura</span><span class="n">37</span><span class="call"></span></li>
-        <li data-tool="search_emails"><i class="dot"></i><span>sift</span><span class="n">13</span><span class="call"></span></li>
-        <li data-tool="lifeline_status"><i class="dot"></i><span>lifeline</span><span class="n">11</span><span class="call"></span></li>
-        <li data-tool="get_dns_records"><i class="dot"></i><span>namecheap</span><span class="n">20</span><span class="call"></span></li>
-        <li data-tool="list_containers"><i class="dot"></i><span>docker-mcp</span><span class="n">4</span><span class="call"></span></li>
-        <li data-tool="youtube_transcript"><i class="dot"></i><span>yt-transcript</span><span class="n">4</span><span class="call"></span></li>
-        <li data-tool="generate_image"><i class="dot"></i><span>media-gen-pro</span><span class="n">2</span><span class="call"></span></li>
-        <li data-tool="ref_search_documentation"><i class="dot"></i><span>ref-tools</span><span class="n">2</span><span class="call"></span></li>
-        <li data-tool="get_ai_elements_components"><i class="dot"></i><span>ai-elements</span><span class="n">2</span><span class="call"></span></li>
-        <li data-tool="google_search"><i class="dot"></i><span>google-search</span><span class="n">1</span><span class="call"></span></li>
+        <li data-s="dossier"><i class="dot"></i><span>dossier</span><span class="st"><span class="n">39</span><span class="call"></span></span></li>
+        <li data-s="obscura"><i class="dot"></i><span>obscura</span><span class="st"><span class="n">37</span><span class="call"></span></span></li>
+        <li data-s="sift"><i class="dot"></i><span>sift</span><span class="st"><span class="n">13</span><span class="call"></span></span></li>
+        <li data-s="lifeline"><i class="dot"></i><span>lifeline</span><span class="st"><span class="n">11</span><span class="call"></span></span></li>
+        <li data-s="namecheap"><i class="dot"></i><span>namecheap</span><span class="st"><span class="n">20</span><span class="call"></span></span></li>
+        <li data-s="docker-mcp"><i class="dot"></i><span>docker-mcp</span><span class="st"><span class="n">4</span><span class="call"></span></span></li>
+        <li data-s="yt-transcript"><i class="dot"></i><span>yt-transcript</span><span class="st"><span class="n">4</span><span class="call"></span></span></li>
+        <li data-s="media-gen-pro"><i class="dot"></i><span>media-gen-pro</span><span class="st"><span class="n">2</span><span class="call"></span></span></li>
+        <li data-s="ref-tools"><i class="dot"></i><span>ref-tools</span><span class="st"><span class="n">2</span><span class="call"></span></span></li>
+        <li data-s="ai-elements"><i class="dot"></i><span>ai-elements</span><span class="st"><span class="n">2</span><span class="call"></span></span></li>
+        <li data-s="google-search"><i class="dot"></i><span>google-search</span><span class="st"><span class="n">1</span><span class="call"></span></span></li>
       </ul>
       <div class="board-foot">
         <span>11 servers</span><span>135 tools</span>
@@ -867,43 +883,70 @@ if (REDUCED || !window.gsap) {
   });
 }
 
-/* ─────────────────────────── the board wakes one server at a time
-   The claim in the headline is that nothing runs until a tool is called, so the
-   board spends most of its time doing nothing, which is the point rather than a
-   gap to fill. One server lights, names the tool that woke it, and is reaped.
-   Never two at once: two lit rows would say the opposite of the product.
-   Reduced motion gets the resting state, held, with no cycling. */
+/* ─────────────────────────── the board serves one call at a time
+   What the router actually does to serve a call is: find the server cold, start
+   it, run the tool, then reap it once it goes idle. The board walks that, in
+   that order, with real tool names, because the cold start is the only part of
+   this a visitor cannot guess and it is the part the product is for.
+   Two rules it must never break. Never two servers awake at once, which would
+   say the opposite of the product. And most of the time nothing happens at all,
+   which is the resting state the headline claims rather than dead air to fill.
+   Deterministic order, so it has a rhythm and never repeats a row back to back.
+   Reduced motion holds the board at rest and never cycles. */
 (() => {
   const list = document.getElementById('board-list');
   const run  = document.getElementById('board-run');
-  if (!list || !run) return;
-  const rows = [...list.children];
+  if (!list || !run || REDUCED) return;
   const runN = run.querySelector('b');
-  if (REDUCED) return;
+  const rowOf = name => list.querySelector(`[data-s="${name}"]`);
 
-  let live = null, timer = 0;
-  const sleep = () => {
-    if (!live) return;
-    live.classList.remove('live');
-    live.querySelector('.call').textContent = '';
-    live = null;
+  /* Real tools on each of these servers. Kept to 15 characters so the status
+     column never has to resize; ai-elements' tools are longer than that, so it
+     sits this out and stays a listed server rather than a called one. */
+  const CALLS = [
+    ['obscura',       'browser_navigate'],
+    ['sift',          'search'],
+    ['dossier',       'research_start'],
+    ['namecheap',     'get_dns_records'],
+    ['media-gen-pro', 'generate_image'],
+    ['lifeline',      'lifeline_status'],
+    ['docker-mcp',    'list-containers'],
+    ['yt-transcript', 'youtube_search'],
+  ];
+
+  let i = 0, row = null, timers = [];
+  const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+  const clear = () => { timers.forEach(clearTimeout); timers = []; };
+  const rest = () => {
+    if (row) { row.className = ''; row.querySelector('.call').textContent = ''; row = null; }
     run.classList.remove('hot');
     runN.textContent = '0';
   };
-  const wake = () => {
-    sleep();
-    live = rows[Math.floor(Math.random() * rows.length)];
-    live.classList.add('live');
-    live.querySelector('.call').textContent = '→ ' + live.dataset.tool;
+
+  const serve = () => {
+    const [name, tool] = CALLS[i++ % CALLS.length];
+    row = rowOf(name);
+    if (!row) return;
+    const call = row.querySelector('.call');
+
+    // cold: the call has arrived and the server is being started
+    row.className = 'busy starting';
+    call.textContent = 'starting';
     run.classList.add('hot');
     runN.textContent = '1';
-    timer = setTimeout(() => { sleep(); timer = setTimeout(wake, 2600 + Math.random() * 2600); }, 1900);
+
+    // warm: the tool runs
+    at(680, () => { row.className = 'busy live'; call.textContent = '→ ' + tool; });
+    // reaped, and back to nothing running
+    at(2900, rest);
+    at(6400, serve);
   };
-  /* Only while the hero is on screen. A page that argues against idle work
-     should not keep a timer alive for a section nobody is looking at. */
+
+  /* Only while it is on screen. A page arguing against idle work should not
+     keep a timer alive for a section nobody is looking at. */
   const io = new IntersectionObserver(([e]) => {
-    if (e.isIntersecting) { if (!timer && !live) timer = setTimeout(wake, 900); }
-    else { clearTimeout(timer); timer = 0; sleep(); }
+    if (e.isIntersecting) { if (!timers.length && !row) at(700, serve); }
+    else { clear(); rest(); }
   }, {threshold:.15});
   io.observe(list);
 })();

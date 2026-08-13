@@ -267,17 +267,25 @@ struct ToolUnionParityTests {
     func stalenessMatches() throws {
         let cases = try ManifestVectors.cases("is-stale")
         #expect(!cases.isEmpty)
-        var currentCount = 0
+        var currentIDs: Set<String> = []
         for testCase in cases {
             let id = ManifestVectors.text(testCase.member("id")) ?? "?"
             let upstream = try #require(testCase.member("upstream").map(ManifestVectors.upstream))
             let manifest = ManifestVectors.manifest(servers: testCase.member("servers"))
             let expected = testCase.member("stale")?.asBool ?? false
-            if !expected { currentCount += 1 }
+            if !expected { currentIDs.insert(id) }
             #expect(ToolUnion.isStale(manifest, upstream) == expected, "isStale/\(id)")
         }
+        // Counting to four accepts ANY four false fixtures, so a corpus that dropped the pending
+        // case and gained an easier one would still pass. Naming them is what makes this an
+        // assertion about the four cases the clause is actually about.
         #expect(
-            currentCount == 4,
+            currentIDs == [
+                "current-missing-digest",
+                "current-empty-tools",
+                "current-with-pending",
+                "current-empty-error"
+            ],
             "a missing digest, empty tools, a pending surface and an empty error are all CURRENT"
         )
     }

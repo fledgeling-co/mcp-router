@@ -54,15 +54,25 @@ struct LogParityTests {
             let event = try #require(self.event(for: id), "no event mapped for vector \(id)")
 
             let sink = RecordingSink()
+            let fileSystem = MemoryFileSystem()
             let log = RouterLog(
                 sink: sink,
-                fileSystem: MemoryFileSystem(),
+                fileSystem: fileSystem,
                 clock: ManualClock(milliseconds: Self.fixedMilliseconds),
+                file: "/var/router/router.log",
                 // The suppression vector is the one case captured with verbosity off.
                 verbose: id != "debug-suppressed-when-quiet"
             )
             await log.log(event)
             ManifestVectors.expectSameBytes(sink.text, expected, "line/\(id)")
+            // A30 says "identical bytes in BOTH sinks". Comparing only stderr would pass an
+            // implementation that formats the file line separately and differently — two emitters
+            // agreeing on a format string is not the same claim as two emitters agreeing on bytes.
+            ManifestVectors.expectSameBytes(
+                fileSystem.contents(atPath: "/var/router/router.log") ?? "",
+                expected,
+                "file/\(id)"
+            )
         }
     }
 
@@ -99,8 +109,13 @@ struct LogParityTests {
                 guard !code.hasPrefix("//"), !code.hasPrefix("///"), !code.hasPrefix("*") else { continue }
                 let message = "\(file.lastPathComponent):\(number + 1) writes to stdout, "
                     + "which must stay clean for a stdio transport"
+                // `print` is the hole a token scan for the FileHandle names leaves open: it writes
+                // to stdout and mentions neither of them, so an out-of-family review was right that
+                // scanning for the handles alone would pass the most likely way this regresses.
                 #expect(
-                    !code.contains("standardOutput") && !code.contains("STDOUT_FILENO"),
+                    !code.contains("standardOutput") && !code.contains("STDOUT_FILENO")
+                        && !code.contains("print(") && !code.contains("fputs(")
+                        && !code.contains("FileHandle(fileDescriptor: 1"),
                     "\(message)"
                 )
             }

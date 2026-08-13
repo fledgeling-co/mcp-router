@@ -54,7 +54,7 @@ public enum ManifestIO {
             return .degraded(.empty, .unreadable(path: path, reason: error.localizedDescription))
         }
         do {
-            return .loaded(try parse(data))
+            return try .loaded(parse(data))
         } catch let problem as ParseFailure {
             return .degraded(.empty, .malformed(path: path, reason: problem.reason))
         } catch {

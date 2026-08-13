@@ -97,9 +97,11 @@ struct LogParityTests {
                 // Comments may discuss stdout — the rule is about code.
                 let code = line.trimmingCharacters(in: .whitespaces)
                 guard !code.hasPrefix("//"), !code.hasPrefix("///"), !code.hasPrefix("*") else { continue }
+                let message = "\(file.lastPathComponent):\(number + 1) writes to stdout, "
+                    + "which must stay clean for a stdio transport"
                 #expect(
                     !code.contains("standardOutput") && !code.contains("STDOUT_FILENO"),
-                    "\(file.lastPathComponent):\(number + 1) writes to stdout, which must stay clean for a stdio transport"
+                    "\(message)"
                 )
             }
         }
@@ -115,7 +117,7 @@ struct LogParityTests {
 
     /// A32, all three properties.
     @Test("configure is re-enterable, can disable a file, and creates the directory immediately")
-    func configureIsReEnterable() async throws {
+    func configureIsReEnterable() async {
         let fileSystem = MemoryFileSystem()
         let sink = RecordingSink()
         let log = RouterLog(sink: sink, fileSystem: fileSystem, clock: ManualClock(), verbose: false)
@@ -172,7 +174,10 @@ struct LogParityTests {
         fileSystem.fail("createDirectory")
         await log.configure(file: "/denied/router.log", verbose: true)
         await log.log(.manifestReloaded(serverCount: 1))
-        #expect(sink.written.count == 1, "stderr still gets the line even though the file could not be set up")
+        #expect(
+            sink.written.count == 1,
+            "stderr still gets the line even though the file could not be set up"
+        )
 
         // A full disk on the append. Swallowed by both.
         fileSystem.stopFailing("createDirectory")

@@ -89,7 +89,7 @@ public enum ToolUnion {
         var text = JSString("[\(server)] INOPERATIVE — \(placard.reason).")
         // Appended only when non-empty: an empty substitute would otherwise read "Use  instead."
         if let substitute = placard.substitute, !substitute.isEmpty {
-            text = text + JSString(" Use \(substitute) instead.")
+            text += JSString(" Use \(substitute) instead.")
         }
         return text + JSString(" (When working: ") + own + JSString(")")
     }
@@ -116,10 +116,13 @@ public enum ToolUnion {
         let separator = toolNameSeparator.units
         guard units.count > separator.count else { return nil }
         var index: Int?
-        for start in 0 ... (units.count - separator.count)
-            where Array(units[start ..< start + separator.count]) == separator {
-            index = start
-            break
+        var start = 0
+        while start <= units.count - separator.count {
+            if Array(units[start ..< start + separator.count]) == separator {
+                index = start
+                break
+            }
+            start += 1
         }
         // `i <= 0` covers both "no separator" and a name that starts with one.
         guard let found = index, found > 0 else { return nil }

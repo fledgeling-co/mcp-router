@@ -103,9 +103,11 @@ public struct CachedTool: Sendable, Hashable {
         case let .number(number):
             // The SDK splits integers from doubles; JSON does not. Anything integral and
             // representable goes to `.int` so it re-encodes without a `.0`.
-            number.rounded() == number && number.magnitude < 9.007_199_254_740_992e15
-                ? .int(Int(number))
-                : .double(number)
+            if number.rounded() == number, number.magnitude < 9.007_199_254_740_992e15 {
+                .int(Int(number))
+            } else {
+                .double(number)
+            }
         case let .string(text): .string(text.string)
         case let .array(values): .array(values.map(sdkValue))
         case let .object(members):

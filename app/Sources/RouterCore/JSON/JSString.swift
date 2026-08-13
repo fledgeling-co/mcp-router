@@ -77,6 +77,12 @@ public extension JSString {
         JSString(units: lhs.units + rhs.units)
     }
 
+    /// The compound form of `+`. Present so appending in a loop reads as an append rather than as a
+    /// rebind, and so the two forms cannot diverge: this is defined in terms of `+`.
+    static func += (lhs: inout JSString, rhs: JSString) {
+        lhs = lhs + rhs
+    }
+
     /// Whether this key is an *array index* in the sense that decides JavaScript's property
     /// enumeration order: `String(UInt32(key)) == key`, excluding `"4294967295"`.
     ///

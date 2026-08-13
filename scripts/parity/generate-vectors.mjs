@@ -552,8 +552,11 @@ const loadCases = [
   { id: 'options-outrank-the-file', text: '{"port":1,"host":"a","idleMs":2,"mcpServers":{}}', opts: { port: 3, host: 'b', idleMs: 4 } },
   { id: 'option-zero-outranks-the-file', text: '{"port":1,"host":"a","idleMs":2,"mcpServers":{}}', opts: { port: 0, host: '', idleMs: 0 } },
   // startupTimeoutMs has NO option-level override — it comes from the file or the default only.
+  // Its default is already proven by `defaults-when-absent`; what no other case reaches is the
+  // `??`-versus-`||` boundary on the one field an option cannot reach, so an explicit 0 in the file
+  // must survive rather than be replaced by 60000.
   { id: 'startup-timeout-has-no-option', text: '{"startupTimeoutMs":5,"mcpServers":{}}', opts: { port: 9 } },
-  { id: 'startup-timeout-default', text: '{"mcpServers":{}}', opts: {} },
+  { id: 'startup-timeout-zero-honoured', text: '{"startupTimeoutMs":0,"mcpServers":{}}', opts: {} },
   // N10 — integer-like keys enumerate first, ascending, whatever order the file lists them in.
   { id: 'skipped-follow-enumeration-order', text: '{"mcpServers":{"a":{},"10":{},"2":{}}}', opts: {} }
 ];

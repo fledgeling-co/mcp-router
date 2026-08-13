@@ -58,10 +58,18 @@ public enum JSDate {
         return (quotient, remainder)
     }
 
+    /// A proleptic Gregorian calendar date. A named type rather than a bare triple so the three
+    /// fields cannot be read positionally at a call site and silently transposed.
+    struct CivilDate {
+        let year: Int
+        let month: Int
+        let day: Int
+    }
+
     /// Howard Hinnant's `civil_from_days`: a closed-form calendar conversion over eras of 400 years.
     /// Exact in integer arithmetic for the whole representable range, with no lookup table and no
     /// leap-year special case to get wrong.
-    private static func civilFromDays(_ daysSinceEpoch: Int) -> (year: Int, month: Int, day: Int) {
+    private static func civilFromDays(_ daysSinceEpoch: Int) -> CivilDate {
         // Shift the epoch to 0000-03-01, which puts the leap day at the end of the cycle.
         let shifted = daysSinceEpoch + 719_468
         let era = (shifted >= 0 ? shifted : shifted - 146_096) / 146_097
@@ -73,7 +81,7 @@ public enum JSDate {
         let monthPrime = (5 * dayOfYear + 2) / 153
         let day = dayOfYear - (153 * monthPrime + 2) / 5 + 1
         let month = monthPrime + (monthPrime < 10 ? 3 : -9)
-        return (year + (month <= 2 ? 1 : 0), month, day)
+        return CivilDate(year: year + (month <= 2 ? 1 : 0), month: month, day: day)
     }
 
     private static func pad(_ value: Int, _ width: Int) -> String {

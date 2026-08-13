@@ -35,7 +35,7 @@ struct ManifestIOParityTests {
 
     /// A20's named vector, asserted on its own so it cannot be lost in the loop above.
     @Test("servers: [] is accepted, because typeof [] === object")
-    func serversArrayIsAccepted() throws {
+    func serversArrayIsAccepted() {
         let fileSystem = MemoryFileSystem()
         fileSystem.seed(#"{"version":1,"servers":[]}"#, atPath: "/m.json")
         let load = ManifestIO.load(path: "/m.json", fileSystem: fileSystem)
@@ -47,7 +47,7 @@ struct ManifestIOParityTests {
     /// only in a log line. A surface rendering "you have no cached tools" when the truth is "your
     /// cache is corrupt" is the failure this exists to prevent.
     @Test("a cold cache and a corrupt one are different values, not the same empty manifest")
-    func coldIsDistinguishableFromCorrupt() throws {
+    func coldIsDistinguishableFromCorrupt() {
         let fileSystem = MemoryFileSystem()
         let cold = ManifestIO.load(path: "/absent.json", fileSystem: fileSystem)
         fileSystem.seed("{oh no", atPath: "/corrupt.json")
@@ -189,7 +189,7 @@ struct ManifestStoreTraceTests {
 
     /// The normal path: a re-read happens only when mtime or size moved.
     @Test("a changed file is re-read and an unchanged one is not")
-    func reReadsOnlyWhenTheStampMoves() async throws {
+    func reReadsOnlyWhenTheStampMoves() async {
         let fileSystem = MemoryFileSystem()
         let clock = ManualClock(milliseconds: 10000)
         fileSystem.seed(valid, atPath: "/m.json", modified: Date(timeIntervalSince1970: 1))
@@ -212,7 +212,7 @@ struct ManifestStoreTraceTests {
     /// The failed-reload path, and the exact back-off. A window longer than a second would satisfy
     /// every property stated about this and leave a corrected file unread for as long as it lasted.
     @Test("a failed reload keeps the previous manifest and backs off exactly one second")
-    func failedReloadBacksOffOneSecond() async throws {
+    func failedReloadBacksOffOneSecond() async {
         let fileSystem = MemoryFileSystem()
         let clock = ManualClock(milliseconds: 1000)
         fileSystem.seed(valid, atPath: "/m.json", modified: Date(timeIntervalSince1970: 1))
@@ -243,7 +243,7 @@ struct ManifestStoreTraceTests {
     /// A latent defect in the reference, ported deliberately: the constructor records the stamp of a
     /// file it could not parse, so it never looks again until something writes to it.
     @Test("a manifest malformed at construction is not retried until the file changes")
-    func malformedAtConstructionRecordsItsStamp() async throws {
+    func malformedAtConstructionRecordsItsStamp() async {
         let fileSystem = MemoryFileSystem()
         let clock = ManualClock(milliseconds: 5000)
         fileSystem.seed("{not json", atPath: "/m.json", modified: Date(timeIntervalSince1970: 1))
@@ -266,7 +266,7 @@ struct ManifestStoreTraceTests {
     /// The second latent defect: a deleted file leaves the previous manifest *and* the previous
     /// stamp, so a file that reappears with that same stamp is never read.
     @Test("a deleted manifest keeps the previous one and does not clear the stamp")
-    func deletionKeepsThePreviousManifestAndStamp() async throws {
+    func deletionKeepsThePreviousManifestAndStamp() async {
         let fileSystem = MemoryFileSystem()
         let clock = ManualClock(milliseconds: 1000)
         fileSystem.seed(valid, atPath: "/m.json", modified: Date(timeIntervalSince1970: 1))

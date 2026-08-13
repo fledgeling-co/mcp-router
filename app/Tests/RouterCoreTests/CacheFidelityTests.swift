@@ -11,7 +11,7 @@ struct CacheFidelityTests {
     /// upstream advertised and the client never sees.
     @Test("a cached tool round-trips byte-for-byte, member order and unmodeled fields included")
     func toolRoundTripsLosslessly() throws {
-        let tool = try #require(CachedTool(try JSONParser.parse(wire)))
+        let tool = try #require(try CachedTool(JSONParser.parse(wire)))
         ManifestVectors.expectSameBytes(JSStringify.compact(tool.value), wire, "cached tool round trip")
         #expect(tool.rawMember("x-vendor") != nil)
     }
@@ -51,11 +51,11 @@ struct CacheFidelityTests {
     /// demonstrated rather than asserted.
     @Test("the SDK type loses what the cached type keeps")
     func sdkTypeIsLossyWhereTheCacheIsNot() throws {
-        let cached = try #require(CachedTool(try JSONParser.parse(wire)))
+        let cached = try #require(try CachedTool(JSONParser.parse(wire)))
         ManifestVectors.expectSameBytes(JSStringify.compact(cached.value), wire, "cache path")
 
         let decoded = try JSONDecoder().decode(Tool.self, from: Data(wire.utf8))
-        let reencoded = String(decoding: try JSONEncoder().encode(decoded), as: UTF8.self)
+        let reencoded = try #require(String(bytes: JSONEncoder().encode(decoded), encoding: .utf8))
         #expect(
             !reencoded.contains("x-vendor"),
             "the SDK models a fixed set of keys, so an unmodeled member is gone after one hop"
@@ -73,8 +73,8 @@ struct CacheFidelityTests {
             "a dictionary has no order, so the distinction is gone before any encoding happens"
         )
 
-        let za = try #require(CachedTool(try JSONParser.parse(#"{"name":"t","inputSchema":{"z":1,"a":2}}"#)))
-        let az = try #require(CachedTool(try JSONParser.parse(#"{"name":"t","inputSchema":{"a":2,"z":1}}"#)))
+        let za = try #require(try CachedTool(JSONParser.parse(#"{"name":"t","inputSchema":{"z":1,"a":2}}"#)))
+        let az = try #require(try CachedTool(JSONParser.parse(#"{"name":"t","inputSchema":{"a":2,"z":1}}"#)))
         #expect(
             ToolsDigest.digest(of: [za]) != ToolsDigest.digest(of: [az]),
             "but the digest does distinguish them, which is why the cache cannot go through that type"
@@ -141,7 +141,7 @@ struct IntegrationPathTests {
         //    and a schema whose members are not in sorted order.
         var manifest = ManifestIO.load(path: "/home/manifest.json", fileSystem: fileSystem).manifest
         let toolText = #"{"name":"run","description":"runs","inputSchema":{"z":1,"a":2},"x-vendor":"keep"}"#
-        let tool = try #require(CachedTool(try JSONParser.parse(toolText)))
+        let tool = try #require(try CachedTool(JSONParser.parse(toolText)))
         let report = ManifestBookkeeping.build(
             manifest: &manifest,
             upstreams: [upstream],

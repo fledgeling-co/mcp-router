@@ -73,7 +73,12 @@ final class MemoryFileSystem: FileSystem, @unchecked Sendable {
     }
 
     /// Writes a file directly, bypassing the injected failures, and sets its stamp explicitly.
-    func seed(_ text: String, atPath path: String, modified: Date = Date(timeIntervalSince1970: 1), size: Int? = nil) {
+    func seed(
+        _ text: String,
+        atPath path: String,
+        modified: Date = Date(timeIntervalSince1970: 1),
+        size: Int? = nil
+    ) {
         let data = Data(text.utf8)
         lock.lock()
         defer { lock.unlock() }
@@ -93,7 +98,9 @@ final class MemoryFileSystem: FileSystem, @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
         guard let data = files[path]?.data else { return nil }
-        return String(decoding: data, as: UTF8.self)
+        // Failable rather than replacement-character lossy: a file that is not valid UTF-8 reads as
+        // unreadable, which is what the router's own reader does with one.
+        return String(bytes: data, encoding: .utf8)
     }
 
     var createdDirectories: Set<String> {
@@ -283,6 +290,8 @@ final class RecordingSink: LogSink, @unchecked Sendable {
     }
 
     var text: String {
-        written.map { String(decoding: $0, as: UTF8.self) }.joined()
+        // A marker rather than "" on invalid UTF-8: an empty string would silently pass a
+        // byte-equality assertion against an empty expectation.
+        written.map { String(bytes: $0, encoding: .utf8) ?? "<invalid utf-8>" }.joined()
     }
 }

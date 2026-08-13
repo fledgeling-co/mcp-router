@@ -23,7 +23,9 @@ enum ManifestVectors {
         return list
     }
 
-    static func text(_ value: JSONValue?) -> String? { value?.asString?.string }
+    static func text(_ value: JSONValue?) -> String? {
+        value?.asString?.string
+    }
 
     static func tools(_ value: JSONValue?) -> [CachedTool] {
         (value?.asArray ?? []).compactMap { CachedTool($0) }
@@ -98,8 +100,10 @@ struct ToolsDigestParityTests {
     @Test("two tools with the same name hash differently when their order is reversed")
     func stableSortIsObservable() throws {
         let cases = try ManifestVectors.cases("tools-digest")
-        let forward = try #require(cases.first { ManifestVectors.text($0.member("id")) == "duplicate-names-ab" })
-        let reversed = try #require(cases.first { ManifestVectors.text($0.member("id")) == "duplicate-names-ba" })
+        let forward = try #require(cases
+            .first { ManifestVectors.text($0.member("id")) == "duplicate-names-ab" })
+        let reversed = try #require(cases
+            .first { ManifestVectors.text($0.member("id")) == "duplicate-names-ba" })
         let a = ToolsDigest.digest(of: ManifestVectors.tools(forward.member("tools")))
         let b = ToolsDigest.digest(of: ManifestVectors.tools(reversed.member("tools")))
         #expect(a != b, "a stable sort keeps equal names in arrival order, so these must differ")
@@ -146,7 +150,7 @@ struct ToolsDigestParityTests {
     }
 
     @Test("the input array is not mutated")
-    func inputIsNotMutated() throws {
+    func inputIsNotMutated() {
         let tools = [
             CachedTool(members: [JSONMember(key: "name", value: .string("z"))]),
             CachedTool(members: [JSONMember(key: "name", value: .string("a"))])

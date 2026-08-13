@@ -78,7 +78,7 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 
 | ID | Title | Category | Deps | Mock (deep link) | Lane | Status | Branch | Outcome |
 |---|---|---|---|---|---|---|---|---|
-| F1 | Swift workspace, kit, three targets | foundation | — | — | Opus | Untriaged | — | — |
+| F1 | Swift workspace, kit, three targets | foundation | — | — | Opus | **In Progress** | `ai/f1` | run `wf_408f0578-1fb` · wire-verified `claude-opus-5` |
 | F2 | Design system in SwiftUI | foundation | F1 | `?only=mac` + `DESIGN.md` §§2–7 | Opus | Untriaged | — | — |
 | F3 | Control-API client and models | foundation | F1 | — (surface: `src/control.ts`) | Opus | Untriaged | — | — |
 | R1 | Router: core, config, manifest | router | F1 | — | Opus | Untriaged | — | — |
@@ -116,6 +116,11 @@ are pending deletion.
 
 ## Changelog
 
+- 2026-08-13 — Fleet size confirmed with the user: **all 18 items**. Runner lane verified
+  on the wire (`claude-opus-5`), not merely configured. Wave 1 launched: F1 alone, since
+  every other item depends on it. Deviation from the skill's serial pre-triage, stated:
+  ids are pre-allocated in the ledger and runners are forbidden from writing LEDGER.md at
+  all, which removes the shared-write hazard rather than locking around it.
 - 2026-08-13 — Preflight: pipeline rooted at `planning/` (docs/ is the published Pages
   source); practices copied from bella-team-files with the Swift gap recorded; router
   work committed as `2e70229`; `DESIGN.md` authored from the verified prototype tokens;

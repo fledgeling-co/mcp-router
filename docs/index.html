@@ -10,7 +10,10 @@
                  appear in body copy. Tools, windows, wires.
   World        : the product's own icon. A dark gel-glass manifold, cool glass
                  conduits converging into one hub with a single branch lit amber.
-                 Palette lifted exactly from design/icon/build_icon.py.
+                 Palette lifted exactly from design/icon/build_icon.py. The hero
+                 artefact is a generated render of that same object as a physical
+                 thing, lit by one hard raking key — the icon states the idea, the
+                 photograph gives it material. Source in design/marketing-src/.
   Type         : the reader's own system face. This is a macOS tool sold to Mac
                  users, so -apple-system resolves to SF Pro on every machine that
                  matters, which is the authentic face rather than the nearest
@@ -18,10 +21,14 @@
                  amber accent; JetBrains Mono carries genuine code and numerals.
                  Stated as a choice, not reached for as a default.
   Bold on      : motion and material. Restrained everywhere else.
-  Motion       : GSAP + ScrollTrigger scrubs the argument; three.js is used once,
-                 in the hero, and nowhere else. Every claim renders from its own
-                 static state, so nothing lives only inside an animation and the
-                 reduced-motion branch loses no information.
+  Motion       : GSAP + ScrollTrigger scrubs the argument. three.js is used once,
+                 for the field of 190 in the problem section, and it is loaded on
+                 intersection and disposed on exit rather than at page load — a
+                 page arguing against idle compute should not ship an idle render
+                 loop, and the hero must not pay 257 KB for decoration. Every
+                 claim renders from its own static state, so nothing lives only
+                 inside an animation and the reduced-motion branch, which draws
+                 the same field as a flat grid, loses no information.
 
   Reference trawl (Mobbin, sections, web)
   took : Hermes Agent — install command as a labelled bordered field, not a naked
@@ -136,9 +143,8 @@ p{margin:0}
     radial-gradient(72% 64% at 22% 26%, rgba(124,121,166,.16), transparent 72%),
     radial-gradient(100% 88% at 50% 0%, var(--ink-200), transparent 62%);
 }
-#stage{position:absolute; inset:0; z-index:0; opacity:.4}
-/* A scrim over the WebGL layer, not under it. The manifold is atmosphere; the
-   headline has to win regardless of where the rig happens to be turned. */
+/* A scrim over the artwork. The manifold is atmosphere; the headline has to
+   win regardless of how bright the lit branch happens to be. */
 .hero::after{
   content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
   background:linear-gradient(90deg, var(--ink-050) 4%, rgba(20,18,31,.82) 38%, rgba(20,18,31,0) 64%);
@@ -154,11 +160,26 @@ p{margin:0}
   background:linear-gradient(96deg,var(--amber-100),var(--amber-300));
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
-.hero-art{position:relative; aspect-ratio:1; display:grid; place-items:center}
-/* height:auto is load-bearing: the img carries width/height attributes so the
-   browser can reserve the box before the PNG lands, and without this the
-   attribute height overrides the CSS width and stretches the square. */
-.hero-art img{width:min(74%,380px); height:auto; filter:drop-shadow(0 30px 60px rgba(0,0,0,.6))}
+.hero-art{position:relative; aspect-ratio:1100/836; display:grid; place-items:center}
+/* The artefact is a photograph of a real object on a real surface, so it is
+   framed as one rather than floated. A vignette was the first attempt and it
+   cannot work here: the object fills the frame, so any fade that reaches the
+   edges eats the object with it. */
+.hero-art picture{
+  display:block; width:100%; border-radius:var(--r-lg); overflow:hidden;
+  border:1px solid rgba(196,194,228,.09);
+  box-shadow:0 40px 90px -24px rgba(0,0,0,.8), inset 0 1px 0 rgba(196,194,228,.05);
+}
+/* height:auto is load-bearing: the img carries width/height so the browser can
+   reserve the box before the image lands, and without it the attribute height
+   overrides the CSS width and distorts the frame. */
+.hero-art img{width:100%; height:auto; display:block}
+/* The lit branch should emit into the page, not stop at the frame edge. */
+.hero-art::before{
+  content:""; position:absolute; inset:6% -12% 2% 16%; z-index:-1; pointer-events:none;
+  background:radial-gradient(48% 44% at 66% 52%, rgba(255,183,77,.26), transparent 72%);
+  filter:blur(26px);
+}
 
 /* the install field, from the Hermes reference: labelled and bordered, not naked */
 .install{width:100%; max-width:560px}
@@ -223,9 +244,16 @@ section{position:relative; padding:104px 0}
 .mem-track{height:7px; border-radius:99px; background:rgba(196,194,228,.09); overflow:hidden}
 .mem-fill{height:100%; width:0%; border-radius:99px; background:linear-gradient(90deg,var(--glass-dim),var(--glass))}
 #dots{display:grid; grid-template-columns:repeat(auto-fill,minmax(15px,1fr)); gap:7px}
+/* The 3D field and the flat grid occupy the same box, and exactly one of them
+   is ever built — see the swarm script. The flat grid sizes itself from its
+   dots; the canvas has no intrinsic height, so the box is given one only in
+   the dimensional case. */
+.swarm-stage{position:relative}
+.swarm-stage.dimensional{height:clamp(210px,24vw,310px)}
+#swarm3d{display:block; width:100%; height:100%; position:absolute; inset:0}
 .dot{aspect-ratio:1; border-radius:50%; background:var(--glass-dim)}
 .dot.used{background:var(--amber-300)}
-.swarm-key{display:flex; gap:var(--s-6); margin-top:var(--s-6); font-size:12.5px; color:var(--fg-3); flex-wrap:wrap}
+.swarm-key{display:flex; column-gap:var(--s-6); row-gap:var(--s-3); margin-top:var(--s-6); font-size:12.5px; color:var(--fg-3); flex-wrap:wrap}
 .swarm-key i{width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:7px; vertical-align:baseline}
 
 /* ─────────────────────────────────────────────── wires diagram */
@@ -302,14 +330,11 @@ footer .wrap{display:flex; justify-content:space-between; gap:var(--s-4); flex-w
    command goes to three. The rest of the layout still breaks at 900. */
 @media (max-width:1100px){
   .hero .wrap{grid-template-columns:1fr; gap:var(--s-7)}
-  .hero-art{order:-1; aspect-ratio:16/9}
-  .hero-art img{width:min(46%,230px)}
-  #stage{opacity:.22}
-  .hero::after{background:linear-gradient(180deg, rgba(20,18,31,.25) 0%, rgba(20,18,31,.9) 34%, var(--ink-050) 70%)}
+  /* Stacked, the framed artefact sits above the copy at its own ratio. */
+  .hero-art{order:-1; max-width:620px; width:100%}
+  .hero::after{background:linear-gradient(180deg, rgba(20,18,31,.16) 0%, rgba(20,18,31,.84) 46%, var(--ink-050) 76%)}
 }
 @media (max-width:900px){
-  .hero-art{aspect-ratio:16/10}
-  .hero-art img{width:min(52%,240px)}
   .wires,.migrate{grid-template-columns:1fr}
   .migrate-arrow{transform:rotate(90deg); height:56px}
   .steps{grid-template-columns:1fr}
@@ -347,7 +372,6 @@ footer .wrap{display:flex; justify-content:space-between; gap:var(--s-4); flex-w
 
 <!-- ══════════════════════════════════════════════ hero -->
 <header class="hero">
-  <div id="stage" aria-hidden="true"></div>
   <div class="wrap">
     <div class="hero-copy">
       <div class="eyebrow">Open source · MIT · macOS</div>
@@ -372,7 +396,14 @@ footer .wrap{display:flex; justify-content:space-between; gap:var(--s-4); flex-w
       </div>
     </div>
 
-    <div class="hero-art"><img src="assets/icon-512.png" width="512" height="512" alt="The mcp-router mark: glass channels converging into one hub, with a single branch lit amber." id="hero-icon"></div>
+    <div class="hero-art">
+      <picture>
+        <source srcset="assets/hero-manifold.webp" type="image/webp">
+        <img src="assets/hero-manifold.jpg" width="1100" height="836" id="hero-icon"
+             fetchpriority="high" decoding="async"
+             alt="Three frosted glass channels curve in from the left and join a single hub. Three short branches leave the right side of it, and exactly one of them is lit from within, glowing amber.">
+      </picture>
+    </div>
   </div>
 </header>
 
@@ -396,7 +427,10 @@ footer .wrap{display:flex; justify-content:space-between; gap:var(--s-4); flex-w
           <div class="mem-track"><div class="mem-fill" id="mem-fill"></div></div>
         </div>
       </div>
-      <div id="dots" role="img" aria-label="A grid of 190 dots, one for each running program. Twelve are amber, marking the ones actually used."></div>
+      <div class="swarm-stage" id="swarm-stage">
+        <div id="dots" role="img" aria-label="A field of 190 markers, one for each running program. Twelve are amber, marking the ones actually used."></div>
+        <canvas id="swarm3d" aria-hidden="true"></canvas>
+      </div>
       <div class="swarm-key">
         <span><i style="background:var(--glass-dim)"></i>Started and never touched</span>
         <span><i style="background:var(--amber-300)"></i>Actually used</span>
@@ -617,17 +651,40 @@ const nav = document.getElementById('nav');
 addEventListener('scroll', () => nav.classList.toggle('on', scrollY > 520), {passive:true});
 
 /* ─────────────────────────── the swarm
-   190 dots, one per program. The motion is the argument: they arrive faster
+   190 markers, one per program. The motion is the argument: they arrive faster
    than you can count them, which is the point the number alone does not make. */
 const TOTAL = 190, USED = 12;
 const grid = document.getElementById('dots');
+const canvas3d = document.getElementById('swarm3d');
+
+/* Seeded rather than random, so the twelve that were ever touched fall in the
+   same places every load and the flat and dimensional versions agree. */
+let sd = 4177;
+const srnd = () => (sd = (sd * 1664525 + 1013904223) % 4294967296) / 4294967296;
 const usedSet = new Set();
-while (usedSet.size < USED) usedSet.add(Math.floor(Math.random() * TOTAL));
+while (usedSet.size < USED) usedSet.add(Math.floor(srnd() * TOTAL));
+
+/* WebGL decides which of the two fields gets built, and only one ever is.
+   Building both would animate 190 DOM nodes underneath a canvas that covers
+   them, on a page whose whole argument is that work nobody can see should not
+   be running. */
+const CAN_3D = !REDUCED && (() => {
+  try {
+    const c = document.createElement('canvas');
+    return !!(c.getContext('webgl2') || c.getContext('webgl'));
+  } catch { return false; }
+})();
+
 const dots = [];
-for (let i = 0; i < TOTAL; i++) {
-  const d = document.createElement('span');
-  d.className = 'dot' + (usedSet.has(i) ? ' used' : '');
-  grid.appendChild(d); dots.push(d);
+if (!CAN_3D) {
+  canvas3d.remove();
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.createElement('span');
+    d.className = 'dot' + (usedSet.has(i) ? ' used' : '');
+    grid.appendChild(d); dots.push(d);
+  }
+} else {
+  document.getElementById('swarm-stage').classList.add('dimensional');
 }
 
 const countEl = document.getElementById('count');
@@ -639,23 +696,29 @@ const setFigures = p => {
   memFill.style.width = (p * 100) + '%';
 };
 
+/* Shared with the dimensional field below, which reads it to know how much of
+   the census has arrived. */
+const swarm = {p:0};
+
 if (REDUCED || !window.gsap) {
+  swarm.p = 1;
   setFigures(1);
 } else {
   gsap.registerPlugin(ScrollTrigger);
 
   /* Hidden start states are set here, in JS, never in the stylesheet. A blocked
      CDN then leaves a complete static page instead of a blank one. */
-  gsap.from('#hero-icon', {opacity:0, scale:.94, duration:1.1, ease:'power2.out', delay:.2});
-  gsap.set(dots, {opacity:0, scale:.4});
+  gsap.from('#hero-icon', {opacity:0, scale:.96, duration:1.2, ease:'power2.out', delay:.15});
+  if (dots.length) gsap.set(dots, {opacity:0, scale:.4});
 
   /* The counter has to be right while it is being read, not only once the
      section has scrolled past. So the scrub finishes near the top of the
      viewport and the figures then hold at 190 for the rest of the section. */
-  const swarm = {p:0};
-  gsap.timeline({scrollTrigger:{trigger:'.swarm-shell', start:'top 88%', end:'top 34%', scrub:.5}})
-    .to(swarm, {p:1, ease:'none', onUpdate:() => setFigures(swarm.p)}, 0)
-    .to(dots, {opacity:1, scale:1, stagger:{each:.0035, from:'random'}, ease:'back.out(1.6)'}, 0);
+  const tl = gsap.timeline({scrollTrigger:{trigger:'.swarm-shell', start:'top 88%', end:'top 34%', scrub:.5}})
+    .to(swarm, {p:1, ease:'none', onUpdate:() => setFigures(swarm.p)}, 0);
+  if (dots.length) {
+    tl.to(dots, {opacity:1, scale:1, stagger:{each:.0035, from:'random'}, ease:'back.out(1.6)'}, 0);
+  }
 
   /* section reveals: enhancement only, since every one of them is already
      readable in the static state above */
@@ -709,81 +772,162 @@ if (REDUCED || !window.gsap) {
   });
 }
 
-/* ─────────────────────────── hero: the field, in three dimensions
-   Used once, here, and nowhere else on the page. Deliberately NOT a second
-   manifold: the icon already is one, and a cruder 3D copy of it behind the
-   headline competes with the artefact rather than supporting it. What this
-   renders is the page's own thesis instead — a drift of many capsules, nearly
-   all of them dark, two of them awake. */
+/* ─────────────────────────── the hero artefact, on a parallax
+   The artefact is a photograph, so its depth is real and does not need to be
+   simulated. This adds pointer response only, so the object sits in the page
+   rather than on it. Transform on the wrapper, never on the image, because
+   GSAP owns the image's own transform for the entry. The loop stops as soon as
+   it has settled; it is not a standing rAF. */
 if (!REDUCED) {
-  const THREE = await import('three').catch(() => null);
-  const host = document.getElementById('stage');
-  if (THREE && host) {
+  const box = document.querySelector('.hero-art');
+  const shot = box && box.querySelector('picture');
+  if (shot) {
+    let raf = 0, tx = 0, ty = 0, cx = 0, cy = 0;
+    const tick = () => {
+      cx += (tx - cx) * .07; cy += (ty - cy) * .07;
+      shot.style.transform = `translate3d(${cx.toFixed(2)}px, ${cy.toFixed(2)}px, 0)`;
+      raf = (Math.abs(tx - cx) > .06 || Math.abs(ty - cy) > .06) ? requestAnimationFrame(tick) : 0;
+    };
+    addEventListener('pointermove', e => {
+      const r = box.getBoundingClientRect();
+      tx = ((e.clientX - (r.left + r.width / 2)) / innerWidth) * 24;
+      ty = ((e.clientY - (r.top + r.height / 2)) / innerHeight) * 15;
+      if (!raf) raf = requestAnimationFrame(tick);
+    }, {passive:true});
+  }
+}
+
+/* ─────────────────────────── the swarm, in three dimensions
+   This field is the section's argument: 190 things running, a dozen of them
+   ever touched. Flat, it reads as a texture. In depth it reads as a mass,
+   which is what the paragraph beside it is actually claiming.
+
+   The renderer keeps the product's own rule. There is no WebGL context until
+   the section reaches the viewport and none once it has left — the observer
+   builds on entry and disposes on exit — so a reader who never scrolls this
+   far never pays for three.js at all, and nothing renders while nobody is
+   looking at it. A page arguing against idle compute has no business running
+   an idle render loop. */
+if (CAN_3D) {
+  const shell = document.getElementById('swarm-stage');
+  let live = null, pending = false, wanted = false;
+
+  const teardown = () => {
+    if (!live) return;
+    cancelAnimationFrame(live.raf);
+    removeEventListener('resize', live.fit);
+    removeEventListener('pointermove', live.onMove);
+    live.cold.dispose(); live.warm.dispose();
+    live.geo.dispose(); live.dim.dispose(); live.hot.dispose();
+    live.gl.dispose();
+    live.gl.forceContextLoss();
+    live = null;
+  };
+
+  const build = async () => {
+    if (live || pending) return;
+    pending = true;
+    const THREE = await import('three').catch(() => null);
+    pending = false;
+    if (!THREE || !wanted || live) return;
+
+    const w = () => shell.clientWidth || 1;
+    const h = () => shell.clientHeight || 1;
+
     const scene = new THREE.Scene();
-    const cam = new THREE.PerspectiveCamera(40, innerWidth/innerHeight, .1, 200);
-    cam.position.set(0, 0, 34);
+    const cam = new THREE.PerspectiveCamera(36, w() / h(), .1, 300);
+    cam.position.set(0, 0, 54);
 
-    const gl = new THREE.WebGLRenderer({antialias:true, alpha:true});
+    const gl = new THREE.WebGLRenderer({canvas:canvas3d, antialias:true, alpha:true});
     gl.setPixelRatio(Math.min(devicePixelRatio, 2));
-    host.appendChild(gl.domElement);
 
-    const glass = new THREE.MeshStandardMaterial({color:0x8a87b4, roughness:.42, metalness:.15});
-    const lit   = new THREE.MeshStandardMaterial({color:0xf6b455, emissive:0xef9a31, emissiveIntensity:1.7, roughness:.3});
+    const geo = new THREE.CapsuleGeometry(.46, 1.7, 3, 12);
+    const dim = new THREE.MeshStandardMaterial({color:0x746fa4, roughness:.5, metalness:.16});
+    const hot = new THREE.MeshStandardMaterial({color:0xf9c477, emissive:0xef9a31, emissiveIntensity:1.7, roughness:.32});
 
-    const rig = new THREE.Group(); scene.add(rig);
-    const body = new THREE.CapsuleGeometry(.5, 2.6, 6, 16);
-
-    /* Deterministic placement: a seeded walk rather than Math.random, so the
-       composition is the same one that was reviewed. */
-    let seed = 20260813;
-    const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
-
-    const pods = [];
-    for (let i = 0; i < 46; i++) {
-      const awake = i === 7 || i === 29;
-      const m = new THREE.Mesh(body, awake ? lit : glass);
-      m.position.set((rnd() - .5) * 46, (rnd() - .5) * 26, (rnd() - .5) * 30 - 6);
-      m.rotation.z = Math.PI / 2 + (rnd() - .5) * .5;
-      m.rotation.y = (rnd() - .5) * 1.2;
-      const s = .6 + rnd() * .7;
-      m.scale.setScalar(awake ? s * 1.15 : s);
-      m.userData = {drift: .1 + rnd() * .3, phase: rnd() * 6.28, awake};
-      rig.add(m); pods.push(m);
+    /* Two instanced meshes rather than one, because per-instance emission needs
+       a custom shader and the split is free: 178 dark, 12 lit, two draw calls. */
+    const cold = new THREE.InstancedMesh(geo, dim, TOTAL - USED);
+    const warm = new THREE.InstancedMesh(geo, hot, USED);
+    for (const m of [cold, warm]) {
+      m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      m.frustumCulled = false;          // instances start at scale 0
     }
+    const rig = new THREE.Group();
+    rig.add(cold, warm); scene.add(rig);
 
-    scene.add(new THREE.AmbientLight(0x9d9ac6, .5));
-    const key = new THREE.DirectionalLight(0xdedcf5, 1.1); key.position.set(-4, 7, 9); scene.add(key);
-    const warm = new THREE.PointLight(0xffb74d, 90, 40); warm.position.set(6, 2, 4); scene.add(warm);
+    scene.add(new THREE.AmbientLight(0x9d9ac6, .8));
+    const key = new THREE.DirectionalLight(0xdedcf5, 1.5); key.position.set(-6, 8, 12); scene.add(key);
+    const glow = new THREE.PointLight(0xffb74d, 180, 60); glow.position.set(5, -1, 12); scene.add(glow);
 
+    /* Positions are held in unit coordinates and multiplied by the frustum at
+       paint time, so the field refills the box on resize instead of clustering
+       in the middle of a wider one. */
+    let s2 = 90210;
+    const r2 = () => (s2 = (s2 * 1664525 + 1013904223) % 4294967296) / 4294967296;
+    const bodies = [];
+    for (let i = 0; i < TOTAL; i++) bodies.push({
+      used: usedSet.has(i),
+      ux: r2() - .5, uy: r2() - .5, z: (r2() - .5) * 26 - 6,
+      rz: Math.PI / 2 + (r2() - .5) * .36, ry: (r2() - .5) * .9,
+      s: .78 + r2() * .5, t0: r2(), ph: r2() * 6.283, dr: .22 + r2() * .5,
+    });
+
+    let vw = 0, vh = 0;
     const fit = () => {
-      const a = innerWidth / innerHeight;
-      cam.aspect = a; cam.updateProjectionMatrix();
-      cam.position.z = a < 1 ? 34 / Math.max(a, .5) : 34;
-      gl.setSize(innerWidth, innerHeight);
+      const W = w(), H = h();
+      cam.aspect = W / H; cam.updateProjectionMatrix();
+      gl.setSize(W, H, false);
+      vh = 2 * cam.position.z * Math.tan(cam.fov * Math.PI / 360);
+      vw = vh * cam.aspect;
     };
     fit();
 
-    let mx = 0, my = 0;
-    addEventListener('pointermove', e => {
-      mx = (e.clientX/innerWidth - .5); my = (e.clientY/innerHeight - .5);
-    }, {passive:true});
-    addEventListener('resize', fit);
+    let px = 0, py = 0;
+    const onMove = e => {
+      const b = shell.getBoundingClientRect();
+      px = (e.clientX - (b.left + b.width / 2)) / innerWidth;
+      py = (e.clientY - (b.top + b.height / 2)) / innerHeight;
+    };
 
-    const start = performance.now();
-    (function frame(now){
-      const t = (now - start) / 1000;
-      for (const p of pods) {
-        p.position.y += Math.sin(t * p.userData.drift + p.userData.phase) * .0016;
-        if (p.userData.awake) {
-          p.material.emissiveIntensity = 1.4 + Math.sin(t * 1.3 + p.userData.phase) * .45;
-        }
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), eu = new THREE.Euler(),
+          pos = new THREE.Vector3(), scl = new THREE.Vector3();
+    const t0 = performance.now();
+
+    const paint = now => {
+      const t = (now - t0) / 1000, p = swarm.p;
+      let ci = 0, wi = 0;
+      for (const b of bodies) {
+        /* each body has its own trigger point inside the scrub, so the census
+           arrives as a rush rather than all at once */
+        const a = Math.min(1, Math.max(0, (p - b.t0 * .74) / .26));
+        const s = b.s * a * a * (3 - 2 * a);
+        eu.set(0, b.ry, b.rz); q.setFromEuler(eu);
+        pos.set(b.ux * vw * .86, b.uy * vh * .78 + Math.sin(t * b.dr + b.ph) * .55, b.z);
+        scl.set(s, s, s);
+        m4.compose(pos, q, scl);
+        if (b.used) warm.setMatrixAt(wi++, m4); else cold.setMatrixAt(ci++, m4);
       }
-      rig.rotation.y = Math.sin(t * .06) * .16 + mx * .16;
-      rig.rotation.x = Math.sin(t * .05) * .07 - my * .1;
+      cold.instanceMatrix.needsUpdate = warm.instanceMatrix.needsUpdate = true;
+      hot.emissiveIntensity = 1.15 + Math.sin(t * 1.7) * .35;
+      rig.rotation.y = Math.sin(t * .1) * .07 + px * .1;
+      rig.rotation.x = Math.sin(t * .08) * .04 - py * .07;
       gl.render(scene, cam);
-      requestAnimationFrame(frame);
-    })(start);
-  }
+      live.raf = requestAnimationFrame(paint);
+    };
+
+    addEventListener('resize', fit);
+    addEventListener('pointermove', onMove, {passive:true});
+    live = {gl, geo, dim, hot, cold, warm, fit, onMove, raf:0};
+    live.raf = requestAnimationFrame(paint);
+  };
+
+  new IntersectionObserver(entries => {
+    for (const e of entries) {
+      wanted = e.isIntersecting;
+      if (wanted) build(); else teardown();
+    }
+  }, {rootMargin:'240px 0px'}).observe(shell);
 }
 </script>
 </body>

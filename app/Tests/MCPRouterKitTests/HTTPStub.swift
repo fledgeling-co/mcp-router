@@ -33,6 +33,7 @@ final class HTTPStub: @unchecked Sendable {
     private let listener: NWListener
     private let lock = NSLock()
     private var responses: [String: Response] = [:]
+    private var tokenResponses: [(bearer: String, response: Response)] = []
     private var streamScript: Stream?
     private var recorded: [String] = []
     private var connectionCount = 0
@@ -94,6 +95,18 @@ final class HTTPStub: @unchecked Sendable {
         streamScript = script
     }
 
+    /// Answer any request carrying this `Authorization` value with this response, whatever the
+    /// route.
+    ///
+    /// The route table alone cannot express "this credential is refused and that one is accepted",
+    /// which is the entire shape of a rotation: one path answering differently depending on what
+    /// was sent. Matched before the route table, so a stale token is refused on every endpoint the
+    /// way a real router would refuse it.
+    func onToken(_ bearer: String, _ response: Response) {
+        lock.lock(); defer { lock.unlock() }
+        tokenResponses.append((bearer, response))
+    }
+
     private func lookup(_ head: String) -> (Response?, Stream?) {
         lock.lock(); defer { lock.unlock() }
         guard let requestLine = head.split(separator: "\r\n").first else { return (nil, nil) }
@@ -104,6 +117,9 @@ final class HTTPStub: @unchecked Sendable {
         let path = String(parts[1].split(separator: "?").first ?? parts[1])
 
         if path == "/usage/stream", let streamScript { return (nil, streamScript) }
+        for (bearer, response) in tokenResponses where head.contains(bearer) {
+            return (response, nil)
+        }
         return (responses["\(method) \(path)"], nil)
     }
 

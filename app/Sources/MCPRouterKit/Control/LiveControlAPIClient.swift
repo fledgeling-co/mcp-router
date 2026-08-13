@@ -49,11 +49,20 @@ public actor LiveControlAPIClient: ControlAPIClient {
         return fromFile
     }
 
-    /// Re-read the router's file after a rejection. Returns the new token only when it actually
-    /// differs — an unchanged token means the credential is simply wrong, and retrying with it
-    /// would be a loop that never terminates.
-    private func rotatedToken() async -> String? {
-        guard let fresh = tokenFile.read(), fresh != cachedToken else { return nil }
+    /// Re-read the router's file after a rejection. Returns the new token only when it differs
+    /// from **the one that was actually sent** — an unchanged token means the credential is simply
+    /// wrong, and retrying with it would be a loop that never terminates.
+    ///
+    /// Comparing against the token that failed rather than against `cachedToken` is what makes
+    /// this correct under concurrency, and the difference is observable. Two panes refresh at the
+    /// same moment, both send token A, the router rotates to B, and both get a 401. The first call
+    /// re-reads, sees B, and stores it. Compared against `cachedToken` the second call would then
+    /// find B == B, conclude nothing had rotated, and report "not authorised" to a user whose
+    /// credential is fine — a spurious re-pair prompt that disappears on the next refresh, which is
+    /// the worst kind of bug to be told about. Compared against the token it sent, it sees B != A
+    /// and retries once, like the first.
+    private func rotatedToken(replacing sent: String?) async -> String? {
+        guard let fresh = tokenFile.read(), fresh != sent else { return nil }
         try? await store.write(fresh)
         cachedToken = fresh
         log.info("the control token rotated; stored the new one (\(ControlLog.redacted(fresh)))")
@@ -99,9 +108,15 @@ public actor LiveControlAPIClient: ControlAPIClient {
         _ path: String,
         query: [URLQueryItem] = [],
         body: Data? = nil,
+        typedFailureStatuses: Set<Int> = [],
         as _: Response.Type
     ) async throws(ControlAPIError) -> Response {
-        let data = try await perform(method, path, query: query, body: body, allowRetry: true)
+        let data = try await perform(
+            method, path,
+            query: query, body: body,
+            typedFailureStatuses: typedFailureStatuses,
+            allowRetry: true
+        )
         do {
             return try JSONDecoder().decode(Response.self, from: data)
         } catch {
@@ -117,6 +132,7 @@ public actor LiveControlAPIClient: ControlAPIClient {
         _ path: String,
         query: [URLQueryItem],
         body: Data?,
+        typedFailureStatuses: Set<Int> = [],
         allowRetry: Bool
     ) async throws(ControlAPIError) -> Data {
         var request = URLRequest(url: url(path, query: query))
@@ -154,21 +170,39 @@ public actor LiveControlAPIClient: ControlAPIClient {
         }
 
         if http.statusCode == 401 {
-            guard allowRetry, await rotatedToken() != nil else {
+            guard allowRetry, await rotatedToken(replacing: token) != nil else {
                 throw ControlAPIError.unauthorized
             }
             // Exactly one retry, tracked by this parameter rather than by any stored flag — two
             // concurrent calls each get their own single retry and cannot compound into a loop.
-            return try await perform(method, path, query: query, body: body, allowRetry: false)
+            return try await perform(
+                method, path,
+                query: query, body: body,
+                typedFailureStatuses: typedFailureStatuses,
+                allowRetry: false
+            )
         }
 
-        guard (200 ..< 300).contains(http.statusCode) else {
-            let failure = try? JSONDecoder().decode(RouterErrorBody.self, from: data)
-            throw ControlAPIError.server(
-                status: http.statusCode,
-                message: failure?.error ?? "the router did not explain the failure",
-                hint: failure?.hint
-            )
+        // A status this endpoint documents as carrying its own typed body.
+        //
+        // Only re-index uses it, and the reason is specific: `POST /servers/:name/reindex` answers
+        // `422 {name, tools, error}` when indexing fails (`src/control.ts` ~line 326) — the same
+        // shape as its success, with `error` filled in. Routing that through the generic
+        // `{error, hint}` path throws away `name` and `tools`, so the surface loses the count of
+        // what *did* index and the row it belongs to, and can only say "something went wrong".
+        //
+        // This is an allowlist per call site rather than a blanket "422 is fine": a 422 from `add`
+        // is a genuine refusal carrying `{error, hint}` and must stay an error, or the advice that
+        // tells the user how to proceed would be swallowed by an empty typed decode.
+        if !typedFailureStatuses.contains(http.statusCode) {
+            guard (200 ..< 300).contains(http.statusCode) else {
+                let failure = try? JSONDecoder().decode(RouterErrorBody.self, from: data)
+                throw ControlAPIError.server(
+                    status: http.statusCode,
+                    message: failure?.error ?? "the router did not explain the failure",
+                    hint: failure?.hint
+                )
+            }
         }
 
         return data
@@ -242,6 +276,9 @@ public actor LiveControlAPIClient: ControlAPIClient {
             .post,
             "servers/\(segment(name))/reindex",
             body: Data("{}".utf8),
+            // The router reports a failed index as `422` carrying the *same* shape as a success.
+            // It is an outcome, not a transport failure, and it is the only place that is true.
+            typedFailureStatuses: [422],
             as: ReindexResult.self
         )
     }

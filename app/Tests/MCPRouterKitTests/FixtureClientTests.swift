@@ -141,8 +141,27 @@ struct FixtureClientTests {
 
     @Test("the disabled state is a fact about the data, not a flag the double invents")
     func disabledIsDerivedFromTheData() async throws {
-        // Nothing to approve is what disables the approve control, and it is readable from the
-        // response rather than from a scenario that merely says "disabled".
+        // A placard is the router's own declaration that a server is inoperative, and it carries
+        // the reason and the substitute. That is what a surface dims in place and explains — so
+        // the scenario has to produce one, not merely be named after the condition.
+        let response = try await FixtureControlAPIClient(.disabled).servers()
+        let placarded = try #require(
+            response.servers.first(where: { $0.placard != nil }),
+            "the disabled scenario produced no server the router had declared inoperative"
+        )
+        let placard = try #require(placarded.placard)
+        #expect(
+            placard.reason == "under review while the upstream is rebuilt",
+            "the reason has to be the router's, or a surface would be inventing one"
+        )
+        #expect(placard.substitute == "fixture-tools", "the advice about what to use instead was lost")
+
+        // And nothing else in the populated case is disabled: the state has to be distinguishable.
+        let normal = try await FixtureControlAPIClient(.populated).servers()
+        #expect(normal.servers.allSatisfy { $0.placard == nil })
+
+        // The other half of the same idea: nothing to approve is what turns the approve control
+        // off, and it is readable from the response rather than from a flag.
         let none = try await FixtureControlAPIClient(.empty).heldChanges(for: "alpha")
         #expect(!none.pending, "with nothing pending, the control that approves it has its reason to be off")
 
@@ -185,7 +204,7 @@ struct FixtureClientTests {
     func everyScenarioIsCovered() {
         let covered: Set<FixtureControlAPIClient.Scenario> = [
             .populated, .empty, .loading, .partial, .error, .success,
-            .offline, .unauthorized, .overflow,
+            .offline, .unauthorized, .overflow, .disabled,
             .streamLive, .streamReconnecting, .streamDisconnected
         ]
         let all = Set(FixtureControlAPIClient.Scenario.allCases)
@@ -193,6 +212,9 @@ struct FixtureClientTests {
             all == covered,
             "scenarios with no assertion of their own: \(all.subtracting(covered).map(\.rawValue).sorted())"
         )
-        #expect(all.count == 12, "nine states from DESIGN.md §5 plus the three stream phases")
+        // The arithmetic is spelled out because it is what caught the gap: the count used to be 12
+        // and read as "the nine states plus three phases", which balanced only because
+        // `unauthorized` was silently standing in for the missing `disabled`.
+        #expect(all.count == 13, "DESIGN.md §5's nine states, plus unauthorized, plus three stream phases")
     }
 }

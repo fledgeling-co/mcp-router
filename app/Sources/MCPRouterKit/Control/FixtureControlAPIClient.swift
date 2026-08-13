@@ -11,8 +11,9 @@ import Foundation
 /// is a condition a test asks for; a pile of constructor arguments is a condition a test has to
 /// build correctly, and one built slightly wrong silently tests something else.
 public struct FixtureControlAPIClient: ControlAPIClient {
-    /// The conditions a surface has to render. The first nine are `DESIGN.md` §5's states; the
-    /// last three are the live stream's phases.
+    /// The conditions a surface has to render: `DESIGN.md` §5's nine states, plus `unauthorized`
+    /// — not one of the nine, but the other refusal that replaces a whole screen and so needs its
+    /// own recording — and the live stream's three phases.
     public enum Scenario: String, Sendable, CaseIterable {
         /// The ideal, populated case.
         case populated
@@ -32,6 +33,13 @@ public struct FixtureControlAPIClient: ControlAPIClient {
         case unauthorized
         /// A server whose name is wider than its column.
         case overflow
+        /// A server the router has declared inoperative, with the reason it gives.
+        ///
+        /// The Disabled state as *data*. A placard is the router's own "this one is off, and here
+        /// is why, and here is what to use instead" — which is what a surface dims in place and
+        /// explains. A scenario that only named itself disabled would let a surface invent its own
+        /// reason, and an invented reason is the thing `DESIGN.md` §6 exists to prevent.
+        case disabled
         /// The stream is delivering.
         case streamLive
         /// The stream dropped and is retrying.
@@ -122,6 +130,11 @@ public struct FixtureControlAPIClient: ControlAPIClient {
                 copy.name = "plugin_pixel-plugin_aseprite_headless_render_worker_arm64"
                 return copy
             }
+        case .disabled:
+            // The placarded server is a real recording, so the reason a surface renders is one the
+            // router actually served rather than one this double made up.
+            let placarded = try decode("server-placarded", as: MCPServer.self)
+            response.servers = response.servers.map { $0.name == placarded.name ? placarded : $0 }
         default:
             break
         }

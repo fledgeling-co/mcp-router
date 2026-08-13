@@ -37,6 +37,7 @@ struct ControlFixtureTests {
         expect("server-http", MCPServer.self),
         expect("server-tools", MCPServer.self),
         expect("server-pending-change", MCPServer.self),
+        expect("server-placarded", MCPServer.self),
         expect("patch-response", MCPServer.self),
         expect("usage", UsageResponse.self),
         expect("usage-summary", UsageSummary.self),

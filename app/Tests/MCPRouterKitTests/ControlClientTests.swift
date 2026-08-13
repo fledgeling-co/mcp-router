@@ -96,6 +96,112 @@ struct ControlClientTests {
         }
     }
 
+    /// A failed re-index is an **outcome**, not a transport failure, and the router says so in the
+    /// one way that matters: `422` carrying the *same* shape as a success, with `error` filled in
+    /// (`src/control.ts` ~line 326).
+    ///
+    /// The out-of-family critic found this. A fixture decode test proved `ReindexResult` parses
+    /// that body, but the client folded every non-2xx into `.server(status:message:hint:)`, so the
+    /// operation could never return one — `name` and `tools` were destroyed on the way out and the
+    /// surface could only say "something went wrong" instead of "indexed 0 of them, fetch failed,
+    /// on this row". Modelling a shape without a path that returns it is the same defect the
+    /// triage gate already caught once for the callable surface.
+    @Test("a failed re-index returns its structured outcome rather than collapsing to an error")
+    func reindexFailureSurvivesAsAValue() async throws {
+        let stub = try HTTPStub()
+        defer { stub.stop() }
+        stub.on(
+            "POST", "/servers/fixture-http/reindex",
+            .json(422, #"{"name":"fixture-http","tools":0,"error":"fetch failed"}"#)
+        )
+
+        let result = try await client(stub).reindex("fixture-http")
+
+        #expect(result.name == "fixture-http", "the row the failure belongs to was lost")
+        #expect(result.tools == 0, "the count of what did index was lost")
+        #expect(result.error == "fetch failed", "the reason was lost")
+    }
+
+    /// The other half, and the reason this is an allowlist per call site rather than "422 is fine".
+    /// A refused `add` is a genuine refusal whose `hint` is the sentence that tells the user how to
+    /// proceed; decoding it as a typed success would swallow exactly that.
+    @Test("a 422 from add stays an error, because only re-index documents a typed failure body")
+    func addStillTreats422AsARefusal() async throws {
+        let stub = try HTTPStub()
+        defer { stub.stop() }
+        stub.on(
+            "POST", "/servers",
+            .json(422, #"{"error":"spawn ENOENT","hint":"retry with ?force=1 to add it anyway"}"#)
+        )
+
+        await #expect(throws: ControlAPIError.self) {
+            _ = try await client(stub).add(NewServer(name: "x", command: "/nope"))
+        }
+    }
+
+    /// A6 says the retry is bounded at one and tracked *per call*. Sequential calls cannot show
+    /// that: the interesting case is two panes refreshing at the same moment through one actor.
+    ///
+    /// The out-of-family critic asked whether the bound survives concurrency, and the first answer
+    /// was worse than "yes". Comparing the re-read token against the client's own cached copy meant
+    /// the second call saw the value the *first* call had just stored, concluded nothing had
+    /// rotated, and reported `.unauthorized` for a credential that was fine. The comparison is now
+    /// against the token each call actually sent, so both retry once. Four requests total: two
+    /// originals, two retries, and no loop.
+    @Test("two calls racing a rotation each retry once, and neither is told it is unauthorised")
+    func concurrentCallsEachRetryOnce() async throws {
+        let stub = try HTTPStub()
+        defer { stub.stop() }
+
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("f3-race-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let tokenURL = dir.appendingPathComponent("control.token")
+        try "rotated-token\n".write(to: tokenURL, atomically: true, encoding: .utf8)
+
+        // The stale token is refused; the rotated one is accepted.
+        stub.onToken("Bearer stale-token", .json(401, #"{"error":"unauthorized"}"#))
+        stub.on("GET", "/servers", .json(200, #"{"port":1,"idleMs":1,"since":"x","servers":[]}"#))
+
+        let subject = LiveControlAPIClient(
+            baseURL: stub.baseURL,
+            session: URLSession(configuration: .ephemeral),
+            store: InMemoryTokenStore("stale-token"),
+            tokenFile: RouterTokenFile(url: tokenURL)
+        )
+
+        async let first = subject.servers()
+        async let second = subject.servers()
+        let both = try await [first, second]
+
+        #expect(both.count == 2, "both callers must get an answer, not one answer and one refusal")
+        #expect(
+            stub.connections <= 4,
+            "at most two originals and two retries; \(stub.connections) means a call retried twice"
+        )
+    }
+
+    /// The router exempts `DELETE` from its content-type requirement by name
+    /// (`src/control.ts`: `req.method !== 'DELETE' && !ct.startsWith('application/json')`), so a
+    /// bodyless DELETE must carry the token and *not* announce a body it is not sending. Asserting
+    /// this on GET alone leaves the branch that actually decides it untested.
+    @Test("a bodyless DELETE carries the token and announces no body")
+    func deleteSendsTokenWithoutContentType() async throws {
+        let stub = try HTTPStub()
+        defer { stub.stop() }
+        stub.on("DELETE", "/servers/alpha", .json(200, #"{"removed":"alpha"}"#))
+
+        _ = try await client(stub).remove("alpha", keepHistory: false)
+
+        let head = try #require(stub.requests.first)
+        #expect(head.contains("Bearer test-token"), "a mutating call must carry the token")
+        #expect(
+            !head.lowercased().contains("content-type"),
+            "the router exempts DELETE, so announcing a body it isn't sending is noise: \(head)"
+        )
+    }
+
     /// Both headers are security controls, not formalities: the token defeats an unauthenticated
     /// POST, and the JSON content type forces a preflight the router never answers.
     @Test("a mutating request carries the bearer token and the JSON content type")
@@ -125,6 +231,95 @@ struct ControlClientTests {
 
     /// Rotation is normal — the router rewrites its token file whenever it is asked to. Making the
     /// user re-pair for that would be a bug. Retrying forever would be a worse one.
+    @Test("every operation on the protocol is callable and decodes")
+    func everyOperationIsCallable() async throws {
+        let stub = try HTTPStub()
+        defer { stub.stop() }
+        let server = try String(
+            data: FixtureControlAPIClient.fixtureData("server-stdio"),
+            encoding: .utf8
+        ) ?? "{}"
+
+        try stub.on("GET", "/servers", .json(200, fixtureText("servers")))
+        stub.on("GET", "/servers/a", .json(200, server))
+        try stub.on("GET", "/usage", .json(200, fixtureText("usage")))
+        try stub.on("GET", "/usage/summary", .json(200, fixtureText("usage-summary")))
+        try stub.on("GET", "/servers/a/changes", .json(200, fixtureText("changes-none")))
+        try stub.on("GET", "/registry/search", .json(200, fixtureText("registry-search")))
+        try stub.on("POST", "/servers", .json(201, fixtureText("added")))
+        stub.on("DELETE", "/servers/a", .json(200, #"{"removed":"a"}"#))
+        stub.on("POST", "/servers/a/reindex", .json(200, #"{"name":"a","tools":3}"#))
+        stub.on("PATCH", "/servers/a", .json(200, server))
+        stub.on("POST", "/servers/a/approve", .json(200, #"{"server":"a","approved":4}"#))
+        stub.on(
+            "POST",
+            "/servers/a/auth",
+            .json(200, #"{"server":"a","authorizationUrl":"https://e.invalid/x"}"#)
+        )
+        stub.on("DELETE", "/servers/a/auth", .json(200, #"{"server":"a","signedOut":true}"#))
+        stub.on("POST", "/usage/reset", .json(200, #"{"ok":true,"since":"2026-08-14T00:00:00.000Z"}"#))
+
+        let subject = client(stub)
+
+        _ = try await subject.servers()
+        _ = try await subject.server(named: "a")
+        _ = try await subject.usage()
+        _ = try await subject.usageSummary()
+        _ = try await subject.heldChanges(for: "a")
+        _ = try await subject.searchRegistry(query: "github", limit: 3)
+        _ = try await subject.add(NewServer(name: "b", command: "/bin/echo"), force: true)
+        _ = try await subject.remove("a", keepHistory: false)
+        _ = try await subject.reindex("a")
+        _ = try await subject.patch(server: "a", ServerPatch(warm: true))
+        let approval = try await subject.approvePendingChange(server: "a")
+        let auth = try await subject.beginAuthorization(for: "a")
+        _ = try await subject.signOut("a")
+        _ = try await subject.resetUsage()
+
+        // The correction F1's protocol needed: approve answers with a count, not a server.
+        #expect(approval.approved == 4)
+        #expect(auth.authorizationURL == "https://e.invalid/x")
+        #expect(stub.connections == 14, "one connection per operation; got \(stub.connections)")
+    }
+
+    @Test("a server name needing encoding still reaches the right route")
+    func namesArePercentEncoded() async throws {
+        let stub = try HTTPStub()
+        defer { stub.stop() }
+        try stub.on("GET", "/servers/a%2Fb", .json(200, fixtureText("server-stdio")))
+
+        _ = try await client(stub).server(named: "a/b")
+        let head = try #require(stub.requests.first)
+        #expect(head.contains("/servers/a%2Fb"))
+    }
+
+    private func fixtureText(_ name: String) throws -> String {
+        let data = try FixtureControlAPIClient.fixtureData(name)
+        return try #require(String(data: data, encoding: .utf8))
+    }
+}
+
+/// Credentials and rotation, split from the suite above only because SwiftLint caps a type's body
+/// length — the boundary is a real one though: everything here is about *which token goes out* and
+/// how many times, rather than about what the router answered.
+@Suite("Control client — credentials and rotation")
+struct ControlClientRotationTests {
+    /// A client pointed at a stub, with the token already stored so no file is consulted.
+    private func client(
+        _ stub: HTTPStub,
+        token: String? = "test-token",
+        tokenFile: RouterTokenFile? = nil,
+        log: ControlLog = ControlLog()
+    ) -> LiveControlAPIClient {
+        LiveControlAPIClient(
+            baseURL: stub.baseURL,
+            session: URLSession(configuration: .ephemeral),
+            store: InMemoryTokenStore(token),
+            tokenFile: tokenFile ?? RouterTokenFile(url: URL(fileURLWithPath: "/nonexistent/control.token")),
+            log: log
+        )
+    }
+
     @Test("a rotated token is re-read and the request retried exactly once")
     func rotationRetriesExactlyOnce() async throws {
         let stub = try HTTPStub()
@@ -192,72 +387,6 @@ struct ControlClientTests {
         #expect(stub.connections == 1, "an unchanged token was retried, which is a loop waiting to happen")
     }
 
-    /// A1's stand-in at unit level: every operation is reachable and round-trips. The real-router
-    /// version of this lives in `scripts/acceptance/control-client.sh`.
-    @Test("every operation on the protocol is callable and decodes")
-    func everyOperationIsCallable() async throws {
-        let stub = try HTTPStub()
-        defer { stub.stop() }
-        let server = try String(
-            data: FixtureControlAPIClient.fixtureData("server-stdio"),
-            encoding: .utf8
-        ) ?? "{}"
-
-        try stub.on("GET", "/servers", .json(200, fixtureText("servers")))
-        stub.on("GET", "/servers/a", .json(200, server))
-        try stub.on("GET", "/usage", .json(200, fixtureText("usage")))
-        try stub.on("GET", "/usage/summary", .json(200, fixtureText("usage-summary")))
-        try stub.on("GET", "/servers/a/changes", .json(200, fixtureText("changes-none")))
-        try stub.on("GET", "/registry/search", .json(200, fixtureText("registry-search")))
-        try stub.on("POST", "/servers", .json(201, fixtureText("added")))
-        stub.on("DELETE", "/servers/a", .json(200, #"{"removed":"a"}"#))
-        stub.on("POST", "/servers/a/reindex", .json(200, #"{"name":"a","tools":3}"#))
-        stub.on("PATCH", "/servers/a", .json(200, server))
-        stub.on("POST", "/servers/a/approve", .json(200, #"{"server":"a","approved":4}"#))
-        stub.on(
-            "POST",
-            "/servers/a/auth",
-            .json(200, #"{"server":"a","authorizationUrl":"https://e.invalid/x"}"#)
-        )
-        stub.on("DELETE", "/servers/a/auth", .json(200, #"{"server":"a","signedOut":true}"#))
-        stub.on("POST", "/usage/reset", .json(200, #"{"ok":true,"since":"2026-08-14T00:00:00.000Z"}"#))
-
-        let subject = client(stub)
-
-        _ = try await subject.servers()
-        _ = try await subject.server(named: "a")
-        _ = try await subject.usage()
-        _ = try await subject.usageSummary()
-        _ = try await subject.heldChanges(for: "a")
-        _ = try await subject.searchRegistry(query: "github", limit: 3)
-        _ = try await subject.add(NewServer(name: "b", command: "/bin/echo"), force: true)
-        _ = try await subject.remove("a", keepHistory: false)
-        _ = try await subject.reindex("a")
-        _ = try await subject.patch(server: "a", ServerPatch(warm: true))
-        let approval = try await subject.approvePendingChange(server: "a")
-        let auth = try await subject.beginAuthorization(for: "a")
-        _ = try await subject.signOut("a")
-        _ = try await subject.resetUsage()
-
-        // The correction F1's protocol needed: approve answers with a count, not a server.
-        #expect(approval.approved == 4)
-        #expect(auth.authorizationURL == "https://e.invalid/x")
-        #expect(stub.connections == 14, "one connection per operation; got \(stub.connections)")
-    }
-
-    @Test("a server name needing encoding still reaches the right route")
-    func namesArePercentEncoded() async throws {
-        let stub = try HTTPStub()
-        defer { stub.stop() }
-        try stub.on("GET", "/servers/a%2Fb", .json(200, fixtureText("server-stdio")))
-
-        _ = try await client(stub).server(named: "a/b")
-        let head = try #require(stub.requests.first)
-        #expect(head.contains("/servers/a%2Fb"))
-    }
-
-    private func fixtureText(_ name: String) throws -> String {
-        let data = try FixtureControlAPIClient.fixtureData(name)
-        return try #require(String(data: data, encoding: .utf8))
-    }
+    // A1's stand-in at unit level: every operation is reachable and round-trips. The real-router
+    // version of this lives in `scripts/acceptance/control-client.sh`.
 }

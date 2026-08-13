@@ -138,6 +138,17 @@ grep -q '"pendingAuth"' "$OUT/servers-pending-auth.json" || {
   echo "error: no in-flight authorization was captured — the pendingAuth variant would be missing"
   sed -n '1,40p' "$HOME_DIR/oauth.log"; exit 1; }
 
+# --- a server declared inoperative --------------------------------------------------------------
+# `DESIGN.md` §5's Disabled state, as *data*. The router's placard says a server is inoperative and
+# why, and optionally what to use instead — which is exactly "dims in place with a discoverable
+# reason". A scenario that merely calls itself disabled asserts nothing; a reason the router really
+# serves is the thing a surface can render.
+save server-placarded.json       grab -X PATCH "${auth[@]}" \
+  -d '{"placard":{"reason":"under review while the upstream is rebuilt","substitute":"fixture-tools"}}' \
+  "http://127.0.0.1:$PORT/servers/fixture-http"
+grep -q '"placard"' "$OUT/server-placarded.json" || {
+  echo "error: no placard was captured — the disabled state would have no recording"; exit 1; }
+
 # --- the remaining writes ----------------------------------------------------------------------
 save patch-response.json         grab -X PATCH "${auth[@]}" -d '{"warm":false}' "http://127.0.0.1:$PORT/servers/fixture-stdio"
 save reindex-failure.json        grab -X POST "${auth[@]}" "http://127.0.0.1:$PORT/servers/fixture-http/reindex"

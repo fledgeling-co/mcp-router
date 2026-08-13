@@ -106,7 +106,7 @@ mut(
 mut(
     "M07", "A6", "an unchanged token is not retried — the loop guard",
     SRC / "LiveControlAPIClient.swift",
-    "        guard let fresh = tokenFile.read(), fresh != cachedToken else { return nil }",
+    "        guard let fresh = tokenFile.read(), fresh != sent else { return nil }",
     "        guard let fresh = tokenFile.read() else { return nil }",
     "an unchanged token is not retried",
 )
@@ -114,9 +114,20 @@ mut(
 mut(
     "M08", "A6", "the retry happens exactly once, tracked per call",
     SRC / "LiveControlAPIClient.swift",
-    "            return try await perform(method, path, query: query, body: body, allowRetry: false)",
-    "            _ = try? await perform(method, path, query: query, body: body, allowRetry: false)\n"
-    "            return try await perform(method, path, query: query, body: body, allowRetry: false)",
+    "            return try await perform(\n"
+    "                method, path,\n"
+    "                query: query, body: body,\n"
+    "                typedFailureStatuses: typedFailureStatuses,\n"
+    "                allowRetry: false\n"
+    "            )",
+    "            _ = try? await perform(\n"
+    "                method, path, query: query, body: body,\n"
+    "                typedFailureStatuses: typedFailureStatuses, allowRetry: false\n"
+    "            )\n"
+    "            return try await perform(\n"
+    "                method, path, query: query, body: body,\n"
+    "                typedFailureStatuses: typedFailureStatuses, allowRetry: false\n"
+    "            )",
     "a rotated token is re-read and the request retried exactly once",
 )
 
@@ -390,6 +401,42 @@ mut(
     "}",
     ["every fixture round-trips without losing or inventing a field",
      "the approval response is a count, not a server"],
+)
+
+# ---------------------------------------------------------------- typed failure bodies (A15)
+
+mut(
+    "M34", "A15", "a failed re-index returns its structured outcome, not a collapsed error",
+    SRC / "LiveControlAPIClient.swift",
+    "            typedFailureStatuses: [422],\n",
+    "",
+    "a failed re-index returns its structured outcome",
+)
+
+mut(
+    "M35", "A16", "the typed-failure allowlist is per call site, so add's 422 stays a refusal",
+    SRC / "LiveControlAPIClient.swift",
+    "        if !typedFailureStatuses.contains(http.statusCode) {",
+    "        if false {",
+    "a router error carries its status, its message, and the hint",
+)
+
+# ---------------------------------------------------------------- concurrency and DELETE
+
+mut(
+    "M36", "A6", "rotation compares against the token that was SENT, not the cached copy",
+    SRC / "LiveControlAPIClient.swift",
+    "        guard let fresh = tokenFile.read(), fresh != sent else { return nil }",
+    "        guard let fresh = tokenFile.read(), fresh != cachedToken else { return nil }",
+    "two calls racing a rotation each retry once",
+)
+
+mut(
+    "M37", "A8", "a bodyless DELETE announces no body — the router exempts it by name",
+    SRC / "LiveControlAPIClient.swift",
+    "        if method.isMutating, body != nil || method != .delete {",
+    "        if method.isMutating {",
+    "a bodyless DELETE carries the token and announces no body",
 )
 
 RESULTS = []

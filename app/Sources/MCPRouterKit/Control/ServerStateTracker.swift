@@ -50,7 +50,10 @@ public actor ServerStateTracker {
     public func updates() -> AsyncStream<TrackerState> {
         AsyncStream { continuation in
             let id = UUID()
-            Task { await self.register(id, continuation) }
+            // No `await`: this `Task` inherits the actor's isolation, so the call is already on it.
+            // The termination handler below is a different matter — that closure is `@Sendable` and
+            // runs wherever the consumer let the stream go, so it genuinely has to hop back.
+            Task { self.register(id, continuation) }
             continuation.onTermination = { _ in Task { await self.unregister(id) } }
         }
     }

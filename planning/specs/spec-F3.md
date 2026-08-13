@@ -194,7 +194,7 @@ and the suite re-run. The harness is committed as `scripts/red-green.py` and is 
 `python3 scripts/red-green.py --json out.json`. It mutates **implementation only** — a mutation
 that edits a test proves nothing — and restores the file afterwards.
 
-**Result: 34 mutations, 34 killed.** First run killed only 17 of 29, and the twelve survivors are
+**Result: 38 mutations, 38 killed.** First run killed only 17 of 29, and the twelve survivors are
 the reason this pass exists. Three were real holes in the tests, three were my expectations being
 wrong about which test owns a clause, three were equivalent mutants, and three were harness faults.
 
@@ -270,6 +270,90 @@ Every row: the mutation was applied, the suite ran, the named test went red, the
 | M31 | A25 | the approved wording is the wording the client returns | `ControlAPIClient.swift` | the two whole-screen conditions read exactly as approved (+1) |
 | M32 | A22 | an in-flight authorization on the servers response is modelled, not dropped | `Models.swift` | every fixture round-trips without losing or inventing a field (+1) |
 | M33 | A21 | approve returns a count, not a server — F1's protocol assumed wrong | `Models.swift` | every fixture round-trips without losing or inventing a field (+1) |
+| M34 | A15 | a failed re-index returns its structured outcome, not a collapsed error | `LiveControlAPIClient.swift` | a failed re-index returns its structured outcome |
+| M35 | A16 | the typed-failure allowlist is per call site, so add's 422 stays a refusal | `LiveControlAPIClient.swift` | a router error carries its status, its message, and the hint |
+| M36 | A6 | rotation compares against the token that was SENT, not the cached copy | `LiveControlAPIClient.swift` | two calls racing a rotation each retry once |
+| M37 | A8 | a bodyless DELETE announces no body — the router exempts it by name | `LiveControlAPIClient.swift` | a bodyless DELETE carries the token and announces no body |
 
 **Gate after the pass:** `make all` exit **0** — tools, lint, macOS build, iOS build, and
-`executed 94 tests` (93 before, plus the defaults test G1 added).
+`executed 98 tests` (93 at the pause, plus five the pass and the gap-fix added).
+
+---
+
+## Gap-fix — 2026-08-14
+
+Audited the delivered code against A1–A25, then put it through the out-of-family completeness
+critic (`gpt-5.6-sol`, `max` effort, read-only). The critic found the one real contract break; the
+rest came from following its narrower-claim observations to their end.
+
+### The contract break (High) — a failed re-index could never be returned
+
+`POST /servers/:name/reindex` answers **`422 {name, tools, error}`** when indexing fails
+(`src/control.ts` ~line 326) — the *same* shape as its success, with `error` filled in. The client
+routed every non-2xx through the generic `{error, hint}` path, so `reindex()` threw
+`.server(status:message:hint:)` and `name` and `tools` were destroyed on the way out. A surface
+could say "something went wrong" but not "0 of them indexed, fetch failed, on this row".
+
+`ControlFixtureTests` decoded `reindex-failure.json` into `ReindexResult` and passed — because it
+decodes the file directly and never goes near the client. **Modelling a shape without a path that
+returns it** is the same defect the triage gate already caught once for the callable surface; it
+recurred here for an error variant, where it is harder to see.
+
+Fixed with a per-call-site `typedFailureStatuses` allowlist: `reindex` passes `[422]`, nothing else
+passes anything. Deliberately not "422 is fine everywhere" — a 422 from `add` is a genuine refusal
+whose `hint` is the sentence telling the user how to proceed, and decoding that as a typed success
+would swallow exactly the advice A16 exists to preserve. Both directions are now tested (M34, M35).
+
+### A real concurrency defect, found by taking the critic's question seriously
+
+The critic asked whether A6's "retry exactly once" survives *concurrent* calls. It did — but the
+answer was worse than a loop. `rotatedToken()` compared the re-read file against the client's own
+`cachedToken`, so with two panes refreshing at the same moment: both send token A, the router
+rotates to B, both get a 401, the first re-reads and stores B — and the second then finds B == B,
+concludes nothing had rotated, and reports **`.unauthorized` for a credential that was fine**. A
+spurious "re-pair" prompt that vanishes on the next refresh is close to the worst bug to be told
+about, because it never reproduces for whoever reads the report.
+
+Now compared against the token *that call actually sent*, so both retry once and both succeed. The
+loop guard is unchanged: an unchanged file still means the credential is simply wrong (M07, M36).
+
+### A19 was not met — `disabled` had no scenario
+
+`DESIGN.md` §5's nine states include **Disabled**. The double had twelve scenarios and a test
+asserting `count == 12`, described as "nine states plus three phases" — but the nine were only nine
+because `unauthorized`, which is *not* one of them, was silently standing in for the missing
+`disabled`. The arithmetic balanced, so the meta-guard passed.
+
+Fixed properly rather than by renaming something: a placard is the router's own declaration that a
+server is inoperative, carrying the reason and the substitute — exactly "dims in place with a
+discoverable reason". `scripts/capture-control-fixtures.sh` now PATCHes a placard and records
+`server-placarded.json` (captured from a real router, per A17), and `.disabled` serves it. The
+count is now 13 with the arithmetic spelled out, so the next omission cannot hide inside it.
+
+Adding the fixture immediately tripped the "no recording exists that nothing decodes" guard, which
+is the guard working: a recording with no decode test is dead weight that agrees with everything.
+
+### Two narrower-claim observations closed
+
+- **DELETE headers.** The router exempts `DELETE` from its content-type requirement by name
+  (`req.method !== 'DELETE' && !ct.startsWith('application/json')`). The client's branch was right,
+  but only GET was asserted, so the branch that decides it was untested. Now covered (M37).
+- **Fixture freshness.** All 24 committed fixtures were compared, key-path by key-path, against a
+  fresh capture from a live router: **24/24 shape-identical**. Values differ (timestamps, ports,
+  counters) and shapes do not, which is the A17 claim stated as a measurement rather than a hope.
+
+### Assessed and deliberately not changed
+
+- **Fixtures record bodies, not statuses.** A15's evidence type is a decode test per variant, which
+  the bodies satisfy; the status pairing is asserted separately in the client tests against
+  `src/control.ts`. Recording the status alongside each body would make the fixtures
+  self-describing, and is filed as a deferred child rather than done here.
+- **`RegistryInstall` carries `command` and `args`.** It is a *response* shape from
+  `/registry/search` — what a third-party index said about how to run something. No client
+  operation encodes it, and the only path to a command line on the wire is `NewServer` on
+  `POST /servers`, which is the endpoint whose entire purpose is to accept one. A20 holds.
+
+**Gates after the gap-fix:** `make all` exit **0**, `executed 98 tests`, zero compiler warnings in
+F3's own sources; red-green **38/38 killed**; `scripts/acceptance/control-client.sh` **3/3 against a
+real router**, and exit **2** (not 1) when the environment cannot run it.
+

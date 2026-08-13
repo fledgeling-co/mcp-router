@@ -33,6 +33,21 @@ struct NamedVector: Sendable {
     }
 }
 
+/// A vector that must carry a particular input, not merely exist under a particular name.
+struct PinnedInput: Sendable {
+    let file: String
+    let id: String
+    let member: String
+    let text: String
+
+    init(_ file: String, _ id: String, _ member: String, _ text: String) {
+        self.file = file
+        self.id = id
+        self.member = member
+        self.text = text
+    }
+}
+
 /// The corpus, and what each part of it is for.
 enum VectorRegistry {
     // MARK: - Named adversarial inputs (spec A40)
@@ -79,6 +94,53 @@ enum VectorRegistry {
         NamedVector("D3", "manifest-parse", "unknown-top-level-preserved"),
         NamedVector("D4", "log-line", "manifest-unreadable"),
         NamedVector("D5", "log-line", "server-index-failed")
+    ]
+
+    /// The sub-requirements the *acceptance clauses* name one by one, as opposed to the N and D
+    /// rows above.
+    ///
+    /// An out-of-family review made the distinction that earns this table its place: several
+    /// clauses list branches or cases explicitly — A26's six bookkeeping branches, A27's placard
+    /// and description cases, A28's five lexical inputs — and the tests iterated whatever the
+    /// corpus happened to contain. An easier corpus therefore passed them all. Requiring the cases
+    /// by name is the difference between "the vectors present were compared" and "the cases the
+    /// clause is about were compared".
+    static let clauseVectors: [NamedVector] = [
+        // A26 — every buildManifest branch, not merely the destructive one N8 already pins.
+        NamedVector("A26", "build-manifest", "first-sight-approves"),
+        NamedVector("A26", "build-manifest", "equal-digest-clears-error-and-pending"),
+        NamedVector("A26", "build-manifest", "changed-digest-holds-pending"),
+        NamedVector("A26", "build-manifest", "force-bypasses-staleness"),
+        NamedVector("A26", "build-manifest", "removed-upstreams-stay"),
+        NamedVector("A26", "build-manifest", "not-stale-is-skipped"),
+        // A27 — the placard rules and the empty-description fallback.
+        NamedVector("A27", "union-tools", "description-falls-back-to-name"),
+        NamedVector("A27", "union-tools", "declared-placard"),
+        NamedVector("A27", "union-tools", "entry-error-placard-with-tools"),
+        NamedVector("A27", "union-tools", "empty-error-no-placard"),
+        NamedVector("A27", "union-tools", "other-members-survive"),
+        // A28 — all five lexical cases, including the two the clause says are NOT normalised.
+        NamedVector("A28", "visible-to", "exact-match"),
+        NamedVector("A28", "visible-to", "dotdot-not-normalised"),
+        NamedVector("A28", "visible-to", "doubled-separator-not-normalised"),
+        NamedVector("A28", "visible-to", "case-sensitive"),
+        // A25 — the four entries that are CURRENT, which is the half a true-case test misses.
+        NamedVector("A25", "is-stale", "current-missing-digest"),
+        NamedVector("A25", "is-stale", "current-empty-tools"),
+        NamedVector("A25", "is-stale", "current-with-pending"),
+        NamedVector("A25", "is-stale", "current-empty-error")
+    ]
+
+    /// What a named vector must actually CONTAIN.
+    ///
+    /// Requiring an id proves a case with that name exists; it does not prove the case carries the
+    /// input the clause names. `split-1` could hold anything and still satisfy every check above,
+    /// which is the last way a corpus can keep its shape while losing its meaning.
+    static let pinnedInputs: [PinnedInput] = [
+        PinnedInput("split-tool-name", "split-1", "input", "a__b__c"), // N4, first separator
+        PinnedInput("split-tool-name", "split-2", "input", "a____b"), // N4, tool is __b
+        PinnedInput("visible-to", "trailing-slash-project", "cwd", "/a/b/c"), // N5
+        PinnedInput("visible-to", "prefix-needs-separator", "cwd", "/a/bc") // N5, must NOT match
     ]
 }
 
@@ -147,6 +209,47 @@ struct VectorRegistryTests {
         let covered = Set(VectorRegistry.namedVectors.map(\.row))
         for row in (1 ... 13).map({ "N\($0)" }) + (1 ... 5).map({ "D\($0)" }) {
             #expect(covered.contains(row), "\(row) has no named vector at all")
+        }
+    }
+
+    /// The clause-level sub-requirements. Separate from the N/D rows because these come from the
+    /// acceptance criteria enumerating branches, and a test that iterates whatever the corpus holds
+    /// passes just as happily on a corpus with the hard branches removed.
+    @Test("every case an acceptance clause names by hand is present")
+    func everyClauseNamedCaseIsPresent() throws {
+        var byFile: [String: Set<String>] = [:]
+        for registered in VectorRegistry.files {
+            let cases = try ManifestVectors.cases(registered.file)
+            byFile[registered.file] = Set(cases.compactMap { ManifestVectors.text($0.member("id")) })
+        }
+        for named in VectorRegistry.clauseVectors {
+            #expect(
+                byFile[named.file]?.contains(named.id) == true,
+                "\(named.row) needs \(named.file)/\(named.id), which is not in the corpus"
+            )
+        }
+    }
+
+    /// A named vector must carry the input its clause names, not merely the name.
+    ///
+    /// Everything above constrains the corpus's *shape* — which ids exist, that none duplicates
+    /// another, that each is compared. None of it constrains what an id contains, so `split-1`
+    /// could hold `x__y` and every check would still pass while N4's first-separator rule went
+    /// untested.
+    @Test("every pinned vector carries the exact input its clause names")
+    func pinnedVectorsCarryTheirInput() throws {
+        for pin in VectorRegistry.pinnedInputs {
+            let cases = try ManifestVectors.cases(pin.file)
+            guard let match = cases.first(where: {
+                ManifestVectors.text($0.member("id")) == pin.id
+            }) else {
+                Issue.record("\(pin.file)/\(pin.id) is not in the corpus")
+                continue
+            }
+            #expect(
+                ManifestVectors.text(match.member(pin.member)) == pin.text,
+                "\(pin.file)/\(pin.id) must carry \(pin.member) == \(pin.text)"
+            )
         }
     }
 

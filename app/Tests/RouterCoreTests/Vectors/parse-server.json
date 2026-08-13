@@ -1,0 +1,463 @@
+{
+  "description": "parseServer(name, raw) — the whole returned value, not only the decision.",
+  "cases": [
+    {
+      "id": "name-bad-charset",
+      "name": "has space",
+      "raw": {
+        "command": "x"
+      },
+      "reason": "name is not [A-Za-z0-9_-]+, so it cannot be a tool namespace",
+      "upstream": null,
+      "hash": null
+    },
+    {
+      "id": "name-dot",
+      "name": "a.b",
+      "raw": {
+        "command": "x"
+      },
+      "reason": "name is not [A-Za-z0-9_-]+, so it cannot be a tool namespace",
+      "upstream": null,
+      "hash": null
+    },
+    {
+      "id": "name-empty",
+      "name": "",
+      "raw": {
+        "command": "x"
+      },
+      "reason": "name is not [A-Za-z0-9_-]+, so it cannot be a tool namespace",
+      "upstream": null,
+      "hash": null
+    },
+    {
+      "id": "name-namespace-separator",
+      "name": "foo__bar",
+      "raw": {
+        "command": "x"
+      },
+      "reason": "name contains \"__\", which is the tool namespace separator",
+      "upstream": null,
+      "hash": null
+    },
+    {
+      "id": "stdio-no-command",
+      "name": "a",
+      "raw": {},
+      "reason": "stdio server has no command",
+      "upstream": null,
+      "hash": null
+    },
+    {
+      "id": "stdio-empty-command",
+      "name": "a",
+      "raw": {
+        "command": ""
+      },
+      "reason": "stdio server has no command",
+      "upstream": null,
+      "hash": null
+    },
+    {
+      "id": "http-no-url",
+      "name": "a",
+      "raw": {
+        "type": "http"
+      },
+      "reason": "http server has no url",
+      "upstream": null,
+      "hash": null
+    },
+    {
+      "id": "sse-no-url",
+      "name": "a",
+      "raw": {
+        "type": "sse"
+      },
+      "reason": "sse server has no url",
+      "upstream": null,
+      "hash": null
+    },
+    {
+      "id": "bad-url",
+      "name": "a",
+      "raw": {
+        "type": "http",
+        "url": "not a url"
+      },
+      "reason": "url is not parseable: not a url",
+      "upstream": null,
+      "hash": null
+    },
+    {
+      "id": "unsupported-transport",
+      "name": "a",
+      "raw": {
+        "type": "websocket",
+        "url": "http://x"
+      },
+      "reason": "unsupported transport \"websocket\"",
+      "upstream": null,
+      "hash": null
+    },
+    {
+      "id": "stdio-implicit",
+      "name": "a",
+      "raw": {
+        "command": "uvx",
+        "args": [
+          "docker-mcp"
+        ]
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "uvx",
+        "args": [
+          "docker-mcp"
+        ],
+        "env": {},
+        "cwd": null,
+        "url": null,
+        "headers": null,
+        "oauth": null,
+        "idleMs": null,
+        "startupTimeoutMs": null,
+        "projects": null,
+        "warm": null,
+        "placard": null
+      },
+      "hash": "1ec004b8c0c735d8"
+    },
+    {
+      "id": "http-implicit-from-url",
+      "name": "a",
+      "raw": {
+        "url": "https://example.com/mcp"
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "http",
+        "name": "a",
+        "command": null,
+        "args": null,
+        "env": null,
+        "cwd": null,
+        "url": "https://example.com/mcp",
+        "headers": {},
+        "oauth": null,
+        "idleMs": null,
+        "startupTimeoutMs": null,
+        "projects": null,
+        "warm": null,
+        "placard": null
+      },
+      "hash": "1dc92aff671aa519"
+    },
+    {
+      "id": "stdio-from-empty-url",
+      "name": "a",
+      "raw": {
+        "url": "",
+        "command": "x"
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {},
+        "cwd": null,
+        "url": null,
+        "headers": null,
+        "oauth": null,
+        "idleMs": null,
+        "startupTimeoutMs": null,
+        "projects": null,
+        "warm": null,
+        "placard": null
+      },
+      "hash": "580d0f895bc321a8"
+    },
+    {
+      "id": "sse-stays-sse",
+      "name": "a",
+      "raw": {
+        "type": "sse",
+        "url": "https://example.com/sse"
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "sse",
+        "name": "a",
+        "command": null,
+        "args": null,
+        "env": null,
+        "cwd": null,
+        "url": "https://example.com/sse",
+        "headers": {},
+        "oauth": null,
+        "idleMs": null,
+        "startupTimeoutMs": null,
+        "projects": null,
+        "warm": null,
+        "placard": null
+      },
+      "hash": "aa8008fe69d60ac7"
+    },
+    {
+      "id": "streamable-http-becomes-http",
+      "name": "a",
+      "raw": {
+        "type": "streamable-http",
+        "url": "https://e.com"
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "http",
+        "name": "a",
+        "command": null,
+        "args": null,
+        "env": null,
+        "cwd": null,
+        "url": "https://e.com",
+        "headers": {},
+        "oauth": null,
+        "idleMs": null,
+        "startupTimeoutMs": null,
+        "projects": null,
+        "warm": null,
+        "placard": null
+      },
+      "hash": "92e203f1d1fe65e3"
+    },
+    {
+      "id": "url-ftp-scheme-accepted",
+      "name": "a",
+      "raw": {
+        "type": "http",
+        "url": "ftp://host"
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "http",
+        "name": "a",
+        "command": null,
+        "args": null,
+        "env": null,
+        "cwd": null,
+        "url": "ftp://host",
+        "headers": {},
+        "oauth": null,
+        "idleMs": null,
+        "startupTimeoutMs": null,
+        "projects": null,
+        "warm": null,
+        "placard": null
+      },
+      "hash": "ca4426dc6ab2fd95"
+    },
+    {
+      "id": "command-whitespace-accepted",
+      "name": "a",
+      "raw": {
+        "command": "   "
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "   ",
+        "args": [],
+        "env": {},
+        "cwd": null,
+        "url": null,
+        "headers": null,
+        "oauth": null,
+        "idleMs": null,
+        "startupTimeoutMs": null,
+        "projects": null,
+        "warm": null,
+        "placard": null
+      },
+      "hash": "f1d3db345da5a0bd"
+    },
+    {
+      "id": "stdio-full",
+      "name": "a",
+      "raw": {
+        "command": "node",
+        "args": [
+          "s.js",
+          "--flag"
+        ],
+        "env": {
+          "B": "2",
+          "A": "1"
+        },
+        "cwd": "/tmp",
+        "idleMs": 1000,
+        "startupTimeoutMs": 2000,
+        "projects": [
+          "/a/b"
+        ],
+        "warm": true,
+        "placard": {
+          "reason": "broken",
+          "substitute": "other",
+          "until": "2026-01-01"
+        }
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "node",
+        "args": [
+          "s.js",
+          "--flag"
+        ],
+        "env": {
+          "B": "2",
+          "A": "1"
+        },
+        "cwd": "/tmp",
+        "url": null,
+        "headers": null,
+        "oauth": null,
+        "idleMs": 1000,
+        "startupTimeoutMs": 2000,
+        "projects": [
+          "/a/b"
+        ],
+        "warm": true,
+        "placard": {
+          "reason": "broken",
+          "substitute": "other",
+          "until": "2026-01-01"
+        }
+      },
+      "hash": "8c80029f614831f8"
+    },
+    {
+      "id": "http-full",
+      "name": "a",
+      "raw": {
+        "type": "http",
+        "url": "https://e.com",
+        "headers": {
+          "Z": "z",
+          "A": "a"
+        },
+        "oauth": false,
+        "idleMs": 5,
+        "projects": [],
+        "warm": false
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "http",
+        "name": "a",
+        "command": null,
+        "args": null,
+        "env": null,
+        "cwd": null,
+        "url": "https://e.com",
+        "headers": {
+          "Z": "z",
+          "A": "a"
+        },
+        "oauth": false,
+        "idleMs": 5,
+        "startupTimeoutMs": null,
+        "projects": [],
+        "warm": false,
+        "placard": null
+      },
+      "hash": "f43a0f25558f4b30"
+    },
+    {
+      "id": "stdio-defaults-empty-collections",
+      "name": "a",
+      "raw": {
+        "command": "x"
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {},
+        "cwd": null,
+        "url": null,
+        "headers": null,
+        "oauth": null,
+        "idleMs": null,
+        "startupTimeoutMs": null,
+        "projects": null,
+        "warm": null,
+        "placard": null
+      },
+      "hash": "580d0f895bc321a8"
+    },
+    {
+      "id": "http-defaults-empty-headers",
+      "name": "a",
+      "raw": {
+        "type": "http",
+        "url": "http://x"
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "http",
+        "name": "a",
+        "command": null,
+        "args": null,
+        "env": null,
+        "cwd": null,
+        "url": "http://x",
+        "headers": {},
+        "oauth": null,
+        "idleMs": null,
+        "startupTimeoutMs": null,
+        "projects": null,
+        "warm": null,
+        "placard": null
+      },
+      "hash": "91facf1233cb8a71"
+    },
+    {
+      "id": "unknown-fields-ignored",
+      "name": "a",
+      "raw": {
+        "command": "x",
+        "nonsense": 1,
+        "alsoNonsense": {
+          "q": 2
+        }
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {},
+        "cwd": null,
+        "url": null,
+        "headers": null,
+        "oauth": null,
+        "idleMs": null,
+        "startupTimeoutMs": null,
+        "projects": null,
+        "warm": null,
+        "placard": null
+      },
+      "hash": "580d0f895bc321a8"
+    }
+  ]
+}

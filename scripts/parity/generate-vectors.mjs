@@ -18,7 +18,10 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..', '..');
-const outDir = join(repoRoot, 'app', 'Tests', 'RouterCoreTests', 'Vectors');
+// A git worktree carries no `dist/` or `node_modules/` of its own — both are ignored — so the
+// reference can be driven from the main checkout while the vectors are written into the branch.
+const distDir = process.env.MCP_ROUTER_DIST ?? join(repoRoot, 'dist');
+const outDir = process.env.MCP_ROUTER_VECTORS ?? join(repoRoot, 'app', 'Tests', 'RouterCoreTests', 'Vectors');
 mkdirSync(outDir, { recursive: true });
 
 const write = (name, payload) => {
@@ -118,3 +121,160 @@ write('string-ordering', {
 });
 
 console.log(`\nwrote vectors to ${outDir}`);
+
+// ---------------------------------------------------------------- config layer
+//
+// From here on the reference itself is driven, so these vectors record what `src/config.ts`
+// does rather than what anyone believes it does.
+const config = require(join(distDir, 'config.js'));
+
+// Every field of the returned upstream, not just the accept/reject decision — a port that
+// reproduces the decisions and drops `projects` or `placard` changes routing while passing a
+// decision-only check.
+const projectUpstream = (u) => ({
+  transport: u.transport,
+  name: u.name,
+  command: u.command ?? null,
+  args: u.args ?? null,
+  env: u.env ?? null,
+  cwd: u.cwd ?? null,
+  url: u.url ?? null,
+  headers: u.headers ?? null,
+  oauth: u.oauth ?? null,
+  idleMs: u.idleMs ?? null,
+  startupTimeoutMs: u.startupTimeoutMs ?? null,
+  projects: u.projects ?? null,
+  warm: u.warm ?? null,
+  placard: u.placard ?? null
+});
+
+const serverCases = [
+  // Rejections, one per path.
+  { id: 'name-bad-charset', name: 'has space', raw: { command: 'x' } },
+  { id: 'name-dot', name: 'a.b', raw: { command: 'x' } },
+  { id: 'name-empty', name: '', raw: { command: 'x' } },
+  { id: 'name-namespace-separator', name: 'foo__bar', raw: { command: 'x' } },
+  { id: 'stdio-no-command', name: 'a', raw: {} },
+  { id: 'stdio-empty-command', name: 'a', raw: { command: '' } },
+  { id: 'http-no-url', name: 'a', raw: { type: 'http' } },
+  { id: 'sse-no-url', name: 'a', raw: { type: 'sse' } },
+  { id: 'bad-url', name: 'a', raw: { type: 'http', url: 'not a url' } },
+  { id: 'unsupported-transport', name: 'a', raw: { type: 'websocket', url: 'http://x' } },
+
+  // Transport selection, including the awkward cases.
+  { id: 'stdio-implicit', name: 'a', raw: { command: 'uvx', args: ['docker-mcp'] } },
+  { id: 'http-implicit-from-url', name: 'a', raw: { url: 'https://example.com/mcp' } },
+  { id: 'stdio-from-empty-url', name: 'a', raw: { url: '', command: 'x' } },
+  { id: 'sse-stays-sse', name: 'a', raw: { type: 'sse', url: 'https://example.com/sse' } },
+  { id: 'streamable-http-becomes-http', name: 'a', raw: { type: 'streamable-http', url: 'https://e.com' } },
+  { id: 'url-ftp-scheme-accepted', name: 'a', raw: { type: 'http', url: 'ftp://host' } },
+  { id: 'command-whitespace-accepted', name: 'a', raw: { command: '   ' } },
+
+  // Whole-value fidelity.
+  { id: 'stdio-full', name: 'a', raw: {
+    command: 'node', args: ['s.js', '--flag'], env: { B: '2', A: '1' }, cwd: '/tmp',
+    idleMs: 1000, startupTimeoutMs: 2000, projects: ['/a/b'], warm: true,
+    placard: { reason: 'broken', substitute: 'other', until: '2026-01-01' } } },
+  { id: 'http-full', name: 'a', raw: {
+    type: 'http', url: 'https://e.com', headers: { Z: 'z', A: 'a' }, oauth: false,
+    idleMs: 5, projects: [], warm: false } },
+  { id: 'stdio-defaults-empty-collections', name: 'a', raw: { command: 'x' } },
+  { id: 'http-defaults-empty-headers', name: 'a', raw: { type: 'http', url: 'http://x' } },
+  { id: 'unknown-fields-ignored', name: 'a', raw: { command: 'x', nonsense: 1, alsoNonsense: { q: 2 } } }
+];
+
+write('parse-server', {
+  description: 'parseServer(name, raw) — the whole returned value, not only the decision.',
+  cases: serverCases.map(({ id, name, raw }) => {
+    const parsed = config.parseServer(name, raw);
+    return {
+      id,
+      name,
+      raw,
+      reason: 'reason' in parsed ? parsed.reason : null,
+      upstream: 'upstream' in parsed ? projectUpstream(parsed.upstream) : null,
+      hash: 'upstream' in parsed ? config.upstreamHash(parsed.upstream) : null
+    };
+  })
+});
+
+// upstreamHash — the adversarial set. Named vectors for N1 and N2, plus the exclusion rule.
+const hashCases = [
+  { id: 'stdio-basic', u: { transport: 'stdio', name: 'a', command: 'uvx', args: ['docker-mcp'], env: {} } },
+  { id: 'env-value-changes-hash', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: { MODE: 'one' } } },
+  { id: 'env-value-changed', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: { MODE: 'two' } } },
+  { id: 'env-key-order-irrelevant-a', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: { A: '1', B: '2' } } },
+  { id: 'env-key-order-irrelevant-b', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: { B: '2', A: '1' } } },
+  // N1 — UTF-16 code-unit ordering. Sorting these by Unicode scalar inverts them.
+  { id: 'env-utf16-ordering', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: { '\u{1F600}': 'emoji', '\uE000': 'private' } } },
+  // N2 — argument order is significant and must never be sorted.
+  { id: 'args-order-za', u: { transport: 'stdio', name: 'a', command: 'x', args: ['z', 'a'], env: {} } },
+  { id: 'args-order-az', u: { transport: 'stdio', name: 'a', command: 'x', args: ['a', 'z'], env: {} } },
+  { id: 'cwd-absent', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: {} } },
+  { id: 'cwd-present', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: {}, cwd: '/tmp' } },
+  // The exclusion rule: none of these may change the hash.
+  { id: 'excluded-name', u: { transport: 'stdio', name: 'different', command: 'x', args: [], env: {} } },
+  { id: 'excluded-warm', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: {}, warm: true } },
+  { id: 'excluded-idle', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: {}, idleMs: 99 } },
+  { id: 'excluded-projects', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: {}, projects: ['/x'] } },
+  { id: 'excluded-placard', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: {}, placard: { reason: 'r' } } },
+  // http and sse must differ even with an identical url.
+  { id: 'http-transport', u: { transport: 'http', name: 'a', url: 'https://e.com', headers: {} } },
+  { id: 'sse-transport', u: { transport: 'sse', name: 'a', url: 'https://e.com', headers: {} } },
+  { id: 'header-utf16-ordering', u: { transport: 'http', name: 'a', url: 'https://e.com', headers: { '\u{1F600}': 'e', '\uE000': 'p' } } },
+  { id: 'excluded-oauth', u: { transport: 'http', name: 'a', url: 'https://e.com', headers: {}, oauth: true } }
+];
+
+write('upstream-hash', {
+  description: 'upstreamHash(upstream) — sha256 over JSON.stringify of the material, sliced to 16.',
+  cases: hashCases.map(({ id, u }) => ({ id, upstream: u, hash: config.upstreamHash(u) }))
+});
+
+// isSelfReference — including the default-port trap (N9).
+const selfCases = [
+  { id: 'by-name-mcp-router', name: 'mcp-router', raw: {}, port: 8879 },
+  { id: 'by-name-router', name: 'router', raw: {}, port: 8879 },
+  { id: 'name-case-sensitive', name: 'MCP-Router', raw: {}, port: 8879 },
+  { id: 'loopback-matching-port', name: 'x', raw: { url: 'http://127.0.0.1:8879/mcp' }, port: 8879 },
+  { id: 'localhost-matching-port', name: 'x', raw: { url: 'http://localhost:8879/mcp' }, port: 8879 },
+  { id: 'ipv6-matching-port', name: 'x', raw: { url: 'http://[::1]:8879/mcp' }, port: 8879 },
+  { id: 'loopback-other-port', name: 'x', raw: { url: 'http://127.0.0.1:9999/mcp' }, port: 8879 },
+  { id: 'default-port-80', name: 'x', raw: { url: 'http://localhost:80' }, port: 80 },
+  { id: 'default-port-443', name: 'x', raw: { url: 'https://localhost:443' }, port: 443 },
+  { id: 'not-loopback-127-0-0-2', name: 'x', raw: { url: 'http://127.0.0.2:8879' }, port: 8879 },
+  { id: 'not-loopback-any-address', name: 'x', raw: { url: 'http://0.0.0.0:8879' }, port: 8879 },
+  { id: 'not-loopback-hostname', name: 'x', raw: { url: 'http://mcp-router.example:8879' }, port: 8879 },
+  { id: 'no-url', name: 'x', raw: { command: 'y' }, port: 8879 },
+  { id: 'unparseable-url', name: 'x', raw: { url: 'not a url' }, port: 8879 }
+];
+
+write('self-reference', {
+  description: 'isSelfReference(name, raw, port).',
+  cases: selfCases.map(({ id, name, raw, port }) => ({
+    id, name, raw, port, result: config.isSelfReference(name, raw, port)
+  }))
+});
+
+// The URL reader, compared against `new URL()` directly — this is what decides both the
+// parseability rejection and the self-reference port comparison.
+const urlCases = [
+  'http://localhost:8879/mcp', 'http://localhost:80', 'https://localhost:443',
+  'https://example.com', 'ftp://host', 'mailto:a@b', 'file:///tmp/x',
+  'http://[::1]:8879', 'http://user:pass@host:1234/p', 'http://HOST.example',
+  'not a url', 'http://', '//host', 'http:/example.com', 'x://y', '1http://y',
+  'http://host:0', 'http://host:00080'
+];
+
+write('url-parse', {
+  description: 'new URL(input) — parseability, hostname, and the port AS REPORTED.',
+  cases: urlCases.map((input, index) => {
+    try {
+      const u = new URL(input);
+      return { id: `url-${index}`, input, ok: true, hostname: u.hostname, port: u.port };
+    } catch {
+      return { id: `url-${index}`, input, ok: false, hostname: null, port: null };
+    }
+  })
+});
+
+console.log(`\nwrote config vectors to ${outDir}`);

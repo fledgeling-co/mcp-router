@@ -1,0 +1,131 @@
+{
+  "description": "new URL(input) — parseability, hostname, and the port AS REPORTED.",
+  "cases": [
+    {
+      "id": "url-0",
+      "input": "http://localhost:8879/mcp",
+      "ok": true,
+      "hostname": "localhost",
+      "port": "8879"
+    },
+    {
+      "id": "url-1",
+      "input": "http://localhost:80",
+      "ok": true,
+      "hostname": "localhost",
+      "port": ""
+    },
+    {
+      "id": "url-2",
+      "input": "https://localhost:443",
+      "ok": true,
+      "hostname": "localhost",
+      "port": ""
+    },
+    {
+      "id": "url-3",
+      "input": "https://example.com",
+      "ok": true,
+      "hostname": "example.com",
+      "port": ""
+    },
+    {
+      "id": "url-4",
+      "input": "ftp://host",
+      "ok": true,
+      "hostname": "host",
+      "port": ""
+    },
+    {
+      "id": "url-5",
+      "input": "mailto:a@b",
+      "ok": true,
+      "hostname": "",
+      "port": ""
+    },
+    {
+      "id": "url-6",
+      "input": "file:///tmp/x",
+      "ok": true,
+      "hostname": "",
+      "port": ""
+    },
+    {
+      "id": "url-7",
+      "input": "http://[::1]:8879",
+      "ok": true,
+      "hostname": "[::1]",
+      "port": "8879"
+    },
+    {
+      "id": "url-8",
+      "input": "http://user:pass@host:1234/p",
+      "ok": true,
+      "hostname": "host",
+      "port": "1234"
+    },
+    {
+      "id": "url-9",
+      "input": "http://HOST.example",
+      "ok": true,
+      "hostname": "host.example",
+      "port": ""
+    },
+    {
+      "id": "url-10",
+      "input": "not a url",
+      "ok": false,
+      "hostname": null,
+      "port": null
+    },
+    {
+      "id": "url-11",
+      "input": "http://",
+      "ok": false,
+      "hostname": null,
+      "port": null
+    },
+    {
+      "id": "url-12",
+      "input": "//host",
+      "ok": false,
+      "hostname": null,
+      "port": null
+    },
+    {
+      "id": "url-13",
+      "input": "http:/example.com",
+      "ok": true,
+      "hostname": "example.com",
+      "port": ""
+    },
+    {
+      "id": "url-14",
+      "input": "x://y",
+      "ok": true,
+      "hostname": "y",
+      "port": ""
+    },
+    {
+      "id": "url-15",
+      "input": "1http://y",
+      "ok": false,
+      "hostname": null,
+      "port": null
+    },
+    {
+      "id": "url-16",
+      "input": "http://host:0",
+      "ok": true,
+      "hostname": "host",
+      "port": "0"
+    },
+    {
+      "id": "url-17",
+      "input": "http://host:00080",
+      "ok": true,
+      "hostname": "host",
+      "port": ""
+    }
+  ]
+}

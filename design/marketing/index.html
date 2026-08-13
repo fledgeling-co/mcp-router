@@ -1,0 +1,777 @@
+<!doctype html>
+<!--
+  mcp-router — single-page marketing site.
+
+  Direction contract
+  ------------------
+  Visitor mode : Persuade. Audience is non-technical; they must understand the
+                 problem and why the fix works without knowing what MCP is. The
+                 words "process", "stdio" and "MCP server" therefore do not
+                 appear in body copy. Tools, windows, wires.
+  World        : the product's own icon. A dark gel-glass manifold, cool glass
+                 conduits converging into one hub with a single branch lit amber.
+                 Palette lifted exactly from design/icon/build_icon.py.
+  Type         : the reader's own system face. This is a macOS tool sold to Mac
+                 users, so -apple-system resolves to SF Pro on every machine that
+                 matters, which is the authentic face rather than the nearest
+                 installed one. Character comes from scale, tracking and the
+                 amber accent; JetBrains Mono carries genuine code and numerals.
+                 Stated as a choice, not reached for as a default.
+  Bold on      : motion and material. Restrained everywhere else.
+  Motion       : GSAP + ScrollTrigger scrubs the argument; three.js is used once,
+                 in the hero, and nowhere else. Every claim renders from its own
+                 static state, so nothing lives only inside an animation and the
+                 reduced-motion branch loses no information.
+
+  Reference trawl (Mobbin, sections, web)
+  took : Hermes Agent — install command as a labelled bordered field, not a naked
+         code block; one dominant artefact opposite the type; tiny tracked caps eyebrow.
+         Antimetal — near-black ground carrying one softly-lit object; plain humane headline.
+         Linear — centred section header with a small glyph badge above it.
+  left : 1Password's isometric line-art world (fights an animated hero);
+         Shopify Editions' giant display wordmark stack (shouting, wrong register
+         for a quiet utility); Cursor's laptop-screenshot hero (this product's
+         entire point is that there is nothing to show).
+-->
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mcp-router — nothing runs until you use it</title>
+<meta name="description" content="Claude Code starts every tool you have connected, every time you open it. mcp-router starts one only when you actually use it, and puts it back to sleep when you stop.">
+<link rel="icon" href="assets/icon-256.png">
+<meta property="og:title" content="mcp-router — nothing runs until you use it">
+<meta property="og:description" content="190 programs running. About 12 GB of memory. Most never used once. One shared switchboard fixes it, and it takes your existing setup with it.">
+<meta property="og:image" content="assets/banner.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────── tokens */
+:root{
+  /* ground, straight off the icon */
+  --ink-000:#0E0D16; --ink-050:#14121F; --ink-100:#1A1826;
+  --ink-200:#211E33; --ink-300:#2C2942; --ink-400:#3A3654;
+
+  /* glass */
+  --glass-lit:#C4C2E4; --glass:#A5A2CE; --glass-mid:#7C79A6; --glass-dim:#57547B;
+
+  /* the one warm accent, reserved for the live branch and nothing else */
+  --amber-100:#FFDF9B; --amber-200:#FDBB5F; --amber-300:#EF9A31; --amber-bloom:#FFB74D;
+
+  --fg:#EFEDFA; --fg-2:#A8A5C6; --fg-3:#7A7799;
+
+  --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:24px;
+  --s-6:32px; --s-7:48px; --s-8:64px; --s-9:96px; --s-10:144px;
+
+  --r-sm:8px; --r-md:14px; --r-lg:22px; --r-xl:34px;
+
+  --ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --shadow:0 18px 44px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.4);
+  --maxw:1120px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0; background:var(--ink-050); color:var(--fg);
+  font:400 17px/1.62 var(--ui); letter-spacing:-.006em;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+
+/* the browser chrome wears the design too */
+::selection{background:var(--amber-300); color:var(--ink-000)}
+::-webkit-scrollbar{width:11px}
+::-webkit-scrollbar-track{background:var(--ink-000)}
+::-webkit-scrollbar-thumb{background:var(--ink-400); border-radius:99px; border:3px solid var(--ink-000)}
+::-webkit-scrollbar-thumb:hover{background:var(--glass-dim)}
+:focus-visible{outline:2px solid var(--amber-200); outline-offset:3px; border-radius:var(--r-sm)}
+a{color:var(--fg); text-underline-offset:.22em; text-decoration-thickness:1px}
+
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 var(--s-6)}
+.mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+
+/* ─────────────────────────────────────────────── type scale */
+h1,h2,h3{margin:0; font-weight:640; letter-spacing:-.028em; line-height:1.04}
+h1{font-size:clamp(40px,4.9vw,66px)}
+h2{font-size:clamp(32px,4.4vw,54px); letter-spacing:-.026em}
+h3{font-size:20px; letter-spacing:-.014em; line-height:1.3}
+p{margin:0}
+.lede{font-size:clamp(18px,2vw,21px); line-height:1.6; color:var(--fg-2); letter-spacing:-.008em}
+.eyebrow{
+  font:500 11px/1 var(--mono); letter-spacing:.16em; text-transform:uppercase;
+  color:var(--glass-mid); display:flex; align-items:center; gap:var(--s-3);
+}
+.eyebrow::before{content:""; width:22px; height:1px; background:var(--glass-dim)}
+
+/* ─────────────────────────────────────────────── nav */
+.nav{
+  position:fixed; inset:0 0 auto 0; z-index:60; height:62px;
+  display:flex; align-items:center;
+  background:rgba(20,18,31,.62); backdrop-filter:saturate(180%) blur(22px);
+  border-bottom:1px solid rgba(196,194,228,.07);
+  transform:translateY(-100%); transition:transform .45s var(--ease);
+}
+.nav.on{transform:none}
+.nav .wrap{display:flex; align-items:center; gap:var(--s-4); width:100%}
+.nav img{width:26px; height:26px; border-radius:7px; display:block}
+.nav b{font-size:15px; font-weight:600; letter-spacing:-.01em}
+.nav .sp{flex:1}
+.nav a{font-size:14px; color:var(--fg-2); text-decoration:none; transition:color .2s var(--ease)}
+.nav a:hover{color:var(--fg)}
+
+/* ─────────────────────────────────────────────── hero */
+.hero{position:relative; min-height:100svh; display:flex; align-items:center; padding:var(--s-8) 0}
+/* Ambient in CSS, not in WebGL. The three.js layer sits on top of this and
+   deepens it; if WebGL is unavailable the hero is still lit rather than flat. */
+.hero::before{
+  content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(58% 52% at 72% 46%, rgba(239,154,49,.13), transparent 68%),
+    radial-gradient(72% 64% at 22% 26%, rgba(124,121,166,.16), transparent 72%),
+    radial-gradient(100% 88% at 50% 0%, var(--ink-200), transparent 62%);
+}
+#stage{position:absolute; inset:0; z-index:0; opacity:.4}
+/* A scrim over the WebGL layer, not under it. The manifold is atmosphere; the
+   headline has to win regardless of where the rig happens to be turned. */
+.hero::after{
+  content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:linear-gradient(90deg, var(--ink-050) 4%, rgba(20,18,31,.82) 38%, rgba(20,18,31,0) 64%);
+}
+.hero .wrap{position:relative; z-index:1; display:grid; grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr); gap:var(--s-7); align-items:center}
+.hero-copy{display:flex; flex-direction:column; gap:var(--s-5); max-width:40ch}
+.hero h1 .warm{
+  background:linear-gradient(96deg,var(--amber-100),var(--amber-300));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.hero-art{position:relative; aspect-ratio:1; display:grid; place-items:center}
+/* height:auto is load-bearing: the img carries width/height attributes so the
+   browser can reserve the box before the PNG lands, and without this the
+   attribute height overrides the CSS width and stretches the square. */
+.hero-art img{width:min(74%,380px); height:auto; filter:drop-shadow(0 30px 60px rgba(0,0,0,.6))}
+
+/* the install field, from the Hermes reference: labelled and bordered, not naked */
+.install{width:100%; max-width:560px}
+.install-label{font:500 11px/1 var(--mono); letter-spacing:.14em; text-transform:uppercase; color:var(--fg-3); margin-bottom:var(--s-3)}
+.cmd{
+  display:flex; align-items:stretch; gap:0;
+  background:var(--ink-000); border:1px solid rgba(196,194,228,.13); border-radius:var(--r-md);
+  overflow:hidden; box-shadow:inset 0 1px 0 rgba(196,194,228,.06);
+  transition:border-color .25s var(--ease), box-shadow .25s var(--ease);
+}
+.cmd:hover{border-color:rgba(196,194,228,.24)}
+.cmd:focus-within{border-color:var(--amber-300); box-shadow:0 0 0 3px rgba(239,154,49,.16)}
+/* The command wraps rather than scrolling. A hidden horizontal scroller cuts the
+   URL mid-word with no affordance that there is more, which reads as broken to
+   exactly the reader this page is written for. Two visible lines beats one
+   truncated one. */
+.cmd code{
+  flex:1; min-width:0; padding:14px var(--s-4); font:400 13px/1.62 var(--mono);
+  color:var(--glass-lit); white-space:pre-wrap; overflow-wrap:anywhere;
+}
+.cmd code .dim{color:var(--fg-3)}
+.cmd code .warm{color:var(--amber-200)}
+.copy{
+  flex:none; width:52px; border:0; border-left:1px solid rgba(196,194,228,.11);
+  background:transparent; color:var(--fg-2); cursor:pointer; display:grid; place-items:center;
+  transition:background .2s var(--ease), color .2s var(--ease);
+}
+.copy:hover{background:rgba(196,194,228,.07); color:var(--fg)}
+.copy:active{background:rgba(196,194,228,.13)}
+.copy.done{color:var(--amber-200)}
+.copy svg{width:16px; height:16px; transition:transform .3s var(--ease)}
+.copy.done svg{transform:scale(1.12)}
+.note{font-size:13px; color:var(--fg-3); margin-top:var(--s-3)}
+.note code{font-family:var(--mono); font-size:12px; color:var(--glass-mid)}
+
+/* ─────────────────────────────────────────────── stat row */
+.stats{display:flex; flex-wrap:wrap; gap:var(--s-7); padding-top:var(--s-2)}
+.stat b{display:block; font:700 30px/1 var(--mono); letter-spacing:-.03em; color:var(--fg)}
+.stat b.warm{color:var(--amber-200)}
+.stat span{display:block; font-size:12.5px; color:var(--fg-3); margin-top:6px; letter-spacing:.005em}
+
+/* ─────────────────────────────────────────────── sections */
+section{position:relative; padding:104px 0}
+.band{background:var(--ink-100); border-block:1px solid rgba(196,194,228,.055)}
+.band-deep{background:var(--ink-000)}
+.head{max-width:64ch; display:flex; flex-direction:column; gap:var(--s-4); margin-bottom:var(--s-8)}
+.head.mid{margin-inline:auto; text-align:center; align-items:center}
+.head.mid .eyebrow::before{display:none}
+
+/* ─────────────────────────────────────────────── the swarm */
+.swarm-shell{
+  position:relative; border-radius:var(--r-xl); background:var(--ink-000);
+  border:1px solid rgba(196,194,228,.08); padding:var(--s-7);
+  box-shadow:var(--shadow);
+}
+.swarm-top{display:flex; align-items:baseline; justify-content:space-between; gap:var(--s-5); margin-bottom:var(--s-6); flex-wrap:wrap}
+.swarm-count{font:700 clamp(40px,7vw,84px)/1 var(--mono); letter-spacing:-.04em; color:var(--fg)}
+.swarm-count.calm{color:var(--amber-200)}
+.swarm-unit{font-size:13px; color:var(--fg-3); margin-left:var(--s-3)}
+.mem{min-width:230px; flex:1; max-width:340px}
+.mem-label{display:flex; justify-content:space-between; font:500 11px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase; color:var(--fg-3); margin-bottom:var(--s-2)}
+.mem-track{height:7px; border-radius:99px; background:rgba(196,194,228,.09); overflow:hidden}
+.mem-fill{height:100%; width:0%; border-radius:99px; background:linear-gradient(90deg,var(--glass-dim),var(--glass))}
+#dots{display:grid; grid-template-columns:repeat(auto-fill,minmax(15px,1fr)); gap:7px}
+.dot{aspect-ratio:1; border-radius:50%; background:var(--glass-dim)}
+.dot.used{background:var(--amber-300)}
+.swarm-key{display:flex; gap:var(--s-6); margin-top:var(--s-6); font-size:12.5px; color:var(--fg-3); flex-wrap:wrap}
+.swarm-key i{width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:7px; vertical-align:baseline}
+
+/* ─────────────────────────────────────────────── wires diagram */
+.wires{display:grid; gap:var(--s-6); grid-template-columns:1fr 1fr; align-items:center}
+.wires figure{margin:0; background:var(--ink-000); border:1px solid rgba(196,194,228,.08); border-radius:var(--r-lg); padding:var(--s-6); box-shadow:var(--shadow)}
+.wires svg{width:100%; height:auto; display:block}
+.wires figcaption{margin-top:var(--s-5); font-size:14.5px; color:var(--fg-2); line-height:1.55}
+.wires figcaption b{color:var(--fg); font-weight:600}
+
+/* ─────────────────────────────────────────────── steps */
+.steps{display:grid; gap:var(--s-5); grid-template-columns:repeat(3,1fr); counter-reset:step}
+.step{
+  position:relative; background:var(--ink-100); border:1px solid rgba(196,194,228,.08);
+  border-radius:var(--r-lg); padding:var(--s-6);
+  transition:border-color .3s var(--ease), transform .3s var(--ease);
+}
+.step:hover{border-color:rgba(196,194,228,.2); transform:translateY(-3px)}
+.step .n{
+  font:700 12px/1 var(--mono); color:var(--amber-200); letter-spacing:.1em;
+  display:block; margin-bottom:var(--s-4);
+}
+.step h3{margin-bottom:var(--s-3)}
+.step p{font-size:15px; color:var(--fg-2); line-height:1.6}
+
+/* ─────────────────────────────────────────────── the vanishing config */
+.migrate{position:relative; display:grid; grid-template-columns:1fr 92px 1fr; gap:var(--s-4); align-items:center}
+.pane{background:var(--ink-000); border:1px solid rgba(196,194,228,.09); border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--shadow)}
+.pane-bar{
+  display:flex; align-items:center; gap:7px; padding:11px var(--s-4);
+  border-bottom:1px solid rgba(196,194,228,.07); background:rgba(196,194,228,.03);
+}
+.pane-bar i{width:9px; height:9px; border-radius:50%; background:var(--ink-400)}
+.pane-bar span{font:500 11.5px/1 var(--mono); color:var(--fg-3); margin-left:var(--s-2)}
+.pane-body{padding:var(--s-4); min-height:196px; display:flex; flex-direction:column; gap:7px}
+.row{
+  display:flex; align-items:center; gap:var(--s-3); padding:9px var(--s-3);
+  border-radius:var(--r-sm); background:rgba(196,194,228,.05);
+  font:400 12.5px/1 var(--mono); color:var(--glass);
+}
+.row i{width:7px; height:7px; border-radius:50%; background:var(--glass-dim); flex:none}
+.row.new{background:rgba(239,154,49,.13); color:var(--amber-100)}
+.row.new i{background:var(--amber-300)}
+.row.ghost{opacity:.5}
+.row .tag{margin-left:auto; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--amber-200)}
+.row.ghost .tag{color:var(--glass-mid)}
+/* The travelling copy. A clone, so the rows in both panes are permanent and the
+   diagram tells the whole story at rest as well as mid-animation. It carries no
+   tag of its own and lifts off the surface, so it never doubles the text of the
+   row it launched from. */
+.flyer{
+  position:absolute; pointer-events:none; z-index:5; margin:0;
+  box-shadow:0 14px 30px rgba(0,0,0,.6);
+  background:rgba(239,154,49,.22);
+}
+.flyer .tag{display:none}
+.migrate-arrow{display:grid; place-items:center; color:var(--glass-mid)}
+.migrate-arrow svg{width:38px; height:38px}
+
+/* ─────────────────────────────────────────────── close */
+.close{text-align:center; padding:112px 0 88px}
+/* A shell command is left-aligned even when its section is centred. Ragged
+   centred monospace reads as broken text rather than as a command. */
+.close .cmd code{text-align:left}
+.close .install{margin:var(--s-7) auto 0}
+.close-links{display:flex; gap:var(--s-6); justify-content:center; margin-top:var(--s-7); flex-wrap:wrap; font-size:14.5px}
+.close-links a{color:var(--fg-2); text-decoration:none; display:inline-flex; align-items:center; gap:7px; transition:color .2s var(--ease)}
+.close-links a:hover{color:var(--amber-200)}
+footer{padding:var(--s-6) 0 var(--s-8); border-top:1px solid rgba(196,194,228,.06); font-size:13px; color:var(--fg-3)}
+footer .wrap{display:flex; justify-content:space-between; gap:var(--s-4); flex-wrap:wrap}
+
+/* ─────────────────────────────────────────────── responsive */
+@media (max-width:900px){
+  .hero .wrap{grid-template-columns:1fr; gap:var(--s-7)}
+  .hero-art{order:-1; aspect-ratio:16/10}
+  .hero-art img{width:min(52%,240px)}
+  /* Portrait puts the rig directly behind the copy, so it drops to atmosphere
+     and the scrim runs vertically instead of across. */
+  #stage{opacity:.2}
+  .hero::after{background:linear-gradient(180deg, rgba(20,18,31,.25) 0%, rgba(20,18,31,.9) 34%, var(--ink-050) 70%)}
+  .wires,.migrate{grid-template-columns:1fr}
+  .migrate-arrow{transform:rotate(90deg); height:56px}
+  .steps{grid-template-columns:1fr}
+  section{padding:var(--s-9) 0}
+}
+@media (max-width:520px){
+  .wrap{padding:0 var(--s-5)}
+  .stats{gap:var(--s-6)}
+  .swarm-shell{padding:var(--s-5)}
+}
+
+/* Static baseline: every element above is visible, and every claim readable,
+   with no JS and no motion. GSAP sets its own hidden start states below, so a
+   blocked CDN or a failed script leaves a complete page rather than a blank one. */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important; transition:none !important}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="wrap">
+    <img src="assets/icon-256.png" alt="" width="26" height="26">
+    <b>mcp-router</b>
+    <span class="sp"></span>
+    <a href="#how">How it works</a>
+    <a href="#setup">Setup</a>
+    <a href="https://github.com/fledgeling-co/mcp-router">GitHub</a>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════ hero -->
+<header class="hero">
+  <div id="stage" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="hero-copy">
+      <div class="eyebrow">Open source · MIT · macOS</div>
+      <h1>Nothing runs<br>until you <span class="warm">use it</span>.</h1>
+      <p class="lede">Claude Code starts every tool you've connected, every time you open it, whether you touch them or not. mcp-router starts one only when you actually use it, then puts it back to sleep.</p>
+
+      <div class="install">
+        <div class="install-label">Install</div>
+        <div class="cmd">
+          <code id="cmd-install"><span class="dim">/bin/bash -c</span> <span class="warm">"$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/install.sh)"</span></code>
+          <button class="copy" id="copy-hero" aria-label="Copy the install command">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+        <p class="note">It takes your existing setup with it. Nothing to reconnect.</p>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><b class="mono">190</b><span>programs, before</span></div>
+        <div class="stat"><b class="mono warm">0</b><span>running, after</span></div>
+        <div class="stat"><b class="mono">135</b><span>tools, still all there</span></div>
+      </div>
+    </div>
+
+    <div class="hero-art"><img src="assets/icon-512.png" width="512" height="512" alt="The mcp-router mark: glass channels converging into one hub, with a single branch lit amber." id="hero-icon"></div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════ the problem -->
+<section class="band" id="how">
+  <div class="wrap">
+    <div class="head">
+      <div class="eyebrow">The problem</div>
+      <h2>Ten windows.<br>Twelve tools each.</h2>
+      <p class="lede">Open Claude Code and it launches every tool you've ever connected to it. Open it again in another project and it launches them all over again. On my Mac that came to 190 running programs and about 12 GB of memory. Most had never been used once.</p>
+    </div>
+
+    <div class="swarm-shell">
+      <div class="swarm-top">
+        <div>
+          <span class="swarm-count mono" id="count">0</span>
+          <span class="swarm-unit">programs running</span>
+        </div>
+        <div class="mem">
+          <div class="mem-label"><span>Memory</span><span id="mem-num">0.0 GB</span></div>
+          <div class="mem-track"><div class="mem-fill" id="mem-fill"></div></div>
+        </div>
+      </div>
+      <div id="dots" role="img" aria-label="A grid of 190 dots, one for each running program. Twelve are amber, marking the ones actually used."></div>
+      <div class="swarm-key">
+        <span><i style="background:var(--glass-dim)"></i>Started and never touched</span>
+        <span><i style="background:var(--amber-300)"></i>Actually used</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ why -->
+<section>
+  <div class="wrap">
+    <div class="head mid">
+      <div class="eyebrow">Why it happens</div>
+      <h2>It isn't a bug. It's the wiring.</h2>
+      <p class="lede">Each tool talks to each window down its own private wire, one window to one copy of the tool. Two windows can't share, because sharing was never built into the standard they speak. So the number isn't mysterious. It's multiplication.</p>
+    </div>
+
+    <div class="wires">
+      <figure>
+        <svg viewBox="0 0 420 250" role="img" aria-label="Three windows each drawing a separate private wire to its own copy of three tools, making nine copies in total.">
+          <g fill="none" stroke="var(--glass-dim)" stroke-width="2" opacity=".55">
+            <path d="M120 62H300M120 62C200 62 220 125 300 125M120 62C200 62 220 188 300 188"/>
+            <path d="M120 125H300M120 125C200 125 220 62 300 62M120 125C200 125 220 188 300 188"/>
+            <path d="M120 188H300M120 188C200 188 220 62 300 62M120 188C200 188 220 125 300 125"/>
+          </g>
+          <g fill="var(--ink-300)" stroke="var(--glass-dim)" stroke-width="1.5">
+            <rect x="34" y="44" width="86" height="36" rx="9"/><rect x="34" y="107" width="86" height="36" rx="9"/><rect x="34" y="170" width="86" height="36" rx="9"/>
+          </g>
+          <g fill="var(--fg-2)" font-family="var(--mono)" font-size="11" text-anchor="middle">
+            <text x="77" y="67">Window 1</text><text x="77" y="130">Window 2</text><text x="77" y="193">Window 3</text>
+          </g>
+          <g fill="var(--ink-300)" stroke="var(--glass-dim)" stroke-width="1.5">
+            <rect x="300" y="44" width="86" height="36" rx="9"/><rect x="300" y="107" width="86" height="36" rx="9"/><rect x="300" y="170" width="86" height="36" rx="9"/>
+          </g>
+          <g fill="var(--fg-2)" font-family="var(--mono)" font-size="11" text-anchor="middle">
+            <text x="343" y="60">Tool A</text><text x="343" y="74" fill="var(--fg-3)">×3</text>
+            <text x="343" y="123">Tool B</text><text x="343" y="137" fill="var(--fg-3)">×3</text>
+            <text x="343" y="186">Tool C</text><text x="343" y="200" fill="var(--fg-3)">×3</text>
+          </g>
+        </svg>
+        <figcaption><b>Before.</b> Nine copies for three tools, and every one of them starts the moment a window opens.</figcaption>
+      </figure>
+
+      <figure>
+        <svg viewBox="0 0 420 250" role="img" aria-label="Three windows all connecting to one switchboard, which holds three tools. Only one tool is lit; the other two are asleep.">
+          <g fill="none" stroke="var(--glass-dim)" stroke-width="2" opacity=".55">
+            <path d="M120 62C170 62 175 125 196 125M120 125H196M120 188C170 188 175 125 196 125"/>
+          </g>
+          <g fill="none" stroke="var(--glass-dim)" stroke-width="2" opacity=".3" stroke-dasharray="4 6">
+            <path d="M244 125C270 125 275 62 300 62M244 125C270 125 275 188 300 188"/>
+          </g>
+          <path d="M244 125H300" fill="none" stroke="var(--amber-300)" stroke-width="2.6"/>
+          <g fill="var(--ink-300)" stroke="var(--glass-dim)" stroke-width="1.5">
+            <rect x="34" y="44" width="86" height="36" rx="9"/><rect x="34" y="107" width="86" height="36" rx="9"/><rect x="34" y="170" width="86" height="36" rx="9"/>
+          </g>
+          <g fill="var(--fg-2)" font-family="var(--mono)" font-size="11" text-anchor="middle">
+            <text x="77" y="67">Window 1</text><text x="77" y="130">Window 2</text><text x="77" y="193">Window 3</text>
+          </g>
+          <rect x="196" y="66" width="48" height="118" rx="24" fill="var(--ink-400)" stroke="var(--glass)" stroke-width="1.6"/>
+          <ellipse cx="244" cy="125" rx="46" ry="40" fill="url(#warmth)"/>
+          <defs><radialGradient id="warmth"><stop offset="0%" stop-color="var(--amber-bloom)" stop-opacity=".5"/><stop offset="100%" stop-color="var(--amber-bloom)" stop-opacity="0"/></radialGradient></defs>
+          <g fill="var(--ink-300)" stroke="var(--glass-dim)" stroke-width="1.5" opacity=".45">
+            <rect x="300" y="44" width="86" height="36" rx="9"/><rect x="300" y="170" width="86" height="36" rx="9"/>
+          </g>
+          <rect x="300" y="107" width="86" height="36" rx="9" fill="rgba(239,154,49,.16)" stroke="var(--amber-300)" stroke-width="1.6"/>
+          <g font-family="var(--mono)" font-size="11" text-anchor="middle">
+            <text x="343" y="60" fill="var(--fg-3)">Tool A</text><text x="343" y="74" fill="var(--fg-3)">asleep</text>
+            <text x="343" y="123" fill="var(--amber-100)">Tool B</text><text x="343" y="137" fill="var(--amber-200)">in use</text>
+            <text x="343" y="186" fill="var(--fg-3)">Tool C</text><text x="343" y="200" fill="var(--fg-3)">asleep</text>
+          </g>
+        </svg>
+        <figcaption><b>After.</b> One switchboard, shared. It already knows what every tool can do, so nothing has to run for your assistant to see them all. The one you use wakes up, does the job, and goes quiet again.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ setup -->
+<section class="band" id="setup">
+  <div class="wrap">
+    <div class="head">
+      <div class="eyebrow">Setup</div>
+      <h2>One line, and it brings your setup with it.</h2>
+      <p class="lede">You don't reconnect anything. It reads the tools you've already got, moves them across, and keeps a backup of the file it changed. Then you open a fresh window and carry on.</p>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <span class="n">01</span>
+        <h3>It reads what you have</h3>
+        <p>Every tool already in your config is copied into the router's own list, exactly as you had it, environment settings and all.</p>
+      </div>
+      <div class="step">
+        <span class="n">02</span>
+        <h3>It learns what they do</h3>
+        <p>Each one is started once, asked what it can do, and shut down again. That answer is kept on disk, which is why nothing needs to run afterwards.</p>
+      </div>
+      <div class="step">
+        <span class="n">03</span>
+        <h3>It stays out of the way</h3>
+        <p>Two small background jobs, one to answer your windows and one to watch for new tools. Both start with your Mac and neither asks you anything.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ adding -->
+<section>
+  <div class="wrap">
+    <div class="head">
+      <div class="eyebrow">Adding a tool</div>
+      <h2>Change nothing about how you add them.</h2>
+      <p class="lede">Add a new tool the way you always have. Within a few seconds the entry disappears from your config, and that's the router adopting it rather than anything going wrong. It checks the tool actually works before it takes it, so a typo stays sitting where you typed it, in plain sight.</p>
+    </div>
+
+    <div class="migrate">
+      <div class="pane">
+        <div class="pane-bar"><i></i><i></i><i></i><span>your config</span></div>
+        <div class="pane-body" id="pane-a">
+          <div class="row"><i></i>research</div>
+          <div class="row"><i></i>images</div>
+          <div class="row"><i></i>calendar</div>
+          <div class="row new" id="src-row"><i></i>weather<span class="tag">you added this</span></div>
+        </div>
+      </div>
+      <div class="migrate-arrow" id="arrow" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+      </div>
+      <div class="pane">
+        <div class="pane-bar"><i></i><i></i><i></i><span>mcp-router</span></div>
+        <div class="pane-body" id="pane-b">
+          <div class="row"><i></i>research</div>
+          <div class="row"><i></i>images</div>
+          <div class="row"><i></i>calendar</div>
+          <div class="row new ghost" id="dst-row"><i></i>weather<span class="tag">adopted</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ removing -->
+<section class="band-deep">
+  <div class="wrap">
+    <div class="head">
+      <div class="eyebrow">Removing a tool</div>
+      <h2>You probably won't need to.</h2>
+      <p class="lede">Removing a tool used to be how you stopped paying for one you rarely called, because it started up whether you wanted it or not. Under the router an unused tool costs a few kilobytes of notes on a disk and nothing else. No program, no memory, no waiting at startup. So the honest advice is to leave it, unless its commands are cluttering the list your assistant reads.</p>
+    </div>
+
+    <div class="install">
+      <div class="install-label">If you do want it gone</div>
+      <div class="cmd">
+        <code>Take it out of <span class="warm">~/.claude/mcp-router/servers.json</span>, then <span class="warm">mcpr index --force</span></code>
+      </div>
+      <p class="note">That file is where your tools live now, rather than your Claude config. Full steps are in the README.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ close -->
+<section class="close">
+  <div class="wrap">
+    <div class="head mid" style="margin-bottom:0">
+      <h2>Get your memory back.</h2>
+      <p class="lede">Runs on macOS. Removing it puts every tool back exactly where it came from.</p>
+    </div>
+
+    <div class="install">
+      <div class="cmd">
+        <code><span class="dim">/bin/bash -c</span> <span class="warm">"$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/install.sh)"</span></code>
+        <button class="copy" id="copy-foot" aria-label="Copy the install command">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="close-links">
+      <a href="https://github.com/fledgeling-co/mcp-router">Source on GitHub</a>
+      <a href="https://github.com/fledgeling-co/mcp-router#uninstall">How to remove it</a>
+      <a href="https://github.com/fledgeling-co/mcp-router#how-it-works">How it works, in detail</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Built by fledgeling. MIT licensed.</span>
+    <span>Figures measured on one Mac, 2026.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"}}</script>
+<script type="module">
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ─────────────────────────── copy buttons */
+const CMD = '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/fledgeling-co/mcp-router/main/scripts/install.sh)"';
+const TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 7"/></svg>';
+for (const id of ['copy-hero','copy-foot']) {
+  const btn = document.getElementById(id); if (!btn) continue;
+  const original = btn.innerHTML;
+  btn.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(CMD); } catch { return; }
+    btn.classList.add('done'); btn.innerHTML = TICK;
+    btn.setAttribute('aria-label', 'Copied');
+    setTimeout(() => {
+      btn.classList.remove('done'); btn.innerHTML = original;
+      btn.setAttribute('aria-label', 'Copy the install command');
+    }, 1800);
+  });
+}
+
+/* ─────────────────────────── sticky nav */
+const nav = document.getElementById('nav');
+addEventListener('scroll', () => nav.classList.toggle('on', scrollY > 520), {passive:true});
+
+/* ─────────────────────────── the swarm
+   190 dots, one per program. The motion is the argument: they arrive faster
+   than you can count them, which is the point the number alone does not make. */
+const TOTAL = 190, USED = 12;
+const grid = document.getElementById('dots');
+const usedSet = new Set();
+while (usedSet.size < USED) usedSet.add(Math.floor(Math.random() * TOTAL));
+const dots = [];
+for (let i = 0; i < TOTAL; i++) {
+  const d = document.createElement('span');
+  d.className = 'dot' + (usedSet.has(i) ? ' used' : '');
+  grid.appendChild(d); dots.push(d);
+}
+
+const countEl = document.getElementById('count');
+const memNum  = document.getElementById('mem-num');
+const memFill = document.getElementById('mem-fill');
+const setFigures = p => {
+  countEl.textContent = Math.round(TOTAL * p);
+  memNum.textContent  = (12.1 * p).toFixed(1) + ' GB';
+  memFill.style.width = (p * 100) + '%';
+};
+
+if (REDUCED || !window.gsap) {
+  setFigures(1);
+} else {
+  gsap.registerPlugin(ScrollTrigger);
+
+  /* Hidden start states are set here, in JS, never in the stylesheet. A blocked
+     CDN then leaves a complete static page instead of a blank one. */
+  gsap.from('#hero-icon', {opacity:0, scale:.94, duration:1.1, ease:'power2.out', delay:.2});
+  gsap.set(dots, {opacity:0, scale:.4});
+
+  /* The counter has to be right while it is being read, not only once the
+     section has scrolled past. So the scrub finishes near the top of the
+     viewport and the figures then hold at 190 for the rest of the section. */
+  const swarm = {p:0};
+  gsap.timeline({scrollTrigger:{trigger:'.swarm-shell', start:'top 88%', end:'top 34%', scrub:.5}})
+    .to(swarm, {p:1, ease:'none', onUpdate:() => setFigures(swarm.p)}, 0)
+    .to(dots, {opacity:1, scale:1, stagger:{each:.0035, from:'random'}, ease:'back.out(1.6)'}, 0);
+
+  /* section reveals: enhancement only, since every one of them is already
+     readable in the static state above */
+  gsap.utils.toArray('.head, .swarm-shell, .wires figure, .step, .migrate, .close-links')
+    .forEach(el => gsap.from(el, {
+      opacity:0, y:22, duration:.7, ease:'power2.out',
+      scrollTrigger:{trigger:el, start:'top 90%'}
+    }));
+
+  /* The adoption, shown as a travelling copy. Both panes keep their weather row
+     permanently, so a reader landing mid-cycle still sees where it came from and
+     where it went; the flyer only dramatises the hop. */
+  const src = document.getElementById('src-row');
+  const dst = document.getElementById('dst-row');
+  const migrate = document.querySelector('.migrate');
+  const flyer = src.cloneNode(true);
+  flyer.removeAttribute('id');
+  flyer.classList.add('flyer');
+  flyer.style.opacity = '0';
+  migrate.appendChild(flyer);
+
+  const hop = () => {
+    const box = migrate.getBoundingClientRect();
+    const a = src.getBoundingClientRect(), b = dst.getBoundingClientRect();
+    gsap.set(flyer, {
+      width:a.width, left:a.left - box.left, top:a.top - box.top,
+      x:0, y:0, opacity:0, scale:1,
+    });
+    /* The hand-off is instantaneous in both directions: the source row and the
+       flyer are never both visible in the same frame, so no instant of the loop
+       shows the row printed twice. */
+    gsap.timeline()
+      .to('#arrow', {x:6, duration:.45, ease:'power2.inOut', yoyo:true, repeat:1}, 0)
+      .set(src, {opacity:0}, .1)
+      .set(flyer, {opacity:1}, .1)
+      .to(flyer, {
+        x:b.left - a.left, y:b.top - a.top, duration:.9, ease:'power2.inOut',
+      }, .1)
+      .set(flyer, {opacity:0}, 1)
+      .to(src, {opacity:1, duration:.5, ease:'power2.out'}, 1.05)
+      .fromTo(dst, {backgroundColor:'rgba(239,154,49,.13)'},
+                   {backgroundColor:'rgba(239,154,49,.36)', duration:.26, yoyo:true, repeat:1}, 1);
+  };
+
+  ScrollTrigger.create({
+    trigger:'.migrate', start:'top 70%', end:'bottom 20%',
+    onToggle:self => {
+      clearInterval(hop._t);
+      if (self.isActive) { hop(); hop._t = setInterval(hop, 4200); }
+    },
+  });
+}
+
+/* ─────────────────────────── hero: the field, in three dimensions
+   Used once, here, and nowhere else on the page. Deliberately NOT a second
+   manifold: the icon already is one, and a cruder 3D copy of it behind the
+   headline competes with the artefact rather than supporting it. What this
+   renders is the page's own thesis instead — a drift of many capsules, nearly
+   all of them dark, two of them awake. */
+if (!REDUCED) {
+  const THREE = await import('three').catch(() => null);
+  const host = document.getElementById('stage');
+  if (THREE && host) {
+    const scene = new THREE.Scene();
+    const cam = new THREE.PerspectiveCamera(40, innerWidth/innerHeight, .1, 200);
+    cam.position.set(0, 0, 34);
+
+    const gl = new THREE.WebGLRenderer({antialias:true, alpha:true});
+    gl.setPixelRatio(Math.min(devicePixelRatio, 2));
+    host.appendChild(gl.domElement);
+
+    const glass = new THREE.MeshStandardMaterial({color:0x8a87b4, roughness:.42, metalness:.15});
+    const lit   = new THREE.MeshStandardMaterial({color:0xf6b455, emissive:0xef9a31, emissiveIntensity:1.7, roughness:.3});
+
+    const rig = new THREE.Group(); scene.add(rig);
+    const body = new THREE.CapsuleGeometry(.5, 2.6, 6, 16);
+
+    /* Deterministic placement: a seeded walk rather than Math.random, so the
+       composition is the same one that was reviewed. */
+    let seed = 20260813;
+    const rnd = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
+
+    const pods = [];
+    for (let i = 0; i < 46; i++) {
+      const awake = i === 7 || i === 29;
+      const m = new THREE.Mesh(body, awake ? lit : glass);
+      m.position.set((rnd() - .5) * 46, (rnd() - .5) * 26, (rnd() - .5) * 30 - 6);
+      m.rotation.z = Math.PI / 2 + (rnd() - .5) * .5;
+      m.rotation.y = (rnd() - .5) * 1.2;
+      const s = .6 + rnd() * .7;
+      m.scale.setScalar(awake ? s * 1.15 : s);
+      m.userData = {drift: .1 + rnd() * .3, phase: rnd() * 6.28, awake};
+      rig.add(m); pods.push(m);
+    }
+
+    scene.add(new THREE.AmbientLight(0x9d9ac6, .5));
+    const key = new THREE.DirectionalLight(0xdedcf5, 1.1); key.position.set(-4, 7, 9); scene.add(key);
+    const warm = new THREE.PointLight(0xffb74d, 90, 40); warm.position.set(6, 2, 4); scene.add(warm);
+
+    const fit = () => {
+      const a = innerWidth / innerHeight;
+      cam.aspect = a; cam.updateProjectionMatrix();
+      cam.position.z = a < 1 ? 34 / Math.max(a, .5) : 34;
+      gl.setSize(innerWidth, innerHeight);
+    };
+    fit();
+
+    let mx = 0, my = 0;
+    addEventListener('pointermove', e => {
+      mx = (e.clientX/innerWidth - .5); my = (e.clientY/innerHeight - .5);
+    }, {passive:true});
+    addEventListener('resize', fit);
+
+    const start = performance.now();
+    (function frame(now){
+      const t = (now - start) / 1000;
+      for (const p of pods) {
+        p.position.y += Math.sin(t * p.userData.drift + p.userData.phase) * .0016;
+        if (p.userData.awake) {
+          p.material.emissiveIntensity = 1.4 + Math.sin(t * 1.3 + p.userData.phase) * .45;
+        }
+      }
+      rig.rotation.y = Math.sin(t * .06) * .16 + mx * .16;
+      rig.rotation.x = Math.sin(t * .05) * .07 - my * .1;
+      gl.render(scene, cam);
+      requestAnimationFrame(frame);
+    })(start);
+  }
+}
+</script>
+</body>
+</html>

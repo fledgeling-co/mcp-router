@@ -236,6 +236,8 @@ The mark is a manifold: cool glass conduits converge from the left into one hub,
 
 It lives in `design/icon/`, alongside the layered SVG master, its build script, the alternate takes, and `audit.html`, where every take is scored against the 12-point macOS icon rubric at 128 / 64 / 48 / 32 / 16, losers included with the reason they lost.
 
+`design/marketing/index.html` is a single-page explanation of the same idea for people who don't know what MCP is. Self-contained; open it in a browser.
+
 <br clear="left" />
 
 ---

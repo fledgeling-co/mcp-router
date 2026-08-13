@@ -40,3 +40,10 @@ DerivedData/
 xcuserdata/
 *.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
 .swiftpm/
+
+# XcodeGen generates the project and the Info.plists from app/project.yml. Tracking generated
+# artifacts is what produces project.pbxproj merge conflicts between parallel branches, and this
+# fleet runs several at once — run `make generate` (or `xcodegen generate`) after checkout.
+*.xcodeproj/
+app/**/Info.plist
+app/.derived/

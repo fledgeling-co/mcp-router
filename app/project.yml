@@ -1,57 +1,104 @@
 name: MCPRouter
+
 options:
-  bundleIdPrefix: gg.rhodes.mcp-router
-  deploymentTarget:
-    macOS: "15.0"
+  bundleIdPrefix: app.fledgeling
   createIntermediateGroups: true
   groupSortPosition: top
+  deploymentTarget:
+    macOS: "15.0"
+    iOS: "18.0"
+
+# The shared library lives in the same directory as this file: `Package.swift` sits beside
+# `project.yml`, SwiftPM owns the library and its tests, and the two app targets consume it as a
+# local package. That keeps `swift test` fast and Xcode-free for everything that does not need a
+# UI, while the apps still link one definition of the shared code.
+packages:
+  MCPRouterKit:
+    path: .
 
 settings:
   base:
     SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
-    DEVELOPMENT_TEAM: "$(DEVELOPMENT_TEAM)"
-    CODE_SIGN_STYLE: Manual
-    SWIFT_STRICT_CONCURRENCY: complete
-    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    # Deliberately no DEVELOPMENT_TEAM or CODE_SIGN_STYLE here. Setting them in the shared layer
+    # forces a signing identity that no developer or CI runner currently has, which fails every
+    # build including the ones that never intended to sign. The release posture lives in the
+    # Release configuration below and is applied only when signing is actually being done.
+  configs:
+    Release:
+      CODE_SIGN_STYLE: Manual
+      CODE_SIGN_IDENTITY: "Developer ID Application"
 
 targets:
+  # ---------------------------------------------------------------- macOS
   MCPRouter:
     type: application
     platform: macOS
+    # Explicitly this target's own directory. Pointing an app target at `Sources` would compile
+    # the shared library a second time — it is already linked as a package product — and would
+    # sweep in anything else that happens to live there.
     sources:
-      - path: Sources
+      - path: MCPRouter
+    dependencies:
+      - package: MCPRouterKit
+        product: MCPRouterKit
     info:
-      path: Info.plist
+      path: MCPRouter/Info.plist
       properties:
-        CFBundleName: mcp-router
-        CFBundleDisplayName: mcp-router
+        CFBundleName: MCP Router
+        CFBundleDisplayName: MCP Router
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         LSMinimumSystemVersion: "15.0"
         NSHumanReadableCopyright: "MIT"
-        # Not an agent: this app has a real window as well as a menu bar item, so
-        # LSUIElement would take away the Dock icon people use to get back to it.
+        # Not an agent: this app has a real window as well as a menu bar item, so LSUIElement
+        # would take away the Dock icon people use to get back to it.
         LSUIElement: false
         NSSupportsAutomaticTermination: false
         NSSupportsSuddenTermination: false
     entitlements:
-      path: MCPRouter.entitlements
+      path: MCPRouter/MCPRouter.entitlements
       properties:
-        # Deliberately NOT sandboxed, and this is a distribution decision rather
-        # than a shortcut. The app's whole job is to read ~/.claude/mcp-router —
-        # the server list, the manifest, the 0600 control token — and to talk to a
-        # loopback daemon. A sandboxed build reaches none of that without a
-        # user-granted bookmark for a directory the user has no reason to think
-        # about, so this ships Developer ID direct rather than through the Mac App
-        # Store. Hardened runtime stays on.
+        # Not sandboxed, and this is a distribution decision rather than a shortcut. The app
+        # spawns arbitrary MCP subprocesses and rewrites ~/.claude.json — both of which App
+        # Sandbox forbids outright — so the Mac App Store was never available to it. It ships
+        # Developer ID direct with the hardened runtime on instead.
         com.apple.security.app-sandbox: false
-        com.apple.security.network.client: true
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: gg.rhodes.mcp-router.app
+        PRODUCT_BUNDLE_IDENTIFIER: app.fledgeling.mcprouter
         ENABLE_HARDENED_RUNTIME: YES
-        COMBINE_HIDPI_IMAGES: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_NSPrincipalClass: NSApplication
+
+  # ---------------------------------------------------------------- iOS
+  MCPRouterIOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: MCPRouterIOS
+    dependencies:
+      - package: MCPRouterKit
+        product: MCPRouterKit
+    info:
+      path: MCPRouterIOS/Info.plist
+      properties:
+        CFBundleName: MCP Router
+        CFBundleDisplayName: MCP Router
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+    # The companion is sandboxed by definition on iOS and currently needs no capability of its
+    # own. The file exists but is empty on purpose: a later item adds to a reviewed baseline
+    # rather than introducing the first entitlement alongside a feature.
+    entitlements:
+      path: MCPRouterIOS/MCPRouterIOS.entitlements
+      properties: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.fledgeling.mcprouter.ios
+        TARGETED_DEVICE_FAMILY: "1"

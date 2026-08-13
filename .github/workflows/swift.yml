@@ -1,0 +1,53 @@
+name: Swift
+
+on:
+  push:
+    branches: [main]
+    paths: ['app/**', 'Makefile', '.swiftlint.yml', '.swiftformat', '.github/workflows/swift.yml', 'DESIGN.md']
+  pull_request:
+    paths: ['app/**', 'Makefile', '.swiftlint.yml', '.swiftformat', '.github/workflows/swift.yml', 'DESIGN.md']
+  workflow_dispatch:
+
+concurrency:
+  group: swift-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Deliberately NOT pinned to the newest Xcode. Hosted runners lag behind local machines,
+      # and the deployment targets here (macOS 15, iOS 18) only need Xcode 16+. Pinning an exact
+      # version is how this workflow starts failing for a reason that has nothing to do with the
+      # code.
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -p
+          xcodebuild -version
+          swift --version
+
+      - name: Install tools
+        run: brew install xcodegen swiftlint swiftformat
+
+      # The same Makefile targets developers run. CI re-implementing the commands is how CI and
+      # local builds drift until only one of them is trusted.
+      - name: Lint
+        run: make lint
+
+      - name: Build macOS (Debug)
+        run: make build-mac
+
+      - name: Build macOS (Release, unsigned)
+        run: make build-mac-release
+
+      - name: Build iOS (Simulator)
+        run: make build-ios
+
+      # This also guards the design-token parity suite: it reads DESIGN.md, so an edit to the
+      # design document that changes a value without changing the code fails here.
+      - name: Test
+        run: make test

@@ -1,0 +1,172 @@
+# F2: The design system in SwiftUI
+
+**ID:** F2
+**Status:** Ready for Work
+**Created:** 2026-08-14
+**Last updated:** 2026-08-14
+
+## Feature description
+
+*(Original brief, verbatim from `planning/features-to-triage/F2-design-system.md`.)*
+
+# F2 — The design system in SwiftUI
+
+**Depends on:** F1.
+
+Turn `DESIGN.md` into code, so no surface ever hardcodes a colour or a font size.
+
+- Colour: label tiers `--t1..t4`, grounds, fills, and the four system hues, as an
+  asset catalogue with light + dark. **Light must be authored, not inverted** — it does
+  not exist yet and DESIGN.md §10 records that as owed.
+- Type: the eight-role SF ramp as `Font` extensions. Nothing off the ladder.
+- The icon set: SF Symbols at matched weights where one fits, authored assets where
+  none does. The prototype's 21-symbol sprite is the inventory.
+- Control styles matching the kit ladder (Mini 16 → XL 36), the inset-rounded selection
+  fill at radius 8, and the focus ring.
+- **The breaker** as a reusable `View` with its three lit states and the two springs
+  from DESIGN.md §7. This is the app's signature element and its construction is
+  load-bearing: the slot must be wider and taller than the toggle so it reads in the
+  dormant state, which is where two prototype rounds failed.
+- The nine state containers from DESIGN.md §5 — empty, loading, partial, error, offline
+  — as composable views, so a surface cannot ship populated-only by accident.
+
+Reference: `design/mocks/prototype.html`, `DESIGN.md` §§2–7.
+
+---
+
+## Triage — 2026-08-14
+
+**Ready for Implementation Plan**
+
+**Sentinel review:** S1 — Approve with assumptions
+
+**UI & logic preview** *(rough sanity check — is this the surface area you expected?)*
+
+- **Where it shows up:** a **new** reference screen inside the Mac app and inside the
+  iPhone app, both *(internal — development builds only)*. **Nothing customer-facing
+  changes in this item**, and that is the point: it supplies the shared look and the
+  standard screen states every later item is built from, so those items stop inventing
+  their own.
+- **What users will see — per surface:**
+  - Reference screen, Mac *(new)*: a six-section list — colour, type, icons, controls,
+    the breaker, and the standard screen states — beside a panel that renders the chosen
+    section, plus a light/dark/system switch so both appearances can be compared without
+    changing the machine's setting.
+  - Reference screen, iPhone *(new)*: the same six sections and the same switch, in the
+    phone's own navigation.
+  - The breaker section: a lever that can be flicked so the two speeds — fast and
+    overshooting on the way up, slow and settling on the way down — can actually be
+    watched, which has never been observed running.
+- **Behaviour changes:**
+  - Both apps follow the machine's light/dark setting, and the light appearance has been
+    **designed** rather than derived by flipping the dark one.
+  - The nine standard screen states arrive with real wording for the unhappy paths —
+    including that "can't reach it" means *the router is not running*, and offers to
+    start it.
+  - Every colour and text size now comes from one named set, so a screen cannot quietly
+    invent its own.
+- **Design reference:** `design/mocks/light-appearance.html` is the canonical visual
+  reference for the light appearance, the nine states and the reference screen's layout.
+  `design/mocks/prototype.html` remains the dark reference and is unchanged.
+
+**Assumptions**
+
+- `[Layout]` Light is authored to reproduce dark's *measured* contrast, not its opacity numbers. *(copying opacity lands elsewhere)*
+- `[Experience]` All four status colours are re-chosen for light rather than reused. *(reused, every one is unreadable)*
+- `[Layout]` Amber moved toward yellow to separate it from red. *(21° apart defeats colour-blind readers; now 40°)*
+- `[Layout]` Hovering darkens a resting surface in light, brightens it in dark. *(white is the ceiling)*
+- `[Experience]` The one prominent button keeps a white label despite measuring below target in dark (rather than near-black). *(Apple's kit wins per the design authority)*
+- `[Layout]` The breaker's body grows so its indicator lamp sits inside it (rather than overhanging). *(overhanging, it gets cut off)*
+- `[Experience]` Reduced motion removes the lever's animation, never the state change. *(state must survive)*
+- `[Data & scope]` The reference screen ships only in development builds. *(not customer-facing)*
+- `[Operations]` Existing screens that misuse a status colour are reported, not changed here. *(other items own them)*
+- `[Experience]` The gallery is a reference surface, not a playground; no editing. *(scope)*
+- `[Layout]` The design authority gains one row per value, each carrying both appearances side by side. *(a combined row cannot be read back)*
+- `[Data & scope]` The drift check is widened to compare **both** appearances, and is proven by breaking it. *(otherwise light drifts unwatched)*
+- `[Layout]` Control sizes, selection radius, focus ring and breaker geometry become individually recorded values. *(today they are prose no check can read)*
+- `[Experience]` The focus ring follows the keyboard section of the design authority, beyond the sections the brief cites. *(the brief stops one section short of it)*
+- `[Data & scope]` The shared look lives in one place both apps draw from, kept apart from the part the router's tests import. *(a copy per app is two systems)*
+- `[Operations]` A check fails the build when a screen writes a raw colour or text size instead of naming one. *(the drift check cannot see literals)*
+
+*If any of these are wrong, edit it inline (or correct an assumption) in this file and re-run `/triage F2` before the planner picks this up.*
+
+---
+
+### The nine states, with real copy
+
+Required by the design authority: every spec written against it carries its own state matrix, with
+real wording for the unhappy paths. Placeholder copy hides both layout and comprehension failures.
+The servers board is the canonical surface; each state below ships as a reusable container, so a
+later screen cannot go out populated-only by accident.
+
+| State | What the person sees | Action offered |
+|---|---|---|
+| **Default** | The populated board — one row per declared server, its lever showing whether it is running. | — |
+| **Empty** | "No servers declared yet" · "MCP Router reads the servers your agents already have configured. Point it at a config, or declare one by hand." | Add server… |
+| **Loading** | Placeholder rows at the real row height and shape, so nothing jumps when the data lands. Never a spinner over a blank pane. | — |
+| **Partial** | "6 of 8 servers loaded" · "Two entries name a transport this version does not read. The other six are live and usable." | Show the two |
+| **Error** | "Could not read servers.json" · "The file is there but line 12 is not valid JSON, so nothing was loaded rather than some of it. Fix the line and it will reload on its own." | Reveal in Finder |
+| **Success** | The change happens in place — the lever rises, the subtitle changes. No toast; macOS does not announce a click. | — |
+| **Offline** | "The router is not running" · "Nothing is listening on 127.0.0.1. Your agents will fall back to spawning their own servers until it starts." | Start the router |
+| **Disabled** | The action dims where it is, reason readable: "Available once the server has run at least once. It has not been called yet." | — (dimmed, never hidden) |
+| **Overflow** | A long name truncates with the full value readable in the inspector. The row height never changes. | — |
+
+Every control additionally carries resting, hover, keyboard-focused, pressed and disabled.
+
+### Acceptance — what must be true
+
+Checkable outcomes, not intentions. Each is a pass/fail a person or a gate can settle.
+
+1. Both appearances are **authored**: every colour resolves to a different value in light than in
+   dark, and changing any light value on its own turns the drift check red.
+2. Every colour and text size named in the design authority exists in the product, and every one in
+   the product traces back to the authority — in **both** appearances.
+3. Each of the eight text roles renders at its stated size and line height; nothing renders off the
+   ladder.
+4. All 21 icons in the reference resolve to something drawn; a name with no drawing fails to build
+   rather than rendering blank.
+5. The five control sizes, the selection fill's radius and insets, and the focus ring's width all
+   come from recorded values, each checked against the authority.
+6. The breaker shows one dormant and three lit states; in **every** one its slot is at least as wide
+   as its lever and strictly taller, so the recess stays visible. Breaking that turns a test red.
+7. The lever rises fast with overshoot and falls slowly without it; with reduced motion on, the
+   animation is gone and the state change still happens.
+8. All nine states above render with the copy above, in both appearances.
+9. The reference screen opens in both apps in a development build, and is absent from a release
+   build.
+10. A screen that writes a raw colour or text size instead of naming one fails the build.
+11. The scaffolding shells no longer carry their own private colour bridge; both draw from the
+    shared one.
+
+### Cross-family review — 2026-08-14
+
+`gpt-5.6-sol` at `max` effort, read-only, grounded in the repository *(wire-verified: `model:
+gpt-5.6-sol`, `reasoning effort: max`)*. **Verdict: MATERIAL DEFECTS** — all five findings accepted
+and resolved above before this spec was marked ready. Accepted 5 · rejected 0 · escalated 0.
+
+- **High — adding light values would not actually have been checked.** The reader that compares the
+  authority against the product takes one value per row and ignores any further column, and the name
+  check compares names only. A light column would have sat silently unwatched, and a combined fills
+  row would have parsed as one nonsense name. *Resolved:* one row per value carrying both
+  appearances, the reader widened to both, proven by breaking it.
+- **High — nowhere compliant to put the shared look.** Both apps link only the part the router's
+  tests import, which must stay free of interface code; putting the shared views in each app instead
+  would make two systems. *Resolved:* one shared place, separate from that part, that both apps draw
+  from.
+- **Medium — the geometry could not be built without hardcoding.** Control sizes, selection radius
+  and focus ring are prose in the authority and are explicitly skipped by the check. *Resolved:*
+  recorded individually. Also correctly caught that the focus ring lives one section past the range
+  the brief cites.
+- **Medium — the nine-state matrix was missing**, though the authority requires every spec to carry
+  its own. *Resolved:* added above with real copy.
+- **Medium — no acceptance criteria**, and the existing check cannot see a hardcoded value at all.
+  *Resolved:* eleven checkable outcomes above, including a build failure on raw values.
+
+## Plan — 2026-08-14
+
+Implementation plan: `planning/plans/plan-F2.md` (Plan size: Large).
+
+No scope narrowing: the plan carries every clause of the feature description and every triage
+assumption. Its "Out of scope" entries are the two shared-surface changes triage already recorded as
+report-only (the prototype's decorative use of indicator colours, and the pre-existing dark-appearance
+shortfall of `--fail`/`--accent` as text on a raised surface), plus unrelated router work.

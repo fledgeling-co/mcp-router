@@ -209,6 +209,31 @@ struct ManifestStoreTraceTests {
         #expect(await store.current().serverEntries.map(\.name) == [JSString("b")])
     }
 
+    /// The `or` in "mtime **or** size moved", which the case above cannot reach.
+    ///
+    /// That test moves both stamps together, so an implementation comparing only the mtime passes
+    /// it and passes the unchanged case too — the size half of the condition is never exercised.
+    /// An editor that rewrites a file within the same second is exactly how this happens in life.
+    @Test("a file whose size moved is re-read even when its mtime did not")
+    func reReadsWhenOnlyTheSizeMoves() async {
+        let fileSystem = MemoryFileSystem()
+        let stamp = Date(timeIntervalSince1970: 1)
+        fileSystem.seed(valid, atPath: "/m.json", modified: stamp)
+        let store = ManifestStore(
+            path: "/m.json", fileSystem: fileSystem, clock: ManualClock(milliseconds: 10000)
+        )
+        #expect(await store.current().serverEntries.map(\.name) == [JSString("a")])
+
+        // Same mtime, genuinely different length.
+        let longer = #"{"version":1,"servers":{"b":{"hash":"hh","builtAt":"tt","tools":[],"e":""}}}"#
+        #expect(longer.count != valid.count, "the fixture must differ in length or this proves nothing")
+        fileSystem.seed(longer, atPath: "/m.json", modified: stamp)
+        #expect(
+            await store.current().serverEntries.map(\.name) == [JSString("b")],
+            "a size change alone must trigger the re-read"
+        )
+    }
+
     /// The failed-reload path, and the exact back-off. A window longer than a second would satisfy
     /// every property stated about this and leave a corrected file unread for as long as it lasted.
     @Test("a failed reload keeps the previous manifest and backs off exactly one second")

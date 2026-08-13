@@ -489,3 +489,100 @@ the TypeScript router stays the installed default until R4's parity gate passes.
 **Re-read before continuing** (paths only): `planning/features-to-triage/R1-router-core.md`,
 `planning/specs/spec-R1.md`, `planning/plans/plan-R1.md`, `src/config.ts` and
 `src/manifest.ts` (the reference implementations), `planning/practices/SWIFT_PRACTICES.md`.
+
+---
+
+## Resumed and completed — 2026-08-14
+
+Supersedes the pause checkpoint above. The branch was red on resume; it is green now, and the two
+phases the checkpoint listed as outstanding are delivered.
+
+**Status: delivered on `ai/r1`, green, and NOT merged — the orchestrator serializes finalization.**
+
+### The rescue, resolved
+
+The compile error was one thing hiding twelve. `RegisteredVectorFile` holds the closure that
+consumes a vector file and `VectorRegistry.files` is a `static let`; under Swift 6 a shared static
+must be `Sendable`, and an unannotated closure is what made the struct not. `JSONValue` was already
+`Sendable` and every consumer captures nothing, so `@Sendable` describes what the code already did.
+Behind it were twelve lint violations on the 24 rescued files, which had never been formatted or
+linted — including a `civilFromDays` returning a bare `(year, month, day)` and two test doubles
+silently replacing invalid UTF-8 with U+FFFD.
+
+**Then the registry caught a real defect on its first green run**, on the assertion whose only
+purpose is to catch it: `load-config/startup-timeout-default` was byte-identical to
+`defaults-when-absent`. Fixed in the *generator*, not the JSON — the vector now carries
+`{"startupTimeoutMs":0}`, proving the `??`-versus-`||` boundary on the one field an option cannot
+override. The reference confirms it loads as `0`.
+
+### What now exists that did not
+
+| Phase | State |
+|---|---|
+| P3 · Manifest | **Done** — landed in the rescue, green since |
+| P5 · Log | **Done** — landed in the rescue, green since |
+| P6 · Vector registry, fingerprints, **mutation gate** | **Done** |
+| P8 · Divergence contracts, integration path, stateful traces | **Done** |
+| A41 · `make parity` | **Done** — and `make parity-regen`, `make mutation` |
+
+### The mutation gate — the plan's exit criterion
+
+`scripts/parity/mutation-gate.sh`, run by `make mutation`. A vector that is present, unique and
+compared still proves nothing until breaking the behaviour it guards makes it fail. Sixteen
+mutations, each the *plausible* wrong implementation rather than arbitrary damage.
+
+**Result: exit 0. All thirteen named JavaScript semantics N1–N13 are caught by the vector corpus
+itself. D1, D3 and D4 are caught by the suite but NOT by the corpus** — worth recording rather than
+averaging away, because R4's differential gate runs the corpus, so a divergence only a hand-written
+test guards is not protected by the gate that will actually run. No decorations.
+
+A mutation that fails to *apply* is reported as a failure, never a pass: it leaves the tree
+unmutated and the gate green, which would otherwise read as an accusation against the corpus for a
+defect in the script. That fired twice during development and was right both times.
+
+### Out-of-family review — work Phase D
+
+`gpt-5.6-sol`, read-only, `max` effort, wire-verified in every call.
+
+**Q1 (completeness against the clause table): 16 findings — 11 accepted, 3 rejected, 2 found
+already covered.** Accepted and fixed: A25 counted the four current entries without naming them;
+A30 compared only the stderr sink where the clause says both; A31 scanned for `standardOutput` and
+`STDOUT_FILENO`, which a bare `print(...)` mentions neither of; A35/A36/A38 were hand-verified
+commands with no assertion; A24 never exercised the *size* half of "mtime or size moved";
+A26/A27/A28 iterated whatever the corpus held rather than requiring the branches the clauses name.
+
+Rejected with reasons: **A33** — the critic called the contained directory and stderr failures
+"the opposite of their required propagation"; they are divergence D4, deliberate, and it was not
+given the divergence table. **A40 and A41** — reported as absent; both exist, and the critic was
+scoped to four files that do not contain them. Found already covered: **A23** (the failed-rename
+test does assert the temp file survives) and the mtime half of A24.
+
+The A24 fix carries its own proof: with `FileStamp` comparing mtime only, **the existing test still
+passed** and only the new one went red. That is precisely the hole the critic described.
+
+**Q2 (silent Swift-vs-JavaScript divergence): LANE FAILURE, downgraded in-family and logged.**
+Three attempts at `max` effort — the full question, then a two-file split, then three files at 540s
+— each verified `model: gpt-5.6-sol` / `reasoning effort: max` on the wire and each exhausted its
+budget with no output file. Not a silent skip and not an effort downgrade: run in-family instead,
+where it did better than a read and **differentially fuzzed the number and string paths against
+Node v22 — 858,644 number cases and 60,055 string cases, all byte-identical.** Its two residuals
+are both already guarded: the dependency on Swift's `Double.description` by the committed golden
+vectors, and `arrayIndex` / the `Comparable` conformance by mutations N10 and N1.
+
+### Evidence
+
+- `make all` → **exit 0**, 0 violations in 50 files, **121 tests in 20 suites**,
+  `PARITY-VECTORS-EXECUTED: 224`.
+- `make parity` → exit 0. Both failure branches proved red: a filter matching no suite reported
+  "the attestation did not run"; a floor of 225 against 224 reported the shortfall.
+- `make parity-regen` → "the committed vectors match the reference exactly".
+- `make mutation` → exit 0, 13 corpus + 3 suite, no decorations.
+- `git diff main -- src/ install.sh package.json` → empty. SDK pin `exact: "0.12.1"`.
+- Every fix above proved red then restored, with the failing message recorded.
+
+### Still open, and deliberately
+
+- **D1, D3 and D4 have no vector**, only suite tests. TypeScript cannot be the oracle for a
+  deliberate divergence, so this is inherent — but R4 should know its gate does not cover them.
+- **A19** compares re-serialised manifests against the reference's bytes through the vector corpus;
+  it is differential, but the corpus drives it rather than a live `dist/manifest.js` per run.

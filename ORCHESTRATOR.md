@@ -138,7 +138,7 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 | R2 | Router: pool, relay, passthrough | router | R1 ✓ | — | Opus | **Merged** `a8091bb` | — | 279 tests · 224 parity · 13 mutation guards load-bearing · 10 behavioural tests against a REAL spawned child (pipes, signals, PATH, SDK handshake) · gate run on the rebased tree |
 | R3 | Router: control, usage, registry | router | R1 ✓ R2 ✓ | — | Opus | **Merged** `e154bae` | — | 386 tests · 352 parity (parity-regen matches the reference exactly) · differential harness vs the RUNNING TypeScript router: 32/32 rows, 3 of which kill the reference where Swift answers 400 · 35/35 mutations red · 8 live port defects · **Phase D critic never ran** (codex account limit) — degraded, not passed |
 | R5 | Router: OAuth and the auth routes | router | R3 ✓ | — | Opus | **Merged** `b7c527c` | — | 456 tests · 358 parity (352 core + 6 auth, asserted by name) · 10 mutations red-green · the real NWListener exposed 5 defects the double could not, incl. a CheckedContinuation double-resume in `AuthFlow.cleanup` that traps and kills the daemon · Phase D in-family (downgrade logged) 11 findings/8 fixed · one guard correct-by-construction but untested, recorded in the evidence file |
-| **R2-R** | **Router: the process that actually serves** | router | R2 ✓ R3 ✓ R5 ✓ | — | Opus — never downgrade | **Ready — CRITICAL PATH** | — | **Registered by the orchestrator; it was a deferral inside R2's plan, in no ledger, owned by nobody.** The composition root, the HTTP listener, the relay + MCP endpoint, the deferred HTTP clients, and lifecycle. Verified: `grep NWListener` over RouterCore returns `Auth/CallbackListener.swift` ALONE. **R4's `parity-gate.sh` is its acceptance test** — and must not be edited to pass |
+| **R2-R** | **Router: the process that actually serves** | router | R2 ✓ R3 ✓ R5 ✓ | — | Opus — never downgrade | **Merged** `62678aa` | — | The daemon exists: composition root, `LoopbackHTTPServer`, `MCPEndpoint`, `MCPRouterCLI`, lifecycle. **Parity gate 50/81 → 69 of 82, 0 DIVERGED** — the five structurally-blocked lanes (`mcp`, `cli`, `install`, `state`, `log`) are now measurable rather than blocked. Merged-tree gates re-run by the orchestrator, not taken on report: lint **0 violations / 243 files**, **750 tests / 106 suites**, **358 parity vectors**; merged tree byte-identical to the gated tree (`163597f7`). Lint went green by splitting on real seams (`RouterService` → root/dispatch/collaborators, `MCPEndpoint` split, `StdioUpstreamTransport.open` → spawn + handshake) — **no limit raised**. Real violation count was **31, not 29**: swiftformat's wrapping pushed three more files past the 400-line cap. One narrow config change for a genuine swiftformat↔swiftlint `opening_brace` deadlock, verified by hand. The gate still exits 1 by design; the cutover stays with R4 and the user |
 | R4 | Parity harness and cutover | router | R2 ✓ R3 ✓ R5 ✓ | — | Opus — never downgrade | **Merged (harness only)** `e129779` | — | **Cutover NOT performed and NOT recommended.** `parity-gate.sh` exits 1 at **50/81** — `mcp` 0/5, `cli` 0/10, `install` 0/5, `state` 0/1, `log` 0/1, all blocked structurally because **there is no Swift router process**. All 3 gates REJECT, all 3 independently confirmed the no-daemon finding, all 3 rejected the coverage number (was overstated five ways; denominator rose 71→81). Gate proven by hiding `dist/`, by a lane exiting 0 recording nothing, and by a fabricated test name |
 | M1 | Mac shell, menu bar, keyboard | mac | F2 ✓ F3 ✓ F4 ✓ | `?only=mac` | Opus | **Merged** `10cad44` | — | 671 tests / 97 suites, lint clean over 205 files. **The FRAME, not the app** — `BoardRegistry.installed` is empty, so all seven destinations render the same placeholder; the boards are M2–M8. Real: three-zone window, sidebar + F2 focus ring, six menus with disabled reasons, keyboard routing, frame restoration, readout via F4's tracker, scroll-edge. Placeholder cannot outlive the boards — failable type, complement test, Release gate reading the list from source. Stopped before its critic: it was running over seven identical placeholders |
 | M2 | Activity | mac | M1 | `?only=mac&pane=activity` | Opus | Untriaged | — | — |
@@ -186,6 +186,37 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 ---
 
 ## Changelog
+
+- 2026-08-14 — **R2-R merged `62678aa`: the router is now a process, and R4's gate went 50/81 → 69
+  of 82 with 0 DIVERGED.** The five lanes R4 could not measure at all — `mcp`, `cli`, `install`,
+  `state`, `log` — are measurable because the thing they measure now exists. Merged-tree gates were
+  re-run here rather than taken on the runner's word: lint **0 violations over 243 files**, **750
+  tests / 106 suites**, **358 parity vectors**, and the merged tree is byte-identical to the gated
+  tree (`163597f7`), so the numbers describe what landed.
+
+  Three things worth keeping. **The lint fix was structural, never a raised limit** — `RouterService`
+  split into composition root / dispatch / collaborators, `MCPEndpoint` split, and
+  `StdioUpstreamTransport.open` into spawn + handshake; the honest violation count turned out to be
+  **31, not 29**, because swiftformat's own wrapping pushed three more files past the 400-line cap
+  after the first pass. **One config change, and it settles a real tool deadlock**: swiftformat's
+  `wrapMultilineStatementBraces` and swiftlint's `opening_brace` demand opposite brace positions,
+  verified by moving a brace by hand and watching swiftformat put it back — narrowed to
+  `opening_brace: ignore_multiline_statement_conditions`. And the runner **hashed the source before
+  and after its gate run** and reported the hash, which is what let the merge trust a number
+  produced hours earlier.
+
+  **A fourth two-writer incident, and the first one that cost nothing.** A resume of the older run
+  `wf_48b3dafa-109` re-dispatched `fleet-runner.js` into `.worktrees/R2R` while R2-R was working,
+  creating `AuthVerb.swift` and `StdioUpstreamSession.swift` under it. By merge time that process
+  was dead, the worktree was clean, and both files were committed inside R2-R's own history — so the
+  gated tree already contained the intruder's work and the gate passed over it. That is luck, not a
+  control. **The control is the merged-tree gate**, which is why it is run every time even when the
+  branch is already at main's head and the rebase is a no-op.
+
+- 2026-08-14 — **Wave: M8 and I2 launched (`wf_67a6b2b6-231`), and the wave is two items because the
+  DAG says two.** M5 and M7 wait on M4, M6 waits on M5, I3 waits on I2 — all still in flight or
+  unstarted. Concurrency is 4 with M2 and M4 live. Reclaimed M3's worktree and branch (merged at
+  `bf08ecb`, clean, holding only two orphan processes from its finished runner).
 
 - 2026-08-14 — **R4 refused the cutover, and the refusal is the most valuable thing the fleet has
   produced.** Its parity gate exits 1 at **50 of 81 rows**, and the blocked lanes are structural,

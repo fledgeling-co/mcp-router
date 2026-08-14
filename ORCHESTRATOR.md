@@ -165,6 +165,45 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 
 ## Changelog
 
+- 2026-08-14 — **F4 died a second time, and left a mutant in the source.** It ran the
+  mutation gate as a background task and polled its output file for a sentinel; the task
+  was killed at 14:56:09 without writing one, and the poll never returned because the child
+  died with the parent. Mutant **M56** was left applied in `ServerStateTracker.swift`
+  (`guard snapshot != lastPublished` rewritten to `if false { return }`) — applied to disk,
+  killed before it could run or revert. Since F4 must merge before wave 4, that is
+  deliberately-broken code one merge away from `main`. Reverted, the real work committed as
+  `ca32ee4`, and F4 relaunched in `wf_196b1c68-865` with the cause named in its brief.
+  Inherited by the relaunch rather than re-run: M50–M54 KILLED, **M55 SURVIVED** (a real
+  coverage gap — no test observes the notification lost when `register` is deferred into a
+  `Task`), M56/M57 never ran. Also flagged: `ai/f4` predates the hooks commit, so its diff
+  proposes deleting `planning/hooks/*` and reverting `watch-fleet.sh` — rebase before merge.
+- 2026-08-14 — **R5 reported a second writer in its worktree; there wasn't one.** It found
+  `Auth/` files it did not recognise, a package resolve it did not remember starting, and a
+  subagent citing `FileModeWriting.swift` by path. It stopped rather than raced and committed
+  only its own files by explicit pathspec (`0fad8c0`) — exactly right given what it believed.
+  Checked before answering, because if it had been right the correct action was to stop:
+  across every agent transcript in the session, `.worktrees/R5` has **21 Edit/Write calls,
+  all from R5 itself**, four of them the very files it disowned. The resolve was its own
+  `swift build`; the subagent was the one plan-gate agent it spawned. Cause is almost
+  certainly compaction — 323 entries — which its brief already covers with a re-read rule.
+  Told to resume; it owns `ai/r5`.
+  Its finding was still worth having: **`DELETE /servers/:name/auth` is already shipped on
+  `ai/r3`**, so R5 drops it rather than building a second implementation that can silently
+  disagree.
+- 2026-08-14 — **Watcher, revision 6: a journalled result no longer retires an item.** R5
+  exposed the hole — an orchestrator message resumes a stopped runner, that turn journals a
+  result, and the runner then works for another half hour with nothing watching it. Liveness
+  alone now decides whether to fire; the result only changes what the event means (`STOPPED`,
+  owes a report, versus `QUIET`, probably died). Added a third liveness test ahead of both:
+  **a live process whose cwd is inside the worktree**, one `lsof` per pass for all items.
+  I1 forced that one — its `xcodebuild` writes DerivedData *outside* the worktree, so 18
+  minutes of real compiling read as 18 minutes of nothing to a file-mtime check.
+  The proving needed a negative control, because the first red run fired **zero** and that
+  looked like a pass: R3, M1 and R5 had all started builds between probes, so the new gate
+  suppressed everything and a broken gate would have looked identical. `FLEET_REPO` is now
+  overridable purely so it can be pointed somewhere no process can match — under that
+  control all 8 items fire, R5 included, and the real repo stays silent.
+
 - 2026-08-14 — **Two R3 runners were editing `ai/r3` at once for ~18 minutes, and I put
   the second one there.** When auth was split out into R5 I relaunched R3 with a corrected
   brief ("auth split out") in a new workflow run — and never stopped the original, which

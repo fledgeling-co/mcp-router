@@ -32,7 +32,7 @@
 
 QUIET=${FLEET_QUIET:-900}               # 15 min of silence with no gate running
 GATED_QUIET=${FLEET_GATED_QUIET:-2700}  # 45 min: past 1740s, the longest gate re-run observed
-REPO=/Users/lukerhodes/Dev/mcp-router
+REPO=${FLEET_REPO:-/Users/lukerhodes/Dev/mcp-router}
 SESSION=/Users/lukerhodes/.claude/projects/-Users-lukerhodes-Dev/bdb1ad3b-8861-4dfc-8f0d-9e160dc3aa80
 RUNS="$SESSION/subagents/workflows"
 
@@ -59,6 +59,13 @@ declare -A reported
 while true; do
     now=$(date +%s)
     live=0
+
+    # Every process cwd on the machine, captured once per pass. This is the last and
+    # strongest liveness test: a worktree with a live builder in it is not abandoned,
+    # whatever its files say. I1 forced this — its `xcodebuild` writes DerivedData OUTSIDE
+    # the worktree, so 18 minutes of real compiling looked like 18 minutes of nothing to a
+    # file-mtime check. One lsof for all items beats one per item.
+    CWDS=$(/usr/sbin/lsof -w -d cwd -Fn 2>/dev/null | grep '^n' | cut -c2-)
     for id in "$@"; do
         dir="$RUNS/$id"
 
@@ -95,7 +102,15 @@ PY
 )
         while read -r item mtime finished; do
             [ -n "$item" ] || continue
-            [ "$finished" = "1" ] && continue
+
+            # A journalled result does NOT retire an item from the watch. R5 proved why: a
+            # message from the orchestrator resumes a stopped runner, that resumed turn
+            # journals a result, and the runner then carries on building for another half
+            # hour — during which an item-is-done skip would have watched nothing at all.
+            # So liveness alone decides whether to fire, and the result only changes what
+            # the event MEANS: with a result it has stopped and owes a report; without one
+            # it probably died. A finished, idle item therefore fires exactly once, which
+            # is the reminder to go and collect it.
 
             wt=$(wt_mtime "$item")
             [ "$wt" -gt "$mtime" ] && mtime=$wt
@@ -108,6 +123,13 @@ PY
                 continue
             fi
             [ -n "${reported[$key]:-}" ] && continue
+
+            # Last check before firing: is anything actually working in there?
+            if printf '%s\n' "$CWDS" | grep -q "^$REPO/.worktrees/$item"; then
+                live=$(( live + 1 ))
+                unset "reported[$key]"
+                continue
+            fi
 
             # A running codex gate explains the silence, so it is not an event. The threshold
             # cannot simply sit above the gates: they are nominally bounded at 600s, but a
@@ -122,7 +144,12 @@ PY
                 continue
             fi
             reported[$key]=1
-            echo "QUIET $item in $id — no agent write AND no worktree write for $(( silent / 60 ))m, no codex gate. Check died-vs-returned-early before relaunching."
+            if [ "$finished" = "1" ]; then
+                echo "STOPPED $item in $id — quiet $(( silent / 60 ))m and it HAS journalled a result, so it finished a turn rather than dying. Collect its report, or relaunch it if the item is not actually done."
+            else
+                echo "QUIET $item in $id — no agent write, no worktree write and no process in its worktree for $(( silent / 60 ))m, no codex gate. Check died-vs-returned-early before relaunching."
+            fi
+
         done <<< "$items"
     done
     [ "$live" -eq 0 ] && { echo "ALL QUIET — every item in $* has stopped writing; the wave is over or wholly stalled"; exit 0; }

@@ -60,7 +60,21 @@ Claude. Exempt from the kill-switch. codex 0.146.0 is installed at ~/.local/bin/
   Verify the wire: the captured log must contain 'model: gpt-5.6-sol' AND
   'reasoning effort: max', or it is a lane failure — a dropped flag silently inherits
   the user's config default. An empty -o file is a lane failure, never a pass.
-  A genuine unavailability is a LOGGED in-family downgrade, never a silent skip.`
+  A genuine unavailability is a LOGGED in-family downgrade, never a silent skip.
+
+  THIS LANE IS UNAVAILABLE FOR THIS FLEET. Verified by the orchestrator 2026-08-14: every
+  codex call, down to a one-word probe, returns "You've hit your usage limit ... try again
+  at Aug 20th, 2026 1:29 PM". That is ACCOUNT-level and past this fleet's horizon, so do
+  not spend a probe rediscovering it. Run all three gates in-family instead: a FRESH
+  \`claude -p\` opus-5 reviewer per gate, briefed adversarially (tell it to refute, and to
+  treat an inability to find defects as a failed review rather than a pass), and record
+  "codex: usage limit -> claude (downgrade)" in the spec/plan/completion note so the
+  weakness travels with the evidence. Re-probe only if a note in ORCHESTRATOR.md says the
+  limit has cleared.
+  The trap that makes this dangerous: \`codex exec\` EXITS 0 on a usage limit. A gate keyed
+  on \$? records a pass for a review that never ran. The only honest tells are the ERROR
+  line in the log and a MISSING OR EMPTY -o file — assert the -o file is non-empty before
+  you believe any codex result, on this fleet or a later one.`
 
 const RULES = `
 Rules that override ship-feature's defaults:
@@ -80,6 +94,14 @@ Rules that override ship-feature's defaults:
 - NEVER end your turn to wait for a background task. Your wrapper returns the moment you
   stop, and no wake-up notification can reach you — you are dead, not paused. Wait
   synchronously: foreground the command, or poll in a loop.
+
+- MESSAGING THE ORCHESTRATOR COSTS YOU YOUR TURN. Observed twice on 2026-08-14: a runner
+  that calls SendMessage stops there, and from outside it is indistinguishable from one
+  that died — same frozen transcript, same absent result. It resumes only when the
+  orchestrator replies. So message only when you genuinely cannot proceed without an
+  answer, put everything you need into that ONE message rather than opening a
+  conversation, and decide anything you could reasonably decide yourself. Never message
+  mid-phase for a courtesy update.
 
 - FINISH THE WHOLE ITEM IN ONE TURN. A phase report is not a deliverable. You are done when
   acceptance evidence is green AND your work is committed on your branch — not when a phase

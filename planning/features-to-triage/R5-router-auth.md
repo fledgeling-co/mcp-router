@@ -23,10 +23,22 @@ that produced 86 findings, 82 accepted.
 
 Also inherit two open items R3 named against auth specifically:
 
-- **Attribution's partial-identity path contradicts B69.** Resolve it rather than working around
-  it; R3 flagged it as open, not decided.
+- **Attribution's partial-identity path contradicts B69 — and it is a SPEC defect, not a code
+  one.** B69 says every failure yields an empty identity, "never a partial one". The reference
+  emits `{ pid, client, cwd: cwd || undefined }`, so a partial identity is the reference's own
+  behaviour, and B71 requires equality with the reference; the two cannot both hold. Scope B69
+  to its four enumerated peer-identification paths and name the cwd case as an explicit
+  exception, in the same shape as B12's carve-out for its two 422 bodies. `spec-R3.md` was
+  never amended, so you are the first to write this down. The half that genuinely was a code
+  defect is already fixed on `ai/r3`: a pid whose `proc_name` fails used to escape as a bare
+  `{pid}`, a state the reference cannot produce (it reads pid and command from one
+  `lsof -Fpc` record); it is now `.unknown`.
 - `isLive`/`clearPending` take Swift `String`, so canonical equivalence applies where the
-  reference uses code units (S5/B24). Auth handles user-supplied names, so this is yours to close.
+  reference uses code units (S5/B24). Auth handles user-supplied names, so this is yours to
+  close — but note the correction: it is **latent, not live**. `ServerParser` refuses any name
+  outside `[A-Za-z0-9_-]+`, so two spellings of one name cannot both reach a port. Keep the
+  `JSString` typing (that gate keeps names usable as tool namespaces; it is not a
+  comparison-safety measure) and do not report a live bug fixed there.
 
 ## Constraints inherited from the router items
 
@@ -34,8 +46,12 @@ Also inherit two open items R3 named against auth specifically:
   inferring it — R3 found five live defects that way, and rejected three review findings that
   would have edited correct code into a divergence.
 - F3's 23 recorded fixtures are the wire contract R4 diffs against. Consume them; never alter them.
-- **B76: parity vectors must exceed R1's 224.** R3 left this unmet at exactly 224. Every auth
-  route you add is a vector, so this item is where it gets met.
+- **B76 is already met — do not plan work to satisfy it.** This brief originally said the
+  corpus sat at exactly 224 and that auth was where it would clear R1's floor. It isn't:
+  R3's later commits took `ai/r3` to **352 executed cases across 48 suites**, and
+  `make parity-regen` against the reference `dist/` passes, so they are reference-derived
+  rather than back-fitted. Add auth vectors because auth needs vectors; treat 352 as the
+  floor to beat, not 224.
 - The MCP SDK is pinned exact at `0.12.1` and lives only in `RouterCore`, which neither app links.
   Do not add a second dependency or widen the pin.
 

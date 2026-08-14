@@ -17,7 +17,7 @@ every state change, before acting on that change.
 | Practices | `planning/practices/` — inherited from bella-team-files. **They are TypeScript/Next.js and carry no Swift guidance.** F1 owes `SWIFT_PRACTICES.md`; until it lands, Swift runners have no house style to conform to |
 | Design authority | `DESIGN.md` at the root. Reference implementation `design/mocks/prototype.html` (interactive, deep-linkable) |
 | Worktrees | `.worktrees/<ID>` on `ai/<id>` |
-| External model CLIs | **On.** No opt-out marker in this repo. The three out-of-family gates route to codex `gpt-5.6-sol` at `max`, read-only |
+| External model CLIs | **On** (no opt-out marker in this repo) but **the codex lane is UNAVAILABLE — do not probe it.** See below |
 | Concurrency | ≤8 slots; the DAG peaks at 5 |
 | Merges | **Serialized by the orchestrator.** Runners stop at ready-to-merge |
 
@@ -40,6 +40,37 @@ every state change, before acting on that change.
 - No number is displayed that the router does not observe. There is no fabricated memory
   saving anywhere in this product.
 - The Swift MCP SDK is pre-1.0 and warns that minor bumps may break — pin exact.
+
+### The codex lane is down until 2026-08-20 — read before any out-of-family gate
+
+Verified by the orchestrator on 2026-08-14: every `codex exec` call, down to a one-word
+probe at low effort, returns *"You've hit your usage limit … try again at Aug 20th, 2026
+1:29 PM"*. That is **account-level**, not per-call, and Aug 20 is past this fleet's
+horizon. Do not spend a probe rediscovering it.
+
+Run the three out-of-family gates in-family instead: a **fresh `claude -p` opus-5 reviewer
+per gate**, briefed adversarially — told to refute, and told that finding nothing is a
+failed review rather than a pass — and record `codex: usage limit -> claude (downgrade)`
+in the spec, plan or completion note, so the weakness travels with the evidence instead of
+disappearing. This is a logged in-family downgrade, which the skill permits; it is not a
+skipped gate.
+
+**The trap that makes this dangerous: `codex exec` exits 0 on a usage limit.** A gate keyed
+on `$?` records a pass for a review that never ran. The only honest tells are the ERROR
+line in the log and a missing-or-empty `-o` file — assert the `-o` file is non-empty before
+believing any codex result, on this fleet or a later one.
+
+### A runner that messages the orchestrator ends its turn
+
+Observed twice on 2026-08-14 (R5, and the stopped R3 duplicate): a runner that calls
+SendMessage stops, and `TaskStop` then reports *"no active task"* for it. It stays stopped
+until the orchestrator replies, which resumes it from its transcript. So a message is not
+an aside — it costs the runner its turn.
+
+Two consequences. Runners: say what you need in one message and expect to be resumed;
+don't message mid-phase for something you could decide yourself. Orchestrator: **reply
+promptly, because a runner awaiting a reply is indistinguishable from a dead one** — the
+liveness watcher will report it quiet in fifteen minutes either way.
 
 ---
 
@@ -84,7 +115,7 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 | R1 | Router: core, config, manifest | router | F1 ✓ | — | Opus | **Merged** `c30eac9` | — | merged-tree `make all` exit 0 · 237 tests · 224 parity vectors · mutation gate exit 0 · SDK pinned exact `0.12.1`, confined to `RouterCore` which neither app links |
 | F4 | ServerStateTracker cannot report failure | foundation | F3 ✓ | — | Opus | **Ready — blocks M2, M3** | — | Defect on `main`, found by M1's plan gate and verified in source: `try?` in `pollLoop` discards every typed `ControlAPIError`, and `phase` is pinned to `.disconnected` whenever `stream` is nil (the default). No §5 failure state is renderable from this type. |
 | R2 | Router: pool, relay, passthrough | router | R1 | — | Opus | Untriaged | — | — |
-| R3 | Router: control, usage, registry | router | R1 ✓ | — | Opus | **Partial — relaunched, auth split out** | `ai/r3` `bace3ec` | 4 commits, clean tree · 273 tests, lint clean, 3 red-green proofs · **5 live defects found and fixed** by reading `src/*.ts` (PATCH `projects` deleting on a string, `?limit=` NaN vs `Number("")`, missing `localeCompare`, `new URL` discarding the base path, a self-reordering GitHub cache) · spec gate 86 findings/82 accepted, plan gate 29/23 · **Phase D critic FAILED twice — no independent completeness review** · B76 unmet at exactly 224 |
+| R3 | Router: control, usage, registry | router | R1 ✓ | — | Opus | **Partial — relaunched, auth split out** | `ai/r3` `2a1121e` | 5 commits, clean tree · **352 parity cases in 48 suites** (B76's "exceed 224" is met — the R5 brief's floor is stale) · `make parity-regen` against the reference `dist/` passes, so vectors are reference-derived not back-fitted · **8 live defects found and fixed** by reading `src/*.ts` — the earlier 5, plus `?limit=`/`?limit=0` returning every record via `slice(-0)`, `projectOf` recording a project literally named `/` (BSD `lastPathComponent` vs node `basename('/')`), and `Authorization`-vs-`authorization` bearer shadowing decided by Swift dictionary hash order · B70's attribution cache was entirely unimplemented and is now `AttributionCache` · spec gate 86 findings/82 accepted, plan gate 29/23 · **Phase D critic still not run** — codex was down, and the in-family downgrade had not happened when the duplicate stopped · **`2a1121e` was committed by the stale duplicate with `git add -A` and contains the surviving runner's in-flight work; kept deliberately, see changelog** |
 | R5 | Router: OAuth and the auth routes | router | R3 | — | Opus | **Ready** | — | Split out of R3 by the orchestrator: P4/auth entire (B60–B66, no `Auth/` sources exist), `/approve` and `POST /servers/:name/auth`. R3 blocked twice, once on an interrupt and once on scope; this is the slice that made the turn unfinishable. Carries B76 (must exceed R1's 224) and B69's partial-identity contradiction |
 | R4 | Parity harness and cutover | router | R2, R3, R5 | — | Opus — never downgrade | Untriaged | — | — |
 | M1 | Mac shell, menu bar, keyboard | mac | F2, F3 ✓ | `?only=mac` | Opus | **Partial — relaunched** | `ai/m1` `6035cc4` | Spec (37 clauses), plan, design mock and the shell models committed, tree clean · 264 tests, lint clean, 6 red-green proofs · both codex gates REJECTed and were fully addressed · **no UI shipped yet**, so every UI clause is unevidenced and the runner said so rather than claiming build gates as UI evidence · plan Phases B/C/D remain |
@@ -133,6 +164,59 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 ---
 
 ## Changelog
+
+- 2026-08-14 — **Two R3 runners were editing `ai/r3` at once for ~18 minutes, and I put
+  the second one there.** When auth was split out into R5 I relaunched R3 with a corrected
+  brief ("auth split out") in a new workflow run — and never stopped the original, which
+  was still running the pre-split brief in the run that also carries R5. So one branch had
+  two writers, and R5's scope had two owners. Found by accident: the liveness watcher's
+  denominator listed R3 in two live runs. Both prompts were read before acting, and the
+  ledger's own row (*"Partial — relaunched, auth split out"*) named which one was intended.
+  The stale runner was not stoppable by `TaskStop` — workflow-inner agents are not tasks —
+  so it was stopped by message, told explicitly not to commit, revert or clean, and to hand
+  back findings instead. It had already committed `2a1121e` with `git add -A` four minutes
+  earlier, sweeping up the surviving runner's in-flight P6 work.
+  **Kept, not reset.** `reset --soft` would leave every file byte-identical, so it buys only
+  a more accurate commit message — and it would hand a *live* runner an unexpectedly dirty
+  index mid-turn. That is the same live-worktree hazard this fleet already got away with
+  once, and attribution is not worth spending it on. The content is entirely in-scope R3
+  work on R3's own branch; no `Auth/` sources or OAuth routes reached it, so R5 is
+  uncontested. Verified rather than assumed: `git ls-tree` for Auth sources, and
+  `ControlHandler` carries only `DELETE /auth` and the 401 path, which are control-surface
+  and R3's by right.
+  Its stop report was worth more than its code: three further live port defects (all now
+  fixed on the branch), B70's cache implemented from the reference's real semantics, the
+  parity corpus at 352, a **spec** defect where B69's "never a partial identity" cannot
+  coexist with B71's equality-with-the-reference, and a correction retiring a plan-gate
+  finding as latent rather than live. All of it forwarded to R5, whose brief carried the
+  now-stale 224 floor and the unresolved B69 contradiction.
+  Two mechanisms changed. Runners are told a message costs them their turn; the orchestrator
+  is told to reply promptly, since a runner awaiting a reply looks exactly like a dead one.
+- 2026-08-14 — **The codex lane is down fleet-wide until Aug 20**, reported by the R5
+  runner and reproduced here with a one-word probe: an account-level usage limit, past this
+  fleet's horizon. The three out-of-family gates now run in-family as adversarially-briefed
+  `claude -p` opus-5 reviewers, logged as `codex: usage limit -> claude (downgrade)` in each
+  artifact. Recorded in the contract above so in-flight runners see it on their next
+  pre-call re-grep — that file is the only kill-switch that reaches a running runner — and
+  in `planning/fleet-runner.js` so future launches inherit it.
+  The dangerous half: **`codex exec` exits 0 on a usage limit.** Any gate keyed on `$?` would
+  have recorded a pass for a review that never ran. Only the log's ERROR line and an empty
+  `-o` file distinguish them.
+- 2026-08-14 — **The liveness watcher was measuring the wrong thing and reported two false
+  deaths.** It keyed on one agent's transcript mtime, so it called M1 quiet at 16m while M1
+  was mid-build, and F4 quiet at 24m while F4's gate output was seconds old. Two distinct
+  causes, one fix: a transcript is appended when an agent *speaks*, and an agent thirty
+  minutes into a `swift build` writes thousands of files and not a byte to it; separately,
+  the harness retries under a new agentId, leaving the original's transcript frozen forever
+  with no journalled result. Liveness is now judged **per item**, from the newest of every
+  agent's transcript *and* the item's worktree (walking the tree, plus `.build/build.db`
+  directly, since that one file is touched throughout a compile). Item keying folds a retry
+  and its corpse into one row for free.
+  Proved both directions before trusting it: silent at real thresholds while M1 and F4 were
+  working, and **9 of 9 unfinished items firing** at `FLEET_QUIET=0`. The first red run used
+  `FLEET_QUIET=1` and printed only 7 — a transcript written that same second reads as 0s of
+  silence, which is not `-lt 1`. A denominator two short is exactly what a coverage hole
+  looks like, and it took a second run at 0 to show it was the threshold, not the code.
 
 - 2026-08-14 — **I1 returned early and the fleet read it as delivered.** The runner
   finished Phase 1, wrote a genuinely good design report — 12 sections, 30 phone frames,

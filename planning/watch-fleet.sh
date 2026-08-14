@@ -5,19 +5,34 @@
 #
 # Detects the two failures that look identical from outside: an agent that died, and an agent
 # that RETURNED EARLY (journaled as a success, never retried, artifacts left untracked). Both
-# present as a transcript that stops writing while its siblings keep going. I1 sat in that state
-# for 45 minutes before a manual check found it.
+# present as work that stops while its siblings keep going. I1 sat in that state for 45 minutes
+# before a manual check found it.
 #
 # Run ids are ARGUMENTS, not discovered. An earlier version globbed every wf_* under the session
 # and reported 13-hour-old agents from waves that finished this morning. It also tried to skip
 # finished runs with `results >= started`, which can never be true for the runs that matter: a
 # dead agent never journals a result, so a run that lost one stays permanently "unfinished".
 #
-# Not a false positive on a blocked agent: the codex review gates are bounded at 600s, so the
-# threshold sits above them, and a gate holding THIS run's worktree is reported alongside.
+# LIVENESS IS PER ITEM, AND THE WORKTREE IS PART OF IT. Two false positives on 2026-08-14, both
+# from treating one agent's transcript mtime as the signal:
+#
+#   - M1 reported quiet at 16m while it was actively building. The harness had RETRIED it under a
+#     new agentId; the original's transcript is frozen forever and never journals a result, so an
+#     agent-keyed check reports that corpse until the run ends.
+#   - F4 reported quiet at 24m while its gate output and .build were seconds old. A transcript is
+#     appended when the agent SPEAKS; an agent thirty minutes into a swift build writes thousands
+#     of files and not a byte to it.
+#
+# So an item is quiet only when nothing has moved — no agent of that item has spoken AND its
+# worktree is untouched. That covers the retry case for free, because both agents fold into one
+# item, and it covers the long-build case because .build is checked directly.
+#
+# Not a false positive on a blocked agent either: a running codex gate is reported separately and
+# only past a length no observed gate reaches.
 
 QUIET=${FLEET_QUIET:-900}               # 15 min of silence with no gate running
 GATED_QUIET=${FLEET_GATED_QUIET:-2700}  # 45 min: past 1740s, the longest gate re-run observed
+REPO=/Users/lukerhodes/Dev/mcp-router
 SESSION=/Users/lukerhodes/.claude/projects/-Users-lukerhodes-Dev/bdb1ad3b-8861-4dfc-8f0d-9e160dc3aa80
 RUNS="$SESSION/subagents/workflows"
 
@@ -25,6 +40,19 @@ RUNS="$SESSION/subagents/workflows"
 for id in "$@"; do
     [ -d "$RUNS/$id" ] || { echo "FATAL: no such run dir: $id"; exit 2; }
 done
+
+# Newest write anywhere in a runner's worktree. `.build` is excluded from the walk because it
+# holds tens of thousands of files, then its build database is stat'd directly — that single file
+# is touched throughout a compile, which is exactly the window this has to see through.
+wt_mtime() {
+    local wt="$REPO/.worktrees/$1" newest
+    [ -d "$wt" ] || { echo 0; return; }
+    newest=$( { find "$wt" -type f -not -path '*/.build/*' -not -path '*/.git/*' \
+                     -exec stat -f '%m' {} + 2>/dev/null
+                [ -f "$wt/app/.build/build.db" ] && stat -f '%m' "$wt/app/.build/build.db"
+              } | sort -rn | head -1 )
+    echo "${newest:-0}"
+}
 
 declare -A reported
 
@@ -34,42 +62,45 @@ while true; do
     for id in "$@"; do
         dir="$RUNS/$id"
 
-        # Which ITEMS in this run are finished. Keyed by item, not agentId, because the harness
-        # retries transparently under a NEW agentId: R3's first agent was interrupted and never
-        # journaled a result, while a retry with a different id returned for the same item. An
-        # agentId-only check can never clear that first agent, so its corpse reports forever.
-        # Item-name keying is safe *within* a run — a run's retries of one item are that item —
-        # and would be wrong across runs, where a relaunched I1 and the original are both "I1".
-        done_items=$(python3 - "$dir" <<'PY'
+        # One line per ITEM: name, newest transcript write across ALL its agents, done flag.
+        # Keyed by item because the harness retries transparently under a new agentId, and
+        # because two agents for one item are one piece of work. Item keying is safe *within* a
+        # run; across runs it would conflate a relaunched I1 with the original, which is why the
+        # report key below carries the run id too.
+        items=$(python3 - "$dir" <<'PY'
 import json, os, re, sys
 run = sys.argv[1]
-finished = set()
 results = set()
 for line in open(os.path.join(run, "journal.jsonl")):
     d = json.loads(line)
     if d.get("type") == "result" and d.get("agentId"):
         results.add(d["agentId"])
+newest, done = {}, set()
 for name in os.listdir(run):
     m = re.fullmatch(r"agent-(\w+)\.jsonl", name)
-    if not m or m.group(1) not in results:
+    if not m:
         continue
-    with open(os.path.join(run, name), errors="ignore") as fh:
+    path = os.path.join(run, name)
+    with open(path, errors="ignore") as fh:
         hit = re.search(r"FEATURE: ([A-Z0-9]+)", fh.read())
-    if hit:
-        finished.add(hit.group(1))
-print(" ".join(sorted(finished)))
+    if not hit:
+        continue
+    item = hit.group(1)
+    newest[item] = max(newest.get(item, 0), os.stat(path).st_mtime)
+    if m.group(1) in results:
+        done.add(item)
+for item, mtime in sorted(newest.items()):
+    print(f"{item} {int(mtime)} {1 if item in done else 0}")
 PY
 )
-        for f in "$dir"/agent-*.jsonl; do
-            [ -f "$f" ] || continue
-            agent=$(basename "$f" .jsonl); agent=${agent#agent-}
-            key="$id/$agent"
+        while read -r item mtime finished; do
+            [ -n "$item" ] || continue
+            [ "$finished" = "1" ] && continue
 
-            silent=$(( now - $(stat -f '%m' "$f") ))
-            item=$(grep -o 'FEATURE: [A-Z0-9]*' "$f" | head -1 | cut -d' ' -f2)
-
-            # This item already returned in this run, by this agent or by a retry of it.
-            case " $done_items " in *" ${item:-__none__} "*) continue ;; esac
+            wt=$(wt_mtime "$item")
+            [ "$wt" -gt "$mtime" ] && mtime=$wt
+            silent=$(( now - mtime ))
+            key="$id/$item"
 
             if [ "$silent" -lt "$QUIET" ]; then
                 live=$(( live + 1 ))
@@ -87,13 +118,13 @@ PY
             if pgrep -f "gate-${item}-" >/dev/null 2>&1; then
                 [ "$silent" -lt "$GATED_QUIET" ] && continue
                 reported[$key]=1
-                echo "STUCK ${item:-?} in $id — quiet $(( silent / 60 ))m with a codex gate still running, past any observed gate length. Check whether the gate is hung."
+                echo "STUCK $item in $id — quiet $(( silent / 60 ))m with a codex gate still running, past any observed gate length. Check whether the gate is hung."
                 continue
             fi
             reported[$key]=1
-            echo "QUIET ${item:-?} in $id — no transcript write for $(( silent / 60 ))m and NO codex gate for it. Check died-vs-returned-early before relaunching."
-        done
+            echo "QUIET $item in $id — no agent write AND no worktree write for $(( silent / 60 ))m, no codex gate. Check died-vs-returned-early before relaunching."
+        done <<< "$items"
     done
-    [ "$live" -eq 0 ] && { echo "ALL QUIET — every agent in $* has stopped writing; the wave is over or wholly stalled"; exit 0; }
+    [ "$live" -eq 0 ] && { echo "ALL QUIET — every item in $* has stopped writing; the wave is over or wholly stalled"; exit 0; }
     sleep 120
 done

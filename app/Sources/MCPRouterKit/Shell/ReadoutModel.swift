@@ -64,11 +64,22 @@ public struct ReadoutModel: Equatable, Sendable {
     /// `running` counts servers the router reports as running — nothing is inferred about a server
     /// the response did not mention, which is the same rule `ServerStateTracker` keeps.
     public func applying(_ response: ServersResponse, at now: Date) -> ReadoutModel {
-        let live = response.servers.filter(\.isRunning).count
+        applying(response.servers, at: now)
+    }
+
+    /// The same reading, taken from the servers alone.
+    ///
+    /// `ServerStateTracker.LoadState` carries `[MCPServer]` rather than the whole `ServersResponse`
+    /// — deliberately, because a `.stale` snapshot corrected by call records is no longer any single
+    /// response and presenting it as one would overstate it. Nothing above reads `port`, `idleMs`,
+    /// `since` or `pendingAuth`, so this is the honest shape and the response overload delegates to
+    /// it rather than the other way round.
+    public func applying(_ servers: [MCPServer], at now: Date) -> ReadoutModel {
+        let live = servers.filter(\.isRunning).count
         return ReadoutModel(
             running: live,
-            declared: response.servers.count,
-            notIndexed: response.servers.filter { $0.indexError != nil }.count,
+            declared: servers.count,
+            notIndexed: servers.filter { $0.indexError != nil }.count,
             samples: Self.evicting(samples + [Sample(at: now, running: live)], at: now),
             failure: nil
         )

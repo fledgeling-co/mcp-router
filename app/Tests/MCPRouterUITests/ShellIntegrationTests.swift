@@ -73,16 +73,57 @@
             }
         }
 
+        /// The inverse of what this test asserted before F4 merged.
+        ///
+        /// It used to require that the shell **not** use `ServerStateTracker`, because the tracker
+        /// swallowed every typed error in a `try?` and pinned its phase at `.disconnected` with no
+        /// stream attached — a shell built on it could not tell offline from an empty poll. F4
+        /// fixed exactly that, so the guard now points the other way: a second poll loop beside the
+        /// tracker's is the duplication that lets the shell and the boards disagree about what is
+        /// running, and it must not come back.
         @MainActor
-        @Test("the shell does not use ServerStateTracker, whose typed errors are discarded")
-        func theTrackerIsNotUsed() throws {
-            for file in ShellTestSupport.shellFiles {
-                let source = try ShellTestSupport.repoFile(file)
-                #expect(
-                    !source.contains("ServerStateTracker("),
-                    "\(file) built a tracker that cannot tell offline from an empty poll"
-                )
-            }
+        @Test("the shell reads the router through ServerStateTracker and not a loop of its own")
+        func theTrackerIsTheOneReader() throws {
+            let source = try ShellTestSupport.repoFile("app/Sources/MCPRouterUI/Shell/ShellModel.swift")
+            #expect(
+                source.contains("ServerStateTracker("),
+                "the shell no longer constructs the tracker that owns router state"
+            )
+            // The tell for a hand-rolled loop is a sleep on the shell's own cadence. The tracker
+            // owns the interval; a `Task.sleep` here would mean a second one had grown back.
+            #expect(
+                !source.contains("Task.sleep"),
+                "ShellModel is polling on a loop of its own again rather than through the tracker"
+            )
+        }
+
+        /// A18 at the case F4 made expressible, and the one judgment the shell adds to the tracker.
+        ///
+        /// `.stale` means an earlier poll succeeded and the refresh has since broken. The servers
+        /// behind it are real, so the badges keep them — but "3 running" is a claim about *now*,
+        /// and the router is not answering now. The counts therefore go absent while the badge
+        /// survives, and this asserts both halves in the same state so neither can be satisfied by
+        /// dropping the other.
+        @MainActor
+        @Test("a stale poll keeps the badges it observed and still withdraws the live counts")
+        func staleKeepsBadgesAndDropsCounts() async throws {
+            let model = try ShellTestSupport.model(.populated)
+            let good = Date(timeIntervalSince1970: 1_000_000)
+            await model.refresh(at: good)
+
+            // Precondition, so a broken fixture cannot make the assertion below vacuous.
+            let observed = try #require(model.readout.declared)
+            #expect(observed > 0)
+
+            // The router stops answering. The tracker moves to `.stale` because a poll did succeed.
+            await model.tracker.apply(pollFailure: .routerNotRunning)
+            await model.refreshFromTracker(at: good.addingTimeInterval(2))
+
+            #expect(model.readout.running == nil, "a stale poll rendered a count nobody observed")
+            #expect(model.readout.declared == nil)
+            #expect(model.readout.state == .failed(.routerNotRunning))
+            // And the half that is genuinely still known survives.
+            #expect(model.servers != nil, "a stale poll threw away servers that were really observed")
         }
 
         // MARK: - A22 · the disabled reason is reachable

@@ -265,3 +265,52 @@ oracle does not exist while its subject is built. Corrected order — **each uni
 test and its red-green proof in the same step**, and the exercised acceptance assertions land
 with the view they exercise. There is no separate "prove the gates" phase, because a gate proven
 a phase later is a gate that was decoration while the code was being written.
+
+---
+
+## Revision — 2026-08-14, after F4 merged
+
+The plan gate's finding 1 above — *"`ServerStateTracker` cannot drive this surface, and M1 must
+not use it"* — was correct when it was written and is **now obsolete**. It is superseded here
+rather than deleted, because the reasoning is what makes the change checkable.
+
+F4 shipped the fix the finding asked for. `LoadState` is now `.loading` / `.loaded` / `.failed`
+/ `.stale`, `pollLoop()`'s `try?` is gone so the typed `ControlAPIError` survives, and a tracker
+constructed with no stream reports `StreamCondition.notConfigured` instead of pinning at
+`.disconnected`. Every distinction A18, A26 and A28 need is therefore expressible through the
+tracker, and the justification for a second poll loop has expired with it.
+
+**`ShellModel` now reads the router through `ServerStateTracker` and owns no loop of its own.**
+Two independent pollers against one router is the duplication the tracker exists to remove, and
+it is how the shell and the boards would come to disagree about what is running.
+
+### The one judgment the shell adds, and why it is not the tracker's
+
+`.stale` is the case F4 made expressible and the case that needed a decision: an earlier poll
+succeeded, the refresh has since broken, and the servers behind it are real. The shell splits
+the two halves rather than taking the state whole:
+
+- **Badges keep those servers.** `needsAttention` and `neverUsed` are properties of the declared
+  configuration. They were genuinely observed and nothing about a failed refresh unobserves them.
+- **The readout counts go absent.** "3 running" is a present-tense claim about a router that is
+  not currently answering. Rendering the last known figure as though it were current is a quieter
+  lie than a zero, but the same kind, and A18 forbids it.
+
+`ShellIntegrationTests.staleKeepsBadgesAndDropsCounts` asserts both halves in the same state, so
+neither can be satisfied by dropping the other.
+
+### The guard that was inverted
+
+`theTrackerIsNotUsed` — a source grep asserting the shell did **not** construct a tracker — has
+become `theTrackerIsTheOneReader`, asserting it does, and that no `Task.sleep` has grown back
+beside it. Both directions were proven by mutation on 2026-08-14: retaining the counts on
+`.stale` failed the readout assertions, and re-growing a sleep in `run()` failed the grep.
+
+### What did not change
+
+`ReadoutModel` gained an `applying(_ servers: [MCPServer], at:)` overload, because
+`LoadState` carries `[MCPServer]` rather than a whole `ServersResponse` — deliberately, since a
+`.stale` snapshot corrected by call records is no longer any single response. The
+`ServersResponse` overload delegates to it; nothing in the derivation ever read `port`, `idleMs`,
+`since` or `pendingAuth`. A36 is unaffected: the tracker speaks the same loopback control API
+through F3's client, and the shell still opens no socket, no file and no process.

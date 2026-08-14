@@ -1,0 +1,1272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>I3 — iPhone: Triage, Queue and Library</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════════════════
+   I3 — iPhone: Triage, Queue and Library.  The UI oracle for this feature.
+
+   Direction inherited from DESIGN.md: "Instrument Panel". Tokens, phone chrome
+   and every shared component class are I1's and I2's, carried over UNCHANGED so
+   the phone is one app rather than three features. What is new is at the bottom
+   of the stylesheet, under "I3 additions".
+
+   I3 completes the phone. It makes the last three of the five tabs real:
+   PhoneShell.Tab.triage, .queue and .library currently resolve to `AwaitingTab`
+   via `awaitingKey`, and this item is what returns nil for all three.
+
+   ── The interaction, and why it is this one ────────────────────────────────
+   Triage is a CHECKLIST. Three interactions were considered before and rejected,
+   and the rejections are recorded here because the reasoning survives the file:
+
+     · A Tinder-style swipe deck. Built once and rejected by the owner. A swipe
+       commits a security decision on a gesture, one item at a time, with no
+       undo and no record of what was dismissed — so a decision made badly on a
+       train cannot be found again at the desk. Every one of those three faults
+       is structural, not a matter of polish.
+     · Whering's numbered review stepper ("3 of 18"). Considered, not adopted.
+       A stepper is a queue with a cursor: it decides the ORDER for you and it
+       has no batch. The whole value here is seeing eight rows at once and
+       picking the two worth the Mac's attention, which a stepper forbids.
+     · Apple Mail / Spark swipe-to-reveal-labelled-buttons. Considered, not
+       adopted. It is a better gesture than the deck — the labels are visible
+       and it is undoable — but it is still one item per gesture with the action
+       hidden until you drag, on a surface whose whole subject is a comparison
+       across rows. It also collides with the system back-swipe at the leading
+       edge.
+
+   What ships instead, and the two design decisions inside it that are mine
+   rather than the brief's:
+
+     1. THE ROW IS TWO TARGETS. The leading checkbox selects; the rest of the
+        row expands. Both are ≥44pt and each does exactly one thing. A row that
+        both selects and expands from one tap makes the more consequential act
+        (selection) an accident of where your thumb landed.
+     2. EXPANSION IS IN-PLACE, NEVER A PUSH. Discover already owns the
+        read-one-thing-properly path and pushes to a detail view. Triage's
+        premise is a comparison across rows, and a push destroys the thing being
+        compared — you return having lost your place and, on iOS, often your
+        selection. So the full capability list opens under the row and the list
+        stays put.
+
+   ── The capability summary line ───────────────────────────────────────────
+   Every row carries one line stating what the entry would be able to do, before
+   anything is ticked. It is DERIVED from the `install` descriptor the registry
+   publishes — the same five derivations I2's capability plate uses — never
+   authored per entry, and it is colour-coded on --attn only. Because the
+   derivation has a fixed vocabulary of clauses it is short by construction,
+   which is what makes "never truncates" a property of the design rather than a
+   hope about name lengths.
+
+   Colour is never the only signal: every amber line carries a glyph AND says
+   the thing in words.
+
+   ── Two prototype bugs the brief names, fixed here ─────────────────────────
+   1. EVERY CHECKBOX RENDERED TICKED. design/mocks/prototype.html draws its
+      triage rows pre-selected, on a screen whose entire job is deliberate
+      selection — so the default act is "send all of these to my laptop" and the
+      user's work is de-selecting. Inverted: nothing is ticked, the commit bar
+      is absent until something is, and Select all is an explicit control.
+   2. THE CAPABILITY LINES TRUNCATED. The prototype ellipsises them. That is the
+      one line on the row that carries the security fact, so truncating it hides
+      exactly the thing the row exists to show. Here the line wraps rather than
+      truncates, and the ROW GROWS to fit it. See the note on row height below.
+
+   ── Four corrections to design/mocks/prototype.html ────────────────────────
+   The prototype is the style reference. On these three surfaces it is stale,
+   and DESIGN.md's own precedence ("when this document and the prototype
+   disagree, the prototype is stale") resolves each point against it.
+
+   1. "N INSTALLS", "3 EVALS", "NOT EVALUATED", "NO LICENCE" ARE ALL
+      FABRICATED. The prototype's triage rows carry an install count, an
+      evaluation badge and a licence line. `RegistryEntry` carries none of the
+      three: no eval count, no licence, no download count, and `useCount` is
+      Smithery's cumulative SESSIONS figure, not installs. I2 already removed
+      all four from Discover for this reason; they are absent here rather than
+      reworded. The permitted numeric set is exactly I2's A7 set.
+   2. "YOU'VE BEEN THROUGH EVERYTHING NEW SINCE TUESDAY." The prototype's
+      empty-Undecided copy asserts a recency the router does not observe.
+      /registry/search takes `q` and `limit` and nothing else — no since, no
+      cursor, no per-user seen-state anywhere in the product. There is no feed
+      of new things arriving. Undecided is a DERIVED set: the results shown,
+      minus what you have queued, minus what you have dismissed. Its copy says
+      that and claims no recency.
+   3. THE QUEUE SHOWS A MAC-SIDE DISPOSITION IT CANNOT SEE. The prototype paints
+      WAITING / ADDED / NO against each queued row, and a subtitle reading
+      "Waiting on Luke's MacBook Pro · last seen just now". ADDED and NO are
+      dispositions taken ON THE MAC, and there is no transport: M6 shipped the
+      Mac's inbox and the wire envelope but explicitly deferred the transport
+      (D-m6-a), and the phone ships FixturePairingService only. Nothing the
+      phone queues can currently reach the Mac and the phone can observe no
+      Mac-side outcome at all. The Queue therefore reports what is locally true
+      — what is on this phone, and when it was put there — and says plainly
+      that the Mac collects these, rather than inventing a status vocabulary
+      against a wire that does not exist.
+   4. THE LIBRARY LISTS SKILLS. There is no skills index and no /skills route on
+      either router — verified again for this item. The Library lists SERVERS,
+      from GET /servers, and states the skills absence as a fact rather than
+      drawing rows for it. Its per-row facts are `MCPServer` fields only.
+
+   ── Row height: the brief's "fixed height and never ellipsise" ─────────────
+   Read literally those two are in tension — a pinned height with a wrapping
+   line clips at large text sizes. The tension is resolved the way I2's A29
+   resolved it: 44pt is a MINIMUM, not a fixed height. Rows are uniform within a
+   text size because their content is uniform, they grow together with the text
+   size, and nothing ellipsises. DESIGN.md §5's "rows never change height" is an
+   Overflow rule about long VALUES, and is satisfied by truncating the entry
+   NAME — one line, tail-truncated, full value on expand — while the capability
+   line, which is the security fact, always renders whole.
+
+   ── Stated assumptions (autonomous run: no human to ask) ───────────────────
+   A. Triage's candidate set is the SAME endpoint Discover already uses, called
+      with an empty query: /registry/search defaults `q` to '' (src/control.ts
+      :481) and returns the top N by popularity. So Triage is a batch-decision
+      surface over the same page Discover browses, which is what makes
+      "Undecided" derivable without a feed. Every band-scoping constraint I2
+      recorded (the page is popularity-selected before the app sees it) applies
+      here unchanged: no copy on this surface makes an index-wide claim.
+   B. "Not for me" is LOCAL and PERMANENT-UNTIL-UNDONE. It is genuinely observed
+      state — the user did it — and it is the one thing the swipe deck could not
+      give. It is revisitable from its own bucket and reversible from there.
+   C. The queue's storage format is I3's to define (I2's Assumption C hands it
+      over explicitly). It stays the shape of what is locally true: the item,
+      when it was queued, and nothing about a Mac.
+   D. TYPE LADDER and DYNAMIC TYPE. As I1 and I2: DESIGN.md's eight-role ladder
+      is the authority. No phone surface scales with Dynamic Type today —
+      TypeToken.font is a fixed Font.system(size:weight:) shared with every Mac
+      surface and DESIGN.md §2 fixes the eight sizes deliberately. That is a
+      shared-design-surface question and is NOT changed unilaterally here. What
+      these surfaces do about it: nothing pins a height that would clip if the
+      ladder later scaled — every row and every skeleton is min-height plus
+      intrinsic content — so the surfaces are ready for the change without
+      making it. Recorded, not silently reproduced.
+
+   Motion: transform and opacity only, springs, and nothing animates opacity
+   from 0 on entry (DESIGN.md §7). Reduced motion is a real toggle — section K.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* DARK — DESIGN.md §2, dark column. Graphite, never pure black. */
+  --ground:#1E1E1E;--panel:#232326;--raised:#2C2C2E;--raised2:#3A3A3C;
+  --line:rgba(255,255,255,.075);--lineS:rgba(255,255,255,.14);
+  --f1:rgba(255,255,255,.10);--f2:rgba(255,255,255,.08);--f3:rgba(255,255,255,.05);
+  --t1:rgba(255,255,255,1);--t2:rgba(255,255,255,.55);
+  --t3:rgba(255,255,255,.50);--t4:rgba(255,255,255,.25);
+  --live:#30D158;--attn:#FF9230;--fail:#FF4245;--accent:#0091FF;--onAccent:#FFFFFF;
+  --accentUp:#3CA9FF;
+  --shell:#0E0F11;      /* the page behind the phones — not an app token */
+  --bezel:#111316;
+  /* tinted wash for the caution block, derived from --attn */
+  --attnWash:rgba(255,146,48,.08);--attnLine:rgba(255,146,48,.28);
+  --failWash:rgba(255,66,69,.07);--failLine:rgba(255,66,69,.30);
+  --liveWash:rgba(48,209,88,.14);
+  /* Type ladder — DESIGN.md §2. Eight roles, nothing off it. */
+  --largeTitle:26px;--title1:22px;--title2:17px;--title3:15px;
+  --body:13px;--callout:12px;--subhead:11px;--caption:10px;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+}
+[data-appearance="light"]{
+  /* LIGHT — DESIGN.md §2, light column. Authored, not inverted. Every value is
+     the one measured against #ECECEE, including the reversal on --raised2:
+     emphasis always moves AWAY from the ground, and in light the resting
+     surface is already white, so darker is the only direction left. */
+  --ground:#ECECEE;--panel:#F5F5F7;--raised:#FFFFFF;--raised2:#E0E0E4;
+  --line:rgba(0,0,0,.10);--lineS:rgba(0,0,0,.19);
+  --f1:rgba(0,0,0,.13);--f2:rgba(0,0,0,.10);--f3:rgba(0,0,0,.06);
+  --t1:rgba(0,0,0,.95);--t2:rgba(0,0,0,.62);
+  --t3:rgba(0,0,0,.58);--t4:rgba(0,0,0,.33);
+  --live:#1B7B3C;--attn:#9F5A00;--fail:#CD2738;--accent:#0069CF;--onAccent:#FFFFFF;
+  --accentUp:#0058AD;
+  --shell:#DCDCE0;--bezel:#C9C9CF;
+  --attnWash:rgba(159,90,0,.10);--attnLine:rgba(159,90,0,.32);
+  --failWash:rgba(205,39,56,.09);--failLine:rgba(205,39,56,.32);
+  --liveWash:rgba(27,123,60,.14);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--shell);color:var(--t1);font:var(--body)/1.45 var(--sans);
+  -webkit-font-smoothing:antialiased;padding:24px 28px 90px}
+::selection{background:var(--accent);color:var(--onAccent)}
+button{font:inherit;color:inherit;background:none;border:none;text-align:left;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ── page chrome ───────────────────────────────────────────────────────── */
+.pg{max-width:1560px;margin:0 auto}
+.pghd h1{font:700 var(--title1)/1.2 var(--sans);letter-spacing:-.4px}
+.pghd p{color:var(--t2);font-size:var(--callout);max-width:82ch;margin-top:6px;line-height:1.55}
+.pghd .meta{color:var(--t3);font:var(--caption) var(--mono);margin-top:8px}
+.sect{margin-top:34px}
+.sect>h2{font:600 var(--title3)/1.3 var(--sans);letter-spacing:-.2px;
+  padding-bottom:7px;border-bottom:1px solid var(--line);display:flex;
+  align-items:baseline;gap:9px}
+.sect>h2 .k{font:600 var(--caption) var(--mono);color:var(--t3);
+  border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.sect>p{color:var(--t2);font-size:var(--callout);max-width:88ch;margin-top:8px;line-height:1.55}
+.row{display:flex;flex-wrap:wrap;gap:22px;margin-top:16px;align-items:flex-start}
+
+/* a labelled phone */
+.unit{width:302px}
+.unit>.cap{margin-bottom:7px}
+.unit>.cap b{display:block;font:600 var(--callout) var(--sans);letter-spacing:-.1px}
+.unit>.cap span{display:block;color:var(--t3);font-size:var(--subhead);line-height:1.45;margin-top:2px}
+
+/* ── the phone ─────────────────────────────────────────────────────────── */
+.ph{width:302px;height:646px;background:var(--bezel);border-radius:38px;
+  border:1px solid var(--lineS);padding:5px;flex-shrink:0}
+.scr{width:100%;height:100%;background:var(--ground);border-radius:33px;
+  overflow:hidden;display:flex;flex-direction:column;position:relative}
+.pstat{display:flex;padding:12px 22px 0;font:600 var(--subhead) var(--sans);
+  align-items:center;justify-content:space-between;flex-shrink:0}
+.pstat .r{display:flex;gap:5px;align-items:center;color:var(--t1);opacity:.9}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);
+  width:88px;height:24px;border-radius:13px;background:#050506}
+[data-appearance="light"] .notch{background:#1a1a1c}
+
+/* nav — iOS large title, and the collapsed bar title it becomes on scroll */
+.pnav{padding:13px 18px 8px;flex-shrink:0}
+.pnav h3{font:700 var(--largeTitle)/1.2 var(--sans);letter-spacing:-.6px}
+.pnav .back{display:flex;align-items:center;gap:3px;color:var(--accent);
+  font-size:var(--title3);margin-bottom:3px;padding:2px 0}
+.pbody{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 18px}
+.pbody::-webkit-scrollbar{width:0}
+.psub{color:var(--t2);font-size:var(--callout);line-height:1.5;margin-top:4px}
+
+/* tab bar — iOS: 5 tabs, outline at rest, filled when selected, 11px labels */
+.tabs{display:flex;padding:8px 4px 22px;border-top:1px solid var(--line);
+  background:var(--panel);flex-shrink:0}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  color:var(--t3);min-height:44px;padding-top:2px}
+.tab.on{color:var(--accent)}
+.tab i{display:block;height:22px}
+.tab span{font:500 var(--subhead) var(--sans);letter-spacing:-.1px}
+
+/* ── content atoms, matched to the prototype's vocabulary ──────────────── */
+.plbl{font:600 var(--subhead) var(--sans);color:var(--t3);margin:15px 0 6px}
+.li{display:flex;gap:11px;align-items:center;padding:9px 0;width:100%;
+  border-bottom:1px solid var(--line);min-height:44px}
+.li:last-child{border-bottom:none}
+.li .tx{flex:1;min-width:0}
+.li b{font-weight:600;font-size:var(--body);display:block;letter-spacing:-.1px}
+.li span{font-size:var(--subhead);color:var(--t3);display:block;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile{width:30px;height:30px;border-radius:7px;flex-shrink:0;background:var(--raised2);
+  border:1px solid var(--line);display:grid;place-items:center;color:var(--t2)}
+
+.cta{display:block;width:100%;text-align:center;padding:12px;border-radius:12px;
+  background:var(--accent);color:var(--onAccent);font-weight:600;font-size:var(--title3);
+  margin-top:14px;min-height:44px;transition:transform .18s cubic-bezier(.32,.72,0,1)}
+.cta:hover{background:var(--accentUp)}
+.cta:active{transform:scale(.98)}
+.cta.sec{background:var(--f2);color:var(--t1);font-weight:500;margin-top:8px}
+.cta.sec:hover{background:var(--f1)}
+.cta.dis{background:var(--f3);color:var(--t4);cursor:not-allowed}
+.cta.dis:hover{background:var(--f3)}
+.cta.danger{background:transparent;color:var(--fail);font-weight:500}
+.cta.danger:hover{background:var(--failWash)}
+.note{font-size:var(--subhead);color:var(--t3);text-align:center;margin-top:10px;line-height:1.5}
+.note.l{text-align:left}
+
+/* caution — --attn by default. CORRECTION 3 lives here. */
+.wants{background:var(--attnWash);border:1px solid var(--attnLine);border-radius:11px;
+  padding:10px 12px;margin-top:14px}
+.wants h5{font:600 var(--subhead) var(--sans);margin-bottom:6px;color:var(--attn);
+  display:flex;align-items:center;gap:5px}
+.wl{display:flex;gap:8px;align-items:flex-start;padding:3px 0;
+  font-size:var(--callout);line-height:1.45}
+.wl .i{flex-shrink:0;width:10px;color:var(--attn);font-weight:700}
+/* the genuine-failure variant — used only where something HAS failed */
+.wants.f{background:var(--failWash);border-color:var(--failLine)}
+.wants.f h5{color:var(--fail)}
+.wants.f .wl .i{color:var(--fail)}
+
+/* empty / message state — title, one sentence, at most one action */
+.pempty{text-align:center;padding:44px 12px 0}
+.pempty .g{opacity:.42;margin-bottom:12px;display:flex;justify-content:center}
+.pempty b{font:600 var(--title3) var(--sans);display:block;margin-bottom:6px}
+.pempty p{color:var(--t2);font-size:var(--callout);line-height:1.55}
+
+/* the scanner viewfinder — CORRECTION 4 lives here */
+.finder{position:relative;width:100%;height:172px;border-radius:14px;margin-top:14px;
+  background:var(--f3);overflow:hidden;display:grid;place-items:center}
+.finder .br{position:absolute;width:34px;height:34px;border:2.5px solid var(--accent)}
+.finder .br.tl{top:12px;left:12px;border-right:none;border-bottom:none;border-radius:10px 0 0 0}
+.finder .br.tr{top:12px;right:12px;border-left:none;border-bottom:none;border-radius:0 10px 0 0}
+.finder .br.bl{bottom:12px;left:12px;border-right:none;border-top:none;border-radius:0 0 0 10px}
+.finder .br.br2{bottom:12px;right:12px;border-left:none;border-top:none;border-radius:0 0 10px 0}
+.finder .lbl{text-align:center;color:var(--t3);font-size:var(--subhead);margin-top:8px}
+.finder .cam{color:var(--t2);display:flex;justify-content:center}
+.finder.off{background:var(--f3);border:1.5px dashed var(--lineS)}
+.finder.off .br{display:none}
+
+/* code entry — 8 boxes in two groups. Set at LargeTitle mono: a code is
+   instrument data (DESIGN.md §2) and the size keeps it clear of iOS's
+   sub-16px input auto-zoom. */
+.code{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:22px}
+.cbox{width:26px;height:38px;border-radius:7px;background:var(--f3);
+  border:1px solid var(--lineS);display:grid;place-items:center;
+  font:700 var(--largeTitle)/1 var(--mono);color:var(--t1)}
+.cbox.e{color:var(--t4)}
+.cbox.cur{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.cbox.bad{border-color:var(--fail)}
+.cdash{color:var(--t4);font-size:var(--title3);padding:0 2px}
+.helper{text-align:center;color:var(--t3);font-size:var(--subhead);
+  margin-top:12px;line-height:1.5}
+/* the inline error sits next to what failed, per §6 */
+.inlineErr{display:flex;gap:7px;align-items:flex-start;margin-top:12px;
+  color:var(--fail);font-size:var(--callout);line-height:1.45}
+.inlineErr .i{flex-shrink:0;margin-top:1px}
+
+/* countdown — only ever rendered where the expiry was observed */
+.count{display:flex;gap:7px;align-items:center;justify-content:center;margin-top:16px}
+.count .m{font:600 var(--callout) var(--mono);color:var(--t2);
+  font-variant-numeric:tabular-nums}
+.ring{width:15px;height:15px;border-radius:50%;border:2px solid var(--lineS);
+  border-top-color:var(--attn);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* connection state — the always-legible indicator */
+.conn{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;
+  font-size:var(--callout);margin-top:12px;line-height:1.4}
+.conn .dot{width:8px;height:8px;border-radius:4px;flex-shrink:0}
+.conn.ok{background:var(--liveWash)}
+.conn.ok .dot{background:var(--live)}
+/* Neutral, deliberately. --attn means "wants a human decision" (DESIGN.md §2) and an
+   unreachable Mac asks nothing of the user — it recovers on its own and the queued work
+   sends itself. Painting it amber spends an exclusive indicator hue on a state that is
+   merely informational, which is the decorative use §2 forbids. */
+.conn.down{background:var(--f3);border:1px solid var(--line)}
+.conn.down .dot{background:var(--t3)}
+.conn.none{background:var(--f3)}
+.conn.none .dot{background:var(--t4)}
+.conn b{font-weight:600}
+
+/* skeleton — matches the real row's geometry exactly, so nothing jumps */
+.sk{display:flex;gap:11px;align-items:center;padding:9px 0;min-height:44px;
+  border-bottom:1px solid var(--line)}
+.sk .t{width:30px;height:30px;border-radius:7px;background:var(--f2);flex-shrink:0}
+.sk .l{flex:1}
+.sk .l i{display:block;height:9px;border-radius:4px;background:var(--f2);margin-bottom:6px}
+.sk .l i:last-child{width:62%;height:8px;margin-bottom:0;background:var(--f3)}
+
+/* action sheet — iOS: destructive named, cancel separate and never the default */
+.sheetwrap{position:absolute;inset:0;background:rgba(0,0,0,.45);
+  display:flex;align-items:flex-end;padding:8px;border-radius:33px}
+[data-appearance="light"] .sheetwrap{background:rgba(0,0,0,.28)}
+.sheet{width:100%}
+.sheet .grp{background:var(--panel);border-radius:14px;overflow:hidden;
+  border:1px solid var(--line)}
+.sheet .ttl{padding:14px 16px 12px;text-align:center;border-bottom:1px solid var(--line)}
+.sheet .ttl b{display:block;font:600 var(--body) var(--sans);margin-bottom:4px}
+.sheet .ttl span{color:var(--t2);font-size:var(--subhead);line-height:1.45;display:block}
+.sheet .act{display:block;width:100%;text-align:center;padding:14px;
+  font-size:var(--title3);min-height:44px;border-bottom:1px solid var(--line)}
+.sheet .act:last-child{border-bottom:none}
+.sheet .act.d{color:var(--fail);font-weight:500}
+.sheet .cancel{margin-top:8px;background:var(--raised);border-radius:14px;
+  border:1px solid var(--line);display:block;width:100%;text-align:center;
+  padding:14px;font-size:var(--title3);font-weight:600;min-height:44px}
+
+/* success — in-place, no toast */
+/* --accent, not --live: DESIGN.md 2 reserves the indicator hues for their stated meanings
+   ("a child process is running"), and a confirmation mark is not a process state. */
+.doneMark{display:flex;justify-content:center;margin-top:30px;color:var(--accent)}
+
+/* tweak panel */
+.tweaks{position:fixed;right:18px;bottom:18px;z-index:90;background:var(--panel);
+  border:1px solid var(--lineS);border-radius:12px;padding:11px 13px;
+  box-shadow:0 12px 34px rgba(0,0,0,.45);display:flex;gap:16px;align-items:center}
+.tweaks .grp2{display:flex;gap:7px;align-items:center}
+.tweaks label{font:600 var(--caption) var(--sans);color:var(--t3);letter-spacing:.02em}
+.seg{display:flex;background:var(--f3);border-radius:7px;padding:2px;gap:2px}
+.seg button{font:500 var(--subhead) var(--sans);padding:4px 9px;border-radius:5px;color:var(--t2)}
+.seg button.on{background:var(--raised2);color:var(--t1)}
+
+/* annotation callout under a frame */
+.ann{margin-top:9px;font-size:var(--subhead);color:var(--t3);line-height:1.5;
+  border-left:2px solid var(--line);padding-left:9px}
+.ann b{color:var(--t2);font-weight:600}
+.ann.fix{border-left-color:var(--attn)}
+.ann.fix b{color:var(--attn)}
+
+/* §7 — reduced motion is honoured, not claimed */
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;
+    transition-duration:.001ms !important}
+}
+[data-motion="reduced"] *{animation:none !important;transition:none !important}
+[data-motion="reduced"] .ring{border-top-color:var(--attn);opacity:.9}
+
+/* ══════════════ I2 additions ══════════════════════════════════════════════
+   Everything above is I1's, unchanged. These are the classes this feature
+   introduces, and they are here rather than inline so the parity check has one
+   place to read them. */
+
+/* search — the only filter, because it is the only one /registry/search takes.
+   44pt tall, not the 36 a search field is often drawn at: it is tappable, so it
+   is held to the same floor as every other control here. */
+.srch{display:flex;align-items:center;gap:8px;height:44px;padding:0 11px;
+  border-radius:10px;background:var(--f3);border:1px solid var(--line);
+  color:var(--t3);font-size:var(--body);margin-top:2px}
+
+/* The loading skeleton matches the POPULATED row's height exactly.
+   Measured rather than eyeballed, and it was wrong first time: the skeleton
+   came out 48 against a 54pt row, which is a 6pt jump the moment data lands —
+   the failure DESIGN.md §2 records the Servers row's own height to prevent.
+   `.sk` is I1's class, so this is an override scoped to this surface's row
+   rather than a change to the shared one. The Swift side asserts the equality
+   against one constant instead of two numbers that have to be kept in step. */
+.sk{min-height:54px}
+.sk .l{height:36px;display:flex;flex-direction:column;justify-content:center}
+.srch.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);color:var(--t1)}
+.srch .cx{margin-left:auto;color:var(--t3)}
+.srch em{font-style:normal;color:var(--t1)}
+.caret{display:inline-block;width:1.5px;height:15px;background:var(--accent);
+  vertical-align:-3px;margin-left:1px}
+
+/* the window control. A segmented control switches the view in place, which is
+   what a window filter does — DESIGN.md §3.6. Never used for navigation.
+
+   The DRAWN control follows the platform (iOS's own segmented control is 32pt),
+   but the TOUCH TARGET is 44 — the segment is a 38pt flex box inside 2pt of
+   padding and a hairline, which is 44 exactly. Measured, not assumed: at 6pt
+   padding the segment came out 18pt tall, which would have shipped a control a
+   thumb misses while every other element on the surface cleared 44. */
+.seg{display:flex;background:var(--f3);border-radius:9px;padding:2px;margin-top:11px;
+  min-height:44px;border:1px solid var(--line)}
+.seg span{flex:1;min-height:38px;display:flex;align-items:center;justify-content:center;
+  border-radius:7px;font:500 var(--subhead) var(--sans);color:var(--t2)}
+.seg span.on{background:var(--raised);color:var(--t1);font-weight:600;
+  box-shadow:0 1px 2px rgba(0,0,0,.22)}
+[data-appearance="light"] .seg span.on{box-shadow:0 1px 2px rgba(0,0,0,.10)}
+
+/* the sentence under a band label saying what the band measures and where the
+   figure came from. An unattributed ranking is a claim you cannot check. */
+.bandnote{font-size:var(--subhead);color:var(--t3);line-height:1.45;
+  margin:-2px 0 6px}
+
+/* the rank numeral. Instrument data, therefore mono — DESIGN.md §2. */
+.rank{font:600 var(--callout) var(--mono);color:var(--t3);width:15px;
+  text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
+
+/* the figure a row is ranked by, right-aligned. Mono, and NEVER an indicator
+   colour: it is a measurement, not a state. This is correction 1. */
+.figure{font:500 var(--subhead) var(--mono);color:var(--t2);flex-shrink:0;
+  text-align:right;font-variant-numeric:tabular-nums;line-height:1.35}
+.figure i{display:block;font-style:normal;color:var(--t3);font-size:var(--caption)}
+
+/* drawn monogram plate, for an entry whose index serves no artwork. Flat token
+   surface and a letter — never a gradient (DESIGN.md §4, assumption C). */
+.dtile{width:30px;height:30px;border-radius:7px;flex-shrink:0;background:var(--f1);
+  border:1px solid var(--lineS);display:flex;align-items:center;justify-content:center;
+  font:600 var(--callout) var(--sans);color:var(--t2)}
+.dtile.lg{width:46px;height:46px;border-radius:11px;font-size:var(--title3)}
+.dtile.xl{width:64px;height:64px;border-radius:14px;font-size:var(--title1)}
+/* a slot standing for real 512px marketplace art the index does serve */
+.art{width:30px;height:30px;border-radius:7px;flex-shrink:0;background:var(--raised2);
+  border:1px solid var(--lineS);display:flex;align-items:center;justify-content:center;
+  color:var(--t2);overflow:hidden}
+.art.lg{width:46px;height:46px;border-radius:11px}
+.art.xl{width:64px;height:64px;border-radius:14px}
+
+/* fact chips. Neutral by default; only `archived` takes an indicator colour,
+   and it takes --attn because an abandoned repo genuinely wants a decision. */
+.facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.fact{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:7px;
+  background:var(--f3);border:1px solid var(--line);
+  font:500 var(--subhead) var(--sans);color:var(--t2)}
+.fact.n{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.fact.a{background:var(--attnWash);border-color:var(--attnLine);color:var(--attn)}
+
+/* ── the capability plate — the mined element ─────────────────────────────
+   Neutral by default. It turns amber only when a derived fact genuinely wants a
+   decision (local execution, a credential, an abandoned repo), never merely
+   because it is a security block. A block that is always amber says nothing. */
+.plate{background:var(--f3);border:1px solid var(--line);border-radius:11px;
+  padding:11px 12px;margin-top:13px}
+.plate.a{background:var(--attnWash);border-color:var(--attnLine)}
+.plate h5{font:600 var(--subhead) var(--sans);color:var(--t2);
+  display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.plate.a h5{color:var(--attn)}
+.plate .cl{display:flex;gap:8px;align-items:flex-start;padding:3.5px 0;
+  font-size:var(--callout);line-height:1.45;color:var(--t1)}
+.plate .cl .i{flex-shrink:0;width:13px;margin-top:1px;color:var(--t3)}
+.plate.a .cl .i{color:var(--attn)}
+/* the invocation. The evidence the plain lines are an interpretation OF. */
+.inv{margin-top:9px;padding:7px 9px;border-radius:8px;background:var(--f2);
+  border:1px solid var(--line);font:var(--caption)/1.5 var(--mono);color:var(--t2);
+  overflow-wrap:anywhere}
+.inv b{display:block;color:var(--t3);font-family:var(--sans);font-size:var(--caption);
+  font-weight:600;margin-bottom:3px;letter-spacing:.2px}
+.inv em{font-style:normal;color:var(--t1)}
+
+/* detail header */
+.hero{display:flex;gap:12px;align-items:center;margin-top:6px}
+.hero .n{font:700 var(--title2)/1.25 var(--sans);letter-spacing:-.3px}
+.hero .s{color:var(--t3);font-size:var(--callout);margin-top:2px}
+.desc{font-size:var(--body);color:var(--t2);line-height:1.5;margin-top:13px}
+
+/* overflow: one line, ellipsis, and the row height does not move */
+.tr1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* motion demo plates */
+.mplate{width:302px;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:13px 14px}
+.mplate b{display:block;font:600 var(--callout) var(--sans);margin-bottom:5px}
+.mplate p{color:var(--t3);font-size:var(--subhead);line-height:1.5}
+.mplate .demo{margin-top:10px;height:52px;border-radius:9px;background:var(--f3);
+  border:1px solid var(--line);display:flex;align-items:center;
+  justify-content:center;overflow:hidden}
+.riser{padding:7px 13px;border-radius:9px;background:var(--accent);color:var(--onAccent);
+  font:600 var(--callout) var(--sans);animation:rise 2.4s ease-in-out infinite}
+@keyframes rise{0%,100%{transform:translateY(30px)}22%,72%{transform:translateY(0)}}
+[data-motion="reduced"] .riser{animation:none;transform:translateY(0)}
+
+/* the a11y table */
+.tbl{width:100%;border-collapse:collapse;margin-top:14px;font-size:var(--callout)}
+.tbl th,.tbl td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);
+  vertical-align:top;line-height:1.5}
+.tbl th{color:var(--t3);font:600 var(--subhead) var(--sans);white-space:nowrap}
+.tbl td b{font-weight:600}
+.tbl code{font:var(--caption) var(--mono);color:var(--t2)}
+
+/* `.ann` is I1's, above, and is deliberately not redefined here — the two phone
+   features annotate identically or the pair reads as two documents. */
+
+/* the appearance / motion switches */
+.switches{position:fixed;right:18px;bottom:18px;display:flex;gap:8px;z-index:50}
+.sw{display:flex;background:var(--panel);border:1px solid var(--lineS);
+  border-radius:9px;padding:2px;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.sw button{padding:5px 10px;border-radius:7px;font:500 var(--subhead) var(--sans);
+  color:var(--t2)}
+.sw button.on{background:var(--raised2);color:var(--t1);font-weight:600}
+
+/* ══════════════ I3 additions ══════════════════════════════════════════════
+   Everything above is I1's and I2's, unchanged. Below is only what Triage,
+   Queue and Library need and the earlier two did not.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── the bucket control ────────────────────────────────────────────────────
+   A segmented control, which DESIGN.md §3.6 permits precisely here: it
+   "switches views in place" over one list and is not primary navigation — the
+   tab bar is. Each segment carries its own count, because the count is the
+   reason to look at the segment. */
+.tsegs{display:flex;background:var(--f3);border-radius:9px;padding:2px;margin:10px 0 4px;
+  border:1px solid var(--line)}
+.tsegs button{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;
+  min-height:32px;border-radius:7px;font:500 var(--callout) var(--sans);color:var(--t2);
+  transition:transform .18s cubic-bezier(.32,.72,0,1)}
+.tsegs button.on{background:var(--raised);color:var(--t1);font-weight:600;
+  box-shadow:0 1px 2px rgba(0,0,0,.18)}
+/* The count is instrument data — SF Mono, DESIGN.md §2 — and it is an observed
+   number: the size of a set the user's own decisions produced. */
+.tsegs button b{font:600 var(--caption) var(--mono);color:var(--t3);
+  background:var(--f2);border-radius:4px;padding:1px 4px;min-width:16px;text-align:center}
+.tsegs button.on b{color:var(--t2);background:var(--f1)}
+
+/* ── the triage row ───────────────────────────────────────────────────────
+   min-height, never height. The row grows with its content and with the text
+   size; it does not clip. */
+.trow{border-bottom:1px solid var(--line);padding:9px 0}
+.trow:last-of-type{border-bottom:none}
+.trow.pick{background:linear-gradient(90deg,var(--f3),transparent 70%);
+  margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:8px}
+.rh{display:flex;gap:10px;align-items:flex-start;min-height:44px}
+
+/* The checkbox: target one of two. 44pt of tappable area around a 22pt box, so
+   the visible control is quiet and the target is not. */
+.cbx{width:44px;min-height:44px;margin-left:-11px;display:grid;place-items:center;
+  flex-shrink:0}
+.cbx i{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--lineS);
+  display:grid;place-items:center;color:var(--onAccent);
+  transition:transform .18s cubic-bezier(.32,.72,0,1)}
+.cbx.on i{background:var(--accent);border-color:var(--accent)}
+.cbx:active i{transform:scale(.9)}
+
+/* Target two of two: the whole meta block expands the row. */
+.tmeta{flex:1;min-width:0;padding:2px 0;min-height:44px}
+/* The NAME truncates — one line, tail. DESIGN.md §5 Overflow: the long value is
+   the thing that truncates, and the full value is one tap away on expand. */
+.tmeta b{display:block;font:600 var(--body)/1.35 var(--sans);letter-spacing:-.1px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tmeta .by{font-size:var(--subhead);color:var(--t3);margin-top:1px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── the capability summary line ──────────────────────────────────────────
+   The one line on the row that carries the security fact. It WRAPS. It is never
+   ellipsised and it is never behind a tap. Colour is --attn or nothing, and the
+   glyph plus the words carry the same signal so colour is never alone. */
+.capline{display:flex;gap:5px;align-items:flex-start;margin-top:4px;
+  font-size:var(--subhead);line-height:1.4;color:var(--t2)}
+.capline i{flex-shrink:0;margin-top:1px}
+.capline span{white-space:normal}          /* the fix for prototype bug 2 */
+.capline.warn{color:var(--attn)}
+.capline.warn i{color:var(--attn)}
+
+/* ── the expanded body ────────────────────────────────────────────────────
+   In place, under the row, indented to the row's text column so the list's
+   left edge is unbroken and the open row still reads as one row. */
+.tdet{padding:2px 0 6px 34px;animation:tOpen .22s cubic-bezier(.32,.72,0,1)}
+@keyframes tOpen{from{transform:translateY(-4px)}to{transform:none}}
+.tdet .desc{font-size:var(--callout);color:var(--t2);line-height:1.5;margin-bottom:9px}
+
+/* ── the counted commit bar ───────────────────────────────────────────────
+   Rendered LAST in the phone's DOM, after the tab bar. A floating bar that
+   relies only on z-index to sit above a scrolling list is one stacking context
+   away from vanishing — the prototype records the same lesson.
+   Enters on transform only (DESIGN.md §7 "rise on transform only"), never from
+   opacity 0. */
+.commit{position:absolute;left:0;right:0;bottom:74px;padding:11px 14px 13px;
+  background:var(--panel);border-top:1px solid var(--lineS);
+  animation:rise .28s cubic-bezier(.32,.72,0,1)}
+@keyframes rise{from{transform:translateY(100%)}to{transform:none}}
+.cr{display:flex;gap:9px}
+/* Cancel leads, the prominent action is trailing, and the destructive-ish one
+   is never the default — DESIGN.md §3.4. */
+.nope{flex:0 0 auto;padding:11px 15px;border-radius:12px;background:var(--f2);
+  border:1px solid var(--lineS);font-weight:600;font-size:var(--body);
+  min-height:44px;color:var(--t1)}
+.go{flex:1;text-align:center;padding:11px;border-radius:12px;background:var(--accent);
+  color:var(--onAccent);font-weight:600;font-size:var(--title3);min-height:44px}
+.go[disabled]{background:var(--f2);color:var(--t4);border:1px solid var(--line)}
+.hint{color:var(--t3);font-size:var(--subhead);line-height:1.45;margin-top:8px}
+
+/* ── inline undo ──────────────────────────────────────────────────────────
+   DESIGN.md §9: undo over confirm. There is no confirmation dialog on this
+   surface — the commit bar already stated what would happen, and this is the
+   reversal. It sits in the list, not over it, so it cannot cover a row. */
+.undo{display:flex;align-items:center;gap:10px;margin:12px 0;padding:11px 13px;
+  border-radius:11px;background:var(--raised);border:1px solid var(--lineS);
+  font-size:var(--callout);animation:rise .24s cubic-bezier(.32,.72,0,1)}
+.undo span{flex:1;color:var(--t2);line-height:1.4}
+.undo button{color:var(--accent);font-weight:600;font-size:var(--body);
+  min-height:44px;display:flex;align-items:center;padding:0 2px}
+
+/* ── queue row ────────────────────────────────────────────────────────────
+   The stamp is when THIS PHONE queued it. No Mac-side status: there is no
+   transport and nothing to read one from. */
+.qrow{display:flex;gap:11px;align-items:flex-start;padding:10px 0;
+  border-bottom:1px solid var(--line);min-height:44px}
+.qrow:last-of-type{border-bottom:none}
+.qrow .tx{flex:1;min-width:0}
+.qrow .tx b{display:block;font:600 var(--body)/1.35 var(--sans);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stamp{font:500 var(--caption) var(--mono);color:var(--t3);margin-top:2px;display:block}
+.rm{flex-shrink:0;min-width:44px;min-height:44px;display:grid;place-items:center;
+  color:var(--t3);border-radius:9px}
+.rm:hover{background:var(--f2);color:var(--t1)}
+
+/* ── library row facts ────────────────────────────────────────────────────
+   Every fact here is an MCPServer field. Nothing is computed and nothing is
+   invented. --live is used for exactly one thing, which is its meaning:
+   a child process is running. */
+.lfacts{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:2px}
+.lfact{font:500 var(--caption) var(--mono);color:var(--t3)}
+.lfact.live{color:var(--live)}
+.lfact.dot{color:var(--t4)}
+
+/* An absence stated as a fact, not drawn as an empty list. */
+.absent{margin-top:16px;padding:11px 12px;border-radius:11px;background:var(--f3);
+  border:1px solid var(--line);font-size:var(--subhead);color:var(--t2);line-height:1.5}
+
+/* Skeletons reuse I2's .sk. These are the two bars a triage row needs. */
+.skcap{height:9px;border-radius:4px;width:150px;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="pg">
+
+<div class="pghd">
+  <h1>I3 — iPhone: Triage, Queue and Library</h1>
+  <p>The UI oracle for I3. Every surface, state, interaction and overlay the feature needs, drawn in
+  the design system. Tokens, phone chrome and shared component classes are I1's and I2's, carried
+  over unchanged. The rationale — the rejected interactions, the four prototype corrections, the
+  stated assumptions — is in the stylesheet header, which is part of this document.</p>
+  <p><b>The one thing to read first:</b> there is no transport. M6 shipped the Mac's inbox and the
+  wire envelope and deferred the transport itself (D-m6-a); the phone ships a fixture pairing
+  service. So nothing the phone queues can reach the Mac yet, and the phone can observe no Mac-side
+  outcome. Every surface below reports what is locally true and says so.</p>
+  <div class="meta">DESIGN.md §2 tokens · §3 native floor · §5 nine states · §6 words · §7 motion · §9 forgiveness</div>
+</div>
+
+<div id="out"></div>
+</div>
+
+<div class="sw">
+  <button data-sw="appearance" data-v="dark" class="on">Dark</button>
+  <button data-sw="appearance" data-v="light">Light</button>
+  <button data-sw="motion" data-v="full" class="on">Motion</button>
+  <button data-sw="motion" data-v="reduced">Reduced</button>
+</div>
+
+<script>
+/* ═══════════════════ icons — drawn, 1.4 stroke on a 16 grid (DESIGN.md §4) ═══
+   Never unicode. `currentColor` throughout, so a glyph inherits the tier or the
+   indicator colour of the thing it sits in. */
+const P={
+  check:'M3.2 8.4l3.1 3.2 6.5-6.8',
+  warn:'M8 2.2L14.4 13.4H1.6zM8 6.6v3.1M8 11.5v.1',
+  bang:'M8 1.9v7.4M8 12.4v.1',
+  list:'M2.4 4h11.2M2.4 8h11.2M2.4 12h11.2',
+  tray:'M2 9.6h3.2l1 1.9h3.6l1-1.9H14M2 9.6L3.9 3.4h8.2L14 9.6v3.1H2z',
+  book:'M2.6 2.9h4.1c.9 0 1.3.5 1.3 1.3v8.9c0-.7-.4-1.2-1.3-1.2H2.6zM13.4 2.9H9.3c-.9 0-1.3.5-1.3 1.3v8.9c0-.7.4-1.2 1.3-1.2h4.1z',
+  compass:'M8 14.4A6.4 6.4 0 108 1.6a6.4 6.4 0 000 12.8zM10.5 5.5L9.2 9.2 5.5 10.5 6.8 6.8z',
+  settings:'M8 10.1a2.1 2.1 0 100-4.2 2.1 2.1 0 000 4.2zM12.9 10.1a1.2 1.2 0 00.2 1.3l.1.1a1.4 1.4 0 11-2 2l-.1-.1a1.2 1.2 0 00-1.3-.2 1.2 1.2 0 00-.7 1.1v.1a1.4 1.4 0 11-2.8 0v-.1a1.2 1.2 0 00-.8-1.1 1.2 1.2 0 00-1.3.2l-.1.1a1.4 1.4 0 11-2-2l.1-.1a1.2 1.2 0 00.2-1.3 1.2 1.2 0 00-1.1-.7H1.2a1.4 1.4 0 110-2.8h.1a1.2 1.2 0 001.1-.8 1.2 1.2 0 00-.2-1.3l-.1-.1a1.4 1.4 0 112-2l.1.1a1.2 1.2 0 001.3.2h.1a1.2 1.2 0 00.7-1.1V1.2a1.4 1.4 0 112.8 0v.1a1.2 1.2 0 00.7 1.1 1.2 1.2 0 001.3-.2l.1-.1a1.4 1.4 0 112 2l-.1.1a1.2 1.2 0 00-.2 1.3v.1a1.2 1.2 0 001.1.7h.1a1.4 1.4 0 110 2.8h-.1a1.2 1.2 0 00-1.1.7z',
+  search:'M7.3 12.2a4.9 4.9 0 100-9.8 4.9 4.9 0 000 9.8zM13.6 13.6l-2.8-2.8',
+  close:'M4 4l8 8M12 4l-8 8',
+  undo:'M3.4 6.6h6.2a3.6 3.6 0 110 7.2H6.2M3.4 6.6l2.8-2.8M3.4 6.6l2.8 2.8',
+  plug:'M5.6 1.9v3.4M10.4 1.9v3.4M3.9 5.3h8.2v3a4.1 4.1 0 01-8.2 0zM8 12.4v1.7',
+  cloud:'M4.6 12.1a3 3 0 01-.3-6 4.2 4.2 0 018 1 2.5 2.5 0 01-.3 5z',
+  arch:'M1.9 4.3h12.2v2.2H1.9zM3.2 6.5v6.2h9.6V6.5M6.3 9.1h3.4',
+  key:'M9.7 6.3a2.9 2.9 0 11-4.1 4.1L2.2 13.8H1.4v-.8l3.4-3.4a2.9 2.9 0 014.9-3.3zM11.4 4.6l1.1 1.1M12.9 3.1l1.1 1.1',
+  off:'M8 1.6v6.2M11.9 3.7a5.6 5.6 0 11-7.8 0'
+};
+const ic=(n,s)=>`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"
+  stroke-linecap="round" stroke-linejoin="round"
+  style="width:${{sm:13,md:16,lg:20,xl:34}[s]||16}px;height:${{sm:13,md:16,lg:20,xl:34}[s]||16}px;
+  vertical-align:middle;flex-shrink:0"><path d="${P[n]}"/></svg>`;
+
+/* ═══════════════════ shell ═══════════════════════════════════════════════ */
+const TABS=[['discover','compass','Discover'],['triage','list','Triage'],
+            ['queue','tray','Queue'],['library','book','Library'],['settings','settings','Settings']];
+
+/* One phone frame. `on` is the selected tab; `bar` is the floating commit bar,
+   rendered AFTER the tab bar in the DOM — see the .commit note in the CSS. */
+function phone(on, nav, body, bar){
+  return `<div class="ph"><div class="scr">
+    <div class="notch"></div>
+    <div class="pstat"><span>9:41</span><span class="r">${ic('cloud','sm')}</span></div>
+    ${nav}
+    <div class="pbody" ${bar?'style="padding-bottom:104px"':''}>${body}</div>
+    <div class="tabs">${TABS.map(([k,i,l])=>
+      `<div class="tab ${k===on?'on':''}">${ic(i,'lg')}<span>${l}</span></div>`).join('')}</div>
+    ${bar||''}
+  </div></div>`;
+}
+const unit=(t,s,inner)=>`<div class="unit"><div class="cap"><b>${t}</b><span>${s}</span></div>${inner}</div>`;
+const nav=(t,sub)=>`<div class="pnav"><h3>${t}</h3>${sub?`<div class="psub">${sub}</div>`:''}</div>`;
+const navAct=(t,act)=>`<div class="pnav" style="display:flex;align-items:flex-end;justify-content:space-between">
+  <h3>${t}</h3><button style="color:var(--accent);font-weight:600;font-size:var(--body);min-height:44px;display:flex;align-items:center">${act}</button></div>`;
+
+/* ═══════════════════ shared copy ═════════════════════════════════════════
+   The narrowing sentence is ONE constant, verbatim on every commit surface —
+   `PairingCopy.neverInstalls` in the shipped code. It is written once here for
+   the same reason: two copies of a security sentence become two sentences. */
+const NEVER_INSTALLS='Nothing installs from your phone. Your Mac shows you these same lines again before anything runs.';
+const MAC="Luke's MacBook Pro";
+
+/* ═══════════════════ fixture entries ═════════════════════════════════════
+   Shaped as `RegistryEntry`, and carrying ONLY fields that exist on it:
+   id, displayName, description, source, useCount, stars, archived, install
+   { type, command, args, url, requires }. There is no eval count, no licence,
+   no install count, no category — none of those are on the wire, and I2 already
+   removed all four from Discover for that reason.
+
+   `cap` is NOT authored: it is what deriveSummary() below computes from
+   `install`. It is written out beside each entry only so this file is readable
+   without running it. */
+const E=[
+  {id:'io.github.modelcontextprotocol/filesystem', name:'filesystem',
+   by:'modelcontextprotocol', source:'official', useCount:null, stars:4821,
+   desc:'Read and write files under directories you nominate. The server is given a list of allowed roots at launch and refuses anything outside them.',
+   install:{type:'stdio',command:'npx',args:['-y','@modelcontextprotocol/server-filesystem','~/Projects'],requires:[]}},
+  {id:'smithery/exa', name:'Exa search', by:'exa-labs', source:'smithery', useCount:2984, stars:null,
+   desc:'Web search built for retrieval rather than for people — results come back as passages with their sources.',
+   install:{type:'http',url:'https://server.smithery.ai/exa/mcp',requires:[{key:'Authorization',isSecret:true}]}},
+  {id:'io.github.upstash/context7', name:'context7', by:'upstash', source:'both', useCount:1204, stars:2140,
+   desc:'Pulls current documentation for a named library into the model context, so answers are written against the version you are on.',
+   install:{type:'http',url:'https://mcp.context7.com/mcp',requires:[]}},
+  {id:'io.github.oldproj/scraper', name:'scraper-mcp', by:'oldproj', source:'official',
+   useCount:null, stars:88, archived:true,
+   desc:'A general web scraper. The repository has been archived by its owner.',
+   install:{type:'stdio',command:'uvx',args:['scraper-mcp'],requires:[{key:'SCRAPER_API_KEY',isSecret:true}]}},
+  {id:'io.github.nodesc/mystery', name:'mystery-server', by:'nodesc', source:'official',
+   useCount:null, stars:null,
+   desc:'Neither index publishes an install descriptor for this entry.',
+   install:null}
+];
+
+/* ═══════════════════ the capability summary ══════════════════════════════
+   DERIVED, never authored. The same five derivations as I2's capability plate
+   (spec-I2 A13), reduced to one line for the row. Because the clause vocabulary
+   is closed, the line is short by construction — which is what makes "never
+   ellipsise" a property of the design rather than a hope about name lengths.
+
+   Colour: --attn if any attn-clause matches, otherwise no colour at all. Never
+   --live and never --fail; those two mean "a child process is running" and
+   "failed or tripped", and this row is neither. */
+function deriveSummary(e){
+  if(!e.install) return {attn:false, unknown:true,
+    text:'Neither index says how this runs'};
+  const cl=[], i=e.install;
+  let attn=false;
+  if(i.type==='stdio'){ cl.push('Runs a program on your Mac'); attn=true; }
+  else { cl.push(`Nothing runs on your Mac · ${new URL(i.url).host}`); }
+  if((i.requires||[]).some(r=>r.isSecret)){ cl.push('needs a credential'); attn=true; }
+  if(e.archived){ cl.push('repository archived'); }
+  return {attn, text:cl.join(' · ')};
+}
+const capline=e=>{const s=deriveSummary(e);
+  return `<div class="capline ${s.attn?'warn':''}">${ic(s.attn?'warn':s.unknown?'bang':'check','sm')}<span>${s.text}</span></div>`};
+
+/* The full capability list on expand — the same derivations, one clause per
+   line, each stating its reason in words so colour is never the only signal. */
+function capLines(e){
+  if(!e.install) return `<div class="capline"><span>Neither index publishes an install descriptor for this entry, so there is nothing for your Mac to review.</span></div>`;
+  const i=e.install, out=[];
+  if(i.type==='stdio') out.push(['warn','Runs a program on your Mac, with your own access.']);
+  else out.push(['ok',`Nothing runs on your Mac. Requests go to ${new URL(i.url).host}, so tool arguments leave this machine.`]);
+  if((i.requires||[]).some(r=>r.isSecret)) out.push(['warn','Needs a credential, which you enter on your Mac. It is never held on this phone.']);
+  if(e.archived) out.push(['ok','The repository is archived. Nobody is maintaining it.']);
+  return out.map(([k,t])=>`<div class="capline ${k==='warn'?'warn':''}" style="margin-top:6px">${ic(k==='warn'?'warn':'check','sm')}<span>${t}</span></div>`).join('')
+    + `<div class="inv" style="margin-top:9px">${i.type==='stdio'
+        ? `${i.command} ${(i.args||[]).join(' ')}` : i.url}</div>`;
+}
+
+const tile=e=>`<div class="tile">${ic(e.install&&e.install.type==='stdio'?'plug':'cloud','sm')}</div>`;
+
+/* ═══════════════════ TRIAGE ══════════════════════════════════════════════ */
+
+/* The bucket control. Counts are observed: each is the size of a set the user's
+   own decisions produced. */
+const segs=(sel,c)=>`<div class="tsegs">
+  ${[['new','Undecided',c.new],['queued','Queued',c.queued],['no','Not for me',c.no]]
+    .map(([k,l,n])=>`<button class="${k===sel?'on':''}">${l}${n?`<b>${n}</b>`:''}</button>`).join('')}
+</div>`;
+
+/* A triage row. `pick` ticks it, `open` expands it, `bucket` decides which
+   trailing affordance it carries.
+   NOTHING IS TICKED BY DEFAULT — prototype bug 1. */
+function trow(e,{pick=false,open=false,bucket='new'}={}){
+  return `<div class="trow ${pick?'pick':''}">
+    <div class="rh">
+      ${bucket==='new'
+        ? `<button class="cbx ${pick?'on':''}" aria-pressed="${pick}"
+             aria-label="Select ${e.name}"><i>${pick?ic('check','sm'):''}</i></button>`
+        : `<div style="width:22px;margin-left:0;flex-shrink:0;padding-top:6px">${tile(e)}</div>`}
+      <button class="tmeta" aria-expanded="${open}">
+        <b>${e.name}</b>
+        <div class="by">${e.by} · ${e.source==='both'?'both indexes':e.source==='official'?'official registry':'Smithery'}</div>
+        ${capline(e)}
+      </button>
+    </div>
+    ${open?`<div class="tdet">
+      <div class="desc">${e.desc}</div>
+      <div class="plate ${deriveSummary(e).attn?'warn':''}">
+        <h5>What it would be able to do</h5>
+        ${capLines(e)}
+      </div>
+      <div class="helper" style="margin-top:8px">${NEVER_INSTALLS}</div>
+    </div>`:''}
+    ${bucket==='no'?`<div style="padding:2px 0 4px 34px">
+      <button style="color:var(--accent);font-weight:600;font-size:var(--body);min-height:44px;display:flex;align-items:center">
+        Move back to Undecided</button></div>`:''}
+  </div>`;
+}
+
+const commitBar=(n,{disabled=false,reason=null}={})=>`<div class="commit">
+  ${reason?`<div class="hint" style="margin:0 0 8px">${reason}</div>`:''}
+  <div class="cr">
+    <button class="nope">Not for me</button>
+    <button class="go" ${disabled?'disabled':''}>Send ${n} to Mac</button>
+  </div>
+  <div class="hint">Queues ${n===1?'it':'them'} for review on ${MAC}. ${NEVER_INSTALLS}</div>
+</div>`;
+
+const undoBar=t=>`<div class="undo">${ic('undo','md')}<span>${t}</span><button>Undo</button></div>`;
+
+const empty=(g,h,b,act)=>`<div class="pempty">${ic(g,'xl')}<b>${h}</b><p>${b}</p>
+  ${act?`<button class="cta sec" style="margin-top:18px">${act}</button>`:''}</div>`;
+
+const skelRow=()=>`<div class="trow"><div class="rh">
+  <div style="width:44px;flex-shrink:0"></div>
+  <div style="flex:1">
+    <div class="sk" style="width:118px;height:11px"></div>
+    <div class="sk" style="width:76px;height:9px;margin-top:5px"></div>
+    <div class="sk skcap"></div>
+  </div></div></div>`;
+
+const triHint=`<div class="helper" style="margin-bottom:4px">Tap a name to read what it can do. Tick what is worth your Mac's attention.</div>`;
+
+/* ═══════════════════ QUEUE ══════════════════════════════════════════════
+   No Mac-side status. The stamp is when THIS PHONE queued the item, which is
+   the only thing observed about it. */
+const qrow=(e,when)=>`<div class="qrow">
+  ${tile(e)}
+  <span class="tx"><b>${e.name}</b>
+    ${capline(e)}
+    <span class="stamp">Queued ${when}</span></span>
+  <button class="rm" aria-label="Remove ${e.name} from the queue">${ic('close','md')}</button>
+</div>`;
+
+/* ═══════════════════ LIBRARY ════════════════════════════════════════════
+   Every fact is an MCPServer field: name, transport, state, tools, idleSec,
+   callsServed. Nothing computed, nothing invented. */
+const S=[
+  {n:'filesystem',t:'stdio',running:true,tools:11},
+  {n:'context7',t:'http',running:false,tools:2,idle:'idle 41m'},
+  {n:'github',t:'stdio',running:false,tools:26,idle:'idle 3h'},
+  {n:'exa',t:'http',running:false,tools:4,idle:'never started'}
+];
+const lrow=s=>`<div class="li">
+  <div class="tile">${ic(s.t==='stdio'?'plug':'cloud','sm')}</div>
+  <span class="tx"><b>${s.n}</b>
+    <span class="lfacts" style="white-space:normal;overflow:visible">
+      <span class="lfact">${s.t}</span><span class="lfact dot">·</span>
+      <span class="lfact">${s.tools} tools</span><span class="lfact dot">·</span>
+      ${s.running?`<span class="lfact live">running now</span>`:`<span class="lfact">${s.idle}</span>`}
+    </span></span>
+</div>`;
+
+const LIB_NOTE=`<div class="note" style="margin-top:14px">Adding, changing and removing all happen at your Mac.
+  This is the same list, so you know what you are carrying.</div>`;
+const SKILLS_ABSENT=`<div class="absent"><b style="color:var(--t1);font-weight:600">Skills are not listed here.</b><br>
+  The router publishes no skills endpoint, so this phone has nothing to read. Your Mac's Skills board
+  is the only place they appear.</div>`;
+
+/* ═══════════════════ sections ═══════════════════════════════════════════ */
+const SEC=[];
+const sec=(k,t,p,rows)=>SEC.push(`<div class="sect"><h2>${t}<span class="k">${k}</span></h2>
+  ${p?`<p>${p}</p>`:''}<div class="row">${rows.join('')}</div></div>`);
+
+/* ── A · Triage, the default and the interaction ─────────────────────────── */
+sec('A','Triage — the checklist, and its two targets',
+ `The default state is <b>nothing ticked</b>. That is prototype bug 1 inverted: on a screen whose job
+  is deliberate selection, the pre-ticked default made "send all of these to my laptop" the act you
+  get by doing nothing. The commit bar does not exist until something is selected, so the screen has
+  no default commit at all.
+  Each row is two targets: the 44pt checkbox selects, the meta block expands. The capability line is
+  always visible, wraps rather than truncates, and is derived from the install descriptor.`,
+ [
+  unit('Default — nothing selected','Undecided, populated. No commit bar: there is nothing to commit.',
+    phone('triage', navAct('Triage','Select all'),
+      segs('new',{new:5,queued:2,no:1})+triHint+E.map(e=>trow(e)).join(''))),
+  unit('Two selected','The commit bar rises on transform, carrying the count. Cancel leads, prominent action trails.',
+    phone('triage', navAct('Triage','Select all'),
+      segs('new',{new:5,queued:2,no:1})+triHint+
+      E.map((e,i)=>trow(e,{pick:i===0||i===3})).join(''),
+      commitBar(2))),
+  unit('A row expanded','In place, never a push — the list keeps its place and its selection. The full capability list, then the invocation as evidence.',
+    phone('triage', navAct('Triage','Select all'),
+      segs('new',{new:5,queued:2,no:1})+triHint+
+      E.map((e,i)=>trow(e,{open:i===1})).join(''))),
+ ]);
+
+/* ── B · the other two buckets ───────────────────────────────────────────── */
+sec('B','Triage — the buckets a decision goes to',
+ `The buckets are what the rejected swipe deck could not give: a dismissal has a home and is
+  revisitable from the desk. Neither of these two buckets carries checkboxes — there is no batch act
+  available in them — so the row's leading slot carries the entry's tile instead, and the row keeps
+  its height.`,
+ [
+  unit('Queued','What this phone has queued. No checkbox: the decision is made.',
+    phone('triage', nav('Triage'),
+      segs('queued',{new:3,queued:2,no:1})+
+      [E[1],E[2]].map(e=>trow(e,{bucket:'queued'})).join(''))),
+  unit('Not for me','Reversible from here, one row at a time. This is the record the gesture deck destroyed.',
+    phone('triage', nav('Triage'),
+      segs('no',{new:3,queued:2,no:1})+
+      [E[3]].map(e=>trow(e,{bucket:'no'})).join(''))),
+  unit('Undo after a batch action','Inline, in the list, never over a row. No confirmation dialog anywhere on this surface — DESIGN.md §9, undo over confirm.',
+    phone('triage', navAct('Triage','Select all'),
+      segs('new',{new:3,queued:4,no:1})+
+      undoBar('2 items queued for your Mac')+
+      triHint+E.slice(0,3).map(e=>trow(e)).join(''))),
+ ]);
+
+/* ── C · Triage, the nine states ─────────────────────────────────────────── */
+sec('C','Triage — the nine states (DESIGN.md §5)',
+ `Every unhappy path carries real copy. Three of the nine are the bucket empties, which are the
+  common case rather than an edge case — one bucket empty while another is populated is what a
+  working week looks like. <b>None of this copy asserts recency</b>: the router observes no
+  per-user seen-state and no feed, so "nothing new since Tuesday" is not available to be said.`,
+ [
+  unit('Empty — Undecided','Derived, and it says so. No recency claim: prototype bug corrected.',
+    phone('triage', nav('Triage'),
+      segs('new',{new:0,queued:4,no:2})+
+      empty('check','Nothing left to decide',
+        'You have decided on everything in these results. Search Discover for something specific, or widen what you are looking at.',
+        'Go to Discover'))),
+  unit('Empty — Queued','Points at the act that fills it.',
+    phone('triage', nav('Triage'),
+      segs('queued',{new:5,queued:0,no:2})+
+      empty('tray','Nothing queued yet','Tick something in Undecided and send it across.','Go to Undecided'))),
+  unit('Empty — Not for me','States the bucket\'s whole purpose in one sentence.',
+    phone('triage', nav('Triage'),
+      segs('no',{new:5,queued:2,no:0})+
+      empty('list','Nothing turned down',
+        'Anything you turn down stays here, so a decision made on a train is still readable at your desk.'))),
+  unit('Loading','Skeleton rows built from the real row\'s own layout — three bars, the third the capability line — so the list does not jump when data lands. Never a spinner over a blank pane.',
+    phone('triage', nav('Triage'),
+      segs('new',{new:0,queued:0,no:0})+[1,2,3,4,5].map(skelRow).join(''))),
+  unit('Partial — one index down','I2\'s three warning classes, unchanged. This surface reads the same endpoint, so it inherits the same degraded states rather than inventing new ones.',
+    phone('triage', nav('Triage'),
+      segs('new',{new:2,queued:2,no:1})+
+      `<div class="inlineErr">${ic('bang','md')}<div><b>Showing Smithery only.</b><br>
+       The official registry did not answer, so anything it alone lists is missing.
+       <button style="color:var(--accent);font-weight:600;display:block;margin-top:6px;min-height:44px">Try again</button></div></div>`+
+      [E[1],E[2]].map(e=>trow(e)).join(''))),
+  unit('Error','What happened, then what it did not do. The second sentence is the one that matters on a security surface.',
+    phone('triage', nav('Triage'),
+      segs('new',{new:0,queued:2,no:1})+
+      empty('warn','The registry search failed',
+        'The router answered, but not with results. Nothing was queued and nothing changed on your Mac.',
+        'Try again'))),
+  unit('Offline — the router is not running','Loopback means the router, not the network. The phone cannot start a process on the Mac, so it gives the instruction instead of offering the button DESIGN.md §5 asks for — a stated deviation, as I2 recorded it.',
+    phone('triage', nav('Triage'),
+      segs('new',{new:0,queued:2,no:1})+
+      empty('off',`The router is not running on ${MAC}`,
+        'Triage reads the registries through it, so there is nothing to decide on until it starts. Open MCP Router on your Mac.'))),
+  unit('Disabled — no Mac paired','The commit dims IN PLACE with its reason above it, and is never hidden. The rows still read: deciding is useful before there is anywhere to send.',
+    phone('triage', navAct('Triage','Select all'),
+      segs('new',{new:5,queued:0,no:0})+triHint+
+      E.map((e,i)=>trow(e,{pick:i===0})).join(''),
+      commitBar(1,{disabled:true,reason:'No Mac paired yet, so there is nowhere to send this. Pair one in Settings.'}))),
+  unit('Overflow + Success','A long name truncates on one line; the capability line still renders whole — that is the whole point of the fix. Success is the in-place bucket change plus Undo. macOS and iOS do not toast a commit.',
+    phone('triage', navAct('Triage','Select all'),
+      segs('new',{new:2,queued:3,no:1})+
+      undoBar('1 item queued for your Mac')+
+      trow({...E[0],name:'filesystem-with-an-extremely-long-published-name-that-will-not-fit'})+
+      trow(E[3]))),
+ ]);
+
+/* ── D · Queue ───────────────────────────────────────────────────────────── */
+sec('D','Queue — what is on this phone, and nothing about a Mac',
+ `<b>The prototype's WAITING / ADDED / NO badges are gone, and so is "last seen just now".</b> Those
+  are dispositions taken on the Mac, and there is no transport to read them through: M6 shipped the
+  inbox and the wire envelope and deferred the transport (D-m6-a). This surface reports the two
+  things that are locally true — the item, and when this phone queued it — and states plainly what
+  happens next.
+  <b>There is no send control here.</b> The send act already happened in Triage; draining the queue
+  is transport behaviour, not a second user decision. A "Send N to Mac" button on this screen would
+  be bound to a reachability value nothing observes, so it would render enabled and do nothing.`,
+ [
+  unit('Default','Newest first. The stamp is instrument data, so it is monospace.',
+    phone('queue', nav('Queue',`Waiting for ${MAC} to collect them.`),
+      `<div class="plbl">Waiting</div>`+
+      qrow(E[1],'today, 09:12')+qrow(E[2],'today, 08:47')+qrow(E[3],'yesterday, 19:30')+
+      `<div class="note" style="margin-top:16px">Your Mac decides. This list is the record of what you
+       sent it, and it stays here until your Mac has it.</div>`)),
+  unit('Empty','One sentence, one action — DESIGN.md §5.',
+    phone('queue', nav('Queue'),
+      empty('tray','Nothing waiting',
+        'Things you send from Triage or Discover collect here until you are back at your Mac.',
+        'Go to Triage'))),
+  unit('Removing an item','Undo, not a confirmation. Removing something from your own outbox is not a destructive act with a blast radius — the named-consequence dialog DESIGN.md §9 reserves is for the Mac.',
+    phone('queue', nav('Queue',`Waiting for ${MAC} to collect them.`),
+      undoBar('Exa search removed from the queue')+
+      `<div class="plbl">Waiting</div>`+qrow(E[2],'today, 08:47')+qrow(E[3],'yesterday, 19:30'))),
+  unit('Never paired','Items queued before pairing are kept, not discarded. The state names what is missing without deleting the user\'s work.',
+    phone('queue', nav('Queue'),
+      `<div class="inlineErr">${ic('bang','md')}<div><b>No Mac is paired.</b><br>
+        These are kept here and go to the first Mac you pair.
+        <button style="color:var(--accent);font-weight:600;display:block;margin-top:6px;min-height:44px">Pair a Mac</button></div></div>`+
+      qrow(E[1],'today, 09:12')+qrow(E[2],'today, 08:47'))),
+  unit('Unreadable — the state that must never look empty','The queue file exists and will not decode. <b>This is the single most important state on the surface.</b> A decode path whose failure mode is emptiness is the defect this repo already shipped once in its TypeScript router, where a flat servers.json loaded zero servers with no error at all. An empty queue and an unreadable queue look identical unless one of them says so.',
+    phone('queue', nav('Queue'),
+      `<div class="inlineErr" style="border-color:var(--failLine);background:var(--failWash)">
+        ${ic('warn','md')}<div><b>The queue could not be read.</b><br>
+        Something is saved on this phone and this version cannot decode it, so it is not being shown.
+        Nothing has been deleted and nothing has been sent.
+        <button style="color:var(--accent);font-weight:600;display:block;margin-top:6px;min-height:44px">Try again</button></div></div>`)),
+  unit('Write refused','A refused write renders as a failure and never as a queued item — I1\'s precedent, where a swallowed Keychain error rendered "Paired." while nothing was written.',
+    phone('queue', nav('Queue',`Waiting for ${MAC} to collect them.`),
+      `<div class="inlineErr">${ic('warn','md')}<div><b>That item was not saved.</b><br>
+        This phone refused the write, so it is not in the queue. Try again from Triage.</div></div>`+
+      `<div class="plbl">Waiting</div>`+qrow(E[2],'today, 08:47'))),
+ ]);
+
+/* ── E · Library ─────────────────────────────────────────────────────────── */
+sec('E','Library — read-only, and every fact an MCPServer field',
+ `<b>Servers only.</b> There is no skills index and no <code>/skills</code> route on either router —
+  re-verified for this item — so the prototype's skill rows have nothing behind them. The absence is
+  stated as a fact rather than drawn as an empty list. Every per-row fact is a field on
+  <code>MCPServer</code>: transport, tool count, running state, idle time. Nothing is computed and no
+  figure is displayed that the router does not observe.`,
+ [
+  unit('Default','--live appears once, meaning exactly what it means: a child process is running.',
+    phone('library', nav('Library','4 servers · read-only from here'),
+      `<div class="srch">${ic('search','sm')}<span>Filter</span></div>`+
+      S.map(lrow).join('')+SKILLS_ABSENT+LIB_NOTE)),
+  unit('Empty — nothing declared','Not a bare "No items". The action is the honest one: the phone cannot add a server.',
+    phone('library', nav('Library'),
+      empty('book','No servers declared',
+        `${MAC} has no MCP servers declared yet. Queue one from Triage and accept it at your Mac, and it will appear here.`,
+        'Go to Triage'))),
+  unit('Filtered to nothing','Distinct from the whole-list empty, and it names the filter rather than the library.',
+    phone('library', nav('Library','4 servers · read-only from here'),
+      `<div class="srch" style="border-color:var(--accent)">${ic('search','sm')}<span style="color:var(--t1)">postgres</span></div>`+
+      empty('search','No server matches "postgres"','Clear the filter to see all 4.','Clear filter'))),
+  unit('Loading','Row-shaped skeletons at the library row\'s own height.',
+    phone('library', nav('Library'),
+      `<div class="srch">${ic('search','sm')}<span>Filter</span></div>`+
+      [1,2,3,4].map(()=>`<div class="li"><div class="sk" style="width:30px;height:30px;border-radius:7px"></div>
+        <span class="tx"><div class="sk" style="width:96px;height:11px"></div>
+        <div class="sk" style="width:132px;height:9px;margin-top:5px"></div></span></div>`).join(''))),
+  unit('Offline','Same distinction as everywhere: loopback unreachable means the router is not running, never a generic network error.',
+    phone('library', nav('Library'),
+      empty('off',`The router is not running on ${MAC}`,
+        'The library is the router\'s own list of declared servers, so there is nothing to show until it starts. Open MCP Router on your Mac.'))),
+  unit('Error','What happened and what to do, adjacent to the thing, not blaming and not emoting.',
+    phone('library', nav('Library'),
+      empty('warn','The server list could not be read',
+        'The router answered with something this version does not understand. Nothing on your Mac has changed.',
+        'Try again'))),
+ ]);
+
+/* ── F · what was rejected, drawn ────────────────────────────────────────── */
+SEC.push(`<div class="sect"><h2>The three rejected interactions<span class="k">F</span></h2>
+<p>Drawn rather than described, because "we considered a swipe deck" is not reviewable and a picture
+of the failure is. Each is shown with the specific property that disqualified it.</p>
+<div class="row">
+  ${unit('Rejected — swipe deck','Built once, rejected by the owner.',
+    `<div class="ph"><div class="scr"><div class="notch"></div>
+      <div class="pstat"><span>9:41</span><span class="r">${ic('cloud','sm')}</span></div>
+      <div class="pbody" style="display:grid;place-items:center;padding:0 26px">
+        <div style="width:100%;background:var(--raised);border:1px solid var(--lineS);
+             border-radius:16px;padding:20px;transform:rotate(-4deg)">
+          <b style="font-size:var(--title3)">filesystem</b>
+          <div style="color:var(--t3);font-size:var(--subhead);margin-top:3px">modelcontextprotocol</div>
+          <div class="capline warn" style="margin-top:10px">${ic('warn','sm')}<span>Runs a program on your Mac</span></div>
+          <div style="display:flex;gap:10px;margin-top:20px;color:var(--t4);font-size:var(--caption)">
+            <span>← Not for me</span><span style="margin-left:auto">Send →</span></div>
+        </div>
+      </div>
+      <div class="tabs">${TABS.map(([k,i,l])=>`<div class="tab ${k==='triage'?'on':''}">${ic(i,'lg')}<span>${l}</span></div>`).join('')}</div>
+    </div></div>
+    <div class="ann">Three structural faults, not polish. A gesture commits a security decision with
+    <b>no undo</b>; it is <b>one item at a time</b> on a surface whose value is comparison; and a
+    dismissal leaves <b>no record</b>, so a decision made badly on a train cannot be found again at
+    the desk. The buckets exist because of the third.</div>`)}
+  ${unit('Rejected — numbered stepper','Whering\'s review pattern. Considered, not adopted.',
+    `<div class="ph"><div class="scr"><div class="notch"></div>
+      <div class="pstat"><span>9:41</span><span class="r">${ic('cloud','sm')}</span></div>
+      <div class="pnav"><h3>3 of 18</h3></div>
+      <div class="pbody">
+        <div style="height:4px;border-radius:2px;background:var(--f2);margin-bottom:18px">
+          <div style="width:17%;height:100%;border-radius:2px;background:var(--accent)"></div></div>
+        <b style="font-size:var(--title2)">context7</b>
+        <div class="capline" style="margin-top:8px">${ic('check','sm')}<span>Nothing runs on your Mac · mcp.context7.com</span></div>
+        <div style="display:flex;gap:9px;margin-top:24px">
+          <button class="nope" style="flex:1;text-align:center">Skip</button>
+          <button class="go">Send</button></div>
+      </div>
+      <div class="tabs">${TABS.map(([k,i,l])=>`<div class="tab ${k==='triage'?'on':''}">${ic(i,'lg')}<span>${l}</span></div>`).join('')}</div>
+    </div></div>
+    <div class="ann">A stepper is a queue with a cursor: it <b>decides the order for you</b> and it
+    has <b>no batch</b>. The whole value of this surface is seeing eight rows at once and picking the
+    two worth the Mac's attention — which a stepper structurally forbids. It also converts "I have
+    seen enough" into eighteen taps.</div>`)}
+  ${unit('Rejected — swipe to reveal','Apple Mail / Spark. The best of the three, still not adopted.',
+    `<div class="ph"><div class="scr"><div class="notch"></div>
+      <div class="pstat"><span>9:41</span><span class="r">${ic('cloud','sm')}</span></div>
+      <div class="pnav"><h3>Triage</h3></div>
+      <div class="pbody">
+        <div style="display:flex;align-items:stretch;gap:0;margin:9px 0;border-radius:9px;overflow:hidden">
+          <div style="flex:1;padding:9px 11px;background:var(--raised)">
+            <b style="font-size:var(--body)">Exa search</b>
+            <div class="capline warn" style="margin-top:3px">${ic('warn','sm')}<span>needs a credential</span></div>
+          </div>
+          <div style="width:72px;background:var(--accent);color:var(--onAccent);display:grid;
+               place-items:center;font-weight:600;font-size:var(--subhead)">Send</div>
+        </div>
+        ${[E[2],E[3]].map(e=>`<div class="trow"><div class="rh">
+          <div style="width:22px;padding-top:6px;flex-shrink:0">${tile(e)}</div>
+          <div class="tmeta"><b>${e.name}</b>${capline(e)}</div></div></div>`).join('')}
+      </div>
+      <div class="tabs">${TABS.map(([k,i,l])=>`<div class="tab ${k==='triage'?'on':''}">${ic(i,'lg')}<span>${l}</span></div>`).join('')}</div>
+    </div></div>
+    <div class="ann">Genuinely better than the deck — the label is visible and the act is undoable.
+    Still rejected: it is <b>one item per gesture</b> with the action <b>hidden until you drag</b>, on
+    a surface whose subject is a comparison across rows, and a leading-edge drag <b>collides with the
+    system back-swipe</b>. The checkbox says the same thing without a gesture to learn.</div>`)}
+</div></div>`);
+
+/* ── G · both appearances ────────────────────────────────────────────────── */
+SEC.push(`<div class="sect"><h2>Both appearances<span class="k">G</span></h2>
+<p>Light is authored, never inverted — DESIGN.md §2. Every indicator hue is re-solved for the light
+ground, which is why the amber capability line is <code>#9F5A00</code> here and <code>#FF9230</code>
+in dark. The switch at the bottom right drives the whole page; this pair is pinned so the two can be
+compared without toggling.</p>
+<div class="row">
+  ${unit('Dark','The authored dark column.',`<div data-appearance="dark">${
+    phone('triage', navAct('Triage','Select all'),
+      segs('new',{new:5,queued:2,no:1})+triHint+E.slice(0,4).map((e,i)=>trow(e,{pick:i===0})).join(''),
+      commitBar(1))}</div>`)}
+  ${unit('Light','The authored light column, measured on #ECECEE.',`<div data-appearance="light">${
+    phone('triage', navAct('Triage','Select all'),
+      segs('new',{new:5,queued:2,no:1})+triHint+E.slice(0,4).map((e,i)=>trow(e,{pick:i===0})).join(''),
+      commitBar(1))}</div>`)}
+  ${unit('Queue, light','The stamp and the counts stay monospace in both.',`<div data-appearance="light">${
+    phone('queue', nav('Queue',`Waiting for ${MAC} to collect them.`),
+      `<div class="plbl">Waiting</div>`+qrow(E[1],'today, 09:12')+qrow(E[2],'today, 08:47'))}</div>`)}
+</div></div>`);
+
+/* ── H · the floor ───────────────────────────────────────────────────────── */
+SEC.push(`<div class="sect"><h2>Targets, colour, and the row-height rule<span class="k">H</span></h2>
+<div class="row" style="gap:26px">
+  <div style="max-width:34ch">
+    <div class="ann"><b>44pt, and where it is spent.</b> The checkbox draws a 22pt box inside a 44pt
+    target, so the control is quiet and the target is not. The meta block is a second 44pt target.
+    The Queue's remove control is 44pt. Every segment of the bucket control is at least 44pt wide at
+    the phone's width. Nothing interactive is smaller.</div>
+    <div class="ann"><b>Colour is never the only signal.</b> Every amber capability line carries a
+    glyph <i>and</i> states the thing in words — "Runs a program on your Mac" is the signal; the
+    amber is emphasis on it. Turned monochrome, every row still reads correctly.</div>
+  </div>
+  <div style="max-width:34ch">
+    <div class="ann"><b>The row-height rule, resolved.</b> The brief asks for rows that are a fixed
+    height and never ellipsise. Read literally those two fight: a pinned height with a wrapping line
+    clips. So 44pt is a <i>minimum</i>. Rows are uniform because their content is uniform, they grow
+    together if the type ladder ever scales, and the thing that truncates is the entry
+    <i>name</i> — one line, tail — while the capability line always renders whole. DESIGN.md §5's
+    "rows never change height" is an Overflow rule about long values, and that is how it is met.</div>
+    <div class="ann"><b>Dynamic Type.</b> No phone surface scales today: <code>TypeToken.font</code>
+    is a fixed <code>Font.system(size:weight:)</code> shared with every Mac surface, and DESIGN.md §2
+    fixes the eight sizes deliberately. Not changed here — it is a shared design surface. What these
+    surfaces do about it is refuse to pin a height that would clip if it changed.</div>
+  </div>
+</div></div>`);
+
+/* ── K · motion ──────────────────────────────────────────────────────────── */
+SEC.push(`<div class="sect"><h2>Motion<span class="k">K</span></h2>
+<p>Transform and opacity only, springs rather than durations, interruptible. <b>Nothing animates
+opacity from 0 on entry</b> — DESIGN.md §7 — so the commit bar and the undo bar both rise on
+transform alone and are readable from the first frame. The Reduced switch at the bottom right sets
+<code>prefers-reduced-motion</code> for the whole page; under it the animation is removed and the
+state change is not.</p>
+<div class="row">
+  ${unit('Commit bar entry','Rises on transform. Toggle Reduced and it appears in place, still correct.',
+    phone('triage', navAct('Triage','Select all'),
+      segs('new',{new:5,queued:2,no:1})+triHint+E.slice(0,3).map((e,i)=>trow(e,{pick:i<2})).join(''),
+      commitBar(2)))}
+  ${unit('Checkbox','A scale bump on press, never a colour flash. DESIGN.md §7.',
+    phone('triage', navAct('Triage','Clear'),
+      segs('new',{new:5,queued:2,no:1})+triHint+E.slice(0,3).map(e=>trow(e,{pick:true})).join(''),
+      commitBar(3)))}
+  ${unit('Row expansion','Translates down; the list below moves with it. No fade.',
+    phone('triage', nav('Triage'),
+      segs('new',{new:5,queued:2,no:1})+E.slice(0,3).map((e,i)=>trow(e,{open:i===0})).join('')))}
+</div></div>`);
+
+document.getElementById('out').innerHTML=SEC.join('');
+
+/* ═══════════════════ switches ═══════════════════════════════════════════ */
+document.querySelectorAll('.sw button').forEach(b=>b.onclick=()=>{
+  const k=b.dataset.sw, v=b.dataset.v;
+  document.querySelectorAll(`.sw button[data-sw="${k}"]`).forEach(x=>x.classList.toggle('on',x===b));
+  if(k==='appearance') document.documentElement.setAttribute('data-appearance',v);
+  if(k==='motion') document.documentElement.setAttribute('data-motion',v);
+});
+document.documentElement.setAttribute('data-appearance','dark');
+</script>
+<style>
+/* Reduced motion, as a real toggle rather than a claim. It removes the animation
+   and never the state change — DESIGN.md §7. */
+[data-motion="reduced"] *{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</body>
+</html>

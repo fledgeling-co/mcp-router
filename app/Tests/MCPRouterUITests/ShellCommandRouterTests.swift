@@ -64,6 +64,9 @@
             )
             .union([.settings, .showSidebar, .about])
             .union([.addServer, .find, .resetServer, .removeServer])
+            // M4 adds the one the Skills board owns — `⌘⇧N`, which opens its marketplaces sheet.
+            // The set is narrowed by exactly what shipped, never relaxed.
+            .union([.addMarketplace])
 
             for command in MenuCommand.allCases where !acting.contains(command) {
                 #expect(

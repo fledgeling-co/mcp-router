@@ -121,6 +121,8 @@
                 // structural proof that this destination has a surface, so there is no placeholder
                 // to fall back to and none is written.
                 ServersBoard(shell: model, board: model.serversBoard)
+            } else if model.selection == .skills {
+                SkillsBoard(shell: model, board: model.skillsBoard)
             } else {
                 // Unreachable: `BoardRegistry.installed` and this switch are the same set, and
                 // `ShellIntegrationTests` asserts the registry's two halves are exact complements.

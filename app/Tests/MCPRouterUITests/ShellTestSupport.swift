@@ -114,7 +114,13 @@
             "app/Sources/MCPRouterUI/Boards/ServerInspector.swift",
             "app/Sources/MCPRouterUI/Boards/ServerInspectorSections.swift",
             "app/Sources/MCPRouterUI/Boards/ServerInspectorControls.swift",
-            "app/Sources/MCPRouterUI/Boards/ServerSheets.swift"
+            "app/Sources/MCPRouterUI/Boards/ServerSheets.swift",
+            "app/Sources/MCPRouterUI/Boards/SkillsBoard.swift",
+            "app/Sources/MCPRouterUI/Boards/SkillsBoardRow.swift",
+            "app/Sources/MCPRouterUI/Boards/SkillsBoardMetrics.swift",
+            "app/Sources/MCPRouterUI/Boards/SkillsBoardModel.swift",
+            "app/Sources/MCPRouterUI/Boards/SkillInspector.swift",
+            "app/Sources/MCPRouterUI/Boards/SkillSheets.swift"
         ]
 
         /// Everything the boundary gates scan.

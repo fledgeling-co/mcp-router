@@ -64,6 +64,18 @@
             UsageSummary(since: "", servers: [])
         }
 
+        /// This double stands in for the SERVERS surface and serves no skills. It says so rather
+        /// than answering with an empty list: a double that returns `[]` teaches a test that "no
+        /// skills" is a normal answer, which is the silent-empty failure this protocol is written
+        /// against.
+        func skills() async throws(ControlAPIError) -> SkillsResponse {
+            throw .malformedResponse(detail: "this double serves no skills")
+        }
+
+        func marketplaces() async throws(ControlAPIError) -> MarketplacesResponse {
+            throw .malformedResponse(detail: "this double serves no marketplaces")
+        }
+
         func heldChanges(for name: String) async throws(ControlAPIError) -> HeldChanges {
             record(Recorded(operation: "heldChanges", server: name, body: nil))
             return HeldChanges(server: name, pending: true, seenAt: nil, changes: [])

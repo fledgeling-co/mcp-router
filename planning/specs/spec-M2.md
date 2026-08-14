@@ -1,6 +1,8 @@
 # M2: Activity — the live call log
 
-**Status:** Ready for Implementation Plan
+**Status:** Delivered on `ai/m2`, awaiting the orchestrator's merge. Plan:
+`planning/plans/plan-M2.md` · Evidence: `planning/evidence/M2-acceptance.md`. B44–B49 were added
+during the gap-fix and record defects found in a board that had already passed everything else.
 **Depends on:** M1 (shell) ✓ merged · F2 (design system) ✓ · F3 (control client) ✓ · F4 (tracker
 and failure states) ✓
 **Design authority:** `DESIGN.md` · **Design representation:**

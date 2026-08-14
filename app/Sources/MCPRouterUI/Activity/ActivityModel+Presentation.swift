@@ -28,7 +28,9 @@
             return Self.timeOfDay.string(from: date)
         }
 
-        static let timeOfDay: DateFormatter = {
+        /// Internal, not public: it was `private` inside the class before this file existed, and a
+        /// `public extension` would otherwise export a formatter as API for no caller that wants it.
+        internal static let timeOfDay: DateFormatter = {
             let formatter = DateFormatter()
             formatter.setLocalizedDateFormatFromTemplate("jmm")
             return formatter

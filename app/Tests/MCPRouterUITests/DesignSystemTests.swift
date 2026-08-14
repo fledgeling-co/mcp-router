@@ -16,9 +16,17 @@ import Testing
 /// invisible, which is why every name is resolved against the system symbol table here instead.
 @Suite("Icons")
 struct IconTests {
-    @Test("the set is the prototype's 21-symbol sprite, exactly")
+    /// The prototype's sprite is 21 symbols and remains the inventory's base. `frost` is the one
+    /// addition, and it is here rather than in the sprite because the prototype marks a cold start
+    /// with `❄` — a unicode character, which `DESIGN.md` §4 forbids ("drawn, never unicode"). The
+    /// count is stated as base-plus-additions rather than as a bare 22 so that a symbol appearing
+    /// without a reason still fails.
+    @Test("the set is the prototype's 21-symbol sprite plus the marks the document required drawn")
     func inventoryMatchesTheSprite() {
-        #expect(Icon.allCases.count == 21)
+        let spriteSymbols = 21
+        let drawnReplacementsForUnicode = 1 // frost, replacing the prototype's ❄
+        #expect(Icon.allCases.count == spriteSymbols + drawnReplacementsForUnicode)
+        #expect(Icon.allCases.contains(.frost))
     }
 
     @Test("every system icon resolves to a symbol that actually draws")

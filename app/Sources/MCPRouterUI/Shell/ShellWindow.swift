@@ -64,16 +64,24 @@
         @Bindable var model: ShellModel
 
         var body: some View {
-            ScrollView {
-                pane
-                    .frame(maxWidth: .infinity, minHeight: scrollableMinHeight)
-            }
-            .onScrollGeometryChange(for: Double.self) { geometry in
-                geometry.contentOffset.y
-            } action: { previous, offset in
-                // Both values, deliberately: the callback fires only on a change, so `previous` is
-                // the only place the resting offset ever appears. See `ScrollEdgeState.observe`.
-                model.observeScroll(previous: previous, offset: offset)
+            Group {
+                if let scaffolded = ScaffoldedDestination(model.selection) {
+                    outerScroll {
+                        ScaffoldPane(scaffolded: scaffolded)
+                            .frame(minHeight: MetricToken.sidebar.leadingScalar)
+                    }
+                } else if Self.boardsThatScrollThemselves.contains(model.selection) {
+                    // A board that draws a column header or a filter bar has to keep them put while
+                    // its rows move — one outer scroll would carry the header off the top of a
+                    // five-hundred-row log. Such a board owns its own `ScrollView` and reports its
+                    // geometry through the same callback, so the scroll-edge separator behaves
+                    // identically over every branch rather than being a thing only some panes have.
+                    board
+                } else {
+                    // A board with no sticky chrome of its own scrolls in the shell's scroll view,
+                    // exactly as the placeholder does.
+                    outerScroll { board }
+                }
             }
             .overlay(alignment: .top) {
                 ScrollEdgeSeparator(isVisible: model.scrollEdge.isSeparatorVisible)
@@ -87,6 +95,12 @@
                     // clickable, and it stays what the clause needs: a focusable surface in the
                     // content zone. Bottom-trailing keeps it away from the top-edge pixel sample
                     // A34 takes 120pt in from the content's leading edge.
+                    //
+                    // It is installed over a shipped board too, and deliberately: A21's claim is
+                    // that the shell does not swallow the three bare keys, and the board that now
+                    // sits beside it is exactly the kind of surface that would prove it wrong if it
+                    // claimed one. `Space` reaching this probe while the Activity board is on screen
+                    // *is* M2's evidence that the board does not take it.
                     KeyClaimProbe()
                         // An `NSViewRepresentable` in an overlay takes the whole overlay unless it
                         // is told otherwise, and at full size this probe covered the top edge where
@@ -111,21 +125,52 @@
             MetricToken.sidebar.leadingScalar * 3
         }
 
+        /// Boards that install their own `ScrollView` because they have chrome that must not move.
+        ///
+        /// Kept as data rather than an `if` chain so a board joining is one line, and so the
+        /// distinction is legible: it is about sticky chrome, not about which item shipped it.
+        private static let boardsThatScrollThemselves: Set<Destination> = [.activity]
+
+        /// The shell's own scroll view — the one the scroll-edge separator reads.
+        private func outerScroll(@ViewBuilder _ content: () -> some View) -> some View {
+            ScrollView {
+                content()
+                    .frame(maxWidth: .infinity, minHeight: scrollableMinHeight)
+            }
+            .onScrollGeometryChange(for: Double.self) { geometry in
+                geometry.contentOffset.y
+            } action: { previous, offset in
+                // Both values, deliberately: the callback fires only on a change, so `previous` is
+                // the only place the resting offset ever appears. See `ScrollEdgeState.observe`.
+                model.observeScroll(previous: previous, offset: offset)
+            }
+        }
+
+        /// The board for the selected destination.
+        ///
+        /// Reached only when `ScaffoldedDestination` refused to construct, which is exactly when
+        /// `BoardRegistry.installed` contains the destination — so a board and its placeholder can
+        /// never both be reachable, and neither can neither.
         @ViewBuilder
-        private var pane: some View {
-            if let scaffolded = ScaffoldedDestination(model.selection) {
-                ScaffoldPane(scaffolded: scaffolded)
-                    .frame(minHeight: MetricToken.sidebar.leadingScalar)
-            } else if model.selection == .servers {
-                // The branch M1 left for the boards. `ScaffoldedDestination` returning nil is the
-                // structural proof that this destination has a surface, so there is no placeholder
-                // to fall back to and none is written.
+        private var board: some View {
+            switch model.selection {
+            case .activity:
+                ActivityBoard(model: model.activity) { previous, offset in
+                    model.observeScroll(previous: previous, offset: offset)
+                }
+            case .servers:
+                // `ScaffoldedDestination` returning nil is the structural proof that this
+                // destination has a surface, so there is no placeholder to fall back to and none
+                // is written.
                 ServersBoard(shell: model, board: model.serversBoard)
-            } else if model.selection == .skills {
+            case .skills:
                 SkillsBoard(shell: model, board: model.skillsBoard)
-            } else {
-                // Unreachable: `BoardRegistry.installed` and this switch are the same set, and
-                // `ShellIntegrationTests` asserts the registry's two halves are exact complements.
+            case .discover, .inbox, .evals, .cleanup, .settings:
+                // Unreachable: every one of these is still in `scaffolded`, and the branch in
+                // `body` catches them. Deliberately not a second placeholder — a placeholder here
+                // is the very thing `ScaffoldedDestination` exists to make impossible. M5–M8
+                // replace these cases one at a time, and the exhaustive switch is what makes each
+                // one visible.
                 EmptyView()
             }
         }

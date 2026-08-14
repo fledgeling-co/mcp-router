@@ -1,0 +1,147 @@
+{
+  "since": "2026-08-14T09:12:04.118Z",
+  "records": [
+    {
+      "ts": "2026-08-14T09:41:58.412Z",
+      "server": "obscura",
+      "tool": "browser_navigate",
+      "ok": true,
+      "ms": 612,
+      "cold": true,
+      "pid": 51310,
+      "cwd": "/Users/lukerhodes/Dev/mcp-router",
+      "project": "mcp-router",
+      "client": "claude"
+    },
+    {
+      "ts": "2026-08-14T09:41:54.006Z",
+      "server": "obscura",
+      "tool": "browser_markdown",
+      "ok": true,
+      "ms": 38,
+      "cold": false,
+      "pid": 51310,
+      "cwd": "/Users/lukerhodes/Dev/mcp-router",
+      "project": "mcp-router",
+      "client": "claude"
+    },
+    {
+      "ts": "2026-08-14T09:41:36.771Z",
+      "server": "sift",
+      "tool": "get_thread",
+      "ok": false,
+      "ms": 91,
+      "cold": false,
+      "pid": 48822,
+      "cwd": "/Users/lukerhodes/Dev/dAIolog",
+      "project": "dAIolog",
+      "client": "claude",
+      "err": "no index published; run sift index first"
+    },
+    {
+      "ts": "2026-08-14T09:40:51.220Z",
+      "server": "dossier",
+      "tool": "research_status",
+      "ok": true,
+      "ms": 14,
+      "cold": false,
+      "pid": 48822,
+      "cwd": "/Users/lukerhodes/Dev/loupe",
+      "project": "loupe",
+      "client": "claude"
+    },
+    {
+      "ts": "2026-08-14T09:39:47.905Z",
+      "server": "dossier",
+      "tool": "research_start",
+      "ok": true,
+      "ms": 1840,
+      "cold": true,
+      "pid": 48822,
+      "cwd": "/Users/lukerhodes/Dev/loupe",
+      "project": "loupe",
+      "client": "claude"
+    },
+    {
+      "ts": "2026-08-14T09:38:59.145Z",
+      "server": "sift",
+      "tool": "search",
+      "ok": true,
+      "ms": 27,
+      "cold": false,
+      "pid": 48822,
+      "cwd": "/Users/lukerhodes/Dev/dAIolog",
+      "project": "dAIolog",
+      "client": "claude"
+    },
+    {
+      "ts": "2026-08-14T09:35:12.660Z",
+      "server": "mobbin",
+      "tool": "search_screens",
+      "ok": true,
+      "ms": 402,
+      "cold": false,
+      "pid": 51310,
+      "cwd": "/Users/lukerhodes/Dev/mcp-router",
+      "project": "mcp-router",
+      "client": "claude"
+    },
+    {
+      "ts": "2026-08-14T09:33:40.019Z",
+      "server": "obscura",
+      "tool": "browser_screenshot",
+      "ok": true,
+      "ms": 734,
+      "cold": false
+    },
+    {
+      "ts": "2026-08-14T09:31:07.482Z",
+      "server": "anthropic-internal-documentation-and-knowledge-base-retrieval-server",
+      "tool": "search_messages_across_every_configured_mailbox_with_attachments_and_inline_images",
+      "ok": true,
+      "ms": 118,
+      "cold": false,
+      "pid": 51310,
+      "cwd": "/Users/lukerhodes/Dev/mcp-router/design/mocks/a-very-deeply-nested-project-directory",
+      "project": "a-very-deeply-nested-project-directory",
+      "client": "claude"
+    },
+    {
+      "ts": "2026-08-14T09:28:33.311Z",
+      "server": "sift",
+      "tool": "get_emails",
+      "ok": true,
+      "ms": 63,
+      "cold": false,
+      "pid": 51310,
+      "cwd": "/Users/lukerhodes/Dev/mcp-router",
+      "project": "mcp-router",
+      "client": "claude"
+    },
+    {
+      "ts": "2026-08-14T09:22:18.774Z",
+      "server": "dossier",
+      "tool": "research_read",
+      "ok": true,
+      "ms": 22,
+      "cold": false,
+      "pid": 48822,
+      "cwd": "/Users/lukerhodes/Dev/loupe",
+      "project": "loupe",
+      "client": "claude"
+    },
+    {
+      "ts": "2026-08-14T09:14:02.560Z",
+      "server": "obscura",
+      "tool": "browser_evaluate",
+      "ok": false,
+      "ms": 9,
+      "cold": false,
+      "pid": 51310,
+      "cwd": "/Users/lukerhodes/Dev/mcp-router",
+      "project": "mcp-router",
+      "client": "claude",
+      "err": "no page open — call browser_navigate first"
+    }
+  ]
+}

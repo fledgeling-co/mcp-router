@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en" data-appearance="dark">
+<head>
+<meta charset="utf-8">
+<title>M2 — Activity: every surface and every state</title>
+<style>
+/* ═══════════ Tokens — DESIGN.md §2, both appearances authored ═══════════ */
+:root{
+  --ground:#1E1E1E; --panel:#232326; --raised:#2C2C2E; --raised2:#3A3A3C;
+  --line:rgba(255,255,255,.075); --lineS:rgba(255,255,255,.14);
+  --f1:rgba(255,255,255,.10); --f2:rgba(255,255,255,.08); --f3:rgba(255,255,255,.05);
+  --t1:rgba(255,255,255,1); --t2:rgba(255,255,255,.55); --t3:rgba(255,255,255,.50);
+  --t4:rgba(255,255,255,.25);
+  --accent:#0091FF; --live:#30D158; --attn:#FF9230; --fail:#FF4245; --onAccent:#FFFFFF;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  /* Chrome geometry §2 */
+  --titlebar:33px; --toolbar:52px; --sidebar:256px; --row:24px;
+  --popoverR:20px; --selR:8px; --selInset:4px; --focus:2px;
+  --cMini:16px; --cSmall:20px; --cReg:24px; --cLarge:28px; --cXL:36px;
+}
+html[data-appearance="light"]{
+  --ground:#ECECEE; --panel:#F5F5F7; --raised:#FFFFFF; --raised2:#E0E0E4;
+  --line:rgba(0,0,0,.10); --lineS:rgba(0,0,0,.19);
+  --f1:rgba(0,0,0,.13); --f2:rgba(0,0,0,.10); --f3:rgba(0,0,0,.06);
+  --t1:rgba(0,0,0,.95); --t2:rgba(0,0,0,.62); --t3:rgba(0,0,0,.58); --t4:rgba(0,0,0,.33);
+  --accent:#0069CF; --live:#1B7B3C; --attn:#9F5A00; --fail:#CD2738;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ground);color:var(--t1);font:13px/16px var(--sans);
+  -webkit-font-smoothing:antialiased;padding:32px 28px 96px}
+
+/* ═══════════ Documentation chrome (not part of the app) ═══════════ */
+.doc{max-width:1180px;margin:0 auto}
+.doc h1{font:700 26px/32px var(--sans);letter-spacing:-.5px;margin-bottom:6px}
+.doc .lede{color:var(--t2);font-size:13px;max-width:74ch;margin-bottom:6px}
+.doc h2{font:700 22px/26px var(--sans);letter-spacing:-.4px;margin:44px 0 6px;
+  padding-top:22px;border-top:1px solid var(--line)}
+.doc h3{font:600 15px/20px var(--sans);margin:26px 0 8px}
+.doc p.note{color:var(--t2);font-size:12px;line-height:17px;max-width:82ch;margin-bottom:12px}
+.doc code{font:11px var(--mono);color:var(--t2);background:var(--f3);padding:1px 5px;border-radius:4px}
+.rule{display:inline-block;font:600 10px/13px var(--sans);text-transform:none;
+  color:var(--t3);border:1px solid var(--line);border-radius:4px;padding:2px 6px;margin-right:6px}
+.bar{position:fixed;top:0;left:0;right:0;height:34px;background:var(--panel);
+  border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;
+  padding:0 16px;z-index:50;font-size:12px;color:var(--t2)}
+body{padding-top:66px}
+.bar button{font:12px var(--sans);padding:3px 10px;border-radius:5px;background:var(--raised2);
+  border:1px solid var(--lineS);color:var(--t1);cursor:default;white-space:nowrap;flex-shrink:0}
+
+/* ═══════════ The window frame ═══════════ */
+.win{background:var(--ground);border:1px solid var(--lineS);border-radius:10px;
+  overflow:hidden;display:flex;height:452px;box-shadow:0 18px 44px rgba(0,0,0,.42)}
+.win.short{height:300px}
+.side{width:var(--sidebar);flex-shrink:0;background:var(--panel);
+  border-right:1px solid var(--line);display:flex;flex-direction:column}
+.tl{height:var(--titlebar);display:flex;align-items:center;gap:8px;padding:0 13px}
+.tl i{width:12px;height:12px;border-radius:50%;background:var(--f1)}
+.tl i:nth-child(1){background:#FF5F57}.tl i:nth-child(2){background:#FEBC2E}
+.tl i:nth-child(3){background:#28C840}
+nav{padding:6px}
+.grp{font:600 11px/14px var(--sans);color:var(--t3);padding:9px 8px 4px}
+.nv{display:flex;align-items:center;gap:8px;width:100%;height:var(--cLarge);
+  padding:0 8px;margin:0 var(--selInset);width:calc(100% - var(--selInset)*2);
+  border:none;background:none;border-radius:var(--selR);
+  font:13px/16px var(--sans);color:var(--t1);text-align:left;cursor:default}
+.nv.on{background:var(--f1);color:var(--accent);font-weight:600}
+.nv .g{width:15px;height:15px;flex-shrink:0;opacity:.85}
+.sfoot{margin-top:auto;padding:10px 14px;border-top:1px solid var(--line);
+  font:11px var(--mono);color:var(--t3);display:flex;align-items:center;gap:7px}
+
+/* ═══════════ The board ═══════════ */
+.main{flex:1;display:flex;min-width:0}
+.board{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--ground)}
+.hd{min-height:var(--toolbar);padding:8px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.hd h3{font:700 22px/26px var(--sans);letter-spacing:-.45px}
+.hd .sb{color:var(--t2);font:11px/14px var(--mono);margin-top:3px}
+.hd .sp{margin-left:auto;display:flex;gap:7px;align-items:center}
+
+/* Filter bar — two pop-up buttons (double chevron), §3.6 */
+.filters{display:flex;gap:7px;align-items:center;padding:0 18px 9px}
+.pop{display:inline-flex;align-items:center;gap:6px;height:var(--cReg);padding:0 7px 0 9px;
+  border-radius:5px;background:var(--raised);border:1px solid var(--lineS);
+  font:12px/15px var(--sans);color:var(--t1);cursor:default;max-width:230px;flex-shrink:0;
+  white-space:nowrap}
+.pop .lab{color:var(--t3)}
+.pop .val{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pop.set{background:var(--raised2)}
+.pop .cv{width:9px;height:13px;flex-shrink:0;opacity:.7}
+.pop.focused{outline:var(--focus) solid var(--accent);outline-offset:1px}
+.clearf{font:12px var(--sans);color:var(--accent);background:none;border:none;cursor:default;padding:0 4px}
+.fcount{margin-left:auto;font:11px var(--mono);color:var(--t3)}
+
+/* Column header + rows — fixed geometry, §5 overflow */
+.cols{display:flex;gap:9px;padding:4px 18px;border-bottom:1px solid var(--line);
+  font:600 11px/14px var(--sans);color:var(--t3);flex-shrink:0}
+.scr{flex:1;overflow-y:auto;overflow-x:hidden}
+.tr{display:flex;gap:9px;padding:0 18px;height:var(--row);align-items:center;
+  border-bottom:1px solid rgba(255,255,255,.035);width:100%;background:none;border-left:0;
+  border-right:0;border-top:0;text-align:left;cursor:default;color:var(--t1)}
+html[data-appearance="light"] .tr{border-bottom:1px solid rgba(0,0,0,.05)}
+.tr:hover{background:var(--f3)}
+.tr.sel{background:var(--f1)}
+.tr.sel .nm{color:var(--accent);font-weight:600}
+.tr.focused{outline:var(--focus) solid var(--accent);outline-offset:-2px}
+.c-when{width:42px;flex-shrink:0}
+.c-srv{width:104px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-tool{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-proj{width:126px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-sess{width:52px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-took{width:64px;flex-shrink:0;text-align:right;display:flex;align-items:center;
+  justify-content:flex-end;gap:4px}
+.m{font:11px/14px var(--mono)}
+.ui{font:12px/15px var(--sans)}
+.t2{color:var(--t2)}.t3{color:var(--t3)}.t4{color:var(--t4)}
+.nm{font-weight:500}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot.f{background:var(--fail)}
+.dot.none{background:transparent}
+.frost{width:9px;height:9px;flex-shrink:0;opacity:.9}
+
+/* Inspector */
+.insp{width:290px;flex-shrink:0;background:var(--panel);border-left:1px solid var(--line);
+  display:flex;flex-direction:column}
+.insp .ih{padding:12px 16px 10px;border-bottom:1px solid var(--line)}
+.insp .ih b{font:600 15px/20px var(--sans);display:block;word-break:break-all}
+.insp .ih span{font:11px/14px var(--mono);color:var(--t2);display:block;margin-top:3px}
+.insp dl{padding:10px 16px;display:grid;grid-template-columns:78px 1fr;gap:7px 10px;
+  align-content:start;overflow-y:auto}
+.insp dt{font:600 11px/14px var(--sans);color:var(--t3)}
+.insp dd{font:11px/15px var(--mono);color:var(--t1);word-break:break-all}
+.insp dd.prose{font:11px/15px var(--sans)}
+.insp dd.bad{color:var(--fail)}
+.insp .cold{display:inline-flex;align-items:center;gap:4px}
+
+/* State panes */
+.state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:40px 30px;gap:12px}
+.state .g{width:34px;height:34px;opacity:.32}
+.state b{font:600 15px/20px var(--sans)}
+.state p{font:13px/17px var(--sans);color:var(--t2);max-width:46ch}
+.btnP{font:13px/16px var(--sans);font-weight:600;padding:5px 13px;border-radius:6px;
+  background:var(--accent);color:var(--onAccent);border:1px solid transparent;cursor:default}
+.btn{font:12px/15px var(--sans);padding:3.5px 10px;border-radius:5px;background:var(--raised2);
+  border:1px solid var(--lineS);color:var(--t1);cursor:default}
+.btn[disabled]{color:var(--t4);border-color:var(--line);background:var(--f3)}
+.helper{font:12px/15px var(--sans);color:var(--t2);margin-top:5px}
+
+/* Partial: a banner adjacent to the thing, not a full pane */
+.banner{display:flex;align-items:center;gap:10px;margin:0 18px 9px;padding:7px 11px;
+  border-radius:7px;background:var(--f3);border:1px solid var(--lineS)}
+.banner .g{width:14px;height:14px;flex-shrink:0;color:var(--attn)}
+.banner p{font:12px/16px var(--sans);color:var(--t2);flex:1}
+.banner p b{color:var(--t1);font-weight:600}
+
+/* Skeleton — same 24px row, §5 */
+.sk{height:var(--row);display:flex;align-items:center;gap:9px;padding:0 18px;
+  border-bottom:1px solid rgba(255,255,255,.035)}
+html[data-appearance="light"] .sk{border-bottom:1px solid rgba(0,0,0,.05)}
+.sk i{display:block;height:9px;border-radius:2px;background:var(--f2)}
+
+/* Menu (Liquid Glass — floating chrome only, §3.3) */
+.menu{position:absolute;background:rgba(44,44,46,.86);backdrop-filter:blur(28px) saturate(160%);
+  border:1px solid var(--lineS);border-radius:9px;padding:4px;min-width:214px;
+  box-shadow:0 14px 34px rgba(0,0,0,.5);z-index:20}
+html[data-appearance="light"] .menu{background:rgba(255,255,255,.84)}
+.mi{display:flex;align-items:center;gap:8px;width:100%;height:22px;padding:0 8px;border:none;
+  background:none;border-radius:5px;font:13px/16px var(--sans);color:var(--t1);text-align:left;cursor:default}
+.mi.on{background:var(--accent);color:var(--onAccent)}
+.mi .ck{width:12px;flex-shrink:0;opacity:.9}
+.mi .cnt{margin-left:auto;font:11px var(--mono);opacity:.65}
+.msep{height:1px;background:var(--line);margin:4px 6px}
+.rel{position:relative}
+
+/* Sheet (named-consequence dialog) */
+.sheetwrap{position:absolute;inset:0;background:rgba(0,0,0,.34);display:flex;
+  justify-content:center;align-items:flex-start;z-index:30}
+.sheet{margin-top:30px;width:410px;background:rgba(44,44,46,.94);backdrop-filter:blur(30px);
+  border:1px solid var(--lineS);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:9px}
+html[data-appearance="light"] .sheet{background:rgba(255,255,255,.94)}
+.sheet b{font:600 15px/20px var(--sans)}
+.sheet p{font:13px/17px var(--sans);color:var(--t2)}
+.sheet .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:1000px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <!-- Drawn, never unicode (§4). 16px grid, 1.4 stroke, currentColor. -->
+  <symbol id="i-activity" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M1 8h3l2-5 3 10 2-5h4"/></symbol>
+  <symbol id="i-frost" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 1.5v13M2.4 4.75l11.2 6.5M2.4 11.25l11.2-6.5"/>
+    <path d="M6.3 2.9 8 4.6l1.7-1.7M6.3 13.1 8 11.4l1.7 1.7"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 2.2 15 14H1L8 2.2Z"/><path d="M8 6.4v3.2"/><path d="M8 11.9h.01"/></symbol>
+  <symbol id="i-bang" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="8" r="6.4"/><path d="M8 4.7v4"/><path d="M8 11h.01"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 1.4 3.2 9.1h4L7 14.6l5.8-7.7h-4L9 1.4Z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 1.6 13.4 3.7v4.5c0 3.2-2.2 5.4-5.4 6.2-3.2-.8-5.4-3-5.4-6.2V3.7L8 1.6Z"/></symbol>
+  <symbol id="i-servers" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="1.8" y="2.4" width="12.4" height="4" rx="1.2"/>
+    <rect x="1.8" y="9.6" width="12.4" height="4" rx="1.2"/>
+    <path d="M4.4 4.4h.01M4.4 11.6h.01"/></symbol>
+  <symbol id="i-skills" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linejoin="round"><path d="M8 1.7 14.3 8 8 14.3 1.7 8 8 1.7Z"/></symbol>
+  <symbol id="i-discover" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 1.6 9.5 6l4.4 1.5L9.5 9 8 13.4 6.5 9 2.1 7.5 6.5 6 8 1.6Z"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M1.8 9.2h3.4l1 2h3.6l1-2h3.4"/><path d="M1.8 9.2 3.6 3h8.8l1.8 6.2v3.2a1 1 0 0 1-1 1H2.8a1 1 0 0 1-1-1Z"/></symbol>
+  <symbol id="i-evals" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="8" r="6.2"/><path d="m5.3 8.2 1.9 1.9 3.6-3.9"/></symbol>
+  <symbol id="i-cleanup" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="8" r="6.2"/><path d="M8 5v6M5.6 8.6 8 11l2.4-2.4"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="8" r="2.3"/><path d="M8 1.4v1.9M8 12.7v1.9M14.6 8h-1.9M3.3 8H1.4
+      M12.7 3.3l-1.3 1.3M4.6 11.4l-1.3 1.3M12.7 12.7l-1.3-1.3M4.6 4.6 3.3 3.3"/></symbol>
+  <symbol id="i-chevs" viewBox="0 0 9 13" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 5.2 4.5 2.7 7 5.2M2 7.8l2.5 2.5L7 7.8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+    stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8.4 3.2 3.2L13 4.6"/></symbol>
+</defs></svg>
+
+<div class="bar">
+  <b style="color:var(--t1);font-size:12px">M2 — Activity</b>
+  <span>design representation · every surface, every state</span>
+  <button onclick="document.documentElement.dataset.appearance =
+    document.documentElement.dataset.appearance==='dark'?'light':'dark'">Toggle appearance</button>
+</div>
+
+<div class="doc">
+
+<h1>Activity — the live call log</h1>
+<p class="lede">Answers one question: <em>what is my agent actually calling?</em> Every row is one
+tool call the router observed — when, which server, which tool, which project, how long it took,
+and whether that call is what spawned the server. Nothing on this surface is computed, estimated
+or inferred; the router either logged it or it is not here.</p>
+<p class="note"><span class="rule">DESIGN.md §6</span> No number is displayed that the router does not
+observe. The five columns map one-to-one onto <code>UsageRecord</code> fields in
+<code>src/usage.ts</code> — <code>ts</code>, <code>server</code>, <code>tool</code>,
+<code>project</code>/<code>cwd</code>, <code>ms</code> — plus <code>cold</code>, <code>ok</code>,
+<code>err</code>, <code>pid</code> and <code>client</code> which the row and the inspector show.
+There is no "calls per minute", no "time saved", no rate.</p>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<h2>1 · Default — the populated board</h2>
+<p class="note"><span class="rule">§2</span> Rows are <code>24pt</code>
+(<code>MetricToken.tableRows</code>, DESIGN.md's "Table rows — 24–28pt for dense lists"). The height
+never changes: it is the same value in the populated row, the skeleton row and the overflow row, so
+nothing jumps when data lands and a long name cannot push a row taller.
+<span class="rule">§2</span> Instrument data is monospace — the age, the tool, the project and the
+duration. The server name is the one sans-serif label, because it is a name rather than a reading.</p>
+
+<div class="win">
+  <div class="side">
+    <div class="tl"><i></i><i></i><i></i></div>
+    <nav>
+      <div class="grp">Running</div>
+      <button class="nv on"><svg class="g"><use href="#i-activity"/></svg>Activity</button>
+      <button class="nv"><svg class="g"><use href="#i-servers"/></svg>Servers</button>
+      <button class="nv"><svg class="g"><use href="#i-skills"/></svg>Skills</button>
+      <div class="grp">Library</div>
+      <button class="nv"><svg class="g"><use href="#i-discover"/></svg>Discover</button>
+      <button class="nv"><svg class="g"><use href="#i-inbox"/></svg>Inbox</button>
+      <button class="nv"><svg class="g"><use href="#i-evals"/></svg>Evals</button>
+      <button class="nv"><svg class="g"><use href="#i-cleanup"/></svg>Cleanup</button>
+      <div style="height:10px"></div>
+      <button class="nv"><svg class="g"><use href="#i-settings"/></svg>Settings</button>
+    </nav>
+    <div class="sfoot"><span class="dot" style="background:var(--live)"></span>127.0.0.1:8879</div>
+  </div>
+  <div class="main"><div class="board">
+    <div class="hd"><div><h3>Activity</h3>
+      <div class="sb">28 calls since 09:12 · live</div></div></div>
+    <div class="filters">
+      <button class="pop"><span class="lab">Session</span><span class="val">All sessions</span>
+        <svg class="cv"><use href="#i-chevs"/></svg></button>
+      <button class="pop"><span class="lab">Project</span><span class="val">All projects</span>
+        <svg class="cv"><use href="#i-chevs"/></svg></button>
+    </div>
+    <div class="cols"><span style="width:6px"></span><span class="c-when">when</span>
+      <span class="c-srv">server</span><span class="c-tool">tool</span>
+      <span class="c-proj">project</span><span class="c-sess">session</span><span class="c-took">took</span></div>
+    <div class="scr">
+      <div class="tr"><span class="dot none"></span><span class="c-when m t3">now</span>
+        <span class="c-srv nm">obscura</span><span class="c-tool ui t2">browser_navigate</span>
+        <span class="c-proj ui t3">mcp-router</span><span class="c-sess m t3">51310</span>
+        <span class="c-took m t2"><svg class="frost" style="color:var(--t2)"><use href="#i-frost"/></svg>612ms</span></div>
+      <div class="tr"><span class="dot none"></span><span class="c-when m t3">4s</span>
+        <span class="c-srv nm">obscura</span><span class="c-tool ui t2">browser_markdown</span>
+        <span class="c-proj ui t3">mcp-router</span><span class="c-sess m t3">51310</span><span class="c-took m t3">38ms</span></div>
+      <div class="tr"><span class="dot f"></span><span class="c-when m t3">22s</span>
+        <span class="c-srv nm">sift</span><span class="c-tool ui t2">get_thread</span>
+        <span class="c-proj ui t3">dAIolog</span><span class="c-sess m t3">48822</span><span class="c-took m t3">91ms</span></div>
+      <div class="tr"><span class="dot none"></span><span class="c-when m t3">1m</span>
+        <span class="c-srv nm">dossier</span><span class="c-tool ui t2">research_status</span>
+        <span class="c-proj ui t3">loupe</span><span class="c-sess m t3">48822</span><span class="c-took m t3">14ms</span></div>
+      <div class="tr"><span class="dot none"></span><span class="c-when m t3">2m</span>
+        <span class="c-srv nm">dossier</span><span class="c-tool ui t2">research_start</span>
+        <span class="c-proj ui t3">loupe</span><span class="c-sess m t3">48822</span>
+        <span class="c-took m t2"><svg class="frost" style="color:var(--t2)"><use href="#i-frost"/></svg>1840ms</span></div>
+      <div class="tr"><span class="dot none"></span><span class="c-when m t3">3m</span>
+        <span class="c-srv nm">sift</span><span class="c-tool ui t2">search</span>
+        <span class="c-proj ui t3">dAIolog</span><span class="c-sess m t3">48822</span><span class="c-took m t3">27ms</span></div>
+      <div class="tr"><span class="dot none"></span><span class="c-when m t3">6m</span>
+        <span class="c-srv nm">mobbin</span><span class="c-tool ui t2">search_screens</span>
+        <span class="c-proj ui t3">mcp-router</span><span class="c-sess m t3">51310</span><span class="c-took m t3">402ms</span></div>
+    </div>
+  </div></div>
+</div>
+
+<h3>What each mark means, and what it deliberately is not</h3>
+<p class="note">
+<span class="rule">§2 exclusivity</span> <b>A successful call carries no indicator colour at all.</b>
+The prototype paints every ok row's dot <code>--live</code>; that token means "a child process is
+running", and a finished call is not a running process. Reusing it would make the one green dot in
+the app mean two things. Only a <b>failed</b> call is marked, in <code>--fail</code> ("failed or
+tripped"), which is also the better information design — the eye goes to the four rows that went
+wrong rather than the two hundred that did not. Colour is never the only signal: a failed row also
+carries the error string in the inspector, and its accessibility label begins "failed".<br><br>
+<span class="rule">§4</span> <b>Cold start is a drawn glyph, never <code>❄</code>.</b> The prototype
+uses the unicode snowflake; §4 says icons are drawn, on one grid, at one stroke weight, using
+<code>currentColor</code>. It is a frost mark at the same 1.4 weight as every other icon, in
+<code>--t2</code> — <b>not</b> <code>--accent</code>, which §2 reserves for selection, focus and the
+one primary action, and which on this surface would compete with the selected row.<br><br>
+<span class="rule">§6</span> The subtitle is <code>28 calls since 09:12 · live</code>. Both halves
+are observed: the count is the number of records the router returned, and <code>since</code> is
+<code>UsageResponse.since</code> — the moment the counter was last reset, which is what makes "no
+calls yet" meaningful rather than alarming. The third word is the stream's own phase.</p>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<h2>2 · The row, the inspector, and overflow</h2>
+<p class="note"><span class="rule">§5 Overflow</span> A tool name wider than its column truncates at
+the tail, the row stays exactly 24pt, and the full value is in the inspector — never a tooltip
+alone, never a wrap. The same rule covers the project column, where a deep path collapses to its
+last segment on the row and appears in full in the inspector.</p>
+
+<div class="win">
+  <div class="side">
+    <div class="tl"><i></i><i></i><i></i></div>
+    <nav><div class="grp">Running</div>
+      <button class="nv on"><svg class="g"><use href="#i-activity"/></svg>Activity</button>
+      <button class="nv"><svg class="g"><use href="#i-servers"/></svg>Servers</button></nav>
+    <div class="sfoot"><span class="dot" style="background:var(--live)"></span>127.0.0.1:8879</div>
+  </div>
+  <div class="main">
+    <div class="board">
+      <div class="hd"><div><h3>Activity</h3><div class="sb">28 calls since 09:12 · live</div></div></div>
+      <div class="filters">
+        <button class="pop"><span class="lab">Session</span><span class="val">All sessions</span>
+          <svg class="cv"><use href="#i-chevs"/></svg></button>
+        <button class="pop"><span class="lab">Project</span><span class="val">All projects</span>
+          <svg class="cv"><use href="#i-chevs"/></svg></button>
+      </div>
+      <div class="cols"><span style="width:6px"></span><span class="c-when">when</span>
+        <span class="c-srv">server</span><span class="c-tool">tool</span>
+        <span class="c-proj">project</span><span class="c-sess">session</span><span class="c-took">took</span></div>
+      <div class="scr">
+        <div class="tr sel focused"><span class="dot f"></span><span class="c-when m t3">22s</span>
+          <span class="c-srv nm">sift</span>
+          <span class="c-tool ui t2">search_messages_across_every_configured_mailbox_with_attachments</span>
+          <span class="c-proj ui t3">dAIolog</span><span class="c-sess m t3">48822</span><span class="c-took m t3">91ms</span></div>
+        <div class="tr"><span class="dot none"></span><span class="c-when m t3">1m</span>
+          <span class="c-srv nm">dossier</span><span class="c-tool ui t2">research_status</span>
+          <span class="c-proj ui t3">loupe</span><span class="c-sess m t3">48822</span><span class="c-took m t3">14ms</span></div>
+        <div class="tr"><span class="dot none"></span><span class="c-when m t3">3m</span>
+          <span class="c-srv nm">sift</span><span class="c-tool ui t2">search</span>
+          <span class="c-proj ui t3">dAIolog</span><span class="c-sess m t3">48822</span><span class="c-took m t3">27ms</span></div>
+      </div>
+    </div>
+    <div class="insp">
+      <div class="ih"><b>search_messages_across_every_configured_mailbox_with_attachments</b>
+        <span>sift · 14 Aug 2026 at 09:39:04</span></div>
+      <dl>
+        <dt>Outcome</dt><dd class="bad prose">Failed</dd>
+        <dt>Error</dt><dd class="bad">no index published; run sift index first</dd>
+        <dt>Took</dt><dd>91ms</dd>
+        <dt>Start</dt><dd class="prose">warm — the server was already running</dd>
+        <dt>Session</dt><dd>pid 51310 · claude</dd>
+        <dt>Directory</dt><dd>/Users/lukerhodes/Dev/dAIolog</dd>
+      </dl>
+    </div>
+  </div>
+</div>
+
+<p class="note"><span class="rule">§8</span> <b>Keyboard.</b> <code>↑</code>/<code>↓</code> move the
+selection and scroll it into view. <code>Return</code> is the view's one default action: it opens the
+inspector for the selected row. <code>Esc</code> clears the selection and closes the inspector — the
+shell's §8 rule is "dismisses the sheet, then clears selection", and this board has no sheet, so it
+clears. <code>Space</code> is §8's breaker toggle and this board has no breakers, so it does nothing
+here and is not claimed. Focus order is sidebar → table → inspector; the focus ring is the 2pt
+accent ring, drawn inset on a row so it is not clipped by the row above.</p>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<h2>3 · The two filters</h2>
+<p class="note"><span class="rule">§3.6</span> Pop-up buttons — double chevron, showing a value —
+because each shows the current selection from an exclusive set. Not pull-downs, which have a static
+title, and not segmented controls, which switch views in place. Both are built <b>from the records
+that are actually loaded</b>: a session or a project appears in the menu only if the router logged a
+call from it, with its own call count beside it. A filter cannot offer a value that would return
+nothing.</p>
+<p class="note">A session is a <code>pid</code> and the client executable that owns it — the router
+resolves it once per connection through <code>lsof</code>, which is what turns "something called
+<code>browser_navigate</code>" into "the session working in ~/Dev/mcp-router called it". Where the
+router could not identify the caller, the record is grouped under <b>Unattributed</b> rather than
+dropped or invented; an unattributed record is still a real call.</p>
+
+<div class="grid2">
+  <div>
+    <h3>Session menu open</h3>
+    <div class="win short"><div class="main"><div class="board rel">
+      <div class="hd"><div><h3>Activity</h3><div class="sb">28 calls since 09:12 · live</div></div></div>
+      <div class="filters">
+        <button class="pop focused"><span class="lab">Session</span><span class="val">All sessions</span>
+          <svg class="cv"><use href="#i-chevs"/></svg></button>
+        <button class="pop"><span class="lab">Project</span><span class="val">All projects</span>
+          <svg class="cv"><use href="#i-chevs"/></svg></button>
+      </div>
+      <div class="menu" style="left:18px;top:88px">
+        <button class="mi on"><svg class="ck"><use href="#i-check"/></svg>All sessions
+          <span class="cnt">28</span></button>
+        <div class="msep"></div>
+        <button class="mi"><span class="ck"></span>claude · pid 51310<span class="cnt">17</span></button>
+        <button class="mi"><span class="ck"></span>claude · pid 48822<span class="cnt">9</span></button>
+        <button class="mi"><span class="ck"></span>Unattributed<span class="cnt">2</span></button>
+      </div>
+      <div class="cols"><span style="width:6px"></span><span class="c-when">when</span>
+        <span class="c-srv">server</span><span class="c-tool">tool</span>
+        <span class="c-proj">project</span><span class="c-sess">session</span><span class="c-took">took</span></div>
+    </div></div></div>
+  </div>
+  <div>
+    <h3>Both filters set — the count says what is hidden</h3>
+    <div class="win short"><div class="main"><div class="board">
+      <div class="hd"><div><h3>Activity</h3><div class="sb">28 calls since 09:12 · live</div></div></div>
+      <div class="filters">
+        <button class="pop set"><span class="lab">Session</span><span class="val">pid 51310</span>
+          <svg class="cv"><use href="#i-chevs"/></svg></button>
+        <button class="pop set"><span class="lab">Project</span><span class="val">mcp-router</span>
+          <svg class="cv"><use href="#i-chevs"/></svg></button>
+        <button class="clearf">Clear filters</button>
+        <span class="fcount">9 of 28</span>
+      </div>
+      <div class="cols"><span style="width:6px"></span><span class="c-when">when</span>
+        <span class="c-srv">server</span><span class="c-tool">tool</span>
+        <span class="c-proj">project</span><span class="c-sess">session</span><span class="c-took">took</span></div>
+      <div class="scr">
+        <div class="tr"><span class="dot none"></span><span class="c-when m t3">now</span>
+          <span class="c-srv nm">obscura</span><span class="c-tool ui t2">browser_navigate</span>
+          <span class="c-proj ui t3">mcp-router</span><span class="c-sess m t3">51310</span>
+          <span class="c-took m t2"><svg class="frost" style="color:var(--t2)"><use href="#i-frost"/></svg>612ms</span></div>
+        <div class="tr"><span class="dot none"></span><span class="c-when m t3">4s</span>
+          <span class="c-srv nm">obscura</span><span class="c-tool ui t2">browser_markdown</span>
+          <span class="c-proj ui t3">mcp-router</span><span class="c-sess m t3">51310</span><span class="c-took m t3">38ms</span></div>
+        <div class="tr"><span class="dot none"></span><span class="c-when m t3">6m</span>
+          <span class="c-srv nm">mobbin</span><span class="c-tool ui t2">search_screens</span>
+          <span class="c-proj ui t3">mcp-router</span><span class="c-sess m t3">51310</span><span class="c-took m t3">402ms</span></div>
+      </div>
+    </div></div></div>
+  </div>
+</div>
+<p class="note"><span class="rule">§6</span> <code>9 of 28</code> is the only place a filtered board
+states what it is hiding. Without it a filter that matches nothing is indistinguishable from a router
+with nothing to say, which is the silent-empty failure this codebase forbids by name.
+<b>Clear filters</b> appears only when at least one is set, and is a plain text button rather than the
+view's prominent action — it undoes a view choice, it does not commit anything.</p>
+
+<h3>Filtered to nothing — a real state, not the empty state</h3>
+<div class="win short"><div class="main"><div class="board">
+  <div class="hd"><div><h3>Activity</h3><div class="sb">28 calls since 09:12 · live</div></div></div>
+  <div class="filters">
+    <button class="pop set"><span class="lab">Session</span><span class="val">pid 48822</span>
+      <svg class="cv"><use href="#i-chevs"/></svg></button>
+    <button class="pop set"><span class="lab">Project</span><span class="val">mcp-router</span>
+      <svg class="cv"><use href="#i-chevs"/></svg></button>
+    <button class="clearf">Clear filters</button>
+    <span class="fcount">0 of 28</span>
+  </div>
+  <div class="cols"><span style="width:6px"></span><span class="c-when">when</span>
+    <span class="c-srv">server</span><span class="c-tool">tool</span>
+    <span class="c-proj">project</span><span class="c-sess">session</span><span class="c-took">took</span></div>
+  <div class="state">
+    <svg class="g"><use href="#i-activity"/></svg>
+    <b>No calls match these filters</b>
+    <p>That session hasn't called anything from mcp-router. All 28 calls are still recorded.</p>
+    <button class="btn">Clear filters</button>
+  </div>
+</div></div></div>
+<p class="note">Distinct copy from the empty state on purpose. "Nothing has been called yet" and "you
+filtered it all out" have different causes and different fixes, and one sentence for both would send
+the reader looking for a problem that is not there.</p>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<h2>4 · The nine states</h2>
+<p class="note"><span class="rule">§5</span> Real copy throughout, including the unhappy paths.
+Every sentence below is the shipped string, and is asserted against the Swift source so the two
+cannot drift.</p>
+
+<div class="grid2">
+
+<div><h3>Empty — the router is up and nothing has called</h3>
+<div class="win short"><div class="main"><div class="board">
+  <div class="hd"><div><h3>Activity</h3><div class="sb">0 calls since 09:12 · live</div></div></div>
+  <div class="state"><svg class="g"><use href="#i-activity"/></svg>
+    <b>No calls yet</b>
+    <p>The router has been up since 09:12 and nothing has asked it for a tool. Servers stay asleep
+      until an agent calls one — this list fills itself the moment that happens.</p></div>
+</div></div></div>
+<p class="note">No button. §5 asks for one action, and <code>StateMessage.actionLabel</code> is
+optional precisely for the case where there is genuinely nothing to press: the thing that fills this
+list is an agent making a call, which no control here can do. A disabled placeholder button would be
+worse than none (§3.4 forbids one), and pointing at Servers would send the reader to a surface that
+is still a placeholder in this build.</p></div>
+
+<div><h3>Loading — skeleton at the real row geometry</h3>
+<div class="win short"><div class="main"><div class="board">
+  <div class="hd"><div><h3>Activity</h3><div class="sb">Loading…</div></div></div>
+  <div class="filters">
+    <button class="pop" style="opacity:.5"><span class="lab">Session</span><span class="val">All sessions</span>
+      <svg class="cv"><use href="#i-chevs"/></svg></button>
+    <button class="pop" style="opacity:.5"><span class="lab">Project</span><span class="val">All projects</span>
+      <svg class="cv"><use href="#i-chevs"/></svg></button>
+  </div>
+  <div class="cols"><span style="width:6px"></span><span class="c-when">when</span>
+    <span class="c-srv">server</span><span class="c-tool">tool</span>
+    <span class="c-proj">project</span><span class="c-sess">session</span><span class="c-took">took</span></div>
+  <div>
+    <div class="sk"><i style="width:6px"></i><i style="width:26px"></i><i style="width:72px"></i>
+      <i style="flex:1"></i><i style="width:80px"></i><i style="width:40px"></i></div>
+    <div class="sk"><i style="width:6px"></i><i style="width:26px"></i><i style="width:58px"></i>
+      <i style="flex:1"></i><i style="width:66px"></i><i style="width:40px"></i></div>
+    <div class="sk"><i style="width:6px"></i><i style="width:26px"></i><i style="width:80px"></i>
+      <i style="flex:1"></i><i style="width:74px"></i><i style="width:40px"></i></div>
+    <div class="sk"><i style="width:6px"></i><i style="width:26px"></i><i style="width:64px"></i>
+      <i style="flex:1"></i><i style="width:88px"></i><i style="width:40px"></i></div>
+    <div class="sk"><i style="width:6px"></i><i style="width:26px"></i><i style="width:70px"></i>
+      <i style="flex:1"></i><i style="width:60px"></i><i style="width:40px"></i></div>
+  </div>
+</div></div></div>
+<p class="note">Same 24pt row, same column widths, same divider. The column header is drawn during
+loading because it is not data — hiding it would make the board reflow when rows land. The filters
+are visible and dimmed rather than absent, for the same reason.</p></div>
+
+<div><h3>Partial — the backfill arrived, the live feed did not</h3>
+<div class="win short"><div class="main"><div class="board">
+  <div class="hd"><div><h3>Activity</h3><div class="sb">28 calls since 09:12 · reconnecting</div></div></div>
+  <div class="banner"><svg class="g"><use href="#i-warn"/></svg>
+    <p><b>Showing the last 28 calls. New ones won't appear.</b> The live feed dropped and is
+      retrying; the history below is complete up to 09:41.</p>
+    <button class="btn">Reconnect now</button></div>
+  <div class="cols"><span style="width:6px"></span><span class="c-when">when</span>
+    <span class="c-srv">server</span><span class="c-tool">tool</span>
+    <span class="c-proj">project</span><span class="c-sess">session</span><span class="c-took">took</span></div>
+  <div class="scr">
+    <div class="tr"><span class="dot none"></span><span class="c-when m t3">2m</span>
+      <span class="c-srv nm">obscura</span><span class="c-tool ui t2">browser_navigate</span>
+      <span class="c-proj ui t3">mcp-router</span><span class="c-sess m t3">51310</span><span class="c-took m t3">612ms</span></div>
+    <div class="tr"><span class="dot none"></span><span class="c-when m t3">2m</span>
+      <span class="c-srv nm">obscura</span><span class="c-tool ui t2">browser_markdown</span>
+      <span class="c-proj ui t3">mcp-router</span><span class="c-sess m t3">51310</span><span class="c-took m t3">38ms</span></div>
+  </div>
+</div></div></div>
+<p class="note">§5's partial is "say what arrived and what did not, with the reason", and this is
+exactly that shape: the history is real and stays on screen, the live half is named as missing, and
+the banner sits adjacent to the list rather than replacing it. Once the stream gives up altogether
+the same banner reads <b>The live feed stopped after six attempts</b> and the subtitle says
+<code>offline feed</code> — three phases, three sentences, because "retrying" and "given up" want
+different things from the reader.</p></div>
+
+<div><h3>Error — the router answered, but not with a log</h3>
+<div class="win short"><div class="main"><div class="board">
+  <div class="hd"><div><h3>Activity</h3></div></div>
+  <div class="state"><svg class="g" style="color:var(--fail)"><use href="#i-bang"/></svg>
+    <b>The router couldn't complete that</b>
+    <p>The router returned 500 — usage log unreadable. Check that
+      ~/.mcp-router/usage.jsonl is readable and it will reload on its own.</p></div>
+</div></div></div>
+<p class="note">Composed from <code>ControlAPIError.headline</code> and <code>.advice</code>, which
+F3 already authored and <code>ControlCopyTests</code> already asserts — this board writes no second
+wording for a condition the client already has a sentence for. §6: one name per state.</p></div>
+
+<div><h3>Offline — the router is not running</h3>
+<div class="win short"><div class="main"><div class="board">
+  <div class="hd"><div><h3>Activity</h3></div></div>
+  <div class="state"><svg class="g" style="color:var(--attn)"><use href="#i-bolt"/></svg>
+    <b>The router isn't running</b>
+    <p>Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a
+      moment and your servers stay exactly as you left them.</p>
+    <button class="btnP">Start the router</button></div>
+</div></div></div>
+<p class="note">Loopback, so unreachable never means "the network is down". Verbatim from
+<code>ControlAPIError.routerNotRunning</code>.</p></div>
+
+<div><h3>Unauthorised — reached, but the token is wrong</h3>
+<div class="win short"><div class="main"><div class="board">
+  <div class="hd"><div><h3>Activity</h3></div></div>
+  <div class="state"><svg class="g" style="color:var(--attn)"><use href="#i-shield"/></svg>
+    <b>This app isn't authorised to talk to the router</b>
+    <p>The control token was rotated or removed. Re-pair to continue — your servers and their
+      history are untouched.</p>
+    <button class="btnP">Re-pair…</button></div>
+</div></div></div>
+<p class="note">Not one of the nine, and it still replaces the whole board, so it is designed here
+rather than folded into Error. It is also what a Release build shows before pairing.</p></div>
+
+<div><h3>Success — in place, no toast</h3>
+<div class="win short"><div class="main"><div class="board">
+  <div class="hd"><div><h3>Activity</h3><div class="sb">29 calls since 09:12 · live</div></div></div>
+  <div class="cols"><span style="width:6px"></span><span class="c-when">when</span>
+    <span class="c-srv">server</span><span class="c-tool">tool</span>
+    <span class="c-proj">project</span><span class="c-sess">session</span><span class="c-took">took</span></div>
+  <div class="scr">
+    <div class="tr" style="background:var(--f3)"><span class="dot none"></span>
+      <span class="c-when m t3">now</span><span class="c-srv nm">obscura</span>
+      <span class="c-tool ui t2">browser_screenshot</span><span class="c-proj ui t3">mcp-router</span><span class="c-sess m t3">51310</span>
+      <span class="c-took m t2"><svg class="frost" style="color:var(--t2)"><use href="#i-frost"/></svg>734ms</span></div>
+    <div class="tr"><span class="dot none"></span><span class="c-when m t3">now</span>
+      <span class="c-srv nm">obscura</span><span class="c-tool ui t2">browser_navigate</span>
+      <span class="c-proj ui t3">mcp-router</span><span class="c-sess m t3">51310</span><span class="c-took m t3">612ms</span></div>
+  </div>
+</div></div></div>
+<p class="note">The only "success" this board has is a record arriving: it slides in at the top, the
+count in the subtitle increments, and nothing else moves. §7 — transform and opacity only, and never
+opacity from 0, so the row slides down from behind the header at full opacity rather than fading in.
+Reduce Motion removes the slide and keeps the insertion. No toast: macOS does not toast an event.</p></div>
+
+<div><h3>Disabled — a control dimmed with its reason</h3>
+<div class="win short"><div class="main"><div class="board">
+  <div class="hd"><div><h3>Activity</h3><div class="sb">0 calls since 09:12 · live</div></div></div>
+  <div class="filters">
+    <button class="pop" disabled style="color:var(--t4);border-color:var(--line);background:var(--f3)">
+      <span class="lab" style="color:var(--t4)">Session</span><span class="val">All sessions</span>
+      <svg class="cv"><use href="#i-chevs"/></svg></button>
+    <button class="pop" disabled style="color:var(--t4);border-color:var(--line);background:var(--f3)">
+      <span class="lab" style="color:var(--t4)">Project</span><span class="val">All projects</span>
+      <svg class="cv"><use href="#i-chevs"/></svg></button>
+  </div>
+  <div style="padding:0 18px"><p class="helper">Filters need calls to filter. Nothing has been
+    recorded since the router started.</p></div>
+</div></div></div>
+<p class="note">§3.4 — dims in place, never disappears, and the reason is readable rather than hidden
+in a tooltip. Both filters share one sentence because they share one cause; two copies of the same
+reason under two controls is noise.</p></div>
+
+</div>
+
+<h3>Overflow — the state that proves the row height</h3>
+<div class="win short"><div class="main"><div class="board">
+  <div class="hd"><div><h3>Activity</h3><div class="sb">28 calls since 09:12 · live</div></div></div>
+  <div class="cols"><span style="width:6px"></span><span class="c-when">when</span>
+    <span class="c-srv">server</span><span class="c-tool">tool</span>
+    <span class="c-proj">project</span><span class="c-sess">session</span><span class="c-took">took</span></div>
+  <div class="scr">
+    <div class="tr"><span class="dot none"></span><span class="c-when m t3">now</span>
+      <span class="c-srv nm">anthropic-internal-documentation-server</span>
+      <span class="c-tool ui t2">search_messages_across_every_configured_mailbox_with_attachments_and_inline_images</span>
+      <span class="c-proj ui t3">a-very-deeply-nested-project-directory</span><span class="c-sess m t3">51310</span>
+      <span class="c-took m t3">91ms</span></div>
+    <div class="tr"><span class="dot none"></span><span class="c-when m t3">4s</span>
+      <span class="c-srv nm">obscura</span><span class="c-tool ui t2">browser_markdown</span>
+      <span class="c-proj ui t3">mcp-router</span><span class="c-sess m t3">51310</span><span class="c-took m t3">38ms</span></div>
+  </div>
+</div></div></div>
+<p class="note">Three columns over-length at once, and the row is still 24pt and still aligned with
+the one below it. Every truncated value is complete in the inspector, and complete in the row's
+accessibility label — a screen reader is never given the truncation.</p>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<h2>5 · Control states</h2>
+<p class="note">Every control carries default / hover / focus-visible / active / disabled (§5).</p>
+<div style="display:flex;gap:24px;flex-wrap:wrap;background:var(--panel);padding:18px;
+  border-radius:10px;border:1px solid var(--line)">
+  <div><div class="grp" style="padding:0 0 8px">Pop-up button</div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <button class="pop"><span class="lab">Project</span><span class="val">All projects</span>
+        <svg class="cv"><use href="#i-chevs"/></svg></button>
+      <button class="pop" style="background:var(--raised2)"><span class="lab">Project</span>
+        <span class="val">All projects</span><svg class="cv"><use href="#i-chevs"/></svg></button>
+      <button class="pop focused"><span class="lab">Project</span><span class="val">All projects</span>
+        <svg class="cv"><use href="#i-chevs"/></svg></button>
+      <button class="pop" style="background:var(--f1)"><span class="lab">Project</span>
+        <span class="val">All projects</span><svg class="cv"><use href="#i-chevs"/></svg></button>
+      <button class="pop" style="color:var(--t4);border-color:var(--line);background:var(--f3)">
+        <span class="lab" style="color:var(--t4)">Project</span><span class="val">All projects</span>
+        <svg class="cv"><use href="#i-chevs"/></svg></button>
+    </div>
+    <div class="m t3" style="margin-top:8px">default · hover · focus · pressed · disabled</div></div>
+  <div style="flex:1;min-width:320px"><div class="grp" style="padding:0 0 8px">Row</div>
+    <div style="border:1px solid var(--line);border-radius:8px;overflow:hidden">
+      <div class="tr"><span class="dot none"></span><span class="c-when m t3">now</span>
+        <span class="c-srv nm">obscura</span><span class="c-tool ui t2">browser_navigate</span>
+        <span class="c-proj ui t3">mcp-router</span><span class="c-sess m t3">51310</span><span class="c-took m t3">612ms</span></div>
+      <div class="tr" style="background:var(--f3)"><span class="dot none"></span>
+        <span class="c-when m t3">4s</span><span class="c-srv nm">obscura</span>
+        <span class="c-tool ui t2">browser_markdown</span><span class="c-proj ui t3">mcp-router</span><span class="c-sess m t3">51310</span>
+        <span class="c-took m t3">38ms</span></div>
+      <div class="tr sel"><span class="dot none"></span><span class="c-when m t3">22s</span>
+        <span class="c-srv nm">sift</span><span class="c-tool ui t2">get_thread</span>
+        <span class="c-proj ui t3">dAIolog</span><span class="c-sess m t3">48822</span><span class="c-took m t3">91ms</span></div>
+      <div class="tr sel focused"><span class="dot f"></span><span class="c-when m t3">1m</span>
+        <span class="c-srv nm">sift</span><span class="c-tool ui t2">search</span>
+        <span class="c-proj ui t3">dAIolog</span><span class="c-sess m t3">48822</span><span class="c-took m t3">27ms</span></div>
+    </div>
+    <div class="m t3" style="margin-top:8px">default · hover · selected · selected + focused</div></div>
+</div>
+<p class="note"><span class="rule">§3.1</span> Selection is a flat inset rounded fill with accent
+text, never a full-bleed bar. <span class="rule">§3.8</span> Arrow cursor throughout — no pointer
+hand anywhere, including on the rows, which are buttons.</p>
+
+<!-- ══════════════════════════════════════════════════════════════════ -->
+<h2>6 · What this board deliberately does not have</h2>
+<p class="note">Recorded so the omissions read as decisions rather than gaps.</p>
+<ul style="color:var(--t2);font-size:12px;line-height:19px;padding-left:20px;max-width:88ch">
+  <li><b>No "reset history" control.</b> The prototype's header has one. It is a destructive,
+    un-undoable act on the router's ledger, so it needs a named-consequence dialog (§9) and a menu
+    item (§3.9) — and a new menu command has to be added to M1's asserted command inventory. It is
+    not in this item's brief, and it is filed as a child item rather than smuggled in here.</li>
+  <li><b>No search field.</b> §8 binds <code>⌘F</code> to "focus search"; this board has two filters
+    and no text search, so <code>⌘F</code> stays the shell's existing "this part of the app isn't
+    built yet" and is not silently rebound.</li>
+  <li><b>No rate, no throughput, no "time saved".</b> The router observes calls, durations and cold
+    starts. It does not observe what would have happened otherwise, and §6 forbids showing a number
+    it does not observe.</li>
+  <li><b>No sort controls.</b> The log is chronological, newest first, because that is what the
+    router's ring returns and what a live feed means. A sortable column would silently break the
+    "new rows arrive at the top" contract.</li>
+  <li><b>No per-row actions.</b> Nothing here is actionable — a call has already happened. The
+    inspector reads; it does not offer.</li>
+</ul>
+
+</div>
+</body>
+</html>

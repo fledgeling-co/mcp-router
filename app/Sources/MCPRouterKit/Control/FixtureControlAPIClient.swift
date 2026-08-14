@@ -57,8 +57,23 @@ public struct FixtureControlAPIClient: ControlAPIClient {
     // MARK: - Loading the recordings
 
     /// Fixtures are read from the library's own bundle, so a consumer needs no test resources.
+    ///
+    /// **Two directories, and the difference is load-bearing.** `Control/Fixtures` holds
+    /// *recordings*: bodies captured from a live router by `capture-control-fixtures.sh`, replayed
+    /// one file at a time against the running TypeScript reference by
+    /// `scripts/acceptance/parity-fixture.sh`, and required to carry a row in
+    /// `planning/parity/surface.tsv`. A hand-written file in there is a file the parity harness will
+    /// replay and the reference will not reproduce — it would fail a gate that is correct, for a
+    /// reason that is not a defect.
+    ///
+    /// `Control/Authored` holds fixtures written by hand for states a capture cannot easily reach.
+    /// Nothing replays them against a reference and nothing claims they are what the router said.
+    /// `usage-call-log.json` is the only one, and it exists because the captured call log is a
+    /// single record — enough to prove a record survives the wire, and not enough to drive a surface
+    /// built out of records.
     public static func fixtureData(_ name: String) throws -> Data {
         guard let url = Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Fixtures")
+            ?? Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Authored")
             ?? Bundle.module.url(forResource: name, withExtension: "json")
         else {
             throw ControlAPIError.malformedResponse(detail: "missing fixture \(name).json")
@@ -177,7 +192,12 @@ public struct FixtureControlAPIClient: ControlAPIClient {
     ) async throws(ControlAPIError) -> UsageResponse {
         try guardFailure()
         if scenario == .loading { try await Self.forever() }
-        var response = try decode("usage", as: UsageResponse.self)
+        var response = try decode(Self.usageFixtureName(for: scenario), as: UsageResponse.self)
+        // A router that is up with nothing declared has also served nothing, and this scenario used
+        // to answer `/usage` with the recording's records regardless — which made the empty call log
+        // unreachable through the double, and so made a log surface's empty state untestable. The
+        // scenario's own contract is that it is "genuinely empty rather than merely small".
+        if scenario == .empty { response.records = [] }
         // The double filters the recording rather than ignoring the arguments. A double that
         // accepts a filter and returns everything lets a surface's test pass while the surface
         // shows the wrong rows against a real router.
@@ -185,6 +205,30 @@ public struct FixtureControlAPIClient: ControlAPIClient {
         if let cwd { response.records = response.records.filter { $0.cwd == cwd } }
         if let limit { response.records = Array(response.records.prefix(limit)) }
         return response
+    }
+
+    /// Which call-log recording a scenario answers with.
+    ///
+    /// `usage.json` is a **capture**, written by `scripts/capture-control-fixtures.sh` from a real
+    /// router, and it is one record — enough to prove a record survives the wire, which is what it
+    /// exists for, and not enough to drive a surface built *out of* records. Hand-editing it would
+    /// turn a recording into an invention, so the scenarios that need a log with shape read
+    /// `usage-call-log.json` instead: an **authored** fixture, deliberately a separate file so the
+    /// two can never be confused for each other.
+    ///
+    /// What the authored one carries, and why each is there: two attributed sessions and one
+    /// unattributed record (the router omits `pid`/`cwd` whenever `lsof` cannot name the caller, and
+    /// a surface has to group those rather than drop them), three working directories, cold and warm
+    /// calls, two failures with real `err` strings, and one tool name and one server name past any
+    /// column's width. Every one of those is a state some surface has to render and could not
+    /// otherwise be driven into.
+    static func usageFixtureName(for scenario: Scenario) -> String {
+        switch scenario {
+        case .populated, .overflow, .streamLive, .streamReconnecting, .streamDisconnected:
+            "usage-call-log"
+        case .empty, .loading, .partial, .error, .success, .offline, .unauthorized, .disabled:
+            "usage"
+        }
     }
 
     public func usageSummary() async throws(ControlAPIError) -> UsageSummary {
@@ -275,26 +319,62 @@ public struct FixtureControlAPIClient: ControlAPIClient {
 
     /// The events this scenario's stream produces, ending in its phase.
     public func streamEvents() throws(ControlAPIError) -> [StreamEvent] {
-        let records: [CallRecord]
+        let backfill: [CallRecord]
         do {
-            records = try Self.decodeFixture("usage", as: UsageResponse.self).records
+            backfill = try Self.decodeFixture(
+                Self.usageFixtureName(for: scenario),
+                as: UsageResponse.self
+            ).records
         } catch let error as ControlAPIError {
             throw error
         } catch {
             throw ControlAPIError.malformedResponse(detail: "fixture usage: \(error)")
         }
 
+        // **The replayed records must not be the ones the backfill already returned.**
+        //
+        // They used to be, and the consequence was invisible: `ActivityRecords.prepend` de-duplicates
+        // on `CallRecord.id`, and every replayed record shared an id with a record the backfill had
+        // just delivered, so **no scenario could produce an arriving record at all**. A surface's
+        // insert animation, its capacity-boundary drop and its live half had no runtime path — not
+        // a weak test, no path — and an acceptance run could not have exercised them even in
+        // principle.
+        //
+        // So the replay re-stamps them. The timestamp is what makes a call distinct on the wire, and
+        // a fresh one is exactly what the router would send for a new call of the same shape.
+        let arriving = backfill.prefix(4).enumerated().map { index, record -> CallRecord in
+            var fresh = record
+            fresh.ts = Self.replayTimestamp(offsetBy: index)
+            return fresh
+        }
+
         switch scenario {
         case .streamLive:
-            return [.phase(.live)] + records.prefix(4).map { .record($0) }
+            return [.phase(.live)] + arriving.map { .record($0) }
         case .streamReconnecting:
-            return [.phase(.live)] + records.prefix(2).map { .record($0) } + [.phase(.reconnecting)]
+            return [.phase(.live)] + arriving.prefix(2).map { .record($0) } + [.phase(.reconnecting)]
         case .streamDisconnected:
-            return [.phase(.live)] + records.prefix(2).map { .record($0) }
+            return [.phase(.live)] + arriving.prefix(2).map { .record($0) }
                 + [.phase(.reconnecting), .phase(.disconnected)]
-        default:
+        case .offline, .unauthorized, .error:
+            // A router that refuses every request is not delivering a live feed. Reporting `.live`
+            // here put "· live" in a surface's subtitle for a router that was not answering at all,
+            // which is a fabricated status in the one path a Release build can never take but every
+            // acceptance run does.
+            return [.phase(.disconnected)]
+        case .populated, .empty, .loading, .partial, .success, .overflow, .disabled:
             return [.phase(.live)]
         }
+    }
+
+    /// A timestamp for a replayed record, distinct from anything in a recording.
+    ///
+    /// Dated far enough ahead of the fixtures' own stamps that it cannot collide with one, and
+    /// spaced so the replayed records arrive in order.
+    private static func replayTimestamp(offsetBy index: Int) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.string(from: Date().addingTimeInterval(Double(index)))
     }
 
     /// Suspends until cancelled, and then refuses.

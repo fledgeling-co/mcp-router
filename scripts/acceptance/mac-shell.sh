@@ -710,7 +710,14 @@ echo "the scroll edge"
 # cursor over the window and posting scroll-wheel events, which is what this script used to do —
 # moves the user's pointer, and a wheel event posted to the pid instead was measured to be dropped
 # entirely (byte-identical captures).
-"$AXKIT" select "$PID" Activity >/dev/null
+# Driven on a **scaffolded** destination rather than on Activity. This used to select Activity,
+# which was then a placeholder with a deliberately over-tall stack inside the shell's own scroll
+# view — ideal for the assertion. M2 ships the Activity board, and a board brings its own scrolling
+# list and its own header, so the top row sampled below would be a column header rather than the
+# shell's content edge. The clause is about **the shell's** scroll edge, and any pane still using
+# the shell's scroll container proves it; Servers is the first such destination in sidebar order.
+# When the last board lands this needs the assertion moved onto a board's own list instead.
+"$AXKIT" select "$PID" Servers >/dev/null
 sleep 1
 dump_window
 CONTENT_X="$(awk -F'\t' '$2 == "AXScrollArea" { print $13 }' "$WORK/window.tsv" | tail -1)"
@@ -878,12 +885,36 @@ SENTINEL="$(grep -oE 'sentinel = "[^"]+"' \
   "$APP_DIR/Sources/MCPRouterUI/Shell/ScaffoldPane.swift" | sed -E 's/.*"(.*)"/\1/')"
 [ -n "$SENTINEL" ] || blocked "could not read the scaffold sentinel out of ScaffoldPane.swift"
 
-INSTALLED="$(sed -n '/installed: Set<Destination>/p' \
-  "$APP_DIR/Sources/MCPRouterUI/Shell/ScaffoldPane.swift")"
-case "$INSTALLED" in
-    *"= []"*) SCAFFOLDS_REMAIN=1 ;;
-    *)        SCAFFOLDS_REMAIN=0 ;;
-esac
+# **Counted, not pattern-matched.** This used to read `= []` as "scaffolds remain" and *anything
+# else* as "every board has shipped", which was true while the only two reachable states were none
+# and all. M2 ships one board of eight and the gate concluded "every destination has a board", then
+# failed a Release build for honestly carrying a placeholder six destinations still need. A binary
+# test of a partial set is a gate that reports the opposite of the truth.
+#
+# So both numbers are read: how many destinations exist, and how many are installed.
+DEST_FILE="$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift"
+[ -f "$DEST_FILE" ] || blocked "could not find Destination.swift to count destinations"
+DEST_TOTAL="$(awk '
+    /^public enum Destination:/ { inside = 1; next }
+    inside && /^}/             { inside = 0 }
+    inside && /^ +case [a-z]/  { n++ }
+    END { print n + 0 }
+' "$DEST_FILE")"
+[ "$DEST_TOTAL" -gt 0 ] || blocked "counted zero destinations — the parse is wrong, not the code"
+
+# The declaration is one line, and it is read as one line. A `sed` *range* ending at `]` runs past
+# it to the next bracket anywhere below and swept three unrelated tokens in, which is how a count
+# that looked careful reported 3 of 8 for a set holding one.
+INSTALLED_LIST="$(grep -E 'installed: Set<Destination> *=' \
+  "$APP_DIR/Sources/MCPRouterUI/Shell/ScaffoldPane.swift" | head -1 | sed -E 's/.*\[(.*)\].*/\1/')"
+INSTALLED_COUNT="$(printf '%s' "$INSTALLED_LIST" | grep -oE '\.[a-z][a-zA-Z]*' | wc -l | tr -d ' ')"
+
+if [ "$INSTALLED_COUNT" -lt "$DEST_TOTAL" ]; then
+    SCAFFOLDS_REMAIN=1
+else
+    SCAFFOLDS_REMAIN=0
+fi
+echo "  boards installed: $INSTALLED_COUNT of $DEST_TOTAL destinations"
 
 # Every file in the bundle, not only the executable ones.
 #
@@ -903,7 +934,7 @@ bundle_contains() {
 if [ "$SCAFFOLDS_REMAIN" -eq 1 ]; then
     bundle_contains "$REL_APP" "$SENTINEL" \
       || fail "destinations are still scaffolded but the Release bundle does not carry '$SENTINEL' — the placeholder is not what ships"
-    pass "boards remain unbuilt, and Release carries the placeholder honestly"
+    pass "$((DEST_TOTAL - INSTALLED_COUNT)) destinations are still scaffolded, and Release carries the placeholder honestly"
 else
     if bundle_contains "$REL_APP" "$SENTINEL"; then
         fail "every destination has a board, but the Release bundle still contains '$SENTINEL' — the scaffold outlived the surface it stood in for"

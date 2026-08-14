@@ -115,12 +115,33 @@
         /// The scroll-edge separator's state, and the resting baseline it is measured against.
         public private(set) var scrollEdge = ScrollEdgeState()
 
+        /// The Activity board's state, built on first use and kept for the life of the window.
+        ///
+        /// It lives here rather than in the content zone's `@State` for one reason: a `@State`
+        /// property cannot be initialised from another view's value, and building it inside `body`
+        /// would construct a new model — and a new subscription — on every evaluation. `lazy` gives
+        /// the one thing both need: nothing is built for a destination the reader never selects, and
+        /// what is built is built once.
+        ///
+        /// The event source is decided by `ShellClientFactory` by exactly the same rule as the
+        /// client, so a Debug fixture run never opens a socket to a port with nothing behind it.
+        @ObservationIgnored public private(set) lazy var activity = ActivityModel(
+            client: client,
+            source: eventSource()
+        )
+
+        @ObservationIgnored private let eventSource: @MainActor () -> (any ActivityEventSource)?
+
         public init(
             client: any ControlAPIClient,
             store: ShellRestoration = .standard,
+            eventSource: @escaping @MainActor () -> (any ActivityEventSource)? = {
+                ShellClientFactory.makeEventSource()
+            },
             clock: @escaping @MainActor () -> Date = { Date() }
         ) {
             self.client = client
+            self.eventSource = eventSource
             // Poll-only, and at the shell's own stated cadence rather than the tracker's default —
             // A16 requires the refresh rate the surface actually runs at to be the one named.
             tracker = ServerStateTracker(

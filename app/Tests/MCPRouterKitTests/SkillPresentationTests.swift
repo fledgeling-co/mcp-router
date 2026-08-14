@@ -256,7 +256,8 @@ struct SkillPresentationTests {
         #expect(message?.action == "Show all skills")
         // Claiming "no skills installed" while the user has dozens would be false.
         #expect(message?.title != SkillPresentation.emptyTitle)
-        // The unfiltered board has no such message; its emptiness is the real empty state.
+        // The unfiltered board with no search has no such message; its emptiness is the genuine
+        // first-run empty state and belongs to the board, not to this function.
         #expect(SkillPresentation.emptyInFilter(.all) == nil)
     }
 }
@@ -380,5 +381,73 @@ struct SkillPresentationStateTests {
         // And the footer states the absence rather than hiding it.
         #expect(SkillPresentation.observationFooter.contains("not shown"))
         #expect(SkillPresentation.observationFooter.contains("never reaches the router"))
+    }
+
+    // MARK: - Emptiness caused by the search rather than the filter
+
+    @Test("A search matching nothing gets its own message under EVERY filter, including All")
+    func searchEmptinessIsAlwaysExplained() {
+        // The defect this guards: keying on the filter alone left `All` + a non-matching search
+        // with no message at all, so the board drew column headers over blank space. That is the
+        // most common way this board empties.
+        for filter in SkillPresentation.Filter.allCases {
+            let message = SkillPresentation.emptyInFilter(filter, search: "zzz")
+            #expect(message != nil, "\(filter.title) with a non-matching search had no message")
+            #expect(message?.title.contains("zzz") == true)
+            // The action matches the cause: a search cleared, not a filter widened.
+            #expect(message?.action == "Clear search")
+        }
+    }
+
+    @Test("A whitespace-only search is not treated as a search")
+    func blankSearchIsNotASearch() {
+        #expect(SkillPresentation.emptyInFilter(.all, search: "   ") == nil)
+        #expect(SkillPresentation.emptyInFilter(.held, search: "   ")?.action == "Show all skills")
+    }
+
+    @Test("Filter counts follow the search, so a badge never contradicts the list beneath it")
+    func countsFollowTheSearch() {
+        let held = Self.testPluginSkill(
+            name: "trawl",
+            held: HeldVersion(pluginVersion: "2.3.0", addedCapabilities: ["runs x.sh"])
+        )
+        let skills = [held, Self.testPluginSkill(name: "design-craft")]
+
+        #expect(SkillPresentation.count(skills, filter: .held, search: "") == 1)
+        // With a search that excludes the held skill, the badge must go rather than read 1 over an
+        // empty list — which was two claims on one screen, one of them false.
+        #expect(SkillPresentation.count(skills, filter: .held, search: "design") == nil)
+        #expect(SkillPresentation.count(skills, filter: .all, search: "design") == 1)
+    }
+
+    @Test("A plugin count of zero is not rendered as 'from 0 plugins'")
+    func supplyLineGuardsTheDenominator() {
+        let odd = Marketplace(
+            name: "m", source: .github(repo: "a/b"),
+            installedPluginCount: 0, suppliedSkillCount: 22
+        )
+        let line = SkillPresentation.supplyLine(for: odd)
+        #expect(line == "22 skills")
+        #expect(!line.contains("0 plugins"))
+    }
+
+    @Test("The held body does not promise an action the sheet cannot perform")
+    func heldBodyDoesNotPromisePromotion() {
+        let skill = Self.testPluginSkill(
+            version: "2.2.0",
+            held: HeldVersion(pluginVersion: "2.3.0", addedCapabilities: ["runs x.sh"])
+        )
+        let body = SkillPresentation.heldBody(skill)
+        // "until you promote it" sat ten lines above a permanently dimmed Promote button.
+        #expect(!body.contains("until you promote"))
+        #expect(body.contains("still running 2.2.0"))
+    }
+
+    @Test("The capability sentence attributes the reading to the router, not to this app")
+    func capabilitySentenceAttributesCorrectly() {
+        // Nothing in the app performs this analysis; the router reports it. Saying otherwise
+        // describes work no code here does.
+        #expect(SkillPresentation.capabilityDerivation.contains("As reported by the router"))
+        #expect(SkillPresentation.capabilityDerivation.contains("can be incomplete"))
     }
 }

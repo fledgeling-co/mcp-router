@@ -77,8 +77,12 @@
         public func load() async {
             do {
                 let response = try await client.skills()
+                guard !Task.isCancelled else { return }
                 state = .loaded(response)
             } catch {
+                // A cancelled `.task` — the view went away — is not a router failure, and must not
+                // leave an error banner behind for the next appearance to render.
+                guard !Task.isCancelled else { return }
                 // A previous good reading is kept and labelled rather than discarded. Throwing it
                 // away would replace a true-but-old board with an empty one, and an empty board is
                 // a stronger claim than a stale one.
@@ -91,10 +95,12 @@
             // The marketplace list is a second, independent read: its failure must not blank the
             // skills board, so it is caught here rather than allowed to fail the whole load — but
             // it is *kept*, not dropped, so the sheet can say which of the two happened.
+            guard !Task.isCancelled else { return }
             do {
                 marketplaces = try await client.marketplaces().marketplaces
                 marketplacesError = nil
             } catch {
+                guard !Task.isCancelled else { return }
                 marketplaces = []
                 marketplacesError = error
             }

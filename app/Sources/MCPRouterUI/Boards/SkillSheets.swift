@@ -199,10 +199,17 @@
                     .typeRole(.caption)
                     .foregroundStyle(ColorToken.t3.color)
                     .frame(width: SkillsBoardMetrics.versionColumn * 1.4, alignment: .leading)
+
+                // Dimmed in place with its reason, rather than absent with the reason hidden in a
+                // tooltip. §3.4: a disabled control dims and never disappears — and a reason
+                // attached to no control at all is a reason nobody can find.
+                DisabledAction(
+                    label: "Remove",
+                    reason: SkillPresentation.removeReason(for: marketplace)
+                )
             }
             .padding(SkillsBoardMetrics.rowPadding)
             .frame(minHeight: SkillsBoardMetrics.rowHeight)
-            .help(SkillPresentation.removeReason(for: marketplace))
             .accessibilityElement(children: .combine)
         }
     }
@@ -217,10 +224,15 @@
                 Text("That skill is no longer listed")
                     .typeRole(.title3)
                     .foregroundStyle(ColorToken.t1.color)
-                Text("The last reading from the router does not include it any more. Nothing was changed.")
-                    .typeRole(.body)
-                    .foregroundStyle(ColorToken.t2.color)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text(
+                    """
+                    The reading this sheet was opened from no longer includes it. Nothing was \
+                    changed.
+                    """
+                )
+                .typeRole(.body)
+                .foregroundStyle(ColorToken.t2.color)
+                .fixedSize(horizontal: false, vertical: true)
                 HStack {
                     Spacer(minLength: 0)
                     Button("Done") { board.sheet = nil }

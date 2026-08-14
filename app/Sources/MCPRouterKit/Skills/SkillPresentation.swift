@@ -27,10 +27,12 @@ public enum SkillPresentation {
         let marketplaces = Set(
             response.skills.compactMap { $0.source.pluginOrigin?.marketplace }
         ).count
-        var parts = [
-            "\(skills) \(skills == 1 ? "skill" : "skills")",
-            "\(marketplaces) \(marketplaces == 1 ? "marketplace" : "marketplaces")"
-        ]
+        // "from" rather than a middot, matching the spec's authored wording. This counts the
+        // marketplaces **these rows came from**; the marketplaces sheet counts everything followed
+        // and says "followed", so the two numbers are never read as the same claim.
+        let skillNoun = skills == 1 ? "skill" : "skills"
+        let marketNoun = marketplaces == 1 ? "marketplace" : "marketplaces"
+        var parts = ["\(skills) \(skillNoun) from \(marketplaces) \(marketNoun)"]
         let held = response.skills.filter { $0.held?.wantsMore ?? false }.count
         // Omitted entirely at zero rather than rendered "0 held", which reads as a warning that
         // resolved rather than a condition that never applied.
@@ -93,8 +95,11 @@ public enum SkillPresentation {
     }
 
     /// The count beside a filter's name, or `nil` when it is zero and should carry no badge.
-    public static func count(_ skills: [Skill], filter: Filter) -> Int? {
-        let n = skills.filter(filter.matches).count
+    ///
+    /// Counts the **searched** set, so the number on a segment is the number of rows selecting it
+    /// would show. Counting the unsearched set put `Held 1` above a list saying nothing was held.
+    public static func count(_ skills: [Skill], filter: Filter, search: String = "") -> Int? {
+        let n = rows(skills, filter: filter, search: search).count
         return n == 0 ? nil : n
     }
 
@@ -110,12 +115,30 @@ public enum SkillPresentation {
         public var action: String
     }
 
-    public static func emptyInFilter(_ filter: Filter) -> EmptyFilterMessage? {
+    /// What an empty result says, given both the filter AND the search.
+    ///
+    /// Taking the search too is the whole point. An earlier version keyed on the filter alone, so
+    /// the most common way this board empties — the `All` filter with a search matching nothing —
+    /// fell through to `nil` and the board drew its column headers over blank space with no message
+    /// at all. Worse, under a narrower filter it printed "nothing is waiting" while the segment
+    /// above still read `Held 1`, because the badge counted the unsearched set: two claims on one
+    /// screen, one of them false.
+    public static func emptyInFilter(_ filter: Filter, search: String = "") -> EmptyFilterMessage? {
+        let query = search.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !query.isEmpty {
+            return EmptyFilterMessage(
+                title: "Nothing matches \u{201C}\(query)\u{201D}",
+                detail: filter == .all
+                    ? "No skill's name, plugin or marketplace contains that."
+                    : "No skill under \(filter.title.lowercased()) matches that. Another filter may.",
+                action: "Clear search"
+            )
+        }
         switch filter {
         case .all:
-            nil
+            return nil
         case .held:
-            EmptyFilterMessage(
+            return EmptyFilterMessage(
                 title: "No skills are held for review",
                 detail: """
                 A new version is held when it asks for more than the one you have. Nothing is \
@@ -124,7 +147,7 @@ public enum SkillPresentation {
                 action: "Show all skills"
             )
         case .local:
-            EmptyFilterMessage(
+            return EmptyFilterMessage(
                 title: "No skills were added by hand",
                 detail: """
                 Every skill here came from a marketplace. A skill you place in a client's skills \
@@ -133,7 +156,7 @@ public enum SkillPresentation {
                 action: "Show all skills"
             )
         case .needsAttention:
-            EmptyFilterMessage(
+            return EmptyFilterMessage(
                 title: "Nothing needs a decision",
                 detail: """
                 Nothing is held for review and no marketplace has changed hands since this Mac \
@@ -301,69 +324,16 @@ public enum SkillPresentation {
             ? " Promoting it moves all \(affected) skills this plugin supplies."
             : ""
         return """
-        It was fetched and is being kept aside rather than installed. Nothing has changed for any \
-        client until you promote it.\(scope)
+        It was fetched and is being kept aside rather than installed — every client is still \
+        running \(skill.source.pluginOrigin?.pluginVersion ?? "the installed version").\(scope)
         """
     }
 
     /// One quiet sentence naming how the capability list was derived, so it is not mistaken for a
     /// manifest the plugin author wrote.
     public static let capabilityDerivation = """
-    Read from the skill's own text — the files it invokes and the hosts it names. It is a reading, \
-    not a declaration by the author.
-    """
-
-    // MARK: - Disabled reasons
-
-    /// Why every write control on this board is dimmed.
-    ///
-    /// M4 ships the board read-only, and this is the sentence that says so. The reason is not
-    /// timidity: these writes land in files the client applications hold open — a read-modify-write
-    /// against a shape this app did not recognise would rewrite the user's whole plugin list and
-    /// look exactly like "nothing is installed". `DESIGN.md` §3.4 asks a control that does not
-    /// apply to dim in place with a discoverable reason rather than disappear, so the offers stay
-    /// visible and say what they are waiting for.
-    public static let writesNotYetAvailable = """
-    Changing what is installed arrives with the item that can do it safely — these files are open in \
-    your other apps while this one is running.
-    """
-
-    public static func autoUpdateReason(for marketplace: Marketplace) -> String {
-        if marketplace.source.isLocalDirectory {
-            return "A marketplace on this machine updates when you change it — there is nothing to fetch."
-        }
-        return writesNotYetAvailable
-    }
-
-    public static func removeReason(for marketplace: Marketplace) -> String {
-        if marketplace.suppliedSkillCount > 0 {
-            let n = marketplace.suppliedSkillCount
-            let noun = n == 1 ? "skill comes" : "skills come"
-            return "\(n) installed \(noun) from this marketplace. Remove them first."
-        }
-        return writesNotYetAvailable
-    }
-
-    /// What a marketplace row says it supplies.
-    public static func supplyLine(for marketplace: Marketplace) -> String {
-        guard marketplace.suppliedSkillCount > 0 else { return "Supplies nothing" }
-        let skills = marketplace.suppliedSkillCount
-        let plugins = marketplace.installedPluginCount
-        let skillNoun = skills == 1 ? "skill" : "skills"
-        let pluginNoun = plugins == 1 ? "plugin" : "plugins"
-        return "\(skills) \(skillNoun) from \(plugins) \(pluginNoun)"
-    }
-
-    public static func autoUpdateLine(for marketplace: Marketplace) -> String {
-        if marketplace.source.isLocalDirectory { return "Local directory" }
-        return marketplace.autoUpdate ? "Auto-update on" : "Auto-update off"
-    }
-
-    // MARK: - Empty
-
-    public static let emptyTitle = "No skills installed yet"
-    public static let emptyDetail = """
-    A skill is a markdown file that teaches an agent how you want a job done. Follow a marketplace \
-    and the skills it supplies appear here, across every client that supports them.
+    As reported by the router, from the skill's own text rather than from anything its author \
+    declared. No skill format carries a capability manifest, so this is a reading and can be \
+    incomplete.
     """
 }

@@ -115,14 +115,19 @@
             columnHeaders(response)
 
             let rows = board.rows
-            if rows.isEmpty, let empty = SkillPresentation.emptyInFilter(board.filter) {
+            let empty = rows.isEmpty
+                ? SkillPresentation.emptyInFilter(board.filter, search: board.search)
+                : nil
+            if let empty {
                 // Never the first-run empty state: the user has skills, the filter simply matches
                 // none of them, and saying "no skills installed" here would be false.
                 MessageState(
                     StateMessage(title: empty.title, detail: empty.detail, actionLabel: empty.action),
                     icon: .search
                 ) {
-                    board.filter = .all
+                    // The action matches the message: a search that matched nothing clears the
+                    // search, and a filter that holds nothing widens the filter.
+                    if board.search.isEmpty { board.filter = .all } else { board.search = "" }
                 }
                 .frame(maxWidth: .infinity)
             } else {
@@ -190,7 +195,11 @@
         private func label(for filter: SkillPresentation.Filter, in response: SkillsResponse) -> String {
             // A zero count carries no badge at all, rather than reading "0" — which looks like a
             // condition that resolved rather than one that never applied.
-            guard let count = SkillPresentation.count(response.skills, filter: filter) else {
+            guard let count = SkillPresentation.count(
+                response.skills,
+                filter: filter,
+                search: board.search
+            ) else {
                 return filter.title
             }
             return "\(filter.title) \(count)"

@@ -85,8 +85,9 @@ The mutation was reverted and the full pass re-run green.
 
 ## Verified by unit test rather than by the rendered pass
 
-These are behavioural claims proven where they can actually be asserted. Full suite at `7a4f60a`:
-**1057 tests in 134 suites passed**.
+These are behavioural claims proven where they can actually be asserted. Full suite at the final
+commit: **1072 tests in 137 suites passed**. (The rendered rows above were measured at `7a4f60a`;
+the acceptance script was re-run at the final commit and reported 16 passed, 0 failed, exit 0.)
 
 | Clause | Test | Kind |
 |---|---|---|
@@ -103,6 +104,18 @@ These are behavioural claims proven where they can actually be asserted. Full su
 | — | the badge note waits for a reading rather than counting from nothing | source guard |
 | — | the reset dialog passes the observed count through, nil and all | source guard |
 | — | no trash metaphor in the four Cleanup sources, comments stripped first | source guard |
+
+| A11 | an invalidated run is still in `history(for:)` | behavioural |
+| A12 | `record(stamp: nil)` returns false **and the file's bytes are unchanged** | measurement |
+| A13 | 21 runs ⇒ 20 kept, and the **oldest** is the one evicted | behavioural |
+| A10 | source guard: no board row or view type references `CheckHistoryStore` | structural |
+| A14 | a server re-check issues exactly one `reindex(alpha)` and no other write | exercised request |
+| A14b | a skill re-check writes nothing and does re-read `skills` | exercised request |
+| A15b | opening and cancelling the reset dialog issue nothing; confirming issues `resetUsage` | exercised request |
+| — | a removal sends the `keepHistory` the dialog showed, in **both** positions | exercised request |
+| A26 | nine designed states carry usable copy; empty-in-filter differs from empty; no two states share a sentence | exhaustive |
+| — | an empty Cleanup pane reads as good news, not as a failed search | string |
+| — | a corrupt history file starts empty and reports why rather than claiming none | behavioural |
 
 The four source guards are in `app/Tests/MCPRouterUITests/M7BoardHonestyTests.swift`. They are
 source guards because a SwiftUI `body` is not inspectable from a unit test — a real limit, stated in
@@ -221,3 +234,25 @@ would have shipped a regression in two merged gates. The three readers are now o
 m2-activity.sh   exit 0 — every assertion passed, and the app was never brought to the front
 m5-discover.sh   exit 0 — 32 passed, 0 failed — MCP Router never came to the front
 ```
+
+---
+
+## Every guard in this item was proven by defeating it
+
+A test that has never failed is a test nobody has checked. Each of these was broken deliberately,
+observed to fail with the right cause, and restored.
+
+| Guard | Mutation | What it reported |
+|---|---|---|
+| A15b — unobserved call count | the nil branch made to print `0 calls` | `"0 calls recorded across the past 1mo are discarded…"` — the defect sentence verbatim |
+| Badge note gated on a reading | the guard replaced with `board.candidates.count >= 0` | the preceding-source assertion failed |
+| A10 — store unreachable from a row | `CheckHistoryStore` named in `EvalsBoardRow.swift` | `(offenders → ["EvalsBoardRow.swift"]).isEmpty → false` |
+| A12 — unstamped run writes nothing | an unstamped run stored under a placeholder stamp | `(before → 181 bytes) == (after → 509 bytes)` |
+| A14b — a skill re-check writes nothing | the skill branch made to `reindex` | `(client.writes → ["reindex(/skills/pr-summariser)"]).isEmpty → false` |
+| say/send on removal | `keepHistory` pinned to `false` while the dialog still shows it | calls contained `remove(alpha, keepHistory: false)`, not `true` |
+| A26 — empty state phrasing | empty title rewritten to `"No results"` | failed three ways: too short, reads as a failed search, no longer explains itself |
+| the acceptance script itself | its vocabulary gate pointed at `Evals`, a word that IS on screen | `EXIT=1 · FAIL: the Evals pane speaks a grading word: 'Evals'` |
+
+One probe is recorded as a **failure of the probe, not of the test**: the first A12 attempt made
+`record` call `write()` on the unstamped path, which re-wrote identical bytes. The test stayed green
+and was right to — a mutation that does not change the observable does not test anything.

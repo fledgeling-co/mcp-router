@@ -255,6 +255,61 @@ P1 → P2 → P3 → P4 → P5. P1 and P2 are file-disjoint and independent; P3 
 P1 and P3; P5 depends on all. The `LogEvent` edit lands in P1 so every later phase compiles against
 the final enum.
 
+## P7 · The listener the double stood in for
+
+P3 named `CallbackListener.swift` and the first pass did not write it: `CallbackListening` shipped as
+a protocol plus a test double, so all five terminations, the non-termination and both pre-flow
+failures were proven against something that binds no port. Delivered now as
+`app/Sources/RouterCore/Auth/CallbackListener.swift` — `LoopbackCallbackListener`, an `NWListener` on
+IPv4 loopback, no new dependency. The request semantics stay in `CallbackResponder`; this type reads
+a request target off the wire, hands it to the flow's handler and writes back the `CallbackReply`.
+
+Three properties are load-bearing, and each has its own assertion:
+
+| Property | Why it is not incidental |
+|---|---|
+| the bind is pinned to `127.0.0.1` through `requiredLocalEndpoint` | `NWListener(using:on:)` binds **every** interface, which would put the callback — and the unescaped page it renders from a provider-supplied `error`, spec §6 — on the LAN |
+| a bind failure **throws**, in the reference's own message shape | B84's first pre-flow failure. `.waiting` counts as a failure too: a fixed loopback port has no legitimate transient wait, and `NWListener` would otherwise retry in the background while `start` hangs |
+| `stop()` leaves in-flight connections alone | the reference's `cleanup` calls `callback.close()`, which stops accepting and lets an open response finish. The flow settles *inside* the handler, so cancelling connections there would mean the browser never receives the page it just earned |
+
+`stop()` also **keeps the handler**, for the same reason one layer down: a connection accepted before
+the stop can still send its request afterwards, and `server.close()` hands that request to the
+handler as usual. Dropping it would be a divergence on a path a slow browser reaches. It cannot
+exchange a code twice — `AuthFlowCoordinator.exchange` refuses any request that is not for the flow
+in flight, so a late one renders the 500 it earns.
+
+**The defect a double could not have found.** `stop()` first returned as soon as it had asked
+`NWListener` to cancel. Cancellation is asynchronous, and supersession rebinds the **fixed** port
+immediately after cleanup — so the second authorization failed with `EADDRINUSE` roughly half the
+time, leaving the user with a browser tab that could never land. `stop()` now waits for the socket,
+bounded by a 2 s deadline so a listener that never reports `.cancelled` ends the flow rather than
+hanging it. Every termination path runs cleanup, so an unbounded wait there would hang all five.
+
+**Declared framing divergence, for R4.** The reference sets `content-type` and leaves Node to frame
+the page with `Transfer-Encoding: chunked` and keep the connection alive; this sends `content-length`
+and `connection: close`. Both are valid HTTP/1.1 and a browser renders them identically. The
+application-visible contract — status, `content-type`, body — is byte-identical, which is what B65
+through B99 are written against. Closing is the honest framing for a listener that is torn down the
+moment the flow settles. Recorded here so R4's differential gate sees it declared rather than
+discovers it.
+
+**The wiring, for R3 and R2.** `AuthRoutes.authStart` takes `begin:` as a closure, so the dispatch
+supplies the listener rather than this module doing it:
+
+```swift
+try await coordinator.begin(
+    server: name, listener: LoopbackCallbackListener(), transport: <R2's SDK transport>,
+    port: AuthPaths.bindablePort, authorizationURL: { … }
+)
+```
+
+One instance per flow — `start` refuses a second bind on the same instance.
+
+**One rebase collision, resolved toward main.** R2 merged its own `FakeTransport` (an
+`UpstreamTransporting` for the pool) into `RouterCoreTests`. R5's auth double renamed to
+`FakeAuthTransport`. Worth knowing that `swift build` does **not** build the test target, so this
+surfaced only at `make test` — a build-only gate after a rebase proves less than it appears to.
+
 ## Out of scope, restated so a slice cannot drift into it
 
 The two `case` lines in R3's `ControlHandler` dispatch; the Mac and iPhone auth surfaces (M8, I1); a

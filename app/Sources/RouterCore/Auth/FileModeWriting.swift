@@ -39,7 +39,7 @@ extension RealFileSystem: FileModeWriting {
         let fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, mode_t(mode))
         guard fd >= 0 else {
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: [
-                NSLocalizedDescriptionKey: String(cString: strerror(errno)),
+                NSLocalizedDescriptionKey: String(cString: strerror(errno))
             ])
         }
         defer { close(fd) }
@@ -47,12 +47,15 @@ extension RealFileSystem: FileModeWriting {
         // bits, so set them explicitly too.
         _ = fchmod(fd, mode_t(mode))
         try data.withUnsafeBytes { raw in
+            // An empty record has no base address, and writing nothing is a success rather than a
+            // failure — guarding here is what keeps that from being a force-unwrap crash.
+            guard let base = raw.baseAddress else { return }
             var offset = 0
             while offset < raw.count {
-                let written = write(fd, raw.baseAddress!.advanced(by: offset), raw.count - offset)
+                let written = write(fd, base.advanced(by: offset), raw.count - offset)
                 guard written > 0 else {
                     throw NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: [
-                        NSLocalizedDescriptionKey: String(cString: strerror(errno)),
+                        NSLocalizedDescriptionKey: String(cString: strerror(errno))
                     ])
                 }
                 offset += written
@@ -64,7 +67,7 @@ extension RealFileSystem: FileModeWriting {
         let attributes = try FileManager.default.attributesOfItem(atPath: path)
         guard let number = attributes[.posixPermissions] as? NSNumber else {
             throw NSError(domain: NSPOSIXErrorDomain, code: Int(ENOENT), userInfo: [
-                NSLocalizedDescriptionKey: "no posix permissions on \(path)",
+                NSLocalizedDescriptionKey: "no posix permissions on \(path)"
             ])
         }
         return number.uint16Value

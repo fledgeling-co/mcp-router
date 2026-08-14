@@ -127,7 +127,7 @@ public actor AuthFlowCoordinator {
 
         let responder = CallbackResponder(server: server, log: log) { [weak self] code in
             guard let self else { return }
-            try await self.exchange(server: server, code: code)
+            try await exchange(server: server, code: code)
         }
 
         // Bind first. A failure here performs NO cleanup — no timer has been armed yet, and the
@@ -137,7 +137,7 @@ public actor AuthFlowCoordinator {
                 guard let self else {
                     return CallbackReply(status: 404, contentType: nil, body: "")
                 }
-                return await self.handleCallback(server: server, responder: responder, target: target)
+                return await handleCallback(server: server, responder: responder, target: target)
             }
         } catch {
             throw AuthFailure((error as? AuthFailure)?.message ?? error.localizedDescription)

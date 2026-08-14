@@ -19,10 +19,10 @@ public enum OAuthClientMetadata {
             JSONMember(key: "redirect_uris", value: .array([.string(JSString(redirectURI))])),
             JSONMember(key: "grant_types", value: .array([
                 .string("authorization_code"),
-                .string("refresh_token"),
+                .string("refresh_token")
             ])),
             JSONMember(key: "response_types", value: .array([.string("code")])),
-            JSONMember(key: "token_endpoint_auth_method", value: .string("none")),
+            JSONMember(key: "token_endpoint_auth_method", value: .string("none"))
         ])
     }
 

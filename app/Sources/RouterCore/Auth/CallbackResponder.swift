@@ -76,8 +76,11 @@ public struct CallbackResponder: Sendable {
             let detail = error ?? AuthPages.noCodePageDetail
             let reason = error ?? AuthPages.noCodeRejection
             return (
-                CallbackReply(status: 400, contentType: "text/html",
-                              body: AuthPages.failed(detail: detail)),
+                CallbackReply(
+                    status: 400,
+                    contentType: "text/html",
+                    body: AuthPages.failed(detail: detail)
+                ),
                 .failed(reason: reason)
             )
         }
@@ -89,15 +92,21 @@ public struct CallbackResponder: Sendable {
             // The reference logs *between* writing the page and settling. Order asserted by B94.
             await log?.log(.upstreamAuthorized(server: server.string))
             return (
-                CallbackReply(status: 200, contentType: "text/html",
-                              body: AuthPages.connected(server: server)),
+                CallbackReply(
+                    status: 200,
+                    contentType: "text/html",
+                    body: AuthPages.connected(server: server)
+                ),
                 .succeeded
             )
         } catch {
             let reason = (error as? AuthFailure)?.message ?? error.localizedDescription
             return (
-                CallbackReply(status: 500, contentType: "text/html",
-                              body: AuthPages.failed(detail: reason)),
+                CallbackReply(
+                    status: 500,
+                    contentType: "text/html",
+                    body: AuthPages.failed(detail: reason)
+                ),
                 .failed(reason: reason)
             )
         }
@@ -142,6 +151,9 @@ public struct CallbackResponder: Sendable {
 /// stay identical.
 public struct AuthFailure: Error, Sendable, Equatable, CustomStringConvertible {
     public let message: String
-    public init(_ message: String) { self.message = message }
+    public init(_ message: String) {
+        self.message = message
+    }
+
     public var description: String { message }
 }

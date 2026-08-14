@@ -26,8 +26,10 @@ public enum AuthPages {
 
     /// `PAGE(`${serverName} is connected`, 'You can close this tab and return to mcp-router.')`
     public static func connected(server: JSString) -> String {
-        page(title: "\(server.string) is connected",
-             detail: "You can close this tab and return to mcp-router.")
+        page(
+            title: "\(server.string) is connected",
+            detail: "You can close this tab and return to mcp-router."
+        )
     }
 
     /// Every failure page. The heading is always the literal `Authorization failed` (B99); only the

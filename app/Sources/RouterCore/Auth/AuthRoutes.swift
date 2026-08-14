@@ -43,7 +43,7 @@ public enum AuthRoutes {
                 JSONMember(
                     key: "error",
                     value: .string("stdio servers do not authorize; their credentials are env vars")
-                ),
+                )
             ]))
         }
         do {
@@ -61,7 +61,7 @@ public enum AuthRoutes {
             }
             return (200, .object([
                 JSONMember(key: "server", value: .string(server)),
-                JSONMember(key: "authorizationUrl", value: .string(JSString(flow.url))),
+                JSONMember(key: "authorizationUrl", value: .string(JSString(flow.url)))
             ]))
         } catch {
             let reason = (error as? AuthFailure)?.message ?? error.localizedDescription
@@ -92,7 +92,7 @@ public enum AuthRoutes {
                 JSONMember(
                     key: "error",
                     value: .string(JSString("no pending change for \"\(server.string)\""))
-                ),
+                )
             ]))
         }
 
@@ -119,7 +119,7 @@ public enum AuthRoutes {
 
         return (200, .object([
             JSONMember(key: "server", value: .string(server)),
-            JSONMember(key: "approved", value: .number(Double(approved))),
+            JSONMember(key: "approved", value: .number(Double(approved)))
         ]))
     }
 }

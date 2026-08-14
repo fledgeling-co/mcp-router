@@ -179,10 +179,115 @@ Verdict and disposition recorded in **Out-of-family gates** below.
 
 ## Out-of-family gates
 
+**`codex: usage limit -> claude (downgrade)`.** Every `codex exec` call — down to a one-word probe —
+returned `You've hit your usage limit ... try again at Aug 20th, 2026 1:29 PM`. That is
+account-level and past this fleet's horizon, verified by the orchestrator on 2026-08-14, so all
+three gates ran in-family instead: a fresh `claude -p` opus-5 reviewer per gate, briefed
+adversarially (told to refute, and that finding nothing counts as a failed review rather than a
+pass). **The weakness this leaves is real and is recorded here rather than smoothed over:** every
+reviewer in this pipeline is now Claude auditing Claude, and the cross-family check that exists
+precisely to catch what one family's blind spots share did not run.
+
+The trap worth carrying forward: `codex exec` **exits 0 on a usage limit**. A gate keyed on `$?`
+records a pass for a review that never ran. The honest tells are the `ERROR` line in the log and a
+missing or empty `-o` file.
+
 | Stage | Model | Verdict | Accept / Reject |
 |---|---|---|---|
-| Triage spec review | `gpt-5.6-sol` @ max | *see below* | *see below* |
-| Plan review | `gpt-5.6-sol` @ max | *see below* | *see below* |
-| Work Phase D completeness critic | `gpt-5.6-sol` @ max | *see below* | *see below* |
+| Triage spec review | `claude -p` opus-5, adversarial (codex downgraded) | Spec accepted; assumptions 1–5 recorded above are its output | 5 accepted / 0 rejected |
+| Plan review | `claude -p` opus-5, adversarial (codex downgraded) | Plan accepted at Small tier; file list and step order unchanged | — |
+| Work Phase D completeness critic | `claude -p` opus-5, adversarial (codex downgraded) | **18 findings** — see disposition below | 16 accepted / 2 deferred |
 
-*(filled in as each gate runs)*
+### Phase D critic — disposition
+
+The critic was told to refute and that finding nothing would count as a failed review. It returned
+18 findings, and the important ones were right: two acceptance criteria were being proved by tests
+that pass against the original defect, and one was being proved by a substring search.
+
+| # | Finding | Severity | Disposition |
+|---|---|---|---|
+| 1 | A14's red-green ledger did not exist | blocker | **Accepted** — this section |
+| 2 | Out-of-family gate rows read `*see below*` | major | **Accepted** — table above |
+| 3 | A15 asserted by hand, by no test | major | **Accepted** — `fixturesAreUnmodified` |
+| 4 | A10 exercised 2 of 5 error cases; `.malformedResponse` nowhere | major | **Accepted** — `everyErrorCaseSurvivesTheLoop`, with an exhaustive `caseName(of:)` switch so a sixth case breaks the build |
+| 5 | A10's test hand-injected the error, so it passed against `try?` | major | **Accepted** — now ‹real loop› |
+| 6 | A11's test likewise — the criterion closest to the original bug | major | **Accepted** — now ‹real loop› |
+| 7 | A12 was a substring search for nine names, not a derivation check | blocker | **Accepted** — the sheet's table is parsed, and `specimensMatchTheSheetsDerivation` bridges specimens to it |
+| 8 | The *Disabled* specimen carried `.phase(.live)` — the sheet's **non**-disabled condition | major | **Accepted** — Disabled/Default corrected; finding 7's bridge is what now catches this class |
+| 9 | Four unbounded `for await` loops would hang, not fail | major | **Accepted** — one `bounded` helper, used throughout |
+| 10 | M55 survived, so synchronous registration has no killing test | major | **Accepted as recorded** — see the ledger note below; not silently closed |
+| 11 | `consumeStream()` had no test at all | major | **Accepted** — `streamEventsReachTheTracker` drives a real `ControlEventStream` over `HTTPStub` |
+| 12 | Cancelling `run()` published `.disconnected` — a drop that did not happen | major | **Accepted** — guard added, mechanised as `M59` |
+| 13 | `AsyncStream` was `.unbounded`; the dedup does not bound a flapping router | major | **Accepted** — `.bufferingNewest(8)` |
+| 14 | `continuations` removal hops through an unstructured `Task` | minor | **Deferred** — inherent to `onTermination`, which is `@Sendable` and runs off-actor. Bounded by the actor's lifetime; no leak is observable from outside the type. Worth an item if a surface ever holds many short-lived subscriptions |
+| 15 | `hasLoaded` duplicated a fact `loadKind` carries | minor | **Accepted** — now computed, so the disagreeing pair is unrepresentable |
+| 16 | `try?` in the matrix test's fixture decode | minor | **Accepted** — now `try`; a missing fixture no longer reports as a modelling collapse |
+| 17 | `SteppingClock` ignores its `duration`, so the poll interval is unmeasured | minor | **Deferred** — the interval is F3's `pollInterval` plumbing, not F4's; the §5 copy naming 5s belongs to M2/M3's surface. Suggested child item below |
+| 18 | `runLoop` cancels without awaiting, so a loop can outlive its test | minor | **Deferred** — bounded by the parked `SteppingClock`; no cross-test interference observed across the full suite or ten mutation runs |
+
+---
+
+## A14 — the red-green ledger
+
+Every guard was observed failing before it counted. Mutations live in `scripts/red-green.py` and are
+applied to the **implementation** only; a mutation that edits a test proves nothing. Run one at a
+time in the foreground with `python3 scripts/red-green.py --only M5x`.
+
+| Mutant | Clause | The guard it removes | Result |
+|---|---|---|---|
+| **M50** | A1 | `try?` reintroduced in `pollLoop()` — the original defect, exactly | **KILLED** (41.4s) |
+| **M51** | A3 | `.stale` collapsed into `.failed` | **KILLED** (10.9s) |
+| **M52** | A3 | a failed poll deletes the servers it already had | **KILLED** (9.8s) |
+| **M53** | A6 | a stream-less tracker born claiming `.phase(.disconnected)` | **KILLED** (8.3s) |
+| **M54** | A8 | a phase fabricated for a tracker with no stream | **KILLED** (10.1s) |
+| **M55** | A11 | registration deferred out of `updates()` | **SURVIVED** — see below |
+| **M56** | A11 | an unchanged state republished every interval | **KILLED** (8.0s) |
+| **M57** | A4 | `run()` twice starting a second poll loop | **KILLED** (8.4s) |
+| **M58** | A11 | a poll failure recorded but never published | **KILLED** (18.6s) |
+| **M59** | A7 | a cancelled `run()` reporting the stream as dropped | **KILLED** (8.6s) |
+
+**9 of 10 killed.** A14's specifically-named requirement — "reintroducing `try?` in `pollLoop()`
+makes a named test fail" — is M50, killed, red on
+`‹real loop› a router that is not running is reported, not retried in silence`.
+
+**M55 is a recorded survivor, not a pass.** The mutation defers registration into
+`Task.detached { await self.register(...) }`. `firstStateIsTheStateAtSubscription` asserts the
+invariant that would expose the loss — the first state a subscriber receives must be the one
+current when `updates()` returned — over 40 consecutive trials, and the deferred registration won
+all 40. The reason is ordering, not coverage: the detached task is created while `updates()` still
+holds the actor, so its `await self.register(...)` is enqueued ahead of anything an external caller
+can enqueue afterwards.
+
+It is **not** marked equivalent, because it is not. That ordering is an implementation detail of the
+actor executor and `Task.detached` runs at unspecified priority, so a priority difference or a
+loaded machine can still make it lose. The synchronous `register` is kept because it is a
+language-level guarantee rather than an observed schedule, and the 40-trial test is the guard that
+catches the deferral on any run where it does lose. What no test can do is force the loss on
+demand — a test that tried would be flaky by construction, which is worse than a recorded survivor.
+
+**Two mutation-gate hazards found the hard way**, both now fixed in the harness and worth carrying:
+
+- A mutation can make the suite **hang** rather than fail. M58's first run returned
+  `«suite did not terminate»` because the tests it should have killed blocked on `for await`
+  forever. A count bound cannot help — a bound that only advances on arrival never advances when
+  nothing arrives. Every subscriber assertion now goes through a wall-clock `bounded` helper.
+- Running the gate as a **background task and polling its output for a sentinel** killed two
+  earlier sessions: the task was killed without writing the sentinel and the poll never returned.
+  Run mutants in the foreground, or in bounded chunks whose exit code is read directly.
+
+---
+
+## Status
+
+**Delivered on `ai/f4`, stopped before merge** — the orchestrator serializes finalization.
+
+`make all` green: lint, build, **306 tests**, parity 224/224 vector cases (floor 224). Mutation
+ledger 9/10 killed with the survivor recorded above. Acceptance evidence in
+`planning/evidence/F4-acceptance.md`.
+
+### Deferred children discovered
+
+| Suggested item | Why | Depends on |
+|---|---|---|
+| Assert the poll actually sleeps for `pollInterval` | Critic finding 17. `SteppingClock` ignores its `duration`, so nothing catches the interval being wrong, and §5's *Disabled* copy — "this window polls every 5s" — is a claim about that value. Belongs with the surface that displays it | M2 or M3 |
+| Bound `continuations` growth for short-lived subscriptions | Critic finding 14. Removal hops through an unstructured `Task` because `onTermination` is `@Sendable`; harmless today, worth revisiting if a surface churns subscriptions | M2, M3 |

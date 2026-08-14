@@ -19,18 +19,18 @@ import Testing
 /// mechanised permanently as mutant `M50` in `scripts/red-green.py`.
 @Suite("Live server state")
 struct ServerStateTrackerTests {
-    private func server(_ name: String, state: ServerState = .idle) throws -> MCPServer {
+    func server(_ name: String, state: ServerState = .idle) throws -> MCPServer {
         var decoded = try FixtureControlAPIClient.decodeFixture("server-stdio", as: MCPServer.self)
         decoded.name = name
         decoded.state = state
         return decoded
     }
 
-    private func response(_ servers: [MCPServer]) -> ServersResponse {
+    func response(_ servers: [MCPServer]) -> ServersResponse {
         ServersResponse(port: 8879, idleMs: 300_000, since: "2026-08-14T00:00:00.000Z", servers: servers)
     }
 
-    private func record(for server: String) -> CallRecord {
+    func record(for server: String) -> CallRecord {
         CallRecord(
             ts: "2026-08-14T00:00:01.000Z", server: server, tool: "t",
             ok: true, ms: 4, cold: false
@@ -46,7 +46,10 @@ struct ServerStateTrackerTests {
     /// success-then-failure sequence is deterministic rather than a race the test hopes to win.
     actor SteppingClock: StreamClock {
         private var remaining: Int
-        init(steps: Int) { self.remaining = steps }
+        init(steps: Int) {
+            remaining = steps
+        }
+
         func sleep(for duration: Duration) async throws {
             if remaining > 0 {
                 remaining -= 1
@@ -71,7 +74,9 @@ struct ServerStateTrackerTests {
 
         /// How many polls actually reached the client. Proves the loop ran, rather than the state
         /// happening to look right.
-        func pollCount() -> Int { index }
+        func pollCount() -> Int {
+            index
+        }
 
         func servers() async throws(ControlAPIError) -> ServersResponse {
             let entry = script[min(index, script.count - 1)]
@@ -86,7 +91,11 @@ struct ServerStateTrackerTests {
             try await rest.server(named: name)
         }
 
-        func usage(limit: Int?, server: String?, cwd: String?) async throws(ControlAPIError) -> UsageResponse {
+        func usage(
+            limit: Int?,
+            server: String?,
+            cwd: String?
+        ) async throws(ControlAPIError) -> UsageResponse {
             try await rest.usage(limit: limit, server: server, cwd: cwd)
         }
 
@@ -98,7 +107,10 @@ struct ServerStateTrackerTests {
             try await rest.heldChanges(for: name)
         }
 
-        func searchRegistry(query: String, limit: Int) async throws(ControlAPIError) -> RegistrySearchResponse {
+        func searchRegistry(
+            query: String,
+            limit: Int
+        ) async throws(ControlAPIError) -> RegistrySearchResponse {
             try await rest.searchRegistry(query: query, limit: limit)
         }
 
@@ -140,7 +152,7 @@ struct ServerStateTrackerTests {
     /// Returns the state that satisfied the predicate, or the last one seen — so a failure message
     /// can say what it actually settled on rather than only that it timed out.
     @discardableResult
-    private func runLoop(
+    func runLoop(
         _ tracker: ServerStateTracker,
         until predicate: @Sendable (ServerStateTracker.TrackerState) -> Bool
     ) async throws -> ServerStateTracker.TrackerState {
@@ -154,6 +166,36 @@ struct ServerStateTrackerTests {
             try await Task.sleep(for: .milliseconds(5))
         }
         return latest
+    }
+
+    /// Runs `work` under a wall-clock bound, returning `[result]` or `[]` if it did not finish.
+    ///
+    /// Every subscriber assertion in this feature needs one, and the reason is specific rather
+    /// than defensive: the regressions being guarded against publish *nothing*, so `for await`
+    /// blocks forever instead of yielding a wrong value, and a test that hangs reports nothing at
+    /// all. The mutation gate recorded exactly that — mutant `M58` came back `«suite did not
+    /// terminate»` rather than naming the tests it broke. A count bound cannot help, because a
+    /// bound that only advances on arrival never advances when nothing arrives.
+    ///
+    /// It is not a tolerance. The correct implementation answers in milliseconds; the bound exists
+    /// so that a regression *fails*, with a message, instead of going quiet.
+    ///
+    /// The array is the return channel because `T?` here would be a double optional at the call
+    /// site, and `?? nil` is the shape that stops meaning anything.
+    func bounded<T: Sendable>(
+        seconds: Int = 5,
+        _ work: @escaping @Sendable () async -> T
+    ) async -> [T] {
+        await withTaskGroup(of: [T].self) { group in
+            group.addTask { await [work()] }
+            group.addTask {
+                try? await Task.sleep(for: .seconds(seconds))
+                return []
+            }
+            let first = await group.next() ?? []
+            group.cancelAll()
+            return first
+        }
     }
 
     // MARK: - The merge (unchanged behaviour, carried through the reshaped state)
@@ -242,21 +284,19 @@ struct ServerStateTrackerTests {
         let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
         let updates = await tracker.updates()
 
-        let collector = Task { () -> [Int] in
+        // No sleep before publishing: registration is synchronous inside `updates()`, so the
+        // subscriber already exists. A sleep here would hide a regression rather than prevent one.
+        try await tracker.apply(poll: response([server("alpha")]))
+        try await tracker.apply(poll: response([server("alpha"), server("beta")]))
+
+        let counts = await bounded { () -> [Int] in
             var seen: [Int] = []
             for await state in updates {
                 seen.append(state.servers.count)
                 if seen.count == 3 { break }
             }
             return seen
-        }
-
-        // No sleep before publishing: registration is synchronous inside `updates()`, so the
-        // subscriber already exists. A sleep here would hide a regression rather than prevent one.
-        try await tracker.apply(poll: response([server("alpha")]))
-        try await tracker.apply(poll: response([server("alpha"), server("beta")]))
-
-        let counts = await collector.value
+        }.first ?? []
         #expect(counts.count == 3, "expected the initial state and two updates, saw \(counts)")
         #expect(counts.last == 2)
     }
@@ -272,337 +312,58 @@ struct ServerStateTrackerTests {
         // value alone.
         try await tracker.apply(poll: response([server("alpha")]))
 
-        let collector = Task { () -> Int? in
+        let seen = await bounded {
             for await state in updates where !state.servers.isEmpty {
                 return state.servers.count
             }
-            return nil
-        }
-        #expect(await collector.value == 1, "an update published right after subscribing was lost")
+            return 0
+        }.first
+        #expect(seen == 1, "an update published right after subscribing was lost")
     }
 
-    // MARK: - A4, A5 — the healthy states, and telling empty from unloaded
-
-    @Test("a tracker that has not polled is loading, not loaded-and-empty")
-    func loadingIsDistinctFromEmpty() async throws {
-        let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
-        #expect(await tracker.state().load == .loading, "a fresh tracker claimed to have loaded")
-
-        // A successful poll that returns nothing is the genuine Empty state — a *successful* read
-        // that found no servers. If emptiness alone meant "not loaded", a fresh router with none
-        // declared would render as a failure, which is the silent-empty shape SWIFT_PRACTICES §2
-        // names as the worst available.
-        await tracker.apply(poll: response([]))
-        let state = await tracker.state()
-        #expect(state.load == .loaded([]), "an empty successful poll was not treated as loaded")
-        #expect(state.servers.isEmpty)
-        #expect(state.load != .loading)
-    }
-
-    @Test("a successful poll is loaded, in the router's order")
-    func successfulPollIsLoaded() async throws {
-        let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
-        let expected = try [server("zebra"), server("alpha")]
-        try await tracker.apply(poll: response([server("zebra"), server("alpha")]))
-        let state = await tracker.state()
-        #expect(state.load == .loaded(expected))
-        #expect(state.servers.map(\.name) == ["zebra", "alpha"])
-    }
-
-    /// The brief's "healthy live state", named rather than assumed.
+    /// The invariant synchronous registration buys, asserted as an invariant rather than as one
+    /// lucky interleaving.
     ///
-    /// `.loaded` alone does not mean healthy-live: loaded data behind a dropped stream is a
-    /// different condition with different chrome, and a criterion that accepts `.loaded` regardless
-    /// of the stream would pass for all three. The three shapes are asserted distinct so a surface
-    /// has to choose between them deliberately.
-    @Test("healthy-live, healthy polling-only and loaded-with-a-dead-stream are three states")
-    func healthyLiveIsAJointClassification() async throws {
-        let one = try [server("alpha")]
-
-        let healthyStreaming = ServerStateTracker.TrackerState(load: .loaded(one), stream: .phase(.live))
-        let healthyPollingOnly = ServerStateTracker.TrackerState(load: .loaded(one), stream: .notConfigured)
-        let loadedStreamDown = ServerStateTracker.TrackerState(
-            load: .loaded(one), stream: .phase(.disconnected)
-        )
-
-        #expect(healthyStreaming != healthyPollingOnly)
-        #expect(healthyStreaming != loadedStreamDown)
-        #expect(healthyPollingOnly != loadedStreamDown)
-
-        // And the one the brief calls healthy live: fresh data AND a stream delivering it.
-        #expect(healthyStreaming.load == .loaded(one))
-        #expect(healthyStreaming.stream == .phase(.live))
-    }
-
-    // MARK: - A1, A2 — the failure states, through the real loop
-
-    @Test("‹real loop› a router that is not running is reported, not retried in silence")
-    func pollLoopReportsRouterNotRunning() async throws {
-        let tracker = ServerStateTracker(
-            client: FixtureControlAPIClient(.offline),
-            pollInterval: .milliseconds(1),
-            clock: SteppingClock(steps: 0)
-        )
-
-        let state = try await runLoop(tracker) { $0.load != .loading }
-
-        #expect(
-            state.load == .failed(.routerNotRunning),
-            "the poll loop did not surface a typed error — it settled on \(state.load)"
-        )
-        #expect(state.servers.isEmpty, "a failure with nothing behind it showed rows")
-    }
-
-    @Test("‹real loop› an unauthorized token stays unauthorized, and is not flattened into “an error”")
-    func pollLoopReportsUnauthorizedDistinctly() async throws {
-        let tracker = ServerStateTracker(
-            client: FixtureControlAPIClient(.unauthorized),
-            pollInterval: .milliseconds(1),
-            clock: SteppingClock(steps: 0)
-        )
-
-        let state = try await runLoop(tracker) { $0.load != .loading }
-
-        #expect(state.load == .failed(.unauthorized), "settled on \(state.load)")
-        // The distinction F3 went to trouble to draw, asserted at the one place that consumes it.
-        #expect(
-            state.load != .failed(.routerNotRunning),
-            "unauthorized and routerNotRunning became the same state"
-        )
-    }
-
-    // MARK: - A3 — the state the brief says must not be collapsed
-
-    @Test("‹real loop› a failure after a success is stale, and keeps the servers it already had")
-    func pollLoopGoesStaleKeepingServers() async throws {
-        let expected = try [server("alpha"), server("beta")]
-        let client = ScriptedControlAPIClient([
-            .success(response(expected)),
-            .failure(.transport(detail: "connection reset")),
-        ])
-        // One interval elapses, so a single `run()` performs both polls.
-        let tracker = ServerStateTracker(
-            client: client,
-            pollInterval: .milliseconds(1),
-            clock: SteppingClock(steps: 1)
-        )
-
-        let state = try await runLoop(tracker) { if case .stale = $0.load { true } else { false } }
-
-        #expect(
-            state.load == .stale(expected, .transport(detail: "connection reset")),
-            "a failure after a success was not reported as stale — it settled on \(state.load)"
-        )
-        #expect(
-            state.servers.map(\.name) == ["alpha", "beta"],
-            "the last good snapshot was thrown away to report a refresh failure"
-        )
-        #expect(await client.pollCount() >= 2, "the loop did not actually poll twice")
-    }
-
-    /// A9 — recovery, observed the way a surface actually observes it.
+    /// `updates()` returning means the subscriber is registered *and* has already been handed the
+    /// state that was current at that moment — so its first element is always the pre-publish
+    /// state, which for a tracker that has not polled is always `.loading`. Deferring registration
+    /// makes that a race the subscriber can lose: registration is serviced at some later point and
+    /// the yield it performs then carries whatever the state has since become, so `.loading` is
+    /// never delivered and the transition out of it is gone. A surface that renders a skeleton for
+    /// `.loading` would flash nothing, or — where the lost publication is a failure rather than a
+    /// success — show no failure at all.
     ///
-    /// This test replaced one that polled `state()` for “`.loaded` with one server”, and that
-    /// predicate was satisfiable by the *first* successful poll — the one before the failure. It
-    /// therefore returned before the failure had happened at all and only incidentally passed;
-    /// the mutation pass caught it going red for a reason unrelated to the mutation. There is no
-    /// way to repair it in place, because through `state()` the poll before the failure and the
-    /// poll after it are the same value. The transition is only a fact about the *sequence*.
-    ///
-    /// Which is also the honest reading of A9: a surface does not poll, it renders from
-    /// `updates()`, so “the banner clears” is a claim about what a subscriber receives. Asserting
-    /// the whole sequence rather than the final value matters for the same reason — a tracker that
-    /// went loaded → loaded, never publishing the failure at all, would satisfy any final-value
-    /// check while showing the user nothing wrong.
-    @Test("‹real loop› a subscriber sees the failure and its recovery, in order")
-    func recoveryIsObservableThroughUpdates() async throws {
-        let expected = try [server("alpha")]
-        let failure = ControlAPIError.transport(detail: "connection reset")
-        let client = ScriptedControlAPIClient([
-            .success(response(expected)),
-            .failure(failure),
-            .success(response(expected)),
-        ])
-        let tracker = ServerStateTracker(
-            client: client,
-            pollInterval: .milliseconds(1),
-            clock: SteppingClock(steps: 2)
-        )
+    /// Repeated because a race lost only sometimes is still a defect. The correct implementation
+    /// answers `.loading` on every trial by construction; a deferred one has to win every time.
+    @Test("the first state a subscriber sees is the one current when it subscribed")
+    func firstStateIsTheStateAtSubscription() async throws {
+        for trial in 1 ... 40 {
+            let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
+            let updates = await tracker.updates()
 
-        // Subscribed before the loop starts, so the sequence is the whole of what happened rather
-        // than whatever was left by the time a late subscriber arrived.
-        let updates = await tracker.updates()
-        let running = Task { await tracker.run() }
-        defer { running.cancel() }
+            // A different state, published with no delay at all. Anything the subscriber missed
+            // between `updates()` returning and this landing is a lost notification.
+            try await tracker.apply(poll: response([server("alpha")]))
 
-        var seen: [ServerStateTracker.LoadState] = []
-        for await state in updates {
-            seen.append(state.load)
-            let loadedCount = seen.filter { if case .loaded = $0 { true } else { false } }.count
-            // The recovery is the *second* `.loaded`; the first is the poll that made the data
-            // real. The count bound stops a regression that publishes nothing from hanging here
-            // instead of failing — a test that never finishes reports nothing at all.
-            if loadedCount == 2 || seen.count >= 8 { break }
+            // The inner array is the sentinel: an empty one means the subscriber received nothing
+            // at all. A scalar fallback of `.loading` here would make a timeout indistinguishable
+            // from the pass this test is looking for, which is the failure mode it exists to stop.
+            let first = await bounded { () -> [ServerStateTracker.LoadState] in
+                for await state in updates {
+                    return [state.load]
+                }
+                return []
+            }.first?.first
+
+            #expect(
+                first == .loading,
+                """
+                trial \(trial): the state current at subscription was never delivered — the \
+                subscriber's first element was \(String(describing: first)), so registration had \
+                not completed by the time updates() returned
+                """
+            )
+            if first != .loading { break }
         }
-
-        #expect(
-            seen == [.loading, .loaded(expected), .stale(expected, failure), .loaded(expected)],
-            "a subscriber did not see loading → loaded → stale → loaded; it saw \(seen)"
-        )
-        let polls = await client.pollCount()
-        #expect(polls >= 3, "the loop did not reach the recovering poll — it made \(polls)")
-    }
-
-    // MARK: - A10 — the whole of the typed error survives, hint included
-
-    @Test("a server error keeps its status, message and hint")
-    func serverErrorKeepsItsHint() async throws {
-        let failure = ControlAPIError.server(
-            status: 409, message: "already declared", hint: "retry with ?force=1 to add it anyway"
-        )
-        let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
-
-        await tracker.apply(pollFailure: failure)
-
-        let state = await tracker.state()
-        #expect(state.load == .failed(failure))
-        // The hint is the difference between a dead end and a next step; a state that drops it
-        // leaves the user told what failed and not what to do.
-        guard case let .failed(carried) = state.load else {
-            Issue.record("expected .failed, saw \(state.load)")
-            return
-        }
-        #expect(carried.advice.contains("retry with ?force=1 to add it anyway"))
-    }
-
-    // MARK: - A11 — a failure is published, not only a success
-
-    @Test("subscribers are notified of a poll failure, not only of a success")
-    func subscribersSeeFailures() async throws {
-        let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
-        let updates = await tracker.updates()
-
-        await tracker.apply(pollFailure: .routerNotRunning)
-
-        let collector = Task { () -> ServerStateTracker.LoadState? in
-            for await state in updates {
-                if case .failed = state.load { return state.load }
-                if case .stale = state.load { return state.load }
-            }
-            return nil
-        }
-
-        let seen = await collector.value
-        #expect(
-            seen == .failed(.routerNotRunning),
-            "a surface subscribed to updates was never told the feed had failed"
-        )
-    }
-
-    /// The other half of publishing: an unchanged state is not re-sent.
-    ///
-    /// A failing poll repeats every interval. Without this, each repeat pushes an identical
-    /// snapshot into an unbounded buffer, so a subscriber that is merely backgrounded accumulates
-    /// thousands of copies of one unchanging failure.
-    @Test("an identical state is not published twice")
-    func identicalStatesAreNotRepublished() async throws {
-        let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
-        let updates = await tracker.updates()
-
-        await tracker.apply(pollFailure: .routerNotRunning)
-        await tracker.apply(pollFailure: .routerNotRunning)
-        await tracker.apply(pollFailure: .routerNotRunning)
-        // A different state, so the collector has a terminator to look for.
-        try await tracker.apply(poll: response([server("alpha")]))
-
-        var seen: [ServerStateTracker.LoadState] = []
-        for await state in updates {
-            seen.append(state.load)
-            if case .stale = state.load { break }
-            if case .loaded = state.load, !state.servers.isEmpty { break }
-        }
-
-        let failures = seen.filter { if case .failed = $0 { true } else { false } }
-        #expect(failures.count == 1, "the same failure was published \(failures.count) times")
-    }
-
-    // MARK: - A6, A7, A8 — the stream condition
-
-    @Test("a tracker built without a stream is not-configured, never a dropped stream")
-    func streamlessTrackerReportsNotConfigured() async throws {
-        let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
-        let state = await tracker.state()
-
-        #expect(state.stream == .notConfigured)
-        // The defect this replaces: `.disconnected` claims a stream existed and dropped, so a
-        // surface trusting it drew disconnected chrome over live data forever.
-        #expect(state.stream != .phase(.disconnected), "a polling-only tracker claimed a dropped stream")
-    }
-
-    @Test("a tracker built with a stream reports its phase, and a phase event moves it")
-    func streamTrackerReportsPhase() async throws {
-        let tracker = ServerStateTracker(
-            client: FixtureControlAPIClient(.populated),
-            stream: ControlEventStream()
-        )
-        #expect(await tracker.state().stream == .phase(.disconnected), "a configured stream started elsewhere")
-
-        await tracker.apply(phase: .live)
-        #expect(await tracker.state().stream == .phase(.live))
-
-        // Losing the stream must not clear the rows already received: deleting history to report a
-        // connection problem destroys data the user was reading.
-        try await tracker.apply(poll: response([server("alpha")]))
-        await tracker.apply(phase: .reconnecting)
-        let state = await tracker.state()
-        #expect(state.stream == .phase(.reconnecting))
-        #expect(state.servers.count == 1, "a dropped stream cleared rows it never owned")
-        if case .loaded = state.load {} else {
-            Issue.record("a stream phase change disturbed what the poll had loaded: \(state.load)")
-        }
-    }
-
-    @Test("a phase cannot be fabricated for a tracker that has no stream")
-    func phaseIsIgnoredWithoutAStream() async throws {
-        let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
-
-        await tracker.apply(phase: .live)
-
-        #expect(
-            await tracker.state().stream == .notConfigured,
-            "a polling-only tracker was made to claim a live stream it does not have"
-        )
-    }
-
-    // MARK: - run() is singular
-
-    /// Two `run()` calls must not start two poll loops.
-    ///
-    /// `run()` suspends at `waitForAll()`, which releases the actor, so without a guard a second
-    /// caller starts a second loop. Overlapping polls let an older response land after a newer one
-    /// and overwrite it — a lost update that looks exactly like the router changing its mind.
-    @Test("running twice does not start a second poll loop")
-    func runIsIdempotent() async throws {
-        let expected = try [server("alpha")]
-        let client = ScriptedControlAPIClient([.success(response(expected))])
-        let tracker = ServerStateTracker(
-            client: client,
-            pollInterval: .milliseconds(1),
-            clock: SteppingClock(steps: 0)
-        )
-
-        let first = Task { await tracker.run() }
-        let second = Task { await tracker.run() }
-        defer { first.cancel(); second.cancel() }
-
-        // Let the single permitted poll land and the parked clock hold the loop.
-        for _ in 0 ..< 200 {
-            if await tracker.state().load != .loading { break }
-            try await Task.sleep(for: .milliseconds(5))
-        }
-        try await Task.sleep(for: .milliseconds(50))
-
-        let polls = await client.pollCount()
-        #expect(polls == 1, "two run() calls polled \(polls) times — a second loop is running")
     }
 }

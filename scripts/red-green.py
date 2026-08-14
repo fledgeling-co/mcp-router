@@ -294,8 +294,8 @@ mut(
 mut(
     "M53", "F4-A6", "a tracker with no stream is not born claiming a dropped one",
     SRC / "ServerStateTracker.swift",
-    "        self.streamCondition = stream == nil ? .notConfigured : .phase(.disconnected)",
-    "        self.streamCondition = .phase(.disconnected)",
+    "        streamCondition = stream == nil ? .notConfigured : .phase(.disconnected)",
+    "        streamCondition = .phase(.disconnected)",
     "is not-configured, never a dropped stream",
 )
 
@@ -318,8 +318,23 @@ mut(
 # outside observer can see the difference. No test can kill it, and pretending otherwise would
 # have meant writing a priority-race test that is flaky by construction.
 #
-# `Task.detached` is the same defect in the form that actually reaches production: it does not
-# inherit the executor, so the registration genuinely lands after a publish that follows it.
+# `Task.detached` was adopted next on the reasoning that not inheriting the executor would make
+# the registration genuinely land after a following publish. **That reasoning is wrong, and was
+# measured wrong.** Not inheriting the executor changes where the task *starts*, not where the
+# actor-isolated call it makes is *queued*: the detached task is created while `updates()` still
+# holds the actor, so its `await self.register(...)` is enqueued on the actor ahead of anything an
+# external caller can enqueue afterwards. `firstStateIsTheStateAtSubscription` asserts the
+# invariant that would expose the loss — the first element a subscriber receives must be the state
+# current when `updates()` returned — over 40 consecutive trials, and the deferred registration
+# won all 40. M55 therefore stays SURVIVED, honestly, rather than being relabelled as killed.
+#
+# It is NOT marked equivalent, because it is not: ordering here is an implementation detail of the
+# actor executor, and `Task.detached` runs at unspecified priority, so a priority difference or a
+# loaded machine can still make it lose. The synchronous `register` is kept because it is a
+# language-level guarantee rather than an observed schedule, and the 40-trial test is the guard
+# that catches the deferral on any run where it does lose. What no test can do is force the loss
+# on demand — a test that tried would be flaky by construction, which is worse than a recorded
+# survivor.
 mut(
     "M55", "F4-A11", "subscribing registers before updates() returns, losing nothing",
     SRC / "ServerStateTracker.swift",
@@ -353,6 +368,18 @@ mut(
     "        loadKind = hasLoaded ? .stale(error) : .failed(error)\n        publish()",
     "        loadKind = hasLoaded ? .stale(error) : .failed(error)",
     ["notified of a poll failure", "the failure and its recovery"],
+)
+
+# A cancelled `run()` is a deliberate teardown, not a stream that gave up. Without this guard the
+# ordinary shutdown path publishes `.disconnected` to every subscriber — a drop that did not
+# happen, which is the same lie as the pinned `.disconnected` F4 exists to remove, arriving from
+# the other end of the lifecycle. Found by the Phase D completeness critic.
+mut(
+    "M59", "F4-A7", "a cancelled run() does not report the stream as dropped",
+    SRC / "ServerStateTracker.swift",
+    "        guard !Task.isCancelled else { return }\n        apply(phase: .disconnected)",
+    "        apply(phase: .disconnected)",
+    "cancelling run() does not report a parked stream as dropped",
 )
 
 # ---------------------------------------------------------------- secrets (A5, A7)

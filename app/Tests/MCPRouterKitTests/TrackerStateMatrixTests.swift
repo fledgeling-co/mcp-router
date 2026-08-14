@@ -53,7 +53,8 @@ struct TrackerStateMatrixTests {
 
         var states: [String] = []
         for line in section.split(separator: "\n", omittingEmptySubsequences: true) {
-            guard let cells = DesignDocParser.cells(of: String(line)), let first = cells.first else { continue }
+            guard let cells = DesignDocParser.cells(of: String(line)),
+                  let first = cells.first else { continue }
             let name = DesignDocParser.normalise(first)
             // Skip the header and its separator, and the trailing per-control note's table if any.
             if name.isEmpty || name == "State" || name.allSatisfy({ $0 == "-" || $0 == ":" }) { continue }
@@ -62,21 +63,105 @@ struct TrackerStateMatrixTests {
         return states
     }
 
+    /// The sheet's derivation table, as a state name → derivation-cell map.
+    ///
+    /// Parsed rather than substring-searched, because the substring version of this test asserted
+    /// only that nine names appeared somewhere in an HTML file. A row reading
+    /// `<td>Loading</td><td></td>` satisfied it, as would one whose derivation named a type that
+    /// does not exist. The mapping is the artifact under test, so the mapping has to be read.
+    static func derivations() throws -> [String: String] {
+        let mock = try mockText()
+        var map: [String: String] = [:]
+        for line in mock.split(separator: "\n") {
+            guard line.contains("<tr><td>") else { continue }
+            let cells = line
+                .replacingOccurrences(of: "<tr>", with: "")
+                .components(separatedBy: "</td>")
+                .map { $0.replacingOccurrences(of: "<td>", with: "") }
+            guard cells.count >= 2 else { continue }
+            let name = cells[0].trimmingCharacters(in: .whitespaces)
+            // The stream-condition table at the foot of the sheet keys on `<code>` rather than a
+            // §5 state name; it is a different table and must not overwrite these rows.
+            guard !name.contains("<code>"), !name.isEmpty else { continue }
+            map[name] = cells[1]
+        }
+        return map
+    }
+
     // MARK: - A12, first half: every §5 state is mapped
 
     @Test("every state DESIGN.md §5 requires has a TrackerState mapped to it in the F4 sheet")
     func everyDesignStateIsMapped() throws {
         let states = try Self.designStates()
-        let mock = try Self.mockText()
+        let derivations = try Self.derivations()
 
-        #expect(states.count == 9, "DESIGN.md §5 no longer lists nine states — it lists \(states.count): \(states)")
+        #expect(
+            states.count == 9,
+            "DESIGN.md §5 no longer lists nine states — it lists \(states.count): \(states)"
+        )
 
         for state in states {
-            // The derivation table writes each state name as its own leading cell. A mention in
-            // prose elsewhere on the page is not a mapping and must not satisfy this.
+            guard let derivation = derivations[state] else {
+                Issue.record("DESIGN.md §5 requires a “\(state)” state and the F4 sheet has no row for it")
+                continue
+            }
+            // A row with an empty derivation cell is not a mapping. This is the half the substring
+            // version could not see.
             #expect(
-                mock.contains("<td>\(state)</td>"),
-                "DESIGN.md §5 requires a “\(state)” state and the F4 sheet maps no TrackerState to it"
+                !derivation.trimmingCharacters(in: .whitespaces).isEmpty,
+                "the F4 sheet has a “\(state)” row that maps it to no TrackerState at all"
+            )
+        }
+    }
+
+    /// The bridge the two halves were missing: the sheet and the specimens must agree.
+    ///
+    /// Coverage proved the sheet named nine states; distinguishability proved seven values differ.
+    /// Nothing connected them, so the specimen labelled *Disabled* could carry `.phase(.live)` —
+    /// the sheet's own **non**-disabled condition — and both halves still passed. This asserts each
+    /// specimen against the derivation the sheet publishes for that name.
+    @Test("each specimen is the TrackerState the F4 sheet says produces that state")
+    func specimensMatchTheSheetsDerivation() throws {
+        let derivations = try Self.derivations()
+
+        for (name, state) in try Self.distinguishable() {
+            guard let derivation = derivations[name] else {
+                Issue.record("the F4 sheet has no derivation row for “\(name)”")
+                continue
+            }
+
+            // Each half is checked only where the row actually pins it. Most §5 states are about
+            // the load and say nothing about the feed; *Disabled* is the reverse — it is defined
+            // by there being no feed, and pins no load state at all. Demanding both of every row
+            // would fail the sheet for being precise rather than for being wrong.
+            if derivation.contains("load:") {
+                let loadToken = switch state.load {
+                case .loading: ".loading"
+                case .loaded: ".loaded"
+                case .stale: ".stale"
+                case .failed: ".failed"
+                }
+                #expect(
+                    derivation.contains(loadToken),
+                    "“\(name)”: the specimen is \(loadToken) but the sheet derives it from \(derivation)"
+                )
+            }
+
+            if derivation.contains("stream:") {
+                let streamToken = switch state.stream {
+                case .notConfigured: ".notConfigured"
+                case let .phase(phase): ".phase(.\(phase.rawValue))"
+                }
+                #expect(
+                    derivation.contains(streamToken),
+                    "“\(name)”: the specimen's stream is \(streamToken), the sheet says \(derivation)"
+                )
+            }
+
+            // And no row may pin neither, or the specimen is answerable to nothing.
+            #expect(
+                derivation.contains("load:") || derivation.contains("stream:"),
+                "“\(name)”: the sheet's derivation pins neither a load state nor a stream condition"
             )
         }
     }
@@ -96,7 +181,7 @@ struct TrackerStateMatrixTests {
     ///
     /// Claiming nine distinct values here would be the more impressive-looking assertion and a
     /// false one.
-    static func distinguishable() -> [(String, ServerStateTracker.TrackerState)] {
+    static func distinguishable() throws -> [(String, ServerStateTracker.TrackerState)] {
         func state(
             _ load: ServerStateTracker.LoadState,
             _ stream: ServerStateTracker.StreamCondition = .notConfigured
@@ -104,29 +189,38 @@ struct TrackerStateMatrixTests {
             ServerStateTracker.TrackerState(load: load, stream: stream)
         }
 
-        let one = [try? FixtureControlAPIClient.decodeFixture("server-stdio", as: MCPServer.self)]
-            .compactMap { $0 }
+        // `try`, not `try?`. Swallowing a decode failure here would leave `one == []`, which makes
+        // "Default" and "Empty" the same value and reports a missing fixture as a modelling
+        // collapse — a `try?` hiding an error, in the feature whose whole subject is a `try?`
+        // hiding errors.
+        let one = try [FixtureControlAPIClient.decodeFixture("server-stdio", as: MCPServer.self)]
 
         return [
             ("Loading", state(.loading)),
-            ("Default", state(.loaded(one))),
+            // Default carries a live feed; Disabled is the same data with no feed configured. The
+            // sheet pins Disabled to `stream: .notConfigured` (and maps `.phase(.live)` to "Call
+            // log live", the opposite condition), so these were previously the wrong way round.
+            ("Default", state(.loaded(one), .phase(.live))),
             ("Empty", state(.loaded([]))),
             ("Partial", state(.stale(one, .transport(detail: "connection reset")))),
             ("Offline", state(.failed(.routerNotRunning))),
             ("Error", state(.failed(.unauthorized))),
-            ("Disabled", state(.loaded(one), .phase(.live))),
+            ("Disabled", state(.loaded(one), .notConfigured))
         ]
     }
 
     @Test("the states a surface must tell apart are different values")
     func distinguishableStatesAreDistinct() throws {
-        let cases = Self.distinguishable()
+        let cases = try Self.distinguishable()
 
         for i in cases.indices {
             for j in cases.indices where j > i {
                 #expect(
                     cases[i].1 != cases[j].1,
-                    "“\(cases[i].0)” and “\(cases[j].0)” are the same TrackerState — a surface cannot render both"
+                    """
+                    “\(cases[i].0)” and “\(cases[j].0)” are the same TrackerState — \
+                    a surface cannot render both
+                    """
                 )
             }
         }
@@ -140,7 +234,10 @@ struct TrackerStateMatrixTests {
 
         #expect(
             ServerStateTracker.LoadState.stale(one, error) != .failed(error),
-            "stale collapsed into failed — the last good snapshot would be thrown away to report a refresh problem"
+            """
+            stale collapsed into failed — the last good snapshot would be thrown away \
+            to report a refresh problem
+            """
         )
         // And the type cannot express the lie in the other direction: a failure with rows behind it
         // is not constructible, because `.failed` carries no servers at all.
@@ -173,7 +270,7 @@ struct TrackerStateMatrixTests {
 
     @Test("the F4 sheet's full-pane copy is the copy ControlAPIError returns")
     func sheetCopyMatchesTheClient() throws {
-        let mock = ControlCopyTests.normalised(try Self.mockText())
+        let mock = try ControlCopyTests.normalised(Self.mockText())
 
         for error in [ControlAPIError.routerNotRunning, .unauthorized] {
             #expect(
@@ -191,5 +288,49 @@ struct TrackerStateMatrixTests {
                 )
             }
         }
+    }
+
+    // MARK: - A15: F3's recorded fixtures are the contract R4 will diff against
+
+    /// A15 was stated as a criterion and checked by hand, which means it was checked once.
+    ///
+    /// The fixtures under `Control/Fixtures/` are what R4's differential parity gate diffs the
+    /// Swift router against. F4 wraps `StreamPhase` rather than widening it precisely so that
+    /// contract does not move, and this is what keeps the promise after the branch merges — a
+    /// later edit to a fixture is otherwise caught by nothing.
+    @Test("F3's recorded fixtures are untouched by this branch")
+    func fixturesAreUnmodified() throws {
+        var dir = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        var root: URL?
+        for _ in 0 ..< 8 {
+            if FileManager.default.fileExists(atPath: dir.appendingPathComponent(".git").path) {
+                root = dir
+                break
+            }
+            dir = dir.deletingLastPathComponent()
+        }
+        let repo = try #require(root, "could not locate the repository root from \(#filePath)")
+
+        let git = Process()
+        git.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+        git.arguments = [
+            "git", "-C", repo.path, "diff", "--stat", "main...HEAD", "--",
+            "app/Sources/MCPRouterKit/Control/Fixtures/"
+        ]
+        let pipe = Pipe()
+        git.standardOutput = pipe
+        git.standardError = Pipe()
+        try git.run()
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let out = String(bytes: data, encoding: .utf8) ?? ""
+        git.waitUntilExit()
+
+        // A git failure is not a pass. If the command could not run the criterion is unverified,
+        // and reporting that as clean is how a gate starts lying.
+        #expect(git.terminationStatus == 0, "git could not compare the fixtures directory")
+        #expect(
+            out.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            "this branch modified F3's recorded fixtures, which R4 diffs the Swift router against:\n\(out)"
+        )
     }
 }

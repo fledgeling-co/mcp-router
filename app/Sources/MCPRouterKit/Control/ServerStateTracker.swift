@@ -35,12 +35,25 @@ public actor ServerStateTracker {
     private var streamCondition: StreamCondition
     /// Whether any poll has ever succeeded.
     ///
-    /// This is what makes `.failed` and `.stale` decidable, and it cannot be replaced by
-    /// `servers.isEmpty`: a successful poll returning no servers is the genuine *Empty* state, and
-    /// treating emptiness as "never loaded" would render a fresh router with nothing declared as a
-    /// hard failure. `SWIFT_PRACTICES.md` §2 names that exact shape — the TypeScript router already
-    /// shipped it once, reading a flat `servers.json` as zero servers with no error at all.
-    private var hasLoaded = false
+    /// **Derived, not stored.** As a stored flag it duplicated a fact `loadKind` already carries,
+    /// which made `(hasLoaded: false, loadKind: .stale)` and `(hasLoaded: true, loadKind: .failed)`
+    /// representable in the actor's own storage — two states the type's whole design says cannot
+    /// exist, held together only by one assignment being written correctly. Computing it leaves
+    /// nothing to disagree.
+    ///
+    /// It cannot be replaced by `servers.isEmpty`: a successful poll returning no servers is the
+    /// genuine *Empty* state, and treating emptiness as "never loaded" would render a fresh router
+    /// with nothing declared as a hard failure. `SWIFT_PRACTICES.md` §2 names that exact shape —
+    /// the TypeScript router already shipped it once, reading a flat `servers.json` as zero servers
+    /// with no error at all.
+    private var hasLoaded: Bool {
+        switch loadKind {
+        case .loading, .failed: false
+        // `.stale` is only ever reached from a success, so it is itself the record of one.
+        case .loaded, .stale: true
+        }
+    }
+
     private var continuations: [UUID: AsyncStream<TrackerState>.Continuation] = [:]
     /// The last snapshot actually broadcast, so an unchanged state is not re-sent.
     ///
@@ -69,7 +82,7 @@ public actor ServerStateTracker {
         // Decided once, here, and never guessed later. A tracker with no stream is polling-only by
         // construction, which is a supported configuration rather than a fault — so it must not be
         // born claiming a stream that dropped.
-        self.streamCondition = stream == nil ? .notConfigured : .phase(.disconnected)
+        streamCondition = stream == nil ? .notConfigured : .phase(.disconnected)
     }
 
     /// What the last poll produced, carrying the servers that belong to it.
@@ -174,7 +187,15 @@ public actor ServerStateTracker {
     /// exists, so a surface subscribing at the wrong moment silently never learns the feed broke —
     /// which is the same invisible-failure shape this whole type was fixed to stop producing.
     public func updates() -> AsyncStream<TrackerState> {
-        let (stream, continuation) = AsyncStream<TrackerState>.makeStream()
+        // Bounded, and this is the bound that matters rather than the dedup below. The dedup only
+        // suppresses a state identical to the one before it, so a router flapping between
+        // `.loaded` and `.stale` — the ordinary failing-router case, and the case this whole
+        // feature is about — publishes distinct values forever. An `.unbounded` stream then grows
+        // without limit behind a subscriber that is merely backgrounded. A surface renders the
+        // present, so keeping the newest few and dropping the rest loses nothing it would draw.
+        let (stream, continuation) = AsyncStream<TrackerState>.makeStream(
+            bufferingPolicy: .bufferingNewest(8)
+        )
         let id = UUID()
         register(id, continuation)
         // Termination is the one half that genuinely has to hop: that closure is `@Sendable` and
@@ -215,7 +236,6 @@ public actor ServerStateTracker {
         }
         servers = next
         order = nextOrder
-        hasLoaded = true
         loadKind = .loaded
         publish()
     }
@@ -225,8 +245,12 @@ public actor ServerStateTracker {
     /// The servers are deliberately **not** cleared. A failure to refresh is not evidence that the
     /// servers went away, and deleting what the user is reading in order to report a connection
     /// problem destroys data no source said was gone.
+    /// It is published, not merely recorded. A failure stored and never broadcast leaves every
+    /// subscribed surface frozen on the last good frame with no way to learn the feed has died —
+    /// the same invisible failure as the original `try?`, one layer further out.
     public func apply(pollFailure error: ControlAPIError) {
         loadKind = hasLoaded ? .stale(error) : .failed(error)
+        publish()
     }
 
     /// Apply one call record. A call proves the server was running when it happened, so a server
@@ -303,6 +327,13 @@ public actor ServerStateTracker {
         // down. Leaving the condition at whatever it last reported would strand a surface showing
         // "live" over a feed that has stopped, which is the stream-shaped version of the pinned
         // `.disconnected` this feature exists to remove.
+        //
+        // Except when the iteration ended because *we* were cancelled. A deliberate teardown is
+        // not a dropped stream, and reporting one would be the same lie in the other direction:
+        // a `.disconnected` asserting a failure that did not happen, published to every subscriber
+        // on the ordinary shutdown path. Nothing is reported, because after cancellation there is
+        // no longer anyone whose question this answers.
+        guard !Task.isCancelled else { return }
         apply(phase: .disconnected)
     }
 }

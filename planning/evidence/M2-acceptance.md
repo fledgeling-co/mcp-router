@@ -179,3 +179,127 @@ decoration.
 
 `swift test` — **730 tests in 102 suites passed**. `scripts/lint/no-raw-design-values.sh` clean over
 42 files, 21 under the geometry and boundary rules; `scripts/lint/no-wire-codable.sh` clean.
+
+---
+
+# Third pass — the completeness critic's two blockers, and the rebase onto M3 (2026-08-14)
+
+**Commit SHAs above are pre-rebase and no longer resolve.** This branch was rebased onto `main`
+after M3 merged, so `6dd480d` and `8607c55` were rewritten. The *content* of those runs stands —
+they were real runs against the code that is still here — but a `git show` of those hashes will
+fail. The rows below carry post-rebase SHAs.
+
+## Why a re-run was owed rather than a citation of the rows above
+
+| File | What changed | Why the existing row could not be carried forward |
+|---|---|---|
+| `ActivityBoard.swift` | the row declares `ActivityMotion.rowInsertion`; `.onDisappear { model.stopFeed() }` | the list's insertion behaviour changed, which is what the `streamLive` row exercises |
+| `ActivityModel.swift` | `reconnect()` no longer awaits the feed; one owned feed slot; `stopFeed()`; `streamArrivals` | the spent-feed → Reconnect path is a different code path than the one that was driven |
+| `ActivityCopy.swift` | `subtitle` and `empty` take `since` as optional | the subtitle is read verbatim by the populated row |
+| `ShellWindow.swift`, `ScaffoldPane.swift` | two boards routed; `installed` is `[.servers, .activity]` | a shared file, and the Release scaffold gate counts the registry |
+
+The **Servers** pane was not driven. M3 owns it, `app/Sources/MCPRouterUI/Boards/` is untouched on
+this branch, and the one thing this item changed about it — that it still scrolls in the shell's own
+`ScrollView` rather than being expected to bring its own — is exercised by `mac-shell.sh`'s
+scroll-edge assertion, which runs on Servers. The six remaining placeholders were not driven, for
+the reason this file has given twice: driving a placeholder proves that a placeholder is a
+placeholder.
+
+## Runs
+
+| Screen | How it was verified | Commit | Result |
+|---|---|---|---|
+| Activity — all nine states | `scripts/acceptance/m2-activity.sh`, full run, exit 0. Populated (12 rows, `failed,` row, `claude · pid N`, 82-char tool name untruncated, subtitle `Showing 12 calls · since 7:12 pm · live`); filters as `AXMenuButton`s showing values, with `N of M` and `Clear filters` absent and the predicate proven able to match first; inspector opened by `axkit press` carrying the full cwd and `warm — the server was already running`; `Space` reached M1's probe past the board; empty with no error language; loading with no `AXProgressIndicator` and zero rows; offline and unauthorised verbatim from `ControlAPIError` with the action dimmed and reasoned; **the feed delivered records the backfill did not — 16 rows**; retrying offers no button, spent offers Reconnect and names no attempt count | `d64291d` | **pass** — 22 assertions, `frontmost at start: Ghostty`, `frontmost at end: Google Chrome`, MCP Router never in front |
+| Mac shell — regression after the `ShellWindow` / `ScaffoldPane` change | `scripts/acceptance/mac-shell.sh`, full run, exit 0. 256.0/52.0/32 measured; 8 destinations at 32.0pt; 34 commands present both ways with 26 shortcuts bound; scroll edge `#1E1E1E` at rest → `#2F2F2F` scrolled → back, uniform across the content width, **measured on Servers**; destination and window frame restored across quit and relaunch (Evals at 180,140,980,620); offline and unauthorised verbatim with no counts rendered; **`boards installed: 2 of 8 destinations`**, 6 still scaffolded and Release carries the placeholder honestly; the Debug key probe absent from Release | `d64291d`, **with a locally corrected oracle — see below** | **pass** — never frontmost, ended on Google Chrome |
+
+**Invisibility.** Every launch was `open -g -a`; every read was an accessibility query by pid; keys
+were posted with `CGEvent.postToPid`. Nothing used `activate`, `set frontmost to true`, or
+`screencapture -R`. Both scripts assert at every step that MCP Router is not the frontmost
+application, and both passed that assertion throughout. The frontmost application *did* change
+during the runs — Ghostty → Slack → Ledger → TextEdit → Google Chrome — because a person was using
+the machine; the scripts noted each move and confirmed the app stayed in the background.
+
+## The shell gate is red on `main`, and not because of this item
+
+`mac-shell.sh` fails on the merged tree, independently of M2. Its oracle is the command inventory in
+`planning/specs/spec-M1.md`, which still records four commands as `surfaceAbsent` — a fact about
+M1's world, when no board existed:
+
+| Row | Spec still says | Truth since M3 shipped Servers |
+|---|---|---|
+| `File / Add server… / ⌘N` | `surfaceAbsent` | `enabled` |
+| `Edit / Find / ⌘F` | `surfaceAbsent` | `enabled` |
+| `Edit / Reset server / ⌘R` | `surfaceAbsent` | `needsServerSelection` |
+| `Edit / Remove server / ⌘⌫` | `surfaceAbsent` | `needsServerSelection` |
+
+`MenuCommand.availability` returns `.enabled` for `addServer` and `find` whenever
+`installedDestinations` contains `.servers`, which has been true on `main` since M3 merged. M3's own
+evidence file records the live behaviour as correct — *"`Add server…` and `Find` carry no reason
+(they carried the surface-absent reason in M1)"* — so the code is right and the oracle was simply
+never updated with it. The first failure is `FAIL: File / Add server… carries no discoverable reason`.
+
+Correcting those four rows exposes a second, in the script itself: `[ "$DISABLED_CHECKED" -ge 7 ]`
+at `scripts/acceptance/mac-shell.sh:515` is M1's count of surface-absent commands. Three remain, so
+the guard fires with *"only 3 disabled commands were checked — the oracle looks wrong"*. There is
+also a coverage hole behind it: neither the disabled loop nor the enabled loop matches
+`needsServerSelection`, so `Reset server` and `Remove server` now have **no** assertion at all.
+
+**Both are pre-existing and both were left alone.** They live in files this item does not own —
+M1's spec and the shell's own gate — and another runner is live in this repository, so editing them
+here is the shared-write hazard the fleet rules exist to prevent. The shell run above was obtained
+with those two corrections applied **locally and uncommitted**, and then reverted; `git status` was
+clean of them before the commit that carries this file. The run is therefore honest evidence about
+the shell, and is *not* evidence that `make acceptance` is green on `main`. It is not.
+
+## Red-green proof of this pass's fixes
+
+Both fixes were reverted together and watched go red, then restored and watched go green. The full
+suite, not a filter.
+
+| Gate | Mutation | Result |
+|---|---|---|
+| B35 · the row declares its entry transition | `.transition(ActivityMotion.rowInsertion(...))` deleted from the `ForEach` row | **red** — `the row declares the transform-only entry transition` |
+| §7 · a file that animates a list declares how its rows enter | same mutation | **red** — `a file that animates a ForEach without declaring a transition on it` |
+| B36 · a reconnect over a live feed releases its guard | `replaceFeed(); await load()` → `await start()` | **red** — 3 assertions: `completes` false, `isReconnecting` still true, `requestCount` 1 where 2 was expected |
+
+Restored: **797 tests in 108 suites passed**. Reverted: **796 of 797 with 5 issues** across 3 tests.
+
+### Two gates that were incapable of failing, found while proving these
+
+1. **`neverFadesInFromZero` could not see this board at all.** It iterated
+   `ShellTestSupport.shellFiles`, which named twelve `Shell/` paths and nothing under `Activity/`.
+   The one board whose list animates insertions was the one file the entry-motion guard did not
+   read. `activityFiles` now exists and is pinned to a directory listing by
+   `activityFileListIsComplete`, exactly as `boardFiles` is — a hand-written list without a pin only
+   defers the same failure to the next file added.
+2. **The first version of the new transition check passed the very board it was written for.** It
+   asked whether the file contained `.transition(` anywhere. `ActivityBoard` carries
+   `.transition(.move(edge: .trailing))` on its inspector at line 40, a hundred lines above the
+   list — so with the row's transition deleted, the check was still green. It now searches only the
+   text *after* the first `ForEach(`. This was caught by running the mutation rather than by
+   reading the check, which is the whole argument for the red-green pass.
+
+## A test helper that did not bound what it claimed to
+
+The first version of `ActivityRecoveryTests.completes` raced `await work.value` against a sleep in a
+task group. Awaiting a `Task`'s `value` does **not** return early when the *awaiting* task is
+cancelled, so `group.cancelAll()` could not reclaim that child and the group never returned. Under
+the F2 mutation the suite hung for **eleven minutes** instead of failing in two seconds, and had to
+be killed. It polls a latch and cancels the work instead. Worth recording because the failure mode
+of a bounded-wait helper that is not actually bounded is indistinguishable from a hung machine.
+
+## Suite and lint at `d64291d`
+
+- `make test` — **797 tests in 108 suites passed**, exit 0.
+- `scripts/lint/no-raw-design-values.sh` — clean over **52 files**, **31** under the geometry and
+  boundary rules (`Activity/` joined `Shell/` and `Boards/`).
+- `scripts/lint/no-wire-codable.sh` — clean, 1 recorded exemption.
+- `make build-mac` and `make build-mac-release` — both `** BUILD SUCCEEDED **`.
+
+## One gate of this item's own that M3's merge had silently disarmed
+
+`m2-activity.sh` opened by grepping for the literal `installed: Set<Destination> = [.activity]` and
+calling `blocked` if it was absent. M3 merging turned the set into `[.servers, .activity]`, so the
+gate would have reported *"there would be no board to verify"* about a board that was installed —
+a precondition designed to prevent testing a placeholder, refusing to test a shipped surface. It now
+reads the declaration line and looks for `.activity` within it.

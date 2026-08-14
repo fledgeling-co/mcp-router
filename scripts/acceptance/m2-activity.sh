@@ -41,7 +41,11 @@ pass() { echo "  ok — $*"; }
 # check, and the real assertion that the reader is looking at a board rather than a placeholder is
 # the sentinel absence and the row count against the running process, below.
 REGISTRY="$ROOT/app/Sources/MCPRouterUI/Shell/ScaffoldPane.swift"
-grep -qF 'installed: Set<Destination> = [.activity]' "$REGISTRY" \
+# Membership, not equality. This read `= [.activity]` while M2 was the only board on the branch, so
+# M3 merging turned the set into `[.servers, .activity]` and this precondition BLOCKED a board that
+# was installed — a gate reporting "there is nothing to verify" about a shipped surface. The
+# declaration is one line, so the line is read and `.activity` looked for within it.
+grep -E 'installed: Set<Destination> *=' "$REGISTRY" | head -1 | grep -qE '\[[^]]*\.activity\b' \
   || blocked "the tree being tested does not install .activity — there would be no board to verify"
 pass "build tree: .activity is installed (the running app is checked separately, below)"
 

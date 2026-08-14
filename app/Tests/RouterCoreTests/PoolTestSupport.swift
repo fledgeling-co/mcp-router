@@ -37,7 +37,9 @@ final class FakeSession: UpstreamSession, Sendable {
         }
         // A shut-down session has ended, so anything awaiting its end is resumed rather than left
         // hanging — otherwise a test that closes cleanly would leak a suspended watcher task.
-        for continuation in waiting { continuation.resume() }
+        for continuation in waiting {
+            continuation.resume()
+        }
     }
 
     /// Simulate the upstream dying on its own — a crash, an EOF, a dropped session.
@@ -48,7 +50,9 @@ final class FakeSession: UpstreamSession, Sendable {
             current.waiters = []
             return waiters
         }
-        for continuation in waiting { continuation.resume() }
+        for continuation in waiting {
+            continuation.resume()
+        }
     }
 
     func waitUntilEnded() async {
@@ -79,9 +83,14 @@ final class FakeTransport: UpstreamTransporting, Sendable {
     var sessions: [FakeSession] { state.withLock { $0.sessions } }
 
     /// When set, every open parks until `openGate()` is called.
-    func setGated(_ value: Bool) { state.withLock { $0.gated = value } }
+    func setGated(_ value: Bool) {
+        state.withLock { $0.gated = value }
+    }
+
     /// When set, the next open throws.
-    func failNextOpen() { state.withLock { $0.failNext = true } }
+    func failNextOpen() {
+        state.withLock { $0.failNext = true }
+    }
 
     func open(_ upstream: UpstreamConfig, timeoutMilliseconds: Int) async throws -> any UpstreamSession {
         let (shouldFail, isGated) = state.withLock { current -> (Bool, Bool) in
@@ -115,7 +124,9 @@ final class FakeTransport: UpstreamTransporting, Sendable {
             current.gates = []
             return gates
         }
-        for continuation in waiting { continuation.resume() }
+        for continuation in waiting {
+            continuation.resume()
+        }
     }
 
     /// Wait until an open is parked, so a test never races the thing it is arranging.
@@ -130,11 +141,15 @@ final class FakeTransport: UpstreamTransporting, Sendable {
 final class TestClock: RouterClock, Sendable {
     private let now: Mutex<Double>
 
-    init(now: Double = 1_000_000) { self.now = Mutex(now) }
+    init(now: Double = 1_000_000) {
+        self.now = Mutex(now)
+    }
 
     var nowMilliseconds: Double { now.withLock { $0 } }
 
-    func advance(_ milliseconds: Double) { now.withLock { $0 += milliseconds } }
+    func advance(_ milliseconds: Double) {
+        now.withLock { $0 += milliseconds }
+    }
 }
 
 func stdioUpstream(

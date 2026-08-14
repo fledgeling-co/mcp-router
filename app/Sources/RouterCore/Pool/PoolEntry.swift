@@ -107,7 +107,14 @@ public struct UpstreamStatus: Sendable, Hashable {
     public let inFlight: Int
     public let idleSec: Int
 
-    public init(name: String, transport: String, state: String, callsServed: Int, inFlight: Int, idleSec: Int) {
+    public init(
+        name: String,
+        transport: String,
+        state: String,
+        callsServed: Int,
+        inFlight: Int,
+        idleSec: Int
+    ) {
         self.name = name
         self.transport = transport
         self.state = state
@@ -127,15 +134,15 @@ public enum PoolError: Error, Sendable, Equatable, CustomStringConvertible {
     public var description: String {
         switch self {
         case .shuttingDown:
-            return "router is shutting down"
+            "router is shutting down"
         case let .unknownUpstream(name):
-            return "unknown upstream server \"\(name)\""
+            "unknown upstream server \"\(name)\""
         case let .superseded(name):
-            return "upstream \"\(name)\" was superseded while starting"
+            "upstream \"\(name)\" was superseded while starting"
         case let .startupTimeout(name, milliseconds):
-            return "upstream \"\(name)\" did not initialize within \(milliseconds)ms"
+            "upstream \"\(name)\" did not initialize within \(milliseconds)ms"
         case let .legacySSEUnsupported(name):
-            return "Upstream \"\(name)\" uses the legacy SSE transport, which the Swift router "
+            "Upstream \"\(name)\" uses the legacy SSE transport, which the Swift router "
                 + "cannot speak. Keep this server on the TypeScript router until it is migrated "
                 + "to streamable HTTP."
         }

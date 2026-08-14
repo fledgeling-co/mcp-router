@@ -1,12 +1,12 @@
 import Foundation
 
-/// The boundaries R3 plugs into, frozen by R2 so the two runners cannot collide.
-///
-/// The rule that shapes every protocol here: **a seam with nothing attached must behave correctly
-/// on its own.** An absent control handler means control paths 404; it does not mean the router
-/// traps. Each protocol therefore has a no-op default whose behaviour is the correct inert one,
-/// and the pool and listener are written against the protocol rather than against the presence of
-/// an implementation.
+// The boundaries R3 plugs into, frozen by R2 so the two runners cannot collide.
+//
+// The rule that shapes every protocol here: **a seam with nothing attached must behave correctly
+// on its own.** An absent control handler means control paths 404; it does not mean the router
+// traps. Each protocol therefore has a no-op default whose behaviour is the correct inert one,
+// and the pool and listener are written against the protocol rather than against the presence of
+// an implementation.
 
 // MARK: - Control
 
@@ -23,7 +23,8 @@ public protocol ControlHandling: Sendable {
     /// Answer a claimed request. Returning `nil` means "claimed but unhandled", which the listener
     /// renders as 404 rather than falling through to the MCP endpoint — a fall-through would let a
     /// mistyped control path reach the relay.
-    func respond(method: String, path: String, headers: [String: String], rawBody: Data?) async -> ControlResponse?
+    func respond(method: String, path: String, headers: [String: String], rawBody: Data?) async
+        -> ControlResponse?
 }
 
 /// A control-API response, kept deliberately free of any HTTP library type so this seam does not
@@ -43,8 +44,18 @@ public struct ControlResponse: Sendable, Hashable {
 /// The inert control handler: claims nothing, answers nothing.
 public struct NoControlHandling: ControlHandling {
     public init() {}
-    public func claims(path: String) -> Bool { false }
-    public func respond(method: String, path: String, headers: [String: String], rawBody: Data?) async -> ControlResponse? { nil }
+    public func claims(path: String) -> Bool {
+        false
+    }
+
+    public func respond(
+        method: String,
+        path: String,
+        headers: [String: String],
+        rawBody: Data?
+    ) async -> ControlResponse? {
+        nil
+    }
 }
 
 // MARK: - Caller identity
@@ -97,7 +108,9 @@ public protocol CallerIdentifying: Sendable {
 public struct NoCallerIdentifying: CallerIdentifying {
     public init() {}
     public func prefetch(_ connection: ConnectionDescriptor) {}
-    public func identity(for connection: ConnectionDescriptor) async -> CallerIdentity { .unknown }
+    public func identity(for connection: ConnectionDescriptor) async -> CallerIdentity {
+        .unknown
+    }
 }
 
 // MARK: - Call observation
@@ -187,6 +200,9 @@ public protocol UpstreamAuthorizing: Sendable {
 public struct NoUpstreamAuthorizing: UpstreamAuthorizing {
     public typealias Authorizer = Never
     public init() {}
-    public func authorizer(for upstreamName: String) -> Never? { nil }
+    public func authorizer(for upstreamName: String) -> Never? {
+        nil
+    }
+
     public func challenge(upstreamName: String, url: String) {}
 }

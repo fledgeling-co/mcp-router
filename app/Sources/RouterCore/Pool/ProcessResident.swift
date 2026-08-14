@@ -41,9 +41,9 @@ enum ProcessResident {
                 try? await Task.sleep(nanoseconds: UInt64(timeoutSeconds) * 1_000_000_000)
                 return nil
             }
-            let first = await group.next() ?? nil
+            let first = await group.next()
             group.cancelAll()
-            return first ?? ""
+            return first.flatMap(\.self) ?? ""
         }
     }
 

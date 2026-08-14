@@ -112,8 +112,18 @@ struct LogParityTests {
                 // `print` is the hole a token scan for the FileHandle names leaves open: it writes
                 // to stdout and mentions neither of them, so an out-of-family review was right that
                 // scanning for the handles alone would pass the most likely way this regresses.
+                //
+                // A **child's** stdout is a different thing, and R2 needs it: a stdio MCP server
+                // speaks protocol over the pipe the router hands it, so `process.standardOutput`
+                // is the feature rather than the defect. Only that spelling is allowed through —
+                // `FileHandle.standardOutput`, a bare `standardOutput`, or any other receiver still
+                // fails, so the rule still catches a line quietly routed to our own stdout.
+                let childPipe = code.contains("process.standardOutput")
+                    || code.contains("process.standardError")
+                let namesOwnStdout = code.contains("FileHandle.standardOutput")
+                    || (code.contains("standardOutput") && !childPipe)
                 #expect(
-                    !code.contains("standardOutput") && !code.contains("STDOUT_FILENO")
+                    !namesOwnStdout && !code.contains("STDOUT_FILENO")
                         && !code.contains("print(") && !code.contains("fputs(")
                         && !code.contains("FileHandle(fileDescriptor: 1"),
                     "\(message)"

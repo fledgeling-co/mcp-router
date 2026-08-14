@@ -28,8 +28,8 @@
         /// it `ContentZone` still renders the placeholder, however complete the view is.
         ///
         /// `.servers` is M3's (`ServersBoard`); `.skills` is M4's (`SkillsBoard`); `.activity` is
-        /// M2's (`ActivityBoard`).
-        public static let installed: Set<Destination> = [.servers, .skills, .activity]
+        /// M2's (`ActivityBoard`); `.settings` is M8's (`SettingsBoard`).
+        public static let installed: Set<Destination> = [.servers, .skills, .activity, .settings]
 
         public static func hasBoard(_ destination: Destination) -> Bool {
             installed.contains(destination)

@@ -21,6 +21,10 @@ struct IconTests {
     /// with `❄` — a unicode character, which `DESIGN.md` §4 forbids ("drawn, never unicode"). The
     /// count is stated as base-plus-additions rather than as a bare 22 so that a symbol appearing
     /// without a reason still fails.
+    ///
+    /// M8's popover draws the same mark and arrived with its own case for it. A bare `== 22` could
+    /// not tell that apart from the one addition this comment justifies, which is the argument for
+    /// spelling the sum out: the duplicate was removed and the popover reuses `frost`.
     @Test("the set is the prototype's 21-symbol sprite plus the marks the document required drawn")
     func inventoryMatchesTheSprite() {
         let spriteSymbols = 21

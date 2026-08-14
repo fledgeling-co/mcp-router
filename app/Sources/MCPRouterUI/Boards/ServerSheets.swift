@@ -201,64 +201,6 @@
         }
     }
 
-    struct ToolChangeCard: View {
-        let change: ToolChange
-
-        var body: some View {
-            VStack(alignment: .leading, spacing: ServersBoardMetrics.gap) {
-                HStack {
-                    Text(change.name)
-                        .typeRole(.body, monospaced: true)
-                        .foregroundStyle(ColorToken.t1.color)
-                    Text(change.kind.rawValue)
-                        .typeRole(.caption)
-                        .foregroundStyle(ColorToken.t3.color)
-                }
-                if let before = change.before?.description {
-                    field("was", before, tint: .t2)
-                }
-                if let after = change.after?.description {
-                    field("now", after, tint: .t1)
-                }
-                if let invisible = change.invisible, !invisible.isEmpty {
-                    // Named explicitly, never silently kept. A description carrying codepoints that
-                    // render as nothing and that a model still reads is this surface's whole reason
-                    // to exist.
-                    Banner(icon: .warn, tint: .fail) {
-                        Text(
-                            """
-                            This description carries \(invisible.count) invisible \
-                            \(invisible.count == 1 ? "character" : "characters") that render as \
-                            nothing and that a model still reads: \
-                            \(invisible.joined(separator: ", ")).
-                            """
-                        )
-                    }
-                }
-            }
-            .padding(ServersBoardMetrics.rowPadding)
-            .background(
-                RoundedRectangle(
-                    cornerRadius: MetricToken.selectionRadius.leadingScalar,
-                    style: .continuous
-                )
-                .fill(ColorToken.raised.color)
-            )
-        }
-
-        private func field(_ label: String, _ value: String, tint: ColorToken) -> some View {
-            VStack(alignment: .leading, spacing: ServersBoardMetrics.tightGap) {
-                Text(label)
-                    .typeRole(.caption)
-                    .foregroundStyle(ColorToken.t3.color)
-                Text(value)
-                    .typeRole(.callout, monospaced: true)
-                    .foregroundStyle(tint.color)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-    }
-
     // MARK: - Remove
 
     /// A named-consequence dialog, and a deliberate departure from `DESIGN.md` §8's "undoable, never

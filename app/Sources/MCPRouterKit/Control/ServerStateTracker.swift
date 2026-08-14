@@ -39,6 +39,14 @@ public actor ServerStateTracker {
     /// used to be dropped on the floor here.
     private var idleMs: Int?
     private var pendingAuth: PendingAuth?
+    /// The port the router is listening on, and when its usage counter last opened.
+    ///
+    /// Retained here for the same reason `idleMs` is, and added by the same argument: Settings
+    /// renders the endpoint and the counting window, and the only honest source for either is the
+    /// router. Composing an endpoint from a hardcoded 8879 would point the user at the wrong port
+    /// the moment they change it, which is a fabricated observation rather than a cosmetic slip.
+    private var port: Int?
+    private var since: String?
     /// Whether any poll has ever succeeded.
     ///
     /// **Derived, not stored.** As a stored flag it duplicated a fact `loadKind` already carries,
@@ -138,59 +146,6 @@ public actor ServerStateTracker {
         case phase(StreamPhase)
     }
 
-    /// What a surface renders.
-    ///
-    /// `load` and `stream` are two independent facts because they fail independently — a healthy
-    /// poll with a dropped stream is ordinary, and folding them into one value would force a
-    /// surface to lie about one of them. Both are `let`: a state handed to a surface is a reading,
-    /// and a reading a caller can edit is not a reading.
-    public struct TrackerState: Equatable, Sendable {
-        public let load: LoadState
-        public let stream: StreamCondition
-
-        /// The router's own reap horizon, in milliseconds, from the last poll that answered.
-        ///
-        /// Retained because a surface that renders "reaps in 200s" has to get that number from
-        /// somewhere, and the only honest somewhere is the router. Without it the servers board
-        /// would have to assume a horizon — the prototype assumes 300 seconds — and an assumed
-        /// number displayed as an observation is exactly what `DESIGN.md` §6 forbids.
-        ///
-        /// `nil` until a poll has succeeded. It is deliberately **not** cleared by a failure, for
-        /// the same reason the servers are not: a failure to refresh is not evidence that the
-        /// router's configuration changed.
-        public let idleMs: Int?
-
-        /// An OAuth flow the router already has open, from the last poll that answered.
-        ///
-        /// The difference between "this server needs authorising" and "a browser window is already
-        /// open waiting for you" — a surface that cannot tell those apart offers the button twice,
-        /// and the second press abandons the first flow.
-        public let pendingAuth: PendingAuth?
-
-        /// The servers to show, whatever the load state — empty when nothing has ever loaded.
-        ///
-        /// Derived rather than stored, so it cannot disagree with `load`.
-        public var servers: [MCPServer] {
-            switch load {
-            case .loading, .failed: []
-            case let .loaded(servers): servers
-            case let .stale(servers, _): servers
-            }
-        }
-
-        public init(
-            load: LoadState,
-            stream: StreamCondition,
-            idleMs: Int? = nil,
-            pendingAuth: PendingAuth? = nil
-        ) {
-            self.load = load
-            self.stream = stream
-            self.idleMs = idleMs
-            self.pendingAuth = pendingAuth
-        }
-    }
-
     /// The actor's own record of what the last poll did, without the payload — the servers are
     /// materialised into `LoadState` at the moment a state is read, so `apply(record:)` has one
     /// place to correct and cannot leave two copies disagreeing.
@@ -213,7 +168,9 @@ public actor ServerStateTracker {
             load: load,
             stream: streamCondition,
             idleMs: idleMs,
-            pendingAuth: pendingAuth
+            pendingAuth: pendingAuth,
+            port: port,
+            since: since
         )
     }
 
@@ -278,6 +235,8 @@ public actor ServerStateTracker {
         // rather than from a number it made up.
         idleMs = response.idleMs
         pendingAuth = response.pendingAuth
+        port = response.port
+        since = response.since
         publish()
     }
 

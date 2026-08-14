@@ -16,11 +16,16 @@ public enum Icon: String, CaseIterable, Sendable {
     case activity, servers, skills, discover, inbox, evals, cleanup, settings
     case search, chev, check, warn, bang, shield, bolt, tray, book, list, compass, layers
     case conduit
-    /// The cold-start mark on a call row.
+    /// The cold-start mark, on a call row and on a popover call row alike.
     ///
     /// §4 says drawn, never unicode, and the prototype marks a cold call with `❄` — a character,
     /// at whatever weight the font happens to carry, on no grid. This is the symbol that replaces
     /// it, so the mark sits at the same stroke weight as every other icon in the app.
+    ///
+    /// M8 arrived with a second case, `cold`, for the popover's mark — same concept, same
+    /// `snowflake`, drawn beside a different row. Two names for one mark is how the sprite grows a
+    /// duplicate that the count assertion cannot see (22 is 22 either way), so the merge keeps this
+    /// one and the popover uses it.
     case frost
 
     /// The SF Symbol that carries this icon, or nil when it is authored here instead.

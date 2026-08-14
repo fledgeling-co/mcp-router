@@ -92,7 +92,17 @@
             "app/Sources/MCPRouterUI/Shell/ShellCommandRouter.swift",
             "app/Sources/MCPRouterUI/Shell/ShellClientFactory.swift",
             "app/Sources/MCPRouterUI/Shell/ShellWindowFrame.swift",
-            "app/Sources/MCPRouterUI/Shell/ShellMenuReasons.swift"
+            "app/Sources/MCPRouterUI/Shell/ShellMenuReasons.swift",
+            // M8's menu-bar surfaces. Enrolled here rather than merely added to the directory,
+            // because these files are the ones a token or indicator-colour gate most needs to
+            // scan: the status item is the app's most visible surface and its dot is the busiest
+            // use of `--attn` in the product.
+            "app/Sources/MCPRouterUI/Shell/MenuBarPopover.swift",
+            "app/Sources/MCPRouterUI/Shell/MenuBarStatusItem.swift",
+            "app/Sources/MCPRouterUI/Shell/MenuBarRouter.swift",
+            // Split out of ShellModel.swift to keep it under the 400-line limit — the limit was
+            // met by splitting rather than raised, per this repo's own lesson from R2R.
+            "app/Sources/MCPRouterUI/Shell/ShellRestoration.swift"
         ]
 
         /// The board files, held separately because a completeness test pins `shellFiles` to the
@@ -120,7 +130,14 @@
             "app/Sources/MCPRouterUI/Boards/SkillsBoardMetrics.swift",
             "app/Sources/MCPRouterUI/Boards/SkillsBoardModel.swift",
             "app/Sources/MCPRouterUI/Boards/SkillInspector.swift",
-            "app/Sources/MCPRouterUI/Boards/SkillSheets.swift"
+            "app/Sources/MCPRouterUI/Boards/SkillSheets.swift",
+            // M8's Settings pane.
+            "app/Sources/MCPRouterUI/Boards/SettingsBoard.swift",
+            "app/Sources/MCPRouterUI/Boards/SettingsBoardModel.swift",
+            "app/Sources/MCPRouterUI/Boards/SettingsBoardParts.swift",
+            // Split out of ServerSheets.swift for the same reason. It is also the view M8
+            // changed, so keeping it separately gated is the honest arrangement.
+            "app/Sources/MCPRouterUI/Boards/ToolChangeCard.swift"
         ]
 
         /// M2's board, listed for the same reason `boardFiles` is.

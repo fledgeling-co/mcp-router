@@ -52,7 +52,7 @@ than barriering on whole waves, so the real overlap is greater than the table im
 |---|---|---|---|
 | 1 | F1 | 1 | ✅ **CLEARED** — both targets build, CI green on a clean runner, `SWIFT_PRACTICES.md` landed |
 | 2 | F2 · F3 · R1 | 3 | ✅ **CLEARED** — all three merged; merged-tree `make all` exit 0, 237 tests, lint clean |
-| 3 | M1 · R2 · R3 · I1 | 4 | Mac shell navigable; iOS pairs; Swift router relays a real call |
+| 3 | M1 · R2 · R3 · I1 (+ **F4**, injected) | 5 | Mac shell navigable; iOS pairs; Swift router relays a real call. **F4 must merge before wave 4** — M2 and M3 both read `ServerStateTracker` |
 | 4 | M2 · M3 · M4 · I2 · R4 | 5 | **R4 is the parity gate and may not pass on a subset** |
 | 5 | M5 · M7 · M8 · I3 | 4 | — |
 | 6 | M6 | 1 | Phone → Mac inbox round-trip works end to end |
@@ -82,10 +82,11 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 | F2 | Design system in SwiftUI | foundation | F1 ✓ | `?only=mac` + `DESIGN.md` §§2–7 | Opus | **Merged** `22d1802` | — | merged-tree `make all` exit 0 · 75 tests · both appearances authored · tokens tested *against* `DESIGN.md`, so doc and code cannot drift · two recorded deviations (tertiary 50% not 25%; `--onAccent` 3.23:1, kit wins) |
 | F3 | Control-API client and models | foundation | F1 ✓ | — (surface: `src/control.ts`) | Opus | **Merged** `13825c9` | — | merged-tree `make all` exit 0 · 147 tests · 23 recorded fixtures + `ControlProbe` · **merge found a real defect**: unanchored `.gitignore` `servers.json` had silently swallowed a source fixture, green on the branch and red only when merged |
 | R1 | Router: core, config, manifest | router | F1 ✓ | — | Opus | **Merged** `c30eac9` | — | merged-tree `make all` exit 0 · 237 tests · 224 parity vectors · mutation gate exit 0 · SDK pinned exact `0.12.1`, confined to `RouterCore` which neither app links |
+| F4 | ServerStateTracker cannot report failure | foundation | F3 ✓ | — | Opus | **Ready — blocks M2, M3** | — | Defect on `main`, found by M1's plan gate and verified in source: `try?` in `pollLoop` discards every typed `ControlAPIError`, and `phase` is pinned to `.disconnected` whenever `stream` is nil (the default). No §5 failure state is renderable from this type. |
 | R2 | Router: pool, relay, passthrough | router | R1 | — | Opus | Untriaged | — | — |
 | R3 | Router: control, auth, usage, registry | router | R1 | — | Opus | Untriaged | — | — |
 | R4 | Parity harness and cutover | router | R2, R3 | — | Opus — never downgrade | Untriaged | — | — |
-| M1 | Mac shell, menu bar, keyboard | mac | F2, F3 | `?only=mac` | Opus | Untriaged | — | — |
+| M1 | Mac shell, menu bar, keyboard | mac | F2, F3 ✓ | `?only=mac` | Opus | **Partial — relaunched** | `ai/m1` `6035cc4` | Spec (37 clauses), plan, design mock and the shell models committed, tree clean · 264 tests, lint clean, 6 red-green proofs · both codex gates REJECTed and were fully addressed · **no UI shipped yet**, so every UI clause is unevidenced and the runner said so rather than claiming build gates as UI evidence · plan Phases B/C/D remain |
 | M2 | Activity | mac | M1 | `?only=mac&pane=activity` | Opus | Untriaged | — | — |
 | M3 | Servers: the breaker board | mac | M1 | `?only=mac&pane=servers` | Opus | Untriaged | — | — |
 | M4 | Skills and marketplaces | mac | M1 | `?only=mac&pane=skills` | Opus | Untriaged | — | — |

@@ -227,10 +227,12 @@ acceptance: build-mac build-mac-release
 	./scripts/acceptance/mac-shell.sh
 
 lint: tools
-	swiftformat --lint . --config .swiftformat
-	swiftlint lint --strict --config .swiftlint.yml
-	./scripts/lint/no-raw-design-values.sh
-	./scripts/lint/no-wire-codable.sh
+	@fail=0; \
+	swiftformat --lint . --config .swiftformat || fail=1; \
+	swiftlint lint --strict --config .swiftlint.yml || fail=1; \
+	./scripts/lint/no-raw-design-values.sh || fail=1; \
+	./scripts/lint/no-wire-codable.sh || fail=1; \
+	exit $$fail
 
 ## Writes formatting changes in place. Not part of `all` — a gate that edits your files is a gate
 ## that can turn a red build green without anyone reading the diff.

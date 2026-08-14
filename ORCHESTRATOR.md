@@ -200,6 +200,44 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 
 ## Changelog
 
+- 2026-08-14 — **Two orchestrators ran this fleet at once, and neither knew until an Edit failed.**
+  lifeline (PID 41580) recovered this session by spawning **two** headless
+  `--resume <same-session-id> -p "Resume workflow run wf_…"` processes at the same instant — 28866
+  and 28892. Both replayed the same transcript, so both believed they were the sole orchestrator,
+  and **both committed to `main`** (`0341b42`, `efddb0c`, `a33a7de` from one; `cd3be8d`, `cfb4eda`,
+  `eb356df` from the other) and both launched fleet waves.
+
+  **Neither detected it by looking.** One found out when its `Edit` failed with *"File has not been
+  read yet"* on a file it had never touched; the other found out from commits in `git log` it had no
+  record of making. Resolved by `ListAgents` → `SendMessage`, and 28866 stood down cleanly rather
+  than being killed — it handed over its in-flight state, which is the only reason the next two
+  facts are known.
+
+  **Attribution between the two is not recoverable and was not worth recovering.** Both sessions
+  claim the same commits, because a resumed transcript makes the other's pre-fork work
+  indistinguishable from your own. The commits are on `main`, they are correct, and that is the
+  part that matters. **Do not spend a turn litigating who wrote what after a fork.**
+
+  What it actually cost: **`ai/m4` carries commits from two different runners.** The sibling's wave
+  `wf_60e34389-efe` had an M4 runner that committed `ceeac1e` at 23:08:50; this session's
+  `wf_2ff47aa9-981` runner committed `05f5e49` and is still live on top of it. The sibling's runner
+  was working from a brief that said its predecessor had died, which was false. **M4's branch must
+  be gated on the merged tree with that in mind** — two agents' understanding is stacked in it.
+
+  The guard that held: `.worktrees/M2`'s abandoned split was **measured rather than assumed**. The
+  handover recommended deleting three untracked files as half-finished; running them showed 829
+  tests in 113 suites, exit 0, and violations down from 5 to 3. They were committed (`138b62c`)
+  instead of discarded. *"It looks half-finished"* is a hypothesis, and the test suite is the
+  instrument.
+
+- 2026-08-14 — **`planning/watch-fleet.sh` had never run, once, all session (`a33a7de`).** It used
+  `declare -A`, which needs bash 4; macOS `/bin/bash` is 3.2 and fails immediately. Every "watcher
+  armed" claim this session was false, and the runner deaths it existed to catch were all found by
+  hand instead. Now verified the only way that means anything: run it under `/bin/bash` explicitly
+  and confirm it is **still alive** when a deadline kills it (exit 142), rather than confirming it
+  started. A watcher that exits instantly and a watcher that is quietly watching look identical
+  from the outside — which is exactly the failure it was written to detect in other things.
+
 - 2026-08-14 — **`make lint` was hiding half its own output, and it cost two items a turn each
   (`cfb4eda`).** make stops a recipe at the first failing line, so a swiftformat failure meant
   **swiftlint never ran**. R2-R reported its lint clean while 31 violations sat behind a formatting

@@ -496,47 +496,153 @@ pass "all $SHORTCUT_CHECKED inventoried shortcuts are bound with the key and mod
 
 # ---------------------------------------------------------------- A22 · disabled, and saying why
 
-REASON="$(grep -oE '"This part of the app isn.t built yet\."' \
-  "$APP_DIR/Sources/MCPRouterKit/Shell/MenuCommand.swift" | head -1 | tr -d '"')"
-[ -n "$REASON" ] || blocked "could not read the surfaceAbsent reason out of MenuCommand.swift"
+# **The expectation is derived, not restated.** This block used to read the inventory table's
+# fourth column and assert it against the running app. That column is headed *"Availability in
+# M1"* and means exactly that: the answer in `CommandContext.none`, with no board installed, which
+# is what `MenuCommandTests` compares it against and what it is still correct for. It was never
+# the shipped app's answer, and the two stopped agreeing the moment M3 installed the Servers
+# board — a document restating by hand a rule `MenuCommand.availability(in:)` already computes,
+# going stale silently every time a board ships. It went stale twice (M3, then M4) before this
+# gate caught it, and hand-correcting seven rows would only have bought until the next one.
+#
+# So the oracle for *availability* is the model itself, compiled from the shipped source with the
+# context the running app actually has. The spec table remains the external oracle for the two
+# things a model cannot check about itself — which commands exist, and which chords they carry —
+# and those are asserted above, unchanged.
+#
+# What this still proves, and it is the thing that broke: the model's answer has to survive the
+# crossing into AppKit. Measured on 2026-08-15 before the fix, `Add server…` reported `AXEnabled`
+# 0 with an empty `AXHelp` — SwiftUI dimmed it from `.none` while `ShellMenuReasons` annotated it
+# from the live context, so a command whose board had shipped was permanently unusable and said
+# nothing about why. Every reviewer that looked only at `availability(in:)` passed it.
 
+# shellcheck source=scripts/acceptance/board-registry.sh
+. "$ROOT/scripts/acceptance/board-registry.sh"
+REGISTRY="$APP_DIR/Sources/MCPRouterUI/Shell/ScaffoldPane.swift"
+INSTALLED_NAMES="$(board_registry_installed "$REGISTRY" \
+  | grep -oE '\.[a-z][a-zA-Z]*' | tr -d '.' | tr '\n' ' ')"
+# An empty list is a broken reader, never an empty set — `installed` has been non-empty since M2.
+# It matters more here than anywhere: the oracle takes the installed set as **arguments**, so an
+# empty one produces a complete, well-formed table in which every board-dependent command reads
+# `surfaceAbsent`. That is the old stale answer, wearing the derivation's clothes.
+[ -n "$(printf '%s' "$INSTALLED_NAMES" | tr -d ' ')" ] \
+  || blocked "read no installed boards out of $REGISTRY — the registry reader is wrong, not the code"
+
+cat > "$WORK/main.swift" <<'SWIFT'
+import Foundation
+
+// What every command should report, in the context the running app is in.
+//
+// `selectedServerIsTripped` is nil because the menu walk happens with no server selected — the
+// shell has just launched onto its restored destination and nothing in the servers table is
+// picked. The two commands that branch on a selection therefore expect `needsServerSelection`,
+// which is a different sentence from the surface-absent one and is asserted as such.
+let names = Array(CommandLine.arguments.dropFirst())
+let installed = Set(names.compactMap(Destination.init(rawValue:)))
+// A name that is not a `Destination` is a broken caller, not a board that is switched off, and
+// `compactMap` would drop it silently — leaving a smaller installed set, a `surfaceAbsent`
+// expectation, and a failure that reads as an availability defect in the app. Say what happened.
+guard installed.count == names.count else {
+    let unknown = names.filter { Destination(rawValue: $0) == nil }
+    FileHandle.standardError.write(Data("not a Destination: \(unknown.joined(separator: " "))\n".utf8))
+    exit(2)
+}
+let context = MenuCommand.CommandContext(installedDestinations: installed, selectedServerIsTripped: nil)
+for command in MenuCommand.allCases {
+    let availability = command.availability(in: context)
+    let token = switch availability {
+    case .enabled: "enabled"
+    case .surfaceAbsent: "surfaceAbsent"
+    case .needsServerSelection: "needsServerSelection"
+    }
+    print([
+        command.menu.rawValue,
+        command.title,
+        command.isSystemProvided ? "system" : "app",
+        token,
+        availability.reason ?? ""
+    ].joined(separator: "\t"))
+}
+SWIFT
+
+# **The oracle and the binary must be the same tree.** The oracle is compiled from source at run
+# time while the app under test was built earlier, so a source edit without a rebuild has the gate
+# comparing a fresh expectation against a stale app. The likely direction is a false red, which
+# wastes a run; the dangerous direction is the inverse — a binary built from a *fixed* tree passing
+# a gate whose oracle was compiled from a broken one, certifying code that is not what shipped.
+MENU_SOURCES=(
+  "$APP_DIR/Sources/MCPRouterKit/Shell/MenuCommand.swift"
+  "$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift"
+  "$APP_DIR/Sources/MCPRouterUI/Shell/ShellCommands.swift"
+  "$APP_DIR/Sources/MCPRouterUI/Shell/ShellMenuReasons.swift"
+)
+STALE="$(find "${MENU_SOURCES[@]}" -newer "$MAC_APP/Contents/MacOS/MCPRouter" 2>/dev/null || true)"
+[ -z "$STALE" ] \
+  || blocked "these sources are newer than the built app — run 'make build-mac' so the oracle and the binary are one tree:
+$STALE"
+
+swiftc -O -o "$WORK/menu-oracle" \
+  "$APP_DIR/Sources/MCPRouterKit/Shell/MenuCommand.swift" \
+  "$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift" \
+  "$WORK/main.swift" 2>"$WORK/oracle.log" \
+  || { cat "$WORK/oracle.log" >&2; blocked "could not build the availability oracle"; }
+
+# shellcheck disable=SC2086  # the installed names are a deliberate argument list
+"$WORK/menu-oracle" $INSTALLED_NAMES > "$WORK/expected.tsv" \
+  || blocked "the availability oracle did not run"
+
+# Only what the **app** declares. macOS dims Close, Undo and Minimize while an application is
+# inactive, and this gate deliberately reads a backgrounded app — so its own items are the only
+# ones whose enabled bit means anything here. `isSystemProvided` supplies that split, derived,
+# where this block used to carry a hand-written `View/*|Help/*|"MCP Router/Settings"` list that
+# was itself a second copy of the same fact and covered thirteen of the twenty.
+APP_ROWS="$(awk -F'\t' '$3 == "app"' "$WORK/expected.tsv" | grep -c . || true)"
+[ "$APP_ROWS" -ge 15 ] \
+  || blocked "the availability oracle named only $APP_ROWS app-declared commands — it did not load"
+echo "  availability oracle: $APP_ROWS app-declared commands, boards installed: $INSTALLED_NAMES"
+
+AVAIL_CHECKED=0
 DISABLED_CHECKED=0
-while IFS=$'\t' read -r menu title shortcut availability; do
-    [ "$availability" = "surfaceAbsent" ] || continue
-    [ -n "$title" ] || continue
+ENABLED_CHECKED=0
+while IFS=$'\t' read -r menu title kind availability reason; do
+    [ "$kind" = "app" ] || continue
     line="$(awk -F'\t' -v m="$menu" -v t="$title" '$1 == m && $2 == t { print; exit }' "$WORK/items.tsv")"
-    [ -n "$line" ] || fail "$menu / $title is disabled in the spec and absent from the menu bar — §3.4 forbids hiding it"
+    [ -n "$line" ] || fail "$menu / $title is declared by the app and is not in the menu bar — §3.4 forbids hiding it"
     enabled="$(printf '%s' "$line" | cut -f3)"
     help="$(printf '%s' "$line" | cut -f4)"
-    [ "$enabled" = "0" ] || fail "$menu / $title reports itself enabled, but its surface does not exist"
-    [ "$help" = "$REASON" ] || fail "$menu / $title carries no discoverable reason (AXHelp was '$help')"
-    DISABLED_CHECKED=$((DISABLED_CHECKED + 1))
-done < "$WORK/inventory.tsv"
-[ "$DISABLED_CHECKED" -ge 7 ] || fail "only $DISABLED_CHECKED disabled commands were checked — the oracle looks wrong"
-pass "$DISABLED_CHECKED disabled commands are present, report themselves disabled, and carry their reason"
+    if [ "$availability" = "enabled" ]; then
+        [ "$enabled" = "1" ] \
+          || fail "$menu / $title is usable in this build, but the menu bar reports it disabled"
+        # The other direction, and the one that would have caught the stale annotation: a reason
+        # left behind on a command that has since become usable tells the user a surface is
+        # missing while the menu offers it.
+        [ -z "$help" ] \
+          || fail "$menu / $title is usable but still carries the reason '$help'"
+        ENABLED_CHECKED=$((ENABLED_CHECKED + 1))
+    else
+        [ "$enabled" = "0" ] \
+          || fail "$menu / $title reports itself enabled, but its availability is $availability"
+        [ "$help" = "$reason" ] \
+          || fail "$menu / $title carries no discoverable reason (AXHelp was '$help', expected '$reason')"
+        DISABLED_CHECKED=$((DISABLED_CHECKED + 1))
+    fi
+    AVAIL_CHECKED=$((AVAIL_CHECKED + 1))
+done < "$WORK/expected.tsv"
 
-# The disabled flag is weaker evidence on a background app than it looks, and saying so is the
-# point: macOS dims many of its own items — Close, Undo, Minimize — while an app is inactive, so
-# "reports itself disabled" alone could be an artefact of not being frontmost. Two things separate
-# the app's disabled commands from that. The **reason string** is on exactly the app's own, asserted
-# above. And the app's *enabled* commands report themselves enabled in the same walk, which they
-# could not if inactivity were dimming everything.
-ENABLED_CHECKED=0
-while IFS=$'\t' read -r menu title shortcut availability; do
-    [ "$availability" = "enabled" ] || continue
-    # Only the ones the app declares: the system's own items are legitimately dimmed while inactive.
-    case "$menu/$title" in
-        View/*|Help/*|"MCP Router/Settings") ;;
-        *) continue ;;
-    esac
-    line="$(awk -F'\t' -v m="$menu" -v t="$title" '$1 == m && $2 == t { print; exit }' "$WORK/items.tsv")"
-    [ -n "$line" ] || fail "$menu / $title is missing from the menu bar"
-    [ "$(printf '%s' "$line" | cut -f3)" = "1" ] \
-      || fail "$menu / $title reports itself disabled, but the inventory says it is enabled"
-    ENABLED_CHECKED=$((ENABLED_CHECKED + 1))
-done < "$WORK/inventory.tsv"
-[ "$ENABLED_CHECKED" -ge 11 ] || fail "only $ENABLED_CHECKED enabled app commands were checked — the oracle looks wrong"
-pass "$ENABLED_CHECKED enabled app commands report themselves enabled, so the dimming above is the app's own"
+# Completeness is carried by the lookup inside the loop — every app-declared row the oracle names
+# is resolved against the running menu bar or fails — together with A19's two-way membership check
+# above. An earlier draft also asserted `AVAIL_CHECKED -eq APP_ROWS`, which a completeness critic
+# pointed out **cannot fail**: the loop counts the same rows it iterates, and every one of them
+# either increments the counter or exits. A tautology dressed as an assertion is the thing this
+# whole item is about, so it is gone rather than left in to look thorough.
+#
+# What remains are two tripwires against the gate quietly stopping checking, and they are not
+# claims about how many of each there should be. A build in which nothing is disabled has no reason
+# to check, and a build in which nothing is enabled would mean inactivity is dimming everything and
+# the block above proves nothing about the app.
+[ "$DISABLED_CHECKED" -ge 1 ] || fail "no disabled command was exercised — A22's reason check ran on nothing"
+[ "$ENABLED_CHECKED" -ge 1 ] || fail "no enabled command was exercised — the dimming above could be inactivity"
+pass "$AVAIL_CHECKED app-declared commands match MenuCommand.availability(in:) — $ENABLED_CHECKED enabled and silent, $DISABLED_CHECKED dimmed with their reason"
 check_invisible "the menu bar assertions"
 
 echo

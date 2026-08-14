@@ -1,6 +1,7 @@
 #if os(macOS)
     import AppKit
     import MCPRouterKit
+    import Observation
 
     /// Puts each disabled command's reason where macOS can actually show it.
     ///
@@ -20,16 +21,22 @@
     /// as state changes, and a tool tip set once is a tool tip that disappears the first time the
     /// selection moves.
     public enum ShellMenuReasons {
-        /// Sets the tool tip on every item whose command has a reason. Returns how many it set, so a
-        /// test can tell "applied to nothing" from "applied correctly" — a walker that silently
-        /// matches zero items is the failure this whole file is about.
+        /// Sets each owned item's tool tip to its command's reason, and **clears it** where there is
+        /// none. Returns how many owned items currently carry a reason, so a test can tell "applied
+        /// to nothing" from "applied correctly" — a walker that silently matches zero items is the
+        /// failure this whole file is about. In a fully-live context that number is legitimately 0,
+        /// which is why the count is not by itself a health check.
         @MainActor
         @discardableResult
         public static func apply(to menu: NSMenu, context: MenuCommand.CommandContext = .none) -> Int {
             var applied = 0
             for item in menu.items {
-                let availability = command(titled: item.title)?.availability(in: context)
-                if let reason = availability?.reason {
+                // Only the items the app declares. `command(titled:)` returning nil means macOS
+                // owns this item, and macOS's own tool tips are not this walker's to write **or to
+                // erase** — which is why the clearing below is inside this binding rather than
+                // beside it.
+                if let command = command(titled: item.title) {
+                    let reason = command.availability(in: context).reason
                     // Both, and for different readers. `toolTip` is what a person sees when they
                     // rest on the item; `setAccessibilityHelp` is what VoiceOver reads and what
                     // `AXHelp` returns. Setting only the tool tip leaves the reason invisible to
@@ -40,11 +47,27 @@
                     // accessibility tree continuously — which made concurrent AX reads fail with
                     // -1728 against elements that were being rewritten underneath them. After the
                     // first pass over a menu this loop now only reads.
+                    //
+                    // **`nil` is written too, and that is the point of assigning rather than
+                    // testing for a reason first.** This walker is armed at launch, before any
+                    // window exists, so its first passes run against `.none` — M1's world, in which
+                    // `Add server…` is surface-absent — and annotate the item accordingly. The
+                    // window then appears, the context goes live, and the command becomes usable.
+                    // A walker that only ever wrote a reason would leave the surface-absent
+                    // sentence on an enabled command, which is worse than saying nothing: it is the
+                    // shell telling the user a surface is missing while offering it.
+                    //
+                    // The sentence itself is deliberately not quoted here. `ScaffoldPane.swift` is
+                    // the one file allowed to carry it, and `placeholderIsNotReintroduced` fails on
+                    // any other — including, as this comment first did, in prose.
                     if item.toolTip != reason { item.toolTip = reason }
                     if item.accessibilityHelp() != reason { item.setAccessibilityHelp(reason) }
-                    // Counted on match rather than on write, so the count still answers "how many
-                    // items does this walker own" rather than "how many changed this time".
-                    applied += 1
+                    // Counted where the item *has* a reason, which is the number a test can use to
+                    // tell "applied correctly" from "matched nothing". Note this is a count of
+                    // owned items **currently carrying a reason**, not of items owned and not of
+                    // writes performed: in a fully-live context every command is enabled and the
+                    // honest answer is 0.
+                    if reason != nil { applied += 1 }
                 }
                 if let submenu = item.submenu {
                     applied += apply(to: submenu, context: context)
@@ -101,17 +124,61 @@
         /// later. The poll below reads it on every tick, so a window registering afterwards is
         /// picked up without re-arming anything.
         ///
-        /// Nil means `.none`, which is M1's world and the honest answer when no shell window is up.
-        @MainActor private static var contextProvider: (@MainActor () -> MenuCommand.CommandContext)?
+        /// Nil means `.none`, which is M1's world and the honest answer *before any window has ever
+        /// appeared*. It is deliberately **not** unregistered when a window closes, and that is a
+        /// trade rather than an oversight: the app outlives its window (M8's menu-bar extra makes
+        /// window-closed a normal state), and reverting to `.none` there would dim `Add server…`
+        /// and tell the user its surface has not been built — which is false, and a worse §3.4
+        /// answer than an enabled item. The residue is that a command can render enabled while no
+        /// focused scene exists to receive it, which `ShellCommandRouter` then no-ops. That is a
+        /// pre-existing property of the sixteen commands that were always enabled, not something
+        /// this context source introduced; it is recorded in `planning/evidence/M11-acceptance.md`
+        /// as a gap belonging to the command router rather than papered over here.
+        ///
+        /// **`@Observable`, and not incidentally.** `CommandItem` reads `liveContext` inside its
+        /// `body` to decide whether to dim, so SwiftUI has to be told when the answer changes.
+        /// Observation covers both ways it can: the stored `provider` is read on every evaluation,
+        /// so a window registering after the menu was first built invalidates the items; and once a
+        /// provider is installed, calling it reads `ShellModel.menuContext`, whose own `@Observable`
+        /// properties are then tracked too, so moving the server selection re-evaluates `Reset
+        /// server` and `Remove server`. A plain `static var` gave neither, and the menu would have
+        /// been built once against whatever was true at launch.
+        ///
+        /// **Not `@FocusedValue`, which is the obvious alternative and is wrong here.** A focused
+        /// scene value is nil whenever the app is inactive, so every command would dim the moment
+        /// the user switched away — and the acceptance walk, which reads the menu bar of a
+        /// deliberately backgrounded app, would measure a menu no user ever sees.
+        @MainActor
+        @Observable
+        final class ContextSource {
+            static let shared = ContextSource()
+
+            private var provider: (@MainActor () -> MenuCommand.CommandContext)?
+
+            private init() {}
+
+            func provide(_ provider: @escaping @MainActor () -> MenuCommand.CommandContext) {
+                self.provider = provider
+            }
+
+            /// Restores the launch-time state. Only a test needs this; the app registers once.
+            func reset() {
+                provider = nil
+            }
+
+            var context: MenuCommand.CommandContext {
+                provider?() ?? .none
+            }
+        }
 
         @MainActor
         public static func provideContext(_ provider: @escaping @MainActor () -> MenuCommand.CommandContext) {
-            contextProvider = provider
+            ContextSource.shared.provide(provider)
         }
 
         @MainActor
         public static var liveContext: MenuCommand.CommandContext {
-            contextProvider?() ?? .none
+            ContextSource.shared.context
         }
 
         @MainActor

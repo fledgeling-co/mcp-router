@@ -7,7 +7,8 @@
     @testable import MCPRouterUI
 
     /// Where the shell meets the system: what survives a relaunch, what it is allowed to talk to,
-    /// how a disabled menu item explains itself, and the scaffold that must not outlive its surface.
+    /// and the scaffold that must not outlive its surface. How a disabled menu item explains itself
+    /// moved to `ShellMenuContextTests` at M11, with the defect it was hiding.
     @Suite("Mac shell — restoration, boundary and commands")
     struct ShellIntegrationTests {
         // MARK: - A32 · restoration
@@ -132,61 +133,6 @@
             #expect(model.readout.state == .failed(.routerNotRunning))
             // And the half that is genuinely still known survives.
             #expect(model.servers != nil, "a stale poll threw away servers that were really observed")
-        }
-
-        // MARK: - A22 · the disabled reason is reachable
-
-        /// The bridge exists because SwiftUI's `.help()` does not reach an `NSMenuItem` — every item
-        /// reported `AXHelp` as `missing value` until this walker was written. A walker that matched
-        /// nothing would look identical to one that worked, so the count is the assertion.
-        @MainActor
-        @Test("the reason walker sets a tool tip on exactly the commands that have one")
-        func menuReasonsApplyToDisabledCommands() {
-            let menu = NSMenu()
-            let disabled = MenuCommand.allCases.filter { $0.availability.reason != nil }
-            for command in disabled {
-                menu.addItem(NSMenuItem(title: command.title, action: nil, keyEquivalent: ""))
-            }
-            // A system item the app never declared, which must be left exactly as macOS left it.
-            let foreign = NSMenuItem(title: "Emoji & Symbols", action: nil, keyEquivalent: "")
-            menu.addItem(foreign)
-
-            let applied = ShellMenuReasons.apply(to: menu)
-            #expect(applied == disabled.count)
-            #expect(applied > 0, "the walker matched nothing, which reads exactly like success")
-
-            for item in menu.items where item !== foreign {
-                #expect(item.toolTip == CommandAvailability.surfaceAbsent.reason)
-                #expect(item.accessibilityHelp() == CommandAvailability.surfaceAbsent.reason)
-            }
-            #expect(foreign.toolTip == nil, "the walker touched an item macOS owns")
-        }
-
-        @MainActor
-        @Test("the walker descends into submenus rather than only the top level")
-        func menuReasonsDescend() {
-            let root = NSMenu()
-            let parent = NSMenuItem(title: "File", action: nil, keyEquivalent: "")
-            let submenu = NSMenu()
-            submenu.addItem(NSMenuItem(title: MenuCommand.addServer.title, action: nil, keyEquivalent: ""))
-            parent.submenu = submenu
-            root.addItem(parent)
-
-            #expect(ShellMenuReasons.apply(to: root) == 1)
-        }
-
-        /// A guard on the one number that decides whether A22 is true for a screen-reader user.
-        ///
-        /// SwiftUI builds a `CommandGroup`'s menu items bare when the menu opens, so the reasons are
-        /// absent for however long the re-apply interval is. At one second, an accessibility read of
-        /// a freshly-opened Edit menu returned an empty `AXHelp` — measured, in
-        /// `scripts/acceptance/mac-shell.sh`, which failed on `Edit / Find`. A tool tip needs a
-        /// second of hover and would have hidden this; the accessibility tree is read on focus and
-        /// did not.
-        @Test("the reasons are re-applied fast enough that a focused item is never bare")
-        func reapplyIntervalStaysBelowAFocusRead() {
-            #expect(ShellMenuReasons.reapplyInterval <= .milliseconds(250))
-            #expect(ShellMenuReasons.reapplyInterval > .zero, "a zero interval is a busy loop")
         }
 
         // MARK: - A20 · the SwiftUI shortcut mapping

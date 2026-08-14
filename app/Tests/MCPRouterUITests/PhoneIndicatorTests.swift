@@ -62,14 +62,30 @@ struct PhoneIndicatorTests {
                 )
             }
 
-            // --attn is reserved for the pre-scan caution, which is the one place this feature
-            // genuinely asks for a decision before an irreversible grant.
+            // --attn is reserved for a decision a human has to take before something irreversible
+            // or consequential happens. Two surfaces qualify, and the list is exhaustive so a
+            // third has to argue its way in here rather than arriving in a diff.
+            //
+            //  - `PairedMacSettingsView` — the pre-scan caution before granting a pairing.
+            //  - `CapabilityPlateView` — I2's capability plate, where amber marks the two lines
+            //    that state a consequence of queueing this entry: it runs a program on your Mac
+            //    with your own access, and it needs a credential. Those are the decision the
+            //    surface exists to put in front of the user before the commit (spec-I2 A12–A13),
+            //    which is exactly §2's meaning rather than an extension of it.
+            //
+            // Offline is deliberately absent: `DiscoverScreen` renders "the router isn't running"
+            // in `--t3`, because that asks for an action, not a decision.
+            let attnSurfaces: Set = [
+                "PairedMacSettingsView.swift",
+                "Discover/CapabilityPlateView.swift"
+            ]
             if body.contains("ColorToken.attention") || body.contains(": .attention") {
                 #expect(
-                    name == "PairedMacSettingsView.swift",
+                    attnSurfaces.contains(name),
                     """
-                    \(name) uses --attn outside the caution tone, which is the only decision \
-                    this feature asks for
+                    \(name) uses --attn outside the surfaces that ask for a decision. §2 reserves \
+                    amber for "wants a human decision"; a state the user can only be informed of \
+                    takes a label tier.
                     """
                 )
             }

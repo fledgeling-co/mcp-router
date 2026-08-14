@@ -364,17 +364,33 @@ struct PhoneShellTests {
         }
     }
 
-    /// The four tabs whose content another item owns each have their own awaiting copy; Settings has
-    /// content of its own and therefore none.
-    @Test("exactly the four non-Settings tabs carry awaiting copy")
+    /// A tab carries awaiting copy exactly while its content belongs to an item that has not
+    /// shipped. Settings has always had content of its own; **Discover now has a board** (I2, A32),
+    /// so it must not carry awaiting copy either.
+    ///
+    /// This assertion was "exactly the four non-Settings tabs carry awaiting copy" and its subject
+    /// changed when Discover shipped. It is repointed rather than renumbered: the claim is now
+    /// about which tabs have a board, and the Discover half is the guard that stops the tab
+    /// silently regressing to the awaiting placeholder while everything still compiles.
+    @Test("only the tabs whose board has not shipped carry awaiting copy")
     func awaitingCoverage() {
+        let built: Set<PhoneShell<EmptyView>.Tab> = [.discover, .settings]
+
         for tab in PhoneShell<EmptyView>.Tab.allCases {
-            if tab == .settings {
-                #expect(tab.awaitingKey == nil)
+            if built.contains(tab) {
+                #expect(tab.awaitingKey == nil, "\(tab) has a board and must not await")
             } else {
                 #expect(tab.awaitingKey != nil, "\(tab) has no awaiting copy")
             }
         }
+
+        // Named separately from the loop, because this is the criterion rather than a consequence
+        // of the set above: A32 is not satisfied by a view that compiles behind a tab still
+        // rendering the awaiting state.
+        #expect(
+            PhoneShell<EmptyView>.Tab.discover.awaitingKey == nil,
+            "A32: Discover resolves to a real board, so it has no awaiting copy"
+        )
     }
 
     @Test("the shell builds with fixtures and no camera")

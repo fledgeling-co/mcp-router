@@ -119,8 +119,27 @@ public enum ConnectionState: String, Sendable, Equatable, CaseIterable {
     /// No Mac is paired at all.
     case neverPaired
 
-    /// Whether a surface that sends may commit right now.
+    /// Whether a surface that sends over the network may commit **now**.
+    ///
+    /// The word "now" is load-bearing and was added when I2 needed the other question. This
+    /// answers "will something sent this instant arrive", which is what `SendCommitBar` binds
+    /// `.disabled()` to — that control sends a batch to the Mac, and with nothing answering there
+    /// is nowhere for the batch to go.
+    ///
+    /// It is **not** the predicate for a surface that writes locally. See `canQueue`.
     public var canSend: Bool { self == .reachable }
+
+    /// Whether a surface that writes to this phone's own queue may commit at all.
+    ///
+    /// Separate from `canSend` because the two questions have different answers, and one property
+    /// answering both is how the wrong one gets used. Queueing writes one item to local storage,
+    /// which succeeds with the Mac asleep — so the only state that can refuse it is the one where
+    /// there is no Mac to queue *for*.
+    ///
+    /// Without this, the obvious implementation of a queueing commit binds to `canSend` and
+    /// disables itself whenever the Mac is unreachable — refusing an act that works, and leaving a
+    /// disabled "Send" on one screen beside a live one on another, same Mac, same second.
+    public var canQueue: Bool { self != .neverPaired }
 }
 
 /// The nine states of the paired-Mac surface, as one value a test can construct.

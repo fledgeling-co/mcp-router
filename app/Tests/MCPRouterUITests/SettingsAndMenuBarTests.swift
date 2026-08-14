@@ -216,5 +216,69 @@
             await model.forget()
             #expect(model.status == .absent)
         }
+
+        // MARK: - A29 · the skeleton and the populated row are the same height
+
+        /// Every `minHeight:` in a file, as written.
+        ///
+        /// Deliberately textual. A29 is a claim about *how the view is built* — that one frame
+        /// governs both states — and a rendered-height assertion cannot distinguish "both states
+        /// are 32pt because one modifier sets them" from "both states are 32pt today because two
+        /// modifiers happen to agree". The second passes until someone edits one of them.
+        private static func minHeights(in source: String) -> [String] {
+            source
+                .components(separatedBy: "minHeight:")
+                .dropFirst()
+                .map { fragment in
+                    fragment
+                        .prefix { $0 != ")" && $0 != "," && $0 != "\n" }
+                        .trimmingCharacters(in: .whitespaces)
+                }
+        }
+
+        /// A29 was asserted nowhere. It was *true* — `SettingsRow` puts its `.frame(minHeight:)`
+        /// outside the branch that chooses between a value and a skeleton, so the two cannot
+        /// disagree — but "true by construction" is exactly the property that a later edit removes
+        /// without anything objecting, and the clause is typed **T**.
+        ///
+        /// The guard is the count as much as the value: a second `minHeight` in this file is how a
+        /// separate skeleton height would arrive, and it fails here before it can make the pane
+        /// jump at the moment values land.
+        @Test("A29 — one row height governs both the skeleton and the populated row")
+        func skeletonAndPopulatedRowShareOneHeight() throws {
+            let parts = try ShellTestSupport.repoFile(
+                "app/Sources/MCPRouterUI/Boards/SettingsBoardParts.swift"
+            )
+            let heights = Self.minHeights(in: parts)
+            #expect(
+                heights == ["SettingsMetrics.rowHeight"],
+                """
+                SettingsRow must set exactly one row height, from the shared constant. \
+                Found \(heights.count): \(heights). A second one means the skeleton and the \
+                populated row can drift, which is the resize A29 exists to prevent.
+                """
+            )
+
+            // The value the constant carries is derived from tokens, not a literal — the same rule
+            // A31 holds the views to, checked here because this is the one number A29 is about.
+            #expect(
+                SettingsMetrics.rowHeight
+                    == MetricToken.tableRows.leadingScalar + MetricToken.selectionInset.leadingScalar * 2
+            )
+        }
+
+        /// The guard's own red-green, kept as a permanent test rather than performed once by hand.
+        /// A guard that has never been seen to fail is a decoration.
+        @Test("A29's guard can fail")
+        func rowHeightGuardCanFail() {
+            let diverged = """
+            .frame(minHeight: SettingsMetrics.rowHeight)
+            .frame(minHeight: 24)
+            """
+            #expect(Self.minHeights(in: diverged) == ["SettingsMetrics.rowHeight", "24"])
+
+            let single = ".frame(minHeight: SettingsMetrics.rowHeight)"
+            #expect(Self.minHeights(in: single) == ["SettingsMetrics.rowHeight"])
+        }
     }
 #endif

@@ -54,7 +54,17 @@ wt_mtime() {
     echo "${newest:-0}"
 }
 
-declare -A reported
+# The set of already-reported "run/item" keys, as a space-delimited string rather than an
+# associative array. macOS ships bash 3.2, which has no `declare -A`: it fails with
+# "declare: -A: invalid option", then every `${reported[$key]}` treats the key as an ARITHMETIC
+# subscript and dies with "division by 0 (error token is 2)". Both messages go to stderr, which
+# Monitor does not surface as events, so the watcher exited 1 on every arm this session while
+# reporting itself armed. A watcher that is not watching is worse than no watcher, because it is
+# silence that reads as "nothing has gone wrong".
+reported=" "
+was_reported() { case "$reported" in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
+mark_reported() { was_reported "$1" || reported="$reported$1 "; }
+clear_reported() { reported=" $(printf '%s' "$reported" | tr ' ' '\n' | grep -v -x -F "$1" | tr '\n' ' ') "; }
 
 while true; do
     now=$(date +%s)
@@ -126,15 +136,15 @@ PY
 
             if [ "$silent" -lt "$QUIET" ]; then
                 live=$(( live + 1 ))
-                unset "reported[$key]"
+                clear_reported "$key"
                 continue
             fi
-            [ -n "${reported[$key]:-}" ] && continue
+            was_reported "$key" && continue
 
             # Last check before firing: is anything actually working in there?
             if printf '%s\n' "$CWDS" | grep -q "^$REPO/.worktrees/$item"; then
                 live=$(( live + 1 ))
-                unset "reported[$key]"
+                clear_reported "$key"
                 continue
             fi
 
@@ -146,11 +156,11 @@ PY
             # reaches, and say that is what happened.
             if pgrep -f "gate-${item}-" >/dev/null 2>&1; then
                 [ "$silent" -lt "$GATED_QUIET" ] && continue
-                reported[$key]=1
+                mark_reported "$key"
                 echo "STUCK $item in $id — quiet $(( silent / 60 ))m with a codex gate still running, past any observed gate length. Check whether the gate is hung."
                 continue
             fi
-            reported[$key]=1
+            mark_reported "$key"
             if [ "$finished" = "1" ]; then
                 echo "STOPPED $item in $id — quiet $(( silent / 60 ))m and it HAS journalled a result, so it finished a turn rather than dying. Collect its report, or relaunch it if the item is not actually done."
             else

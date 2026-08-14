@@ -253,8 +253,12 @@ button{font:inherit;color:inherit;background:none;border:none;text-align:left;cu
 .conn .dot{width:8px;height:8px;border-radius:4px;flex-shrink:0}
 .conn.ok{background:var(--liveWash)}
 .conn.ok .dot{background:var(--live)}
-.conn.down{background:var(--attnWash);border:1px solid var(--attnLine)}
-.conn.down .dot{background:var(--attn)}
+/* Neutral, deliberately. --attn means "wants a human decision" (DESIGN.md §2) and an
+   unreachable Mac asks nothing of the user — it recovers on its own and the queued work
+   sends itself. Painting it amber spends an exclusive indicator hue on a state that is
+   merely informational, which is the decorative use §2 forbids. */
+.conn.down{background:var(--f3);border:1px solid var(--line)}
+.conn.down .dot{background:var(--t3)}
 .conn.none{background:var(--f3)}
 .conn.none .dot{background:var(--t4)}
 .conn b{font-weight:600}
@@ -472,7 +476,7 @@ out.push(sec('A','The tab shell',
       phone({tab:'queue',title:'Queue'},
         `<div class="pempty"><div class="g">${ic('queue',34,1.2)}</div>
           <b>You have not sent anything yet</b>
-          <p>Items you send to ${MAC} appear here with what happened to them at the Mac.</p></div>`)),
+          <p>Items you send to your Mac appear here with what happened to them at the Mac.</p></div>`)),
 
     unit('Library — awaiting I3','',
       phone({tab:'library',title:'Library'},
@@ -792,19 +796,18 @@ out.push(sec('L','The nine states — Settings, paired Mac',
          <div class="li"><span class="tile">${ic('mac',15)}</span>
            <span class="tx"><b>${MAC}</b><span>paired 12 Aug · last seen unknown</span></span></div>
          <div class="conn down"><span class="dot"></span>
-           <span>Reachable, but it hasn't reported since this app opened, so "last seen" is blank rather
+           <span>Reachable, but it hasn't reported since this app opened, so "last seen" is unknown rather
              than guessed.</span></div>`),
-      {t:'The blank is explained rather than filled. A plausible invented timestamp is exactly the fabricated number §6 forbids.'}),
+      {t:'The gap is explained rather than filled, and the banner uses the same word the row does — "unknown", not "blank". A plausible invented timestamp is exactly the fabricated number §6 forbids.'}),
 
     unit('Error','the pairing record is unreadable',
       phone({tab:'settings',title:'Settings'},
         `<div class="plbl">Paired Mac</div>
          <div class="wants f"><h5>${ic('warn',13)} Can't read this phone's pairing</h5>
-           <div class="wl"><span class="i">&rsaquo;</span><span>The stored key couldn't be opened — this
-             usually follows restoring from a backup, which doesn't carry it across. Pair with your Mac
-             again to fix it.</span></div></div>
+           <div class="wl"><span class="i">&rsaquo;</span><span>The stored pairing couldn't be opened, so
+             this phone can't reach your Mac. Pair with your Mac again to fix it.</span></div></div>
          <button class="cta">Pair Mac</button>`),
-      {t:'Names the likely cause (a restore) and the one action that resolves it. The key lives in the Keychain, which is why a backup restore is the realistic way this happens.'}),
+      {fix:true,t:'Describes what was observed and stops there. An earlier draft blamed a backup restore — but a restore to a <em>different</em> device leaves this Keychain item <b>absent</b>, not unreadable, and absent renders "No Mac paired yet". Naming a cause the app has not observed is the same fabrication as naming a number it has not measured.'}),
 
     unit('Success','in-place, no toast',
       phone({tab:'settings',title:'Settings'},

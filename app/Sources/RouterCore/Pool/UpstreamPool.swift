@@ -263,6 +263,12 @@ public actor UpstreamPool {
         entries[name] = entry
         pendingAuth.removeValue(forKey: name)
 
+        // The reference logs this the moment the handshake completes, and R2 declared the event and
+        // never fired it — which nothing noticed, because no process ran the pool. It is the second
+        // of the reference's three startup lines and `parity-log.sh` diffs the sequence, so a
+        // missing line is a missing row rather than a missing nicety.
+        await log?.record(PoolLogEvent.ready(server: name, milliseconds: jsRound(now - startedAt)))
+
         armReapIfIdle(name: name)
         return handle
     }

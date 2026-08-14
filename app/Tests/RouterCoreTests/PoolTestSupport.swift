@@ -50,6 +50,17 @@ final class FakeSession: UpstreamSession, Sendable {
         }
     }
 
+    /// The two calling requirements. A double has no upstream to ask, so both refuse — deliberately
+    /// rather than returning an empty success, because a fake that answers `{}` would let a relay
+    /// test pass while proving the relay never reached an upstream at all.
+    func listTools() async throws -> JSONValue {
+        throw PoolError.spawnFailed(name: label, reason: "FakeSession does not speak MCP")
+    }
+
+    func callTool(name: String, arguments: JSONValue) async throws -> JSONValue {
+        throw PoolError.spawnFailed(name: label, reason: "FakeSession does not speak MCP")
+    }
+
     /// Simulate the upstream dying on its own — a crash, an EOF, a dropped session.
     func endOnItsOwn() {
         let waiting = state.withLock { current -> [CheckedContinuation<Void, Never>] in

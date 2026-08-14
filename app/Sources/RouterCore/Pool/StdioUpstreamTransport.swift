@@ -42,6 +42,18 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
             throw PoolError.spawnFailed(name: upstream.name, reason: "no command configured")
         }
 
+        // Resolved before anything is spawned, so a command that does not exist fails **now** with
+        // the reference's own message rather than sixty seconds later with a timeout.
+        //
+        // The cause is `/usr/bin/env`, which the spawn below uses on purpose to keep the PATH
+        // semantics the reference has. `env` itself always exists, so `Process.run()` succeeds, the
+        // child then exits immediately, and the handshake sits there until the startup budget runs
+        // out. Measured: `mcp-router import` reported `upstream "broken" did not initialize within
+        // 60000ms` where the reference reported `spawn /nonexistent/... ENOENT` in milliseconds.
+        guard Self.resolve(command) != nil else {
+            throw PoolError.spawnFailed(name: upstream.name, reason: "spawn \(command) ENOENT")
+        }
+
         let pipes = ChildPipes()
         let process = Process()
         // `/usr/bin/env` rather than the command as an executable path: the reference spawns through
@@ -69,9 +81,16 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
 
         drainStandardError(of: pipes, named: upstream.name)
 
-        let transport = StdioTransport(
-            input: FileDescriptor(rawValue: pipes.output.fileHandleForReading.fileDescriptor),
-            output: FileDescriptor(rawValue: pipes.input.fileHandleForWriting.fileDescriptor)
+        // Wrapped in a `TappingTransport` so the raw bytes of every response survive the SDK's
+        // decode. `MCP.Value`'s object case is an unordered dictionary, so a `tools/call` result
+        // read back through the SDK has already lost the member order the relay has to reproduce.
+        let tap = ResponseTap()
+        let transport = TappingTransport(
+            wrapping: StdioTransport(
+                input: FileDescriptor(rawValue: pipes.output.fileHandleForReading.fileDescriptor),
+                output: FileDescriptor(rawValue: pipes.input.fileHandleForWriting.fileDescriptor)
+            ),
+            tap: tap
         )
         let client = Client(name: clientName, version: clientVersion)
         let session = StdioUpstreamSession(
@@ -80,6 +99,7 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
             pipes: pipes,
             client: client,
             transport: transport,
+            tap: tap,
             ending: ending,
             terminationGraceNanoseconds: terminationGraceNanoseconds
         )
@@ -101,6 +121,22 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
             await session.shutdown()
             throw PoolError.spawnFailed(name: upstream.name, reason: reason)
         }
+    }
+
+    /// Where a command lands, if anywhere: an absolute or relative path as given, otherwise the
+    /// first executable match on `PATH`. This is the lookup `/usr/bin/env` is about to perform, done
+    /// early so its failure can be reported as the reference reports it.
+    static func resolve(_ command: String, environment: [String: String]? = nil) -> String? {
+        let fileManager = FileManager.default
+        if command.contains("/") {
+            return fileManager.isExecutableFile(atPath: command) ? command : nil
+        }
+        let path = (environment ?? ProcessInfo.processInfo.environment)["PATH"] ?? ""
+        for directory in path.split(separator: ":", omittingEmptySubsequences: true) {
+            let candidate = (String(directory) as NSString).appendingPathComponent(command)
+            if fileManager.isExecutableFile(atPath: candidate) { return candidate }
+        }
+        return nil
     }
 
     /// The router's own environment first, then the server's overrides — the reference's order, and
@@ -152,7 +188,7 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
     /// which is what actually unblocks it.
     private func handshake(
         client: Client,
-        transport: StdioTransport,
+        transport: any Transport,
         timeoutMilliseconds: Int
     ) async -> Handshake {
         let outcome = FirstOutcome()
@@ -279,7 +315,8 @@ final class StdioUpstreamSession: UpstreamSession, Sendable {
     private let process: Process
     private let pipes: ChildPipes
     private let client: Client
-    private let transport: StdioTransport
+    private let transport: any Transport
+    private let tap: ResponseTap
     private let ending: EndSignal
     private let terminationGraceNanoseconds: UInt64
     private let didShutdown = Mutex(false)
@@ -289,7 +326,8 @@ final class StdioUpstreamSession: UpstreamSession, Sendable {
         process: Process,
         pipes: ChildPipes,
         client: Client,
-        transport: StdioTransport,
+        transport: any Transport,
+        tap: ResponseTap,
         ending: EndSignal,
         terminationGraceNanoseconds: UInt64
     ) {
@@ -298,6 +336,7 @@ final class StdioUpstreamSession: UpstreamSession, Sendable {
         self.pipes = pipes
         self.client = client
         self.transport = transport
+        self.tap = tap
         self.ending = ending
         self.terminationGraceNanoseconds = terminationGraceNanoseconds
         processIdentifier = process.processIdentifier
@@ -305,6 +344,27 @@ final class StdioUpstreamSession: UpstreamSession, Sendable {
 
     func waitUntilEnded() async {
         await ending.wait()
+    }
+
+    /// `tools/list` and `tools/call`, answered with the upstream's own bytes.
+    ///
+    /// Both go through the SDK's request machinery — which owns framing, correlation and timeouts —
+    /// and then read the response out of the tap rather than from the SDK's decoded value, because
+    /// that value has already lost member order. See `UpstreamCalling.swift`.
+    func listTools() async throws -> JSONValue {
+        try await RawRequest.perform(
+            RawListTools.self, client: client, tap: tap, parameters: .object([])
+        )
+    }
+
+    func callTool(name: String, arguments: JSONValue) async throws -> JSONValue {
+        try await RawRequest.perform(
+            RawCallTool.self, client: client, tap: tap,
+            parameters: .object([
+                JSONMember(key: JSString("name"), value: .string(JSString(name))),
+                JSONMember(key: JSString("arguments"), value: arguments)
+            ])
+        )
     }
 
     /// Close everything this session owns, once.

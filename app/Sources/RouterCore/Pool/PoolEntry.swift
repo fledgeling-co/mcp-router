@@ -25,6 +25,18 @@ public protocol UpstreamSession: Sendable {
     /// Close the client and transport, then terminate **and await** any child process, closing
     /// every descriptor this session owns. Must be idempotent.
     func shutdown() async
+
+    /// The tools this upstream declares, as the **raw** `result` object it sent.
+    ///
+    /// `JSONValue` rather than the SDK's `[Tool]` because the reference passes the upstream's own
+    /// object through, and a typed decode drops any member the SDK does not model — and, worse,
+    /// destroys member order, since `MCP.Value`'s object case is an unordered dictionary. The
+    /// relay's output is diffed against the reference byte for byte, so order lost here would be
+    /// order lost on the wire.
+    func listTools() async throws -> JSONValue
+
+    /// Call one tool, returning the raw `result` object the upstream sent, for the same reason.
+    func callTool(name: String, arguments: JSONValue) async throws -> JSONValue
 }
 
 /// Opens upstreams. The seam Phase 1 fakes and Phase 2 implements against real processes.
@@ -134,6 +146,18 @@ public enum PoolError: Error, Sendable, Equatable, CustomStringConvertible {
     case startupTimeout(name: String, milliseconds: Int)
     case legacySSEUnsupported(String)
     case spawnFailed(name: String, reason: String)
+
+    /// What the **wire** carries for this failure, which is not always `description`.
+    ///
+    /// A spawn failure is the exception and it is measured: the reference's `indexOne` reports
+    /// `err.message`, and Node's message for a command that does not exist is `spawn <cmd> ENOENT`
+    /// with no wrapper of its own. Reporting `description` there would prefix it with
+    /// `upstream "x" could not be started: `, which the reference never writes — so `mcp-router
+    /// import` would disagree on every failing server.
+    public var message: String {
+        if case let .spawnFailed(_, reason) = self { return reason }
+        return description
+    }
 
     public var description: String {
         switch self {

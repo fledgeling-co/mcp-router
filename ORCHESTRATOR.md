@@ -132,6 +132,31 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 
 ## Changelog
 
+- 2026-08-14 — **A runner pushed to `main`, and the instruction against it is now a hook.**
+  A wave-3 runner committed `04eac69` ("Ignore .worktrees/") in the shared main checkout and
+  pushed it to origin. The change is **correct and kept** — an untracked `.worktrees/` is a
+  real hazard, one `git add -A` from the root would commit another branch's whole working
+  tree — but it moved the integration branch under a merge sequence that assumes one writer.
+  Mid-merge it could have corrupted the tree.
+
+  Every runner prompt already said stop before merge, so the instruction is not the control.
+  `.git/hooks/pre-push` now refuses any push without `MCPR_ORCHESTRATOR=1`, proved in both
+  directions (refused without, allowed with). Worktrees share the hooks directory, so it
+  covers wave 3's in-flight runners too — which matters, because a fleet cannot message its
+  own workflow-inner agents. `planning/fleet-runner.js` carries the explicit rule for waves
+  4–6. The hook is scaffolding for this run; remove it when the fleet finishes.
+
+- 2026-08-14 — **CI red on the merged main, and the test was wrong rather than the code.**
+  `31763577290` failed one assertion: the stream-liveness check timed from *before* the
+  connection opened, charging URLSession construction and the TCP handshake to stream
+  latency, so a contended runner read 0.52s against a 0.36s bound while streaming
+  correctly. Replaced the wall-clock budget with the ordering property the docstring
+  already stated — the stub records when it sent its last line, and the first record must
+  arrive before that instant. No threshold left to tune. Green on `8e9c689`
+  (`31764012564`). The first red-green proof was itself void: `swift test --filter` on the
+  *display* name matched nothing and reported `0 tests in 0 suites passed`, which is a gate
+  that never ran wearing a pass. Re-proved against the function name.
+
 - 2026-08-14 — **Wave 3 launched: M1, R2, R3, I1.** Four slots. All four wire-verified
   `claude-opus-5` on the first launch.
 

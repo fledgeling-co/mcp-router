@@ -55,6 +55,14 @@ Rules that override ship-feature's defaults:
   branch, but do NOT rebase, merge, push or clean up. The orchestrator serializes
   finalization; two simultaneous merges is how fleets corrupt repos.
 
+- NEVER commit in the main checkout, and NEVER push anything, ever — not your branch, not
+  a one-line fix, not something obviously correct. A wave-3 runner committed a genuinely
+  correct \`.gitignore\` change to \`main\` in the shared tree and pushed it to origin; the
+  change was right and the act moved the integration branch under a merge sequence that
+  assumes a single writer. There is now a \`pre-push\` hook that refuses you, and worktrees
+  share it, so a push will fail with an explanation rather than succeed quietly. If you
+  believe the main tree needs a change, REPORT it in your final message and stop.
+
 - NEVER end your turn to wait for a background task. Your wrapper returns the moment you
   stop, and no wake-up notification can reach you — you are dead, not paused. Wait
   synchronously: foreground the command, or poll in a loop.

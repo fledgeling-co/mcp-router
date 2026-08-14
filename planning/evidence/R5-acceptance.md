@@ -85,3 +85,66 @@ account-level usage limit that clears after this fleet's horizon. Recorded as
 `claude -p` opus-5 session, briefed adversarially — told to refute, and that finding nothing would be
 a failed review rather than a pass. Its verdict is in the R5 completion note. The weakness travels
 with the evidence: every reviewer in this pipeline is now Claude auditing Claude.
+
+---
+
+## The completeness critic's findings — verified at `c57a9bd`
+
+Appended, not merged into the rows above: those stay true of `12e1f6a`. These are the behaviours the
+Phase D critic found missing, each now driven over a real socket or against the real parser.
+
+| Finding | What is verified | How | Result |
+|---|---|---|---|
+| double resume | a callback landing during `cleanup`'s teardown settles the flow **once**; the superseded observer gets `abandoned` and nothing traps | `swift test --filter callbackDuringCleanupDoesNotDoubleResume` | pass |
+| stranded observer | an `awaitCompletion` registering inside that window is answered rather than left holding a continuation nobody resumes | `--filter observerRegisteringDuringCleanupIsNotStranded` | pass |
+| absolute-form target | `GET http://127.0.0.1:<port>/callback?code=…` completes the flow and serves the connected page | `--filter absoluteFormCompletesTheFlow`, `--filter absoluteFormPathname` | pass |
+| leading empty line | a callback carrying a leading CRLF parses to its real target instead of being lost | `--filter leadingEmptyLineIsSkipped` | pass |
+| unparseable head | `GET\r\n\r\n` closes in under 2 s rather than pinning the socket for the 60 s head deadline | `--filter unanswerableRequestIsClosed` | pass |
+| loopback enforcement | loopback connects to the bound port and the machine's **own LAN IPv4 does not** — asked of the socket, not of the parameters | `--filter loopbackPinIsEnforcedBySocket` | pass |
+| unread request body | a POST carrying an `x-www-form-urlencoded` body still receives its response — the RST concern does not reproduce on this platform | `--filter requestWithABodyIsAnswered` | pass |
+| concurrent stop | eight concurrent `stop()` calls all complete, none deadlocks, none returns while the socket still accepts | `--filter concurrentStopsAllComplete` | pass |
+
+### Red-green — all ten mutations, re-run against the final tree at `c57a9bd`
+
+| Mutation | Guard that fired | Result |
+|---|---|---|
+| `stop()` reverts to an unwaited `NWListener.cancel()` | `stopReleasesTheSocket`, `supersessionRebindsTheFixedPort` | RED |
+| the loopback pin becomes `.ipv4(.any)` | `bindIsLoopbackOnly`, `loopbackPinIsEnforcedBySocket` | RED |
+| `content-length` counts characters | `contentLengthIsBytes` | RED |
+| the 404 gains a `content-type` | `notFoundBytes`, `strayRequestOverTheWire` | RED |
+| the head is treated as terminated always | `requestTargetNeedsAWholeHead` | RED |
+| `stop()` clears the handler as well as the listener | `lateRequestOnAnOpenConnectionIsAnswered` | RED |
+| `cleanup` clears `current` last, after its awaits | `AuthCleanupRaceTests` — **the run dies** with `SWIFT TASK CONTINUATION MISUSE` | RED |
+| `pathname` becomes the identity | `absoluteFormPathname`, `absoluteFormCompletesTheFlow` | RED |
+| a leading empty line is not skipped | `leadingEmptyLineIsSkipped` | RED |
+| an unparseable head keeps waiting for bytes | `unanswerableRequestIsClosed` | RED |
+
+### One guard that is NOT proven, named rather than dressed up
+
+**A second concurrent `stop()` waiting until the port is *rebindable*.** The fix is there and is
+correct by construction — concurrent callers share one continuation list — but no test proves it.
+Two attempts failed honestly: a probe on connect passes under the mutation because a cancelled socket
+refuses connections *before* it releases the port, and the rebind oracle cannot be sampled from eight
+racers at once, since eight rebinds of one port collide with each other. `concurrentStopsAllComplete`
+was renamed to what it does prove. Proving the real threshold needs a mutex harness that would itself
+decide the ordering, which is a test that proves its own scaffolding.
+
+## Gates — run at `c57a9bd`
+
+| Gate | Command | Result |
+|---|---|---|
+| build | `cd app && swift build` | exit 0 |
+| tests | `make test` | 349 executed, 54 suites, 0 failures |
+| parity corpus | `make parity` | 230 vector cases compared, floor 230 |
+| format | `swiftformat --lint . --config .swiftformat` | 0/116 files require formatting |
+| lint | `swiftlint lint --strict --config .swiftlint.yml` | 0 violations in 115 files |
+| design values | `scripts/lint/no-raw-design-values.sh` | clean |
+
+**One unreproduced failure, recorded rather than explained away.** A single `make test` run at the
+tree that became `12e1f6a` reported 4 issues; the names were not captured, and twelve consecutive
+full runs before and after were clean. It happened on the run immediately after a `swiftformat` write,
+so a stale build artifact is the likeliest cause, but that is a guess and it is written here as one.
+
+**A second gate that lies, for the list.** `swift test` piped into `grep` reports exit 0 even when the
+run dies on a `fatalError` — the mutation above proved it. `codex exec` does the same on a usage
+limit. Read the output, never the status.

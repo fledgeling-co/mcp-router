@@ -132,6 +132,19 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 
 ## Changelog
 
+- 2026-08-14 — **Wave 3 launched: M1, R2, R3, I1.** Four slots. All four wire-verified
+  `claude-opus-5` on the first launch.
+
+  That first launch **died whole in 27 seconds** — two runners on `Connection refused`,
+  two on `Connection lost mid-response`. Recorded because the signature is easy to
+  misread as wave 2's capacity outage and the remedy is opposite: `ps -o etime` showed the
+  local gateway had been up **2m07s**, so the launch landed mid-restart. Not capacity, not
+  code. Nothing was lost — no worktree, no branch, `started=4 results=0` — so recovery was
+  a fresh launch, not `resumeFromRunId`, which would have replayed nothing while
+  re-asserting an empty cache. Before relaunching, the lane was proved end to end with a
+  real one-token request rather than trusted from `/healthz`: a health flag says the
+  process is up, not that a request can obtain an account.
+
 - 2026-08-14 — **Wave 2 cleared: F2, F3 and R1 all merged**, serially, each gated on the
   merged tree rather than on its own branch. `22d1802` → `13825c9` → `c30eac9`; final
   merged tree `make all` exit 0, **237 tests**, `no-raw-design-values: clean`. All three

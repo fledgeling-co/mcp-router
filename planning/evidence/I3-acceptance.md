@@ -246,3 +246,31 @@ all four render rows) and `failureState` (nothing arrived, or a store failed —
 `TriageModelTests` passed the 400-line file cap and split into `TriageModelTests` (what the surface
 offers) and `TriageFailureTests` (what it admits when storage says no), sharing one model builder so
 the two cannot drift.
+
+---
+
+## Rebased onto the fresh `main`, and re-gated there
+
+`main` moved while this item was in flight — **R2-W merged** (`bb056e7`), bringing the
+`~/.claude.json` watcher and its cross-process adoption protocol. Rebased onto that tip: **6 commits,
+0 conflicts, 0 behind**.
+
+Re-gated on the rebased tree rather than taken on report, because a merge-only defect is this fleet's
+most repeated lesson — M2 and M4 each compiled and passed alone and together did not compile at all.
+
+| Gate | Exit | On the rebased tree |
+|---|---|---|
+| `make lint` | **0** | 0 violations, 0 serious, **433 files** (was 413) |
+| `make test` | **0** | **1350 tests, 166 suites** (was 1317 / 160) |
+| `make build-mac` | **0** | — |
+| `make test-ios` | **0** | `TEST SUCCEEDED`, 28 tests, one reused simulator |
+| `make parity` | **0** | 358 vector cases (floor 358) |
+| `scripts/acceptance/i3-phone-triage.sh` | **0** | 5 assertions, the three I3 surfaces only |
+
+**No merge-only defect.** R2-W is router-side and this item is iOS, so the surfaces do not overlap —
+but that was *measured* rather than assumed, which is the only form the claim is worth making in.
+
+One thing worth stating plainly for whoever merges: `git diff main --name-only` now lists
+`ORCHESTRATOR.md`, and that is **main's** change, not this branch's. The files this item's own commits
+touch contain neither `ORCHESTRATOR.md` nor `scripts/acceptance/parity-gate.sh`, verified against the
+merge base rather than against a moving tip.

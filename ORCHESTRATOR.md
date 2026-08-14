@@ -213,11 +213,16 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
   `node dist/index.js` even when `MCPR_ROUTER_BINARY` is set, because there is no Swift watcher to
   point it at — and **`R4-C`**, the cutover itself, blocked on 82/82 *and* on a user decision.
 
-  The one that should worry a future reader most is **`D-n`**: 42 of the gate's 82 rows are
-  hand-maintained, so **deleting a row raises the coverage figure**. That is the gate's own worst
-  failure mode and it is currently unguarded. **`D-r2r-b`** is the same shape one level down — 11
-  `control` rows are proven against `ControlDiff`, an in-process oracle, not against the socket
-  R2-R just made reachable.
+  The one that should worry a future reader most is **`D-n`**: a row missing from `surface.tsv`
+  shrinks the denominator, so **deleting a row raises the coverage figure**. That hole is *partly*
+  guarded already and the ledger should not overstate it — `scripts/acceptance/parity-manifest-check.sh`
+  runs at `parity-gate.sh:49` and derives the **control** and **fixture** rows from source, so a
+  deletion there fails the gate. The **43 rows in `cli`, `mcp`, `install`, `divergence`, `pool`,
+  `state` and `log` have no such derivation**, and `D-n` covers the two most mechanical of those
+  (`src/index.ts`'s ten `case` arms and `src/router.ts`'s endpoints). **`D-r2r-b`** is the same
+  shape one level down — 11 `control` rows are proven against `ControlDiff`, an in-process oracle,
+  not against the socket R2-R just made reachable.
+
 
   The lesson is mechanical, not moral: a deferred child named in a spec is invisible to the fleet.
   Registration is the orchestrator's job and nobody else's, and the check is cheap — grep every

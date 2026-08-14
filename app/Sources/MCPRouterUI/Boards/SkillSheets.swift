@@ -119,11 +119,18 @@
                         .foregroundStyle(ColorToken.t2.color)
                 }
 
-                if board.marketplaces.isEmpty {
+                if let error = board.marketplacesError {
+                    // The router refused. Its own two strings, never a second wording, and never
+                    // dressed up as "you follow none" — which would be a claim about the user's
+                    // configuration that nobody actually read.
+                    Banner(icon: error == .routerNotRunning ? .bolt : .warn, tint: .attention) {
+                        Text("\(error.headline). \(error.advice)")
+                    }
+                } else if board.marketplaces.isEmpty {
                     Text(
                         """
-                        No marketplaces are being followed, or the router could not read the list. \
-                        Following one is how skills arrive.
+                        No marketplaces are being followed yet. Following one is how skills arrive, \
+                        across every client that supports them.
                         """
                     )
                     .typeRole(.body)

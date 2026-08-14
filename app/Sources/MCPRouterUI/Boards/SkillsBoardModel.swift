@@ -57,6 +57,12 @@
 
         public private(set) var state: LoadState = .loading
         public private(set) var marketplaces: [Marketplace] = []
+        /// Why the marketplace list is missing, when it is.
+        ///
+        /// Kept rather than discarded: a `try?` here would leave the sheet unable to tell "you
+        /// follow none" from "the router would not say", and those two want different words.
+        /// `SWIFT_PRACTICES.md` §3 — never swallow an error to keep a surface tidy.
+        public private(set) var marketplacesError: ControlAPIError?
         public var selection: String?
         public var filter: SkillPresentation.Filter = .all
         public var search: String = ""
@@ -83,8 +89,15 @@
                 }
             }
             // The marketplace list is a second, independent read: its failure must not blank the
-            // skills board, and the sheet that needs it says so itself if it is missing.
-            marketplaces = await (try? client.marketplaces())?.marketplaces ?? []
+            // skills board, so it is caught here rather than allowed to fail the whole load — but
+            // it is *kept*, not dropped, so the sheet can say which of the two happened.
+            do {
+                marketplaces = try await client.marketplaces().marketplaces
+                marketplacesError = nil
+            } catch {
+                marketplaces = []
+                marketplacesError = error
+            }
         }
 
         public var rows: [Skill] {
@@ -130,14 +143,5 @@
             let next = min(max(index + offset, 0), visible.count - 1)
             selection = visible[next].id
         }
-
-        /// Whether this board may write at all.
-        ///
-        /// Always false, and stated as a property rather than left implicit so the controls read it
-        /// instead of each deciding for itself. M4 ships the board read-only: the writes land in
-        /// files the client applications hold open while this app runs, and doing that safely needs
-        /// preconditions and an undo that are their own item. Every offer stays visible and dimmed
-        /// with `SkillPresentation.writesNotYetAvailable` as its reason (`DESIGN.md` §3.4).
-        public var canWrite: Bool { false }
     }
 #endif

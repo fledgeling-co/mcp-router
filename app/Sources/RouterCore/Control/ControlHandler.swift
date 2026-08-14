@@ -239,8 +239,8 @@ public struct ControlHandler: Sendable {
             return .json(200, .object(members))
 
         case ("/auth", "DELETE"):
-            let had = deps.auth.clear(name.string)
-            deps.pool.clearPending(name.string)
+            let had = deps.auth.clear(name)
+            deps.pool.clearPending(name)
             return .json(200, .object([
                 JSONMember(key: "server", value: .string(name)),
                 JSONMember(key: "signedOut", value: .bool(had))
@@ -267,7 +267,7 @@ public struct ControlHandler: Sendable {
         } catch {
             return .error(500, "\(error)")
         }
-        deps.auth.clear(name.string)
+        deps.auth.clear(name)
         if request.first(named: "keepHistory") != "1" { deps.usage.forget(name.string) }
         return .json(200, .object([JSONMember(key: "removed", value: .string(name))]))
     }

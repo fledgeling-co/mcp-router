@@ -12,11 +12,15 @@ import Foundation
 public enum Describe {
     public static func row(_ upstream: UpstreamConfig, _ deps: ControlDeps) -> JSONValue {
         let name = upstream.name
+        // The same name as UTF-16 code units, which is how every port keyed by a server name
+        // compares it. Swift's `==` is canonical equivalence, so a decomposed live row would match
+        // a composed config entry and report another server's state (S5, B24).
+        let key = JSString(name)
         let entry = deps.manifest.entry(named: name)
         // `.find` — first match. `last(where:)` passes any single-row fixture and is wrong (B6, B7).
-        let live = deps.pool.firstStatus(name)
+        let live = deps.pool.firstStatus(key)
         let stat = deps.usage.statFor(name)
-        let pending = deps.pool.firstPending(name)
+        let pending = deps.pool.firstPending(key)
         // `!isStdio(u) && u.oauth !== false` — `oauth` absent means supported, because the test is
         // against `false` specifically, not against nullish.
         let needsAuth = !upstream.isStdio && upstream.oauth != false
@@ -45,7 +49,7 @@ public enum Describe {
             members.append(JSONMember(key: "pendingChange", value: pendingChange(entry)))
         }
         members.append(JSONMember(key: "auth", value: authValue(
-            needsAuth: needsAuth, name: name, deps: deps, pending: pending
+            needsAuth: needsAuth, name: key, deps: deps, pending: pending
         )))
         // The stat is passed through unchanged, including members this item does not model (B9).
         members.append(JSONMember(key: "usage", value: (stat ?? .zero).value))
@@ -155,7 +159,7 @@ public enum Describe {
     }
 
     private static func authValue(
-        needsAuth: Bool, name: String, deps: ControlDeps, pending: PendingAuth?
+        needsAuth: Bool, name: JSString, deps: ControlDeps, pending: PendingAuth?
     ) -> JSONValue {
         guard needsAuth else {
             return .object([

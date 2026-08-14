@@ -14,10 +14,9 @@ extension ControlHandler {
         }
 
         // `Math.min(Number(x ?? 30) || 30, 60)` — `||` is ToBoolean, so both `0` and `NaN` become
-        // 30, and a negative value passes straight through (N6, B54).
-        let raw = request.first(named: "limit").map(JSToNumber.number) ?? 30
-        let coerced = (raw == 0 || raw.isNaN) ? 30 : raw
-        let limit = min(coerced, 60)
+        // 30, and a negative value passes straight through (N6, B54). The rule lives in
+        // `Registry.coerceLimit` so the parity corpus drives the same code this call does.
+        let limit = Registry.coerceLimit(request.first(named: "limit"))
         let query = request.first(named: "q") ?? ""
 
         let outcome: RegistrySearchResult

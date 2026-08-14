@@ -1,8 +1,14 @@
 import Foundation
 
 /// One upstream as the pool reports it live.
+///
+/// `name` is a ``JSString`` rather than a Swift `String` deliberately. Swift compares strings by
+/// **canonical equivalence**, so a composed `"é"` and a decomposed `"e\u{0301}"` are equal; the
+/// reference compares UTF-16 code units, where they are two distinct servers. Typing the port
+/// surface closes that by construction — a later `$0.name == name` cannot silently reintroduce it,
+/// which a comparison helper over `String` would have allowed (S5, B24).
 public struct LiveUpstream: Sendable, Hashable {
-    public let name: String
+    public let name: JSString
     /// Nullish-defaulted at the point of use, so a live row reporting `0` stays `0` (B7).
     public let state: String?
     public let inFlight: Int?
@@ -10,7 +16,7 @@ public struct LiveUpstream: Sendable, Hashable {
     public let idleSec: Int?
 
     public init(
-        name: String,
+        name: JSString,
         state: String? = nil,
         inFlight: Int? = nil,
         callsServed: Int? = nil,
@@ -30,10 +36,10 @@ public struct LiveUpstream: Sendable, Hashable {
 /// driving a browser flow. The recorded fixtures carry a top-level `pendingAuth` from the second
 /// while the server row's `pendingUrl` is absent, which is only explicable if they are two things.
 public struct PendingAuth: Sendable, Hashable {
-    public let server: String
+    public let server: JSString
     public let url: String
 
-    public init(server: String, url: String) {
+    public init(server: JSString, url: String) {
         self.server = server
         self.url = url
     }
@@ -47,18 +53,18 @@ public struct PendingAuth: Sendable, Hashable {
 public protocol UpstreamPoolPort: Sendable {
     func status() -> [LiveUpstream]
     func pending() -> [PendingAuth]
-    func isLive(_ name: String) -> Bool
+    func isLive(_ name: JSString) -> Bool
     /// Requested, never awaited: a warming failure must not turn a 200 into an error (B43).
     func warmUp()
-    func clearPending(_ name: String)
+    func clearPending(_ name: JSString)
 }
 
 public extension UpstreamPoolPort {
-    func firstStatus(_ name: String) -> LiveUpstream? {
+    func firstStatus(_ name: JSString) -> LiveUpstream? {
         status().first { $0.name == name }
     }
 
-    func firstPending(_ name: String) -> PendingAuth? {
+    func firstPending(_ name: JSString) -> PendingAuth? {
         pending().first { $0.server == name }
     }
 }
@@ -94,11 +100,16 @@ public protocol UpstreamIndexerPort: Sendable {
 
 /// The credential store, behind a protocol so a test can enter states the real filesystem will not
 /// enter on request — an unreadable record, a record with no access token (B60, B61).
+///
+/// Typed in ``JSString`` for the same reason ``UpstreamPoolPort`` is: the server name reaching this
+/// store comes from a request path, and a composed name must not find a decomposed record (S5,
+/// B24). **R5 implements this protocol** — the seam is typed here so that item inherits the
+/// constraint rather than having to rediscover it.
 public protocol AuthStore: Sendable {
-    func hasTokens(_ server: String) -> Bool
-    func authorizedAt(_ server: String) -> String?
+    func hasTokens(_ server: JSString) -> Bool
+    func authorizedAt(_ server: JSString) -> String?
     /// Reports whether a record existed, which is what `signedOut` carries (B62).
-    @discardableResult func clear(_ server: String) -> Bool
+    @discardableResult func clear(_ server: JSString) -> Bool
 }
 
 /// The browser authorization currently in flight, if any. At most one: the callback port is fixed,

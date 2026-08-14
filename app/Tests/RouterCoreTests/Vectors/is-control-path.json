@@ -1,0 +1,125 @@
+{
+  "description": "control.isControlPath — the exact set of paths the control API claims.",
+  "cases": [
+    {
+      "id": "path-0",
+      "pathname": "/servers",
+      "control": true
+    },
+    {
+      "id": "path-1",
+      "pathname": "/servers/",
+      "control": true
+    },
+    {
+      "id": "path-2",
+      "pathname": "/servers/alpha",
+      "control": true
+    },
+    {
+      "id": "path-3",
+      "pathname": "/servers/alpha/changes",
+      "control": true
+    },
+    {
+      "id": "path-4",
+      "pathname": "/servers/a/b/c",
+      "control": true
+    },
+    {
+      "id": "path-5",
+      "pathname": "/serverside",
+      "control": false
+    },
+    {
+      "id": "path-6",
+      "pathname": "/server",
+      "control": false
+    },
+    {
+      "id": "path-7",
+      "pathname": "/servers2",
+      "control": false
+    },
+    {
+      "id": "path-8",
+      "pathname": "/SERVERS",
+      "control": false
+    },
+    {
+      "id": "path-9",
+      "pathname": "/usage",
+      "control": true
+    },
+    {
+      "id": "path-10",
+      "pathname": "/usage/",
+      "control": true
+    },
+    {
+      "id": "path-11",
+      "pathname": "/usage/summary",
+      "control": true
+    },
+    {
+      "id": "path-12",
+      "pathname": "/usage/stream",
+      "control": true
+    },
+    {
+      "id": "path-13",
+      "pathname": "/usaged",
+      "control": false
+    },
+    {
+      "id": "path-14",
+      "pathname": "/usag",
+      "control": false
+    },
+    {
+      "id": "path-15",
+      "pathname": "/registry/",
+      "control": true
+    },
+    {
+      "id": "path-16",
+      "pathname": "/registry/search",
+      "control": true
+    },
+    {
+      "id": "path-17",
+      "pathname": "/registry",
+      "control": false
+    },
+    {
+      "id": "path-18",
+      "pathname": "/registrys",
+      "control": false
+    },
+    {
+      "id": "path-19",
+      "pathname": "/mcp",
+      "control": false
+    },
+    {
+      "id": "path-20",
+      "pathname": "/",
+      "control": false
+    },
+    {
+      "id": "path-21",
+      "pathname": "",
+      "control": false
+    },
+    {
+      "id": "path-22",
+      "pathname": "/health",
+      "control": false
+    },
+    {
+      "id": "path-23",
+      "pathname": "/servers%2Falpha",
+      "control": false
+    }
+  ]
+}

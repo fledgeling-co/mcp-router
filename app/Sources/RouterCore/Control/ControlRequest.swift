@@ -18,7 +18,15 @@ public struct ControlRequest: Sendable {
     /// rather than a dictionary's arbitrary one (B28, B32).
     public let query: [(name: String, value: String)]
 
-    public let headers: [String: String]
+    /// Headers as Node's `req.headers` presents them: every name lowercased, and repeated names
+    /// joined with `", "` in arrival order.
+    ///
+    /// An ordered array rather than a dictionary, and not only to satisfy the wire lint.
+    /// `Dictionary.first(where:)` iterates in a **non-deterministic** order, so a request carrying
+    /// both `Authorization` and `authorization` decided B17's bearer shadowing by coin flip — the
+    /// same bytes could authorize on one run and 401 on the next. Normalising once, at
+    /// construction, is also where Node does it, so no handler can see an unnormalised name.
+    public let headers: [(name: String, value: String)]
 
     /// The raw body bytes. Parsed by ``JSONParser`` at the point of use, never by a decoder — a
     /// validating decoder rejects shapes the reference stores (B42).
@@ -28,14 +36,35 @@ public struct ControlRequest: Sendable {
         method: String?,
         encodedPath: String,
         query: [(name: String, value: String)] = [],
-        headers: [String: String] = [:],
+        headers: [(name: String, value: String)] = [],
         body: Data? = nil
     ) {
         self.method = method
         self.encodedPath = encodedPath
         self.query = query
-        self.headers = headers
+        self.headers = Self.normalized(headers)
         self.body = body
+    }
+
+    /// Mirrors what Node has already done before any handler runs: lowercase every name, and join
+    /// repeats with `", "`. `set-cookie` is the one header Node keeps as an array; it is not a
+    /// request header and nothing here reads it, so it gets no special case.
+    static func normalized(
+        _ raw: [(name: String, value: String)]
+    ) -> [(name: String, value: String)] {
+        var order: [String] = []
+        // swift-wire-exempt: a local accumulator for the join, never stored and never serialised.
+        var joined: [String: String] = [:]
+        for pair in raw {
+            let key = pair.name.lowercased()
+            if let existing = joined[key] {
+                joined[key] = existing + ", " + pair.value
+            } else {
+                joined[key] = pair.value
+                order.append(key)
+            }
+        }
+        return order.map { (name: $0, value: joined[$0] ?? "") }
     }
 
     /// The first value for `name`, matching `URLSearchParams.get`. A later duplicate never wins.
@@ -43,10 +72,11 @@ public struct ControlRequest: Sendable {
         query.first { $0.name == name }?.value
     }
 
-    /// Header lookup is ASCII-case-insensitive, as HTTP requires.
+    /// Header lookup. Names are already lowercased at construction, so this is an exact match on a
+    /// deterministically ordered list rather than a scan whose winner depends on hash order.
     public func header(_ name: String) -> String? {
         let wanted = name.lowercased()
-        return headers.first { $0.key.lowercased() == wanted }?.value
+        return headers.first { $0.name == wanted }?.value
     }
 
     /// `POST`, `DELETE` and `PATCH` exactly — every other spelling, and an absent method, is not

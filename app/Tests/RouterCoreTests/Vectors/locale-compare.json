@@ -1,0 +1,101 @@
+{
+  "description": "String.prototype.localeCompare over the ISO domain and the letter cases (N8).",
+  "cases": [
+    {
+      "id": "compare-0",
+      "lhs": "2024-01-01T00:00:00Z",
+      "rhs": "2024-01-01T00:00:00.000Z",
+      "result": 1
+    },
+    {
+      "id": "compare-1",
+      "lhs": "2024-01-01T00:00:00.1Z",
+      "rhs": "2024-01-01T00:00:00.10Z",
+      "result": 1
+    },
+    {
+      "id": "compare-2",
+      "lhs": "2024-01-02T00:00:00Z",
+      "rhs": "2024-01-01T00:00:00Z",
+      "result": 1
+    },
+    {
+      "id": "compare-3",
+      "lhs": "",
+      "rhs": "2024-01-01T00:00:00Z",
+      "result": -1
+    },
+    {
+      "id": "compare-4",
+      "lhs": "",
+      "rhs": "",
+      "result": 0
+    },
+    {
+      "id": "compare-5",
+      "lhs": "a",
+      "rhs": "B",
+      "result": -1
+    },
+    {
+      "id": "compare-6",
+      "lhs": "A",
+      "rhs": "a",
+      "result": 1
+    },
+    {
+      "id": "compare-7",
+      "lhs": "a",
+      "rhs": "A",
+      "result": -1
+    },
+    {
+      "id": "compare-8",
+      "lhs": "B",
+      "rhs": "a",
+      "result": 1
+    },
+    {
+      "id": "compare-9",
+      "lhs": "a",
+      "rhs": "b",
+      "result": -1
+    },
+    {
+      "id": "compare-10",
+      "lhs": "z",
+      "rhs": "Z",
+      "result": -1
+    },
+    {
+      "id": "compare-11",
+      "lhs": "é",
+      "rhs": "e",
+      "result": 1
+    },
+    {
+      "id": "compare-12",
+      "lhs": "é",
+      "rhs": "é",
+      "result": 0
+    },
+    {
+      "id": "compare-13",
+      "lhs": "10",
+      "rhs": "9",
+      "result": -1
+    },
+    {
+      "id": "compare-14",
+      "lhs": "1",
+      "rhs": "10",
+      "result": -1
+    },
+    {
+      "id": "compare-15",
+      "lhs": "2024-01-01T00:00:00+00:00",
+      "rhs": "2024-01-01T00:00:00Z",
+      "result": -1
+    }
+  ]
+}

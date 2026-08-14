@@ -1,0 +1,243 @@
+{
+  "description": "UsageStore.recent over a seeded ring — filter, take the last N, reverse (N4, B45, B46).",
+  "log": "{\"ts\":\"2025-08-13T15:46:40.000Z\",\"server\":\"alpha\",\"tool\":\"tool-0\",\"ok\":false,\"ms\":0,\"cold\":true,\"cwd\":\"/Users/x/Dev/one\"}\n{\"ts\":\"2025-08-13T15:46:41.000Z\",\"server\":\"beta\",\"tool\":\"tool-1\",\"ok\":true,\"ms\":1,\"cold\":false,\"cwd\":\"/Users/x/Dev/two\"}\n{\"ts\":\"2025-08-13T15:46:42.000Z\",\"server\":\"beta\",\"tool\":\"tool-2\",\"ok\":true,\"ms\":2,\"cold\":false,\"cwd\":\"/Users/x/Dev/one\"}\n{\"ts\":\"2025-08-13T15:46:43.000Z\",\"server\":\"alpha\",\"tool\":\"tool-3\",\"ok\":true,\"ms\":3,\"cold\":false,\"cwd\":\"/Users/x/Dev/two\"}\n{\"ts\":\"2025-08-13T15:46:44.000Z\",\"server\":\"beta\",\"tool\":\"tool-4\",\"ok\":false,\"ms\":4,\"cold\":false,\"cwd\":\"/Users/x/Dev/one\"}\n{\"ts\":\"2025-08-13T15:46:45.000Z\",\"server\":\"beta\",\"tool\":\"tool-5\",\"ok\":true,\"ms\":5,\"cold\":false,\"cwd\":\"/Users/x/Dev/two\"}\n{\"ts\":\"2025-08-13T15:46:46.000Z\",\"server\":\"alpha\",\"tool\":\"tool-6\",\"ok\":true,\"ms\":6,\"cold\":false,\"cwd\":\"/Users/x/Dev/one\"}\n{\"ts\":\"2025-08-13T15:46:47.000Z\",\"server\":\"beta\",\"tool\":\"tool-7\",\"ok\":true,\"ms\":7,\"cold\":false,\"cwd\":\"/Users/x/Dev/two\"}\n{\"ts\":\"2025-08-13T15:46:48.000Z\",\"server\":\"beta\",\"tool\":\"tool-8\",\"ok\":false,\"ms\":8,\"cold\":false,\"cwd\":\"/Users/x/Dev/one\"}\n{\"ts\":\"2025-08-13T15:46:49.000Z\",\"server\":\"alpha\",\"tool\":\"tool-9\",\"ok\":true,\"ms\":9,\"cold\":false,\"cwd\":\"/Users/x/Dev/two\"}\n{\"ts\":\"2025-08-13T15:46:50.000Z\",\"server\":\"beta\",\"tool\":\"tool-10\",\"ok\":true,\"ms\":10,\"cold\":false,\"cwd\":\"/Users/x/Dev/one\"}\n{\"ts\":\"2025-08-13T15:46:51.000Z\",\"server\":\"beta\",\"tool\":\"tool-11\",\"ok\":true,\"ms\":11,\"cold\":false,\"cwd\":\"/Users/x/Dev/two\"}\n",
+  "cases": [
+    {
+      "id": "limit-0",
+      "records": [
+        "tool-11",
+        "tool-10",
+        "tool-9",
+        "tool-8",
+        "tool-7",
+        "tool-6",
+        "tool-5",
+        "tool-4",
+        "tool-3",
+        "tool-2",
+        "tool-1",
+        "tool-0"
+      ]
+    },
+    {
+      "id": "limit-1",
+      "limit": "",
+      "records": [
+        "tool-11",
+        "tool-10",
+        "tool-9",
+        "tool-8",
+        "tool-7",
+        "tool-6",
+        "tool-5",
+        "tool-4",
+        "tool-3",
+        "tool-2",
+        "tool-1",
+        "tool-0"
+      ]
+    },
+    {
+      "id": "limit-2",
+      "limit": " ",
+      "records": [
+        "tool-11",
+        "tool-10",
+        "tool-9",
+        "tool-8",
+        "tool-7",
+        "tool-6",
+        "tool-5",
+        "tool-4",
+        "tool-3",
+        "tool-2",
+        "tool-1",
+        "tool-0"
+      ]
+    },
+    {
+      "id": "limit-3",
+      "limit": "0",
+      "records": [
+        "tool-11",
+        "tool-10",
+        "tool-9",
+        "tool-8",
+        "tool-7",
+        "tool-6",
+        "tool-5",
+        "tool-4",
+        "tool-3",
+        "tool-2",
+        "tool-1",
+        "tool-0"
+      ]
+    },
+    {
+      "id": "limit-4",
+      "limit": "1",
+      "records": [
+        "tool-11"
+      ]
+    },
+    {
+      "id": "limit-5",
+      "limit": "3",
+      "records": [
+        "tool-11",
+        "tool-10",
+        "tool-9"
+      ]
+    },
+    {
+      "id": "limit-6",
+      "limit": "200",
+      "records": [
+        "tool-11",
+        "tool-10",
+        "tool-9",
+        "tool-8",
+        "tool-7",
+        "tool-6",
+        "tool-5",
+        "tool-4",
+        "tool-3",
+        "tool-2",
+        "tool-1",
+        "tool-0"
+      ]
+    },
+    {
+      "id": "limit-7",
+      "limit": "abc",
+      "records": [
+        "tool-11",
+        "tool-10",
+        "tool-9",
+        "tool-8",
+        "tool-7",
+        "tool-6",
+        "tool-5",
+        "tool-4",
+        "tool-3",
+        "tool-2",
+        "tool-1",
+        "tool-0"
+      ]
+    },
+    {
+      "id": "limit-8",
+      "limit": "-1",
+      "records": [
+        "tool-11",
+        "tool-10",
+        "tool-9",
+        "tool-8",
+        "tool-7",
+        "tool-6",
+        "tool-5",
+        "tool-4",
+        "tool-3",
+        "tool-2",
+        "tool-1"
+      ]
+    },
+    {
+      "id": "limit-9",
+      "limit": "-5",
+      "records": [
+        "tool-11",
+        "tool-10",
+        "tool-9",
+        "tool-8",
+        "tool-7",
+        "tool-6",
+        "tool-5"
+      ]
+    },
+    {
+      "id": "limit-10",
+      "limit": "-100",
+      "records": []
+    },
+    {
+      "id": "limit-11",
+      "limit": "1e2",
+      "records": [
+        "tool-11",
+        "tool-10",
+        "tool-9",
+        "tool-8",
+        "tool-7",
+        "tool-6",
+        "tool-5",
+        "tool-4",
+        "tool-3",
+        "tool-2",
+        "tool-1",
+        "tool-0"
+      ]
+    },
+    {
+      "id": "limit-12",
+      "limit": "2.7",
+      "records": [
+        "tool-11",
+        "tool-10"
+      ]
+    },
+    {
+      "id": "limit-13",
+      "limit": "-2.7",
+      "records": [
+        "tool-11",
+        "tool-10",
+        "tool-9",
+        "tool-8",
+        "tool-7",
+        "tool-6",
+        "tool-5",
+        "tool-4",
+        "tool-3",
+        "tool-2"
+      ]
+    },
+    {
+      "id": "filter-server",
+      "limit": "2",
+      "server": "alpha",
+      "records": [
+        "tool-9",
+        "tool-6"
+      ]
+    },
+    {
+      "id": "filter-cwd",
+      "limit": "3",
+      "cwd": "/Users/x/Dev/two",
+      "records": [
+        "tool-11",
+        "tool-9",
+        "tool-7"
+      ]
+    },
+    {
+      "id": "filter-both",
+      "limit": "abc",
+      "server": "beta",
+      "cwd": "/Users/x/Dev/two",
+      "records": [
+        "tool-11",
+        "tool-7",
+        "tool-5",
+        "tool-1"
+      ]
+    },
+    {
+      "id": "filter-no-match",
+      "limit": "5",
+      "server": "nobody",
+      "records": []
+    }
+  ]
+}

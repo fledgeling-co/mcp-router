@@ -157,17 +157,31 @@ public final class UsageStore: @unchecked Sendable {
         var out = ring
         if let server, !server.isEmpty { out = out.filter { $0.server == server } }
         if let cwd, !cwd.isEmpty { out = out.filter { $0.cwd == cwd } }
-        // `slice(-(limit))` with JavaScript's coercion: a NaN limit slices from 0, which is
-        // **every** record rather than none (N4).
+        // `out.slice(-(limit ?? 200)).reverse()`. The negation is done first and then fed through
+        // ECMAScript's own index rules, because every interesting case lives in them:
+        //
+        //   * `?limit=` and `?limit=0` produce `Number("") === 0`, so the slice is `slice(-0)`, and
+        //     `-0` is not negative — the start index is 0 and **every** record is returned. Reading
+        //     this as `suffix(0)` returns none, which is the opposite answer to the same request.
+        //   * `?limit=abc` is NaN, which `ToIntegerOrInfinity` maps to 0 — everything, again.
+        //   * `?limit=-5` slices from the front, dropping the five oldest (N4).
+        //   * `?limit=1e300` is reachable from the wire and unbounded here, unlike the registry's
+        //     `min(…, 60)`. The clamp happens in `Double` space on purpose: `Int(1e300)` traps, so
+        //     converting first would let any caller halt the router with a query string.
         let effective = limit ?? 200
-        if effective.isNaN { return out.reversed() }
-        let count = Int(effective)
-        if count >= 0 {
-            return Array(out.suffix(count)).reversed()
+        var start = -effective
+        if start.isNaN { start = 0 }
+        start = start < 0 ? start.rounded(.up) : start.rounded(.down)
+
+        let total = out.count
+        let index: Int
+        if start < 0 {
+            let from = Double(total) + start
+            index = from <= 0 ? 0 : Int(from)
+        } else {
+            index = start >= Double(total) ? total : Int(start)
         }
-        // A negative limit takes from the front, matching `slice(-(-5))` == `slice(5)`.
-        let drop = min(-count, out.count)
-        return Array(out.dropFirst(drop)).reversed()
+        return Array(out[index...]).reversed()
     }
 
     public func summarySince() -> String {
@@ -267,5 +281,24 @@ public final class UsageStore: @unchecked Sendable {
 /// `basename(cwd)` — the last path segment, for display.
 public func projectOf(_ cwd: String?) -> String? {
     guard let cwd, !cwd.isEmpty else { return nil }
-    return (cwd as NSString).lastPathComponent
+    return jsBasename(cwd)
+}
+
+/// Node's `path.basename` for a POSIX path, which is **not** `NSString.lastPathComponent`.
+///
+/// The two disagree on the root: Node's `basename('/')` is the empty string and `basename('//')`
+/// is too, while `lastPathComponent` answers `"/"` for both. A call made from `/` — a launchd
+/// job, a daemon that never chdir'd — therefore recorded a project literally named `/`, which then
+/// appeared as a project in the usage summary and as a `projects` key on the wire (B47).
+func jsBasename(_ path: String) -> String {
+    // Trailing separators are ignored, so `/a/b/` is `b`.
+    var end = path.endIndex
+    while end > path.startIndex, path[path.index(before: end)] == "/" {
+        end = path.index(before: end)
+    }
+    // Nothing but separators — the root, and Node calls that empty.
+    guard end > path.startIndex else { return "" }
+    let trimmed = path[path.startIndex ..< end]
+    guard let slash = trimmed.lastIndex(of: "/") else { return String(trimmed) }
+    return String(trimmed[trimmed.index(after: slash)...])
 }

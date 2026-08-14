@@ -36,7 +36,7 @@ struct ControlFixtureTests {
             pendingAuths
         }
 
-        func isLive(_: String) -> Bool {
+        func isLive(_: JSString) -> Bool {
             false
         }
 
@@ -44,8 +44,8 @@ struct ControlFixtureTests {
             calls.warmUps += 1
         }
 
-        func clearPending(_ name: String) {
-            calls.cleared.append(name)
+        func clearPending(_ name: JSString) {
+            calls.cleared.append(name.string)
         }
     }
 
@@ -57,15 +57,15 @@ struct ControlFixtureTests {
     }
 
     struct NoAuth: AuthStore {
-        func hasTokens(_: String) -> Bool {
+        func hasTokens(_: JSString) -> Bool {
             false
         }
 
-        func authorizedAt(_: String) -> String? {
+        func authorizedAt(_: JSString) -> String? {
             nil
         }
 
-        @discardableResult func clear(_: String) -> Bool {
+        @discardableResult func clear(_: JSString) -> Bool {
             false
         }
     }
@@ -280,7 +280,8 @@ struct ControlDispatchTests {
     func bearerShadowsHeader() {
         let request = ControlRequest(
             method: "POST", encodedPath: "/servers",
-            headers: ["Authorization": "Bearer wrong", "x-mcpr-token": "secret"]
+            headers: [(name: "Authorization", value: "Bearer wrong"),
+                      (name: "x-mcpr-token", value: "secret")]
         )
         // Trying both and accepting either would authorise a request the reference rejects.
         #expect(ControlToken.isAuthorized(request, expected: "secret") == false)
@@ -289,7 +290,8 @@ struct ControlDispatchTests {
     @Test("x-mcpr-token is consulted only when no Bearer prefix is present")
     func headerUsedWithoutBearer() {
         let request = ControlRequest(
-            method: "POST", encodedPath: "/servers", headers: ["x-mcpr-token": "secret"]
+            method: "POST", encodedPath: "/servers",
+            headers: [(name: "x-mcpr-token", value: "secret")]
         )
         #expect(ControlToken.isAuthorized(request, expected: "secret"))
     }
@@ -297,7 +299,10 @@ struct ControlDispatchTests {
     @Test("the content-type gate tests a prefix, so application/jsonp is accepted")
     func contentTypePrefix() {
         func request(_ value: String) -> ControlRequest {
-            ControlRequest(method: "POST", encodedPath: "/servers", headers: ["content-type": value])
+            ControlRequest(
+                method: "POST", encodedPath: "/servers",
+                headers: [(name: "content-type", value: value)]
+            )
         }
         #expect(ControlToken.hasJSONContentType(request("application/json")))
         #expect(ControlToken.hasJSONContentType(request("application/json; charset=utf-8")))

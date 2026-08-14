@@ -107,6 +107,19 @@ public extension Registry {
         )
     }
 
+    /// `Math.min(Number(x ?? 30) || 30, 60)` — the `?limit=` rule, as one named thing.
+    ///
+    /// Named rather than inlined at the call site so a differential vector can drive the rule
+    /// itself. Three coercions are stacked here and each is a way a reasonable port answers a
+    /// different result set: `||` is ToBoolean, so both `0` and `NaN` collapse to 30 rather than
+    /// returning nothing; `min` caps at 60; and a negative value survives all of it and reaches
+    /// `slice`, where it counts back from the end and *drops* rows instead of taking them (N6, B54).
+    internal static func coerceLimit(_ raw: String?) -> Double {
+        let value = raw.map(JSToNumber.number) ?? 30
+        let truthy = (value == 0 || value.isNaN) ? 30 : value
+        return min(truthy, 60)
+    }
+
     /// `array.slice(0, limit)` with ECMAScript's index coercion: a negative limit counts back from
     /// the end, so `?limit=-5` drops the last five rather than returning nothing (N6).
     internal static func jsSlice(_ rows: [JSObjectDraft], limit: Double) -> [JSObjectDraft] {

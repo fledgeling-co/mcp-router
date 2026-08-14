@@ -635,6 +635,193 @@ write('log-line', {
 
 if (stdoutBytes !== 0) throw new Error(`the reference wrote ${stdoutBytes} bytes to stdout, which it must never do`);
 
+// ============================================================ R3 — control, usage, registry
+//
+// Everything below drives `dist/control.js`, `dist/usage.js` and `dist/registry.js`, or the
+// JavaScript engine itself where the behaviour under test *is* an engine semantic the Swift port
+// reimplements (`Number`, `localeCompare`, `slice` with a negative or NaN index). Those are not
+// hand-written expectations dressed up as vectors: Node's own evaluation is the oracle, and the
+// Swift has a from-scratch implementation of each that must agree with it.
+//
+// This is the corpus B76 requires to grow. R1 left 224 executed cases; a port of three more modules
+// that added none would be claiming parity it never measured.
+
+const controlModule = require(join(distDir, 'control.js'));
+const usageModule = require(join(distDir, 'usage.js'));
+
+// ---------------------------------------------------------------- isControlPath
+//
+// The routing predicate. Getting it wrong in either direction is invisible until it is expensive:
+// too narrow and a control call falls through to /mcp, too wide and an MCP path is answered by the
+// control API. The prefix-vs-equality distinction is the whole of it — `/serverside` is not ours,
+// `/servers/` is, and `/registry` alone is not because only `/registry/` is a prefix match.
+write('is-control-path', {
+  description: 'control.isControlPath — the exact set of paths the control API claims.',
+  cases: [
+    '/servers', '/servers/', '/servers/alpha', '/servers/alpha/changes', '/servers/a/b/c',
+    '/serverside', '/server', '/servers2', '/SERVERS',
+    '/usage', '/usage/', '/usage/summary', '/usage/stream', '/usaged', '/usag',
+    '/registry/', '/registry/search', '/registry', '/registrys',
+    '/mcp', '/', '', '/health', '/servers%2Falpha'
+  ].map((pathname, index) => ({
+    id: `path-${index}`,
+    pathname,
+    control: controlModule.isControlPath(pathname)
+  }))
+});
+
+// ---------------------------------------------------------------- Number(x)
+//
+// N4 and N6 both hang off this. `Number` is not `parseFloat` and is emphatically not Swift's
+// `Double.init`: an empty or all-whitespace string is **0**, a padded numeral trims, `Infinity` is
+// a literal, the radix prefixes are accepted, and a trailing character poisons the whole thing to
+// NaN. Every one of those is a way a reasonable Swift port answers a different HTTP response.
+const numberInputs = [
+  '', ' ', '\t\n\r ', '0', '-0', '12', ' 12 ', '12 ', ' 12', '+12', '-12',
+  '12.5', '.5', '5.', '1e3', '1E3', '1e-3', '1.2e+3', 'Infinity', '-Infinity', '+Infinity',
+  'infinity', 'NaN', 'abc', '12abc', 'abc12', '1 2', '1,2', '0x1f', '0X1F', '0b101', '0o17',
+  '0xg', '0b', '1_000', '١٢', 'null', 'undefined', 'true', ' 12 '
+];
+write('js-to-number', {
+  description: 'Number(x) for every string the control API can receive as a query value (N4, N6).',
+  cases: numberInputs.map((text, index) => {
+    const n = Number(text);
+    return {
+      id: `number-${index}`,
+      text,
+      // NaN and the infinities have no JSON spelling, so the expectation is carried as a tag plus a
+      // finite value. A vector that serialised NaN as null would silently accept a wrong answer.
+      kind: Number.isNaN(n) ? 'nan' : n === Infinity ? 'inf' : n === -Infinity ? '-inf' : 'finite',
+      value: Number.isFinite(n) ? n : 0,
+      // `JSON.stringify(-0)` is `"0"`, so the sign of a negative zero cannot survive in `value`.
+      // It has to: `Number("-0")` is -0, and `slice(-0)` returns the whole array where `slice(0)`
+      // of a suffix returns none. Carried as a flag for the same reason NaN is carried as a tag.
+      negativeZero: Object.is(n, -0)
+    };
+  })
+});
+
+// ---------------------------------------------------------------- localeCompare
+//
+// N8. The reference ranks `updatedAt` with `localeCompare`, not `<`. ICU root collation puts `"a"`
+// before `"B"` and `"A"` after `"a"` — both the reverse of UTF-16 code-unit order — so the obvious
+// Swift substitution reorders the registry results for any pair of rows whose timestamps differ in
+// case or in fractional-second digit count.
+const comparePairs = [
+  ['2024-01-01T00:00:00Z', '2024-01-01T00:00:00.000Z'],
+  ['2024-01-01T00:00:00.1Z', '2024-01-01T00:00:00.10Z'],
+  ['2024-01-02T00:00:00Z', '2024-01-01T00:00:00Z'],
+  ['', '2024-01-01T00:00:00Z'],
+  ['', ''],
+  ['a', 'B'], ['A', 'a'], ['a', 'A'], ['B', 'a'], ['a', 'b'],
+  ['z', 'Z'], ['é', 'e'], ['é', 'é'], ['10', '9'], ['1', '10'],
+  ['2024-01-01T00:00:00+00:00', '2024-01-01T00:00:00Z']
+];
+write('locale-compare', {
+  description: 'String.prototype.localeCompare over the ISO domain and the letter cases (N8).',
+  cases: comparePairs.map(([lhs, rhs], index) => ({
+    id: `compare-${index}`,
+    lhs,
+    rhs,
+    // Normalised to the sign, which is all the sort consumes and all ICU guarantees.
+    result: Math.sign(lhs.localeCompare(rhs))
+  }))
+});
+
+// ---------------------------------------------------------------- projectOf
+//
+// `basename(cwd)`, which is POSIX basename and not "the text after the last slash": a trailing
+// slash is ignored, `/` is `/`, and an empty cwd is falsy so the whole expression is undefined.
+write('project-of', {
+  description: 'usage.projectOf — the project label the activity view groups by.',
+  cases: [
+    '/Users/x/Dev/app', '/Users/x/Dev/app/', '/Users/x/Dev/app//', '/', '//', '',
+    'app', './app', '/a b/c d', '/Users/x/Dev/.hidden', '/Users/x/Dev/app.tar.gz', '/日本語/プロジェクト'
+  ].map((cwd, index) => ({
+    id: `project-${index}`,
+    cwd,
+    // `undefined` has no JSON spelling; the member is omitted, which is exactly what the reference's
+    // own serialisation does with it (N1).
+    ...(usageModule.projectOf(cwd) === undefined ? {} : { project: usageModule.projectOf(cwd) })
+  }))
+});
+
+// ---------------------------------------------------------------- /usage?limit
+//
+// The real `UsageStore.recent`, over a real seeded ring, because the pipeline is three operations
+// whose order is the contract: filter, then take the **last** `limit`, then reverse. A port that
+// reverses first returns the wrong end of the history and every fixture still passes.
+const usageScratch = mkdtempSync(join(tmpdir(), 'mcp-router-vectors-usage-'));
+const usageLog = join(usageScratch, 'usage.log');
+const usageStats = join(usageScratch, 'usage-stats.json');
+{
+  const seeded = [];
+  for (let i = 0; i < 12; i += 1) {
+    seeded.push({
+      ts: new Date(1755100000000 + i * 1000).toISOString(),
+      server: i % 3 === 0 ? 'alpha' : 'beta',
+      tool: `tool-${i}`,
+      ok: i % 4 !== 0,
+      ms: i,
+      cold: i === 0,
+      cwd: i % 2 === 0 ? '/Users/x/Dev/one' : '/Users/x/Dev/two'
+    });
+  }
+  writeFileSync(usageLog, seeded.map((r) => JSON.stringify(r)).join('\n') + '\n');
+
+  const store = new usageModule.UsageStore(usageLog, usageStats);
+  const limitValues = [null, '', ' ', '0', '1', '3', '200', 'abc', '-1', '-5', '-100', '1e2', '2.7', '-2.7'];
+  const usageCases = [];
+  for (const [index, raw] of limitValues.entries()) {
+    // Exactly the expression at src/control.ts's `/usage` branch.
+    const limit = Number(raw ?? 200);
+    usageCases.push({
+      id: `limit-${index}`,
+      ...(raw === null ? {} : { limit: raw }),
+      records: store.recent({ limit }).map((r) => r.tool)
+    });
+  }
+  // And the two filters, whose interaction with the slice is the part an order-swapped port breaks.
+  usageCases.push({ id: 'filter-server', limit: '2', server: 'alpha', records: store.recent({ limit: 2, server: 'alpha' }).map((r) => r.tool) });
+  usageCases.push({ id: 'filter-cwd', limit: '3', cwd: '/Users/x/Dev/two', records: store.recent({ limit: 3, cwd: '/Users/x/Dev/two' }).map((r) => r.tool) });
+  usageCases.push({ id: 'filter-both', limit: 'abc', server: 'beta', cwd: '/Users/x/Dev/two', records: store.recent({ limit: Number('abc'), server: 'beta', cwd: '/Users/x/Dev/two' }).map((r) => r.tool) });
+  usageCases.push({ id: 'filter-no-match', limit: '5', server: 'nobody', records: store.recent({ limit: 5, server: 'nobody' }).map((r) => r.tool) });
+
+  write('usage-limit', {
+    description: 'UsageStore.recent over a seeded ring — filter, take the last N, reverse (N4, B45, B46).',
+    // The exact bytes of the log the reference read, so the Swift store warms from the same input
+    // rather than from a reconstruction of it.
+    log: seeded.map((r) => JSON.stringify(r)).join('\n') + '\n',
+    cases: usageCases
+  });
+}
+
+// ---------------------------------------------------------------- /registry/search?limit
+//
+// `Math.min(Number(x ?? 30) || 30, 60)` then `slice(0, limit)`. Three coercions stacked: `||` is
+// ToBoolean so both `0` and `NaN` collapse to 30, `min` caps at 60, and a negative survives all of
+// it and reaches `slice`, where it counts back from the end and drops rows instead of taking them.
+{
+  const rows = Array.from({ length: 70 }, (_, i) => `row-${i}`);
+  const limitValues = [null, '', ' ', '0', '1', '30', '59', '60', '61', '500', 'abc', '-1', '-5', '-100', '2.9', '1e1', 'Infinity', '-Infinity'];
+  write('registry-limit', {
+    description: 'Math.min(Number(x ?? 30) || 30, 60) then slice(0, limit) — the registry cap (N6, B54).',
+    rows: rows.length,
+    cases: limitValues.map((raw, index) => {
+      const limit = Math.min(Number(raw ?? 30) || 30, 60);
+      return {
+        id: `rlimit-${index}`,
+        ...(raw === null ? {} : { limit: raw }),
+        kind: Number.isNaN(limit) ? 'nan' : limit === Infinity ? 'inf' : limit === -Infinity ? '-inf' : 'finite',
+        coerced: Number.isFinite(limit) ? limit : 0,
+        sliced: rows.slice(0, limit)
+      };
+    })
+  });
+}
+
+rmSync(usageScratch, { recursive: true, force: true });
+
 rmSync(scratch, { recursive: true, force: true });
 rmSync(scratch2, { recursive: true, force: true });
 console.log(`\nwrote manifest vectors to ${outDir}`);

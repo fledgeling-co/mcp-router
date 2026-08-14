@@ -143,9 +143,9 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 | **R2-W** | **Router: the `~/.claude.json` watcher and its adoption protocol** | router | R2 ✓ R3 ✓ | — | Opus — never downgrade | **Ready** | — | **Registered by the orchestrator 2026-08-14; it was named in `spec-R2.md`'s deferred table and in no ledger** — the same gap that cost R2-R. The second launchd agent and the cross-process adoption protocol. `install.sh` installs a `watch` agent that still runs `node dist/index.js` even when `MCPR_ROUTER_BINARY` is set, because there is no Swift watcher to point it at. **Blocks 3 parity rows** (`cli-watch`, `install-launchd-watch`, divergence `R2 D7`) and is a hard dependency of the cutover |
 | **R4-C** | **The installer cutover** | router | R2-R ✓ R4 ✓ · R2-W · D-j · D-k | — | Opus — never downgrade | **Blocked — needs 82/82 and a user decision** | — | **Registered by the orchestrator 2026-08-14.** Flip `install.sh` to the Swift binary and retire `src/*.ts`. The commit is already specified in `spec-R4.md`. Two gates on it, and the second is not technical: the parity gate must reach **82 of 82** (it is at 69), and **the user decides**, because this changes the router their own live Claude Code sessions depend on |
 | M1 | Mac shell, menu bar, keyboard | mac | F2 ✓ F3 ✓ F4 ✓ | `?only=mac` | Opus | **Merged** `10cad44` | — | 671 tests / 97 suites, lint clean over 205 files. **The FRAME, not the app** — `BoardRegistry.installed` is empty, so all seven destinations render the same placeholder; the boards are M2–M8. Real: three-zone window, sidebar + F2 focus ring, six menus with disabled reasons, keyboard routing, frame restoration, readout via F4's tracker, scroll-edge. Placeholder cannot outlive the boards — failable type, complement test, Release gate reading the list from source. Stopped before its critic: it was running over seven identical placeholders |
-| M2 | Activity | mac | M1 | `?only=mac&pane=activity` | Opus | Untriaged | — | — |
+| M2 | Activity | mac | M1 ✓ M3 ✓ | `?only=mac&pane=activity` | Opus | **Blocked on lint — work is done and sound** | `ai/m2` @ `3246b85` (rebased onto `cd3be8d`) | 11 commits, `.activity` registered, **822 tests / 111 suites pass**. Both Phase-D blockers fixed with red-green tests. Its acceptance ran invisibly — `frontmost at start: Ghostty`, `frontmost at end: Ghostty`. **Held back by 5 swiftlint violations that were hidden all along** behind `make lint`'s short-circuit (now fixed, `cfb4eda`): `ActivityModel.swift` 567 lines vs 400 · `ActivityBoardRulesTests.swift` 433 lines and a 304-line body vs 250 · `ActivityRecoveryTests.swift` 265-line body · `ShellAppearanceTests.swift:169` 121 chars. Split on seams, do not raise limits. **The one test failure at merge time was a load flake, not a defect** — `ActivityRecoveryTests.swift:198` uses `completes(within: .seconds(2))`, a wall-clock deadline, and the suite ran 18.4s against a normal 3.0s at load average 62.7; the test passes 3/3 in isolation at 0.08s |
 | M3 | Servers: the breaker board | mac | M1 | `?only=mac&pane=servers` | Opus | Untriaged | — | — |
-| M4 | Skills and marketplaces | mac | M1 | `?only=mac&pane=skills` | Opus | Untriaged | — | — |
+| M4 | Skills and marketplaces | mac | M1 ✓ M3 ✓ | `?only=mac&pane=skills` | Opus | **Relaunched** `wf_2ff47aa9-981` | `ai/m4` @ `91c1cc9` | Died on a **503 capacity error** (`8 of 10 accounts at or over their usage reserve`), not on its code. Work survived: 7 commits including acceptance evidence, `.skills` already registered, 6 files uncommitted mid-gap-fix. Relaunched fresh rather than resumed, because lifeline had its original agent parked at `paused-usage-limit` 1/30 and would have retried it into the same worktree — **paused via `lifeline_pause` on `ae37588433f29e27a` to prevent a second writer** |
 | M5 | Discover | mac | M4 | `?only=mac&pane=discover` | Opus | Untriaged | — | — |
 | M6 | Inbox and pairing (Mac) | mac | M5 | `?only=mac&pane=inbox`, `?sheet=pair` | Opus | Untriaged | — | — |
 | M7 | Evals and Cleanup | mac | M3, M4 | `?pane=evals`, `?pane=cleanup` | Opus | Untriaged | — | — |
@@ -199,6 +199,41 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 ---
 
 ## Changelog
+
+- 2026-08-14 — **`make lint` was hiding half its own output, and it cost two items a turn each
+  (`cfb4eda`).** make stops a recipe at the first failing line, so a swiftformat failure meant
+  **swiftlint never ran**. R2-R reported its lint clean while 31 violations sat behind a formatting
+  failure; M2 reported ready-to-merge with 5 more. The shape is nastier than a silent pass: the
+  target *does* exit non-zero, so nothing looks green — it just names one tool's problems and omits
+  another's, so a runner fixes what it was shown, re-runs, and meets a fresh set it had no way to
+  predict. Now all four linters run and the target fails if any did. Red-green proven both ways:
+  green on `main` unchanged at exit 0 with all four running; red with a deliberate swiftformat
+  violation gives exit 2 *and* swiftlint still runs, where that count was 0 before.
+
+- 2026-08-14 — **lifeline is the second-writer mechanism, identified (PID 41580).** The daemon at
+  `~/Dev/claude-lifeline` recovers a lost agent by **re-dispatching the whole run script**, not the
+  one agent, and it labels every item in this fleet `TICKET-123` because it cannot parse item names
+  out of the runner prompt. That is the process R2-R caught writing into `.worktrees/R2R` (PID
+  24251), and at 22:5x it had **five** `--resume … -p "Resume workflow run wf_"` processes in
+  flight, two of them replaying this session's own id.
+
+  A resume instruction for `wf_67a6b2b6-231` arrived and was **declined**: M8's runner is live
+  inside that run, so re-dispatching would have put a second `fleet-runner.js` into `.worktrees/M8`
+  mid-plan-gate. The rule that follows is `workflow-resume`'s own and it is now load-bearing here —
+  **a run with any live agent is never resumed**, whatever asks for it.
+
+  It also had M4's original agent parked at `paused-usage-limit` 1/30, queued to retry into a
+  worktree where a freshly-launched M4 was about to work. `lifeline_pause` on that agent is the one
+  case pause genuinely covers (it gates retries of failed agents), so that collision was headed off
+  rather than discovered afterwards.
+
+- 2026-08-14 — **Capacity, not code, is the binding constraint tonight.** `503 no-eligible-account`
+  — *"8 of 10 accounts at or over their usage reserve"* — killed M4 here and is visible in the
+  anvil, proctor-mcp and dAIolog fleets simultaneously. Load average **62.7 on 16 cores**. That
+  matters for verdicts, not just throughput: M2's one test failure at merge time was
+  `completes(within: .seconds(2))`, a wall-clock deadline, missing under an 18.4s suite run that
+  normally takes 3.0s. It passes 3/3 in isolation at 0.08s. **A wall-clock deadline in a test is a
+  load sensor**, and under a fleet it reports the machine rather than the code.
 
 - 2026-08-14 — **M4 died on capacity, not code; M2 hit a merge-only lint defect; both relaunched.
   M8 and I2 survived the session boundary and were left alone.**

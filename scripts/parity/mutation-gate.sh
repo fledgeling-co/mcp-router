@@ -57,6 +57,13 @@ N13@@Config/ServerParser.swift@@upstream.transport = typeName == "sse" ? .sse : 
 D1@@Config/ConfigLoader.swift@@        guard let servers = raw.member("mcpServers") else {\n            throw ConfigProblem.unrecognisedShape(path: path, found: .missingKey)\n        }@@        let servers = raw.member("mcpServers") ?? .object([])@@load zero servers silently where the divergence requires a named error
 D3@@Config/ConfigWriter.swift@@        if let existingMembers = existingTopLevel(path: path, fileSystem: fileSystem) {@@        if false, let existingMembers = existingTopLevel(path: path, fileSystem: fileSystem) {@@stop preserving top-level keys the writer did not set
 D4@@Log/RouterLog.swift@@try? fileSystem.createDirectory(atPath: (file as NSString).deletingLastPathComponent)@@try! fileSystem.createDirectory(atPath: (file as NSString).deletingLastPathComponent)@@let a directory-creation failure escape, which the divergence contains
+R1@@Usage/UsageStore.swift@@        let effective = limit ?? 200\n        var start = -effective@@        let effective = limit ?? 200\n        if !effective.isNaN, effective >= 0, effective < 1e9 { return Array(out.suffix(Int(effective))).reversed() }\n        var start = -effective@@read slice(-limit) as suffix(limit), so ?limit=0 returns nothing not everything
+R2@@Usage/UsageStore.swift@@    return jsBasename(cwd)@@    return (cwd as NSString).lastPathComponent@@use lastPathComponent, so a call from / records a project named "/"
+R3@@Control/ControlPorts.swift@@        status().first { $0.name == name }@@        status().last { $0.name == name }@@take the LAST matching pool row instead of the first
+R4@@Registry/RegistrySearch.swift@@        let truthy = (value == 0 || value.isNaN) ? 30 : value@@        let truthy = value@@read the limit default as ?? not ||, so 0 and NaN stop becoming 30
+R5@@Registry/JSLocaleCompare.swift@@        switch lhs.compare(rhs, options: [], range: nil, locale: Locale(identifier: "en_US")) {@@        switch (lhs < rhs ? ComparisonResult.orderedAscending : lhs == rhs ? ComparisonResult.orderedSame : ComparisonResult.orderedDescending) {@@rank updatedAt with Swift < instead of ICU root collation
+R6@@Control/ControlRequest.swift@@        self.headers = Self.normalized(headers)@@        self.headers = headers@@stop normalising headers, so a repeated name resolves by hash order
+R7@@Control/Describe.swift@@        let failed = entry?.hasError ?? false@@        let failed = entry?.member("error") != nil@@test the index error with != nil, zeroing tools when error is ""
 TABLE
 )
 

@@ -101,6 +101,28 @@ public struct FixtureControlAPIClient: ControlAPIClient {
 
     // MARK: - Reading
 
+    public func skills() async throws(ControlAPIError) -> SkillsResponse {
+        try guardFailure()
+        if scenario == .loading { try await Self.forever() }
+        switch scenario {
+        case .empty:
+            return SkillsResponse(skills: [], clients: SkillFixtures.clients)
+        case .partial:
+            return SkillFixtures.partial()
+        case .overflow:
+            return SkillsResponse(skills: SkillFixtures.overflow, clients: SkillFixtures.clients)
+        default:
+            return SkillsResponse(skills: SkillFixtures.populated, clients: SkillFixtures.clients)
+        }
+    }
+
+    public func marketplaces() async throws(ControlAPIError) -> MarketplacesResponse {
+        try guardFailure()
+        if scenario == .loading { try await Self.forever() }
+        if scenario == .empty { return MarketplacesResponse(marketplaces: []) }
+        return MarketplacesResponse(marketplaces: SkillFixtures.marketplaces)
+    }
+
     public func servers() async throws(ControlAPIError) -> ServersResponse {
         try guardFailure()
         if scenario == .loading {

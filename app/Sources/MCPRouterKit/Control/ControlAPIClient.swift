@@ -133,6 +133,22 @@ public protocol ControlAPIClient: Sendable {
     /// Search the configured registries.
     func searchRegistry(query: String, limit: Int) async throws(ControlAPIError) -> RegistrySearchResponse
 
+    /// Every skill the router can see, across every client that has a skills mechanism.
+    ///
+    /// Read-only, and deliberately so for now: changing what is installed means writing files that
+    /// the client applications themselves hold open, and that write wants preconditions and an undo
+    /// this surface does not yet have. The board renders its write controls dimmed with that reason
+    /// rather than offering an action it cannot make safe.
+    ///
+    /// A router older than this endpoint answers 404. Implementations map that to
+    /// `malformedResponse`, not to `server(status:)` — "the router couldn't complete that" is the
+    /// wrong sentence for "this router does not have the feature", and the version-skew wording is
+    /// the one the board is designed around.
+    func skills() async throws(ControlAPIError) -> SkillsResponse
+
+    /// Every followed marketplace, with what it supplies.
+    func marketplaces() async throws(ControlAPIError) -> MarketplacesResponse
+
     // MARK: Writing
 
     /// Declare a new server. `force` adopts one that failed to start, which the router otherwise

@@ -68,6 +68,12 @@
         @ObservationIgnored public private(set) lazy var serversBoard: ServersBoardModel =
             .forApp(client: client, tracker: tracker)
 
+        /// The Skills board's own state, created once and kept, for the same reason `serversBoard`
+        /// is: a menu command has to reach a live board, and a board rebuilt on every render would
+        /// drop the user's selection and filter on every poll.
+        @ObservationIgnored public private(set) lazy var skillsBoard: SkillsBoardModel =
+            SkillsBoardModel(client: client)
+
         /// The readout's numbers and the condition it is in.
         public private(set) var readout = ReadoutModel()
 

@@ -27,7 +27,7 @@
         /// `.servers`, and this line is the whole difference between a board that exists and a board
         /// the user can reach: without it `ContentZone` still renders the placeholder, however
         /// complete the view is.
-        public static let installed: Set<Destination> = [.servers]
+        public static let installed: Set<Destination> = [.servers, .skills]
 
         public static func hasBoard(_ destination: Destination) -> Bool {
             installed.contains(destination)

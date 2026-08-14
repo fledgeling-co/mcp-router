@@ -82,6 +82,21 @@
         @ObservationIgnored public private(set) lazy var discoverBoard: DiscoverBoardModel =
             .init(client: client)
 
+        /// The Evals board's state, and the store behind its history.
+        ///
+        /// The store is created once here rather than per-view for the same reason the board models
+        /// are: a store rebuilt on every render would re-read the file on every poll, and the history
+        /// section would flicker between "none yet" and its rows.
+        @ObservationIgnored public private(set) lazy var evalsBoard: EvalsBoardModel =
+            .init(
+                client: client,
+                store: CheckHistoryStore(directory: CheckHistoryStore.defaultDirectory())
+            )
+
+        /// The Cleanup board's state.
+        @ObservationIgnored public private(set) lazy var cleanupBoard: CleanupBoardModel =
+            .init(client: client)
+
         /// The readout's numbers and the condition it is in.
         public private(set) var readout = ReadoutModel()
 

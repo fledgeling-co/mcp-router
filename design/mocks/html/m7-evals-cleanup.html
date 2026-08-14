@@ -1,0 +1,1059 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>M7 — Evals and Cleanup</title>
+<!--
+  The design representation for M7. Authoritative over design/mocks/prototype.html where the two
+  disagree, per DESIGN.md's own precedence rule ("the prototype is stale and this document is the
+  spec"). Every surface, both panes, all nine of DESIGN.md §5's states, with real copy on the
+  unhappy paths.
+
+  THE ONE STRUCTURAL DECISION, stated first because everything else follows from it:
+
+  There is no eval runner in this product, and no eval endpoint in the control API. Verified, not
+  assumed: `grep -rniE '\beval' src/ app/Sources/RouterCore/` returns nothing, and two merged items
+  already wrote the finding into source. ServerPresentation.swift: "there is no eval field on a
+  server anywhere in the control API and no `eval` in src/control.ts, so that chip has nothing
+  behind it and §6 rules it out. Evals are M7's." SkillsBoard.swift: "there is no eval runner in
+  this product at all."
+
+  The prototype's Evals pane runs an 8-case model-graded suite against a SKILL — pr-summariser —
+  showing per-case verdicts, a failing prompt-injection transcript, and an 18.4s duration. It is
+  unbuildable twice over. Once because nothing in this product can run a graded case. And once
+  more, permanently, because a skill is markdown the CLIENT loads into an agent's context: it never
+  traverses the router, so no execution of it is observable to the process that would have to grade
+  it. No future router item fixes the second one.
+
+  So M7 ships the checks the router GENUINELY RUNS AND REPORTS, stamped to the version they were
+  observed against and invalidated when that version moves — which is the brief's one hard rule
+  ("an eval result is evidence attached to a version ... invalidated when the version changes
+  rather than carried forward") and the actual design content of the feature.
+
+  NAMING DISCIPLINE, and it is load-bearing rather than cosmetic. The failure mode of this decision
+  is a rename that dresses up status data already shown on two other boards, so that a user reads
+  "passed" and believes a test suite ran:
+    · The unit is a CHECK. Never "case", never "eval case", never "test".
+    · No aggregate chip anywhere reads a bare "passed" or "failed". A verdict is only ever rendered
+      immediately beside the statement it is a verdict ON.
+    · The disclosure is STRUCTURAL — the pane's permanent subtitle, in the position M3 and M4 put
+      theirs — never a footnote.
+    · The deferred runner is filed SERVERS ONLY. Promising skill evals again is the one mistake
+      this document exists to stop being repeated.
+
+  WHAT M7 INHERITS RATHER THAN DECIDES. Three decisions were already made and are not reopened:
+  Destination.badgeSource already reads `.cleanup: .serversNeverUsed` and `.evals: nil` — Cleanup's
+  badge counts an observed field, Evals has nothing to count. Icon.cleanup is already
+  "arrow.down.circle" with the comment "Deliberately NOT a bin or a trash can". And
+  ServersBoardModel.removeConsequence already carries the named consequence of removing a server;
+  M7 reuses that wording rather than writing a second one.
+-->
+<style>
+  :root {
+    --ground:#1E1E1E; --panel:#232326; --raised:#2C2C2E; --raised2:#3A3A3C;
+    --line:rgba(255,255,255,.075); --lineS:rgba(255,255,255,.14);
+    --f1:rgba(255,255,255,.10); --f2:rgba(255,255,255,.08); --f3:rgba(255,255,255,.05);
+    --t1:#fff; --t2:rgba(255,255,255,.55); --t3:rgba(255,255,255,.50); --t4:rgba(255,255,255,.25);
+    --accent:#0091FF; --live:#30D158; --attn:#FF9230; --fail:#FF4245; --onAccent:#fff;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --ground:#ECECEE; --panel:#F5F5F7; --raised:#FFFFFF; --raised2:#E0E0E4;
+      --line:rgba(0,0,0,.10); --lineS:rgba(0,0,0,.19);
+      --f1:rgba(0,0,0,.13); --f2:rgba(0,0,0,.10); --f3:rgba(0,0,0,.06);
+      --t1:rgba(0,0,0,.95); --t2:rgba(0,0,0,.62); --t3:rgba(0,0,0,.58); --t4:rgba(0,0,0,.33);
+      --accent:#0069CF; --live:#1B7B3C; --attn:#9F5A00; --fail:#CD2738;
+    }
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:32px; background:var(--ground); color:var(--t1);
+    font:13px/16px -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    font-weight:600;
+  }
+  h1 { font-size:26px; line-height:32px; font-weight:700; margin:0 0 8px; }
+  h2 { font-size:17px; line-height:22px; font-weight:700; margin:40px 0 4px; }
+  h3 { font-size:15px; line-height:20px; font-weight:600; margin:24px 0 8px; }
+  p, li { font-weight:400; color:var(--t2); max-width:78ch; }
+  code, .m { font-family:"SF Mono", ui-monospace, monospace; }
+  .note { font-size:11px; line-height:14px; color:var(--t3); font-weight:400; max-width:78ch; }
+  .win {
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    overflow:hidden; margin:12px 0 4px; max-width:1080px;
+  }
+  .pane { padding:20px; }
+  .hd { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; gap:20px; }
+  .hd h4 { font-size:22px; line-height:26px; font-weight:700; margin:0 0 3px; }
+  .sb { font-size:11px; line-height:15px; color:var(--t2); font-weight:400; max-width:62ch; }
+  .seg { display:inline-flex; background:var(--f2); border-radius:6px; padding:2px; gap:2px; }
+  .seg button {
+    font:inherit; font-size:12px; font-weight:600; border:0; background:transparent;
+    color:var(--t2); padding:3px 10px; border-radius:4px; cursor:default;
+  }
+  .seg button.on { background:var(--raised); color:var(--t1); }
+  .seg b { font-family:"SF Mono",monospace; font-weight:600; margin-left:5px; color:var(--t3); }
+  .ctl { display:flex; gap:10px; align-items:center; margin-bottom:14px; }
+  .search {
+    display:flex; align-items:center; gap:6px; width:200px; height:24px; padding:0 9px;
+    background:var(--f2); border-radius:6px; font-size:12px; font-weight:400; color:var(--t3);
+  }
+  .btn {
+    font:inherit; font-size:12px; font-weight:600; padding:4px 11px; border-radius:6px;
+    border:1px solid var(--lineS); background:var(--raised); color:var(--t1); cursor:default;
+  }
+  .btn.p { background:var(--accent); border-color:transparent; color:var(--onAccent); }
+  .btn.d { color:var(--fail); }
+  .btn.sm { font-size:11px; padding:2px 8px; }
+  .btn[disabled] { color:var(--t4); border-color:var(--line); background:var(--f3); }
+  .cols, .tr { display:flex; align-items:center; gap:10px; }
+  .cols {
+    font-size:10px; line-height:13px; color:var(--t3); font-weight:600;
+    padding:0 8px 6px; border-bottom:1px solid var(--line);
+  }
+  .tr { padding:8px; border-bottom:1px solid var(--line); border-radius:8px; min-height:44px; }
+  .tr.sel { background:var(--f2); }
+  .tile {
+    width:30px; height:30px; border-radius:7px; background:var(--raised2); flex:none;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; color:var(--t2);
+  }
+  .nm { width:180px; overflow:hidden; }
+  .nm b { font-weight:500; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .src { font-size:10px; line-height:13px; color:var(--t3); font-weight:400;
+         white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .kind { width:58px; font-size:10px; color:var(--t3); font-weight:600; }
+
+  /* Verdicts. A PASS IS NEVER GREEN — see §2. --live means "a child process is running" and
+     nothing else, so it is not available to mean "this check passed". */
+  .v { font-family:"SF Mono",monospace; font-size:11px; font-weight:600; }
+  .v.pass { color:var(--t1); }
+  .v.fail { color:var(--fail); }
+  .v.unk  { color:var(--t3); }
+  .v.na   { color:var(--t4); }
+  .tally { width:170px; font-family:"SF Mono",monospace; font-size:11px; font-weight:500; color:var(--t2); }
+  .tally .f { color:var(--fail); }
+  .tally .u { color:var(--t3); }
+  .stamp { width:150px; font-family:"SF Mono",monospace; font-size:11px; font-weight:500; color:var(--t2); }
+  .stamp.none { font-family:-apple-system,sans-serif; font-weight:400; color:var(--t3); }
+  .stamp.inv  { font-family:-apple-system,sans-serif; font-weight:400; color:var(--t3); }
+  .rest { flex:1; display:flex; align-items:center; gap:8px; justify-content:flex-end; }
+
+  /* The observation track — §13, the second subject-mined element. */
+  .obs { width:172px; }
+  .obs .trk { height:4px; border-radius:2px; background:var(--f2); overflow:hidden; }
+  .obs .trk i { display:block; height:100%; background:var(--t4); }
+  .obs .lab { font-family:"SF Mono",monospace; font-size:10px; line-height:13px;
+              color:var(--t2); font-weight:500; margin-top:4px; }
+  .obs.weak .lab { color:var(--attn); }
+  .obs.weak .trk i { background:var(--attn); }
+
+  .skel { background:var(--f2); border-radius:4px; height:9px; }
+  .banner {
+    display:flex; gap:8px; align-items:flex-start; padding:10px;
+    background:var(--f3); border-radius:8px; margin-bottom:12px;
+    font-size:13px; line-height:17px; font-weight:400; color:var(--t2);
+  }
+  .banner .ic { flex:none; font-weight:700; }
+  .banner.attn .ic { color:var(--attn); }
+  .banner.fail .ic { color:var(--fail); }
+  .msg { text-align:center; padding:52px 20px; }
+  .msg .ttl { font-size:15px; line-height:20px; font-weight:600; color:var(--t1); margin-bottom:6px; }
+  .msg .det { font-size:13px; line-height:17px; font-weight:400; color:var(--t2);
+              max-width:46ch; margin:0 auto 14px; }
+  .foot { font-size:10px; line-height:14px; color:var(--t3); font-weight:400;
+          padding-top:12px; margin-top:4px; border-top:1px solid var(--line); max-width:82ch; }
+  table.k { border-collapse:collapse; margin:10px 0; max-width:1080px; width:100%; }
+  table.k th, table.k td {
+    border:1px solid var(--line); padding:6px 9px; text-align:left; vertical-align:top;
+    font-size:12px; line-height:16px; font-weight:400; color:var(--t2);
+  }
+  table.k th { color:var(--t3); font-weight:600; font-size:10px; }
+  table.k td:first-child { color:var(--t1); font-weight:500; white-space:nowrap; }
+  table.k code { font-size:11px; }
+  .insp { width:320px; border-left:1px solid var(--line); padding:16px; }
+  .insp .lbl { font-size:10px; color:var(--t3); font-weight:600; margin:14px 0 4px; }
+  .insp .val { font-size:12px; color:var(--t1); font-weight:400; line-height:16px; }
+  .chk { display:flex; gap:9px; align-items:baseline; padding:6px 0; border-bottom:1px solid var(--line); }
+  .chk .st { flex:1; font-size:12px; font-weight:400; color:var(--t2); line-height:16px; }
+  .hist { display:flex; gap:9px; align-items:baseline; padding:5px 0; border-bottom:1px solid var(--line);
+          font-size:11px; font-weight:400; color:var(--t2); }
+  .hist .fp { font-family:"SF Mono",monospace; font-weight:600; color:var(--t1); width:52px; }
+  .hist .wh { font-family:"SF Mono",monospace; color:var(--t3); flex:1; }
+  .sheet {
+    background:var(--panel); border:1px solid var(--lineS); border-radius:20px;
+    padding:20px; max-width:520px; margin:12px 0;
+  }
+  .sheet h5 { font-size:15px; line-height:20px; font-weight:600; margin:0 0 8px; }
+  .sheet p { font-size:13px; line-height:17px; margin:0 0 10px; }
+  .sheet .acts { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+  .caption { font-size:10px; color:var(--t3); font-weight:400; margin:2px 0 18px; max-width:82ch; }
+  .bad { color:var(--fail); font-weight:600; }
+  .good { color:var(--t1); font-weight:600; }
+</style>
+
+<h1>M7 — Evals and Cleanup</h1>
+<p>
+  Two panes sharing one subject: <b>evidence about whether a capability earns its place</b>. Evals
+  carries evidence of <i>fitness</i>; Cleanup carries evidence of <i>use</i>. Both are bound by the
+  same rule, which has now bitten this product six times — <b>no number and no sentence is displayed
+  that the router does not observe.</b>
+</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>0 · What the router observes, and what it does not</h2>
+<p>
+  This section is the design. Everything after it is layout.
+</p>
+
+<h3>There is no eval runner, and for skills there never can be</h3>
+<table class="k">
+  <tr><th>Claim the prototype makes</th><th>Status</th><th>What replaces it</th></tr>
+  <tr>
+    <td>8 graded cases on a skill</td>
+    <td><span class="bad">Impossible.</span> A skill is markdown the client loads into an agent's
+        context. It never traverses the router, so the router can never observe it running, grade it,
+        or time it. No future router item changes this.</td>
+    <td>The five structural checks in §1 that the router genuinely performs when it reads a skill.</td>
+  </tr>
+  <tr>
+    <td>&ldquo;3 of 8 passed&rdquo;, a failing transcript, <code>18.4s</code></td>
+    <td><span class="bad">Fabricated.</span> No runner, no case store, no transcript, no timing.</td>
+    <td>A per-check verdict beside the statement it judges, and nothing that reads as a suite result.</td>
+  </tr>
+  <tr>
+    <td>Skills filtered by <code>runs === 0</code> in Cleanup</td>
+    <td><span class="bad">Fabricated.</span> M4 refused to model a <code>runs</code> field at all,
+        for this reason. <code>installed 4mo ago, never invoked</code> is a claim about a thing the
+        router cannot see.</td>
+    <td>Reachability: a skill present in <i>no</i> client that could be read is loadable by nobody,
+        which <i>is</i> observed. §11.</td>
+  </tr>
+  <tr>
+    <td>&ldquo;Judging over 4 months of history&rdquo;</td>
+    <td><span class="bad">Hardcoded.</span> The router reports its own window as
+        <code>UsageResponse.since</code>, and that value moves every time the counters are reset.</td>
+    <td>The observation track, §10 — the window rendered as an instrument, at whatever length it
+        actually is.</td>
+  </tr>
+  <tr>
+    <td>&ldquo;why it might be idle&rdquo; → <code>no reason found</code></td>
+    <td><span class="bad">Speculation.</span> The router does not observe whether a project was
+        opened.</td>
+    <td>Nothing. The column is removed; the evidence column states what was seen, not why.</td>
+  </tr>
+  <tr>
+    <td><code>Remove</code> on a skill row</td>
+    <td><span class="bad">Uncallable.</span> The control API is read-only for skills.</td>
+    <td>A dimmed control with its reason, plus <i>Show in Finder</i>, which is real. §13.</td>
+  </tr>
+  <tr>
+    <td>Memory or byte savings</td>
+    <td><span class="good">Already refused</span>, by DESIGN.md §6 and by the prototype's own
+        honesty paragraph.</td>
+    <td>Nothing, and the pane says why in one sentence.</td>
+  </tr>
+</table>
+
+<h3>The checks that are real, because the router already runs them</h3>
+<p>
+  Each row below is a pure function of a wire type the control API already serves. Nothing is
+  derived that the router did not send, and <code>reindex</code> genuinely re-performs the handshake
+  — so &ldquo;run checks&rdquo; really does run something.
+</p>
+
+<table class="k">
+  <tr><th>Server check</th><th>Statement shown to the user</th><th>Observed from</th><th>Unknown when</th></tr>
+  <tr><td><code>indexes</code></td><td>The router can start it and read its tool surface</td>
+      <td><code>indexError</code>, <code>indexedAt</code></td><td><code>indexedAt == nil</code> — never attempted</td></tr>
+  <tr><td><code>declaresTools</code></td><td>It offers at least one tool</td>
+      <td><code>tools</code></td><td>it has not indexed, so the count means nothing yet</td></tr>
+  <tr><td><code>authorized</code></td><td>Its credentials are current</td>
+      <td><code>auth.supported</code>, <code>auth.authorized</code></td>
+      <td>—; <b>not applicable</b> when the upstream has no OAuth</td></tr>
+  <tr><td><code>surfaceApproved</code></td><td>No tool description is waiting for review</td>
+      <td><code>pendingChange</code></td><td>—</td></tr>
+  <tr><td><code>operative</code></td><td>It carries no placard</td>
+      <td><code>placard</code></td><td>—</td></tr>
+  <tr><td><code>callsSucceed</code></td><td>Its calls come back without error</td>
+      <td><code>usage.calls</code>, <code>usage.errors</code></td>
+      <td><b><code>usage.calls == 0</code> — never exercised, which is never a pass</b></td></tr>
+</table>
+
+<table class="k">
+  <tr><th>Skill check</th><th>Statement shown to the user</th><th>Observed from</th><th>Unknown when</th></tr>
+  <tr><td><code>reachable</code></td><td>At least one client can load it</td>
+      <td><code>presence</code> map</td>
+      <td>any client is <code>.unreadable</code> and none reports <code>.present</code></td></tr>
+  <tr><td><code>versioned</code></td><td>It carries a version a result can be stamped against</td>
+      <td><code>source</code></td><td>—</td></tr>
+  <tr><td><code>originUnchanged</code></td><td>Its marketplace still resolves where the router first saw it</td>
+      <td><code>provenance</code></td><td>—</td></tr>
+  <tr><td><code>updateWantsNoMore</code></td><td>Any newer version held asks for nothing extra</td>
+      <td><code>held.addedCapabilities</code></td><td>—</td></tr>
+  <tr><td><code>described</code></td><td>Its <code>SKILL.md</code> declares a description an agent can route on</td>
+      <td><code>description</code></td><td>the skill's own directory was unreadable</td></tr>
+</table>
+
+<p class="note">
+  <b><code>callsSucceed</code> is the one to read twice.</b> Zero calls with zero errors is
+  arithmetically a clean record and is <i>not</i> a pass — it is <code>unknown</code>, worded
+  &ldquo;never exercised&rdquo;. A check that reports success for something nobody has ever done is
+  the same defect as a fabricated number, and it is the exact mirror of Cleanup's rule in §11.
+</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>1 · Evals — default, the populated board</h2>
+<div class="win"><div style="display:flex"><div class="pane" style="flex:1">
+  <div class="hd">
+    <div>
+      <h4>Evals</h4>
+      <div class="sb">
+        The checks MCP&nbsp;Router runs itself, stamped to the version each was run against.
+        No model-graded evaluation exists in this product.
+      </div>
+    </div>
+    <button class="btn">Run all checks…</button>
+  </div>
+  <div class="ctl">
+    <div class="seg">
+      <button class="on">All <b>9</b></button><button>Failing <b>2</b></button>
+      <button>Unchecked <b>3</b></button><button>Invalidated <b>1</b></button>
+    </div>
+    <div class="search">⌕ Filter subjects</div>
+  </div>
+  <div class="cols">
+    <span style="width:30px"></span><span style="width:180px">subject</span>
+    <span style="width:58px">kind</span><span style="width:170px">checks</span>
+    <span style="width:150px">checked against</span><span style="flex:1"></span>
+  </div>
+
+  <div class="tr">
+    <span class="tile">gh</span>
+    <span class="nm"><b>github</b><span class="src">stdio · 34 tools</span></span>
+    <span class="kind">server</span>
+    <span class="tally">6 passed</span>
+    <span class="stamp">a41f0c2 · 4m ago</span>
+    <span class="rest"><button class="btn sm">Run checks</button></span>
+  </div>
+
+  <div class="tr sel">
+    <span class="tile">sf</span>
+    <span class="nm"><b>sentry</b><span class="src">http · 12 tools</span></span>
+    <span class="kind">server</span>
+    <span class="tally">4 passed · <span class="f">1 failed</span> · <span class="u">1 unknown</span></span>
+    <span class="stamp">9de1b70 · 4m ago</span>
+    <span class="rest"><button class="btn sm">Run checks</button></span>
+  </div>
+
+  <div class="tr">
+    <span class="tile">pl</span>
+    <span class="nm"><b>playwright</b><span class="src">stdio · not indexed</span></span>
+    <span class="kind">server</span>
+    <span class="tally"><span class="f">1 failed</span> · <span class="u">5 unknown</span></span>
+    <span class="stamp none">nothing to stamp</span>
+    <span class="rest"><button class="btn sm">Run checks</button></span>
+  </div>
+
+  <div class="tr">
+    <span class="tile">◆</span>
+    <span class="nm"><b>design-review</b><span class="src">fledgeling-plugins</span></span>
+    <span class="kind">skill</span>
+    <span class="tally">5 passed</span>
+    <span class="stamp">0.4.1 · 2h ago</span>
+    <span class="rest"><button class="btn sm">Run checks</button></span>
+  </div>
+
+  <div class="tr">
+    <span class="tile">◆</span>
+    <span class="nm"><b>ship-feature</b><span class="src">diolog-plugins</span></span>
+    <span class="kind">skill</span>
+    <span class="tally">4 passed · <span class="u">1 unknown</span></span>
+    <span class="stamp inv">invalidated · was 0.4.1, now 0.5.0</span>
+    <span class="rest"><button class="btn sm">Run checks</button></span>
+  </div>
+
+  <div class="tr">
+    <span class="tile">◆</span>
+    <span class="nm"><b>scratch-notes</b><span class="src">~/.claude/skills/scratch-notes</span></span>
+    <span class="kind">skill</span>
+    <span class="tally">3 passed · <span class="f">1 failed</span> · <span class="u">1 unknown</span></span>
+    <span class="stamp none">cannot be stamped</span>
+    <span class="rest"><button class="btn sm">Run checks</button></span>
+  </div>
+
+  <div class="foot">
+    A check is something MCP&nbsp;Router performed and can show you the input to. It is not a graded
+    test of whether a capability does its job well. Skills are never executed by the router, so
+    nothing here reports how one behaved when an agent used it.
+  </div>
+</div>
+
+<div class="insp">
+  <div style="font-size:15px;font-weight:600">sentry</div>
+  <div style="font-size:11px;color:var(--t2);font-weight:400;margin-top:2px">http · 12 tools</div>
+
+  <div class="lbl">checks · 4 passed, 1 failed, 1 unknown</div>
+  <div class="chk"><span class="v pass">pass</span><span class="st">The router can start it and read its tool surface</span></div>
+  <div class="chk"><span class="v pass">pass</span><span class="st">It offers at least one tool</span></div>
+  <div class="chk"><span class="v fail">fail</span><span class="st">Its credentials are current<br>
+    <span style="color:var(--t3);font-size:11px">Authorisation was never completed, so calls that need it will be refused.</span></span></div>
+  <div class="chk"><span class="v pass">pass</span><span class="st">No tool description is waiting for review</span></div>
+  <div class="chk"><span class="v pass">pass</span><span class="st">It carries no placard</span></div>
+  <div class="chk"><span class="v unk">unknown</span><span class="st">Its calls come back without error<br>
+    <span style="color:var(--t3);font-size:11px">Never exercised — no call to this server has been recorded since 4 July.</span></span></div>
+
+  <div class="lbl">checked against</div>
+  <div class="val m">9de1b70 · tool surface read 4 minutes ago</div>
+
+  <div class="lbl">history</div>
+  <div class="hist"><span class="fp">9de1b70</span><span class="wh">4m ago</span><span>4·1·1</span></div>
+  <div class="hist"><span class="fp">9de1b70</span><span class="wh">yesterday</span><span>4·1·1</span></div>
+  <div class="hist"><span class="fp">2c88ae4</span><span class="wh">9 Aug</span><span>6·0·0</span></div>
+  <div class="note" style="margin-top:8px">
+    Three runs against two tool surfaces. The 9 Aug run judged a different surface and is kept as
+    history, never merged into the current reading.
+  </div>
+
+  <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
+    <button class="btn">Sign in…</button><button class="btn p">Run checks</button>
+  </div>
+</div></div></div>
+<p class="caption">
+  One prominent accent-filled action, trailing (§3.4). <i>Sign in…</i> leads because it is the thing
+  that would turn the failing check green; it carries <code>…</code> because it opens a browser flow.
+</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>2 · Four verdicts, and why a pass is never green</h2>
+<table class="k">
+  <tr><th>Verdict</th><th>Means</th><th>Renders</th></tr>
+  <tr><td><code>pass</code></td><td>The router looked, and the condition holds.</td>
+      <td><code>--t1</code> mono. <b>Never <code>--live</code>.</b></td></tr>
+  <tr><td><code>fail</code></td><td>The router looked, and the condition does not hold.</td>
+      <td><code>--fail</code> — its own meaning, &ldquo;failed or tripped&rdquo;.</td></tr>
+  <tr><td><code>unknown</code></td><td>The router could not determine it. Includes &ldquo;never
+      exercised&rdquo;.</td><td><code>--t3</code>, with the reason adjacent.</td></tr>
+  <tr><td><code>not applicable</code></td><td>The check does not apply to this subject at all —
+      OAuth on a stdio server.</td><td><code>--t4</code>, the disabled tier, dimmed in place.</td></tr>
+</table>
+<p>
+  <b>A passing check is not drawn in <code>--live</code>, and this is a rule rather than a
+  preference.</b> DESIGN.md §2 binds <code>--live</code> to exactly one meaning — <i>a child process
+  is running</i> — and states that nothing else in the app may be any of the three indicator hues.
+  A check that passed is not a running process. The prototype paints its pass verdicts
+  <code>color:var(--live)</code>, which is the same defect DESIGN.md §10 already records against the
+  prototype's phone Discover list, in a new place.
+</p>
+<p class="note">
+  <code>--fail</code> <i>is</i> available for a failed check, because that is literally what it
+  means. <code>--attn</code> stays reserved for the two conditions that genuinely want a human
+  decision and that M4 already uses it for: a held version asking for more, and a marketplace whose
+  origin moved. The consequence is that this pane has one loud colour and no decorative ones, which
+  is what lets the breaker on Servers stay the only loud thing in the app.
+</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>3 · The fingerprint, and what invalidation looks like</h2>
+<p>
+  The brief's one hard rule: <i>an eval result is evidence attached to a version, so it must be
+  invalidated when the version changes rather than carried forward.</i> That needs a version to
+  attach to, and both subjects have one the router already sends.
+</p>
+<table class="k">
+  <tr><th>Subject</th><th>Fingerprint</th><th>Why that field</th></tr>
+  <tr><td>server</td><td><code>hash</code></td>
+      <td>The digest of the tool surface. It <i>is</i> the version of the thing being checked —
+      more precisely so than a version string, which an upstream can leave unchanged while its
+      tools move.</td></tr>
+  <tr><td>skill</td><td><code>source.plugin.pluginVersion</code></td>
+      <td>A skill's version is its <b>plugin's</b> version, shared by every skill that plugin
+      supplies. M4 established this and named the field accordingly.</td></tr>
+</table>
+<p>Three renderings, and they are not interchangeable:</p>
+<div class="win"><div class="pane" style="padding:14px 20px">
+  <div class="tr" style="border:0">
+    <span class="nm" style="width:210px"><b>current</b><span class="src">stored stamp equals the live one</span></span>
+    <span class="stamp">0.4.1 · 2h ago</span>
+    <span class="src" style="flex:1">The verdicts are shown as the current reading.</span>
+  </div>
+  <div class="tr" style="border:0">
+    <span class="nm" style="width:210px"><b>invalidated</b><span class="src">stored stamp ≠ live stamp</span></span>
+    <span class="stamp inv">invalidated · was 0.4.1, now 0.5.0</span>
+    <span class="src" style="flex:1">Verdicts dim to <code>--t4</code> and are labelled as judging a
+      version that is no longer installed. They are <b>never</b> shown as a current pass.</span>
+  </div>
+  <div class="tr" style="border:0">
+    <span class="nm" style="width:210px"><b>unstampable</b><span class="src">no live fingerprint exists</span></span>
+    <span class="stamp none">nothing to stamp</span>
+    <span class="src" style="flex:1">Checks run and display, and no result is stored — there would
+      be nothing able to invalidate it later.</span>
+  </div>
+</div></div>
+<p class="note">
+  <b>Invalidation is not deletion.</b> The invalidated run stays in the inspector's history under its
+  own fingerprint (§1), because &ldquo;this passed at 0.4.1 and has not been re-checked at
+  0.5.0&rdquo; is exactly the fact the brief wants preserved. What is forbidden is carrying its
+  verdict forward as though it judged the version now installed.
+</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>4 · A standalone skill cannot hold a result, structurally</h2>
+<p>
+  M4 modelled <code>SkillSource</code> as a closed enum where the <code>.standalone</code> case has
+  <b>no version field at all</b> — a skill dropped into a client's directory by hand genuinely has no
+  version anywhere on disk. There is therefore nothing that could ever invalidate a stored result for
+  it, and a result that can never be invalidated is a result that will eventually be a lie.
+</p>
+<p>
+  So the <code>versioned</code> check failing is not a nag about tidiness. It is the pane explaining
+  its own behaviour: this subject's checks can be <i>run</i> and <i>seen</i>, and cannot be
+  <i>kept</i>. The store refuses the write; it is not a rule the view remembers to follow.
+</p>
+<div class="win"><div class="pane" style="padding:16px 20px">
+  <div class="chk"><span class="v fail">fail</span><span class="st">It carries a version a result can be stamped against<br>
+    <span style="color:var(--t3);font-size:11px">This skill sits directly in a client's folder rather than coming from a
+    plugin, so nothing on disk records a version. Its checks can be run and read, but not kept —
+    there would be nothing to tell a stored result it had gone out of date.</span></span></div>
+</div></div>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>5 · Evals — empty, loading, partial</h2>
+
+<h3>Empty — nothing declared at all</h3>
+<div class="win"><div class="pane">
+  <div class="msg">
+    <div class="ttl">Nothing to check yet</div>
+    <div class="det">Checks run against the servers and skills MCP&nbsp;Router can see, and it can
+      see none. Declare a server and its checks appear here the first time the router reads it.</div>
+    <button class="btn p">Add a server…</button>
+  </div>
+</div></div>
+<p class="caption">Never a bare &ldquo;No items&rdquo;. One sentence, one action, and the action is
+  the one that changes the condition (⌘N).</p>
+
+<h3>Loading — skeleton at the real row geometry</h3>
+<div class="win"><div class="pane">
+  <div class="hd"><div><h4>Evals</h4>
+    <div class="sb">The checks MCP&nbsp;Router runs itself, stamped to the version each was run
+      against. No model-graded evaluation exists in this product.</div></div></div>
+  <div class="cols"><span style="width:30px"></span><span style="width:180px">subject</span>
+    <span style="width:58px">kind</span><span style="width:170px">checks</span>
+    <span style="width:150px">checked against</span><span style="flex:1"></span></div>
+  <div class="tr"><span class="tile" style="background:var(--f2)"></span>
+    <span class="nm"><span class="skel" style="width:96px"></span>
+      <span class="skel" style="width:66px;height:7px;margin-top:5px"></span></span>
+    <span class="kind"><span class="skel" style="width:36px"></span></span>
+    <span class="tally"><span class="skel" style="width:118px"></span></span>
+    <span class="stamp"><span class="skel" style="width:86px"></span></span><span class="rest"></span></div>
+  <div class="tr"><span class="tile" style="background:var(--f2)"></span>
+    <span class="nm"><span class="skel" style="width:76px"></span>
+      <span class="skel" style="width:88px;height:7px;margin-top:5px"></span></span>
+    <span class="kind"><span class="skel" style="width:36px"></span></span>
+    <span class="tally"><span class="skel" style="width:92px"></span></span>
+    <span class="stamp"><span class="skel" style="width:104px"></span></span><span class="rest"></span></div>
+</div></div>
+<p class="caption">
+  44pt rows, matching the populated row exactly, so the board does not jump when data lands. The
+  subtitle is present while loading because it is a statement about the product, not about the data;
+  the counts on the segmented control are absent, because a count that is not yet known is not a count.
+</p>
+
+<h3>Partial — a client's folder could not be read, so some checks are unknown</h3>
+<div class="win"><div class="pane">
+  <div class="banner attn"><span class="ic">▲</span><div>
+    <b style="font-weight:600;color:var(--t1)">Cursor's skills folder could not be read.</b>
+    Permission denied at <span class="m">~/.cursor/skills</span>. Six skills therefore report
+    &ldquo;at least one client can load it&rdquo; as unknown rather than as a failure — whether they
+    are installed there is not something MCP&nbsp;Router managed to find out.
+  </div></div>
+  <div class="tr">
+    <span class="tile">◆</span>
+    <span class="nm"><b>mermaid-diagrams</b><span class="src">fledgeling-plugins</span></span>
+    <span class="kind">skill</span>
+    <span class="tally">4 passed · <span class="u">1 unknown</span></span>
+    <span class="stamp">0.2.7 · just now</span>
+    <span class="rest"><button class="btn sm">Run checks</button></span>
+  </div>
+</div></div>
+<p class="caption">
+  This is M4's <code>SkillPresence.unreadable</code> doing the job it was modelled for. A boolean
+  presence map would have collapsed &ldquo;could not look&rdquo; into &ldquo;not there&rdquo;, and
+  the check would have reported a confident <code>fail</code> about a directory nobody read.
+</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>6 · Evals — offline, error, stale</h2>
+
+<h3>Offline — the router is not running</h3>
+<div class="win"><div class="pane">
+  <div class="msg">
+    <div class="ttl">The router isn't running</div>
+    <div class="det">Nothing is listening on the control port, so there is nothing to show yet.
+      Starting it takes a moment and your servers stay exactly as you left them.</div>
+    <button class="btn p">Start the router</button>
+  </div>
+</div></div>
+<p class="caption">
+  Verbatim from <code>ControlAPIError.routerNotRunning</code>'s <code>headline</code>,
+  <code>advice</code> and <code>actionLabel</code>. One wording per state across the whole app (§6),
+  so this pane composes the strings rather than writing its own.
+</p>
+
+<h3>Error — a check run was refused, reported against the row that failed</h3>
+<div class="win"><div class="pane">
+  <div class="tr" style="align-items:flex-start;min-height:0;padding-bottom:12px">
+    <span class="tile">pl</span>
+    <div style="flex:1">
+      <div class="tr" style="border:0;padding:0;min-height:0">
+        <span class="nm"><b>playwright</b><span class="src">stdio · not indexed</span></span>
+        <span class="kind">server</span>
+        <span class="tally"><span class="f">1 failed</span> · <span class="u">5 unknown</span></span>
+        <span class="stamp none">nothing to stamp</span>
+        <span class="rest"><button class="btn sm">Run checks</button></span>
+      </div>
+      <div class="banner fail" style="margin:10px 0 0"><span class="ic">●</span><div>
+        <b style="font-weight:600;color:var(--t1)">The router couldn't complete that.</b>
+        The router returned 500 — <span class="m">spawn npx ENOENT</span>. Check the command is on
+        the router's PATH, then run the checks again.
+      </div></div>
+    </div>
+  </div>
+</div></div>
+<p class="caption">
+  Adjacent to the thing that failed, non-blaming, and it carries the router's own
+  <code>hint</code> — the field that turns a dead end into a next step (§6).
+</p>
+
+<h3>Stale — the last reading, no longer current</h3>
+<div class="win"><div class="pane">
+  <div class="banner"><span class="ic">◷</span><div>
+    The router stopped answering 3 minutes ago. These are the checks as they last stood; whether
+    they still hold is not something this can see.
+  </div></div>
+</div></div>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>7 · Evals — disabled, overflow, success</h2>
+<table class="k">
+  <tr><th>Control</th><th>Dims when</th><th>Reason it gives</th></tr>
+  <tr><td><i>Run checks</i></td><td>a run for that subject is already in flight</td>
+      <td>&ldquo;Running…&rdquo; — the label itself, so the control does not disappear (§3.4)</td></tr>
+  <tr><td><i>Run checks</i></td><td>the router is not answering</td>
+      <td>&ldquo;MCP&nbsp;Router isn't running, so there is nothing to ask.&rdquo;</td></tr>
+  <tr><td><i>Run all checks…</i></td><td>there are no subjects</td>
+      <td>&ldquo;Nothing is declared yet.&rdquo;</td></tr>
+  <tr><td>a <code>not applicable</code> check row</td><td>always, for that subject</td>
+      <td>&ldquo;This server doesn't use OAuth, so there is nothing to authorise.&rdquo;</td></tr>
+</table>
+<p><b>Overflow.</b> A long subject name truncates with an ellipsis at a fixed 180pt; the full value
+  is in the inspector, and the row height never changes. A long failure reason wraps inside the
+  inspector and truncates to two lines in the row.</p>
+<p><b>Success.</b> In place: the tally updates, the stamp updates to the new fingerprint and
+  &ldquo;just now&rdquo;, and a row appears at the top of the inspector's history. No toast — macOS
+  does not toast a click.</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>8 · Run all checks — the sheet, because it costs something</h2>
+<div class="sheet">
+  <h5>Run checks on 6 servers and 14 skills?</h5>
+  <p>Checking a server starts it, so that the router can read its tool surface. Six child processes
+     will be started and left to the reaper as usual.</p>
+  <p>Nothing is changed and nothing is removed.</p>
+  <div class="acts">
+    <button class="btn">Cancel</button>
+    <button class="btn p">Run checks</button>
+  </div>
+</div>
+<p class="caption">
+  Not a destructive act, so not a destructive dialog — but it does spawn processes, and §3.4 gives
+  <code>…</code> the meaning &ldquo;opens a further view&rdquo;. Cancel leads; the commit is the one
+  accent-filled action.
+</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>9 · Cleanup — default, the populated board</h2>
+<div class="win"><div style="display:flex"><div class="pane" style="flex:1">
+  <div class="hd">
+    <div>
+      <h4>Cleanup</h4>
+      <div class="sb">
+        Capabilities MCP&nbsp;Router has never seen used, judged over the calls it has recorded
+        since 4&nbsp;July. It proposes; you decide.
+      </div>
+    </div>
+    <button class="btn">Reset call history…</button>
+  </div>
+  <div class="ctl">
+    <div class="seg">
+      <button class="on">All <b>4</b></button><button>Servers <b>2</b></button>
+      <button>Skills <b>2</b></button>
+    </div>
+    <div class="search">⌕ Filter</div>
+  </div>
+  <div class="cols">
+    <span style="width:30px"></span><span style="width:180px">name</span>
+    <span style="width:58px">kind</span><span style="width:172px">what the router saw</span>
+    <span style="width:64px">tools</span><span style="flex:1"></span>
+  </div>
+
+  <div class="tr">
+    <span class="tile">bq</span>
+    <span class="nm"><b>bigquery</b><span class="src">stdio</span></span>
+    <span class="kind">server</span>
+    <span class="obs"><span class="trk"><i style="width:100%"></i></span>
+      <span class="lab">0 calls · 41d observed</span></span>
+    <span class="m" style="width:64px;color:var(--t2);font-size:11px">18</span>
+    <span class="rest"><button class="btn sm">Inspect</button><button class="btn sm d">Remove…</button></span>
+  </div>
+
+  <div class="tr">
+    <span class="tile">fg</span>
+    <span class="nm"><b>figma</b><span class="src">http</span></span>
+    <span class="kind">server</span>
+    <span class="obs"><span class="trk"><i style="width:100%"></i></span>
+      <span class="lab">0 calls · 41d observed</span></span>
+    <span class="m" style="width:64px;color:var(--t2);font-size:11px">7</span>
+    <span class="rest"><button class="btn sm">Inspect</button><button class="btn sm d">Remove…</button></span>
+  </div>
+
+  <div class="tr">
+    <span class="tile">◆</span>
+    <span class="nm"><b>legacy-deploy</b><span class="src">old-marketplace</span></span>
+    <span class="kind">skill</span>
+    <span class="obs"><span class="trk"><i style="width:100%"></i></span>
+      <span class="lab">loadable by no client</span></span>
+    <span class="m" style="width:64px;color:var(--t4);font-size:11px">—</span>
+    <span class="rest"><button class="btn sm">Show in Finder</button>
+      <button class="btn sm" disabled>Remove</button></span>
+  </div>
+
+  <div class="tr">
+    <span class="tile">◆</span>
+    <span class="nm"><b>notion-sync</b><span class="src">moved · was h4ck/plugins</span></span>
+    <span class="kind">skill</span>
+    <span class="obs"><span class="trk"><i style="width:100%"></i></span>
+      <span class="lab">loadable by no client</span></span>
+    <span class="m" style="width:64px;color:var(--t4);font-size:11px">—</span>
+    <span class="rest"><button class="btn sm">Show in Finder</button>
+      <button class="btn sm" disabled>Remove</button></span>
+  </div>
+
+  <div class="foot">
+    These sit in every session's tool list, where a model reads them. Nothing here claims a memory
+    saving: MCP&nbsp;Router never runs the world in which every server is resident, so it has no
+    figure to subtract from. Nothing is removed unless you remove it, and what you remove is not
+    counted.
+  </div>
+</div>
+
+<div class="insp">
+  <div style="font-size:15px;font-weight:600">bigquery</div>
+  <div style="font-size:11px;color:var(--t2);font-weight:400;margin-top:2px">stdio · 18 tools</div>
+
+  <div class="lbl">what the router saw</div>
+  <div class="val">No call to this server has been recorded in the 41 days since the counters were
+    last reset on 4 July.</div>
+
+  <div class="lbl">first seen</div>
+  <div class="val m">4 July, when recording began</div>
+
+  <div class="lbl">scope</div>
+  <div class="val">Not scoped, so its 18 tools are in every session's tool list.</div>
+
+  <div class="lbl">before you decide</div>
+  <div class="val" style="color:var(--t2)">Rarely-used is not the same as worthless. MCP&nbsp;Router
+    counts calls; it cannot tell a capability nobody needs from one that matters twice a year.</div>
+
+  <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
+    <button class="btn">Keep</button><button class="btn d">Remove…</button>
+  </div>
+</div></div></div>
+<p class="caption">
+  <b>No accent-filled action in this view, deliberately.</b> §3.4 allows one prominent action and
+  §3.4 also says destructive is never the default. The one thing this pane proposes is a removal, so
+  the correct number of accent-filled buttons here is zero — the pane's job is to inform a decision,
+  not to press for one.
+</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>10 · The observation track — the evidence, drawn as an instrument</h2>
+<p>
+  DESIGN.md §10 records that the breaker is the only subject-mined element in the app and asks any
+  new surface to add a second rather than another stock table. This is Cleanup's.
+</p>
+<p>
+  The whole question this pane exists to answer is <i>how much do we actually know</i>, and the
+  answer is dominated by one number nobody thinks to look at: <b>how long the router has been
+  recording</b>. &ldquo;Never used&rdquo; over 41 days is evidence. &ldquo;Never used&rdquo; over two
+  hours is nothing at all, rendered identically by every table that shows only the verdict. So the
+  track draws the observation window at its real length, against a 30-day reference, and a window too
+  short to support the claim is visibly too short.
+</p>
+<div class="win"><div class="pane" style="padding:16px 20px">
+  <div class="tr" style="border:0">
+    <span class="nm" style="width:150px"><b>strong</b></span>
+    <span class="obs"><span class="trk"><i style="width:100%"></i></span>
+      <span class="lab">0 calls · 41d observed</span></span>
+    <span class="src" style="flex:1">Full track. 41 days of silence is a fact worth acting on.</span>
+  </div>
+  <div class="tr" style="border:0">
+    <span class="obs" style="margin-left:160px"><span class="trk"><i style="width:30%"></i></span>
+      <span class="lab">0 calls · 9d observed</span></span>
+    <span class="src" style="flex:1">Under a third. Readable as partial evidence.</span>
+  </div>
+  <div class="tr" style="border:0">
+    <span class="nm" style="width:150px"><b>weak</b></span>
+    <span class="obs weak"><span class="trk"><i style="width:1%"></i></span>
+      <span class="lab">0 calls · 2h observed</span></span>
+    <span class="src" style="flex:1">Almost nothing. Tinted <code>--attn</code>, because a decision
+      taken on this evidence is one that wants a human to look first.</span>
+  </div>
+</div></div>
+<p class="note">
+  Every value on the track is observed: <code>UsageResponse.since</code> and the clock. The 30-day
+  reference is a rendering scale rather than a claim, and the numeral beside it states the real
+  figure, so nothing here depends on reading the bar. <code>--attn</code> is used at its own meaning
+  — &ldquo;wants a human decision&rdquo; — and the weak case is exactly that.
+</p>
+
+<h3>And when the window is too short for the whole pane</h3>
+<div class="win"><div class="pane">
+  <div class="banner attn"><span class="ic">▲</span><div>
+    <b style="font-weight:600;color:var(--t1)">Call history was reset 2 hours ago.</b>
+    Everything below reads as never-used because there is almost nothing recorded yet, not because
+    it is unused. Give it a few days before acting on this.
+  </div></div>
+</div></div>
+<p class="caption">
+  Fires when <code>since</code> is under seven days. This is the single most useful sentence in the
+  pane and it exists only because the window is observed rather than hardcoded — the prototype's
+  &ldquo;judging over 4 months&rdquo; could never produce it.
+</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>11 · Cleanup — what gets listed, and what does not</h2>
+<table class="k">
+  <tr><th>Subject</th><th>Listed when</th><th>Never listed for</th></tr>
+  <tr><td>server</td>
+      <td><code>usage.calls == 0</code> over the recorded window — the field M3 already modelled as
+          <code>neverUsed</code>. Or it has never indexed successfully
+          (<code>indexError != nil</code>), so it has never contributed a tool. Or it indexed and
+          declares <code>tools == 0</code>.</td>
+      <td>&ldquo;last used a while ago&rdquo;. The prototype's <code>last &gt; 3600</code> is an
+          invented threshold; a server used yesterday is used.</td></tr>
+  <tr><td>skill</td>
+      <td>Every client that supports skills was <b>read</b>, and reports <code>.absent</code>. It is
+          installed and loadable by nobody.</td>
+      <td><b>Anything about invocation.</b> The router cannot observe a skill running, so
+          &ldquo;never invoked&rdquo; is not a sentence this pane is entitled to.</td></tr>
+</table>
+<p>
+  <b>An unreadable client suspends the judgement rather than making it.</b> If any skills-capable
+  client is <code>.unreadable</code>, a skill that is absent everywhere else is <i>not</i> a
+  candidate — it may be installed in exactly the folder nobody could open. Those skills are held out
+  and counted in a banner:
+</p>
+<div class="win"><div class="pane">
+  <div class="banner attn"><span class="ic">▲</span><div>
+    <b style="font-weight:600;color:var(--t1)">3 skills were left out of this list.</b>
+    Cursor's skills folder could not be read, so whether they are installed there is unknown — and a
+    skill that might be in use is not something to propose removing.
+  </div></div>
+</div></div>
+<p class="note">
+  This is the Partial state carrying real weight rather than decorating one. The alternative — listing
+  them anyway — proposes deleting a capability on the strength of a folder nobody managed to open.
+</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>12 · Removing a server — M3's named consequence, reused verbatim</h2>
+<div class="sheet">
+  <h5>Remove bigquery?</h5>
+  <p>Its 18 tools leave every session's tool list.</p>
+  <p>2 values are set on this entry — MCP&nbsp;Router can see their names but not their contents, so
+     it cannot put this back. Copy the entry first if you might want it.</p>
+  <p style="display:flex;gap:8px;align-items:center;margin-top:14px">
+    <span style="width:32px;height:18px;border-radius:9px;background:var(--accent);flex:none"></span>
+    Keep its call history</p>
+  <div class="acts">
+    <button class="btn">Cancel</button>
+    <button class="btn d">Remove</button>
+  </div>
+</div>
+<p>
+  Every string above comes from <code>ServersBoardModel.removeToolsConsequence</code> and
+  <code>ServersBoardModel.removeConsequence</code>, which M3 already shipped as public statics
+  precisely so the wording is testable without a host. Cleanup calls them rather than writing a
+  second set — DESIGN.md §6 asks for one name per state, and two dialogs describing the same act in
+  different words is how that rule gets broken.
+</p>
+<p class="note">
+  <b>Why a dialog at all, when DESIGN.md §8 says removal is &ldquo;undoable, never confirmed&rdquo;.</b>
+  Because it is not undoable, and M3 measured why: <code>describe()</code> in
+  <code>src/control.ts</code> sends <code>envKeys: Object.keys(u.env).sort()</code> — key
+  <i>names</i>, never values. An app that cannot read a secret cannot restore an entry carrying one.
+  §9's escalation clause is the governing rule here: friction scales to blast radius for genuinely
+  destructive acts, as a named-consequence dialog whose destructive button is never the default.
+  Cancel leads; <i>Remove</i> is not accent-filled. A server carrying no secrets gets the other
+  branch of the copy, which says it can be re-declared exactly.
+</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>13 · A skill cannot be removed, and the pane says so</h2>
+<div class="win"><div class="pane" style="padding:16px 20px">
+  <div class="tr" style="border:0">
+    <span class="tile">◆</span>
+    <span class="nm"><b>legacy-deploy</b><span class="src">old-marketplace · 0.9.0</span></span>
+    <span class="obs"><span class="trk"><i style="width:100%"></i></span>
+      <span class="lab">loadable by no client</span></span>
+    <span class="rest">
+      <button class="btn sm">Show in Finder</button>
+      <button class="btn sm" disabled>Remove</button>
+    </span>
+  </div>
+  <div class="note" style="padding:8px 8px 0">
+    <b>Remove</b> — MCP&nbsp;Router only reads skills. Removing one means deleting files the client
+    applications hold open, which it will not do behind their backs. Show it in Finder and delete it
+    there, or remove the plugin from its marketplace.
+  </div>
+</div></div>
+<p>
+  The dimmed control stays in place with its reason attached (§5, §3.4) rather than vanishing, so the
+  question &ldquo;why can't I remove this one?&rdquo; is answered where it is asked. This is M4's
+  precedent: its board renders write controls dimmed with the same reason rather than offering an
+  action it cannot make safe.
+</p>
+<p class="note">
+  <i>Show in Finder</i> is a local action on a path the router already reported. It is not a second
+  channel to the router and adds no new boundary.
+</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>14 · Cleanup — the remaining states</h2>
+
+<h3>Empty — nothing is reclaimable</h3>
+<div class="win"><div class="pane">
+  <div class="msg">
+    <div class="ttl">Everything here has been used</div>
+    <div class="det">Every declared server has been called at least once in the 41 days
+      MCP&nbsp;Router has been recording, and every installed skill can be loaded by at least one
+      client.</div>
+  </div>
+</div></div>
+<p class="caption">No action, because there is nothing to do and inventing one would be worse. The
+  sentence names the window, so an empty list is readable as a real finding rather than a shrug.</p>
+
+<h3>Empty under a filter — not the same message</h3>
+<div class="win"><div class="pane">
+  <div class="msg">
+    <div class="ttl">No skills are unreachable</div>
+    <div class="det">Every installed skill can be loaded by at least one client. Two servers are
+      still listed under All.</div>
+    <button class="btn">Show all</button>
+  </div>
+</div></div>
+
+<h3>Loading, offline, stale, error</h3>
+<p>
+  Identical in construction to Evals §5–§6 and composed from the same
+  <code>ControlAPIError</code> strings, at Cleanup's own row geometry. A removal that the router
+  refuses renders its error against that row with the router's hint, and the row stays in the list —
+  a row that vanishes on a failed removal claims the removal worked.
+</p>
+
+<h3>Overflow</h3>
+<p>
+  Names truncate at 180pt with the full value in the inspector. Row height is fixed at 44pt; the
+  observation track's label is mono and bounded, so it cannot reflow the row.
+</p>
+
+<h3>Success</h3>
+<p>
+  The row leaves the list in place, the segmented counts decrement and the sidebar badge decrements.
+  <b>Nothing is tallied.</b> DESIGN.md §9: a never-used server was never deleted, so Cleanup does not
+  report a total of what it removed — no &ldquo;3 removed this month&rdquo;, no running score.
+</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>15 · The keyboard and the menu bar</h2>
+<table class="k">
+  <tr><th>Key</th><th>Evals</th><th>Cleanup</th></tr>
+  <tr><td><code>⌘6</code> / <code>⌘7</code></td><td colspan="2">Select the pane — already bound by
+      <code>Destination.selectionDigit</code>.</td></tr>
+  <tr><td><code>⌘F</code></td><td colspan="2">Focus the filter field.</td></tr>
+  <tr><td><code>↑</code> <code>↓</code></td><td colspan="2">Move the selection.</td></tr>
+  <tr><td><code>Return</code></td><td>Run checks on the selected subject.</td>
+      <td>Open the selected row's inspector. <b>Not</b> remove — the view's default action is never
+          the destructive one (§3.4).</td></tr>
+  <tr><td><code>Esc</code></td><td colspan="2">Dismiss the sheet, then clear the selection.</td></tr>
+  <tr><td><code>⌘⌫</code></td><td>—</td>
+      <td>Opens the named-consequence sheet for the selected <i>server</i>. Does nothing for a
+          skill, which cannot be removed.</td></tr>
+  <tr><td><code>⌘R</code></td><td>Run checks on the selected subject — the same command as
+      <code>Return</code>, and the one the menu bar names.</td><td>—</td></tr>
+</table>
+<p>
+  §3.9: the menu bar is the complete command surface. <i>Run checks</i>, <i>Run all checks…</i>,
+  <i>Remove…</i> and <i>Show in Finder</i> each appear there, dimmed with the same reasons the
+  in-pane controls give.
+</p>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>16 · Motion</h2>
+<table class="k">
+  <tr><th>Moment</th><th>Feel</th></tr>
+  <tr><td>A check run completing</td><td>Verdicts and stamp cross-fade in place on opacity. No
+      row-height change, so nothing below moves.</td></tr>
+  <tr><td>A history row arriving</td><td>Slides in from the top of the list on transform. Never a
+      fade from opacity 0 (§7).</td></tr>
+  <tr><td>A removed row leaving</td><td>Collapses on transform; the rows below close the gap. No
+      colour flash.</td></tr>
+  <tr><td>Segmented count changing</td><td>A small scale bump, never a colour flash (§7).</td></tr>
+  <tr><td>Reduce Motion</td><td>Every one of the above becomes an immediate state change. The state
+      change never disappears with the animation.</td></tr>
+</table>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>17 · The nine states, and where each is met</h2>
+<table class="k">
+  <tr><th>State</th><th>Evals</th><th>Cleanup</th></tr>
+  <tr><td>Default</td><td>§1</td><td>§9</td></tr>
+  <tr><td>Empty</td><td>§5 — &ldquo;Nothing to check yet&rdquo;, one action</td>
+      <td>§14 — &ldquo;Everything here has been used&rdquo;, plus a separate under-filter message</td></tr>
+  <tr><td>Loading</td><td>§5 — skeleton at 44pt row geometry</td><td>§14 — same</td></tr>
+  <tr><td>Partial</td><td>§5 — unreadable client makes checks <code>unknown</code></td>
+      <td>§11 — unreadable client holds skills <i>out</i> of the proposal, and says how many</td></tr>
+  <tr><td>Error</td><td>§6 — against the row, carrying the router's hint</td>
+      <td>§14 — a refused removal leaves the row in place</td></tr>
+  <tr><td>Success</td><td>§7 — in place, history gains a row, no toast</td>
+      <td>§14 — row leaves, counts decrement, <b>nothing tallied</b></td></tr>
+  <tr><td>Offline</td><td>§6 — <code>routerNotRunning</code> verbatim, &ldquo;Start the router&rdquo;</td>
+      <td>§14 — same strings</td></tr>
+  <tr><td>Disabled</td><td>§7 — four controls, each with its reason</td>
+      <td>§13 — <i>Remove</i> on a skill, with the reason it cannot be done</td></tr>
+  <tr><td>Overflow</td><td>§7 — truncate at 180pt, fixed row height</td><td>§14 — same</td></tr>
+</table>
+
+<!-- ─────────────────────────────────────────────────────────────────────────────────────── -->
+<h2>18 · Deferred, with a named future source</h2>
+<table class="k">
+  <tr><th>Deferred</th><th>Why</th><th>What would unblock it</th></tr>
+  <tr><td>A graded behavioural eval runner</td>
+      <td>Needs a process that can call a server's tools with fixtures and grade the replies, plus
+          somewhere to store cases. That is a router capability, and the Mac app may only speak to
+          the router across the control API.</td>
+      <td>A new router item — <b>servers only</b>. A skill never traverses the router, so no runner
+          gives skills a graded result. Promising otherwise is the mistake M4's footer already made
+          once.</td></tr>
+  <tr><td>Removing a skill from the app</td>
+      <td>The control API is read-only for skills; the files are held open by the clients.</td>
+      <td>A router-side skills write endpoint with its own preconditions and undo.</td></tr>
+  <tr><td>Restoring a removed server</td>
+      <td><code>describe()</code> never sends env or header values, so the app cannot reconstruct
+          the entry.</td>
+      <td>A router-side soft-delete with a restore endpoint. Until then the named-consequence dialog
+          in §12 is the honest surface.</td></tr>
+  <tr><td>Renaming the destination from <i>Evals</i> to <i>Checks</i></td>
+      <td><code>Destination.title</code> is a merged shared surface owned by M1; M7 does not edit
+          shared surfaces.</td>
+      <td>An orchestrator-scheduled item. Until then the pane's permanent subtitle carries the
+          disclosure, which is why it is a subtitle rather than a footnote.</td></tr>
+</table>

@@ -257,10 +257,13 @@
         @Test("this build installs exactly the boards that have shipped")
         func installedIsTheShippedSet() {
             #expect(
-                BoardRegistry.installed == [.servers, .activity, .skills, .settings, .discover],
-                "M2 Activity, M3 Servers, M4 Skills, M8 Settings, M5 Discover; M6–M7 each add one"
+                BoardRegistry.installed
+                    == [.servers, .activity, .skills, .settings, .discover, .evals, .cleanup],
+                "M2 Activity, M3 Servers, M4 Skills, M8 Settings, M5 Discover, M7 Evals + Cleanup"
             )
-            #expect(BoardRegistry.scaffolded.count == 3)
+            // The complement, not a restatement: a destination added to `Destination` but forgotten
+            // in both places moves this number without the set assertion above noticing.
+            #expect(BoardRegistry.scaffolded.count == 1)
         }
 
         /// M3's own half: the board is not merely written, it is **registered**.
@@ -301,6 +304,10 @@
             // Deliberately a destination that is still scaffolded. Asking for the placeholder copy
             // of an installed board would still pass — `ScaffoldCopy` is a pure formatter — while
             // testing a sentence the reader can never be shown.
+            // After M7 the only such destination is `.inbox`. When M6 installs it, `scaffolded` is
+            // empty and this `#require` fails — correctly, because no reader can then be shown this
+            // sentence at all, and the honest action is to delete this test with the placeholder
+            // rather than keep it green against a destination that has a board.
             let example = try #require(BoardRegistry.scaffolded.first)
             let title = ScaffoldCopy.title(for: example)
             #expect(title == "\(example.title) isn't built yet")

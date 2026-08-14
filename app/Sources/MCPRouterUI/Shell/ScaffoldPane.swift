@@ -29,15 +29,22 @@
         ///
         /// `.servers` is M3's (`ServersBoard`); `.skills` is M4's (`SkillsBoard`); `.activity` is
         /// M2's (`ActivityBoard`); `.settings` is M8's (`SettingsBoard`); `.discover` is M5's
-        /// (`DiscoverBoard`).
+        /// (`DiscoverBoard`); `.evals` and `.cleanup` are M7's (`EvalsBoard`, `CleanupBoard`).
         ///
-        /// **Keep this declaration on one line.** `scripts/acceptance/mac-shell.sh` reads it with
-        /// `grep … | head -1 | sed -E 's/.*\[(.*)\].*/\1/'`, so a wrapped collection leaves the sed
-        /// with no bracket pair to capture and the installed count silently reads zero — a gate
-        /// reporting the opposite of the truth, which is the exact defect that comment block was
-        /// written about. At five members it is 107 characters against a 110 limit, so the next
-        /// board to land needs a different parse rather than a longer line.
-        public static let installed: Set<Destination> = [.servers, .skills, .activity, .settings, .discover]
+        /// A board that exists but is not named here still shows the user a placeholder, which is
+        /// why this line rather than the view is the moment an item ships.
+        ///
+        /// **This declaration may now wrap**, and at seven members it has to: one line would be 124
+        /// characters against `.swiftformat`'s `--maxwidth 110`. The instruction that used to stand
+        /// here — keep it on one line — was load-bearing while
+        /// `scripts/acceptance/mac-shell.sh` read it with `head -1 | sed`, because a wrapped
+        /// collection left that `sed` no bracket pair to capture and the gate then reported zero
+        /// installed boards *and passed*. M7 replaced that reader with one that collects from `[` to
+        /// the matching `]` however many lines it spans, so the constraint is retired rather than
+        /// deferred again. Keep the two in step: a change to this shape wants the awk block checked.
+        public static let installed: Set<Destination> = [
+            .servers, .skills, .activity, .settings, .discover, .evals, .cleanup
+        ]
 
         public static func hasBoard(_ destination: Destination) -> Bool {
             installed.contains(destination)

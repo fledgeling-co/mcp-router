@@ -173,11 +173,15 @@
                 SettingsBoard(shell: model)
             case .discover:
                 DiscoverBoard(board: model.discoverBoard)
-            case .inbox, .evals, .cleanup:
-                // Unreachable: every one of these is still in `scaffolded`, and the branch in
-                // `body` catches them. Deliberately not a second placeholder — a placeholder here
-                // is the very thing `ScaffoldedDestination` exists to make impossible. M5–M7
-                // replace these cases one at a time, and the exhaustive switch is what makes each
+            case .evals:
+                EvalsBoard(board: model.evalsBoard)
+            case .cleanup:
+                CleanupBoard(board: model.cleanupBoard)
+            case .inbox:
+                // Unreachable: this is still in `scaffolded`, and the branch in
+                // `body` catches it. Deliberately not a second placeholder — a placeholder here
+                // is the very thing `ScaffoldedDestination` exists to make impossible. M6
+                // replaces this last case, and the exhaustive switch is what makes each
                 // one visible.
                 EmptyView()
             }

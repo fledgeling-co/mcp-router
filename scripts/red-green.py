@@ -259,7 +259,7 @@ mut(
 # apply(pollFailure:) tests pass against the defect, which is why they are not the anchor
 # here.
 mut(
-    "M40", "F4-A1", "the poll loop reports a typed error instead of discarding it",
+    "M50", "F4-A1", "the poll loop reports a typed error instead of discarding it",
     SRC / "ServerStateTracker.swift",
     "            do {\n"
     "                let response = try await client.servers()\n"
@@ -275,7 +275,7 @@ M[-1].paired = (
 )
 
 mut(
-    "M41", "F4-A3", "a stale snapshot is not collapsed into a plain failure",
+    "M51", "F4-A3", "a stale snapshot is not collapsed into a plain failure",
     SRC / "ServerStateTracker.swift",
     "        loadKind = hasLoaded ? .stale(error) : .failed(error)",
     "        loadKind = .failed(error)",
@@ -283,7 +283,7 @@ mut(
 )
 
 mut(
-    "M42", "F4-A3", "a failed poll does not delete the servers it already had",
+    "M52", "F4-A3", "a failed poll does not delete the servers it already had",
     SRC / "ServerStateTracker.swift",
     "        loadKind = hasLoaded ? .stale(error) : .failed(error)\n        publish()",
     "        loadKind = hasLoaded ? .stale(error) : .failed(error)\n"
@@ -292,7 +292,7 @@ mut(
 )
 
 mut(
-    "M43", "F4-A6", "a tracker with no stream is not born claiming a dropped one",
+    "M53", "F4-A6", "a tracker with no stream is not born claiming a dropped one",
     SRC / "ServerStateTracker.swift",
     "        self.streamCondition = stream == nil ? .notConfigured : .phase(.disconnected)",
     "        self.streamCondition = .phase(.disconnected)",
@@ -300,7 +300,7 @@ mut(
 )
 
 mut(
-    "M44", "F4-A8", "a phase cannot be fabricated for a tracker that has no stream",
+    "M54", "F4-A8", "a phase cannot be fabricated for a tracker that has no stream",
     SRC / "ServerStateTracker.swift",
     "        guard case let .phase(current) = streamCondition else { return }",
     "        let current = if case let .phase(p) = streamCondition { p } "
@@ -309,7 +309,7 @@ mut(
 )
 
 mut(
-    "M45", "F4-A11", "subscribing registers before updates() returns, losing nothing",
+    "M55", "F4-A11", "subscribing registers before updates() returns, losing nothing",
     SRC / "ServerStateTracker.swift",
     "        register(id, continuation)",
     "        Task { self.register(id, continuation) }",
@@ -317,7 +317,7 @@ mut(
 )
 
 mut(
-    "M46", "F4-A11", "an unchanged state is not republished",
+    "M56", "F4-A11", "an unchanged state is not republished",
     SRC / "ServerStateTracker.swift",
     "        guard snapshot != lastPublished else { return }",
     "        if false { return }",
@@ -325,7 +325,7 @@ mut(
 )
 
 mut(
-    "M47", "F4-A4", "run() twice does not start a second poll loop",
+    "M57", "F4-A4", "run() twice does not start a second poll loop",
     SRC / "ServerStateTracker.swift",
     "        guard !isRunning else { return }",
     "        if false { return }",

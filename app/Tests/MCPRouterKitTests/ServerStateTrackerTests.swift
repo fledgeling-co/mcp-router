@@ -16,7 +16,7 @@ import Testing
 /// that calls `apply(pollFailure:)` by hand passes perfectly well against that defect, because it
 /// never goes near the loop that drops the error. Only a test that makes a real poll fail can
 /// observe it, so those are marked ‹real loop› and are the ones that die if `try?` comes back —
-/// mechanised permanently as mutant `M40` in `scripts/red-green.py`.
+/// mechanised permanently as mutant `M50` in `scripts/red-green.py`.
 @Suite("Live server state")
 struct ServerStateTrackerTests {
     private func server(_ name: String, state: ServerState = .idle) throws -> MCPServer {

@@ -336,7 +336,8 @@ struct CheckTests {
         #expect(segments.count == 4)
         #expect(segments.first { $0.verdict == .passed }?.count == 2)
         // Only "not met" is tinted, and it is tinted with the token that literally means it.
-        #expect(segments.filter(\.isTinted).map(\.verdict) == [.failed])
+        let tinted = segments.filter { $0.token == .fail }.map(\.verdict)
+        #expect(tinted == [.failed])
     }
 
     @Test("A filter with no matches carries no badge rather than a zero")

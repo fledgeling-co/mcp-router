@@ -170,7 +170,21 @@
             "app/Sources/MCPRouterUI/Boards/DiscoverBoardRow.swift",
             "app/Sources/MCPRouterUI/Boards/DiscoverBoardMetrics.swift",
             "app/Sources/MCPRouterUI/Boards/DiscoverBoardModel.swift",
-            "app/Sources/MCPRouterUI/Boards/DiscoverDetailSheet.swift"
+            "app/Sources/MCPRouterUI/Boards/DiscoverDetailSheet.swift",
+            // M7's Evals and Cleanup panes. Enrolled with the rest rather than left in the
+            // directory: `boardFileListIsComplete` caught all nine of these sitting outside every
+            // source-level gate — the one-channel grep, the raw-design-value scan, the
+            // indicator-hue declaration and the entry-motion guard — which is the same escape that
+            // list's doc comment was written about after `ServerInspectorSections.swift`.
+            "app/Sources/MCPRouterUI/Boards/EvalsBoard.swift",
+            "app/Sources/MCPRouterUI/Boards/EvalsBoardModel.swift",
+            "app/Sources/MCPRouterUI/Boards/EvalsBoardRow.swift",
+            "app/Sources/MCPRouterUI/Boards/EvalsInspector.swift",
+            "app/Sources/MCPRouterUI/Boards/CleanupBoard.swift",
+            "app/Sources/MCPRouterUI/Boards/CleanupBoardModel.swift",
+            "app/Sources/MCPRouterUI/Boards/CleanupBoardRow.swift",
+            "app/Sources/MCPRouterUI/Boards/CleanupSheets.swift",
+            "app/Sources/MCPRouterUI/Boards/M7BoardMetrics.swift"
         ]
 
         /// M2's board, listed for the same reason `boardFiles` is.

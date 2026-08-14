@@ -87,12 +87,20 @@ public extension RegistryPresentation {
 
     /// Turns the router's terse warning into a sentence saying what it means for what is on screen,
     /// keeping the router's own text so the fact and its consequence are both visible.
+    ///
+    /// **The consequence must not out-claim the warning.** This used to append "Everything here
+    /// came from the other index alone, so nothing that index carries is missing on purpose" to
+    /// anything containing `unreachable` — but a warning reading "the official registry was
+    /// partially unreachable" makes that sentence false, and the board would then be stating, as
+    /// fact, a completeness claim inferred from a substring. The added sentence now says only what
+    /// follows from the warning whatever its scope: some of that index is missing, and its absence
+    /// is not a judgement about the rows that are here.
     static func expand(_ warning: String) -> String {
         let lowered = warning.lowercased()
         if lowered.contains("unreachable") {
             return """
-            \(warning). Everything here came from the other index alone, so nothing that index \
-            carries is missing on purpose.
+            \(warning). What that index carries is under-represented here, and a row missing for \
+            that reason is missing by accident rather than by rank.
             """
         }
         if lowered.contains("github") {

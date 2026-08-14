@@ -29,7 +29,10 @@
             RegistryCapability.action(
                 for: entry,
                 isInstalling: board.installState == .installing,
-                requirementsRevealed: requirementsRevealed
+                requirementsRevealed: requirementsRevealed,
+                // Passed so the committing press can be disabled while a field the entry asked for
+                // is still blank — the check that used to exist in Kit and be called from nowhere.
+                values: values
             )
         }
 
@@ -156,7 +159,11 @@
                         .fixedSize(horizontal: false, vertical: true)
                 }
 
-                ForEach(entry.install?.requires ?? [], id: \.name) { requirement in
+                // **Identity is the position, not the name.** `id: \.name` was an attacker-chosen
+                // string used as SwiftUI identity: two requirements sharing a name produce
+                // duplicate IDs, which is documented undefined behaviour, and the two fields then
+                // aliased one another's value through `binding(for:)`.
+                ForEach(Array((entry.install?.requires ?? []).enumerated()), id: \.offset) { _, requirement in
                     field(for: requirement)
                 }
 
@@ -173,6 +180,7 @@
         private func field(for requirement: RegistryRequirement) -> some View {
             let isSecret = requirement.isSecret ?? false
             let name = RegistryPresentation.sanitized(requirement.name, cap: 80)
+            let key = fieldKey(for: requirement)
             VStack(alignment: .leading, spacing: DiscoverBoardMetrics.labelGap) {
                 HStack(spacing: DiscoverBoardMetrics.labelGap) {
                     Text(name)
@@ -193,14 +201,25 @@
                 }
                 Group {
                     if isSecret {
-                        SecureField(name, text: binding(for: requirement.name))
+                        SecureField(name, text: binding(for: key))
                     } else {
-                        TextField(name, text: binding(for: requirement.name))
+                        TextField(name, text: binding(for: key))
                     }
                 }
                 .textFieldStyle(.roundedBorder)
                 .typeRole(.body)
             }
+        }
+
+        /// The dictionary key a field writes under.
+        ///
+        /// **Sanitised, and the same sanitisation the declaration reads with.** Keyed on the raw
+        /// name, the value would be stored under a string that is not the one the user was shown,
+        /// and the env var the router receives would carry the invisible characters the label had
+        /// stripped. `cap:` is deliberately absent — the cap is a display truncation, and a key
+        /// truncated for display would no longer be the key the entry asked for.
+        private func fieldKey(for requirement: RegistryRequirement) -> String {
+            RegistryPresentation.sanitized(requirement.name)
         }
 
         private func binding(for key: String) -> Binding<String> {
@@ -326,7 +345,20 @@
                 }
             }
             .accessibilityElement(children: .combine)
-            .accessibilityLabel("Command: \(tokens.joined(separator: " "))")
+            // **Announced as tokens, not as a line.** This read
+            // `"Command: \(tokens.joined(separator: " "))"`, which handed a screen-reader user the
+            // single-line shell command the visual design deliberately refuses to draw — erasing
+            // exactly the token boundaries that make the block honest, for the one user who cannot
+            // see the cells. The numbering carries the same structure in speech.
+            .accessibilityLabel(Self.spokenCommand(tokens))
+        }
+
+        static func spokenCommand(_ tokens: [String]) -> String {
+            guard !tokens.isEmpty else { return "No command" }
+            let parts = tokens.enumerated().map { index, token in
+                index == 0 ? "program \(token)" : "argument \(index), \(token)"
+            }
+            return "Command, \(tokens.count) parts: " + parts.joined(separator: "; ")
         }
     }
 #endif

@@ -41,13 +41,17 @@
                 .onKeyPress(.return) {
                     board.commitDefaultAction() ? .handled : .ignored
                 }
+                // **`.ignored` when there is nothing to move.** These returned `.handled`
+                // unconditionally, so on a board with no selection the arrow keys were swallowed
+                // and never reached the scroll view — a keyboard user could not scroll a long
+                // registry list at all. The model-level tests exercise `moveSelection(by:)`
+                // directly and never see the return value, which is why this needed reading rather
+                // than running.
                 .onKeyPress(.upArrow) {
-                    board.moveSelection(by: -1)
-                    return .handled
+                    board.moveSelection(by: -1) ? .handled : .ignored
                 }
                 .onKeyPress(.downArrow) {
-                    board.moveSelection(by: 1)
-                    return .handled
+                    board.moveSelection(by: 1) ? .handled : .ignored
                 }
                 .onChange(of: board.focusSearchRequests) { _, _ in isSearchFocused = true }
         }

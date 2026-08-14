@@ -270,16 +270,23 @@
             focusSearchRequests += 1
         }
 
-        public func moveSelection(by offset: Int) {
+        /// Moves the selection, and reports whether it had anywhere to move.
+        ///
+        /// The return value is what lets the view leave the key **unhandled** on an empty board, so
+        /// an arrow key reaches the scroll view instead of being swallowed by a board with nothing
+        /// to select.
+        @discardableResult
+        public func moveSelection(by offset: Int) -> Bool {
             let visible = rows
-            guard !visible.isEmpty else { return }
+            guard !visible.isEmpty else { return false }
             guard let current = selection, let index = visible.firstIndex(where: { $0.id == current })
             else {
                 selection = visible[offset >= 0 ? 0 : visible.count - 1].id
-                return
+                return true
             }
             let next = min(max(index + offset, 0), visible.count - 1)
             selection = visible[next].id
+            return true
         }
 
         /// Reset to the ordering that shows everything — what an emptied scoped ordering offers.

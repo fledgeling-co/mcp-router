@@ -253,6 +253,45 @@ check_invisible "the sheet assertions"
 
 echo
 echo "=============================================================="
+echo "A5 · §3.4 — the committing press is refused while a field is blank"
+echo "=============================================================="
+# The highest-severity defect the completeness critic found: `missingRequirements` existed for
+# exactly this and was called from nowhere, so revealing the fields and pressing Add with every box
+# empty sent a credential-less declaration to the router — which then fails at runtime with an
+# authentication error naming nothing.
+#
+# Driven end to end here, because the fix is a state change across two presses and a unit test on
+# `action(for:)` cannot show that the rendered button follows it.
+button_state() { awk -F'\t' -v want="$1" '$2 == "AXButton" && $6 == want { print $8; exit }' "$WORK/window.tsv"; }
+
+# The fixture's GitHub row is an HTTP install requiring an `Authorization` header, so its action
+# carries the ellipsis and is live: this press reveals fields rather than committing.
+[ "$(button_state 'Add GitHub…')" = "1" ] \
+  || fail "the revealing action is not enabled — §3.4's ellipsis press should always be available"
+pass "A5: the first press is 'Add GitHub…' and is enabled — it reveals, it does not commit"
+
+"$AXKIT" press "$PID" "Add GitHub" >/dev/null || fail "could not press the revealing action"
+sleep 2
+dump
+
+# Second press commits, so it must not be available while the field the entry asked for is empty.
+[ "$(button_state 'Add GitHub')" = "0" ] \
+  || fail "the committing action is live with a blank required credential"
+pass "A5: after revealing, 'Add GitHub' is disabled — a blank credential cannot be sent"
+
+# §3.4: dimmed **in place with its reason adjacent**, never removed.
+spoken | grep -q "Authorization has no value yet" \
+  || fail "the disabled action states no reason — §3.4 requires the reason beside the control"
+pass "§3.4: the reason is on screen — 'Authorization has no value yet…'"
+check_invisible "the credential-gate assertions"
+
+# Leave the sheet, so the footer assertions read the board.
+"$AXKIT" key "$PID" 53 >/dev/null || true
+sleep 1
+dump
+
+echo
+echo "=============================================================="
 echo "keyboard — Esc dismisses the sheet; the row keys are scoped by focus"
 echo "=============================================================="
 # Keycode 53 is Escape. `axkit key` posts a CGEvent to one pid and needs no frontmost app, which is

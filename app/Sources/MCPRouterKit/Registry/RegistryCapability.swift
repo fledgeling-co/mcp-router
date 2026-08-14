@@ -160,7 +160,8 @@ public enum RegistryCapability {
     public static func action(
         for entry: RegistryEntry,
         isInstalling: Bool = false,
-        requirementsRevealed: Bool = false
+        requirementsRevealed: Bool = false,
+        values: [String: String] = [:]
     ) -> Action {
         let name = RegistryPresentation.sanitized(entry.displayName, cap: 40)
 
@@ -193,6 +194,32 @@ public enum RegistryCapability {
         // Once the fields are on screen the button commits, so it loses its ellipsis — the
         // ellipsis promised a further view and the further view has arrived.
         let reveals = !requirements.isEmpty && !requirementsRevealed
+
+        // **The fields are on screen and something they asked for is still blank.**
+        //
+        // `missingRequirements` existed for exactly this and was called from nowhere, so the
+        // button that commits gated on nothing: reveal the fields, press Add with every box empty,
+        // and a credential-less declaration reached the router — which then fails at runtime with
+        // an authentication error naming nothing, the precise failure the function was written to
+        // prevent. Dead code that documents an invariant is worse than no code, because it reads
+        // as though the invariant is held.
+        if !reveals, !requirements.isEmpty {
+            let missing = missingRequirements(for: entry, values: values)
+            if !missing.isEmpty {
+                let names = missing
+                    .map { RegistryPresentation.sanitized($0.name, cap: 40) }
+                    .joined(separator: ", ")
+                return Action(
+                    label: "Add \(name)",
+                    isEnabled: false,
+                    disabledReason: missing.count == 1
+                        ? "\(names) has no value yet, and an empty one would be stored as a blank credential."
+                        : "\(names) have no values yet, and empty ones would be stored as blank credentials.",
+                    revealsRequirements: false
+                )
+            }
+        }
+
         return Action(
             label: reveals ? "Add \(name)\u{2026}" : "Add \(name)",
             isEnabled: true,
@@ -225,22 +252,45 @@ public enum RegistryCapability {
         let name = RegistryPresentation.sanitized(entry.name)
         guard !name.isEmpty else { return nil }
 
+        // **What is sent is exactly what was shown.**
+        //
+        // This is the invariant the whole board exists to uphold, and it was broken: `argvTokens`
+        // sanitised what the user reads, while this function sent `command`, `args` and `url`
+        // straight through. So `args: ["-y\u{2028}--allow-write"]` drew as one thing in the
+        // instrument face and went to the router as another — the surface whose entire purpose is
+        // "know what will run before it runs" showing a command that was not the command.
+        //
+        // Sanitising here with the same function closes it by construction rather than by
+        // discipline: `statementMatchesWhatIsDeclared` asserts the tokens in the statement are the
+        // command and args in the declaration, so the two cannot drift apart again without a test
+        // going red. An entry whose install block is malformed enough to be emptied by this is
+        // refused below rather than sent as a blank.
+        let requested = (install.requires ?? []).map { RegistryPresentation.sanitized($0.name) }
         // Only the values this entry actually asked for are carried. A value left over from an
-        // earlier sheet, or a key the user never saw, must not reach the router.
-        let asked = Set((install.requires ?? []).map(\.name))
-        let supplied = values.filter { asked.contains($0.key) && !$0.value.isEmpty }
+        // earlier sheet, or a key the user never saw, must not reach the router. Keyed on the
+        // **sanitised** name, because that is the label the field was drawn with — an unsanitised
+        // key would send an env var whose name is not the one on screen.
+        let asked = Set(requested)
+        let supplied = values.reduce(into: [String: String]()) { result, pair in
+            let key = RegistryPresentation.sanitized(pair.key)
+            guard asked.contains(key), !pair.value.isEmpty else { return }
+            result[key] = pair.value
+        }
 
         switch install.type {
         case .stdio:
-            guard let command = install.command, !command.isEmpty else { return nil }
+            let command = RegistryPresentation.sanitized(install.command ?? "")
+            guard !command.isEmpty else { return nil }
+            let args = (install.args ?? []).map(RegistryPresentation.sanitized)
             return NewServer(
                 name: name,
                 command: command,
-                args: install.args,
+                args: install.args == nil ? nil : args,
                 env: supplied.isEmpty ? nil : supplied
             )
         case .http, .sse:
-            guard let url = install.url, !url.isEmpty else { return nil }
+            let url = RegistryPresentation.sanitized(install.url ?? "")
+            guard !url.isEmpty else { return nil }
             return NewServer(
                 name: name,
                 url: url,
@@ -258,8 +308,12 @@ public enum RegistryCapability {
         for entry: RegistryEntry,
         values: [String: String]
     ) -> [RegistryRequirement] {
+        // Looked up under the **sanitised** name, because that is the key the field writes under
+        // and the key `declaration` reads with. Keyed on the raw name this would report a supplied
+        // value as missing whenever the name carried anything the sanitiser strips.
         (entry.install?.requires ?? []).filter { requirement in
-            (values[requirement.name] ?? "").trimmingCharacters(in: .whitespaces).isEmpty
+            let key = RegistryPresentation.sanitized(requirement.name)
+            return (values[key] ?? "").trimmingCharacters(in: .whitespaces).isEmpty
         }
     }
 }

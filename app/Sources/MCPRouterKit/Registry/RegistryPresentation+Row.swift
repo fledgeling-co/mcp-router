@@ -143,10 +143,35 @@ public extension RegistryPresentation {
     ///   that appears to be the app speaking.
     ///
     /// Applied at the boundary, so no view can forget it.
+    ///
+    /// **The filter is written from the threat, not from the implementation.** The first version
+    /// stripped only the four families it was easiest to think of — the explicit bidi embeddings,
+    /// the isolates, and the C0/C1 controls — and a review derived from the *threat* found four
+    /// more that defeat it, one of which the newline rule above claims to close:
+    ///
+    /// - **U+200E/U+200F (LRM/RLM) and U+061C (ALM)** are the classic display-spoofing pair. They
+    ///   need no embedding to reorder a run, so filtering U+202A–202E alone leaves the attack open.
+    /// - **U+2028/U+2029 (line and paragraph separator)** are line breaks that are not C0. The
+    ///   comment above says a newline in `args` can inject a line into the command block; these are
+    ///   exactly that newline in the form the original filter passed through.
+    /// - **U+200B–U+200D (zero-width space, non-joiner, joiner)** make `git<ZWSP>hub` render as
+    ///   `github` — on a surface whose whole job is helping someone identify what they are about to
+    ///   run, two different names that draw identically is the defect.
+    /// - **U+206A–U+206F** are the deprecated format controls, kept out for the same reason.
     static func sanitized(_ raw: String) -> String {
         String(raw.unicodeScalars.filter { scalar in
             if (0x202A ... 0x202E).contains(scalar.value) { return false }
             if (0x2066 ... 0x2069).contains(scalar.value) { return false }
+            // Implicit marks: no embedding required, so the ranges above do not cover them.
+            if scalar.value == 0x200E || scalar.value == 0x200F || scalar.value == 0x061C {
+                return false
+            }
+            // Line and paragraph separators — a newline that is not a C0 control.
+            if scalar.value == 0x2028 || scalar.value == 0x2029 { return false }
+            // Zero-width: two distinct strings that draw identically.
+            if (0x200B ... 0x200D).contains(scalar.value) { return false }
+            // Deprecated format controls.
+            if (0x206A ... 0x206F).contains(scalar.value) { return false }
             // C0 (including \n and \t), DEL, and C1.
             if scalar.value < 0x20 || scalar.value == 0x7F { return false }
             if (0x80 ... 0x9F).contains(scalar.value) { return false }

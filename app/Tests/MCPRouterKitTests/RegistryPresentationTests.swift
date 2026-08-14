@@ -100,10 +100,16 @@ struct RegistryPresentationTests {
 
     /// Red-green, run as one test: the assertion is re-evaluated against a deliberately inverted
     /// mapping, and the inversion has to fail for the real one to mean anything.
+    ///
+    /// **Both entries carry `source: .official` — that is the whole design of the fixture pair, and
+    /// it is what makes this load-bearing rather than decorative.** Only the id differs, so an
+    /// implementation reading `source` instead of the id prefix answers `.entryUpdated` for both
+    /// and fails the final assertion. A review read this as "a constant asserted against another
+    /// constant"; it is not, but the property it turns on was implicit, so it is stated here.
     @Test("the date mapping is load-bearing — inverting it changes the answer")
     func dateMeaningMappingIsLoadBearing() {
-        let official = entry(id: "github")
-        let smitheryRow = entry(id: smithery("github"))
+        let official = entry(id: "github", source: .official)
+        let smitheryRow = entry(id: smithery("github"), source: .official)
 
         let real = [
             RegistryPresentation.dateMeaning(for: official),

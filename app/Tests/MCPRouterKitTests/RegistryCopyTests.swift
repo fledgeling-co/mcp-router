@@ -104,22 +104,39 @@ struct RegistryCopyTests {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
+        // **Every Discover source, Kit and UI.** This listed the four Kit files only, so a
+        // `Text("2,104 installs")` added to `DiscoverBoardRow.swift` passed a test whose name says
+        // "anywhere in the Discover sources" — the constraint is about what reaches the screen, and
+        // the five files that draw the screen were the ones not being read.
         let sources = [
             "Sources/MCPRouterKit/Registry/RegistryPresentation.swift",
             "Sources/MCPRouterKit/Registry/RegistryPresentation+Row.swift",
             "Sources/MCPRouterKit/Registry/RegistryPresentation+Notes.swift",
-            "Sources/MCPRouterKit/Registry/RegistryCapability.swift"
+            "Sources/MCPRouterKit/Registry/RegistryCapability.swift",
+            "Sources/MCPRouterUI/Boards/DiscoverBoard.swift",
+            "Sources/MCPRouterUI/Boards/DiscoverBoardModel.swift",
+            "Sources/MCPRouterUI/Boards/DiscoverBoardRow.swift",
+            "Sources/MCPRouterUI/Boards/DiscoverBoardMetrics.swift",
+            "Sources/MCPRouterUI/Boards/DiscoverDetailSheet.swift"
         ]
         // Declarations only, and shaped as declarations. The prose in `trendingNote` says the words
         // "trend" and "velocity" on purpose — saying that neither is measured is the whole point of
         // it — so a bare substring search would fire on the very sentence that keeps the promise.
         // What must not exist is a *property or function* named after a figure nothing observes.
+        //
+        // The UI files add a second shape to look for: a *rendered literal*. A declaration search
+        // cannot see `Text("2,104 installs")`, so the units themselves are searched for where they
+        // would appear inside a string.
         let forbidden = ["var trending", "let trendCount", "func trend(", "var velocity",
                          "let velocity", "func velocity", "installCount", "func rank(",
-                         "var rank", "evalScore", "popularityScore", "var score"]
+                         "var rank", "evalScore", "popularityScore", "var score",
+                         " installs\"", " downloads\"", "Rank #", "eval score"]
 
+        // Proof the reader is reading: every listed path must exist and be non-trivial, or a
+        // renamed file would silently turn this whole test into a loop over nothing.
         for path in sources {
             let text = try String(contentsOf: root.appending(path: path), encoding: .utf8)
+            #expect(text.count > 500, "\(path) is missing or empty — this test would be vacuous")
             for needle in forbidden {
                 #expect(!text.contains(needle), "\(path) declares \(needle), which nothing observes")
             }
@@ -235,6 +252,38 @@ struct RegistryCopyTests {
         // C0 including newline and tab, DEL, and C1. A newline inside `args` would let an entry
         // inject extra lines into the block the capability statement offers as ground truth.
         #expect(RegistryPresentation.sanitized("a\nb\tc\u{7F}d\u{85}e") == "abcde")
+    }
+
+    /// **Written from the threat, not from the implementation.**
+    ///
+    /// The test above tested exactly the four families the filter already handled, which is a test
+    /// derived from the code and structurally unable to find the gap in it. These four families
+    /// defeated that filter, and one of them is the newline the argv rule claims to keep out.
+    @Test("the invisible characters a filter written from its own code would miss")
+    func hostileTextBeyondTheObviousFamilies() {
+        // Implicit marks: they reorder a run with no embedding, so the U+202A–202E range misses
+        // them entirely. This is the classic display-spoofing pair.
+        #expect(RegistryPresentation.sanitized("evil\u{200E}-server") == "evil-server")
+        #expect(RegistryPresentation.sanitized("evil\u{200F}-server") == "evil-server")
+        #expect(RegistryPresentation.sanitized("evil\u{061C}-server") == "evil-server")
+
+        // Line and paragraph separators — a line break that is not a C0 control, and therefore
+        // exactly the argv injection the C0 rule was written to prevent, in the form it missed.
+        #expect(RegistryPresentation.sanitized("npx\u{2028}rm -rf") == "npxrm -rf")
+        #expect(RegistryPresentation.sanitized("npx\u{2029}rm -rf") == "npxrm -rf")
+
+        // Zero-width: two different strings that draw identically, on the surface whose whole job
+        // is helping someone identify what they are about to run.
+        #expect(RegistryPresentation.sanitized("git\u{200B}hub") == "github")
+        #expect(RegistryPresentation.sanitized("git\u{200C}hub") == "github")
+        #expect(RegistryPresentation.sanitized("git\u{200D}hub") == "github")
+
+        // Deprecated format controls.
+        #expect(RegistryPresentation.sanitized("a\u{206A}b\u{206F}c") == "abc")
+
+        // And the filter still leaves ordinary text — including non-Latin scripts — alone, so this
+        // is not passing by stripping everything.
+        #expect(RegistryPresentation.sanitized("Ünïcödé — 日本語 · 🎛") == "Ünïcödé — 日本語 · 🎛")
 
         // Ordinary text is untouched, including non-ASCII that is not a control.
         #expect(RegistryPresentation.sanitized("GitHub — Modèle 日本語") == "GitHub — Modèle 日本語")

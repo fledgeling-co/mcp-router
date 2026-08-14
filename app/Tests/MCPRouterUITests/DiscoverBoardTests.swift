@@ -124,6 +124,33 @@
             #expect(board.selection == "has-usage", "movement clamps rather than wrapping off the end")
         }
 
+        /// The return value the view turns into `.handled` / `.ignored`.
+        ///
+        /// This is the half the model tests could not see: `moveSelection(by:)` returned `Void`, so
+        /// the board's `.onKeyPress` returned `.handled` unconditionally and swallowed the arrow
+        /// keys on a board with nothing to select — meaning a keyboard user could not scroll a long
+        /// registry list, because the scroll view never received the key.
+        @Test("an arrow key on a board with nothing to select is left unhandled")
+        func arrowKeysAreIgnoredWhenThereIsNothingToMove() async {
+            let client = DiscoverRecordingClient()
+            client.staged = [.success(response([]))]
+            let board = DiscoverBoardModel(client: client)
+            await board.load()
+
+            #expect(board.rows.isEmpty)
+            #expect(board.moveSelection(by: 1) == false, "nothing to move, so the key is not ours")
+            #expect(board.moveSelection(by: -1) == false)
+            #expect(board.selection == nil)
+
+            // With rows, it is ours and it says so.
+            let populated = DiscoverRecordingClient()
+            populated.staged = [.success(response([entry(id: "a"), entry(id: "b")]))]
+            let live = DiscoverBoardModel(client: populated)
+            await live.load()
+            #expect(live.moveSelection(by: 1) == true)
+            #expect(live.selection == "a")
+        }
+
         // MARK: - A10 · search behaviour
 
         /// A fetch per keystroke would issue two third-party HTTP requests per character.

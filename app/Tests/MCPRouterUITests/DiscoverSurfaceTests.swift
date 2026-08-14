@@ -67,5 +67,25 @@
             #expect(DiscoverBoardStates.treatment(for: .offline)
                 != DiscoverBoardStates.treatment(for: .error))
         }
+
+        /// The argv is drawn as separate cells so it cannot be read as a shell line — and was then
+        /// announced as one. `accessibilityLabel("Command: \(tokens.joined(separator: " "))")` handed a
+        /// screen-reader user exactly the single-line command the visual design refuses to draw,
+        /// erasing the token boundaries that made the block honest for the one user who cannot see the
+        /// cells.
+        @Test("the spoken command keeps the token boundaries the drawn one has")
+        func spokenCommandIsNotAShellLine() {
+            let spoken = FlowingTokens.spokenCommand(["npx", "-y", "@scope/server", "--allow-write"])
+
+            // The joined line must not be recoverable from the announcement.
+            #expect(!spoken.contains("npx -y @scope/server --allow-write"))
+            // Every token is still announced, and its role is named.
+            #expect(spoken.contains("program npx"))
+            #expect(spoken.contains("argument 1, -y"))
+            #expect(spoken.contains("argument 3, --allow-write"))
+            // The count is stated, so a token dropped in speech is detectable by the listener.
+            #expect(spoken.contains("4 parts"))
+            #expect(FlowingTokens.spokenCommand([]) == "No command")
+        }
     }
 #endif

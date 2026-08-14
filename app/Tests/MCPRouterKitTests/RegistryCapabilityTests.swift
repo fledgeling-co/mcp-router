@@ -224,4 +224,96 @@ struct RegistryCapabilityTests {
         #expect(RegistryPresentation.archivedNote(for: entry(archived: false)) == nil)
         #expect(RegistryPresentation.archivedNote(for: entry(archived: nil)) == nil)
     }
+
+    // MARK: - What is shown is what is sent
+
+    /// The invariant the whole board exists to uphold, asserted as an equality between the two
+    /// paths rather than trusted.
+    ///
+    /// This was broken and the tests could not see it: `argvTokens` sanitised what the user reads
+    /// while `declaration` sent `command` and `args` straight through, so a hostile entry drew as
+    /// one command and ran as another — on the surface whose entire purpose is knowing what will
+    /// run before it runs. `declarationIsNarrow` asserted `name` and `env` and never looked at the
+    /// execution fields.
+    @Test("what the statement draws is exactly what the declaration sends")
+    func statementMatchesWhatIsDeclared() {
+        // U+2028 is a line break that is not a C0 control, so it survived the original filter —
+        // which is the newline the argv block's own comment says it exists to keep out.
+        let row = entry(install: RegistryInstall(
+            type: .stdio,
+            command: "npx\u{2028}rm",
+            args: ["-y\u{2028}--allow-write", "server\u{200B}-name"]
+        ))
+        let statement = RegistryCapability.statement(for: row)
+        let declared = try? #require(RegistryCapability.declaration(for: row, values: [:]))
+
+        #expect(statement.argv == ["npxrm", "-y--allow-write", "server-name"])
+        #expect(declared?.command == "npxrm")
+        #expect(declared?.args == ["-y--allow-write", "server-name"])
+        // Stated as the general rule, so a future field added to one path and not the other fails.
+        #expect(
+            statement.argv == [declared?.command].compactMap(\.self) + (declared?.args ?? []),
+            "the tokens drawn in the instrument face must be the command line that is sent"
+        )
+    }
+
+    @Test("a hostile URL is sanitised before it is sent, not only before it is shown")
+    func declaredURLIsSanitised() {
+        let row = entry(install: RegistryInstall(type: .http, url: "https://evil\u{202E}.example.com/mcp"))
+        let declared = RegistryCapability.declaration(for: row, values: [:])
+        #expect(declared?.url == "https://evil.example.com/mcp")
+        #expect(!(declared?.url ?? "").unicodeScalars.contains { $0.value == 0x202E })
+    }
+
+    /// `missingRequirements` existed for this and was called from nowhere, so the committing press
+    /// gated on nothing and a credential-less declaration reached the router.
+    @Test("the committing action is disabled while a requirement is still blank")
+    func blankRequirementDisablesTheCommit() {
+        let row = entry(install: RegistryInstall(
+            type: .stdio,
+            command: "npx",
+            requires: [RegistryRequirement(name: "GITHUB_TOKEN", isSecret: true)]
+        ))
+        // First press reveals the fields — it commits nothing, so it is enabled whatever is typed.
+        let reveal = RegistryCapability.action(for: row, requirementsRevealed: false, values: [:])
+        #expect(reveal.isEnabled)
+        #expect(reveal.revealsRequirements)
+
+        // Second press commits, and must not while the field it asked for is empty.
+        let blank = RegistryCapability.action(for: row, requirementsRevealed: true, values: [:])
+        #expect(!blank.isEnabled)
+        #expect(blank.disabledReason?.contains("GITHUB_TOKEN") == true)
+        #expect(!blank.revealsRequirements)
+
+        // Whitespace is not a credential either.
+        let spaces = RegistryCapability.action(
+            for: row, requirementsRevealed: true, values: ["GITHUB_TOKEN": "  "]
+        )
+        #expect(!spaces.isEnabled)
+
+        // Filled, it commits.
+        let filled = RegistryCapability.action(
+            for: row, requirementsRevealed: true, values: ["GITHUB_TOKEN": "ghp_x"]
+        )
+        #expect(filled.isEnabled)
+        #expect(filled.disabledReason == nil)
+    }
+
+    /// The field writes under the sanitised name, and the declaration reads under the same one, so
+    /// the env key the router receives is the key the user was shown.
+    @Test("a requirement key reaches the router as the string the field was labelled with")
+    func requirementKeyIsTheLabelledOne() {
+        let row = entry(install: RegistryInstall(
+            type: .stdio,
+            command: "npx",
+            requires: [RegistryRequirement(name: "GITHUB\u{200B}_TOKEN", isSecret: true)]
+        ))
+        // What the sheet stores, keyed by `fieldKey` — the sanitised name.
+        let declared = RegistryCapability.declaration(for: row, values: ["GITHUB_TOKEN": "ghp_x"])
+        #expect(declared?.env?["GITHUB_TOKEN"] == "ghp_x")
+        #expect(declared?.env?.keys.contains("GITHUB\u{200B}_TOKEN") != true)
+        #expect(RegistryCapability.missingRequirements(
+            for: row, values: ["GITHUB_TOKEN": "ghp_x"]
+        ).isEmpty)
+    }
 }

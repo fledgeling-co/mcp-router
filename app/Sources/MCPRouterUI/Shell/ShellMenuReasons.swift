@@ -33,8 +33,16 @@
                     // rest on the item; `setAccessibilityHelp` is what VoiceOver reads and what
                     // `AXHelp` returns. Setting only the tool tip leaves the reason invisible to
                     // the accessibility tree, which is where A22's evidence is read from.
-                    item.toolTip = reason
-                    item.setAccessibilityHelp(reason)
+                    //
+                    // Written only when it differs. This runs ten times a second, and
+                    // unconditionally re-assigning both attributes on every pass mutates the
+                    // accessibility tree continuously — which made concurrent AX reads fail with
+                    // -1728 against elements that were being rewritten underneath them. After the
+                    // first pass over a menu this loop now only reads.
+                    if item.toolTip != reason { item.toolTip = reason }
+                    if item.accessibilityHelp() != reason { item.setAccessibilityHelp(reason) }
+                    // Counted on match rather than on write, so the count still answers "how many
+                    // items does this walker own" rather than "how many changed this time".
                     applied += 1
                 }
                 if let submenu = item.submenu {
@@ -49,6 +57,24 @@
         public static func command(titled title: String) -> MenuCommand? {
             MenuCommand.allCases.first { $0.title == title }
         }
+
+        /// How often the reasons are re-applied.
+        ///
+        /// A tenth of a second rather than a whole one, and the difference is not cosmetic.
+        /// SwiftUI rebuilds a `CommandGroup`'s `NSMenuItem`s **when the menu is opened**, and it
+        /// builds them bare — so the window between "the item exists" and "the item explains
+        /// itself" is however long this interval is. At one second that window was long enough for
+        /// an accessibility walk of a freshly-opened menu to read `AXHelp` as empty, which is
+        /// exactly what a VoiceOver user focusing the item would have heard: nothing.
+        ///
+        /// A tool tip needs a second or two of hover before macOS shows it, so a person was never
+        /// going to see the gap; the accessibility tree is read the instant focus lands, and that
+        /// is the reader this interval is set for.
+        ///
+        /// The cost is a walk of about forty items against thirty-odd titles, ten times a second,
+        /// and only while the app is running — far below anything the user is doing when a menu is
+        /// open.
+        static let reapplyInterval: Duration = .milliseconds(100)
 
         /// Keeps the reasons applied for as long as the app is running.
         ///
@@ -65,15 +91,14 @@
         ///   the second visit. A discoverable reason that needs two attempts is not discoverable.
         ///
         /// SwiftUI owns these `NSMenuItem`s and replaces them on its own schedule, so the only thing
-        /// that survives is re-applying. Once a second, over about forty items, against seven
-        /// possible matches: far below the cost of anything the user is doing when a menu is open.
+        /// that survives is re-applying.
         @MainActor
         public static func install() {
             Task { @MainActor in
                 while !Task.isCancelled {
                     if let main = NSApp.mainMenu { apply(to: main) }
                     do {
-                        try await Task.sleep(for: .seconds(1))
+                        try await Task.sleep(for: reapplyInterval)
                     } catch {
                         return
                     }

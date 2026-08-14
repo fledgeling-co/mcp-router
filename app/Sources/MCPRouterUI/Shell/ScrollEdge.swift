@@ -34,7 +34,7 @@
         /// Feeds one geometry reading in. The first call sets the baseline and shows nothing.
         public mutating func observe(offset: Double) {
             guard let baseline else {
-                self.baseline = offset
+                baseline = offset
                 isSeparatorVisible = false
                 return
             }

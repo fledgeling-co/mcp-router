@@ -165,7 +165,10 @@ func emit(_ element: AXUIElement, depth: Int) {
         clean(string(element, "AXMenuItemCmdModifiers")),
         clean(string(element, kAXIdentifierAttribute as String)),
         String(format: "%.1f", pos.0), String(format: "%.1f", pos.1),
-        String(format: "%.1f", size.0), String(format: "%.1f", size.1)
+        String(format: "%.1f", size.0), String(format: "%.1f", size.1),
+        // Appended deliberately at the end: the columns above are read positionally by awk, and
+        // inserting a field anywhere earlier would silently re-point every one of those reads.
+        bool(element, kAXFocusedAttribute as String)
     ]
     print(fields.joined(separator: "\t"))
     rows += 1
@@ -227,6 +230,40 @@ launch_app() {
 
 dump_window() { "$WORK/axdump" "$PID" window > "$WORK/window.tsv" 2>/dev/null || blocked "the window walk failed"; }
 dump_menu()   { "$WORK/axdump" "$PID" menu   > "$WORK/menu.tsv"   2>/dev/null || blocked "the menu walk failed"; }
+
+# The app must be frontmost before a keystroke is sent. `open` activates it, but the terminal
+# running this script takes focus back, and a ⌘-digit delivered to the terminal changes nothing in
+# the app — which reads exactly like a shortcut that is not wired up.
+#
+# **Waiting for frontmost rather than sleeping on it.** `activate` is asynchronous and a fixed sleep
+# is a guess about how long it takes; measured here, the guess was wrong often enough that ⌘1 and ⌘6
+# were delivered while the terminal still had focus, and the run reported them as unbound while
+# every digit that actually arrived worked. Worse, those keystrokes went *somewhere* — into the
+# terminal, whose own ⌘-digit bindings switch tabs. So this polls the real frontmost process and
+# only returns once it is the app, and treats never getting there as an environment failure rather
+# than sending the key anyway.
+activate_app() {
+    local deadline=$((SECONDS + 20)) front=""
+    while [ "$SECONDS" -lt "$deadline" ]; do
+        # Re-issued on every pass rather than once. A single `activate` loses to any app that takes
+        # focus back afterwards — a terminal printing output is enough — and one request followed by
+        # a long wait is a slower way to lose the same race.
+        osascript -e "tell application id \"$BUNDLE_ID\" to activate" >/dev/null 2>&1 || true
+        sleep 0.3
+        front="$(osascript -e 'tell application "System Events" to get name of first process whose frontmost is true' 2>/dev/null || true)"
+        if [ "$front" = "MCPRouter" ]; then
+            # Frontmost is necessary but not sufficient: it is reported as the activation begins, and
+            # a ⌘-key delivered during it can land before the window is taking key events. Measured —
+            # returning the instant frontmost flipped made ⌘2 intermittently do nothing. The settle
+            # costs half a second per activation and removes the flake.
+            sleep 0.5
+            return 0
+        fi
+    done
+    blocked "MCPRouter never became frontmost (it is '$front') — a keystroke sent now would go to
+         another app. Nothing else may hold focus while this runs: close other foreground work on
+         this display and run it again."
+}
 
 echo
 echo "the three-zone shell"
@@ -368,11 +405,16 @@ echo "the menu bar"
 
 # Open each menu once before walking it.
 #
-# Two reasons, and the second is the load-bearing one. SwiftUI inserts the items it contributes
-# through `CommandGroup` **lazily** — measured here: at launch the File menu's items existed and the
-# Edit menu's three did not, so a walk without this step reported a missing reason for a command
-# that has one. And a tool tip is only ever reachable by opening the menu anyway, so this is also
-# the state a person is actually in when they need to discover why a command is dimmed.
+# The app is brought frontmost first, because a menu bar belongs to the *active* application: walked
+# while something else is frontmost, this process reports zero menus, which reads as an app that
+# declares none rather than as a walk of the wrong thing.
+#
+# Two more reasons to open them, and the second is the load-bearing one. SwiftUI inserts the items it
+# contributes through `CommandGroup` **lazily** — measured here: at launch the File menu's items
+# existed and the Edit menu's three did not, so a walk without this step reported a missing reason
+# for a command that has one. And a tool tip is only ever reachable by opening the menu anyway, so
+# this is also the state a person is actually in when they need to discover why a command is dimmed.
+activate_app
 for menu in "MCP Router" File Edit View Window Help; do
     osascript -e "tell application \"System Events\" to tell process \"MCPRouter\" to click menu bar item \"$menu\" of menu bar 1" >/dev/null 2>&1 || true
     sleep 0.4
@@ -573,40 +615,53 @@ pass "$DISABLED_CHECKED disabled commands are present, report themselves disable
 echo
 echo "the keyboard"
 
-# The app must be frontmost before a keystroke is sent. `open` activates it, but the terminal
-# running this script takes focus back, and a ⌘-digit delivered to the terminal changes nothing in
-# the app — which reads exactly like a shortcut that is not wired up.
-activate_app() {
-    osascript -e "tell application id \"$BUNDLE_ID\" to activate" >/dev/null 2>&1 || true
-    sleep 0.6
-}
 
+# Sends ⌘<key> and asserts both halves of A23: the row reports itself selected, and the title
+# follows it.
+#
+# Retried up to three times, and the reason is contention rather than flakiness in the app. Another
+# process can take focus back in the gap between `activate_app` confirming frontmost and the
+# keystroke being delivered — a terminal printing output is enough — and the key then lands
+# somewhere else entirely. Re-activating and sending again costs a second; accepting the first
+# miss would report a correctly-bound shortcut as unbound. A shortcut that is genuinely not wired
+# up fails all three attempts, so nothing is being papered over.
 select_and_check() {
-    local key="$1" want="$2"
-    activate_app
-    osascript -e "tell application \"System Events\" to tell process \"MCPRouter\" to keystroke \"$key\" using command down" >/dev/null 2>&1 \
-      || blocked "could not send ⌘$key"
-    sleep 1.5
-    dump_window
-    local title selected
-    title="$(awk -F'\t' '$1 == 0 { print $4; exit }' "$WORK/window.tsv")"
-    # The selected row, from the tree's own selected flag rather than from the title — A23 is
-    # explicit that the row must report itself selected and the title must follow, not either alone.
-    selected="$(awk -F'\t' '$2 == "AXRow" && $9 == "1" { print NR; exit }' "$WORK/window.tsv")"
-    [ "$title" = "$want" ] || fail "⌘$key left the title '$title', expected '$want'"
-    [ -n "$selected" ] || fail "⌘$key changed the title but no sidebar row reports itself selected"
-    pass "⌘$key selected $want — the row reports itself selected and the title follows"
+    local key="$1" want="$2" attempt title selected
+    for attempt in 1 2 3; do
+        activate_app
+        osascript -e "tell application \"System Events\" to tell process \"MCPRouter\" to keystroke \"$key\" using command down" >/dev/null 2>&1 \
+          || blocked "could not send ⌘$key"
+        sleep 1.5
+        dump_window
+        title="$(awk -F'\t' '$1 == 0 { print $4; exit }' "$WORK/window.tsv")"
+        # The selected row, from the tree's own selected flag rather than from the title — A23 is
+        # explicit that the row must report itself selected and the title must follow, not either
+        # alone.
+        selected="$(awk -F'\t' '$2 == "AXRow" && $9 == "1" { print NR; exit }' "$WORK/window.tsv")"
+        if [ "$title" = "$want" ]; then
+            [ -n "$selected" ] || fail "⌘$key changed the title but no sidebar row reports itself selected"
+            pass "⌘$key selected $want — the row reports itself selected and the title follows"
+            return 0
+        fi
+    done
+    fail "⌘$key left the title '$title', expected '$want' — after 3 attempts with the app frontmost"
 }
 
 select_and_check 2 Servers
 select_and_check 4 Discover
 # ⌘, is Settings, which is a destination in this build rather than a sheet.
-activate_app
-osascript -e 'tell application "System Events" to tell process "MCPRouter" to keystroke "," using command down' >/dev/null 2>&1 || true
-sleep 1.5
-dump_window
-SETTINGS_TITLE="$(awk -F'\t' '$1 == 0 { print $4; exit }' "$WORK/window.tsv")"
-[ "$SETTINGS_TITLE" = "Settings" ] || fail "⌘, left the title '$SETTINGS_TITLE', expected 'Settings'"
+# ⌘, is Settings, which is a destination in this build rather than a sheet. Same three attempts,
+# for the same contention reason as above.
+SETTINGS_TITLE=""
+for attempt in 1 2 3; do
+    activate_app
+    osascript -e 'tell application "System Events" to tell process "MCPRouter" to keystroke "," using command down' >/dev/null 2>&1 || true
+    sleep 1.5
+    dump_window
+    SETTINGS_TITLE="$(awk -F'\t' '$1 == 0 { print $4; exit }' "$WORK/window.tsv")"
+    [ "$SETTINGS_TITLE" = "Settings" ] && break
+done
+[ "$SETTINGS_TITLE" = "Settings" ] || fail "⌘, left the title '$SETTINGS_TITLE', expected 'Settings' — after 3 attempts"
 pass "⌘, selected Settings"
 
 select_and_check 1 Activity
@@ -625,20 +680,56 @@ PROBE_POS="$(awk -F'\t' -v id="$PROBE_ID" '$12 == id || $6 == id { print $13 " "
 [ -n "$PROBE_POS" ] || fail "the Debug key probe is not in the content zone — A21 has no test surface"
 
 # Click it so it takes focus, then send each key and read back what arrived.
+#
+# The app is brought frontmost first: `click at` is a *screen* coordinate, so anything overlapping
+# the window would receive the click instead, and the bare keys that follow are unmodified — they
+# would land silently in whatever app did have focus.
+#
+# The position is re-read here rather than reused from the walk above, because the ⌘-shortcut
+# assertions changed the destination and the content zone was rebuilt underneath it.
+activate_app
+dump_window
+PROBE_POS="$(awk -F'\t' -v id="$PROBE_ID" '$12 == id || $6 == id { print $13 " " $14 " " $15 " " $16; exit }' "$WORK/window.tsv")"
+[ -n "$PROBE_POS" ] || fail "the Debug key probe left the content zone after the keyboard assertions"
 set -- $PROBE_POS
 CLICK_X=$(awk -v x="$1" -v w="$3" 'BEGIN { printf "%d", x + w / 2 }')
 CLICK_Y=$(awk -v y="$2" -v h="$4" 'BEGIN { printf "%d", y + h / 2 }')
 osascript -e "tell application \"System Events\" to click at {$CLICK_X, $CLICK_Y}" >/dev/null 2>&1 || true
 sleep 1
 
+# Focus is asserted before any key is sent, so that "the shell swallowed it" is only ever reported
+# when the key really was delivered to a focused surface. Without this, a click that missed and a
+# shell that ate the key produce the same message and point at the wrong one.
+probe_focused() {
+    dump_window
+    awk -F'\t' -v id="$PROBE_ID" '$12 == id || $6 == id { print $17; exit }' "$WORK/window.tsv"
+}
+[ "$(probe_focused)" = "1" ] \
+  || fail "the key probe did not take focus when clicked — A21 cannot be exercised, and nothing about the shell has been shown either way"
+pass "the key probe holds keyboard focus in the content zone"
+
+# Each key is sent with the app re-activated and the probe's focus re-checked first, and retried up
+# to three times, for the same contention reason as the ⌘-digit assertions: another process taking
+# focus back mid-sequence sends the key somewhere else, and the probe simply keeps reporting the
+# previous one. A key the shell genuinely swallows fails all three attempts.
 send_bare_key() {
-    local code="$1" want="$2"
-    osascript -e "tell application \"System Events\" to key code $code" >/dev/null 2>&1 \
-      || blocked "could not send key code $code"
-    sleep 1
-    local got; got="$(probe_value)"
-    [ "$got" = "$want" ] || fail "the content zone did not receive $want (the probe reads '$got') — the shell swallowed it"
-    pass "$want reached a focused surface in the content zone"
+    local code="$1" want="$2" attempt got=""
+    for attempt in 1 2 3; do
+        activate_app
+        if [ "$(probe_focused)" != "1" ]; then
+            osascript -e "tell application \"System Events\" to click at {$CLICK_X, $CLICK_Y}" >/dev/null 2>&1 || true
+            sleep 0.5
+        fi
+        osascript -e "tell application \"System Events\" to key code $code" >/dev/null 2>&1 \
+          || blocked "could not send key code $code"
+        sleep 1
+        got="$(probe_value)"
+        if [ "$got" = "$want" ]; then
+            pass "$want reached a focused surface in the content zone"
+            return 0
+        fi
+    done
+    fail "the content zone did not receive $want (the probe reads '$got') — the shell swallowed it"
 }
 
 send_bare_key 49 Space
@@ -710,13 +801,44 @@ screencapture -o -x -l "$WIN_ID" "$WORK/before.png"
 BEFORE="$(swift "$WORK/sample.swift" "$WORK/before.png" "$EDGE_X" "$EDGE_Y" 2>/dev/null || true)"
 [ -n "$BEFORE" ] || blocked "could not sample the scroll edge before scrolling"
 
-osascript -e "tell application \"System Events\" to click at {$CLICK_X, $CLICK_Y}" >/dev/null 2>&1 || true
-sleep 0.5
-osascript -e 'tell application "System Events" to scroll {0, -12}' >/dev/null 2>&1 || {
-    # `scroll` is not in every System Events version; fall back to the keyboard, which scrolls the
-    # focused scroll view just as genuinely.
-    osascript -e 'tell application "System Events" to key code 121' >/dev/null 2>&1 || true
+CONTENT_W="$(awk -F'\t' '$2 == "AXScrollArea" { print $15 }' "$WORK/window.tsv" | tail -1)"
+CONTENT_H="$(awk -F'\t' '$2 == "AXScrollArea" { print $16 }' "$WORK/window.tsv" | tail -1)"
+
+# A real scroll-wheel event, because neither of the obvious spellings works here.
+#
+# `System Events`' own `scroll` verb does not exist in this version — it raises -1708, "Can't
+# continue scroll" — and the keyboard fallback is worse than it looks: Page Down is delivered to
+# whatever holds keyboard focus, which after the A21 assertions is the key probe, so the scroll view
+# never moved. Both failures are silent and both render as "the separator never appeared", which
+# blames the app for a scroll that was never delivered.
+#
+# So the event is posted directly: warp the cursor over the content and post scroll-wheel units at
+# it, which is what a trackpad does and what the scroll view is actually listening for.
+cat > "$WORK/scroll.swift" <<'SWIFT'
+import CoreGraphics
+import Foundation
+let a = CommandLine.arguments
+guard a.count >= 4, let x = Double(a[1]), let y = Double(a[2]), let lines = Int(a[3]) else { exit(2) }
+CGWarpMouseCursorPosition(CGPoint(x: x, y: y))
+usleep(250_000)
+guard let source = CGEventSource(stateID: .hidSystemState) else { exit(2) }
+// Negative wheel1 scrolls the content downward, which is the direction that moves a view off its
+// resting offset. Posted a few units at a time so the scroll view sees motion rather than a jump.
+for _ in 0 ..< 6 {
+    guard let event = CGEvent(
+        scrollWheelEvent2Source: source, units: .line, wheelCount: 1,
+        wheel1: Int32(lines), wheel2: 0, wheel3: 0
+    ) else { exit(2) }
+    event.post(tap: .cghidEventTap)
+    usleep(40_000)
 }
+SWIFT
+
+SCROLL_X=$(awk -v x="$CONTENT_X" -v w="$CONTENT_W" 'BEGIN { printf "%d", x + w / 2 }')
+SCROLL_Y=$(awk -v y="$CONTENT_Y" -v h="$CONTENT_H" 'BEGIN { printf "%d", y + h / 2 }')
+activate_app
+swift "$WORK/scroll.swift" "$SCROLL_X" "$SCROLL_Y" -3 2>/dev/null \
+  || blocked "could not post a scroll-wheel event — Accessibility or Input Monitoring may be denied"
 sleep 1.5
 
 screencapture -o -x -l "$WIN_ID" "$WORK/after.png"

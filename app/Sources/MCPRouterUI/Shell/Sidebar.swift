@@ -18,7 +18,9 @@
         /// Row selection. **Always nil**, and not merely under Reduce Motion: §7 says the selection
         /// fill has no transition at all, because a selection that fades is a selection you have to
         /// wait for.
-        public static func selectionAnimation() -> Animation? { nil }
+        public static func selectionAnimation() -> Animation? {
+            nil
+        }
 
         /// A badge whose count changed. Transform only — a scale bump, never a colour flash.
         public static func badgeBump(reduceMotion: Bool) -> Animation? {
@@ -52,7 +54,9 @@
         /// Reduce Transparency: the sidebar stops being a system material and becomes the opaque
         /// panel token. The sidebar is still visibly a separate zone — the tonal step remains — so
         /// the information (where the sidebar ends) survives the effect being removed.
-        public static func sidebarIsOpaque(reduceTransparency: Bool) -> Bool { reduceTransparency }
+        public static func sidebarIsOpaque(reduceTransparency: Bool) -> Bool {
+            reduceTransparency
+        }
 
         /// Differentiate Without Colour: the Servers badge is amber because it means "wants a human
         /// decision", and the Cleanup badge is neutral. Told apart by hue alone, those two are
@@ -66,7 +70,9 @@
         }
 
         /// Reduce Motion removes the bump and never the new number.
-        public static func badgeAnimates(reduceMotion: Bool) -> Bool { !reduceMotion }
+        public static func badgeAnimates(reduceMotion: Bool) -> Bool {
+            !reduceMotion
+        }
     }
 
     /// The sidebar: two named groups, an ungrouped tail, and the at-rest readout beneath them.

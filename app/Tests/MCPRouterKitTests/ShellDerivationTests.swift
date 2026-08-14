@@ -105,7 +105,9 @@ struct ShellDerivationTests {
         #expect(Destination.servers.badgeCount(from: []) == nil)
     }
 
-    private func positiveOrNil(_ count: Int) -> Int? { count > 0 ? count : nil }
+    private func positiveOrNil(_ count: Int) -> Int? {
+        count > 0 ? count : nil
+    }
 
     // MARK: - Who puts each command in the menu bar
 
@@ -114,7 +116,7 @@ struct ShellDerivationTests {
     @Test("every command is either the app's or the system's, and the split is the measured one")
     func systemProvidedSplitIsExact() {
         let system = Set(MenuCommand.allCases.filter(\.isSystemProvided).map(\.title))
-        let expected: Set<String> = [
+        let expected: Set = [
             "Hide MCP Router", "Hide Others", "Show All", "Quit MCP Router",
             "Close",
             "Undo", "Redo", "Cut", "Copy", "Paste", "Select All",

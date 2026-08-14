@@ -11,9 +11,10 @@
     /// 1. **Structural.** `ScaffoldedDestination` is failable and refuses to exist for a destination
     ///    in `installed`, so the placeholder cannot be constructed for a surface that has shipped —
     ///    not "should not", cannot.
-    /// 2. **Tested.** `ScaffoldTests` asserts the two sets are exact complements in both directions,
-    ///    so shipping a board without retiring its scaffold fails, and so does the reverse.
-    /// 3. **In the binary.** `scripts/acceptance/shells.sh` reads this list out of the source and
+    /// 2. **Tested.** `ShellIntegrationTests` asserts the two sets are exact complements in both
+    ///    directions, so shipping a board without retiring its scaffold fails, and so does the
+    ///    reverse.
+    /// 3. **In the binary.** `scripts/acceptance/mac-shell.sh` reads this list out of the source and
     ///    requires the Release bundle to carry the scaffold copy **iff** the list is non-empty. When
     ///    the last board lands, a Release build still containing the sentence fails the gate.
     ///

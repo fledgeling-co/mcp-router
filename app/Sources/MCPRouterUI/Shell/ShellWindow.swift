@@ -37,7 +37,6 @@
             // How a menu command reaches this window's state. A menu is outside every scene, so
             // there is no other supported route from a `CommandGroup` to the focused window.
             .focusedSceneValue(\.shellModel, model)
-            .background(WindowFrameAutosave(name: ShellRestoration.frameAutosaveName))
             .task { await model.run() }
         }
 
@@ -56,15 +55,8 @@
 
         var body: some View {
             ScrollView {
-                VStack(spacing: 0) {
-                    pane
-                    #if DEBUG
-                        // The test surface A21 names. Debug-only, and the acceptance gate asserts it
-                        // is absent from Release exactly the way it does for the design gallery.
-                        KeyClaimProbe()
-                    #endif
-                }
-                .frame(maxWidth: .infinity, minHeight: probeMinHeight)
+                pane
+                    .frame(maxWidth: .infinity, minHeight: scrollableMinHeight)
             }
             .onScrollGeometryChange(for: Double.self) { geometry in
                 geometry.contentOffset.y
@@ -74,6 +66,18 @@
             .overlay(alignment: .top) {
                 ScrollEdgeSeparator(isVisible: model.scrollEdge.isSeparatorVisible)
             }
+            .overlay(alignment: .bottomTrailing) {
+                #if DEBUG
+                    // The test surface A21 names, kept **outside** the scrolling content on purpose.
+                    // Inside it, the probe sat below a deliberately over-tall stack and its frame
+                    // was off the bottom of the window — the acceptance run clicked its coordinates
+                    // and hit the desktop. As an overlay it is always on screen and always
+                    // clickable, and it stays what the clause needs: a focusable surface in the
+                    // content zone. Bottom-trailing keeps it away from the top-edge pixel sample
+                    // A34 takes 120pt in from the content's leading edge.
+                    KeyClaimProbe()
+                #endif
+            }
             // §3.3: content is opaque. A token, never a material — there is no glass on glass here,
             // and the only Liquid Glass in this app is the menus AppKit draws itself.
             .background(ShellChrome.contentBackground.color)
@@ -81,7 +85,7 @@
 
         /// Tall enough that the content zone always has somewhere to scroll, so A34's exercised half
         /// has a real scroll to drive rather than a view that fits and never moves.
-        private var probeMinHeight: Double {
+        private var scrollableMinHeight: Double {
             MetricToken.sidebar.leadingScalar * 3
         }
 
@@ -109,7 +113,7 @@
         /// zone** receives all three, which is what a board will be, and that is what this does.
         ///
         /// It records the last bare key it was given and publishes it as an accessibility value, so
-        /// `scripts/acceptance/shells.sh` can focus it, send each key, and read back what arrived.
+        /// `scripts/acceptance/mac-shell.sh` can focus it, send each key, and read back what arrived.
         /// Debug-only, and the Release bundle is asserted not to contain it.
         struct KeyClaimProbe: View {
             static let identifier = "mcprouter-key-probe"
@@ -126,6 +130,11 @@
                     .focusable()
                     .focused($isFocused)
                     .focusRing(isFocused)
+                    // Clicking a `.focusable()` view does not reliably give it keyboard focus on
+                    // macOS, and after the ⌘-shortcut assertions focus sits on the sidebar. Without
+                    // this, the acceptance run clicks the probe, sends Space to whatever still has
+                    // focus, and reports that the shell swallowed a key it never received.
+                    .onTapGesture { isFocused = true }
                     .onKeyPress(.space) { claim("Space") }
                     .onKeyPress(.return) { claim("Return") }
                     .onKeyPress(.escape) { claim("Esc") }
@@ -141,30 +150,23 @@
         }
     #endif
 
-    /// Hands the window its AppKit frame autosave name.
-    ///
-    /// A33 asks for the window's frame to survive quit and relaunch. AppKit already does that
-    /// correctly — it persists the frame on move and resize and re-applies it before the window is
-    /// shown — and re-implementing it on top of `UserDefaults` would produce a worse version that
-    /// also fights the system one. SwiftUI has no API for the autosave name, so this is the bridge.
-    ///
-    /// The name is applied once the view has reached a window. Applying it in `updateNSView` would
-    /// re-run on every state change, which is the failure mode that looks like "restoration works
-    /// until you use the app".
-    struct WindowFrameAutosave: NSViewRepresentable {
-        let name: String
-
-        func makeNSView(context _: Context) -> NSView {
-            let view = NSView(frame: .zero)
-            Task { @MainActor in
-                guard let window = view.window else { return }
-                // Returns false when another window already owns the name, which would be two
-                // windows fighting over one saved frame rather than a restored one.
-                _ = window.setFrameAutosaveName(name)
-            }
-            return view
-        }
-
-        func updateNSView(_: NSView, context _: Context) {}
-    }
+    // **Why there is no frame-autosave bridge here.**
+    //
+    // A33 asks for the window's frame to survive quit and relaunch, and it does — SwiftUI's
+    // `WindowGroup` gives its window an NSWindow frame-autosave name of its own and both saves and
+    // restores through it. Measured on this build: moved to 300,200 at 1000x640, quit, relaunched,
+    // and the window came back at exactly 300,200 at 1000x640, with the frame written to the app's
+    // defaults domain under SwiftUI's own key.
+    //
+    // An `NSViewRepresentable` bridge that set a *named* autosave was tried first and removed,
+    // because it did not work and could not be made to: the representable's view has no window
+    // when `makeNSView` runs, and SwiftUI reassigns its own autosave name afterwards regardless.
+    // It wrote no key to defaults in any variant. Keeping it would have been a comment claiming
+    // credit for restoration that SwiftUI was performing, which is worse than no code at all.
+    //
+    // The cost of relying on SwiftUI's name is that the name embeds the root view's type
+    // signature, so changing the modifiers wrapped around `ShellWindow` silently starts a new
+    // saved frame. That is a real fragility and it is reported rather than hidden; the acceptance
+    // gate measures the frame across a real relaunch, so a regression fails there rather than
+    // going unnoticed.
 #endif

@@ -158,11 +158,6 @@
         public static let destinationKey = "shell.selectedDestination"
         public static let sidebarVisibleKey = "shell.sidebarVisible"
 
-        /// The autosave name AppKit uses for the window frame. A33 restores the frame through this
-        /// rather than through anything written here: AppKit already persists and re-applies a frame
-        /// correctly, and a second implementation of it would be a worse one.
-        public static let frameAutosaveName = "MCPRouterShellWindow"
-
         private let defaults: UserDefaults
 
         public init(defaults: UserDefaults = .standard) {

@@ -129,12 +129,23 @@ public final class UsageStore: @unchecked Sendable {
         toNotify = Array(subscribers.values)
         lock.unlock()
 
-        rotateIfBig()
-        // A failed append is warned about and swallowed: losing the router because a disk filled
-        // is a worse outcome than losing one log line.
-        try? fileSystem.appendFile(
-            Data((JSStringify.compact(record.value) + "\n").utf8), atPath: logPath
-        )
+        // The reference wraps the rotation and the append in ONE `try`, so a rename that fails
+        // **skips the append** rather than writing the record into a log that was supposed to have
+        // been rotated away. Reproduced here: a later step must not run when an earlier one fails
+        // (S7). Doing these as two independent `try?`s appends to the un-rotated log, which is a
+        // divergence the register does not list.
+        //
+        // A failure is swallowed rather than propagated: losing the router because a disk filled is
+        // a worse outcome than losing one log line. The reference additionally logs a warning here;
+        // this type has no log seam, and that gap is reported rather than papered over.
+        do {
+            try rotateIfBig()
+            try fileSystem.appendFile(
+                Data((JSStringify.compact(record.value) + "\n").utf8), atPath: logPath
+            )
+        } catch {
+            // Intentionally silent — see above.
+        }
 
         // A broken subscriber must not stop the others.
         for notify in toNotify {
@@ -142,11 +153,15 @@ public final class UsageStore: @unchecked Sendable {
         }
     }
 
-    private func rotateIfBig() {
+    /// Throws when the rename fails, which is load-bearing: the reference's `renameSync` is inside
+    /// the same `try` as the append, so a failed rotation stops the record being written. The
+    /// `statSync` is caught *inside* the reference's own helper and returns, so a missing file is
+    /// "nothing to rotate" rather than an error — hence `try?` on the stamp and `try` on the move.
+    private func rotateIfBig() throws {
         guard let stamp = try? fileSystem.attributes(atPath: logPath),
               stamp.size >= Self.maxLogBytes else { return }
         // One generation kept. The aggregate is what makes history disposable.
-        try? fileSystem.moveItem(atPath: logPath, toPath: "\(logPath).1")
+        try fileSystem.moveItem(atPath: logPath, toPath: "\(logPath).1")
     }
 
     // MARK: - Reading

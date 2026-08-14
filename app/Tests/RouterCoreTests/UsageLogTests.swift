@@ -100,6 +100,66 @@ struct UsageLogTests {
         )
     }
 
+    /// **A failed rotation stops the append.** Found by reading `src/usage.ts` rather than by any
+    /// test failing, which is why it is here.
+    ///
+    /// The reference puts both steps inside one `try`:
+    ///
+    /// ```js
+    /// try {
+    ///   this.rotateIfBig();                                 // renameSync is NOT caught in here
+    ///   appendFileSync(this.logPath, JSON.stringify(r) + '\n');
+    /// } catch (err) { log.warn(`usage log write failed: ${err.message}`); }
+    /// ```
+    ///
+    /// so a rename that fails throws past the append, and the record is **not** written. Two
+    /// independent `try?`s — which is what a careful Swift port reaches for, and what this one had
+    /// — append the record to the log that was supposed to have been rotated away. That is an
+    /// unlisted divergence, and by this spec's own rule an unlisted difference is a regression.
+    ///
+    /// The observable is the file: after a refused rename, the log must be byte-identical to what
+    /// it was before the call.
+    @Test("a rename that fails skips the append rather than growing the un-rotated log")
+    func failedRotationSkipsTheAppend() {
+        let padding = String(repeating: "x", count: UsageStore.maxLogBytes)
+        let log = Self.line(0, padding: padding) + "\n"
+        let before = Data(log.utf8)
+
+        let fileSystem = MemoryFileSystem()
+        try? fileSystem.createDirectory(atPath: "/tmp/usage-log-tests")
+        try? fileSystem.writeFile(before, atPath: Self.logPath)
+        fileSystem.fail("moveItem", at: Self.logPath)
+
+        let store = UsageStore(
+            logPath: Self.logPath,
+            statsPath: Self.statsPath,
+            fileSystem: fileSystem,
+            clock: ManualClock(milliseconds: 1_770_000_000_000)
+        )
+        store.record(UsageRecord(
+            ts: "2026-08-14T00:00:01.000Z",
+            server: "s",
+            tool: "t",
+            ok: true,
+            ms: 1,
+            cold: false
+        ))
+
+        let after = (try? fileSystem.readFile(atPath: Self.logPath)) ?? Data()
+        #expect(
+            !fileSystem.fileExists(atPath: "\(Self.logPath).1"),
+            "the rename was refused, so no rotated generation should exist"
+        )
+        #expect(
+            after.count == before.count,
+            """
+            the log grew by \(after.count - before.count) bytes after a REFUSED rotation. \
+            The reference skips the append when the rename throws, so this record should not \
+            have been written.
+            """
+        )
+    }
+
     // MARK: - B51 / N5, the byte offset applied to a UTF-16 string
 
     /// **The ported defect.** The reference computes its cut point from `statSync().size` — a

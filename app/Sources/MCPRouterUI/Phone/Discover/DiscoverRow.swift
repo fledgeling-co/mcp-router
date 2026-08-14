@@ -83,12 +83,13 @@ struct DiscoverSkeletonRow: View {
                 .frame(width: PhoneMetric.tile, height: PhoneMetric.tile)
 
             VStack(alignment: .leading, spacing: PhoneMetric.tight) {
-                RoundedRectangle(cornerRadius: PhoneMetric.hairline * 2)
-                    .fill(ColorToken.f2.color)
-                    .frame(width: PhoneMetric.skeletonTitle, height: TypeToken.body.size)
-                RoundedRectangle(cornerRadius: PhoneMetric.hairline * 2)
-                    .fill(ColorToken.f3.color)
-                    .frame(width: PhoneMetric.skeletonSubtitle, height: TypeToken.caption.size)
+                bar(width: PhoneMetric.skeletonTitle, role: .body, fill: ColorToken.f2)
+                bar(
+                    width: PhoneMetric.skeletonSubtitle,
+                    role: .caption,
+                    monospaced: true,
+                    fill: ColorToken.f3
+                )
             }
 
             Spacer(minLength: 0)
@@ -96,5 +97,28 @@ struct DiscoverSkeletonRow: View {
         .padding(.vertical, PhoneMetric.snug)
         .frame(minHeight: PhoneMetric.row)
         .accessibilityHidden(true)
+    }
+
+    /// One placeholder line.
+    ///
+    /// Its height comes from **hidden text at the row's own type role**, not from a number. Sizing
+    /// the bar to `TypeToken.body.size` looks equivalent and is not: a font's rendered line box is
+    /// taller than its point size, and the two roles differ again, so the skeleton measured 1.67pt
+    /// shorter than the row it replaces and the list stepped when results landed. Taking the height
+    /// from the same text that will occupy the space makes them equal by construction rather than
+    /// by an arithmetic that has to be redone whenever the ladder moves.
+    private func bar(
+        width: CGFloat,
+        role: TypeToken,
+        monospaced: Bool = false,
+        fill: ColorToken
+    ) -> some View {
+        Text(verbatim: " ")
+            .typeRole(role, monospaced: monospaced)
+            .hidden()
+            .frame(width: width)
+            .background(
+                RoundedRectangle(cornerRadius: PhoneMetric.hairline * 2).fill(fill.color)
+            )
     }
 }

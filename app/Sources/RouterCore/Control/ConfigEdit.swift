@@ -35,10 +35,37 @@ public enum ConfigEdit {
     /// place, the mutator works on the ordered members in place and its return value is ignored, the
     /// output is two-space indented with **no trailing newline**, and the commit is a `0600`
     /// temporary file renamed over the destination (B31).
+    ///
+    /// **R2-W adds the lock (X2).** The whole read-modify-write happens under
+    /// ``ConfigMutationLock``, because the config watcher is a second process writing this same file
+    /// and a lock only one of them takes excludes nothing. The bound is deliberately short: this
+    /// runs synchronously inside the daemon's async control handlers, so a long wait parks a
+    /// cooperative-pool thread. Nothing about the output, the preserved members or the error cases
+    /// changed with it.
     public static func edit(
         path: String,
         fileSystem: any FileSystem,
         processIdentifier: Int32 = ProcessInfo.processInfo.processIdentifier,
+        lockTimeoutMs: Int = ConfigMutationLock.timeoutMilliseconds(
+            default: ConfigMutationLock.daemonTimeoutMs
+        ),
+        _ mutate: (inout [JSONMember]) throws -> Void
+    ) throws {
+        try ConfigMutationLock.withExclusiveLock(forConfigAt: path, timeoutMs: lockTimeoutMs) {
+            try editLocked(
+                path: path, fileSystem: fileSystem,
+                processIdentifier: processIdentifier, mutate
+            )
+        }
+    }
+
+    /// The body of ``edit(path:fileSystem:processIdentifier:lockTimeoutMs:_:)``, with the lock
+    /// already held. Separate so the watcher — which holds the lock across a wider critical section
+    /// than one edit — can reuse the mutation without re-entering the lock.
+    static func editLocked(
+        path: String,
+        fileSystem: any FileSystem,
+        processIdentifier: Int32,
         _ mutate: (inout [JSONMember]) throws -> Void
     ) throws {
         var root: [JSONMember] = []
@@ -100,7 +127,11 @@ public enum ConfigEdit {
     ///
     /// Deliberately narrow. A config that merely lacks `mcpServers` and declares nothing else is a
     /// legitimate empty config and must still be writable, or a first run could never add a server.
-    private static func declaresServersAtTopLevel(_ members: [JSONMember]) -> Bool {
+    ///
+    /// Internal rather than private so the config watcher's own writer applies the same test. It
+    /// writes different bytes from this one (X2a), but "what does a flat file look like" must have
+    /// exactly one answer across the three processes that write this file.
+    static func declaresServersAtTopLevel(_ members: [JSONMember]) -> Bool {
         guard !members.isEmpty else { return false }
         return members.contains { member in
             guard let inner = member.value.asObjectMembers else { return false }

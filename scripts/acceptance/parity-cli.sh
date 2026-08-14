@@ -4,7 +4,6 @@
 #
 # The ten verbs `src/index.ts` dispatches. Eight are compared here; two are not, and saying which is
 # the point of this header:
-#   · `cli-watch` is R2-W's. There is no Swift watcher and this lane does not pretend otherwise.
 #   · `cli-auth` is blocked on D-j. The verb exists on both sides, but the Swift router answers 405
 #     on `POST /servers/:name/auth` where the reference answers 400, because `AuthRoutes` is never
 #     reached from `ControlHandler`'s dispatch. Comparing the verb would compare that defect.
@@ -21,7 +20,7 @@
 # Nothing else is normalised.
 #
 # ROWS THIS LANE OWNS — asserted before any write, because the gate binds no script to a group:
-#   cli: cli-serve cli-import cli-index cli-refresh cli-status cli-tools cli-usage cli-help
+#   cli: cli-serve cli-import cli-index cli-refresh cli-status cli-tools cli-usage cli-help cli-watch
 #
 # CAVEAT, printed into the gate's report: every row here is a simultaneous comparison of two
 # binaries run over identical inputs, which is as strong as this gate's control lane.
@@ -46,7 +45,7 @@ cleanup() {
 trap cleanup EXIT
 
 OWNED="cli/cli-serve cli/cli-import cli/cli-index cli/cli-refresh cli/cli-status cli/cli-tools
-cli/cli-usage cli/cli-help"
+cli/cli-usage cli/cli-help cli/cli-watch"
 
 record() {
   [ -n "$RESULTS" ] || return 0
@@ -238,10 +237,107 @@ else
   verdict cli-serve 0 "reference=$ts_serve lines=[$ts_lines]; swift=$sw_serve lines=[$sw_lines]"
 fi
 
+# `watch` — the config watcher. Each side gets its OWN scratch $HOME as well as its own
+# MCP_ROUTER_HOME, because `~/.claude.json` is the input and it is NOT under the router home. node's
+# `os.homedir()` honours $HOME and the Swift watcher reads the same variable (spec-R2W X10); a
+# watcher that read `NSHomeDirectory()` instead would run this against the developer's own file.
+#
+# NOTHING HERE RESTARTS A ROUTER. Measured 2026-08-15: `gg.rhodes.mcp-router` is loaded and serving
+# on this machine, and the reference's kickstart label is hardcoded and absolute
+# (`/bin/launchctl`, watch.ts:367), so a scenario that changed servers.json would bounce the
+# developer's live router from the reference side. Scenario 2 therefore pre-seeds servers.json with
+# the same definition that is staged: the entry is still indexed, still adopted and still deleted
+# from ~/.claude.json, but `configChanged` stays false on both sides (watch.ts:273) and neither
+# router issues a restart. The Swift side additionally runs under a scratch MCPR_LAUNCHD_LABEL.
+#
+# The FILES are the point of this verb, as `import` already recognised, so `servers.json` and the
+# remaining `~/.claude.json` are diffed as well as the three streams. `manifest.json` is NOT: its
+# entries carry `builtAt` at millisecond resolution, two binaries run in sequence cannot produce
+# equal bytes, and normalising that away would mean adding a time normaliser to a lane whose header
+# says only clocks and coordinates are normalised. Manifest parity is the fixture and state lanes'.
+watch_seed() { # dir  -- writes a scratch HOME with the given staging file on stdin
+  mkdir -p "$1/.claude/mcp-router"
+  cat > "$1/.claude.json"
+}
+
+watch_both() { # label -- staged-json router-servers-json
+  local label="$1" staged="$2" servers="$3"
+  rm -rf "$WORK/home-ts" "$WORK/home-swift" "$WORK/ts" "$WORK/swift"
+  mkdir -p "$WORK/ts" "$WORK/swift"
+  for side in ts swift; do
+    local home="$WORK/home-$side"
+    mkdir -p "$home"
+    printf '%s' "$staged" | watch_seed "$home"
+    printf '%s' "$servers" > "$WORK/$side/servers.json"
+  done
+
+  HOME="$WORK/home-ts" MCP_ROUTER_HOME="$WORK/ts" \
+    node "$REPO_ROOT/dist/index.js" watch --verbose \
+    >"$WORK/ts.out" 2>"$WORK/ts.err"; local ts_code=$?
+  HOME="$WORK/home-swift" MCP_ROUTER_HOME="$WORK/swift" \
+    MCPR_LAUNCHD_LABEL="gg.rhodes.mcp-router-parity-$$" \
+    "$SWIFT_BIN" watch --verbose \
+    >"$WORK/swift.out" 2>"$WORK/swift.err"; local sw_code=$?
+
+  local problems=""
+  diff <(normalise <"$WORK/ts.out") <(normalise <"$WORK/swift.out") >"$WORK/d.out" 2>&1 \
+    || problems="$problems stdout:[$(head -4 "$WORK/d.out" | tr '\n' ' ' | cut -c1-110)]"
+  diff <(normalise <"$WORK/ts.err") <(normalise <"$WORK/swift.err") >"$WORK/d.err" 2>&1 \
+    || problems="$problems stderr:[$(head -4 "$WORK/d.err" | tr '\n' ' ' | cut -c1-110)]"
+  [ "$ts_code" = "$sw_code" ] || problems="$problems exit:[ts=$ts_code swift=$sw_code]"
+  diff <(normalise <"$WORK/ts/servers.json") <(normalise <"$WORK/swift/servers.json") \
+    >"$WORK/d.cfg" 2>&1 \
+    || problems="$problems servers.json:[$(head -6 "$WORK/d.cfg" | tr '\n' ' ' | cut -c1-110)]"
+  diff <(normalise <"$WORK/home-ts/.claude.json") <(normalise <"$WORK/home-swift/.claude.json") \
+    >"$WORK/d.stage" 2>&1 \
+    || problems="$problems claude.json:[$(head -6 "$WORK/d.stage" | tr '\n' ' ' | cut -c1-110)]"
+
+  if [ -z "$problems" ]; then
+    verdict cli-watch 1 "$label (exit $ts_code; streams, servers.json and ~/.claude.json identical)"
+  else
+    verdict cli-watch 0 "$label —$problems"
+  fi
+}
+
+WATCH_PROBE='{
+  "numStartups": 41,
+  "mcpServers": {
+    "probe": {
+      "command": "node",
+      "args": ["'"$REPO_ROOT"'/scripts/fixtures/mcp-fixture-server.mjs", "stdio"],
+      "env": { "FIXTURE_TOOLSET_FILE": "'"$WORK"'/toolset" }
+    }
+  }
+}'
+WATCH_EMPTY='{ "numStartups": 41, "mcpServers": {} }'
+WATCH_SERVERS_EMPTY='{
+  "port": 8879,
+  "host": "127.0.0.1",
+  "idleMs": 300000,
+  "mcpServers": {}
+}'
+WATCH_SERVERS_SEEDED='{
+  "port": 8879,
+  "host": "127.0.0.1",
+  "idleMs": 300000,
+  "mcpServers": {
+    "probe": {
+      "command": "node",
+      "args": ["'"$REPO_ROOT"'/scripts/fixtures/mcp-fixture-server.mjs", "stdio"],
+      "env": { "FIXTURE_TOOLSET_FILE": "'"$WORK"'/toolset" }
+    }
+  }
+}'
+echo "toolset" > "$WORK/toolset"
+
+watch_both "nothing staged takes the fast path" "$WATCH_EMPTY" "$WATCH_SERVERS_EMPTY"
+watch_both "a staged server is indexed, adopted and unstaged" "$WATCH_PROBE" "$WATCH_SERVERS_SEEDED"
+watch_both "an unparseable ~/.claude.json writes nothing" "{ truncated" "$WATCH_SERVERS_EMPTY"
+
 echo
 echo "cli: $pass verbs agreed, $fail did not"
 echo "     Every row is a simultaneous comparison of two binaries over identical inputs, with"
 echo "     stdout, stderr and the exit code compared separately."
-echo "     cli-watch stays blocked on R2-W and cli-auth on D-j; neither is claimed here."
+echo "     cli-auth stays blocked on D-j and is not claimed here."
 [ "$fail" -gt 0 ] && exit 1
 exit 0

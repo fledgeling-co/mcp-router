@@ -9,8 +9,9 @@ import RouterCore
 /// wrong is a parity failure that a combined capture would hide, which is why
 /// `scripts/acceptance/parity-cli.sh` compares stdout, stderr and status separately.
 ///
-/// `watch` is deliberately absent. It is `R2-W`'s, and `cli-watch` stays blocked with that owner
-/// rather than being half-built here.
+/// `watch` is the config watcher — `R2-W`. It shares `servers.json` with the running daemon, so its
+/// write goes through the same `ConfigMutationLock` the control API takes, and it issues the router
+/// restart the reference loses (divergence W-D1).
 ///
 /// `auth` exists so the verb is not missing, but it is **not claimed as parity**: the Swift router
 /// answers 405 on `POST /servers/:name/auth` where the reference answers 400, because `AuthRoutes`
@@ -20,25 +21,30 @@ import RouterCore
 struct MCPRouterCLI {
     static func main() async {
         let arguments = Array(CommandLine.arguments.dropFirst())
-        let verb = arguments.first ?? "serve"
-
         do {
-            switch verb {
-            case "serve": try await serve(arguments)
-            case "index", "refresh": try await index(arguments)
-            case "import": try await importServers(arguments)
-            case "status": await status(arguments)
-            case "tools": try tools(arguments)
-            case "usage": try await usage(arguments)
-            case "auth": try await auth(arguments)
-            case "help", "--help", "-h": Out.print(Copy.usage(home: RouterHome()))
-            default:
-                Out.print(Copy.usage(home: RouterHome()))
-                exit(1)
-            }
+            try await dispatch(arguments)
         } catch {
             // `run().catch` — every thrown message reaches stderr with this prefix and exit 1.
             Out.error("mcp-router: \(Self.message(of: error))\n")
+            exit(1)
+        }
+    }
+
+    /// One arm per verb `src/index.ts` dispatches, and nothing else — separate from `main` so the
+    /// error handling around it stays legible as the two lines it is.
+    static func dispatch(_ arguments: [String]) async throws {
+        switch arguments.first ?? "serve" {
+        case "serve": try await serve(arguments)
+        case "index", "refresh": try await index(arguments)
+        case "import": try await importServers(arguments)
+        case "status": await status(arguments)
+        case "tools": try tools(arguments)
+        case "usage": try await usage(arguments)
+        case "watch": try await WatchVerb.run(arguments)
+        case "auth": try await auth(arguments)
+        case "help", "--help", "-h": Out.print(Copy.usage(home: RouterHome()))
+        default:
+            Out.print(Copy.usage(home: RouterHome()))
             exit(1)
         }
     }

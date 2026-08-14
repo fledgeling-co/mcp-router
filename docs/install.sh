@@ -92,24 +92,26 @@ LAUNCHD_PATH="$NODE_DIR:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
 # The Swift router ships ALONGSIDE the TypeScript one, and this is the seam between them.
 #
 # `node dist/index.js` stays what this installer writes. Setting MCPR_ROUTER_BINARY to a built Swift
-# binary points the `serve` agent at it instead — deliberately opt-in, deliberately undocumented in
-# the README, and deliberately not a flag: flipping the default is R4's, behind its differential
+# binary points the agents at it instead — deliberately opt-in, deliberately undocumented in the
+# README, and deliberately not a flag: flipping the default is R4's, behind its differential
 # parity gate and behind a decision the user takes, because it changes the router their own live
 # sessions depend on.
 #
-# The `watch` agent is NOT switched. There is no Swift watcher (R2-W), so a variable that moved both
-# agents would leave the second one running a verb the binary does not implement, and the user would
-# find out when a new server silently stopped being adopted.
+# BOTH agents move together. They used to not: the `watch` agent stayed on node because there was no
+# Swift watcher, and a variable that moved both would have left the second one running a verb the
+# binary did not implement — the user finding out when a new server silently stopped being adopted.
+# R2-W built that watcher, so the exception is gone. Moving only one would be the worse of the two
+# failures now available: a Swift `serve` restarted by a node `watch` writing the same servers.json
+# without taking the mutation lock the Swift side takes.
 ROUTER_BINARY="${MCPR_ROUTER_BINARY:-}"
 if [ -n "$ROUTER_BINARY" ]; then
   [ -x "$ROUTER_BINARY" ] || die "MCPR_ROUTER_BINARY is set to \"$ROUTER_BINARY\", which is not executable"
-  say "MCPR_ROUTER_BINARY is set: the serve agent will run $ROUTER_BINARY"
-  say "  the watch agent stays on node — there is no Swift watcher yet"
+  say "MCPR_ROUTER_BINARY is set: both agents will run $ROUTER_BINARY"
 fi
 
-# `serve` runs whichever binary is selected; every other verb stays on node.
+# Both `serve` and `watch` run whichever binary is selected; every other verb stays on node.
 program_args() { # verb
-  if [ -n "$ROUTER_BINARY" ] && [ "$1" = serve ]; then
+  if [ -n "$ROUTER_BINARY" ] && { [ "$1" = serve ] || [ "$1" = watch ]; }; then
     printf '\t\t<string>%s</string>\n\t\t<string>%s</string>\n' "$ROUTER_BINARY" "$1"
   else
     printf '\t\t<string>%s</string>\n\t\t<string>%s</string>\n\t\t<string>%s</string>\n' \

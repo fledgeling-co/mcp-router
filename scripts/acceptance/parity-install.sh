@@ -19,7 +19,16 @@
 # every exit path including a failure — a stray agent left in the user's session would keep starting
 # a router on a port they did not ask for.
 #
-# ROWS THIS LANE OWNS:  install: install-launchd-serve
+# `install-launchd-watch`: the SECOND agent, whose contract is different and whose difference is the
+# point. It is `RunAtLoad` plus `WatchPaths` and **no** `KeepAlive`, because it is a one-shot: it
+# runs, adopts what it can, and exits. Four observations per binary: it ran at load, touching the
+# watched file ran it again, it did not stay resident, and which streams carry bytes.
+#
+# Nothing in this lane restarts a real router. The staged `mcpServers` holds nothing adoptable, so
+# neither binary reaches its `restartRouter()`, and the Swift side additionally runs under a scratch
+# MCPR_LAUNCHD_LABEL.
+#
+# ROWS THIS LANE OWNS:  install: install-launchd-serve install-launchd-watch
 #
 # CAVEAT, printed into the gate's report: two real agents under real launchd supervision, one per
 # binary, compared observation by observation. It does NOT run `docs/install.sh` itself — that would
@@ -50,7 +59,7 @@ trap cleanup EXIT
 record() {
   [ -n "$RESULTS" ] || return 0
   case "$1/$2" in
-    install/install-launchd-serve) ;;
+    install/install-launchd-serve|install/install-launchd-watch) ;;
     *) echo "  LANE BUG: refusing to record $1/$2, which this lane does not own" >&2; return 1 ;;
   esac
   printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" >> "$RESULTS"
@@ -184,6 +193,91 @@ observe() { # side program args...
   printf '%s,%s,%s,%s' "$up" "$relaunched" "$stayed_down" "$logged"
 }
 
+# The watch agent's plist. The same supervision skeleton as `plist`, minus KeepAlive and plus
+# WatchPaths — exactly the difference `docs/install.sh:147-151` writes between the two agents.
+watch_plist() { # label home claudejson label-override program args...
+  local label="$1" home="$2" claude="$3" override="$4"; shift 4
+  local program_args=""
+  for arg in "$@"; do program_args="$program_args    <string>$arg</string>
+"; done
+  cat <<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$label</string>
+  <key>ProgramArguments</key>
+  <array>
+$program_args  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>MCP_ROUTER_HOME</key><string>$home</string>
+    <key>HOME</key><string>$(dirname "$claude")</string>
+    <key>MCPR_LAUNCHD_LABEL</key><string>$override</string>
+    <key>PATH</key><string>$LAUNCHD_PATH</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>ThrottleInterval</key><integer>10</integer>
+  <key>WatchPaths</key><array><string>$claude</string></array>
+  <key>StandardOutPath</key><string>$home/agent.out</string>
+  <key>StandardErrorPath</key><string>$home/agent.err</string>
+</dict>
+</plist>
+XML
+}
+
+# Nothing adoptable, deliberately: the watcher still runs, still hashes and still writes its state,
+# and never reaches a config write — so no router is restarted (X12b).
+stage() { # claude-json-path marker
+  mkdir -p "$(dirname "$1")"
+  cat > "$1" <<JSON
+{
+  "numStartups": 41,
+  "mcpServers": { "notadoptable-$2": { "note": "no command and no url" } }
+}
+JSON
+}
+
+observe_watch() { # side program args...
+  local side="$1"; shift
+  local label="app.fledgeling.mcp-router.parity-watch-$side-$STAMP"
+  local home="$WORK/watch-$side" claudehome="$WORK/watch-$side-home"
+  mkdir -p "$home" "$claudehome"
+  stage "$claudehome/.claude.json" one
+  watch_plist "$label" "$home" "$claudehome/.claude.json" \
+    "gg.rhodes.mcp-router-parity-$STAMP" "$@" > "$WORK/watch-$side.plist"
+  LABELS="$LABELS $label"
+
+  launchctl bootout "gui/$(id -u)/$label" >/dev/null 2>&1
+  if ! launchctl bootstrap "gui/$(id -u)" "$WORK/watch-$side.plist" \
+       >"$WORK/watch-$side.bootstrap" 2>&1; then
+    printf 'bootstrap-refused'
+    return 0
+  fi
+
+  local ran=no reran=no oneshot=no logged=none
+  local state="$home/watch-state.json"
+  for _ in $(seq 1 80); do [ -s "$state" ] && { ran=yes; break; }; sleep 0.25; done
+  local first=""
+  [ "$ran" = yes ] && first="$(cat "$state")"
+
+  # A one-shot leaves no resident process. Read before the re-run, so a still-running first pass
+  # cannot be mistaken for a resident daemon.
+  [ -z "$(agent_pid "$label")" ] && oneshot=yes
+
+  # ThrottleInterval is 10s in what the installer writes, so a re-run is allowed to take that long.
+  # This waits it out rather than reporting an agent that is merely being throttled as broken.
+  stage "$claudehome/.claude.json" two
+  for _ in $(seq 1 160); do
+    [ -s "$state" ] && [ "$(cat "$state")" != "$first" ] && { reran=yes; break; }
+    sleep 0.25
+  done
+
+  logged="$([ -s "$home/agent.out" ] && printf o || printf -)$([ -s "$home/agent.err" ] && printf e || printf -)"
+  launchctl bootout "gui/$(id -u)/$label" >/dev/null 2>&1
+  printf '%s,%s,%s,%s' "$ran" "$reran" "$oneshot" "$logged"
+}
+
 echo "supervising each binary under its own scratch launchd agent on :$PORT"
 echo
 
@@ -209,19 +303,50 @@ case "$ts_result$swift_result" in
     exit 2 ;;
 esac
 
+failures=0
 if [ "$ts_result" = "$swift_result" ] && [ "${swift_result%,*}" = "yes,yes,yes" ] \
    && [ "${swift_result##*,}" != none ]; then
   echo "  ok   both binaries survive the installer's supervision identically"
   record install install-launchd-serve ok \
     "both: started at load, relaunched after SIGKILL, stayed down after bootout, wrote both log paths"
-  echo
-  echo "install: two real agents under real launchd supervision, one per binary."
-  exit 0
+else
+  echo "  FAIL the two binaries do not survive the same supervision"
+  record install install-launchd-serve fail \
+    "reference=$ts_result swift=$swift_result (started,relaunched,stayed-down,logged)"
+  failures=$((failures + 1))
 fi
 
-echo "  FAIL the two binaries do not survive the same supervision"
-record install install-launchd-serve fail \
-  "reference=$ts_result swift=$swift_result (started,relaunched,stayed-down,logged)"
+# ---------------------------------------------------------------------------------------------
 echo
-echo "install: two real agents under real launchd supervision, one per binary."
-exit 1
+echo "supervising each binary's WATCH agent — RunAtLoad + WatchPaths, no KeepAlive"
+echo
+ts_watch="$(observe_watch ts "$NODE_BIN" "$REPO_ROOT/dist/index.js" watch)"
+sleep 1
+swift_watch="$(observe_watch swift "$SWIFT_BIN" watch)"
+echo "  reference: $ts_watch"
+echo "  swift:     $swift_watch"
+echo "  (ran-at-load, re-ran-on-file-change, one-shot-not-resident, log-streams-written)"
+echo
+
+case "$ts_watch$swift_watch" in
+  *bootstrap-refused*)
+    echo "environment: launchd refused to bootstrap a scratch watch agent in this session, so the"
+    echo "             watch supervision contract could not be exercised on either side."
+    exit 2 ;;
+esac
+
+if [ "$ts_watch" = "$swift_watch" ] && [ "${swift_watch%,*}" = "yes,yes,yes" ]; then
+  echo "  ok   both binaries answer the watch agent's supervision identically"
+  record install install-launchd-watch ok \
+    "both: ran at load, re-ran on a WatchPaths change, stayed one-shot, wrote the same streams"
+else
+  echo "  FAIL the two binaries do not answer the same watch supervision"
+  record install install-launchd-watch fail \
+    "reference=$ts_watch swift=$swift_watch (ran,reran,one-shot,logged)"
+  failures=$((failures + 1))
+fi
+
+echo
+echo "install: four real agents under real launchd supervision, two per binary."
+[ "$failures" -gt 0 ] && exit 1
+exit 0

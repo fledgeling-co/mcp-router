@@ -39,7 +39,7 @@ Rows are derived, not invented:
 | Group | Derived from |
 |---|---|
 | `control` | the dispatch table in `src/control.ts` — one row per `(path, method)` pair it answers |
-| `fixture` | one row per file in `app/Sources/MCPRouterKit/Control/Fixtures/` (23) |
+| `fixture` | one row per file in `app/Sources/MCPRouterKit/Control/Fixtures/` (**24** — the count of 23 came from F3's WIP commit and misses `servers.json`, which entered through the F3 merge) |
 | `divergence` | R1 D1–D5, R2 D6–D7, R3 D1–D5, R5 P7 |
 | `mcp` | `/mcp`, `tools/list`, `tools/call`, `/health`, `/status` from `src/router.ts` |
 | `cli` | the ten `case` arms in `src/index.ts` |
@@ -86,7 +86,7 @@ print a bare "parity" without the fraction — that sentence is what this item e
 
 **Deliver:** `scripts/acceptance/parity-control.sh`, adapted from `control-differential.sh`.
 
-R3's script is good and is kept whole; this generalises it rather than rewriting it. Changes:
+R3's script is good and is EXTENDED rather than rewritten — a second copy of its logic would be a second idea of what "green" means. It is modified in place, which is a cross-item edit and is called out as such in the affected-test sweep. Changes:
 
 - Emit machine-readable rows (`control<TAB>id<TAB>ok|fail<TAB>detail`) alongside the human output,
   so the gate can reconcile.
@@ -108,9 +108,9 @@ was about a bug.
 
 ## P4 · Fixture lane (D-a) and divergence lane (D-g)
 
-**Deliver:** `scripts/acceptance/parity-fixtures.sh`, `scripts/acceptance/parity-divergence.sh`.
+**Deliver:** `scripts/acceptance/parity-fixture.sh`, `scripts/acceptance/parity-divergence.sh`. (Singular. The gate resolves lanes by path, so a lane named in a plan and absent on disk is the cheapest possible route to a shrunken denominator.)
 
-**Fixtures.** Each of the 23 files is a recorded body. The recorded set carries no status — that
+**Fixtures.** Each of the 24 files is a recorded body. The recorded set carries no status — that
 is exactly deferred child D-a. The lane replays the request each fixture was captured from against
 the live reference and asserts body **and** status. The fixtures are never modified; they are the
 wire contract, and a lane that edits its own oracle proves nothing.
@@ -173,7 +173,7 @@ deferred child **R4-C** so it is scheduled rather than forgotten.
 | Lint | `make lint` — **assert the file count is non-zero**; `.swiftformat` excludes `.worktrees`, so a clean lint from inside the worktree can mean nothing was examined |
 | Parity vectors | `make parity` — floor 358 |
 | Shell | `shellcheck` on every new script |
-| The gate itself | `scripts/acceptance/parity-gate.sh` — **expected to exit 1**, with 51 of 71 |
+| The gate itself | `scripts/acceptance/parity-gate.sh` — **expected to exit 1**, with **50 of 81** |
 
 ### Affected-test sweep
 

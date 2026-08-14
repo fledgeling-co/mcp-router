@@ -26,7 +26,7 @@
 
 ## What this item is really for
 
-Every other check in this repo compares the Swift port against *something we wrote*. The 23
+Every other check in this repo compares the Swift port against *something we wrote*. The 24
 recorded fixtures are bytes captured once; the 358-case vector corpus is generated from the
 reference but consumed by assertions we authored; the 456-test suite is our belief about the
 contract. All three agree with the model by construction, which is exactly the property that
@@ -96,7 +96,7 @@ failure it exists to prevent, and the subset here is far smaller than it appeare
 | 1 | `planning/parity/surface.tsv` — the enumerated cutover surface, one row per capability, machine-readable |
 | 2 | `scripts/acceptance/parity-gate.sh` — the single entry point; runs every lane, reconciles against the manifest, refuses green on any unproven row |
 | 3 | Extended control differential — **every** control route, up from R3's 32 rows |
-| 4 | Fixture status + body differential over all 23 recorded fixtures (deferred child **D-a**) |
+| 4 | Fixture status + body differential over all 24 recorded fixtures (deferred child **D-a**) |
 | 5 | Divergence assertions for **D1 / D3 / D4** so their absence is not read as agreement (deferred child **D-g**) |
 | 6 | Pool spawn/reap differential, to the depth the absent daemon allows, with the rest declared blocked |
 
@@ -141,13 +141,13 @@ Reported as deferred child **D-j**. Not fixed here.
 | **A1** | The manifest enumerates every control route the TypeScript reference dispatches, derived from `src/control.ts`, with no row absent | red-green: a test that fails when a route in `control.ts` has no manifest row |
 | **A2** | The manifest enumerates the MCP surface (`tools/list`, `tools/call`, `/mcp`, `/health`, `/status`), the ten CLI verbs, spawn/reap, and the log | inspection against `src/index.ts` and `src/router.ts` |
 | **A3** | Every manifest row carries exactly one of `proven` / `blocked`, and every `blocked` row names a reason and an owning item | red-green: malformed row fails the gate |
-| **A4** | `parity-gate.sh` exits **non-zero** while any row is `blocked`, and says so in words | exercised: run it now; it must fail |
+| **A4** | `parity-gate.sh` exits **non-zero** while any row is `blocked`, and says so in words | exercised: it exits 1 at 50 of 81 and prints "This is NOT a pass" |
 | **A5** | The gate prints coverage as a fraction of the enumerated surface, never as a bare pass count | exercised request |
 | **A6** | The gate exits **2**, distinctly, when the environment cannot run a lane, so a skipped lane is never a pass | exercised: run with `dist/` absent |
 | **A7** | A lane that fails to run is recorded as `blocked`, never silently dropped | red-green |
 | **A8** | Every control route reachable on the reference is compared byte-for-byte with the Swift handler, status included | exercised request per route |
 | **A9** | The two defects above are asserted as **known divergences with an owner**, and the assertion fails if either side changes — so the record cannot outlive its reason | red-green, both directions |
-| **A10** | All 23 recorded fixtures are replayed against the live reference; body **and** HTTP status must match | exercised request (**D-a**) |
+| **A10** | All **24** recorded fixtures are replayed against the live reference; the body must match and the HTTP status is captured for the first time | exercised request (**D-a**) |
 | **A11** | D1, D3 and D4 each carry an explicit assertion; the corpus may not treat their absence as agreement | red-green (**D-g**) |
 | **A12** | Declared divergences D6, D7, R5-P7 and R1 D1–D5 are asserted as *expected*, and a row goes red if a divergence becomes stale | red-green, both directions |
 | **A13** | The gate never contacts the network, and never touches the user's real `MCP_ROUTER_HOME`, `~/.claude.json` or ports 8975/8976 | measurement: scratch home guard + port refusal |
@@ -158,22 +158,48 @@ Reported as deferred child **D-j**. Not fixed here.
 
 ## The parity surface — what the cutover actually requires
 
-The manifest ships as `planning/parity/surface.tsv`. This is its census, and the number that
-matters is the last row.
+The manifest ships as `planning/parity/surface.tsv`. This is its census, as **measured** by the
+gate rather than as estimated while specifying, and the number that matters is the last row.
 
-| Group | Rows | Proven by R4 | Blocked |
+| Group | Rows | Proven | Blocked |
 |---|---|---|---|
-| Control API routes | 15 | 13 | 2 — `approve`, `auth` POST (**D-j**); `registry/search` proven only as a declared divergence |
-| Recorded fixtures (D-a) | 23 | 23 | 0 |
-| Declared divergences | 11 | 11 | 0 |
+| Control API routes | 15 | 11 | 4 — `approve` and `auth` POST (**D-j**); `usage/stream` (**D-l**); `registry/search` (**D-m**) |
+| Recorded fixtures (D-a) | 24 | 23 | 1 — `registry-search` has no stable oracle |
+| Declared divergences | 14 | 12 (4 by suite only) | 2 — R2 D7 (**R2-W**) and R1 D3 (**D-k**), each having only one side |
 | MCP endpoint — `tools/list`, `tools/call`, `/mcp`, `/health`, `/status` | 5 | 0 | 5 — **R2-R** |
 | CLI verbs — `serve watch import index refresh status tools auth usage help` | 10 | 0 | 10 — **R2-R**, **R2-W** |
-| Pool spawn/reap decisions | 6 | 4 | 2 — reap-under-live-traffic needs a daemon (**R2-R**) |
+| Pool spawn/reap decisions | 6 | 4 | 2 — both need traffic at a Swift endpoint (**R2-R**) |
+| What `docs/install.sh` does | 5 | 0 | 5 — the `~/.claude.json` rewrite, both launchd agents, the import, and rollback |
+| On-disk state a cutover inherits | 1 | 0 | 1 — **R2-R** |
 | Log bytes over a live run | 1 | 0 | 1 — **R2-R** |
-| **Total** | **71** | **51** | **20** |
+| **Total** | **81** | **50** | **31** |
 
-The gate reports this fraction on every run. It is why "the differential passed" is not a
-sentence this repo can print any more.
+Every number here moved after the harness ran and after three adversarial reviews, and each move
+is a finding rather than an arithmetic correction:
+
+- **24 fixtures, not 23.** `servers.json` entered through the F3 *merge* commit rather than F3's
+  WIP commit, so a count taken from that commit — which the brief and this spec both did — misses
+  it. The manifest guard derives the row set from the directory and caught it immediately.
+- **14 declared divergences, not 11.** R3 contributes five, collapsed into one row in prose; and
+  R1 D3 split into two once measurement showed the declared divergence and the measured path were
+  different things.
+- **11 control routes proven, not 13.** `usage/stream` and `registry/search` were counted as
+  proven while specifying. Neither is: an SSE body is an open stream with no byte oracle, and the
+  registry route calls live registries, so two runs a second apart differ.
+- **81 rows, not 71.** Six capabilities had no row at all — everything `docs/install.sh` does
+  beyond starting a process, and the on-disk state a cutover inherits. Their absence *raised* the
+  reported coverage, which is precisely the failure this manifest exists to prevent, arriving in
+  the manifest itself.
+- **R1 D3 is blocked, not proven.** The lane measured the control-API writer and found agreement.
+  The declared divergence is about the writer in `src/index.ts`, reachable only through CLI verbs
+  Swift does not implement. Proving a capability by measuring a different one is the error this
+  item is named after, and it was made here before being caught.
+
+The gate reports this fraction on every run, and reports it **per group**, because the groups do
+not make the same claim: `control` compares both routers on the wire, `fixture` compares the live
+reference against its own recording, and `pool` compares a live measurement against a Swift
+real-process test taken at another time. One blended number would be the same conflation this
+item exists to retire.
 
 ---
 
@@ -189,10 +215,10 @@ from the manifest, never estimated.
 
 | §5 state | In the gate | Real copy |
 |---|---|---|
-| Default | every row proven | `parity: 71 of 71 rows proven. The Swift router answers what the reference answers.` |
+| Default | every row proven | `parity: 81 of 81 rows proven. The Swift router answers what the reference answers.` — **never yet produced** |
 | Empty | manifest present, no lane has run | `parity: no lane has reported. Run scripts/acceptance/parity-gate.sh — an unrun gate is not a passing one.` |
 | Loading | a lane is mid-run | `running control-differential (3 of 6 lanes)` — named lanes, never a bare spinner |
-| **Partial** | the live state, and the one that matters | `parity: 51 of 71 rows proven, 20 blocked. This is NOT a pass.` then the blocked rows grouped by owning item |
+| **Partial** | the live state, and the one that matters | `parity: 50 of 81 rows proven (4 of them by suite only, not by wire comparison), 31 blocked. This is NOT a pass.` then the blocked rows grouped by owning item |
 | Error | a lane failed to run | `control-differential could not run: no built reference at dist/index.js. Run npm run build. A skipped lane is recorded as blocked, not as a pass.` |
 | Success | a previously blocked row goes green | the fraction moves; no celebration line, and the total never disappears |
 | Offline | the reference is not running | `the reference is not answering on :8961 — this harness starts its own and never uses the one on 8975/8976.` |
@@ -240,7 +266,7 @@ harness merges. Its content, when a Swift daemon exists:
 - `R2-R` delivered — the relay, the HTTP listener, HTTP upstream clients, the composition root.
 - `R2-W` delivered — the config watcher, for the `watch` launchd agent.
 - The ten CLI verbs implemented in Swift.
-- **`parity-gate.sh` exits 0** — 71 of 71.
+- **`parity-gate.sh` exits 0** — 81 of 81.
 
 Step 2 deletes the router the user's own live Claude Code sessions depend on. Performing it
 while step 1 has nothing to point at would leave the machine with no router at all.
@@ -277,7 +303,85 @@ Reported to the orchestrator, not registered here.
 
 | Suggested id | Title | Deps | Why |
 |---|---|---|---|
-| **R2-R** | Swift router: the relay, the HTTP listener, HTTP upstream clients and the composition root | R2 | Named in `spec-R2.md`'s prose as owning the deferred half of R2, but **registered in no ledger**. It is the single largest missing piece of the Swift router and the hard blocker on 20 of the 71 manifest rows |
+| **R2-R** | Swift router: the relay, the HTTP listener, HTTP upstream clients and the composition root | R2 | Named in `spec-R2.md`'s prose as owning the deferred half of R2, but **registered in no ledger**. It is the single largest missing piece of the Swift router and the hard blocker on 19 of the 81 manifest rows |
 | **R4-C** | The installer cutover | R2-R, R2-W, R4 | The commit is specified above; it needs a binary to point at and a green gate |
 | **D-j** | Wire `AuthRoutes.approve` and `AuthRoutes.authStart` into `ControlHandler`'s dispatch | R3 | Both implemented, both unreachable over the wire, both answering 405 where the reference answers 409/400 |
 | **D-k** | Swift implementations of the ten CLI verbs | R2-R | `serve watch import index refresh status tools auth usage help` — the installer calls four of them directly |
+
+---
+
+## Progress — 2026-08-14
+
+**Status: harness delivered, cutover deliberately not performed.** The gate exits **1** at
+**50 of 81** rows. Committed on `ai/r4`; not merged.
+
+### The three review gates
+
+`codex: usage limit -> claude (downgrade)`. The out-of-family lane is account-limited until
+**Aug 20**, verified by the orchestrator, and `codex exec` **exits 0** on that limit — so an
+exit-code-keyed gate records a pass for a review that never ran. The honest tells are the ERROR
+line and an empty `-o` file. All three gates therefore ran in-family: a fresh `claude -p` opus-5
+reviewer each, briefed adversarially and told that finding nothing counts as a failed review.
+The weakness travels with the evidence: **every reviewer in this pipeline is Claude auditing
+Claude**, and this item is the one where that matters most, because it is the gate the cutover
+would be justified by.
+
+| Gate | Verdict | Findings | Disposition |
+|---|---|---|---|
+| Spec review | **REJECT** | 13 | 6 accepted and fixed, 4 accepted into the census, 3 recorded as known limits |
+| Plan review | **REJECT** | 13 | 5 accepted and fixed, 4 corrected in the plan text, 4 recorded |
+| Phase D completeness critic | **REJECT** | 15 | 9 accepted and fixed, 6 corrected in wording or recorded |
+
+All three independently confirmed the central finding — no Swift daemon exists — and all three
+agreed the refusal to cut over is correct. What they rejected was the **coverage number**, which
+is the right thing to have rejected: it was 50 of 74 and overstated in five distinct ways.
+
+### What the reviews changed, and why each mattered
+
+| Finding | Fix |
+|---|---|
+| The gate's result-token set was open: only `fail` was negative, so a lane recording `blocked` was read as **proven** | Closed the set. Only `ok` proves a row |
+| Reconciliation matched on row id alone, so any lane could write a result for any row in any group | Matches on **group and id**. This immediately exposed the pool lane writing a `divergence` row under the `pool` group |
+| `proven-by-suite` counted on the strength of a *cited test existing* | A new **suite lane** runs every citation. `div-r1-d5` counted because a lint script was present on disk; it is now executed |
+| The pool lane named a Swift test and never ran it — its verdict came entirely from the reference | The suite lane runs those tests too, so both halves must pass in the same run |
+| `swift test --filter` matching nothing exits 0 and reports "0 tests passed" | The suite lane asserts a **non-zero test count**. Proven red-green against a fabricated test name |
+| The route extractor's character class excluded hyphens, digits and uppercase, and the guard fired only at *zero* routes | Broadened, plus an **independent dispatch-line count**. Proven red-green by adding a route in an unreadable shape |
+| Six capabilities had no row: the `~/.claude.json` rewrite, both launchd agents, the import, rollback, and inherited on-disk state | Added as the `install` and `state` groups. The denominator rose 74 → 81 |
+| R1 D3 was `proven` by measuring a different code path | **Blocked** on D-k; the measured path is a separate row that says what it is |
+| Two failures could compare equal — a `000` from an unreachable reference against a failing oracle | A `000` is now an **environment failure**, not a comparison |
+| `"hash":"[0-9a-f]*"` accepted an empty hash as equal to a real digest | `+`, not `*` |
+| `projectNames` collapsed to one marker, making 0, 1 and 3 projects identical | Each element normalised, **array length preserved** |
+| The fixture status was captured and never compared | Asserted against the committed baseline; a body-identical fixture under a changed status now fails |
+| Pool measurements failed **open** — a dead reference or a broken `pgrep` satisfied "not running" and "0 children" | Every read asserts liveness; the assertions require the positive observation `idle` |
+| A lost lane exited 2 and buried a real divergence under a reassuring line | An undeclared divergence now wins the exit code |
+
+### Known limits, recorded rather than fixed
+
+- **`proven` does not mean the same thing in every group.** `control` is a byte diff of both
+  routers; `fixture` is the live reference against its own recording; `pool` is a live reference
+  measurement beside a Swift test. The gate prints coverage **per group** for that reason, and the
+  headline names the suite-only share. It is still one number over three kinds of claim.
+- **The `divergence`, `mcp`, `cli`, `install`, `state` and `log` rows are hand-maintained.** Only
+  `control` and `fixture` are derived from source. 39 of 81 rows are mechanically defended;
+  deleting one of the other 42 would raise the fraction and no guard would fire. Reported as
+  **D-n**.
+- **Nothing runs this gate.** No `Makefile` target and no CI job invokes `parity-gate.sh`. That is
+  deliberate — a deliberately-failing gate wired into CI turns `main` red permanently — but it
+  means the harness is only as useful as the person who remembers to run it.
+- **The four `proven-by-suite` rows cannot go red if the *reference* changes.** They assert a
+  Swift property with no reference counterpart, so A12's both-directions guarantee does not hold
+  for them. They are labelled, counted separately, and named here.
+
+### Deferred children discovered
+
+Reported to the orchestrator; not registered here.
+
+| Suggested id | Title | Deps | Why |
+|---|---|---|---|
+| **R2-R** | Swift router: the relay, the HTTP listener, HTTP upstream clients and the composition root | R2 | Named in `spec-R2.md`'s prose, registered in no ledger. The hard blocker on 19 of the 81 rows |
+| **R4-C** | The installer cutover | R2-R, R2-W, D-k, R4 | Specified above. Needs a binary to point at and a green gate |
+| **D-j** | Wire `AuthRoutes.approve` and `AuthRoutes.authStart` into `ControlHandler`'s dispatch | R3 | Both implemented, both unreachable, both answering 405 where the reference answers 409/400 |
+| **D-k** | Swift implementations of the ten CLI verbs | R2-R | `serve watch import index refresh status tools auth usage help`. The installer calls four directly |
+| **D-l** | An SSE differential for `GET /usage/stream` | R2-R | The body is an open stream; framing agreement is not body parity |
+| **D-m** | A recorded oracle for `registry/search` | — | The reference calls live registries. Either record a fixture-server registry or accept the route as permanently uncomparable |
+| **D-n** | Derive the `cli` and `mcp` manifest rows from source | R4 | `src/index.ts`'s ten `case` arms and `src/router.ts`'s endpoints are mechanically extractable. Until they are, 42 of 81 rows are hand-maintained and a deletion raises the coverage figure silently |

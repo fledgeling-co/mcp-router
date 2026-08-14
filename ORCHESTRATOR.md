@@ -201,6 +201,30 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 
 ## Changelog
 
+- 2026-08-15 — **Both waves died at once on capacity, not code, and the correct response was to do
+  nothing.** All five agents across `wf_67a6b2b6-231` and `wf_4dda644a-0ae` failed within minutes of
+  each other on `503 no-eligible-account / over_reserve` (*"9 of 11 accounts at or over their usage
+  reserve"*) and `429`. Five simultaneous failures with five different items and one identical cause
+  is an outage; nothing here is a defect to diagnose.
+
+  **lifeline already owns the recovery**: M5 and M8 `retrying` on `RATE_LIMIT`, I2 and M7
+  `paused-usage-limit` with retry times that have since passed, all at attempt 1 of 30. A
+  `resumeFromRunId` would recover nothing anyway — both journals have **results=0**, so replay
+  misses on the first call and the miss flag is sticky — and a manual relaunch would cold-start work
+  lifeline is holding.
+
+  **Real work survived on all four, and it is deliberately left untouched.** M8 is furthest
+  (5 commits), M7 and I2 have their Phase-1 commits, and **M5 has 0 commits and 9 uncommitted files**
+  including `ShellModel`, `ShellWindow` and `ScaffoldPane`. The temptation is a WIP rescue commit,
+  and it was declined: uncommitted files in a worktree are lost only to a hard reset or a worktree
+  removal, neither of which happens on its own, whereas committing into a worktree whose runner
+  lifeline may resume *at any second* is the two-writer hazard that has already bitten this fleet
+  four times. **The exposure is hypothetical; the collision would be real.**
+
+  I2's resume from the previous wave did work before the outage: it adopted the inherited 79KB mock
+  and committed it as `I2 Phase 1`, which is the judgement its brief asked for rather than the
+  assumption it warned against.
+
 - 2026-08-14 — **M2 merged `c39c891`. Three of eight panes are real: `[.servers, .skills, .activity]`.**
   Merged-tree gates: lint **0 violations over 279 files**, **891 tests / 120 suites**, 358 parity
   vectors, `build-mac` succeeded, and **0 code files** differ between the merged tree and the tree

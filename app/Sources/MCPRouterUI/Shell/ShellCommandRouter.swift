@@ -48,10 +48,20 @@
             case resetSelectedServer
             /// Open the remove dialog for the selected server — `⌘⌫`.
             case removeSelectedServer
+            /// Show the Skills board's marketplaces sheet — `⌘⇧N`.
+            case showMarketplaces
         }
 
         /// The whole mapping, exhaustive over `MenuCommand` so a new command cannot be added
         /// without a decision being made about what it does.
+        ///
+        /// **Kept as one flat switch on purpose.** Adding M4's command pushed this past the linter's
+        /// complexity limit, and the obvious fix — splitting the tail into a helper — requires that
+        /// helper to carry a `default:`, because a Swift switch over an enum is exhaustive or it is
+        /// nothing. A `default:` would silently route the next command anybody adds to `.none`,
+        /// which is the exact failure this function's shape exists to prevent: a menu item that
+        /// appears, does nothing, and explains nothing. Merging the two `.none` groups into one case
+        /// list bought the branch back, so exhaustiveness is kept and no rule is waived.
         public static func operation(for command: MenuCommand) -> Operation {
             switch command {
             case let .selectDestination(destination): .select(destination)
@@ -61,18 +71,18 @@
             case .settings: .select(.settings)
             case .showSidebar: .toggleSidebar
             case .about: .aboutPanel
-            // M3's four. Each is a real operation now rather than `.none`, which is what makes the
-            // menu bar the complete command surface for this board (§3.9) rather than a list of
-            // items the mouse duplicates.
+            // M3's four and M4's one. Each is a real operation rather than `.none`, which is what
+            // makes the menu bar the complete command surface (§3.9) rather than a list of items
+            // the mouse duplicates.
             case .addServer: .addServer
             case .find: .focusSearch
             case .resetServer: .resetSelectedServer
             case .removeServer: .removeSelectedServer
+            case .addMarketplace: .showMarketplaces
             case .hide, .hideOthers, .showAll, .quit, .closeWindow,
                  .undo, .redo, .cut, .copy, .paste, .selectAll,
-                 .minimise, .zoom, .bringAllToFront:
-                .none
-            case .addMarketplace, .pairPhone, .exportLibrary,
+                 .minimise, .zoom, .bringAllToFront,
+                 .pairPhone, .exportLibrary,
                  .help, .whatTheRouterDoes, .reportIssue:
                 .none
             }
@@ -96,8 +106,32 @@
                 model?.select(.servers)
                 model?.serversBoard.sheet = .addServer
             case .focusSearch:
-                model?.select(.servers)
-                model?.serversBoard.focusSearch()
+                // Focuses the search on the board you are looking at. Before the Skills board
+                // existed this always selected Servers, which was right when Servers was the only
+                // board and becomes wrong the moment there are two: `⌘F` on Skills would have
+                // navigated away from the pane the user was filtering.
+                if model?.selection == .skills {
+                    model?.skillsBoard.requestSearchFocus()
+                } else {
+                    model?.select(.servers)
+                    model?.serversBoard.focusSearch()
+                }
+            case .showMarketplaces:
+                // Same rule as `addServer`: land on the board the sheet belongs to first, so the
+                // sheet never opens over an unrelated pane.
+                model?.select(.skills)
+                model?.skillsBoard.sheet = .marketplaces
+            case .resetSelectedServer, .removeSelectedServer:
+                performServerOperation(operation(for: command), on: model)
+            case .none: break
+            }
+        }
+
+        /// The two commands that act on the *selected* server, split out to keep `perform` under the
+        /// complexity limit.
+        @MainActor
+        private static func performServerOperation(_ operation: Operation, on model: ShellModel?) {
+            switch operation {
             case .resetSelectedServer:
                 guard let model, let state = model.trackerState,
                       let selected = model.serversBoard.selectedServer(in: state)
@@ -106,7 +140,7 @@
             case .removeSelectedServer:
                 guard let model, let selection = model.serversBoard.selection else { return }
                 model.serversBoard.sheet = .removeServer(server: selection)
-            case .none: break
+            default: break
             }
         }
     }

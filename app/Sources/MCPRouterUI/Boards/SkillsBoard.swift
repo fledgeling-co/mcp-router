@@ -91,7 +91,11 @@
                 }
             }
             .padding(SkillsBoardMetrics.panePadding)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            // Pinned to the top. The shell's content zone gives its pane a `minHeight` so there is
+            // always something to scroll, and a VStack handed more height than it needs centres
+            // itself in it — which put ~170pt of dead space above the header, measured in the
+            // acceptance capture. A board reads from its top edge.
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
 
         @ViewBuilder

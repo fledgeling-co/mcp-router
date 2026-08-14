@@ -310,8 +310,14 @@ public enum MenuCommand: Hashable, Sendable {
         case .removeServer:
             guard hasServers else { return .surfaceAbsent }
             return context.selectedServerIsTripped == nil ? .needsServerSelection : .enabled
+        // Marketplaces live on the Skills board, so this command goes live with that board — the
+        // same rule `addServer` follows for Servers. Before M4 it read "this part of the app isn't
+        // built yet", which stops being true the moment the board ships; a menu that keeps saying
+        // it is the shell disagreeing with its own window.
+        case .addMarketplace:
+            return context.installedDestinations.contains(.skills) ? .enabled : .surfaceAbsent
         // Still owned by items that have not shipped.
-        case .addMarketplace, .pairPhone, .exportLibrary:
+        case .pairPhone, .exportLibrary:
             return .surfaceAbsent
         case .about, .settings, .hide, .hideOthers, .showAll, .quit, .closeWindow,
              .undo, .redo, .cut, .copy, .paste, .selectAll,

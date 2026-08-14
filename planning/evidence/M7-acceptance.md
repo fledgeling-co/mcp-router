@@ -183,3 +183,41 @@ divergence at the next board to land.
 
 **M7 did not run into this and does not depend on it.** `m7-evals-cleanup.sh` covers this item's two
 panes and passes 16/16; the shell's own clauses are `mac-shell.sh`'s and were never M7's to assert.
+
+---
+
+## Deferred children discovered
+
+| Suggested id | Title | Deps | Why |
+|---|---|---|---|
+| **M9** | Rename the `Evals` destination to `Checks` | M1, M7 | The residual objection this item cannot fix from inside. Every *reading* on both panes is an observation with its input shown beside it, and the vocabulary carries no grading verb — but the word "Evals" in the sidebar, the window title, the menu and the deep link still says "test results". `Destination.title` is a merged shared surface. |
+| M10 | Amend `DESIGN.md` §6:279–280 | M7 | Its mandated "not evaluated" skill string describes a state that no longer exists. DESIGN.md is authoritative and merged; a runner editing it unilaterally is how a design authority stops being one. |
+| **M11** | Regenerate `spec-M1.md`'s command-availability inventory from the code | M1, M3, M4 | Five of its seven `surfaceAbsent` rows are wrong and `mac-shell.sh` A22 has been red since M3. See the section above. The inventory restates by hand a rule `MenuCommand.availability(in:)` computes, which is why it rots silently. |
+| R6 | Router-side behavioural eval runner — **servers only** | R3, R4 | The router can start a server and call a tool; it cannot execute a skill. A runner that promised both would be promising something the product does not do. |
+| R7 | Skills write endpoint (remove/disable) with preconditions and undo | R3 | Cleanup lists absent skills and can offer no action on them, because the control API is read-only for skills. A16 asserts that gap rather than hiding it. |
+| R8 | Server soft-delete with a restore endpoint | R3 | Removal is irreversible today, which is why it needs a named-consequence dialog. |
+| **M5-d** (already open) | An `axkit` verb that can press a non-`AXButton` role | — | Raised by M5, predicted to hit M7's two boards, and it did. Until it exists no rendered pass can drive a segmented filter. |
+
+## Shared-surface changes wanted and deliberately skipped
+
+- `Destination.title` `.evals` → "Checks". **Reported, not made** — M9.
+- `DESIGN.md` §6:279–280's mandated "not evaluated" string. **Reported, not made** — M10.
+- `planning/specs/spec-M1.md`'s command inventory. **Reported, not made** — M11.
+- A `BadgeSource` case for Cleanup's actual predicate. Not added: it would be a count the router does
+  not serve as such, so the pane states the relationship in words instead.
+
+## Shared-surface changes that WERE made, and why they were not optional
+
+`scripts/acceptance/m2-activity.sh` and `m5-discover.sh` both read `BoardRegistry.installed` with a
+`head -1` grep. Installing a seventh board wraps that declaration past `--maxwidth 110`, and a
+wrapped declaration makes those reads match nothing — so both scripts would have reported
+`BLOCKED: the tree being tested does not install .activity` for boards that shipped and merged.
+
+This was not a change M7 wanted; it is a repair of readers M7's own change breaks. Leaving them
+would have shipped a regression in two merged gates. The three readers are now one
+(`scripts/acceptance/board-registry.sh`), and both scripts were re-run on this branch to prove it:
+
+```
+m2-activity.sh   exit 0 — every assertion passed, and the app was never brought to the front
+m5-discover.sh   exit 0 — 32 passed, 0 failed — MCP Router never came to the front
+```

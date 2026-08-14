@@ -551,7 +551,18 @@ out.push(sec('D','Pairing — camera permission',
              Turn it on in iOS Settings, or type the code instead.</span></div></div>
          <button class="cta">Open iOS Settings</button>
          <button class="cta sec">Enter the code instead</button>`),
-      {t:'<b>--fail</b> is correct here: a capability the flow depends on is genuinely unavailable. Both recoveries are offered; neither is a dead end.'})
+      {t:'<b>--fail</b> is correct here: a capability the flow depends on is genuinely unavailable. Both recoveries are offered; neither is a dead end.'}),
+
+    unit('Permission restricted','not the same as denied',
+      phone({back:'Settings',title:'Pair Mac'},
+        `<div class="finder off"><div><div class="cam">${ic('camera',30,1.2)}</div>
+           <div class="lbl">Camera unavailable</div></div></div>
+         <div class="wants f"><h5>${ic('warn',13)} Camera access isn't available</h5>
+           <div class="wl"><span class="i">&rsaquo;</span><span>Something on this device prevents camera
+             use, and it may not be yours to change. You can still pair by typing the code your Mac
+             is showing.</span></div></div>
+         <button class="cta">Enter the code instead</button>`),
+      {fix:true,t:'A fourth state the first pass missed. <code>AVAuthorizationStatus.restricted</code> is set by a device policy or Screen Time, so the user may have <em>no way</em> to grant it — which makes "Open iOS Settings" a dead end. The typed path is the primary action here, not the fallback.'})
   ].join('')));
 
 /* ── E · typed entry ──────────────────────────────────────────────────── */
@@ -694,7 +705,22 @@ out.push(sec('H','Pairing — the ways it fails',
            <p>Someone dismissed the request at the Mac. Start pairing again there if that wasn't
               intended.</p></div>
          <button class="cta sec">Back to Settings</button>`),
-      {t:'A refusal is a decision someone made, not an error — so it is reported without alarm and without a retry as the primary action.'})
+      {t:'A refusal is a decision someone made, not an error — so it is reported without alarm and without a retry as the primary action.'}),
+
+    unit('Not an MCP Router code','the QR was something else entirely',
+      phone({back:'Scan',title:'Pair Mac'},
+        `<div class="inlineErr"><span class="i">${ic('warn',13)}</span>
+           <span>That isn't an MCP Router pairing code. Scan the code your Mac is showing under
+             Settings → Pair iPhone.</span></div>
+         <button class="cta">Scan again</button>`),
+      {fix:true,t:'The scanner will read any QR in front of it — a Wi-Fi code, a URL, a parcel label. Decoding the envelope <em>before</em> the version is what keeps this distinct from "your Mac is running an older MCP Router", which is a different problem with a different fix.'}),
+
+    unit('Code unreadable','ours, and broken',
+      phone({back:'Scan',title:'Pair Mac'},
+        `<div class="inlineErr"><span class="i">${ic('warn',13)}</span>
+           <span>That code couldn't be read. Ask your Mac for a new one and scan it again.</span></div>
+         <button class="cta">Scan again</button>`),
+      {fix:true,t:'The third decode outcome: our envelope, our version, a body that did not hold up. Folding it into either neighbour would tell the user to do the wrong thing.'})
   ].join('')));
 
 /* ── I · settings paired ──────────────────────────────────────────────── */

@@ -1,66 +1,39 @@
 import MCPRouterKit
 import MCPRouterUI
 import SwiftUI
+import UIKit
 
-/// The iPhone companion's shell.
+/// The iPhone companion.
 ///
-/// Same rule as the Mac shell: scaffolding that states what it is instead of showing invented
-/// data, drawing entirely through the shared design system so there is one look rather than two.
+/// The shell is `PhoneShell`, drawn entirely from the shared design system, and everything
+/// device-bound is injected here rather than reached for from inside the views: the camera adapter,
+/// the scanner preview, and the one call that leaves the app for iOS Settings. That is what lets
+/// every surface be exercised on a macOS test host, and it is why `MCPRouterUI` carries no `UIKit`
+/// import of its own.
 ///
-/// The companion's eventual job is narrower than the Mac app's by design — it queues capabilities
-/// for review on the Mac and never installs them — but none of that surface exists yet.
+/// **`FixturePairingService` is deliberate, not a stub left behind.** M6 owns the Mac's pairing
+/// endpoint and is unmerged; the seam it implements is `PairingService`, published in
+/// `planning/specs/spec-I1.md`. Shipping an invented network client now would mean M6 discovering
+/// our wire rather than agreeing one.
 @main
 struct MCPRouterIOSApp: App {
     var body: some Scene {
         WindowGroup {
-            FoundationView()
-        }
-    }
-}
-
-struct FoundationView: View {
-    #if DEBUG
-        @State private var showingGallery = false
-    #endif
-
-    private var version: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("MCP Router")
-                .typeRole(.title1)
-                .foregroundStyle(ColorToken.t1.color)
-
-            Text("Version \(version)")
-                .typeRole(.callout, monospaced: true)
-                .foregroundStyle(ColorToken.t2.color)
-
-            Text(
-                """
-                The companion's shell is in place. Pairing and the review queue \
-                arrive with the surfaces built on top of this.
-                """
+            PhoneShell(
+                pairing: FixturePairingService(),
+                store: KeychainPairingStore(),
+                camera: LiveCameraAuthorization(),
+                openSystemSettings: openSystemSettings,
+                cameraPreview: { onCode in QRScannerView(onCode: onCode) }
             )
-            .typeRole(.body)
-            .foregroundStyle(ColorToken.t2.color)
-            .fixedSize(horizontal: false, vertical: true)
-
-            #if DEBUG
-                // Debug only. The phone gets the same six sections as the Mac, in its own
-                // navigation, so the system can be reviewed on the device it also has to work on.
-                Button("Design system") { showingGallery = true }
-                    .buttonStyle(StandardButtonStyle())
-            #endif
-
-            Spacer()
         }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(ColorToken.ground.color)
-        #if DEBUG
-            .sheet(isPresented: $showingGallery) { DesignGallery() }
-        #endif
+    }
+
+    /// The denied-camera recovery. It leaves the app, which is the only honest action available —
+    /// asking again after a refusal shows nothing at all.
+    @MainActor
+    private func openSystemSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        UIApplication.shared.open(url)
     }
 }

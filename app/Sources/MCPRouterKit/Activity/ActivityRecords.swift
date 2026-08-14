@@ -22,13 +22,21 @@ public struct ActivityRecords: Equatable, Sendable {
     public private(set) var records: [CallRecord]
 
     /// When the router's counter was last reset. Displayed, never computed from.
-    public let since: String
+    ///
+    /// **Optional, because it is a fact the router states and not one this window can supply.** A
+    /// record can arrive on the stream before the backfill returns — `start()` runs both halves
+    /// concurrently, so on a busy router that is ordinary rather than exotic — and the window has to
+    /// hold it. Seeding this from that record's own `ts` would put a number in the slot meaning "the
+    /// counting window opened at", which only `UsageResponse.since` can answer: the window opened
+    /// earlier, and how much earlier is exactly what is not yet known. `nil` until a response says,
+    /// and the subtitle drops the clause rather than inventing it.
+    public let since: String?
 
     /// Ids already held, so the de-duplication in `prepending` is a set lookup rather than a scan
     /// of five hundred records on every arriving event.
     private var ids: Set<String>
 
-    public init(records: [CallRecord], since: String) {
+    public init(records: [CallRecord], since: String?) {
         var seen = Set<String>()
         var kept: [CallRecord] = []
         kept.reserveCapacity(min(records.count, Self.capacity))

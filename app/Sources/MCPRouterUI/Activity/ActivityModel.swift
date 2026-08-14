@@ -121,14 +121,39 @@
         /// A reconnect on a busy router would have thrown away exactly the half it was reloading to
         /// preserve.
         ///
-        /// What is held and *not* in the response is, by construction, what arrived after the fetch
-        /// began — so it is newer than anything the response carries, and it goes first. No
-        /// timestamp comparison is involved: the wire promises no total order across the two
-        /// sources, and the arrival order is the fact actually known.
+        /// **The fix for that opened its mirror image, and this is where it is closed.** Prepending
+        /// *everything* held that the response did not carry rested on "held and not returned means
+        /// it arrived after the fetch began". That holds only at the head of the window. `GET /usage`
+        /// returns a **contiguous** newest-first slice of the router's ring — `recent()` is
+        /// `ring.slice(-limit).reverse()`, and this board passes no `server` or `cwd`, so nothing
+        /// punches holes in it — which splits the held-but-not-returned records in two: those *ahead*
+        /// of the first shared record arrived on the stream after the snapshot, and those *behind* it
+        /// rolled out of the ring while the board was holding them. Prepending the second group put
+        /// the oldest calls the board had at the top of a newest-first log, and pushed the genuinely
+        /// newest ones off the end. That is what a reader met by pressing Reconnect on a busy router.
+        ///
+        /// So the boundary is the first held record the response also carries. No timestamp is
+        /// compared: the wire promises no total order across the two sources, and the ring's
+        /// contiguity is the fact actually known.
         private func merge(_ response: UsageResponse) -> ActivityRecords {
             guard let held = records, !held.isEmpty else { return ActivityRecords(response) }
             let returned = Set(response.records.map(\.id))
-            let arrivedSince = held.records.filter { !returned.contains($0.id) }
+            // **Provenance, not position.** Which held records are newer than this response is a
+            // fact about where they came from, and the board knows it: `streamArrivals` is exactly
+            // the set delivered by the feed since the last response landed. Everything else held
+            // came from an older response and is superseded by this one.
+            //
+            // The positional reading this replaces — "everything before the first shared record" —
+            // is right whenever the two windows overlap and silently wrong when they do not. With no
+            // shared record it cannot tell a window that rolled out of the ring (held records are
+            // OLDER, and must go) from one seeded purely by the stream before the first backfill
+            // returned (held records are NEWER, and must stay). Those are opposite answers, and the
+            // second is ordinary: `start()` runs both halves concurrently, so on a busy router a
+            // record routinely arrives before `GET /usage` comes back. Discarding it there is the
+            // exact defect B23 exists to prevent.
+            let arrivedSince = held.records.filter {
+                streamArrivals.contains($0.id) && !returned.contains($0.id)
+            }
             return ActivityRecords(
                 records: arrivedSince + response.records,
                 since: response.since
@@ -208,7 +233,12 @@
             guard var held = records else {
                 // A record arriving before the backfill landed is still a real call. It seeds the
                 // window rather than being dropped, and the backfill de-duplicates against it.
-                records = ActivityRecords(records: [record], since: record.ts)
+                //
+                // `since: nil` deliberately. The router has not said when its counting window
+                // opened, and this record's own `ts` is not that answer — it is when one call
+                // happened, which is a later moment by an unknown amount. The subtitle omits the
+                // clause until a response supplies the fact.
+                records = ActivityRecords(records: [record], since: nil)
                 return true
             }
             let inserted = held.prepend(record)

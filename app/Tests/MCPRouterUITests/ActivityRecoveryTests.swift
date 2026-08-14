@@ -77,6 +77,88 @@
             #expect(subject.visible.first?.tool == "streamed", "and it is still the newest")
         }
 
+        // MARK: - The hole that fix left open
+
+        /// A distinct, ordered timestamp per index, so 520 records have 520 ids.
+        static func timestamp(_ index: Int) -> String {
+            String(format: "2026-08-14T08:%02d:%02d.000Z", index / 60, index % 60)
+        }
+
+        /// `capacity` records, newest first, ending at `newest`.
+        static func window(newest: Int) -> [CallRecord] {
+            stride(from: newest, through: newest - ActivityRecords.capacity + 1, by: -1)
+                .map { record(ts: timestamp($0), tool: "call\($0)") }
+        }
+
+        /// **The mirror of the truncation bug, and the one its fix opened.**
+        ///
+        /// `merge` prepended *every* held record the response did not carry, on the stated ground
+        /// that anything held and not returned "arrived after the fetch began". That is only true at
+        /// the head of the window. `GET /usage` returns a contiguous newest-first slice of the ring
+        /// (`recent()` is `ring.slice(-limit).reverse()`), so when the ring has rolled forward the
+        /// held records missing from the response are the ones that rolled *out* — the oldest calls
+        /// the board holds. Prepending those put them at the top of a newest-first log.
+        ///
+        /// Reachable by pressing Reconnect on a busy router: the feed drops, the router keeps
+        /// working, and the reload promotes the twenty oldest rows above the twenty newest.
+        @Test("a reload over a rolled-forward ring does not promote the oldest calls to the top")
+        func reloadOverARolledRingKeepsNewestFirst() async {
+            let newest = ActivityRecords.capacity - 1
+            let rolled = 20
+            let subject = ActivityModel(
+                client: StaticUsageClient(windows: [
+                    Self.window(newest: newest),
+                    Self.window(newest: newest + rolled)
+                ]),
+                source: nil,
+                clock: { Self.now }
+            )
+            await subject.load()
+            #expect(subject.visible.first?.tool == "call\(newest)")
+
+            await subject.load()
+
+            #expect(
+                subject.visible.first?.tool == "call\(newest + rolled)",
+                "the newest call the router returned is not the newest row"
+            )
+            #expect(
+                !subject.visible.prefix(rolled).contains { $0.tool == "call0" },
+                "a call that rolled out of the router's ring was promoted to the top"
+            )
+            #expect(
+                subject.visible.count == ActivityRecords.capacity,
+                "the window is still full"
+            )
+        }
+
+        /// The same defect at its extreme: the ring rolled further than the window, so the two share
+        /// no record at all. Prepending the held window then truncated the entire response away and
+        /// left a board showing only calls the router no longer has.
+        @Test("a reload whose window shares nothing with the held one shows the router's window")
+        func reloadWithNoOverlapPrefersTheResponse() async {
+            let newest = ActivityRecords.capacity - 1
+            let subject = ActivityModel(
+                client: StaticUsageClient(windows: [
+                    Self.window(newest: newest),
+                    Self.window(newest: newest + ActivityRecords.capacity + 10)
+                ]),
+                source: nil,
+                clock: { Self.now }
+            )
+            await subject.load()
+            await subject.load()
+
+            #expect(
+                subject.visible.first?.tool == "call\(newest + ActivityRecords.capacity + 10)",
+                "the response's newest record is the newest row"
+            )
+            #expect(
+                !subject.visible.contains { $0.tool == "call0" },
+                "records the router's ring no longer carries are still on the board"
+            )
+        }
+
         /// Two taps used to stack two subscription loops writing into one model.
         @Test("a second reconnect while one is running is refused rather than stacked")
         func reconnectIsNotReentrant() async {

@@ -10,18 +10,55 @@
 
     /// Serves a fixed call log, so a test can control the backfill's size exactly — which is what
     /// the capacity-boundary merge needs and no recording can provide.
+    ///
+    /// `init(windows:)` serves a **different** window per call, which is the only way to express the
+    /// thing a reconnect actually meets: a router whose ring has rolled forward since the last
+    /// fetch. A double that answers the same records twice can never produce a response whose window
+    /// has moved, and that is exactly the case the merge gets wrong.
     struct StaticUsageClient: ControlAPIClient {
         let records: [CallRecord]
+        private let cursor: Cursor
         private let inner = FixtureControlAPIClient(.populated)
+
+        /// Reference-typed because the protocol's methods are not mutating and the point is that the
+        /// second call sees a different answer from the first.
+        final class Cursor: @unchecked Sendable {
+            private let lock = NSLock()
+            private var index = 0
+            private let windows: [[CallRecord]]
+
+            init(windows: [[CallRecord]]) { self.windows = windows }
+
+            /// The next window, then the last one for every call after it.
+            func next(fallback: [CallRecord]) -> [CallRecord] {
+                guard !windows.isEmpty else { return fallback }
+                lock.lock()
+                defer { lock.unlock() }
+                let window = windows[min(index, windows.count - 1)]
+                index += 1
+                return window
+            }
+        }
+
+        init(records: [CallRecord]) {
+            self.records = records
+            cursor = Cursor(windows: [])
+        }
+
+        init(windows: [[CallRecord]]) {
+            records = windows.first ?? []
+            cursor = Cursor(windows: windows)
+        }
 
         func usage(
             limit: Int?,
             server _: String?,
             cwd _: String?
         ) async throws(ControlAPIError) -> UsageResponse {
-            UsageResponse(
+            let window = cursor.next(fallback: records)
+            return UsageResponse(
                 since: "2026-08-14T09:12:04.118Z",
-                records: limit.map { Array(records.prefix($0)) } ?? records
+                records: limit.map { Array(window.prefix($0)) } ?? window
             )
         }
 

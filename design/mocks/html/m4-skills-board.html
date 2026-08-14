@@ -1,0 +1,650 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>M4 — Skills and marketplaces</title>
+<!--
+  The design representation for M4. Authoritative over design/mocks/prototype.html where the two
+  disagree, per DESIGN.md's own precedence rule ("the prototype is stale and this document is the
+  spec"). Every surface, every one of DESIGN.md §5's nine states, with real copy on the unhappy
+  paths — placeholder copy hides both layout and comprehension failures.
+
+  THE ONE STRUCTURAL DECISION, stated first because everything else follows from it:
+
+  The prototype's skills table draws seven columns. Three of them — runs, last run, eval — are
+  fields THE ROUTER CANNOT OBSERVE. A skill is markdown loaded into an agent's context by the
+  client; it never traverses the router, so no invocation of it is visible to the process that
+  would have to report the count. There is no eval runner in this product at all. DESIGN.md §6
+  ("numbers the router does not observe are never displayed") therefore forbids all three, and
+  those columns are ABSENT from this design rather than rendered empty.
+
+  Rendering them as "—" was considered and rejected: an empty cell in a populated table reads as a
+  per-row claim ("this skill has never run"), which is a statement about the skill the router is
+  not entitled to make — it cannot distinguish "never run" from "run constantly, invisibly to me".
+  That is fabrication with extra steps. The board's footer states the absence once, as a property
+  of the product, which is a claim that is true.
+
+  Precedent: M1 already refused the Skills sidebar badge this same prototype draws, for this same
+  reason, and wrote the reason into Destination.badgeSource.
+-->
+<style>
+  :root {
+    --ground:#1E1E1E; --panel:#232326; --raised:#2C2C2E; --raised2:#3A3A3C;
+    --line:rgba(255,255,255,.075); --lineS:rgba(255,255,255,.14);
+    --f1:rgba(255,255,255,.10); --f2:rgba(255,255,255,.08); --f3:rgba(255,255,255,.05);
+    --t1:#fff; --t2:rgba(255,255,255,.55); --t3:rgba(255,255,255,.50); --t4:rgba(255,255,255,.25);
+    --accent:#0091FF; --live:#30D158; --attn:#FF9230; --fail:#FF4245; --onAccent:#fff;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --ground:#ECECEE; --panel:#F5F5F7; --raised:#FFFFFF; --raised2:#E0E0E4;
+      --line:rgba(0,0,0,.10); --lineS:rgba(0,0,0,.19);
+      --f1:rgba(0,0,0,.13); --f2:rgba(0,0,0,.10); --f3:rgba(0,0,0,.06);
+      --t1:rgba(0,0,0,.95); --t2:rgba(0,0,0,.62); --t3:rgba(0,0,0,.58); --t4:rgba(0,0,0,.33);
+      --accent:#0069CF; --live:#1B7B3C; --attn:#9F5A00; --fail:#CD2738;
+    }
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; padding:32px; background:var(--ground); color:var(--t1);
+    font:13px/16px -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    font-weight:600;
+  }
+  h1 { font-size:26px; line-height:32px; font-weight:700; margin:0 0 8px; }
+  h2 { font-size:17px; line-height:22px; font-weight:700; margin:40px 0 4px; }
+  h3 { font-size:15px; line-height:20px; font-weight:600; margin:24px 0 8px; }
+  p, li { font-weight:400; color:var(--t2); max-width:78ch; }
+  code, .m { font-family:"SF Mono", ui-monospace, monospace; }
+  .note { font-size:11px; line-height:14px; color:var(--t3); font-weight:400; max-width:78ch; }
+  .win {
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    overflow:hidden; margin:12px 0 4px; max-width:1080px;
+  }
+  .pane { padding:20px; }
+  .hd { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; }
+  .hd h4 { font-size:22px; line-height:26px; font-weight:700; margin:0 0 2px; }
+  .sb { font-size:11px; line-height:14px; color:var(--t2); font-weight:400; }
+  .seg { display:inline-flex; background:var(--f2); border-radius:6px; padding:2px; gap:2px; margin-bottom:14px; }
+  .seg button {
+    font:inherit; font-size:12px; font-weight:600; border:0; background:transparent;
+    color:var(--t2); padding:3px 10px; border-radius:4px; cursor:default;
+  }
+  .seg button.on { background:var(--raised); color:var(--t1); }
+  .seg b { font-family:"SF Mono",monospace; font-weight:600; margin-left:5px; color:var(--t3); }
+  .btn {
+    font:inherit; font-size:12px; font-weight:600; padding:4px 11px; border-radius:6px;
+    border:1px solid var(--lineS); background:var(--raised); color:var(--t1); cursor:default;
+  }
+  .btn.p { background:var(--accent); border-color:transparent; color:var(--onAccent); }
+  .btn.sm { font-size:11px; padding:2px 8px; }
+  .btn[disabled] { color:var(--t4); border-color:var(--line); background:var(--f3); }
+  .cols, .tr { display:flex; align-items:center; gap:10px; }
+  .cols {
+    font-size:10px; line-height:13px; color:var(--t3); font-weight:600;
+    padding:0 8px 6px; border-bottom:1px solid var(--line);
+  }
+  .tr {
+    padding:8px; border-bottom:1px solid var(--line); border-radius:8px; min-height:44px;
+  }
+  .tr.sel { background:var(--f2); }
+  .tile {
+    width:30px; height:30px; border-radius:7px; background:var(--raised2); flex:none;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; color:var(--t2);
+  }
+  .nm { width:190px; overflow:hidden; }
+  .nm b { font-weight:500; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .src { font-size:10px; line-height:13px; color:var(--t3); font-weight:400;
+         white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .src.warn { color:var(--attn); }
+  .slots { width:132px; display:flex; gap:3px; }
+  .slot {
+    font-family:"SF Mono",monospace; font-size:9px; font-style:normal; font-weight:600;
+    padding:2px 4px; border-radius:3px; background:var(--f3); color:var(--t4);
+    border:1px solid transparent;
+  }
+  .slot.on { background:var(--f1); color:var(--t1); border-color:var(--lineS); }
+  .slot.na { background:transparent; color:var(--t4); border:1px dashed var(--line); }
+  .ver { width:96px; font-family:"SF Mono",monospace; font-size:11px; color:var(--t2); font-weight:500; }
+  .ver.held { color:var(--attn); }
+  .ver.none { color:var(--t3); font-family:-apple-system, sans-serif; font-size:11px; font-weight:400; }
+  .rest { flex:1; display:flex; align-items:center; gap:8px; justify-content:flex-end; }
+  .skel { background:var(--f2); border-radius:4px; height:9px; }
+  .banner {
+    display:flex; gap:8px; align-items:flex-start; padding:10px;
+    background:var(--f3); border-radius:8px; margin-bottom:12px;
+    font-size:13px; line-height:16px; font-weight:400; color:var(--t2);
+  }
+  .banner .ic { flex:none; font-size:13px; }
+  .banner.attn .ic { color:var(--attn); }
+  .banner.fail .ic { color:var(--fail); }
+  .msg { text-align:center; padding:56px 20px; }
+  .msg .ttl { font-size:15px; line-height:20px; font-weight:600; color:var(--t1); margin-bottom:6px; }
+  .msg .det { font-size:13px; line-height:16px; font-weight:400; color:var(--t2);
+              max-width:44ch; margin:0 auto 14px; }
+  .foot { font-size:10px; line-height:13px; color:var(--t3); font-weight:400;
+          padding-top:12px; margin-top:4px; border-top:1px solid var(--line); }
+  table.k { border-collapse:collapse; margin:10px 0; max-width:1080px; width:100%; }
+  table.k th, table.k td {
+    border:1px solid var(--line); padding:6px 9px; text-align:left; vertical-align:top;
+    font-size:12px; line-height:16px; font-weight:400; color:var(--t2);
+  }
+  table.k th { color:var(--t3); font-weight:600; font-size:10px; }
+  table.k td:first-child { color:var(--t1); font-weight:500; white-space:nowrap; }
+  .insp { width:300px; border-left:1px solid var(--line); padding:16px; }
+  .insp .lbl { font-size:10px; color:var(--t3); font-weight:600; margin:14px 0 3px; }
+  .insp .val { font-size:12px; color:var(--t1); font-weight:400; }
+  .sheet {
+    background:var(--panel); border:1px solid var(--lineS); border-radius:20px;
+    padding:20px; max-width:560px; margin:12px 0;
+  }
+  .delta { font-family:"SF Mono",monospace; font-size:11px; line-height:17px; font-weight:400;
+           background:var(--f3); border-radius:8px; padding:10px; margin:8px 0; }
+  .delta .add { color:var(--attn); }
+  .delta .same { color:var(--t3); }
+  .caption { font-size:10px; color:var(--t3); font-weight:400; margin:2px 0 18px; }
+</style>
+
+<h1>M4 — Skills and marketplaces</h1>
+<p>
+  The design representation for the Skills board and its marketplace management. Authoritative over
+  <code>design/mocks/prototype.html</code> wherever the two disagree, per DESIGN.md's own precedence
+  rule. Dark and light are both authored here; the page follows the system appearance.
+</p>
+
+<h2>0 · What the router observes, and what it does not</h2>
+<p>
+  Every column below traces to a file the router reads. This table is the design's load-bearing
+  claim, because DESIGN.md §6 forbids displaying anything not on the left-hand side of it.
+</p>
+<table class="k">
+  <tr><th>Shown</th><th>Observed from</th></tr>
+  <tr><td>Skill name</td><td>the directory name under each client's skills root, and <code>name</code> in <code>SKILL.md</code> frontmatter</td></tr>
+  <tr><td>Installed into</td><td>presence of the skill's directory under each client's own skills root — the same discovery the router already performs for MCP server configs</td></tr>
+  <tr><td>Marketplace / source</td><td><code>~/.claude/plugins/known_marketplaces.json</code> — <code>source.repo</code> or <code>source.path</code></td></tr>
+  <tr><td>Version</td><td><code>~/.claude/plugins/installed_plugins.json</code> — <code>version</code> per install record</td></tr>
+  <tr><td>Installed / last updated</td><td>the same record's <code>installedAt</code> and <code>lastUpdated</code></td></tr>
+  <tr><td>Provenance change</td><td>the recorded <code>gitCommitSha</code> and marketplace owner against what the marketplace declares now</td></tr>
+  <tr><td>Auto-update</td><td><code>autoUpdate</code> on the marketplace entry — a real field, absent meaning off</td></tr>
+  <tr><td>Held version</td><td>a newer version present under <code>plugins/cache/&lt;marketplace&gt;/&lt;skill&gt;/</code> than the installed record names</td></tr>
+</table>
+<table class="k">
+  <tr><th>Not shown, and why</th><th>Where it would have to come from</th></tr>
+  <tr><td>Run count</td><td>Nothing. A skill is markdown the client loads into an agent's context; it never reaches the router. The only trace anywhere is per-client session transcripts, which the router does not read.</td></tr>
+  <tr><td>Last run</td><td>As above. <code>lastUpdated</code> in the install record is when the <em>file</em> changed, and displaying it as a run would be a different number wearing this one's label.</td></tr>
+  <tr><td>Eval result</td><td>No eval runner exists in this product. M7 owns Evals.</td></tr>
+</table>
+<p class="note">
+  These three are stated once in the board's footer as a property of the product, not rendered as
+  empty cells. An empty cell in a populated table reads as a claim about that row — "this skill has
+  never run" — which the router cannot distinguish from "runs constantly, invisibly to me".
+</p>
+
+<h2>1 · Default — the populated board</h2>
+<div class="win"><div style="display:flex">
+  <div class="pane" style="flex:1">
+    <div class="hd">
+      <div>
+        <h4>Skills</h4>
+        <div class="sb">14 skills from 8 marketplaces · 1 held for review</div>
+      </div>
+      <div><button class="btn">Manage marketplaces…</button></div>
+    </div>
+    <div class="seg">
+      <button class="on">All<b>14</b></button>
+      <button>Held<b>1</b></button>
+      <button>Local<b>2</b></button>
+      <button>Needs attention<b>2</b></button>
+    </div>
+    <div class="cols">
+      <span style="width:30px"></span><span class="nm">skill</span>
+      <span class="slots">installed into</span><span class="ver">version</span>
+      <span style="flex:1;text-align:right">&nbsp;</span>
+    </div>
+
+    <div class="tr">
+      <span class="tile">DC</span>
+      <span class="nm"><b>design-craft</b><span class="src">diolog-plugins</span></span>
+      <span class="slots"><i class="slot on">CC</i><i class="slot">CX</i><i class="slot on">CR</i><i class="slot on">OC</i></span>
+      <span class="ver">1.14.0</span>
+      <span class="rest"></span>
+    </div>
+
+    <div class="tr">
+      <span class="tile">TR</span>
+      <span class="nm"><b>trawl</b><span class="src">fledgeling-plugins</span></span>
+      <span class="slots"><i class="slot on">CC</i><i class="slot on">CX</i><i class="slot on">CR</i><i class="slot">OC</i></span>
+      <span class="ver held">2.2.0 → 2.3.0</span>
+      <span class="rest"><button class="btn sm">Review 2.3.0…</button></span>
+    </div>
+
+    <div class="tr">
+      <span class="tile">CW</span>
+      <span class="nm"><b>changelog-writer</b><span class="src warn">⚠ owner changed — was @acme, now @unknown</span></span>
+      <span class="slots"><i class="slot on">CC</i><i class="slot">CX</i><i class="slot">CR</i><i class="slot">OC</i></span>
+      <span class="ver">0.4.1</span>
+      <span class="rest"><button class="btn sm">Inspect</button></span>
+    </div>
+
+    <div class="tr">
+      <span class="tile">IL</span>
+      <span class="nm"><b>intent-layer</b><span class="src">community</span></span>
+      <span class="slots"><i class="slot on">CC</i><i class="slot on">CX</i><i class="slot on">CR</i><i class="slot on">OC</i></span>
+      <span class="ver">1.0.2</span>
+      <span class="rest"></span>
+    </div>
+
+    <div class="tr">
+      <span class="tile">GR</span>
+      <span class="nm"><b>graphify</b><span class="src">local — not from a marketplace</span></span>
+      <span class="slots"><i class="slot on">CC</i><i class="slot">CX</i><i class="slot">CR</i><i class="slot">OC</i></span>
+      <span class="ver none">unversioned</span>
+      <span class="rest"></span>
+    </div>
+
+    <div class="foot">
+      Run counts and evaluation results are not shown. A skill is loaded into an agent's context by
+      the client and never reaches the router, so the router does not see it run; evaluations arrive
+      with Evals.
+    </div>
+  </div>
+</div></div>
+<p class="caption">
+  Four slots, because four of the six clients have a skills mechanism. <code>CC</code> Claude Code ·
+  <code>CX</code> Codex · <code>CR</code> Cursor · <code>OC</code> opencode. Claude Desktop and
+  ChatGPT have none and so have no slot at all — see §2.
+</p>
+
+<h3>Why "unversioned" rather than a version</h3>
+<p class="note">
+  A skill placed directly in a client's skills directory has no install record and no version
+  anywhere on disk — <code>SKILL.md</code> frontmatter carries <code>name</code> and
+  <code>description</code> only. Printing <code>1.0.0</code> for it would be invented. "unversioned"
+  is set in the body font rather than the instrument monospace, because it is a statement about the
+  skill rather than a reading off it, and DESIGN.md §2 reserves monospace for instrument data.
+</p>
+
+<h2>2 · The slot column is a capability statement, not a data claim</h2>
+<p>
+  Six clients are managed for MCP servers. Only four have a skills mechanism, and the two that do
+  not are not drawn as unfilled slots — an unfilled slot says "not installed here", which invites
+  the user to install it here, and there is no here.
+</p>
+<table class="k">
+  <tr><th>Client</th><th>Skills root</th><th>Slot</th></tr>
+  <tr><td>Claude Code</td><td><code>~/.claude/skills</code>, plus marketplace plugins</td><td><code>CC</code></td></tr>
+  <tr><td>Codex</td><td><code>~/.codex/skills</code></td><td><code>CX</code></td></tr>
+  <tr><td>Cursor</td><td><code>~/.cursor/skills</code></td><td><code>CR</code></td></tr>
+  <tr><td>opencode</td><td><code>~/.config/opencode/skills</code></td><td><code>OC</code></td></tr>
+  <tr><td>Claude Desktop</td><td>none — extensions are a different mechanism</td><td>absent</td></tr>
+  <tr><td>ChatGPT</td><td>none</td><td>absent</td></tr>
+</table>
+<p class="note">
+  If a client gains one later, it gains a slot. The inspector names all six and says which two have
+  no mechanism, so the absence is discoverable rather than merely invisible.
+</p>
+
+<h2>3 · Empty — no skills anywhere</h2>
+<div class="win"><div class="pane">
+  <div class="hd"><div><h4>Skills</h4><div class="sb">No skills installed</div></div>
+    <div><button class="btn">Manage marketplaces…</button></div></div>
+  <div class="msg">
+    <div class="ttl">No skills installed yet</div>
+    <div class="det">
+      A skill is a markdown file that teaches an agent how you want a job done. Follow a marketplace
+      and the skills it supplies appear here, across every client that supports them.
+    </div>
+    <button class="btn p">Add a marketplace…</button>
+  </div>
+</div></div>
+<p class="caption">One illustration, one sentence, one action — never a bare "No items" (§5).</p>
+
+<h2>4 · Loading — skeleton at the real row geometry</h2>
+<div class="win"><div class="pane">
+  <div class="hd"><div><h4>Skills</h4><div class="sb">&nbsp;</div></div></div>
+  <div class="cols"><span style="width:30px"></span><span class="nm">skill</span>
+    <span class="slots">installed into</span><span class="ver">version</span><span style="flex:1"></span></div>
+  <div class="tr"><span class="tile" style="background:var(--f2)"></span>
+    <span class="nm"><span class="skel" style="width:120px"></span>
+      <span class="skel" style="width:78px;margin-top:5px;height:7px"></span></span>
+    <span class="slots"><span class="skel" style="width:112px"></span></span>
+    <span class="ver"><span class="skel" style="width:52px"></span></span><span class="rest"></span></div>
+  <div class="tr"><span class="tile" style="background:var(--f2)"></span>
+    <span class="nm"><span class="skel" style="width:96px"></span>
+      <span class="skel" style="width:64px;margin-top:5px;height:7px"></span></span>
+    <span class="slots"><span class="skel" style="width:112px"></span></span>
+    <span class="ver"><span class="skel" style="width:52px"></span></span><span class="rest"></span></div>
+  <div class="tr"><span class="tile" style="background:var(--f2)"></span>
+    <span class="nm"><span class="skel" style="width:134px"></span>
+      <span class="skel" style="width:70px;margin-top:5px;height:7px"></span></span>
+    <span class="slots"><span class="skel" style="width:112px"></span></span>
+    <span class="ver"><span class="skel" style="width:52px"></span></span><span class="rest"></span></div>
+</div></div>
+<p class="caption">
+  Rows are the populated row's exact height, so the board does not jump when data lands. Never a
+  spinner over a blank pane. The subtitle is blank rather than "Loading…" — a count that is not yet
+  known is not a count.
+</p>
+
+<h2>5 · Partial — one client's directory could not be read</h2>
+<div class="win"><div class="pane">
+  <div class="hd"><div><h4>Skills</h4>
+    <div class="sb">11 skills from 8 marketplaces · Cursor not included</div></div></div>
+  <div class="banner attn"><span class="ic">⚠</span>
+    <div>Cursor's skills folder could not be read, so nothing installed only into Cursor is listed and
+      the slot column understates for every row. Everything below is from the other three clients.
+      <code>~/.cursor/skills</code> — permission denied.</div></div>
+  <div class="cols"><span style="width:30px"></span><span class="nm">skill</span>
+    <span class="slots">installed into</span><span class="ver">version</span><span style="flex:1"></span></div>
+  <div class="tr"><span class="tile">DC</span>
+    <span class="nm"><b>design-craft</b><span class="src">diolog-plugins</span></span>
+    <span class="slots"><i class="slot on">CC</i><i class="slot">CX</i><i class="slot na" title="not read">CR</i><i class="slot on">OC</i></span>
+    <span class="ver">1.14.0</span><span class="rest"></span></div>
+</div></div>
+<p class="caption">
+  Says what arrived, what did not, and the reason (§5). The unread client's slot is dashed rather
+  than off, because "off" would assert the skill is not installed there and that is not known.
+</p>
+
+<h2>6 · Offline — the router is not running</h2>
+<div class="win"><div class="pane">
+  <div class="hd"><div><h4>Skills</h4><div class="sb">&nbsp;</div></div></div>
+  <div class="msg">
+    <div class="ttl">The router isn't running</div>
+    <div class="det">
+      Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a
+      moment and your skills stay exactly as you left them.
+    </div>
+    <button class="btn" disabled>Start the router</button>
+  </div>
+</div></div>
+<p class="caption">
+  Headline and advice come from <code>ControlAPIError.routerNotRunning</code> — the same two strings
+  the Servers board renders, never a second wording. The offer is dimmed in place with its reason
+  rather than hidden, because nothing in this build can start a daemon yet (§3.4).
+</p>
+
+<h2>7 · Error — the router refused</h2>
+<div class="win"><div class="pane">
+  <div class="hd"><div><h4>Skills</h4><div class="sb">&nbsp;</div></div></div>
+  <div class="msg">
+    <div class="ttl">The router sent a response this version doesn't understand</div>
+    <div class="det">The router may be newer or older than this app (no skills endpoint).</div>
+  </div>
+</div></div>
+<p class="caption">
+  <strong>The state that matters most for this item.</strong> A router that predates M4 serves no
+  skills endpoint, and this is what the board says when it meets one — a version-skew statement with
+  no action, because there is nothing the user can do from here. It is honest and it is not an
+  apology. The same pane renders every other refusal from the same three strings.
+</p>
+
+<h2>8 · Stale — a reading that is no longer current</h2>
+<div class="win"><div class="pane">
+  <div class="hd"><div><h4>Skills</h4><div class="sb">14 skills from 8 marketplaces</div></div></div>
+  <div class="banner attn"><span class="ic">⚡</span>
+    <div>The router isn't running. These skills are the last reading the router gave, kept rather
+      than cleared. Nothing about them is current. Nothing is listening on the control port, so there
+      is nothing to show yet.</div></div>
+  <div class="cols"><span style="width:30px"></span><span class="nm">skill</span>
+    <span class="slots">installed into</span><span class="ver">version</span><span style="flex:1"></span></div>
+  <div class="tr"><span class="tile">DC</span>
+    <span class="nm"><b>design-craft</b><span class="src">diolog-plugins</span></span>
+    <span class="slots"><i class="slot on">CC</i><i class="slot">CX</i><i class="slot on">CR</i><i class="slot on">OC</i></span>
+    <span class="ver">1.14.0</span><span class="rest"></span></div>
+</div></div>
+<p class="caption">
+  Rows are kept and the failure is stated, rather than throwing away good data or hiding a failure
+  to keep it. Every write control on a stale board is disabled with its reason (§9 below).
+</p>
+
+<h2>9 · Disabled — every control that dims, and the reason it gives</h2>
+<table class="k">
+  <tr><th>Control</th><th>Dims when</th><th>Reason shown</th></tr>
+  <tr><td>Promote / Keep version</td><td>the board is stale or the router refused</td><td>The router isn't answering, so this can't be changed right now.</td></tr>
+  <tr><td>Auto-update toggle</td><td>as above</td><td>The router isn't answering, so this can't be changed right now.</td></tr>
+  <tr><td>Auto-update toggle</td><td>the marketplace is a local directory</td><td>A marketplace on this machine updates when you change it — there is nothing to fetch.</td></tr>
+  <tr><td>Remove marketplace</td><td>a skill it supplies is installed</td><td>3 installed skills come from this marketplace. Remove them first.</td></tr>
+  <tr><td>Start the router</td><td>always, in this build</td><td>Starting the router from the app arrives with the daemon that can be started.</td></tr>
+  <tr><td>Review a held version</td><td>the shadow copy is gone from the cache</td><td>The newer version is no longer in the cache. Refresh the marketplace to fetch it again.</td></tr>
+</table>
+<p class="note">Disabled dims in place and never disappears (§3.4). Every reason names what to do.</p>
+
+<h2>10 · Overflow — long names, long owners</h2>
+<div class="win"><div class="pane">
+  <div class="cols"><span style="width:30px"></span><span class="nm">skill</span>
+    <span class="slots">installed into</span><span class="ver">version</span><span style="flex:1"></span></div>
+  <div class="tr"><span class="tile">CD</span>
+    <span class="nm"><b>create-disclosure-consistency-page-generator</b>
+      <span class="src">a-very-long-marketplace-name-that-keeps-going-plugins</span></span>
+    <span class="slots"><i class="slot on">CC</i><i class="slot">CX</i><i class="slot">CR</i><i class="slot">OC</i></span>
+    <span class="ver">10.14.2-rc.1</span><span class="rest"></span></div>
+</div></div>
+<p class="caption">
+  One line each, tail truncation, and the row height does not change — the full value is in the
+  inspector (§5, Overflow). The version column is monospace and sized for the longest realistic
+  semver plus an arrow.
+</p>
+
+<h2>11 · Success — in place, from what the router returned</h2>
+<p>
+  macOS does not toast a click. Promoting a held version replaces <code>2.2.0 → 2.3.0</code> in
+  <span class="m" style="color:var(--attn)">amber</span> with <code>2.3.0</code> in the ordinary
+  secondary tier, the row's Review button goes, and the "Held" filter's count drops by one — all
+  from the record the router returns, never from a local guess about what the write did.
+</p>
+
+<h2>12 · The skill inspector</h2>
+<div class="win"><div style="display:flex">
+  <div class="pane" style="flex:1;opacity:.4">
+    <div class="tr sel"><span class="tile">TR</span>
+      <span class="nm"><b>trawl</b><span class="src">fledgeling-plugins</span></span>
+      <span class="slots"><i class="slot on">CC</i><i class="slot on">CX</i><i class="slot on">CR</i><i class="slot">OC</i></span>
+      <span class="ver held">2.2.0 → 2.3.0</span><span class="rest"></span></div>
+  </div>
+  <div class="insp">
+    <div style="display:flex;gap:10px;align-items:center">
+      <span class="tile" style="width:46px;height:46px;border-radius:11px">TR</span>
+      <div><div style="font-size:15px;font-weight:600">trawl</div>
+        <div class="sb">fledgeling-plugins</div></div>
+    </div>
+    <div class="lbl">DESCRIPTION</div>
+    <div class="val">Mining past sessions for evidence about what happened or what was asked for.</div>
+    <div class="lbl">INSTALLED INTO</div>
+    <div class="val" style="line-height:19px">
+      Claude Code · Codex · Cursor<br>
+      <span style="color:var(--t3)">Not in opencode</span><br>
+      <span style="color:var(--t3)">Claude Desktop and ChatGPT have no skills mechanism</span>
+    </div>
+    <div class="lbl">VERSION</div>
+    <div class="val m">2.2.0 <span style="color:var(--attn)">· 2.3.0 held for review</span></div>
+    <div class="lbl">SOURCE</div>
+    <div class="val m" style="font-size:11px">github: fledgeling-co/fledgeling-plugins</div>
+    <div class="lbl">INSTALLED</div>
+    <div class="val m" style="font-size:11px">3 Jun 2026 · commit 423563c</div>
+    <div class="lbl">AUTO-UPDATE</div>
+    <div class="val">On for this marketplace</div>
+    <div style="margin-top:16px;display:flex;gap:6px">
+      <button class="btn p">Review 2.3.0…</button>
+      <button class="btn">Reveal in Finder</button>
+    </div>
+  </div>
+</div></div>
+<p class="caption">
+  The inspector is where the truncated values are readable in full, and where all six clients are
+  named — including the two with no mechanism, so their absence from the slot column is explained
+  rather than merely observed.
+</p>
+
+<h2>13 · Trust decays per version — the held-version review</h2>
+<p>
+  The brief's load-bearing rule: <strong>a new version is held when it wants more than the one
+  before it.</strong> A version whose capability surface is unchanged promotes on its own; a version
+  that adds a capability waits for a human. This sheet is what "waits for a human" looks like.
+</p>
+<div class="sheet">
+  <div style="font-size:17px;font-weight:700;margin-bottom:4px">trawl 2.3.0 wants more than 2.2.0</div>
+  <p style="font-size:13px;margin:0 0 10px">
+    It was fetched and is being kept aside rather than installed. Nothing has changed for any client
+    until you promote it.
+  </p>
+  <div class="delta">
+    <div class="same">&nbsp;&nbsp;reads&nbsp;&nbsp;~/.claude/projects/**</div>
+    <div class="add">+ runs&nbsp;&nbsp;&nbsp;scripts/collect.sh</div>
+    <div class="add">+ network api.fledgeling.app</div>
+  </div>
+  <p class="note" style="margin:0 0 14px">
+    Two capabilities are new. <code>scripts/collect.sh</code> is invoked by the skill body, and the
+    network host appears in a fetch directive.
+  </p>
+  <div style="display:flex;gap:6px;justify-content:flex-end">
+    <button class="btn">Keep 2.2.0</button>
+    <button class="btn">View changelog</button>
+    <button class="btn p">Promote to 2.3.0</button>
+  </div>
+</div>
+<p class="caption">
+  Cancel-equivalent leads, the one prominent action trails, and the destructive reading — promoting
+  something that wants more — is <em>not</em> phrased as the safe default (§3.4). The title states
+  the finding rather than asking a question.
+</p>
+<h3>The empty-delta case, which is the common one</h3>
+<div class="sheet">
+  <div style="font-size:17px;font-weight:700;margin-bottom:4px">design-craft updated to 1.15.0</div>
+  <p style="font-size:13px;margin:0 0 4px">
+    Its capabilities are unchanged from 1.14.0, so it was promoted without asking. Auto-update is on
+    for diolog-plugins.
+  </p>
+  <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:12px">
+    <button class="btn">Turn off auto-update</button>
+    <button class="btn">View changelog</button>
+  </div>
+</div>
+<p class="caption">
+  Reported, never silent — §9's "reversible actions are made reversible <em>and reported</em>". Auto-update
+  is a visible toggle and its state is stated at the moment it acts, which is the only moment the
+  user is thinking about it.
+</p>
+
+<h2>14 · Provenance — the upstream owner changed</h2>
+<div class="sheet">
+  <div style="font-size:17px;font-weight:700;margin-bottom:4px;color:var(--fail)">
+    changelog-writer changed hands</div>
+  <p style="font-size:13px;margin:0 0 10px">
+    When you installed it on 14 Feb 2026 this marketplace was <code>acme-tools/skills</code>. It now
+    resolves to <code>unknown-user/skills</code>. The code you have has not changed, and no update
+    will be taken from it until you decide.
+  </p>
+  <div style="display:flex;gap:6px;justify-content:flex-end">
+    <button class="btn">Keep it, stop updating</button>
+    <button class="btn">Remove the skill</button>
+    <button class="btn p">Trust the new owner</button>
+  </div>
+</div>
+<p class="caption">
+  A warning about supply chain, phrased as a fact and a decision rather than an alarm. It states what
+  is still true ("the code you have has not changed") because the failure mode of a security banner
+  is panic, and the row's amber marker is a marker, never the only signal.
+</p>
+
+<h2>15 · Marketplaces — add, remove, see what each supplies</h2>
+<div class="sheet" style="max-width:640px">
+  <div style="font-size:17px;font-weight:700;margin-bottom:2px">Marketplaces</div>
+  <div class="sb" style="margin-bottom:12px">8 followed · 14 skills supplied</div>
+  <div class="tr" style="border-radius:0">
+    <span class="nm" style="width:210px"><b>fledgeling-plugins</b>
+      <span class="src m" style="font-size:10px">github: fledgeling-co/fledgeling-plugins</span></span>
+    <span style="width:120px;font-size:11px;color:var(--t2);font-weight:400">6 skills installed</span>
+    <span style="width:110px;font-size:11px;color:var(--t2);font-weight:400">Auto-update on</span>
+    <span class="rest"><button class="btn sm" disabled title="6 installed skills come from this marketplace. Remove them first.">Remove</button></span>
+  </div>
+  <div class="tr" style="border-radius:0">
+    <span class="nm" style="width:210px"><b>atlas-plugins</b>
+      <span class="src m" style="font-size:10px">directory: ~/Dev/atlas-app/apps/atlas-plugins</span></span>
+    <span style="width:120px;font-size:11px;color:var(--t2);font-weight:400">Supplies nothing</span>
+    <span style="width:110px;font-size:11px;color:var(--t3);font-weight:400">Local directory</span>
+    <span class="rest"><button class="btn sm">Remove</button></span>
+  </div>
+  <div class="tr" style="border-radius:0;border-bottom:0">
+    <span class="nm" style="width:210px"><b>last30days-skill</b>
+      <span class="src m" style="font-size:10px">github: mvanhorn/last30days-skill</span></span>
+    <span style="width:120px;font-size:11px;color:var(--t2);font-weight:400">1 skill installed</span>
+    <span style="width:110px;font-size:11px;color:var(--t2);font-weight:400">Auto-update off</span>
+    <span class="rest"><button class="btn sm" disabled>Remove</button></span>
+  </div>
+  <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:14px">
+    <button class="btn p">Add a marketplace…</button>
+  </div>
+</div>
+<p class="caption">
+  "Supplies nothing" is a real observation about a followed marketplace with no installed skills, and
+  is not the same as an error. Removing a marketplace that supplies installed skills is disabled with
+  the count in its reason — the count is observed, and removal is not made destructive by hiding it.
+</p>
+
+<h3>Add a marketplace</h3>
+<div class="sheet">
+  <div style="font-size:17px;font-weight:700;margin-bottom:8px">Add a marketplace</div>
+  <div style="background:var(--raised);border:1px solid var(--lineS);border-radius:6px;
+              padding:6px 9px;font-family:'SF Mono',monospace;font-size:12px;color:var(--t3)">
+    owner/repo, or a folder on this Mac</div>
+  <p class="note" style="margin:6px 0 0">
+    Following a marketplace lets it put executable instructions in front of your agents. Skills from a
+    new marketplace are held for review the first time, whatever your auto-update setting.
+  </p>
+  <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:14px">
+    <button class="btn">Cancel</button><button class="btn p">Add marketplace</button>
+  </div>
+</div>
+<p class="caption">
+  One quiet secondary sentence of helper text under its control (§6). It names the blast radius
+  plainly, without emoting, and states the mitigation in the same breath.
+</p>
+
+<h2>16 · The keyboard and the menu bar</h2>
+<table class="k">
+  <tr><th>Key</th><th>On this board</th></tr>
+  <tr><td><code>⌘3</code></td><td>Select Skills (already bound by M1's <code>Destination.selectionDigit</code>)</td></tr>
+  <tr><td><code>⌘F</code></td><td>Focus the filter field</td></tr>
+  <tr><td><code>Return</code></td><td>Review the selected skill's held version, when it has one — the view's one default action</td></tr>
+  <tr><td><code>Esc</code></td><td>Dismisses the sheet, then clears the selection</td></tr>
+  <tr><td><code>↑ ↓</code></td><td>Move the selection</td></tr>
+  <tr><td><code>Space</code></td><td>Nothing on this board. §8 gives it the selected row's breaker, and a skill has no breaker; binding it to something else here would teach two habits for one key.</td></tr>
+  <tr><td><code>⌘N</code></td><td>Stays "Add server…" — it is the shell's, not this board's</td></tr>
+</table>
+<p class="note">
+  New menu items, in the existing menus rather than a new one: <em>Skills → Manage marketplaces…</em>,
+  <em>Skills → Add a marketplace…</em>, <em>Skills → Review held version</em> (disabled with a reason
+  when the selection has none). §3.9 — the menu bar is the complete command surface.
+</p>
+
+<h2>17 · Motion</h2>
+<table class="k">
+  <tr><th>Moment</th><th>Feel</th></tr>
+  <tr><td>Held count changing in the segmented filter</td><td>a small scale bump, never a colour flash (§7)</td></tr>
+  <tr><td>Review sheet entry</td><td>materialises from the row it belongs to, never a centre fade</td></tr>
+  <tr><td>Row selection</td><td>immediate, no transition on the selection fill</td></tr>
+  <tr><td>A promoted row losing its amber arrow</td><td>opacity and transform only; the state change happens with Reduce Motion on, only the animation goes</td></tr>
+</table>
+<p class="note">Nothing on this board animates opacity from 0 on entry.</p>
+
+<h2>18 · The nine states, and where each is met</h2>
+<table class="k">
+  <tr><th>State</th><th>Where</th></tr>
+  <tr><td>Default</td><td>§1 — the table</td></tr>
+  <tr><td>Empty</td><td>§3 — illustration, one sentence, one action</td></tr>
+  <tr><td>Loading</td><td>§4 — skeleton at the populated row's exact height</td></tr>
+  <tr><td>Partial</td><td>§5 — a client's directory unreadable; dashed slot, banner naming the path and reason</td></tr>
+  <tr><td>Error</td><td>§7 — including the version-skew case, which is this item's likeliest error</td></tr>
+  <tr><td>Success</td><td>§11 — in place, from the router's returned record</td></tr>
+  <tr><td>Offline</td><td>§6 — <code>routerNotRunning</code>, its own pane, its own two strings</td></tr>
+  <tr><td>Disabled</td><td>§9 — six controls, each with the reason it shows</td></tr>
+  <tr><td>Overflow</td><td>§10 — one line, tail truncation, fixed row height, full value in the inspector</td></tr>
+</table>
+
+<h2>19 · Deferred, with a named future source</h2>
+<table class="k">
+  <tr><th>Deferred</th><th>Absorbed by</th><th>What would have to exist first</th></tr>
+  <tr><td>Skill run count and last run</td><td>a new item</td><td>The router would have to read per-client session transcripts, which it does not do for anything today. It is a real feature and a real cost, and it is not a column.</td></tr>
+  <tr><td>Eval result per skill</td><td>M7 (Evals)</td><td>An eval runner. M7 owns it and already depends on M4.</td></tr>
+  <tr><td>Installing a skill from the board</td><td>M5 (Discover)</td><td>Discover is the surface where something is chosen; this board manages what is already there.</td></tr>
+  <tr><td>Per-skill auto-update</td><td>a new item</td><td>The real field is per-marketplace. Per-skill would need a store the router does not have, and inventing one to match a mock is the wrong direction.</td></tr>
+</table>

@@ -193,3 +193,71 @@ struct RegistryEnrichmentTests {
         #expect(encoded.contains { !$0.contains("install") })
     }
 }
+
+/// URL resolution and cache-file stability — both found by auditing `RegistrySearch` against
+/// `src/registry.ts` after the out-of-family critic lane failed twice and the pass fell back
+/// in-family. Both are behaviours `new URL(path, base)` has and string concatenation does not.
+struct RegistryURLTests {
+    private func json(_ text: String) -> HTTPFetchResult {
+        HTTPFetchResult(status: 200, body: Data(text.utf8))
+    }
+
+    @Test("an absolute path discards the base's own path, as new URL(path, base) does")
+    func absolutePathDiscardsBasePath() async throws {
+        let http = StubHTTP()
+        http.routes = [(prefix: "https://", result: .success(json(#"{"servers":[]}"#)))]
+        let deps = RegistryDeps(
+            http: http, fileSystem: MemoryFS(), routerHome: "/home",
+            officialBase: "https://host/ignored", smitheryBase: "https://host2/also-ignored",
+            nowMs: 0
+        )
+        _ = try await Registry.search(query: "", limit: 30, deps: deps)
+        // Node: new URL("/v0/servers", "https://host/ignored") -> https://host/v0/servers
+        #expect(http.requested.contains { $0.hasPrefix("https://host/v0/servers?") })
+        #expect(http.requested.contains { $0.hasPrefix("https://host2/servers?") })
+        #expect(!http.requested.contains { $0.contains("ignored") })
+    }
+
+    @Test("an empty base is preserved and then fails as an Invalid URL, matching the reference's TypeError")
+    func emptyBaseIsInvalidNotDefaulted() async throws {
+        let http = StubHTTP()
+        let deps = RegistryDeps(
+            http: http, fileSystem: MemoryFS(), routerHome: "/home",
+            officialBase: "", smitheryBase: "", nowMs: 0
+        )
+        let out = try await Registry.search(query: "", limit: 30, deps: deps)
+        // `??` is nullish, so "" is used as given and `new URL` throws rather than defaulting.
+        #expect(out.warnings == [
+            "official registry unreachable: Invalid URL",
+            "Smithery unreachable: Invalid URL"
+        ])
+        #expect(http.requested.isEmpty)
+    }
+
+    @Test("a refreshed cache entry keeps its slot, so the cache file does not reorder each run")
+    func cacheKeepsKeySlot() async throws {
+        let filesystem = MemoryFS()
+        let now: Double = 100_000_000
+        filesystem.files["/home/github-cache.json"] = Data(#"""
+        {"acme/stale":{"stars":1,"at":0},"acme/other":{"stars":2,"at":\#(JSNumber.string(now))}}
+        """#.utf8)
+        let http = StubHTTP()
+        http.routes = [
+            (prefix: "https://official", result: .success(json(#"""
+            {"servers":[{"server":{"name":"a/s","repository":{"url":"https://github.com/acme/stale"}}}]}
+            """#))),
+            (prefix: "https://smith", result: .success(json(#"{"servers":[]}"#))),
+            (prefix: "https://api.github.com", result: .success(json(#"{"stargazers_count":50}"#)))
+        ]
+        let deps = RegistryDeps(
+            http: http, fileSystem: filesystem, routerHome: "/home",
+            officialBase: "https://official", smitheryBase: "https://smith", nowMs: now
+        )
+        _ = try await Registry.search(query: "", limit: 30, deps: deps)
+        let written = String(bytes: filesystem.files["/home/github-cache.json"] ?? Data(), encoding: .utf8) ??
+            ""
+        // The refreshed key stays first; re-appending would have moved it behind "acme/other".
+        #expect(written.hasPrefix(#"{"acme/stale":"#))
+        #expect(written.contains(#""stars":50"#))
+    }
+}

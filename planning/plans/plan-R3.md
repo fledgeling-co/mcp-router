@@ -330,3 +330,24 @@ specify even where the handler implements it. The ones that are genuinely undone
 - **29 — B75's vector/mutation manifest is not written**, and `PARITY-VECTORS-EXECUTED` is still
   224, so **B76 is not met**.
 
+### Phase D completeness critic — LANE FAILURE, downgraded in-family
+
+Two attempts, both `gpt-5.6-sol` at `max`, both with the wire header verified and both returning
+**no `-o` file**: `/tmp/gate-R3-phaseD{,2}.log`. The cause is diagnosed rather than guessed — the
+model announced *"I'm using the code-review skill"* and emitted that skill's own workflow
+documentation instead of the audit. The second attempt prefixed an explicit instruction to ignore
+every `AGENTS.md`, `CLAUDE.md` and skill file in the repository, and it was hijacked the same way.
+An empty `-o` is a lane failure, never a pass, so **the gate is recorded as failed and downgraded
+in-family**, which is materially weaker evidence: it is Claude auditing Claude, exactly the thing
+the out-of-family gate exists to avoid. Anyone re-running this item should treat R3 as **not
+having had an independent completeness review**.
+
+The in-family pass read `RegistrySearch.swift` against `src/registry.ts` and found three real
+divergences, all fixed and red-green proven:
+
+| Divergence | Reference | Was |
+|---|---|---|
+| `new URL('/v0/servers', base)` — an **absolute** path discards the base's own path | `https://h/x` → `https://h/v0/servers` | string concatenation kept `/x`, so a base carrying a path queried the wrong URL |
+| An empty base **throws** `TypeError: Invalid URL` rather than defaulting | B59 preserves `""`; `new URL('/v0/servers','')` throws, and the message reaches the warning | `""` produced a relative URL and a stub-dependent failure |
+| `cache[key] = rec` overwrites **in place** | the refreshed key keeps its slot | remove-and-append moved it to the end, rewriting the cache file's order every run |
+

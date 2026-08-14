@@ -116,7 +116,7 @@ a time. A clause is read as if each of these were appended to it.
 | B9 | `usage` is `statFor(name)` passed through **unchanged**, including members this item does not model, or exactly `{calls:0,errors:0,projects:{}}` when nullish | round-trip test with an extra member present |
 | B10 | **Env and header VALUES never appear in any response.** A stdio row exposes only `command`, `args`, optional `cwd` and `envKeys`; an HTTP row only `url` and `headerKeys`. Asserted by planting a canary secret in `env` and `headers` and scanning **every** response body this item can emit | red-green test with a canary, swept over all endpoints |
 | B11 | The response envelope is `content-type: application/json`, `content-length` as the **UTF-8 byte** count, `cache-control: no-store`, no `Access-Control-Allow-Origin`, and the status the branch specifies | exercised request with a non-ASCII body proving the byte length |
-| B12 | Every error body is exactly the one-member object `{"error": <string>}` — no extra members, no null-valued members | byte test per error branch |
+| B12 | Every error body is exactly the one-member object `{"error": <string>}` — no extra members, no null-valued members. **Scoped to the generic error branches only**; B28's 422 `{error, hint}` and B33's `{name, tools, error}` are the two enumerated exceptions (see the amendment below) | byte test per error branch |
 | B13 | `GET /servers` matches both recorded envelopes and is rebuilt from `cfg.port`, `cfg.idleMs`, `usage.summary().since`, a fresh `currentFlow()` and a snapshot of the live upstream map **in map order** | fixture tests + a differential sweep mutating each source independently (S6) |
 
 ### B — the token gate and dispatch

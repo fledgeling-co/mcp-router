@@ -117,6 +117,22 @@ public extension Registry {
         return Array(rows.prefix(Int(end)))
     }
 
+    /// `new URL(absolutePath, base)` — an **absolute** path discards the base's own path, so a
+    /// base of `https://h/x` yields `https://h/v0/servers`, not `https://h/x/v0/servers`. An
+    /// unparseable base (including `""`, which B59 preserves rather than defaulting) throws the
+    /// same `TypeError` the reference does, and the message reaches the warning verbatim.
+    private static func resolve(base: String, absolutePath: String, query: [String]) throws -> String {
+        guard let scheme = base.range(of: "://"), !base.hasPrefix("://") else {
+            throw HTTPFetchError(message: "Invalid URL")
+        }
+        let afterScheme = base[scheme.upperBound...]
+        let authority = afterScheme.prefix { $0 != "/" && $0 != "?" && $0 != "#" }
+        guard !authority.isEmpty else { throw HTTPFetchError(message: "Invalid URL") }
+        let origin = base[base.startIndex ..< scheme.upperBound] + authority
+        let suffix = query.isEmpty ? "" : "?" + query.joined(separator: "&")
+        return origin + absolutePath + suffix
+    }
+
     private static func message(of error: Error) -> String {
         (error as? HTTPFetchError)?.message ?? "\(error)"
     }
@@ -139,12 +155,11 @@ public extension Registry {
         limit: Double,
         deps: RegistryDeps
     ) async throws -> [JSObjectDraft] {
-        var url = "\(deps.official)/v0/servers"
         var parameters: [String] = []
         // `if (q) u.searchParams.set('search', q)` — ToBoolean, so an empty query sets nothing.
         if !query.isEmpty { parameters.append("search=\(percentEncode(query))") }
         parameters.append("limit=\(JSNumber.string(limit))")
-        url += "?" + parameters.joined(separator: "&")
+        let url = try resolve(base: deps.official, absolutePath: "/v0/servers", query: parameters)
 
         let body = try await getJSON(url, deps: deps)
         let servers = body.asObjectMembers?.first { $0.key == JSString("servers") }?.value.asArray ?? []
@@ -156,11 +171,10 @@ public extension Registry {
         limit: Double,
         deps: RegistryDeps
     ) async throws -> [JSObjectDraft] {
-        var url = "\(deps.smithery)/servers"
         var parameters: [String] = []
         if !query.isEmpty { parameters.append("q=\(percentEncode(query))") }
         parameters.append("pageSize=\(JSNumber.string(limit))")
-        url += "?" + parameters.joined(separator: "&")
+        let url = try resolve(base: deps.smithery, absolutePath: "/servers", query: parameters)
 
         let body = try await getJSON(url, deps: deps)
         let servers = body.asObjectMembers?.first { $0.key == JSString("servers") }?.value.asArray ?? []
@@ -235,8 +249,13 @@ public extension Registry {
             record.set("pushedAt", field("pushed_at"))
             record.set("archived", field("archived"))
             record.set("at", .number(deps.nowMs))
-            cache.removeAll { $0.key == key }
-            cache.append(JSONMember(key: key, value: record.jsonValue))
+            // `cache[key] = rec` overwrites **in place**; removing and re-appending would move
+            // the key to the end and rewrite the cache file in a different order each run.
+            if let at = cache.firstIndex(where: { $0.key == key }) {
+                cache[at] = JSONMember(key: key, value: record.jsonValue)
+            } else {
+                cache.append(JSONMember(key: key, value: record.jsonValue))
+            }
             apply(record.jsonValue.asObjectMembers ?? [], to: &rows[index])
         }
 

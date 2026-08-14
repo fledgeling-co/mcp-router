@@ -109,10 +109,16 @@
                 // Focuses the search on the board you are looking at. Before the Skills board
                 // existed this always selected Servers, which was right when Servers was the only
                 // board and becomes wrong the moment there are two: `⌘F` on Skills would have
-                // navigated away from the pane the user was filtering.
-                if model?.selection == .skills {
+                // navigated away from the pane the user was filtering. Discover is the third, and
+                // its search is a *query to two third-party indexes* rather than a local filter —
+                // so `⌘F` navigating off it would not merely move the focus, it would abandon a
+                // search the user is composing.
+                switch model?.selection {
+                case .skills:
                     model?.skillsBoard.requestSearchFocus()
-                } else {
+                case .discover:
+                    model?.discoverBoard.requestSearchFocus()
+                default:
                     model?.select(.servers)
                     model?.serversBoard.focusSearch()
                 }

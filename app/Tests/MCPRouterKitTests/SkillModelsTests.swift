@@ -198,3 +198,72 @@ struct SkillModelsTests {
         #expect(loudUpdate.needsAttention)
     }
 }
+
+/// How the client reads a router that predates this feature.
+///
+/// The most likely real answer to `GET /skills` today is **404**, because the TypeScript router is
+/// the installed default and no version of it serves skills. Every other path on this client turns
+/// a non-2xx into `server(status:message:hint:)`, whose headline is "The router couldn't complete
+/// that" — the wrong sentence for "this router does not have the feature", and one the board's spec
+/// never allows. This suite is the proof that the mapping exists, because it is the difference
+/// between an accurate version-skew message and a confusing one for every current user.
+@Suite("Skills reads map 404 to version skew")
+struct SkillsNotFoundMappingTests {
+    /// A client pointed at a stub, with the token already stored so no file is consulted.
+    private func client(_ stub: HTTPStub) -> LiveControlAPIClient {
+        LiveControlAPIClient(
+            baseURL: stub.baseURL,
+            session: URLSession(configuration: .ephemeral),
+            store: InMemoryTokenStore("test-token"),
+            tokenFile: RouterTokenFile(url: URL(fileURLWithPath: "/nonexistent/control.token"))
+        )
+    }
+
+    @Test("GET /skills answering 404 reads as malformedResponse, not a server error")
+    func skillsNotFoundIsVersionSkew() async throws {
+        let stub = try HTTPStub()
+        stub.on("GET", "/skills", .json(404, #"{"error":"not found"}"#))
+        let subject = client(stub)
+
+        await #expect(throws: ControlAPIError
+            .malformedResponse(detail: "this router has no /skills endpoint"))
+        {
+            _ = try await subject.skills()
+        }
+    }
+
+    @Test("GET /marketplaces answering 404 does the same")
+    func marketplacesNotFoundIsVersionSkew() async throws {
+        let stub = try HTTPStub()
+        stub.on("GET", "/marketplaces", .json(404, #"{"error":"not found"}"#))
+        let subject = client(stub)
+
+        await #expect(
+            throws: ControlAPIError.malformedResponse(detail: "this router has no /marketplaces endpoint")
+        ) {
+            _ = try await subject.marketplaces()
+        }
+    }
+
+    @Test("A 500 is still a server error — only 404 means version skew")
+    func otherStatusesAreUntouched() async throws {
+        let stub = try HTTPStub()
+        stub.on("GET", "/skills", .json(500, #"{"error":"discovery failed"}"#))
+        let subject = client(stub)
+
+        // The narrowing matters: mapping every failure to version skew would hide a router that is
+        // present and broken behind a message about versions.
+        await #expect(throws: ControlAPIError.server(status: 500, message: "discovery failed")) {
+            _ = try await subject.skills()
+        }
+    }
+
+    @Test("The version-skew message is the one the surfaces actually render")
+    func theCopyIsTheDesignedCopy() {
+        let error = ControlAPIError.malformedResponse(detail: "this router has no /skills endpoint")
+        #expect(error.headline == "The router sent a response this version doesn't understand")
+        #expect(error.advice.contains("newer or older than this app"))
+        // No action, because there is nothing the user can do about a version difference from here.
+        #expect(error.actionLabel == nil)
+    }
+}

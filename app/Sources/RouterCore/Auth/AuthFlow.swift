@@ -70,8 +70,14 @@ public actor AuthFlowCoordinator {
     /// The reference's `cleanup`: clear the timer, close the listener, close the transport, and
     /// clear `current` **only when it is still this flow** (B96).
     ///
-    /// It deliberately does **not** settle. That is what makes a superseded flow's completion hang
-    /// forever in the reference, and B85 requires the same here.
+    /// It deliberately does **not** settle with success or failure. What it does do is release any
+    /// observer as `abandoned`, which is the faithful Swift equivalent of the reference's dangling
+    /// promise: in JavaScript the superseded `completed` is never settled but is made inert by
+    /// `completed.catch(() => undefined)` (`auth.ts:198`), so nothing runs and nothing is stranded.
+    /// A Swift `CheckedContinuation` dropped un-resumed is NOT inert — it emits
+    /// `SWIFT TASK CONTINUATION MISUSE` and suspends its awaiting task forever. Resuming with a
+    /// distinguished `abandoned` outcome that every observer ignores is observationally identical to
+    /// the reference (no side effect, no warn line) without leaking a task.
     private func cleanup(server: JSString) async {
         guard let running = current, running.server == server else {
             // A late cleanup from a flow that has already been replaced. Tear down nothing that
@@ -81,6 +87,7 @@ public actor AuthFlowCoordinator {
         running.timeoutTask?.cancel()
         await running.listener.stop()
         await running.transport.close()
+        running.completion?.resume(throwing: AuthAbandoned())
         current = nil
     }
 

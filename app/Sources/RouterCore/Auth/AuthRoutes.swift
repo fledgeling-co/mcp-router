@@ -54,6 +54,9 @@ public enum AuthRoutes {
                 do {
                     try await awaitCompletion()
                     await sink.onAuthorized(server: server)
+                } catch is AuthAbandoned {
+                    // Superseded. The reference runs neither `.then` nor `.catch` here, so this
+                    // must produce no side effect and no warn line — B85.
                 } catch {
                     let reason = (error as? AuthFailure)?.message ?? error.localizedDescription
                     await sink.onIncomplete(server: server, reason: reason)

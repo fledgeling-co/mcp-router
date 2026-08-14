@@ -157,3 +157,12 @@ public struct AuthFailure: Error, Sendable, Equatable, CustomStringConvertible {
 
     public var description: String { message }
 }
+
+/// A flow that was superseded, and whose observer must therefore do **nothing**.
+///
+/// Not a failure: the reference's superseded `completed` neither resolves nor rejects, so neither
+/// its side-effect nor its warn ever runs. This type is how that "no outcome at all" is expressed
+/// without leaking a Swift continuation — see `AuthFlowCoordinator.cleanup`.
+public struct AuthAbandoned: Error, Sendable, Equatable {
+    public init() {}
+}

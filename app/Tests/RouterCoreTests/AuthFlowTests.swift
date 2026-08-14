@@ -40,9 +40,13 @@ struct AuthFlowTests {
         let settled = SettledFlag()
         Task {
             do {
-                try await coordinator.awaitCompletion(server: JSString("alpha")); await settled
-                    .set("resolved")
-            } catch { await settled.set("rejected") }
+                try await coordinator.awaitCompletion(server: JSString("alpha"))
+                await settled.set("resolved")
+            } catch is AuthAbandoned {
+                await settled.set("abandoned")
+            } catch {
+                await settled.set("rejected")
+            }
         }
         try await Task.sleep(nanoseconds: 50_000_000)
 
@@ -51,10 +55,12 @@ struct AuthFlowTests {
 
         // Bounded wait: silence is the assertion.
         try await Task.sleep(nanoseconds: 250_000_000)
-        #expect(
-            await settled.value() == nil,
-            "the superseded flow settled; the reference's cleanup never calls settle"
-        )
+        // The reference neither resolves nor rejects a superseded flow — nothing runs. The Swift
+        // equivalent must release the observer (a dropped continuation strands its task forever and
+        // trips SWIFT TASK CONTINUATION MISUSE) with an outcome that produces no side effect and no
+        // warn. "abandoned" is that outcome; "resolved" or "rejected" would both be divergences.
+        let outcome = await settled.value()
+        #expect(outcome == "abandoned", "got: \(String(describing: outcome))")
         #expect(await firstListener.stopped, "but it IS torn down")
         #expect(await firstTransport.closed)
         #expect(await coordinator.currentFlow()?.server == JSString("beta"))

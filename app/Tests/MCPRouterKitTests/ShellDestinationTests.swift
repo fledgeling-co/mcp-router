@@ -31,22 +31,25 @@ struct ShellDestinationTests {
         }
     }
 
-    /// The clause this suite exists for. `DESIGN.md` §6: no number the router does not observe.
+    /// The clause this suite exists for. `DESIGN.md` §6: no number nobody observed.
     ///
-    /// The prototype draws a badge on Skills and on Inbox. `ControlAPIClient` exposes no skills
-    /// endpoint at all, and Inbox means the phone's review queue (§9), which the router does not
-    /// serve. A count on either would have to be invented, so both must stay sourceless — and this
-    /// test is what stops one being added because it looked plausible.
-    @Test("only destinations with a router-observed source may carry a badge")
-    func badgeSourcesAreOnlyWhatTheRouterObserves() {
+    /// **Inbox's source changed in M6, and the reason it was `nil` is why.** The prototype draws a
+    /// badge on Skills and on Inbox. It stays forbidden on Skills — `ControlAPIClient` exposes no
+    /// skills endpoint at all, so a count there would be invented outright. Inbox was forbidden on
+    /// the same grounds *while nothing counted the queue*; M6 builds the queue into the app, so the
+    /// count is now an observation the app makes directly. That is a change of provenance, not a
+    /// relaxation, and the assertion below is stronger than the one it replaces: the source must be
+    /// the app-held queue specifically, so a later edit cannot quietly point Inbox at a server field.
+    @Test("only destinations with an observed source may carry a badge")
+    func badgeSourcesAreOnlyWhatIsObserved() {
         #expect(Destination.servers.badgeSource == .serversNeedingAttention)
         #expect(Destination.cleanup.badgeSource == .serversNeverUsed)
+        #expect(
+            Destination.inbox.badgeSource == .queuedFromPhone,
+            "the inbox counts the app's own queue, never anything the router serves"
+        )
 
         #expect(Destination.skills.badgeSource == nil, "the control API exposes no skills endpoint")
-        #expect(
-            Destination.inbox.badgeSource == nil,
-            "the inbox is the phone's queue; the router serves none"
-        )
 
         for destination in [Destination.activity, .discover, .evals, .settings] {
             #expect(destination.badgeSource == nil, "\(destination.title) has no observed source")

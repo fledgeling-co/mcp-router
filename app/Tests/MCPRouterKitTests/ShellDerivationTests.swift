@@ -71,7 +71,13 @@ struct ShellDerivationTests {
     // MARK: - Badges
 
     /// A13, in the direction that actually goes wrong: someone adds a plausible count to a row.
-    @Test("only Servers and Cleanup can produce a badge, whatever they are handed")
+    ///
+    /// **The Inbox assertion below got stronger in M6, not weaker.** Inbox now has a `badgeSource`,
+    /// so it no longer falls into the loop over sourceless destinations — and the explicit line
+    /// asserting it produces nothing from `[MCPServer]` is now the load-bearing one: it says the
+    /// inbox badge is *not* derived from server data, which is exactly the fabrication that would
+    /// occur if someone wired `.queuedFromPhone` to a plausible-looking server field.
+    @Test("only Servers and Cleanup can produce a badge from server data, whatever they are handed")
     func onlyTwoDestinationsCanBadge() async throws {
         let servers = try await Self.servers(from: "servers")
         for destination in Destination.allCases where destination.badgeSource == nil {

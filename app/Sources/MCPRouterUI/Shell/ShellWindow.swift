@@ -62,19 +62,21 @@
         }
     }
 
-    /// The content zone: the board where one has shipped, the honest placeholder where none has, and
-    /// the scroll-edge separator where it meets the toolbar.
+    /// The content zone: the board for the selected destination, and the scroll-edge separator where
+    /// it meets the toolbar.
+    ///
+    /// **There is no placeholder branch any more.** Every destination has a board as of M6, so the
+    /// `ScaffoldedDestination` check that used to lead this view has nothing to construct and the
+    /// type itself is gone. What replaced it as the guarantee is the exhaustive `switch` below: a
+    /// destination added to `Destination` fails to compile here until someone draws it, which is a
+    /// stronger control than a placeholder was — the placeholder let an unhandled destination ship
+    /// looking deliberate.
     struct ContentZone: View {
         @Bindable var model: ShellModel
 
         var body: some View {
             Group {
-                if let scaffolded = ScaffoldedDestination(model.selection) {
-                    outerScroll {
-                        ScaffoldPane(scaffolded: scaffolded)
-                            .frame(minHeight: MetricToken.sidebar.leadingScalar)
-                    }
-                } else if Self.boardsThatScrollThemselves.contains(model.selection) {
+                if Self.boardsThatScrollThemselves.contains(model.selection) {
                     // A board that draws a column header or a filter bar has to keep them put while
                     // its rows move — one outer scroll would carry the header off the top of a
                     // five-hundred-row log. Such a board owns its own `ScrollView` and reports its
@@ -82,8 +84,7 @@
                     // identically over every branch rather than being a thing only some panes have.
                     board
                 } else {
-                    // A board with no sticky chrome of its own scrolls in the shell's scroll view,
-                    // exactly as the placeholder does.
+                    // A board with no sticky chrome of its own scrolls in the shell's scroll view.
                     outerScroll { board }
                 }
             }
@@ -152,9 +153,9 @@
 
         /// The board for the selected destination.
         ///
-        /// Reached only when `ScaffoldedDestination` refused to construct, which is exactly when
-        /// `BoardRegistry.installed` contains the destination — so a board and its placeholder can
-        /// never both be reachable, and neither can neither.
+        /// Exhaustive over `Destination` with no `default`, which is now the shell's only guarantee
+        /// that every destination draws something: a case added later stops this compiling, at the
+        /// moment someone should be deciding what it looks like.
         @ViewBuilder
         private var board: some View {
             switch model.selection {
@@ -163,9 +164,6 @@
                     model.observeScroll(previous: previous, offset: offset)
                 }
             case .servers:
-                // `ScaffoldedDestination` returning nil is the structural proof that this
-                // destination has a surface, so there is no placeholder to fall back to and none
-                // is written.
                 ServersBoard(shell: model, board: model.serversBoard)
             case .skills:
                 SkillsBoard(shell: model, board: model.skillsBoard)
@@ -178,12 +176,7 @@
             case .cleanup:
                 CleanupBoard(board: model.cleanupBoard)
             case .inbox:
-                // Unreachable: this is still in `scaffolded`, and the branch in
-                // `body` catches it. Deliberately not a second placeholder — a placeholder here
-                // is the very thing `ScaffoldedDestination` exists to make impossible. M6
-                // replaces this last case, and the exhaustive switch is what makes each
-                // one visible.
-                EmptyView()
+                InboxBoard(board: model.inboxBoard)
             }
         }
     }

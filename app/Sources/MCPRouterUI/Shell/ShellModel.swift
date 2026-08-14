@@ -97,6 +97,34 @@
         @ObservationIgnored public private(set) lazy var cleanupBoard: CleanupBoardModel =
             .init(client: client)
 
+        /// The Inbox board's state, and the pairing session hanging off it.
+        ///
+        /// Owned here for the reasons every board model is — a menu command reaches a window through
+        /// `@FocusedValue`, and `Pair iPhone…` is a File-menu command that has to reach a live
+        /// session. There is one more reason specific to this board: the pairing session runs a
+        /// one-second ticker while a code is alive, and a model rebuilt on every render would leave
+        /// that ticker running against a model nobody reads.
+        ///
+        /// **Stored rather than `lazy`, and that difference is a bug fix rather than a style
+        /// choice.** Every other board here is `lazy` and gets away with it because it is touched
+        /// only by `ContentZone`, for the *selected* destination. This one is different:
+        /// `badge(for:)` asks it for a count and the sidebar calls `badge(for:)` for all eight
+        /// destinations on every render, so a `lazy var` here initialises *during* a view's body —
+        /// and initialising lazy storage **mutates** this `@Observable` object, which invalidates
+        /// the view currently being evaluated.
+        ///
+        /// Measured on 2026-08-15 against this build: with `inboxBoard` lazy the window came up
+        /// **0 × 0** and the accessibility tree reported no window at all, while the same launch on
+        /// `main` gave the expected 980 × 620. The app was running and its `CGWindowList` entry was
+        /// present and correctly titled — only its bounds were zero, which is what an unfinished
+        /// layout pass looks like from outside. Every unit test passed throughout, and `make
+        /// build-mac` succeeded: only the rendered lane could see it.
+        ///
+        /// Constructing it here costs nothing. Both services are trivial values, and the host name
+        /// is no longer resolved at init. The service comes from `ShellPairingFactory`, which is
+        /// where the Release-never-renders-a-fixture rule lives.
+        @ObservationIgnored public let inboxBoard: InboxBoardModel
+
         /// The readout's numbers and the condition it is in.
         public private(set) var readout = ReadoutModel()
 
@@ -177,6 +205,7 @@
         ) {
             self.client = client
             self.eventSource = eventSource
+            inboxBoard = InboxBoardModel(client: client, service: ShellPairingFactory.makeService())
             // Poll-only, and at the shell's own stated cadence rather than the tracker's default —
             // A16 requires the refresh rate the surface actually runs at to be the one named.
             tracker = ServerStateTracker(
@@ -260,11 +289,6 @@
         }
 
         // MARK: - What the views ask it
-
-        /// This destination's badge, or nil where it may not have one.
-        public func badge(for destination: Destination) -> Int? {
-            destination.badgeCount(from: servers)
-        }
 
         /// The footer's trace line, at the current instant.
         public func traceLabel() -> String? {

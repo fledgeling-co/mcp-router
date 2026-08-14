@@ -64,7 +64,10 @@
                 "install returns AddedServer — the row gains `installed` and the sheet's action becomes Added"
             case .offline: "ControlAPIError.routerNotRunning, in either failed or stale"
             case .disabled:
-                "a scoped ordering segment with an empty universe; the sheet's action when installed or uninstallable"
+                """
+                a scoped ordering segment with an empty universe; the sheet's action when \
+                installed or uninstallable
+                """
             case .overflow: "DiscoverBoardRow — one line per field, tail truncation, fixed row height"
             }
         }

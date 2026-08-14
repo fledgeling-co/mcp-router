@@ -22,7 +22,7 @@
     ///   can return after a query typed a second later and repaint the board with the whole
     ///   catalogue while the field reads `postgres`. A cold call can take minutes (two index calls at
     ///   a 12-second timeout plus up to ten sequential GitHub fetches), so that window is wide.
-    /// - A cancelled URLSession request surfaces as `ControlAPIError.transport`. Writing that to
+    /// - A cancelled transport request surfaces as `ControlAPIError.transport`. Writing that to
     ///   `state` would raise an error banner for a request the *user* superseded, so a superseded
     ///   result is discarded before its error is ever read.
     ///

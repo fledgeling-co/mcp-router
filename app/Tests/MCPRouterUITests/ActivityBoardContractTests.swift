@@ -185,15 +185,18 @@
             #expect(ScaffoldedDestination(.activity) == nil, "the placeholder cannot be built for it")
 
             // This read `installed == [.activity]` while M2 was the only board on the branch. M3
-            // then merged, M4 after it, and M8 after that — asserted exactly rather than by
-            // containment, so a board appearing or vanishing here is a deliberate edit rather than
-            // something a subset check waves through.
-            #expect(BoardRegistry.installed == [.servers, .activity, .skills, .settings])
-            #expect(BoardRegistry.scaffolded.count == 4)
-            // `.discover` rather than `.skills`: M4 installed Skills, so it no longer builds a
-            // placeholder. The subject has to be a destination that is still scaffolded, or this
-            // stops testing what it names.
-            #expect(ScaffoldedDestination(.discover) != nil, "a scaffolded destination still builds one")
+            // then merged, M4 after it, M8 after that, and M5 after that — asserted exactly rather
+            // than by containment, so a board appearing or vanishing here is a deliberate edit
+            // rather than something a subset check waves through.
+            #expect(BoardRegistry.installed == [.servers, .activity, .skills, .settings, .discover])
+            #expect(BoardRegistry.scaffolded.count == 3)
+            // `.inbox` rather than `.discover`: M5 installed Discover, so it no longer builds a
+            // placeholder — which is exactly what this test proved about `.skills` before M4 and
+            // about `.discover` before M5. The subject has to be a destination that is *still*
+            // scaffolded, or this stops testing what it names. Repointing it is the designed action
+            // each time a board lands; renumbering the count alone would leave it asserting that a
+            // shipped board still builds a placeholder, which is the opposite of the invariant.
+            #expect(ScaffoldedDestination(.inbox) != nil, "a scaffolded destination still builds one")
         }
     }
 #endif

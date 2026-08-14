@@ -165,10 +165,11 @@ public enum RegistryCapability {
         let name = RegistryPresentation.sanitized(entry.displayName, cap: 40)
 
         if entry.installed ?? false {
+            let declared = RegistryPresentation.sanitized(entry.name, cap: 60)
             return Action(
                 label: "Added",
                 isEnabled: false,
-                disabledReason: "Already declared as \u{201C}\(RegistryPresentation.sanitized(entry.name, cap: 60))\u{201D}.",
+                disabledReason: "Already declared as \u{201C}\(declared)\u{201D}.",
                 revealsRequirements: false
             )
         }

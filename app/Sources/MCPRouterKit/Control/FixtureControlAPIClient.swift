@@ -319,9 +319,9 @@ public struct FixtureControlAPIClient: ControlAPIClient {
 
     /// The events this scenario's stream produces, ending in its phase.
     public func streamEvents() throws(ControlAPIError) -> [StreamEvent] {
-        let records: [CallRecord]
+        let backfill: [CallRecord]
         do {
-            records = try Self.decodeFixture(
+            backfill = try Self.decodeFixture(
                 Self.usageFixtureName(for: scenario),
                 as: UsageResponse.self
             ).records
@@ -331,17 +331,50 @@ public struct FixtureControlAPIClient: ControlAPIClient {
             throw ControlAPIError.malformedResponse(detail: "fixture usage: \(error)")
         }
 
+        // **The replayed records must not be the ones the backfill already returned.**
+        //
+        // They used to be, and the consequence was invisible: `ActivityRecords.prepend` de-duplicates
+        // on `CallRecord.id`, and every replayed record shared an id with a record the backfill had
+        // just delivered, so **no scenario could produce an arriving record at all**. A surface's
+        // insert animation, its capacity-boundary drop and its live half had no runtime path — not
+        // a weak test, no path — and an acceptance run could not have exercised them even in
+        // principle.
+        //
+        // So the replay re-stamps them. The timestamp is what makes a call distinct on the wire, and
+        // a fresh one is exactly what the router would send for a new call of the same shape.
+        let arriving = backfill.prefix(4).enumerated().map { index, record -> CallRecord in
+            var fresh = record
+            fresh.ts = Self.replayTimestamp(offsetBy: index)
+            return fresh
+        }
+
         switch scenario {
         case .streamLive:
-            return [.phase(.live)] + records.prefix(4).map { .record($0) }
+            return [.phase(.live)] + arriving.map { .record($0) }
         case .streamReconnecting:
-            return [.phase(.live)] + records.prefix(2).map { .record($0) } + [.phase(.reconnecting)]
+            return [.phase(.live)] + arriving.prefix(2).map { .record($0) } + [.phase(.reconnecting)]
         case .streamDisconnected:
-            return [.phase(.live)] + records.prefix(2).map { .record($0) }
+            return [.phase(.live)] + arriving.prefix(2).map { .record($0) }
                 + [.phase(.reconnecting), .phase(.disconnected)]
-        default:
+        case .offline, .unauthorized, .error:
+            // A router that refuses every request is not delivering a live feed. Reporting `.live`
+            // here put "· live" in a surface's subtitle for a router that was not answering at all,
+            // which is a fabricated status in the one path a Release build can never take but every
+            // acceptance run does.
+            return [.phase(.disconnected)]
+        case .populated, .empty, .loading, .partial, .success, .overflow, .disabled:
             return [.phase(.live)]
         }
+    }
+
+    /// A timestamp for a replayed record, distinct from anything in a recording.
+    ///
+    /// Dated far enough ahead of the fixtures' own stamps that it cannot collide with one, and
+    /// spaced so the replayed records arrive in order.
+    private static func replayTimestamp(offsetBy index: Int) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.string(from: Date().addingTimeInterval(Double(index)))
     }
 
     /// Suspends until cancelled, and then refuses.

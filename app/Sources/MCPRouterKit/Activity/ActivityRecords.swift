@@ -88,13 +88,25 @@ public struct ActivityRecords: Equatable, Sendable {
         by key: (CallRecord) -> Key
     ) -> [ActivityOption<Key>] {
         var counts: [Key: Int] = [:]
+        var exemplars: [Key: CallRecord] = [:]
         for record in records {
-            counts[key(record), default: 0] += 1
+            let k = key(record)
+            counts[k, default: 0] += 1
+            // The first record in a group names it. The identity is the pid or the directory; the
+            // label is whatever that record happened to carry, which is display only.
+            if exemplars[k] == nil { exemplars[k] = record }
         }
         return counts
-            .map { ActivityOption(key: $0.key, calls: $0.value) }
+            .map { entry in
+                ActivityOption(
+                    key: entry.key,
+                    calls: entry.value,
+                    label: exemplars[entry.key].map { entry.key.displayLabel(from: $0) }
+                        ?? entry.key.label
+                )
+            }
             .sorted {
-                $0.calls == $1.calls ? $0.key.label < $1.key.label : $0.calls > $1.calls
+                $0.calls == $1.calls ? $0.label < $1.label : $0.calls > $1.calls
             }
     }
 }
@@ -103,13 +115,16 @@ public struct ActivityRecords: Equatable, Sendable {
 public struct ActivityOption<Key: ActivityFilterKey>: Equatable, Sendable, Identifiable {
     public let key: Key
     public let calls: Int
+    /// What the menu shows. Resolved from a record in the group rather than from the key, because
+    /// the key is identity and the name is not.
+    public let label: String
 
     public var id: Key { key }
-    public var label: String { key.label }
 
-    public init(key: Key, calls: Int) {
+    public init(key: Key, calls: Int, label: String) {
         self.key = key
         self.calls = calls
+        self.label = label
     }
 }
 
@@ -124,8 +139,10 @@ public enum ActivityNaming {
 
 /// What a filter menu's rows have in common.
 public protocol ActivityFilterKey: Hashable, Sendable {
-    /// The row's label, which is also its sort key.
+    /// The fallback label, for when no record of this group is to hand.
     var label: String { get }
+    /// The label a menu shows, given a record that belongs to this key.
+    func displayLabel(from record: CallRecord) -> String
     /// Whether one record belongs to this key.
     func matches(_ record: CallRecord) -> Bool
 }
@@ -139,30 +156,42 @@ public protocol ActivityFilterKey: Hashable, Sendable {
 /// an unattributed record is worth far more than a dropped one — so this is a real group with real
 /// records in it, not an error case.
 public enum SessionKey: ActivityFilterKey {
-    case attributed(pid: Int, client: String?)
+    /// **The pid alone.** The client name is display, not identity: the router resolves it once per
+    /// connection and legitimately reports it for one call and not the next, so carrying it in the
+    /// hashable payload split a single session into two menu entries with two half-counts — and the
+    /// same equality drives the filter-fallback, so one of the two could never be cleared. D2 always
+    /// said the match was on `pid`; this makes the type say it too.
+    case attributed(pid: Int)
     case unattributed
 
     public init(record: CallRecord) {
         guard let pid = record.pid else { self = .unattributed; return }
-        self = .attributed(pid: pid, client: record.client)
+        self = .attributed(pid: pid)
     }
 
+    /// The fallback label, used when no record is to hand. The menu prefers `displayLabel(from:)`,
+    /// which can name the client.
     public var label: String {
         switch self {
-        case let .attributed(pid, client):
-            if let client, !client.isEmpty {
-                "\(client) · pid \(pid)"
-            } else {
-                "pid \(pid)"
-            }
+        case let .attributed(pid): "pid \(pid)"
+        case .unattributed: ActivityNaming.unattributed
+        }
+    }
+
+    /// The label as a menu shows it, given one record that belongs to this key.
+    public func displayLabel(from record: CallRecord) -> String {
+        switch self {
+        case let .attributed(pid):
+            guard let client = record.client, !client.isEmpty else { return "pid \(pid)" }
+            return "\(client) · pid \(pid)"
         case .unattributed:
-            ActivityNaming.unattributed
+            return ActivityNaming.unattributed
         }
     }
 
     public func matches(_ record: CallRecord) -> Bool {
         switch self {
-        case let .attributed(pid, _): record.pid == pid
+        case let .attributed(pid): record.pid == pid
         case .unattributed: record.pid == nil
         }
     }
@@ -170,26 +199,37 @@ public enum SessionKey: ActivityFilterKey {
 
 /// Which working directory a call came from — the per-project ledger, as the router keeps it.
 public enum DirectoryKey: ActivityFilterKey {
-    case path(cwd: String, project: String?)
+    /// The working directory alone, for the same reason `SessionKey` carries only the pid: the
+    /// router's `project` is a convenience it may or may not send, and a directory that arrived once
+    /// with a project name and once without would otherwise be two entries.
+    case path(cwd: String)
     case unattributed
 
     public init(record: CallRecord) {
         guard let cwd = record.cwd, !cwd.isEmpty else { self = .unattributed; return }
-        self = .path(cwd: cwd, project: record.project)
+        self = .path(cwd: cwd)
+    }
+
+    /// The label as a menu shows it, given one record that belongs to this key.
+    public func displayLabel(from record: CallRecord) -> String {
+        switch self {
+        case .path: projectLabel(cwd: record.cwd, project: record.project)
+        case .unattributed: ActivityNaming.unattributed
+        }
     }
 
     /// The name people recognise, which is what the row shows. The full path is never lost — the
     /// inspector carries it, and `cwd` is what the match is made on.
     public var label: String {
         switch self {
-        case let .path(cwd, project): projectLabel(cwd: cwd, project: project)
+        case let .path(cwd): projectLabel(cwd: cwd, project: nil)
         case .unattributed: ActivityNaming.unattributed
         }
     }
 
     public func matches(_ record: CallRecord) -> Bool {
         switch self {
-        case let .path(cwd, _): record.cwd == cwd
+        case let .path(cwd): record.cwd == cwd
         case .unattributed: record.cwd == nil || record.cwd?.isEmpty == true
         }
     }

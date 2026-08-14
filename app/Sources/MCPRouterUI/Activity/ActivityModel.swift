@@ -32,7 +32,10 @@
     public final class ActivityModel {
         @ObservationIgnored private let client: any ControlAPIClient
         @ObservationIgnored private let source: (any ActivityEventSource)?
-        @ObservationIgnored private let clock: @MainActor () -> Date
+        /// Internal rather than private so `ActivityModel+Presentation` can read it. In an extension
+        /// `clock` would otherwise resolve to the C library's `clock()`, which compiles and is a
+        /// different thing entirely.
+        @ObservationIgnored let clock: @MainActor () -> Date
 
         /// **`nil` is not empty.** Empty means the router answered and has logged nothing; nil means
         /// nothing has answered yet. A board that cannot tell them apart shows "No calls yet" while
@@ -109,15 +112,41 @@
         }
 
         /// Merges a fresh response into whatever is already held, newest first.
+        ///
+        /// **Order matters, and getting it backwards silently discards the live half.** The
+        /// de-duplicating initialiser keeps the *first* `capacity` records it is given, so the list
+        /// handed to it must be newest-first. An earlier version passed `response.records +
+        /// held.records`: once the router returned a full ring — 500, its `RING_SIZE` — every record
+        /// the stream had delivered fell off the end of the concatenation and was truncated away.
+        /// A reconnect on a busy router would have thrown away exactly the half it was reloading to
+        /// preserve.
+        ///
+        /// What is held and *not* in the response is, by construction, what arrived after the fetch
+        /// began — so it is newer than anything the response carries, and it goes first. No
+        /// timestamp comparison is involved: the wire promises no total order across the two
+        /// sources, and the arrival order is the fact actually known.
         private func merge(_ response: UsageResponse) -> ActivityRecords {
             guard let held = records, !held.isEmpty else { return ActivityRecords(response) }
-            // The response is newest-first and so is the window; interleaving by timestamp would
-            // need a total order the wire does not promise. Concatenating response-then-held and
-            // letting the de-duplicating initialiser keep the first sighting of each id preserves
-            // the router's own ordering for everything it returned, and keeps anything the stream
-            // delivered that the response did not carry.
-            let combined = response.records + held.records
-            return ActivityRecords(records: combined, since: response.since)
+            let returned = Set(response.records.map(\.id))
+            let arrivedSince = held.records.filter { !returned.contains($0.id) }
+            return ActivityRecords(
+                records: arrivedSince + response.records,
+                since: response.since
+            )
+        }
+
+        /// The board's whole conversation with the router, with **both** halves in flight at once.
+        ///
+        /// Running these in series — `await load()` then `await subscribe()` — loses every call the
+        /// router records between the snapshot returning and the socket opening. On a cold start
+        /// against a busy router that window is however long `GET /usage` takes, and nothing in the
+        /// board would ever show those calls: they are too old for the stream and too new for the
+        /// response. Started together, the id guard in `ActivityRecords.prepend` does exactly the
+        /// job it was written for and the overlap is free.
+        public func start() async {
+            async let backfill: Void = load()
+            async let feed: Void = subscribe()
+            _ = await (backfill, feed)
         }
 
         /// Consume the live feed until the task is cancelled or the stream gives up.
@@ -157,10 +186,20 @@
         /// and only a fresh `GET /usage` can bring them back. Subscribing without reloading would
         /// leave a hole the board could not see and would not mention.
         public func reconnect() async {
-            phase = nil
-            await load()
-            await subscribe()
+            // Two taps used to stack two live subscription loops writing into one model. The guard
+            // is on the model rather than on the button because the button is not the only caller a
+            // later surface might add.
+            guard !isReconnecting else { return }
+            isReconnecting = true
+            defer { isReconnecting = false }
+            // The phase is **not** cleared first. It used to be, and a reload that then failed left
+            // `condition` on `.populated` — a stale list, a subtitle reading "connecting", no banner
+            // and no way back. It is replaced by whatever the new subscription reports.
+            await start()
         }
+
+        /// Whether a reconnect is already running.
+        public private(set) var isReconnecting = false
 
         /// One arriving record. Exposed so a test drives the model directly rather than through a
         /// stream it also has to build.
@@ -174,6 +213,18 @@
             }
             let inserted = held.prepend(record)
             records = held
+            if inserted {
+                // The reason this is here and not only in `filter.didSet`: the window rolls. A
+                // record arriving at capacity drops the oldest, and the option the reader filtered
+                // by can lose its last loaded record — leaving the board filtered by something its
+                // own menu no longer offers, with no way back but Clear filters. The fallback used
+                // to be reachable only by changing a filter, which is the one thing a reader in
+                // that state has no reason to do.
+                //
+                // Guarded, because this runs per arriving record and the groupings are O(n): with
+                // nothing filtered and nothing selected there is nothing to invalidate.
+                if filter.isActive || selection != nil { dropSelectionIfHidden() }
+            }
             return inserted
         }
 
@@ -217,56 +268,6 @@
             }
         }
 
-        /// The board's subtitle, or nil where nothing has been observed to say.
-        public func subtitle() -> String? {
-            guard let records else { return nil }
-            return ActivityCopy.subtitle(
-                count: records.count,
-                since: displaySince(records.since),
-                feed: ActivityCopy.feedLabel(phase)
-            )
-        }
-
-        /// `since` as a clock time, or the raw value when it is not a timestamp this version parses.
-        ///
-        /// Falling back to the raw string rather than to a placeholder: the router sent something,
-        /// and showing it unparsed is honest where showing "—" would discard a fact.
-        public func displaySince(_ raw: String) -> String {
-            guard let date = raw.asControlAPIDate else { return raw }
-            return Self.timeOfDay.string(from: date)
-        }
-
-        private static let timeOfDay: DateFormatter = {
-            let formatter = DateFormatter()
-            formatter.setLocalizedDateFormatFromTemplate("jmm")
-            return formatter
-        }()
-
-        /// The relative age of one record, at this instant.
-        ///
-        /// A **derived** value, and the one derivation on this surface: the router sends an absolute
-        /// `ts` and this subtracts it from the device clock, which is not the router's clock. It is
-        /// derived rather than fabricated — nothing is invented, one observed value is re-expressed
-        /// — and the absolute timestamp is in the inspector so the raw fact is never out of reach. A
-        /// `ts` in the future (a clock skew, not a fault) reads as "now" rather than as a negative
-        /// age, because `shortAgo` floors the interval at zero.
-        public func age(of record: CallRecord) -> String {
-            guard let date = record.ts.asControlAPIDate else { return "—" }
-            return shortAgo(date, from: clock())
-        }
-
-        /// The newest loaded record's time of day, for the feed states.
-        ///
-        /// Named in the copy as *the newest call here* and never as a completeness watermark: the
-        /// wire carries no watermark, so a record's timestamp proves one arrived and never that
-        /// none was missed.
-        public var newestTimestamp: String? {
-            guard let ts = records?.records.first?.ts, let date = ts.asControlAPIDate else {
-                return nil
-            }
-            return Self.timeOfDay.string(from: date)
-        }
-
         /// The one condition the view switches over.
         ///
         /// A single exhaustive derivation rather than a chain of `if`s in the body: the order these
@@ -282,8 +283,11 @@
                 }
             }
             guard let records else { return .loading }
-            // The mirror of the partial below: the feed is delivering and the history is not.
-            if let failure, phase == .live { return .historyUnavailable(failure) }
+            // The mirror of the partial below: there are rows on screen and the history behind them
+            // failed to reload. Not gated on `phase == .live` — a reconnect that fails leaves the
+            // phase wherever the new subscription got to, and gating on one value put the board back
+            // on `.populated` with a stale list and no banner.
+            if let failure { return .historyUnavailable(failure) }
             if records.isEmpty { return .empty }
             if result.isFilteredToNothing { return .filteredToNothing(total: result.total) }
             switch phase {
@@ -349,35 +353,6 @@
 
         public func clearFilters() {
             filter.clear()
-        }
-    }
-
-    /// What the board is currently showing. One case per designed state.
-    ///
-    /// An enum rather than a set of booleans, so the view's `switch` cannot compile while ignoring
-    /// one — the same reason `SurfaceState` is an enum.
-    public enum ActivityCondition: Equatable, Sendable {
-        case loading
-        case empty
-        case populated
-        case filteredToNothing(total: Int)
-        /// The history is showing and the live half is not arriving.
-        case partial(FeedTrouble)
-        /// The feed is delivering and the history is not — the mirror of `partial`.
-        case historyUnavailable(ControlAPIError)
-        case offline(ControlAPIError)
-        case unauthorized(ControlAPIError)
-        case error(ControlAPIError)
-
-        /// Three ways the feed can be absent, and three different things to say.
-        ///
-        /// `reconnecting` is information and earns no button — the retry is already running.
-        /// `dropped` and `neverConnected` both mean the ladder is spent, and they are separate cases
-        /// because one implies a gap in a feed that was working and the other does not.
-        public enum FeedTrouble: Equatable, Sendable {
-            case reconnecting
-            case dropped
-            case neverConnected
         }
     }
 #endif

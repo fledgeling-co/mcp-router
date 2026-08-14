@@ -8,6 +8,79 @@
     // `/usage`. `FixtureControlAPIClient`'s failing scenarios refuse every operation at once, which
     // cannot express "the history is unreadable and the feed is fine".
 
+    /// Serves a fixed call log, so a test can control the backfill's size exactly — which is what
+    /// the capacity-boundary merge needs and no recording can provide.
+    struct StaticUsageClient: ControlAPIClient {
+        let records: [CallRecord]
+        private let inner = FixtureControlAPIClient(.populated)
+
+        func usage(
+            limit: Int?,
+            server _: String?,
+            cwd _: String?
+        ) async throws(ControlAPIError) -> UsageResponse {
+            UsageResponse(
+                since: "2026-08-14T09:12:04.118Z",
+                records: limit.map { Array(records.prefix($0)) } ?? records
+            )
+        }
+
+        func servers() async throws(ControlAPIError) -> ServersResponse {
+            try await inner.servers()
+        }
+
+        func server(named name: String) async throws(ControlAPIError) -> MCPServer {
+            try await inner.server(named: name)
+        }
+
+        func usageSummary() async throws(ControlAPIError) -> UsageSummary {
+            try await inner.usageSummary()
+        }
+
+        func heldChanges(for name: String) async throws(ControlAPIError) -> HeldChanges {
+            try await inner.heldChanges(for: name)
+        }
+
+        func searchRegistry(
+            query: String,
+            limit: Int
+        ) async throws(ControlAPIError) -> RegistrySearchResponse {
+            try await inner.searchRegistry(query: query, limit: limit)
+        }
+
+        func add(_ server: NewServer, force: Bool) async throws(ControlAPIError) -> AddedServer {
+            try await inner.add(server, force: force)
+        }
+
+        func remove(_ name: String, keepHistory: Bool) async throws(ControlAPIError) -> RemovedServer {
+            try await inner.remove(name, keepHistory: keepHistory)
+        }
+
+        func reindex(_ name: String) async throws(ControlAPIError) -> ReindexResult {
+            try await inner.reindex(name)
+        }
+
+        func patch(server name: String, _ patch: ServerPatch) async throws(ControlAPIError) -> MCPServer {
+            try await inner.patch(server: name, patch)
+        }
+
+        func approvePendingChange(server name: String) async throws(ControlAPIError) -> ApprovalResult {
+            try await inner.approvePendingChange(server: name)
+        }
+
+        func beginAuthorization(for name: String) async throws(ControlAPIError) -> AuthorizationStart {
+            try await inner.beginAuthorization(for: name)
+        }
+
+        func signOut(_ name: String) async throws(ControlAPIError) -> SignedOut {
+            try await inner.signOut(name)
+        }
+
+        func resetUsage() async throws(ControlAPIError) -> UsageReset {
+            try await inner.resetUsage()
+        }
+    }
+
     /// Records what the board asked `/usage` for.
     actor RecordingUsageClient: ControlAPIClient {
         struct Call: Sendable { let limit: Int?; let server: String?; let cwd: String? }

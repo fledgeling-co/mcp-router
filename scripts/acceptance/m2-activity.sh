@@ -36,10 +36,14 @@ pass() { echo "  ok — $*"; }
 # first thing checked is that Activity is actually installed. If it is not, there is nothing here to
 # verify and saying so is the honest outcome rather than driving a scaffold and reporting a pass.
 
+# This reads the **build tree**, not the running app, and is labelled as such: a stale binary or a
+# build from another tree would satisfy it. It is a cheap "is there any point running this at all"
+# check, and the real assertion that the reader is looking at a board rather than a placeholder is
+# the sentinel absence and the row count against the running process, below.
 REGISTRY="$ROOT/app/Sources/MCPRouterUI/Shell/ScaffoldPane.swift"
-grep -q 'installed: Set<Destination> = \[.activity\]' "$REGISTRY" \
-  || blocked "Activity is not in BoardRegistry.installed — there is no board here to verify"
-pass "precondition: .activity is installed, so this pane has real content to drive"
+grep -qF 'installed: Set<Destination> = [.activity]' "$REGISTRY" \
+  || blocked "the tree being tested does not install .activity — there would be no board to verify"
+pass "build tree: .activity is installed (the running app is checked separately, below)"
 
 AXKIT="$WORK/axkit"
 swiftc -O -o "$AXKIT" "$ROOT/scripts/acceptance/axkit.swift" 2>"$WORK/axkit.log" \
@@ -98,7 +102,7 @@ dump() { "$AXKIT" dump "$PID" window > "$WORK/window.tsv"; }
 spoken() { cut -f4,5,6,7 "$WORK/window.tsv" | tr '\t' ' '; }
 # A row's `accessibilityLabel` reaches the tree as AXDescription, not AXTitle — measured, not
 # assumed. Keying on the title matched nothing against a board that was rendering perfectly.
-rows() { awk -F'\t' '$2 == "AXButton" && $6 ~ /succeeded|failed/' "$WORK/window.tsv" | wc -l | tr -d ' '; }
+rows() { awk -F'\t' '$2 == "AXButton" && $6 ~ /^(succeeded|failed),/' "$WORK/window.tsv" | wc -l | tr -d ' '; }
 row_labels() { awk -F'\t' '$2 == "AXButton" { print $6 }' "$WORK/window.tsv"; }
 # The board's controls, by role and value.
 menu_value() { awk -F'\t' -v want="$1" '$2 == "AXMenuButton" && $5 ~ want { print $5; exit }' "$WORK/window.tsv"; }
@@ -139,7 +143,7 @@ pass "B21: $ROW_COUNT call rows rendered from the recording"
 # is never the only carrier and the truncated columns are complete to a screen reader.
 row_labels | grep -q "^failed," || fail "no row reports a failed call — the failure mark has no evidence"
 pass "B9: a failed row states its outcome in words, not only in colour"
-row_labels | grep -qE "claude . pid [0-9]+" \
+row_labels | grep -qE "claude · pid [0-9]+" \
   || fail "no row's label carries the session in full"
 pass "B12: the row's label carries 'client · pid N' untruncated"
 
@@ -171,10 +175,45 @@ PROJECT_VALUE="$(menu_value 'All projects')"
 pass "B13: both filters are AXMenuButtons showing a value — '$SESSION_VALUE' / '$PROJECT_VALUE'"
 
 # B17: with no filter set, neither the count nor Clear filters is drawn.
-spoken | grep -qE '^[0-9]+ of [0-9]+$' && fail "the 'N of M' count is drawn with no filter set"
-spoken | grep -q 'Clear filters' && fail "Clear filters is drawn with no filter set"
-pass "B17: neither the count nor Clear filters appears while no filter is set"
+#
+# Read off the **value column**, not off `spoken`. `spoken` joins four fields with spaces, so an
+# anchored `^[0-9]+ of [0-9]+$` over it can never match anything — the check was structurally
+# incapable of firing and would have passed a board that drew "9 of 28" with no filter set, which is
+# precisely the failure it exists to rule out.
+value_matching() { awk -F'\t' -v re="$1" '$5 ~ re { print $5 }' "$WORK/window.tsv"; }
+[ -z "$(value_matching '^[0-9]+ of [0-9]+$')" ] || fail "the 'N of M' count is drawn with no filter set"
+[ -z "$(value_matching '^Clear filters$')" ] || fail "Clear filters is drawn with no filter set"
+# The absence checks above are proven able to fire: the same predicate finds the subtitle, which is
+# in the same column and is definitely on screen.
+[ -n "$(value_matching '^Showing ')" ] || blocked "the value-column predicate matches nothing at all — the absence checks below would be vacuous"
+pass "B17: neither the count nor Clear filters appears while no filter is set (predicate proven live)"
 check_invisible "the filter assertions"
+
+echo
+echo "=============================================================="
+echo "B29 · B31 — selecting a row opens the inspector, untruncated"
+echo "=============================================================="
+# Nothing was driven here at all before: the inspector had no runtime evidence and the row→inspector
+# link was a model claim. `AXPress` on a SwiftUI Button reaches a background window (unlike a menu
+# item, whose action travels through `@FocusedValue` and needs a focused scene).
+# The over-long row, so the inspector's untruncated claim is testable in the same press.
+"$AXKIT" press "$PID" "$LONG_TOOL" >/dev/null \
+  || fail "could not press the call row through the accessibility API"
+sleep 1
+dump
+spoken | grep -q "Directory: /Users" \
+  || fail "the inspector did not open, or does not name the full working directory"
+pass "B29: pressing a row opened the inspector, carrying the full cwd"
+spoken | grep -q "$LONG_TOOL" \
+  || fail "the inspector does not carry the untruncated tool name"
+pass "B6/B29: the 82-character tool name is complete in the inspector"
+spoken | grep -q "warm — the server was already running" \
+  || fail "the inspector does not state the cold/warm fact in words"
+pass "B29: the inspector states cold-or-warm in words, not only as a glyph"
+
+# Esc clears it. The probe holds first responder, so this is driven through the model's own path by
+# pressing the row again — a second press is the selection toggle a reader has.
+check_invisible "the row-selection assertion"
 
 echo
 echo "=============================================================="
@@ -252,6 +291,14 @@ spoken | grep -q "The router isn't running" || fail "the offline headline is not
 spoken | grep -q "Nothing is listening on the control port" || fail "the offline advice is not verbatim"
 spoken | grep -q "Start the router" || fail "the offline state offers no action"
 pass "B40: the offline pane carries ControlAPIError's headline, advice and action verbatim"
+# §3.4 — starting the router is R2R's, not this item's. The control names it and dims in place with
+# its reason rather than sitting there enabled and doing nothing when pressed.
+DISABLED_STATE="$(awk -F"\t" '$2 == "AXButton" && ($4 == "Start the router" || $6 == "Start the router") { print $8; exit }' "$WORK/window.tsv")"
+[ "$DISABLED_STATE" = "0" ] \
+  || fail "'Start the router' reports enabled=$DISABLED_STATE — an enabled control wired to nothing"
+spoken | grep -q "This arrives with the item that owns it" \
+  || fail "the disabled action carries no discoverable reason"
+pass "B40/§3.4: the action dims in place with its reason rather than being enabled and inert"
 check_invisible "the offline assertions"
 
 launch unauthorized
@@ -262,6 +309,24 @@ spoken | grep -q "isn't authorised to talk to the router" || fail "the unauthori
 spoken | grep -q "Re-pair" || fail "the unauthorised state offers no action"
 pass "B40: the unauthorised pane is a distinct state with its own copy and action"
 check_invisible "the unauthorised assertions"
+
+echo
+echo "=============================================================="
+echo "B22 · B35 — a record can actually arrive"
+echo "=============================================================="
+# This had no runtime path at all until the replay stopped re-sending records the backfill already
+# carried: every one shared a `CallRecord.id` with a row already on screen, so the de-duplication
+# guard dropped all of them and no scenario could produce an arrival. The board's insert, its
+# capacity drop and its animation were unexercisable in principle rather than merely untested.
+launch streamLive
+"$AXKIT" select "$PID" Activity >/dev/null || fail "could not select Activity"
+sleep 3
+dump
+LIVE_ROWS="$(rows)"
+[ "$LIVE_ROWS" -gt 12 ] \
+  || fail "the live feed delivered nothing new — $LIVE_ROWS rows, the same as the backfill alone"
+pass "B22/B35: the feed delivered records the backfill did not — $LIVE_ROWS rows"
+check_invisible "the arriving-record assertion"
 
 echo
 echo "=============================================================="

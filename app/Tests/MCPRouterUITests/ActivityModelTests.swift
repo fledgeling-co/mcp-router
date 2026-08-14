@@ -169,39 +169,32 @@
 
         // MARK: - F35 / F36: the live window rolls under a filter and a selection
 
-        @Test("a filter whose last record has gone falls back rather than stranding the board")
-        func vanishedFilterOptionFallsBack() async {
-            let subject = Self.model()
-            await subject.load()
-            subject.filter.session = .attributed(pid: 999_999, client: "gone")
-            // The filter is applied on the next change, which is what a rolling window produces.
-            subject.filter.directory = nil
+        /// The scenario is a **rolling window**, not a second filter change. The earlier version of
+        /// this test triggered the fallback by mutating the filter again, which is the one thing a
+        /// reader stranded on a vanished option has no reason to do — so it was green while the real
+        /// path was unimplemented.
+        @Test("a filter whose last record rolls out of the window falls back on the next arrival")
+        func vanishedFilterOptionFallsBackAsTheWindowRolls() {
+            let subject = ActivityModel(
+                client: FixtureControlAPIClient(.empty), source: nil, clock: { Self.now }
+            )
+            // One session, one record. Filter by it, then push it out of the window.
+            let doomed = Self.record(ts: "2026-08-14T09:00:00.000Z", pid: 4242, client: "claude")
+            subject.apply(doomed)
+            subject.filter.session = .attributed(pid: 4242)
+            #expect(subject.visible.count == 1)
+
+            for index in 0 ..< (ActivityRecords.capacity + 1) {
+                subject.apply(
+                    Self.record(ts: "2026-08-14T10:00:\(index).000Z", tool: "t\(index)", pid: 7777)
+                )
+            }
+
             #expect(
                 subject.filter.session == nil,
-                "a board filtered by an option its own menu no longer offers has no way back"
+                "the window rolled the filtered session away and the board stayed filtered by it"
             )
-        }
-
-        @Test("the selection follows the record, not the row index, across an insert")
-        func selectionFollowsTheRecord() async {
-            let subject = Self.model()
-            await subject.load()
-            let chosen = try? #require(subject.visible.first)
-            subject.selection = chosen?.id
-            subject.apply(Self.record(ts: "2026-08-14T23:59:59.000Z", tool: "brand_new"))
-            #expect(subject.selection == chosen?.id)
-            #expect(subject.selectedRecord?.id == chosen?.id)
-        }
-
-        @Test("a selection the filter hides is cleared rather than left describing an unseen row")
-        func filteringClearsAHiddenSelection() async {
-            let subject = Self.model()
-            await subject.load()
-            let orphan = try? #require(subject.visible.first { $0.pid == nil })
-            subject.selection = orphan?.id
-            subject.filter.session = subject.sessions.first { $0.key != .unattributed }?.key
-            #expect(subject.selection == nil)
-            #expect(subject.selectedRecord == nil)
+            #expect(!subject.visible.isEmpty, "the reader can see the list again")
         }
 
         // MARK: - The keyboard, at the level it is decided

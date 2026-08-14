@@ -246,6 +246,38 @@ case "select":
     print(result == .success ? "OK" : "ERR \(result.rawValue)")
     if result != .success { exit(1) }
 
+case "press":
+    // `AXPress` on the first button whose accessibility **description** contains a substring.
+    //
+    // Background-safe, and measured to be so: a SwiftUI `Button`'s AXPress runs its action directly
+    // on the element and needs no focused scene. That is the difference from a **menu item**, whose
+    // action reaches the window through `@FocusedValue` — an inactive app has no focused scene, so
+    // AXPress there returns `.success` and does nothing. This verb is deliberately restricted to
+    // buttons for that reason, and a caller wanting a menu item should not reach for it.
+    //
+    // The description rather than the title, because SwiftUI puts a `Button`'s `accessibilityLabel`
+    // there — measured against this app on 2026-08-14, where every list row reported an empty title
+    // and a full description.
+    guard args.count >= 4 else { die("usage: axkit press <pid> <description substring>") }
+    let (_, pressApp) = application(args[2])
+    guard let pressWindow = standardWindow(pressApp) else { die("no window") }
+    var pressed = false
+    func pressMatching(_ element: AXUIElement) {
+        if pressed { return }
+        if string(element, kAXRoleAttribute as String) == "AXButton",
+           string(element, kAXDescriptionAttribute as String).contains(args[3])
+        {
+            pressed = AXUIElementPerformAction(element, kAXPressAction as CFString) == .success
+            if pressed { return }
+        }
+        for child in children(element) {
+            pressMatching(child)
+        }
+    }
+    pressMatching(pressWindow)
+    print(pressed ? "OK" : "ERR")
+    if !pressed { exit(1) }
+
 case "key":
     // A key event delivered to one process. Unlike a System Events keystroke this does not require
     // the app to be frontmost, and it cannot land in whatever app the user is actually using.

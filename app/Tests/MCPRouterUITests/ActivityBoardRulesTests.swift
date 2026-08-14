@@ -140,8 +140,14 @@
             }
         }
 
-        @Test("the board's token allowlist covers every token it draws, and no more")
-        func tokenAllowlistIsExact() throws {
+        /// **Scoped to the files this item owns.** The board's view tree also reaches F2's shared
+        /// styles — `ProminentButtonStyle`'s accent fill and `focusRing`'s accent ring — and those
+        /// are F2's to justify, tested by `ShellAppearanceTests` against the same document. A scan
+        /// that walked into them would make this item responsible for a shared component's palette,
+        /// which is the opposite of one owner per rule. What is asserted here is that **this item's**
+        /// files draw exactly the tokens it declares.
+        @Test("the board's own files draw exactly the tokens it declares, and no more")
+        func tokenAllowlistIsExactForTheBoardsOwnFiles() throws {
             var drawn = Set<ColorToken>()
             for file in Self.boardFiles {
                 let source = try ShellTestSupport.repoFile(file)
@@ -248,10 +254,20 @@
         @Test("the row, the header row and the skeleton are all drawn at the one documented height")
         func rowHeightIsOneDocumentedValue() throws {
             #expect(ActivityColumn.rowHeight == MetricToken.tableRows.leadingScalar)
-            #expect(
-                MetricToken.tableRows.leadingScalar == 24,
-                "DESIGN.md §2 documents 24–28pt for dense lists and the token resolves its lower bound"
+            // Parsed out of the document rather than written here. Editing §2 to say 28 used to
+            // leave this green, which made the citation decorative.
+            let design = try ShellTestSupport.repoFile("DESIGN.md")
+            let documentedRow = try #require(
+                design.split(separator: "\n").first { $0.contains("| Table rows |") },
+                "DESIGN.md §2 no longer documents a dense-list row height"
             )
+            let cells = documentedRow.split(separator: "|", omittingEmptySubsequences: false)
+                .map { $0.trimmingCharacters(in: CharacterSet.whitespaces) }
+            let documented = try #require(
+                cells.count > 2 ? Double(cells[2].prefix { $0.isNumber }) : nil,
+                "could not read the leading scalar out of §2's Table rows row"
+            )
+            #expect(MetricToken.tableRows.leadingScalar == documented)
 
             let row = try ShellTestSupport.repoFile(
                 "app/Sources/MCPRouterUI/Activity/ActivityRow.swift"
@@ -289,6 +305,79 @@
                 "a board inside the shell's scroll view puts one scroll view in another"
             )
             #expect(shell.contains("ActivityBoard(model:"), "the board is reached from the shell")
+        }
+
+        // MARK: - B44 · an offered action this build cannot perform is disabled, not inert
+
+        /// `withoutAction` is what lets the copy stay verbatim (§6, B40) while the control beneath it
+        /// stops claiming a capability. Asserted in both directions: the words survive, the offer does
+        /// not.
+        @Test("stripping the offer keeps every word of the message")
+        func withoutActionKeepsTheCopy() {
+            // Built the way `message(for:)` builds it — from the error, not from a literal (B40).
+            let error = ControlAPIError.routerNotRunning
+            let message = StateMessage(
+                title: error.headline,
+                detail: error.advice,
+                actionLabel: error.actionLabel
+            )
+            let stripped = message.withoutAction
+            #expect(message.actionLabel != nil, "the fixture for this test needs an offer to strip")
+            #expect(stripped.actionLabel == nil, "the offer is what is removed")
+            #expect(stripped.title == message.title, "§6: one wording per state — the words stay")
+            #expect(stripped.detail == message.detail)
+        }
+
+        /// The board performs exactly one of the actions it draws. The other two — starting the router
+        /// and re-pairing — belong to items that have not shipped, so they are drawn dimmed with a
+        /// reason (§3.4) rather than enabled and silent. This fails if a later edit wires a second
+        /// case to a real call without also making it actionable, and if it makes a case actionable
+        /// without giving it something to do.
+        @Test("the only action the board performs is the one it owns")
+        func onlyTheOwnedActionIsPerformed() throws {
+            let board = try ShellTestSupport.repoFile(
+                "app/Sources/MCPRouterUI/Activity/ActivityBoard.swift"
+            )
+            let actBody = try #require(
+                board.range(of: "private func act(on condition: ActivityCondition)")
+                    .map { String(board[$0.upperBound...].prefix(420)) }
+            )
+            #expect(
+                actBody.contains("model.clearFilters()"),
+                "clearing the filters is the board's own doing and stays wired"
+            )
+            // Every other case falls to the one `break`. A second call here would be a second
+            // capability claim, and would need its own actionable case to be honest.
+            #expect(
+                actBody.components(separatedBy: "model.").count - 1 == 1,
+                "the board calls the model from exactly one branch of act(on:)"
+            )
+            let actionable = try #require(
+                board.range(of: "private func actionable(_ condition: ActivityCondition) -> Bool")
+                    .map { String(board[$0.upperBound...].prefix(220)) }
+            )
+            #expect(
+                actionable.contains("case .filteredToNothing = condition"),
+                "the one performable action is the one the board can actually perform"
+            )
+            #expect(
+                board.contains("DisabledAction(label: label, reason: Self.actionNotYetBuilt)"),
+                "an unperformable offer is drawn dimmed with its reason, never enabled and inert"
+            )
+        }
+
+        /// The reason is helper text under a control, so it has to read as one — and it must not
+        /// apologise or blame the reader (§6's voice).
+        @Test("the disabled reason names what is missing without apologising")
+        func disabledReasonIsInVoice() {
+            let reason = ActivityBoard.actionNotYetBuilt
+            #expect(!reason.isEmpty, "§3.4: a disabled control's reason is discoverable, not absent")
+            for word in ["sorry", "oops", "error", "failed", "unfortunately"] {
+                #expect(
+                    !reason.lowercased().contains(word),
+                    "a control that has not shipped yet is not an error: '\(word)'"
+                )
+            }
         }
 
         // MARK: - B2 · the registry stays a complement

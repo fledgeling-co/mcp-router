@@ -64,12 +64,18 @@
 
         /// `ControlEventStream` never reports how many attempts it made — it yields `.disconnected`
         /// and finishes. A count here would be `ReconnectPolicy`'s default copied into a sentence.
+        /// Asserted against `newest: nil`, where the digit-free branch is load-bearing. With a
+        /// timestamp supplied the "or it contains 09:41" disjunct was true by construction and no
+        /// mutation to the copy could fail it.
         @Test("the given-up sentence names no attempt count")
         func disconnectedCopyNamesNoAttemptCount() {
-            let message = ActivityCopy.partialDisconnected(newest: "09:41")
+            let message = ActivityCopy.partialDisconnected(newest: nil)
             let text = "\(message.title) \(message.detail)"
-            #expect(!text.contains("six"))
-            #expect(text.rangeOfCharacter(from: .decimalDigits) == nil || text.contains("09:41"))
+            #expect(!text.lowercased().contains("attempt"))
+            #expect(
+                text.rangeOfCharacter(from: .decimalDigits) == nil,
+                "the stream never reports how many attempts it made: \(text)"
+            )
         }
 
         /// The subtitle is the loaded window's size and is worded so it cannot be read as a total —

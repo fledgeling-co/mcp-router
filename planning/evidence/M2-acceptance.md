@@ -110,3 +110,71 @@ independent expression all fail. The same mutation is red now.
   launch, after selecting a scaffold, and after selecting the board), and both scripts assert
   invisibility at every step and passed. Recorded because an unreproduced observation about the one
   rule that must be believed is worth writing down rather than dropping.
+
+---
+
+# Second pass — after the two-sources gap-fix (2026-08-14)
+
+A gap-fix over the board that had already passed everything above found nine defects in code that
+compiled, passed its whole suite and had been driven through the full run recorded at `6dd480d`. The
+board's rendered tree changed as a result, so every Activity row above is superseded by the run
+below rather than carried forward. The shell run is re-done too, because `ShellWindow.swift` — a
+shared file — changed.
+
+## What the gap-fix changed, and why each one needed a UI re-run
+
+| Defect | What a user would have seen |
+|---|---|
+| `merge()` concatenated response-then-held | On a router returning a full 500-record ring, **every record the stream had delivered** fell off the end of the concatenation and was truncated away. A reconnect on a busy router discarded exactly the half it was reloading to preserve |
+| `load()` then `subscribe()` ran in series | Every call the router recorded between the snapshot returning and the socket opening was lost — too old for the stream, too new for the response, and invisible on the board forever. Now `start()` runs both concurrently and the id guard absorbs the overlap |
+| `reconnect()` was re-entrant | Two taps stacked two live subscription loops writing into one model |
+| `reconnect()` cleared the phase first | A reload that then failed left `condition` on `.populated`: a stale list, a subtitle reading "connecting", no banner, and no way back |
+| `historyUnavailable` was gated on `phase == .live` | Same stale-board outcome by a second route |
+| The rolled-window filter fallback fired only on a filter change | A reader stranded on a filter option its own menu no longer offers, reachable out of only by the one action they had no reason to take |
+| `ContentZone.activityModel` rebuilt the model in `body` | A new `ActivityModel` — and a new subscription — on every body evaluation until the deferred `Task` landed. Now a stored lazy on `ShellModel` |
+| `FeedBanner` reconnected in an unstructured `Task` | The work outlived the board it was pressed on |
+| `Start the router` / `Re-pair…` were enabled and wired to `break` | A control reporting a capability the app does not have, silent when pressed. §3.4's answer applied instead: dimmed in place with a discoverable reason (spec B44) |
+
+## Runs
+
+| Screen | How it was verified | Commit | Result |
+|---|---|---|---|
+| Activity — populated | `scripts/acceptance/m2-activity.sh` full run. AX by pid: no scaffold sentinel; both filters present; title `Activity`; 12 rows; a `failed,` row; `claude · pid N`; the 82-char tool name complete in the label; subtitle `Showing 12 calls · since 7:12 pm · live` | `8607c55`+ | **pass** |
+| Activity — inspector (**new runtime evidence**) | `axkit press` on the over-long row — background-safe, because a SwiftUI `Button`'s AXPress runs its action on the element rather than through `@FocusedValue`. Inspector opened carrying the full `/Users/...` cwd, the untruncated 82-char tool name, and `warm — the server was already running` in words. B29/B31 had been a model claim with no runtime path at all | `8607c55`+ | **pass** |
+| Activity — filters | Both `AXMenuButton` with values `All sessions` / `All projects`. Absence of `N of M` and `Clear filters` now read off the **value column**, and the predicate is proven live against the subtitle in the same column first | `8607c55`+ | **pass** |
+| Activity — a record actually arrives (**new runtime evidence**) | `MCPROUTER_SCENARIO=streamLive`: 12 backfill rows → **16** after the feed delivered. Previously unexercisable in principle — every replayed record shared a `CallRecord.id` with a row already on screen, so the de-duplication guard dropped all of them | `8607c55`+ | **pass** |
+| Activity — offline, and its disabled action | `Start the router` reports `enabled=0` off the running control, with `This arrives with the item that owns it` on screen. The three `ControlAPIError` strings still verbatim | `8607c55`+ | **pass** |
+| Activity — unauthorised | Distinct state, own copy and action | `8607c55`+ | **pass** |
+| Activity — empty / loading / feed retrying / feed spent | Re-run unchanged from the first pass and still green: empty carries no error language and the disabled-filter reason claims no start time; loading has no `AXProgressIndicator` and zero rows; retrying offers no button; spent offers Reconnect and names no attempt count | `8607c55`+ | **pass** |
+| Activity — Space is not claimed | M1's probe reported `Space` with the board on screen | `8607c55`+ | **pass** |
+| Mac shell — regression after the `ShellWindow` change | `scripts/acceptance/mac-shell.sh` full run. 256.0/52.0/32 measured; 34 commands with shortcuts and reasons; scroll edge `#1E1E1E` → `#2F2F2F` → back; destination and frame restored across relaunch; `boards installed: 1 of 8`; Debug probe absent from Release | `8607c55`+ | **pass** |
+
+**Invisibility.** Both scripts recorded `frontmost at start: Ghostty` and `frontmost at end: Ghostty`,
+and assert it at every step between. Launches were `open -g -a`; keys were `CGEvent.postToPid`;
+nothing activated the app and nothing used `screencapture -R`.
+
+## Red-green proof of this pass's new gates
+
+| Gate | Mutation | Result |
+|---|---|---|
+| B44 · stripping the offer keeps the words | `withoutAction` also blanks the title | **red** (3 assertions) |
+| B44 · one performing branch | `.offline` wired to `model.clearFilters()` | **red** (3 assertions) |
+| B44 · the reason is not an apology | reason → "Sorry, this failed." | **red** (6 assertions) |
+
+B45–B49 carry the gap-fix's own red-green tests in `ActivityRecoveryTests` — concurrent start, the
+un-truncated live half over a full backfill, the refused second reconnect, the failed reconnect that
+still names the problem, and the fallback on arrival.
+
+## A gate that was incapable of failing, and now is not
+
+B17's absence check ran an **anchored** `^[0-9]+ of [0-9]+$` over `spoken`, which joins four AX
+fields with spaces — so it could never match anything, and would have passed a board that drew
+`9 of 28` with no filter set. That is precisely the failure the check exists to rule out. It now
+reads the value column, and the run first proves the predicate can match at all by finding the
+subtitle in that same column. An absence check that has not been shown capable of firing is
+decoration.
+
+## Suite
+
+`swift test` — **730 tests in 102 suites passed**. `scripts/lint/no-raw-design-values.sh` clean over
+42 files, 21 under the geometry and boundary rules; `scripts/lint/no-wire-codable.sh` clean.

@@ -174,17 +174,17 @@ struct ActivityRecordsTests {
             since: "s"
         )
 
-        let bySession = records.applying(ActivityFilter(session: .attributed(pid: 1, client: "claude")))
+        let bySession = records.applying(ActivityFilter(session: .attributed(pid: 1)))
         #expect(bySession.visible.count == 2)
         #expect(bySession.total == 3, "the total is what it was drawn from, not what survived")
 
-        let byDirectory = records.applying(ActivityFilter(directory: .path(cwd: "/a", project: nil)))
+        let byDirectory = records.applying(ActivityFilter(directory: .path(cwd: "/a")))
         #expect(byDirectory.visible.count == 2)
 
         let both = records.applying(
             ActivityFilter(
-                session: .attributed(pid: 1, client: "claude"),
-                directory: .path(cwd: "/a", project: nil)
+                session: .attributed(pid: 1),
+                directory: .path(cwd: "/a")
             )
         )
         #expect(both.visible.count == 1)
@@ -196,7 +196,7 @@ struct ActivityRecordsTests {
     /// send it for one call and not the next.
     @Test("the session match is on pid, and the client name does not narrow it")
     func sessionMatchesOnPid() {
-        let key = SessionKey.attributed(pid: 1, client: "claude")
+        let key = SessionKey.attributed(pid: 1)
         #expect(key.matches(Self.record(pid: 1, client: nil)))
         #expect(key.matches(Self.record(pid: 1, client: "codex")))
         #expect(!key.matches(Self.record(pid: 2, client: "claude")))
@@ -205,7 +205,7 @@ struct ActivityRecordsTests {
     @Test("a filter matching nothing is distinguishable from a window holding nothing")
     func filteredToNothingIsNotEmpty() {
         let records = ActivityRecords(records: [Self.record(pid: 1)], since: "s")
-        let result = records.applying(ActivityFilter(session: .attributed(pid: 999, client: nil)))
+        let result = records.applying(ActivityFilter(session: .attributed(pid: 999)))
         #expect(result.visible.isEmpty)
         #expect(result.total == 1)
         #expect(result.isFilteredToNothing, "the state that says so rather than 'no calls yet'")

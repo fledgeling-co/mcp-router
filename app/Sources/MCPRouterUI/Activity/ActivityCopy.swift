@@ -19,6 +19,17 @@ import MCPRouterKit
 /// no watermark on the wire at all: the newest record's timestamp proves a record arrived, never
 /// that none was missed, so a dropped stream can hide a two-minute hole the board cannot see. Every
 /// sentence below is worded to claim only what those two fields actually mean.
+public extension StateMessage {
+    /// The same message with its offer removed.
+    ///
+    /// Used where the label names something a later item owns: the words stay (§6 — one wording per
+    /// state, and `ControlAPIError` authored these), and the control beneath them is drawn disabled
+    /// with its reason instead of enabled and inert.
+    var withoutAction: StateMessage {
+        StateMessage(title: title, detail: detail, actionLabel: nil)
+    }
+}
+
 public enum ActivityCopy {
     /// The router answered and has recorded nothing in the current counting window.
     ///

@@ -205,6 +205,18 @@ hypothetical 401 would surface as `.transport` — the Error state. It is design
 fixture because it is what a Release build shows before pairing and because R5's auth work will make
 it reachable; it is not claimed as a production path today.
 
+**An offered action this build cannot perform is drawn disabled with its reason, not enabled and
+inert (amended during gap-fix).** `ControlAPIError` authors `Start the router` and `Re-pair…`, and
+§6 requires their wording to be used verbatim. But starting the router belongs to R2R and re-pairing
+to M8, so on this board neither button has anything behind it. The first implementation drew them
+enabled and wired them to `break` — a control that reports a capability the app does not have and
+then says nothing when pressed, which is worse than the disabled state §3.4 governs. The amended
+behaviour keeps every word (`StateMessage.withoutAction` removes only the offer) and draws the label
+through `DisabledAction`, which dims in place and carries a discoverable reason: *"This arrives with
+the item that owns it."* §3.4's own answer to a control that cannot act, applied rather than
+sidestepped. Clearing the filters is unaffected — that one the board really can do, so it stays
+enabled. Covered by **B44**.
+
 ---
 
 ## Where the prototype is stale
@@ -303,6 +315,21 @@ which a fixture scenario is reachable, and it is also the only one carrying M1's
 | B41 | The board renders **outside** the shell's content `ScrollView` and reports its list's scroll geometry through the same callback, so no scroll view nests inside another and the scroll-edge separator behaves identically over a board and over the placeholder (F34) | red-green test on the wiring + the shell's own A34 evidence, re-pointed at a still-scaffolded destination |
 | B42 | Both appearances render: the board's token set is asserted against a **declared allowlist** in both appearances — which tokens the board uses, rather than re-testing that `ColorToken` resolves (F29) | red-green test over the allowlist |
 | B43 | No file added by this item writes a raw colour, size, radius or font size, and the geometry rule now scans the board's directory as well as the shell's | `scripts/lint/no-raw-design-values.sh`, extended |
+| B44 | An action the board cannot perform is drawn **disabled with a discoverable reason** rather than enabled and inert: `withoutAction` keeps the title and detail and removes only the offer; `act(on:)` calls the model from exactly one branch; the reason names what is missing without calling it an error (§3.4, §6) | red-green test on the copy-stripping, on the single performing branch, and on the reason's voice |
+
+### The two sources, interacting badly
+
+These are the gap-fix's own clauses. Each names a defect that was found and fixed in a board that
+already compiled, passed its suite and had been driven through a full acceptance run — which is why
+they are written down rather than folded silently into the ones above.
+
+| # | Clause | Evidence |
+|---|---|---|
+| B45 | The backfill and the subscription start **concurrently**. Run in series, every call the router records between the snapshot returning and the socket opening is lost — too old for the stream, too new for the response, and invisible to the board forever | red-green test asserting both are in flight together |
+| B46 | Merging a reload into a live window keeps what the stream delivered. The de-duplicating initialiser keeps the **first** `capacity` records, so the records that arrived since the fetch began go first; concatenating response-then-held truncated the entire live half away whenever the router returned a full ring | red-green test with a full 500-record response over a live window |
+| B47 | A second Reconnect while one is running is refused rather than stacking a second subscription loop into one model. The guard is on the model, not the button | red-green test driving two overlapping reconnects |
+| B48 | A reconnect that fails leaves the board saying so. The phase is not cleared first — clearing it left a failed reload on `.populated`: a stale list, a subtitle reading "connecting", no banner and no way back. `historyUnavailable` is likewise not gated on `phase == .live` | red-green test asserting the condition after a failed reconnect |
+| B49 | The rolled-window filter fallback (B20) fires on **record arrival**, not only on a filter change. Reaching it by changing a filter is the one thing a reader stranded on an option its own menu no longer offers has no reason to do | red-green test driving records past capacity under an active filter |
 
 ---
 
@@ -321,8 +348,8 @@ Every sentence is the shipped string, asserted against `ActivityCopy`.
 | **History unavailable** | `/usage` failed, feed live | **Showing live calls only — the history didn't load.** / the error's own advice | Reconnect now |
 | **Error** | `.server` / `.malformedResponse` / `.transport`, nothing loaded | `headline` + `advice` verbatim from the error | the error's own `actionLabel`, nil for these three |
 | **Success** | a record arrives | the row slides in at the top on transform only; the count increments; nothing else moves; **no toast** | — |
-| **Offline** | `.routerNotRunning` | **The router isn't running** / "Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a moment and your servers stay exactly as you left them." | Start the router |
-| **Unauthorised** | `.unauthorized` | **This app isn't authorised to talk to the router** / "The control token was rotated or removed. Re-pair to continue — your servers and their history are untouched." | Re-pair… |
+| **Offline** | `.routerNotRunning` | **The router isn't running** / "Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a moment and your servers stay exactly as you left them." | Start the router — **disabled**, reason "This arrives with the item that owns it." (R2R owns it; B44) |
+| **Unauthorised** | `.unauthorized` | **This app isn't authorised to talk to the router** / "The control token was rotated or removed. Re-pair to continue — your servers and their history are untouched." | Re-pair… — **disabled**, same reason (M8 owns it; B44) |
 | **Disabled** | no records, so nothing to filter | both filters dim in place; one shared sentence beneath: "Filters need calls to filter. No calls have been recorded yet." | — |
 | **Overflow** | server, tool or project wider than its column | truncates at the tail, row stays 24pt, full value in the inspector and in the accessibility label | — |
 | **Filtered to nothing** | filters match no loaded record | **No calls match these filters** / "That combination has nothing in it. Clearing the filters shows all 28 again." | Clear filters |

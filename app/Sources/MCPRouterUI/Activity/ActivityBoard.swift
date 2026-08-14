@@ -45,10 +45,7 @@
             // Scoped to this board. Leaving Activity cancels both, so no socket is held open behind
             // a surface nobody is looking at, and coming back re-reads rather than showing a list
             // that stopped updating while it was away.
-            .task {
-                await model.load()
-                await model.subscribe()
-            }
+            .task { await model.start() }
         }
 
         // MARK: - The board's own column
@@ -96,9 +93,7 @@
                 // §5: say what arrived and what did not. The history stays on screen — replacing it
                 // would throw away the half that did arrive.
                 if let message = model.message(for: condition) {
-                    FeedBanner(message: message) {
-                        Task { await model.reconnect() }
-                    }
+                    FeedBanner(message: message) { await model.reconnect() }
                 }
                 ActivityColumnHeader()
                 list
@@ -108,8 +103,23 @@
                     ActivityColumnHeader()
                 }
                 if let message = model.message(for: condition) {
-                    MessageState(message, icon: icon(for: condition), tint: tint(for: condition)) {
-                        act(on: condition)
+                    VStack(spacing: MetricToken.selectionRadius.leadingScalar) {
+                        MessageState(
+                            actionable(condition) ? message : message.withoutAction,
+                            icon: icon(for: condition),
+                            tint: tint(for: condition)
+                        ) {
+                            act(on: condition)
+                        }
+                        // The refusal states name an action this item cannot perform — starting the
+                        // router is R2R's, re-pairing is M8's. An **enabled** accent button wired to
+                        // nothing is worse than the disabled placeholder §3.4 forbids: it reports a
+                        // capability the app does not have and says nothing when pressed. §3.4's own
+                        // answer is a control that dims in place with a discoverable reason, which
+                        // is exactly what `DisabledAction` draws.
+                        if !actionable(condition), let label = message.actionLabel {
+                            DisabledAction(label: label, reason: Self.actionNotYetBuilt)
+                        }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .accessibilityIdentifier(Self.stateIdentifier)
@@ -186,6 +196,9 @@
 
         private func icon(for condition: ActivityCondition) -> Icon {
             switch condition {
+            // `.partial` and `.historyUnavailable` never reach here — `content` routes both to the
+            // banner — but the switch is exhaustive by design, so they are named with the icon they
+            // would take rather than left to a `default` that would swallow a real new case.
             case .empty, .filteredToNothing, .loading, .populated, .partial: .activity
             case .offline: .bolt
             case .unauthorized: .shield
@@ -204,16 +217,25 @@
             }
         }
 
+        /// The sentence under a control this build cannot yet perform. Names what is missing rather
+        /// than apologising, in the same voice as the shell's scaffold copy.
+        static let actionNotYetBuilt = "This arrives with the item that owns it."
+
+        /// Whether the board can actually perform this state's offered action.
+        ///
+        /// Only one of them: clearing the filters is this board's own doing. Starting the router and
+        /// re-pairing belong to items that have not shipped.
+        private func actionable(_ condition: ActivityCondition) -> Bool {
+            if case .filteredToNothing = condition { return true }
+            return false
+        }
+
         private func act(on condition: ActivityCondition) {
             switch condition {
             case .filteredToNothing:
                 model.clearFilters()
             case .offline, .unauthorized, .error, .empty, .loading, .populated, .partial,
                  .historyUnavailable:
-                // `Start the router` and `Re-pair…` belong to items that own those flows; the copy
-                // and the button are here because §5 requires the state to be designed, and wiring
-                // them to a no-op would be worse than leaving the action to the item that can
-                // actually perform it.
                 break
             }
         }
@@ -222,7 +244,9 @@
     /// The partial state's banner: adjacent to the list, never replacing it.
     struct FeedBanner: View {
         let message: StateMessage
-        let reconnect: () -> Void
+        /// `async`, so the reconnect runs in the button's own task rather than in an unstructured
+        /// `Task { }` that outlives the board it was pressed on.
+        let reconnect: () async -> Void
 
         static let identifier = "activity-feed-banner"
 
@@ -241,7 +265,7 @@
                 }
                 Spacer(minLength: 0)
                 if let label = message.actionLabel {
-                    Button(label, action: reconnect)
+                    Button(label) { Task { await reconnect() } }
                         .buttonStyle(StandardButtonStyle())
                 }
             }

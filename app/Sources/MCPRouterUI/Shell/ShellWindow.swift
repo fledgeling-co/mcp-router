@@ -63,11 +63,6 @@
     struct ContentZone: View {
         @Bindable var model: ShellModel
 
-        /// The Activity board's own state, held here so it survives a re-render of the zone and is
-        /// built exactly once. Created lazily rather than in `init` because building it eagerly
-        /// would construct a feed for a destination the reader may never select.
-        @State private var activity: ActivityModel?
-
         var body: some View {
             Group {
                 if let scaffolded = ScaffoldedDestination(model.selection) {
@@ -161,7 +156,7 @@
         private var board: some View {
             switch model.selection {
             case .activity:
-                ActivityBoard(model: activityModel) { previous, offset in
+                ActivityBoard(model: model.activity) { previous, offset in
                     model.observeScroll(previous: previous, offset: offset)
                 }
             case .servers:
@@ -179,22 +174,6 @@
                 // one visible.
                 EmptyView()
             }
-        }
-
-        /// Built once, on first use, and kept for the life of the zone.
-        private var activityModel: ActivityModel {
-            if let activity { return activity }
-            let created = ActivityModel(
-                client: model.client,
-                source: ShellClientFactory.makeEventSource()
-            )
-            // Assigning during a body evaluation would be a write to state from `body`, which
-            // SwiftUI forbids; the box is populated on the next run loop and the first evaluation
-            // uses the value it just built. Both are the same object identity thereafter.
-            Task { @MainActor in
-                if activity == nil { activity = created }
-            }
-            return activity ?? created
         }
     }
 

@@ -34,7 +34,23 @@ while true; do
         dir="$RUNS/$id"
         for f in "$dir"/agent-*.jsonl; do
             [ -f "$f" ] || continue
-            key="$id/$(basename "$f" .jsonl)"
+            agent=$(basename "$f" .jsonl); agent=${agent#agent-}
+            key="$id/$agent"
+
+            # An agent with a result in the journal has RETURNED. It is finished, not stalled,
+            # and its transcript is supposed to stop. Matched on agentId, which the journal's
+            # result line carries verbatim — not on the item name, which repeats across runs.
+            # Without this the watcher re-reports every corpse each time it restarts, and a real
+            # stall drowns in it.
+            if python3 -c "
+import json,sys
+for l in open('$dir/journal.jsonl'):
+    d=json.loads(l)
+    if d.get('type')=='result' and d.get('agentId')=='$agent': sys.exit(0)
+sys.exit(1)" 2>/dev/null; then
+                continue
+            fi
+
             silent=$(( now - $(stat -f '%m' "$f") ))
             item=$(grep -o 'FEATURE: [A-Z0-9]*' "$f" | head -1 | cut -d' ' -f2)
 

@@ -50,15 +50,21 @@ public actor LoopbackCallbackListener: CallbackListening {
         let connection: NWConnection
         var head: Data
         var deadline: Task<Void, Never>?
+        /// Set once the handler has been called: this connection has a page coming and must not be
+        /// closed out from under it.
+        var isAnswering = false
     }
 
     private let queue = DispatchQueue(label: "app.fledgeling.mcp-router.auth-callback")
     private var listener: NWListener?
     private var handler: (@Sendable (String) async -> CallbackReply)?
     private var startContinuation: CheckedContinuation<Void, Error>?
-    private var stopContinuation: CheckedContinuation<Void, Never>?
+    private var stopContinuations: [CheckedContinuation<Void, Never>] = []
+    private var isStopping = false
     private var pending: [ObjectIdentifier: Pending] = [:]
     private var boundPortValue: Int?
+    /// Set by the first `start`, never cleared — see that method for why reuse is refused.
+    private var hasBound = false
 
     public init() {}
 
@@ -68,12 +74,19 @@ public actor LoopbackCallbackListener: CallbackListening {
     /// which is how a test drives this without fighting whatever is on 8880.
     public var boundPort: Int? { boundPortValue }
 
+    /// Binds the port and serves callbacks until `stop()`.
+    ///
+    /// **One bind per instance, deliberately.** Allowing a second `start` after a `stop` would let
+    /// the first stop's 2 s deadline task, still armed, resume the *second* stop's continuation
+    /// early — and an early return from `stop()` is precisely the `EADDRINUSE` bug this type was
+    /// fixed for, arriving months later as an unexplained flake. A flow makes its own listener, so
+    /// refusing reuse costs nothing and removes the class.
     public func start(
         port: Int,
         handler: @escaping @Sendable (String) async -> CallbackReply
     ) async throws {
-        guard listener == nil else {
-            throw AuthFailure("the callback listener is already bound")
+        guard !hasBound else {
+            throw AuthFailure("a callback listener binds once; make a new one for the next flow")
         }
         guard let parameters = Self.loopbackParameters(port: port) else {
             throw AuthFailure("the callback port is not a bindable port")
@@ -108,6 +121,10 @@ public actor LoopbackCallbackListener: CallbackListening {
             self.handler = nil
             throw error
         }
+        // Only a bind that succeeded consumes the instance: a failed bind armed no deadline task, so
+        // there is nothing stale for a retry to trip over, and the caller should see EADDRINUSE
+        // again rather than a confusing refusal.
+        hasBound = true
         boundPortValue = listener.port.map { Int($0.rawValue) }
     }
 
@@ -128,10 +145,28 @@ public actor LoopbackCallbackListener: CallbackListening {
     /// It cannot exchange a code twice: `AuthFlowCoordinator.exchange` refuses any request that is
     /// not for the flow currently in flight, so a late one renders the 500 it earns.
     public func stop() async {
-        guard let listener else { return }
+        guard let listener else {
+            // A stop is already under way. Waiting with it — rather than returning because
+            // `self.listener` was nilled by the first caller — is the difference between "the
+            // socket is free" and "somebody has asked for it to be freed". The second caller is
+            // typically the one about to rebind the fixed port.
+            guard isStopping else { return }
+            await withCheckedContinuation { continuation in
+                stopContinuations.append(continuation)
+            }
+            return
+        }
         self.listener = nil
+        isStopping = true
+        // Accepted connections are deliberately left alone, including ones that have sent nothing.
+        // Closing the silent ones was tried — Chrome opens speculative preconnects, and an idle
+        // socket sitting in `pending` looks like something worth reclaiming — and it is wrong twice:
+        // Node's `server.close()` keeps already-accepted connections (closing idle ones is the
+        // separate `closeIdleConnections()`), and a connection that has sent nothing *yet* is
+        // exactly the slow browser whose request the type's note 3 exists to answer. The 60 s head
+        // deadline is what reclaims a socket that never becomes a request.
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            stopContinuation = continuation
+            stopContinuations.append(continuation)
             listener.cancel()
             Task { [weak self] in
                 try? await Task.sleep(nanoseconds: Self.stopDeadlineNanoseconds)
@@ -174,9 +209,13 @@ public actor LoopbackCallbackListener: CallbackListening {
     }
 
     private func resumeStop() {
-        guard let continuation = stopContinuation else { return }
-        stopContinuation = nil
-        continuation.resume()
+        guard isStopping else { return }
+        isStopping = false
+        let waiting = stopContinuations
+        stopContinuations = []
+        for continuation in waiting {
+            continuation.resume()
+        }
     }
 
     private func resumeStart(with failure: Error?) {
@@ -240,23 +279,37 @@ public actor LoopbackCallbackListener: CallbackListening {
         if let data { entry.head.append(data) }
         pending[id] = entry
 
-        if let target = Self.requestTarget(in: entry.head) {
+        switch Self.readTarget(in: entry.head) {
+        case let .target(target):
             await answer(id: id, target: target)
-            return
-        }
-        if failed || isComplete || entry.head.count > Self.maximumHeadBytes {
+        case .unparseable:
+            // A head that is **terminated** and still has no request line will never become one, and
+            // the client is waiting on us. Continuing to read would pin the connection for the full
+            // head deadline while both ends wait for the other — which reads, from the outside,
+            // exactly like a hung router.
             close(id)
-            return
+        case .incomplete:
+            if failed || isComplete || entry.head.count > Self.maximumHeadBytes {
+                close(id)
+                return
+            }
+            receive(id: id)
         }
-        receive(id: id)
     }
 
     private func answer(id: ObjectIdentifier, target: String) async {
-        guard let entry = pending[id], let handler else {
+        guard var entry = pending[id], let handler else {
             close(id)
             return
         }
         entry.deadline?.cancel()
+        // Cancelling a deadline task that is already past its sleep does nothing — its
+        // `close(id)` is already queued against this actor, and the `await` below releases the
+        // actor for it to run. Marking the entry instead is what actually protects it: `close`
+        // refuses an entry that is mid-answer, so the browser still receives the page it earned
+        // on the one-in-a-million request that lands on the 60-second boundary.
+        entry.isAnswering = true
+        pending[id] = entry
         // The request target is never logged. On the success path it carries the authorization
         // code, and B66's guarantee is that no credential reaches a log line.
         let reply = await handler(target)
@@ -270,81 +323,10 @@ public actor LoopbackCallbackListener: CallbackListening {
     }
 
     private func close(_ id: ObjectIdentifier) {
-        guard let entry = pending.removeValue(forKey: id) else { return }
+        guard let entry = pending[id], !entry.isAnswering else { return }
+        pending[id] = nil
         entry.deadline?.cancel()
         entry.connection.cancel()
-    }
-
-    // MARK: - The wire
-
-    /// The request target — `req.url` — or nil while the head is still arriving.
-    ///
-    /// A target can be split across TCP segments, so this answers only once the head is terminated.
-    /// Both CRLF and bare-LF terminators are accepted, as Node's parser does.
-    static func requestTarget(in head: Data) -> String? {
-        let bytes = [UInt8](head)
-        guard headIsTerminated(bytes) else { return nil }
-        guard let newline = bytes.firstIndex(of: 0x0A) else { return nil }
-        var line = Array(bytes[bytes.startIndex ..< newline])
-        if line.last == 0x0D { line.removeLast() }
-        let fields = line.split(separator: 0x20, omittingEmptySubsequences: true)
-        guard fields.count >= 2 else { return nil }
-        // A request target is not guaranteed to be valid UTF-8, and a malformed one must still be
-        // answered — with the 404 it earns — rather than vanish. `String(decoding:)` substitutes the
-        // bad bytes where the failable initializer would drop the request on the floor.
-        // swiftlint:disable:next optional_data_string_conversion
-        return String(decoding: fields[1], as: UTF8.self)
-    }
-
-    private static func headIsTerminated(_ bytes: [UInt8]) -> Bool {
-        if bytes.count >= 4 {
-            for index in 0 ... (bytes.count - 4) where Array(bytes[index ..< index + 4]) == [
-                0x0D,
-                0x0A,
-                0x0D,
-                0x0A
-            ] {
-                return true
-            }
-        }
-        guard bytes.count >= 2 else { return false }
-        for index in 0 ... (bytes.count - 2) where bytes[index] == 0x0A && bytes[index + 1] == 0x0A {
-            return true
-        }
-        return false
-    }
-
-    /// The bytes one `CallbackReply` becomes.
-    ///
-    /// A pure function, so the response head is assertable without a socket.
-    ///
-    /// **Declared framing divergence.** The reference sets `content-type` and nothing else, leaving
-    /// Node to frame the page with `Transfer-Encoding: chunked` and keep the connection alive; this
-    /// sends `content-length` and `connection: close` instead. Both are valid HTTP/1.1 and a browser
-    /// renders them identically. The application-visible contract — status, `content-type`, body —
-    /// is byte-identical, which is what every clause from B65 through B99 is written against. The
-    /// close is the honest framing here: this listener is torn down the moment the flow settles, so
-    /// a promise to keep the connection alive would be one we break a millisecond later. The 404
-    /// keeps its zero-length body and no `content-type`, per B82.
-    static func wire(for reply: CallbackReply) -> String {
-        var head = "HTTP/1.1 \(reply.status) \(reason(for: reply.status))\r\n"
-        if let contentType = reply.contentType {
-            head += "content-type: \(contentType)\r\n"
-        }
-        head += "content-length: \(reply.body.utf8.count)\r\n"
-        head += "connection: close\r\n\r\n"
-        return head + reply.body
-    }
-
-    /// `http.STATUS_CODES[code] ?? 'unknown'`, for the four statuses this server can produce.
-    static func reason(for status: Int) -> String {
-        switch status {
-        case 200: "OK"
-        case 400: "Bad Request"
-        case 404: "Not Found"
-        case 500: "Internal Server Error"
-        default: "unknown"
-        }
     }
 }
 

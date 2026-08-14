@@ -29,10 +29,44 @@ final class RawHTTP: @unchecked Sendable {
 
     /// `GET <target>` against 127.0.0.1:`port`, resolved when the server closes the connection.
     static func get(port: Int, target: String, timeout: TimeInterval = 5) async throws -> String {
-        try await RawHTTP().perform(port: port, target: target, timeout: timeout)
+        try await raw(
+            port: port,
+            request: "GET \(target) HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n",
+            timeout: timeout
+        )
     }
 
-    private func perform(port: Int, target: String, timeout: TimeInterval) async throws -> String {
+    /// The request bytes **verbatim**, for the shapes a well-formed client would never send.
+    static func raw(port: Int, request: String, timeout: TimeInterval = 5) async throws -> String {
+        try await RawHTTP().perform(port: port, request: request, timeout: timeout)
+    }
+
+    /// Whether a TCP connection to this host and port can be established inside the budget.
+    ///
+    /// The oracle for "the bind is loopback-only" — a question about a socket, which no assertion on
+    /// a configuration object can answer.
+    static func canConnect(host: IPv4Address, port: Int, timeout: TimeInterval = 2) async -> Bool {
+        guard let endpointPort = NWEndpoint.Port(rawValue: UInt16(truncatingIfNeeded: port)) else {
+            return false
+        }
+        let connection = NWConnection(host: .ipv4(host), port: endpointPort, using: .tcp)
+        let reached: Bool = await withCheckedContinuation { continuation in
+            let box = VerdictBox(continuation)
+            connection.stateUpdateHandler = { state in
+                switch state {
+                case .ready: box.settle(true)
+                case .failed, .waiting, .cancelled: box.settle(false)
+                default: break
+                }
+            }
+            DispatchQueue.global().asyncAfter(deadline: .now() + timeout) { box.settle(false) }
+            connection.start(queue: .global())
+        }
+        connection.cancel()
+        return reached
+    }
+
+    private func perform(port: Int, request: String, timeout: TimeInterval) async throws -> String {
         try await withCheckedThrowingContinuation { continuation in
             lock.lock()
             self.continuation = continuation
@@ -59,7 +93,6 @@ final class RawHTTP: @unchecked Sendable {
             connection.stateUpdateHandler = { [self] state in
                 switch state {
                 case .ready:
-                    let request = "GET \(target) HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n"
                     connection.send(content: Data(request.utf8), completion: .contentProcessed { _ in })
                     read(connection)
                 case let .failed(error):
@@ -154,4 +187,53 @@ extension NWConnection {
             handler(data, isComplete, error != nil)
         }
     }
+}
+
+/// Resume-once box for a Bool verdict.
+final class VerdictBox: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<Bool, Never>?
+
+    init(_ continuation: CheckedContinuation<Bool, Never>) {
+        self.continuation = continuation
+    }
+
+    func settle(_ value: Bool) {
+        lock.lock()
+        let held = continuation
+        continuation = nil
+        lock.unlock()
+        held?.resume(returning: value)
+    }
+}
+
+/// The machine's first non-loopback IPv4 address, or nil when it has none.
+///
+/// Used to ask the only question that actually proves the loopback pin: can something that is not
+/// 127.0.0.1 reach this port? A machine with no such address (no network) cannot answer it, and the
+/// test says so rather than passing vacuously.
+func firstNonLoopbackIPv4() -> IPv4Address? {
+    var storage: UnsafeMutablePointer<ifaddrs>?
+    guard getifaddrs(&storage) == 0 else { return nil }
+    defer { freeifaddrs(storage) }
+    var cursor = storage
+    while let current = cursor {
+        defer { cursor = current.pointee.ifa_next }
+        let flags = Int32(current.pointee.ifa_flags)
+        guard let raw = current.pointee.ifa_addr,
+              raw.pointee.sa_family == UInt8(AF_INET),
+              (flags & IFF_LOOPBACK) == 0,
+              (flags & IFF_UP) != 0
+        else { continue }
+        var host = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+        guard getnameinfo(
+            raw, socklen_t(raw.pointee.sa_len), &host, socklen_t(host.count), nil, 0, NI_NUMERICHOST
+        ) == 0 else { continue }
+        let bytes = host.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }
+        guard let text = String(bytes: bytes, encoding: .utf8) else { continue }
+        // Link-local autoconfiguration addresses are not reachable interfaces in any useful sense.
+        if text.hasPrefix("169.254") { continue }
+        if let address = IPv4Address(text) { return address }
+    }
+    return nil
 }

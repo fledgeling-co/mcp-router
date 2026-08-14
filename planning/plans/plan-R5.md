@@ -310,6 +310,72 @@ One instance per flow — `start` refuses a second bind on the same instance.
 `FakeAuthTransport`. Worth knowing that `swift build` does **not** build the test target, so this
 surfaced only at `make test` — a build-only gate after a rebase proves less than it appears to.
 
+## P8 · What the completeness critic changed
+
+The Phase D critic ran in-family (`codex: usage limit → claude (downgrade)`), briefed to refute and
+told that finding nothing would be a failed review. It returned **11 findings**. Eight changed the
+build; the dispositions are recorded here because a plan that quietly absorbs a review teaches the
+next reader nothing.
+
+### The crash it found, which the double could not have
+
+**`AuthFlow.cleanup` resumed one continuation twice.** `current` was cleared *after*
+`await listener.stop()` and `await transport.close()`. Both are suspension points, and the real
+listener's `stop()` genuinely suspends — it waits for the socket. A callback landing on the
+still-bound socket inside that window passed the same guard, settled the flow (**first** resume),
+and left the outer cleanup holding a stale copy of the same `Running` to resume a **second** time.
+A `CheckedContinuation` resumed twice does not warn, it traps, and this actor is the daemon.
+
+Two things about it are worth keeping:
+
+- **The listener made it reachable.** Against `FakeListener`, whose `stop()` returns without
+  suspending, the window does not exist — which is the precise way a double lies: not by asserting
+  the wrong thing, but by removing the interleaving the real component has.
+- **The red signal is the run dying**, not an expectation failing. `AuthCleanupRaceTests` reproduces
+  it with a `SlowStopListener`, and reverting the ordering prints
+  `SWIFT TASK CONTINUATION MISUSE: … more than once`.
+
+`cleanup` now clears `current` before its first suspension. The same change closes the critic's
+second finding — an observer registering inside that window was dropped un-resumed, stranding its
+task forever; it now gets `no authorization is in flight`.
+
+### Faithfulness gaps, each now a test
+
+| Finding | Was | Now |
+|---|---|---|
+| absolute-form request target | `GET http://127.0.0.1:8880/callback?code=… HTTP/1.1` compared raw against `/callback` → 404. RFC 9112 §3.2.2 says an origin server must accept it, a proxied browser sends it, and `new URL(target, base)` gives the reference `/callback` for free. B82 makes a 404 a **non**-termination, so this did not fail an authorization — it hung one until the five-minute timeout | `CallbackResponder.pathname` strips scheme and authority |
+| leading empty line | read as the request line → the callback lost, same hang | skipped, per RFC 9112 §2.2, as Node does |
+| terminated head that cannot parse | neither answered nor closed: the connection sat for the full 60 s head deadline with both ends waiting on each other | `HeadRead.unparseable` closes it |
+| the deadline/answer race | `deadline?.cancel()` cannot stop a task already past its sleep, so a request landing on the 60 s boundary could have its connection closed mid-answer | the entry is marked `isAnswering`, and `close` refuses it |
+| a second concurrent `stop()` | returned as soon as the first caller had nilled `listener`, defeating the wait that exists so supersession can rebind | callers share one continuation list |
+
+### Two findings answered by measurement rather than argument
+
+The critic flagged both as reasoned-not-measured, and was right to.
+
+- **Does an unread request body cost the response?** Closing a socket with bytes still in the receive
+  buffer can make the kernel send RST rather than FIN. Measured: a POST carrying a
+  `x-www-form-urlencoded` body receives its response intact. No drain added.
+- **Is the loopback pin actually enforced by the socket?** The existing test read back a value the
+  test itself had set — it would have passed if `NWListener` ignored `requiredLocalEndpoint`.
+  Measured: loopback connects, the machine's own LAN IPv4 does not. The test now asks the socket, and
+  records an issue rather than passing when the machine has no non-loopback interface to ask with.
+
+### Rejected, with the reason
+
+**Closing idle accepted connections on `stop()`** (the critic's fd-leak concern about Chrome's
+speculative preconnects). Tried, and reverted: Node's `server.close()` keeps already-accepted
+connections — closing idle ones is the separate `closeIdleConnections()` — and a connection that has
+sent nothing *yet* is exactly the slow browser the late-request behaviour exists to answer. It broke
+that test on the first run. The 60 s head deadline is what reclaims a socket that never becomes a
+request.
+
+**Multiple observers on one flow**, and `awaitCompletion` after a settle answering
+`no authorization is in flight` rather than the real outcome. Both are real divergences from a
+JavaScript promise, and both are unreachable today: `AuthRoutes.authStart` is the only caller and
+registers exactly one observer, before the 200 is built. Recorded as a declared limitation rather
+than redesigned, because the fix is a multicast completion type and that is R2's transport work.
+
 ## Out of scope, restated so a slice cannot drift into it
 
 The two `case` lines in R3's `ControlHandler` dispatch; the Mac and iPhone auth surfaces (M8, I1); a

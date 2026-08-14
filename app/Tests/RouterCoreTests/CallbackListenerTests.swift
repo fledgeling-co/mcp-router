@@ -140,8 +140,19 @@ struct CallbackListenerTests {
 
         // No page is rendered because there is no request to render one to — what is observable is
         // that the port stopped answering, which is the cleanup this termination owes.
-        await #expect(throws: (any Error).self) {
-            _ = try await RawHTTP.get(port: port, target: "/callback?code=late", timeout: 2)
+        //
+        // Asserted as *unreachable* specifically, not "some error". A listener left bound but
+        // handler-less would hang the request instead, throw `timedOut`, and satisfy a bare
+        // `throws:` expectation while proving the opposite of what this test claims.
+        var failure: RawHTTP.Failure?
+        do {
+            _ = try await RawHTTP.get(port: port, target: "/callback?code=late", timeout: 1)
+        } catch let error as RawHTTP.Failure {
+            failure = error
+        }
+        guard case .unreachable = failure else {
+            Issue.record("expected the port to refuse the connection, got \(String(describing: failure))")
+            return
         }
     }
 

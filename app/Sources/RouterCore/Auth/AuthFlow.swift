@@ -84,11 +84,19 @@ public actor AuthFlowCoordinator {
             // belongs to the flow now running — this guard is the whole point of B96.
             return
         }
+        // Cleared **before** the first suspension, and that ordering is load-bearing. Both teardown
+        // calls below are `await`s, and the real listener's `stop()` genuinely suspends — it waits
+        // for the socket to come back. A callback landing on the still-bound socket inside that
+        // window would otherwise pass this same guard, take a second copy of the same `Running`, and
+        // resume one `CheckedContinuation` twice: `settle` resumes it with the real outcome, then
+        // this stale copy resumes it again with `AuthAbandoned`. A continuation resumed twice does
+        // not warn — it traps, and this actor is the daemon. The reference clears `current` last
+        // because JavaScript has no suspension inside `cleanup` to be re-entered through.
+        current = nil
         running.timeoutTask?.cancel()
+        running.completion?.resume(throwing: AuthAbandoned())
         await running.listener.stop()
         await running.transport.close()
-        running.completion?.resume(throwing: AuthAbandoned())
-        current = nil
     }
 
     /// Settle the live flow, then clean up. Used by every termination that *does* settle.

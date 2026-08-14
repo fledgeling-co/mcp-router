@@ -116,7 +116,7 @@ public struct CallbackResponder: Sendable {
     static func split(_ target: String) -> (path: String, query: [(name: String, value: String)]) {
         let withoutFragment = target.split(separator: "#", maxSplits: 1).first.map(String.init) ?? ""
         guard let mark = withoutFragment.firstIndex(of: "?") else {
-            return (withoutFragment.isEmpty ? "/" : withoutFragment, [])
+            return (pathname(withoutFragment.isEmpty ? "/" : withoutFragment), [])
         }
         let path = String(withoutFragment[withoutFragment.startIndex ..< mark])
         let rest = String(withoutFragment[withoutFragment.index(after: mark)...])
@@ -127,7 +127,22 @@ public struct CallbackResponder: Sendable {
             let value = parts.count > 1 ? Self.decode(String(parts[1])) : ""
             items.append((name: name, value: value))
         }
-        return (path.isEmpty ? "/" : path, items)
+        return (pathname(path.isEmpty ? "/" : path), items)
+    }
+
+    /// The `pathname` of a request target, whether it arrived in origin-form or absolute-form.
+    ///
+    /// RFC 9112 §3.2.2 lets a client send `GET http://127.0.0.1:8880/callback?code=… HTTP/1.1`, and
+    /// says an origin server **must** accept it — a browser configured with a system proxy and no
+    /// localhost bypass sends exactly that. The reference gets this for free, because
+    /// `new URL(req.url, AUTH_REDIRECT_URI)` yields `/callback` from either form. Comparing the raw
+    /// target instead would 404 a real provider callback, and B82 makes a 404 a **non**-termination:
+    /// the flow would not fail, it would hang until the five-minute timeout.
+    static func pathname(_ path: String) -> String {
+        guard let scheme = path.range(of: "://") else { return path }
+        let authorityOnwards = path[scheme.upperBound...]
+        guard let slash = authorityOnwards.firstIndex(of: "/") else { return "/" }
+        return String(authorityOnwards[slash...])
     }
 
     /// `URLSearchParams` decodes `+` as a space as well as percent-escapes.

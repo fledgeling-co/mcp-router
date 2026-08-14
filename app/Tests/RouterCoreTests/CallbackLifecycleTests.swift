@@ -234,4 +234,75 @@ struct CallbackLifecycleTests {
         #expect(splitResponse(reply).body == "late:/callback?code=late")
         connection.cancel()
     }
+
+    @Test("a listener binds once — reuse is refused rather than quietly racing")
+    func aListenerBindsOnce() async throws {
+        let listener = LoopbackCallbackListener()
+        try await listener.start(port: 0) { _ in CallbackReply(status: 404, contentType: nil, body: "") }
+        let port = await listener.boundPort ?? 0
+        await listener.stop()
+
+        // Reuse would leave the first stop's 2 s deadline armed against the second stop's
+        // continuation, which returns from `stop()` early — the EADDRINUSE bug, months later.
+        var thrown: String?
+        do {
+            try await listener.start(port: port) { _ in
+                CallbackReply(status: 404, contentType: nil, body: "")
+            }
+        } catch {
+            thrown = (error as? AuthFailure)?.message
+        }
+        #expect(thrown == "a callback listener binds once; make a new one for the next flow")
+
+        // A bind that FAILED does not consume the instance: the caller should see the real reason.
+        let holder = LoopbackCallbackListener()
+        try await holder.start(port: 0) { _ in CallbackReply(status: 404, contentType: nil, body: "") }
+        let held = await holder.boundPort ?? 0
+        let retrier = LoopbackCallbackListener()
+        await #expect(throws: AuthFailure.self) {
+            try await retrier.start(port: held) { _ in
+                CallbackReply(status: 404, contentType: nil, body: "")
+            }
+        }
+        await holder.stop()
+        // Same instance, now that the port is free: the earlier failure left it usable.
+        try await retrier.start(port: held) { _ in CallbackReply(status: 404, contentType: nil, body: "") }
+        await retrier.stop()
+    }
+
+    /// **What this proves, and what it does not.** Eight concurrent `stop()` calls all return, none
+    /// deadlocks on the shared continuation list, and none returns while the socket is still
+    /// accepting connections. It does **not** prove the fix it was written for — that a second
+    /// caller waits until the port is *rebindable* — because those are two different thresholds: a
+    /// cancelled socket refuses connections before it releases the port, and the rebind oracle
+    /// cannot be sampled from eight racers at once without a mutex harness that would itself decide
+    /// the ordering. Recorded as an unproven guard in `planning/evidence/R5-acceptance.md` rather
+    /// than left looking like one.
+    @Test("concurrent stops all complete, and none returns while the socket still accepts")
+    func concurrentStopsAllComplete() async throws {
+        let listener = LoopbackCallbackListener()
+        try await listener.start(port: 0) { _ in CallbackReply(status: 404, contentType: nil, body: "") }
+        let port = await listener.boundPort ?? 0
+        // Real teardown work to wait on, not a socket that never accepted anything.
+        _ = try await RawHTTP.get(port: port, target: "/x")
+
+        // Each racer probes the socket the instant its own `stop()` returns. Probing rather than
+        // rebinding is what makes this checkable concurrently: eight rebinds of one port would
+        // collide with each other and report failures that mean nothing.
+        let stillListening = await withTaskGroup(of: Bool.self) { group in
+            for _ in 0 ..< 8 {
+                group.addTask {
+                    await listener.stop()
+                    return await RawHTTP.canConnect(host: .loopback, port: port, timeout: 1)
+                }
+            }
+            var verdicts: [Bool] = []
+            for await verdict in group {
+                verdicts.append(verdict)
+            }
+            return verdicts
+        }
+
+        #expect(stillListening.allSatisfy { $0 == false })
+    }
 }

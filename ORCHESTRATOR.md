@@ -184,6 +184,7 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 | D-r2r-a | `mcp-router tools` has no empty state | R4-C | `DESIGN.md` §5 wants one sentence and one action; the reference has no empty branch, so adding it is a *divergence* on an owned row until the cutover happens |
 | D-r2r-b | The control API has never been compared **over a socket** | R4 | `control-differential.sh` drives `ControlDiff`, an in-process oracle. R2-R made `ControlHandler` reachable over a socket for the first time and **that surface has no lane** — 11 `control` rows are proven against an oracle that is not the wire |
 | D-r2r-c | Retire the stale known-defect assertions when D-j lands | D-j | Same change or the gate reports a failure *because* the defect was fixed |
+| **D-p** | **`RegistryEnrichmentTests` "an absolute path discards the base's own path" is flaky** | R3 | Failed once and passed on two immediately following runs of the identical tree, at `RegistryEnrichmentTests.swift:216` — `http.requested.contains { $0.hasPrefix("https://host/v0/servers?") }`. R3's test (`78fdb39`); M2 touched none of it. Registered rather than shrugged off because **a test that goes red on correct code teaches a reader to re-run until green**, which is how a real failure gets waved through later |
 | **D-o** | **The fixture lane's project normaliser drops any project name containing a hyphen** | R4 | `parity-fixture.sh:121` normalises with `"project":"[A-Za-z0-9]+"` — **no `-`, no `_`**. Project attribution is the directory a call came from, so the gate's verdict depends on the *name of the directory it is run from*. Proven: `F3` and `R2R` normalise, `mcp-router` and `my_project` do not. From `.worktrees/R2R` the gate reports **69 of 82, 0 DIVERGED**; from the repo root, on the identical tree, **68 of 82, 1 DIVERGED** (`fixture usage`, `recorded="<project>" live="mcp-router"`). Every runner works in a worktree named alphanumerically, so no runner can hit it — which is why it survived R4's three adversarial reviews and R2-R's re-measure. **The cutover decision will be taken from the repo root**, where the false DIVERGED is what a reader sees. Fix is the character class; the orchestrator did not apply it because it moves the coverage number *up* and that diff should be reviewed by someone who does not benefit from it |
 
 ---
@@ -199,6 +200,27 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 ---
 
 ## Changelog
+
+- 2026-08-14 — **M4 merged `7a28de8`: `BoardRegistry.installed` is `[.servers, .skills]` — two of
+  eight panes are real.** M4 never needed resuming. It hit a 503, the harness retried it under a new
+  agentId, and the retried agent did the bulk of the work and then stopped **without reporting** —
+  the returned-early shape, not the died shape. What it needed was a merge.
+
+  Gates re-run here on the rebased branch and again on the merged tree, deliberately, because
+  **this branch stacks commits from two different runners** (a fork of the orchestrator ran an M4
+  runner whose brief wrongly said its predecessor had died): lint 0 violations, **819 tests / 113
+  suites**, 358 parity vectors, `build-mac` succeeded. Merged tree differs from the branch by
+  `ORCHESTRATOR.md` alone — **0 code files** — and was re-gated rather than assumed.
+
+  **The runner's best decision was refusing to fake a rendered pass.** With no accessibility grant
+  it did not assert a string and call it proof: it moved inspector item 7's *decision* out of the
+  view into `SkillPresentation.autoUpdateItem(for:in:)`, leaving the view a `switch` with no logic,
+  and red-green proved both new guards. It also caught its own gate lying — the first `make lint`
+  omitted `-C` and linted the **main checkout's 243 files** instead of the worktree's 257 — and
+  re-ran it. Declared, not claimed: Empty, Loading, Partial, Offline and Error remain undriven, and
+  **inspector item 7 has never been seen rendered by anyone**. That check is now the orchestrator's
+  to close, since the interactive session holds the AX grant a runner under a recovered session
+  does not.
 
 - 2026-08-14 — **A runner under a lifeline-spawned orchestrator cannot do rendered UI verification,
   and the reason is TCC, not the code.** M4's second pass reported `axkit trusted` → `no` from two

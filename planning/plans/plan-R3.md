@@ -1,0 +1,277 @@
+# plan-R3: Swift router — control API, auth, usage, registry
+
+**Spec:** `planning/specs/spec-R3.md` · **Plan size: Large** · **Branch:** `ai/r3`
+
+Every rule the spec names as load-bearing is written out here as a table, because the review of
+R1's plan established that a plan naming a mechanism without specifying it is a plan that gets
+implemented from the reader's assumptions. Where R1 already ported something, this plan **consumes**
+it and says so rather than restating it.
+
+---
+
+## What already exists, and is not rebuilt
+
+`RouterCore` from R1 supplies the whole value layer this item needs:
+
+| From R1 | Used here for |
+|---|---|
+| `JSString` (`[UInt16]`, code-unit equality and ordering) | every object key, every map key, `envKeys`/`headerKeys` sorting — S5 |
+| `JSONValue` / `JSONMember` (ordered) | every request body and response body — S3, S4 |
+| `JSStringify.compact` / `.prettyTwoSpace` | response bytes and `servers.json` bytes; fuzz-proven against Node |
+| `JSONParser` | request bodies and on-disk JSON, preserving duplicate-key and index-ordering semantics |
+| `ServerParser`, `UpstreamHash`, `ToolUnion.placardFor`, `DiffTools`, `ManifestIO`, `Manifest*` | `describe()`, `/changes`, `/approve` |
+| `JSDate.iso8601`, `RouterClock`, `FileSystem` | timestamps and every injectable side effect |
+| `ConfigWriter`, `ConfigLoader` | the `servers.json` read/modify/write path |
+
+**Nothing in this item may reach for `JSONSerialization`, `JSONEncoder`, `Codable` or a Swift
+`Dictionary` on a path that reaches the wire.** That is the single most likely way a delegated
+slice silently defeats S3–S5, so P7 carries a lint that fails on it.
+
+---
+
+## P1 · The seams and the response model
+
+Ports R2 will conform to, plus the request/response value types. Nothing here does I/O.
+
+```
+Sources/RouterCore/Control/
+  ControlRequest.swift      method, encoded pathname, query items (ordered, first-wins), headers, raw body
+  ControlResponse.swift     status, headers, body bytes, handled: Bool, or .stream(ControlStream)
+  ControlPorts.swift        UpstreamPoolPort, UpstreamIndexerPort, AuthStore, and their doubles
+```
+
+**`ControlResponse` carries `handled`** rather than returning `Bool?` separately, so S8's
+disposition cannot be dropped by a caller that only looks at the body.
+
+| Port | Methods | Why it is a port |
+|---|---|---|
+| `UpstreamPoolPort` | `status() -> [LiveUpstream]`, `pending() -> [PendingAuth]`, `isLive(String) -> Bool`, `warmUp()`, `clearPending(String)` | R2 owns the pool |
+| `UpstreamIndexerPort` | `index(UpstreamConfig) async -> IndexOutcome` | R2 owns spawning; this is `indexOne`'s seam |
+| `AuthStore` | `hasTokens`, `authorizedAt`, `clear`, `record`/`save` | file-backed here, injectable for tests |
+
+`status()` and `pending()` are searched **first-match** at every call site (B6, B7).
+
+---
+
+## P2 · Usage, and deterministic attribution
+
+```
+Sources/RouterCore/Usage/
+  UsageRecord.swift     record + ServerStat as ordered JSONValue builders, not Codable structs
+  UsageStore.swift      ring, aggregate, rotation, debounce, subscribe, reset, forget
+  PeerResolver.swift    [landed] libproc attribution
+  AttributionCache.swift pid-keyed, bounded at 512, cleared wholesale on overflow
+```
+
+**`ServerStat` is built in assignment order**, because that order is on the wire (B3):
+
+| Step | Field | Rule |
+|---|---|---|
+| on first sight | `calls`, `errors`, `projects` | created together, in that order |
+| every record | `calls` +1; `errors` +1 iff `!ok` | |
+| first record only | `firstSeen` | `??=` — nullish, so an existing `""` survives |
+| every record | `lastUsed` | assigned, so it lands after `firstSeen` on first sight |
+| when `cwd` truthy | `projects[cwd]` +1 | key order per S4 |
+
+**`readTail` reproduces the reference's defect (N5).** The reference computes a cut point from
+`statSync().size` — a **byte** count — and applies it to `raw.indexOf('\n', offset)`, where `raw` is
+a UTF-16 string. For a log containing non-ASCII text the two disagree. The port takes the same
+byte-derived offset and indexes the same UTF-16 sequence, so it cuts where the reference cuts.
+
+| Constant | Value |
+|---|---|
+| ring size | 500 |
+| rotation threshold | 8 388 608 bytes, `>=` at the boundary |
+| tail window | 524 288 bytes |
+| flush debounce | 3 000 ms, on the injected clock |
+| generations kept | 1 (`<path>.1`) |
+
+**Attribution** (B67–B71): resolve at accept, synchronously, cache on the connection.
+
+| Step | Call | Failure |
+|---|---|---|
+| 1 | `proc_listpids(PROC_ALL_PIDS)` | empty → unknown |
+| 2 | per pid ≠ self: `proc_pidinfo(PROC_PIDLISTFDS)` | skip this pid, keep scanning |
+| 3 | per socket fd: `proc_pidfdinfo(PROC_PIDFDSOCKETINFO)`, require `SOCKINFO_TCP`, compare `insi_lport` (big-endian) | skip this fd |
+| 4 | `proc_pidinfo(PROC_PIDVNODEPATHINFO)` → `pvi_cdir.vip_path` | cwd nil, identity still returned |
+| 5 | `proc_name` → `client` | client nil, identity still returned |
+
+Every step degrades to a *partial or empty identity*, never a throw (B69) — a process exiting
+between step 1 and step 2 is the common case on a busy machine.
+
+---
+
+## P3 · Registry
+
+```
+Sources/RouterCore/Registry/
+  RegistryEntry.swift   ordered JSONValue construction, official-shape and smithery-shape decoders
+  RegistryMerge.swift   repoKey, dedupe, merge, rank
+  GitHubEnrichment.swift cache, budget, rate-limit stop
+  RegistrySearch.swift  the two fetches, warning collection, 502 boundary
+  HTTPFetching.swift    protocol + stub, so no test touches the network
+```
+
+| Rule | Specification |
+|---|---|
+| `repoKey` | `/github\.com[/:]([^/]+)\/([^/.?#]+)/i` → `"<owner>/<repo>"` lowercased; no match → nil |
+| dedupe key | `repoKey(repository) ?? displayName.lowercased().replacingOccurrences(of: /[^a-z0-9]/)` |
+| merge | official row's members and order retained; `source` → `both`; `useCount`/`verified`/`iconUrl` take Smithery's when non-nullish; `install` keeps the official one when non-nullish |
+| rank | `useCount` desc → `stars` desc → `updatedAt` via `localeCompare` desc; **stable**, so ties keep arrival order |
+| `limit` | `min(Number(q ?? 30) || 30, 60)` — `0`→30, `NaN`→30, `500`→60, `-5`→`-5` |
+| GH budget | 10 fetches per search; cache TTL 86 400 000 ms; first `403`/`429` sets `rateLimited` and stops further fetches |
+| official install | first remote with a url → `{type: sse|http, url, requires}`; else first package: `npm` → `npx -y <id>[@ver]`, `pypi` → `uvx <id>`; else nil |
+| smithery install | only when `remote && isDeployed` → the fixed URL shape with the Authorization requirement |
+| failure | a throwing index adds a warning and yields `[]`; only a throw from the merge is 502 |
+
+Sorting is implemented as a **stable merge sort over the arrival-ordered array**, never
+`Array.sort` — Swift's sort is not guaranteed stable and B56 depends on stability.
+
+---
+
+## P4 · Auth
+
+```
+Sources/RouterCore/Auth/
+  AuthRecord.swift      ordered read/write, 0700 dir, 0600 file
+  FileTokenStorage.swift conforms to the SDK's TokenStorage
+  AuthFlow.swift        beginAuth, currentFlow, cancel, timeouts
+  CallbackListener.swift the fixed-port loopback listener + the two pages
+```
+
+| Rule | Specification |
+|---|---|
+| record path | `<AUTH_DIR>/<server>.json` |
+| modes | directory `0700`, file `0600`, both on creation |
+| unreadable record | warn, treat as unauthorized; never `try?`-to-default (B61) |
+| callback port | `MCP_ROUTER_AUTH_PORT ?? 8880`, fixed — a registered `redirect_uri` must survive restarts |
+| redirect uri | `http://127.0.0.1:<port>/callback` |
+| second flow | cancels the first rather than failing to bind (B64) |
+| url timeout | 20 000 ms waiting for the authorization URL |
+| flow timeout | 300 000 ms overall |
+| cleanup | on **every** termination: timer cleared, listener closed, transport closed, `current` cleared iff it is this flow |
+
+The transport factory stays a **parameter**, exactly as the reference has it, so the SDK-backed
+implementation can land with R2 without changing this file.
+
+---
+
+## P5 · The control handler
+
+```
+Sources/RouterCore/Control/
+  ControlPaths.swift    isControlPath over the ENCODED pathname
+  ControlToken.swift    controlToken, tokenOk
+  Describe.swift        the describe() row
+  ConfigEdit.swift      editConfigFile + reload, with D1/D2's refusal
+  ControlHandler.swift  dispatch and every endpoint
+```
+
+**Dispatch order is the contract** (B22, S7):
+
+| # | Stage | On failure |
+|---|---|---|
+| 1 | `isControlPath(encodedPathname)` | return **not handled**, touch no header, send nothing (B14) |
+| 2 | if method ∈ {`POST`,`DELETE`,`PATCH`} (exact case): token | 401, handled |
+| 3 | if mutating and method ≠ `DELETE`: content-type prefix | 415, handled |
+| 4 | route regex `^/servers/([^/]+)(/[a-z]+)?$` | fall to step 7 |
+| 5 | `decodeURIComponent(name)` | **throws** — propagates, no JSON reply (B23) |
+| 6 | live-map lookup by JavaScript string identity | 404, handled |
+| 7 | method dispatch; anything unmatched | 405 `<METHOD> not allowed on <pathname>`, handled |
+
+**`describe()`**, field by field — the table the review said was missing:
+
+| Field | Source | Coercion / omission |
+|---|---|---|
+| `name` | `u.name` | — |
+| `transport` | `u.transport` | — |
+| `state` | first pool row | `?? "idle"` (nullish) |
+| `inFlight`, `callsServed`, `idleSec` | first pool row | `?? 0` — a live `0` survives |
+| stdio: `command`, `args`, `cwd`, `envKeys` | `u` | `cwd` omitted iff undefined, `null` iff null; `envKeys` = key names sorted by UTF-16 code unit |
+| http: `url`, `headerKeys` | `u` | same sort |
+| `hash` | `UpstreamHash.hash(u)` | R1's |
+| `tools`, `toolNames` | manifest entry | `ToBoolean(entry.error)` → `0` / `[]`, else cached count and names |
+| `indexedAt`, `indexError` | `entry.builtAt`, `entry.error` | verbatim; omitted iff undefined |
+| `projects` | `u.projects ?? []` | order and duplicates preserved |
+| `warm` | `ToBoolean(u.warm)` | |
+| `placard` | `ToolUnion.placardFor(u, entry)` | omitted iff nil |
+| `pendingChange` | `{seenAt, count: DiffTools.diff(entry.tools, entry.pending.tools).count}` | omitted unless `ToBoolean(entry.pending)` |
+| `auth` | `!isStdio && oauth !== false` | supported → `authorized`, `authorizedAt`, `pendingUrl` (first pending row), each omitted iff undefined |
+| `usage` | `statFor(name)` **passed through unchanged** | else exactly `{calls:0,errors:0,projects:{}}` |
+
+**Env and header values are unreachable by construction**: `Describe` builds from `envKeys`
+only and never receives the pair arrays' values, and B10's canary sweep proves it (S8).
+
+**`editConfigFile`** — one contract, used by all three call sites (B31):
+
+| Step | Rule |
+|---|---|
+| 1 | read the file when it exists, else start from `{}` |
+| 2 | **if the parsed root has no object-valued `mcpServers`, refuse** — D1, with the spec's copy. The reference creates an empty one and destroys the file |
+| 3 | call the mutator on the ordered members in place; ignore its return |
+| 4 | serialise `prettyTwoSpace`, **no trailing newline** |
+| 5 | write `<path>.tmp-<pid>` at `0600`, then rename |
+| 6 | a throwing mutator writes nothing |
+
+**`reload`** re-parses, builds the full next map, then mutates the live containers in place —
+map first, then the config array — so a holder of either sees the same instances (B31, D2's refusal
+on an unrecognisable shape).
+
+**PATCH** applies in fixed order `projects, warm, idleMs, placard`, each on key presence:
+
+| Field | Rule |
+|---|---|
+| `projects` | non-empty array → stored exactly; `[]` or nullish → **remove the member** (not null) |
+| `warm` | `ToBoolean` → store `true`; falsy → **remove** |
+| `idleMs` | assigned as given, including `0` and `null` (P2's ported inconsistency) |
+| `placard` | assigned as given |
+
+Then reload, then `warmUp()` **unawaited** iff `ToBoolean(b.warm)`, then reply 200 with the reloaded
+row. `command`, `args`, `env` are simply not read — B40 proves the equivalence against the same
+request with them deleted.
+
+**Coercions**, one table so no slice invents its own:
+
+| Input | Rule |
+|---|---|
+| `?force` | first value, `=== "1"` |
+| `?keepHistory` | first value, `=== "1"` |
+| `/usage?limit` | `Number(v ?? 200)`; `NaN` → `slice(-NaN)` → everything; negative → from the front |
+| `/registry/search?limit` | `min(Number(v ?? 30) || 30, 60)` |
+| body | `body ?? {}` — `null`, array and primitive all coerce to empty object |
+
+---
+
+## P6 · Vectors, fixtures and the mutation gate
+
+1. Extend `scripts/parity/generate-vectors.mjs` to drive `dist/control.js`, `dist/usage.js` and
+   `dist/registry.js`, emitting vectors for every N-row and every coercion above.
+2. Register the new vector files in `VectorRegistryFiles.swift` so A41's attestation counts them,
+   and raise `executedFloor` — B76 requires the count to rise, so this item cannot pass by leaving
+   the corpus where R1 left it.
+3. Add the 23 fixtures as a **byte** oracle: each recorded response reproduced from constructed
+   dependencies, never from a lookup (S6).
+4. Extend `scripts/parity/mutation-gate.sh` with one mutation per new named behaviour — the
+   *plausible* wrong implementation, not arbitrary damage: `!= nil` for `ToBoolean(error)`, Swift
+   `<` for the code-unit sort, omitting `null` as if undefined, insertion order for S4, last-match
+   for first-match, gating before `isControlPath`, rejecting rather than ignoring a PATCH's
+   `command`. A mutation that fails to *apply* is reported as a failure, never a pass.
+
+---
+
+## P7 · Wiring, guardrails, gates
+
+- `scripts/lint/no-wire-codable.sh` — fails on `JSONSerialization`, `JSONEncoder`, `JSONDecoder` or
+  `[String:` under `Sources/RouterCore/{Control,Registry,Usage,Auth}`. The review's most repeated
+  defeat was a reasonable Swift default; a lint is what stops a delegated slice reintroducing it.
+- `make all` green; `make parity` reporting a count above R1's 224; `make mutation` green.
+- `git diff main -- src/ install.sh package.json` empty (B74).
+
+---
+
+## Delegation
+
+Phases P2, P3 and P4 are file-disjoint and may run in parallel. **P1 must land first** (everything
+depends on the ports and the response model) and **P5 must land last** (it consumes all three).
+P6 and P7 follow P5. Cap: three concurrent implementation agents, none of which may edit
+`ControlHandler.swift`.

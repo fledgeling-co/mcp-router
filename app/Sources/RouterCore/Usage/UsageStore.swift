@@ -1,0 +1,271 @@
+import Foundation
+
+/// Appends every call to a JSONL file, keeps the recent tail in memory, and maintains a durable
+/// per-server aggregate.
+///
+/// The aggregate is separate from the log on purpose: the log rotates, and a server that has not
+/// been called for six months is exactly the one whose evidence rotates out first — so "never used"
+/// computed from the log alone would be a lie that grows more confident the longer it is true.
+public final class UsageStore: @unchecked Sendable {
+    // @unchecked: every mutable field below is guarded by `lock`, and nothing escapes without it.
+    private let lock = NSLock()
+    private var ring: [UsageRecord] = []
+    private var since: String
+    private var servers: [JSONMember] = []
+    private var dirty = false
+    private var subscribers: [UUID: @Sendable (UsageRecord) -> Void] = [:]
+
+    private let logPath: String
+    private let statsPath: String
+    private let fileSystem: any FileSystem
+    private let clock: any RouterClock
+
+    public static let ringSize = 500
+    /// 8 MiB. Compared with `>=`, and tested at the boundary rather than near it.
+    public static let maxLogBytes = 8 * 1024 * 1024
+    public static let tailWindowBytes = 512 * 1024
+    public static let flushDebounceMilliseconds = 3000.0
+
+    public init(
+        logPath: String,
+        statsPath: String,
+        fileSystem: any FileSystem = RealFileSystem(),
+        clock: any RouterClock = SystemClock()
+    ) {
+        self.logPath = logPath
+        self.statsPath = statsPath
+        self.fileSystem = fileSystem
+        self.clock = clock
+        since = JSDate.iso8601(milliseconds: clock.nowMilliseconds)
+        try? fileSystem.createDirectory(atPath: (logPath as NSString).deletingLastPathComponent)
+        readStats()
+        ring = readTail()
+    }
+
+    // MARK: - Loading
+
+    /// An unreadable or wrong-version stats file starts fresh — the one place emptiness is a
+    /// recovery, and it is labelled by the warning rather than passed off as "no history" (B52).
+    private func readStats() {
+        guard fileSystem.fileExists(atPath: statsPath),
+              let data = try? fileSystem.readFile(atPath: statsPath),
+              let parsed = try? JSONParser.parse(data),
+              parsed.member("version")?.asNumber == 1,
+              let serverMembers = parsed.member("servers")?.asObjectMembers
+        else { return }
+        since = parsed.member("since")?.asString?.string ?? since
+        servers = serverMembers
+    }
+
+    /// Warm the ring from the tail of the log so a restart is not a blank screen.
+    ///
+    /// **The byte-offset-into-a-UTF-16-string slice is reproduced deliberately (N5).** The reference
+    /// takes the cut point from `statSync().size`, a byte count, and applies it to `String.indexOf`,
+    /// which counts UTF-16 units. For an all-ASCII log the two coincide; for a log carrying any
+    /// multi-byte text they do not, and the reference cuts in a different place than a
+    /// byte-correct implementation would. Parity is what R4 measures, so this cuts where it cuts.
+    private func readTail() -> [UsageRecord] {
+        guard fileSystem.fileExists(atPath: logPath),
+              let data = try? fileSystem.readFile(atPath: logPath) else { return [] }
+        let size = data.count
+        // Node decodes the log lossily, substituting U+FFFD for invalid bytes. The failable
+        // initializer returns nil there instead, which would drop a tail the reference reads.
+        // swiftlint:disable:next optional_data_string_conversion
+        let text = String(decoding: data, as: UTF8.self)
+        var units = Array(text.utf16)
+
+        if size > Self.tailWindowBytes {
+            let offset = size - Self.tailWindowBytes
+            if offset < units.count {
+                let newline = UInt16(10)
+                if let index = units[offset...].firstIndex(of: newline) {
+                    units = Array(units[(index + 1)...])
+                }
+            } else {
+                units = []
+            }
+        }
+
+        var out: [UsageRecord] = []
+        for line in JSString(units: units).split(on: 10) where !line.isEmpty {
+            // A torn last line is normal after a hard kill, and is skipped rather than failing
+            // the whole read.
+            guard let parsed = try? JSONParser.parse(line.string),
+                  let record = UsageRecord(parsed) else { continue }
+            out.append(record)
+        }
+        return Array(out.suffix(Self.ringSize))
+    }
+
+    // MARK: - Recording
+
+    public func record(_ record: UsageRecord) {
+        var toNotify: [@Sendable (UsageRecord) -> Void] = []
+        lock.lock()
+        ring.append(record)
+        if ring.count > Self.ringSize { ring.removeFirst(ring.count - Self.ringSize) }
+
+        var stat = statLocked(record.server) ?? .fresh()
+        stat.set("calls", .number(stat.calls + 1))
+        if !record.ok { stat.set("errors", .number(stat.errors + 1)) }
+        // `??=` — nullish, so an existing empty string is kept rather than overwritten.
+        if stat.member("firstSeen") == nil {
+            stat.set("firstSeen", .string(JSString(record.ts)))
+        }
+        stat.set("lastUsed", .string(JSString(record.ts)))
+        if let cwd = record.cwd, !cwd.isEmpty {
+            var projects = stat.projects
+            let key = JSString(cwd)
+            let previous = projects.first { $0.key == key }?.value.asNumber ?? 0
+            if let index = projects.firstIndex(where: { $0.key == key }) {
+                projects[index] = JSONMember(key: key, value: .number(previous + 1))
+            } else {
+                projects.append(JSONMember(key: key, value: .number(previous + 1)))
+            }
+            stat.set("projects", .object(JSONMember.ecmaOrdered(projects)))
+        }
+        setStatLocked(record.server, stat)
+        dirty = true
+        toNotify = Array(subscribers.values)
+        lock.unlock()
+
+        rotateIfBig()
+        // A failed append is warned about and swallowed: losing the router because a disk filled
+        // is a worse outcome than losing one log line.
+        try? fileSystem.appendFile(
+            Data((JSStringify.compact(record.value) + "\n").utf8), atPath: logPath
+        )
+
+        // A broken subscriber must not stop the others.
+        for notify in toNotify {
+            notify(record)
+        }
+    }
+
+    private func rotateIfBig() {
+        guard let stamp = try? fileSystem.attributes(atPath: logPath),
+              stamp.size >= Self.maxLogBytes else { return }
+        // One generation kept. The aggregate is what makes history disposable.
+        try? fileSystem.moveItem(atPath: logPath, toPath: "\(logPath).1")
+    }
+
+    // MARK: - Reading
+
+    public func recent(limit: Double?, server: String?, cwd: String?) -> [UsageRecord] {
+        lock.lock()
+        defer { lock.unlock() }
+        var out = ring
+        if let server, !server.isEmpty { out = out.filter { $0.server == server } }
+        if let cwd, !cwd.isEmpty { out = out.filter { $0.cwd == cwd } }
+        // `slice(-(limit))` with JavaScript's coercion: a NaN limit slices from 0, which is
+        // **every** record rather than none (N4).
+        let effective = limit ?? 200
+        if effective.isNaN { return out.reversed() }
+        let count = Int(effective)
+        if count >= 0 {
+            return Array(out.suffix(count)).reversed()
+        }
+        // A negative limit takes from the front, matching `slice(-(-5))` == `slice(5)`.
+        let drop = min(-count, out.count)
+        return Array(out.dropFirst(drop)).reversed()
+    }
+
+    public func summarySince() -> String {
+        lock.lock(); defer { lock.unlock() }
+        return since
+    }
+
+    public func summaryServers() -> [JSONMember] {
+        lock.lock(); defer { lock.unlock() }
+        return servers
+    }
+
+    public func statFor(_ server: String) -> ServerStat? {
+        lock.lock(); defer { lock.unlock() }
+        return statLocked(server)
+    }
+
+    private func statLocked(_ server: String) -> ServerStat? {
+        let key = JSString(server)
+        guard let value = servers.first(where: { $0.key == key })?.value,
+              let members = value.asObjectMembers else { return nil }
+        return ServerStat(members: members)
+    }
+
+    private func setStatLocked(_ server: String, _ stat: ServerStat) {
+        let key = JSString(server)
+        if let index = servers.firstIndex(where: { $0.key == key }) {
+            servers[index] = JSONMember(key: key, value: stat.value)
+        } else {
+            servers.append(JSONMember(key: key, value: stat.value))
+        }
+        servers = JSONMember.ecmaOrdered(servers)
+    }
+
+    // MARK: - Subscription
+
+    public func subscribe(_ handler: @escaping @Sendable (UsageRecord) -> Void) -> () -> Void {
+        let id = UUID()
+        lock.lock()
+        subscribers[id] = handler
+        lock.unlock()
+        return { [weak self] in
+            guard let self else { return }
+            lock.lock()
+            subscribers[id] = nil
+            lock.unlock()
+        }
+    }
+
+    // MARK: - Mutation
+
+    public func flush() {
+        lock.lock()
+        guard dirty else { lock.unlock(); return }
+        dirty = false
+        let snapshot = JSONValue.object([
+            JSONMember(key: "version", value: .number(1)),
+            JSONMember(key: "since", value: .string(JSString(since))),
+            JSONMember(key: "servers", value: .object(servers))
+        ])
+        lock.unlock()
+        let temporary = "\(statsPath).tmp-\(ProcessInfo.processInfo.processIdentifier)"
+        guard (try? fileSystem.writeFile(
+            Data(JSStringify.prettyTwoSpace(snapshot).utf8), atPath: temporary
+        )) != nil else { return }
+        try? fileSystem.moveItem(atPath: temporary, toPath: statsPath)
+    }
+
+    /// Forget everything. `since` moves to now, which is what keeps "never used" honest after a
+    /// reset: a server with no calls since a reset an hour ago is not the same claim as one with no
+    /// calls since the router was installed.
+    public func reset() {
+        lock.lock()
+        ring = []
+        servers = []
+        since = JSDate.iso8601(milliseconds: clock.nowMilliseconds)
+        dirty = true
+        lock.unlock()
+        flush()
+        for path in [logPath, "\(logPath).1"] where fileSystem.fileExists(atPath: path) {
+            try? fileSystem.removeItem(atPath: path)
+        }
+    }
+
+    /// Drop one server's aggregate — called when a server is removed.
+    public func forget(_ server: String) {
+        lock.lock()
+        let key = JSString(server)
+        servers.removeAll { $0.key == key }
+        ring.removeAll { $0.server == server }
+        dirty = true
+        lock.unlock()
+        flush()
+    }
+}
+
+/// `basename(cwd)` — the last path segment, for display.
+public func projectOf(_ cwd: String?) -> String? {
+    guard let cwd, !cwd.isEmpty else { return nil }
+    return (cwd as NSString).lastPathComponent
+}

@@ -107,14 +107,18 @@ public struct LibProcPeerResolver: PeerResolver {
                 )
                 let written = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, &descriptors, listSize)
                 guard written > 0 else { continue }
-                for descriptor in descriptors.prefix(Int(written) / fdSize)
-                    where descriptor.proc_fdtype == UInt32(PROX_FDTYPE_SOCKET) {
-                    if socketLocalPort(pid: pid, fd: descriptor.proc_fd) == localPort {
-                        return pid
-                    }
+                let sockets = descriptors.prefix(Int(written) / fdSize)
+                    .filter { $0.proc_fdtype == UInt32(PROX_FDTYPE_SOCKET) }
+                if sockets.contains(where: { isPort(localPort, pid: pid, fd: $0.proc_fd) }) {
+                    return pid
                 }
             }
             return nil
+        }
+
+        /// Whether this descriptor is a TCP socket whose local port is `port`.
+        private static func isPort(_ port: UInt16, pid: Int32, fd: Int32) -> Bool {
+            socketLocalPort(pid: pid, fd: fd) == port
         }
 
         /// The local port of one socket descriptor, or nil when it is not an established TCP one.

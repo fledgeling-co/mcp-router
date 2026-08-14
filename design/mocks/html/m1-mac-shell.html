@@ -1,0 +1,869 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>M1 — Mac window shell, menu bar, keyboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!--
+  M1 — the shell every other Mac surface renders into.
+
+  What is specified here is the *container*: the three-zone window, the sidebar and its
+  two groups, the at-rest readout, the complete menu bar, the keyboard map, the
+  scroll-edge effect and window restoration. The boards that fill the content zone
+  belong to M2 (Activity), M3 (Servers), M4 (Skills), M5 (Discover), M6 (Inbox),
+  M7 (Evals/Cleanup) and M8 (Settings) — this page specifies what they render *into*
+  and the states the shell itself has to answer for.
+
+  Copy discipline (DESIGN.md §6): the strings below are the strings the shell ships.
+  The offline and unauthorised sentences are NOT rewritten here — they are
+  `ControlAPIError.routerNotRunning` and `.unauthorized`, already approved in F3 and
+  asserted verbatim by `ControlCopyTests`. One wording per state, across both devices.
+
+  Tokens are transcribed from DESIGN.md §2. Nothing here edits a shared file: F2 owns
+  the SwiftUI design system and M1 reads it.
+
+  ── Assumptions recorded (autonomous run, no human to ask) ────────────────────────
+  · The app is "MCP Router", not "Conduit". design/mocks/prototype.html still says
+    Conduit throughout; DESIGN.md's own precedence rule makes the prototype stale where
+    it disagrees, and both the brief and app/project.yml (CFBundleName) say MCP Router.
+  · Settings is a sidebar destination, not a separate Settings scene. The prototype puts
+    it in the sidebar and DESIGN.md is silent; ⌘, selects that destination. M8 owns
+    Settings and may move it to its own window, which is a one-line change here.
+  · **No Skills or Inbox badge.** The prototype draws both. The control API exposes no
+    skills and no inbox endpoint (`ControlAPIClient` has neither), so a count there would
+    be a number the router does not observe — DESIGN.md §6 forbids exactly that. They
+    arrive with M4 and M6, which own those endpoints.
+  · **Space is not a menu item.** DESIGN.md §8 binds Space to the selected row's breaker.
+    A bare key on a focused row is not a menu command on macOS — Finder binds Space to
+    Quick Look and puts "Quick Look ⌘Y" in the menu, not Space. Every ⌘-shortcut in §8
+    *is* a menu item, because a ⌘-shortcut with no menu item is undiscoverable (§3.9).
+    Space, Return and Esc are view-level keys owned by the surface that has rows, a
+    default action, or a sheet. The shell reserves them and binds none of them to
+    anything else.
+  · **Open question, recorded rather than papered over.** §8 says Space "toggles the
+    selected row's breaker", but the control API has no start and no stop: the whole of
+    `ServerPatch` is `projects`, `warm`, `idleMs`, `placard`, and there is no
+    start/stop operation on `ControlAPIClient` at all. The breaker is a readout of a
+    child process the *router* starts when an agent calls a tool. So either Space toggles
+    `warm` (keep resident / let the reaper close it), which is a different sentence from
+    the one §8 writes, or the router needs an operation it does not have. M3 owns the
+    breaker and inherits this; it is raised in spec-M1 rather than guessed at here.
+  · A disabled command in this build reads "This part of the app isn't built yet."
+    A disabled menu item on macOS shows its reason in a help tag and nowhere else, and
+    the true reason in a shell-only build is that the surface is absent. Inventing a
+    state-shaped reason would be a lie; hiding the command would break §3.9.
+-->
+<style>
+:root{
+  /* Grounds — graphite, never pure black (DESIGN.md §2). */
+  --ground:#1E1E1E;--panel:#232326;--raised:#2C2C2E;--raised2:#3A3A3C;
+  --line:rgba(255,255,255,.075);--lineS:rgba(255,255,255,.14);
+  --f1:rgba(255,255,255,.10);--f2:rgba(255,255,255,.08);--f3:rgba(255,255,255,.05);
+  /* Label tiers. Tertiary is 50%, not the kit's 25% — DESIGN.md §2's stated deviation.
+     25% is retained for disabled only, where dimming *is* the message. */
+  --t1:rgba(255,255,255,1);--t2:rgba(255,255,255,.55);
+  --t3:rgba(255,255,255,.50);--t4:rgba(255,255,255,.25);
+  /* The four exclusive meanings. Nothing decorative may be any of them. */
+  --accent:#0091FF;--live:#30D158;--attn:#FF9230;--fail:#FF4245;--onAccent:#FFFFFF;
+  /* Type — eight roles, nothing off the ladder. 13px body is the loudest
+     native-versus-web discriminator. */
+  --largeTitle:26px;--title1:22px;--title2:17px;--title3:15px;
+  --body:13px;--callout:12px;--subhead:11px;--caption:10px;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  /* Chrome geometry, DESIGN.md §2 (specified). */
+  --titlebar:33px;--toolbar:52px;--sidebar:256px;
+  --selRadius:8px;--selInset:4px;--focusRing:2px;--popRadius:20px;--tableRow:24px;
+}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;background:#141415;color:var(--t1);
+  font:var(--body)/16px var(--sans);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;text-align:left;
+  cursor:default}
+::selection{background:rgba(0,145,255,.32)}
+:focus-visible{outline:var(--focusRing) solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* ───────────────────────── page furniture (not the product) ───────────────────────── */
+.page{max-width:1180px;margin:0 auto;padding:40px 28px 96px}
+h1{font:600 var(--largeTitle)/32px var(--sans);letter-spacing:-.6px;margin:0 0 6px}
+.lede{color:var(--t2);max-width:70ch;margin:0 0 34px}
+h2{font:600 var(--title2)/22px var(--sans);margin:52px 0 6px;letter-spacing:-.2px}
+h2 .n{color:var(--t3);font:600 var(--subhead)/22px var(--mono);margin-right:9px}
+.note{color:var(--t2);max-width:74ch;margin:0 0 18px;font-size:var(--callout);line-height:17px}
+.grid{display:flex;flex-wrap:wrap;gap:22px;align-items:flex-start}
+figure{margin:0}
+figcaption{color:var(--t3);font:var(--caption)/14px var(--mono);margin-top:7px;max-width:44ch}
+figcaption b{color:var(--t2);font-weight:600;font-family:var(--sans);font-size:var(--subhead)}
+table{border-collapse:collapse;width:100%;font-size:var(--callout)}
+th{text-align:left;color:var(--t3);font:600 var(--subhead)/18px var(--sans);
+  padding:5px 12px 5px 0;border-bottom:1px solid var(--line)}
+td{padding:6px 12px 6px 0;border-bottom:1px solid var(--line);color:var(--t2);
+  vertical-align:top}
+td b{color:var(--t1);font-weight:500}
+kbd{font:var(--subhead)/1 var(--mono);color:var(--t1);background:var(--raised);
+  border:1px solid var(--lineS);border-radius:4px;padding:2px 5px;white-space:nowrap}
+
+/* ───────────────────────── THE MENU BAR ─────────────────────────
+   Not a window chrome element — it is the system menu bar, and DESIGN.md §3.9 makes it
+   the complete command surface. Liquid Glass is permitted here (§3.3: floating chrome
+   only), which is why it is translucent and the window below is opaque. */
+.menubar{display:flex;align-items:center;gap:2px;height:26px;padding:0 10px;
+  background:linear-gradient(180deg,#2E3237,#262A2F);
+  border:1px solid var(--lineS);border-bottom:0;border-radius:7px 7px 0 0;
+  backdrop-filter:blur(20px)}
+.mb{padding:2px 9px;border-radius:5px;color:var(--t1);font-size:var(--callout)}
+.mb.app{font-weight:600}
+.mb.on{background:rgba(255,255,255,.12)}
+.mbr{margin-left:auto;display:flex;align-items:center;gap:11px;color:var(--t2);
+  font:var(--subhead)/1 var(--mono)}
+
+/* An open menu. Liquid Glass, concentric children (§2: child radius = parent − padding). */
+.menu{width:250px;background:rgba(44,48,54,.98);border:1px solid var(--lineS);
+  border-radius:10px;padding:5px;backdrop-filter:blur(30px);
+  box-shadow:0 12px 34px rgba(0,0,0,.55)}
+.menu h4{margin:0;padding:4px 9px 6px;font:600 var(--caption)/12px var(--mono);
+  color:var(--t3);text-transform:none}
+.mi{display:flex;align-items:center;gap:10px;padding:4px 9px;border-radius:5px;
+  font-size:var(--callout);width:100%;color:var(--t1)}
+.mi .k{margin-left:auto;color:var(--t3);font:var(--subhead)/1 var(--mono)}
+.mi.on{background:var(--accent);color:var(--onAccent)}
+.mi.on .k{color:rgba(255,255,255,.75)}
+/* Disabled dims in place and never disappears (§3.4). --t4 is the disabled tier and is
+   never used for live text (§2). */
+.mi.dis{color:var(--t4)}
+.mi.dis .k{color:var(--t4)}
+.mi .chk{width:11px;font-size:var(--subhead);color:var(--t2)}
+.msep{height:1px;background:var(--line);margin:4px 7px}
+
+/* ───────────────────────── THE WINDOW ─────────────────────────
+   Three zones: 33pt titlebar, 52pt unified toolbar, 256pt sidebar. The window catches
+   light on its top edge; flat fills were the loudest non-native tell in round one. */
+.win{width:820px;height:512px;background:var(--ground);border:1px solid rgba(255,255,255,.09);
+  border-radius:0 0 10px 10px;overflow:hidden;display:flex;position:relative;
+  box-shadow:0 22px 60px rgba(0,0,0,.55)}
+.win.solo{border-radius:10px}
+.win:before{content:'';position:absolute;left:0;right:0;top:0;height:1px;z-index:50;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent)}
+.win.sm{width:520px;height:392px}
+
+/* sidebar */
+.side{width:var(--sidebar);flex-shrink:0;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,rgba(0,0,0,.30),rgba(0,0,0,.20));
+  border-right:1px solid var(--line)}
+.win.sm .side{width:206px}
+/* The titlebar zone. The traffic lights live in it; on the real window AppKit draws
+   them and this is the 33pt they are inset into. */
+.tl{height:var(--titlebar);display:flex;gap:8px;padding:11px 0 0 14px;align-items:flex-start;
+  flex-shrink:0}
+.tl i{width:12px;height:12px;border-radius:50%;display:block;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.35),inset 0 -1px 1px rgba(0,0,0,.25)}
+.tl i:nth-child(1){background:#F65E57}
+.tl i:nth-child(2){background:#F9BD2E}
+.tl i:nth-child(3){background:#2BC940}
+.side nav{padding:10px var(--selInset) 0;display:flex;flex-direction:column;gap:1px;
+  align-items:stretch;overflow-y:auto}
+/* Sentence case, system font, secondary colour. Tracked uppercase is the loudest web
+   tell — §3.2 says remove it, not re-track it. */
+.grp{font:600 var(--subhead)/14px var(--sans);color:var(--t3);padding:14px 12px 4px}
+/* Row height is NOT a literal: it is a 13pt label with `--selInset` above and below,
+   which lands on the 24pt row DESIGN.md §2 documents for a sidebar. */
+.nv{display:flex;align-items:center;gap:9px;padding:var(--selInset) 9px;
+  border-radius:var(--selRadius);color:var(--t2);font-size:var(--body);
+  margin:0 var(--selInset);min-height:var(--tableRow)}
+.nv .ic{width:15px;text-align:center;opacity:.8;font-size:var(--callout);flex-shrink:0}
+/* The label takes the free space and is the only thing allowed to truncate — the icon and
+   the badge never shrink, so a long name eats the label and never the count. */
+.nv .lb{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Selection: a flat inset rounded fill with accent text — never a full-bleed bar (§3.1). */
+.nv.on{background:var(--f1);color:var(--accent);font-weight:500}
+.nv.focus{outline:var(--focusRing) solid var(--accent);outline-offset:1px}
+/* The badge is tabular so a two-digit count cannot shift the label, and the row is
+   min-height so a three-digit count cannot grow it (§5 overflow). */
+.bg{margin-left:auto;font:600 var(--caption)/1 var(--mono);color:var(--t3);
+  font-variant-numeric:tabular-nums;flex-shrink:0;padding-left:6px}
+.bg.a{color:var(--attn)}
+
+/* the at-rest readout */
+.rest{margin:auto 10px 0;padding:11px 12px 9px;border-radius:9px;background:rgba(255,255,255,.035);
+  border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.rest .lbl{font:600 var(--subhead)/14px var(--sans);color:var(--t3);margin-bottom:5px}
+.restnum{display:flex;align-items:baseline;gap:6px}
+.restnum b{font:600 var(--largeTitle)/1 var(--sans);letter-spacing:-1px;
+  font-variant-numeric:tabular-nums;color:var(--t1)}
+.restnum span{font-size:var(--caption);color:var(--t3)}
+.spark{width:100%;height:32px;margin-top:7px;display:block}
+.restfoot{font:var(--caption)/13px var(--mono);color:var(--t3);margin-top:3px}
+.restmsg{font-size:var(--callout);line-height:16px;color:var(--t2);margin-top:2px}
+.restmsg b{display:block;color:var(--t1);font-weight:500;font-size:var(--body);margin-bottom:3px}
+.restact{margin-top:8px;font-size:var(--callout);color:var(--accent);font-weight:500}
+/* Loading is a skeleton at the real geometry, never a spinner over a blank pane (§5). */
+.sk{background:var(--f2);border-radius:3px;display:block}
+.sk.n{width:52px;height:26px}
+.sk.s{width:100%;height:32px;margin-top:7px}
+.sk.f{width:96px;height:10px;margin-top:6px}
+.sk.b{width:14px;height:10px;margin-left:auto}
+
+.sfoot{padding:9px 14px;border-top:1px solid var(--line);display:flex;align-items:center;
+  gap:7px;font:var(--caption)/13px var(--mono);color:var(--t3)}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot.live{background:var(--live);box-shadow:0 0 0 3px rgba(48,209,88,.16)}
+.dot.idle{background:var(--t4)}
+.dot.a{background:var(--attn);box-shadow:0 0 0 3px rgba(255,146,48,.16)}
+.dot.f{background:var(--fail)}
+
+/* content zone */
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+/* The 52pt unified toolbar. Its title says what you are looking at, not the app's name
+   (§3.7). One prominent action, trailing (§3.4). */
+.tbar{height:var(--toolbar);flex-shrink:0;display:flex;align-items:center;gap:12px;
+  padding:0 18px}
+.tbar h3{font:600 var(--title1)/26px var(--sans);letter-spacing:-.45px;margin:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tbar .sp{margin-left:auto;display:flex;gap:8px;align-items:center;flex-shrink:0}
+/* The scroll-edge effect: absent at rest, a hairline once content is under the toolbar. */
+.tbar.edge{box-shadow:0 1px 0 var(--line)}
+.body{flex:1;overflow:auto;padding:0 18px;position:relative}
+.btn{font-size:var(--callout);padding:3.5px 10px;border-radius:5px;background:var(--raised);
+  border:1px solid var(--lineS);color:var(--t1);white-space:nowrap}
+.btn.p{background:var(--accent);border-color:transparent;color:var(--onAccent);font-weight:500}
+.btn.q{background:transparent;border-color:transparent;color:var(--t2)}
+
+/* the scaffold pane — what a destination shows before its board is installed */
+.scaf{height:100%;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;gap:10px;padding:0 40px}
+.scaf .gl{color:var(--t3);font-size:var(--largeTitle);line-height:1}
+.scaf b{font:600 var(--title3)/20px var(--sans)}
+.scaf p{margin:0;color:var(--t2);font-size:var(--body);line-height:17px;max-width:44ch}
+.scaf .act{margin-top:6px}
+/* rows, for the scrolled and overflow figures */
+.tr{display:flex;gap:10px;align-items:center;height:var(--tableRow);
+  border-bottom:1px solid rgba(255,255,255,.045);font-size:var(--callout);color:var(--t2)}
+.tr .m{font:var(--subhead)/1 var(--mono);color:var(--t3)}
+.cols{display:flex;gap:10px;padding:5px 0;border-bottom:1px solid var(--line);
+  font:600 var(--subhead)/14px var(--sans);color:var(--t3)}
+
+/* light appearance — authored, never an inversion (§2). */
+.light{--ground:#ECECEE;--panel:#F5F5F7;--raised:#FFFFFF;--raised2:#E0E0E4;
+  --line:rgba(0,0,0,.10);--lineS:rgba(0,0,0,.19);
+  --f1:rgba(0,0,0,.13);--f2:rgba(0,0,0,.10);--f3:rgba(0,0,0,.06);
+  --t1:rgba(0,0,0,.95);--t2:rgba(0,0,0,.62);--t3:rgba(0,0,0,.58);--t4:rgba(0,0,0,.33);
+  --accent:#0069CF;--live:#1B7B3C;--attn:#9F5A00;--fail:#CD2738;
+  color:var(--t1)}
+.light .side{background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.03))}
+.light .win:before{background:linear-gradient(90deg,transparent,rgba(0,0,0,.10),transparent)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>M1 — Mac window shell, menu bar, keyboard</h1>
+<p class="lede">The container every other Mac surface renders into: a 33pt titlebar, a 52pt
+unified toolbar, a 256pt sidebar with inset-rounded selection, the complete menu bar, the
+keyboard map from DESIGN.md §8, the scroll-edge effect and window restoration. The boards
+that fill the content zone belong to M2–M8; what is specified here is what they render into
+and the nine states the shell itself has to answer for.</p>
+
+<!-- ══════════════════════════════ 1 · DEFAULT ══════════════════════════════ -->
+<h2><span class="n">1</span>The window, populated</h2>
+<p class="note">The three zones, at size. The sidebar carries two groups in sentence case and
+one ungrouped destination; the badge on Servers is the number of servers wanting a human
+decision, which the router reports per server (<code>pendingChange</code>, an unauthorised
+OAuth upstream, or an <code>indexError</code>). The badge on Cleanup is the number never
+called. Both are counts the router observes. Skills and Inbox carry no badge, because the
+control API exposes no skills and no inbox endpoint and a count there would be invented.</p>
+
+<div class="grid">
+<figure>
+  <div class="menubar">
+    <button class="mb app">MCP Router</button>
+    <button class="mb">File</button><button class="mb">Edit</button>
+    <button class="mb">View</button><button class="mb">Window</button>
+    <button class="mb">Help</button>
+    <div class="mbr"><span>3 running</span><span>9:41</span></div>
+  </div>
+  <div class="win">
+    <div class="side">
+      <div class="tl"><i></i><i></i><i></i></div>
+      <nav>
+        <div class="grp">Running</div>
+        <button class="nv on"><span class="ic">◉</span><span class="lb">Activity</span></button>
+        <button class="nv"><span class="ic">▤</span><span class="lb">Servers</span><span class="bg a">2</span></button>
+        <button class="nv"><span class="ic">◈</span><span class="lb">Skills</span></button>
+        <div class="grp">Library</div>
+        <button class="nv"><span class="ic">✦</span><span class="lb">Discover</span></button>
+        <button class="nv"><span class="ic">⤓</span><span class="lb">Inbox</span></button>
+        <button class="nv"><span class="ic">✓</span><span class="lb">Evals</span></button>
+        <button class="nv"><span class="ic">↓</span><span class="lb">Cleanup</span><span class="bg">3</span></button>
+        <div style="height:10px"></div>
+        <button class="nv"><span class="ic">⚙</span><span class="lb">Settings</span></button>
+      </nav>
+      <div class="rest">
+        <div class="lbl">Child processes</div>
+        <div class="restnum"><b>3</b><span>of 8 declared</span></div>
+        <svg class="spark" viewBox="0 0 146 32" preserveAspectRatio="none" aria-hidden="true">
+          <polyline points="0,30 18,30 36,24 54,17 72,17 90,9 108,17 126,17 146,17"
+            fill="none" stroke="var(--live)" stroke-width="1.4" stroke-linejoin="round"
+            stroke-linecap="round" opacity=".85"/>
+          <line x1="0" y1="31" x2="146" y2="31" stroke="rgba(255,255,255,.09)" stroke-width="1"/>
+        </svg>
+        <div class="restfoot">last 60s · peak 4</div>
+      </div>
+      <div class="sfoot"><span class="dot live"></span>127.0.0.1:8879</div>
+    </div>
+    <div class="main">
+      <div class="tbar"><h3>Activity</h3>
+        <div class="sp"><button class="btn q">Reset history…</button></div></div>
+      <div class="body"><div class="scaf">
+        <span class="gl">◉</span>
+        <b>Activity arrives with the call log</b>
+        <p>This shell is what it renders into. Nothing is fabricated here meanwhile —
+           the counts in the sidebar are the router's own.</p>
+      </div></div>
+    </div>
+  </div>
+  <figcaption><b>Default</b> · 3 of 8 running, 2 wanting a decision, 3 never called.
+  Toolbar title names the view, not the app (§3.7).</figcaption>
+</figure>
+</div>
+
+<!-- ══════════════════════════════ 2 · MENU BAR ══════════════════════════════ -->
+<h2><span class="n">2</span>The complete menu bar</h2>
+<p class="note">§3.9 makes the menu bar the complete command surface: every command is
+reachable from it. Every ⌘-shortcut in DESIGN.md §8 is a menu item here, because a
+⌘-shortcut with no menu item is undiscoverable. <kbd>Space</kbd>, <kbd>Return</kbd> and
+<kbd>Esc</kbd> are deliberately absent — they are view-level keys on a focused row, a
+default action and a sheet, and macOS does not put them in menus (Finder binds Space to
+Quick Look and lists "Quick Look ⌘Y"). Commands whose surface is not yet installed dim in
+place with their reason in a help tag; they never disappear (§3.4).</p>
+
+<div class="grid">
+<figure><div class="menu">
+  <h4>MCP Router</h4>
+  <button class="mi">About MCP Router</button>
+  <div class="msep"></div>
+  <button class="mi">Settings<span class="k">⌘,</span></button>
+  <div class="msep"></div>
+  <button class="mi">Hide MCP Router<span class="k">⌘H</span></button>
+  <button class="mi">Hide others<span class="k">⌥⌘H</span></button>
+  <button class="mi">Show all</button>
+  <div class="msep"></div>
+  <button class="mi">Quit MCP Router<span class="k">⌘Q</span></button>
+</div><figcaption><b>App menu</b> · ⌘, selects the Settings destination. No ellipsis: it
+commits a navigation, it does not open a further view (§3.4).</figcaption></figure>
+
+<figure><div class="menu">
+  <h4>File</h4>
+  <button class="mi dis">Add server…<span class="k">⌘N</span></button>
+  <button class="mi dis">Add marketplace…<span class="k">⇧⌘N</span></button>
+  <div class="msep"></div>
+  <button class="mi dis">Pair iPhone…</button>
+  <div class="msep"></div>
+  <button class="mi dis">Export library…<span class="k">⌘E</span></button>
+  <div class="msep"></div>
+  <button class="mi">Close window<span class="k">⌘W</span></button>
+</div><figcaption><b>File</b> · creation and export. All four carry <code>…</code> because
+each opens a further view. Dimmed in this build; the reason is in the help tag.</figcaption></figure>
+
+<figure><div class="menu">
+  <h4>Edit</h4>
+  <button class="mi dis">Undo<span class="k">⌘Z</span></button>
+  <button class="mi dis">Redo<span class="k">⇧⌘Z</span></button>
+  <div class="msep"></div>
+  <button class="mi dis">Cut<span class="k">⌘X</span></button>
+  <button class="mi dis">Copy<span class="k">⌘C</span></button>
+  <button class="mi dis">Paste<span class="k">⌘V</span></button>
+  <button class="mi dis">Select all<span class="k">⌘A</span></button>
+  <div class="msep"></div>
+  <button class="mi dis">Find<span class="k">⌘F</span></button>
+  <div class="msep"></div>
+  <button class="mi dis">Reset server<span class="k">⌘R</span></button>
+  <button class="mi dis">Remove server<span class="k">⌘⌫</span></button>
+</div><figcaption><b>Edit</b> · the two selection-acting server commands sit here, beside
+Undo — removing a server is undoable and never confirmed (§9). "Find" carries no ellipsis:
+it focuses a field in place.</figcaption></figure>
+
+<figure><div class="menu">
+  <h4>View</h4>
+  <button class="mi on">Activity<span class="k">⌘1</span></button>
+  <button class="mi">Servers<span class="k">⌘2</span></button>
+  <button class="mi">Skills<span class="k">⌘3</span></button>
+  <button class="mi">Discover<span class="k">⌘4</span></button>
+  <button class="mi">Inbox<span class="k">⌘5</span></button>
+  <button class="mi">Evals<span class="k">⌘6</span></button>
+  <button class="mi">Cleanup<span class="k">⌘7</span></button>
+  <div class="msep"></div>
+  <button class="mi"><span class="chk">✓</span>Show sidebar<span class="k">⌃⌘S</span></button>
+</div><figcaption><b>View</b> · all seven destinations; Settings is ⌘, in the app menu, so
+the run stops at 7. The checkmark is a state, not a highlight.</figcaption></figure>
+
+<figure><div class="menu">
+  <h4>Window</h4>
+  <button class="mi">Minimise<span class="k">⌘M</span></button>
+  <button class="mi">Zoom</button>
+  <div class="msep"></div>
+  <button class="mi">Bring all to front</button>
+  <div class="msep"></div>
+  <button class="mi on"><span class="chk">✓</span>MCP Router</button>
+</div><figcaption><b>Window</b> · standard. In a Debug build the design gallery lists itself
+here under its own title, which is how it stays reachable without a command.</figcaption></figure>
+
+<figure><div class="menu">
+  <h4>Help</h4>
+  <button class="mi">MCP Router help<span class="k">⌘?</span></button>
+  <button class="mi">What the router actually does</button>
+  <button class="mi">Report an issue</button>
+</div><figcaption><b>Help</b> · the middle item is the product's own explanation of lazy
+spawning and reaping, which is the thing people get wrong about it.</figcaption></figure>
+</div>
+
+<!-- ══════════════════════════════ 3 · KEYBOARD ══════════════════════════════ -->
+<h2><span class="n">3</span>The keyboard</h2>
+<p class="note">DESIGN.md §8 in full, with where each binding lives and what it does in this
+build. Focus rings are visible, accent-bound and 2pt. Tab order runs sidebar → toolbar →
+content, which is the document order; an inspector is appended by the surface that has one.</p>
+<table>
+<thead><tr><th style="width:96px">Key</th><th style="width:170px">Command</th>
+<th style="width:120px">Lives in</th><th>In this build</th></tr></thead>
+<tbody>
+<tr><td><kbd>⌘N</kbd></td><td><b>Add server…</b></td><td>File</td>
+    <td>Dimmed. The add sheet is installed with the servers board.</td></tr>
+<tr><td><kbd>⇧⌘N</kbd></td><td><b>Add marketplace…</b></td><td>File</td>
+    <td>Dimmed. Marketplaces arrive with Discover.</td></tr>
+<tr><td><kbd>⌘F</kbd></td><td><b>Find</b></td><td>Edit</td>
+    <td>Dimmed. Focuses the search field on a surface that has one.</td></tr>
+<tr><td><kbd>⌘R</kbd></td><td><b>Reset server</b></td><td>Edit</td>
+    <td>Dimmed. Re-reads the selected server's tool surface — the router's
+        <code>reindex</code>.</td></tr>
+<tr><td><kbd>⌘⌫</kbd></td><td><b>Remove server</b></td><td>Edit</td>
+    <td>Dimmed. Undoable and never confirmed (§9).</td></tr>
+<tr><td><kbd>⌘,</kbd></td><td><b>Settings</b></td><td>App menu</td>
+    <td><b>Live.</b> Selects the Settings destination.</td></tr>
+<tr><td><kbd>⌘1</kbd>–<kbd>⌘7</kbd></td><td><b>Select destination</b></td><td>View</td>
+    <td><b>Live.</b> The seven sidebar destinations, in order.</td></tr>
+<tr><td><kbd>⌃⌘S</kbd></td><td><b>Show sidebar</b></td><td>View</td>
+    <td><b>Live.</b> The system binding for a split view's sidebar.</td></tr>
+<tr><td><kbd>Return</kbd></td><td><b>Commit the default action</b></td><td>the view</td>
+    <td>Reserved. The shell has no default action of its own and binds nothing to it.</td></tr>
+<tr><td><kbd>Esc</kbd></td><td><b>Dismiss, then clear selection</b></td><td>the view</td>
+    <td>Reserved. The shell has no sheet and no row selection to clear.</td></tr>
+<tr><td><kbd>Space</kbd></td><td><b>Toggle the selected row's breaker</b></td><td>the row</td>
+    <td>Reserved, and unresolved — see the note below. The shell binds nothing to Space so
+        the servers board can.</td></tr>
+</tbody>
+</table>
+<p class="note" style="margin-top:16px"><b style="color:var(--attn)">Unresolved, recorded
+rather than guessed.</b> §8 binds <kbd>Space</kbd> to "the selected row's breaker", but the
+control API has no start and no stop: <code>ServerPatch</code> is
+<code>projects · warm · idleMs · placard</code>, and <code>ControlAPIClient</code> carries no
+lifecycle operation at all. The breaker is a readout of a child process the <em>router</em>
+starts when an agent calls a tool. Either Space toggles <code>warm</code> — keep it resident
+versus let the reaper close it, which is a different sentence from the one §8 writes — or the
+router needs an operation it does not have. M3 owns the breaker and inherits the decision.</p>
+
+<!-- ══════════════════════════════ 4 · THE NINE STATES ══════════════════════════════ -->
+<h2><span class="n">4</span>The nine states</h2>
+<p class="note">The shell's own data surface is the sidebar's counts and the at-rest readout.
+Every state below is one the fixture client can actually produce, so each is renderable
+without a router running. The navigation itself never goes away — a router that is not
+running does not stop you moving between destinations, and hiding the sidebar in a failure
+state would strand you on whichever pane you were looking at.</p>
+
+<div class="grid">
+
+<!-- Empty -->
+<figure><div class="win sm solo"><div class="side">
+  <div class="tl"><i></i><i></i><i></i></div>
+  <nav>
+    <div class="grp">Running</div>
+    <button class="nv on"><span class="ic">◉</span><span class="lb">Activity</span></button>
+    <button class="nv"><span class="ic">▤</span><span class="lb">Servers</span></button>
+    <button class="nv"><span class="ic">◈</span><span class="lb">Skills</span></button>
+    <div class="grp">Library</div>
+    <button class="nv"><span class="ic">✦</span><span class="lb">Discover</span></button>
+  </nav>
+  <div class="rest">
+    <div class="lbl">Child processes</div>
+    <div class="restmsg"><b>Nothing declared yet</b>
+      This counts child processes once a server exists. Declare one and it starts.</div>
+    <div class="restact">Add server…</div>
+  </div>
+  <div class="sfoot"><span class="dot live"></span>127.0.0.1:8879</div>
+</div><div class="main">
+  <div class="tbar"><h3>Activity</h3></div>
+  <div class="body"><div class="scaf"><span class="gl">◉</span>
+    <b>No servers declared yet</b>
+    <p>MCP Router reads the servers your agents already have configured. Point it at a
+       config, or declare one by hand.</p>
+    <div class="act"><button class="btn p">Add server…</button></div></div></div>
+</div></div>
+<figcaption><b>Empty</b> · the router answered and has nothing declared. The readout shows a
+sentence rather than a "0 of 0", because a zero with a sparkline under it reads as an outage.
+Pane copy is the servers board's approved wording, already shipped as
+<code>ServersBoardCopy.empty</code>.</figcaption></figure>
+
+<!-- Loading -->
+<figure><div class="win sm solo"><div class="side">
+  <div class="tl"><i></i><i></i><i></i></div>
+  <nav>
+    <div class="grp">Running</div>
+    <button class="nv on"><span class="ic">◉</span><span class="lb">Activity</span><span class="sk b"></span></button>
+    <button class="nv"><span class="ic">▤</span><span class="lb">Servers</span><span class="sk b"></span></button>
+    <button class="nv"><span class="ic">◈</span><span class="lb">Skills</span></button>
+    <div class="grp">Library</div>
+    <button class="nv"><span class="ic">✦</span><span class="lb">Discover</span></button>
+  </nav>
+  <div class="rest">
+    <div class="lbl">Child processes</div>
+    <span class="sk n"></span><span class="sk s"></span><span class="sk f"></span>
+  </div>
+  <div class="sfoot"><span class="dot idle"></span>127.0.0.1:8879</div>
+</div><div class="main">
+  <div class="tbar"><h3>Activity</h3></div>
+  <div class="body" style="padding-top:8px">
+    <div class="cols"><span style="width:38px">when</span><span style="width:84px">server</span>
+      <span style="flex:1">tool</span></div>
+    <div class="tr"><span class="sk" style="width:34px;height:9px"></span>
+      <span class="sk" style="width:70px;height:9px"></span>
+      <span class="sk" style="width:130px;height:9px"></span></div>
+    <div class="tr"><span class="sk" style="width:34px;height:9px"></span>
+      <span class="sk" style="width:70px;height:9px"></span>
+      <span class="sk" style="width:112px;height:9px"></span></div>
+    <div class="tr"><span class="sk" style="width:34px;height:9px"></span>
+      <span class="sk" style="width:70px;height:9px"></span>
+      <span class="sk" style="width:140px;height:9px"></span></div>
+  </div>
+</div></div>
+<figcaption><b>Loading</b> · skeletons at the real geometry, never a spinner over a blank
+pane. The navigation renders immediately because it depends on no data; only the counts,
+the readout and the rows are skeletal. The footer dot is <code>--t4</code>, not green:
+nothing has answered yet.</figcaption></figure>
+
+<!-- Partial -->
+<figure><div class="win sm solo"><div class="side">
+  <div class="tl"><i></i><i></i><i></i></div>
+  <nav>
+    <div class="grp">Running</div>
+    <button class="nv on"><span class="ic">◉</span><span class="lb">Activity</span></button>
+    <button class="nv"><span class="ic">▤</span><span class="lb">Servers</span><span class="bg a">4</span></button>
+    <button class="nv"><span class="ic">◈</span><span class="lb">Skills</span></button>
+    <div class="grp">Library</div>
+    <button class="nv"><span class="ic">✦</span><span class="lb">Discover</span></button>
+  </nav>
+  <div class="rest">
+    <div class="lbl">Child processes</div>
+    <div class="restnum"><b>3</b><span>of 8 declared</span></div>
+    <svg class="spark" viewBox="0 0 146 32" preserveAspectRatio="none" aria-hidden="true">
+      <polyline points="0,30 24,24 48,17 72,17 96,9 120,17 146,17" fill="none"
+        stroke="var(--live)" stroke-width="1.4" stroke-linejoin="round" opacity=".85"/>
+      <line x1="0" y1="31" x2="146" y2="31" stroke="rgba(255,255,255,.09)" stroke-width="1"/>
+    </svg>
+    <div class="restfoot" style="color:var(--attn)">4 did not report their tools</div>
+  </div>
+  <div class="sfoot"><span class="dot live"></span>127.0.0.1:8879</div>
+</div><div class="main">
+  <div class="tbar"><h3>Activity</h3></div>
+  <div class="body"><div class="scaf"><span class="gl" style="color:var(--attn)">⚠</span>
+    <b>4 of 8 servers did not report their tools</b>
+    <p>Each answers <code>spawn ENOENT — the command is not on PATH</code>. The other four
+       are live and usable; the counts above are theirs.</p></div></div>
+</div></div>
+<figcaption><b>Partial</b> · says what arrived, what did not, and why. The running count
+stays honest — it is what the router reported, not a guess about the four that failed.
+The readout footer takes <code>--attn</code> because it wants a human decision.</figcaption></figure>
+
+<!-- Offline -->
+<figure><div class="win sm solo"><div class="side">
+  <div class="tl"><i></i><i></i><i></i></div>
+  <nav>
+    <div class="grp">Running</div>
+    <button class="nv on"><span class="ic">◉</span><span class="lb">Activity</span></button>
+    <button class="nv"><span class="ic">▤</span><span class="lb">Servers</span></button>
+    <button class="nv"><span class="ic">◈</span><span class="lb">Skills</span></button>
+    <div class="grp">Library</div>
+    <button class="nv"><span class="ic">✦</span><span class="lb">Discover</span></button>
+  </nav>
+  <div class="rest">
+    <div class="lbl">Child processes</div>
+    <div class="restmsg"><b>The router isn't running</b>
+      Nothing is being observed, so nothing is counted here.</div>
+    <div class="restact">Start the router</div>
+  </div>
+  <div class="sfoot"><span class="dot a"></span>127.0.0.1:8879 · not running</div>
+</div><div class="main">
+  <div class="tbar"><h3>Activity</h3></div>
+  <div class="body"><div class="scaf"><span class="gl" style="color:var(--attn)">⚡</span>
+    <b>The router isn't running</b>
+    <p>Nothing is listening on the control port, so there is nothing to show yet. Starting
+       it takes a moment and your servers stay exactly as you left them.</p>
+    <div class="act"><button class="btn p">Start the router</button></div></div></div>
+</div></div>
+<figcaption><b>Offline</b> · the pane copy is <code>ControlAPIError.routerNotRunning</code>
+verbatim — headline, advice and action, already approved in F3 and asserted by
+<code>ControlCopyTests</code>. <b>The counts are absent, not zero.</b> A zero is an
+observation, and the router made none.</figcaption></figure>
+
+<!-- Error -->
+<figure><div class="win sm solo"><div class="side">
+  <div class="tl"><i></i><i></i><i></i></div>
+  <nav>
+    <div class="grp">Running</div>
+    <button class="nv on"><span class="ic">◉</span><span class="lb">Activity</span></button>
+    <button class="nv"><span class="ic">▤</span><span class="lb">Servers</span></button>
+    <button class="nv"><span class="ic">◈</span><span class="lb">Skills</span></button>
+    <div class="grp">Library</div>
+    <button class="nv"><span class="ic">✦</span><span class="lb">Discover</span></button>
+  </nav>
+  <div class="rest">
+    <div class="lbl">Child processes</div>
+    <div class="restmsg"><b>The router couldn't complete that</b>
+      The router returned 422.</div>
+  </div>
+  <div class="sfoot"><span class="dot f"></span>127.0.0.1:8879</div>
+</div><div class="main">
+  <div class="tbar"><h3>Activity</h3></div>
+  <div class="body"><div class="scaf"><span class="gl" style="color:var(--fail)">!</span>
+    <b>The router couldn't complete that</b>
+    <p>The router returned 422 — spawn /nonexistent/binary-that-cannot-start ENOENT.
+       retry with ?force=1 to add it anyway</p></div></div>
+</div></div>
+<figcaption><b>Error</b> · headline and advice are
+<code>ControlAPIError.server(status:message:hint:)</code> verbatim, including the router's
+own hint — the sentence that turns a dead end into a next step. No action button: this
+condition offers none, and a disabled placeholder would be worse than nothing.</figcaption></figure>
+
+<!-- Unauthorised -->
+<figure><div class="win sm solo"><div class="side">
+  <div class="tl"><i></i><i></i><i></i></div>
+  <nav>
+    <div class="grp">Running</div>
+    <button class="nv on"><span class="ic">◉</span><span class="lb">Activity</span></button>
+    <button class="nv"><span class="ic">▤</span><span class="lb">Servers</span></button>
+    <button class="nv"><span class="ic">◈</span><span class="lb">Skills</span></button>
+    <div class="grp">Library</div>
+    <button class="nv"><span class="ic">✦</span><span class="lb">Discover</span></button>
+  </nav>
+  <div class="rest">
+    <div class="lbl">Child processes</div>
+    <div class="restmsg"><b>This app isn't authorised to talk to the router</b></div>
+    <div class="restact">Re-pair…</div>
+  </div>
+  <div class="sfoot"><span class="dot a"></span>127.0.0.1:8879 · not authorised</div>
+</div><div class="main">
+  <div class="tbar"><h3>Activity</h3></div>
+  <div class="body"><div class="scaf"><span class="gl" style="color:var(--attn)">🛡</span>
+    <b>This app isn't authorised to talk to the router</b>
+    <p>The control token was rotated or removed. Re-pair to continue — your servers and
+       their history are untouched.</p>
+    <div class="act"><button class="btn p">Re-pair…</button></div></div></div>
+</div></div>
+<figcaption><b>Unauthorised</b> · not one of the nine, but the other refusal that replaces a
+whole screen, so the shell owes it a rendering. <code>ControlAPIError.unauthorized</code>
+verbatim. "Re-pair…" keeps its ellipsis: it opens a further view that M6/M8
+own.</figcaption></figure>
+
+<!-- Success -->
+<figure><div class="win sm solo"><div class="side">
+  <div class="tl"><i></i><i></i><i></i></div>
+  <nav>
+    <div class="grp">Running</div>
+    <button class="nv on"><span class="ic">◉</span><span class="lb">Activity</span></button>
+    <button class="nv"><span class="ic">▤</span><span class="lb">Servers</span><span class="bg a">1</span></button>
+    <button class="nv"><span class="ic">◈</span><span class="lb">Skills</span></button>
+    <div class="grp">Library</div>
+    <button class="nv"><span class="ic">✦</span><span class="lb">Discover</span></button>
+  </nav>
+  <div class="rest">
+    <div class="lbl">Child processes</div>
+    <div class="restnum"><b>4</b><span>of 8 declared</span></div>
+    <svg class="spark" viewBox="0 0 146 32" preserveAspectRatio="none" aria-hidden="true">
+      <polyline points="0,30 24,24 48,17 72,17 96,17 120,17 146,9" fill="none"
+        stroke="var(--live)" stroke-width="1.4" stroke-linejoin="round" opacity=".85"/>
+      <line x1="0" y1="31" x2="146" y2="31" stroke="rgba(255,255,255,.09)" stroke-width="1"/>
+    </svg>
+    <div class="restfoot">last 60s · peak 4</div>
+  </div>
+  <div class="sfoot"><span class="dot live"></span>127.0.0.1:8879</div>
+</div><div class="main">
+  <div class="tbar"><h3>Activity</h3></div>
+  <div class="body"><div class="scaf"><span class="gl">◉</span>
+    <b>Activity arrives with the call log</b>
+    <p>This shell is what it renders into.</p></div></div>
+</div></div>
+<figcaption><b>Success</b> · the same frame as Default with the numbers moved: 3 → 4 running,
+2 → 1 wanting a decision, the trace stepping up. macOS does not toast a click, so the change
+is the count itself, with a small scale bump on the badge and no colour flash
+(§7).</figcaption></figure>
+
+<!-- Overflow -->
+<figure><div class="win sm solo"><div class="side">
+  <div class="tl"><i></i><i></i><i></i></div>
+  <nav>
+    <div class="grp">Running</div>
+    <button class="nv on"><span class="ic">◉</span><span class="lb">Activity</span></button>
+    <button class="nv"><span class="ic">▤</span><span class="lb">Servers</span><span class="bg a">148</span></button>
+    <button class="nv"><span class="ic">◈</span><span class="lb">Skills</span></button>
+    <div class="grp">Library</div>
+    <button class="nv"><span class="ic">↓</span><span class="lb">Cleanup</span><span class="bg">2048</span></button>
+  </nav>
+  <div class="rest">
+    <div class="lbl">Child processes</div>
+    <div class="restnum"><b>128</b><span>of 2048 declared</span></div>
+    <div class="restfoot">last 60s · peak 131</div>
+  </div>
+  <div class="sfoot"><span class="dot live"></span>127.0.0.1:8879</div>
+</div><div class="main">
+  <div class="tbar"><h3>anthropic-internal-documentation-and-knowledge-base-retrieval-server</h3>
+    <div class="sp"><button class="btn q">Reset…</button></div></div>
+  <div class="body"><div class="scaf"><span class="gl">▤</span>
+    <b>The servers board arrives with M3</b>
+    <p>The full name is kept for the inspector and for VoiceOver; the toolbar shows what
+       fits.</p></div></div>
+</div></div>
+<figcaption><b>Overflow</b> · a four-digit badge and a 67-character title. Rows keep their
+height because the row is <code>min-height</code> and the badge is tabular; the label
+truncates before the badge does, and the toolbar title truncates at the tail with the full
+value still on the element for VoiceOver.</figcaption></figure>
+
+<!-- Disabled -->
+<figure>
+  <div class="menu" style="width:250px">
+    <h4>Edit — disabled, in place</h4>
+    <button class="mi dis">Reset server<span class="k">⌘R</span></button>
+    <button class="mi dis">Remove server<span class="k">⌘⌫</span></button>
+  </div>
+  <div style="height:12px"></div>
+  <div style="background:var(--raised);border:1px solid var(--lineS);border-radius:8px;
+    padding:10px 12px;width:250px;font-size:var(--callout);color:var(--t2)">
+    <div style="color:var(--t4);font-size:var(--body);margin-bottom:5px">Reset server</div>
+    This part of the app isn't built yet.
+  </div>
+<figcaption><b>Disabled</b> · dims in place and never disappears (§3.4), at
+<code>--t4</code> — the disabled tier, never used for live text. The reason is a help tag,
+which is the only place macOS shows one for a menu item. Once the servers board is
+installed the same command dims for a different reason — "Select a server first" — and the
+model carries both so neither is invented at the call site.</figcaption></figure>
+
+</div>
+
+<!-- ══════════════════════════════ 5 · SCROLL EDGE ══════════════════════════════ -->
+<h2><span class="n">5</span>The scroll-edge effect</h2>
+<p class="note">Where content meets the toolbar. At rest there is no separator and the
+toolbar sits on the same ground as the content; the moment content passes under it, a
+<code>--line</code> hairline appears. This is what stops the toolbar floating free of a
+scrolled list, and it is the one piece of chrome that changes as you scroll.</p>
+<div class="grid">
+<figure><div class="win sm solo"><div class="side" style="width:120px">
+  <div class="tl"><i></i><i></i><i></i></div></div><div class="main">
+  <div class="tbar"><h3>Servers</h3><div class="sp"><button class="btn">Add server…</button></div></div>
+  <div class="body" style="padding-top:8px">
+    <div class="cols"><span style="width:130px">server</span><span style="flex:1">transport</span></div>
+    <div class="tr"><span style="width:130px">filesystem</span><span class="m">stdio</span></div>
+    <div class="tr"><span style="width:130px">github</span><span class="m">http</span></div>
+  </div>
+</div></div><figcaption><b>At rest</b> · no separator. The content starts below the toolbar
+and nothing is under it.</figcaption></figure>
+
+<figure><div class="win sm solo"><div class="side" style="width:120px">
+  <div class="tl"><i></i><i></i><i></i></div></div><div class="main">
+  <div class="tbar edge"><h3>Servers</h3><div class="sp"><button class="btn">Add server…</button></div></div>
+  <div class="body" style="padding-top:0">
+    <div class="tr" style="opacity:.55"><span style="width:130px">obscura</span><span class="m">stdio</span></div>
+    <div class="tr"><span style="width:130px">sentry</span><span class="m">http</span></div>
+    <div class="tr"><span style="width:130px">sift</span><span class="m">stdio</span></div>
+  </div>
+</div></div><figcaption><b>Scrolled</b> · the hairline is present and a row is passing under
+the toolbar. The state is derived from the scroll offset, so it can be asserted rather than
+eyeballed.</figcaption></figure>
+</div>
+
+<!-- ══════════════════════════════ 6 · RESTORATION ══════════════════════════════ -->
+<h2><span class="n">6</span>Window state restoration</h2>
+<p class="note">Three things survive a quit, and each is restored by the mechanism that owns
+it rather than by one home-made store.</p>
+<table>
+<thead><tr><th style="width:210px">What</th><th style="width:210px">Restored by</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td><b>Window frame</b></td><td>AppKit frame autosave</td>
+    <td>Position and size, per screen configuration. AppKit already handles a display being
+        unplugged between launches; a hand-rolled store does not.</td></tr>
+<tr><td><b>Selected destination</b></td><td>Scene storage</td>
+    <td>Per scene, so a second window keeps its own. Restores to Activity when the stored
+        value names a destination this build no longer has, rather than showing a blank
+        pane.</td></tr>
+<tr><td><b>Sidebar visibility</b></td><td>Scene storage</td>
+    <td>Collapsed stays collapsed. The ⌃⌘S command and the restored value read the same
+        state, so they cannot disagree.</td></tr>
+</tbody>
+</table>
+<p class="note" style="margin-top:14px">Deliberately <em>not</em> restored: the scroll
+position of a board the shell does not own, and any transient failure state. Restoring an
+error from the last launch would show a condition that may no longer be true.</p>
+
+<!-- ══════════════════════════════ 7 · LIGHT ══════════════════════════════ -->
+<h2><span class="n">7</span>Light appearance</h2>
+<p class="note">Authored, never an inversion. Every dark indicator hue placed unchanged on
+the light ground lands between 1.71:1 and 2.91:1 against the 4.5:1 a label needs, so all
+four are re-solved in OKLCH; the tiers and lines reproduce dark's measured <em>ratio</em>
+rather than its alpha. The shell reads the same in both because the hierarchy is the same,
+not because the values are.</p>
+<div class="grid"><figure class="light"><div class="win sm solo"><div class="side">
+  <div class="tl"><i></i><i></i><i></i></div>
+  <nav>
+    <div class="grp">Running</div>
+    <button class="nv on"><span class="ic">◉</span><span class="lb">Activity</span></button>
+    <button class="nv"><span class="ic">▤</span><span class="lb">Servers</span><span class="bg a">2</span></button>
+    <button class="nv"><span class="ic">◈</span><span class="lb">Skills</span></button>
+    <div class="grp">Library</div>
+    <button class="nv"><span class="ic">↓</span><span class="lb">Cleanup</span><span class="bg">3</span></button>
+  </nav>
+  <div class="rest" style="background:rgba(0,0,0,.03)">
+    <div class="lbl">Child processes</div>
+    <div class="restnum"><b>3</b><span>of 8 declared</span></div>
+    <svg class="spark" viewBox="0 0 146 32" preserveAspectRatio="none" aria-hidden="true">
+      <polyline points="0,30 24,24 48,17 72,17 96,9 120,17 146,17" fill="none"
+        stroke="var(--live)" stroke-width="1.4" stroke-linejoin="round" opacity=".9"/>
+      <line x1="0" y1="31" x2="146" y2="31" stroke="rgba(0,0,0,.10)" stroke-width="1"/>
+    </svg>
+    <div class="restfoot">last 60s · peak 4</div>
+  </div>
+  <div class="sfoot"><span class="dot live"></span>127.0.0.1:8879</div>
+</div><div class="main">
+  <div class="tbar"><h3>Activity</h3><div class="sp"><button class="btn q">Reset history…</button></div></div>
+  <div class="body"><div class="scaf"><span class="gl">◉</span>
+    <b>Activity arrives with the call log</b>
+    <p>This shell is what it renders into.</p></div></div>
+</div></div>
+<figcaption><b>Light</b> · <code>--raised2</code> is the one reversal in the system: lighter
+than <code>--raised</code> in dark, darker in light. Emphasis always moves away from the
+ground, and in light the resting surface is already white.</figcaption></figure></div>
+
+<!-- ══════════════════════════════ 8 · MOTION ══════════════════════════════ -->
+<h2><span class="n">8</span>Motion</h2>
+<p class="note">Transform and opacity only, springs rather than durations, interruptible,
+and never an entry that animates opacity from zero. Reduce Motion removes the animation and
+never the state change.</p>
+<table>
+<thead><tr><th style="width:230px">Moment</th><th>Feel</th></tr></thead>
+<tbody>
+<tr><td><b>Badge count change</b></td><td>A small scale bump on the badge. Never a colour
+  flash — the colour carries a meaning and flashing it would say something false for the
+  length of the flash.</td></tr>
+<tr><td><b>Destination change</b></td><td>Immediate. No transition on the selection fill
+  (§7), and no cross-fade between panes: a pane that fades in is unreadable for half the
+  fade.</td></tr>
+<tr><td><b>Scroll-edge hairline</b></td><td>Opacity only, and it tracks the scroll rather
+  than animating on a timer, so it is never out of step with the content.</td></tr>
+<tr><td><b>Sidebar collapse</b></td><td>The system's own split-view animation. Overriding it
+  is how a native window starts feeling like a web page.</td></tr>
+<tr><td><b>Readout arriving</b></td><td>The skeleton is replaced in place at the same
+  geometry, so nothing moves when data lands. That is the whole reason the skeleton matches
+  the real row.</td></tr>
+</tbody>
+</table>
+
+</div>
+</body>
+</html>

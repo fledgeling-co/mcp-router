@@ -102,7 +102,7 @@
                     .padding(.bottom, M7BoardMetrics.gap)
             }
             let held = board.heldOut
-            if held.count > 0 {
+            if !held.isEmpty {
                 PartialIndexNote(
                     text: CleanupPresentation.heldOutBanner(count: held.count, clients: held.clients)
                 )

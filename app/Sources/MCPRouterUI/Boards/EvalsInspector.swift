@@ -87,7 +87,6 @@
         /// The token comes from `CheckPresentation.token(for:)`, in Kit. This view chooses no colour
         /// — which is both the thesis of these boards and the only way A21 has a function to iterate
         /// over rather than a source scan alone.
-        @ViewBuilder
         private var stampSection: some View {
             VStack(alignment: .leading, spacing: M7BoardMetrics.labelGap) {
                 SectionLabel("Checked against")
@@ -108,7 +107,6 @@
             }
         }
 
-        @ViewBuilder
         private var historySection: some View {
             VStack(alignment: .leading, spacing: M7BoardMetrics.gap) {
                 SectionLabel("History")
@@ -158,7 +156,9 @@
     /// A quiet section label. Sentence case, no tracked uppercase (§3.2).
     struct SectionLabel: View {
         private let text: String
-        init(_ text: String) { self.text = text }
+        init(_ text: String) {
+            self.text = text
+        }
 
         var body: some View {
             Text(text)

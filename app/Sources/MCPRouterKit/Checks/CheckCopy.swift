@@ -19,7 +19,24 @@ public enum CheckCopy {
     ///
     /// Present tense and specific: a reader who sees only this line and a verdict should know what
     /// was observed. "Its calls come back without error" says what was looked at; "healthy" does not.
+    ///
+    /// Split along `CheckID.subjectKind` rather than held as one eleven-armed switch. The split is
+    /// the domain's, not the linter's: a server statement is about a process the router spawns and a
+    /// skill statement is about a file on disk that several clients may or may not be able to read,
+    /// and the two sets never mix at a call site.
+    ///
+    /// The two `default` arms are unreachable, and two independent things keep them so. Adding a
+    /// case to `CheckID` fails to compile against `subjectKind`, whose switch has no default; and
+    /// A17 asserts a non-empty statement for every case, so a case routed to a kind but forgotten
+    /// here goes red rather than rendering a blank line beside a verdict.
     public static func statement(for check: CheckID) -> String {
+        switch check.subjectKind {
+        case .server: serverStatement(for: check)
+        case .skill: skillStatement(for: check)
+        }
+    }
+
+    private static func serverStatement(for check: CheckID) -> String {
         switch check {
         case .indexes: "The router can start it and read its tool surface"
         case .declaresTools: "It offers at least one tool"
@@ -27,11 +44,18 @@ public enum CheckCopy {
         case .surfaceApproved: "No tool description is waiting for review"
         case .operative: "It carries no placard"
         case .callsSucceed: "Its calls come back without error"
+        default: ""
+        }
+    }
+
+    private static func skillStatement(for check: CheckID) -> String {
+        switch check {
         case .reachable: "At least one client can load it"
         case .versioned: "It carries a version a result can be stamped against"
         case .originUnchanged: "Its marketplace still resolves where the router first saw it"
         case .updateWantsNoMore: "Any newer version held asks for nothing extra"
         case .described: "Its SKILL.md declares a description an agent can route on"
+        default: ""
         }
     }
 
@@ -72,7 +96,8 @@ public enum CheckCopy {
     /// not a pass: a check that reports success for something nobody has ever done is the same
     /// defect as a fabricated number. It reports `unknown`, and this is what it says.
     public static let neverExercised =
-        "Never exercised — the router has recorded no calls to it, so whether its calls succeed is unobserved."
+        "Never exercised — the router has recorded no calls to it, so whether its calls succeed "
+            + "is unobserved."
 
     public static func callsFailed(errors: Int, calls: Int) -> String {
         let noun = errors == 1 ? "call" : "calls"

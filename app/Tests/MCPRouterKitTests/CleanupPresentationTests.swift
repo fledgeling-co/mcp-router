@@ -1,6 +1,5 @@
 import Foundation
 import Testing
-
 @testable import MCPRouterKit
 
 /// Cleanup's inclusion rules and its observation window.
@@ -20,16 +19,16 @@ struct CleanupPresentationTests {
 
     @Test("A server is proposed for the three observed reasons, and no invented one")
     func serverCandidacy() {
-        #expect(CleanupPresentation.candidacy(for: CheckTests.server(calls: 0)).isCandidate)
+        #expect(CleanupPresentation.candidacy(for: CheckFixtures.server(calls: 0)).isCandidate)
         #expect(
-            CleanupPresentation.candidacy(for: CheckTests.server(indexError: "spawn ENOENT")).isCandidate
+            CleanupPresentation.candidacy(for: CheckFixtures.server(indexError: "spawn ENOENT")).isCandidate
         )
         #expect(
-            CleanupPresentation.candidacy(for: CheckTests.server(tools: 0, calls: 4)).isCandidate
+            CleanupPresentation.candidacy(for: CheckFixtures.server(tools: 0, calls: 4)).isCandidate
         )
         // A busy, healthy server is never proposed — and neither is one merely used "a while ago",
         // because that is not a fact the router reports.
-        #expect(!CleanupPresentation.candidacy(for: CheckTests.server(calls: 400)).isCandidate)
+        #expect(!CleanupPresentation.candidacy(for: CheckFixtures.server(calls: 400)).isCandidate)
     }
 
     @Test("A7: one unreadable client holds every skill out of the proposal")
@@ -37,24 +36,24 @@ struct CleanupPresentationTests {
         // A skill absent everywhere readable may be installed in exactly the folder nobody could
         // open, and there is no way to tell which — so the whole proposal is held, not a subset
         // guessed at.
-        let clients = [CheckTests.client("claude"), CheckTests.client("cursor", status: .unreadable)]
-        let absent = CheckTests.skill(presence: ["claude": .absent])
+        let clients = [CheckFixtures.client("claude"), CheckFixtures.client("cursor", status: .unreadable)]
+        let absent = CheckFixtures.skill(presence: ["claude": .absent])
         let candidacy = CleanupPresentation.candidacy(for: absent, clients: clients)
         #expect(candidacy.isHeldOut)
         #expect(!candidacy.isCandidate)
 
         // With every capable client read, the same skill is a candidate.
-        let readable = [CheckTests.client("claude"), CheckTests.client("cursor")]
+        let readable = [CheckFixtures.client("claude"), CheckFixtures.client("cursor")]
         #expect(
             CleanupPresentation.candidacy(
-                for: CheckTests.skill(presence: ["claude": .absent, "cursor": .absent]),
+                for: CheckFixtures.skill(presence: ["claude": .absent, "cursor": .absent]),
                 clients: readable
             ).isCandidate
         )
         // And one that is installed somewhere never is.
         #expect(
             !CleanupPresentation.candidacy(
-                for: CheckTests.skill(presence: ["claude": .present]),
+                for: CheckFixtures.skill(presence: ["claude": .present]),
                 clients: readable
             ).isCandidate
         )
@@ -95,9 +94,12 @@ struct CleanupPresentationTests {
     }
 
     @Test("A8: no Cleanup copy function contains a literal duration")
-    func noLiteralDurations() {
+    func noLiteralDurations() throws {
         let now = Date()
-        let window = CleanupPresentation.window(since: Self.iso(daysAgo: 41, from: now), now: now)!
+        let window = try #require(CleanupPresentation.window(
+            since: Self.iso(daysAgo: 41, from: now),
+            now: now
+        ))
         let subtitle = CleanupPresentation.subtitle(window: window)
         // The figure in the sentence is the router's, rendered from `since` — so it says 41d, which
         // is what the router's own data implies, and it says it because the data said so.

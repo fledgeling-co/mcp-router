@@ -1,6 +1,5 @@
 import Foundation
 import Testing
-
 @testable import MCPRouterKit
 
 /// The eleven checks, asserted over cross products rather than examples.
@@ -10,81 +9,6 @@ import Testing
 /// author picked a passing case.
 @Suite("Server and skill checks")
 struct CheckTests {
-    // MARK: - Fixtures
-
-    static func server(
-        name: String = "alpha",
-        tools: Int = 3,
-        indexedAt: String? = "2026-08-01T10:00:00Z",
-        indexError: String? = nil,
-        hash: String? = "abc123",
-        calls: Int = 5,
-        errors: Int = 0,
-        callsServed: Int = 5,
-        authSupported: Bool = false,
-        authAuthorized: Bool = false,
-        placard: Placard? = nil,
-        pendingChange: PendingChange? = nil
-    ) -> MCPServer {
-        MCPServer(
-            name: name,
-            transport: .stdio,
-            state: .idle,
-            inFlight: 0,
-            callsServed: callsServed,
-            idleSec: 0,
-            command: "node",
-            args: ["server.js"],
-            cwd: nil,
-            url: nil,
-            envKeys: nil,
-            headerKeys: nil,
-            hash: hash,
-            tools: tools,
-            toolNames: [],
-            indexedAt: indexedAt,
-            indexError: indexError,
-            projects: [],
-            warm: false,
-            placard: placard,
-            pendingChange: pendingChange,
-            auth: ServerAuth(supported: authSupported, authorized: authAuthorized),
-            usage: ServerUsage(calls: calls, errors: errors)
-        )
-    }
-
-    static func client(
-        _ id: String,
-        supports: Bool = true,
-        status: SkillClientStatus = .read
-    ) -> SkillClient {
-        SkillClient(id: id, displayName: id.capitalized, supportsSkills: supports, status: status)
-    }
-
-    static func skill(
-        name: String = "pr-summariser",
-        description: String? = "Summarises a pull request",
-        path: String = "/skills/pr-summariser",
-        source: SkillSource = .plugin(PluginOrigin(
-            plugin: "review-kit",
-            marketplace: "fledgeling",
-            pluginVersion: "0.4.1"
-        )),
-        presence: [String: SkillPresence] = ["claude": .present],
-        held: HeldVersion? = nil,
-        provenance: SkillProvenance? = nil
-    ) -> Skill {
-        Skill(
-            name: name,
-            description: description,
-            path: path,
-            source: source,
-            presence: presence,
-            held: held,
-            provenance: provenance
-        )
-    }
-
     // MARK: - A5: callsSucceed over the cross product
 
     @Test("A5: zero recorded calls is never observed, whatever the error count says")
@@ -92,13 +16,13 @@ struct CheckTests {
         // The load-bearing rule: zero calls with zero errors is arithmetically a clean record and is
         // NOT a confirmation. Asserted over the cross product, not over a chosen example.
         for errors in [0, 1, 9] {
-            let result = ServerChecks.callsSucceed(Self.server(calls: 0, errors: errors))
+            let result = ServerChecks.callsSucceed(CheckFixtures.server(calls: 0, errors: errors))
             #expect(result.verdict == .unknown, "calls=0 errors=\(errors) must be unobserved")
             #expect(result.reason == CheckCopy.neverExercised)
         }
         for calls in [1, 7] {
             for errors in [0, 1, 9] {
-                let result = ServerChecks.callsSucceed(Self.server(calls: calls, errors: errors))
+                let result = ServerChecks.callsSucceed(CheckFixtures.server(calls: calls, errors: errors))
                 let expected: CheckVerdict = errors == 0 ? .passed : .failed
                 #expect(result.verdict == expected, "calls=\(calls) errors=\(errors)")
             }
@@ -109,7 +33,7 @@ struct CheckTests {
     func callsServedIsNotTheField() {
         // callsServed is the process's lifetime tally; usage.calls is the recorded window every
         // sentence on these panes is scoped to. Reading the wrong one makes a reset invisible.
-        let reset = Self.server(calls: 0, errors: 0, callsServed: 412)
+        let reset = CheckFixtures.server(calls: 0, errors: 0, callsServed: 412)
         #expect(ServerChecks.callsSucceed(reset).verdict == .unknown)
         #expect(CleanupPresentation.candidacy(for: reset).isCandidate)
     }
@@ -120,14 +44,14 @@ struct CheckTests {
     func declaresToolsUnknownWhenIndexFailing() {
         for tools in [0, 1, 30] {
             let result = ServerChecks.declaresTools(
-                Self.server(tools: tools, indexError: "spawn ENOENT")
+                CheckFixtures.server(tools: tools, indexError: "spawn ENOENT")
             )
             #expect(result.verdict == .unknown, "tools=\(tools) under a failing index")
         }
         // And it still answers normally when the index is healthy.
-        #expect(ServerChecks.declaresTools(Self.server(tools: 3)).verdict == .passed)
-        #expect(ServerChecks.declaresTools(Self.server(tools: 0)).verdict == .failed)
-        #expect(ServerChecks.declaresTools(Self.server(indexedAt: nil)).verdict == .unknown)
+        #expect(ServerChecks.declaresTools(CheckFixtures.server(tools: 3)).verdict == .passed)
+        #expect(ServerChecks.declaresTools(CheckFixtures.server(tools: 0)).verdict == .failed)
+        #expect(ServerChecks.declaresTools(CheckFixtures.server(indexedAt: nil)).verdict == .unknown)
     }
 
     // MARK: - A5b: no vacuous confirmations
@@ -136,27 +60,27 @@ struct CheckTests {
     func noVacuousConfirmations() {
         // held == nil is the common case: most skills have no newer version waiting. Reporting a
         // confirmation for every one of them is a pass for a question nobody asked.
-        #expect(SkillChecks.updateWantsNoMore(Self.skill(held: nil)).verdict == .notApplicable)
+        #expect(SkillChecks.updateWantsNoMore(CheckFixtures.skill(held: nil)).verdict == .notApplicable)
         #expect(
             SkillChecks.updateWantsNoMore(
-                Self.skill(held: HeldVersion(pluginVersion: "0.5.0"))
+                CheckFixtures.skill(held: HeldVersion(pluginVersion: "0.5.0"))
             ).verdict == .passed
         )
         #expect(
             SkillChecks.updateWantsNoMore(
-                Self.skill(held: HeldVersion(pluginVersion: "0.5.0", addedCapabilities: ["network"]))
+                CheckFixtures.skill(held: HeldVersion(pluginVersion: "0.5.0", addedCapabilities: ["network"]))
             ).verdict == .failed
         )
 
         // A standalone skill has no marketplace, so an unmoved origin is not something that can be
         // true of it.
-        let standalone = Self.skill(source: .standalone(path: "/skills/hand-placed"))
+        let standalone = CheckFixtures.skill(source: .standalone(path: "/skills/hand-placed"))
         #expect(SkillChecks.originUnchanged(standalone).verdict == .notApplicable)
 
         // A transport with no credentials has none to be current.
-        #expect(ServerChecks.authorized(Self.server(authSupported: false)).verdict == .notApplicable)
+        #expect(ServerChecks.authorized(CheckFixtures.server(authSupported: false)).verdict == .notApplicable)
         #expect(
-            ServerChecks.authorized(Self.server(authSupported: true, authAuthorized: false)).verdict
+            ServerChecks.authorized(CheckFixtures.server(authSupported: true, authAuthorized: false)).verdict
                 == .failed
         )
     }
@@ -165,25 +89,25 @@ struct CheckTests {
 
     @Test("A6: reachability is unobserved when either unreadable signal fires")
     func reachableUnknownOnEitherSignal() {
-        let clients = [Self.client("claude"), Self.client("cursor")]
+        let clients = [CheckFixtures.client("claude"), CheckFixtures.client("cursor")]
 
         // Signal one: the per-CLIENT status.
         let byStatus = SkillChecks.reachable(
-            Self.skill(presence: ["claude": .absent, "cursor": .absent]),
-            clients: [Self.client("claude"), Self.client("cursor", status: .unreadable)]
+            CheckFixtures.skill(presence: ["claude": .absent, "cursor": .absent]),
+            clients: [CheckFixtures.client("claude"), CheckFixtures.client("cursor", status: .unreadable)]
         )
         #expect(byStatus.verdict == .unknown, "SkillClientStatus.unreadable must suspend the judgement")
 
         // Signal two: the per-SKILL-per-client presence.
         let byPresence = SkillChecks.reachable(
-            Self.skill(presence: ["claude": .absent, "cursor": .unreadable]),
+            CheckFixtures.skill(presence: ["claude": .absent, "cursor": .unreadable]),
             clients: clients
         )
         #expect(byPresence.verdict == .unknown, "SkillPresence.unreadable must suspend it too")
 
         // Neither signal: every capable client was read and none has it.
         let readEverywhere = SkillChecks.reachable(
-            Self.skill(presence: ["claude": .absent, "cursor": .absent]),
+            CheckFixtures.skill(presence: ["claude": .absent, "cursor": .absent]),
             clients: clients
         )
         #expect(readEverywhere.verdict == .failed)
@@ -191,7 +115,7 @@ struct CheckTests {
         // Present anywhere wins over everything.
         #expect(
             SkillChecks.reachable(
-                Self.skill(presence: ["claude": .present, "cursor": .unreadable]),
+                CheckFixtures.skill(presence: ["claude": .present, "cursor": .unreadable]),
                 clients: clients
             ).verdict == .passed
         )
@@ -203,8 +127,8 @@ struct CheckTests {
         // read may carry no key at all — and treating that as "not installed here" would declare a
         // skill loadable by nobody on the strength of a lookup that never happened.
         let result = SkillChecks.reachable(
-            Self.skill(presence: [:]),
-            clients: [Self.client("claude"), Self.client("cursor", status: .unreadable)]
+            CheckFixtures.skill(presence: [:]),
+            clients: [CheckFixtures.client("claude"), CheckFixtures.client("cursor", status: .unreadable)]
         )
         #expect(result.verdict == .unknown)
     }
@@ -212,8 +136,11 @@ struct CheckTests {
     @Test("An unsupported client never contributes to either branch")
     func unsupportedClientsAreNotCounted() {
         let result = SkillChecks.reachable(
-            Self.skill(presence: ["claude": .present]),
-            clients: [Self.client("claude"), Self.client("codex", supports: false, status: .unsupported)]
+            CheckFixtures.skill(presence: ["claude": .present]),
+            clients: [
+                CheckFixtures.client("claude"),
+                CheckFixtures.client("codex", supports: false, status: .unsupported)
+            ]
         )
         #expect(result.verdict == .passed)
     }
@@ -222,9 +149,9 @@ struct CheckTests {
 
     @Test("Every check is total: eleven results, one per id, for any input")
     func checksAreTotal() {
-        let results = ServerChecks.all(Self.server()) + SkillChecks.all(
-            Self.skill(),
-            clients: [Self.client("claude")]
+        let results = ServerChecks.all(CheckFixtures.server()) + SkillChecks.all(
+            CheckFixtures.skill(),
+            clients: [CheckFixtures.client("claude")]
         )
         #expect(results.count == CheckID.allCases.count)
         #expect(Set(results.map(\.check)) == Set(CheckID.allCases))
@@ -273,14 +200,14 @@ struct CheckTests {
         // The footer promises a check is "something MCP Router performed and can show you the input
         // to". Without this the promise is unverifiable by the reader, and a derived row is
         // indistinguishable from a grade.
-        let server = Self.server()
+        let server = CheckFixtures.server()
         for check in CheckID.allCases where check.subjectKind == .server {
             let input = ServerChecks.input(check, server)
             #expect(input.contains("="), "\(check.rawValue) input names no field: \(input)")
             #expect(input != "not a server check")
         }
-        let skill = Self.skill()
-        let clients = [Self.client("claude")]
+        let skill = CheckFixtures.skill()
+        let clients = [CheckFixtures.client("claude")]
         for check in CheckID.allCases where check.subjectKind == .skill {
             let input = SkillChecks.input(check, skill, clients: clients)
             #expect(!input.isEmpty)
@@ -291,12 +218,12 @@ struct CheckTests {
     // MARK: - A10b: history invalidation
 
     @Test("A10b: a run gathered against a moved stamp is invalidated, over the cross product")
-    func historyInvalidation() {
+    func historyInvalidation() throws {
         let stamps = ["abc123", "def456"]
         for stored in stamps {
             for live in stamps {
-                let run = StoredRun(
-                    stamp: Stamp(stored)!,
+                let run = try StoredRun(
+                    stamp: #require(Stamp(stored)),
                     ranAt: Date(),
                     results: [CheckResult(.indexes, .passed)]
                 )
@@ -315,10 +242,10 @@ struct CheckTests {
     func unstampableSubjectsHaveNoStamp() {
         // Structural, not a rule the caller remembers: `Stamp`'s initialiser is failable and the
         // standalone case of `SkillSource` has no version field for a careless default to fill in.
-        #expect(Stamp.forSkill(Self.skill(source: .standalone(path: "/x"))) == nil)
-        #expect(Stamp.forServer(Self.server(hash: nil)) == nil)
-        #expect(Stamp.forServer(Self.server(hash: "")) == nil)
-        #expect(Stamp.forServer(Self.server(hash: "abc123"))?.value == "abc123")
+        #expect(Stamp.forSkill(CheckFixtures.skill(source: .standalone(path: "/x"))) == nil)
+        #expect(Stamp.forServer(CheckFixtures.server(hash: nil)) == nil)
+        #expect(Stamp.forServer(CheckFixtures.server(hash: "")) == nil)
+        #expect(Stamp.forServer(CheckFixtures.server(hash: "abc123"))?.value == "abc123")
     }
 
     // MARK: - The tally
@@ -330,7 +257,7 @@ struct CheckTests {
             CheckResult(.declaresTools, .passed),
             CheckResult(.authorized, .notApplicable),
             CheckResult(.operative, .failed),
-            CheckResult(.callsSucceed, .unknown),
+            CheckResult(.callsSucceed, .unknown)
         ]
         let segments = CheckPresentation.tally(results)
         #expect(segments.count == 4)
@@ -342,7 +269,7 @@ struct CheckTests {
 
     @Test("A filter with no matches carries no badge rather than a zero")
     func zeroCountCarriesNoBadge() {
-        let subject = CheckPresentation.subject(for: Self.server())
+        let subject = CheckPresentation.subject(for: CheckFixtures.server())
         #expect(CheckPresentation.count([subject], filter: .notMet, search: "") == nil)
         #expect(CheckPresentation.count([subject], filter: .all, search: "") == 1)
     }
@@ -350,8 +277,8 @@ struct CheckTests {
     @Test("A13b: an unstamped subject has a filter segment of its own")
     func unstampedIsReachable() {
         let standalone = CheckPresentation.subject(
-            for: Self.skill(source: .standalone(path: "/skills/hand")),
-            clients: [Self.client("claude")]
+            for: CheckFixtures.skill(source: .standalone(path: "/skills/hand")),
+            clients: [CheckFixtures.client("claude")]
         )
         #expect(standalone.stamp == nil)
         #expect(CheckPresentation.rows([standalone], filter: .unstamped, search: "").count == 1)
@@ -359,10 +286,10 @@ struct CheckTests {
 
     @Test("A28: row order is the router's own, servers then skills, stable")
     func rowOrderIsStable() {
-        let servers = [Self.server(name: "zeta"), Self.server(name: "alpha")]
+        let servers = [CheckFixtures.server(name: "zeta"), CheckFixtures.server(name: "alpha")]
         let skills = SkillsResponse(
-            skills: [Self.skill(name: "b", path: "/b"), Self.skill(name: "a", path: "/a")],
-            clients: [Self.client("claude")]
+            skills: [CheckFixtures.skill(name: "b", path: "/b"), CheckFixtures.skill(name: "a", path: "/a")],
+            clients: [CheckFixtures.client("claude")]
         )
         let names = CheckPresentation.subjects(servers: servers, skills: skills).map(\.name)
         #expect(names == ["zeta", "alpha", "b", "a"], "never re-sorted; the router's order is the order")

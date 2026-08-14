@@ -102,7 +102,7 @@
                 let data = try Data(contentsOf: url)
                 let decoder = JSONDecoder()
                 decoder.dateDecodingStrategy = .iso8601
-                return (try decoder.decode([String: [StoredRun]].self, from: data), nil)
+                return try (decoder.decode([String: [StoredRun]].self, from: data), nil)
             } catch {
                 return ([:], String(describing: error))
             }

@@ -15,7 +15,7 @@ public enum SkillChecks {
             versioned(skill),
             originUnchanged(skill),
             updateWantsNoMore(skill),
-            described(skill),
+            described(skill)
         ]
     }
 
@@ -138,11 +138,16 @@ public enum SkillChecks {
                 .joined(separator: " · ")
             return rendered.isEmpty ? "no skills-capable clients" : rendered
         case .versioned:
-            return "source = \(skill.source.pluginOrigin.map { "plugin \($0.pluginVersion)" } ?? "standalone")"
+            let origin = skill.source.pluginOrigin.map { "plugin \($0.pluginVersion)" } ?? "standalone"
+            return "source = \(origin)"
         case .originUnchanged:
-            return "provenance = \(skill.provenance.map { "\($0.firstSeenSource) → \($0.currentSource)" } ?? "nil")"
+            let moved = skill.provenance.map { "\($0.firstSeenSource) → \($0.currentSource)" }
+            return "provenance = \(moved ?? "nil")"
         case .updateWantsNoMore:
-            return "held = \(skill.held.map { "\($0.pluginVersion), adds \($0.addedCapabilities.count)" } ?? "nil")"
+            let waiting = skill.held.map {
+                "\($0.pluginVersion), adds \($0.addedCapabilities.count)"
+            }
+            return "held = \(waiting ?? "nil")"
         case .described:
             return "description = \(skill.description.map { "\($0.count) characters" } ?? "nil")"
         case .indexes, .declaresTools, .authorized, .surfaceApproved, .operative, .callsSucceed:

@@ -30,7 +30,7 @@ public enum CheckVerdict: String, Codable, Hashable, Sendable, CaseIterable {
     case passed = "confirmed"
     case failed = "notMet"
     case unknown = "notObserved"
-    case notApplicable = "notApplicable"
+    case notApplicable
 
     /// Whether this verdict is one a human should look at.
     public var wantsAttention: Bool { self == .failed }
@@ -117,8 +117,13 @@ public struct SubjectKey: Codable, Hashable, Sendable {
         self.id = id
     }
 
-    public static func server(_ name: String) -> SubjectKey { SubjectKey(kind: .server, id: name) }
-    public static func skill(path: String) -> SubjectKey { SubjectKey(kind: .skill, id: path) }
+    public static func server(_ name: String) -> SubjectKey {
+        SubjectKey(kind: .server, id: name)
+    }
+
+    public static func skill(path: String) -> SubjectKey {
+        SubjectKey(kind: .skill, id: path)
+    }
 }
 
 /// A fingerprint a result can be stamped against.
@@ -154,7 +159,9 @@ public struct Stamp: Codable, Hashable, Sendable {
     /// and built the whole invalidation model on it. The spec gate disproved it by reading the router
     /// source. What `hash` is genuinely good for is what it is used for here: stamping *evidence
     /// about a declared server*, so a stored run can say it was gathered before the entry was edited.
-    public static func forServer(_ server: MCPServer) -> Stamp? { Stamp(server.hash) }
+    public static func forServer(_ server: MCPServer) -> Stamp? {
+        Stamp(server.hash)
+    }
 
     /// A skill's version is its **plugin's** version, shared by every skill that plugin supplies.
     /// M4 established this and named the field accordingly.

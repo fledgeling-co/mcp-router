@@ -174,7 +174,6 @@
             .frame(width: M7BoardMetrics.inspectorWidth)
         }
 
-        @ViewBuilder
         private var actions: some View {
             VStack(alignment: .leading, spacing: M7BoardMetrics.gap) {
                 SectionLabel("Actions")

@@ -20,7 +20,7 @@ public enum ServerChecks {
             authorized(server),
             surfaceApproved(server),
             operative(server),
-            callsSucceed(server),
+            callsSucceed(server)
         ]
     }
 

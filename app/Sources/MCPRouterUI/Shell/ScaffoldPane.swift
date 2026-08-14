@@ -43,7 +43,7 @@
         /// the matching `]` however many lines it spans, so the constraint is retired rather than
         /// deferred again. Keep the two in step: a change to this shape wants the awk block checked.
         public static let installed: Set<Destination> = [
-            .servers, .skills, .activity, .settings, .discover, .evals, .cleanup,
+            .servers, .skills, .activity, .settings, .discover, .evals, .cleanup
         ]
 
         public static func hasBoard(_ destination: Destination) -> Bool {

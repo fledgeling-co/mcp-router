@@ -192,14 +192,27 @@
         ///
         /// Counted rather than silently dropped: a suspended judgement that looks like an empty
         /// result is the failure this whole rule exists to prevent.
-        public var heldOut: (count: Int, clients: [String]) {
-            guard let skills = state.reading?.skills else { return (0, []) }
+        ///
+        /// A named type rather than a tuple so `isEmpty` can say what "nothing to report" means in
+        /// one place. Both halves have to be non-empty for the banner to be true: no held-out
+        /// skills means there is no suspended judgement to disclose even when a client is
+        /// unreadable, and no unreadable client means the count could not have come from this rule.
+        public struct HeldOut: Equatable, Sendable {
+            public let skills: [Skill]
+            public let clients: [String]
+
+            public var count: Int { skills.count }
+            public var isEmpty: Bool { skills.isEmpty || clients.isEmpty }
+        }
+
+        public var heldOut: HeldOut {
+            guard let skills = state.reading?.skills else { return HeldOut(skills: [], clients: []) }
             let unreadable = skills.slotClients.filter { $0.status == .unreadable }
-            guard !unreadable.isEmpty else { return (0, []) }
+            guard !unreadable.isEmpty else { return HeldOut(skills: [], clients: []) }
             let held = skills.skills.filter {
                 CleanupPresentation.candidacy(for: $0, clients: skills.clients).isHeldOut
             }
-            return (held.count, unreadable.map(\.displayName))
+            return HeldOut(skills: held, clients: unreadable.map(\.displayName))
         }
 
         public var neverUsedServerCount: Int {

@@ -40,7 +40,10 @@ enum RawLoopbackClient {
                 try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
                 return nil
             }
-            let first = await group.next() ?? nil
+            // `next()` yields `Data??`: the outer optional says whether the group had another task
+            // to hand back, the inner says whether that task found anything. Both absences mean the
+            // same thing to the caller, so they are collapsed rather than distinguished.
+            let first = await group.next().flatMap(\.self)
             group.cancelAll()
             connection.cancel()
             return first
@@ -69,7 +72,11 @@ enum RawLoopbackClient {
     /// peer closes, which the caller above still handles.
     private static func isWhole(_ bytes: Data) -> Bool {
         guard let terminator = bytes.range(of: Data("\r\n\r\n".utf8)) else { return false }
-        let head = String(decoding: bytes[bytes.startIndex ..< terminator.lowerBound], as: UTF8.self)
+        // A head that is not valid UTF-8 is not a head whose `content-length` can be trusted.
+        // Decoding it lossily would invent a header line out of replacement characters; treating it
+        // as not-yet-whole leaves it to the close-or-timeout path the doc comment above describes.
+        guard let head = String(bytes: bytes[bytes.startIndex ..< terminator.lowerBound], encoding: .utf8)
+        else { return false }
         for line in head.components(separatedBy: "\r\n") {
             let parts = line.split(separator: ":", maxSplits: 1)
             guard parts.count == 2, parts[0].lowercased() == "content-length",
@@ -82,7 +89,10 @@ enum RawLoopbackClient {
 
     private final class Collected: Sendable {
         private let state = Mutex(Data())
-        func append(_ data: Data) { state.withLock { $0.append(data) } }
+        func append(_ data: Data) {
+            state.withLock { $0.append(data) }
+        }
+
         var bytes: Data { state.withLock { $0 } }
     }
 

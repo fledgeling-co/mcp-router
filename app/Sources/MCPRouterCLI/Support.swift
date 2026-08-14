@@ -125,8 +125,10 @@ enum Copy {
 /// when it does not get it.
 enum Loopback {
     static func get(port: Int, path: String) async -> JSONValue? {
-        await request("GET \(path) HTTP/1.1\r\nHost: 127.0.0.1:\(port)\r\nconnection: close\r\n\r\n",
-                      port: port)
+        await request(
+            "GET \(path) HTTP/1.1\r\nHost: 127.0.0.1:\(port)\r\nconnection: close\r\n\r\n",
+            port: port
+        )
     }
 
     static func post(port: Int, path: String, token: String) async -> JSONValue? {

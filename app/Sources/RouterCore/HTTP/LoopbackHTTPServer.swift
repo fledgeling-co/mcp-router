@@ -116,8 +116,12 @@ public actor LoopbackHTTPServer {
         let running = tasks
         connections = [:]
         tasks = [:]
-        for connection in live.values { connection.cancel() }
-        for task in running.values { task.cancel() }
+        for connection in live.values {
+            connection.cancel()
+        }
+        for task in running.values {
+            task.cancel()
+        }
     }
 
     // MARK: - Binding
@@ -257,7 +261,10 @@ public actor LoopbackHTTPServer {
                 ) else { break }
                 body = read
             }
-            buffer.removeSubrange(buffer.startIndex ..< buffer.index(buffer.startIndex, offsetBy: head.bodyOffset + length))
+            buffer.removeSubrange(buffer.startIndex ..< buffer.index(
+                buffer.startIndex,
+                offsetBy: head.bodyOffset + length
+            ))
 
             let request = HTTPWireRequest(
                 method: head.method,
@@ -335,77 +342,5 @@ public actor LoopbackHTTPServer {
         var out = HTTPWire.head(for: response, now: Date())
         out.append(body)
         return out
-    }
-}
-
-/// `NWConnection`'s callback API as two `async` calls.
-///
-/// A separate type rather than free functions so the "resume exactly once" obligation lives in one
-/// place: `NWConnection` invokes a completion once per call, and a continuation resumed twice traps
-/// the process rather than returning an error.
-final class HTTPSocket: Sendable {
-    private let connection: NWConnection
-
-    init(connection: NWConnection) {
-        self.connection = connection
-    }
-
-    /// One chunk, or `nil` when the peer has gone or the deadline passed.
-    func read(timeoutNanoseconds: UInt64) async -> Data? {
-        await withTaskGroup(of: Data?.self, returning: Data?.self) { group in
-            group.addTask { [connection] in
-                await withCheckedContinuation { (continuation: CheckedContinuation<Data?, Never>) in
-                    let box = OneShot(continuation)
-                    connection.receive(minimumIncompleteLength: 1, maximumLength: 65536) {
-                        data, _, isComplete, error in
-                        if error != nil || (isComplete && (data?.isEmpty ?? true)) {
-                            box.settle(nil)
-                        } else {
-                            box.settle(data)
-                        }
-                    }
-                }
-            }
-            group.addTask {
-                try? await Task.sleep(nanoseconds: timeoutNanoseconds)
-                return nil
-            }
-            let first = await group.next() ?? nil
-            group.cancelAll()
-            return first
-        }
-    }
-
-    /// Write, reporting whether it landed. A failed write is not thrown: every caller's response to
-    /// one is the same — stop using this connection — and an error type would invite a caller to
-    /// try to recover on a socket that has gone.
-    func write(_ data: Data) async -> Bool {
-        await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
-            let box = OneShot(continuation)
-            connection.send(content: data, completion: .contentProcessed { error in
-                box.settle(error == nil)
-            })
-        }
-    }
-}
-
-/// A continuation that can be offered an answer any number of times and resumes exactly once.
-///
-/// `Mutex`-guarded rather than `@unchecked Sendable` with a bare `var`: `SWIFT_PRACTICES.md` §1
-/// forbids the latter, and the guarantee here — resume once, ever — is exactly what a double resume
-/// would turn into a process trap.
-final class OneShot<Value: Sendable>: Sendable {
-    private let state = Mutex<CheckedContinuation<Value, Never>?>(nil)
-
-    init(_ continuation: CheckedContinuation<Value, Never>) {
-        state.withLock { $0 = continuation }
-    }
-
-    func settle(_ value: Value) {
-        let continuation = state.withLock { current -> CheckedContinuation<Value, Never>? in
-            defer { current = nil }
-            return current
-        }
-        continuation?.resume(returning: value)
     }
 }

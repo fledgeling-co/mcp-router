@@ -373,3 +373,87 @@ DIVERGED row in the suite lane, and re-run the citation directly before treating
 `8975` was held by `node 11356` before, during and after every run in this pass, and was never
 contacted. Ports used: 8981–8998. After the final run: no stray listener on any harness port, no
 stray `MCPRouterCLI`, and `launchctl list` showed **0** scratch agents.
+
+---
+
+## 11. Lint close-out: `make lint` red -> green without moving a limit
+
+`make lint` was red at the end of the previous pass and nobody had seen the half that mattered.
+`swiftformat --lint` runs **first** in that target and short-circuits on failure, so `swiftlint` never
+ran: formatting was dirty, and 29 swiftlint violations sat behind it unreported. Running `make format`
+first is what makes the second half visible.
+
+Formatting itself then **grew** three files past the 400-line cap — `wrapFunctionBodies`,
+`wrapLoopBodies` and `wrap` all add lines — so the violation count went **31** after formatting, not
+the 29 counted before it. That is the order dependency worth remembering: format, then count.
+
+### 11.1 What was measured, at what commit
+
+| Gate | Command | Result |
+|---|---|---|
+| format + lint | `make lint` | **exit 0** — `Found 0 violations, 0 serious in 243 files`; `no-raw-design-values: clean`; `no-wire-codable: clean` |
+| tests | `make test` | **exit 0** — `750 tests in 106 suites passed`, `executed 750 tests` (count guard) |
+| vectors | `make parity` | **exit 0** — `358 vector cases compared (floor 358)` |
+| parity gate | `scripts/acceptance/parity-gate.sh` | **69 of 82 proven, 13 blocked, 0 DIVERGED** (exit 1 by design; the cutover needs 82/82 and is R4-C's) |
+
+The gate ran against a tree whose source hash was **identical before and after** the run
+(`c522810737f8795abe12f49fc6fa656587a9e897` over `app/Sources` + `app/Tests`), so the number describes
+the committed tree rather than a tree that moved during the measurement.
+
+### 11.2 The limits were not moved, and the harness was not touched
+
+No length, complexity or body-size limit in `.swiftlint.yml` was raised. Every structural violation
+was closed by splitting along a seam:
+
+| File | Was | Seam taken | Now |
+|---|---|---|---|
+| `LoopbackHTTPServer.swift` | 418 lines | the `NWConnection`-callback-to-`async` layer is not HTTP -> `HTTPSocket.swift` | 346 + 93 |
+| `RouterService.swift` | 452 lines, actor body 308 | composition root vs request-to-response vs collaborator types | 169 + 229 + 67 |
+| `MCPEndpoint.swift` | 445 lines, struct 315, one func 81 | pure wire shapes -> `Framing`; `tools/call` -> its own file, then split **refuse / invoke / record** | 255 + 80 + 158 |
+| `StdioUpstreamTransport.swift` | 415 lines, `open` 63 | `open` split into `spawn` (command line -> running child) and the MCP handshake half | see §11.3 |
+
+`git diff --stat -- scripts/` against `HEAD` is **empty**: this pass changed no harness script. Against
+`main`, `parity-gate.sh` still differs by exactly one line, and that line adds five lane names to
+`LANES`, which makes the gate broader rather than weaker.
+
+### 11.3 One config change, and why it is not a loosened limit
+
+`opening_brace` gained `ignore_multiline_statement_conditions: true`. This is a genuine deadlock
+between the two tools rather than a violation being excused: SwiftFormat's
+`wrapMultilineStatementBraces` puts the opening brace of a wrapped multi-line condition on its own
+line, and SwiftLint's `opening_brace` wants it on the same line. **Verified rather than assumed** —
+moving the brace by hand and re-running `swiftformat` put it straight back, so no source text
+satisfies both and the gate was unsatisfiable without a decision.
+
+It is settled the same way this repo already settled `trailing_comma` ("SwiftFormat owns comma style;
+two tools fighting is worse than either"), but narrowed to the one construct rather than by disabling
+the rule: brace position on declarations, function signatures and type headers is still enforced, and
+`ignore_multiline_function_signatures` was deliberately **left false** — the one signature that hit it
+was shortened to fit instead.
+
+### 11.4 Two assertions got stronger, not weaker
+
+`optional_data_string_conversion` fired on seven `String(decoding:as:)` sites. That initialiser
+substitutes U+FFFD for invalid UTF-8, so a wire assertion built on it passes on bytes no peer could
+decode. All seven moved to the failable `String(bytes:encoding:)`:
+
+- in `HTTPWireTests`, through a `#require`-backed `utf8(_:)` helper, so the decode fails at the line
+  that produced the bytes instead of resurfacing as a confusing string mismatch;
+- in `Loopback.isWhole`, a head that is not valid UTF-8 is now treated as not-yet-whole rather than
+  having a `content-length` read out of replacement characters.
+
+The test count did not drop: 750 before, 750 after.
+
+### 11.5 Two writers were in this worktree at once
+
+Recorded because it will bite whoever reads this next. While this pass was running, a second live
+agent — a workflow **resume** (`wf_48b3dafa-109`, "the lost item is TICKET-123") re-dispatching
+`planning/fleet-runner.js` — was writing into `.worktrees/R2R` at the same time, and created
+`AuthVerb.swift` and `StdioUpstreamSession.swift` unprompted at 22:00:26 and 22:00:50. One `Edit` in
+this session landed on a file that agent had rewritten seconds earlier.
+
+The two sets of changes turned out **complementary** rather than conflicting, and the combined tree is
+what the table in §11.1 measures. But the near-miss is the point: a resume that believes a runner is
+lost will re-dispatch it into the same worktree, and a runner that looks idle from outside is
+indistinguishable from a dead one. Nothing here should be read as evidence that concurrent writers are
+safe — this one happened to land clean.

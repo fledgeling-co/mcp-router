@@ -31,10 +31,69 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
         self.terminationGraceNanoseconds = terminationGraceNanoseconds
     }
 
+    /// A running child and the two handles that outlive this call: the pipes it owns and the signal
+    /// that fires when it exits.
+    private struct Child {
+        let process: Process
+        let pipes: ChildPipes
+        let ending: EndSignal
+    }
+
     public func open(
         _ upstream: UpstreamConfig,
         timeoutMilliseconds: Int
     ) async throws -> any UpstreamSession {
+        let child = try spawn(upstream)
+
+        // Wrapped in a `TappingTransport` so the raw bytes of every response survive the SDK's
+        // decode. `MCP.Value`'s object case is an unordered dictionary, so a `tools/call` result
+        // read back through the SDK has already lost the member order the relay has to reproduce.
+        let tap = ResponseTap()
+        let transport = TappingTransport(
+            wrapping: StdioTransport(
+                input: FileDescriptor(
+                    rawValue: child.pipes.output.fileHandleForReading.fileDescriptor
+                ),
+                output: FileDescriptor(
+                    rawValue: child.pipes.input.fileHandleForWriting.fileDescriptor
+                )
+            ),
+            tap: tap
+        )
+        let client = Client(name: clientName, version: clientVersion)
+        let session = StdioUpstreamSession(
+            name: upstream.name,
+            process: child.process,
+            pipes: child.pipes,
+            client: client,
+            transport: transport,
+            tap: tap,
+            ending: child.ending,
+            terminationGraceNanoseconds: terminationGraceNanoseconds
+        )
+
+        let outcome = await handshake(
+            client: client,
+            transport: transport,
+            timeoutMilliseconds: timeoutMilliseconds
+        )
+        switch outcome {
+        case .succeeded:
+            return session
+        case .timedOut:
+            // A throwing open must leave nothing behind, so the half-open child is closed here
+            // rather than left for a reaper that will never be told it exists.
+            await session.shutdown()
+            throw PoolError.startupTimeout(name: upstream.name, milliseconds: timeoutMilliseconds)
+        case let .failed(reason):
+            await session.shutdown()
+            throw PoolError.spawnFailed(name: upstream.name, reason: reason)
+        }
+    }
+
+    /// Everything between a command line in `~/.claude.json` and a running child with its stderr
+    /// being drained — the half of `open` that has nothing to do with MCP.
+    private func spawn(_ upstream: UpstreamConfig) throws -> Child {
         guard upstream.isStdio else {
             throw PoolError.spawnFailed(name: upstream.name, reason: "not a stdio upstream")
         }
@@ -80,47 +139,7 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
         }
 
         drainStandardError(of: pipes, named: upstream.name)
-
-        // Wrapped in a `TappingTransport` so the raw bytes of every response survive the SDK's
-        // decode. `MCP.Value`'s object case is an unordered dictionary, so a `tools/call` result
-        // read back through the SDK has already lost the member order the relay has to reproduce.
-        let tap = ResponseTap()
-        let transport = TappingTransport(
-            wrapping: StdioTransport(
-                input: FileDescriptor(rawValue: pipes.output.fileHandleForReading.fileDescriptor),
-                output: FileDescriptor(rawValue: pipes.input.fileHandleForWriting.fileDescriptor)
-            ),
-            tap: tap
-        )
-        let client = Client(name: clientName, version: clientVersion)
-        let session = StdioUpstreamSession(
-            name: upstream.name,
-            process: process,
-            pipes: pipes,
-            client: client,
-            transport: transport,
-            tap: tap,
-            ending: ending,
-            terminationGraceNanoseconds: terminationGraceNanoseconds
-        )
-
-        let outcome = await handshake(
-            client: client,
-            transport: transport,
-            timeoutMilliseconds: timeoutMilliseconds
-        )
-        switch outcome {
-        case .succeeded:
-            return session
-        case .timedOut:
-            // A throwing open must leave nothing behind, so the half-open child is closed here
-            // rather than left for a reaper that will never be told it exists.
-            await session.shutdown()
-            throw PoolError.startupTimeout(name: upstream.name, milliseconds: timeoutMilliseconds)
-        case let .failed(reason):
-            await session.shutdown()
-            throw PoolError.spawnFailed(name: upstream.name, reason: reason)
-        }
+        return Child(process: process, pipes: pipes, ending: ending)
     }
 
     /// Where a command lands, if anywhere: an absolute or relative path as given, otherwise the
@@ -305,111 +324,5 @@ final class EndSignal: Sendable {
             // it while holding this mutex is how a deadlock gets built.
             if alreadyFired { continuation.resume() }
         }
-    }
-}
-
-/// One live stdio upstream: a child process, its pipes, and the SDK client speaking to it.
-final class StdioUpstreamSession: UpstreamSession, Sendable {
-    let processIdentifier: Int32?
-    private let name: String
-    private let process: Process
-    private let pipes: ChildPipes
-    private let client: Client
-    private let transport: any Transport
-    private let tap: ResponseTap
-    private let ending: EndSignal
-    private let terminationGraceNanoseconds: UInt64
-    private let didShutdown = Mutex(false)
-
-    init(
-        name: String,
-        process: Process,
-        pipes: ChildPipes,
-        client: Client,
-        transport: any Transport,
-        tap: ResponseTap,
-        ending: EndSignal,
-        terminationGraceNanoseconds: UInt64
-    ) {
-        self.name = name
-        self.process = process
-        self.pipes = pipes
-        self.client = client
-        self.transport = transport
-        self.tap = tap
-        self.ending = ending
-        self.terminationGraceNanoseconds = terminationGraceNanoseconds
-        processIdentifier = process.processIdentifier
-    }
-
-    func waitUntilEnded() async {
-        await ending.wait()
-    }
-
-    /// `tools/list` and `tools/call`, answered with the upstream's own bytes.
-    ///
-    /// Both go through the SDK's request machinery — which owns framing, correlation and timeouts —
-    /// and then read the response out of the tap rather than from the SDK's decoded value, because
-    /// that value has already lost member order. See `UpstreamCalling.swift`.
-    func listTools() async throws -> JSONValue {
-        try await RawRequest.perform(
-            RawListTools.self, client: client, tap: tap, parameters: .object([])
-        )
-    }
-
-    func callTool(name: String, arguments: JSONValue) async throws -> JSONValue {
-        try await RawRequest.perform(
-            RawCallTool.self, client: client, tap: tap,
-            parameters: .object([
-                JSONMember(key: JSString("name"), value: .string(JSString(name))),
-                JSONMember(key: JSString("arguments"), value: arguments)
-            ])
-        )
-    }
-
-    /// Close everything this session owns, once.
-    ///
-    /// The order is the point. Disconnecting first stops the SDK's receive loop reading a
-    /// descriptor that is about to close; SIGTERM then gives the child its documented chance to
-    /// exit; SIGKILL is what stops a wedged server from holding the router's shutdown open forever;
-    /// and the descriptors close last, when nothing is left that could still be reading them.
-    func shutdown() async {
-        let alreadyDone = didShutdown.withLock { value -> Bool in
-            defer { value = true }
-            return value
-        }
-        guard !alreadyDone else { return }
-
-        await client.disconnect()
-        if process.isRunning {
-            process.terminate()
-            await waitForExit()
-        }
-        pipes.closeAll()
-    }
-
-    /// Wait for the child to exit, then kill it if it will not.
-    ///
-    /// Polled rather than raced against a timer in a task group, for the same reason the handshake
-    /// is: a group waits for every child task, so a branch parked on "the process ended" cannot be
-    /// abandoned when the process never does — which is precisely the stubborn server this escalation
-    /// exists for. `waitUntilExit()` is unusable here too, being a blocking call.
-    ///
-    /// Both waits are bounded. A shutdown that cannot finish still finishes.
-    private func waitForExit() async {
-        if await !poll(untilExitedWithin: terminationGraceNanoseconds), process.isRunning {
-            kill(process.processIdentifier, SIGKILL)
-            _ = await poll(untilExitedWithin: 2_000_000_000)
-        }
-    }
-
-    private func poll(untilExitedWithin nanoseconds: UInt64) async -> Bool {
-        let bounded = Int64(min(nanoseconds, UInt64(Int64.max)))
-        let deadline = ContinuousClock.now.advanced(by: .nanoseconds(bounded))
-        while ContinuousClock.now < deadline {
-            if !process.isRunning { return true }
-            try? await Task.sleep(nanoseconds: 20_000_000)
-        }
-        return !process.isRunning
     }
 }

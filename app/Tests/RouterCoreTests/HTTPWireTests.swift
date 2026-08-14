@@ -87,10 +87,9 @@ struct HTTPWireTests {
     /// the parity lane because the lane needs a live Node to run and this does not — a developer who
     /// reorders these will find out at `swift test` rather than at the gate.
     @Test("a buffered response emits handler headers, then Date, then the connection pair")
-    func headOrderForBufferedResponse() {
+    func headOrderForBufferedResponse() throws {
         let response = HTTPWireResponse.json(200, Data("{}".utf8))
-        let head = String(decoding: HTTPWire.head(for: response, now: Date(timeIntervalSince1970: 0)),
-                          as: UTF8.self)
+        let head = try utf8(HTTPWire.head(for: response, now: Date(timeIntervalSince1970: 0)))
         let lines = head.components(separatedBy: "\r\n")
         #expect(lines[0] == "HTTP/1.1 200 OK")
         #expect(lines[1] == "content-type: application/json")
@@ -101,14 +100,13 @@ struct HTTPWireTests {
     }
 
     @Test("a streaming response puts Transfer-Encoding last, after Date")
-    func headOrderForStreamingResponse() {
+    func headOrderForStreamingResponse() throws {
         let response = HTTPWireResponse(
             status: 200,
             headers: MCPEndpoint.sseHeaders,
             body: .chunks(AsyncStream { $0.finish() })
         )
-        let head = String(decoding: HTTPWire.head(for: response, now: Date(timeIntervalSince1970: 0)),
-                          as: UTF8.self)
+        let head = try utf8(HTTPWire.head(for: response, now: Date(timeIntervalSince1970: 0)))
         let lines = head.components(separatedBy: "\r\n")
         #expect(lines[1] == "cache-control: no-cache, no-transform")
         #expect(lines[2] == "connection: keep-alive")
@@ -128,11 +126,26 @@ struct HTTPWireTests {
     }
 
     @Test("a chunk carries its length in lowercase hex")
-    func chunkFraming() {
-        let chunk = String(decoding: HTTPWire.chunk(Data(repeating: 0x61, count: 26)), as: UTF8.self)
+    func chunkFraming() throws {
+        let chunk = try utf8(HTTPWire.chunk(Data(repeating: 0x61, count: 26)))
         #expect(chunk == "1a\r\n" + String(repeating: "a", count: 26) + "\r\n")
-        #expect(String(decoding: HTTPWire.lastChunk, as: UTF8.self) == "0\r\n\r\n")
+        #expect(try utf8(HTTPWire.lastChunk) == "0\r\n\r\n")
     }
+}
+
+/// `String(decoding:as:)` substitutes U+FFFD for invalid UTF-8, so a wire assertion built on it
+/// still passes on bytes no peer could decode — the defect resurfaces, if at all, as a confusing
+/// mismatch in the expected string rather than as a decode failure. This fails on the decode
+/// itself, at the line that produced the bytes.
+private func utf8(
+    _ bytes: Data,
+    sourceLocation: SourceLocation = #_sourceLocation
+) throws -> String {
+    try #require(
+        String(bytes: bytes, encoding: .utf8),
+        "wire bytes were not valid UTF-8",
+        sourceLocation: sourceLocation
+    )
 }
 
 /// The relay's envelope and framing, which are what the parity gate diffs.
@@ -155,14 +168,14 @@ struct MCPEndpointTests {
     }
 
     @Test("a framing refusal is plain JSON with jsonrpc, error, id and a null id")
-    func refusalShape() {
+    func refusalShape() throws {
         let response = MCPEndpoint.rpcError(403, code: -32000, message: "Invalid Host header: evil")
         #expect(response.status == 403)
         guard case let .bytes(body) = response.body else {
             Issue.record("a refusal must be a buffered body, not a stream")
             return
         }
-        #expect(String(decoding: body, as: UTF8.self)
+        #expect(try utf8(body)
             == #"{"jsonrpc":"2.0","error":{"code":-32000,"message":"Invalid Host header: evil"},"id":null}"#)
         #expect(response.headers.first?.name == "content-type")
     }
@@ -172,20 +185,24 @@ struct MCPEndpointTests {
     @Test("a tool error carries content before isError")
     func toolErrorShape() {
         let value = MCPEndpoint.toolError(#"Tool "bare" is not namespaced <server>__<tool>."#)
-        #expect(JSStringify.compact(value)
-            == #"{"content":[{"type":"text","text":"Tool \"bare\" is not namespaced <server>__<tool>."}],"isError":true}"#)
+        let expected = #"{"content":[{"type":"text","#
+            + #""text":"Tool \"bare\" is not namespaced <server>__<tool>."}],"#
+            + #""isError":true}"#
+        #expect(JSStringify.compact(value) == expected)
     }
 
     @Test("the SSE frame is event then data, terminated by a blank line")
-    func sseFraming() async {
+    func sseFraming() async throws {
         let response = MCPEndpoint.sse([.object([JSONMember(key: JSString("a"), value: .number(1))])])
         guard case let .chunks(stream) = response.body else {
             Issue.record("an SSE response must stream")
             return
         }
         var joined = Data()
-        for await piece in stream { joined.append(piece) }
-        #expect(String(decoding: joined, as: UTF8.self) == "event: message\ndata: {\"a\":1}\n\n")
+        for await piece in stream {
+            joined.append(piece)
+        }
+        #expect(try utf8(joined) == "event: message\ndata: {\"a\":1}\n\n")
     }
 }
 
@@ -220,4 +237,3 @@ struct ListenerFailureTests {
 private enum NWErrorStub {
     static let addressInUse: any Error = NWError.posix(.EADDRINUSE)
 }
-

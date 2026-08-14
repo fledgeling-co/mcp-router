@@ -122,8 +122,12 @@ struct MCPRouterCLI {
             }
         }
 
-        for line in built { Out.print("  ok    \(line)\n") }
-        for line in failed { Out.print("  FAIL  \(line)\n") }
+        for line in built {
+            Out.print("  ok    \(line)\n")
+        }
+        for line in failed {
+            Out.print("  FAIL  \(line)\n")
+        }
         let after = ManifestIO.load(
             path: loaded.config.manifestPath, fileSystem: RealFileSystem()
         ).manifest
@@ -191,11 +195,12 @@ struct MCPRouterCLI {
             )
         }
         if case let .array(pending)? = fields
-            .first(where: { $0.key == JSString("pendingAuth") })?.value {
+            .first(where: { $0.key == JSString("pendingAuth") })?.value
+        {
             for row in pending {
                 guard case let .object(fields) = row,
                       let server = fields.first(where: { $0.key == JSString("server") })?
-                          .value.asString
+                      .value.asString
                 else { continue }
                 Out.print(
                     "\n  ! \(server.string) needs authorizing: mcp-router auth \(server.string)\n"
@@ -262,61 +267,6 @@ struct MCPRouterCLI {
         }
     }
 
-    // MARK: - auth
-
-    static func auth(_ arguments: [String]) async throws {
-        guard arguments.count > 1, !arguments[1].hasPrefix("--") else {
-            throw CLIError("usage: mcp-router auth <server>")
-        }
-        let name = arguments[1]
-        let options = try Flags(arguments)
-        let port = try options.number("port") ?? RouterHome.defaultPort
-        let home = RouterHome()
-        let token = (try? ControlToken(
-            path: (home.root as NSString).appendingPathComponent("control.token")
-        ).load()) ?? ""
-
-        guard let body = await Loopback.post(
-            port: port,
-            path: "/servers/\(name.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? name)/auth",
-            token: token
-        ) else {
-            throw CLIError(
-                "no router answering on 127.0.0.1:\(port) (fetch failed) — start it first"
-            )
-        }
-        guard case let .object(fields) = body,
-              let url = fields.first(where: { $0.key == JSString("authorizationUrl") })?
-                  .value.asString
-        else {
-            let message = {
-                guard case let .object(fields) = body,
-                      let error = fields.first(where: { $0.key == JSString("error") })?.value.asString
-                else { return "authorization could not start" }
-                return error.string
-            }()
-            throw CLIError(message)
-        }
-
-        Out.print("opening your browser to authorize \"\(name)\"\n\(url.string)\n")
-        let open = Process()
-        open.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        open.arguments = [url.string]
-        try? open.run()
-
-        // Polled rather than held: the exchange completes inside the router.
-        let store = FileAuthStore(authDir: home.authDir)
-        for _ in 0 ..< 150 {
-            try? await Task.sleep(nanoseconds: 2_000_000_000)
-            if await store.hasTokens(JSString(name)) {
-                Out.print("\n✓ \(name) is authorized\n")
-                return
-            }
-        }
-        Out.print("\ngave up waiting; run `mcp-router status` to check\n")
-        exit(1)
-    }
-
     // MARK: - Shared
 
     static func load(_ options: Flags) throws -> (LoadedConfig, RouterHome) {
@@ -324,9 +274,9 @@ struct MCPRouterCLI {
         let loaded = try ConfigLoader.load(
             options: ConfigLoader.Options(
                 configPath: options.value("config"),
-                port: try options.number("port"),
+                port: options.number("port"),
                 host: options.value("host"),
-                idleMs: try options.number("idle-ms")
+                idleMs: options.number("idle-ms")
             ),
             home: home,
             fileSystem: RealFileSystem()

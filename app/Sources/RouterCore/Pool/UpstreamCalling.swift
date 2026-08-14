@@ -190,9 +190,14 @@ enum RawRequest {
         switch json {
         case .null: .null
         case let .bool(flag): .bool(flag)
-        case let .number(number): number == number.rounded() && abs(number) < 9.007e15
-            ? .int(Int(number))
-            : .double(number)
+        case let .number(number):
+            // Whole numbers inside the range a Double represents exactly go across as integers;
+            // everything else stays a double rather than being silently truncated.
+            if number == number.rounded(), abs(number) < 9.007e15 {
+                .int(Int(number))
+            } else {
+                .double(number)
+            }
         case let .string(text): .string(text.string)
         case let .array(items): .array(items.map(value))
         case let .object(members):

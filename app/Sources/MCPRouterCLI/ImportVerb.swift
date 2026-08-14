@@ -27,11 +27,35 @@ extension MCPRouterCLI {
         let port = try options.number("port") ?? RouterHome.defaultPort
         let home = RouterHome()
 
-        let source = try JSONParser.parse(fileSystem.readFile(atPath: from))
+        let reading = try Self.readCandidates(from: from, port: port, fileSystem: fileSystem)
+
+        let log = RouterLog()
+        await log.configure(file: home.logPath, verbose: options.has("verbose"))
+        Out.print("checking \(reading.candidates.count) server(s) before adopting any\n")
+
+        let probed = await Self.probe(reading.candidates, home: home, log: log)
+
+        try Self.writeAdopted(probed.adopt, port: port, home: home, fileSystem: fileSystem)
+        Self.report(
+            adopted: probed.adopt.count,
+            at: home.configPath,
+            failed: probed.failed,
+            skipped: reading.skipped
+        )
+    }
+
+    /// What `~/.claude.json` declares, partitioned into what can be adopted and what cannot.
+    ///
+    /// The router's own entry is dropped rather than skipped-with-a-reason: adopting it would point
+    /// the router at itself, and the user never asked for it in the first place.
+    static func readCandidates(
+        from path: String, port: Int, fileSystem: some FileSystem
+    ) throws -> (candidates: [(raw: JSONMember, upstream: UpstreamConfig)], skipped: [String]) {
+        let source = try JSONParser.parse(fileSystem.readFile(atPath: path))
         let declared: [JSONMember] = {
             guard case let .object(members) = source,
                   case let .object(servers)? = members
-                      .first(where: { $0.key == JSString("mcpServers") })?.value
+                  .first(where: { $0.key == JSString("mcpServers") })?.value
             else { return [] }
             return servers
         }()
@@ -47,11 +71,18 @@ extension MCPRouterCLI {
             case let .skipped(reason): skipped.append("\(member.key.string) (\(reason))")
             }
         }
+        return (candidates, skipped)
+    }
 
-        let log = RouterLog()
-        await log.configure(file: home.logPath, verbose: options.has("verbose"))
-        Out.print("checking \(candidates.count) server(s) before adopting any\n")
-
+    /// Start every candidate before adopting any of it, and report each outcome as it lands.
+    ///
+    /// A server pending authorization is adopted: it did not fail, it is waiting for the user, and
+    /// leaving it behind would make `mcp-router auth` unreachable for the one server that needs it.
+    static func probe(
+        _ candidates: [(raw: JSONMember, upstream: UpstreamConfig)],
+        home: RouterHome,
+        log: RouterLog
+    ) async -> (adopt: [JSONMember], failed: [String]) {
         let indexer = ManifestIndexer(
             startupTimeoutMs: 60000,
             transporting: RoutingUpstreamTransport(log: log),
@@ -74,11 +105,18 @@ extension MCPRouterCLI {
                 Out.print("  ok    \(name) (\(outcome.tools) tools)\n")
             }
         }
+        return (adopt, failed)
+    }
 
+    /// Write the router's config, backing up whatever was there. The backup is timestamped rather
+    /// than a single `.bak`, so a second import cannot destroy the first one's copy.
+    static func writeAdopted(
+        _ adopt: [JSONMember], port: Int, home: RouterHome, fileSystem: some FileSystem
+    ) throws {
         try fileSystem.createDirectory(atPath: home.root)
         if fileSystem.fileExists(atPath: home.configPath) {
             let backup = "\(home.configPath).bak-\(Int(Date().timeIntervalSince1970 * 1000))"
-            try fileSystem.writeFile(try fileSystem.readFile(atPath: home.configPath), atPath: backup)
+            try fileSystem.writeFile(fileSystem.readFile(atPath: home.configPath), atPath: backup)
             Out.print("backed up existing config -> \(backup)\n")
         }
         let written = JSONValue.object([
@@ -90,8 +128,12 @@ extension MCPRouterCLI {
         try fileSystem.writeFile(
             Data((JSStringify.prettyTwoSpace(written)).utf8), atPath: home.configPath
         )
+    }
 
-        Out.print("\nadopted \(adopt.count) server(s) -> \(home.configPath)\n")
+    /// The closing summary. Each group is named for what the user has to do about it, not for what
+    /// the importer did — "left where you declared it" is actionable, "failed" is not.
+    static func report(adopted: Int, at configPath: String, failed: [String], skipped: [String]) {
+        Out.print("\nadopted \(adopted) server(s) -> \(configPath)\n")
         if !failed.isEmpty {
             Out.print(
                 "left \(failed.count) where you declared it, because it did not start:\n  "
@@ -109,5 +151,4 @@ extension MCPRouterCLI {
         guard case let .object(members) = value else { return value }
         return .object(members.filter { $0.key != JSString("name") })
     }
-
 }

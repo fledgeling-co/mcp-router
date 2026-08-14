@@ -1,16 +1,16 @@
 import Foundation
 import MCP
 
-/// The adapters between R3's synchronous control ports and R2's actors.
-///
-/// Both gaps are real and were found by building the process rather than by reading: `UpstreamPool`
-/// is an actor while `UpstreamPoolPort` is synchronous, and `FileAuthStore`'s reads are `async`
-/// while `AuthStore`'s are not. Neither seam was wrong — each was written for the item that owned it
-/// — but nothing had ever had to hold both at once, because nothing had ever composed them.
-///
-/// The resolution is a **snapshot per request**, not a blocking wait. Every value the control
-/// handler can read is fetched before the handler runs, so the handler stays what R3 built it to be:
-/// a total function of its dependencies.
+// The adapters between R3's synchronous control ports and R2's actors.
+//
+// Both gaps are real and were found by building the process rather than by reading: `UpstreamPool`
+// is an actor while `UpstreamPoolPort` is synchronous, and `FileAuthStore`'s reads are `async`
+// while `AuthStore`'s are not. Neither seam was wrong — each was written for the item that owned it
+// — but nothing had ever had to hold both at once, because nothing had ever composed them.
+//
+// The resolution is a **snapshot per request**, not a blocking wait. Every value the control
+// handler can read is fetched before the handler runs, so the handler stays what R3 built it to be:
+// a total function of its dependencies.
 
 /// The pool's live state, read once per control request.
 public struct PoolSnapshotPort: UpstreamPoolPort {
@@ -37,9 +37,17 @@ public struct PoolSnapshotPort: UpstreamPoolPort {
         livenames = Set(status.filter { $0.state == "running" }.map(\.name))
     }
 
-    public func status() -> [LiveUpstream] { rows }
-    public func pending() -> [PendingAuthRow] { pendingRows }
-    public func isLive(_ name: JSString) -> Bool { livenames.contains(name.string) }
+    public func status() -> [LiveUpstream] {
+        rows
+    }
+
+    public func pending() -> [PendingAuthRow] {
+        pendingRows
+    }
+
+    public func isLive(_ name: JSString) -> Bool {
+        livenames.contains(name.string)
+    }
 
     /// Requested, never awaited: a warming failure must not turn a 200 into an error.
     public func warmUp() {
@@ -77,10 +85,17 @@ public struct SnapshotAuthStore: AuthStore {
         self.stamps = stamps
     }
 
-    public func hasTokens(_ server: JSString) -> Bool { authorized.contains(server.string) }
-    public func authorizedAt(_ server: JSString) -> String? { stamps[server.string] }
+    public func hasTokens(_ server: JSString) -> Bool {
+        authorized.contains(server.string)
+    }
 
-    @discardableResult public func clear(_ server: JSString) -> Bool { store.clear(server) }
+    public func authorizedAt(_ server: JSString) -> String? {
+        stamps[server.string]
+    }
+
+    @discardableResult public func clear(_ server: JSString) -> Bool {
+        store.clear(server)
+    }
 }
 
 /// Opens whichever transport an upstream declares.

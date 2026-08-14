@@ -143,7 +143,10 @@ public enum HTTPWire {
         }
         if terminator.end > maximumHeadBytes { throw ParseFailure.headTooLarge }
 
-        let headBytes = buffer[buffer.startIndex ..< buffer.index(buffer.startIndex, offsetBy: terminator.start)]
+        let headBytes = buffer[buffer.startIndex ..< buffer.index(
+            buffer.startIndex,
+            offsetBy: terminator.start
+        )]
         guard let head = String(bytes: headBytes, encoding: .utf8) else {
             throw ParseFailure.malformed("the request head is not UTF-8")
         }
@@ -284,24 +287,30 @@ public enum HTTPWire {
     }
 
     /// Node's reason phrases, for the statuses this router actually sends.
+    ///
+    /// A table rather than a `switch`: this is data the reference happens to hold, not a decision
+    /// this router makes, and every added status was costing a branch in a complexity count that
+    /// exists to catch real branching.
+    static let reasonPhrases: [Int: String] = [
+        200: "OK",
+        201: "Created",
+        202: "Accepted",
+        400: "Bad Request",
+        401: "Unauthorized",
+        403: "Forbidden",
+        404: "Not Found",
+        405: "Method Not Allowed",
+        406: "Not Acceptable",
+        409: "Conflict",
+        415: "Unsupported Media Type",
+        422: "Unprocessable Entity",
+        500: "Internal Server Error",
+        502: "Bad Gateway"
+    ]
+
+    /// The phrase for a status, or `Unknown` for one this router never sends.
     public static func reasonPhrase(for status: Int) -> String {
-        switch status {
-        case 200: "OK"
-        case 201: "Created"
-        case 202: "Accepted"
-        case 400: "Bad Request"
-        case 401: "Unauthorized"
-        case 403: "Forbidden"
-        case 404: "Not Found"
-        case 405: "Method Not Allowed"
-        case 406: "Not Acceptable"
-        case 409: "Conflict"
-        case 415: "Unsupported Media Type"
-        case 422: "Unprocessable Entity"
-        case 500: "Internal Server Error"
-        case 502: "Bad Gateway"
-        default: "Unknown"
-        }
+        reasonPhrases[status] ?? "Unknown"
     }
 
     /// Where the head ends: the offset of the terminator and the offset just past it.
@@ -312,7 +321,8 @@ public enum HTTPWire {
         while index < bytes.count {
             if index + 3 < bytes.count,
                bytes[index] == 13, bytes[index + 1] == 10,
-               bytes[index + 2] == 13, bytes[index + 3] == 10 {
+               bytes[index + 2] == 13, bytes[index + 3] == 10
+            {
                 return (index, index + 4)
             }
             if index + 1 < bytes.count, bytes[index] == 10, bytes[index + 1] == 10 {

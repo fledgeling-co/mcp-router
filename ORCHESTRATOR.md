@@ -200,6 +200,24 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 
 ## Changelog
 
+- 2026-08-14 — **A runner under a lifeline-spawned orchestrator cannot do rendered UI verification,
+  and the reason is TCC, not the code.** M4's second pass reported `axkit trusted` → `no` from two
+  independently built binaries and correctly refused to fake a rendered pass. Verified from the
+  interactive session immediately afterwards: `/tmp/m3-ax/axkit`, `/tmp/m4-pass/axkit` **and a
+  freshly built binary all report `trusted` → `yes`**, with `front` → `Ghostty`.
+
+  Both observations are true. The macOS accessibility grant belongs to the **responsible process**,
+  and a runner beneath a headless `claude --resume … -p` process that lifeline spawned has a
+  different responsible process from one beneath the interactive terminal session. M3 took real AX
+  rows earlier because it ran under the terminal; M4 could not because it ran under a recovered
+  headless orchestrator. Nothing was misconfigured and **no system permission needs granting.**
+
+  Consequences, in order of usefulness: a rendered pass must run under the interactive session, so
+  **the orchestrator can close a runner's blocked rendered check itself** rather than re-dispatching
+  it; a runner that reports `axkit trusted: no` has hit this, and should say so and move on rather
+  than treat it as its own defect; and `axkit front` keeps answering either way because it reads
+  `NSWorkspace` rather than the AX API, so **`front` working is not evidence the grant is present**.
+
 - 2026-08-14 — **Two orchestrators ran this fleet at once, and neither knew until an Edit failed.**
   lifeline (PID 41580) recovered this session by spawning **two** headless
   `--resume <same-session-id> -p "Resume workflow run wf_…"` processes at the same instant — 28866

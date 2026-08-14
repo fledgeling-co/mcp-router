@@ -57,7 +57,7 @@
             case .populated: "LoadState.loaded with rows — the table"
             case .empty: "LoadState.loaded([]) — ServersBoardCopy.empty"
             case .loading: "LoadState.loading — SkeletonRows at MetricToken.serversRow"
-            case .partial: "LoadState.stale — StaleReadingBanner; PartialIndexNote when unindexed"
+            case .partial: "PartialIndexNote on a loaded board; StaleReadingBanner on LoadState.stale"
             case .error: "LoadState.failed — ConnectionFailurePane from ControlAPIError"
             case .success: "in place, from the server the router returned via apply(updated:)"
             case .offline: "ControlAPIError.routerNotRunning, in either failed or stale"

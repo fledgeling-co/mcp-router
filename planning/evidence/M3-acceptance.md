@@ -250,3 +250,100 @@ make lint      → Found 0 violations, 0 serious in 223 files
                  no-raw-design-values: clean · no-wire-codable: clean
 make build-mac → ** BUILD SUCCEEDED **
 ```
+
+---
+
+## The completeness critic rejected the board, and it was right
+
+`codex: usage limit -> claude (downgrade)`. The out-of-family lane is account-limited until
+2026-08-20, so Phase D ran as a fresh adversarial `claude -p` opus-5 reviewer, briefed to refute and
+told that finding nothing would be a failed review. **It took two attempts** — the first invocation
+returned `Execution error` with an empty output file, which is a lane failure and not a pass; the
+retry produced a real audit. Recorded because a gate keyed on exit code would have scored the empty
+one green.
+
+**VERDICT: reject · ACCEPTED 16 · REJECTED 6.** Three of its six findings were high severity and all
+six were confirmed against the source before anything was changed. Nothing was taken on trust.
+
+| # | Finding | Verdict | Action |
+|---|---|---|---|
+| 1 | The **filter bar** renders `Running N` as current on a stale load, ~30pt below a header deliberately withholding that figure. `counts(from:)` had no currency gate and no test at all | confirmed | fixed |
+| 2 | The **empty-in-filter copy** makes present-tense claims from a stale reading — *"right now"*, *"Everything is running"*, and an observed count attached to a present-tense verb | confirmed | fixed |
+| 3 | The row's **Reset** and the inspector's **Sign in…** are gated on `isWriting` alone, so both stay live on a stale load beside a Behaviour toggle dimming with `cannotWriteReason` | confirmed | fixed |
+| 4 | **A19 is asserted by a test that cannot fail** — nine strings checked only for distinctness, so a treatment naming a place the state is *not* rendered passes | confirmed, and it had already happened | mapping corrected; test limit recorded below |
+| 5 | The **removal dialog** reasserts *"leave every session's tool list"*, the exact claim the footer was corrected to drop, for a server that may be scoped | confirmed | fixed |
+| 6 | Two sheet controls **dim with no reason given** (§3.4); two more carry theirs as an accessibility hint only, invisible to a sighted user | confirmed | fixed |
+
+### Finding 1 is the one that matters, and it is the fourth of its kind
+
+The board was contradicting itself inside one screen. The header withholds `1 running` on a stale
+reading and says why; the segmented control twenty points below printed `Running 1` from the same
+data with no gate. The fix puts **both** on one function — `ServersBoardModel.reading(for:)` — so the
+two cannot disagree again, and splits the counts the way the header already splits its figures:
+`All` and `Needs you` survive (declared configuration, and conditions the router reported), `Running`
+and `Idle` are withheld (claims about a live process). A withheld count is **absent**, not zero, so
+the segment reads `Running` rather than `Running 0` — a zero would be the defect wearing the fix's
+clothes.
+
+### Finding 4 was already true, and the rendered pass proved it
+
+The A19 treatment for `partial` read *"LoadState.stale — StaleReadingBanner; PartialIndexNote when
+unindexed"*. Driving the `partial` scenario shows a **loaded** board: the header reads
+`2 tools from 4 servers · 1 running`, which only a `.current` reading may say, with the
+PartialIndexNote present and no stale banner. So the string named a rendering site that scenario does
+not use — precisely the failure the critic said the test could not catch, sitting in the code
+already. The mapping is corrected. **The test is still weaker than its subject**, and that is recorded
+rather than papered over: it proves the nine treatments are present and distinct, not that each names
+a real site. Suggested as a deferred child.
+
+### Red–green: three more mutants, each reinstating the exact defect
+
+| Mutant | Reinstates | Caught by | Observed failure |
+|---|---|---|---|
+| D | `counts(from:)` without its currency gate | `filterBarAndHeaderAgreeAboutWhatMayBeClaimed` | `(counts[.running] → 1) == nil` on stale, and `→ 0` on loading — both the stale figure and the fabricated zero |
+| E | `emptyMessage` ignoring `reading` | `emptyFilterCopyClaimsNothingWhenTheReadingIsStale` | `"No server has a child process up right now"` returned for a stale reading |
+| F | the removal dialog's scoped branch removed | `removalDialogDoesNotOverstateAScopedServer` | `"Its 3 tools leave every session's tool list."` for a scoped server |
+
+Mutants A–F all reproduce their defect **string for string**. An earlier attempt at E and F was a
+silent no-op — the patch text did not match, so the tests passed unchanged and would have been
+recorded as a red–green pass that never went red. Both were redone with an asserted target. Worth
+naming: a mutation that fails to apply looks exactly like a guard that works.
+
+## I took the screen once, and it is recorded rather than omitted
+
+`axkit front` read **`MCP Router`** after the second launch of this pass. The app was terminated
+immediately and the window was up for a few seconds, but the invisibility invariant was broken and
+the rule outranks every other testing instruction here.
+
+**Cause:** launching the built binary directly — the technique the first pass adopted precisely
+*because* `open -g -a` attached to another worktree's app — can still let macOS activate a newly
+launched GUI process. It is not deterministic: the first pass in this file read `Ghostty` before and
+after both launches, and this pass read `Ghostty` after the first launch and `MCP Router` after the
+second. A launch that was invisible four times is not an invisible launch.
+
+**Consequence:** no further launches were made. The remaining unverified item is the stale path,
+which **cannot** be reached by a scenario in any case — `LoadState.stale` requires a poll to succeed
+and a later one to fail, and `MCPROUTER_SCENARIO` sets a single fixture at launch with no `stale`
+case. It is covered by mutants D and E at the boundary. Anyone adding a rendered check for the stale
+board needs a scenario that changes its answer over time, which does not exist yet; that is a
+deferred child, not something to be got at by launching repeatedly and hoping.
+
+| Screen | How verified | Result |
+|---|---|---|
+| Servers pane, `populated` — regression after four fixes | direct launch, `axkit dump <pid> window` | **pass** — `2 tools from 4 servers · 1 running`; segments `All 4 / Running 1 / Idle 3 / Needs you 1` unchanged, which is correct: a current reading may claim all four |
+| Servers pane, `partial` — the index-failure note | same | **pass** — `warn, 2 servers could not be indexed, so their tools are missing from this count. Those rows say why.`; `Needs you 3`; sidebar `2 not indexed`. Also established that `partial` is a **loaded** board, correcting A19 |
+| Servers pane, stale — the filter-bar fix in situ | **not driven** — `.stale` is unreachable from a launch-time fixture | covered by mutants D and E |
+| Invisibility | `axkit front` each side of each launch | **FAILED once** — `MCP Router` after the second launch. Disclosed above |
+
+## Gates at this commit
+
+```
+make test          → Test run with 729 tests in 103 suites passed   (725 before, 714 at 589ab2e)
+make lint          → Found 0 violations, 0 serious in 224 files
+make build-mac     → ** BUILD SUCCEEDED **
+make build-mac-release → ** BUILD SUCCEEDED **
+```
+
+`ServersBoardHonestyTests.swift` was split out when the surface test file crossed 400 lines. The seam
+is real: those are not assertions about what the board shows but about **what it is allowed to
+claim**, which is the rule this whole item turned out to be about.

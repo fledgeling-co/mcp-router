@@ -666,7 +666,16 @@ out.push(sec('G','Pairing — paired',
            <div class="wl"><span class="i">&rsaquo;</span><span>Queue items for review, and read your library.</span></div>
            <div class="wl"><span class="i">&rsaquo;</span><span>It cannot install, update or remove anything.</span></div></div>
          <button class="cta">Done</button>`),
-      {t:'The narrowing restated at the moment permission is granted — the one moment the user is actually thinking about what they just allowed.'})
+      {t:'The narrowing restated at the moment permission is granted — the one moment the user is actually thinking about what they just allowed.'}),
+
+    unit('Paired, but not saved','the Mac paired · the Keychain write failed',
+      phone({tab:'settings',title:'Pair Mac'},
+        `<div class="pempty" style="padding-top:34px"><div class="g">${ic('warn',34,1.2)}</div>
+          <b>Paired, but this phone couldn't save it</b>
+          <p>${MAC} accepted the pairing, but it couldn't be stored on this phone, so it won't
+             survive closing the app. Ask your Mac for a new code and pair again.</p></div>
+         <button class="cta">Pair again</button>`),
+      {t:'Neither the success surface nor the failure pane. The Mac really did pair, so calling it a failure would send the user to spend a second one-use code; but the record is what survives a relaunch, so a silent success would let the pairing vanish overnight with nothing having said so.'})
   ].join('')));
 
 /* ── H · pairing failures ─────────────────────────────────────────────── */
@@ -769,7 +778,18 @@ out.push(sec('I','Settings — paired',
         `<div class="plbl">Paired Mac</div>
          <div class="li"><span class="tile">${ic('mac',15)}</span>
            <span class="tx"><b>${MAC}</b><span>paired 12 Aug · last seen just now</span></span></div>`),
-      {t:'The consequence is named in the sheet, not implied. Cancel is its own separated control, which on iOS is the one your thumb lands on.'})
+      {t:'The consequence is named in the sheet, not implied. Cancel is its own separated control, which on iOS is the one your thumb lands on.'}),
+
+    unit('Unpair — it failed','the delete threw · the Mac is still paired',
+      phone({tab:'settings',title:'Settings'},
+        `<div class="wants fail"><h5>${ic('warn',13)} Couldn't unpair ${MAC}</h5>
+           <div class="wl"><span class="i">&rsaquo;</span><span>The pairing couldn't be removed, so this Mac is still paired.
+             Nothing changed — try again.</span></div></div>
+         <div class="plbl">Paired Mac</div>
+         <div class="li"><span class="tile">${ic('mac',15)}</span>
+           <span class="tx"><b>${MAC}</b><span>paired 12 Aug · last seen just now</span></span></div>
+         <button class="cta danger">Unpair this Mac</button>`),
+      {t:'Without this the row simply stays put after the user confirmed, which reads as the app ignoring them. The state it reports is the true one — still paired — and it names what was observed without guessing why.'})
   ].join('')));
 
 /* ── J · connection state ─────────────────────────────────────────────── */

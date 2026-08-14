@@ -118,6 +118,14 @@ public enum PairingCopy {
         case typedEntryReady, typedEntryNotRecognised, typedEntryExpired
         case verifyingScanned, verifyingTyped
         case pairedSuccess
+        /// Paired at the Mac, but the Keychain write failed.
+        ///
+        /// Its own state rather than a fold into `pairedSuccess` or into the failure pane, because
+        /// it is neither: the Mac *did* pair, so telling the user "pairing failed" would send them
+        /// to burn a second one-use code for a problem that is on this phone. And it cannot be
+        /// silent — the record is what survives a relaunch, so a swallowed write means the pairing
+        /// disappears with nothing having said so.
+        case pairedNotStored
 
         // The outcomes that get a whole pane.
         case outcomeAlreadyUsed
@@ -128,6 +136,10 @@ public enum PairingCopy {
         case outcomeMalformedPayload
 
         case unpairConfirm
+        /// The unpair itself failed. The Mac is still paired, and the surface has to say so —
+        /// otherwise the row simply stays after the user confirmed, which reads as the app
+        /// ignoring them.
+        case unpairFailed
         case sendingBlocked
 
         /// The connection banner's three states.
@@ -156,9 +168,10 @@ public enum PairingCopy {
             case .cameraNotDetermined, .cameraDenied, .cameraRestricted: .camera
             case .typedEntryReady, .typedEntryNotRecognised, .typedEntryExpired: .typedEntry
             case .verifyingScanned, .verifyingTyped: .verifying
-            case .pairedSuccess, .outcomeAlreadyUsed, .outcomeVersionMismatch, .outcomeUnreachable,
-                 .outcomeRefused, .outcomeNotAPairingCode, .outcomeMalformedPayload: .outcome
-            case .unpairConfirm: .unpair
+            case .pairedSuccess, .pairedNotStored, .outcomeAlreadyUsed, .outcomeVersionMismatch,
+                 .outcomeUnreachable, .outcomeRefused, .outcomeNotAPairingCode,
+                 .outcomeMalformedPayload: .outcome
+            case .unpairConfirm, .unpairFailed: .unpair
             case .sendingBlocked: .sending
             case .bannerReachable, .bannerNotReachable, .bannerNeverPaired: .sending
             case .settingsSectionPairedMac, .settingsSectionAbout, .settingsUnpairAction: .settings
@@ -344,6 +357,18 @@ public enum PairingCopy {
                 actionLabel: "Done",
                 carriesNarrowing: true
             )
+        case .pairedNotStored:
+            // Not a celebration and not a failure pane. The pairing happened; what failed was
+            // keeping it. The advice names the one-use code explicitly, because "try again" alone
+            // would send the user back to a code their Mac has already spent.
+            Entry(
+                headline: "Paired, but this phone couldn't save it",
+                body: """
+                {mac} accepted the pairing, but it couldn't be stored on this phone, so it won't \
+                survive closing the app. Ask your Mac for a new code and pair again.
+                """,
+                actionLabel: "Pair again"
+            )
         case .outcomeAlreadyUsed:
             Entry(
                 headline: "That code has already been used",
@@ -407,6 +432,17 @@ public enum PairingCopy {
                 """,
                 actionLabel: "Unpair",
                 secondaryActionLabel: "Cancel"
+            )
+        case .unpairFailed:
+            // What was observed, and nothing guessed about why. The Mac is still paired, which is
+            // the honest degraded state — the alternative is a row that simply stays put after the
+            // user confirmed, which reads as the app ignoring them.
+            Entry(
+                headline: "Couldn't unpair {mac}",
+                body: """
+                The pairing couldn't be removed, so this Mac is still paired. Nothing changed — \
+                try again.
+                """
             )
 
         // MARK: A surface that offers to send, and cannot

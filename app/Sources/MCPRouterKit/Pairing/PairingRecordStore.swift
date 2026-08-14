@@ -25,6 +25,50 @@ public protocol PairingRecordStore: Sendable {
     func clear() async throws
 }
 
+/// A log-safe rendering of a write failure.
+///
+/// Bounded by **construction** rather than by trust. `TokenStoreError` is known to carry only an
+/// `OSStatus`, so its description is safe and diagnostically useful; anything else arriving here
+/// came from a `PairingRecordStore` conformance this module does not own, whose `throws` is
+/// unbounded, and only its **type name** travels. A24 is then a property of the code rather than a
+/// promise about every future conformance — which matters because the guard that would catch a
+/// leak can only ever test the conformances that exist today.
+public enum PairingWriteFailure {
+    public static func logSafe(_ error: any Error) -> String {
+        if let known = error as? TokenStoreError { return "\(known)" }
+        return String(describing: type(of: error))
+    }
+}
+
+/// What unpairing actually did.
+///
+/// A closed set rather than a discarded `throws`, because the failing half has a surface: if the
+/// record could not be removed the Mac is *still paired*, and the row that stays put needs a
+/// sentence explaining itself rather than looking like the app ignored the confirmation.
+public enum UnpairOutcome: Sendable, Equatable {
+    case cleared
+    case failed
+}
+
+public extension PairingRecordStore {
+    /// Clear the record, reporting the failure instead of throwing it away.
+    ///
+    /// This exists as a function on the store rather than as logic inside the view because the view
+    /// holds the result in `@State`, and a decision that only ever happens inside a `@State`
+    /// mutation is a decision no test can reach. `SWIFT_PRACTICES.md` §3 asks for the error to be
+    /// logged and the degraded state shown honestly; both halves are here, in one place, testable.
+    func unpair(log: ControlLog = ControlLog()) async -> UnpairOutcome {
+        do {
+            try await clear()
+            return .cleared
+        } catch {
+            // Bounded, not trusted: see `PairingWriteFailure.logSafe`.
+            log.warning("pairing record could not be cleared: \(PairingWriteFailure.logSafe(error))")
+            return .failed
+        }
+    }
+}
+
 /// The real store: a generic password in the Keychain, device-bound.
 ///
 /// `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly` rather than the plain form, and the difference

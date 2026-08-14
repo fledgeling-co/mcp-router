@@ -18,6 +18,15 @@ public final class PairingFlowModel {
         case verifying(PairingAttempt)
         case failed(PairingOutcome)
         case paired(PairedMac)
+        /// The Mac paired, and the Keychain write did not.
+        ///
+        /// Kept apart from both neighbours on purpose. Folding it into `.paired` is the bug this
+        /// case replaced — a `try?` that let the success surface render over a write that never
+        /// happened, so the pairing vanished at the next launch with nothing having said so
+        /// (`SWIFT_PRACTICES.md` §3: never swallow an error to keep a UI tidy). Folding it into
+        /// `.failed` would be the opposite lie: the Mac really did pair, and a pairing code is
+        /// one-use, so "pairing failed" would send the user to spend a code they do not need to.
+        case pairedNotStored(PairedMac)
     }
 
     public private(set) var step: Step = .scan
@@ -28,15 +37,20 @@ public final class PairingFlowModel {
     private let pairing: any PairingService
     private let camera: any CameraAuthorizing
     private let store: any PairingRecordStore
+    /// Injectable for the same reason `KeychainPairingStore`'s is: A24 is a claim about what
+    /// reaches a log line, and a log with no seam is a claim no test can reach.
+    private let log: ControlLog
 
     public init(
         pairing: any PairingService,
         camera: any CameraAuthorizing,
-        store: any PairingRecordStore
+        store: any PairingRecordStore,
+        log: ControlLog = ControlLog()
     ) {
         self.pairing = pairing
         self.camera = camera
         self.store = store
+        self.log = log
     }
 
     /// Decide the opening step from the camera's actual state.
@@ -95,8 +109,17 @@ public final class PairingFlowModel {
 
         switch outcome {
         case let .paired(mac):
-            try? await store.save(mac)
-            step = .paired(mac)
+            // The write is what makes the pairing survive a relaunch, so its failure is a state
+            // the user is told about rather than an error discarded to keep the success surface.
+            do {
+                try await store.save(mac)
+                step = .paired(mac)
+            } catch {
+                log.warning(
+                    "pairing record could not be stored: \(PairingWriteFailure.logSafe(error))"
+                )
+                step = .pairedNotStored(mac)
+            }
         case .notRecognised, .expired:
             // These two are fixable by typing again, so they belong beside the field.
             inlineFailure = outcome
@@ -111,6 +134,18 @@ public final class PairingFlowModel {
         inlineFailure = nil
         entry = PairingCodeEntry()
         step = .scan
+    }
+
+    /// Retry from the top, **re-asking the camera** rather than assuming the scanner is reachable.
+    ///
+    /// `retry()` sets `.scan` unconditionally, and `start()` — the only authorization check — runs
+    /// from `.task`, which does not re-fire when the step changes. A user whose camera is denied or
+    /// restricted therefore lands on a scanner that can never see anything, which is precisely the
+    /// dead end A16 exists to prevent: every camera state must still offer the typed path.
+    public func restart() async {
+        inlineFailure = nil
+        entry = PairingCodeEntry()
+        await start()
     }
 }
 
@@ -161,6 +196,9 @@ struct PairingFlowView<Preview: View>: View {
 
                 case let .paired(mac):
                     PairedSuccessView(mac: mac, onDone: onFinished)
+
+                case let .pairedNotStored(mac):
+                    PairedNotStoredView(mac: mac) { Task { await model.restart() } }
                 }
             }
             .padding(PhoneMetric.loose)
@@ -181,9 +219,13 @@ struct PairingFlowView<Preview: View>: View {
     }
 
     /// Refused sends you back rather than round again — the decision was made at the Mac.
+    ///
+    /// Everything else restarts through `restart()` rather than `retry()`, so the camera is asked
+    /// again on the way. The panes reached here are the ones a user retries most, and dropping a
+    /// denied-camera user onto a scanner that can never see anything is the dead end A16 forbids.
     private func outcomeAction(for outcome: PairingOutcome) -> () -> Void {
         if case .refused = outcome { return onFinished }
-        return model.retry
+        return { Task { await model.restart() } }
     }
 }
 
@@ -198,6 +240,24 @@ public struct PhoneSettingsScreen<Preview: View>: View {
     @State private var state: PairedMacSurfaceState = .loading
     @State private var isPairing = false
     @State private var confirmingUnpair = false
+    /// Set when `clear()` threw. Held on the screen rather than added to
+    /// `PairedMacSurfaceState` on purpose: the nine states of `DESIGN.md` §5 describe what the
+    /// *data* is doing, and a failed delete leaves the data exactly where it was — the Mac is
+    /// still paired, and still renders as such. What is missing without this is the sentence
+    /// saying so, not a tenth data state.
+    /// The name of the Mac whose unpair failed, or nil when none did.
+    ///
+    /// The **name is captured at the moment of failure** rather than read from `state` when the
+    /// banner draws. `load()` sets `.loading` first, where `state.mac` is nil, so a banner
+    /// resolving against the current state says "Couldn't unpair your Mac" over a skeleton — and
+    /// in the never-paired branch it would sit above "No Mac paired yet", naming a Mac the surface
+    /// is simultaneously denying.
+    ///
+    /// Held on the screen rather than added to `PairedMacSurfaceState` on purpose: the nine states
+    /// of `DESIGN.md` §5 describe what the *data* is doing, and a failed delete leaves the data
+    /// exactly where it was — the Mac is still paired, and still renders as such. What is missing
+    /// without this is the sentence saying so, not a tenth data state.
+    @State private var unpairFailure: String?
 
     public init(
         pairing: any PairingService,
@@ -216,11 +276,26 @@ public struct PhoneSettingsScreen<Preview: View>: View {
     public var body: some View {
         NavigationStack {
             ScrollView {
-                PairedMacSettingsView(
-                    state: state,
-                    onPair: { isPairing = true },
-                    onUnpair: { confirmingUnpair = true }
-                )
+                VStack(alignment: .leading, spacing: PhoneMetric.normal) {
+                    if let unpairFailure {
+                        PhoneMessageBlock(
+                            entry: PairingCopy.entry(.unpairFailed).resolved(macName: unpairFailure),
+                            tone: .failure,
+                            glyph: .warn
+                        )
+                    }
+
+                    PairedMacSettingsView(
+                        state: state,
+                        // Starting a new pairing retires the failure: whatever happens next, the
+                        // sentence describing the previous attempt stops being true.
+                        onPair: {
+                            unpairFailure = nil
+                            isPairing = true
+                        },
+                        onUnpair: { confirmingUnpair = true }
+                    )
+                }
                 .padding(PhoneMetric.loose)
             }
             .background(ColorToken.ground.color)
@@ -231,6 +306,10 @@ public struct PhoneSettingsScreen<Preview: View>: View {
                     onOpenSettings: openSystemSettings,
                     onFinished: {
                         isPairing = false
+                        // A completed pairing settles the question the failed unpair raised, so
+                        // the banner must not outlive it — otherwise a Mac that was just correctly
+                        // re-paired sits under "Couldn't unpair … still paired. Nothing changed".
+                        unpairFailure = nil
                         Task { await load() }
                     },
                     cameraPreview: cameraPreview
@@ -283,7 +362,12 @@ public struct PhoneSettingsScreen<Preview: View>: View {
     }
 
     private func unpair() async {
-        try? await store.clear()
+        // The name is read *before* the attempt, because `load()` below moves through `.loading`
+        // where there is no Mac to name.
+        let name = state.mac?.name
+        // The record is still there when this fails, so the Mac is still paired. Say that, rather
+        // than reloading into an unchanged surface and leaving the user to infer it.
+        unpairFailure = await store.unpair() == .failed ? name : nil
         await load()
     }
 }

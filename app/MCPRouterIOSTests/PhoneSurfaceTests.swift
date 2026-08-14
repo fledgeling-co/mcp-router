@@ -206,6 +206,13 @@ final class PhoneSurfaceTests: XCTestCase {
             (
                 "commit/blocked",
                 AnyView(SendCommitBar(state: .notReachable, macName: "Luke's MacBook Pro", itemCount: 2))
+            ),
+            (
+                "pairing/notStored",
+                AnyView(PairedNotStoredView(
+                    mac: FixturePairingService.specimenMac,
+                    onPairAgain: {}
+                ))
             )
         ]
 
@@ -394,6 +401,47 @@ final class PhoneSurfaceTests: XCTestCase {
                 "\(state) did not render \(key)'s copy. Looked for '\(probe)' in: \(rendered)"
             )
         }
+    }
+
+    /// A27 leg 2 for the two storage-failure surfaces: the manifest entry is what the view for
+    /// that surface and state **actually renders**, measured from the rendered hierarchy.
+    ///
+    /// Without this, both entries satisfied only legs 1 and 3 — pinned literal, present in the
+    /// mock — and A27 calls a manifest entry with no rendering surface a failure in itself.
+    func testStorageFailureSurfacesRenderTheirCopy() {
+        let mac = FixturePairingService.specimenMac
+
+        let notStored = host(ScrollView {
+            PairedNotStoredView(mac: mac, onPairAgain: {})
+        })
+        let notStoredText = labels(in: notStored).joined(separator: " | ")
+        let notStoredEntry = PairingCopy.entry(.pairedNotStored).resolved(macName: mac.name)
+        XCTAssertTrue(
+            notStoredText.contains(notStoredEntry.headline ?? ""),
+            "pairedNotStored did not render its headline. Rendered: \(notStoredText)"
+        )
+        XCTAssertTrue(
+            notStoredText.contains("Ask your Mac for a new code"),
+            "pairedNotStored did not render the advice that a new code is needed: \(notStoredText)"
+        )
+
+        // The block the settings screen constructs for a failed unpair, in the same shape it uses.
+        let unpairFailed = host(ScrollView {
+            PhoneMessageBlock(
+                entry: PairingCopy.entry(.unpairFailed).resolved(macName: mac.name),
+                tone: .failure,
+                glyph: .warn
+            )
+        })
+        let unpairText = labels(in: unpairFailed).joined(separator: " | ")
+        XCTAssertTrue(
+            unpairText.contains("Couldn't unpair \(mac.name)"),
+            "unpairFailed did not render its headline. Rendered: \(unpairText)"
+        )
+        XCTAssertTrue(
+            unpairText.contains("still paired"),
+            "unpairFailed did not say the Mac is still paired: \(unpairText)"
+        )
     }
 
     /// A26: the narrowing is on screen at the two moments that matter, measured from the rendered

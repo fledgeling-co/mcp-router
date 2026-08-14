@@ -24,6 +24,47 @@ struct AnyPhoneButton: ButtonStyle {
     }
 }
 
+/// Paired at the Mac, and not stored on this phone.
+///
+/// It is deliberately not the success surface with a warning bolted on. The tick says "this is
+/// done"; this state is the opposite — the thing that makes pairing outlast a relaunch did not
+/// happen, so the mark is a warning and the action starts over rather than dismissing.
+struct PairedNotStoredView: View {
+    let mac: PairedMac
+    let onPairAgain: () -> Void
+
+    var body: some View {
+        let entry = PairingCopy.entry(.pairedNotStored).resolved(macName: mac.name)
+
+        VStack(alignment: .leading, spacing: PhoneMetric.loose) {
+            Spacer(minLength: PhoneMetric.section)
+
+            IconView(.warn, size: PhoneMetric.successMark, weight: .semibold)
+                .foregroundStyle(ColorToken.fail.color)
+                .accessibilityHidden(true)
+
+            if let headline = entry.headline {
+                Text(headline)
+                    .typeRole(.title2)
+                    .foregroundStyle(ColorToken.t1.color)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Text(entry.body)
+                .typeRole(.body)
+                .foregroundStyle(ColorToken.t2.color)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button(entry.actionLabel ?? "Pair again", action: onPairAgain)
+                .buttonStyle(PhoneProminentButtonStyle())
+                .frame(maxWidth: .infinity)
+
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 /// Paired. A tick and a sentence, proportional to what happened.
 ///
 /// The narrowing is restated here, at the one moment the user is actually thinking about what they

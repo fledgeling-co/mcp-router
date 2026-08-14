@@ -5,6 +5,8 @@
 **Tier:** Standard — one new module directory, one shared-file wiring change, one honest fix to the
 shared test double, and a behavioural acceptance script.
 **Branch / worktree:** `ai/m2` in `.worktrees/M2`.
+**Status:** delivered. The record of what actually happened is at the foot of this file — three of
+the plan's decisions did not survive contact and the reasons are worth more than the plan was.
 
 ---
 
@@ -216,3 +218,55 @@ A definition list of the nine inspector fields — **B24** — reading only, no 
 | `Space` is silently claimed by a focusable row | B27 asserts it is not, using M1's proven `CGEvent.postToPid` route |
 | The acceptance run takes the screen | The gate asserts the frontmost app is unchanged and fails itself if it ever does |
 | M3 lands concurrently and conflicts in `installed` / `Icon` / the fixture client | All three are single-line additive edits; the orchestrator serializes merges |
+
+
+---
+
+## What the plan got wrong, recorded rather than quietly corrected
+
+**1. The authored fixture went in the wrong directory, and two merged gates said so.**
+Phase B put `usage-call-log.json` in `app/Sources/MCPRouterKit/Control/Fixtures`. That directory is
+not a bag of JSON: `scripts/acceptance/parity-fixture.sh` replays **every** `*.json` in it against
+the running TypeScript reference, and `parity-manifest-check.sh` requires each to carry a row in
+`planning/parity/surface.tsv`. A hand-written body there is a body R4's harness will replay and the
+reference will never reproduce. F4's fixture-immutability guard caught it. The file now lives in
+`Control/Authored`, copied as its own bundle resource and searched after `Fixtures`, and
+`ControlFixtureTests.expected` is untouched after all — so the plan's claim that a merged test had
+to be edited for it was wrong in the direction that matters.
+
+**2. Phase A put the data layer in `MCPRouterUI`; it belongs in `MCPRouterKit`.**
+`ActivityRecords`, `ActivityFilter` and `ActivityEventSource` are Foundation-only value types with no
+UI dependency, and `SWIFT_PRACTICES.md` §8 keeps the kit free of UI frameworks so the router's own
+tests can import it. They are in the kit. `ActivityCopy` stayed in `MCPRouterUI` because
+`StateMessage` lives there, which is the same reason `ServersBoardCopy` does.
+
+**3. The board could not simply fill `ContentZone`'s `else` branch.**
+That branch sits inside the shell's `ScrollView`, and a board with its own scrolling list would put
+one scroll view inside another. The board renders outside it and reports its list's scroll geometry
+through the same callback, so the scroll-edge separator behaves identically over a board and over a
+placeholder. The knock-on: M1's A34 assertion drove **Activity** specifically, relying on it being a
+deliberately over-tall placeholder, and is re-pointed at Servers with the reason recorded in the
+script.
+
+**4. The plan's Phase D listed a red-green pass and assumed the gates existed.** One did not: B5's
+row height had no test at all, and swapping its token left the suite green. Found by running the
+proving pass rather than by reading the code. `ActivityColumn.rowHeight` is now the single value the
+row and the skeleton draw at, asserted as the only height in the file.
+
+**5. B27's keyboard evidence could not be taken in the running app**, and the plan did not see it.
+M1's `KeyClaimProbe` claims first responder and swallows Space, Return and Esc, and Debug is the only
+configuration in which a fixture is reachable. Arrow keys, Return and Esc are proven at the model;
+`Space` is proven in the app, because the probe receiving it *is* the assertion that the board did
+not claim it. Written down in `planning/evidence/M2-acceptance.md` rather than worked around.
+
+## What landed
+
+| Area | Files |
+|---|---|
+| data layer | `MCPRouterKit/Activity/{ActivityRecords,ActivityFilter,ActivityEventSource}.swift` |
+| board | `MCPRouterUI/Activity/{ActivityModel,ActivityCopy,ActivityChrome,ActivityRow,ActivityFilterBar,ActivityInspector,ActivityBoard}.swift` |
+| shell wiring | `ScaffoldPane.swift`, `ShellWindow.swift`, `ShellModel.swift`, `ShellClientFactory.swift`, `Icon.swift` |
+| double | `Control/Authored/usage-call-log.json`, `FixtureControlAPIClient.swift` |
+| tests | `MCPRouterKitTests/ActivityRecordsTests.swift`, `MCPRouterUITests/{ActivityModelTests,ActivityCopyHonestyTests,ActivityBoardRulesTests,ActivityTestClients}.swift` |
+| gates | `scripts/acceptance/m2-activity.sh`, `scripts/lint/no-raw-design-values.sh` (geometry rule extended), `scripts/acceptance/mac-shell.sh` (A34 re-pointed) |
+| merged tests updated | `ShellIntegrationTests.swift` (state → invariant), `DesignSystemTests.swift` (icon count + reason) |

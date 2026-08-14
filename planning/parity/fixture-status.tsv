@@ -1,0 +1,37 @@
+# planning/parity/fixture-status.tsv — the HTTP status of every recorded fixture.
+#
+# Deferred child D-a. The 24 bodies in app/Sources/MCPRouterKit/Control/Fixtures carry no status,
+# so a port could answer every one of them byte-for-byte under the wrong status code and the whole
+# decode suite would still pass. This is the missing half of that contract.
+#
+# Captured by scripts/acceptance/parity-fixture.sh, which re-runs F3's own recorder with STATUS_DIR
+# set against a live reference. The fixture files themselves are never written to — they are the
+# wire contract, and a lane that edits its own oracle proves nothing.
+#
+# Regenerate:  PARITY_STATUS_OUT=planning/parity/fixture-status.tsv scripts/acceptance/parity-fixture.sh
+#
+# fixture	status
+add-refused	422
+added	201
+approve	200
+approve-conflict	409
+auth-start	200
+changes-none	200
+changes-pending	200
+patch-response	200
+registry-search	200
+reindex-failure	422
+reindex-held	200
+removed	200
+server-http	200
+server-pending-change	200
+server-placarded	200
+server-stdio	200
+server-tools	200
+servers	200
+servers-pending-auth	200
+signout	200
+unauthorized	401
+usage	200
+usage-reset	200
+usage-summary	200

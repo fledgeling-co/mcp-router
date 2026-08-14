@@ -65,16 +65,39 @@ done < "$MANIFEST"
 # ------------------------------------------------------------------ control routes
 # The reference's dispatch is three `if` shapes. Extracted rather than hand-listed, so this
 # check keeps working when a route is added.
+# The character classes accept hyphens, digits, underscores and uppercase. The first version took
+# only [a-z/], so a route named /oauth-callback or /usage/v2 extracted NOTHING, demanded no
+# manifest row, and shrank the denominator — the coverage percentage would have gone UP. That is
+# the precise drift this file exists to catch, arriving as a maintenance accident.
 routes_from_source="$(sed -n \
-  "s/.*p === .\(\/[a-z\/]*\). \&\& req\.method === .\([A-Z]*\).*/\2 \1/p;
+  "s/.*p === .\(\/[a-zA-Z0-9_\/-]*\). \&\& req\.method === .\([A-Z]*\).*/\2 \1/p;
    s/.*!sub \&\& req\.method === .\([A-Z]*\).*/\1 \/servers\/:name/p;
-   s/.*sub === .\(\/[a-z]*\). \&\& req\.method === .\([A-Z]*\).*/\2 \/servers\/:name\1/p" \
+   s/.*sub === .\(\/[a-zA-Z0-9_-]*\). \&\& req\.method === .\([A-Z]*\).*/\2 \/servers\/:name\1/p" \
   "$CONTROL_TS" | sort -u)"
 
 if [ -z "$routes_from_source" ]; then
   echo "environment: extracted no routes from $CONTROL_TS — the dispatch shape has changed and"
   echo "             this check would otherwise report a perfectly clean manifest against nothing."
   exit 2
+fi
+
+# A SECOND, independent count of the same thing.
+#
+# The extractor above only recognises three dispatch idioms. A route added in a fourth shape — a
+# switch, a table, a differently-spelled condition — extracts nothing and is silently absent from
+# both sides of the comparison, so the manifest agrees with a source it has stopped reading. The
+# guard above fires only when the extractor gets ZERO routes; it cannot notice 15 where there are
+# 16.
+#
+# Counting dispatch LINES with a different pattern catches that. `const mutating = req.method ===
+# 'POST' || …` is deliberately not counted: it is a guard, not a route, and it is why this counts
+# `if (` lines rather than every mention of req.method.
+dispatch_lines="$(grep -cE "^[[:space:]]*if \(.*req\.method === '" "$CONTROL_TS")"
+extracted_count="$(printf '%s\n' "$routes_from_source" | grep -c .)"
+if [ "$dispatch_lines" != "$extracted_count" ]; then
+  note "control.ts has $dispatch_lines dispatch lines but $extracted_count routes could be extracted."
+  note "  A route is being dispatched in a shape this check cannot read, so it is missing from BOTH"
+  note "  the source list and the manifest — which reads as agreement and raises the coverage figure."
 fi
 
 routes_from_manifest="$(awk -F'\t' '$1 == "control" { print $3 }' "$MANIFEST" | sort -u)"
@@ -106,6 +129,37 @@ while IFS= read -r fixture; do
   printf '%s\n' "$fixtures_on_disk" | grep -qxF "$fixture" \
     || note "the manifest carries fixture row \"$fixture\", which is not on disk"
 done <<< "$fixtures_in_manifest"
+
+# ------------------------------------------------------------------ cited tests must exist
+# A `proven-by-suite` row is a claim that some named test carries the weight no wire observation
+# can. That claim is worth exactly as much as the citation, and a citation is the one thing here
+# that can be written from memory and look right.
+#
+# This is not hypothetical. Three of this manifest's first six citations named tests that do not
+# exist — they were written from the divergence prose rather than read out of the suite. Nothing
+# in the gate noticed, because a fabricated citation reads exactly like a real one.
+#
+# So every `Suite/File.testName` token in any note is resolved against app/Tests, and every
+# scripts/ path is resolved on disk. A renamed test breaks the row that depends on it, which is
+# the point: the citation has to keep being true, not merely have been true once.
+TEST_ROOT="$REPO_ROOT/app/Tests"
+if [ -d "$TEST_ROOT" ]; then
+  while IFS= read -r citation; do
+    [ -z "$citation" ] && continue
+    file="${citation%%.*}"        # RouterCoreTests/RealProcessTests
+    test_name="${citation##*.}"   # poolSpawnsAndReapsARealChild
+    if [ ! -f "$TEST_ROOT/$file.swift" ]; then
+      note "cited test file \"$file.swift\" does not exist under app/Tests"
+    elif ! grep -q "func $test_name" "$TEST_ROOT/$file.swift"; then
+      note "cited test \"$test_name\" is not in $file.swift — the citation is stale or invented"
+    fi
+  done <<< "$(grep -oE '[A-Za-z]+Tests/[A-Za-z]+\.[a-zA-Z][a-zA-Z0-9]*' "$MANIFEST" | sort -u)"
+fi
+
+while IFS= read -r script; do
+  [ -z "$script" ] && continue
+  [ -f "$REPO_ROOT/$script" ] || note "cited script \"$script\" does not exist"
+done <<< "$(grep -oE 'scripts/[a-z/-]+\.sh' "$MANIFEST" | sort -u)"
 
 # ------------------------------------------------------------------ ids are unique
 # Two rows sharing an id means one lane's result overwrites the other's during reconciliation,

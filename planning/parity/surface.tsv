@@ -1,0 +1,127 @@
+# planning/parity/surface.tsv — the cutover surface, enumerated.
+#
+# One row per capability the cutover requires the Swift router to answer for. The gate reports
+# coverage as a fraction of THIS file, so a row that is missing here does not make the gate red —
+# it shrinks the denominator and the coverage number goes UP. scripts/acceptance/parity-manifest-check.sh
+# derives the control and fixture rows from source and fails when this file and the source disagree,
+# in either direction.
+#
+# Columns, tab-separated:
+#   group    control | fixture | divergence | mcp | cli | pool | install | state | log
+#   id       stable row id; a lane reports results against it. Unique across the file.
+#   subject  for control rows, the exact route string control.ts answers. For fixture rows, the
+#            fixture basename. Both are checked mechanically against source.
+#   verdict  proven | proven-by-suite | blocked
+#   owner    the item that would unblock a blocked row; "-" when not blocked
+#   note     why. A blocked row's note says what is missing, not that it is missing.
+#
+# proven          a lane compared both routers on this subject and they agreed
+# proven-by-suite no wire observation exists; a named test asserts it. Weaker, and printed as such
+# blocked         not compared. Never counted toward coverage
+#
+# ---------------------------------------------------------------------------------------------
+# control — the 15 (path, method) pairs src/control.ts dispatches
+control	control-servers-get	GET /servers	proven	-	envelope, four server variants, and the unknown-name 404
+control	control-servers-post	POST /servers	proven	-	add, duplicate refusal, missing name, empty name, missing command
+control	control-server-get	GET /servers/:name	proven	-	stdio, http, oauth and warm variants, plus traversal and overlong names
+control	control-server-delete	DELETE /servers/:name	proven	-	removal and the unknown-name path, run in a scratch home
+control	control-server-patch	PATCH /servers/:name	proven	-	placard set, command and env edits refused, malformed and non-object bodies
+control	control-reindex-post	POST /servers/:name/reindex	proven	-	the unknown-server path; the held-change path is covered by the fixture lane
+control	control-changes-get	GET /servers/:name/changes	proven	-	pending and none, plus the unknown-server path
+control	control-approve-post	POST /servers/:name/approve	blocked	D-j	AuthRoutes.approve exists and is never wired into ControlHandler's dispatch. The reference answers 409; Swift answers 405. Asserted as a known defect by the control lane, which is not the same as proven
+control	control-auth-post	POST /servers/:name/auth	blocked	D-j	AuthRoutes.authStart exists and is never wired into dispatch. The reference answers 400 for a stdio server; Swift answers 405
+control	control-auth-delete	DELETE /servers/:name/auth	proven	-	stdio, oauth and unknown-server variants
+control	control-usage-get	GET /usage	proven	-	including the six ?limit= edge cases R3 established
+control	control-usage-summary	GET /usage/summary	proven	-	per-server rollup with project attribution
+control	control-usage-reset	POST /usage/reset	proven	-	mutating; runs last in its own scratch home so it cannot move earlier rows
+control	control-usage-stream	GET /usage/stream	blocked	D-l	SSE. The response body is an open stream, so there is no byte oracle to diff. Framing (status, content-type) is comparable and is reported, but framing agreement is not body parity
+control	control-registry-search	GET /registry/search	blocked	D-m	The reference calls live registries; two runs a second apart return different bodies. No stable oracle exists, so this cannot be byte-diffed. The recorded fixture is a snapshot of one network moment, not a contract
+# ---------------------------------------------------------------------------------------------
+# fixture — the 24 recorded bodies in app/Sources/MCPRouterKit/Control/Fixtures/
+# The recorded set carries no HTTP status; capturing and comparing it is deferred child D-a.
+fixture	fixture-servers	servers	proven	-	re-captured from a live reference and diffed against the recording
+fixture	fixture-server-stdio	server-stdio	proven	-	re-captured and diffed
+fixture	fixture-server-http	server-http	proven	-	re-captured and diffed
+fixture	fixture-server-tools	server-tools	proven	-	re-captured and diffed; the child argv carries the capturing worktree's path, normalised
+fixture	fixture-server-pending-change	server-pending-change	proven	-	re-captured and diffed
+fixture	fixture-server-placarded	server-placarded	proven	-	re-captured and diffed
+fixture	fixture-servers-pending-auth	servers-pending-auth	proven	-	re-captured and diffed; the PKCE challenge is per-run and is normalised
+fixture	fixture-changes-none	changes-none	proven	-	re-captured and diffed
+fixture	fixture-changes-pending	changes-pending	proven	-	re-captured and diffed; carries the zero-width-space codepoint list
+fixture	fixture-approve	approve	proven	-	re-captured and diffed
+fixture	fixture-approve-conflict	approve-conflict	proven	-	re-captured and diffed
+fixture	fixture-auth-start	auth-start	proven	-	re-captured and diffed; the PKCE challenge is per-run and is normalised
+fixture	fixture-signout	signout	proven	-	re-captured and diffed
+fixture	fixture-unauthorized	unauthorized	proven	-	re-captured and diffed; the token path is per-run and is normalised
+fixture	fixture-patch-response	patch-response	proven	-	re-captured and diffed
+fixture	fixture-reindex-held	reindex-held	proven	-	re-captured and diffed
+fixture	fixture-reindex-failure	reindex-failure	proven	-	re-captured and diffed
+fixture	fixture-usage	usage	proven	-	re-captured and diffed; pid, cwd, timing and the capturing project are per-run and normalised
+fixture	fixture-usage-summary	usage-summary	proven	-	re-captured and diffed
+fixture	fixture-usage-reset	usage-reset	proven	-	re-captured and diffed
+fixture	fixture-added	added	proven	-	re-captured and diffed
+fixture	fixture-add-refused	add-refused	proven	-	re-captured and diffed; the 422-with-hint branch
+fixture	fixture-removed	removed	proven	-	re-captured and diffed
+fixture	fixture-registry-search	registry-search	blocked	D-m	The recording is one moment of a live registry call. Re-capturing it produces different bytes for reasons that are not the port's fault, so it cannot be diffed
+# ---------------------------------------------------------------------------------------------
+# divergence — deliberate differences from the reference, asserted in BOTH directions so a
+# divergence that is fixed upstream fails the gate as stale rather than passing quietly.
+divergence	div-r1-d1	R1 D1 unrecognisable mcpServers	proven	-	Swift errors; the reference loads zero servers silently. Asserted on the wire by the divergence lane
+divergence	div-r1-d2	R1 D2 loadManifest reports degradation	proven-by-suite	-	Not observable on the control wire. RouterCoreTests/ManifestIOParityTests.degradationCopyIsVerbatim
+divergence	div-r1-d3	R1 D3 atomic servers.json writer preserves unknown keys	blocked	D-k	spec-R1 line 148 scopes this to the non-atomic four-key writer in src/index.ts, reached only through the import and index CLI verbs Swift does not implement. The divergence lane measured a DIFFERENT path (the control-API writer) and found agreement; recording that as proof of this claim would be proving a capability by measuring another one. See div-r1-d3-control for what was actually measured
+divergence	div-r1-d3-control	both writers preserve unknown top-level keys on the control-API path	proven	-	Measured on disk by the divergence lane: an unknown top-level key survives a PATCH through both the Swift handler and the reference. A real equivalence the cutover needs, and not the same claim as R1 D3
+divergence	div-r1-d4	R1 D4 logging failure is contained	proven-by-suite	-	Not observable on the wire; spec-R1 line 149 says so. RouterCoreTests/LogParityTests.loggingNeverThrows drives an unwritable directory, a failing append and a failing stderr
+divergence	div-r1-d5	R1 D5 the log API takes a structured event	proven-by-suite	-	A type-level property; no call accepts a whole config or env dictionary. Enforced mechanically by scripts/lint/no-wire-codable.sh rather than by a test
+divergence	div-r2-d6	R2 D6 callsServed counts acquisitions	proven	-	Reproduced exactly rather than corrected, because this gate diffs it. Covered by the control and fixture lanes
+divergence	div-r2-d7	R2 D7 reference loses a restart on an unparseable ~/.claude.json	blocked	R2-W	A latent bug in the reference, declared so the Swift watcher does not reproduce it. The Swift watcher is R2-W and does not exist, so this divergence has only one side and cannot be asserted in both directions
+divergence	div-r3-d1	R3 D1 PATCH body 42 terminates the reference	proven	-	Asserted both ways by the control lane's diverges() helper
+divergence	div-r3-d2	R3 D2 PATCH body "hi" terminates the reference	proven	-	Asserted both ways
+divergence	div-r3-d3	R3 D3 PATCH body true terminates the reference	proven	-	Asserted both ways
+divergence	div-r3-d4	R3 D4 a bare %ZZ escape terminates the reference	proven	-	Asserted both ways
+divergence	div-r3-d5	R3 D5 a truncated escape terminates the reference	proven	-	Asserted both ways
+divergence	div-r5-p7	R5 P7 callback framing is content-length + close	proven-by-suite	-	The reference sends chunked keep-alive. RouterCoreTests/CallbackWireTests.pageResponseBytes asserts the exact bytes; no OAuth callback is issued by this gate, so the reference side is not driven
+# ---------------------------------------------------------------------------------------------
+# mcp — the endpoint the brief's tool-list and call-result corpora travel over.
+# There is no Swift MCP endpoint. RouterCore is a library; nothing wraps it in a process.
+mcp	mcp-endpoint	POST /mcp	blocked	R2-R	The relay does not exist in Swift. src/router.ts serves /mcp; RouterCore has no listener
+mcp	mcp-tools-list	tools/list	blocked	R2-R	Requires the relay. This is one of the five corpora the brief names, and it cannot be compared at all
+mcp	mcp-tools-call	tools/call	blocked	R2-R	Requires the relay and the upstream HTTP clients
+mcp	mcp-health	GET /health	blocked	R2-R	src/router.ts answers it; docs/install.sh verifies the install against it
+mcp	mcp-status	GET /status	blocked	R2-R	src/router.ts answers it; docs/install.sh verifies the install against it
+# ---------------------------------------------------------------------------------------------
+# cli — the ten verbs src/index.ts dispatches. docs/install.sh calls serve, watch, import and index.
+cli	cli-serve	serve	blocked	R2-R	The launchd agent runs `node dist/index.js serve`. No Swift binary answers it
+cli	cli-watch	watch	blocked	R2-W	The second launchd agent. The Swift config watcher is R2-W and does not exist
+cli	cli-import	import	blocked	R2-R	Called directly by the installer
+cli	cli-index	index	blocked	R2-R	Called directly by the installer
+cli	cli-refresh	refresh	blocked	R2-R	No Swift entry point
+cli	cli-status	status	blocked	R2-R	No Swift entry point
+cli	cli-tools	tools	blocked	R2-R	No Swift entry point
+cli	cli-auth	auth	blocked	R2-R	No Swift entry point
+cli	cli-usage	usage	blocked	R2-R	No Swift entry point
+cli	cli-help	help	blocked	R2-R	No Swift entry point; --help and -h are aliases of the same arm
+# ---------------------------------------------------------------------------------------------
+# pool — spawn and reap decisions. The Swift side is a library actor with a test suite; the
+# reference side is driven over its own /mcp and observed through /servers. A row is proven when
+# the reference makes the same decision the Swift suite asserts.
+pool	pool-p1	nothing spawns before the first lease	proven	-	Reference observed idle with callsServed 0 before any call; Swift RouterCoreTests/RealProcessTests.poolSpawnsAndReapsARealChild
+pool	pool-p2	concurrent leases spawn one child	proven	-	Reference serves N concurrent calls from one child; Swift RouterCoreTests/RealProcessTests.concurrentLeasesSpawnOneRealChild
+pool	pool-p3	an idle child is reaped after the window	proven	-	Reference reaps with a short idleMs; Swift RouterCoreTests/RealProcessTests.poolSpawnsAndReapsARealChild
+pool	pool-p8	a child that exits is evicted and reopened	proven	-	Reference reopens after the child dies; Swift RouterCoreTests/RealProcessTests.realChildThatExitsIsEvicted
+pool	pool-p4	a call outstanding is never reaped	blocked	R2-R	Needs traffic arriving over a Swift MCP endpoint to observe the guard on the port side. The reference half is observable; the Swift half is proven only in-process, which is not a differential
+pool	pool-reap-traffic	reap decisions under live traffic	blocked	R2-R	Needs a Swift daemon carrying real traffic. Nothing on the Swift side can be put under load
+# ---------------------------------------------------------------------------------------------
+# install — what docs/install.sh actually does. These rows were missing from the first census, and
+# their absence RAISED the reported coverage: the installer is the thing the cutover edits, so a
+# capability it depends on that has no row is a capability nobody is counting.
+install	install-claude-json	rewrite ~/.claude.json to point at the router	blocked	D-k	install.sh:141 rewrites the user's own config through a node -e script, adding the mcp-router HTTP entry and preserving the file mode. This is the step that actually points Claude Code at the router; an installer that flips the binary and skips it leaves the user with nothing serving them
+install	install-import-servers	import stdio servers out of ~/.claude.json	blocked	D-k	install.sh:77 runs `node dist/index.js import`. The CLI verb is counted separately; this row is the on-disk RESULT it produces, which a Swift router would have to read
+install	install-launchd-serve	the serve launchd agent	blocked	R2-R	install.sh:109-123 writes RunAtLoad, KeepAlive/SuccessfulExit=false and StandardOut/ErrorPath. A Swift binary must survive the same supervision, including relaunch on a non-zero exit
+install	install-launchd-watch	the watch launchd agent	blocked	R2-W	The second agent, same supervision contract, and there is no Swift watcher to supervise
+install	install-rollback	putting a cut-over machine back on TypeScript	blocked	R4-C	docs/uninstall.sh restores the ~/.claude.json backup, but nothing has established that a machine moved to Swift can be moved back. A cutover with no exercised rollback is a one-way door
+# ---------------------------------------------------------------------------------------------
+# state — the files a cutover inherits rather than creates.
+state	state-ondisk-compat	servers.json, the usage store and the tool index written by one router and read by the other	blocked	R2-R	A cutover leaves behind files the TypeScript router wrote over months. Nothing has observed the Swift router reading a full set of them as produced by a real TS run, because no Swift daemon runs to read them
+# ---------------------------------------------------------------------------------------------
+# log — the brief's fifth corpus.
+log	log-bytes	log bytes over a live run	blocked	R2-R	The reference writes router.log while serving. Swift emits RouterLog events from a library that no process runs, so there is no log file to diff

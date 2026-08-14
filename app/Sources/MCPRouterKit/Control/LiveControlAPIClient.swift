@@ -226,8 +226,19 @@ public actor LiveControlAPIClient: ControlAPIClient {
         try await send(.get, "servers/\(segment(name))", as: MCPServer.self)
     }
 
-    public func usage() async throws(ControlAPIError) -> UsageResponse {
-        try await send(.get, "usage", as: UsageResponse.self)
+    public func usage(
+        limit: Int?,
+        server: String?,
+        cwd: String?
+    ) async throws(ControlAPIError) -> UsageResponse {
+        // Only the filters the caller actually set go on the wire. Sending `server=` empty would
+        // not mean "no filter" to the router — it reads the parameter's presence, so an empty one
+        // asks for the calls of a server named "".
+        var query: [URLQueryItem] = []
+        if let limit { query.append(.init(name: "limit", value: String(limit))) }
+        if let server { query.append(.init(name: "server", value: server)) }
+        if let cwd { query.append(.init(name: "cwd", value: cwd)) }
+        return try await send(.get, "usage", query: query, as: UsageResponse.self)
     }
 
     public func usageSummary() async throws(ControlAPIError) -> UsageSummary {

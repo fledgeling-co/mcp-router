@@ -29,15 +29,27 @@ public struct ReconnectPolicy: Equatable, Sendable {
     public var initialDelay: Duration
     public var ceiling: Duration
     public var maximumAttempts: Int
+    /// How long a connection must last before it counts as having worked.
+    ///
+    /// Without this the bound can never fire against a router that is up but broken. The router
+    /// greets every connection with `: connected` the instant it opens, so a server that accepts
+    /// and immediately drops delivers a line every time — and "delivered something" alone resets
+    /// the consecutive-failure count, giving an unbounded reconnect loop against exactly the
+    /// failure the bound exists to report. Elapsed time is what separates a connection that worked
+    /// from one that merely answered: five seconds is comfortably under the router's 25-second
+    /// heartbeat, so a healthy but silent stream still counts as healthy.
+    public var minimumHealthyDuration: Duration
 
     public init(
         initialDelay: Duration = .milliseconds(500),
         ceiling: Duration = .seconds(30),
-        maximumAttempts: Int = 6
+        maximumAttempts: Int = 6,
+        minimumHealthyDuration: Duration = .seconds(5)
     ) {
         self.initialDelay = initialDelay
         self.ceiling = ceiling
         self.maximumAttempts = maximumAttempts
+        self.minimumHealthyDuration = minimumHealthyDuration
     }
 
     /// The delay before attempt `n` (1-based), doubling and then holding at the ceiling.
@@ -85,6 +97,7 @@ public struct ControlEventStream: Sendable {
     private let session: URLSession
     private let policy: ReconnectPolicy
     private let clock: any StreamClock
+    private let log: ControlLog
     private let tokenProvider: @Sendable () async -> String?
 
     public init(
@@ -92,12 +105,14 @@ public struct ControlEventStream: Sendable {
         session: URLSession = .shared,
         policy: ReconnectPolicy = ReconnectPolicy(),
         clock: any StreamClock = SystemStreamClock(),
+        log: ControlLog = ControlLog(),
         tokenProvider: @escaping @Sendable () async -> String? = { nil }
     ) {
         self.baseURL = baseURL
         self.session = session
         self.policy = policy
         self.clock = clock
+        self.log = log
         self.tokenProvider = tokenProvider
     }
 
@@ -109,13 +124,17 @@ public struct ControlEventStream: Sendable {
 
                 while !Task.isCancelled {
                     do {
-                        let delivered = try await consumeOnce(continuation: continuation)
+                        let worked = try await consumeOnce(continuation: continuation)
                         // A clean end of body is still a disconnection — the router closed us. But
                         // a connection that actually *talked* resets the count, because the policy
                         // bounds **consecutive** failures. Without this reset the counter is
                         // cumulative, and a stream that reconnected happily six times across a day
                         // would give up on the seventh for no reason the user could see.
-                        attempt = delivered ? 0 : attempt + 1
+                        // "Worked" is deliberately not "delivered a byte": see
+                        // `minimumHealthyDuration`. A router that greets and instantly drops
+                        // delivers a byte every time, and counting that as success made the bound
+                        // unreachable in precisely the case it exists for.
+                        attempt = worked ? 0 : attempt + 1
                     } catch is CancellationError {
                         return
                     } catch {
@@ -156,6 +175,7 @@ public struct ControlEventStream: Sendable {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
+        let opened = ContinuousClock.now
         let (bytes, response) = try await session.bytes(for: request)
         guard let http = response as? HTTPURLResponse, (200 ..< 300).contains(http.statusCode) else {
             throw URLError(.badServerResponse)
@@ -177,10 +197,16 @@ public struct ControlEventStream: Sendable {
                 // One unreadable event is not a reason to tear down a working stream; the next
                 // one may be fine. It is skipped rather than thrown so a single malformed record
                 // cannot masquerade as the router going away.
+                //
+                // It is *logged* though, by shape and never by content. Skipping silently is the
+                // same silent-empty failure this codebase forbids by name, moved to the stream: a
+                // router emitting records this version cannot parse would look identical to a
+                // router with nothing to say, and nobody would have anything to look at.
+                log.warning("skipped a call record this version could not decode (\(payload.count) bytes)")
                 continue
             }
             continuation.yield(.record(record))
         }
-        return delivered
+        return delivered && ContinuousClock.now - opened >= policy.minimumHealthyDuration
     }
 }

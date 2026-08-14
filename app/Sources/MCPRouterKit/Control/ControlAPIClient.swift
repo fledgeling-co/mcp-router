@@ -115,8 +115,14 @@ public protocol ControlAPIClient: Sendable {
     /// One server, by name.
     func server(named name: String) async throws(ControlAPIError) -> MCPServer
 
-    /// The recent call log.
-    func usage() async throws(ControlAPIError) -> UsageResponse
+    /// The recent call log, with the filters the endpoint actually offers.
+    ///
+    /// `GET /usage` reads `limit`, `server` and `cwd` from the query string (`src/control.ts`
+    /// ~line 425). A no-argument version could only ever fetch the last 200 rows unfiltered, which
+    /// makes "show me this server's calls" or "show me this project's calls" impossible through
+    /// the one boundary the app is allowed to use — the endpoint supports it and the client did
+    /// not, which is the callable-surface gap A9 is about, in its quieter form.
+    func usage(limit: Int?, server: String?, cwd: String?) async throws(ControlAPIError) -> UsageResponse
 
     /// Per-server totals since the counter was last reset.
     func usageSummary() async throws(ControlAPIError) -> UsageSummary
@@ -172,5 +178,15 @@ public extension ControlAPIClient {
 
     func searchRegistry(query: String) async throws(ControlAPIError) -> RegistrySearchResponse {
         try await searchRegistry(query: query, limit: 30)
+    }
+
+    /// The whole recent log, which is what most callers want.
+    func usage() async throws(ControlAPIError) -> UsageResponse {
+        try await usage(limit: nil, server: nil, cwd: nil)
+    }
+
+    /// One server's calls.
+    func usage(server: String) async throws(ControlAPIError) -> UsageResponse {
+        try await usage(limit: nil, server: server, cwd: nil)
     }
 }

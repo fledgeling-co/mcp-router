@@ -22,6 +22,21 @@ import Foundation
 /// **`encodedBody()`**, which is the path the app actually uses and the only one that can catch a
 /// caller-supplied encoder renaming a field onto a forbidden key.
 public struct ServerPatch: Codable, Hashable, Sendable {
+    /// What to do with the server's placard, if anything.
+    ///
+    /// Three states, because the wire has three. The router branches on `'placard' in b`
+    /// (`src/control.ts` ~line 382), so an omitted key leaves the mark alone and an explicit
+    /// `null` removes it. `Placard?` alone cannot express that difference — the synthesised
+    /// encoder omits a nil optional, so "clear it" and "leave it" produce identical bytes. This
+    /// type's own documentation said "or clear the mark" while having no way to send one, which is
+    /// a documented capability that silently did nothing.
+    public enum PlacardEdit: Hashable, Sendable {
+        /// Mark the server inoperative with this reason.
+        case set(Placard)
+        /// Remove the mark. Encodes as an explicit `null`, which is what the router reads.
+        case clear
+    }
+
     /// Restrict the server to these project directories. An empty array clears the restriction;
     /// omitting the field leaves it unchanged.
     public var projects: [String]?
@@ -30,18 +45,50 @@ public struct ServerPatch: Codable, Hashable, Sendable {
     /// Override how long this server may sit idle before it is reaped.
     public var idleMs: Int?
     /// Mark the server inoperative with a reason, or clear the mark.
-    public var placard: Placard?
+    public var placard: PlacardEdit?
 
     public init(
         projects: [String]? = nil,
         warm: Bool? = nil,
         idleMs: Int? = nil,
-        placard: Placard? = nil
+        placard: PlacardEdit? = nil
     ) {
         self.projects = projects
         self.warm = warm
         self.idleMs = idleMs
         self.placard = placard
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case projects, warm, idleMs, placard
+    }
+
+    /// Written by hand for one reason: `encodeNil` is the only way to put an explicit `null` on
+    /// the wire, and the synthesised encoder never emits one.
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(projects, forKey: .projects)
+        try container.encodeIfPresent(warm, forKey: .warm)
+        try container.encodeIfPresent(idleMs, forKey: .idleMs)
+        switch placard {
+        case .none: break
+        case .clear: try container.encodeNil(forKey: .placard)
+        case let .set(placard): try container.encode(placard, forKey: .placard)
+        }
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        projects = try container.decodeIfPresent([String].self, forKey: .projects)
+        warm = try container.decodeIfPresent(Bool.self, forKey: .warm)
+        idleMs = try container.decodeIfPresent(Int.self, forKey: .idleMs)
+        if container.contains(.placard) {
+            placard = try container.decodeNil(forKey: .placard)
+                ? .clear
+                : .set(container.decode(Placard.self, forKey: .placard))
+        } else {
+            placard = nil
+        }
     }
 
     /// The fields the control API will never accept, named so the tests can assert on them and so

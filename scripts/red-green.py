@@ -439,6 +439,48 @@ mut(
     "a bodyless DELETE carries the token and announces no body",
 )
 
+# ---------------------------------------------------------------- the second critic round
+
+mut(
+    "M38", "A9", "the usage filters the endpoint offers are reachable through the client",
+    SRC / "LiveControlAPIClient.swift",
+    '        if let server { query.append(.init(name: "server", value: server)) }\n',
+    "",
+    "the usage filters reach the wire",
+)
+
+mut(
+    "M39", "A11", "a router that greets and drops is bounded rather than retried forever",
+    SRC / "ControlEventStream.swift",
+    "        return delivered && ContinuousClock.now - opened >= policy.minimumHealthyDuration",
+    "        return delivered",
+    "a router that greets and immediately drops is bounded",
+)
+
+mut(
+    "M40", "A11", "the stated health threshold is the one you get by default",
+    SRC / "ControlEventStream.swift",
+    "        minimumHealthyDuration: Duration = .seconds(5)",
+    "        minimumHealthyDuration: Duration = .seconds(500)",
+    "the stated policy is the one you get without asking",
+)
+
+mut(
+    "M41", "A4", "an unreadable record is skipped, but leaves a trace",
+    SRC / "ControlEventStream.swift",
+    '                log.warning("skipped a call record this version could not decode (\\(payload.count) bytes)")\n',
+    "",
+    "an unreadable record is skipped, but not silently",
+)
+
+mut(
+    "M42", "A20", "a cleared placard reaches the wire as an explicit null",
+    SRC / "ServerPatch.swift",
+    "        case .clear: try container.encodeNil(forKey: .placard)",
+    "        case .clear: break",
+    "a placard can be set, cleared, or left alone",
+)
+
 RESULTS = []
 
 

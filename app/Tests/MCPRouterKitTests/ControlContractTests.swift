@@ -17,7 +17,7 @@ struct ControlContractTests {
             projects: ["/tmp/a", "/tmp/b"],
             warm: true,
             idleMs: 30000,
-            placard: Placard(reason: "under review")
+            placard: .set(Placard(reason: "under review"))
         )
         let data = try JSONEncoder().encode(patch)
         let object = try #require(
@@ -44,7 +44,7 @@ struct ControlContractTests {
     @Test("a fully-populated patch encodes exactly the keys the router reads")
     func patchKeysAreExactlyThePermittedOnes() throws {
         let data = try JSONEncoder().encode(
-            ServerPatch(projects: [], warm: false, idleMs: 0, placard: Placard(reason: "x"))
+            ServerPatch(projects: [], warm: false, idleMs: 0, placard: .set(Placard(reason: "x")))
         )
         let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
         #expect(Set(object.keys) == ServerPatch.permittedWireKeys)
@@ -83,6 +83,44 @@ struct ControlContractTests {
     /// What this does **not** prove: that no future edit can bypass the check. Nothing expressible
     /// here prevents someone adding an early `return` above the validation. What it does is remove
     /// the cheap version of that mistake, where a bypass hides in an input nobody tests.
+    /// The router branches on `'placard' in b`, so the wire has three states and the type must
+    /// too: absent leaves the mark, `null` removes it, an object sets it. The out-of-family critic
+    /// found that `Placard?` could only ever express two of them — a nil optional is omitted by
+    /// the encoder, so "clear the mark" produced the same bytes as "leave it alone" and the
+    /// capability this type documents did nothing at all.
+    @Test("a placard can be set, cleared, or left alone, and the three are different on the wire")
+    func placardHasThreeWireStates() throws {
+        func keys(_ patch: ServerPatch) throws -> [String: Any] {
+            try #require(
+                try JSONSerialization.jsonObject(with: patch.encodedBody()) as? [String: Any]
+            )
+        }
+
+        let untouched = try keys(ServerPatch(warm: true))
+        #expect(untouched["placard"] == nil, "an absent placard must not reach the wire at all")
+
+        let cleared = try keys(ServerPatch(placard: .clear))
+        #expect(cleared.keys.contains("placard"), "clearing has to send the key")
+        #expect(cleared["placard"] is NSNull, "clearing has to send an explicit null, not an object")
+
+        let set = try keys(ServerPatch(placard: .set(Placard(reason: "under review"))))
+        let object = try #require(set["placard"] as? [String: Any])
+        #expect(object["reason"] as? String == "under review")
+    }
+
+    @Test("a patch round-trips through Codable with its placard state intact")
+    func placardSurvivesARoundTrip() throws {
+        for patch in [
+            ServerPatch(warm: true),
+            ServerPatch(placard: .clear),
+            ServerPatch(placard: .set(Placard(reason: "under review", substitute: "other")))
+        ] {
+            let data = try JSONEncoder().encode(patch)
+            let back = try JSONDecoder().decode(ServerPatch.self, from: data)
+            #expect(back == patch, "a patch changed meaning on the way through: \(patch)")
+        }
+    }
+
     @Test("encodedBody emits only permitted keys, for every shape a patch can take")
     func encodedBodyIsAllowlisted() throws {
         let shapes: [ServerPatch] = [
@@ -91,8 +129,9 @@ struct ControlContractTests {
             ServerPatch(warm: true),
             ServerPatch(warm: false),
             ServerPatch(idleMs: 0),
-            ServerPatch(placard: Placard(reason: "under review")),
-            ServerPatch(projects: [], warm: false, idleMs: 30000, placard: Placard(reason: "x"))
+            ServerPatch(placard: .set(Placard(reason: "under review"))),
+            ServerPatch(placard: .clear),
+            ServerPatch(projects: [], warm: false, idleMs: 30000, placard: .set(Placard(reason: "x")))
         ]
 
         for patch in shapes {

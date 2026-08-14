@@ -143,6 +143,13 @@ struct ControlStreamTests {
         #expect(policy.initialDelay == .milliseconds(500))
         #expect(policy.ceiling == .seconds(30))
         #expect(policy.maximumAttempts == 6)
+        #expect(
+            policy.minimumHealthyDuration == .seconds(5),
+            """
+            the health threshold has to be under the router's 25s heartbeat, or a quiet but \
+            healthy stream would be counted as flapping
+            """
+        )
 
         // And the defaults produce the stated curve, ceiling included.
         #expect(policy.delay(forAttempt: 1) == .milliseconds(500))
@@ -209,7 +216,7 @@ struct ControlStreamTests {
     /// A connection that worked resets the count. Without this the six is cumulative rather than
     /// consecutive, so a stream that reconnected happily all day would eventually stop for a reason
     /// no one could see.
-    @Test("a connection that delivered anything resets the consecutive-failure count")
+    @Test("a connection that stayed up resets the consecutive-failure count")
     func successfulConnectionResetsTheCount() async throws {
         let stub = try HTTPStub()
         defer { stub.stop() }
@@ -222,7 +229,11 @@ struct ControlStreamTests {
             policy: ReconnectPolicy(
                 initialDelay: .milliseconds(1),
                 ceiling: .milliseconds(4),
-                maximumAttempts: 3
+                maximumAttempts: 3,
+                // Every connection here is short by design, so the health threshold is taken out
+                // of the question: this test is about the reset existing at all. The threshold
+                // itself is the subject of the next one.
+                minimumHealthyDuration: .zero
             ),
             clock: clock
         )
@@ -242,5 +253,102 @@ struct ControlStreamTests {
 
         #expect(reconnects >= 5, "it stopped reconnecting despite every connection working")
         #expect(!sawDisconnected, "a working connection was counted as a consecutive failure")
+    }
+
+    /// The case the bound exists for, and the one it could not reach.
+    ///
+    /// The router greets every connection with `: connected` the instant it opens. So a router that
+    /// is up but broken — accepting, greeting, dropping — delivered a line on every attempt, and
+    /// "delivered anything" reset the counter each time. The stream retried it **forever**, which
+    /// is indistinguishable on screen from a stream that is simply quiet, and is exactly what A11
+    /// says must not happen. The test above even asserted that behaviour as correct.
+    ///
+    /// A connection now has to *last* to count as having worked. This stub behaves identically to
+    /// that broken router, and the stream must give up.
+    @Test("a router that greets and immediately drops is bounded, not retried forever")
+    func flappingRouterIsBounded() async throws {
+        let stub = try HTTPStub()
+        defer { stub.stop() }
+        // Greets, sends nothing else, closes. Exactly what an up-but-broken router looks like.
+        stub.onStream(HTTPStub.Stream(lines: [": connected"], gap: 0.01))
+
+        let clock = RecordingStreamClock()
+        let subject = ControlEventStream(
+            baseURL: stub.baseURL,
+            session: URLSession(configuration: .ephemeral),
+            policy: ReconnectPolicy(
+                initialDelay: .milliseconds(1),
+                ceiling: .milliseconds(4),
+                maximumAttempts: 3,
+                // No connection this stub makes will last thirty seconds.
+                minimumHealthyDuration: .seconds(30)
+            ),
+            clock: clock
+        )
+
+        var phases: [StreamPhase] = []
+        for await event in subject.events() {
+            if case let .phase(phase) = event { phases.append(phase) }
+            // The escape hatch matters as much as the assertion. Without it, a regression that
+            // restores the unbounded loop does not fail this test — it hangs it, and a hung suite
+            // reports nothing at all. Three attempts can produce at most a handful of phases, so
+            // anything past ten is the loop this test exists to catch.
+            if phases.count > 10 { break }
+        }
+
+        #expect(
+            phases.last == .disconnected,
+            "it never gave up on a router that only ever greeted and dropped: \(phases)"
+        )
+        #expect(
+            phases.filter { $0 == .reconnecting }.count == 2,
+            "three attempts means two waits between them, saw \(phases)"
+        )
+    }
+
+    /// A record this version cannot parse is skipped so one bad event cannot tear down a working
+    /// stream — but skipping it *silently* is the same failure this codebase forbids by name,
+    /// moved to the stream: a router emitting records the client cannot read would look exactly
+    /// like a router with nothing to say. It has to leave a trace, by shape and never by content.
+    @Test("an unreadable record is skipped, but not silently")
+    func unreadableRecordsAreLogged() async throws {
+        let stub = try HTTPStub()
+        defer { stub.stop() }
+        stub.onStream(
+            HTTPStub.Stream(
+                lines: ["data: {\"nonsense\":true}", Self.record("a", "one")],
+                gap: 0.01
+            )
+        )
+
+        let sink = CollectingLogSink()
+        let subject = ControlEventStream(
+            baseURL: stub.baseURL,
+            session: URLSession(configuration: .ephemeral),
+            policy: ReconnectPolicy(
+                initialDelay: .milliseconds(1),
+                ceiling: .milliseconds(4),
+                maximumAttempts: 1,
+                minimumHealthyDuration: .zero
+            ),
+            log: ControlLog(sink: sink)
+        )
+
+        var records: [CallRecord] = []
+        for await event in subject.events() {
+            if case let .record(record) = event { records.append(record) }
+            if case .phase(.disconnected) = event { break }
+            if case .phase(.reconnecting) = event { break }
+        }
+
+        #expect(records.map(\.tool) == ["one"], "the readable record after the bad one was lost")
+
+        var written = ""
+        for _ in 0 ..< 100 where written.isEmpty {
+            written = await sink.joined()
+            if written.isEmpty { try? await Task.sleep(for: .milliseconds(10)) }
+        }
+        #expect(written.contains("could not decode"), "the skipped record left no trace: \(written)")
+        #expect(!written.contains("nonsense"), "the log carried the record's content, not its shape")
     }
 }

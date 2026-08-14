@@ -148,10 +148,21 @@ public struct FixtureControlAPIClient: ControlAPIClient {
         return server
     }
 
-    public func usage() async throws(ControlAPIError) -> UsageResponse {
+    public func usage(
+        limit: Int?,
+        server: String?,
+        cwd: String?
+    ) async throws(ControlAPIError) -> UsageResponse {
         try guardFailure()
         if scenario == .loading { try await Self.forever() }
-        return try decode("usage", as: UsageResponse.self)
+        var response = try decode("usage", as: UsageResponse.self)
+        // The double filters the recording rather than ignoring the arguments. A double that
+        // accepts a filter and returns everything lets a surface's test pass while the surface
+        // shows the wrong rows against a real router.
+        if let server { response.records = response.records.filter { $0.server == server } }
+        if let cwd { response.records = response.records.filter { $0.cwd == cwd } }
+        if let limit { response.records = Array(response.records.prefix(limit)) }
+        return response
     }
 
     public func usageSummary() async throws(ControlAPIError) -> UsageSummary {

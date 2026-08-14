@@ -228,13 +228,22 @@ struct LogParityTests {
             .manifestCurrent(server: "s"),
             .serverIndexed(server: "s", toolCount: 1),
             .serverSurfaceChanged(server: "s", changeCount: 1),
-            .serverIndexFailed(server: "s", reason: "r")
+            .serverIndexFailed(server: "s", reason: "r"),
+            // R5 — auth. Present here so the payload sweep below proves B66 for them too: every
+            // associated value must still be a String or an Int, never a container that could
+            // carry a token or a whole record.
+            .upstreamAuthorized(server: "s"),
+            .authorizationIncomplete(server: "s", reason: "r"),
+            .authRecordUnreadable(server: "s", reason: "r"),
+            .toolSurfaceApproved(server: "s", toolCount: 1)
         ]
         // An exhaustive switch, so adding a case without revisiting this test is a compile error.
         for event in every {
             switch event {
             case .manifestUnreadable, .manifestReloaded, .manifestReloadFailed, .manifestCurrent,
-                 .serverIndexed, .serverSurfaceChanged, .serverIndexFailed:
+                 .serverIndexed, .serverSurfaceChanged, .serverIndexFailed,
+                 .upstreamAuthorized, .authorizationIncomplete, .authRecordUnreadable,
+                 .toolSurfaceApproved:
                 break
             }
         }

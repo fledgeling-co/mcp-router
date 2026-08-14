@@ -12,6 +12,29 @@ extension VectorRegistry {
     static let files: [RegisteredVectorFile] = coreFiles + controlFiles
 
     static let coreFiles: [RegisteredVectorFile] = [
+        // R5 — the callback pages. Generated from the reference's own PAGE template literal
+        // (`scripts/gen-auth-vectors.mjs`), so these are reference-derived rather than transcribed
+        // from what the port happens to emit. R4 diffs exactly these bytes.
+        RegisteredVectorFile(
+            file: "auth-pages", rows: ["B65", "B99"], consumer: "AuthParityTests.pageBytes"
+        ) { cases in
+            for testCase in cases {
+                let kind = ManifestVectors.text(testCase.member("kind")) ?? ""
+                let expected = ManifestVectors.text(testCase.member("html")) ?? ""
+                let actual: String = switch kind {
+                case "connected":
+                    AuthPages.connected(
+                        server: JSString(ManifestVectors.text(testCase.member("server")) ?? "")
+                    )
+                default:
+                    AuthPages.failed(
+                        detail: ManifestVectors.text(testCase.member("detail")) ?? ""
+                    )
+                }
+                ManifestVectors.expectSameBytes(actual, expected, "registry/auth-pages")
+            }
+            return cases.count
+        },
         RegisteredVectorFile(
             file: "json-roundtrip", rows: ["N7"], consumer: "JSONParityTests.compactRoundTrip"
         ) { cases in

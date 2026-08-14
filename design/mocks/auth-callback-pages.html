@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>R5 — the authorization callback pages</title>
+<style>
+  /* Sheet chrome uses DESIGN.md tokens. The PAGES THEMSELVES (in the iframes) do not —
+     they are emitted byte-for-byte as the TypeScript reference emits them, because R4's
+     differential parity gate diffs those bytes. See "The divergence" below. */
+  :root{
+    --ground:#1E1E1E; --panel:#232326; --raised:#2C2C2E; --raised2:#3A3A3C;
+    --line:rgba(255,255,255,.075); --lineS:rgba(255,255,255,.14);
+    --t1:#fff; --t2:rgba(255,255,255,.55); --t3:rgba(255,255,255,.50); --t4:rgba(255,255,255,.25);
+    --accent:#0091FF; --live:#30D158; --attn:#FF9230; --fail:#FF4245;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --ground:#ECECEE; --panel:#F5F5F7; --raised:#FFFFFF; --raised2:#E0E0E4;
+      --line:rgba(0,0,0,.10); --lineS:rgba(0,0,0,.19);
+      --t1:rgba(0,0,0,.95); --t2:rgba(0,0,0,.62); --t3:rgba(0,0,0,.58); --t4:rgba(0,0,0,.33);
+      --accent:#0069CF; --live:#1B7B3C; --attn:#9F5A00; --fail:#CD2738;
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ground); color:var(--t1);
+    font:13px/1.5 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    padding:40px 32px 80px;
+  }
+  header{max-width:1180px;margin:0 auto 32px}
+  h1{font-size:22px;font-weight:600;letter-spacing:-.01em;margin:0 0 8px}
+  .sub{color:var(--t2);max-width:70ch;margin:0 0 4px}
+  .wrap{max-width:1180px;margin:0 auto}
+  h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+     color:var(--t3);margin:40px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .card > figcaption{padding:12px 14px;border-bottom:1px solid var(--line);background:var(--raised)}
+  .name{font-weight:600;font-size:12.5px;margin:0 0 3px;display:flex;align-items:center;gap:7px}
+  .why{color:var(--t2);font-size:11.5px;margin:0}
+  .dot{width:7px;height:7px;border-radius:50%;flex:none}
+  .dot.ok{background:var(--live)} .dot.err{background:var(--fail)}
+  .dot.warn{background:var(--attn)} .dot.none{background:var(--t4)}
+  iframe{width:100%;height:210px;border:0;display:block;background:#141220}
+  /* The two terminations that serve no page at all. Drawn as an absence on purpose:
+     an iframe here would imply bytes that are never sent. */
+  .nopage{height:210px;display:grid;place-items:center;text-align:center;padding:0 22px;
+     background:repeating-linear-gradient(135deg,var(--ground),var(--ground) 9px,
+     var(--panel) 9px,var(--panel) 18px);color:var(--t3);font-size:11.5px;line-height:1.6}
+  .nopage span{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:11px 15px}
+  .nopage em{color:var(--t2);font-style:normal}
+  .bytes{margin:0;padding:11px 13px;border-top:1px solid var(--line);background:var(--ground);
+     font:10.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--t2);
+     white-space:pre-wrap;word-break:break-all;max-height:112px;overflow:auto}
+  .bytes b{color:var(--t1);font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--t3);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+  td:first-child{font-weight:600;white-space:nowrap;width:1%}
+  code{font:11.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;
+       background:var(--raised);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+  .note{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--attn);
+        border-radius:8px;padding:14px 16px;margin:16px 0;color:var(--t2)}
+  .note.bad{border-left-color:var(--fail)}
+  .note strong{color:var(--t1)}
+  .note p{margin:0 0 8px} .note p:last-child{margin:0}
+</style>
+</head>
+<body>
+<header>
+  <h1>R5 — the authorization callback pages</h1>
+  <p class="sub">The router's entire user-visible surface for OAuth is two HTML pages served once,
+  on the loopback callback, into whatever browser the user authorized in. The Mac and iPhone
+  authorization surfaces belong to M8 and I1; this sheet is the router half.</p>
+  <p class="sub">Each frame below renders the <em>exact bytes</em> the router emits. They are not
+  restyled to DESIGN.md — see the divergence note.</p>
+</header>
+
+<div class="wrap">
+
+<h2>Rendered states — every page the callback can serve</h2>
+<div class="grid">
+
+  <figure class="card">
+    <figcaption>
+      <p class="name"><span class="dot ok"></span>Success — 200 text/html</p>
+      <p class="why">Token exchange resolved. The one happy path.</p>
+    </figcaption>
+    <iframe title="success" src="auth-pages/success.html" loading="eager"></iframe>
+    <pre class="bytes">title  = <b>`${serverName} is connected`</b>
+detail = <b>You can close this tab and return to mcp-router.</b>
+also   → log.info(`authorized upstream "…"`), settle()</pre>
+  </figure>
+
+  <figure class="card">
+    <figcaption>
+      <p class="name"><span class="dot err"></span>Provider refused — 400 text/html</p>
+      <p class="why">The authorization server sent <code>?error=</code>. Detail is that value, verbatim.</p>
+    </figcaption>
+    <iframe title="provider refused" src="auth-pages/provider-refused.html" loading="eager"></iframe>
+    <pre class="bytes">detail = <b>the raw `error` query parameter</b>
+settle(new Error(error)) → cleanup()</pre>
+  </figure>
+
+  <figure class="card">
+    <figcaption>
+      <p class="name"><span class="dot err"></span>No code returned — 400 text/html</p>
+      <p class="why">Neither <code>code</code> nor <code>error</code> present. Fixed copy.</p>
+    </figcaption>
+    <iframe title="no code" src="auth-pages/no-code.html" loading="eager"></iframe>
+    <pre class="bytes">detail = <b>the provider returned no code</b>
+settle(new Error('no authorization code returned'))</pre>
+  </figure>
+
+  <figure class="card">
+    <figcaption>
+      <p class="name"><span class="dot err"></span>Exchange failed — 500 text/html</p>
+      <p class="why">Code arrived; <code>finishAuth</code> threw. Detail is the thrown message.</p>
+    </figcaption>
+    <iframe title="exchange failed" src="auth-pages/exchange-failed.html" loading="eager"></iframe>
+    <pre class="bytes">detail = <b>(err as Error).message</b>
+settle(err) in catch, cleanup() in finally</pre>
+  </figure>
+
+  <figure class="card">
+    <figcaption>
+      <p class="name"><span class="dot none"></span>Not the callback — 404, empty body</p>
+      <p class="why">Any path other than <code>/callback</code>. No content-type, no bytes, page untouched.</p>
+    </figcaption>
+    <div class="nopage"><span>404 — zero-length body, no content-type header.<br><em>Nothing is rendered.</em></span></div>
+    <pre class="bytes"><b>res.writeHead(404).end()</b> — the flow is NOT settled and
+the listener stays open. Only /callback can terminate a flow.</pre>
+  </figure>
+
+  <figure class="card">
+    <figcaption>
+      <p class="name"><span class="dot warn"></span>Timed out — no page is ever served</p>
+      <p class="why">300 s elapsed. The flow settles and cleans up server-side; the browser is still
+      sitting on the provider and lands on a closed port.</p>
+    </figcaption>
+    <div class="nopage"><span>The browser's own “can't connect to the server” page.<br><em>Ours never renders.</em></span></div>
+    <pre class="bytes">The fifth termination path renders <b>nothing</b>. It is a real
+state of this feature with no surface of its own — recorded
+here so it is not mistaken for an unbuilt page.</pre>
+  </figure>
+
+  <figure class="card">
+    <figcaption>
+      <p class="name"><span class="dot warn"></span>Overflow — a long server name</p>
+      <p class="why">The name is interpolated into <code>&lt;h1&gt;</code> with no truncation. It wraps; the
+      layout is centred and survives, but the title bar does not.</p>
+    </figcaption>
+    <iframe title="overflow" src="auth-pages/overflow.html" loading="eager"></iframe>
+    <pre class="bytes">No <code>max-width</code>, no truncation. Reference behaviour; kept for parity.</pre>
+  </figure>
+
+</div>
+
+<h2>The two control routes — no page, JSON only</h2>
+<div class="grid">
+  <figure class="card">
+    <figcaption>
+      <p class="name"><span class="dot ok"></span><code>POST /servers/:name/auth</code></p>
+      <p class="why">Starts a flow and hands the URL back. The <em>app</em> opens it, never the daemon.</p>
+    </figcaption>
+    <pre class="bytes" style="max-height:none;border-top:0"><b>200</b> {"server":"…","authorizationUrl":"…"}
+<b>400</b> {"error":"stdio servers do not authorize; their
+      credentials are env vars"}
+<b>502</b> {"error":"&lt;the beginAuth failure message&gt;"}</pre>
+  </figure>
+  <figure class="card">
+    <figcaption>
+      <p class="name"><span class="dot ok"></span><code>POST /servers/:name/approve</code></p>
+      <p class="why">Promotes a quarantined tool surface. Not auth, but the second missing route.</p>
+    </figcaption>
+    <pre class="bytes" style="max-height:none;border-top:0"><b>200</b> {"server":"…","approved":&lt;n&gt;}
+<b>409</b> {"error":"no pending change for \"…\""}</pre>
+  </figure>
+</div>
+
+<h2>State matrix — DESIGN.md §5 against this surface</h2>
+<table>
+  <thead><tr><th>State</th><th>How it is met, with real copy</th></tr></thead>
+  <tbody>
+    <tr><td>Default</td><td>The success page: <em>“linear is connected”</em> / <em>“You can close this tab and return to mcp-router.”</em></td></tr>
+    <tr><td>Empty</td><td><strong>Structurally impossible.</strong> The page has no collection to be empty of — it renders one outcome for one flow. Recorded rather than invented.</td></tr>
+    <tr><td>Loading</td><td>Real but <strong>unowned</strong>: <code>finishAuth</code> is awaited <em>before</em> any byte is written, so the browser shows its own progress indicator for the whole exchange. No skeleton is possible without changing the reference's response ordering.</td></tr>
+    <tr><td>Partial</td><td>Not reachable — the exchange either yields tokens or throws. There is no half-authorized record: <code>saveTokens</code> writes tokens and <code>authorizedAt</code> in one write.</td></tr>
+    <tr><td>Error</td><td>Three distinct pages, above: the provider's own <code>error</code> value; <em>“the provider returned no code”</em>; and the exchange exception's message. All three say what happened; none blames the user; none emotes.</td></tr>
+    <tr><td>Success</td><td>In place, no toast — the page <em>is</em> the state change. The app learns of it separately, by the flow's <code>completed</code> promise clearing pending and re-indexing.</td></tr>
+    <tr><td>Offline</td><td>The router is not running ⇒ nothing binds 8880 ⇒ the browser's own connection-refused page. Ours cannot render; the recoverable surface is the Mac app's, and belongs to M8.</td></tr>
+    <tr><td>Disabled</td><td>A stdio server cannot authorize: <code>POST …/auth</code> answers <strong>400</strong> <em>“stdio servers do not authorize; their credentials are env vars”</em> — the reason travels with the refusal, and no page is served.</td></tr>
+    <tr><td>Overflow</td><td>Long names wrap rather than truncate (card above). Reference behaviour, kept deliberately for parity; noted as a defect, not as a design.</td></tr>
+  </tbody>
+</table>
+
+<h2>The divergence, stated rather than silently resolved</h2>
+
+<div class="note">
+  <p><strong>These pages do not use DESIGN.md's tokens, and R5 must not make them.</strong></p>
+  <p>The reference paints <code>#141220</code> ground, <code>#eae8f5</code> primary and <code>#a6a2c4</code> secondary.
+  DESIGN.md specifies <code>--ground #1E1E1E</code>, <code>--t1 #FFF</code>, <code>--t2 #FFF @55%</code>. They disagree.</p>
+  <p>DESIGN.md is authoritative for UI decisions, but R4's differential parity gate diffs the Swift
+  router's bytes against the TypeScript router's, and spec-R3 B65 names these as <em>the recorded
+  pages</em>. Restyling them inside R5 would fail the one gate that proves the port is faithful.
+  <strong>The restyle is therefore a deferred child scheduled after R4's cutover</strong>, and it must change
+  both routers in the same commit. R5 emits the reference's bytes.</p>
+</div>
+
+<div class="note bad">
+  <p><strong>Two security findings in the reference, carried into this sheet rather than patched here.</strong></p>
+  <p><em>Reflected HTML injection.</em> <code>PAGE(title, detail)</code> interpolates without escaping, and
+  <code>detail</code> on the provider-refused path is the raw <code>error</code> query parameter. Any page the user
+  visits during a flow can reach <code>http://127.0.0.1:8880/callback?error=…</code> and have arbitrary
+  markup rendered on that origin, and can settle the flow as failed.</p>
+  <p><em>No <code>state</code> validation.</em> The callback reads <code>code</code> and <code>error</code> and never checks the CSRF
+  <code>state</code> nonce, so a forged callback can drive <code>finishAuth</code> with an injected code. PKCE binds the
+  verifier and blunts it; the missing check is still a gap. Notably the Swift SDK's
+  <code>OAuthAuthorizationCodeFlow.extractCode</code> <em>does</em> enforce <code>expectedState</code> — so whoever builds the
+  transport (R2) gets the check for free and would then diverge from the reference.</p>
+  <p>Both are cross-cutting: fixing either in Swift alone breaks parity, so both are reported to the
+  orchestrator as items spanning R2/R4 rather than resolved unilaterally inside R5.</p>
+</div>
+
+</div>
+</body>
+</html>

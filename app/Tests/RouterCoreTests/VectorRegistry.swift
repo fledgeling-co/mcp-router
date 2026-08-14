@@ -170,7 +170,28 @@ struct VectorRegistryTests {
     /// merely to hold. The 128 added here are the control API's routing predicate, `Number`,
     /// `localeCompare`, `basename`, and the two `?limit=` pipelines, each driven from the reference
     /// or from the engine whose semantics the Swift reimplements.
-    static let executedFloor = 352
+    /// R5 adds the six auth-page vectors, so the floor rises again to 358: the ratchet is the
+    /// point — a floor left at 352 would let the auth corpus be deleted without failing.
+    static let executedFloor = 358
+
+    /// B81. A bare total is satisfied by any unrelated vectors, so the auth corpus is asserted
+    /// **by name** as well as by count — the substitute out-of-family gate found that a floor alone
+    /// would pass with forty vectors that have nothing to do with auth.
+    @Test("the auth vectors are registered, non-empty, and fully compared")
+    func authVectorsAreCountedByName() async throws {
+        let authFiles = VectorRegistry.files.filter { $0.file.hasPrefix("auth-") }
+        #expect(!authFiles.isEmpty, "no auth vector file is registered")
+        var authExecuted = 0
+        for registered in authFiles {
+            let cases = try ManifestVectors.cases(registered.file)
+            #expect(!cases.isEmpty, "\(registered.file) is registered but empty")
+            let compared = try await registered.compare(cases)
+            #expect(compared == cases.count, "\(registered.file): \(compared) of \(cases.count)")
+            authExecuted += compared
+        }
+        print("PARITY-VECTORS-AUTH: \(authExecuted)")
+        #expect(authExecuted >= 6, "the auth corpus executed \(authExecuted) cases")
+    }
 
     /// The attestation. Every registered file is loaded, every case is put through the assertion
     /// that consumes it, and the consumer reports how many it compared — so a vector that is

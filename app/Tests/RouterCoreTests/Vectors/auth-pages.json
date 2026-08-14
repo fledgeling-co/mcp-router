@@ -1,0 +1,47 @@
+{
+  "description": "The bytes src/auth.ts's PAGE() emits, generated from the reference's own template literal. R4 diffs these.",
+  "cases": [
+    {
+      "id": "connected",
+      "kind": "connected",
+      "server": "linear",
+      "detail": "",
+      "html": "<!doctype html><meta charset=\"utf-8\"><title>linear is connected</title><style>body{font:15px/1.6 -apple-system,system-ui,sans-serif;background:#141220;color:#eae8f5;display:grid;place-items:center;height:100vh;margin:0;text-align:center}h1{font-size:19px;margin:0 0 6px}p{margin:0;color:#a6a2c4}</style><div><h1>linear is connected</h1><p>You can close this tab and return to mcp-router.</p></div>"
+    },
+    {
+      "id": "connected-unicode",
+      "kind": "connected",
+      "server": "a-b_9",
+      "detail": "",
+      "html": "<!doctype html><meta charset=\"utf-8\"><title>a-b_9 is connected</title><style>body{font:15px/1.6 -apple-system,system-ui,sans-serif;background:#141220;color:#eae8f5;display:grid;place-items:center;height:100vh;margin:0;text-align:center}h1{font-size:19px;margin:0 0 6px}p{margin:0;color:#a6a2c4}</style><div><h1>a-b_9 is connected</h1><p>You can close this tab and return to mcp-router.</p></div>"
+    },
+    {
+      "id": "provider-refused",
+      "kind": "failed",
+      "server": "",
+      "detail": "access_denied",
+      "html": "<!doctype html><meta charset=\"utf-8\"><title>Authorization failed</title><style>body{font:15px/1.6 -apple-system,system-ui,sans-serif;background:#141220;color:#eae8f5;display:grid;place-items:center;height:100vh;margin:0;text-align:center}h1{font-size:19px;margin:0 0 6px}p{margin:0;color:#a6a2c4}</style><div><h1>Authorization failed</h1><p>access_denied</p></div>"
+    },
+    {
+      "id": "no-code",
+      "kind": "failed",
+      "server": "",
+      "detail": "the provider returned no code",
+      "html": "<!doctype html><meta charset=\"utf-8\"><title>Authorization failed</title><style>body{font:15px/1.6 -apple-system,system-ui,sans-serif;background:#141220;color:#eae8f5;display:grid;place-items:center;height:100vh;margin:0;text-align:center}h1{font-size:19px;margin:0 0 6px}p{margin:0;color:#a6a2c4}</style><div><h1>Authorization failed</h1><p>the provider returned no code</p></div>"
+    },
+    {
+      "id": "exchange-failed",
+      "kind": "failed",
+      "server": "",
+      "detail": "token endpoint returned 401 invalid_client",
+      "html": "<!doctype html><meta charset=\"utf-8\"><title>Authorization failed</title><style>body{font:15px/1.6 -apple-system,system-ui,sans-serif;background:#141220;color:#eae8f5;display:grid;place-items:center;height:100vh;margin:0;text-align:center}h1{font-size:19px;margin:0 0 6px}p{margin:0;color:#a6a2c4}</style><div><h1>Authorization failed</h1><p>token endpoint returned 401 invalid_client</p></div>"
+    },
+    {
+      "id": "empty-error-detail",
+      "kind": "failed",
+      "server": "",
+      "detail": "",
+      "html": "<!doctype html><meta charset=\"utf-8\"><title>Authorization failed</title><style>body{font:15px/1.6 -apple-system,system-ui,sans-serif;background:#141220;color:#eae8f5;display:grid;place-items:center;height:100vh;margin:0;text-align:center}h1{font-size:19px;margin:0 0 6px}p{margin:0;color:#a6a2c4}</style><div><h1>Authorization failed</h1><p></p></div>"
+    }
+  ]
+}

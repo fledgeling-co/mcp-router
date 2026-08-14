@@ -1,0 +1,179 @@
+{
+  "description": "JSON.parse then JSON.stringify. `compact` is the digest form; `pretty` is the manifest form.",
+  "cases": [
+    {
+      "id": "empty-object",
+      "text": "{}",
+      "compact": "{}",
+      "pretty": "{}"
+    },
+    {
+      "id": "empty-array",
+      "text": "[]",
+      "compact": "[]",
+      "pretty": "[]"
+    },
+    {
+      "id": "nested-schema",
+      "text": "{\"type\":\"object\",\"properties\":{\"b\":{\"type\":\"string\"},\"a\":{\"type\":\"number\"}},\"required\":[\"b\",\"a\"]}",
+      "compact": "{\"type\":\"object\",\"properties\":{\"b\":{\"type\":\"string\"},\"a\":{\"type\":\"number\"}},\"required\":[\"b\",\"a\"]}",
+      "pretty": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"b\": {\n      \"type\": \"string\"\n    },\n    \"a\": {\n      \"type\": \"number\"\n    }\n  },\n  \"required\": [\n    \"b\",\n    \"a\"\n  ]\n}"
+    },
+    {
+      "id": "scalars",
+      "text": "[null,true,false,\"x\"]",
+      "compact": "[null,true,false,\"x\"]",
+      "pretty": "[\n  null,\n  true,\n  false,\n  \"x\"\n]"
+    },
+    {
+      "id": "member-order-za",
+      "text": "{\"z\":0,\"a\":1}",
+      "compact": "{\"z\":0,\"a\":1}",
+      "pretty": "{\n  \"z\": 0,\n  \"a\": 1\n}"
+    },
+    {
+      "id": "member-order-az",
+      "text": "{\"a\":1,\"z\":0}",
+      "compact": "{\"a\":1,\"z\":0}",
+      "pretty": "{\n  \"a\": 1,\n  \"z\": 0\n}"
+    },
+    {
+      "id": "duplicate-keys",
+      "text": "{\"b\":1,\"a\":2,\"b\":3}",
+      "compact": "{\"b\":3,\"a\":2}",
+      "pretty": "{\n  \"b\": 3,\n  \"a\": 2\n}"
+    },
+    {
+      "id": "duplicate-keys-escaped",
+      "text": "{\"a\":1,\"\\u0061\":2,\"b\":3}",
+      "compact": "{\"a\":2,\"b\":3}",
+      "pretty": "{\n  \"a\": 2,\n  \"b\": 3\n}"
+    },
+    {
+      "id": "index-keys",
+      "text": "{\"10\":\"a\",\"2\":\"b\",\"a\":\"c\",\"0\":\"d\"}",
+      "compact": "{\"0\":\"d\",\"2\":\"b\",\"10\":\"a\",\"a\":\"c\"}",
+      "pretty": "{\n  \"0\": \"d\",\n  \"2\": \"b\",\n  \"10\": \"a\",\n  \"a\": \"c\"\n}"
+    },
+    {
+      "id": "index-key-boundaries",
+      "text": "{\"4294967295\":\"x\",\"01\":\"y\",\"-0\":\"z\",\"4294967294\":\"w\",\"0\":\"v\"}",
+      "compact": "{\"0\":\"v\",\"4294967294\":\"w\",\"4294967295\":\"x\",\"01\":\"y\",\"-0\":\"z\"}",
+      "pretty": "{\n  \"0\": \"v\",\n  \"4294967294\": \"w\",\n  \"4294967295\": \"x\",\n  \"01\": \"y\",\n  \"-0\": \"z\"\n}"
+    },
+    {
+      "id": "lone-high-surrogate",
+      "text": "\"\\ud800\"",
+      "compact": "\"\\ud800\"",
+      "pretty": "\"\\ud800\""
+    },
+    {
+      "id": "lone-low-surrogate",
+      "text": "\"\\udc00\"",
+      "compact": "\"\\udc00\"",
+      "pretty": "\"\\udc00\""
+    },
+    {
+      "id": "surrogate-pair",
+      "text": "\"\\ud83d\\ude00\"",
+      "compact": "\"😀\"",
+      "pretty": "\"😀\""
+    },
+    {
+      "id": "reversed-surrogates",
+      "text": "\"\\ude00\\ud83d\"",
+      "compact": "\"\\ude00\\ud83d\"",
+      "pretty": "\"\\ude00\\ud83d\""
+    },
+    {
+      "id": "canonical-equivalence",
+      "text": "{\"\\u00e9\":1,\"e\\u0301\":2}",
+      "compact": "{\"é\":1,\"é\":2}",
+      "pretty": "{\n  \"é\": 1,\n  \"é\": 2\n}"
+    },
+    {
+      "id": "control-characters",
+      "text": "\"\\u0000\\u0008\\u0009\\u000a\\u000b\\u000c\\u000d\\u001f\"",
+      "compact": "\"\\u0000\\b\\t\\n\\u000b\\f\\r\\u001f\"",
+      "pretty": "\"\\u0000\\b\\t\\n\\u000b\\f\\r\\u001f\""
+    },
+    {
+      "id": "quote-and-backslash",
+      "text": "\"he said \\\"hi\\\" \\\\ done\"",
+      "compact": "\"he said \\\"hi\\\" \\\\ done\"",
+      "pretty": "\"he said \\\"hi\\\" \\\\ done\""
+    },
+    {
+      "id": "solidus-stays-raw",
+      "text": "\"a\\/b\"",
+      "compact": "\"a/b\"",
+      "pretty": "\"a/b\""
+    },
+    {
+      "id": "line-separators-stay-raw",
+      "text": "\"a\\u2028b\\u2029c\"",
+      "compact": "\"a b c\"",
+      "pretty": "\"a b c\""
+    },
+    {
+      "id": "non-ascii-raw",
+      "text": "\"naïve — 日本語\"",
+      "compact": "\"naïve — 日本語\"",
+      "pretty": "\"naïve — 日本語\""
+    },
+    {
+      "id": "number-zero",
+      "text": "[0,-0]",
+      "compact": "[0,0]",
+      "pretty": "[\n  0,\n  0\n]"
+    },
+    {
+      "id": "number-integers",
+      "text": "[1,100,1e20]",
+      "compact": "[1,100,100000000000000000000]",
+      "pretty": "[\n  1,\n  100,\n  100000000000000000000\n]"
+    },
+    {
+      "id": "number-exponent-boundary",
+      "text": "[1e21,1e-6,1e-7]",
+      "compact": "[1e+21,0.000001,1e-7]",
+      "pretty": "[\n  1e+21,\n  0.000001,\n  1e-7\n]"
+    },
+    {
+      "id": "number-precision-loss",
+      "text": "[9007199254740993,1000000000000000128]",
+      "compact": "[9007199254740992,1000000000000000100]",
+      "pretty": "[\n  9007199254740992,\n  1000000000000000100\n]"
+    },
+    {
+      "id": "number-tie-break",
+      "text": "[1424953923781206.25]",
+      "compact": "[1424953923781206.2]",
+      "pretty": "[\n  1424953923781206.2\n]"
+    },
+    {
+      "id": "number-overflow-to-null",
+      "text": "[1e400,-1e400]",
+      "compact": "[null,null]",
+      "pretty": "[\n  null,\n  null\n]"
+    },
+    {
+      "id": "number-extremes",
+      "text": "[5e-324,1.7976931348623157e308]",
+      "compact": "[5e-324,1.7976931348623157e+308]",
+      "pretty": "[\n  5e-324,\n  1.7976931348623157e+308\n]"
+    },
+    {
+      "id": "number-spelling-discarded",
+      "text": "[1.2300e+2]",
+      "compact": "[123]",
+      "pretty": "[\n  123\n]"
+    },
+    {
+      "id": "proto-key",
+      "text": "{\"__proto__\":{\"p\":1},\"x\":2}",
+      "compact": "{\"__proto__\":{\"p\":1},\"x\":2}",
+      "pretty": "{\n  \"__proto__\": {\n    \"p\": 1\n  },\n  \"x\": 2\n}"
+    }
+  ]
+}

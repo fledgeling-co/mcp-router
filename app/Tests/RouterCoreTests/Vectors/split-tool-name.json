@@ -1,0 +1,59 @@
+{
+  "description": "splitToolName(name) — splits at the FIRST separator.",
+  "cases": [
+    {
+      "id": "split-0",
+      "input": "server__tool",
+      "server": "server",
+      "tool": "tool"
+    },
+    {
+      "id": "split-1",
+      "input": "a__b__c",
+      "server": "a",
+      "tool": "b__c"
+    },
+    {
+      "id": "split-2",
+      "input": "a____b",
+      "server": "a",
+      "tool": "__b"
+    },
+    {
+      "id": "split-3",
+      "input": "__leading",
+      "server": null,
+      "tool": null
+    },
+    {
+      "id": "split-4",
+      "input": "trailing__",
+      "server": null,
+      "tool": null
+    },
+    {
+      "id": "split-5",
+      "input": "nosep",
+      "server": null,
+      "tool": null
+    },
+    {
+      "id": "split-6",
+      "input": "",
+      "server": null,
+      "tool": null
+    },
+    {
+      "id": "split-7",
+      "input": "__",
+      "server": null,
+      "tool": null
+    },
+    {
+      "id": "split-8",
+      "input": "a__",
+      "server": null,
+      "tool": null
+    }
+  ]
+}

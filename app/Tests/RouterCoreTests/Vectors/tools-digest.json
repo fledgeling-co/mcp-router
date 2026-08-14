@@ -1,0 +1,200 @@
+{
+  "description": "toolsDigest(tools) — sha256 over the material, sliced to 16.",
+  "cases": [
+    {
+      "id": "empty",
+      "tools": [],
+      "digest": "4f53cda18c2baa0c"
+    },
+    {
+      "id": "single",
+      "tools": [
+        {
+          "name": "a",
+          "description": "does a",
+          "inputSchema": {
+            "type": "object"
+          }
+        }
+      ],
+      "digest": "330830144b223717"
+    },
+    {
+      "id": "duplicate-names-ab",
+      "tools": [
+        {
+          "name": "x",
+          "description": "first"
+        },
+        {
+          "name": "x",
+          "description": "second"
+        }
+      ],
+      "digest": "ee3d697c76c4ae99"
+    },
+    {
+      "id": "duplicate-names-ba",
+      "tools": [
+        {
+          "name": "x",
+          "description": "second"
+        },
+        {
+          "name": "x",
+          "description": "first"
+        }
+      ],
+      "digest": "774c643f5f4db147"
+    },
+    {
+      "id": "schema-order-za",
+      "tools": [
+        {
+          "name": "a",
+          "inputSchema": {
+            "z": 0,
+            "a": 1
+          }
+        }
+      ],
+      "digest": "92009a6acf766b0f"
+    },
+    {
+      "id": "schema-order-az",
+      "tools": [
+        {
+          "name": "a",
+          "inputSchema": {
+            "a": 1,
+            "z": 0
+          }
+        }
+      ],
+      "digest": "18d1149ff34862d3"
+    },
+    {
+      "id": "sorted-by-name-ab",
+      "tools": [
+        {
+          "name": "a",
+          "description": "A"
+        },
+        {
+          "name": "b",
+          "description": "B"
+        }
+      ],
+      "digest": "31d62e08f4f0095e"
+    },
+    {
+      "id": "sorted-by-name-ba",
+      "tools": [
+        {
+          "name": "b",
+          "description": "B"
+        },
+        {
+          "name": "a",
+          "description": "A"
+        }
+      ],
+      "digest": "31d62e08f4f0095e"
+    },
+    {
+      "id": "other-members-ignored",
+      "tools": [
+        {
+          "name": "a",
+          "description": "does a",
+          "inputSchema": {
+            "type": "object"
+          },
+          "title": "T",
+          "annotations": {
+            "readOnlyHint": true
+          },
+          "outputSchema": {
+            "type": "string"
+          }
+        }
+      ],
+      "digest": "330830144b223717"
+    },
+    {
+      "id": "nullish-description",
+      "tools": [
+        {
+          "name": "a"
+        }
+      ],
+      "digest": "e8bfa7f31b46a4a6"
+    },
+    {
+      "id": "null-description",
+      "tools": [
+        {
+          "name": "a",
+          "description": null
+        }
+      ],
+      "digest": "e8bfa7f31b46a4a6"
+    },
+    {
+      "id": "empty-description",
+      "tools": [
+        {
+          "name": "a",
+          "description": ""
+        }
+      ],
+      "digest": "e8bfa7f31b46a4a6"
+    },
+    {
+      "id": "nullish-schema",
+      "tools": [
+        {
+          "name": "a",
+          "description": "d"
+        }
+      ],
+      "digest": "93c625914eb3b97e"
+    },
+    {
+      "id": "null-schema",
+      "tools": [
+        {
+          "name": "a",
+          "description": "d",
+          "inputSchema": null
+        }
+      ],
+      "digest": "93c625914eb3b97e"
+    },
+    {
+      "id": "empty-object-schema",
+      "tools": [
+        {
+          "name": "a",
+          "description": "d",
+          "inputSchema": {}
+        }
+      ],
+      "digest": "93c625914eb3b97e"
+    },
+    {
+      "id": "utf16-name-ordering",
+      "tools": [
+        {
+          "name": "😀",
+          "description": "emoji"
+        },
+        {
+          "name": "",
+          "description": "private"
+        }
+      ],
+      "digest": "4978dacf25074e20"
+    }
+  ]
+}

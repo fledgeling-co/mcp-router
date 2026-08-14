@@ -1,0 +1,260 @@
+{
+  "description": "buildManifest — the four bookkeeping branches, with a fixed clock and a stub pool.",
+  "cases": [
+    {
+      "id": "first-sight-approves",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "force": false,
+      "servers": {},
+      "observation": {
+        "tools": [
+          {
+            "name": "one",
+            "description": "d"
+          }
+        ]
+      },
+      "builtAtMs": 1755100000123,
+      "manifest": "{\"version\":1,\"servers\":{\"a\":{\"hash\":\"580d0f895bc321a8\",\"builtAt\":\"2025-08-13T15:46:40.123Z\",\"tools\":[{\"name\":\"one\",\"description\":\"d\"}],\"digest\":\"6f9b5c47ae3a5faf\"}}}",
+      "built": [
+        "a (1 tools)"
+      ],
+      "failed": [],
+      "mutatedInPlace": true
+    },
+    {
+      "id": "equal-digest-clears-error-and-pending",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "force": true,
+      "servers": {
+        "a": {
+          "hash": "580d0f895bc321a8",
+          "builtAt": "old",
+          "tools": [
+            {
+              "name": "one",
+              "description": "d"
+            }
+          ],
+          "digest": "6f9b5c47ae3a5faf",
+          "error": "stale error",
+          "pending": {
+            "tools": [],
+            "digest": "x",
+            "seenAt": "old"
+          }
+        }
+      },
+      "observation": {
+        "tools": [
+          {
+            "name": "one",
+            "description": "d"
+          }
+        ]
+      },
+      "builtAtMs": 1755100000123,
+      "manifest": "{\"version\":1,\"servers\":{\"a\":{\"hash\":\"580d0f895bc321a8\",\"builtAt\":\"2025-08-13T15:46:40.123Z\",\"tools\":[{\"name\":\"one\",\"description\":\"d\"}],\"digest\":\"6f9b5c47ae3a5faf\"}}}",
+      "built": [
+        "a (1 tools)"
+      ],
+      "failed": [],
+      "mutatedInPlace": true
+    },
+    {
+      "id": "changed-digest-holds-pending",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "force": true,
+      "servers": {
+        "a": {
+          "hash": "580d0f895bc321a8",
+          "builtAt": "old",
+          "tools": [
+            {
+              "name": "one",
+              "description": "old"
+            }
+          ],
+          "digest": "5e029a1a31538d9f",
+          "error": "prior",
+          "x-vendor": "kept"
+        }
+      },
+      "observation": {
+        "tools": [
+          {
+            "name": "one",
+            "description": "new"
+          }
+        ]
+      },
+      "builtAtMs": 1755100000123,
+      "manifest": "{\"version\":1,\"servers\":{\"a\":{\"hash\":\"580d0f895bc321a8\",\"builtAt\":\"old\",\"tools\":[{\"name\":\"one\",\"description\":\"old\"}],\"digest\":\"5e029a1a31538d9f\",\"x-vendor\":\"kept\",\"pending\":{\"tools\":[{\"name\":\"one\",\"description\":\"new\"}],\"digest\":\"734d4b8daa08d782\",\"seenAt\":\"2025-08-13T15:46:40.123Z\"}}}}",
+      "built": [
+        "a (1 change(s) held for approval)"
+      ],
+      "failed": [],
+      "mutatedInPlace": true
+    },
+    {
+      "id": "failure-destroys-approved-tools",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "force": true,
+      "servers": {
+        "a": {
+          "hash": "580d0f895bc321a8",
+          "builtAt": "old",
+          "tools": [
+            {
+              "name": "one",
+              "description": "d"
+            }
+          ],
+          "digest": "dd"
+        }
+      },
+      "observation": {
+        "error": "spawn failed"
+      },
+      "builtAtMs": 1755100000123,
+      "manifest": "{\"version\":1,\"servers\":{\"a\":{\"hash\":\"580d0f895bc321a8\",\"builtAt\":\"2025-08-13T15:46:40.123Z\",\"tools\":[],\"error\":\"spawn failed\"}}}",
+      "built": [],
+      "failed": [
+        "a: spawn failed"
+      ],
+      "mutatedInPlace": true
+    },
+    {
+      "id": "not-stale-is-skipped",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "force": false,
+      "servers": {
+        "a": {
+          "hash": "580d0f895bc321a8",
+          "builtAt": "old",
+          "tools": [
+            {
+              "name": "one"
+            }
+          ],
+          "digest": "dd"
+        }
+      },
+      "observation": {
+        "tools": [
+          {
+            "name": "CHANGED"
+          }
+        ]
+      },
+      "builtAtMs": 1755100000123,
+      "manifest": "{\"version\":1,\"servers\":{\"a\":{\"hash\":\"580d0f895bc321a8\",\"builtAt\":\"old\",\"tools\":[{\"name\":\"one\"}],\"digest\":\"dd\"}}}",
+      "built": [],
+      "failed": [],
+      "mutatedInPlace": true
+    },
+    {
+      "id": "force-bypasses-staleness",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "force": true,
+      "servers": {
+        "a": {
+          "hash": "580d0f895bc321a8",
+          "builtAt": "old",
+          "tools": [
+            {
+              "name": "one"
+            }
+          ],
+          "digest": "dd"
+        }
+      },
+      "observation": {
+        "tools": [
+          {
+            "name": "one"
+          }
+        ]
+      },
+      "builtAtMs": 1755100000123,
+      "manifest": "{\"version\":1,\"servers\":{\"a\":{\"hash\":\"580d0f895bc321a8\",\"builtAt\":\"old\",\"tools\":[{\"name\":\"one\"}],\"digest\":\"dd\",\"pending\":{\"tools\":[{\"name\":\"one\"}],\"digest\":\"d0ddafa9e15eda68\",\"seenAt\":\"2025-08-13T15:46:40.123Z\"}}}}",
+      "built": [
+        "a (0 change(s) held for approval)"
+      ],
+      "failed": [],
+      "mutatedInPlace": true
+    },
+    {
+      "id": "removed-upstreams-stay",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "force": false,
+      "servers": {
+        "gone": {
+          "hash": "h",
+          "builtAt": "old",
+          "tools": [
+            {
+              "name": "z"
+            }
+          ]
+        }
+      },
+      "observation": {
+        "tools": [
+          {
+            "name": "one"
+          }
+        ]
+      },
+      "builtAtMs": 1755100000123,
+      "manifest": "{\"version\":1,\"servers\":{\"gone\":{\"hash\":\"h\",\"builtAt\":\"old\",\"tools\":[{\"name\":\"z\"}]},\"a\":{\"hash\":\"580d0f895bc321a8\",\"builtAt\":\"2025-08-13T15:46:40.123Z\",\"tools\":[{\"name\":\"one\"}],\"digest\":\"d0ddafa9e15eda68\"}}}",
+      "built": [
+        "a (1 tools)"
+      ],
+      "failed": [],
+      "mutatedInPlace": true
+    }
+  ]
+}

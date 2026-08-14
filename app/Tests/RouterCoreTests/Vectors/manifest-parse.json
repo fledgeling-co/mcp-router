@@ -1,0 +1,96 @@
+{
+  "description": "loadManifest(path) — the shallow parser. A degraded load returns the empty manifest.",
+  "cases": [
+    {
+      "id": "ordinary",
+      "text": "{\"version\":1,\"servers\":{\"a\":{\"hash\":\"h\",\"builtAt\":\"t\",\"tools\":[]}}}",
+      "loaded": "{\"version\":1,\"servers\":{\"a\":{\"hash\":\"h\",\"builtAt\":\"t\",\"tools\":[]}}}",
+      "degraded": false,
+      "reserialised": "{\n  \"version\": 1,\n  \"servers\": {\n    \"a\": {\n      \"hash\": \"h\",\n      \"builtAt\": \"t\",\n      \"tools\": []\n    }\n  }\n}"
+    },
+    {
+      "id": "servers-array-accepted",
+      "text": "{\"version\":1,\"servers\":[]}",
+      "loaded": "{\"version\":1,\"servers\":[]}",
+      "degraded": false,
+      "reserialised": "{\n  \"version\": 1,\n  \"servers\": []\n}"
+    },
+    {
+      "id": "unknown-top-level-preserved",
+      "text": "{\"version\":1,\"servers\":{},\"generatedBy\":\"someone\",\"note\":{\"deep\":true}}",
+      "loaded": "{\"version\":1,\"servers\":{},\"generatedBy\":\"someone\",\"note\":{\"deep\":true}}",
+      "degraded": false,
+      "reserialised": "{\n  \"version\": 1,\n  \"servers\": {},\n  \"generatedBy\": \"someone\",\n  \"note\": {\n    \"deep\": true\n  }\n}"
+    },
+    {
+      "id": "unknown-entry-fields-preserved",
+      "text": "{\"version\":1,\"servers\":{\"a\":{\"hash\":\"h\",\"builtAt\":\"t\",\"tools\":[],\"x-vendor\":1}}}",
+      "loaded": "{\"version\":1,\"servers\":{\"a\":{\"hash\":\"h\",\"builtAt\":\"t\",\"tools\":[],\"x-vendor\":1}}}",
+      "degraded": false,
+      "reserialised": "{\n  \"version\": 1,\n  \"servers\": {\n    \"a\": {\n      \"hash\": \"h\",\n      \"builtAt\": \"t\",\n      \"tools\": [],\n      \"x-vendor\": 1\n    }\n  }\n}"
+    },
+    {
+      "id": "entries-not-validated",
+      "text": "{\"version\":1,\"servers\":{\"a\":{\"nonsense\":true}}}",
+      "loaded": "{\"version\":1,\"servers\":{\"a\":{\"nonsense\":true}}}",
+      "degraded": false,
+      "reserialised": "{\n  \"version\": 1,\n  \"servers\": {\n    \"a\": {\n      \"nonsense\": true\n    }\n  }\n}"
+    },
+    {
+      "id": "member-order-preserved",
+      "text": "{\"servers\":{\"a\":{\"tools\":[],\"builtAt\":\"t\",\"hash\":\"h\"}},\"version\":1}",
+      "loaded": "{\"servers\":{\"a\":{\"tools\":[],\"builtAt\":\"t\",\"hash\":\"h\"}},\"version\":1}",
+      "degraded": false,
+      "reserialised": "{\n  \"servers\": {\n    \"a\": {\n      \"tools\": [],\n      \"builtAt\": \"t\",\n      \"hash\": \"h\"\n    }\n  },\n  \"version\": 1\n}"
+    },
+    {
+      "id": "version-string-rejected",
+      "text": "{\"version\":\"1\",\"servers\":{}}",
+      "loaded": "{\"version\":1,\"servers\":{}}",
+      "degraded": true,
+      "reserialised": "{\n  \"version\": 1,\n  \"servers\": {}\n}"
+    },
+    {
+      "id": "version-two-rejected",
+      "text": "{\"version\":2,\"servers\":{}}",
+      "loaded": "{\"version\":1,\"servers\":{}}",
+      "degraded": true,
+      "reserialised": "{\n  \"version\": 1,\n  \"servers\": {}\n}"
+    },
+    {
+      "id": "servers-null-rejected",
+      "text": "{\"version\":1,\"servers\":null}",
+      "loaded": "{\"version\":1,\"servers\":{}}",
+      "degraded": true,
+      "reserialised": "{\n  \"version\": 1,\n  \"servers\": {}\n}"
+    },
+    {
+      "id": "servers-string-rejected",
+      "text": "{\"version\":1,\"servers\":\"nope\"}",
+      "loaded": "{\"version\":1,\"servers\":{}}",
+      "degraded": true,
+      "reserialised": "{\n  \"version\": 1,\n  \"servers\": {}\n}"
+    },
+    {
+      "id": "servers-absent-rejected",
+      "text": "{\"version\":1}",
+      "loaded": "{\"version\":1,\"servers\":{}}",
+      "degraded": true,
+      "reserialised": "{\n  \"version\": 1,\n  \"servers\": {}\n}"
+    },
+    {
+      "id": "not-json",
+      "text": "{oh no",
+      "loaded": "{\"version\":1,\"servers\":{}}",
+      "degraded": true,
+      "reserialised": "{\n  \"version\": 1,\n  \"servers\": {}\n}"
+    },
+    {
+      "id": "top-level-array-rejected",
+      "text": "[1,2,3]",
+      "loaded": "{\"version\":1,\"servers\":{}}",
+      "degraded": true,
+      "reserialised": "{\n  \"version\": 1,\n  \"servers\": {}\n}"
+    }
+  ]
+}

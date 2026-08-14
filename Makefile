@@ -16,10 +16,10 @@ UNSIGNED   := CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 IOS_DEST   ?= generic/platform=iOS Simulator
 MAC_DEST   ?= platform=macOS
 
-.PHONY: all tools generate build build-mac build-mac-release build-ios test acceptance lint format clean
+.PHONY: all tools generate build build-mac build-mac-release build-ios test parity parity-regen mutation acceptance lint format clean
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
-all: tools lint build test
+all: tools lint build test parity
 
 ## Fail loudly and specifically when a required tool is missing, rather than skipping the gate.
 ## A silently-skipped lint step is worse than no lint step: it reports success.
@@ -102,6 +102,71 @@ test:
 	    echo "error: zero tests executed — a suite can discover tests, skip every one, and still exit 0"; \
 	    exit 1; \
 	  fi
+
+## The parity corpus specifically — A41.
+##
+## `make test` proves *some* number of tests ran. That is not the claim this item needs: a port can
+## delete half the vector corpus, keep every test name, and watch the test count rise because it
+## added tests elsewhere. So the attestation test prints how many vector cases it actually compared,
+## and this target reads that number back.
+##
+## Three outcomes, kept apart on purpose. A missing marker means the attestation did not run at all,
+## which is the failure that looks most like success — a suite that silently stopped matching its
+## own test prints nothing and exits 0. A count below the floor means the corpus shrank. Only a
+## marker at or above the floor is a pass.
+parity:
+	@set -eu -o pipefail; cd $(APP_DIR); \
+	  output=$$(swift test --filter VectorRegistryTests 2>&1) || { \
+	    echo "$$output"; echo "error: the parity suite failed"; exit 1; }; \
+	  marker=$$(printf '%s\n' "$$output" | grep -oE 'PARITY-VECTORS-EXECUTED: [0-9]+' | tail -1 || true); \
+	  if [ -z "$$marker" ]; then \
+	    echo "error: the suite printed no PARITY-VECTORS-EXECUTED marker, so the attestation did"; \
+	    echo "       not run. A corpus nobody read cannot be distinguished from a corpus that passed."; \
+	    exit 1; \
+	  fi; \
+	  count=$${marker##*: }; \
+	  floor=$$(grep -oE 'executedFloor = [0-9]+' Tests/RouterCoreTests/VectorRegistry.swift | grep -oE '[0-9]+'); \
+	  echo "parity: $$count vector cases compared (floor $$floor)"; \
+	  if [ "$$count" -lt "$$floor" ]; then \
+	    echo "error: the corpus executed $$count cases, below the floor of $$floor"; exit 1; \
+	  fi
+
+## A39 — the committed vectors are what the TypeScript reference produces *today*, not what it
+## produced whenever they were last written by hand.
+##
+## Kept out of `all` because it needs node and a built `dist/`, neither of which a Swift-only
+## checkout has. A worktree carries no `dist/` of its own, so the reference is driven from the main
+## checkout via MCP_ROUTER_DIST while the comparison runs against the branch's committed vectors.
+parity-regen:
+	@set -eu -o pipefail; \
+	  dist="$${MCP_ROUTER_DIST:-$$(git rev-parse --show-toplevel)/dist}"; \
+	  if [ ! -f "$$dist/config.js" ]; then \
+	    echo "error: no built reference at $$dist — run 'npm run build' in the main checkout,"; \
+	    echo "       or set MCP_ROUTER_DIST. Skipping is not an option: an unrun regeneration"; \
+	    echo "       check reports the same success as a passing one."; \
+	    exit 1; \
+	  fi; \
+	  scratch="$$(mktemp -d -t mcprouter-vectors)"; \
+	  trap 'rm -rf "$$scratch"' EXIT; \
+	  MCP_ROUTER_DIST="$$dist" MCP_ROUTER_VECTORS="$$scratch" \
+	    node scripts/parity/generate-vectors.mjs >/dev/null; \
+	  if diff -ru $(APP_DIR)/Tests/RouterCoreTests/Vectors "$$scratch"; then \
+	    echo "parity-regen: the committed vectors match the reference exactly"; \
+	  else \
+	    echo "error: regenerating the vectors changed them — the committed corpus no longer"; \
+	    echo "       matches what the TypeScript reference produces."; \
+	    exit 1; \
+	  fi
+
+## Every named behaviour is load-bearing — plan P6.
+##
+## Breaks the behaviour each named vector guards, one at a time, and requires the gate to go red.
+## A vector that is present, unique and compared still proves nothing until this passes; that is the
+## difference between a corpus and a decoration.
+##
+## Kept out of `all` because each mutation is a rebuild plus a test run. Run it before a merge.
+mutation:
+	./scripts/parity/mutation-gate.sh
 
 ## Launches both shells and asserts each renders a value that came from MCPRouterKit.
 ##

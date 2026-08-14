@@ -1,0 +1,244 @@
+{
+  "description": "upstreamHash(upstream) — sha256 over JSON.stringify of the material, sliced to 16.",
+  "cases": [
+    {
+      "id": "stdio-basic",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "uvx",
+        "args": [
+          "docker-mcp"
+        ],
+        "env": {}
+      },
+      "hash": "1ec004b8c0c735d8"
+    },
+    {
+      "id": "env-value-changes-hash",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {
+          "MODE": "one"
+        }
+      },
+      "hash": "71dc4922e9fb5ac9"
+    },
+    {
+      "id": "env-value-changed",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {
+          "MODE": "two"
+        }
+      },
+      "hash": "30850ff1bfeb2610"
+    },
+    {
+      "id": "env-key-order-irrelevant-a",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {
+          "A": "1",
+          "B": "2"
+        }
+      },
+      "hash": "775f58507d816358"
+    },
+    {
+      "id": "env-key-order-irrelevant-b",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {
+          "B": "2",
+          "A": "1"
+        }
+      },
+      "hash": "775f58507d816358"
+    },
+    {
+      "id": "env-utf16-ordering",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {
+          "😀": "emoji",
+          "": "private"
+        }
+      },
+      "hash": "302981e42b4c564b"
+    },
+    {
+      "id": "args-order-za",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [
+          "z",
+          "a"
+        ],
+        "env": {}
+      },
+      "hash": "9fdb927c197990a3"
+    },
+    {
+      "id": "args-order-az",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [
+          "a",
+          "z"
+        ],
+        "env": {}
+      },
+      "hash": "4bb9f0721691b30e"
+    },
+    {
+      "id": "cwd-absent",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "hash": "580d0f895bc321a8"
+    },
+    {
+      "id": "cwd-present",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {},
+        "cwd": "/tmp"
+      },
+      "hash": "ab61be863899d94c"
+    },
+    {
+      "id": "excluded-name",
+      "upstream": {
+        "transport": "stdio",
+        "name": "different",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "hash": "580d0f895bc321a8"
+    },
+    {
+      "id": "excluded-warm",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {},
+        "warm": true
+      },
+      "hash": "580d0f895bc321a8"
+    },
+    {
+      "id": "excluded-idle",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {},
+        "idleMs": 99
+      },
+      "hash": "580d0f895bc321a8"
+    },
+    {
+      "id": "excluded-projects",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {},
+        "projects": [
+          "/x"
+        ]
+      },
+      "hash": "580d0f895bc321a8"
+    },
+    {
+      "id": "excluded-placard",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {},
+        "placard": {
+          "reason": "r"
+        }
+      },
+      "hash": "580d0f895bc321a8"
+    },
+    {
+      "id": "http-transport",
+      "upstream": {
+        "transport": "http",
+        "name": "a",
+        "url": "https://e.com",
+        "headers": {}
+      },
+      "hash": "92e203f1d1fe65e3"
+    },
+    {
+      "id": "sse-transport",
+      "upstream": {
+        "transport": "sse",
+        "name": "a",
+        "url": "https://e.com",
+        "headers": {}
+      },
+      "hash": "a80cf3136e73bc29"
+    },
+    {
+      "id": "header-utf16-ordering",
+      "upstream": {
+        "transport": "http",
+        "name": "a",
+        "url": "https://e.com",
+        "headers": {
+          "😀": "e",
+          "": "p"
+        }
+      },
+      "hash": "f6f94980dbeee5c0"
+    },
+    {
+      "id": "excluded-oauth",
+      "upstream": {
+        "transport": "http",
+        "name": "a",
+        "url": "https://e.com",
+        "headers": {},
+        "oauth": true
+      },
+      "hash": "92e203f1d1fe65e3"
+    }
+  ]
+}

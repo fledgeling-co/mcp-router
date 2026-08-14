@@ -1,0 +1,125 @@
+{
+  "description": "isSelfReference(name, raw, port).",
+  "cases": [
+    {
+      "id": "by-name-mcp-router",
+      "name": "mcp-router",
+      "raw": {},
+      "port": 8879,
+      "result": true
+    },
+    {
+      "id": "by-name-router",
+      "name": "router",
+      "raw": {},
+      "port": 8879,
+      "result": true
+    },
+    {
+      "id": "name-case-sensitive",
+      "name": "MCP-Router",
+      "raw": {},
+      "port": 8879,
+      "result": false
+    },
+    {
+      "id": "loopback-matching-port",
+      "name": "x",
+      "raw": {
+        "url": "http://127.0.0.1:8879/mcp"
+      },
+      "port": 8879,
+      "result": true
+    },
+    {
+      "id": "localhost-matching-port",
+      "name": "x",
+      "raw": {
+        "url": "http://localhost:8879/mcp"
+      },
+      "port": 8879,
+      "result": true
+    },
+    {
+      "id": "ipv6-matching-port",
+      "name": "x",
+      "raw": {
+        "url": "http://[::1]:8879/mcp"
+      },
+      "port": 8879,
+      "result": true
+    },
+    {
+      "id": "loopback-other-port",
+      "name": "x",
+      "raw": {
+        "url": "http://127.0.0.1:9999/mcp"
+      },
+      "port": 8879,
+      "result": false
+    },
+    {
+      "id": "default-port-80",
+      "name": "x",
+      "raw": {
+        "url": "http://localhost:80"
+      },
+      "port": 80,
+      "result": false
+    },
+    {
+      "id": "default-port-443",
+      "name": "x",
+      "raw": {
+        "url": "https://localhost:443"
+      },
+      "port": 443,
+      "result": false
+    },
+    {
+      "id": "not-loopback-127-0-0-2",
+      "name": "x",
+      "raw": {
+        "url": "http://127.0.0.2:8879"
+      },
+      "port": 8879,
+      "result": false
+    },
+    {
+      "id": "not-loopback-any-address",
+      "name": "x",
+      "raw": {
+        "url": "http://0.0.0.0:8879"
+      },
+      "port": 8879,
+      "result": false
+    },
+    {
+      "id": "not-loopback-hostname",
+      "name": "x",
+      "raw": {
+        "url": "http://mcp-router.example:8879"
+      },
+      "port": 8879,
+      "result": false
+    },
+    {
+      "id": "no-url",
+      "name": "x",
+      "raw": {
+        "command": "y"
+      },
+      "port": 8879,
+      "result": false
+    },
+    {
+      "id": "unparseable-url",
+      "name": "x",
+      "raw": {
+        "url": "not a url"
+      },
+      "port": 8879,
+      "result": false
+    }
+  ]
+}

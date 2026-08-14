@@ -1,0 +1,121 @@
+{
+  "description": "visibleTo(upstream, cwd) — lexical, case-sensitive, never normalised.",
+  "cases": [
+    {
+      "id": "no-projects",
+      "upstream": {
+        "name": "a"
+      },
+      "cwd": "/x",
+      "visible": true
+    },
+    {
+      "id": "empty-projects",
+      "upstream": {
+        "name": "a",
+        "projects": []
+      },
+      "cwd": "/x",
+      "visible": true
+    },
+    {
+      "id": "scoped-no-cwd",
+      "upstream": {
+        "name": "a",
+        "projects": [
+          "/a"
+        ]
+      },
+      "cwd": null,
+      "visible": false
+    },
+    {
+      "id": "exact-match",
+      "upstream": {
+        "name": "a",
+        "projects": [
+          "/a/b"
+        ]
+      },
+      "cwd": "/a/b",
+      "visible": true
+    },
+    {
+      "id": "trailing-slash-project",
+      "upstream": {
+        "name": "a",
+        "projects": [
+          "/a/b/"
+        ]
+      },
+      "cwd": "/a/b/c",
+      "visible": true
+    },
+    {
+      "id": "prefix-needs-separator",
+      "upstream": {
+        "name": "a",
+        "projects": [
+          "/a/b"
+        ]
+      },
+      "cwd": "/a/bc",
+      "visible": false
+    },
+    {
+      "id": "child-matches",
+      "upstream": {
+        "name": "a",
+        "projects": [
+          "/a/b"
+        ]
+      },
+      "cwd": "/a/b/c",
+      "visible": true
+    },
+    {
+      "id": "empty-project-matches-everything",
+      "upstream": {
+        "name": "a",
+        "projects": [
+          ""
+        ]
+      },
+      "cwd": "/anything",
+      "visible": true
+    },
+    {
+      "id": "dotdot-not-normalised",
+      "upstream": {
+        "name": "a",
+        "projects": [
+          "/a/b"
+        ]
+      },
+      "cwd": "/a/b/../c",
+      "visible": true
+    },
+    {
+      "id": "doubled-separator-not-normalised",
+      "upstream": {
+        "name": "a",
+        "projects": [
+          "/a/b"
+        ]
+      },
+      "cwd": "/a//b",
+      "visible": false
+    },
+    {
+      "id": "case-sensitive",
+      "upstream": {
+        "name": "a",
+        "projects": [
+          "/A/B"
+        ]
+      },
+      "cwd": "/a/b",
+      "visible": false
+    }
+  ]
+}

@@ -1,0 +1,158 @@
+{
+  "description": "isStale(manifest, upstream) — including the four entries that are CURRENT.",
+  "cases": [
+    {
+      "id": "absent-entry",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "servers": {},
+      "stale": true
+    },
+    {
+      "id": "hash-mismatch",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "servers": {
+        "a": {
+          "hash": "deadbeefdeadbeef",
+          "builtAt": "t",
+          "tools": []
+        }
+      },
+      "stale": true
+    },
+    {
+      "id": "hash-absent",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "servers": {
+        "a": {
+          "builtAt": "t",
+          "tools": []
+        }
+      },
+      "stale": true
+    },
+    {
+      "id": "non-empty-error",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "servers": {
+        "a": {
+          "hash": "580d0f895bc321a8",
+          "builtAt": "t",
+          "tools": [],
+          "error": "boom"
+        }
+      },
+      "stale": true
+    },
+    {
+      "id": "current-missing-digest",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "servers": {
+        "a": {
+          "hash": "580d0f895bc321a8",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "x"
+            }
+          ]
+        }
+      },
+      "stale": false
+    },
+    {
+      "id": "current-empty-tools",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "servers": {
+        "a": {
+          "hash": "580d0f895bc321a8",
+          "builtAt": "t",
+          "tools": []
+        }
+      },
+      "stale": false
+    },
+    {
+      "id": "current-with-pending",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "servers": {
+        "a": {
+          "hash": "580d0f895bc321a8",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "x"
+            }
+          ],
+          "digest": "d",
+          "pending": {
+            "tools": [],
+            "digest": "e",
+            "seenAt": "t"
+          }
+        }
+      },
+      "stale": false
+    },
+    {
+      "id": "current-empty-error",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {}
+      },
+      "servers": {
+        "a": {
+          "hash": "580d0f895bc321a8",
+          "builtAt": "t",
+          "tools": [],
+          "error": ""
+        }
+      },
+      "stale": false
+    }
+  ]
+}

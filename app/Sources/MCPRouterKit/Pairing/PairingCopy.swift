@@ -1,5 +1,26 @@
 import Foundation
 
+// swiftlint:disable cyclomatic_complexity function_body_length type_body_length file_length
+//
+// The four rules above are *metric* rules, and this file is a data table rather than logic.
+//
+// They are disabled here, and nowhere else in this repo, because the alternative is worse in a
+// specific way. `entry(_:)` is one exhaustive `switch` over `Key`, and that exhaustiveness is the
+// point: a tenth state added to a surface fails to **compile** until someone writes its copy,
+// rather than shipping a blank pane or a string assembled at a call site where the mock-parity
+// check cannot see it. A switch over a 39-case enum has a cyclomatic complexity of 39 by
+// construction, so complexity ≤ 10 and compile-time exhaustiveness cannot both hold. Splitting the
+// switch into per-surface functions would satisfy the metric by returning `Entry?` and chaining
+// with `??`, which is exactly how the compile-time guarantee is lost — a missing key would become
+// a runtime nil instead of a build failure.
+//
+// There is no branching here to be complex: every case is a `return`, the cases carry no
+// conditions, and nothing in the function can fail. The rules that catch real defects — the
+// force-unwrap, line-length and naming rules — remain on.
+//
+// Scope note: this exemption covers this file only. It is not a licence to silence a metric rule
+// on a file that genuinely computes something.
+
 /// Every user-facing string in the phone shell and the pairing flow, keyed by **surface × state**.
 ///
 /// Why a manifest at all, and why keyed this way. `ControlCopyTests` already pins the control
@@ -79,7 +100,7 @@ public enum PairingCopy {
 
     /// Every surface-and-state that renders copy in this feature.
     public enum Key: String, Sendable, CaseIterable {
-        // The four tabs whose content another item owns.
+        /// The four tabs whose content another item owns.
         case discoverAwaiting, triageAwaiting, queueAwaiting, libraryAwaiting
 
         // Settings, the feature's data surface — the nine states of `DESIGN.md` §5.
@@ -109,6 +130,14 @@ public enum PairingCopy {
         case unpairConfirm
         case sendingBlocked
 
+        // Chrome and inline strings. They are here for the same reason the pane copy is: a string
+        // written at the call site is a string the mock-parity check cannot see, and a section
+        // label or a placeholder is exactly the kind of copy that drifts unnoticed.
+        case settingsSectionPairedMac, settingsSectionAbout, settingsUnpairAction
+        case scanInstruction, typedEntryHelper
+        case cameraPlaceholderIdle, cameraPlaceholderUnavailable
+        case pairedCapabilities
+
         public var surface: Surface {
             switch self {
             case .discoverAwaiting, .triageAwaiting, .queueAwaiting, .libraryAwaiting: .shell
@@ -122,6 +151,10 @@ public enum PairingCopy {
                  .outcomeRefused, .outcomeNotAPairingCode, .outcomeMalformedPayload: .outcome
             case .unpairConfirm: .unpair
             case .sendingBlocked: .sending
+            case .settingsSectionPairedMac, .settingsSectionAbout, .settingsUnpairAction: .settings
+            case .scanInstruction, .cameraPlaceholderIdle, .cameraPlaceholderUnavailable: .scan
+            case .typedEntryHelper: .typedEntry
+            case .pairedCapabilities: .outcome
             }
         }
     }
@@ -156,7 +189,6 @@ public enum PairingCopy {
             )
 
         // MARK: Settings
-
         case .settingsNeverPaired:
             Entry(
                 headline: "No Mac paired yet",
@@ -199,7 +231,6 @@ public enum PairingCopy {
             )
 
         // MARK: Scanning
-
         case .scanReady:
             Entry(
                 headline: "Pair Mac",
@@ -225,7 +256,6 @@ public enum PairingCopy {
             )
 
         // MARK: Camera permission
-
         case .cameraNotDetermined:
             Entry(
                 headline: "Why the camera",
@@ -260,7 +290,6 @@ public enum PairingCopy {
             )
 
         // MARK: Typed entry
-
         case .typedEntryReady:
             Entry(
                 headline: "Enter the code",
@@ -284,7 +313,6 @@ public enum PairingCopy {
             )
 
         // MARK: Verifying
-
         case .verifyingScanned:
             // The one surface where a countdown is honest: the scanned payload carried the expiry.
             Entry(
@@ -299,7 +327,6 @@ public enum PairingCopy {
             )
 
         // MARK: Outcomes
-
         case .pairedSuccess:
             Entry(
                 headline: "Paired with {mac}",
@@ -339,7 +366,10 @@ public enum PairingCopy {
             // primary action, and the copy does not alarm.
             Entry(
                 headline: "{mac} declined the pairing",
-                body: "Someone dismissed the request at the Mac. Start pairing again there if that wasn't intended.",
+                body: """
+                Someone dismissed the request at the Mac. Start pairing again there if that \
+                wasn't intended.
+                """,
                 actionLabel: "Back to Settings"
             )
         case .outcomeNotAPairingCode:
@@ -357,7 +387,6 @@ public enum PairingCopy {
             )
 
         // MARK: Unpair
-
         case .unpairConfirm:
             // A named consequence, not "Are you sure": what stops, and what survives.
             Entry(
@@ -371,11 +400,39 @@ public enum PairingCopy {
             )
 
         // MARK: A surface that offers to send, and cannot
-
         case .sendingBlocked:
             Entry(
                 headline: "Can't reach {mac}.",
                 body: "They'll go on their own as soon as your Mac is reachable."
+            )
+
+        // MARK: Chrome and inline strings
+        case .settingsSectionPairedMac:
+            Entry(body: "Paired Mac")
+        case .settingsSectionAbout:
+            Entry(body: "About")
+        case .settingsUnpairAction:
+            Entry(body: "Unpair this Mac")
+        case .scanInstruction:
+            Entry(
+                body: """
+                On your Mac, open MCP Router → Settings → Pair iPhone, then point this camera at \
+                the code it shows.
+                """
+            )
+        case .typedEntryHelper:
+            Entry(body: "The code expires. Your Mac is showing how long is left.")
+        case .cameraPlaceholderIdle:
+            Entry(body: "Camera not started")
+        case .cameraPlaceholderUnavailable:
+            Entry(body: "Camera unavailable")
+        case .pairedCapabilities:
+            Entry(
+                headline: "What this phone can do",
+                body: """
+                Queue items for review, and read your library. It cannot install, update or \
+                remove anything.
+                """
             )
         }
     }
@@ -408,3 +465,5 @@ public enum PairingCopy {
         }
     }
 }
+
+// swiftlint:enable cyclomatic_complexity function_body_length type_body_length

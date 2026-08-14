@@ -57,7 +57,9 @@ public actor FixtureCameraAuthorization: CameraAuthorizing {
         self.grantsOnRequest = grantsOnRequest
     }
 
-    public func current() async -> CameraAuthorization { state }
+    public func current() async -> CameraAuthorization {
+        state
+    }
 
     public func request() async -> CameraAuthorization {
         requestCount += 1
@@ -68,5 +70,7 @@ public actor FixtureCameraAuthorization: CameraAuthorizing {
         return state
     }
 
-    public func asked() async -> Int { requestCount }
+    public func asked() async -> Int {
+        requestCount
+    }
 }

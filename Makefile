@@ -16,10 +16,10 @@ UNSIGNED   := CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 IOS_DEST   ?= generic/platform=iOS Simulator
 MAC_DEST   ?= platform=macOS
 
-.PHONY: all tools generate build build-mac build-mac-release build-ios test parity parity-regen mutation acceptance lint format clean
+.PHONY: all tools generate build build-mac build-mac-release build-ios test test-ios parity parity-regen mutation acceptance lint format clean
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
-all: tools lint build test parity
+all: tools lint build test test-ios parity
 
 ## Fail loudly and specifically when a required tool is missing, rather than skipping the gate.
 ## A silently-skipped lint step is worse than no lint step: it reports success.
@@ -100,6 +100,51 @@ test:
 	  echo "executed $$ran tests"; \
 	  if [ "$$ran" -eq 0 ]; then \
 	    echo "error: zero tests executed — a suite can discover tests, skip every one, and still exit 0"; \
+	    exit 1; \
+	  fi
+
+## The iOS suite — the claims that cannot be made on the macOS host.
+##
+## `make test` runs the SwiftPM suite on macOS. That suite can prove a view constructs, that its
+## copy comes from the manifest and that its state machine behaves, but it cannot prove a 44pt
+## touch target, a safe-area inset, a system tab bar, Dynamic Type at an accessibility size, or
+## that the *generated* Info.plist carries the camera purpose string. Asserting any of those on
+## macOS would be a green light for a claim nobody measured, so they live in a hosted iOS test
+## target and this target is what runs it.
+##
+## Same zero-execution guard as `make test`, for the same reason and one more: an iOS test bundle
+## that fails to install on the simulator reports no tests and, without this, an exit code that a
+## careless pipeline reads as success. The executed count is taken from the result bundle rather
+## than from human-readable output.
+##
+## A concrete simulator is required — `generic/platform=iOS Simulator` builds but cannot run — so
+## this resolves a booted or available device rather than assuming a name that may not exist on
+## another machine.
+test-ios: generate
+	@set -eu -o pipefail; \
+	  udid=$$(xcrun simctl list devices available -j \
+	          | python3 -c "import json,sys; ds=json.load(sys.stdin)['devices']; \
+c=[d for v in ds.values() for d in v if d.get('isAvailable') and 'iPhone' in d['name']]; \
+c.sort(key=lambda d: d['state'] != 'Booted'); \
+print(c[0]['udid'] if c else '')"); \
+	  if [ -z "$$udid" ]; then \
+	    echo "error: no available iPhone simulator, so the iOS suite did not run."; \
+	    echo "       This is an environment failure, not a pass — the claims it carries"; \
+	    echo "       (44pt targets, safe area, the generated Info.plist) went unmeasured."; \
+	    exit 2; \
+	  fi; \
+	  echo "test-ios: simulator $$udid"; \
+	  bundle="$$(mktemp -d -t mcprouter-xcresult)/result.xcresult"; \
+	  perl -e 'alarm shift @ARGV; exec @ARGV' 1200 \
+	  xcodebuild -project $(PROJECT) -scheme MCPRouterIOS -configuration Debug \
+	    -destination "id=$$udid" -derivedDataPath $(DERIVED) $(UNSIGNED) \
+	    -resultBundlePath "$$bundle" test; \
+	  ran=$$(xcrun xcresulttool get test-results summary --path "$$bundle" --format json \
+	         | python3 -c "import json,sys; d=json.load(sys.stdin); \
+print((d.get('passedTests') or 0) + (d.get('failedTests') or 0))"); \
+	  echo "executed $$ran iOS tests"; \
+	  if [ "$$ran" -eq 0 ]; then \
+	    echo "error: zero iOS tests executed — a bundle that fails to install reports no tests"; \
 	    exit 1; \
 	  fi
 

@@ -33,7 +33,7 @@ struct PhoneSourceGuardTests {
         var files: [(String, String)] = []
         for case let path as String in walker where path.hasSuffix(".swift") {
             let url = root.appendingPathComponent(path)
-            files.append((path, try String(contentsOf: url, encoding: .utf8)))
+            try files.append((path, String(contentsOf: url, encoding: .utf8)))
         }
         // A scan that scanned nothing must not read as a pass — the same failure mode the lint
         // script and `make test` both guard against.
@@ -72,8 +72,9 @@ struct PhoneSourceGuardTests {
         #expect(files.count >= 6, "only \(files.count) phone files were scanned")
 
         // A numeric literal as the argument to any of the geometry modifiers.
+        let modifiers = "padding|spacing|cornerRadius|lineSpacing|frame|offset|inset|lineWidth|opacity"
         let pattern = try NSRegularExpression(
-            pattern: #"\.(padding|spacing|cornerRadius|lineSpacing|frame|offset|inset|lineWidth|opacity)\s*\(\s*[^)]*?(?<![A-Za-z0-9_.])\d"#,
+            pattern: #"\.(\#(modifiers))\s*\(\s*[^)]*?(?<![A-Za-z0-9_.])\d"#,
             options: [.dotMatchesLineSeparators]
         )
 
@@ -110,7 +111,7 @@ struct PhoneSourceGuardTests {
     @Test("nothing in the phone shell attaches a badge")
     func noBadges() throws {
         let files = try Self.swiftFiles(under: "app/Sources/MCPRouterUI/Phone")
-            + (try Self.swiftFiles(under: "app/MCPRouterIOS"))
+            + (Self.swiftFiles(under: "app/MCPRouterIOS"))
         for (name, source) in files {
             let body = Self.stripped(source)
             #expect(!body.contains(".badge("), "\(name) attaches a badge")
@@ -156,7 +157,7 @@ struct PhoneSourceGuardTests {
     @Test("project.yml declares a non-empty camera purpose string for the iOS target only")
     func cameraPurposeStringDeclared() throws {
         let yaml = try String(
-            contentsOf: try Self.repoRoot().appendingPathComponent("app/project.yml"),
+            contentsOf: Self.repoRoot().appendingPathComponent("app/project.yml"),
             encoding: .utf8
         )
         guard let range = yaml.range(of: "NSCameraUsageDescription:") else {
@@ -173,7 +174,10 @@ struct PhoneSourceGuardTests {
         let iosStart = macSection?.range(of: "MCPRouterIOS:")
         if let macSection, let iosStart {
             let macOnly = macSection[..<iosStart.lowerBound]
-            #expect(!macOnly.contains("NSCameraUsageDescription"), "the Mac target declares a camera string it never uses")
+            #expect(
+                !macOnly.contains("NSCameraUsageDescription"),
+                "the Mac target declares a camera string it never uses"
+            )
         }
     }
 
@@ -186,7 +190,7 @@ struct PhoneSourceGuardTests {
     @Test("the pairing store binds the record to this device and to no other accessibility class")
     func keychainAccessibilityIsDeviceOnly() throws {
         let source = try String(
-            contentsOf: try Self.repoRoot()
+            contentsOf: Self.repoRoot()
                 .appendingPathComponent("app/Sources/MCPRouterKit/Pairing/PairingRecordStore.swift"),
             encoding: .utf8
         )
@@ -207,8 +211,8 @@ struct PhoneSourceGuardTests {
     @Test("no pairing state is written to UserDefaults or a plist")
     func noPairingStateOutsideTheKeychain() throws {
         let files = try Self.swiftFiles(under: "app/Sources/MCPRouterKit/Pairing")
-            + (try Self.swiftFiles(under: "app/Sources/MCPRouterUI/Phone"))
-            + (try Self.swiftFiles(under: "app/MCPRouterIOS"))
+            + (Self.swiftFiles(under: "app/Sources/MCPRouterUI/Phone"))
+            + (Self.swiftFiles(under: "app/MCPRouterIOS"))
         for (name, source) in files {
             let body = Self.stripped(source)
             #expect(!body.contains("UserDefaults"), "\(name) touches UserDefaults")
@@ -223,7 +227,7 @@ struct PhoneSourceGuardTests {
     @Test("nothing on the phone generates a pairing code")
     func phoneNeverMintsACode() throws {
         let files = try Self.swiftFiles(under: "app/Sources/MCPRouterKit/Pairing")
-            + (try Self.swiftFiles(under: "app/Sources/MCPRouterUI/Phone"))
+            + (Self.swiftFiles(under: "app/Sources/MCPRouterUI/Phone"))
         for (name, source) in files {
             let body = Self.stripped(source)
             for generator in ["randomElement", "SecRandomCopyBytes", "UUID(", "arc4random", ".shuffled("] {

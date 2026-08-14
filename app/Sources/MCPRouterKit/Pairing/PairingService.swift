@@ -79,31 +79,62 @@ public struct FixturePairingService: PairingService {
         // Expiry is checked from the payload the phone actually holds, before any scenario applies:
         // a scanned code whose window has closed is expired regardless of what the Mac would say,
         // and this is the one failure the phone can determine on its own.
-        if case let .scanned(payload) = attempt, payload.hasExpired(at: Date()) {
-            return .expired
-        }
+        if Self.hasExpired(attempt) { return .expired }
+        return pairedOutcome(for: attempt) ?? refusalOutcome(macName: attempt.macName)
+    }
 
+    /// The one failure the phone determines without asking anyone.
+    private static func hasExpired(_ attempt: PairingAttempt) -> Bool {
+        guard case let .scanned(payload) = attempt else { return false }
+        return payload.hasExpired(at: Date())
+    }
+
+    /// The three scenarios that pair. `nil` for every scenario that does not, which is what hands
+    /// the decision to `refusalOutcome` rather than duplicating the failure list here.
+    private func pairedOutcome(for attempt: PairingAttempt) -> PairingOutcome? {
         switch scenario {
         case .paired, .pairedThenUnreachable:
-            return .paired(resolved(from: attempt))
+            .paired(resolved(from: attempt))
         case .pairedNeverReported:
-            let base = resolved(from: attempt)
-            return .paired(PairedMac(
-                name: base.name,
-                pairedAt: base.pairedAt,
-                lastSeen: nil,
-                host: base.host,
-                port: base.port,
-                fingerprint: base.fingerprint
-            ))
-        case .notRecognised: return .notRecognised
-        case .expired: return .expired
-        case .alreadyUsed: return .alreadyUsed
-        case .versionMismatch: return .versionMismatch(macName: attempt.macName)
-        case .unreachable: return .unreachable(macName: attempt.macName)
-        case .refused: return .refused(macName: attempt.macName)
-        case .notAPairingCode: return .notAPairingCode
-        case .malformedPayload: return .malformedPayload
+            .paired(neverReported(from: attempt))
+        default:
+            nil
+        }
+    }
+
+    /// Paired and answering, but with no `lastSeen`.
+    ///
+    /// `lastSeen: nil` **is** the Partial state: the Mac is reachable but has not reported since the
+    /// app opened, so the surface says "unknown" rather than filling the field in with a time it
+    /// never observed.
+    private func neverReported(from attempt: PairingAttempt) -> PairedMac {
+        let base = resolved(from: attempt)
+        return PairedMac(
+            name: base.name,
+            pairedAt: base.pairedAt,
+            lastSeen: nil,
+            host: base.host,
+            port: base.port,
+            fingerprint: base.fingerprint
+        )
+    }
+
+    /// Every scenario that does not pair, mapped to its own outcome — never a generic failure.
+    ///
+    /// Exhaustive over `Scenario` rather than defaulted, so a scenario added later fails to compile
+    /// until someone decides what the phone tells the user. The three pairing cases are listed and
+    /// unreachable here by construction; they are named rather than defaulted for that same reason.
+    private func refusalOutcome(macName: String?) -> PairingOutcome {
+        switch scenario {
+        case .paired, .pairedThenUnreachable, .pairedNeverReported: .notRecognised
+        case .notRecognised: .notRecognised
+        case .expired: .expired
+        case .alreadyUsed: .alreadyUsed
+        case .versionMismatch: .versionMismatch(macName: macName)
+        case .unreachable: .unreachable(macName: macName)
+        case .refused: .refused(macName: macName)
+        case .notAPairingCode: .notAPairingCode
+        case .malformedPayload: .malformedPayload
         }
     }
 

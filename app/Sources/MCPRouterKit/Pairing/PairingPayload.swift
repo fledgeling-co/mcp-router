@@ -61,10 +61,20 @@ public struct PairingPayload: Sendable, Equatable {
     }
 
     /// Decode the text a QR scanner handed back.
+    ///
+    /// Three passes, each its own function, because each answers a different question and produces
+    /// a different failure: is this ours at all, do we speak this version, and is the body whole.
+    /// Keeping them separate is what stops "we could not parse these bytes" from being reported as
+    /// a version problem.
     public static func decode(_ text: String) throws(PairingPayloadError) -> PairingPayload {
         guard let data = text.data(using: .utf8) else { throw .notAPairingCode }
+        let version = try recognisedVersion(in: data)
+        let body = try decodedBody(in: data)
+        return try validated(body, version: version)
+    }
 
-        // Pass 1 — is this ours at all?
+    /// Passes 1 and 2 — the envelope, then the version.
+    private static func recognisedVersion(in data: Data) throws(PairingPayloadError) -> Int {
         let envelope: Envelope
         do {
             envelope = try JSONDecoder().decode(Envelope.self, from: data)
@@ -74,15 +84,16 @@ public struct PairingPayload: Sendable, Equatable {
             throw .notAPairingCode
         }
         guard envelope.t == discriminator else { throw .notAPairingCode }
-
-        // Pass 2 — do we speak this version?
         guard let version = envelope.v else { throw .malformedPayload(detail: "no version") }
         guard supportedVersions.contains(version) else { throw .unsupportedVersion(found: version) }
+        return version
+    }
 
-        // Pass 3 — the body, every field required.
-        let body: Body
+    /// Pass 3a — the body's shape. Every field required; the specific missing or mistyped field is
+    /// carried into the detail rather than collapsed into "unreadable".
+    private static func decodedBody(in data: Data) throws(PairingPayloadError) -> Body {
         do {
-            body = try JSONDecoder().decode(Body.self, from: data)
+            return try JSONDecoder().decode(Body.self, from: data)
         } catch let DecodingError.keyNotFound(key, _) {
             throw .malformedPayload(detail: "missing \(key.stringValue)")
         } catch let DecodingError.typeMismatch(_, context) {
@@ -92,7 +103,13 @@ public struct PairingPayload: Sendable, Equatable {
         } catch {
             throw .malformedPayload(detail: "unreadable body")
         }
+    }
 
+    /// Pass 3b — the body's values. A field can be present, correctly typed and still meaningless.
+    private static func validated(
+        _ body: Body,
+        version: Int
+    ) throws(PairingPayloadError) -> PairingPayload {
         guard let code = PairingCode(body.code) else {
             throw .malformedPayload(detail: "code is not eight Crockford characters")
         }
@@ -103,7 +120,9 @@ public struct PairingPayload: Sendable, Equatable {
         }
         guard !body.mac.isEmpty else { throw .malformedPayload(detail: "empty mac name") }
         guard !body.host.isEmpty else { throw .malformedPayload(detail: "empty host") }
-        guard (1 ... 65535).contains(body.port) else { throw .malformedPayload(detail: "port out of range") }
+        guard (1 ... 65535).contains(body.port) else {
+            throw .malformedPayload(detail: "port out of range")
+        }
         guard !body.fp.isEmpty else { throw .malformedPayload(detail: "empty fingerprint") }
 
         return PairingPayload(
@@ -136,7 +155,9 @@ public struct PairingPayload: Sendable, Equatable {
     }
 
     /// Whether the code is already dead by the phone's clock.
-    public func hasExpired(at now: Date) -> Bool { expiresAt <= now }
+    public func hasExpired(at now: Date) -> Bool {
+        expiresAt <= now
+    }
 
     /// How long is left, or nil once it has gone. Nil rather than a negative number, because a
     /// countdown reading `-0:12` is a number the system observed and then rendered as nonsense.

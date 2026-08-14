@@ -20,7 +20,7 @@ final class QRScannerController: UIViewController {
 
     /// Called with each decoded string, on the main actor.
     private let onCode: @MainActor @Sendable (String) -> Void
-    private let delegateBox = MetadataDelegate()
+    private let delegateBox = CodeDelegate()
 
     init(onCode: @escaping @MainActor @Sendable (String) -> Void) {
         self.onCode = onCode
@@ -28,7 +28,9 @@ final class QRScannerController: UIViewController {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError("not used") }
+    required init?(coder _: NSCoder) {
+        fatalError("not used")
+    }
 
     /// The only kind of output this scanner will ever add to its session, and the only code type it
     /// will read. `configureSession` builds from these two constants rather than naming the classes
@@ -95,10 +97,10 @@ final class QRScannerController: UIViewController {
     /// The delegate is a separate object so the callback stays `nonisolated` — `AVFoundation` calls
     /// it from its own queue, and making the view controller itself the delegate would need an
     /// isolation promise this does not have to make.
-    private final class MetadataDelegate: NSObject, AVCaptureMetadataOutputObjectsDelegate, @unchecked Sendable {
-        // Mutable, but written once during `configureSession` on the main actor and read only on
-        // the metadata queue afterwards. That is the whole synchronisation story, stated because
-        // `@unchecked Sendable` is a promise and an unexplained one reads as a mistake.
+    private final class CodeDelegate: NSObject, AVCaptureMetadataOutputObjectsDelegate, @unchecked Sendable {
+        /// Mutable, but written once during `configureSession` on the main actor and read only on
+        /// the metadata queue afterwards. That is the whole synchronisation story, stated because
+        /// `@unchecked Sendable` is a promise and an unexplained one reads as a mistake.
         var onCode: (@Sendable (String) -> Void)?
 
         func metadataOutput(

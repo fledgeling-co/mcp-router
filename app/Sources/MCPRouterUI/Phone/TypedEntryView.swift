@@ -31,7 +31,8 @@ struct TypedCodeField: View {
         // One element: eight separate boxes would be read out one character at a time.
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Pairing code")
-        .accessibilityValue(entry.characters.isEmpty ? "empty" : entry.characters.map(String.init).joined(separator: " "))
+        .accessibilityValue(entry.characters.isEmpty ? "empty" : entry.characters.map(String.init)
+            .joined(separator: " "))
     }
 
     @ViewBuilder
@@ -51,7 +52,8 @@ struct TypedCodeField: View {
                 RoundedRectangle(cornerRadius: PhoneMetric.codeBoxRadius, style: .continuous)
                     .strokeBorder(
                         borderColor(isCaret: isCaret).color,
-                        lineWidth: isCaret || isInvalid ? MetricToken.focusRing.leadingScalar : PhoneMetric.hairline
+                        lineWidth: isCaret || isInvalid ? MetricToken.focusRing.leadingScalar : PhoneMetric
+                            .hairline
                     )
             )
     }
@@ -126,7 +128,7 @@ struct TypedEntryView: View {
                     tone: inlineKey == .typedEntryExpired ? .caution : .failure
                 )
             } else {
-                Text("The code expires. Your Mac is showing how long is left.")
+                Text(PairingCopy.entry(.typedEntryHelper).body)
                     .typeRole(.callout)
                     .foregroundStyle(ColorToken.t3.color)
             }

@@ -290,7 +290,9 @@ button{font:inherit;color:inherit;background:none;border:none;text-align:left;cu
   padding:14px;font-size:var(--title3);font-weight:600;min-height:44px}
 
 /* success — in-place, no toast */
-.doneMark{display:flex;justify-content:center;margin-top:30px;color:var(--live)}
+/* --accent, not --live: DESIGN.md 2 reserves the indicator hues for their stated meanings
+   ("a child process is running"), and a confirmation mark is not a process state. */
+.doneMark{display:flex;justify-content:center;margin-top:30px;color:var(--accent)}
 
 /* tweak panel */
 .tweaks{position:fixed;right:18px;bottom:18px;z-index:90;background:var(--panel);

@@ -33,9 +33,9 @@ struct PairingOutcomeCoverageTests {
     }
 
     @Test("every failure outcome is reachable from some fixture scenario")
-    func everyOutcomeHasAFixture() async {
+    func everyOutcomeHasAFixture() async throws {
         var produced: Set<String> = []
-        let code = PairingCode("K7QN4FMB")!
+        let code = try #require(PairingCode("K7QN4FMB"))
 
         for scenario in FixturePairingService.Scenario.allCases {
             let outcome = await FixturePairingService(scenario).pair(using: .typed(code))
@@ -77,10 +77,10 @@ struct PairingOutcomeCoverageTests {
     /// The phone can determine this one on its own, so it does — without a round trip that would
     /// fail anyway.
     @Test("a scanned code whose window has closed is expired before the service is consulted")
-    func expiredIsDecidedLocally() async {
-        let payload = PairingPayload(
+    func expiredIsDecidedLocally() async throws {
+        let payload = try PairingPayload(
             version: 1,
-            code: PairingCode("K7QN4FMB")!,
+            code: #require(PairingCode("K7QN4FMB")),
             macName: "Luke's MacBook Pro",
             expiresAt: Date(timeIntervalSince1970: 1),
             host: "192.168.1.24",
@@ -97,18 +97,18 @@ struct PairingOutcomeCoverageTests {
 @Suite("Observed expiry")
 struct ObservedExpiryTests {
     @Test("a typed attempt has observed no expiry")
-    func typedHasNoExpiry() {
-        let attempt = PairingAttempt.typed(PairingCode("K7QN4FMB")!)
+    func typedHasNoExpiry() throws {
+        let attempt = try PairingAttempt.typed(#require(PairingCode("K7QN4FMB")))
         #expect(attempt.observedExpiry == nil)
         #expect(attempt.macName == nil, "a typed code cannot know the Mac's name either")
     }
 
     @Test("a scanned attempt carries the expiry the payload observed")
-    func scannedCarriesExpiry() {
+    func scannedCarriesExpiry() throws {
         let expiry = Date(timeIntervalSince1970: 1_755_172_800)
-        let payload = PairingPayload(
+        let payload = try PairingPayload(
             version: 1,
-            code: PairingCode("K7QN4FMB")!,
+            code: #require(PairingCode("K7QN4FMB")),
             macName: "Luke's MacBook Pro",
             expiresAt: expiry,
             host: "192.168.1.24",
@@ -209,7 +209,8 @@ struct CameraAuthorizationTests {
 
     @Test("asking when undetermined resolves either way")
     func askingResolves() async {
-        #expect(await FixtureCameraAuthorization(.notDetermined, grantsOnRequest: true).request() == .authorized)
+        #expect(await FixtureCameraAuthorization(.notDetermined, grantsOnRequest: true)
+            .request() == .authorized)
         #expect(await FixtureCameraAuthorization(.notDetermined, grantsOnRequest: false).request() == .denied)
     }
 
@@ -246,11 +247,16 @@ struct PairingSubtitleTests {
     @Test("recent times read as words, singular and plural both correct")
     func wording() {
         #expect(PairingSubtitle.lastSeenText(Self.now.addingTimeInterval(-10), now: Self.now) == "just now")
-        #expect(PairingSubtitle.lastSeenText(Self.now.addingTimeInterval(-60), now: Self.now) == "1 minute ago")
-        #expect(PairingSubtitle.lastSeenText(Self.now.addingTimeInterval(-120), now: Self.now) == "2 minutes ago")
-        #expect(PairingSubtitle.lastSeenText(Self.now.addingTimeInterval(-3600), now: Self.now) == "1 hour ago")
-        #expect(PairingSubtitle.lastSeenText(Self.now.addingTimeInterval(-7200), now: Self.now) == "2 hours ago")
-        #expect(PairingSubtitle.lastSeenText(Self.now.addingTimeInterval(-86400), now: Self.now) == "1 day ago")
+        #expect(PairingSubtitle
+            .lastSeenText(Self.now.addingTimeInterval(-60), now: Self.now) == "1 minute ago")
+        #expect(PairingSubtitle
+            .lastSeenText(Self.now.addingTimeInterval(-120), now: Self.now) == "2 minutes ago")
+        #expect(PairingSubtitle
+            .lastSeenText(Self.now.addingTimeInterval(-3600), now: Self.now) == "1 hour ago")
+        #expect(PairingSubtitle
+            .lastSeenText(Self.now.addingTimeInterval(-7200), now: Self.now) == "2 hours ago")
+        #expect(PairingSubtitle
+            .lastSeenText(Self.now.addingTimeInterval(-86400), now: Self.now) == "1 day ago")
     }
 
     @Test("the whole subtitle names both facts")

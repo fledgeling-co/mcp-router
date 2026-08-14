@@ -35,12 +35,11 @@ public struct PairingCode: Sendable, Hashable, CustomStringConvertible {
             if character.isWhitespace || character == "-" { continue }
 
             guard let scalar = character.uppercased().first else { return nil }
-            let normalised: Character
-            switch scalar {
+            let normalised: Character = switch scalar {
             // Crockford's decode aliases. A user reading a screen cannot be defeated by a font.
-            case "I", "L": normalised = "1"
-            case "O": normalised = "0"
-            default: normalised = scalar
+            case "I", "L": "1"
+            case "O": "0"
+            default: scalar
             }
 
             // `U` is excluded from the alphabet and is not an alias, so it lands here and fails.
@@ -97,11 +96,10 @@ public struct PairingCodeEntry: Sendable, Equatable {
             guard characters.count < PairingCode.length else { return }
             if character.isWhitespace || character == "-" { continue }
             guard let upper = character.uppercased().first else { continue }
-            let normalised: Character
-            switch upper {
-            case "I", "L": normalised = "1"
-            case "O": normalised = "0"
-            default: normalised = upper
+            let normalised: Character = switch upper {
+            case "I", "L": "1"
+            case "O": "0"
+            default: upper
             }
             guard PairingCode.alphabet.contains(normalised) else { continue }
             characters.append(normalised)

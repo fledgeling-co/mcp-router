@@ -30,8 +30,47 @@ struct PhoneCopyTests {
 
     /// HTML wraps and indents; the words are what is compared, not the line breaks. The mock also
     /// interpolates the Mac's name as `${MAC}`, which is the same hole the manifest spells `{mac}`.
+    ///
+    /// Space *before* a punctuation mark is also removed, and that is a consequence of `stripped`
+    /// below rather than a cosmetic choice: a closing tag becomes a space, so
+    /// `Pair iPhone</b>, then` normalises to `Pair iPhone , then` and stops matching the manifest's
+    /// `Pair iPhone, then` — a failure about markup wearing the costume of a failure about copy.
+    /// Applied to **both** sides, so it cannot make the mock match something the manifest does not
+    /// say; the manifest's own strings have no space before punctuation to remove.
     static func normalised(_ text: String) -> String {
-        text.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        let collapsed = text.split(whereSeparator: \.isWhitespace).joined(separator: " ")
+        var out = ""
+        out.reserveCapacity(collapsed.count)
+        for character in collapsed {
+            if ",.;:!?".contains(character), out.last == " " { out.removeLast() }
+            out.append(character)
+        }
+        return out
+    }
+
+    /// Inline markup is presentational, and the comparison is about words.
+    ///
+    /// The scan instruction emphasises the menu path — `open <b>MCP Router → Settings → Pair
+    /// iPhone</b>, then…` — which is a real typographic decision in the design and not something the
+    /// manifest should carry. Comparing the raw source against a plain string fails on the `<b>`
+    /// rather than on the copy, which is a failure about HTML dressed up as a failure about wording.
+    ///
+    /// A tag becomes a **space** rather than nothing, so `<p>one</p><p>two</p>` cannot fuse into
+    /// `onetwo` and invent a word that is in neither element. It does let a sentence match across
+    /// two elements, which is deliberate and already the position this suite takes: the per-sentence
+    /// matching above exists precisely because the mock splits paragraphs across markup.
+    static func stripped(_ html: String) -> String {
+        var out = ""
+        out.reserveCapacity(html.count)
+        var insideTag = false
+        for character in html {
+            switch character {
+            case "<": insideTag = true; out.append(" ")
+            case ">": insideTag = false; out.append(" ")
+            default: if !insideTag { out.append(character) }
+            }
+        }
+        return out
     }
 
     static func mockForm(_ text: String) -> String {
@@ -53,7 +92,7 @@ struct PhoneCopyTests {
 
     @Test("every headline, body sentence and action label appears in the design representation")
     func manifestIsInTheMock() throws {
-        let mock = Self.normalised(try Self.mockText())
+        let mock = try Self.normalised(Self.stripped(Self.mockText()))
         var checked = 0
 
         for (key, entry) in PairingCopy.all {
@@ -71,7 +110,7 @@ struct PhoneCopyTests {
                 )
                 checked += 1
             }
-            for label in [entry.actionLabel, entry.secondaryActionLabel].compactMap({ $0 }) {
+            for label in [entry.actionLabel, entry.secondaryActionLabel].compactMap(\.self) {
                 #expect(mock.contains(label), "\(key) action '\(label)' is not in the mock")
                 checked += 1
             }
@@ -84,7 +123,7 @@ struct PhoneCopyTests {
 
     @Test("the narrowing sentence is in the design representation")
     func narrowingIsInTheMock() throws {
-        let mock = Self.normalised(try Self.mockText())
+        let mock = try Self.normalised(Self.stripped(Self.mockText()))
         for sentence in Self.sentences(of: PairingCopy.neverInstalls) {
             #expect(mock.contains(sentence), "the narrowing is not in the mock: \(sentence)")
         }
@@ -164,7 +203,9 @@ struct PhoneCopyTests {
     @Test("nothing is shouted")
     func sentenceCase() {
         for (key, entry) in PairingCopy.all {
-            for text in [entry.headline, entry.body, entry.actionLabel, entry.secondaryActionLabel].compactMap({ $0 }) {
+            let texts = [entry.headline, entry.body, entry.actionLabel, entry.secondaryActionLabel]
+                .compactMap(\.self)
+            for text in texts {
                 let words = text.split(separator: " ").filter { $0.count > 3 }
                 for word in words where word.allSatisfy({ $0.isUppercase || $0 == "." }) {
                     // "MCP" is three characters and excluded by the length filter above; anything

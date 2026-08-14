@@ -19,7 +19,8 @@ public enum PairingSubtitle {
         calendar: Calendar = .current,
         locale: Locale = .current
     ) -> String {
-        "paired \(pairedText(mac.pairedAt, now: now, calendar: calendar, locale: locale)) · last seen \(lastSeenText(mac.lastSeen, now: now))"
+        let paired = pairedText(mac.pairedAt, now: now, calendar: calendar, locale: locale)
+        return "paired \(paired) · last seen \(lastSeenText(mac.lastSeen, now: now))"
     }
 
     /// A date, or "just now" while it is still the same few seconds.

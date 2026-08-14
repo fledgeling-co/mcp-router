@@ -194,7 +194,7 @@ public struct PairedMacSettingsView: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: PhoneMetric.normal) {
-            PhoneSectionLabel(text: "Paired Mac")
+            PhoneSectionLabel(text: PairingCopy.entry(.settingsSectionPairedMac).body)
 
             switch state {
             case let .reachable(mac):
@@ -248,7 +248,7 @@ public struct PairedMacSettingsView: View {
                 unpairButton
             }
 
-            PhoneSectionLabel(text: "About")
+            PhoneSectionLabel(text: PairingCopy.entry(.settingsSectionAbout).body)
             Text(PairingCopy.neverInstalls)
                 .typeRole(.callout)
                 .foregroundStyle(ColorToken.t3.color)
@@ -258,11 +258,14 @@ public struct PairedMacSettingsView: View {
 
     /// Destructive, and never the default. The consequence is named in the dialog this opens, not
     /// implied by the button.
-    @ViewBuilder
     private var unpairButton: some View {
-        Button("Unpair this Mac", role: .destructive, action: onUnpair)
-            .buttonStyle(StandardButtonStyle())
-            .frame(minHeight: PhoneMetric.minimumTarget)
-            .padding(.top, PhoneMetric.tight)
+        Button(
+            PairingCopy.entry(.settingsUnpairAction).body,
+            role: .destructive,
+            action: onUnpair
+        )
+        .buttonStyle(StandardButtonStyle())
+        .frame(minHeight: PhoneMetric.minimumTarget)
+        .padding(.top, PhoneMetric.tight)
     }
 }

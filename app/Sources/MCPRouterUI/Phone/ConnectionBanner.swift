@@ -23,7 +23,10 @@ public struct ConnectionBanner: View {
     }
 
     /// The dot's colour. Reachable is `--live`; the other two are label tiers, not indicators.
-    private var dotColor: ColorToken {
+    ///
+    /// Internal rather than private so A4 can be asserted directly on the mapping, the way `message`
+    /// already is. A colour rule that is only checked by reading the diff is not checked.
+    var dotColor: ColorToken {
         switch state {
         case .reachable: .live
         case .notReachable: .t3

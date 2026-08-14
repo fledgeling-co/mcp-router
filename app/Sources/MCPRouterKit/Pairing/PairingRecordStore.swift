@@ -77,7 +77,7 @@ public struct KeychainPairingStore: PairingRecordStore {
         do {
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .iso8601
-            return .loaded(try decoder.decode(PairedMac.self, from: data))
+            return try .loaded(decoder.decode(PairedMac.self, from: data))
         } catch {
             // Present and undecodable — an older or newer record shape. This is the *observed*
             // failure the Error state renders, and the only route to it.
@@ -121,9 +121,15 @@ public actor InMemoryPairingStore: PairingRecordStore {
         state = initial
     }
 
-    public func load() async -> PairingRecordLoad { state }
+    public func load() async -> PairingRecordLoad {
+        state
+    }
 
-    public func save(_ mac: PairedMac) async throws { state = .loaded(mac) }
+    public func save(_ mac: PairedMac) async throws {
+        state = .loaded(mac)
+    }
 
-    public func clear() async throws { state = .missing }
+    public func clear() async throws {
+        state = .missing
+    }
 }

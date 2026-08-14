@@ -1,10 +1,10 @@
-@testable import MCPRouterIOS
 import AVFoundation
 import MCPRouterKit
-@testable import MCPRouterUI
 import SwiftUI
 import UIKit
 import XCTest
+@testable import MCPRouterIOS
+@testable import MCPRouterUI
 
 /// The claims that are only true on an iPhone.
 ///
@@ -61,20 +61,76 @@ final class PhoneSurfaceTests: XCTestCase {
     /// **nothing at all**, and every "does this surface render its copy" assertion written against
     /// it either fails for the wrong reason or, worse, compares two empty sets and passes.
     func accessibilityTexts(of element: NSObject) -> [String] {
-        var found: [String] = []
+        var seen = Set<ObjectIdentifier>()
+        var budget = 3000
+        return walk(element, seen: &seen, depth: 0, budget: &budget) { object in
+            [object.accessibilityLabel, object.accessibilityValue]
+                .compactMap(\.self)
+                .filter { !$0.isEmpty }
+        }
+    }
 
-        if let label = element.accessibilityLabel, !label.isEmpty { found.append(label) }
-        if let value = element.accessibilityValue, !value.isEmpty { found.append(value) }
+    /// One walker for both trees, bounded three ways: visited set, depth cap, node budget.
+    ///
+    /// This is not defensive padding — each bound stops a failure that was actually observed.
+    ///
+    /// A `UIView`'s accessibility elements frequently *are* its subviews, so descending into both
+    /// without remembering what has been visited revisits the same objects forever. The first
+    /// version of this suite did that and the tests using it did not fail, they **crashed the test
+    /// runner**, which xcodebuild reports as "Restarting after unexpected exit" and then as a plain
+    /// failure — a stack overflow reads like a failing assertion, which is the most confusing way
+    /// for a test to be wrong.
+    ///
+    /// The visited set alone is not enough: SwiftUI's accessibility bridge vends a **freshly
+    /// allocated** element from `accessibilityElement(at:)` on each call, so no `ObjectIdentifier`
+    /// repeats and the set never stops that branch. The budget is what bounds the breadth.
+    ///
+    /// And the child count is clamped, which is the bound that actually mattered here.
+    /// `accessibilityElementCount()` returns **`NSNotFound`** — not zero — for anything that is not
+    /// an accessibility container, and `NSNotFound` is `Int.max`. `for index in 0 ..< count` over
+    /// that is a loop of ~9.2 × 10¹⁸ iterations; a `where budget > 0` clause does not save it,
+    /// because `where` filters the body while the range is still walked to the end. The observed
+    /// symptom was the test process being SIGKILLed with `make: *** [test-ios] Killed: 9`, which
+    /// looks like a machine problem rather than a loop.
+    private func walk<T>(
+        _ element: NSObject,
+        seen: inout Set<ObjectIdentifier>,
+        depth: Int,
+        budget: inout Int,
+        collect: (NSObject) -> [T]
+    ) -> [T] {
+        guard depth < 25, budget > 0 else { return [] }
+        // Checked, not discarded: for real `UIView`s the identity is stable, so this is what stops
+        // the subview/accessibility-element overlap from being walked twice.
+        guard seen.insert(ObjectIdentifier(element)).inserted else { return [] }
+        budget -= 1
 
-        for index in 0 ..< element.accessibilityElementCount() {
+        var found = collect(element)
+
+        for index in 0 ..< Self.childCount(of: element) {
+            if budget <= 0 { break }
             if let child = element.accessibilityElement(at: index) as? NSObject {
-                found += accessibilityTexts(of: child)
+                found += walk(child, seen: &seen, depth: depth + 1, budget: &budget, collect: collect)
             }
         }
         if let view = element as? UIView {
-            for subview in view.subviews { found += accessibilityTexts(of: subview) }
+            for subview in view.subviews {
+                if budget <= 0 { break }
+                found += walk(subview, seen: &seen, depth: depth + 1, budget: &budget, collect: collect)
+            }
         }
         return found
+    }
+
+    /// The number of accessibility children, made safe to iterate.
+    ///
+    /// `NSNotFound` means "not a container" rather than "this many children", and a negative count
+    /// is meaningless. Both become zero; anything real is capped so one pathological node cannot
+    /// consume the whole budget.
+    private static func childCount(of element: NSObject) -> Int {
+        let count = element.accessibilityElementCount()
+        guard count > 0, count != NSNotFound else { return 0 }
+        return min(count, 256)
     }
 
     func labels(in controller: UIViewController) -> [String] {
@@ -85,21 +141,14 @@ final class PhoneSurfaceTests: XCTestCase {
     ///
     /// Same reason as above: a SwiftUI `Button` is not a `UIControl`, so the obvious version of this
     /// finds zero controls and then passes because it measured nothing.
-    func tappableFrames(of element: NSObject, in root: UIView) -> [CGRect] {
-        var found: [CGRect] = []
-
-        if element.accessibilityTraits.contains(.button), element.accessibilityFrame.height > 0 {
-            found.append(element.accessibilityFrame)
+    func tappableFrames(of element: NSObject, in _: UIView) -> [CGRect] {
+        var seen = Set<ObjectIdentifier>()
+        var budget = 3000
+        return walk(element, seen: &seen, depth: 0, budget: &budget) { object -> [CGRect] in
+            guard object.accessibilityTraits.contains(.button),
+                  object.accessibilityFrame.height > 0 else { return [] }
+            return [object.accessibilityFrame]
         }
-        for index in 0 ..< element.accessibilityElementCount() {
-            if let child = element.accessibilityElement(at: index) as? NSObject {
-                found += tappableFrames(of: child, in: root)
-            }
-        }
-        if let view = element as? UIView {
-            for subview in view.subviews { found += tappableFrames(of: subview, in: root) }
-        }
-        return found
     }
 
     // MARK: A18 — the purpose string, in the artifact that actually ships
@@ -149,9 +198,15 @@ final class PhoneSurfaceTests: XCTestCase {
     func testEveryControlMeetsTheMinimumTarget() {
         let surfaces: [(String, AnyView)] = [
             ("settings/neverPaired", AnyView(PairedMacSettingsView(state: .neverPaired))),
-            ("settings/reachable", AnyView(PairedMacSettingsView(state: .reachable(FixturePairingService.specimenMac)))),
+            (
+                "settings/reachable",
+                AnyView(PairedMacSettingsView(state: .reachable(FixturePairingService.specimenMac)))
+            ),
             ("settings/unreadable", AnyView(PairedMacSettingsView(state: .unreadable))),
-            ("commit/blocked", AnyView(SendCommitBar(state: .notReachable, macName: "Luke's MacBook Pro", itemCount: 2)))
+            (
+                "commit/blocked",
+                AnyView(SendCommitBar(state: .notReachable, macName: "Luke's MacBook Pro", itemCount: 2))
+            )
         ]
 
         var measured = 0
@@ -173,8 +228,10 @@ final class PhoneSurfaceTests: XCTestCase {
     /// The Overflow state. A long name truncates; the row stays the height every other row is, so a
     /// list does not become a ragged column.
     func testRowHeightIsIndependentOfNameLength() {
-        let short = host(ScrollView { PairedMacSettingsView(state: .reachable(FixturePairingService.specimenMac)) })
-        let long = host(ScrollView { PairedMacSettingsView(state: .reachable(FixturePairingService.longNameMac)) })
+        let short =
+            host(ScrollView { PairedMacSettingsView(state: .reachable(FixturePairingService.specimenMac)) })
+        let long =
+            host(ScrollView { PairedMacSettingsView(state: .reachable(FixturePairingService.longNameMac)) })
 
         guard let shortHeight = rowHeight(in: short), let longHeight = rowHeight(in: long) else {
             return XCTFail("no row was found in either render, so nothing was compared")
@@ -192,10 +249,13 @@ final class PhoneSurfaceTests: XCTestCase {
     /// The Loading skeleton has to be the height of the row it stands in for, or the surface jumps
     /// the moment data lands.
     func testSkeletonMatchesTheRowItReplaces() {
-        let populated = host(ScrollView { PairedMacSettingsView(state: .reachable(FixturePairingService.specimenMac)) })
+        let populated =
+            host(ScrollView { PairedMacSettingsView(state: .reachable(FixturePairingService.specimenMac)) })
         let loading = host(ScrollView { PairedMacSettingsView(state: .loading) })
 
-        guard let populatedHeight = rowHeight(in: populated), let loadingHeight = rowHeight(in: loading) else {
+        guard let populatedHeight = rowHeight(in: populated),
+              let loadingHeight = rowHeight(in: loading)
+        else {
             return XCTFail("no row was found in either render, so nothing was compared")
         }
         XCTAssertEqual(
@@ -222,7 +282,11 @@ final class PhoneSurfaceTests: XCTestCase {
     /// ships: text placed in a frame that clips it. Every label must fit inside its own bounds at
     /// the largest accessibility category.
     func testTextIsNotClippedAtAccessibilitySizes() {
-        for category in [UIContentSizeCategory.large, .extraExtraExtraLarge, .accessibilityExtraExtraExtraLarge] {
+        for category in [
+            UIContentSizeCategory.large,
+            .extraExtraExtraLarge,
+            .accessibilityExtraExtraExtraLarge
+        ] {
             let controller = host(
                 PairedMacSettingsView(state: .macUnreachable(FixturePairingService.specimenMac)),
                 contentSize: category
@@ -266,14 +330,40 @@ final class PhoneSurfaceTests: XCTestCase {
 
     func testContentStaysInsideTheSafeArea() {
         let controller = host(PhoneShell())
-        let insets = controller.view.safeAreaInsets
-        // A window created in a test has no real device insets, so this asserts the mechanism is in
-        // play rather than a particular number: the hosting controller must not have opted out.
-        XCTAssertFalse(
-            controller.view.insetsLayoutMarginsFromSafeArea == false && insets == .zero && controller.additionalSafeAreaInsets != .zero,
-            "the shell overrides the safe area"
+
+        // The previous form of this test could not fail: it AND-ed
+        // `insetsLayoutMarginsFromSafeArea == false` (a property that defaults to true) into a
+        // three-way condition, so the whole expression was always false and `XCTAssertFalse` always
+        // passed. A test that cannot fail is worse than no test, because it reads as coverage.
+        //
+        // What is actually assertable in a hosted window: the shell must not opt out of safe-area
+        // insetting, and must not fabricate insets of its own.
+        XCTAssertTrue(
+            controller.view.insetsLayoutMarginsFromSafeArea,
+            "the shell opted out of safe-area layout margins"
         )
-        XCTAssertEqual(controller.additionalSafeAreaInsets, .zero, "the shell adds its own safe-area inset")
+        XCTAssertEqual(
+            controller.additionalSafeAreaInsets, .zero,
+            "the shell adds its own safe-area inset instead of respecting the system's"
+        )
+
+        // And the real claim: with a bottom inset in play, the tab bar sits above it rather than
+        // under the home indicator. Applied to the controller so the value is genuinely non-zero
+        // in a test window, which has no device insets of its own.
+        let homeIndicator: CGFloat = 34
+        controller.additionalSafeAreaInsets = UIEdgeInsets(top: 0, left: 0, bottom: homeIndicator, right: 0)
+        controller.view.setNeedsLayout()
+        controller.view.layoutIfNeeded()
+
+        let tabBars = descendants(of: controller.view).compactMap { $0 as? UITabBar }
+        let bar = tabBars.first
+        XCTAssertNotNil(bar, "no system tab bar was rendered, so nothing was measured")
+        if let bar {
+            XCTAssertLessThanOrEqual(
+                bar.frame.maxY, controller.view.bounds.height + 0.5,
+                "the tab bar extends past the bottom of the view"
+            )
+        }
     }
 
     // MARK: A20/A28 — the states render real copy on the device

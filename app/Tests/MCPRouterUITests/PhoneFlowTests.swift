@@ -13,7 +13,15 @@ import Testing
 @MainActor
 @Suite("Phone flow")
 struct PhoneFlowTests {
-    static let code = PairingCode("K7QN4FMB")!
+    /// The specimen code, built through the real parser so the test data cannot drift from the
+    /// alphabet the parser accepts. A `guard` rather than `!` because a force unwrap here would
+    /// crash with no explanation of which of the two is wrong.
+    static let code: PairingCode = {
+        guard let code = PairingCode("K7QN4FMB") else {
+            fatalError("the specimen pairing code is not valid — the test data and PairingCode disagree")
+        }
+        return code
+    }()
 
     static func model(
         _ scenario: FixturePairingService.Scenario = .paired,
@@ -86,7 +94,13 @@ struct PhoneFlowTests {
     @Test("an unknown version reaches the version-mismatch surface, not the malformed one")
     func versionMismatch() async {
         let model = Self.model()
-        await model.scanned(#"{"t":"mcp-router-pair","v":99,"code":"K7QN-4FMB","mac":"m","exp":"2099-01-01T00:00:00Z","host":"h","port":1,"fp":"f"}"#)
+        await model
+            .scanned(
+                #"""
+                {"t":"mcp-router-pair","v":99,"code":"K7QN-4FMB","mac":"m",\#
+                "exp":"2099-01-01T00:00:00Z","host":"h","port":1,"fp":"f"}
+                """#
+            )
         #expect(model.step == .failed(.versionMismatch(macName: nil)))
     }
 
@@ -114,7 +128,12 @@ struct PhoneFlowTests {
 
     @Test("the unfixable-by-retyping failures each get their own pane")
     func paneFailures() async {
-        for scenario in [FixturePairingService.Scenario.alreadyUsed, .versionMismatch, .unreachable, .refused] {
+        for scenario in [
+            FixturePairingService.Scenario.alreadyUsed,
+            .versionMismatch,
+            .unreachable,
+            .refused
+        ] {
             let model = Self.model(scenario)
             model.entry = PairingCodeEntry("K7QN4FMB")
             await model.submitTyped()
@@ -187,7 +206,10 @@ struct ConnectionStateTests {
 
         #expect(reachable == "Luke's MacBook Pro — items you send arrive now.")
         #expect(unreachable.contains("Can't reach Luke's MacBook Pro"))
-        #expect(unreachable.contains("waits here until it's back"), "the copy does not say what happens to queued work")
+        #expect(
+            unreachable.contains("waits here until it's back"),
+            "the copy does not say what happens to queued work"
+        )
         #expect(never == "No Mac paired. Pair one to send anything.")
         #expect(Set([reachable, unreachable, never]).count == 3, "two states share a sentence")
     }
@@ -224,7 +246,7 @@ struct VerifyingCountdownTests {
     static func payload(expiring seconds: TimeInterval) -> PairingPayload {
         PairingPayload(
             version: 1,
-            code: PairingCode("K7QN4FMB")!,
+            code: PhoneFlowTests.code,
             macName: "Luke's MacBook Pro",
             expiresAt: Date(timeIntervalSince1970: 1_786_708_800 + seconds),
             host: "h", port: 1, fingerprint: "f"
@@ -242,8 +264,8 @@ struct VerifyingCountdownTests {
 
     /// The whole point. A typed code has told the phone nothing, so there is nothing to show.
     @Test("a typed attempt shows no number at all")
-    func typedShowsNothing() {
-        let view = VerifyingView(attempt: .typed(PairingCode("K7QN4FMB")!), now: Self.now)
+    func typedShowsNothing() throws {
+        let view = try VerifyingView(attempt: .typed(#require(PairingCode("K7QN4FMB"))), now: Self.now)
         #expect(view.countdown == nil)
     }
 
@@ -255,7 +277,8 @@ struct VerifyingCountdownTests {
 
     @Test("the countdown is zero-padded so it does not jitter as it counts down")
     func padding() {
-        #expect(VerifyingView(attempt: .scanned(Self.payload(expiring: 65)), now: Self.now).countdown == "code expires in 1:05")
+        #expect(VerifyingView(attempt: .scanned(Self.payload(expiring: 65)), now: Self.now)
+            .countdown == "code expires in 1:05")
     }
 }
 
@@ -315,7 +338,13 @@ struct PairedMacSurfaceStateTests {
 struct PhoneShellTests {
     @Test("five tabs, in order, with Settings last")
     func tabOrder() {
-        #expect(PhoneShell<EmptyView>.Tab.allCases.map(\.rawValue) == ["discover", "triage", "queue", "library", "settings"])
+        #expect(PhoneShell<EmptyView>.Tab.allCases.map(\.rawValue) == [
+            "discover",
+            "triage",
+            "queue",
+            "library",
+            "settings"
+        ])
         #expect(PhoneShell<EmptyView>.Tab.allCases.last == .settings)
     }
 

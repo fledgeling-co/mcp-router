@@ -97,7 +97,11 @@ struct PhoneNoticeList: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: PhoneMetric.cardRadius, style: .continuous)
-                .strokeBorder(tone == .neutral ? ColorToken.line.color : tone.accent.color.opacity(PhoneMetric.tintedBorderOpacity), lineWidth: PhoneMetric.hairline)
+                .strokeBorder(
+                    tone == .neutral ? ColorToken.line.color : tone.accent.color
+                        .opacity(PhoneMetric.tintedBorderOpacity),
+                    lineWidth: PhoneMetric.hairline
+                )
         )
     }
 }
@@ -115,7 +119,7 @@ struct ScanView<Preview: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: PhoneMetric.loose) {
-            Text("On your Mac, open MCP Router → Settings → Pair iPhone, then point this camera at the code it shows.")
+            Text(PairingCopy.entry(.scanInstruction).body)
                 .typeRole(.body)
                 .foregroundStyle(ColorToken.t2.color)
                 .fixedSize(horizontal: false, vertical: true)
@@ -183,8 +187,8 @@ struct CameraPermissionView: View {
 
     private var placeholderLabel: String {
         switch authorization {
-        case .notDetermined: "Camera not started"
-        case .denied, .restricted: "Camera unavailable"
+        case .notDetermined: PairingCopy.entry(.cameraPlaceholderIdle).body
+        case .denied, .restricted: PairingCopy.entry(.cameraPlaceholderUnavailable).body
         case .authorized: ""
         }
     }
@@ -274,7 +278,10 @@ struct WorkingIndicator: View {
     var body: some View {
         Circle()
             .trim(from: 0, to: 0.72)
-            .stroke(ColorToken.accent.color, style: .init(lineWidth: PhoneMetric.bracketWeight, lineCap: .round))
+            .stroke(
+                ColorToken.accent.color,
+                style: .init(lineWidth: PhoneMetric.bracketWeight, lineCap: .round)
+            )
             .frame(width: TypeToken.body.size, height: TypeToken.body.size)
             .rotationEffect(.degrees(spinning ? 360 : 0))
             .animation(
@@ -339,77 +346,5 @@ struct PairingOutcomeView: View {
         case .unreachable: .bolt
         default: .warn
         }
-    }
-}
-
-/// Picks a button style at runtime.
-///
-/// SwiftUI's `buttonStyle` takes a concrete type, so a conditional between two styles cannot be
-/// written inline without this. It exists because §3.4 allows exactly one prominent action per view
-/// and the refusal pane deliberately is not it.
-struct AnyPhoneButton: ButtonStyle {
-    enum Kind { case prominent, standard }
-    private let kind: Kind
-
-    init(_ kind: Kind) { self.kind = kind }
-
-    func makeBody(configuration: Configuration) -> some View {
-        Group {
-            switch kind {
-            case .prominent: ProminentButtonStyle().makeBody(configuration: configuration)
-            case .standard: StandardButtonStyle().makeBody(configuration: configuration)
-            }
-        }
-    }
-}
-
-/// Paired. A tick and a sentence, proportional to what happened.
-///
-/// The narrowing is restated here, at the one moment the user is actually thinking about what they
-/// just granted. `DESIGN.md` §9: pairing hands a remote party the ability to put executable code on
-/// a laptop, and this app's answer is that it queues and never installs — which is worth saying
-/// again exactly when permission changes hands.
-struct PairedSuccessView: View {
-    let mac: PairedMac
-    let onDone: () -> Void
-
-    var body: some View {
-        let entry = PairingCopy.entry(.pairedSuccess).resolved(macName: mac.name)
-
-        VStack(alignment: .leading, spacing: PhoneMetric.loose) {
-            Spacer(minLength: PhoneMetric.section)
-
-            IconView(.check, size: PhoneMetric.successMark, weight: .semibold)
-                .foregroundStyle(ColorToken.live.color)
-                .accessibilityHidden(true)
-
-            if let headline = entry.headline {
-                Text(headline)
-                    .typeRole(.title2)
-                    .foregroundStyle(ColorToken.t1.color)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            Text(entry.body)
-                .typeRole(.body)
-                .foregroundStyle(ColorToken.t2.color)
-
-            PhoneNoticeList(
-                entry: PairingCopy.Entry(
-                    headline: "What this phone can do",
-                    body: PairingCopy.neverInstalls
-                ),
-                tone: .neutral,
-                glyph: .shield
-            )
-
-            Button(entry.actionLabel ?? "Done", action: onDone)
-                .buttonStyle(ProminentButtonStyle())
-                .frame(minHeight: PhoneMetric.minimumTarget)
-                .frame(maxWidth: .infinity)
-
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

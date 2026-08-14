@@ -104,7 +104,7 @@ than barriering on whole waves, so the real overlap is greater than the table im
 |---|---|---|---|
 | 1 | F1 | 1 | ✅ **CLEARED** — both targets build, CI green on a clean runner, `SWIFT_PRACTICES.md` landed |
 | 2 | F2 · F3 · R1 | 3 | ✅ **CLEARED** — all three merged; merged-tree `make all` exit 0, 237 tests, lint clean |
-| 3 | M1 · R2 · R3 · I1 (+ **F4**, injected) | 5 | Mac shell navigable; iOS pairs; Swift router relays a real call. **F4 must merge before wave 4** — M2 and M3 both read `ServerStateTracker` |
+| 3 | M1 · R2 · R3 · I1 (+ **F4**, injected) | 3 | **R2 ✓ R3 ✓ R5 ✓ F4 ✓ merged.** Remaining: M1 (no UI shipped), I1 (partial). Concurrency cut 5 → 3: I1's iOS build was `Killed: 9` by memory pressure from five parallel Swift/Xcode builds, which is part of what kept killing agents |
 | 4 | M2 · M3 · M4 · I2 · R4 | 5 | **R4 is the parity gate and may not pass on a subset** |
 | 5 | M5 · M7 · M8 · I3 | 4 | — |
 | 6 | M6 | 1 | Phone → Mac inbox round-trip works end to end |
@@ -134,10 +134,10 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 | F2 | Design system in SwiftUI | foundation | F1 ✓ | `?only=mac` + `DESIGN.md` §§2–7 | Opus | **Merged** `22d1802` | — | merged-tree `make all` exit 0 · 75 tests · both appearances authored · tokens tested *against* `DESIGN.md`, so doc and code cannot drift · two recorded deviations (tertiary 50% not 25%; `--onAccent` 3.23:1, kit wins) |
 | F3 | Control-API client and models | foundation | F1 ✓ | — (surface: `src/control.ts`) | Opus | **Merged** `13825c9` | — | merged-tree `make all` exit 0 · 147 tests · 23 recorded fixtures + `ControlProbe` · **merge found a real defect**: unanchored `.gitignore` `servers.json` had silently swallowed a source fixture, green on the branch and red only when merged |
 | R1 | Router: core, config, manifest | router | F1 ✓ | — | Opus | **Merged** `c30eac9` | — | merged-tree `make all` exit 0 · 237 tests · 224 parity vectors · mutation gate exit 0 · SDK pinned exact `0.12.1`, confined to `RouterCore` which neither app links |
-| F4 | ServerStateTracker cannot report failure | foundation | F3 ✓ | — | Opus | **Ready — blocks M2, M3** | — | Defect on `main`, found by M1's plan gate and verified in source: `try?` in `pollLoop` discards every typed `ControlAPIError`, and `phase` is pinned to `.disconnected` whenever `stream` is nil (the default). No §5 failure state is renderable from this type. |
-| R2 | Router: pool, relay, passthrough | router | R1 | — | Opus | Untriaged | — | — |
-| R3 | Router: control, usage, registry | router | R1 ✓ | — | Opus | **Partial — relaunched, auth split out** | `ai/r3` `2a1121e` | 5 commits, clean tree · **352 parity cases in 48 suites** (B76's "exceed 224" is met — the R5 brief's floor is stale) · `make parity-regen` against the reference `dist/` passes, so vectors are reference-derived not back-fitted · **8 live defects found and fixed** by reading `src/*.ts` — the earlier 5, plus `?limit=`/`?limit=0` returning every record via `slice(-0)`, `projectOf` recording a project literally named `/` (BSD `lastPathComponent` vs node `basename('/')`), and `Authorization`-vs-`authorization` bearer shadowing decided by Swift dictionary hash order · B70's attribution cache was entirely unimplemented and is now `AttributionCache` · spec gate 86 findings/82 accepted, plan gate 29/23 · **Phase D critic still not run** — codex was down, and the in-family downgrade had not happened when the duplicate stopped · **`2a1121e` was committed by the stale duplicate with `git add -A` and contains the surviving runner's in-flight work; kept deliberately, see changelog** |
-| R5 | Router: OAuth and the auth routes | router | R3 | — | Opus | **Ready** | — | Split out of R3 by the orchestrator: P4/auth entire (B60–B66, no `Auth/` sources exist), `/approve` and `POST /servers/:name/auth`. R3 blocked twice, once on an interrupt and once on scope; this is the slice that made the turn unfinishable. Carries B76 (must exceed R1's 224) and B69's partial-identity contradiction |
+| F4 | ServerStateTracker cannot report failure | foundation | F3 ✓ | — | Opus | **Merged** `aba30bd` | — | 306 tests on the merged tree · LoadKind .failed/.stale + StreamCondition .notConfigured · M55 survived the first mutation run (no test saw the notification lost when `register` is deferred into a Task) and `ServerStateTrackerPublicationTests.swift` is the test written to kill it · unblocks M2, M3 |
+| R2 | Router: pool, relay, passthrough | router | R1 ✓ | — | Opus | **Merged** `a8091bb` | — | 279 tests · 224 parity · 13 mutation guards load-bearing · 10 behavioural tests against a REAL spawned child (pipes, signals, PATH, SDK handshake) · gate run on the rebased tree |
+| R3 | Router: control, usage, registry | router | R1 ✓ R2 ✓ | — | Opus | **Merged** `e154bae` | — | 386 tests · 352 parity (parity-regen matches the reference exactly) · differential harness vs the RUNNING TypeScript router: 32/32 rows, 3 of which kill the reference where Swift answers 400 · 35/35 mutations red · 8 live port defects · **Phase D critic never ran** (codex account limit) — degraded, not passed |
+| R5 | Router: OAuth and the auth routes | router | R3 ✓ | — | Opus | **Merged** `b7c527c` | — | 456 tests · 358 parity (352 core + 6 auth, asserted by name) · 10 mutations red-green · the real NWListener exposed 5 defects the double could not, incl. a CheckedContinuation double-resume in `AuthFlow.cleanup` that traps and kills the daemon · Phase D in-family (downgrade logged) 11 findings/8 fixed · one guard correct-by-construction but untested, recorded in the evidence file |
 | R4 | Parity harness and cutover | router | R2, R3, R5 | — | Opus — never downgrade | Untriaged | — | — |
 | M1 | Mac shell, menu bar, keyboard | mac | F2, F3 ✓ | `?only=mac` | Opus | **Partial — relaunched** | `ai/m1` `6035cc4` | Spec (37 clauses), plan, design mock and the shell models committed, tree clean · 264 tests, lint clean, 6 red-green proofs · both codex gates REJECTed and were fully addressed · **no UI shipped yet**, so every UI clause is unevidenced and the runner said so rather than claiming build gates as UI evidence · plan Phases B/C/D remain |
 | M2 | Activity | mac | M1 | `?only=mac&pane=activity` | Opus | Untriaged | — | — |
@@ -185,6 +185,37 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 ---
 
 ## Changelog
+
+- 2026-08-14 — **Four items merged after the fleet was killed and restarted: R2, F4, R3, R5.**
+  `main` went `b093122 → a8091bb → aba30bd → e154bae → b7c527c`, each merge gated on the
+  **merged** tree rather than the branch. Final state: 456 tests in 68 suites, 358 parity cases,
+  lint clean.
+  The lost runs were **not resumed**, deliberately. The scanner showed all three as `no-snapshot`
+  with results far under started (1-of-3, 0-of-2, 0-of-3), and replay stops at the first miss and
+  re-asserts stale results — so a resume would have paid nearly full price *and* carried forward
+  claims that were never true. Each item was relaunched instead with a brief handing it what its
+  predecessor had actually established, so F4 inherited "M50–M54 killed, M55 survived" rather than
+  re-running the gate, and R3 was told to close out rather than rebuild.
+  What building for real found, which no double could: R5's `NWListener` exposed a
+  **`CheckedContinuation` double-resume in `AuthFlow.cleanup`** — it cleared `current` after two
+  awaits, so a callback landing during teardown settled the flow and cleanup then resumed the same
+  continuation again, trapping and killing the daemon. Unreachable against the fake, whose `stop()`
+  never suspends. R3's differential harness ran the Swift handler against the **running** TypeScript
+  router: 32/32 rows, three of which kill the reference (`TypeError`, `URIError`) where Swift
+  answers 400.
+  Conflict resolved at the R5 rebase exactly as predicted: R3's `coreFiles + controlFiles` structure
+  won, R5's auth entry became the first element of `coreFiles`, both assertions kept, and the floor
+  ratcheted 352 → 358 — left at 352 the auth corpus could have been deleted without failing.
+  **Concurrency cut to 3.** I1's own report named the cause: its iOS build was `Killed: 9` by
+  "memory pressure from the concurrent fleet". Five parallel Swift/Xcode builds were thrashing the
+  machine, agents died, lifeline retried them, and the retries thrashed it again.
+- 2026-08-14 — **The fleet was killed at the user's instruction, and the orchestrator could not do
+  it.** Workflow agents are async tasks inside the `claude` process, not child processes. `TaskStop`
+  resolves only ids held in the current context and a compaction had wiped them; `lifeline pause`
+  gates retries of *failed* agents and does nothing to a healthy one; killing OS processes stopped
+  builds that were immediately respawned. The session's own process was the only lever, and it
+  exited before the kill landed. **The process tree was the first thing to check and was checked
+  last** — three wrong "it's stopped" claims were made before it was.
 
 - 2026-08-14 — **F4 died a second time, and left a mutant in the source.** It ran the
   mutation gate as a background task and polled its output file for a sentinel; the task

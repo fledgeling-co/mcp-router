@@ -172,10 +172,18 @@
                 }
                 // States what the sidebar badge counts, because it counts a subset of this list —
                 // otherwise a badge of 3 against a list of 9 is left for the reader to reconcile.
-                Text(CleanupPresentation.badgeNote(neverUsedCount: board.neverUsedServerCount))
-                    .typeRole(.caption)
-                    .foregroundStyle(ColorToken.t3.color)
-                    .fixedSize(horizontal: false, vertical: true)
+                //
+                // Only once a reading exists. `neverUsedServerCount` folds an absent reading to
+                // zero, so rendering this unconditionally would tell a reader whose router never
+                // answered that the sidebar counts zero never-used servers — a considered figure
+                // derived from nothing, which is the same defect the shell's readout drops its
+                // counts to avoid.
+                if board.state.reading != nil {
+                    Text(CleanupPresentation.badgeNote(neverUsedCount: board.neverUsedServerCount))
+                        .typeRole(.caption)
+                        .foregroundStyle(ColorToken.t3.color)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             .padding(.bottom, M7BoardMetrics.gap)
         }

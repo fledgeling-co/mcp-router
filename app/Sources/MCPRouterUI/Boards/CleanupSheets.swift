@@ -62,6 +62,16 @@
                     .typeRole(.body)
                     .foregroundStyle(ColorToken.t2.color)
                     .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    // The row left the list while its dialog was open — a poll landed and the server
+                    // is no longer a candidate. Without a candidate there are no tools and no key
+                    // names to state, so there is no consequence to disclose, and §9 does not allow
+                    // an irreversible act to be offered without one. The dialog says why instead of
+                    // silently dropping the two paragraphs and leaving Remove live.
+                    Text(CleanupPresentation.consequenceUnavailable)
+                        .typeRole(.body)
+                        .foregroundStyle(ColorToken.t2.color)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 Toggle("Keep its recorded calls", isOn: $keepHistory)
@@ -85,6 +95,8 @@
                         Task { await board.remove(name, keepHistory: keepHistory) }
                     }
                     .buttonStyle(StandardButtonStyle())
+                    .disabled(candidate == nil)
+                    .help(candidate == nil ? CleanupPresentation.consequenceUnavailable : "")
                 }
             }
             .padding(M7BoardMetrics.panePadding)
@@ -110,7 +122,7 @@
 
                 Text(
                     CleanupPresentation.resetConsequence(
-                        calls: board.state.reading?.recordedCalls ?? 0,
+                        calls: board.state.reading?.recordedCalls,
                         window: board.window
                     )
                 )

@@ -39,7 +39,15 @@
             /// `UsageSummary.since` — the type `usageSummary()` returns. Not `UsageResponse.since`,
             /// which belongs to the call log, and not `ServersResponse.since`.
             public var since: String?
-            public var recordedCalls: Int
+            /// How many calls the router has recorded across the window, or **nil when it did not
+            /// say**.
+            ///
+            /// Optional rather than zero-defaulted, and the difference is load-bearing. This figure
+            /// appears in the reset dialog's consequence, which is the disclosure for an
+            /// irreversible act with no restore endpoint. A zero substituted for an unanswered
+            /// `usageSummary()` makes that dialog read "0 calls are discarded" — a number the router
+            /// never reported, in the one direction that makes an irreversible action look free.
+            public var recordedCalls: Int?
         }
 
         /// One proposed row.
@@ -110,7 +118,7 @@
             do {
                 let servers = try await client.servers().servers
                 guard !Task.isCancelled else { return }
-                var reading = Reading(servers: servers, skills: nil, since: nil, recordedCalls: 0)
+                var reading = Reading(servers: servers, skills: nil, since: nil, recordedCalls: nil)
                 do {
                     reading.skills = try await client.skills()
                 } catch {

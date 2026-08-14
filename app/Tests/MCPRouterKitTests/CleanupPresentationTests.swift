@@ -141,6 +141,44 @@ struct CleanupPresentationTests {
         #expect(consequence.contains("never-used"))
     }
 
+    /// The defect this asserts against was live: `Reading.recordedCalls` was a non-optional `Int`
+    /// initialised to `0` before `usageSummary()` was attempted, and the catch that handles a failed
+    /// summary left it at zero while a comment three lines below it said "no number is substituted".
+    /// The reset dialog then read "0 calls recorded so far are discarded" for a router that had
+    /// recorded thousands — a figure nobody observed, biased in the one direction that makes an
+    /// irreversible act with no restore endpoint look free.
+    @Test("A15b: an unobserved call count is never rendered as zero in the reset consequence")
+    func resetWithoutACountStatesNoNumber() {
+        let now = Date()
+        let window = CleanupPresentation.window(since: Self.iso(daysAgo: 41, from: now), now: now)
+        let consequence = CleanupPresentation.resetConsequence(calls: nil, window: window)
+
+        // No digit that could be read as a call count.
+        #expect(!consequence.contains("0 call"))
+        #expect(!consequence.contains("0 calls"))
+        // Every consequence survives the missing figure — this drops the number, not the disclosure.
+        #expect(consequence.contains("no way to bring them back"))
+        #expect(consequence.contains("never-used"))
+        #expect(consequence.contains("has not said how many"))
+
+        // And an observed zero is a different sentence from an unobserved one: a router that really
+        // recorded nothing may say so.
+        let observedZero = CleanupPresentation.resetConsequence(calls: 0, window: window)
+        #expect(observedZero.contains("0 calls"))
+        #expect(observedZero != consequence)
+    }
+
+    /// A removal dialog whose row has left the list has no tool count and no key names to state, so
+    /// it has no consequence — and §9 does not allow an irreversible act to be offered without one.
+    @Test("A15: a removal with no statable consequence says so rather than showing a gap")
+    func removalWithoutAConsequenceExplainsItself() {
+        let text = CleanupPresentation.consequenceUnavailable
+        #expect(!text.isEmpty)
+        #expect(text.contains("cannot be stated"))
+        // It names the recovery, so the reader is not left at a dead end.
+        #expect(text.contains("Servers"))
+    }
+
     @Test("The badge note states what the sidebar counts, because it counts a subset")
     func badgeNoteReconciles() {
         let note = CleanupPresentation.badgeNote(neverUsedCount: 3)

@@ -43,13 +43,21 @@
             GeometryReader { proxy in
                 ZStack(alignment: .leading) {
                     Capsule().fill(ColorToken.f2.color)
-                    Capsule()
-                        .fill(fill)
-                        .frame(
-                            width: proxy.size.width * CleanupPresentation.trackFraction(
-                                days: window?.days ?? 0
+                    // Drawn only when there is a window to draw. A bar filled to zero for an
+                    // unknown window is the same substitution as printing "0 days": the shape
+                    // states a measurement, and an empty one states that nothing was recorded,
+                    // which is a different claim from "the router did not say". The mono label
+                    // beside it already reads "window unknown"; leaving the fill out keeps the two
+                    // saying the same thing instead of the drawing contradicting the text.
+                    if let window {
+                        Capsule()
+                            .fill(fill)
+                            .frame(
+                                width: proxy.size.width * CleanupPresentation.trackFraction(
+                                    days: window.days
+                                )
                             )
-                        )
+                    }
                 }
             }
             .frame(width: M7BoardMetrics.trackWidth, height: M7BoardMetrics.trackHeight)

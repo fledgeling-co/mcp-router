@@ -193,6 +193,17 @@ public enum CleanupPresentation {
 
     public static let resetLabel = "Reset call history…"
 
+    /// Why a removal dialog can offer nothing, said rather than shown as a gap.
+    ///
+    /// The consequence strings are computed from the candidate row — its tool count and its env and
+    /// header key names. A poll that lands while the dialog is open can take that row away, and a
+    /// dialog that then rendered its title, its toggle and a live Remove button with the two
+    /// consequence paragraphs simply missing would be offering an irreversible act with its
+    /// disclosure quietly deleted.
+    public static let consequenceUnavailable =
+        "This server is no longer in the list, so what removing it would take with it cannot be "
+            + "stated. Close this and open it again from the Servers board."
+
     public static let resetTitle = "Reset the recorded call history?"
 
     /// The named consequence, because there is no restore endpoint for this.
@@ -201,10 +212,20 @@ public enum CleanupPresentation {
     /// never-used, repopulates this pane with false candidates and trips its own weak-window banner.
     /// `DESIGN.md` §9's escalation clause governs: the blast radius is the whole judgement surface
     /// this pane rests on, so it gets a named consequence and Cancel leads.
-    public static func resetConsequence(calls: Int, window: Window?) -> String {
-        let noun = calls == 1 ? "call" : "calls"
+    /// `calls` is optional because the router may not have answered `usageSummary()` when the dialog
+    /// opens, and a zero substituted for silence is the worst substitution available here: it turns
+    /// the disclosure for an irreversible act into "0 calls are discarded", which reads as free. When
+    /// the figure is unobserved the sentence drops the count and keeps every consequence — the reader
+    /// still learns exactly what is lost and that it cannot come back, without being told a number
+    /// nobody measured.
+    public static func resetConsequence(calls: Int?, window: Window?) -> String {
         let span = window.map { " recorded across the past \($0.label)" } ?? " recorded so far"
-        return "\(calls) \(noun)\(span) are discarded, and there is no way to bring them back. "
+        let subject = if let calls {
+            "\(calls) \(calls == 1 ? "call" : "calls")\(span) are discarded"
+        } else {
+            "Every call\(span) is discarded — the router has not said how many"
+        }
+        return "\(subject), and there is no way to bring them back. "
             + "Every server will read as never-used until calls are recorded again, so this list "
             + "will propose things that are in daily use."
     }

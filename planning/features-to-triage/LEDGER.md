@@ -12,7 +12,8 @@ first.
 | F4 | ServerStateTracker cannot report failure | `F4-tracker-failure-states.md` | — | — | Untriaged |
 | R1 | Swift router: core, config, manifest | `R1-router-core.md` | `spec-R1.md` | `plan-R1.md` | **Merged** `c30eac9` |
 | R2 | Swift router: lazy pool, relay, passthrough | `R2-router-pool-relay.md` | — | — | Untriaged |
-| R3 | Swift router: control, auth, usage, registry | `R3-router-control-registry.md` | — | — | Untriaged |
+| R3 | Swift router: control, usage, registry | `R3-router-control-registry.md` | — | — | Untriaged |
+| R5 | Swift router: OAuth and the auth routes | `R5-router-auth.md` | — | — | Untriaged |
 | R4 | Differential parity harness and cutover | `R4-router-parity-cutover.md` | — | — | Untriaged |
 | M1 | Mac window shell, menu bar, keyboard | `M1-mac-shell.md` | — | — | Untriaged |
 | M2 | Activity: the live call log | `M2-activity.md` | — | — | Untriaged |

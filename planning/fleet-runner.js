@@ -40,9 +40,23 @@ Claude. Exempt from the kill-switch. codex 0.146.0 is installed at ~/.local/bin/
   not request an exception. Re-check EVERY time, not once — every codex call ships the
   artifact and every file it opens to OpenAI (-s read-only restricts writes, NOT
   egress), and this grep is the only kill-switch that reaches you once running.
-  Bound every call:
-    perl -e 'alarm shift @ARGV; exec @ARGV' 600 codex exec -m gpt-5.6-sol \\
-      -c model_reasoning_effort="max" -s read-only -o /tmp/gate-<ID>-<stage>.md "<prompt>" </dev/null
+  Bound every call, and run it from a SCRATCH ROOT so it cannot read this machine's
+  project docs:
+    mkdir -p /tmp/codex-scratch
+    perl -e 'alarm shift @ARGV; exec @ARGV' 900 codex exec -m gpt-5.6-sol \\
+      -c model_reasoning_effort="max" -s read-only \\
+      --skip-git-repo-check -C /tmp/codex-scratch \\
+      -o /tmp/gate-<ID>-<stage>.md "<prompt, with every file named by ABSOLUTE path>" </dev/null
+  The scratch root is not optional and is not cosmetic. Codex discovers project docs by
+  walking UP from its working directory, and \`~/Dev/CLAUDE.md\` lists a \`code-review\` skill
+  in its roster. Run from the repo, codex announced "I'm using the code-review skill" and
+  emitted that skill's workflow documentation INSTEAD OF THE AUDIT — twice for R3, including
+  once when explicitly told to ignore every AGENTS.md/CLAUDE.md/skill file, leaving an empty
+  -o file both times. \`-C /tmp/codex-scratch\` puts it outside \`~/Dev\` so nothing is
+  discovered; \`--skip-git-repo-check\` is then required because /tmp is not a trusted dir.
+  Verified working 2026-08-14: a real audit, a 559-byte -o file, correct line citations.
+  Because the working root is elsewhere, EVERY file you want read must be named by absolute
+  path in the prompt — a relative path resolves against the scratch dir and finds nothing.
   Verify the wire: the captured log must contain 'model: gpt-5.6-sol' AND
   'reasoning effort: max', or it is a lane failure — a dropped flag silently inherits
   the user's config default. An empty -o file is a lane failure, never a pass.

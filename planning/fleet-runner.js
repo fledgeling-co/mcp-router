@@ -91,6 +91,18 @@ Rules that override ship-feature's defaults:
   share it, so a push will fail with an explanation rather than succeed quietly. If you
   believe the main tree needs a change, REPORT it in your final message and stop.
 
+- DO NOT RUN A UI ACCEPTANCE PASS OVER A PLACEHOLDER. If a surface renders a scaffold rather
+  than its real content, there is nothing there to verify and driving it proves only that a
+  placeholder is a placeholder. The user put it plainly, after watching hours of work and then
+  opening an app whose every window said "isn't built yet": *why are you bothering to test it if
+  it isn't built.* Check \`BoardRegistry.installed\` (or the equivalent for your surface) before
+  you launch anything, and skip every destination that is not in it — say in your report which
+  ones you skipped and why. A unit test that the placeholder renders is fine and cheap; an
+  acceptance sweep over seven identical placeholders is not.
+  The corollary, for anyone shipping a board: your item is not done when the view compiles. It is
+  done when your destination is IN \`BoardRegistry.installed\`, because a board that exists but is
+  not installed still shows the user a placeholder.
+
 - NEVER TAKE THE USER'S SCREEN. This outranks every other testing instruction, and it is the
   one the previous version of these rules missed. Measured on the Mac runner: it was in an
   ordinary build -> launch -> probe -> fix -> rebuild -> relaunch loop, three cycles deep, and

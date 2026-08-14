@@ -41,7 +41,14 @@ echo a > "$TOOLSET_FILE"
 
 # The upstream that demands OAuth. Started before the router so the first connection to it lands on
 # a server that is already refusing in the way that begins a flow.
-node "$REPO_ROOT/scripts/fixtures/mcp-fixture-server.mjs" oauth >"$HOME_DIR/oauth.log" 2>&1 &
+#
+# FIXTURE_OAUTH_PORT is what the fixture server actually reads; OAUTH_PORT is what this script uses
+# to build the manifest URL. They default to the same number, so every run at the default worked and
+# hid the fact that they were never connected. Moving the port — which R4's lane does, to avoid the
+# user's live router — pointed the manifest at one port and the upstream at another, and the run
+# failed with "no in-flight authorization was captured" rather than naming the cause.
+FIXTURE_OAUTH_PORT="$OAUTH_PORT" \
+  node "$REPO_ROOT/scripts/fixtures/mcp-fixture-server.mjs" oauth >"$HOME_DIR/oauth.log" 2>&1 &
 OAUTH_PID=$!
 
 # Four servers, because the variants live in the differences between them:
@@ -79,8 +86,28 @@ TOKEN="$(cat "$HOME_DIR/control.token")"
 auth=(-H "Authorization: Bearer $TOKEN" -H "content-type: application/json")
 
 # `-f` is deliberately absent on the calls whose NON-2xx body is the thing being captured.
-grab()    { curl -sS "$@" ; }
-save()    { local f="$1"; shift; "$@" > "$OUT/$f"; echo "  wrote $f"; }
+#
+# R4 (deferred child D-a): the recorded set carries the BODY and not the HTTP status, so a port
+# could answer every fixture's bytes under the wrong status and every decode test would still
+# pass. Setting STATUS_DIR makes each save write the status alongside, without touching the
+# fixture files themselves — they are the wire contract, and a lane that edits its own oracle
+# proves nothing. With STATUS_DIR unset this behaves exactly as it did before.
+grab() {
+  if [ -n "${STATUS_DIR:-}" ]; then
+    curl -sS -o "$HOME_DIR/.last-body" -w '%{http_code}' "$@" > "$HOME_DIR/.last-status"
+    cat "$HOME_DIR/.last-body"
+  else
+    curl -sS "$@"
+  fi
+}
+save() {
+  local f="$1"; shift
+  "$@" > "$OUT/$f"
+  if [ -n "${STATUS_DIR:-}" ] && [ -f "$HOME_DIR/.last-status" ]; then
+    cp "$HOME_DIR/.last-status" "$STATUS_DIR/${f%.json}.status"
+  fi
+  echo "  wrote $f"
+}
 
 echo "capturing…"
 

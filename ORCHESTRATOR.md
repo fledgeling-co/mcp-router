@@ -201,6 +201,36 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 
 ## Changelog
 
+- 2026-08-14 — **M2 merged `c39c891`. Three of eight panes are real: `[.servers, .skills, .activity]`.**
+  Merged-tree gates: lint **0 violations over 279 files**, **891 tests / 120 suites**, 358 parity
+  vectors, `build-mac` succeeded, and **0 code files** differ between the merged tree and the tree
+  those numbers were taken on.
+
+  **This merge is the argument for gating the merged tree rather than the branch, and it is no longer
+  hypothetical.** M2 and M4 each compiled and passed alone; together they **did not compile at all**.
+  M4 added `skills()` and `marketplaces()` to `ControlAPIClient` after M2's three Activity test
+  doubles were written, so all three stopped conforming. Three board-registry assertions then failed
+  — correctly, since they pin the exact set and count precisely so that a board landing is a
+  deliberate edit. One could not simply be renumbered: `ScaffoldedDestination(.skills) != nil`, named
+  *"a scaffolded destination still builds one"*, lost its subject the moment M4 installed Skills, and
+  fixing the counts around it would have left a test that no longer tested what it said.
+
+  **A false alarm worth recording, because the trap is general.** M2's uncommitted delta removed
+  seven `@Test` cases and added none — including the `BoardRegistry` complement guard — which is
+  indistinguishable from a suite going green by deleting its assertions. It was not: those seven had
+  already been *copied* into `ActivityBoardContractTests.swift` in an earlier commit, and removing
+  the duplicates completes the move. So **822 is the honest count and 829 was double-counting**. The
+  rule: *a working-tree diff cannot show a move whose other half is already committed*, and it
+  renders identically to a deletion. Settle it by grepping both files at HEAD, never by reading the
+  delta.
+
+- 2026-08-14 — **Wave: M5 and M7 launched (`wf_4dda644a-0ae`), both unblocked by M4's merge, plus
+  I2 resumed.** I2 was **dead, not slow** — 63 minutes since its last write, zero commits, and its
+  only remaining process was a `python -m http.server` orphaned to PID 1 on port 8931. Its
+  predecessor died in Phase 1 leaving one untracked 79KB mock nobody has judged; the brief says so
+  rather than implying it is sound. Reaped that orphan; **left M8's two alone because M8 is live**
+  and may still be serving a mock. Concurrency 4 with M8.
+
 - 2026-08-14 — **M4 merged `7a28de8`: `BoardRegistry.installed` is `[.servers, .skills]` — two of
   eight panes are real.** M4 never needed resuming. It hit a 503, the harness retried it under a new
   agentId, and the retried agent did the bulk of the work and then stopped **without reporting** —

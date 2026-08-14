@@ -33,27 +33,43 @@ while true; do
     live=0
     for id in "$@"; do
         dir="$RUNS/$id"
+
+        # Which ITEMS in this run are finished. Keyed by item, not agentId, because the harness
+        # retries transparently under a NEW agentId: R3's first agent was interrupted and never
+        # journaled a result, while a retry with a different id returned for the same item. An
+        # agentId-only check can never clear that first agent, so its corpse reports forever.
+        # Item-name keying is safe *within* a run — a run's retries of one item are that item —
+        # and would be wrong across runs, where a relaunched I1 and the original are both "I1".
+        done_items=$(python3 - "$dir" <<'PY'
+import json, os, re, sys
+run = sys.argv[1]
+finished = set()
+results = set()
+for line in open(os.path.join(run, "journal.jsonl")):
+    d = json.loads(line)
+    if d.get("type") == "result" and d.get("agentId"):
+        results.add(d["agentId"])
+for name in os.listdir(run):
+    m = re.fullmatch(r"agent-(\w+)\.jsonl", name)
+    if not m or m.group(1) not in results:
+        continue
+    with open(os.path.join(run, name), errors="ignore") as fh:
+        hit = re.search(r"FEATURE: ([A-Z0-9]+)", fh.read())
+    if hit:
+        finished.add(hit.group(1))
+print(" ".join(sorted(finished)))
+PY
+)
         for f in "$dir"/agent-*.jsonl; do
             [ -f "$f" ] || continue
             agent=$(basename "$f" .jsonl); agent=${agent#agent-}
             key="$id/$agent"
 
-            # An agent with a result in the journal has RETURNED. It is finished, not stalled,
-            # and its transcript is supposed to stop. Matched on agentId, which the journal's
-            # result line carries verbatim — not on the item name, which repeats across runs.
-            # Without this the watcher re-reports every corpse each time it restarts, and a real
-            # stall drowns in it.
-            if python3 -c "
-import json,sys
-for l in open('$dir/journal.jsonl'):
-    d=json.loads(l)
-    if d.get('type')=='result' and d.get('agentId')=='$agent': sys.exit(0)
-sys.exit(1)" 2>/dev/null; then
-                continue
-            fi
-
             silent=$(( now - $(stat -f '%m' "$f") ))
             item=$(grep -o 'FEATURE: [A-Z0-9]*' "$f" | head -1 | cut -d' ' -f2)
+
+            # This item already returned in this run, by this agent or by a retry of it.
+            case " $done_items " in *" ${item:-__none__} "*) continue ;; esac
 
             if [ "$silent" -lt "$QUIET" ]; then
                 live=$(( live + 1 ))

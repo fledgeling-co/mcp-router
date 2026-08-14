@@ -194,7 +194,7 @@ and the suite re-run. The harness is committed as `scripts/red-green.py` and is 
 `python3 scripts/red-green.py --json out.json`. It mutates **implementation only** — a mutation
 that edits a test proves nothing — and restores the file afterwards.
 
-**Result: 38 mutations, 38 killed.** First run killed only 17 of 29, and the twelve survivors are
+**Result: 43 mutations, 43 killed.** First run killed only 17 of 29, and the twelve survivors are
 the reason this pass exists. Three were real holes in the tests, three were my expectations being
 wrong about which test owns a clause, three were equivalent mutants, and three were harness faults.
 
@@ -250,7 +250,7 @@ Every row: the mutation was applied, the suite ran, the named test went red, the
 | M12 | A11 | the backoff doubles | `ControlEventStream.swift` | the delay doubles from the first retry |
 | M13 | A11 | the backoff holds at a 30s ceiling | `ControlEventStream.swift` | the stated policy is the one you get without asking |
 | M14 | A11 | retrying stops after the stated number of consecutive failures | `ControlEventStream.swift` | the stated policy is the one you get without asking |
-| M15 | A11 | a connection that delivered anything resets the consecutive count | `ControlEventStream.swift` | a connection that delivered anything resets |
+| M15 | A11 | a connection that delivered anything resets the consecutive count | `ControlEventStream.swift` | a connection that stayed up resets |
 | M16 | A10 | records are yielded as they arrive, not batched at the end | `ControlEventStream.swift` | events arrive as they happen |
 | M17 | A13 | an arriving call corrects an idle server to running | `ServerStateTracker.swift` | a call record marks an idle server running |
 | M18 | A13 | a call for a server the router never listed invents nothing | `ServerStateTracker.swift` | a call record for a server the router never listed invents nothing |
@@ -274,9 +274,14 @@ Every row: the mutation was applied, the suite ran, the named test went red, the
 | M35 | A16 | the typed-failure allowlist is per call site, so add's 422 stays a refusal | `LiveControlAPIClient.swift` | a router error carries its status, its message, and the hint |
 | M36 | A6 | rotation compares against the token that was SENT, not the cached copy | `LiveControlAPIClient.swift` | two calls racing a rotation each retry once |
 | M37 | A8 | a bodyless DELETE announces no body — the router exempts it by name | `LiveControlAPIClient.swift` | a bodyless DELETE carries the token and announces no body |
+| M38 | A9 | the usage filters the endpoint offers are reachable through the client | `LiveControlAPIClient.swift` | the usage filters reach the wire |
+| M39 | A11 | a router that greets and drops is bounded rather than retried forever | `ControlEventStream.swift` | a router that greets and immediately drops is bounded |
+| M40 | A11 | the stated health threshold is the one you get by default | `ControlEventStream.swift` | the stated policy is the one you get without asking |
+| M41 | A4 | an unreadable record is skipped, but leaves a trace | `ControlEventStream.swift` | an unreadable record is skipped, but not silently |
+| M42 | A20 | a cleared placard reaches the wire as an explicit null | `ServerPatch.swift` | a placard can be set, cleared, or left alone |
 
 **Gate after the pass:** `make all` exit **0** — tools, lint, macOS build, iOS build, and
-`executed 98 tests` (93 at the pause, plus five the pass and the gap-fix added).
+`executed 103 tests` (93 at the pause; the rest added by this pass and the two gap-fix rounds).
 
 ---
 
@@ -356,4 +361,136 @@ is the guard working: a recording with no decode test is dead weight that agrees
 **Gates after the gap-fix:** `make all` exit **0**, `executed 98 tests`, zero compiler warnings in
 F3's own sources; red-green **38/38 killed**; `scripts/acceptance/control-client.sh` **3/3 against a
 real router**, and exit **2** (not 1) when the environment cannot run it.
+
+---
+
+## Gap-fix, second round — 2026-08-14
+
+The critic was re-run after the first round's fixes, told what had already been fixed so it could
+not re-report them. It named four more, all confirmed against `src/control.ts` and all real.
+
+| # | Clause | The defect | Concrete failure |
+|---|---|---|---|
+| 1 | A9 | `GET /usage` reads `limit`, `server` and `cwd` from the query string; the client took no arguments at all | An activity board could only ever fetch the last 200 rows unfiltered. "Show me this server's calls" was impossible through the only boundary the app may use. |
+| 2 | A11 | The reconnect bound could not fire in the case it exists for | The router greets every connection with `: connected` the instant it opens, so a router that is up but broken — accept, greet, drop — delivered a line every time, resetting the consecutive-failure count. The stream retried it **forever**. On screen that is indistinguishable from a stream that is simply quiet. |
+| 3 | A4 | An unreadable stream record was skipped in silence | A router emitting records this version cannot parse looked exactly like a router with nothing to say — the silent-empty failure this codebase forbids by name, moved to the stream. |
+| 4 | A20 | `ServerPatch` documented "or clear the mark" and had no way to send one | The router branches on `'placard' in b`, so the wire has three states; `Placard?` has two, because a nil optional is omitted and "clear it" produced byte-identical output to "leave it alone". The documented capability did nothing. |
+
+The A11 one is worth dwelling on: **the previous test asserted the broken behaviour as correct.**
+It served an instantly-closing stub, watched the stream reconnect indefinitely, and called that
+passing. A connection now has to last `minimumHealthyDuration` — 5s, comfortably under the router's
+25-second heartbeat, so a healthy but silent stream still counts as healthy — before it resets the
+counter. Both halves are needed: bytes alone are satisfied by a greeting from a router that then
+drops, and time alone by a socket that opens onto silence.
+
+The unreadable record is still *skipped* rather than thrown — one bad event must not tear down a
+working stream — but it now leaves a line through the log seam, by shape and never by content.
+
+The placard became a `PlacardEdit` tri-state with a hand-written encoder, because `encodeNil` is
+the only way to put an explicit `null` on the wire and the synthesised encoder never emits one.
+That change also **strengthened A20's guarantee**: with a hand-written encoder a newly added stored
+property is not encoded at all, so reaching the wire now takes both a `CodingKey` and an `encode`
+call. The mutations say so — M27b and M28 are paired edits that add both, because a single one is
+no longer enough to get a forbidden key out.
+
+### A harness hazard, recorded because it cost real work
+
+Two things bit here and both are worth writing down.
+
+The mutation that restores the unbounded reconnect loop does not *fail* a test that waits for the
+stream to end — it **hangs** it, and a hung suite reports nothing at all. The test now breaks after
+ten phases. A red-green harness needs its subject tests to be bounded, or the mutation that matters
+most is the one that produces no signal.
+
+Separately: `git checkout -- app/Sources/.../Control/`, reached for to restore a single mutated
+file, reverted every uncommitted source change in that directory. All five were reapplied from
+the edit history and re-verified, but the lesson is the cheap one — commit before running a tool
+that writes to your working tree, and restore by path, never by directory.
+
+---
+
+## Completion note — 2026-08-14
+
+**Status: ready to merge.** Branch `ai/f3`, worktree `.worktrees/F3`. Not rebased, not merged, not
+pushed — the orchestrator serialises finalisation.
+
+### Evidence per clause
+
+Every row is a measurement, an exercised request, or a red-green test. `Mnn` is a mutation from the
+ledger above: the guard was broken, the named test was seen to go red, the file was restored.
+
+| Clause | Evidence | Type |
+|---|---|---|
+| A1 | `control-client.sh` PASS: decoded a real router's `/servers` — port 8973, 1 server, `pendingAuth=none`, `usageRecords=0` | exercised request, live router |
+| A2 | M01 + `control-client.sh` PASS "a refused connection reads as 'the router is not running'" | red-green + live |
+| A3 | M02 + `control-client.sh` PASS "a wrong token reads as 'not authorised', distinctly from 'not running'" | red-green + live |
+| A4 | M03 (mapping), the flat-shape trap test (decodes to an error, never an empty list), M41 (the stream half: a skipped record leaves a trace) | red-green |
+| A5 | M23 (Keychain store never writes `UserDefaults`, driven through the real store), M24, M25; Keychain round-trip against the real Keychain | red-green + measurement |
+| A6 | M07 (loop guard), M08 (exactly one retry — request count asserted), M36 (the concurrent case) | red-green |
+| A7 | M21 (value never logged), M22 (absent ≠ empty); the log sink asserts no token, no `Authorization`, no whole-request dump | red-green |
+| A8 | M04, M05 (both headers), M06 (a read announces no body), M37 (`DELETE` is exempt by name in the router) | red-green + captured request |
+| A9 | Route table diffed against the protocol: **15/15** endpoints callable, including `/usage/stream`. M10 (percent-encoded names), M38 (the `limit`/`server`/`cwd` filters), and a test invoking every operation | measurement + red-green |
+| A10 | M16 — records batched to the end fails the "events arrive as they happen" test | red-green |
+| A11 | M12 (doubling), M13 (ceiling), M14 (attempt cap), M40 (health threshold) via the defaults test; M15 (consecutive not cumulative); M39 (a flapping router is bounded) | red-green |
+| A12 | M11 — a comment emitting a phase event fails the whole-sequence assertion | red-green |
+| A13 | M17 (a call corrects idle→running), M18 (an unlisted name changes nothing), M19 (a poll drops a row), M20 (the router's order) | red-green |
+| A14 | 24 recorded fixtures, one decode test each, every endpoint and write response; M32, M33 | decode tests |
+| A15 | Variants recorded not happy paths: 422-with-hint, structured re-index failure, stdio vs HTTP, held change present and absent, `pendingAuth` present and absent, placard. M30 (a recording nothing decodes is a failure), M34 | decode tests + red-green |
+| A16 | M09 (the hint survives into the error), M35 (the typed-failure allowlist is per call site, so `add`'s 422 stays a refusal) | red-green |
+| A17 | All 24 fixtures compared key-path by key-path against a **fresh capture from a live router**: 24/24 shape-identical. Capture script exits 2, not 1, with no router | measurement |
+| A18 | `FixtureClientTests` invokes every protocol operation through the double with no router running | exercised, no router |
+| A19 | 13 named scenarios — DESIGN.md §5's nine, plus `unauthorized`, plus three stream phases — each with its own assertion, enforced by a meta-test. M29 | red-green |
+| A20 | M27 (a stored property named for a forbidden key), M27b (a forbidden key on the encoded wire), M28 (a merely-unpermitted key), M42 (a cleared placard is an explicit null). The standing `ServerPatch` guarantee is green and now **structurally stronger** — a hand-written encoder means a new stored property is not encoded at all | red-green |
+| A21 | M33 — approve returns `{server, approved}`, not a server | red-green |
+| A22 | M32 — the in-flight authorization is modelled; a renamed wire key fails both parity directions | red-green |
+| A23 | M26 (`RegistryEntry.source`), plus F1's `ServerTransport` and `ServerState` negatives, plus `ToolChange.kind` | red-green |
+| A24 | Bidirectional key-path parity on **every** fixture: a wire key the model drops, or a model key the router never sent, fails | round-trip test |
+| A25 | M31 — the approved wording is asserted as exact literals *and* against the mock, so a reword in either fails | red-green |
+
+### Gates
+
+| Gate | Result |
+|---|---|
+| `make all` | exit **0** — tools, lint (swiftformat + swiftlint `--strict`), macOS build, iOS build |
+| Tests | `executed 103 tests`, 13 suites; zero compiler warnings in F3's own sources |
+| Red-green | **43 mutations, 43 killed** (`python3 scripts/red-green.py`) |
+| Acceptance | `control-client.sh` **3/3 against a real router**; exit **2**, not 1, when the environment cannot run it |
+| Out-of-family critic | `gpt-5.6-sol`, `max`, read-only — **9 findings, 9 accepted, 0 rejected** |
+
+### Out-of-family gate tally
+
+| Stage | Verdict | Accepted | Rejected |
+|---|---|---|---|
+| Triage spec review (earlier) | MATERIAL DEFECTS | 4 + 1 in part | 0 |
+| Plan review gate (earlier) | MATERIAL DEFECTS | 4 | 0 |
+| Phase D completeness critic (this round) | MATERIAL DEFECTS | 9 | 0 |
+
+The Phase D nine: the re-index contract break; the concurrent-rotation defect; DELETE header
+coverage; the missing `disabled` scenario; fixture-status recording (deferred, see below); the
+usage query filters; the unbounded flapping reconnect; the silently-skipped stream record; and the
+unclearable placard.
+
+### Deferred children discovered
+
+| Title | Why | Suggested deps |
+|---|---|---|
+| Record HTTP status alongside each captured fixture | Fixtures record bodies only; the status pairing lives in the client tests. Self-describing fixtures would let a decode test assert the status it belongs to | F3 |
+| Surface the stream's skipped-record count | A4's stream half now logs, but nothing counts. A surface that could say "3 events this version couldn't read" would make a version skew visible instead of merely diagnosable | F3, M1 |
+| Expose `usage(limit:server:cwd:)` in the activity board's filters | The client can now filter; no surface uses it yet | F3, M3 |
+
+### Shared-surface changes wanted but skipped
+
+None. Nothing in `DESIGN.md`, the design tokens or the base elements needed changing — F3 ships no
+UI, and the connection-state copy it asserts against was already on this branch.
+
+### Notes for the orchestrator
+
+- `scripts/red-green.py` is committed and re-runnable. It scrubs the `UserDefaults` key its own
+  A5 mutation leaves behind; without that the next run fails for the previous run's reason.
+- The codex lane's stale-model-cache fault (`missing field base_instructions`) recurred **three
+  times** during Phase D, twice mid-run. It burns the budget, writes an empty `-o` file, and still
+  prints a correct model and effort header, so it can only be caught by checking the output file is
+  non-empty. Parallel runners share `~/.codex/models_cache.json`, so clearing it is not durable
+  while another fleet is live. One run was additionally lost to codex auto-loading a plugin skill
+  and spending its whole budget reading it; `Do NOT load any skill` in the prompt fixed that.
 

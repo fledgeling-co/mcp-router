@@ -189,9 +189,9 @@ mut(
 mut(
     "M15", "A11", "a connection that delivered anything resets the consecutive count",
     SRC / "ControlEventStream.swift",
-    "                        attempt = delivered ? 0 : attempt + 1",
+    "                        attempt = worked ? 0 : attempt + 1",
     "                        attempt += 1",
-    "a connection that delivered anything resets",
+    "a connection that stayed up resets",
 )
 
 mut(
@@ -322,8 +322,8 @@ mut(
 mut(
     "M27", "A20", "a patch can never carry command, args or env",
     SRC / "ServerPatch.swift",
-    "    public var placard: Placard?\n",
-    "    public var placard: Placard?\n    public var command: String?\n",
+    "    public var placard: PlacardEdit?\n",
+    "    public var placard: PlacardEdit?\n    public var command: String?\n",
     ["no stored property is named after a forbidden wire key",
      "adding a server is the only shape that carries a command"],
 )
@@ -331,20 +331,30 @@ mut(
 mut(
     "M27b", "A20", "a non-nil forbidden field reaches the encoded JSON and is caught there",
     SRC / "ServerPatch.swift",
-    "    public var placard: Placard?\n",
-    "    public var placard: Placard?\n    public var command: String? = \"/bin/sh\"\n",
+    "        try container.encodeIfPresent(idleMs, forKey: .idleMs)\n",
+    "        try container.encodeIfPresent(idleMs, forKey: .idleMs)\n"
+    "        try container.encode(\"/bin/sh\", forKey: .command)\n",
     ["an encoded ServerPatch can never carry command",
      "encodedBody emits only permitted keys",
      "a fully-populated patch encodes exactly the keys the router reads"],
+)
+M[-1].paired = (
+    "        case projects, warm, idleMs, placard\n",
+    "        case projects, warm, idleMs, placard, command\n",
 )
 
 mut(
     "M28", "A20", "encodedBody's allowlist rejects a key that is merely unexpected",
     SRC / "ServerPatch.swift",
-    "    public var placard: Placard?\n",
-    "    public var placard: Placard?\n    public var extra: String? = \"x\"\n",
+    "        try container.encodeIfPresent(idleMs, forKey: .idleMs)\n",
+    "        try container.encodeIfPresent(idleMs, forKey: .idleMs)\n"
+    "        try container.encode(\"x\", forKey: .extra)\n",
     ["encodedBody emits only permitted keys",
      "a fully-populated patch encodes exactly the keys the router reads"],
+)
+M[-1].paired = (
+    "        case projects, warm, idleMs, placard\n",
+    "        case projects, warm, idleMs, placard, extra\n",
 )
 
 mut(

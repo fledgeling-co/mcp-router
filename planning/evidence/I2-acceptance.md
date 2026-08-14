@@ -16,9 +16,9 @@ Three lanes, and the split is deliberate.
 - **iOS simulator (`make test-ios`, hosted XCTest).** Everything the host lane physically cannot
   measure: a 44pt touch target, a safe-area inset, the row's intrinsic height across the Dynamic
   Type range, and whether the capability plate is actually *on screen* rather than merely
-  constructible. **21 iOS tests, one simulator, reused rather than booted.**
+  constructible. **23 iOS tests, one simulator, reused rather than booted.**
 - **`scripts/acceptance/i2-phone-discover.sh`.** The item's own gate: the placeholder guard plus
-  this feature's rendered assertions and nothing else. Run once, green.
+  this feature's rendered assertions and nothing else. 11 assertions, green.
 
 Appearance is never pinned. The harness leaves the interface style `.unspecified`, and a previous
 run in this repo failed reporting `#ECECEE` — which was the light ground rendering correctly.
@@ -42,6 +42,8 @@ change is asserted directly (A32).
 | Commit — unreachable stays live and relabels (A18) | iOS sim, `testUnreachableRendersTheSaveLabel`; host `DiscoverCommitTests.unreachableStaysLive` | `02d124d` | pass — **mutation-proven**: binding the predicate to `canSend` turns it red |
 | Row — height independent of the name (Overflow, A29) | iOS sim, `testRowHeightIsIndependentOfTheNameLength`, measured by `sizeThatFits` | `02d124d` | pass |
 | Row — skeleton matches the row it replaces (Loading, A29) | iOS sim, `testSkeletonMatchesTheRowItReplaces` at xSmall / large / AX3 | `02d124d` | **pass (was red: the skeleton was 1.67pt shorter than the row, so the list stepped when results landed)** |
+| Detail — never-paired does not claim the router is down | iOS sim, `testNeverPairedDoesNotClaimTheRouterIsDown` / `testUnreachableStillRendersTheOfflineNote` | `ada73c0`+ | **pass (was red: the offline note and the never-paired commit contradicted each other on one screen)** |
+| Detail — no motion, and none is owed | read: the commit bar is a permanent `safeAreaInset(edge: .bottom)`, not a conditionally-inserted bar, so `DESIGN.md` §7's "commit bar entry — rise on transform" has no entry moment to animate. A30 is a constraint on motion, not a requirement to add some; there is none in the feature, so it is satisfied by construction | `ada73c0` | pass, declared rather than animated |
 | Discover — nothing occluded by the status bar or home indicator (A29) | iOS sim, `testDiscoverStaysInsideTheSafeArea` | `02d124d` | pass |
 | No rate, delta or percentage anywhere (A1) | host, `DiscoverHonestyTests.noRateOrDelta` over every string the feature can emit, plus a source scan of the views | `02d124d` | pass — **mutation-proven**: a `+12%` in one copy entry turns it red |
 | Every numeric string traces to a named field (A7) | host, `countsTraceToTheirField`, `datesTraceToTheirField`, and the member-access scan | `02d124d` | pass |
@@ -58,10 +60,10 @@ change is asserted directly (A32).
 |---|---|---|---|
 | lint | `make lint` | 0 | 0 violations over 362 files, all four linters run |
 | test | `make test` | 0 | 1157 tests / 144 suites |
-| test-ios | `make test-ios` | 0 | 21 iOS tests, one simulator |
+| test-ios | `make test-ios` | 0 | 23 iOS tests, one simulator |
 | parity | `make parity` | 0 | 358 vector cases (floor 358) |
 | build-mac | `make build-mac` | 0 | `** BUILD SUCCEEDED **` |
-| acceptance | `scripts/acceptance/i2-phone-discover.sh` | 0 | 9 assertions, one simulator, nothing else driven |
+| acceptance | `scripts/acceptance/i2-phone-discover.sh` | 0 | 11 assertions, one simulator, nothing else driven |
 
 ## Mutations, red-green
 
@@ -76,6 +78,13 @@ confirmed to match exactly one test — a `--filter` that matches nothing exits 
 | M4 | the `useCount != nil` filter removed, so a missing count ranks at zero | `missingCountIsAbsent` |
 | M5 | one element group dropped from the hand-written `Key.allCases` | `everyElementKeyIsReachable` |
 | M6 | `.discover` pointed back at an awaiting key | the acceptance script's placeholder guard |
+| M7 | the offline note's condition widened back to include `.neverPaired` | `testNeverPairedDoesNotClaimTheRouterIsDown` — and the failure message captured the contradiction verbatim: *"The router isn't running on Luke's MacBook Pro."* and *"No Mac paired yet, so there's nowhere to send this."* in one rendered tree |
+
+**A trap worth recording.** M7 was reverted with `git checkout -- <file>`, which restored the file
+to `HEAD` — and the fix under test was **uncommitted**, so the revert discarded the fix along with
+the mutation. The acceptance run immediately afterwards was still green, because the guard's
+subject had gone back to the state the guard was written against. Mutating an uncommitted file
+needs the fix committed first, or the revert has to be a re-application rather than a checkout.
 
 ## Declared, not fixed
 

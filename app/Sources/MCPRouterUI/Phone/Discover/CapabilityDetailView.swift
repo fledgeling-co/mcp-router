@@ -30,7 +30,14 @@ struct CapabilityDetailView: View {
                     invocation: CapabilityPlate.invocation(install: entry.install)
                 )
 
-                if model.connection == .neverPaired || model.connection == .notReachable {
+                // Detail's Offline state (A27), and **only** for a Mac that is paired and not
+                // answering. `.neverPaired` is not an offline state: there is no router to be
+                // down, and the commit bar below already says "No Mac paired yet, so there's
+                // nowhere to send this" (A17). Rendering both put two contradictory claims on one
+                // screen — one offering to save the item and send it from Queue later, the other
+                // saying there is nowhere to send it and dimmed — which is the defect A18 names in
+                // its own rationale.
+                if model.connection == .notReachable {
                     offlineNote
                 }
             }

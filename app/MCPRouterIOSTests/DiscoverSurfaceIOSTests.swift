@@ -278,6 +278,42 @@ final class DiscoverSurfaceIOSTests: XCTestCase {
         }
     }
 
+    /// Detail must not tell the user the router is down when no Mac is paired.
+    ///
+    /// The offline note and the never-paired commit contradicted each other on one screen: the
+    /// note offered to save the item and send it from Queue later, while the bar directly beneath
+    /// it said there was nowhere to send it and was dimmed. There is no router to be down when
+    /// nothing is paired, so Offline is a paired-and-unanswering state only.
+    func testNeverPairedDoesNotClaimTheRouterIsDown() {
+        let controller = harness.host(
+            CapabilityDetailView(entry: Self.remote, model: model(connection: .neverPaired))
+        )
+        let rendered = harness.labels(in: controller).joined(separator: " | ")
+
+        XCTAssertFalse(
+            rendered.contains("isn't running"),
+            "Detail claims the router is down with no Mac paired: \(rendered)"
+        )
+        XCTAssertTrue(
+            rendered.contains("No Mac paired yet"),
+            "the never-paired reason is not on screen: \(rendered)"
+        )
+    }
+
+    /// The other half: a paired Mac that is not answering *does* get the note, so the fix above
+    /// narrowed the condition rather than deleting the state.
+    func testUnreachableStillRendersTheOfflineNote() {
+        let controller = harness.host(
+            CapabilityDetailView(entry: Self.remote, model: model(connection: .notReachable))
+        )
+        let rendered = harness.labels(in: controller).joined(separator: " | ")
+
+        XCTAssertTrue(
+            rendered.contains("You can still save this here"),
+            "the offline note is missing for a paired but unreachable Mac: \(rendered)"
+        )
+    }
+
     /// A18, on the device: unreachable stays live and says "Save for your Mac", where never-paired
     /// is dimmed. A disabled Send beside a live Send for the same Mac reads as a bug.
     func testUnreachableRendersTheSaveLabelAndNeverPairedDoesNot() {

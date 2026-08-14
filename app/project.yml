@@ -44,6 +44,11 @@ targets:
     dependencies:
       - package: MCPRouterKit
         product: MCPRouterKit
+      # The shared presentation layer. Separate from the kit because `SWIFT_PRACTICES.md` §8
+      # requires the kit to stay free of UI frameworks so the router's own tests can import it;
+      # both apps link this one so there is a single design system rather than a copy each.
+      - package: MCPRouterKit
+        product: MCPRouterUI
     info:
       path: MCPRouter/Info.plist
       properties:
@@ -82,6 +87,8 @@ targets:
     dependencies:
       - package: MCPRouterKit
         product: MCPRouterKit
+      - package: MCPRouterKit
+        product: MCPRouterUI
     info:
       path: MCPRouterIOS/Info.plist
       properties:

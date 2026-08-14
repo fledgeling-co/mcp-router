@@ -45,10 +45,17 @@ pass() { echo "  ok — $*"; }
 
 # Read the token from source. An unreadable token is a harness failure, not a passing test: without
 # it there is nothing to compare against, and defaulting to a literal would assert a stale copy.
-EXPECTED_HEX="$(grep -oE 'case \.ground: *"#[0-9A-Fa-f]{6}"' \
+#
+# Scoped to the `hex` property's own switch. `ColorToken` now carries two appearances, so a bare
+# grep for `case .ground:` matches the dark value AND the light one and yields a two-line string
+# that can never equal a sampled pixel — a harness that fails against every colour it is given.
+EXPECTED_HEX="$(sed -n '/var hex: String/,/^    }/p' \
   "$APP_DIR/Sources/MCPRouterKit/Design/ColorToken.swift" \
+  | grep -oE 'case \.ground: *"#[0-9A-Fa-f]{6}"' \
   | grep -oE '#[0-9A-Fa-f]{6}' | tr '[:lower:]' '[:upper:]' || true)"
 [ -n "$EXPECTED_HEX" ] || blocked "could not read ColorToken.ground from source — nothing to assert against"
+[ "$(printf '%s' "$EXPECTED_HEX" | wc -l)" -eq 0 ] \
+  || blocked "ColorToken.ground read as more than one value — the extraction is ambiguous"
 echo "expecting ColorToken.ground = $EXPECTED_HEX"
 
 # ---------------------------------------------------------------- pixel sampler
@@ -80,6 +87,54 @@ SWIFT
 
 sample_pixel() { swift "$WORK/sample.swift" "$1" "$2" "$3"; }
 
+# ---------------------------------------------------------------- static: the gallery is Debug-only
+
+# These two run BEFORE anything that needs a screen, deliberately. They are the only assertions here
+# that a locked or headless machine can still make, and they carry acceptance criterion 9 on their
+# own — so a session that cannot render still produces real evidence instead of nothing.
+#
+# Checked against the built binaries rather than the source: `#if DEBUG` around the wrong brace
+# still compiles, and grepping the source would agree with itself.
+
+echo
+echo "the gallery is compiled into Debug only"
+
+GALLERY_ID="mcprouter-design-gallery"
+REL_APP="$APP_DIR/.derived/Build/Products/Release/MCPRouter.app"
+
+# Search every Mach-O in the bundle, not just `Contents/MacOS/<name>`.
+#
+# An Xcode 16 Debug build puts the app's actual code in `MCPRouter.debug.dylib` and leaves a ~40KB
+# launcher stub at the executable path. Checking only that stub reports "the gallery is not
+# compiled in" for a build that contains it — a false failure that points at the feature instead of
+# at the measurement. Release has no such split, so the same sweep covers both.
+#
+# Grep reads each binary directly rather than `strings … | grep -q`. That pipeline is a race under
+# `pipefail`: `grep -q` exits at the first match, `strings` then writes into a closed pipe, takes
+# SIGPIPE, and the pipeline reports 141 — so a **successful match intermittently reads as failure**.
+# Observed here: three identical runs against one unchanged bundle, two passes and one failure.
+# Worse than the false failure is the direction it fails in for the Release assertion, which is
+# `if bundle_contains …; then fail`: a suppressed match there is a silent pass, so the check that
+# the gallery is not shipping could never have caught it shipping.
+bundle_contains() {
+    local bundle="$1" needle="$2" f
+    while IFS= read -r f; do
+        if LC_ALL=C grep -qaF -- "$needle" "$f" 2>/dev/null; then return 0; fi
+    done < <(find "$bundle" -type f -perm +111)
+    return 1
+}
+
+[ -d "$MAC_APP" ] || blocked "no built app at $MAC_APP — run 'make build-mac' first"
+bundle_contains "$MAC_APP" "$GALLERY_ID" \
+  || fail "no binary in the Debug bundle contains '$GALLERY_ID' — the gallery is not compiled in"
+pass "Debug bundle contains the gallery"
+
+[ -d "$REL_APP" ] || blocked "no Release build at $REL_APP — run 'make build-mac-release' first"
+if bundle_contains "$REL_APP" "$GALLERY_ID"; then
+    fail "the Release bundle contains '$GALLERY_ID' — the Debug-only gallery is shipping"
+fi
+pass "Release bundle does not contain the gallery"
+
 # ---------------------------------------------------------------- macOS
 
 echo
@@ -93,6 +148,27 @@ echo "macOS shell"
 osascript -e "tell application id \"$MAC_BUNDLE_ID\" to quit" >/dev/null 2>&1 || true
 pkill -f 'MCPRouter.app/Contents/MacOS/MCPRouter' >/dev/null 2>&1 || true
 sleep 1
+
+# Preflight the screen lock. macOS does not composite windows for an app launched into a locked
+# session, so every window assertion below fails — and fails as "the window never appeared", which
+# reads as a broken app rather than a machine nobody is logged into. This script already refuses to
+# report a missing permission as a failed assertion; a locked screen is the same class of problem
+# and gets the same treatment.
+cat > "$WORK/session.swift" <<'SWIFT'
+import CoreGraphics
+import Foundation
+let d = CGSessionCopyCurrentDictionary() as? [String: Any] ?? [:]
+let locked = (d["CGSSessionScreenIsLocked"] as? Int) ?? 0
+let onConsole = (d["kCGSSessionOnConsoleKey"] as? Int) ?? 0
+if d.isEmpty { print("nosession") } else if locked == 1 { print("locked") }
+else if onConsole != 1 { print("notconsole") } else { print("ok") }
+SWIFT
+SESSION_STATE="$(swift "$WORK/session.swift" 2>/dev/null || echo unknown)"
+case "$SESSION_STATE" in
+    locked)     blocked "the screen is locked — macOS will not composite a window for a launched app. Unlock and re-run." ;;
+    nosession)  blocked "no GUI session (headless or SSH) — the window assertions need a logged-in console session" ;;
+    notconsole) blocked "this session does not own the console — windows cannot be rendered here" ;;
+esac
 
 # Preflight the Accessibility grant. Without it every AX query returns empty, which is
 # indistinguishable from "the element is missing" — so it must be its own outcome.
@@ -143,12 +219,53 @@ for needle in "MCP Router" "Version"; do
 done
 
 # The render assertion. Sample well inside the window, below the text block.
+#
+# Captured by WINDOW ID, never by screen region. `screencapture -R <rect>` photographs whatever the
+# compositor has at those coordinates, so it measures the frontmost window there rather than ours —
+# and `open` does not make our app frontmost when the terminal running this script keeps focus.
+# Observed here: a run that reported the background as #292C33, which is the terminal's colour; the
+# capture contained a terminal and a keychain dialog and no part of the app. Every AX assertion
+# above passed in the same run, because the accessibility tree does not care what is on top.
+#
+# `-l <windowid>` captures the window's own backing store, so occlusion, focus and stacking stop
+# being inputs to a colour measurement. There is deliberately no region fallback: a fallback here
+# would restore exactly the failure mode above, and silently.
+window_id() {
+    cat > "$WORK/winid.swift" <<'SWIFT'
+import CoreGraphics
+import Foundation
+let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
+let windows = (info as? [[String: Any]]) ?? []
+for w in windows {
+    // The AX process is "MCPRouter"; CGWindowList reports the bundle's display name, "MCP Router".
+    // Accepting both is what keeps this from depending on which of the two names a future rename
+    // touches.
+    let owner = (w[kCGWindowOwnerName as String] as? String) ?? ""
+    guard owner == "MCP Router" || owner == "MCPRouter",
+          (w[kCGWindowLayer as String] as? Int) == 0,
+          let bounds = w[kCGWindowBounds as String] as? [String: Any],
+          let height = bounds["Height"] as? Double, height > 100,
+          let id = w[kCGWindowNumber as String] as? Int else { continue }
+    // Match the window by its title so the gallery and the main window stay distinguishable.
+    let name = (w[kCGWindowName as String] as? String) ?? ""
+    if CommandLine.arguments.count > 1, !CommandLine.arguments[1].isEmpty {
+        guard name == CommandLine.arguments[1] else { continue }
+    }
+    print(id)
+    exit(0)
+}
+exit(1)
+SWIFT
+    swift "$WORK/winid.swift" "${1:-}" 2>/dev/null
+}
+
 BOUNDS="$(osascript -e 'tell application "System Events" to tell process "MCPRouter" to get {position, size} of window 1')"
-WX="$(echo "$BOUNDS" | cut -d, -f1 | tr -d ' ')"
-WY="$(echo "$BOUNDS" | cut -d, -f2 | tr -d ' ')"
-WW="$(echo "$BOUNDS" | cut -d, -f3 | tr -d ' ')"
 WH="$(echo "$BOUNDS" | cut -d, -f4 | tr -d ' ')"
-screencapture -o -x -R "$WX,$WY,$WW,$WH" "$WORK/mac.png"
+
+MAC_WIN_ID="$(window_id "MCP Router" || true)"
+[ -n "$MAC_WIN_ID" ] || blocked "could not resolve the main window's id — Screen Recording permission, or the window is off-screen"
+screencapture -o -x -l "$MAC_WIN_ID" "$WORK/mac.png"
+[ -s "$WORK/mac.png" ] || blocked "screencapture produced no image — grant Screen Recording to this terminal"
 
 # Sampled in image pixels; the capture is 2x on a Retina display, so this is the lower-middle of
 # the window either way — clear of the title and the copy.
@@ -156,6 +273,71 @@ GOT="$(sample_pixel "$WORK/mac.png" 200 "$((WH * 3 / 2))")"
 [ "$GOT" = "$EXPECTED_HEX" ] \
   || fail "macOS background rendered $GOT, expected ColorToken.ground $EXPECTED_HEX"
 pass "rendered background = $GOT = ColorToken.ground"
+
+osascript -e "tell application id \"$MAC_BUNDLE_ID\" to quit" >/dev/null 2>&1 || true
+
+# ---------------------------------------------------------------- the design gallery
+
+# The rendered half of the gallery's evidence. The Debug-only claim was already settled above,
+# without needing a screen; what is left is the part only a running window can show — that the
+# gallery opens, and that its LIGHT appearance actually renders the light ground.
+#
+# That last assertion is the only one in the repository proving the authored light appearance
+# reaches a screen. The parity suite proves the values exist and match the document; it cannot
+# prove anything drew them.
+
+echo
+echo "design gallery"
+
+# Read the light ground out of the token, for the same reason the dark one is read: a literal here
+# would be a second copy of a design value, free to drift from the one the suite checks.
+EXPECTED_LIGHT="$(sed -n '/var lightHex: String/,/^    }/p' \
+  "$APP_DIR/Sources/MCPRouterKit/Design/ColorToken.swift" \
+  | grep -oE 'case \.ground: *"#[0-9A-Fa-f]{6}"' \
+  | grep -oE '#[0-9A-Fa-f]{6}' | tr '[:lower:]' '[:upper:]' || true)"
+[ -n "$EXPECTED_LIGHT" ] || blocked "could not read ColorToken.ground's light value from source"
+echo "expecting light ColorToken.ground = $EXPECTED_LIGHT"
+
+# Launch Debug with the gallery forced into its light appearance, then open the window.
+open -n "$MAC_APP" --args --gallery-appearance light
+sleep 2
+
+if ! osascript -e 'tell application "System Events" to tell process "MCPRouter" to click menu item "Design system" of menu "Window" of menu bar 1' >/dev/null 2>&1; then
+    blocked "could not reach the Design system item in the Window menu"
+fi
+
+GALLERY_READY=""
+for _ in $(seq 1 30); do
+    if osascript -e 'tell application "System Events" to tell process "MCPRouter" to get name of windows' 2>/dev/null | grep -q 'Design system'; then
+        GALLERY_READY=1; break
+    fi
+    sleep 0.5
+done
+[ -n "$GALLERY_READY" ] || fail "the design gallery window never appeared"
+sleep 2
+pass "gallery window opened from the menu bar"
+
+# The accessibility title carries the subtitle too — "Design system – Colour" — so this matches
+# on the prefix. `whose name is "Design system"` raised "Invalid index" the moment the window
+# gained a subtitle, which reads as a missing window rather than as an over-strict query.
+GB="$(osascript -e 'tell application "System Events" to tell process "MCPRouter" to get {position, size} of (first window whose name starts with "Design system")')"
+GW="$(echo "$GB" | cut -d, -f3 | tr -d ' ')"
+GH="$(echo "$GB" | cut -d, -f4 | tr -d ' ')"
+
+# By window id, for the same reason as the main window above: this is the one assertion in the
+# repository proving the authored light appearance reaches a screen, and a region capture would let
+# any window sitting on top answer for it.
+GALLERY_WIN_ID="$(window_id "Design system" || true)"
+[ -n "$GALLERY_WIN_ID" ] || blocked "could not resolve the gallery window's id"
+screencapture -o -x -l "$GALLERY_WIN_ID" "$WORK/gallery.png"
+[ -s "$WORK/gallery.png" ] || blocked "screencapture produced no gallery image"
+
+# Sampled low in the detail pane: clear of the swatch rows and right of the sidebar. The capture is
+# 2x on a Retina display, so these are image pixels rather than points.
+GOT_LIGHT="$(sample_pixel "$WORK/gallery.png" "$((GW * 2 - 40))" "$((GH * 2 - 40))")"
+[ "$GOT_LIGHT" = "$EXPECTED_LIGHT" ] \
+  || fail "the gallery's light appearance rendered $GOT_LIGHT, expected $EXPECTED_LIGHT"
+pass "light appearance rendered $GOT_LIGHT = ColorToken.ground (light)"
 
 osascript -e "tell application id \"$MAC_BUNDLE_ID\" to quit" >/dev/null 2>&1 || true
 
@@ -170,23 +352,49 @@ SIM_ID="$(xcrun simctl list devices available | grep -E 'iPhone' | head -1 | sed
 IOS_APP="$(find "$APP_DIR/.derived/Build/Products" -name 'MCPRouterIOS.app' -path '*iphonesimulator*' 2>/dev/null | head -1)"
 [ -n "$IOS_APP" ] || blocked "no built iOS app — run 'make build-ios' with a simulator destination first"
 
+# Criterion 9 says the reference screen opens in **both** apps in a development build. The Debug-only
+# sweep above only ever looked at the macOS bundle, so the phone half of that claim rested on the
+# shell's source importing the gallery — which is not evidence that it survived compilation.
+#
+# The Release half stays macOS-only on purpose: `make acceptance` builds no iOS Release artifact, so
+# there is nothing to assert against. Saying so here is better than a check that quietly covers one
+# platform while the summary line claims both.
+bundle_contains "$IOS_APP" "$GALLERY_ID" \
+  || fail "no binary in the iOS Debug bundle contains '$GALLERY_ID' — the gallery is not compiled in"
+pass "iOS Debug bundle contains the gallery"
+
 xcrun simctl boot "$SIM_ID" >/dev/null 2>&1 || true
 xcrun simctl bootstatus "$SIM_ID" -b >/dev/null 2>&1 || true
 xcrun simctl install "$SIM_ID" "$IOS_APP" >/dev/null
-xcrun simctl terminate "$SIM_ID" "$IOS_BUNDLE_ID" >/dev/null 2>&1 || true
-xcrun simctl launch "$SIM_ID" "$IOS_BUNDLE_ID" >/dev/null
-sleep 4
-xcrun simctl io "$SIM_ID" screenshot "$WORK/ios.png" >/dev/null 2>&1
-[ -s "$WORK/ios.png" ] || blocked "the simulator produced no screenshot"
-pass "app launched and produced a screenshot"
 
-# Mid-screen, below the copy block and above the home indicator.
-GOT_IOS="$(sample_pixel "$WORK/ios.png" 300 1400)"
-[ "$GOT_IOS" = "$EXPECTED_HEX" ] \
-  || fail "iOS background rendered $GOT_IOS, expected ColorToken.ground $EXPECTED_HEX"
-pass "rendered background = $GOT_IOS = ColorToken.ground"
+# Both appearances, on the phone, from the values the parity suite checks.
+#
+# This used to assert the dark ground unconditionally, which was right only while the design system
+# had one appearance and every surface took the dark value whatever the device was set to. Now that
+# the colours are dynamic, an unconditional assertion measures the simulator's setting rather than
+# the app — it failed here reporting #ECECEE, which was the light ground rendering correctly on a
+# simulator in light mode. Forcing each appearance in turn is what turns that into evidence: the
+# phone is asked for dark and answers dark, asked for light and answers light.
+ios_ground_is() {
+    local mode="$1" want="$2"
+    xcrun simctl ui "$SIM_ID" appearance "$mode" >/dev/null 2>&1 \
+      || blocked "the simulator would not accept appearance '$mode'"
+    xcrun simctl terminate "$SIM_ID" "$IOS_BUNDLE_ID" >/dev/null 2>&1 || true
+    xcrun simctl launch "$SIM_ID" "$IOS_BUNDLE_ID" >/dev/null
+    sleep 4
+    xcrun simctl io "$SIM_ID" screenshot "$WORK/ios-$mode.png" >/dev/null 2>&1
+    [ -s "$WORK/ios-$mode.png" ] || blocked "the simulator produced no $mode screenshot"
+    # Mid-screen, below the copy block and above the home indicator.
+    local got; got="$(sample_pixel "$WORK/ios-$mode.png" 300 1400)"
+    [ "$got" = "$want" ] || fail "iOS $mode background rendered $got, expected ColorToken.ground $want"
+    pass "$mode appearance rendered $got = ColorToken.ground ($mode)"
+}
+
+ios_ground_is dark "$EXPECTED_HEX"
+ios_ground_is light "$EXPECTED_LIGHT"
 
 xcrun simctl terminate "$SIM_ID" "$IOS_BUNDLE_ID" >/dev/null 2>&1 || true
 
 echo
-echo "acceptance: both shells render ColorToken.ground ($EXPECTED_HEX) — A5, A15 hold"
+echo "acceptance: both shells render ColorToken.ground — dark $EXPECTED_HEX, and the phone light $EXPECTED_LIGHT"
+echo "acceptance: the gallery is Debug-only and its light appearance renders $EXPECTED_LIGHT"

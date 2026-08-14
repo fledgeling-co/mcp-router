@@ -40,47 +40,79 @@ stock table. See §9.
 Every value below is either an Apple `(specified)` kit value or a stated deviation from
 one. Nothing here was picked by eye.
 
+**Both appearances are authored.** Light is not an inversion of dark, and the reason is
+measured rather than aesthetic: every dark indicator hue, placed unchanged on the light
+ground, lands between 1.71:1 and 2.91:1 — against the 4.5:1 a label needs. All four are
+re-solved. The tiers, lines and fills are authored to reproduce **dark's measured contrast
+ratio**, not to copy its alpha, because a dark hairline on a light ground and a light
+hairline on a dark ground are not equally visible at the same opacity. That is why the
+alphas differ (`--t2` is 55% in dark and 62% in light) while the hierarchy reads the same
+in both. Every ratio in the Light column below was measured on `--ground`, not estimated.
+
 ### Grounds and lines
 
-| Token | Value | Use |
-|---|---|---|
-| `--ground` | `#1E1E1E` | window background (kit: dark window) |
-| `--panel` | `#232326` | one tonal step up |
-| `--raised` | `#2C2C2E` | resting control surfaces |
-| `--raised2` | `#3A3A3C` | hovered / emphasized control surfaces |
-| `--line` | `#FFF` @7.5% | hairline dividers |
-| `--lineS` | `#FFF` @14% | control bezels |
+| Token | Dark | Light | Contrast (light) | Use |
+|---|---|---|---|---|
+| `--ground` | `#1E1E1E` | `#ECECEE` | — | window background (kit: dark window / light window) |
+| `--panel` | `#232326` | `#F5F5F7` | 1.08:1 | one tonal step up — same direction in both |
+| `--raised` | `#2C2C2E` | `#FFFFFF` | 1.18:1 | resting control surfaces |
+| `--raised2` | `#3A3A3C` | `#E0E0E4` | 1.12:1 | hovered / emphasized control surfaces |
+| `--line` | `#FFF` @7.5% | `#000` @10% | 1.25:1 | hairline dividers |
+| `--lineS` | `#FFF` @14% | `#000` @19% | 1.56:1 | control bezels |
+| `--f1` | `#FFF` @10% | `#000` @13% | 1.35:1 | fills — bezels |
+| `--f2` | `#FFF` @8% | `#000` @10% | 1.25:1 | fills — tracks |
+| `--f3` | `#FFF` @5% | `#000` @6% | 1.14:1 | fills — inactive |
 
-Dark is authored, never inverted. Chrome is graphite, never pure black.
+Dark is authored, never inverted. Chrome is graphite, never pure black — and its light
+counterpart is a light grey, never pure white.
+
+**The one reversal in the system:** `--raised2` is *lighter* than `--raised` in dark and
+*darker* in light. Emphasis always moves away from the ground; in light the resting
+surface is already white, so darker is the only direction left. Everything else steps the
+same way in both appearances.
 
 ### Label tiers
 
-| Token | Value | Contrast on `--ground` | Use |
-|---|---|---|---|
-| `--t1` | `#FFF` @100% | 17.0:1 | primary text |
-| `--t2` | `#FFF` @55% | 5.97:1 | secondary text, metadata |
-| `--t3` | `#FFF` @50% | 5.06:1 | section headers, column headers, tertiary |
-| `--t4` | `#FFF` @25% | 2.29:1 | **disabled controls only — never live text** |
+| Token | Dark | Light | Contrast (light) | Use |
+|---|---|---|---|---|
+| `--t1` | `#FFF` @100% | `#000` @95% | 16.58:1 | primary text |
+| `--t2` | `#FFF` @55% | `#000` @62% | 5.85:1 | secondary text, metadata |
+| `--t3` | `#FFF` @50% | `#000` @58% | 5.09:1 | section headers, column headers, tertiary |
+| `--t4` | `#FFF` @25% | `#000` @33% | 2.27:1 | **disabled controls only — never live text** |
 
 **Deviation, deliberate:** the kit's tertiary tier is 25%. On a `#1E1E1E` ground that
 measures 2.29:1, and Contrast Dilution is this direction's named #1 defect. Tertiary text
-therefore sits at 50%; 25% is retained only where dimming *is* the message.
-
-Fills (bezels, tracks, inactive fills) use `#FFF` at 10 / 8 / 5%.
+therefore sits at 50%; 25% is retained only where dimming *is* the message. The light
+column carries the same deviation, expressed as the ratio rather than the alpha.
 
 ### Colour
 
-| Token | Value | Meaning — exclusive |
-|---|---|---|
-| `--accent` | `#0091FF` | selection, focus, the one primary action |
-| `--live` | `#30D158` | a child process is running |
-| `--attn` | `#FF9230` | wants a human decision |
-| `--fail` | `#FF4245` | failed or tripped |
+| Token | Dark | Light | Contrast (light) | Meaning — exclusive |
+|---|---|---|---|---|
+| `--accent` | `#0091FF` | `#0069CF` | 4.54:1 | selection, focus, the one primary action |
+| `--live` | `#30D158` | `#1B7B3C` | 4.51:1 | a child process is running |
+| `--attn` | `#FF9230` | `#9F5A00` | 4.52:1 | wants a human decision |
+| `--fail` | `#FF4245` | `#CD2738` | 4.51:1 | failed or tripped |
+| `--onAccent` | `#FFFFFF` | `#FFFFFF` | 5.35:1 | the label drawn on an accent fill |
 
-All four are macOS 27 dark system hues. **Nothing else in the app may be any of these
-three indicator colours** — that exclusivity is what makes one amber dot in a menu bar
-mean something. Per-item identity colour, if ever needed, comes from the remaining
-system hues and is never the accent.
+All four indicator hues are macOS 27 system hues — the dark column the dark set, the light
+column re-solved in OKLCH so the hue angle survives the darkening. **Nothing else in the
+app may be any of these three indicator colours** — that exclusivity is what makes one
+amber dot in a menu bar mean something. Per-item identity colour, if ever needed, comes
+from the remaining system hues and is never the accent.
+
+`--attn` is additionally pulled toward yellow. Solved on hue alone it lands 21.5° from
+`--fail` at near-identical lightness, which is exactly where protan and deuteran vision
+compresses — and those two tokens mean "wants a decision" and "failed". The shipped pair
+sits 39.8° apart, and colour is never the only signal carrying either.
+
+**Deviation, deliberate, and against us:** `--onAccent` on `--accent` measures **3.23:1 in
+dark**, under the 4.5:1 a 13pt semibold label wants; near-black would give 6.49:1. Every
+native filled accent control on macOS carries a white label, and this document's own
+precedence says the kit wins where it and this document disagree. So white stands, recorded
+with its measurement rather than hidden. Exposure is bounded by §3 rule 4 — one prominent
+accent-filled action per view — and that control is distinguished by shape and position
+too, never by colour alone.
 
 ### Type — SF Pro, `-apple-system` stack, never bundled
 
@@ -109,12 +141,66 @@ leaks into prose.
 | Titlebar | 33pt |
 | Unified toolbar | 52pt (8 + 36 XL controls + 8) |
 | Sidebar | 256pt; rows 24/32/40 |
-| Sidebar selection | inset rounded fill, radius 8, 4px side insets |
-| Control ladder | Mini 16 · Small 20 · **Regular 24** · Large 28 · XL 36 |
+| Control mini | 16pt |
+| Control small | 20pt |
+| Control regular | 24pt |
+| Control large | 28pt |
+| Control extra large | 36pt |
+| Sidebar selection radius | 8pt |
+| Sidebar selection inset | 4pt |
+| Focus ring | 2pt |
 | Popover radius | 20 · card radius 10–14 · concentric children |
-| Table rows | 24–28pt for dense lists; the Servers board runs 56 to carry the breaker |
+| Table rows | 24–28pt for dense lists |
+| Servers row | 56pt (4 + 48 breaker housing + 4) |
+
+Selection is an inset rounded fill at the radius and side inset above. The control ladder
+and the selection fill used to be written as prose in one cell each — unreadable to the
+parity check, and therefore free to drift. They are individual rows now because the design
+system builds controls from them. The Servers board's 56pt row is a row of its own for the
+same reason: the loading skeleton has to match the populated row's height exactly or the
+board jumps when data lands, and a height buried in another cell's prose cannot be checked.
 
 Concentric corners throughout: child radius = parent radius − padding.
+
+### Breaker geometry `(specified)`
+
+The signature element's construction, recorded value by value. It is here rather than in
+prose because two prototype rounds failed on *construction* — the lever covering its own
+track, the housing reading as a hole, the lamp drawn outside the housing and clipped — and
+a dimension no check can read is a dimension free to drift back.
+
+| Element | Value |
+|---|---|
+| Breaker housing width | 30pt |
+| Breaker housing height | 48pt |
+| Breaker housing radius | 5pt |
+| Breaker lamp boss | 8pt |
+| Breaker lamp diameter | 6pt |
+| Breaker slot inset leading | 4pt |
+| Breaker slot inset top | 11pt |
+| Breaker slot inset trailing | 4pt |
+| Breaker slot inset bottom | 3pt |
+| Breaker slot radius | 3pt |
+| Breaker toggle inset horizontal | 4pt |
+| Breaker toggle height | 15pt |
+| Breaker toggle radius | 2.5pt |
+| Breaker toggle resting offset | 4pt |
+| Breaker toggle raised offset | 19pt |
+| Breaker rise response | 0.18s |
+| Breaker rise damping | 0.62 |
+| Breaker fall response | 0.6s |
+| Breaker fall damping | 1.0 |
+
+The slot is 22 × 34 and the toggle 22 × 15, both derived from the insets above. **The slot
+is at least as wide as the toggle and strictly taller** — that is what leaves a recess
+visible above the lever when it is down and below it when up, lit or not, and it is the
+invariant a dormant row depends on. The lamp boss (8pt) is mounted on the plate inside the
+housing, never overhanging it.
+
+The two springs are §7's, given here as the numbers the code actually uses: rising is fast
+and overshoots (damping below 1), falling is slow and settles (damping at 1). Reduce Motion
+removes the animation and never the state change.
+
 
 ---
 
@@ -266,9 +352,13 @@ Recorded here rather than in a report, because it is the next design work:
   surfaces are stock tables has one signature and eight defaults.
 - **Density is inconsistent** — 56px table rows against 120px featured cards holding
   three short lines. The cards are the emptiest thing on the busiest surface.
-- **Motion has never been observed running.** The review driver executes no CSS
-  animations, so §7 is specified and unverified. The Swift build is the first chance to
-  see it.
-- **Light appearance is unauthored.** Everything above is the dark palette. Light is not
-  an inversion and must be authored independently before the app can claim to honour
-  the system setting.
+- **Two contrast shortfalls in the dark palette, measured and not yet resolved.** As text
+  on `--raised`, `--fail` is 4.06:1 and `--accent` is 4.31:1 — both under AA. They pass on
+  `--ground` (4.86:1 and 5.16:1); it is the raised control surface where they fall short.
+  Changing a shipped dark value affects every surface, so it is recorded here rather than
+  altered in passing.
+- **The prototype uses two indicator colours decoratively.** Its phone Discover list paints
+  trend deltas in `--live` and `--fail` (`+218%`, `−8%`), which §2 forbids — those hues mean
+  "a child process is running" and "failed or tripped", and nothing else. The prototype is
+  stale here; the surfaces that ship Discover own the fix.
+

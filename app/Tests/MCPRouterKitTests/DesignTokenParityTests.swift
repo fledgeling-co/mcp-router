@@ -16,7 +16,7 @@ struct DesignTokenParityTests {
 
     // MARK: - Colour
 
-    @Test("every colour token in DESIGN.md has a constant with the same value")
+    @Test("every colour token in DESIGN.md has a constant with the same value, in both appearances")
     func colorsDocumentToCode() throws {
         let rows = try DesignDocParser.colorRows(in: Self.documentText())
         #expect(!rows.isEmpty, "parsed no colour rows — the parser or the document changed shape")
@@ -26,10 +26,18 @@ struct DesignTokenParityTests {
                 Issue.record("DESIGN.md documents \(row.name) but no ColorToken case defines it")
                 continue
             }
-            #expect(token.hex == row.hex, "\(row.name): code \(token.hex) vs document \(row.hex)")
+            #expect(token.hex == row.hex, "\(row.name) dark: code \(token.hex) vs document \(row.hex)")
             #expect(
                 abs(token.opacity - row.opacity) < 0.0001,
-                "\(row.name): code opacity \(token.opacity) vs document \(row.opacity)"
+                "\(row.name) dark opacity: code \(token.opacity) vs document \(row.opacity)"
+            )
+            #expect(
+                token.lightHex == row.lightHex,
+                "\(row.name) light: code \(token.lightHex) vs document \(row.lightHex)"
+            )
+            #expect(
+                abs(token.lightOpacity - row.lightOpacity) < 0.0001,
+                "\(row.name) light opacity: code \(token.lightOpacity) vs document \(row.lightOpacity)"
             )
         }
     }
@@ -84,9 +92,15 @@ struct DesignTokenParityTests {
 
     // MARK: - Chrome geometry
 
-    /// Rows whose documented value is prose rather than a leading number, listed by name so the
-    /// gap is visible in the source instead of being implied by a parser that quietly skips them.
-    static let metricRowsNotMachineChecked = ["Sidebar selection", "Control ladder"]
+    /// Rows whose documented value is prose rather than a leading number.
+    ///
+    /// **This list is now empty, and that is the point.** It used to hold `Sidebar selection` and
+    /// `Control ladder`, whose cells packed several numbers into one line of prose — unreadable to
+    /// the check, and so free to drift. The design system has to build controls from those values,
+    /// and hardcoding them is forbidden, so they became individual rows. The list and its two tests
+    /// stay because they are the mechanism that keeps a *future* prose row visible instead of
+    /// quietly unchecked.
+    static let metricRowsNotMachineChecked: [String] = []
 
     /// The name sets must match **exactly**, which is stronger than checking each side contains
     /// the other's entries one at a time.
@@ -248,6 +262,49 @@ struct DesignDocParserTests {
     func missingDocumentThrows() {
         #expect(throws: DesignDocParser.ParseError.self) {
             try DesignDocParser.designDocURL(from: "/nonexistent/deep/path/file.swift")
+        }
+    }
+}
+
+/// Regressions for the two parser defects the cross-family plan review found.
+///
+/// Both were live in the shipped parser and both fail silently — they produce a *wrong comparison*
+/// rather than an error, which is the shape of defect that keeps a gate green while it stops
+/// checking anything.
+@Suite("Parser column resolution")
+struct DesignDocColumnTests {
+    /// The filter that dropped empty cells shifted every column to their right, so a token's value
+    /// was read from its neighbour.
+    @Test("an empty interior cell does not shift the columns to its right")
+    func emptyCellKeepsItsPlace() {
+        #expect(DesignDocParser.cells(of: "| a |  | c |") == ["a", "", "c"])
+        #expect(DesignDocParser.cells(of: "| `--x` | `#FFF` |  | use |")
+            == ["--x", "#FFF", "", "use"])
+    }
+
+    @Test("separator and header rows are still distinguished from data")
+    func separatorsStillSkipped() {
+        #expect(DesignDocParser.cells(of: "|---|---|---|") == nil)
+        #expect(DesignDocParser.cells(of: "| :--- | ---: |") == nil)
+        #expect(DesignDocParser.cells(of: "| Token | Dark | Light |") == ["Token", "Dark", "Light"])
+    }
+
+    @Test("columns are found by name, so reordering the document cannot repoint the check")
+    func headersResolveByName() throws {
+        let normal = try DesignDocParser.headerIndices(["Token", "Dark", "Light", "Use"])
+        #expect(normal["dark"] == 1)
+        #expect(normal["light"] == 2)
+        // The same table with its value columns swapped must resolve to the swapped indices —
+        // a positional parser would silently read dark as light here.
+        let swapped = try DesignDocParser.headerIndices(["Token", "Light", "Dark", "Use"])
+        #expect(swapped["dark"] == 2)
+        #expect(swapped["light"] == 1)
+    }
+
+    @Test("a duplicated column throws rather than picking one of them")
+    func duplicateHeaderThrows() {
+        #expect(throws: DesignDocParser.ParseError.self) {
+            try DesignDocParser.headerIndices(["Token", "Dark", "Dark"])
         }
     }
 }

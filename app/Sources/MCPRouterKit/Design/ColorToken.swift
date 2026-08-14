@@ -8,9 +8,20 @@ import Foundation
 /// here without the test seeing it. A hand-maintained `all` array would let a constant drift in
 /// unnoticed, which is exactly the failure the test exists to catch.
 ///
-/// Values only. Binding these to SwiftUI (`Color`, the asset catalogue, the authored light
-/// appearance) belongs to the design-system item; this layer stays importable by anything,
-/// including the router's tests, which have no UI framework.
+/// **Two appearances, both authored.** Each token carries a dark pair and a light pair. The light
+/// values are not derived from the dark ones — the design item measured every dark indicator hue on
+/// a light ground and found all four between 1.71:1 and 2.91:1 against the 4.5:1 a label needs, so
+/// an inversion is not merely inelegant here, it is unreadable. What light reproduces instead is
+/// dark's **measured contrast ratio** per token, which is why the alphas differ (`--t2` is 55% in
+/// dark and 62% in light) while the perceived separation matches.
+///
+/// The values deliberately live here rather than in an asset catalogue. A catalogue keeps its
+/// colours in JSON that `DesignTokenParityTests` does not read, so the light half of the system
+/// would drift unwatched — the one failure this whole file exists to prevent. The SwiftUI layer
+/// builds a dynamic colour from these pairs, which is what a catalogue compiles to anyway.
+///
+/// Values only. Binding these to SwiftUI lives in `MCPRouterUI`; this layer stays importable by
+/// anything, including the router's tests, which have no UI framework.
 public enum ColorToken: String, CaseIterable, Sendable {
     // Grounds and lines.
     case ground = "--ground"
@@ -26,13 +37,29 @@ public enum ColorToken: String, CaseIterable, Sendable {
     case t3 = "--t3"
     case t4 = "--t4"
 
+    // Fills — bezels, tracks, inactive fills.
+    case f1 = "--f1"
+    case f2 = "--f2"
+    case f3 = "--f3"
+
     // The four exclusive meanings.
     case accent = "--accent"
     case live = "--live"
     case attention = "--attn"
     case fail = "--fail"
 
-    /// The base colour, always in canonical six-digit upper-case form.
+    /// The label drawn on an accent fill.
+    ///
+    /// White in both appearances. In dark that measures 3.23:1 on `--accent`, under the 4.5:1 a
+    /// 13pt semibold label wants, and near-black would give 6.49:1 — but every native filled accent
+    /// control on macOS carries a white label, and `DESIGN.md` is explicit that where it and the
+    /// macOS 27 kit disagree, **the kit wins**. So this is a deviation that is recorded and
+    /// measured rather than hidden, and its exposure is bounded by §3.4's one-prominent-action rule.
+    case onAccent = "--onAccent"
+
+    // MARK: - Dark (the shipped appearance)
+
+    /// The base colour in the dark appearance, always in canonical six-digit upper-case form.
     ///
     /// `DESIGN.md` writes the label tiers and lines as `#FFF`; three-digit and six-digit forms are
     /// the same colour, so the parity test expands both before comparing rather than treating
@@ -43,7 +70,7 @@ public enum ColorToken: String, CaseIterable, Sendable {
         case .panel: "#232326"
         case .raised: "#2C2C2E"
         case .raised2: "#3A3A3C"
-        case .line, .lineStrong, .t1, .t2, .t3, .t4: "#FFFFFF"
+        case .line, .lineStrong, .t1, .t2, .t3, .t4, .f1, .f2, .f3, .onAccent: "#FFFFFF"
         case .accent: "#0091FF"
         case .live: "#30D158"
         case .attention: "#FF9230"
@@ -51,7 +78,7 @@ public enum ColorToken: String, CaseIterable, Sendable {
         }
     }
 
-    /// Alpha as a fraction. `DESIGN.md` states these as percentages (`@7.5%`).
+    /// Alpha as a fraction in the dark appearance. `DESIGN.md` states these as percentages (`@7.5%`).
     public var opacity: Double {
         switch self {
         case .line: 0.075
@@ -60,6 +87,56 @@ public enum ColorToken: String, CaseIterable, Sendable {
         case .t2: 0.55
         case .t3: 0.50
         case .t4: 0.25
+        case .f1: 0.10
+        case .f2: 0.08
+        case .f3: 0.05
+        default: 1.0
+        }
+    }
+
+    // MARK: - Light (authored, never derived)
+
+    /// The base colour in the light appearance.
+    ///
+    /// The four hues are re-solved rather than reused: held in OKLCH so the hue angle survives the
+    /// darkening, because solving in HSL swings amber to brown before it reaches the ratio. Amber
+    /// is additionally pulled toward yellow — solved on hue alone it lands 21.5° from red at the
+    /// same lightness, which is the region protan and deuteran vision compresses, and those two
+    /// tokens mean "wants a decision" and "failed". The shipped pair sits 39.8° apart.
+    public var lightHex: String {
+        switch self {
+        case .ground: "#ECECEE"
+        case .panel: "#F5F5F7"
+        case .raised: "#FFFFFF"
+        // The one direction reversal in the whole system. Emphasis moves *away* from the ground;
+        // in light the resting surface is already white, so the only direction left is darker.
+        case .raised2: "#E0E0E4"
+        case .line, .lineStrong, .t1, .t2, .t3, .t4, .f1, .f2, .f3: "#000000"
+        case .onAccent: "#FFFFFF"
+        case .accent: "#0069CF"
+        case .live: "#1B7B3C"
+        case .attention: "#9F5A00"
+        case .fail: "#CD2738"
+        }
+    }
+
+    /// Alpha as a fraction in the light appearance.
+    ///
+    /// These are **not** the dark alphas. A dark hairline on a light ground and a light hairline on
+    /// a dark ground are not equally visible at the same opacity, so each value is the one that
+    /// reproduces its dark counterpart's measured ratio: `--line` moves 7.5% → 10%, `--t2` 55% →
+    /// 62%, `--t4` 25% → 33%.
+    public var lightOpacity: Double {
+        switch self {
+        case .line: 0.10
+        case .lineStrong: 0.19
+        case .t1: 0.95
+        case .t2: 0.62
+        case .t3: 0.58
+        case .t4: 0.33
+        case .f1: 0.13
+        case .f2: 0.10
+        case .f3: 0.06
         default: 1.0
         }
     }

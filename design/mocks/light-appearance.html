@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>MCP Router — light appearance, states, and the design-system gallery</title>
+<!--
+  F2's design artifact. It carries what DESIGN.md §10 records as owed — the authored light
+  appearance — plus the nine states with real copy and the layout of the gallery that renders
+  the system.
+
+  It is a SIBLING to prototype.html, never a replacement: the prototype is the dark reference
+  implementation and is left untouched. Where the two disagree, DESIGN.md decides.
+
+  Every ratio quoted here was measured (WCAG relative luminance) against the ground the value
+  actually sits on, not estimated. The light hues were solved in OKLCH so the hue angle survives
+  the darkening; solving in HSL swings amber to brown before it reaches the ratio.
+-->
+<style>
+  /* ---------------------------------------------------------------- tokens
+     Dark is the shipped palette, unchanged. Light is authored to match dark's MEASURED
+     contrast ratios rather than its alpha values — copying the alpha is what an inversion
+     does, and it lands in a different place because a dark line on a light ground and a
+     light line on a dark ground are not equally visible at the same opacity. */
+  .dark {
+    --ground:#1E1E1E; --panel:#232326; --raised:#2C2C2E; --raised2:#3A3A3C;
+    --line:rgba(255,255,255,.075); --lineS:rgba(255,255,255,.14);
+    --t1:rgba(255,255,255,1); --t2:rgba(255,255,255,.55);
+    --t3:rgba(255,255,255,.50); --t4:rgba(255,255,255,.25);
+    --f1:rgba(255,255,255,.10); --f2:rgba(255,255,255,.08); --f3:rgba(255,255,255,.05);
+    --accent:#0091FF; --live:#30D158; --attn:#FF9230; --fail:#FF4245;
+    /* The breaker is a machine glowing in the dark: the plate is graphite, lighter than its
+       row so it reads as raised, and the slot is a darker recess still. */
+    --plateTop:#494A4E; --plateMid:#303134; --plateBot:#282A2D; --plateEdge:rgba(0,0,0,.7);
+    --slotTop:#141519; --slotBot:#1D1E23;
+    --levTop:#E6E8EB; --levMid:#B4B8BE; --levBot:#8A8F96;
+    --ledOff:#232427; --bloom:.75;
+    /* The label on an accent fill. Measured: white on #0091FF is 3.23:1 — under AA for a 13pt
+       semibold label. Near-black would give 6.49:1, but every native filled accent control on
+       macOS carries a WHITE label, and DESIGN.md's precedence is explicit that where it and the
+       macOS 27 kit disagree the kit wins. So white stands, recorded with its measurement as a
+       kit-mandated deviation rather than hidden. Exposure is bounded by §3.4 — one prominent
+       accent-filled action per view — and the control is also distinguished by shape and
+       position, never by colour alone. */
+    --onAccent:#FFFFFF;
+  }
+  .light {
+    --ground:#ECECEE; --panel:#F5F5F7; --raised:#FFFFFF; --raised2:#E0E0E4;
+    --line:rgba(0,0,0,.10); --lineS:rgba(0,0,0,.19);
+    --t1:rgba(0,0,0,.95); --t2:rgba(0,0,0,.62);
+    --t3:rgba(0,0,0,.58); --t4:rgba(0,0,0,.33);
+    --f1:rgba(0,0,0,.13); --f2:rgba(0,0,0,.10); --f3:rgba(0,0,0,.06);
+    --accent:#0069CF; --live:#1B7B3C; --attn:#9F5A00; --fail:#CD2738;
+    /* Same machine in daylight. The plate becomes light metal; the slot STAYS DARK, because a
+       recess is dark under any ambient light. That single decision is the proof light was
+       authored: an inversion would have made the slot pale and the switch would stop reading
+       as a switch. Bloom drops to a third — a lit lamp does not glow in daylight. */
+    --plateTop:#FDFDFD; --plateMid:#DCDCDF; --plateBot:#CBCBCF; --plateEdge:rgba(0,0,0,.32);
+    --slotTop:#3A3B40; --slotBot:#4B4C52;
+    --levTop:#FFFFFF; --levMid:#E3E5E8; --levBot:#C6C9CE;
+    --ledOff:#C9C9CE; --bloom:.28;
+    /* Light needs no deviation: white on #0069CF measures 5.35:1, comfortably over AA. */
+    --onAccent:#FFFFFF;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:#191919;
+    font:13px/16px -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+    color:rgba(255,255,255,.92);-webkit-font-smoothing:antialiased}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+  h1{font:700 26px/32px inherit;margin:0 0 6px;letter-spacing:-.3px}
+  h2{font:700 17px/22px inherit;margin:0 0 3px}
+  .lede{color:rgba(255,255,255,.55);font-size:12px;line-height:17px;margin:0 0 26px;max-width:78ch}
+  .wrap{padding:30px 34px 60px;max-width:1180px;margin:0 auto}
+  section{margin:0 0 34px}
+  .secHead{font:600 11px/14px inherit;color:rgba(255,255,255,.5);margin:0 0 10px;
+    padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.09)}
+
+  /* Two appearances shown together — the only honest way to review a two-appearance system. */
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .pane{background:var(--ground);color:var(--t1);border:1px solid var(--lineS);
+    border-radius:12px;padding:16px 18px;overflow:hidden}
+  .paneTag{font:600 10px/13px inherit;color:var(--t3);margin:0 0 12px;
+    text-transform:none;letter-spacing:0}
+
+  /* ------------------------------------------------------------- swatches */
+  .swGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:8px}
+  .sw{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--raised)}
+  .swChip{height:38px}
+  .swMeta{padding:6px 8px 7px}
+  .swName{font:600 11px/14px inherit;color:var(--t1)}
+  .swVal{font-size:9.5px;line-height:13px;color:var(--t3)}
+
+  /* ------------------------------------------------------------ type ramp */
+  .ramp div{margin-bottom:9px;color:var(--t1)}
+  .ramp .rl{font:600 9.5px/13px ui-monospace,"SF Mono",Menlo,monospace;color:var(--t3);
+    display:block;margin-bottom:1px}
+
+  /* -------------------------------------------------------------- breaker
+     Geometry corrected from the prototype. There the lamp sat at top:-9px — OUTSIDE the 40pt
+     housing — so in a 56pt row it overflows by 1pt and SwiftUI clips it in most containers.
+     Here the housing is 30x48: an 8pt lamp boss on the plate, then the 40pt switch body. The
+     slot and toggle keep the prototype's proven proportions exactly.
+
+     The invariant that two prototype rounds failed: the slot must be at least as WIDE as the
+     toggle and strictly TALLER, so slot is visible above the toggle when it is down and below
+     it when up — in every state, lit or not. That is what makes it read as a switch while
+     dormant, which is most rows most of the time. */
+  .brkRow{display:flex;align-items:center;gap:13px;height:56px;padding:0 12px;
+    border-bottom:1px solid var(--line)}
+  .sw2{width:30px;height:48px;border-radius:5px;position:relative;flex-shrink:0;
+    background:linear-gradient(180deg,var(--plateTop),var(--plateMid) 62%,var(--plateBot));
+    border:1px solid var(--plateEdge);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.20),inset 0 -1px 0 rgba(0,0,0,.30),
+               0 1px 2px rgba(0,0,0,.45)}
+  .light .sw2{box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(0,0,0,.13),
+               0 1px 2px rgba(0,0,0,.20)}
+  /* lamp boss — mounted ON the plate, inside the housing, so it can never clip */
+  .led{position:absolute;top:2px;left:50%;transform:translateX(-50%);width:6px;height:6px;
+    border-radius:50%;background:var(--ledOff);
+    box-shadow:inset 0 0 2px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.10)}
+  /* slot — 22 x 34, always a visible recess */
+  .slot{position:absolute;left:4px;right:4px;top:11px;bottom:3px;border-radius:3px;
+    background:linear-gradient(180deg,var(--slotTop),var(--slotBot));
+    box-shadow:inset 0 2px 3px rgba(0,0,0,.65)}
+  /* toggle — 22 wide (equal), 15 tall (strictly shorter): travel 4 -> 19 */
+  .lev{position:absolute;left:4px;right:4px;height:15px;border-radius:2.5px;bottom:4px;z-index:2;
+    background:linear-gradient(180deg,var(--levTop),var(--levMid) 52%,var(--levBot));
+    border:1px solid var(--plateEdge);
+    box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 2px 3px rgba(0,0,0,.5);
+    transition:bottom .6s cubic-bezier(.3,.9,.3,1)}
+  .up .lev{bottom:19px;transition:bottom .18s cubic-bezier(.2,1.5,.4,1)}
+  .up   .slot{background:var(--live)}
+  .held .slot{background:var(--attn)}
+  .trip .slot{background:var(--fail)}
+  .up   .led{background:var(--live);box-shadow:0 0 8px color-mix(in srgb,var(--live) calc(var(--bloom)*100%),transparent)}
+  .held .led{background:var(--attn);box-shadow:0 0 8px color-mix(in srgb,var(--attn) calc(var(--bloom)*100%),transparent)}
+  .trip .led{background:var(--fail);box-shadow:0 0 8px color-mix(in srgb,var(--fail) calc(var(--bloom)*100%),transparent)}
+  @media (prefers-reduced-motion:reduce){.lev,.up .lev{transition:none}}
+  .brkName b{display:block;font:500 13px/16px inherit;color:var(--t1)}
+  .brkName span{display:block;font:10px/13px ui-monospace,"SF Mono",Menlo,monospace;color:var(--t3)}
+
+  /* --------------------------------------------------------- state blocks */
+  .state{border:1px solid var(--line);border-radius:10px;background:var(--raised);
+    padding:14px 15px;margin-bottom:9px}
+  .stateName{font:600 10px/13px ui-monospace,"SF Mono",Menlo,monospace;color:var(--t3);
+    margin-bottom:7px}
+  .stateTitle{font:600 13px/16px inherit;color:var(--t1);margin-bottom:3px}
+  .stateBody{font-size:12px;line-height:16px;color:var(--t2);max-width:62ch}
+  .btn{display:inline-block;margin-top:9px;height:24px;line-height:22px;padding:0 11px;
+    border-radius:6px;font:600 12px/22px inherit;border:1px solid var(--lineS);
+    background:var(--f2);color:var(--t1)}
+  .btn.primary{background:var(--accent);border-color:transparent;color:var(--onAccent)}
+  .btn.disabled{color:var(--t4);border-color:var(--line);background:transparent}
+  .skel{height:12px;border-radius:3px;background:var(--f2);margin:6px 0}
+  .trunc{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* ------------------------------------------------------- gallery layout */
+  .gal{display:flex;border:1px solid var(--lineS);border-radius:10px;overflow:hidden;
+    background:var(--ground);height:280px}
+  .galSide{width:172px;background:var(--panel);border-right:1px solid var(--line);padding:10px 8px;
+    flex-shrink:0}
+  .galItem{height:24px;line-height:24px;padding:0 9px;border-radius:8px;margin:0 4px 2px;
+    font-size:13px;color:var(--t1)}
+  .galItem.sel{background:var(--f1);color:var(--accent);font-weight:600}
+  .galMain{flex:1;padding:12px 14px;overflow:hidden}
+  .galBar{display:flex;gap:6px;margin-bottom:11px;align-items:center}
+  .seg{display:inline-flex;border:1px solid var(--lineS);border-radius:7px;overflow:hidden}
+  .seg span{padding:2px 10px;font:600 11px/18px inherit;color:var(--t2)}
+  .seg span.on{background:var(--f1);color:var(--t1)}
+  .phone{width:186px;height:280px;border:1px solid var(--lineS);border-radius:22px;
+    background:var(--ground);padding:12px 11px;flex-shrink:0}
+
+  table{border-collapse:collapse;width:100%;font-size:11.5px}
+  th{text-align:left;font:600 10px/14px inherit;color:var(--t3);padding:0 8px 6px 0;
+    border-bottom:1px solid var(--line)}
+  td{padding:5px 8px 5px 0;border-bottom:1px solid var(--line);color:var(--t2)}
+  td.k{color:var(--t1);font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:10.5px}
+  td.r{font-family:ui-monospace,"SF Mono",Menlo,monospace;color:var(--t1)}
+  .note{font-size:11px;line-height:16px;color:rgba(255,255,255,.5);margin:8px 0 0;max-width:80ch}
+</style>
+
+<div class="wrap">
+  <h1>Light appearance, the nine states, and the gallery</h1>
+  <p class="lede">
+    DESIGN.md §10 records light as unauthored. This authors it. Light is not an inversion of
+    dark: every dark indicator hue fails text contrast on a light ground (1.71–2.91:1 against
+    4.5 needed), so all four are re-solved. Tiers, lines and fills are authored to reproduce
+    dark's <em>measured ratios</em> rather than its alpha values, so hierarchy reads identically
+    in both appearances. The dark reference implementation, <span class="mono">prototype.html</span>,
+    is unchanged.
+  </p>
+
+  <!-- =========================================================== tokens -->
+  <section>
+    <p class="secHead">Tokens — both appearances, every ratio measured on its own ground</p>
+    <div class="pair">
+      <div class="pane dark">
+        <p class="paneTag">Dark — shipped, unchanged</p>
+        <div class="swGrid">
+          <div class="sw"><div class="swChip" style="background:var(--ground)"></div><div class="swMeta"><div class="swName">--ground</div><div class="swVal">#1E1E1E</div></div></div>
+          <div class="sw"><div class="swChip" style="background:var(--panel)"></div><div class="swMeta"><div class="swName">--panel</div><div class="swVal">#232326</div></div></div>
+          <div class="sw"><div class="swChip" style="background:var(--raised)"></div><div class="swMeta"><div class="swName">--raised</div><div class="swVal">#2C2C2E</div></div></div>
+          <div class="sw"><div class="swChip" style="background:var(--raised2)"></div><div class="swMeta"><div class="swName">--raised2</div><div class="swVal">#3A3A3C</div></div></div>
+          <div class="sw"><div class="swChip" style="background:var(--accent)"></div><div class="swMeta"><div class="swName">--accent</div><div class="swVal">#0091FF · 5.16:1</div></div></div>
+          <div class="sw"><div class="swChip" style="background:var(--live)"></div><div class="swMeta"><div class="swName">--live</div><div class="swVal">#30D158 · 8.25:1</div></div></div>
+          <div class="sw"><div class="swChip" style="background:var(--attn)"></div><div class="swMeta"><div class="swName">--attn</div><div class="swVal">#FF9230 · 7.47:1</div></div></div>
+          <div class="sw"><div class="swChip" style="background:var(--fail)"></div><div class="swMeta"><div class="swName">--fail</div><div class="swVal">#FF4245 · 4.86:1</div></div></div>
+        </div>
+      </div>
+      <div class="pane light">
+        <p class="paneTag">Light — authored here</p>
+        <div class="swGrid">
+          <div class="sw"><div class="swChip" style="background:var(--ground)"></div><div class="swMeta"><div class="swName">--ground</div><div class="swVal">#ECECEE</div></div></div>
+          <div class="sw"><div class="swChip" style="background:var(--panel)"></div><div class="swMeta"><div class="swName">--panel</div><div class="swVal">#F5F5F7</div></div></div>
+          <div class="sw"><div class="swChip" style="background:var(--raised)"></div><div class="swMeta"><div class="swName">--raised</div><div class="swVal">#FFFFFF</div></div></div>
+          <div class="sw"><div class="swChip" style="background:var(--raised2)"></div><div class="swMeta"><div class="swName">--raised2</div><div class="swVal">#E0E0E4</div></div></div>
+          <div class="sw"><div class="swChip" style="background:var(--accent)"></div><div class="swMeta"><div class="swName">--accent</div><div class="swVal">#0069CF · 4.54:1</div></div></div>
+          <div class="sw"><div class="swChip" style="background:var(--live)"></div><div class="swMeta"><div class="swName">--live</div><div class="swVal">#1B7B3C · 4.51:1</div></div></div>
+          <div class="sw"><div class="swChip" style="background:var(--attn)"></div><div class="swMeta"><div class="swName">--attn</div><div class="swVal">#9F5A00 · 4.52:1</div></div></div>
+          <div class="sw"><div class="swChip" style="background:var(--fail)"></div><div class="swMeta"><div class="swName">--fail</div><div class="swVal">#CD2738 · 4.51:1</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pane dark" style="margin-top:14px">
+      <p class="paneTag">The full registry — light solved to match dark's ratio, not its alpha</p>
+      <table>
+        <tr><th>Token</th><th>Dark</th><th>Ratio</th><th>Light</th><th>Ratio</th><th>Why it is not an inversion</th></tr>
+        <tr><td class="k">--ground</td><td class="k">#1E1E1E</td><td class="r">—</td><td class="k">#ECECEE</td><td class="r">—</td><td>Graphite, never pure black → light grey, never pure white.</td></tr>
+        <tr><td class="k">--panel</td><td class="k">#232326</td><td class="r">1.06</td><td class="k">#F5F5F7</td><td class="r">1.08</td><td>Steps the same direction: away from the ground.</td></tr>
+        <tr><td class="k">--raised</td><td class="k">#2C2C2E</td><td class="r">1.20</td><td class="k">#FFFFFF</td><td class="r">1.18</td><td>Resting control surface.</td></tr>
+        <tr><td class="k">--raised2</td><td class="k">#3A3A3C</td><td class="r">1.47</td><td class="k">#E0E0E4</td><td class="r">1.12</td><td><strong>The one reversal.</strong> Emphasis moves away from the ground; in light the resting surface is already white, so it can only darken.</td></tr>
+        <tr><td class="k">--line</td><td class="k">#FFF @7.5%</td><td class="r">1.25</td><td class="k">#000 @10%</td><td class="r">1.25</td><td>A dark hairline on light needs more alpha to read as strongly.</td></tr>
+        <tr><td class="k">--lineS</td><td class="k">#FFF @14%</td><td class="r">1.56</td><td class="k">#000 @19%</td><td class="r">1.56</td><td>Same, at bezel weight.</td></tr>
+        <tr><td class="k">--t1</td><td class="k">#FFF</td><td class="r">16.67</td><td class="k">#000 @95%</td><td class="r">16.58</td><td>Never pure black, as dark is never pure black.</td></tr>
+        <tr><td class="k">--t2</td><td class="k">#FFF @55%</td><td class="r">5.92</td><td class="k">#000 @62%</td><td class="r">5.85</td><td>Alpha differs by 7 points to land on the same ratio.</td></tr>
+        <tr><td class="k">--t3</td><td class="k">#FFF @50%</td><td class="r">5.09</td><td class="k">#000 @58%</td><td class="r">5.09</td><td>Carries the deliberate deviation: tertiary stays legible, not the kit's 25%.</td></tr>
+        <tr><td class="k">--t4</td><td class="k">#FFF @25%</td><td class="r">2.27</td><td class="k">#000 @33%</td><td class="r">2.27</td><td>Disabled only. Dimming <em>is</em> the message, so the low ratio is intended.</td></tr>
+        <tr><td class="k">--f1 / --f2 / --f3</td><td class="k">#FFF @10/8/5%</td><td class="r">1.34/1.26/1.15</td><td class="k">#000 @13/10/6%</td><td class="r">1.35/1.25/1.14</td><td>Fills, bezels, tracks.</td></tr>
+        <tr><td class="k">--accent</td><td class="k">#0091FF</td><td class="r">5.16</td><td class="k">#0069CF</td><td class="r">4.54</td><td>The dark blue measures 2.74:1 on a light ground — unusable.</td></tr>
+        <tr><td class="k">--live</td><td class="k">#30D158</td><td class="r">8.25</td><td class="k">#1B7B3C</td><td class="r">4.51</td><td>1.71:1 if reused. Forest rather than kelly: an instrument green, not a go button.</td></tr>
+        <tr><td class="k">--attn</td><td class="k">#FF9230</td><td class="r">7.47</td><td class="k">#9F5A00</td><td class="r">4.52</td><td>1.89:1 if reused. Hue pulled toward yellow to open the gap with red.</td></tr>
+        <tr><td class="k">--fail</td><td class="k">#FF4245</td><td class="r">4.86</td><td class="k">#CD2738</td><td class="r">4.51</td><td>2.91:1 if reused. Signal red; a deeper solve drifts to crimson.</td></tr>
+      </table>
+      <p class="note">
+        Amber and red are the pair that has to survive, because they mean “wants a decision” and
+        “failed”. Solved on hue alone they land 21.5° apart at near-identical lightness — the
+        region protan and deuteran vision compresses. Pulling amber toward yellow opens that to
+        <strong>39.8°</strong>. Colour is still never the only signal: position and the lamp carry
+        the same state.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================= type -->
+  <section>
+    <p class="secHead">Type — the eight-role ramp, unchanged across appearances</p>
+    <div class="pair">
+      <div class="pane dark"><p class="paneTag">Dark</p>
+        <div class="ramp">
+          <div><span class="rl">LargeTitle · 26/32 · Bold</span><span style="font:700 26px/32px inherit">Servers</span></div>
+          <div><span class="rl">Title2 · 17/22 · Bold</span><span style="font:700 17px/22px inherit">Child processes</span></div>
+          <div><span class="rl">Body · 13/16 · Semibold — the native tell</span><span style="font:600 13px/16px inherit">obscura</span></div>
+          <div><span class="rl">Caption · 10/13 · Semibold</span><span style="font:600 10px/13px inherit">reaps in 298s</span></div>
+          <div><span class="rl">Mono · instrument data only</span><span class="mono" style="font-size:10px;color:var(--t3)">1204 calls · 578ms</span></div>
+        </div>
+      </div>
+      <div class="pane light"><p class="paneTag">Light</p>
+        <div class="ramp">
+          <div><span class="rl">LargeTitle · 26/32 · Bold</span><span style="font:700 26px/32px inherit">Servers</span></div>
+          <div><span class="rl">Title2 · 17/22 · Bold</span><span style="font:700 17px/22px inherit">Child processes</span></div>
+          <div><span class="rl">Body · 13/16 · Semibold — the native tell</span><span style="font:600 13px/16px inherit">obscura</span></div>
+          <div><span class="rl">Caption · 10/13 · Semibold</span><span style="font:600 10px/13px inherit">reaps in 298s</span></div>
+          <div><span class="rl">Mono · instrument data only</span><span class="mono" style="font-size:10px;color:var(--t3)">1204 calls · 578ms</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================== breaker -->
+  <section>
+    <p class="secHead">The breaker — four states, both appearances, corrected geometry</p>
+    <div class="pair">
+      <div class="pane dark"><p class="paneTag">Dark — a machine glowing in the dark</p>
+        <div class="brkRow"><div class="sw2 up"><i class="led"></i><i class="slot"></i><i class="lev"></i></div><div class="brkName"><b>obscura</b><span>warm · never reaped</span></div></div>
+        <div class="brkRow"><div class="sw2"><i class="led"></i><i class="slot"></i><i class="lev"></i></div><div class="brkName"><b>dossier</b><span>dormant</span></div></div>
+        <div class="brkRow"><div class="sw2 held"><i class="led"></i><i class="slot"></i><i class="lev"></i></div><div class="brkName"><b>fetch-pro</b><span>1 description held</span></div></div>
+        <div class="brkRow" style="border:0"><div class="sw2 trip"><i class="led"></i><i class="slot"></i><i class="lev"></i></div><div class="brkName"><b>namecheap</b><span>tripped · exit 1</span></div></div>
+      </div>
+      <div class="pane light"><p class="paneTag">Light — the same machine in daylight</p>
+        <div class="brkRow"><div class="sw2 up"><i class="led"></i><i class="slot"></i><i class="lev"></i></div><div class="brkName"><b>obscura</b><span>warm · never reaped</span></div></div>
+        <div class="brkRow"><div class="sw2"><i class="led"></i><i class="slot"></i><i class="lev"></i></div><div class="brkName"><b>dossier</b><span>dormant</span></div></div>
+        <div class="brkRow"><div class="sw2 held"><i class="led"></i><i class="slot"></i><i class="lev"></i></div><div class="brkName"><b>fetch-pro</b><span>1 description held</span></div></div>
+        <div class="brkRow" style="border:0"><div class="sw2 trip"><i class="led"></i><i class="slot"></i><i class="lev"></i></div><div class="brkName"><b>namecheap</b><span>tripped · exit 1</span></div></div>
+      </div>
+    </div>
+    <p class="note">
+      Housing 30×48 — an 8pt lamp boss on the plate, then the 40pt switch body. The prototype
+      floats its lamp at <span class="mono">top:-9px</span>, outside a 40pt housing, which
+      overflows a 56pt row and would be clipped by SwiftUI in most containers; mounting it on the
+      plate removes the defect and is truer to the object. Slot 22×34, toggle 22×15, travel
+      4→19: <strong>the slot is at least as wide as the toggle and strictly taller</strong>, so a
+      recess is visible above the toggle when down and below it when up, lit or not. That is the
+      invariant two prototype rounds failed, and it is what makes a dormant row still read as a
+      switch. Springs: 0.18s with overshoot rising, 0.6s without falling. Reduce Motion removes
+      the transition, never the state change.
+    </p>
+  </section>
+
+  <!-- =========================================================== states -->
+  <section>
+    <p class="secHead">The nine states — real copy, unhappy paths included</p>
+    <div class="pair">
+      <div class="pane light">
+        <p class="paneTag">Light</p>
+        <div class="state"><div class="stateName">EMPTY</div><div class="stateTitle">No servers declared yet</div><div class="stateBody">MCP Router reads the servers your agents already have configured. Point it at a config, or declare one by hand.</div><span class="btn primary">Add server…</span></div>
+        <div class="state"><div class="stateName">LOADING — skeleton at real row geometry, never a spinner</div><div class="skel" style="width:38%"></div><div class="skel" style="width:64%"></div><div class="skel" style="width:52%"></div></div>
+        <div class="state"><div class="stateName">PARTIAL</div><div class="stateTitle">6 of 8 servers loaded</div><div class="stateBody">Two entries name a transport this version does not read. The other six are live and usable.</div><span class="btn">Show the two</span></div>
+        <div class="state"><div class="stateName">ERROR</div><div class="stateTitle">Could not read servers.json</div><div class="stateBody">The file is there but line 12 is not valid JSON, so nothing was loaded rather than some of it. Fix the line and it will reload on its own.</div><span class="btn">Reveal in Finder</span></div>
+      </div>
+      <div class="pane dark">
+        <p class="paneTag">Dark</p>
+        <div class="state"><div class="stateName">OFFLINE — the router is loopback, so this means it is not running</div><div class="stateTitle">The router is not running</div><div class="stateBody">Nothing is listening on 127.0.0.1. Your agents will fall back to spawning their own servers until it starts.</div><span class="btn primary">Start the router</span></div>
+        <div class="state"><div class="stateName">DISABLED — dims in place, reason discoverable</div><div class="stateTitle">Reset</div><div class="stateBody">Available once the server has run at least once. It has not been called yet.</div><span class="btn disabled">Reset</span></div>
+        <div class="state"><div class="stateName">OVERFLOW — truncates, row height never changes</div><div class="stateTitle trunc">fledgeling-plugins-design-review-runner</div><div class="stateBody">The full value stays readable in the inspector.</div></div>
+        <div class="state"><div class="stateName">SUCCESS — in place; macOS does not toast a click</div><div class="stateTitle" style="color:var(--live)">Running</div><div class="stateBody">The lever rose and the subtitle changed. There is no toast, and no number the router did not observe.</div></div>
+      </div>
+    </div>
+    <p class="note">
+      Default is the populated board above. Every control additionally carries default, hover,
+      focus-visible, active and disabled — rendered in the gallery's Controls section rather than
+      described here.
+    </p>
+  </section>
+
+  <!-- ========================================================== gallery -->
+  <section>
+    <p class="secHead">The gallery — where the system is rendered and reviewed</p>
+    <div class="pair">
+      <div class="pane dark">
+        <p class="paneTag">Mac — NavigationSplitView, the app's own chrome</p>
+        <div class="gal">
+          <div class="galSide">
+            <div class="galItem">Colour</div>
+            <div class="galItem">Type</div>
+            <div class="galItem">Icons</div>
+            <div class="galItem">Controls</div>
+            <div class="galItem sel">Breaker</div>
+            <div class="galItem">States</div>
+          </div>
+          <div class="galMain">
+            <div class="galBar">
+              <span class="seg"><span>System</span><span class="on">Dark</span><span>Light</span></span>
+              <span class="mono" style="font-size:10px;color:var(--t3)">reduce motion ✓</span>
+            </div>
+            <div class="brkRow" style="height:48px"><div class="sw2 up"><i class="led"></i><i class="slot"></i><i class="lev"></i></div><div class="brkName"><b>running</b><span>0.18s · overshoot</span></div></div>
+            <div class="brkRow" style="height:48px;border:0"><div class="sw2"><i class="led"></i><i class="slot"></i><i class="lev"></i></div><div class="brkName"><b>dormant</b><span>0.6s · no overshoot</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="pane light" style="display:flex;gap:14px;align-items:flex-start">
+        <div style="flex:1;min-width:0">
+          <p class="paneTag">Phone — NavigationStack, same sections</p>
+          <p class="stateBody" style="font-size:11.5px">
+            The gallery is one surface built from the shared system, rendered by each idiom's own
+            container. It is how a token, a control size, an icon, a breaker state and a state
+            container are each seen in both appearances without changing the system setting — and
+            it is the surface acceptance drives, so every claim about the design system is
+            observed rather than asserted.
+          </p>
+        </div>
+        <div class="phone">
+          <div style="font:700 22px/26px inherit;color:var(--t1);margin-bottom:9px">Breaker</div>
+          <span class="seg" style="margin-bottom:10px"><span>System</span><span>Dark</span><span class="on">Light</span></span>
+          <div class="brkRow" style="height:52px"><div class="sw2 up"><i class="led"></i><i class="slot"></i><i class="lev"></i></div><div class="brkName"><b>running</b><span>lever up</span></div></div>
+          <div class="brkRow" style="height:52px;border:0"><div class="sw2 trip"><i class="led"></i><i class="slot"></i><i class="lev"></i></div><div class="brkName"><b>tripped</b><span>exit 1</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+</html>

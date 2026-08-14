@@ -111,12 +111,13 @@ test:
 ##
 ## It distinguishes its outcomes: 1 is a failed assertion, 2 is an environment that could not run
 ## the check. Collapsing those is how "no Accessibility permission" gets reported as a broken app.
-acceptance: build-mac
+acceptance: build-mac build-mac-release
 	./scripts/acceptance/shells.sh
 
 lint: tools
 	swiftformat --lint . --config .swiftformat
 	swiftlint lint --strict --config .swiftlint.yml
+	./scripts/lint/no-raw-design-values.sh
 
 ## Writes formatting changes in place. Not part of `all` — a gate that edits your files is a gate
 ## that can turn a red build green without anyone reading the diff.

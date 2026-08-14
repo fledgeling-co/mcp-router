@@ -25,6 +25,13 @@ enum DesignDocParser {
         let name: String
         let hex: String
         let opacity: Double
+        let lightHex: String
+        let lightOpacity: Double
+        /// The measured light-appearance contrast ratio the document claims for this token.
+        ///
+        /// Nil where the document states none — `--ground` is what everything else is measured
+        /// *against*, so it has no ratio of its own.
+        let documentedLightContrast: Double?
     }
 
     struct TypeRow: Equatable {
@@ -59,6 +66,10 @@ enum DesignDocParser {
         case documentNotFound(startingFrom: String)
         case sectionNotFound(String)
         case unparsableCell(row: String, cell: String)
+        case duplicateHeader(String)
+        case headerMissing(String)
+        case columnMissing(String, String)
+        case rowTooShort(row: String, want: String)
 
         var description: String {
             switch self {
@@ -68,6 +79,14 @@ enum DesignDocParser {
                 "DESIGN.md section not found: \(heading)"
             case let .unparsableCell(row, cell):
                 "could not parse cell '\(cell)' in row: \(row)"
+            case let .duplicateHeader(name):
+                "DESIGN.md table has two '\(name)' columns — which one is the value is undefined"
+            case let .headerMissing(heading):
+                "a token row appeared under '\(heading)' before any header row"
+            case let .columnMissing(name, heading):
+                "DESIGN.md table under '\(heading)' has no '\(name)' column"
+            case let .rowTooShort(row, want):
+                "row has no cell for '\(want)': \(row)"
             }
         }
     }
@@ -140,17 +159,43 @@ enum DesignDocParser {
         return Double(digits)
     }
 
-    /// Splits a markdown table row into normalised cells, or nil for a header/separator row.
+    /// Splits a markdown table row into normalised cells, or nil for a separator row.
+    ///
+    /// **Interior empty cells are preserved.** An earlier version filtered every empty cell out
+    /// after splitting, which silently shifted the index of every column to its right — so one
+    /// blank cell anywhere in a row made the parser read its neighbour's value and report it as the
+    /// token's own. That is the same class of defect as the silent-empty read this repo already
+    /// records in `SWIFT_PRACTICES.md` §2: a failure mode that looks like data rather than an
+    /// error. Only the empty fields either side of the leading and trailing pipes are dropped,
+    /// because those are punctuation rather than columns.
     static func cells(of line: String) -> [String]? {
         let t = line.trimmingCharacters(in: .whitespaces)
         guard t.hasPrefix("|") else { return nil }
-        let parts = t.split(separator: "|", omittingEmptySubsequences: false)
-            .map { normalise(String($0)) }
-            .filter { !$0.isEmpty }
-        guard !parts.isEmpty else { return nil }
-        // A separator row is only dashes and colons.
-        if parts.allSatisfy({ $0.allSatisfy { c in c == "-" || c == ":" } }) { return nil }
-        return parts
+        var parts = t.split(separator: "|", omittingEmptySubsequences: false).map(String.init)
+        parts.removeFirst() // always empty: the field before the leading pipe
+        if t.hasSuffix("|"), !parts.isEmpty { parts.removeLast() }
+        let normalised = parts.map { normalise($0) }
+        guard !normalised.isEmpty else { return nil }
+        // A separator row is only dashes and colons. An empty cell satisfies that vacuously, so a
+        // row of nothing but empties is treated as structure too — which is what it is.
+        if normalised.allSatisfy({ $0.allSatisfy { c in c == "-" || c == ":" } }) { return nil }
+        return normalised
+    }
+
+    /// Maps a header row's column names to their indices, lower-cased.
+    ///
+    /// Duplicates throw rather than resolving to one of them: `| Token | Dark | Dark |` is a
+    /// document bug, and picking either column silently would make the check pass while comparing
+    /// the wrong thing.
+    static func headerIndices(_ header: [String]) throws -> [String: Int] {
+        var map: [String: Int] = [:]
+        for (i, name) in header.enumerated() {
+            let key = name.lowercased()
+            guard key.isEmpty == false else { continue }
+            if map[key] != nil { throw ParseError.duplicateHeader(key) }
+            map[key] = i
+        }
+        return map
     }
 
     // MARK: - Extraction
@@ -176,18 +221,56 @@ enum DesignDocParser {
     }
 
     /// Colour tokens: every row across §2 whose first cell is a `--name` token.
+    ///
+    /// Columns are resolved **by header name, per table**, never by position. The tables under §2
+    /// do not share a shape — the label-tier and colour tables carry a measured-contrast column
+    /// that the grounds table does not — and an earlier version read `c[1]` unconditionally with a
+    /// comment noting that any further column "is ignored by position". That is precisely what made
+    /// adding a Light column unsafe: it would have been read by nobody and drifted unwatched, which
+    /// is the one failure the parity suite exists to prevent.
     static func colorRows(in text: String) throws -> [ColorRow] {
         var rows: [ColorRow] = []
         for heading in ["Grounds and lines", "Label tiers", "Colour"] {
+            var columns: [String: Int]?
             for line in try tableLines(in: text, under: heading) {
-                guard let c = cells(of: line), c.count >= 2, c[0].hasPrefix("--") else { continue }
-                // Column 2 is the value for all three tables; the label-tier table's extra
-                // contrast column is documentation, not a token, and is ignored by position.
-                let value = c[1]
-                guard let hex = canonicalHex(value) else {
-                    throw ParseError.unparsableCell(row: line, cell: value)
+                guard let c = cells(of: line) else { continue }
+
+                // A row that does not name a token is a header — take its column map and move on.
+                guard c.first?.hasPrefix("--") == true else {
+                    columns = try headerIndices(c)
+                    continue
                 }
-                rows.append(ColorRow(name: c[0], hex: hex, opacity: opacity(in: value) ?? 1.0))
+                guard let columns else { throw ParseError.headerMissing(heading) }
+
+                func cell(_ name: String) throws -> String {
+                    guard let i = columns[name] else { throw ParseError.columnMissing(name, heading) }
+                    guard i < c.count else { throw ParseError.rowTooShort(row: line, want: name) }
+                    return c[i]
+                }
+
+                let dark = try cell("dark")
+                let light = try cell("light")
+                guard let darkHex = canonicalHex(dark) else {
+                    throw ParseError.unparsableCell(row: line, cell: dark)
+                }
+                guard let lightHex = canonicalHex(light) else {
+                    throw ParseError.unparsableCell(row: line, cell: light)
+                }
+                // The measured ratio is documentation rather than a token, so a table without the
+                // column is not an error — but where the column exists the value is checked, which
+                // is what makes the authored-light claim a measurement instead of an assertion.
+                var contrast: Double?
+                if let i = columns["contrast (light)"], i < c.count {
+                    contrast = leadingScalar(c[i])
+                }
+                rows.append(ColorRow(
+                    name: c[0],
+                    hex: darkHex,
+                    opacity: opacity(in: dark) ?? 1.0,
+                    lightHex: lightHex,
+                    lightOpacity: opacity(in: light) ?? 1.0,
+                    documentedLightContrast: contrast
+                ))
             }
         }
         return rows
@@ -215,6 +298,21 @@ enum DesignDocParser {
     static func metricRows(in text: String) throws -> [MetricRow] {
         var rows: [MetricRow] = []
         for line in try tableLines(in: text, under: "Chrome geometry") {
+            guard let c = cells(of: line), c.count >= 2 else { continue }
+            if c[0] == "Element" { continue }
+            rows.append(MetricRow(element: c[0], leadingScalar: leadingScalar(c[1])))
+        }
+        return rows
+    }
+
+    /// The breaker's construction, one row per dimension.
+    ///
+    /// A separate table from chrome geometry because it is component construction rather than app
+    /// chrome, and because mixing nineteen breaker rows into the chrome ladder would bury the four
+    /// values a window actually lays out with. Same shape, so the same row rules apply.
+    static func breakerRows(in text: String) throws -> [MetricRow] {
+        var rows: [MetricRow] = []
+        for line in try tableLines(in: text, under: "Breaker geometry") {
             guard let c = cells(of: line), c.count >= 2 else { continue }
             if c[0] == "Element" { continue }
             rows.append(MetricRow(element: c[0], leadingScalar: leadingScalar(c[1])))

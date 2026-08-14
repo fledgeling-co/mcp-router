@@ -202,6 +202,45 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 
 ## Changelog
 
+- 2026-08-15 — **M5 merged `2a81c87` (five of eight panes) and M8 `affaed6` (four), both under
+  one-runner concurrency after four-wide died twice.** M5's merged-tree gates: lint 0 over 313
+  files, **1021 tests / 131 suites run three times, three green**, 358 parity, `build-mac` ok, plus
+  **32 behavioural assertions** across four fixture scenarios with the app never frontmost.
+
+  **The two M5 findings worth carrying forward are both gates that lie.** A row *claimed*
+  `.isButton` and published **no `AXPress`** — accepted-and-inert, so a check keyed on a return code
+  passes it because the action genuinely is accepted and simply does nothing. And `declaration` sent
+  `command`/`args`/`url` **raw** while the sheet displayed them **sanitised**: display ≠ execution,
+  on the one surface whose entire purpose is knowing what will run. Also `missingRequirements` was
+  dead code (Add with blank fields sent a credential-less declaration), and the fabricated-field
+  grep read four Kit paths and **none of the five files that draw the screen**.
+
+  **A sixth board-registry tripwire exists that git does not mark as a conflict**:
+  `ShellIntegrationTests` pins the scaffolded count in a second place outside the conflicted region,
+  so M5's rebase was clean and the suite was red anyway. Carried into M7's brief.
+
+- 2026-08-15 — **Two defects were making every runner's gate unreliable; both fixed on main
+  (`1cb3fd7`), and one of them I had filed under the wrong diagnosis.**
+
+  **`D-p` was never a flake — it is a data race.** `StubHTTP` is `@unchecked Sendable` with a plain
+  `var requested: [String]` appended from `get()`, while `Registry.search` queries the official and
+  smithery registries **concurrently**: two tasks appending to one array unsynchronised, under an
+  annotation promising exactly the safety the class lacked. A lost append reads as *"that URL was
+  never requested"*. **Calling it flaky was the dangerous part** — flaky invites re-running until
+  green, which would have preserved a real race indefinitely. Fixed with `NSLock`, scoped
+  `withLock` because `lock()`/`unlock()` are unavailable from `get()`'s async context.
+
+  Separately, M8's `pollingIsIdempotent` and its sibling slept a fixed 120ms then asserted a poll
+  had run — 5/5 in isolation, **~4 failures in 5 under full-suite load** as M5 measured. Replaced
+  with `ShellTestSupport.waitUntil`, which is also *faster* when healthy. `ShellTests`'
+  `loadingIsTheAbsenceOfAnAnswer` looks identical and was **left alone deliberately**: it asserts a
+  state *stays* put, so there is no condition to wait for and a fixed delay is the right instrument.
+
+  Proof is repetition, not a pass: **8 consecutive full-suite runs, 8 green.** One run proves
+  nothing about a race, and the first attempt at this fix did not compile at all — SourceKit's
+  async-context warning was real rather than its usual cross-file noise.
+
+
 - 2026-08-15 — **Capacity returned, the orchestrator took the recovery back from lifeline, and all
   four items relaunched with briefs that describe reality (`wf_997da1e0-2d0`).** A one-word probe
   (`claude -p` → `OK`) confirmed the outage had cleared before anything was spent on a wave.

@@ -28,4 +28,21 @@ if (!target) {
 
 await client.callTool({ name: target.name, arguments: {} });
 process.stdout.write(`called ${target.name}\n`);
+
+// Stay connected while the router works out who called it.
+//
+// The router attributes a call by running `lsof -sTCP:ESTABLISHED` against the peer port (see
+// `ClientIdentity` in src/usage.ts) and that lookup is asynchronous — two spawns, off the request
+// path. Closing here the moment the call returns races it: if the socket has left ESTABLISHED by
+// the time lsof looks, the router correctly records the call with no `pid`, `cwd`, `project` or
+// `client`, because it genuinely could not tell.
+//
+// That is right for the router and wrong for a *fixture*, which exists to record those fields on
+// the wire. Measured back-to-back on one machine, two captures disagreed — one resolved a pid, the
+// next did not — so the recording carried the attribution roughly half the time, and the half that
+// lost reddened the suite later for a reason that was never a defect.
+//
+// Holding the socket open covers the lookup, which lands well inside this window.
+await new Promise((resolve) => setTimeout(resolve, 1500));
+
 await client.close();

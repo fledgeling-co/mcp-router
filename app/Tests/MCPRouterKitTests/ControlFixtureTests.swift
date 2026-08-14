@@ -232,6 +232,11 @@ struct ControlFixtureTests {
         #expect(!record.server.isEmpty)
         #expect(!record.tool.isEmpty)
         #expect(record.ms >= 0)
+        // Attribution is optional on the wire — the router omits pid/cwd/project/client when it
+        // cannot identify the caller — so this asserts the *recording* carries it, which is what
+        // makes those four fields covered at all. capture-control-fixtures.sh refuses to write a
+        // fixture set whose call log is unattributed, so a re-capture cannot quietly drop this
+        // coverage and leave the assertion below to fail for a reason that isn't a defect.
         #expect(record.pid != nil)
     }
 

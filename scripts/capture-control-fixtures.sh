@@ -110,6 +110,20 @@ save usage.json                  grab "http://127.0.0.1:$PORT/usage"
 save usage-summary.json          grab "http://127.0.0.1:$PORT/usage/summary"
 save server-tools.json           grab "http://127.0.0.1:$PORT/servers/fixture-tools"
 
+# Attribution has to be earned too, for the same reason the placard is checked below: `pid`, `cwd`,
+# `project` and `client` are optional on the wire — the router omits them when it cannot identify
+# the caller — so a record without them decodes against any model and proves nothing about those
+# four fields. The caller now holds its socket open long enough for the router's lookup to land, so
+# an unattributed record here means that lookup regressed. Failing at capture time names the real
+# cause; the alternative is a fixture that reds the decode suite later, reading as a client that
+# lost a field the router sent.
+python3 -c "
+import json, sys
+records = json.load(open(sys.argv[1]))['records']
+if not any(r.get('pid') for r in records):
+    sys.exit('error: no call record carried caller attribution — pid/cwd/project/client would go unrecorded')
+" "$OUT/usage.json"
+
 # --- a held tool-surface change ----------------------------------------------------------------
 # The quarantine surface's whole subject. Surface B renames a tool, drops one, and rewrites a
 # description to carry a zero-width space — so the captured diff exercises added, removed, changed

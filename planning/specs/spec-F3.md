@@ -494,3 +494,51 @@ UI, and the connection-state copy it asserts against was already on this branch.
   while another fleet is live. One run was additionally lost to codex auto-loading a plugin skill
   and spending its whole budget reading it; `Do NOT load any skill` in the prompt fixed that.
 
+
+---
+
+## Re-verification — 2026-08-14
+
+The completion note above was re-run from scratch rather than trusted. Every gate reproduced —
+`make all` exit **0**, 103 tests, 43/43 mutations killed, acceptance 3/3 — with one exception, and
+the exception was real.
+
+**A17 did not reproduce.** The note claims "24/24 shape-identical" against a fresh capture from a
+live router. Re-capturing and diffing key-path by key-path gave **19/24**, and swapping the fresh
+capture in over the committed fixtures turned the suite **red**: `a call record survives the wire
+with everything the router logged about it` failed on `(record.pid → nil) != nil`.
+
+The client was not at fault. `pid`, `cwd`, `project` and `client` are optional on the wire — the
+router's own type declares them optional and `CallRecord` models them as optionals — so the fresh
+response decoded correctly. What failed was an assertion about the *recording*.
+
+The cause is a race in the capture, not in the product. The router attributes a call by running
+`lsof -sTCP:ESTABLISHED` against the peer port, asynchronously and off the request path;
+`call-through-router.mjs` closed its connection the moment the call returned. When the socket left
+ESTABLISHED before the lookup landed, the router correctly recorded a call it could not attribute.
+Measured back-to-back on one machine: **three captures, one attributed** — `pid=82055`, then
+nothing, then nothing.
+
+That is the failure mode this codebase names elsewhere: a gate that reds for a cause it does not
+state. The next person to re-capture — which is the whole of A17's anti-drift story — would read
+"the client lost a field the router sent" off a client that had lost nothing.
+
+**Fixed at the root, then guarded.** The caller now holds its socket open for 1.5s after the call,
+covering the lookup. The capture then *earns* the attribution rather than hoping for it, in the
+same shape as the placard guard already in that file: a fixture set whose call log carries no
+`pid` is refused at capture time, where the message can name the real cause.
+
+| Evidence | Result |
+|---|---|
+| Attribution before the fix | 1 of 3 captures (`pid=82055`, none, none) |
+| Attribution after the fix | **3 of 3** (`pid=94706 / 96503 / 99308`, `client=node`, `project=F3`) |
+| The new guard, red-green | `pid` stripped from a real capture → exits **1** with the attribution message |
+| A17 re-diffed, post-fix | **24/24** schema-identical (cwd-keyed `projects` map values excluded — those are data, not schema) |
+| Suite against the re-captured live sample | **exit 0**, 103 tests — the property A17 claimed, now actually held |
+
+Files: `scripts/fixtures/call-through-router.mjs`, `scripts/capture-control-fixtures.sh`,
+`app/Tests/MCPRouterKitTests/ControlFixtureTests.swift` (comment only — the assertion stands, and
+now has a guarantee behind it).
+
+Gates after the fix: `make all` exit **0**, `executed 103 tests`, red-green **43/43 killed**,
+`control-client.sh` **3/3** against a real router and exit **2** when the environment cannot run it.

@@ -168,6 +168,15 @@ record() {
   printf '%s\t%s\t%s\t%s\n' "control" "$1" "$2" "$3" >> "$RESULTS"
 }
 
+# R4: a declared divergence is its own manifest row, in the `divergence` group, and it needs its
+# own result. Recording only under the control route id left R3's D1-D5 rows reading "no lane
+# reported" in the gate — asserted in this file, and invisible to the census that decides whether
+# a cutover is justified.
+record_divergence() {
+  [ -n "$RESULTS" ] || return 0
+  printf '%s\t%s\t%s\t%s\n' "divergence" "$1" "$2" "$3" >> "$RESULTS"
+}
+
 # One row: a manifest row id, a label, a method, an encoded target, and an optional body.
 compare() {
   local id="$1" label="$2" method="$3" target="$4" body="${5:-}"
@@ -189,6 +198,16 @@ compare() {
   fi
   ts_status="$(curl "${curl_args[@]}" || echo 000)"
   ts_body="$(cat "$HOME_DIR/ts.body")"
+
+  # A curl that could not reach the reference reports 000 with an empty body. If the Swift oracle
+  # also fails to produce a response, the two "agree" — identical status, identical bytes — and the
+  # row records a PASS built from two failures. That is the canonical differential-harness defect:
+  # nothing else here asserts that either side actually answered before their answers are compared.
+  if [ "$ts_status" = "000" ]; then
+    echo "environment: the reference did not answer \"$label\" (curl reported 000)."
+    echo "             Refusing to compare two failures as though they agreed."
+    exit 2
+  fi
 
   local swift_out swift_status swift_body
   if [ -n "$body" ]; then
@@ -355,7 +374,7 @@ done
 echo
 echo "expected divergences — the reference dies here, and this port does not"
 diverges() {
-  local id="$1" label="$2" method="$3" target="$4" body="${5:-}" want_status="$6" want_body="$7"
+  local id="$1" div_id="$2" label="$3" method="$4" target="$5" body="${6:-}" want_status="$7" want_body="$8"
 
   kill -0 "$ROUTER_PID" 2>/dev/null || start_router
 
@@ -382,6 +401,7 @@ diverges() {
     printf '  FAIL %-44s the reference SURVIVED (http=%s) — this divergence is stale\n' "$label" "$ts_code"
     fail=$((fail + 1)); failures+=("stale divergence: $label")
     record "$id" fail "stale divergence: $label — the reference survived"
+    record_divergence "$div_id" fail "stale: the reference survived $label, so the divergence record has outlived its reason"
     return
   fi
   if [ "$swift_status" != "$want_status" ] || [ "$swift_body" != "$want_body" ]; then
@@ -389,24 +409,26 @@ diverges() {
     printf '       wanted %s %s\n' "$want_status" "$want_body"
     fail=$((fail + 1)); failures+=("$label")
     record "$id" fail "$label — swift=$swift_status"
+    record_divergence "$div_id" fail "$label — swift answered $swift_status, not the declared $want_status"
     return
   fi
   printf '  ok   %-44s reference DIED (%s) · swift %s\n' "$label" "${node_error%%:*}" "$want_status"
   pass=$((pass + 1))
   record "$id" ok "$label"
+  record_divergence "$div_id" ok "$label — reference died, swift answered $want_status, both as declared"
   # The reference is gone; the next row that needs it will start a fresh one.
 }
 
-diverges control-server-patch "PATCH body 42 kills the reference"   PATCH "/servers/diff-stdio" '42' \
+diverges control-server-patch div-r3-d1 "PATCH body 42 kills the reference"   PATCH "/servers/diff-stdio" '42' \
   "400" '{"error":"Cannot use '"'"'in'"'"' operator to search for '"'"'projects'"'"' in 42"}'
-diverges control-server-patch "PATCH body \"hi\" kills the reference" PATCH "/servers/diff-stdio" '"hi"' \
+diverges control-server-patch div-r3-d2 "PATCH body \"hi\" kills the reference" PATCH "/servers/diff-stdio" '"hi"' \
   "400" '{"error":"Cannot use '"'"'in'"'"' operator to search for '"'"'projects'"'"' in hi"}'
-diverges control-server-patch "PATCH body true kills the reference"  PATCH "/servers/diff-stdio" 'true' \
+diverges control-server-patch div-r3-d3 "PATCH body true kills the reference"  PATCH "/servers/diff-stdio" 'true' \
   "400" '{"error":"Cannot use '"'"'in'"'"' operator to search for '"'"'projects'"'"' in true"}'
 # Unauthenticated: the token gate covers POST/DELETE/PATCH only, so this needs no credential at all.
-diverges control-server-get "GET %ZZ kills the reference"          GET "/servers/%ZZ" '' \
+diverges control-server-get div-r3-d4 "GET %ZZ kills the reference"          GET "/servers/%ZZ" '' \
   "400" '{"error":"URI malformed"}'
-diverges control-server-get "GET a truncated escape kills it"      GET "/servers/%E0%A4%A" '' \
+diverges control-server-get div-r3-d5 "GET a truncated escape kills it"      GET "/servers/%E0%A4%A" '' \
   "400" '{"error":"URI malformed"}'
 
 # ---------------------------------------------------------------------------------------------

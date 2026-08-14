@@ -76,6 +76,16 @@
                     // content zone. Bottom-trailing keeps it away from the top-edge pixel sample
                     // A34 takes 120pt in from the content's leading edge.
                     KeyClaimProbe()
+                        // An `NSViewRepresentable` in an overlay takes the whole overlay unless it
+                        // is told otherwise, and at full size this probe covered the top edge where
+                        // A34 samples the scroll-edge separator — one clause's test surface eating
+                        // another clause's evidence. Sized from the row token rather than a literal,
+                        // like everything else the shell draws.
+                        .frame(
+                            width: MetricToken.tableRows.leadingScalar * 3,
+                            height: MetricToken.tableRows.leadingScalar
+                        )
+                        .padding(MetricToken.selectionInset.leadingScalar)
                 #endif
             }
             // §3.3: content is opaque. A token, never a material — there is no glass on glass here,
@@ -108,45 +118,86 @@
         ///
         /// A21's honest claim is narrow, and worth stating precisely: SwiftUI has no "route this key
         /// past me" mechanism, so "the shell installs no handler" is not by itself a routing story —
-        /// `onKeyPress` fires for a focused view, and a focused sidebar row can consume a key before
-        /// anything downstream sees it. What can be shown is that a focused surface **in the content
-        /// zone** receives all three, which is what a board will be, and that is what this does.
+        /// a focused sidebar row can consume a key before anything downstream sees it. What can be
+        /// shown is that a focused surface **in the content zone** receives all three, which is what
+        /// a board will be, and that is what this does.
         ///
-        /// It records the last bare key it was given and publishes it as an accessibility value, so
-        /// `scripts/acceptance/mac-shell.sh` can focus it, send each key, and read back what arrived.
-        /// Debug-only, and the Release bundle is asserted not to contain it.
-        struct KeyClaimProbe: View {
+        /// **Why this is an `NSView` rather than `Text().focusable()`.** It was the latter first, and
+        /// measured on macOS 26.5 on 2026-08-14 it never took focus: clicked at its own reported
+        /// `AXPosition`, it reported `AXFocused` 0 and its value stayed `none` through a `Space`. The
+        /// reason is that SwiftUI's `.focusable()` only joins the key-view loop when macOS *Full
+        /// Keyboard Access* is on, which is off by default — so A21's evidence would have been
+        /// contingent on a System Settings toggle on whichever machine ran the gate, and would have
+        /// reported "the shell swallowed Space" on a shell that had done nothing wrong.
+        ///
+        /// An `NSView` that accepts first responder has no such dependency. It is also the stronger
+        /// probe for what the clause actually claims: if a menu had bound bare `Space`, or the
+        /// sidebar had consumed it, the key would never reach a responder in the content zone at
+        /// all — which is the thing being tested. Debug-only, and the Release bundle is asserted not
+        /// to contain it.
+        struct KeyClaimProbe: NSViewRepresentable {
             static let identifier = "mcprouter-key-probe"
             static let idle = "none"
 
-            @State private var lastKey = KeyClaimProbe.idle
-            @FocusState private var isFocused: Bool
+            func makeNSView(context _: Context) -> KeyClaimView { KeyClaimView() }
+            func updateNSView(_: KeyClaimView, context _: Context) {}
+        }
 
-            var body: some View {
-                Text(lastKey)
-                    .typeRole(.caption, monospaced: true)
-                    .foregroundStyle(ColorToken.t3.color)
-                    .padding(MetricToken.selectionInset.leadingScalar)
-                    .focusable()
-                    .focused($isFocused)
-                    .focusRing(isFocused)
-                    // Clicking a `.focusable()` view does not reliably give it keyboard focus on
-                    // macOS, and after the ⌘-shortcut assertions focus sits on the sidebar. Without
-                    // this, the acceptance run clicks the probe, sends Space to whatever still has
-                    // focus, and reports that the shell swallowed a key it never received.
-                    .onTapGesture { isFocused = true }
-                    .onKeyPress(.space) { claim("Space") }
-                    .onKeyPress(.return) { claim("Return") }
-                    .onKeyPress(.escape) { claim("Esc") }
-                    .accessibilityIdentifier(Self.identifier)
-                    .accessibilityLabel(Self.identifier)
-                    .accessibilityValue(lastKey)
+        /// The first responder A21 sends its three keys to.
+        ///
+        /// It publishes what it last received as its accessibility *value*, so the acceptance script
+        /// reads back a fact rather than inferring one from a screenshot.
+        final class KeyClaimView: NSView {
+            private var lastKey = KeyClaimProbe.idle
+
+            override var acceptsFirstResponder: Bool { true }
+            /// So the click that focuses it is not spent activating the window instead.
+            override func acceptsFirstMouse(for _: NSEvent?) -> Bool { true }
+
+            /// Claims focus as soon as it is in a window, rather than waiting to be clicked.
+            ///
+            /// Clicking it is not the part of A21 that matters — *receiving the key while focused*
+            /// is — and a click is the least reliable way to arrange the precondition: it depends on
+            /// the probe's screen coordinates, on nothing overlapping the window, and on the click
+            /// not being consumed by the scroll view it sits over. Measured on 2026-08-14 the click
+            /// landed inside the probe's own reported frame and focus did not move. Claiming it here
+            /// is deterministic, and it is exactly what a board will do when it wants the keyboard.
+            override func viewDidMoveToWindow() {
+                super.viewDidMoveToWindow()
+                guard window != nil else { return }
+                // After the current layout pass: a `makeFirstResponder` issued while SwiftUI is
+                // still building the content zone is discarded when it installs its own responder.
+                DispatchQueue.main.async { [weak self] in
+                    guard let self, let window else { return }
+                    window.makeFirstResponder(self)
+                }
             }
 
-            private func claim(_ key: String) -> KeyPress.Result {
+            override func mouseDown(with _: NSEvent) {
+                window?.makeFirstResponder(self)
+            }
+
+            override func keyDown(with event: NSEvent) {
+                switch event.keyCode {
+                case 49: claim("Space")
+                case 36: claim("Return")
+                case 53: claim("Esc")
+                // Anything else is not this probe's business and goes back to the chain, so a
+                // shortcut that happens to land here is not silently eaten by the test surface.
+                default: super.keyDown(with: event)
+                }
+            }
+
+            private func claim(_ key: String) {
                 lastKey = key
-                return .handled
+                setAccessibilityValue(key)
             }
+
+            override func isAccessibilityElement() -> Bool { true }
+            override func accessibilityRole() -> NSAccessibility.Role? { .staticText }
+            override func accessibilityLabel() -> String? { KeyClaimProbe.identifier }
+            override func accessibilityIdentifier() -> String { KeyClaimProbe.identifier }
+            override func accessibilityValue() -> Any? { lastKey }
         }
     #endif
 

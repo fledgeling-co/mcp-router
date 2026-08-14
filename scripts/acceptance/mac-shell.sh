@@ -625,12 +625,26 @@ echo "the keyboard"
 # somewhere else entirely. Re-activating and sending again costs a second; accepting the first
 # miss would report a correctly-bound shortcut as unbound. A shortcut that is genuinely not wired
 # up fails all three attempts, so nothing is being papered over.
+#
+# The third argument is a physical key code, used on the final attempt only. `keystroke ","` is the
+# layout-independent way to ask for a character and it is what should work — but measured on this
+# machine 2026-08-14, ⌘, delivered that way reached the app **intermittently** while the very same
+# menu item, invoked through the accessibility API, selected Settings every time and reported
+# `AXMenuItemCmdChar` of "," with Command. So the binding is right and the *send* is what is
+# unreliable, for punctuation specifically; the digits never missed. Falling back to the key code
+# on the last attempt distinguishes an unbound shortcut from an undelivered keystroke, which is the
+# distinction this gate exists to make. A genuinely unbound shortcut still fails all three.
 select_and_check() {
-    local key="$1" want="$2" attempt title selected
+    local key="$1" want="$2" code="${3:-}" attempt title selected
     for attempt in 1 2 3; do
         activate_app
-        osascript -e "tell application \"System Events\" to tell process \"MCPRouter\" to keystroke \"$key\" using command down" >/dev/null 2>&1 \
-          || blocked "could not send ⌘$key"
+        if [ "$attempt" = 3 ] && [ -n "$code" ]; then
+            osascript -e "tell application \"System Events\" to tell process \"MCPRouter\" to key code $code using command down" >/dev/null 2>&1 \
+              || blocked "could not send key code $code"
+        else
+            osascript -e "tell application \"System Events\" to tell process \"MCPRouter\" to keystroke \"$key\" using command down" >/dev/null 2>&1 \
+              || blocked "could not send ⌘$key"
+        fi
         sleep 1.5
         dump_window
         title="$(awk -F'\t' '$1 == 0 { print $4; exit }' "$WORK/window.tsv")"
@@ -649,20 +663,11 @@ select_and_check() {
 
 select_and_check 2 Servers
 select_and_check 4 Discover
-# ⌘, is Settings, which is a destination in this build rather than a sheet.
-# ⌘, is Settings, which is a destination in this build rather than a sheet. Same three attempts,
-# for the same contention reason as above.
-SETTINGS_TITLE=""
-for attempt in 1 2 3; do
-    activate_app
-    osascript -e 'tell application "System Events" to tell process "MCPRouter" to keystroke "," using command down' >/dev/null 2>&1 || true
-    sleep 1.5
-    dump_window
-    SETTINGS_TITLE="$(awk -F'\t' '$1 == 0 { print $4; exit }' "$WORK/window.tsv")"
-    [ "$SETTINGS_TITLE" = "Settings" ] && break
-done
-[ "$SETTINGS_TITLE" = "Settings" ] || fail "⌘, left the title '$SETTINGS_TITLE', expected 'Settings' — after 3 attempts"
-pass "⌘, selected Settings"
+# ⌘, is Settings, which is a destination in this build rather than a sheet — so it goes through the
+# same helper as the digits and is held to the same two-part assertion. It previously had a weaker
+# block of its own that checked only the window title, which would have passed on a shell that
+# moved the title without moving the selection. 43 is the comma's key code.
+select_and_check "," Settings 43
 
 select_and_check 1 Activity
 

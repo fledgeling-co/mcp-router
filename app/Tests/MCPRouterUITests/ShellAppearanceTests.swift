@@ -61,7 +61,7 @@
         func noUndeclaredIndicatorUse() throws {
             let declared = ShellChrome.indicatorTokensUsed
             let indicators: [ColorToken] = [.accent, .live, .attention, .fail]
-            for file in ShellTestSupport.shellFiles {
+            for file in ShellTestSupport.gatedFiles {
                 let source = try ShellTestSupport.repoFile(file)
                 for token in indicators where source.contains("ColorToken.\(tokenCaseName(token))") {
                     #expect(
@@ -70,9 +70,15 @@
                     )
                 }
             }
-            // `--fail` is declared nowhere and drawn nowhere: an offline router has not failed, and
-            // painting it red would spend the token that means "failed or tripped" on absence.
-            #expect(!declared.contains(.fail))
+            // `--fail` is now declared and drawn, and the reason is worth keeping next to the
+            // assertion it replaced. The shell alone never had a failure to report: an offline
+            // router has not failed, and painting *that* red would spend the token on absence. The
+            // Servers board does have one — a placarded server is inoperative and a call that
+            // errored did error — so the token is spent on exactly what §2 says it means.
+            #expect(declared.contains(.fail))
+            for use in ShellChrome.indicatorUses where use.token == .fail {
+                #expect(use.justification == "failed or tripped")
+            }
         }
 
         private func tokenCaseName(_ token: ColorToken) -> String {

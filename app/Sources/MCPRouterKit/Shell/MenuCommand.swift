@@ -263,22 +263,62 @@ public enum MenuCommand: Hashable, Sendable {
 
     /// Whether this command is usable in the build M1 ships.
     ///
-    /// The commands that act on a server or open a sheet are `surfaceAbsent` here rather than
-    /// `needsServerSelection`, because in this build the reason really is that the surface does
-    /// not exist — there is no servers board to select on. The board flips them to
-    /// `needsServerSelection` or to `.enabled` when it lands, and the two reasons live on
-    /// `CommandAvailability` so neither is retyped at a call site.
+    /// **Kept exactly as it was, and that is deliberate.** This is the answer with no board
+    /// installed and nothing selected, which is what `spec-M1.md`'s inventory table records and what
+    /// `MenuCommandTests` parses out of it. M3 does not edit this — it adds `availability(in:)`
+    /// below, and the live app passes a real context. An additive API leaves M1's contract intact
+    /// rather than rewriting a merged spec table to accommodate a later item.
     public var availability: CommandAvailability {
+        availability(in: .none)
+    }
+
+    /// What the live app knows when it builds the menu.
+    ///
+    /// Two facts, because two are what the reasons distinguish: whether the surface a command acts
+    /// on exists at all, and whether it has the selection it needs. `CommandAvailability` has
+    /// exactly those two refusals and no third, which is why nothing else is carried here.
+    public struct CommandContext: Hashable, Sendable {
+        public let installedDestinations: Set<Destination>
+        /// `nil` when no server is selected; otherwise whether that server is tripped, which is the
+        /// only per-server fact any command branches on.
+        public let selectedServerIsTripped: Bool?
+
+        public init(installedDestinations: Set<Destination>, selectedServerIsTripped: Bool?) {
+            self.installedDestinations = installedDestinations
+            self.selectedServerIsTripped = selectedServerIsTripped
+        }
+
+        /// No board installed, nothing selected — M1's world, and the default this type answers in.
+        public static let none = CommandContext(installedDestinations: [], selectedServerIsTripped: nil)
+    }
+
+    /// Whether this command is usable, given what is installed and what is selected.
+    public func availability(in context: CommandContext) -> CommandAvailability {
+        let hasServers = context.installedDestinations.contains(.servers)
         switch self {
-        case .addServer, .addMarketplace, .pairPhone, .exportLibrary,
-             .find, .resetServer, .removeServer:
-            .surfaceAbsent
+        // These three need the Servers board and nothing more.
+        case .addServer, .find:
+            return hasServers ? .enabled : .surfaceAbsent
+        // These act on a selected server, so they need the board *and* a selection. The order
+        // matters: with no board at all the honest reason is that the surface does not exist, not
+        // that the user failed to select something that cannot be selected.
+        case .resetServer:
+            guard hasServers else { return .surfaceAbsent }
+            // Resetting a server that is not tripped would be a request the router has nothing to
+            // do with, so the command dims rather than sending one.
+            return context.selectedServerIsTripped == true ? .enabled : .needsServerSelection
+        case .removeServer:
+            guard hasServers else { return .surfaceAbsent }
+            return context.selectedServerIsTripped == nil ? .needsServerSelection : .enabled
+        // Still owned by items that have not shipped.
+        case .addMarketplace, .pairPhone, .exportLibrary:
+            return .surfaceAbsent
         case .about, .settings, .hide, .hideOthers, .showAll, .quit, .closeWindow,
              .undo, .redo, .cut, .copy, .paste, .selectAll,
              .selectDestination, .showSidebar,
              .minimise, .zoom, .bringAllToFront,
              .help, .whatTheRouterDoes, .reportIssue:
-            .enabled
+            return .enabled
         }
     }
 

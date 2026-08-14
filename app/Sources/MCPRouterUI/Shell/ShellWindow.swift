@@ -43,6 +43,11 @@
             // so it draws nothing and receives nothing.
             .background(WindowFrameRestorer(store: model.store).frame(width: 0, height: 0))
             .task { await model.run() }
+            .onAppear {
+                // The menu's reason walker is armed at launch, before any window exists. This is
+                // where it learns which window's state to ask.
+                ShellMenuReasons.provideContext { [weak model] in model?.menuContext ?? .none }
+            }
         }
 
         private var columnVisibility: Binding<NavigationSplitViewVisibility> {
@@ -111,10 +116,14 @@
             if let scaffolded = ScaffoldedDestination(model.selection) {
                 ScaffoldPane(scaffolded: scaffolded)
                     .frame(minHeight: MetricToken.sidebar.leadingScalar)
+            } else if model.selection == .servers {
+                // The branch M1 left for the boards. `ScaffoldedDestination` returning nil is the
+                // structural proof that this destination has a surface, so there is no placeholder
+                // to fall back to and none is written.
+                ServersBoard(shell: model, board: model.serversBoard)
             } else {
-                // Unreachable while `BoardRegistry.installed` is empty, and the branch M2–M8 fill in.
-                // Deliberately not a placeholder: a second placeholder here would be the very thing
-                // `ScaffoldedDestination` exists to make impossible.
+                // Unreachable: `BoardRegistry.installed` and this switch are the same set, and
+                // `ShellIntegrationTests` asserts the registry's two halves are exact complements.
                 EmptyView()
             }
         }

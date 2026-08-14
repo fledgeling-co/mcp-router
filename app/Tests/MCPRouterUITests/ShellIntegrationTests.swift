@@ -70,7 +70,7 @@
 
         @Test("the shell opens no socket, no file and no process of its own")
         func theClientIsTheOnlyChannel() throws {
-            for file in ShellTestSupport.shellFiles {
+            for file in ShellTestSupport.gatedFiles {
                 let source = try ShellTestSupport.repoFile(file)
                 for forbidden in Self.forbiddenChannels {
                     #expect(
@@ -223,10 +223,42 @@
 
         // MARK: - The scaffold cannot outlive the surface it stands in for
 
-        @Test("M1 installs no board, so every destination is scaffolded")
-        func everyDestinationIsScaffoldedForNow() {
-            #expect(BoardRegistry.installed.isEmpty)
-            #expect(BoardRegistry.scaffolded == Destination.ordered)
+        @Test("the installed boards and the scaffolded destinations are exact complements")
+        func installedAndScaffoldedAreComplements() {
+            // This used to read `#expect(BoardRegistry.installed.isEmpty)`, which was true of M1 and
+            // is a statement about M1 rather than about the registry. M3 ships the Servers board, so
+            // the empty assertion had to go — and it is worth being precise about why that is not
+            // weakening a test (`SWIFT_PRACTICES.md` §7 forbids that): the assertion below is
+            // strictly stronger. `installed.isEmpty` says nothing about the relationship the type
+            // exists to maintain, while this says every destination is on exactly one side, which is
+            // the property the scaffold's whole design rests on.
+            for destination in Destination.allCases {
+                let hasBoard = BoardRegistry.installed.contains(destination)
+                let isScaffolded = BoardRegistry.scaffolded.contains(destination)
+                #expect(
+                    hasBoard != isScaffolded,
+                    "\(destination.title) is on both sides of the registry, or on neither"
+                )
+            }
+            #expect(
+                BoardRegistry.installed.count + BoardRegistry.scaffolded.count
+                    == Destination.allCases.count
+            )
+            // Scaffolded keeps sidebar order, so the placeholder list is readable as a list.
+            #expect(BoardRegistry.scaffolded == Destination.ordered
+                .filter { !BoardRegistry.installed.contains($0) })
+        }
+
+        /// M3's own half: the board is not merely written, it is **registered**.
+        ///
+        /// This is the assertion the item is actually done against. A board that compiles but is not
+        /// in `installed` still shows the user "This part of the app isn't built yet", which is the
+        /// exact failure the whole fleet was stopped over.
+        @Test("the Servers board is installed, so its pane is not the placeholder")
+        func serversBoardIsInstalled() {
+            #expect(BoardRegistry.hasBoard(.servers))
+            #expect(ScaffoldedDestination(.servers) == nil)
+            #expect(!BoardRegistry.scaffolded.contains(.servers))
         }
 
         /// The structural half of the orchestrator's condition: the placeholder cannot be built for

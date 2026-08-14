@@ -56,6 +56,44 @@
                 element: "the Servers badge",
                 token: .attention,
                 justification: "wants a human decision"
+            ),
+            // M3's board. Registered here rather than in a second list, so there stays one place a
+            // reviewer reads to learn every element in the Mac app allowed to be an indicator
+            // colour — which is the only way the exclusivity in §2 is checkable at all.
+            IndicatorUse(
+                element: "the Servers board's breaker lamp and slot, while a process is up",
+                token: .live,
+                justification: "a child process is running"
+            ),
+            IndicatorUse(
+                element: "a server row's subtitle and breaker, while it is tripped or placarded",
+                token: .fail,
+                justification: "failed or tripped"
+            ),
+            IndicatorUse(
+                element: "a server row's error count, and the inspector's failure banners",
+                token: .fail,
+                justification: "failed or tripped"
+            ),
+            IndicatorUse(
+                element: "the destructive label on Remove, which names a failure it would cause",
+                token: .fail,
+                justification: "failed or tripped"
+            ),
+            IndicatorUse(
+                element: "a server row's subtitle and breaker, while it holds a change or needs authorising",
+                token: .attention,
+                justification: "wants a human decision"
+            ),
+            IndicatorUse(
+                element: "the stale-reading and partial-index banners",
+                token: .attention,
+                justification: "wants a human decision"
+            ),
+            IndicatorUse(
+                element: "the board's one prominent action, Add server…",
+                token: .accent,
+                justification: "the one primary action"
             )
         ]
 

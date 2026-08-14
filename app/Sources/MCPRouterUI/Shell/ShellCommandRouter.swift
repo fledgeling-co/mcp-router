@@ -40,6 +40,14 @@
             /// unreachable. Either way the shell must not invent an operation for it, and A22 is
             /// what proves the disabled ones still appear and still say why.
             case none
+            /// Open the Servers board's add sheet — `⌘N`.
+            case addServer
+            /// Put the keyboard in the board's search field — `⌘F`.
+            case focusSearch
+            /// Clear the selected server's placard, or re-index it — `⌘R`.
+            case resetSelectedServer
+            /// Open the remove dialog for the selected server — `⌘⌫`.
+            case removeSelectedServer
         }
 
         /// The whole mapping, exhaustive over `MenuCommand` so a new command cannot be added
@@ -53,12 +61,18 @@
             case .settings: .select(.settings)
             case .showSidebar: .toggleSidebar
             case .about: .aboutPanel
+            // M3's four. Each is a real operation now rather than `.none`, which is what makes the
+            // menu bar the complete command surface for this board (§3.9) rather than a list of
+            // items the mouse duplicates.
+            case .addServer: .addServer
+            case .find: .focusSearch
+            case .resetServer: .resetSelectedServer
+            case .removeServer: .removeSelectedServer
             case .hide, .hideOthers, .showAll, .quit, .closeWindow,
                  .undo, .redo, .cut, .copy, .paste, .selectAll,
                  .minimise, .zoom, .bringAllToFront:
                 .none
-            case .addServer, .addMarketplace, .pairPhone, .exportLibrary,
-                 .find, .resetServer, .removeServer,
+            case .addMarketplace, .pairPhone, .exportLibrary,
                  .help, .whatTheRouterDoes, .reportIssue:
                 .none
             }
@@ -76,6 +90,22 @@
             case let .select(destination): model?.select(destination)
             case .toggleSidebar: model?.isSidebarVisible.toggle()
             case .aboutPanel: NSApplication.shared.orderFrontStandardAboutPanel(nil)
+            case .addServer:
+                // Selecting the destination first, so `⌘N` from any pane lands somewhere the sheet
+                // makes sense rather than opening a Servers sheet over the Skills board.
+                model?.select(.servers)
+                model?.serversBoard.sheet = .addServer
+            case .focusSearch:
+                model?.select(.servers)
+                model?.serversBoard.focusSearch()
+            case .resetSelectedServer:
+                guard let model, let state = model.trackerState,
+                      let selected = model.serversBoard.selectedServer(in: state)
+                else { return }
+                Task { await model.serversBoard.reset(selected) }
+            case .removeSelectedServer:
+                guard let model, let selection = model.serversBoard.selection else { return }
+                model.serversBoard.sheet = .removeServer(server: selection)
             case .none: break
             }
         }

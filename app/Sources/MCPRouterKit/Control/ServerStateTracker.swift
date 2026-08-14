@@ -33,6 +33,12 @@ public actor ServerStateTracker {
     private var order: [String] = []
     private var loadKind: LoadKind = .loading
     private var streamCondition: StreamCondition
+    /// The router-level facts the last successful poll carried, kept alongside the servers and
+    /// cleared by nothing. A surface needs the reap horizon to render a countdown and the pending
+    /// flow to avoid offering an authorisation twice; both arrive on `ServersResponse` and both
+    /// used to be dropped on the floor here.
+    private var idleMs: Int?
+    private var pendingAuth: PendingAuth?
     /// Whether any poll has ever succeeded.
     ///
     /// **Derived, not stored.** As a stored flag it duplicated a fact `loadKind` already carries,
@@ -142,6 +148,25 @@ public actor ServerStateTracker {
         public let load: LoadState
         public let stream: StreamCondition
 
+        /// The router's own reap horizon, in milliseconds, from the last poll that answered.
+        ///
+        /// Retained because a surface that renders "reaps in 200s" has to get that number from
+        /// somewhere, and the only honest somewhere is the router. Without it the servers board
+        /// would have to assume a horizon — the prototype assumes 300 seconds — and an assumed
+        /// number displayed as an observation is exactly what `DESIGN.md` §6 forbids.
+        ///
+        /// `nil` until a poll has succeeded. It is deliberately **not** cleared by a failure, for
+        /// the same reason the servers are not: a failure to refresh is not evidence that the
+        /// router's configuration changed.
+        public let idleMs: Int?
+
+        /// An OAuth flow the router already has open, from the last poll that answered.
+        ///
+        /// The difference between "this server needs authorising" and "a browser window is already
+        /// open waiting for you" — a surface that cannot tell those apart offers the button twice,
+        /// and the second press abandons the first flow.
+        public let pendingAuth: PendingAuth?
+
         /// The servers to show, whatever the load state — empty when nothing has ever loaded.
         ///
         /// Derived rather than stored, so it cannot disagree with `load`.
@@ -153,9 +178,16 @@ public actor ServerStateTracker {
             }
         }
 
-        public init(load: LoadState, stream: StreamCondition) {
+        public init(
+            load: LoadState,
+            stream: StreamCondition,
+            idleMs: Int? = nil,
+            pendingAuth: PendingAuth? = nil
+        ) {
             self.load = load
             self.stream = stream
+            self.idleMs = idleMs
+            self.pendingAuth = pendingAuth
         }
     }
 
@@ -177,7 +209,12 @@ public actor ServerStateTracker {
         case let .failed(error): .failed(error)
         case let .stale(error): .stale(visible, error)
         }
-        return TrackerState(load: load, stream: streamCondition)
+        return TrackerState(
+            load: load,
+            stream: streamCondition,
+            idleMs: idleMs,
+            pendingAuth: pendingAuth
+        )
     }
 
     /// Updates, as they happen.
@@ -237,6 +274,10 @@ public actor ServerStateTracker {
         servers = next
         order = nextOrder
         loadKind = .loaded
+        // Router-level facts, kept so a surface can render a countdown from the router's own horizon
+        // rather than from a number it made up.
+        idleMs = response.idleMs
+        pendingAuth = response.pendingAuth
         publish()
     }
 
@@ -265,8 +306,28 @@ public actor ServerStateTracker {
         publish()
     }
 
-    /// Apply a phase reported by the stream.
+    /// Apply the server the router returned from a write.
     ///
+    /// `PATCH /servers/:name` replies with the whole updated server, which is the router's own
+    /// statement about one server at one instant — the same shape of evidence as a call record, and
+    /// governed by the same precedence: a completed poll wins, because a poll is a statement about
+    /// the whole world at the moment the router answered.
+    ///
+    /// **This is what makes a successful write visible in place** (`DESIGN.md` §5: "in-place state
+    /// change; macOS does not toast a click"). Without it a surface has to either wait a whole poll
+    /// interval, during which a toggle the user just moved sits showing its old value, or write the
+    /// value it *expects* locally — and the expected value is the app's guess, which is exactly the
+    /// invention this type refuses everywhere else. The value applied here was sent by the router.
+    ///
+    /// A name the last poll did not list is ignored, for the same reason `apply(record:)` ignores
+    /// one: a write response is not licence to conjure a row.
+    public func apply(updated server: MCPServer) {
+        guard servers[server.name] != nil else { return }
+        servers[server.name] = server
+        publish()
+    }
+
+    /// Apply a phase reported by the stream.    ///
     /// A tracker with no stream ignores this. Without that guard a caller could put a polling-only
     /// tracker into `.phase(.live)`, which is the same lie as the one this type was fixed to stop
     /// telling, merely in the cheerful direction — a surface would draw a live indicator for a

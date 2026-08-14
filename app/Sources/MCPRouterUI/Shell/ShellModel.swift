@@ -58,6 +58,16 @@
         /// the same store the destination does, rather than opening a second one.
         @ObservationIgnored public let store: ShellRestoration
 
+        /// The Servers board's own state.
+        ///
+        /// Owned here rather than by the view for one reason: a menu command reaches a window
+        /// through `@FocusedValue`, and the value it reaches is this model. A board model held in
+        /// the content zone's `@State` would be unreachable from `⌘N`, `⌘F`, `⌘R` and `⌘⌫` — which
+        /// `DESIGN.md` §3.9 requires to work, because the menu bar is the complete command surface.
+        /// It also survives a re-render, so the selection does not reset on every poll.
+        @ObservationIgnored public private(set) lazy var serversBoard: ServersBoardModel =
+            .forApp(client: client, tracker: tracker)
+
         /// The readout's numbers and the condition it is in.
         public private(set) var readout = ReadoutModel()
 
@@ -67,6 +77,16 @@
         /// did not answer, and A18 turns on the difference — a badge derived from an empty array
         /// would render a considered zero for a router nobody reached.
         public private(set) var servers: [MCPServer]?
+
+        /// The whole of what the tracker last published.
+        ///
+        /// The shell itself needs only `servers` and the readout, but a board needs the load *kind*
+        /// — loading is not an empty result, and stale is not a failure — plus the router-level
+        /// facts the response carries. Kept here rather than re-read by each board, so there stays
+        /// exactly one reader of the control API however many surfaces render it.
+        ///
+        /// `nil` only before the first publication.
+        public private(set) var trackerState: ServerStateTracker.TrackerState?
 
         /// The selected destination. Persisted, and restored on the next launch.
         public var selection: Destination {
@@ -155,6 +175,7 @@
         /// `.stale` is the case worth reading twice: the servers are real and keep their badges,
         /// and the counts still go absent, because a count is a claim about now.
         private func adopt(_ state: ServerStateTracker.TrackerState, at now: Date) {
+            trackerState = state
             switch state.load {
             case .loading:
                 // No answer yet is not an answer of zero. Nothing is written, so the readout stays
@@ -200,6 +221,24 @@
         /// Selects a destination — the operation `⌘1`–`⌘7` and `⌘,` perform.
         public func select(_ destination: Destination) {
             selection = destination
+        }
+
+        /// What the menu bar needs to know to enable or dim its items.
+        ///
+        /// Computed rather than stored, so it cannot disagree with the board it describes. The
+        /// tripped question is asked of the selected server's own placard, which is the same fact
+        /// the row's Reset action branches on — one source, two readers.
+        public var menuContext: MenuCommand.CommandContext {
+            let selected: Bool? = serversBoard.selection.flatMap { name in
+                guard let state = trackerState,
+                      let server = state.servers.first(where: { $0.name == name })
+                else { return nil }
+                return server.placard != nil
+            }
+            return MenuCommand.CommandContext(
+                installedDestinations: BoardRegistry.installed,
+                selectedServerIsTripped: selected
+            )
         }
     }
 

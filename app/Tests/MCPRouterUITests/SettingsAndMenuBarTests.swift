@@ -113,7 +113,7 @@
 
             // Two loops would double every publication and let an older response overwrite a newer
             // one. One loop advances the tracker exactly once per interval.
-            try await Task.sleep(for: .milliseconds(120))
+            try await ShellTestSupport.waitUntil { model.trackerState != nil }
             #expect(model.trackerState != nil, "no poll ran at all")
         }
 
@@ -131,7 +131,7 @@
             await scene.value
             scene.cancel()
 
-            try await Task.sleep(for: .milliseconds(120))
+            try await ShellTestSupport.waitUntil { model.trackerState != nil }
             #expect(
                 model.trackerState != nil,
                 "the poll died with the scene that started it — the status item would freeze"

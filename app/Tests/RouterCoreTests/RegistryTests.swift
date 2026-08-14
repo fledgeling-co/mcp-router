@@ -5,15 +5,35 @@ import Testing
 /// A recorded HTTP responder. Every registry test drives this, so nothing here reaches the network.
 final class StubHTTP: HTTPFetching, @unchecked Sendable {
     /// url-prefix → response. First matching prefix wins.
+    ///
+    /// Written once during setup and only read afterwards, so it needs no lock.
     var routes: [(prefix: String, result: Result<HTTPFetchResult, Error>)] = []
-    var requested: [String] = []
+
+    /// Every URL asked for, in no guaranteed order.
+    ///
+    /// **This was a plain `var` appended to from `get`, and `Registry.search` queries the official
+    /// and smithery registries CONCURRENTLY** — so two tasks appended to one array with no
+    /// synchronisation, under an `@unchecked Sendable` that promised exactly the safety the class
+    /// did not have. A lost append presents as *"that URL was never requested"*, which is why
+    /// `absolutePathDiscardsBasePath` failed about one run in five and passed every time it was
+    /// re-run alone. It was registered as flaky (`D-p`) before it was understood; it is a data
+    /// race, not a timing window, and no amount of waiting would have fixed it.
+    /// `withLock` rather than `lock()`/`unlock()`: the latter pair is unavailable from an async
+    /// context in Swift 6, and `get` is `async`. The scoped form holds the lock across a
+    /// synchronous closure only, which is what makes it safe to call from one.
+    private let lock = NSLock()
+    private var recorded: [String] = []
+
+    var requested: [String] {
+        lock.withLock { recorded }
+    }
 
     func get(
         url: String,
         headers _: [(name: String, value: String)],
         timeoutMs _: Int
     ) async throws -> HTTPFetchResult {
-        requested.append(url)
+        lock.withLock { recorded.append(url) }
         for route in routes where url.hasPrefix(route.prefix) {
             return try route.result.get()
         }

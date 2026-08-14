@@ -16,6 +16,33 @@
             case sectionNotFound(String)
         }
 
+        /// Waits for a condition to hold rather than for a duration to elapse.
+        ///
+        /// A fixed `Task.sleep` reads like a wait but is really a bet on scheduler latency, and the
+        /// bet is lost exactly when the machine is busy. M5 measured the consequence: a 120ms sleep
+        /// before asserting a poll had run passed 5 of 5 in isolation and failed about **four runs
+        /// in five under full-suite load**, so every other item's gate had a standing chance of
+        /// going red for reasons unrelated to its work — which is the worst kind of gate, because it
+        /// teaches the reader to re-run until green.
+        ///
+        /// The timeout bounds only the failure case. A healthy poll satisfies the condition in a few
+        /// milliseconds, so this is also *faster* than the sleep it replaces in the common case.
+        ///
+        /// Use it only where the assertion is that something BECOMES true. Where the assertion is
+        /// that a state *stays* put — `ShellTests.loadingIsTheAbsenceOfAnAnswer` races a
+        /// never-returning refresh — there is no condition to wait for and a fixed delay is correct.
+        @MainActor
+        static func waitUntil(
+            within timeout: Duration = .seconds(5),
+            polling interval: Duration = .milliseconds(5),
+            _ isSatisfied: () -> Bool
+        ) async throws {
+            let deadline = ContinuousClock.now + timeout
+            while !isSatisfied(), ContinuousClock.now < deadline {
+                try await Task.sleep(for: interval)
+            }
+        }
+
         /// Walks up to the repository root, the way `MenuCommandTests` finds its oracle.
         ///
         /// `#filePath` defaults to the *calling* file, and every shell suite sits in this same

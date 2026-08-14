@@ -249,12 +249,23 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
   tree and the reflog disagree, and on this repo the process tree has been right every time.
   **A fifth two-writer incident is not worth two cached replays.**
 
-  M4 is recovered directly instead. Its branch is **7 commits ahead** with 6 files uncommitted
-  mid-edit — it was splitting `SkillPresentation` and closing two sheet findings when the 503 hit,
-  at `788 pass, lint clean`. Per the resume skill, a branch ahead of main is resumed in its own
-  worktree, never restarted. **Its lifeline entry is deliberately left `paused-manual`** so that
-  lifeline cannot retry it into the same worktree as the fresh runner — the pause is now a
-  concurrency control rather than a leftover.
+  M4 is **not dead, and the recovery was called off before it started.** Within minutes of the
+  paragraph above being written, `ugrep` was running in `.worktrees/M4`, dozens of `swift-frontend`
+  processes were seconds old, and the task list moved M4 Phase 4 to completed and Phase 5 to
+  in-progress. **The harness retried M4 under a new agentId** — a documented behaviour — so the
+  original agent's transcript is frozen at 22:49 forever and lifeline still reports that agent
+  `paused-manual` with `lastClass: USAGE_LIMIT`. Both are true statements about a *corpse*, and
+  neither is a statement about the item.
+
+  **Agent-keyed state cannot answer "is this item alive".** That is the third time this session
+  the two disagreed, and the item-keyed answer was right all three times. `planning/watch-fleet.sh`
+  already encodes the fix — liveness per ITEM across transcript, worktree and process cwd — and it
+  was consulted last rather than first, which is how a live runner came within one tool call of
+  getting a second writer. The order is: process tree and worktree first, journal and lifeline
+  second, and never the other way round.
+
+  Net effect: **nothing was resumed and nothing was relaunched.** M2, M4, M8 and I2 are all live
+  and untouched, which is the correct outcome of this scan.
 
 - 2026-08-14 — **The parity gate's verdict depends on the name of the directory it is run from
   (`D-o`).** Re-running the gate on merged `main` from the repo root returned **68 of 82 with 1

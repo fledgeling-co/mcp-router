@@ -87,50 +87,138 @@ derived that the router did not send.
 
 ### Server checks — from `MCPServer`
 
-| id | Statement shown | Observed from | `unknown` when |
+| id | Statement shown | Observed from | Not observed / not applicable when |
 |---|---|---|---|
-| `indexes` | The router can start it and read its tool surface | `indexError`, `indexedAt` | `indexedAt == nil` — never attempted |
-| `declaresTools` | It offers at least one tool | `tools` | it has not indexed |
-| `authorized` | Its credentials are current | `auth.supported`, `auth.authorized` | — (**not applicable** when `!auth.supported`) |
+| `indexes` | The router can start it and read its tool surface | `indexError`, `indexedAt` | **not observed** when `indexedAt == nil` — never attempted |
+| `declaresTools` | It offers at least one tool | `tools` | **not observed** when it has not indexed **or `indexError != nil`** — a stale count from a since-failed index is not evidence |
+| `authorized` | Its credentials are current | `auth.supported`, `auth.authorized` | **not applicable** when `!auth.supported` |
 | `surfaceApproved` | No tool description is waiting for review | `pendingChange` | — |
 | `operative` | It carries no placard | `placard` | — |
-| `callsSucceed` | Its calls come back without error | `usage.calls`, `usage.errors` | **`usage.calls == 0` — never exercised** |
+| `callsSucceed` | Its calls come back without error | `usage.calls`, `usage.errors` | **not observed** when `usage.calls == 0` — never exercised |
+
+`usage.calls`, never `callsServed`. `MCPServer` carries both, and they mean different things:
+`callsServed` is this router process's lifetime tally, `usage.calls` is the recorded window that
+`POST /usage/reset` clears and that `since` describes. Every sentence on both panes is scoped to
+"the calls it has recorded since <date>", so `usage.calls` is the only field consistent with what is
+said. The gate raised this; it is stated rather than left to the implementer.
 
 ### Skill checks — from `Skill` + `SkillsResponse.slotClients`
 
-| id | Statement shown | Observed from | `unknown` when |
+| id | Statement shown | Observed from | Not observed / not applicable when |
 |---|---|---|---|
-| `reachable` | At least one client can load it | `presence` | any client `.unreadable` and none `.present` |
+| `reachable` | At least one client can load it | `presence`, **`slotClients[].status`** | **not observed** when no client reports `.present` and any skills-capable client's `status == .unreadable` |
 | `versioned` | It carries a version a result can be stamped against | `source` | — |
-| `originUnchanged` | Its marketplace still resolves where the router first saw it | `provenance` | — |
-| `updateWantsNoMore` | Any newer version held asks for nothing extra | `held.addedCapabilities` | — |
-| `described` | Its `SKILL.md` declares a description an agent can route on | `description` | its directory was unreadable |
+| `originUnchanged` | Its marketplace still resolves where the router first saw it | `provenance` | **not applicable** for a `.standalone` skill — it has no marketplace to have moved |
+| `updateWantsNoMore` | Any newer version held asks for nothing extra | `held` | **not applicable** when `held == nil` — no newer version is offered, so the question does not arise |
+| `described` | Its `SKILL.md` declares a description an agent can route on | `description` | — (binary; see below) |
+
+Four corrections the gate forced, each of which was a pass being reported for a question nobody
+asked — the same defect as `callsSucceed`, which the first draft applied to exactly one check:
+
+- **`declaresTools`** was reporting a pass from a `tools` count left over from an index that has
+  since started failing. Now not observed whenever `indexError != nil`.
+- **`updateWantsNoMore`** was vacuously true for every skill with no held version, which is most of
+  them. `held == nil` is now *not applicable* — the same treatment `authorized` gets when a transport
+  carries no credentials.
+- **`originUnchanged`** was asserting an origin is unchanged for a `.standalone` skill, which has no
+  origin at all. Now not applicable for that case.
+- **`described`** claimed a "not observed" state for an unreadable directory. **There is no such
+  field.** `Skill` carries no per-skill readability, `SkillClientStatus.unreadable` is a property of
+  a *client*, and a skill whose own directory could not be read does not appear in
+  `SkillsResponse.skills` at all. The check is binary over `description`, and the phantom column is
+  gone.
+
+**`reachable` reads two types, and the gate was right that the first draft conflated them.**
+`SkillPresence.unreadable` lives per-skill-per-client in `Skill.presence`;
+`SkillClientStatus.unreadable` lives per-client in `SkillClient.status`. `presence` is a dictionary
+and a key may simply be **absent**, so an absent key is not evidence of absence. The rule is
+therefore: `.present` anywhere ⇒ confirmed; otherwise if any skills-capable client is `.unreadable`
+by *either* signal ⇒ not observed, naming the client; only when every capable client was read and
+none has it ⇒ not met. An `.unsupported` client never contributes to either branch.
+
+### The vocabulary is observation, not grading
+
+The gate's strongest argument was that `passed` / `failed` is the vocabulary of a test suite, and
+that using it is what makes a re-tabulation read as a grade however carefully the subtitle is worded.
+It is right, and the words change:
+
+| Verdict | Word shown | |
+|---|---|---|
+| `.passed` | **confirmed** | the router observed this to hold |
+| `.failed` | **not met** | the router observed this not to hold |
+| `.unknown` | **not observed** | the router has not seen enough to say |
+| `.notApplicable` | **not applicable** | the question does not arise for this subject |
+
+This also collapses a name collision the gate found: the first draft had a filter segment reading
+*Unchecked* beside a row tallying *unknown*, one letter apart and meaning different things. There is
+now one name per state, which is what DESIGN.md §6 asks for.
 
 **`callsSucceed` is the load-bearing one.** Zero calls with zero errors is arithmetically a clean
 record and is **not** a pass — it is `unknown`, worded "never exercised". A check that reports
 success for something nobody has ever done is the same defect as a fabricated number.
 
-### The fingerprint
+### The fingerprint — corrected after the spec gate
 
-| Subject | Fingerprint | Why |
+**The first draft of this section was factually wrong, and the gate caught it.** It claimed
+`MCPServer.hash` is "the digest of the tool surface". It is not. `src/control.ts:163` sends
+`hash: upstreamHash(u)`, and `src/config.ts:98` computes that as:
+
+```js
+const material = isStdio(u)
+  ? JSON.stringify(['stdio', u.command, u.args, u.cwd ?? null, Object.entries(u.env).sort(...)])
+  : JSON.stringify([u.transport, u.url, Object.entries(u.headers).sort(...)]);
+return createHash('sha256').update(material).digest('hex').slice(0, 16);
+```
+
+It is a digest of the **declaration** — the command line, or the URL and header names. It moves when
+the user edits the entry and at no other time. An upstream that silently changes its tools does not
+move it.
+
+That demolished the original model, in which one per-subject stamp governed all six server checks:
+`authorized`, `callsSucceed`, `surfaceApproved` and `operative` all move without the declaration
+moving, so a stored `authorized: passed` from last week would have rendered as a **current** reading
+after the token expired. That is the fabrication this whole item exists to refuse, and it was in the
+spec's own centre.
+
+### The correction: the current reading is never stored, and the store holds only history
+
+Two concerns, separated, which is both more honest and simpler than what it replaces:
+
+1. **The reading on screen is always live.** Every verdict the board renders is computed from the
+   response it just fetched. Nothing on screen is ever read back from the store, so there is no such
+   thing as a stale verdict on screen — the failure mode the gate constructed cannot occur, because
+   the code path it needs does not exist.
+2. **History is stored evidence, and evidence is what carries a version.** Each stored run is
+   stamped, and a stored run whose stamp differs from the live one is labelled *invalidated* and
+   never presented as a reading of the capability as it is now.
+
+This is the brief's hard rule stated exactly: *"an eval result is evidence attached to a version, so
+it must be invalidated when the version changes rather than carried forward."* Evidence is history.
+Version is the declaration digest for a server and the plugin version for a skill. Nothing is ever
+carried forward, because nothing on screen comes from the store.
+
+| Subject | Stamp | What it means, precisely |
 |---|---|---|
-| server | `hash` | The digest of the tool surface. It *is* the version of the thing being checked — more precisely than a version string an upstream can leave unchanged while its tools move. |
-| skill | `source.plugin.pluginVersion` | A skill's version is its **plugin's** version, shared by every skill that plugin supplies. M4 established this and named the field accordingly. |
+| server | `hash` | The digest of the entry **as declared** — `src/config.ts:98`. "Evidence gathered against this command line / this URL." |
+| skill | `source.plugin.pluginVersion` | The **plugin's** version, shared by every skill that plugin supplies. M4 established this and named the field accordingly. |
 
-Three renderings, not interchangeable:
+Two renderings, both of history rows only:
 
-- **current** — stored stamp equals the live one. Verdicts show as the current reading.
-- **invalidated** — stored ≠ live. Verdicts dim to `--t4` and are labelled *"was 0.4.1, now 0.5.0"*.
-  Never shown as a current pass. The run **stays in history** under its own fingerprint —
-  invalidation is not deletion.
-- **unstampable** — no live fingerprint exists (`hash == nil`, or a `.standalone` skill). Checks run
-  and display; **no result is stored**, because nothing could ever invalidate it.
+- **current** — the run's stamp equals the live one. Shown as evidence gathered against this version.
+- **invalidated** — stamp differs. Labelled *"gathered against 0.4.1 · now 0.5.0"*, rendered at
+  `--t3`, and **kept**: invalidation is not deletion. Never presented as a current reading.
+
+`--t3`, not `--t4`: DESIGN.md §2 binds `--t4` to *"disabled controls only — never live text"*, and an
+invalidated history row is live text. The first draft said `--t4`; the gate cited the rule and it is
+corrected here.
 
 ### A standalone skill cannot hold a result, structurally
 
 M4 modelled `SkillSource` as a closed enum whose `.standalone` case has **no version field at all**.
-So the `versioned` check failing is not a tidiness nag — it is the pane explaining its own
-behaviour. The store refuses the write; it is not a rule the view remembers to follow.
+So a standalone skill has no stamp, and the store has nothing to write — the refusal is a failable
+`Stamp` initialiser rather than a rule the view remembers to follow. Its checks still run and still
+display, because the reading is live; only its history is empty, and the pane says why in a sentence
+rather than leaving a blank.
 
 ---
 
@@ -185,30 +273,56 @@ the product rather than about the data:
 > The checks MCP Router runs itself, stamped to the version each was run against. No model-graded
 > evaluation exists in this product.
 
-Trailing: **Run all checks…** (standard, not accent-filled). `…` because it opens a sheet.
+Trailing: **Re-check all…** (standard, not accent-filled). Not "Run all checks": for a server the
+call is `POST /servers/:name/reindex`, which really does re-perform the handshake, but for a skill it
+is `GET /skills`, which re-reads directories. *Re-check* is true of both — it names re-running the
+checks over a fresh reading, and claims no execution. The gate was right that a pane whose entire
+defence is verb discipline cannot afford a primary button whose verb is false for half its subjects.
 
 ### Filter — segmented, switches the view in place (§3.6)
-`All` · `Failing` · `Unchecked` · `Invalidated`, each with a count. A zero count carries no badge at
-all rather than reading "0" — M4's precedent.
+`All` · `Not met` · `Not observed` · `Unstamped`, each with a count. A zero count carries no badge at
+all rather than reading "0" — M4's precedent. The segment names are the verdict names, so nothing on
+screen has two names.
+
+*Unstamped* is where a subject with no live fingerprint lives — every `.standalone` skill, and any
+server with `hash == nil`. The first draft left it reachable only under *All*, with nothing specified
+for its cell. Its checks run and display like any other; what it has no room for is history.
+
+Beside the segments, a **`SearchField`** (M4's, reused) — `⌘F` focuses it. The first draft bound `⌘F`
+to a segmented control, which cannot take typed input.
 
 ### Columns and rows
 `subject` (30pt tile + 180pt name/sub) · `kind` (58pt) · `checks` (170pt tally) · `checked against`
-(150pt stamp) · trailing action. Row height 44pt, fixed.
+(150pt stamp) · trailing action. Row height fixed, and identical in the skeleton.
 
-The tally reads `4 passed · 1 failed · 1 unknown` in mono, with only the failed segment tinted
-`--fail`. **It is never rendered as a single word.**
+**Row order** is the router's own: servers in `GET /servers` order, then skills in `GET /skills`
+order, stable across refresh. M3 recorded why it matters — a list that reorders itself as servers
+start and stop is a list nobody can point at — and `↑`/`↓` need a defined sequence to move through.
+
+The tally reads `4 confirmed · 1 not met · 1 not observed` in mono, with only the *not met* segment
+tinted `--fail`. **It is never rendered as a single word**, and it carries no grading verb.
 
 ### Footer
 > A check is something MCP Router performed and can show you the input to. It is not a graded test of
 > whether a capability does its job well. Skills are never executed by the router, so nothing here
 > reports how one behaved when an agent used it.
 
-### The inspector
-Per-check rows: verdict + statement + a reason line for anything not passing. Then `checked against`
-(fingerprint + when), then **history** — newest first, each row carrying its own fingerprint, so two
-runs against different surfaces are visibly different evidence and never merged.
+### The inspector — and the promise the footer makes
+Per-check rows: verdict + statement + a reason line for anything not confirmed. **Each row also
+renders the field and the value it was computed from** — `indexError = "spawn ENOENT"`,
+`auth.authorized = false`, `usage.calls = 0`. That is not decoration: the footer promises "something
+MCP Router performed and can show you the input to", and without the input on screen that promise is
+unverifiable by the person it is addressed to, which is exactly what makes a derived row
+indistinguishable from a grade. The gate identified this as the single most load-bearing mitigation
+available, and it is now required rather than optional.
 
-History is capped at 20 runs per subject, oldest evicted.
+Then `checked against` (the live stamp), then **history** — newest first, each row carrying its own
+stamp, so two runs against different declarations are visibly different evidence and are never
+merged. A row whose stamp differs from the live one is labelled *"gathered against 0.4.1 · now
+0.5.0"* at `--t3`.
+
+History is capped at 20 runs per subject, oldest evicted. An unstamped subject has no history and the
+pane says so in a sentence.
 
 ---
 
@@ -220,7 +334,24 @@ Title "Cleanup". Subtitle names the window from `UsageResponse.since`:
 > Capabilities MCP Router has never seen used, judged over the calls it has recorded since 4 July.
 > It proposes; you decide.
 
-Trailing: **Reset call history…**
+Trailing: **Reset call history…**, which opens a named-consequence dialog. It is not a plain button:
+`POST /usage/reset` has no restore endpoint, and pressing it immediately makes every server
+never-used, repopulates this very pane with false candidates and trips its own weak-window banner.
+§9's escalation clause governs — the blast radius is the whole judgement surface this pane rests on.
+The dialog names what is lost (`N recorded calls since 4 July`), Cancel leads, and the destructive
+button is never the default.
+
+### The sidebar badge counts a subset, and the pane says so
+
+`Destination.badgeSource` binds `.cleanup` to `.serversNeverUsed` — `MCPServer.neverUsed`, i.e.
+`usage.calls == 0` — and M1 already decided it. This pane lists more than that. So a line under the
+header states the relationship rather than leaving the user to reconcile a badge of 3 against a list
+of 9:
+
+> The sidebar badge counts the 3 servers nobody has called. This list also includes servers that
+> failed to index or declared no tools.
+
+Changing `BadgeSource` is a merged shared surface and is reported rather than made.
 
 ### Inclusion rules
 
@@ -230,8 +361,15 @@ Trailing: **Reset call history…**
 | skill | every skills-capable client was **read** and reports `.absent` | **anything about invocation** |
 
 **An unreadable client suspends the judgement rather than making it.** If any skills-capable client
-is `.unreadable`, a skill absent everywhere else is *not* a candidate — it may be installed in
-exactly the folder nobody could open. Those are held out and counted in a banner.
+is `.unreadable`, *every* skill is held out of the proposal — a skill absent everywhere readable may
+be installed in exactly the folder nobody could open. Those are counted in a banner.
+
+### Filter and order
+
+Segmented, as Evals: `All` · `Servers` · `Skills`, with counts and the same no-zero-badge rule, plus
+a `SearchField`. The brief asks for never-used as a value in the existing column plus a filter, *not*
+as a separate screen — so one list, filtered, rather than two panes. Row order is the router's own,
+servers then skills, stable across refresh.
 
 ### The observation track — the second subject-mined element
 
@@ -242,8 +380,15 @@ The question Cleanup exists to answer is *how much do we actually know*, and the
 by one number nobody looks at: how long the router has been recording. "Never used" over 41 days is
 evidence; over two hours it is nothing, and every table that shows only the verdict renders those
 identically. The track draws the observation window at its real length against a 30-day reference,
-with the real figure in mono beside it, so nothing depends on reading the bar. Under 7 days it tints
-`--attn` — at its own meaning, "wants a human decision".
+with the real figure in mono beside it, so nothing depends on reading the bar. Beyond 30 days the bar
+is **pegged full** and the mono figure carries the real value — a 400-day window is not drawn 13×
+its own track.
+
+Under 7 days it tints `--attn`, at its own meaning: "wants a human decision".
+
+`since` comes from **`UsageSummary.since`** — the response `usageSummary()` actually returns — parsed
+with `String.asControlAPIDate` (Kit/Formatting). If it does not parse, the subtitle drops the clause
+and the banner does not fire; no number is substituted.
 
 A pane-level banner fires when `since` is under seven days:
 
@@ -277,12 +422,17 @@ other branch of M3's copy, which says it can be re-declared exactly.
 | Key | Evals | Cleanup |
 |---|---|---|
 | `⌘6` / `⌘7` | select the pane (already bound by `Destination.selectionDigit`) | |
-| `⌘F` | focus the filter field | focus the filter field |
+| `⌘F` | focus the search field | focus the search field |
 | `↑` `↓` | move the selection | move the selection |
-| `Return` | run checks on the selection | open the selection's inspector — **not** remove |
+| `Return` | re-check the selection | open the selection's inspector — **not** remove |
 | `Esc` | dismiss sheet, then clear selection | dismiss sheet, then clear selection |
 | `⌘⌫` | — | named-consequence sheet for the selected **server**; no-op for a skill |
-| `⌘R` | run checks on the selection | — |
+| `⇧⌘R` | re-check the selection | — |
+
+**`⇧⌘R`, not `⌘R`.** DESIGN.md §8 line 319 already binds `⌘R` to *"Reset the selected server"*, and
+`MenuCommand` models it. The first draft rebound it silently; the gate caught it. §8 is titled "Named
+in every spec, not discovered later", so re-check takes an unclaimed key rather than a second meaning
+being taught for one that is already spoken for.
 
 §3.9: every command appears in the menu bar, dimmed with the same reasons the in-pane controls give.
 
@@ -313,75 +463,120 @@ Plus **stale** — a reading no longer current — following M3/M4's banner.
 ### The boards are installed
 - **A1** `.evals` and `.cleanup` are both in `BoardRegistry.installed`, and `ShellIntegrationTests`'
   existing complement assertion passes with them there.
-- **A2** The three merged tests that pin the exact set are updated in the same change:
+- **A2** The merged tests that pin the exact set are updated in the same change:
   `installed == [.servers, .activity, .skills, .evals, .cleanup]` and `scaffolded.count == 3`.
 - **A3** Selecting Evals renders `EvalsBoard` and Cleanup renders `CleanupBoard`, never
   `ScaffoldPane`. `ScaffoldedDestination(.evals)` and `(.cleanup)` both return `nil`.
 
 ### What is displayed is what is observed
-- **A4** No view, model or copy function references a run count, last-run time, duration, byte
-  figure or memory saving for any subject. Enforced by a source guard test over
-  `MCPRouterUI/Boards/Evals*` and `Cleanup*`, in the style of `PhoneSourceGuardTests`.
-- **A5** `callsSucceed` returns `.unknown` for every `MCPServer` with `usage.calls == 0`, whatever
+- **A4** No view, model or copy function references a run count, last-run time, duration, byte figure
+  or memory saving for any subject. Enforced by a source guard over **all four** locations the code
+  actually lives in — `MCPRouterKit/Checks/`, `MCPRouterKit/Cleanup/`, `MCPRouterUI/Checks/` and
+  `MCPRouterUI/Boards/{Evals,Cleanup}*` — in the style of `PhoneSourceGuardTests`. The first draft
+  globbed only the last of the four, which excluded the file named "every statement, reason and
+  disclosure string"; the guard would have been pointed away from everything it exists to catch.
+- **A5** `callsSucceed` returns *not observed* for every `MCPServer` with `usage.calls == 0`, whatever
   `usage.errors` is. Asserted over the cross product, not over examples.
-- **A6** `reachable` returns `.unknown`, never `.failed`, whenever any skills-capable client reports
-  `.unreadable` and no client reports `.present`.
+- **A5b** Every check that can be vacuously true is *not applicable* rather than *confirmed* when its
+  question does not arise: `updateWantsNoMore` with `held == nil`, `originUnchanged` for a
+  `.standalone` skill, `authorized` with `!auth.supported`. Asserted per case.
+- **A5c** `declaresTools` returns *not observed* whenever `indexError != nil`, whatever `tools` holds.
+- **A6** `reachable` returns *not observed*, never *not met*, whenever no client reports `.present`
+  and any skills-capable client is unreadable **by either signal** — `SkillClient.status ==
+  .unreadable` or a `SkillPresence.unreadable` in `Skill.presence`. Asserted over both signals
+  independently, and over a `presence` dictionary with a **missing** key for a capable client, which
+  must not be read as absence.
 - **A7** Cleanup's candidate list excludes every skill when any skills-capable client is
   `.unreadable`, and the banner states how many were held out.
-- **A8** Cleanup's subtitle and the observation track derive their window from
-  `UsageResponse.since`. No literal duration appears in any Cleanup copy function.
-- **A9** The weak-window banner appears iff `since` is under 7 days, and its copy names the real
-  elapsed time.
+- **A8** Cleanup's subtitle and the observation track derive their window from **`UsageSummary.since`**
+  — the type `usageSummary()` returns — parsed with `String.asControlAPIDate`. No literal duration
+  appears in any Cleanup copy function. When `since` does not parse, the subtitle drops the clause and
+  the banner does not fire; asserted directly.
+- **A8b** Cleanup reads `usage.calls`, never `callsServed`. Asserted by constructing a server with
+  `callsServed > 0, usage.calls == 0` and requiring it to be listed.
+- **A9** The weak-window banner appears iff `since` is under 7 days — boundary asserted at exactly
+  7 days — and its copy names the real elapsed time.
 
 ### Evidence is stamped, and invalidated rather than carried forward
-- **A10** A stored result whose fingerprint differs from the live one renders as *invalidated* and
-  its verdicts render at `--t4`. There is no input for which a stale verdict renders as a current
-  pass.
-- **A11** An invalidated run remains in the inspector's history under its own fingerprint.
-- **A12** The store refuses to persist a result for a subject with no live fingerprint — a
-  `.standalone` skill, or a server with `hash == nil`. Structural, not a view-level guard: the
-  persist call returns without writing and a test asserts the file is unchanged.
+- **A10** **No verdict on screen is ever read from the store.** Every rendered verdict is computed
+  from the response just fetched. Asserted structurally: the board model's row type has no path to
+  `CheckHistoryStore`, and a source guard requires it. This replaces the first draft's
+  "there is no input for which a stale verdict renders as a current pass", which was unbounded and
+  therefore untestable — and which, per the gate, was **false**: `hash` digests the declaration, so
+  an expired token left a stored `authorized: passed` rendering as current.
+- **A10b** A history row whose stamp differs from the live stamp renders as *invalidated* at `--t3`
+  with the "gathered against X · now Y" label, over the cross product of stored × live stamp values.
+- **A11** An invalidated run remains in the inspector's history under its own stamp.
+- **A12** The store refuses to persist a result for a subject with no live stamp — a `.standalone`
+  skill, or a server with `hash == nil`. Structural: the persist call returns `false` without writing
+  and a test asserts the file's bytes are unchanged.
 - **A13** History is capped at 20 runs per subject; the 21st evicts the oldest.
+- **A13b** An unstamped subject is reachable under the `Unstamped` filter segment, its
+  `checked against` cell renders `CheckCopy.unstampable`, and its history section renders its own
+  sentence rather than a blank.
 
 ### The actions
-- **A14** *Run checks* on a server issues exactly one `reindex` for that server and no other write.
+- **A14** *Re-check* on a server issues exactly one `reindex` for that server and no other write.
+- **A14b** *Re-check* on a skill issues exactly one `skills()` read and **no write at all**.
 - **A15** *Remove…* on a Cleanup server row renders M3's `removeToolsConsequence` and
   `removeConsequence` strings verbatim — asserted by comparing against the functions, not by
   duplicating the literals.
+- **A15b** *Reset call history…* opens a named-consequence dialog before any call to `resetUsage()`;
+  the dialog names the recorded call count and the window, Cancel is the default, and dismissing it
+  issues no request. Asserted with a recording double.
 - **A16** *Remove* on a skill row is disabled in every state, and its reason string is present and
   non-empty. There is no code path from Cleanup to a skill write.
 
 ### Naming discipline
-- **A17** No copy function in either board returns a string that is exactly `passed`, `failed`,
-  `pass` or `fail` as a standalone aggregate. Per-check verdicts are only ever produced together
-  with the statement they judge.
+- **A17** **No verdict is ever rendered without the statement it judges.** Asserted against the row
+  model rather than by string equality: `CheckResult` carries its statement, and the tally is a list
+  of `(count, noun)` segments that the renderer cannot collapse to one word. The first draft banned
+  four exact literals, which the tally `4 passed · 1 failed · 1 unknown` passed while being precisely
+  the bare aggregate the design forbids.
+- **A17b** No word in either board's verdict vocabulary is a grading verb: the four nouns are
+  *confirmed*, *not met*, *not observed*, *not applicable*. Asserted over `CheckVerdict.allCases`.
 - **A18** The Evals subtitle contains the sentence "No model-graded evaluation exists in this
   product", and it is returned unconditionally — including in the loading state.
 - **A19** The Evals footer states that skills are never executed by the router.
-- **A20** No string in either board contains "eval suite", "test suite", "eval case" or "graded".
+- **A20** No string anywhere in the four M7 source locations contains "eval suite", "test suite",
+  "eval case" or "graded" — except the subtitle's own disclosure, which is asserted by exact match so
+  the exception cannot widen.
+- **A20b** Every check row in the inspector renders the **field name and value** it was computed
+  from. Asserted per check id: the rendered detail contains the field's name and its value's
+  description. This is what makes the footer's "can show you the input to" verifiable rather than a
+  claim.
 
 ### Colour and the native floor
-- **A21** No passing verdict resolves to `ColorToken.live` anywhere in either board. Asserted as a
-  token-level test, not by reading source.
-- **A22** `--attn` appears in these boards only for: a held version wanting more, a moved
-  provenance, and the weak-window banner. `--fail` only for a failed check and a failed write.
+- **A21** No verdict resolves to `ColorToken.live`, asserted **two ways**: a token test over
+  `CheckVerdict.allCases` → token, **and** a source guard over the four locations for `.live` /
+  `--live`. The first draft required a token test and explicitly forbade reading source, which cannot
+  prove an absence across every view that composes a colour.
+- **A22** `--attn` appears in these boards only for: a held version wanting more, a moved provenance,
+  and the weak observation window — in **both** its renderings, the banner and the track tint, which
+  are one condition shown twice. `--fail` only for a *not met* check and a failed write.
 - **A23** Cleanup renders zero accent-filled buttons. Evals renders at most one per view.
 - **A24** Every token used resolves through `ColorToken` / `MetricToken` / `TypeToken`;
   `scripts/lint/no-raw-design-values.sh` passes.
 - **A25** Section headers are sentence case; no tracked uppercase.
+- **A25b** No invalidated or dimmed **live text** uses `--t4`. DESIGN.md §2 binds `--t4` to disabled
+  controls only; asserted as a token test over the invalidated rendering.
 
 ### The nine states
-- **A26** Each of the nine states renders for each pane, and each unhappy path's copy is asserted
-  against the string the model returns — not against a placeholder.
-- **A27** The loading skeleton's row height equals the populated row height exactly (44pt), so
-  neither board jumps when data lands.
+- **A26** Each of the nine states renders for each pane, from a **named fixture per state per pane**
+  listed in the plan, and each unhappy path's copy is asserted against the string the model returns.
+  Exhaustiveness is enforced by `EvalsBoardStates` / `CleanupBoardStates` switching over
+  `SurfaceState`, so a tenth case stops the build.
+- **A27** The loading skeleton's row height equals the populated row height exactly, so neither board
+  jumps when data lands.
+- **A27b** The observation track pegs at its full width for any window beyond the 30-day reference,
+  and the mono figure beside it carries the real value.
 
 ### The keyboard and the menu bar
-- **A28** `⌘F`, `↑`, `↓`, `Return` and `Esc` behave per the table above in both panes, and `Return`
-  in Cleanup does **not** remove.
+- **A28** `⌘F` focuses a real `SearchField` in both panes; `↑`, `↓`, `Return` and `Esc` behave per the
+  table above, over the defined row order; and `Return` in Cleanup does **not** remove.
 - **A29** `⌘⌫` in Cleanup opens the removal sheet for a selected server and is a no-op for a skill.
 - **A30** Every command appears in the menu bar with the same enablement reason as its in-pane
-  control.
+  control, and re-check is bound to `⇧⌘R` — `⌘R` remains DESIGN.md §8's reset.
 
 ---
 
@@ -471,3 +666,69 @@ told that finding no defects is a failed review rather than a pass. **This weakn
 evidence:** every reviewer in this item's pipeline is Claude auditing Claude.
 
 Verdict and tallies are appended below by the gate run.
+
+### Verdict: REJECT — 6 blocker, 15 major, 7 minor
+
+The gate rejected the first draft, and it was right to. Three of its blockers were factual errors
+about this repository that a reviewer agreeing with fluent prose would have passed:
+
+1. **`hash` is not the tool-surface digest.** `src/config.ts:98` computes it over the *declaration*.
+   The entire invalidation model rested on a sentence that reading the router source disproves in
+   thirty seconds. Verified and corrected above; the correction — live readings, stored history —
+   is simpler than what it replaces.
+2. **The anti-fabrication source guard was pointed at the wrong directories,** excluding all three
+   files that hold the strings and the stored figures.
+3. **Three checks reported a confirmation for a question nobody asked** — the exact defect the spec
+   declares load-bearing about `callsSucceed`, applied to one check and not the others.
+
+Full disposition, every finding:
+
+| # | Sev | Finding | Disposition |
+|---|---|---|---|
+| 1 | blocker | One stamp cannot govern checks that move independently of it | **Accepted** — live readings; store holds history only |
+| 2 | blocker | Source guard globs miss `CheckCopy`, `CleanupPresentation`, `CheckHistoryStore` | **Accepted** — A4 names all four locations |
+| 3 | blocker | Vacuous confirmations (`updateWantsNoMore`, `originUnchanged`, `declaresTools`) | **Accepted** — A5b, A5c; *not applicable* rather than the suggested *unknown*, matching `authorized` |
+| 4 | blocker | `described`'s unknown condition reads a field that does not exist | **Accepted** — binary check, phantom column deleted |
+| 5 | blocker | `SkillPresence` vs `SkillClientStatus` conflated; missing dict key ≠ absence | **Accepted** — A6 asserts both signals and the missing-key case |
+| 6 | blocker | Evals can contradict Servers on the same refresh | **Accepted** — this *is* the correction in 1 |
+| 7 | major | `--t4` is disabled-controls-only (DESIGN §2:81) | **Accepted, verified** — `--t3`, plus A25b |
+| 8 | major | Track's `--attn` is a fourth use A22 forbids | **Accepted** — A22 names both renderings of one condition |
+| 9 | major | Badge counts a subset of what the pane lists | **Accepted** — the pane states the relationship; `BadgeSource` change reported, not made |
+| 10 | major | `⌘R` already bound to Reset (DESIGN §8:319) | **Accepted, verified** — `⇧⌘R` |
+| 11 | major | `⌘F` targets a segmented control that cannot take input | **Accepted** — a real `SearchField` in both panes |
+| 12 | major | "Run all checks" is a false verb for skills | **Accepted** — "Re-check all…" |
+| 13 | major | Unstampable has no home in filter, column or matrix | **Accepted** — `Unstamped` segment, A13b |
+| 14 | major | "Unchecked" and "unknown" one letter apart | **Accepted** — one vocabulary throughout |
+| 15 | major | Reset is irreversible with no consequence dialog | **Accepted** — A15b |
+| 16 | major | DESIGN §6:279 mandates a "not evaluated" string this spec deletes | **Accepted as a finding, deferred as an action** — DESIGN.md is a merged shared surface; reported for the orchestrator, not edited here |
+| 17 | major | `hash` semantics asserted, not verified | **Accepted** — quoted from source above |
+| 18 | major | A21 forbade the only method that could prove it | **Accepted** — guard *and* token test |
+| 19 | major | A10/A26 unbounded, so untestable | **Accepted** — A10 restated structurally; A26 takes named fixtures |
+| 20 | major | A17 drafted so the offending tally passes | **Accepted** — restated against the row model; vocabulary changed |
+| 21 | major | `callsServed` vs `usage.calls` unstated | **Accepted** — stated, plus A8b |
+| 22 | minor | A8 pins `UsageResponse` not `UsageSummary` | **Accepted** |
+| 23 | minor | No parse-failure path for `since` | **Accepted** — parser named, fallback stated |
+| 24 | minor | No row order specified | **Accepted** — router order, stable |
+| 25 | minor | Track has no overflow rule | **Accepted** — pegged, A27b |
+| 26 | minor | Evals' empty action is server-only | **Accepted** — conditioned on what exists |
+| 27 | minor | Cleanup's segmented filter promised, never specified | **Accepted** — specified |
+| 28 | minor | `remove(_:keepHistory:)` attributed to M3 | **Accepted** — it is F3's, on `ControlAPIClient` |
+
+**Finding 29 — the central objection, and what was and was not taken.** The gate argued that
+delivering derived status checks under the word "Evals" is a misleading rename unless five things are
+true. Four are now in this spec: the grading vocabulary is gone (A17b), every check row renders the
+field and value it was computed from (A20b), the action verbs match the calls they make (A14/A14b),
+and the pane's genuinely new content is the stamp and the history rather than the verdicts.
+
+**The fifth is not taken, and it is the strongest one.** The gate's first condition is that the word
+"eval" appear nowhere in shipped chrome — that `Destination.title` read "Checks", with the sidebar,
+window title, menu item and deep link following. `Destination` is a merged shared surface that M1
+owns, and this fleet's rule is to report a shared change rather than make it. So M9 stands as filed,
+and it is flagged in this item's report as the highest-value follow-up rather than a tidy-up: until
+it lands, the disclosure is structural inside the pane and the word is structural everywhere else,
+which is the gate's objection and it is unrebutted.
+
+**Lane note.** Every reviewer in this item's pipeline is Claude auditing Claude, and this gate is
+what that weakness looks like when it happens to work: it found three factual errors about the repo,
+one of which invalidated the spec's central mechanism. It should not be read as evidence that the
+in-family lane is equivalent to the out-of-family one it replaced.

@@ -10,7 +10,7 @@ struct AuthFlowTests {
         _ coordinator: AuthFlowCoordinator,
         server: String,
         listener: FakeListener,
-        transport: FakeTransport,
+        transport: FakeAuthTransport,
         url: String = "https://provider.example/authorize"
     ) async throws -> LiveFlow {
         try await coordinator.begin(
@@ -23,7 +23,7 @@ struct AuthFlowTests {
     func currentFlowIsReported() async throws {
         let coordinator = AuthFlowCoordinator()
         let listener = FakeListener()
-        _ = try await begin(coordinator, server: "linear", listener: listener, transport: FakeTransport())
+        _ = try await begin(coordinator, server: "linear", listener: listener, transport: FakeAuthTransport())
         let live = await coordinator.currentFlow()
         #expect(live?.server == JSString("linear"))
         #expect(live?.url == "https://provider.example/authorize")
@@ -33,7 +33,7 @@ struct AuthFlowTests {
     func supersededFlowNeverSettles() async throws {
         let coordinator = AuthFlowCoordinator()
         let firstListener = FakeListener()
-        let firstTransport = FakeTransport()
+        let firstTransport = FakeAuthTransport()
         _ = try await begin(coordinator, server: "alpha", listener: firstListener, transport: firstTransport)
 
         // Observe the first flow's completion. It must never resume.
@@ -51,7 +51,12 @@ struct AuthFlowTests {
         try await Task.sleep(nanoseconds: 50_000_000)
 
         // Supersede it.
-        _ = try await begin(coordinator, server: "beta", listener: FakeListener(), transport: FakeTransport())
+        _ = try await begin(
+            coordinator,
+            server: "beta",
+            listener: FakeListener(),
+            transport: FakeAuthTransport()
+        )
 
         // Bounded wait: silence is the assertion.
         try await Task.sleep(nanoseconds: 250_000_000)
@@ -70,8 +75,18 @@ struct AuthFlowTests {
     func lateCleanupIsGuarded() async throws {
         let coordinator = AuthFlowCoordinator()
         let firstListener = FakeListener()
-        _ = try await begin(coordinator, server: "alpha", listener: firstListener, transport: FakeTransport())
-        _ = try await begin(coordinator, server: "beta", listener: FakeListener(), transport: FakeTransport())
+        _ = try await begin(
+            coordinator,
+            server: "alpha",
+            listener: firstListener,
+            transport: FakeAuthTransport()
+        )
+        _ = try await begin(
+            coordinator,
+            server: "beta",
+            listener: FakeListener(),
+            transport: FakeAuthTransport()
+        )
 
         // Drive the OLD listener, as a browser tab that finally lands would.
         _ = await firstListener.deliver("/callback?code=late")
@@ -87,7 +102,7 @@ struct AuthFlowTests {
         let coordinator = AuthFlowCoordinator()
         let listener = FakeListener()
         await listener.setStartError(AuthFailure("listen EADDRINUSE 127.0.0.1:8880"))
-        let transport = FakeTransport()
+        let transport = FakeAuthTransport()
 
         await #expect(throws: AuthFailure.self) {
             _ = try await coordinator.begin(
@@ -103,7 +118,7 @@ struct AuthFlowTests {
     func urlRaceCleansUp() async {
         let coordinator = AuthFlowCoordinator(urlTimeoutMilliseconds: 40)
         let listener = FakeListener()
-        let transport = FakeTransport()
+        let transport = FakeAuthTransport()
 
         await #expect(throws: AuthFailure.self) {
             _ = try await coordinator.begin(
@@ -123,7 +138,7 @@ struct AuthFlowTests {
     func flowTimeout() async throws {
         let coordinator = AuthFlowCoordinator(flowTimeoutMilliseconds: 40)
         let listener = FakeListener()
-        _ = try await begin(coordinator, server: "linear", listener: listener, transport: FakeTransport())
+        _ = try await begin(coordinator, server: "linear", listener: listener, transport: FakeAuthTransport())
 
         let settled = SettledFlag()
         Task {
@@ -142,7 +157,7 @@ struct AuthFlowTests {
     func strayRequestDoesNotEndTheFlow() async throws {
         let coordinator = AuthFlowCoordinator()
         let listener = FakeListener()
-        _ = try await begin(coordinator, server: "linear", listener: listener, transport: FakeTransport())
+        _ = try await begin(coordinator, server: "linear", listener: listener, transport: FakeAuthTransport())
 
         let reply = await listener.deliver("/favicon.ico")
         #expect(reply.status == 404)

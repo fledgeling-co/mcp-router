@@ -225,11 +225,8 @@ public actor LoopbackCallbackListener: CallbackListening {
 
     private func receive(id: ObjectIdentifier) {
         guard let connection = pending[id]?.connection else { return }
-        connection.receive(minimumIncompleteLength: 1, maximumLength: 8192) {
-            [weak self] data, _, isComplete, error in
-            Task {
-                await self?.received(id: id, data: data, isComplete: isComplete, failed: error != nil)
-            }
+        connection.receiveChunk { [weak self] data, isComplete, failed in
+            Task { await self?.received(id: id, data: data, isComplete: isComplete, failed: failed) }
         }
     }
 
@@ -287,12 +284,21 @@ public actor LoopbackCallbackListener: CallbackListening {
         if line.last == 0x0D { line.removeLast() }
         let fields = line.split(separator: 0x20, omittingEmptySubsequences: true)
         guard fields.count >= 2 else { return nil }
+        // A request target is not guaranteed to be valid UTF-8, and a malformed one must still be
+        // answered — with the 404 it earns — rather than vanish. `String(decoding:)` substitutes the
+        // bad bytes where the failable initializer would drop the request on the floor.
+        // swiftlint:disable:next optional_data_string_conversion
         return String(decoding: fields[1], as: UTF8.self)
     }
 
     private static func headIsTerminated(_ bytes: [UInt8]) -> Bool {
         if bytes.count >= 4 {
-            for index in 0 ... (bytes.count - 4) where Array(bytes[index ..< index + 4]) == [0x0D, 0x0A, 0x0D, 0x0A] {
+            for index in 0 ... (bytes.count - 4) where Array(bytes[index ..< index + 4]) == [
+                0x0D,
+                0x0A,
+                0x0D,
+                0x0A
+            ] {
                 return true
             }
         }
@@ -328,11 +334,23 @@ public actor LoopbackCallbackListener: CallbackListening {
     /// `http.STATUS_CODES[code] ?? 'unknown'`, for the four statuses this server can produce.
     static func reason(for status: Int) -> String {
         switch status {
-        case 200: return "OK"
-        case 400: return "Bad Request"
-        case 404: return "Not Found"
-        case 500: return "Internal Server Error"
-        default: return "unknown"
+        case 200: "OK"
+        case 400: "Bad Request"
+        case 404: "Not Found"
+        case 500: "Internal Server Error"
+        default: "unknown"
+        }
+    }
+}
+
+/// `receive` with the two arguments this server never varies.
+///
+/// Extracted so the completion closure's parameters fit on the line with its brace, which the
+/// linter requires and the four-argument call does not leave room for.
+private extension NWConnection {
+    func receiveChunk(_ handler: @escaping @Sendable (Data?, Bool, Bool) -> Void) {
+        receive(minimumIncompleteLength: 1, maximumLength: 8192) { data, _, isComplete, error in
+            handler(data, isComplete, error != nil)
         }
     }
 }

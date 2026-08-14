@@ -96,7 +96,7 @@ final class AuthTestFileSystem: FileSystem, FileModeWriting, @unchecked Sendable
     }
 }
 
-actor FakeTransport: AuthTransport {
+actor FakeAuthTransport: AuthTransport {
     private(set) var closed = false
     private(set) var finishedWith: [String] = []
     private var finishAuthError: Error?
@@ -336,7 +336,7 @@ struct CallbackTests {
 
     @Test("searchParams.get returns the FIRST value for a repeated parameter")
     func firstValueWins() async {
-        let fake = FakeTransport()
+        let fake = FakeAuthTransport()
         let responder = responder(exchange: { code in try await fake.finishAuth(code: code) })
         _ = await responder.respond(to: "/callback?code=first&code=second")
         #expect(await fake.finishedWith == ["first"])

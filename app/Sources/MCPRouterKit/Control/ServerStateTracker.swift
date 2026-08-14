@@ -227,7 +227,6 @@ public actor ServerStateTracker {
     /// problem destroys data no source said was gone.
     public func apply(pollFailure error: ControlAPIError) {
         loadKind = hasLoaded ? .stale(error) : .failed(error)
-        publish()
     }
 
     /// Apply one call record. A call proves the server was running when it happened, so a server

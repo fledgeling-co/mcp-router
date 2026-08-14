@@ -400,12 +400,27 @@ struct ServerStateTrackerTests {
         #expect(await client.pollCount() >= 2, "the loop did not actually poll twice")
     }
 
-    @Test("‹real loop› recovery returns to loaded, in place")
-    func pollLoopRecovers() async throws {
+    /// A9 — recovery, observed the way a surface actually observes it.
+    ///
+    /// This test replaced one that polled `state()` for “`.loaded` with one server”, and that
+    /// predicate was satisfiable by the *first* successful poll — the one before the failure. It
+    /// therefore returned before the failure had happened at all and only incidentally passed;
+    /// the mutation pass caught it going red for a reason unrelated to the mutation. There is no
+    /// way to repair it in place, because through `state()` the poll before the failure and the
+    /// poll after it are the same value. The transition is only a fact about the *sequence*.
+    ///
+    /// Which is also the honest reading of A9: a surface does not poll, it renders from
+    /// `updates()`, so “the banner clears” is a claim about what a subscriber receives. Asserting
+    /// the whole sequence rather than the final value matters for the same reason — a tracker that
+    /// went loaded → loaded, never publishing the failure at all, would satisfy any final-value
+    /// check while showing the user nothing wrong.
+    @Test("‹real loop› a subscriber sees the failure and its recovery, in order")
+    func recoveryIsObservableThroughUpdates() async throws {
         let expected = try [server("alpha")]
+        let failure = ControlAPIError.transport(detail: "connection reset")
         let client = ScriptedControlAPIClient([
             .success(response(expected)),
-            .failure(.transport(detail: "connection reset")),
+            .failure(failure),
             .success(response(expected)),
         ])
         let tracker = ServerStateTracker(
@@ -414,13 +429,28 @@ struct ServerStateTrackerTests {
             clock: SteppingClock(steps: 2)
         )
 
-        let state = try await runLoop(tracker) { current in
-            if case .loaded = current.load { current.servers.count == 1 } else { false }
+        // Subscribed before the loop starts, so the sequence is the whole of what happened rather
+        // than whatever was left by the time a late subscriber arrived.
+        let updates = await tracker.updates()
+        let running = Task { await tracker.run() }
+        defer { running.cancel() }
+
+        var seen: [ServerStateTracker.LoadState] = []
+        for await state in updates {
+            seen.append(state.load)
+            let loadedCount = seen.filter { if case .loaded = $0 { true } else { false } }.count
+            // The recovery is the *second* `.loaded`; the first is the poll that made the data
+            // real. The count bound stops a regression that publishes nothing from hanging here
+            // instead of failing — a test that never finishes reports nothing at all.
+            if loadedCount == 2 || seen.count >= 8 { break }
         }
 
+        #expect(
+            seen == [.loading, .loaded(expected), .stale(expected, failure), .loaded(expected)],
+            "a subscriber did not see loading → loaded → stale → loaded; it saw \(seen)"
+        )
         let polls = await client.pollCount()
         #expect(polls >= 3, "the loop did not reach the recovering poll — it made \(polls)")
-        #expect(state.load == .loaded(expected), "the tracker never recovered — it settled on \(state.load)")
     }
 
     // MARK: - A10 — the whole of the typed error survives, hint included

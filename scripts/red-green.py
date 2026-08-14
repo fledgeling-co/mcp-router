@@ -308,11 +308,23 @@ mut(
     "a phase cannot be fabricated",
 )
 
+# Registration must complete before `updates()` returns.
+#
+# The obvious mutation — `Task { self.register(id, continuation) }` — is an EQUIVALENT MUTANT and
+# was measured as one: it survived 4 of 5 full-suite runs, and the fifth red was an unrelated
+# flake this pass then fixed. The reason is scheduling, not coverage. `Task {}` inside an
+# actor-isolated method inherits that actor's executor and is enqueued during `updates()`, so it
+# is ahead of every call an external caller can make afterwards; the actor runs it first and no
+# outside observer can see the difference. No test can kill it, and pretending otherwise would
+# have meant writing a priority-race test that is flaky by construction.
+#
+# `Task.detached` is the same defect in the form that actually reaches production: it does not
+# inherit the executor, so the registration genuinely lands after a publish that follows it.
 mut(
     "M55", "F4-A11", "subscribing registers before updates() returns, losing nothing",
     SRC / "ServerStateTracker.swift",
     "        register(id, continuation)",
-    "        Task { self.register(id, continuation) }",
+    "        Task.detached { await self.register(id, continuation) }",
     "published immediately after subscribing is delivered",
 )
 
@@ -330,6 +342,17 @@ mut(
     "        guard !isRunning else { return }",
     "        if false { return }",
     "running twice does not start a second poll loop",
+)
+
+# A failure that is stored but never published leaves a subscribed surface frozen on the last good
+# frame — the same invisible failure as the original `try?`, one layer further out. Nothing
+# mutated this line before, so the `publish()` in `apply(pollFailure:)` was a decoration.
+mut(
+    "M58", "F4-A11", "a poll failure is published, not merely recorded",
+    SRC / "ServerStateTracker.swift",
+    "        loadKind = hasLoaded ? .stale(error) : .failed(error)\n        publish()",
+    "        loadKind = hasLoaded ? .stale(error) : .failed(error)",
+    ["notified of a poll failure", "the failure and its recovery"],
 )
 
 # ---------------------------------------------------------------- secrets (A5, A7)
@@ -574,13 +597,34 @@ mut(
 RESULTS = []
 
 
+# A mutation can make the suite *hang* rather than fail — a deferred registration leaves a
+# subscriber waiting on a value that will never arrive, and `for await` has no deadline of its
+# own. Without a bound here that is indistinguishable from a slow run, and the gate simply never
+# returns. Found the hard way: an unbounded run took a session with it.
+#
+# A timeout is a KILL, not an error. The mutant changed observable behaviour — a test stopped
+# terminating — and recording it as anything else would let a hang read as a survivor.
+SUITE_TIMEOUT_S = 300
+
+
 def run_suite() -> tuple[bool, str]:
-    proc = subprocess.run(
-        ["swift", "test", "--no-parallel"],
-        cwd=APP, capture_output=True, text=True,
-    )
+    try:
+        proc = subprocess.run(
+            ["swift", "test", "--no-parallel"],
+            cwd=APP, capture_output=True, text=True, timeout=SUITE_TIMEOUT_S,
+        )
+        ok, output = proc.returncode == 0, proc.stdout + proc.stderr
+    except subprocess.TimeoutExpired as expired:
+        captured = (expired.stdout or b"") + (expired.stderr or b"")
+        if isinstance(captured, bytes):
+            captured = captured.decode("utf-8", "replace")
+        ok = False
+        output = captured + (
+            f'\nTest "«suite did not terminate»" failed: '
+            f"no result within {SUITE_TIMEOUT_S}s — the mutation deadlocked a test\n"
+        )
     scrub_residue()
-    return proc.returncode == 0, proc.stdout + proc.stderr
+    return ok, output
 
 
 def scrub_residue() -> None:

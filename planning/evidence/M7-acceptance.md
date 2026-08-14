@@ -256,3 +256,46 @@ observed to fail with the right cause, and restored.
 One probe is recorded as a **failure of the probe, not of the test**: the first A12 attempt made
 `record` call `write()` on the unstamped path, which re-wrote identical bytes. The test stayed green
 and was right to — a mutation that does not change the observable does not test anything.
+
+---
+
+## The three out-of-family gates, and what actually ran
+
+**codex: usage limit → claude (downgrade).** All three gates this pipeline routes to
+`codex gpt-5.6-sol` ran **in-family instead**, on a fresh `claude -p` opus-5 reviewer briefed
+adversarially. The limit is account-level and dated past this fleet's horizon; the orchestrator
+verified it down to a one-word probe and recorded it in `ORCHESTRATOR.md:707`, and this run did not
+spend another probe rediscovering it. No repo opt-out marker (`ANTHROPIC-ONLY`, `NO EXTERNAL MODEL
+CLIS`, `external-model-clis: off`) is present in `CLAUDE.md`, `AGENTS.md` or `ORCHESTRATOR.md`; the
+grep was re-run before deciding.
+
+**The weakness travels with the evidence: every reviewer in this item's pipeline is Claude auditing
+Claude.** That is the whole reason the out-of-family lane exists, and it was not available.
+
+| Gate | Ran on | Verdict |
+|---|---|---|
+| Triage / spec review | `claude -p` opus-5, adversarial | REJECTED the first spec draft; the correction is recorded in `spec-M7.md` and drove the second plan |
+| Plan review | `claude -p` opus-5, adversarial | recorded in `plan-M7.md` §10, with two lane failures caught and rerun rather than logged as passes |
+| Work Phase D completeness critic | `claude -p` opus-5, adversarial | see below |
+
+### The Phase D critic took three attempts, and two of them were lane failures
+
+Recorded because `codex exec` exiting 0 on a usage limit is the trap this pipeline warns about, and
+the *same* trap has a second form here: a `claude -p` run that neither errors nor returns.
+
+| Attempt | Prompt | Outcome |
+|---|---|---|
+| 1 | ~4.4 KB, asking the reviewer to read 20 files itself | ran 77 minutes past a 40-minute `alarm`, produced **15 bytes** (`Execution error`). LANE FAILURE — killed, not recorded as a pass. Its first form failed differently: no `< /dev/null`, which the CLI reports as a stdin warning. |
+| 2 | ~24 KB, both Cleanup files inlined | ran past a 15-minute `alarm`, produced **0 bytes**, killed. LANE FAILURE. |
+| probe | `"Reply with exactly the word: PROBE-OK"` | **exit 0, 9 bytes, `PROBE-OK`**, in seconds — so the lane itself is healthy and the stall is specific to a large prompt. This is the two-probe rule: without it, "the reviewer is unavailable" would have been an unfounded claim. |
+| 3 | ~11 KB, the destructive dialog alone | see the verdict recorded below |
+
+An empty or near-empty output file is a lane failure, never a pass — on this fleet or a later one.
+Both were killed and rerun rather than counted.
+
+### The critic's own limitation, stated
+
+Attempt 3 reviews `CleanupSheets.swift` — the removal and reset dialogs — and not the whole item. It
+is the highest-value target (the only irreversible actions on either pane) but it is a narrower
+review than the gate is meant to be. The rest of the item was reviewed by the author, which is
+exactly the weakness this gate exists to cover, and is not a substitute for it.

@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>F3 — Connection states</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!--
+  F3 — the connection-state kit.
+
+  Every state on this page is one a *typed client* can put a surface into: a case of
+  `ControlAPIError`, a phase of the SSE call-log stream, or a shape the control API
+  actually returns. The boards themselves belong to M2 (Activity) and M3 (Servers);
+  what is specified here is the state layer they render, so those two features inherit
+  the copy rather than inventing it twice.
+
+  Copy discipline (DESIGN.md §6): the strings below are the strings the client ships.
+  `ControlAPIError.userFacingDescription` is the single source for the offline and
+  unauthorised sentences — a mock that paraphrases them puts two different wordings of
+  the same failure in front of the same user.
+
+  Tokens are transcribed from DESIGN.md §2 and match design/mocks/prototype.html
+  exactly. Nothing here edits a shared file: F2 owns the SwiftUI design system.
+
+  Assumptions recorded (autonomous run, no human to ask):
+  · 127.0.0.1:8879 is named literally in the offline copy — it is the router's real
+    default (src/index.ts) and "nothing is listening" is unactionable without it.
+  · The stream's "last event" age is shown because the router observes it. No other
+    number appears that the router does not measure (DESIGN.md §6).
+  · "Re-pair…" carries an ellipsis: it opens a further view that M6/M8 own.
+-->
+<style>
+:root{
+  /* Grounds — graphite, never pure black. macOS 27 dark window is #1E1E1E. */
+  --ground:#1E1E1E;--panel:#232326;--raised:#2C2C2E;--raised2:#3A3A3C;
+  --line:rgba(255,255,255,.075);--lineS:rgba(255,255,255,.14);
+  /* Label tiers. Tertiary sits at 50%, not the kit's 25% — DESIGN.md §2's stated
+     deviation. 25% is retained for disabled only, where dimming *is* the message. */
+  --t1:rgba(255,255,255,1);--t2:rgba(255,255,255,.55);
+  --t3:rgba(255,255,255,.50);--t4:rgba(255,255,255,.25);
+  --f1:rgba(255,255,255,.10);--f2:rgba(255,255,255,.08);--f3:rgba(255,255,255,.05);
+  /* The four exclusive meanings. Nothing decorative may be any of them. */
+  --live:#30D158;--attn:#FF9230;--fail:#FF4245;--accent:#0091FF;
+  --accentUp:#3CA9FF;
+  --largeTitle:26px;--title1:22px;--title2:17px;--title3:15px;
+  --body:13px;--callout:12px;--subhead:11px;--caption:10px;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;
+}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;background:#141415;color:var(--t1);font:var(--body)/16px var(--sans);
+  -webkit-font-smoothing:antialiased}
+::selection{background:rgba(0,145,255,.32)}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:6px;
+  border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-track{background:transparent}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* ---- sheet chrome -------------------------------------------------------- */
+.sheet{max-width:1180px;margin:0 auto;padding:var(--s7) var(--s5) 96px}
+.sheet>header{border-bottom:1px solid var(--line);padding-bottom:var(--s5);
+  margin-bottom:var(--s6)}
+h1{font:700 var(--largeTitle)/32px var(--sans);margin:0 0 var(--s2);letter-spacing:-.01em}
+.lede{color:var(--t2);font-size:var(--body);margin:0;max-width:74ch;line-height:19px}
+.lede code{font:var(--callout)/1 var(--mono);color:var(--t1);background:var(--f3);
+  padding:2px 5px;border-radius:4px}
+h2{font:700 var(--title1)/26px var(--sans);margin:var(--s7) 0 var(--s2);
+  letter-spacing:-.01em}
+h2:first-of-type{margin-top:var(--s5)}
+.sectnote{color:var(--t2);font-size:var(--callout);margin:0 0 var(--s5);max-width:70ch;
+  line-height:17px}
+
+/* A specimen: the label rail, then the real surface at real geometry. */
+.spec{margin-bottom:var(--s5);border:1px solid var(--line);border-radius:12px;
+  background:var(--panel);overflow:hidden}
+.spec>figcaption{display:flex;align-items:baseline;gap:var(--s3);flex-wrap:wrap;
+  padding:11px var(--s4);border-bottom:1px solid var(--line);background:rgba(0,0,0,.16)}
+.spec .nm{font:600 var(--title3)/20px var(--sans)}
+.spec .src{font:var(--caption)/13px var(--mono);color:var(--t3);
+  border:1px solid var(--line);padding:2px 7px;border-radius:5px}
+.spec .why{color:var(--t2);font-size:var(--callout);line-height:16px;flex:1 1 260px;
+  min-width:0}
+.stage{background:var(--ground);padding:var(--s4)}
+.stage.flush{padding:0}
+
+/* ---- the app window fragment --------------------------------------------- */
+.win{background:var(--ground);border:1px solid var(--lineS);border-radius:10px;
+  overflow:hidden}
+.toolbar{height:52px;display:flex;align-items:center;gap:var(--s3);
+  padding:0 var(--s3);border-bottom:1px solid var(--line);background:var(--panel)}
+.wtitle{font:600 var(--title3)/20px var(--sans)}
+.tb-sp{flex:1}
+.pane{min-height:268px;display:flex;flex-direction:column}
+
+/* ---- controls ------------------------------------------------------------ */
+.btn{font:12px var(--sans);padding:3.5px 10px;border-radius:5px;
+  background:linear-gradient(180deg,#34383F,#2A2E34);border:1px solid var(--lineS);
+  color:var(--t1);white-space:nowrap;cursor:default;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 2px rgba(0,0,0,.35);
+  transition:background .18s ease,box-shadow .18s ease}
+.btn:hover{background:linear-gradient(180deg,#3E434B,#33373E)}
+.btn:active{background:linear-gradient(180deg,#2A2E34,#24272C)}
+/* The filled-accent label is --t1 (#FFF @100%), read through the token rather than
+   written as a literal — the kit specifies white here, and a literal would be the one
+   colour on the page that drift could not be caught in. */
+.btn.p{background:linear-gradient(180deg,#33A5FF,#0080EE);border-color:transparent;
+  color:var(--t1);font-weight:500;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 1px 3px rgba(0,60,120,.5)}
+.btn.p:hover{background:linear-gradient(180deg,#4FB2FF,#0A8CF5)}
+.btn.q{background:none;border-color:transparent;color:var(--t2);box-shadow:none}
+.btn.q:hover{background:rgba(255,255,255,.07)}
+.btn.sm{font-size:11px;padding:2px 8px}
+/* Disabled dims in place and never disappears (DESIGN.md §3.4). t4 is the one tier
+   where dimming is the message. */
+.btn[disabled]{color:var(--t4);background:linear-gradient(180deg,#2C3037,#26292E);
+  box-shadow:none;border-color:var(--line)}
+.btn[disabled]:hover{background:linear-gradient(180deg,#2C3037,#26292E)}
+.reason{color:var(--t3);font-size:var(--subhead);line-height:14px;white-space:nowrap}
+
+.i{width:15px;height:15px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.4;
+  stroke-linecap:round;stroke-linejoin:round;display:block}
+.i.sm{width:13px;height:13px;stroke-width:1.5}
+.i.xl{width:34px;height:34px;stroke-width:1.1}
+
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot.live{background:var(--live);box-shadow:0 0 0 3px rgba(48,209,88,.16)}
+.dot.idle{background:var(--t4)}
+.dot.a{background:var(--attn);box-shadow:0 0 0 3px rgba(255,146,48,.16)}
+.dot.f{background:var(--fail);box-shadow:0 0 0 3px rgba(255,66,69,.16)}
+
+/* ---- server rows: 56pt, the height that carries the breaker -------------- */
+.rows{display:flex;flex-direction:column}
+.row{height:56px;display:grid;
+  grid-template-columns:34px minmax(0,1fr) 96px 92px;
+  align-items:center;gap:var(--s3);padding:0 var(--s4);
+  border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+/* A row whose trailing cell carries a disabled control *and* its reason needs the
+   width for both on one line. "Nothing / held" broken across two lines reads as a
+   rendering fault rather than as an explanation. */
+.row.wide{grid-template-columns:34px minmax(0,1fr) 96px 158px}
+.brk{width:26px;height:34px;border-radius:5px;background:#141619;
+  border:1px solid rgba(0,0,0,.6);position:relative;overflow:hidden;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
+.brk i{position:absolute;left:5px;right:5px;height:15px;border-radius:3px;
+  background:linear-gradient(180deg,#454A52,#33373D);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 1px 2px rgba(0,0,0,.5);
+  bottom:3px;transition:bottom .3s cubic-bezier(.2,.9,.3,1)}
+.brk.on i{bottom:16px}
+.brk.on{background:#12240F;box-shadow:inset 0 0 8px rgba(48,209,88,.5)}
+.brk.trip{background:#2A0F10;box-shadow:inset 0 0 8px rgba(255,66,69,.5)}
+.brk.held{background:#2A1D0C;box-shadow:inset 0 0 8px rgba(255,146,48,.45)}
+.nmwrap{min-width:0}
+.rnm{font:600 var(--body)/16px var(--sans);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.rsub{font:var(--subhead)/14px var(--mono);color:var(--t3);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.rsub.warn{color:var(--attn)}
+.rsub.bad{color:var(--fail)}
+.num{font:var(--callout)/15px var(--mono);color:var(--t2);text-align:right;
+  font-variant-numeric:tabular-nums}
+.rstate{display:flex;align-items:center;gap:6px;justify-content:flex-end;
+  font-size:var(--subhead);color:var(--t2)}
+
+/* Skeleton: the real row geometry, never a spinner over a blank pane. */
+.sk{background:var(--f2);border-radius:4px;height:11px}
+.sk.t{height:13px}
+.sk.brk{width:26px;height:34px;border-radius:5px}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.skel .sk{animation:pulse 1.4s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){
+  .skel .sk{animation:none}
+  .brk i{transition:none}
+  .btn{transition:none}
+}
+
+/* ---- full-pane states ---------------------------------------------------- */
+.pempty{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;padding:var(--s6) var(--s5);gap:0}
+.pempty .i.xl{opacity:.3;margin-bottom:11px}
+.pempty b{display:block;font:600 var(--title3)/20px var(--sans);margin:0 0 6px}
+.pempty p{color:var(--t2);font-size:var(--callout);max-width:46ch;margin:0;
+  line-height:1.55}
+.pempty .acts{display:flex;gap:var(--s2);margin-top:var(--s4);align-items:center}
+.pempty .addr{font:var(--subhead)/14px var(--mono);color:var(--t3);margin-top:10px}
+
+/* The illustration is the breaker bank itself, at rest.
+   DESIGN.md §10 records that the breaker is the direction's only subject-mined element
+   and asks the next work to add a second rather than another stock shape. An empty
+   surface is exactly where that pays: a bank of levers all down *is* "nothing is
+   running", drawn in the product's own vocabulary, where a 34px outline glyph at 30%
+   opacity was a smudge carrying no meaning. Same component as the rows, scaled — so it
+   cannot drift from the thing it depicts. */
+.bank{display:flex;gap:9px;margin-bottom:var(--s4);padding:10px 12px;
+  background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:9px}
+.bank .brk{width:22px;height:38px;opacity:.55}
+.bank .brk i{height:16px}
+/* No levers at all: nothing is declared, so there is nothing to switch. */
+.bank.vacant .brk{opacity:.34}
+.bank.vacant .brk i{display:none}
+.bank.vacant .slot{position:absolute;left:5px;right:5px;bottom:3px;height:16px;
+  border:1px dashed rgba(255,255,255,.16);border-radius:3px}
+.pempty .i.shield{width:40px;height:40px;stroke-width:1.2;color:var(--t3);opacity:1;
+  margin-bottom:var(--s3)}
+
+/* Partial: what arrived and what did not, with the reason, above the data. */
+.banner{display:flex;gap:10px;align-items:flex-start;padding:10px var(--s4);
+  border-bottom:1px solid var(--line);background:rgba(255,146,48,.09)}
+.banner .i{color:var(--attn);margin-top:1px}
+.banner .bt{font:600 var(--callout)/16px var(--sans)}
+.banner .bd{color:var(--t2);font-size:var(--subhead);line-height:15px;margin-top:2px}
+.banner .ba{margin-left:auto;align-self:center}
+
+/* Inline error: adjacent to the thing that failed, never a global banner. */
+.inline{grid-column:1/-1;display:flex;gap:8px;align-items:center;
+  padding:8px 0 0;border-top:1px dashed rgba(255,66,69,.3);margin-top:2px}
+.inline .i{color:var(--fail)}
+.inline .m{font-size:var(--subhead);line-height:15px;color:var(--t1);min-width:0}
+.inline .m em{font-style:normal;font-family:var(--mono);color:var(--t2)}
+.row.haserr{height:auto;padding-top:10px;padding-bottom:10px;
+  grid-template-areas:"b n c s" "e e e e"}
+.row.haserr .brk{grid-area:b}.row.haserr .nmwrap{grid-area:n}
+.row.haserr .num{grid-area:c}.row.haserr .rstate{grid-area:s}
+.row.haserr .inline{grid-area:e}
+
+/* ---- the stream indicator ------------------------------------------------ */
+.strip{display:flex;align-items:center;gap:8px;padding:7px var(--s4);
+  border-top:1px solid var(--line);background:var(--panel);font-size:var(--subhead)}
+.strip .lbl{color:var(--t2)}
+.strip .age{font-family:var(--mono);color:var(--t3);font-variant-numeric:tabular-nums}
+.strip .push{margin-left:auto}
+.log{display:flex;flex-direction:column}
+.lrow{height:26px;display:grid;grid-template-columns:64px 1fr 96px 58px;
+  align-items:center;gap:var(--s3);padding:0 var(--s4);font-size:var(--subhead);
+  border-bottom:1px solid var(--line)}
+.lrow:last-child{border-bottom:0}
+.lrow .ts,.lrow .ms{font-family:var(--mono);color:var(--t3);
+  font-variant-numeric:tabular-nums}
+.lrow .ms{text-align:right}
+.lrow .tool{color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lrow .svr{color:var(--t2);font-family:var(--mono);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.lrow.stale{color:var(--t3)}
+.lrow.stale .tool,.lrow.stale .svr{color:var(--t3)}
+
+/* ---- inspector, for the overflow specimen -------------------------------- */
+/* `align-items:start` is load-bearing, not cosmetic. Stretched, the inspector was sized
+   to the rows column (112px) while its own content needed 187px, and the surplus was
+   clipped by the specimen's rounded overflow — a silent 75px of missing text that reads
+   as a short panel rather than as a defect. Measured before and after. */
+/* Shown at a narrow window with the inspector open, which is where truncation actually
+   happens. At the sheet's full 1280 the name column is 608px and nothing overflows — a
+   specimen that cannot reach the state it documents proves the opposite of its caption. */
+.split{display:grid;grid-template-columns:minmax(0,1fr) 232px;align-items:start;
+  max-width:720px;border-right:1px solid var(--line)}
+.insp{border-left:1px solid var(--line);background:var(--panel);padding:var(--s4)}
+.insp h3{font:600 var(--subhead)/14px var(--sans);color:var(--t3);margin:0 0 8px;
+  text-transform:none}
+.insp dl{margin:0;display:grid;grid-template-columns:auto;gap:10px}
+.insp dt{font-size:var(--caption);color:var(--t3);margin-bottom:2px}
+.insp dd{margin:0;font:var(--subhead)/15px var(--mono);color:var(--t1);
+  word-break:break-all}
+
+/* ---- the map ------------------------------------------------------------- */
+table.map{width:100%;border-collapse:collapse;font-size:var(--callout);
+  margin-top:var(--s3)}
+table.map th{text-align:left;font:600 var(--subhead)/14px var(--sans);color:var(--t3);
+  padding:0 var(--s3) 8px 0;border-bottom:1px solid var(--line);white-space:nowrap}
+table.map td{padding:9px var(--s3) 9px 0;border-bottom:1px solid var(--line);
+  vertical-align:top;color:var(--t2);line-height:16px}
+table.map td:first-child{color:var(--t1);font-weight:600;white-space:nowrap}
+table.map code{font:var(--subhead)/1.4 var(--mono);color:var(--t1)}
+</style>
+</head>
+<body>
+
+<!-- Drawn icons, one 1.4 stroke weight on one 16px grid, per DESIGN.md §4.
+     The subset this page needs; the full sprite lives in prototype.html. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<g id="i-servers"><rect x="2.5" y="2.5" width="11" height="4" rx="1"/><rect x="2.5" y="9.5" width="11" height="4" rx="1"/><circle cx="5" cy="4.5" r=".6" fill="currentColor" stroke="none"/><circle cx="5" cy="11.5" r=".6" fill="currentColor" stroke="none"/></g>
+<g id="i-conduit"><path d="M2.4 4.2h3.2c1.6 0 2 1.4 3.4 1.4h4.6"/><path d="M2.4 8h3.2c1.6 0 2 0 3.4 0h4.6"/><path d="M2.4 11.8h3.2c1.6 0 2-1.4 3.4-1.4h4.6"/><circle cx="13.2" cy="8" r="1.5" fill="currentColor" stroke="none"/></g>
+<g id="i-shield"><path d="M8 1.8 13.4 4v4.2c0 3-2.3 5.2-5.4 6-3.1-.8-5.4-3-5.4-6V4Z"/></g>
+<g id="i-warn"><path d="M8 2.2 14.6 13.4H1.4Z"/><path d="M8 6.4v3.1"/><circle cx="8" cy="11.3" r=".7" fill="currentColor" stroke="none"/></g>
+<g id="i-bang"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.8v4"/><circle cx="8" cy="11.1" r=".7" fill="currentColor" stroke="none"/></g>
+<g id="i-check"><path d="M3.2 8.4 6.4 11.6 12.8 4.6"/></g>
+<g id="i-activity"><path d="M2 4h12M2 8h12M2 12h7"/></g>
+<g id="i-bolt"><path d="M9.2 1.6 3.6 9.2h3.6l-.4 5.2 5.6-7.6H8.8Z"/></g>
+</defs></svg>
+
+<main class="sheet">
+<header>
+  <h1>Connection states</h1>
+  <p class="lede">
+    Every state a typed control-API client can put a surface into — one per case of
+    <code>ControlAPIError</code>, one per phase of the <code>/usage/stream</code> call log.
+    The boards are M2's and M3's; the state layer is F3's, and both inherit this copy
+    rather than writing the same failure twice.
+  </p>
+</header>
+
+<h2>Full-pane states</h2>
+<p class="sectnote">
+  Two failures replace the whole surface, because in both cases nothing on it can be
+  trusted to be current. Every other failure stays local to the thing that failed.
+</p>
+
+<!-- OFFLINE ---------------------------------------------------------------- -->
+<figure class="spec">
+  <figcaption>
+    <span class="nm">Offline</span>
+    <span class="src">.routerNotRunning</span>
+    <span class="why">The router is loopback, so unreachable has exactly one meaning:
+      the daemon is not running on this machine. Naming the address is what makes it
+      actionable — and the primary action starts it rather than asking the user to.</span>
+  </figcaption>
+  <div class="stage">
+    <div class="win" id="flow">
+      <div class="toolbar">
+        <svg class="i lg" aria-hidden="true"><use href="#i-conduit"/></svg>
+        <span class="wtitle">Servers</span>
+        <span class="tb-sp"></span>
+        <button class="btn sm" disabled>Add server…</button>
+      </div>
+      <div class="pane" id="flowPane"></div>
+    </div>
+  </div>
+</figure>
+
+<!-- UNAUTHORIZED ----------------------------------------------------------- -->
+<figure class="spec">
+  <figcaption>
+    <span class="nm">Unauthorised</span>
+    <span class="src">.unauthorized</span>
+    <span class="why">The control token was rotated or removed. Distinct from offline:
+      the router is answering, so "start it" would be wrong advice and the retry that
+      fixes offline loops forever here.</span>
+  </figcaption>
+  <div class="stage">
+    <div class="win">
+      <div class="toolbar">
+        <svg class="i lg" aria-hidden="true"><use href="#i-conduit"/></svg>
+        <span class="wtitle">Servers</span>
+        <span class="tb-sp"></span>
+        <button class="btn sm" disabled>Add server…</button>
+      </div>
+      <div class="pane">
+        <div class="pempty">
+          <svg class="i shield" aria-hidden="true"><use href="#i-shield"/></svg>
+          <b>This app isn't authorised to talk to the router</b>
+          <p>The control token was rotated or removed. Re-pair to continue —
+             your servers and their history are untouched.</p>
+          <div class="acts"><button class="btn p">Re-pair…</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</figure>
+
+<h2>Data-surface states</h2>
+<p class="sectnote">
+  The same 56pt row geometry throughout, so a surface never changes shape as it loads,
+  empties or degrades. A skeleton that does not match the row it becomes is a layout
+  shift wearing a loading state's clothes.
+</p>
+
+<!-- LOADING ---------------------------------------------------------------- -->
+<figure class="spec">
+  <figcaption>
+    <span class="nm">Loading</span>
+    <span class="src">first await</span>
+    <span class="why">Skeleton at the real geometry — never a spinner over a blank
+      pane. The breaker housing is drawn too, so the column does not appear late and
+      shove the row.</span>
+  </figcaption>
+  <div class="stage flush">
+    <div class="rows skel" aria-busy="true" aria-label="Loading servers">
+      <div class="row"><div class="sk brk"></div>
+        <div class="nmwrap"><div class="sk t" style="width:132px"></div>
+          <div class="sk" style="width:88px;margin-top:6px"></div></div>
+        <div class="sk" style="width:46px;margin-left:auto"></div>
+        <div class="sk" style="width:58px;margin-left:auto"></div></div>
+      <div class="row"><div class="sk brk"></div>
+        <div class="nmwrap"><div class="sk t" style="width:104px"></div>
+          <div class="sk" style="width:126px;margin-top:6px"></div></div>
+        <div class="sk" style="width:38px;margin-left:auto"></div>
+        <div class="sk" style="width:58px;margin-left:auto"></div></div>
+      <div class="row"><div class="sk brk"></div>
+        <div class="nmwrap"><div class="sk t" style="width:156px"></div>
+          <div class="sk" style="width:70px;margin-top:6px"></div></div>
+        <div class="sk" style="width:52px;margin-left:auto"></div>
+        <div class="sk" style="width:58px;margin-left:auto"></div></div>
+    </div>
+  </div>
+</figure>
+
+<!-- EMPTY ------------------------------------------------------------------ -->
+<figure class="spec">
+  <figcaption>
+    <span class="nm">Empty</span>
+    <span class="src">servers: []</span>
+    <span class="why">The router answered and has nothing declared. One sentence, one
+      action, and the shortcut named where it will be used — never a bare "No items".</span>
+  </figcaption>
+  <div class="stage">
+    <div class="win">
+      <div class="toolbar">
+        <svg class="i lg" aria-hidden="true"><use href="#i-conduit"/></svg>
+        <span class="wtitle">Servers</span>
+        <span class="tb-sp"></span>
+        <button class="btn sm p">Add server…</button>
+      </div>
+      <div class="pane">
+        <div class="pempty">
+          <div class="bank vacant" aria-hidden="true">
+            <div class="brk"><span class="slot"></span></div>
+            <div class="brk"><span class="slot"></span></div>
+            <div class="brk"><span class="slot"></span></div>
+          </div>
+          <b>No servers declared yet</b>
+          <p>Add one and the router starts it the moment an agent calls one of its
+             tools — not before.</p>
+          <div class="acts">
+            <button class="btn p">Add server…</button>
+            <button class="btn q">Browse the registry</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</figure>
+
+<!-- PARTIAL ---------------------------------------------------------------- -->
+<figure class="spec">
+  <figcaption>
+    <span class="nm">Partial</span>
+    <span class="src">indexError per server</span>
+    <span class="why">What arrived and what did not, with the reason, and the rows that
+      did arrive stay usable. Counting the failures in the banner means the user does
+      not have to scan for them.</span>
+  </figcaption>
+  <div class="stage flush">
+    <div class="banner">
+      <svg class="i" aria-hidden="true"><use href="#i-warn"/></svg>
+      <div>
+        <div class="bt">2 of 5 servers didn't report their tools</div>
+        <div class="bd">Their rows show why. Everything else is current.</div>
+      </div>
+      <div class="ba"><button class="btn sm">Retry both</button></div>
+    </div>
+    <div class="rows">
+      <div class="row">
+        <div class="brk on"><i></i></div>
+        <div class="nmwrap"><div class="rnm">github</div>
+          <div class="rsub">running · 41 tools · 3 calls</div></div>
+        <div class="num">1.2s</div>
+        <div class="rstate"><span class="dot live"></span>Running</div>
+      </div>
+      <div class="row">
+        <div class="brk"><i></i></div>
+        <div class="nmwrap"><div class="rnm">sift</div>
+          <div class="rsub">idle · 14 tools</div></div>
+        <div class="num">—</div>
+        <div class="rstate"><span class="dot idle"></span>Idle</div>
+      </div>
+      <div class="row">
+        <div class="brk trip"><i></i></div>
+        <div class="nmwrap"><div class="rnm">pixel-plugin</div>
+          <div class="rsub bad">spawn ENOENT — aseprite is not on PATH</div></div>
+        <div class="num">—</div>
+        <div class="rstate"><span class="dot f"></span>Failed</div>
+      </div>
+      <div class="row">
+        <div class="brk held"><i></i></div>
+        <div class="nmwrap"><div class="rnm">dossier</div>
+          <div class="rsub warn">not authorised — sign in to index its tools</div></div>
+        <div class="num">—</div>
+        <div class="rstate"><span class="dot a"></span>Held</div>
+      </div>
+      <div class="row">
+        <div class="brk"><i></i></div>
+        <div class="nmwrap"><div class="rnm">namecheap</div>
+          <div class="rsub">idle · 22 tools</div></div>
+        <div class="num">—</div>
+        <div class="rstate"><span class="dot idle"></span>Idle</div>
+      </div>
+    </div>
+  </div>
+</figure>
+
+<!-- INLINE ERROR + SUCCESS + DISABLED -------------------------------------- -->
+<figure class="spec">
+  <figcaption>
+    <span class="nm">Error, success, disabled</span>
+    <span class="src">.server(status:message:)</span>
+    <span class="why">A failed write reports next to the row it failed on. The row above
+      it shows the successful case — an in-place change, because macOS does not toast a
+      click. The third row's control dims in place and says why.</span>
+  </figcaption>
+  <div class="stage flush">
+    <div class="rows">
+      <div class="row">
+        <div class="brk on"><i></i></div>
+        <div class="nmwrap"><div class="rnm">github</div>
+          <div class="rsub">kept warm · won't be reaped when idle</div></div>
+        <div class="num"></div>
+        <div class="rstate"><svg class="i sm" style="color:var(--live)" aria-hidden="true"><use href="#i-check"/></svg>Warm</div>
+      </div>
+      <div class="row haserr">
+        <div class="brk trip"><i></i></div>
+        <div class="nmwrap"><div class="rnm">pixel-plugin</div>
+          <div class="rsub">idle · 0 tools</div></div>
+        <div class="num"></div>
+        <div class="rstate"><button class="btn sm">Retry</button></div>
+        <div class="inline">
+          <svg class="i sm" aria-hidden="true"><use href="#i-bang"/></svg>
+          <div class="m">Couldn't re-index. The router returned
+            <em>422 — spawn ENOENT: aseprite is not on PATH</em>.
+            Install it, or remove this server.</div>
+        </div>
+      </div>
+      <div class="row wide">
+        <div class="brk"><i></i></div>
+        <div class="nmwrap"><div class="rnm">sift</div>
+          <div class="rsub">idle · 14 tools</div></div>
+        <div class="num"></div>
+        <div class="rstate" style="gap:10px">
+          <span class="reason">Nothing held</span>
+          <button class="btn sm" disabled>Approve</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</figure>
+
+<!-- OVERFLOW --------------------------------------------------------------- -->
+<figure class="spec">
+  <figcaption>
+    <span class="nm">Overflow</span>
+    <span class="src">any long value</span>
+    <span class="why">At a narrow window with the inspector open, a long name truncates
+      and the row keeps its 56pt height. The full value is in the inspector, so
+      truncation never loses information — it relocates it.</span>
+  </figcaption>
+  <div class="stage flush">
+    <div class="split">
+      <div class="rows">
+        <div class="row">
+          <div class="brk on"><i></i></div>
+          <div class="nmwrap">
+            <div class="rnm">plugin_pixel-plugin_aseprite_headless_render_worker_arm64</div>
+            <div class="rsub">running · /Users/luke/Dev/mcp-router/.worktrees/design-system-refresh</div>
+          </div>
+          <div class="num">840ms</div>
+          <div class="rstate"><span class="dot live"></span>Running</div>
+        </div>
+        <div class="row">
+          <div class="brk"><i></i></div>
+          <div class="nmwrap"><div class="rnm">sift</div>
+            <div class="rsub">idle · 14 tools</div></div>
+          <div class="num">—</div>
+          <div class="rstate"><span class="dot idle"></span>Idle</div>
+        </div>
+        <div class="row">
+          <div class="brk"><i></i></div>
+          <div class="nmwrap"><div class="rnm">namecheap</div>
+            <div class="rsub">idle · 22 tools</div></div>
+          <div class="num">—</div>
+          <div class="rstate"><span class="dot idle"></span>Idle</div>
+        </div>
+        <div class="row">
+          <div class="brk"><i></i></div>
+          <div class="nmwrap"><div class="rnm">docker-mcp</div>
+            <div class="rsub">idle · 4 tools</div></div>
+          <div class="num">—</div>
+          <div class="rstate"><span class="dot idle"></span>Idle</div>
+        </div>
+      </div>
+      <aside class="insp">
+        <h3>Selected server</h3>
+        <dl>
+          <div><dt>Name</dt>
+            <dd>plugin_pixel-plugin_aseprite_headless_render_worker_arm64</dd></div>
+          <div><dt>Working directory</dt>
+            <dd>/Users/luke/Dev/mcp-router/.worktrees/design-system-refresh</dd></div>
+          <div><dt>Config hash</dt><dd>a3f9c1d0e77b2456</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </div>
+</figure>
+
+<h2>The call-log stream</h2>
+<p class="sectnote">
+  The stream is the only thing on the Activity board that can be stale while still
+  looking populated, so its condition is stated rather than implied. Toggle it to see
+  each phase.
+</p>
+
+<figure class="spec">
+  <figcaption>
+    <span class="nm">Live · reconnecting · disconnected</span>
+    <span class="src">/usage/stream</span>
+    <span class="why">Rows already received stay on screen and dim rather than being
+      cleared — deleting the log to signal a dropped socket destroys data to report a
+      transport condition.</span>
+  </figcaption>
+  <div class="stage">
+    <div class="win">
+      <div class="toolbar">
+        <svg class="i lg" aria-hidden="true"><use href="#i-activity"/></svg>
+        <span class="wtitle">Activity</span>
+        <span class="tb-sp"></span>
+        <button class="btn sm" data-stream="live">Live</button>
+        <button class="btn sm" data-stream="reconnecting">Reconnecting</button>
+        <button class="btn sm" data-stream="down">Disconnected</button>
+      </div>
+      <div class="log" id="log">
+        <div class="lrow"><span class="ts">14:22:07</span><span class="tool">search_documentation</span><span class="svr">ref-tools-mcp</span><span class="ms">412ms</span></div>
+        <div class="lrow"><span class="ts">14:22:03</span><span class="tool">get_dns_records</span><span class="svr">namecheap</span><span class="ms">988ms</span></div>
+        <div class="lrow"><span class="ts">14:21:58</span><span class="tool">list-containers</span><span class="svr">docker-mcp</span><span class="ms">76ms</span></div>
+        <div class="lrow"><span class="ts">14:21:44</span><span class="tool">search_screens</span><span class="svr">mobbin</span><span class="ms">1.4s</span></div>
+      </div>
+      <div class="strip" id="strip"></div>
+    </div>
+  </div>
+</figure>
+
+<h2>Which state answers which failure</h2>
+<p class="sectnote">
+  The mapping is the deliverable. A client that folds two of these together takes a
+  surface's ability to render them apart with it.
+</p>
+<table class="map">
+  <thead><tr><th>State</th><th>Produced by</th><th>Scope</th><th>The one action</th></tr></thead>
+  <tbody>
+    <tr><td>Offline</td><td><code>.routerNotRunning</code> — connection refused on loopback</td>
+      <td>Whole pane</td><td>Start the router</td></tr>
+    <tr><td>Unauthorised</td><td><code>.unauthorized</code> — 401 from a mutating call</td>
+      <td>Whole pane</td><td>Re-pair…</td></tr>
+    <tr><td>Loading</td><td>the first request, before it returns</td>
+      <td>Whole pane, row geometry</td><td>none — it resolves itself</td></tr>
+    <tr><td>Empty</td><td>a 200 carrying no servers</td>
+      <td>Whole pane</td><td>Add server…</td></tr>
+    <tr><td>Partial</td><td><code>indexError</code> on some servers, not all</td>
+      <td>Banner + the affected rows</td><td>Retry the failed ones</td></tr>
+    <tr><td>Error</td><td><code>.server(status:message:)</code>, <code>.transport</code></td>
+      <td>Adjacent to the row</td><td>Retry</td></tr>
+    <tr><td>Success</td><td>a 200 on a write</td>
+      <td>The row changes in place</td><td>none — no toast</td></tr>
+    <tr><td>Disabled</td><td>no pending change to approve</td>
+      <td>The control</td><td>none — the reason sits beside it</td></tr>
+    <tr><td>Overflow</td><td>a value wider than its column</td>
+      <td>The cell; inspector keeps the whole value</td><td>none</td></tr>
+    <tr><td>Stream live</td><td>SSE open, events arriving</td>
+      <td>Status strip</td><td>none</td></tr>
+    <tr><td>Stream reconnecting</td><td>socket dropped, retry scheduled</td>
+      <td>Status strip; rows dim</td><td>none — it retries itself</td></tr>
+    <tr><td>Stream disconnected</td><td>retries exhausted</td>
+      <td>Status strip; rows dim</td><td>Reconnect</td></tr>
+    <tr><td>Malformed</td><td><code>.malformedResponse(detail:)</code> — a router too new or too old</td>
+      <td>Whole pane, offline's layout</td><td>none — it names the mismatch</td></tr>
+  </tbody>
+</table>
+
+</main>
+
+<script>
+// The offline pane is the one genuinely multi-step flow this layer owns: refused →
+// starting → populated. Rendering it as a real transition is the only way to check
+// that the states share a geometry and nothing jumps between them.
+const pane = document.getElementById('flowPane');
+
+const PANES = {
+  offline: `
+    <div class="pempty">
+      <div class="bank" aria-hidden="true">
+        <div class="brk"><i></i></div>
+        <div class="brk"><i></i></div>
+        <div class="brk"><i></i></div>
+        <div class="brk"><i></i></div>
+      </div>
+      <b>The router isn't running</b>
+      <p>Nothing is listening on the control port, so there is nothing to show yet.
+         Starting it takes a moment and your servers stay exactly as you left them.</p>
+      <div class="acts">
+        <button class="btn p" data-go="starting">Start the router</button>
+        <button class="btn q" data-go="offline">Try again</button>
+      </div>
+      <div class="addr">127.0.0.1:8879</div>
+    </div>`,
+  starting: `
+    <div class="rows skel" aria-busy="true" aria-label="Starting the router">
+      <div class="row"><div class="sk brk"></div>
+        <div class="nmwrap"><div class="sk t" style="width:132px"></div>
+          <div class="sk" style="width:88px;margin-top:6px"></div></div>
+        <div class="sk" style="width:46px;margin-left:auto"></div>
+        <div class="sk" style="width:58px;margin-left:auto"></div></div>
+      <div class="row"><div class="sk brk"></div>
+        <div class="nmwrap"><div class="sk t" style="width:104px"></div>
+          <div class="sk" style="width:126px;margin-top:6px"></div></div>
+        <div class="sk" style="width:38px;margin-left:auto"></div>
+        <div class="sk" style="width:58px;margin-left:auto"></div></div>
+    </div>`,
+  ready: `
+    <div class="rows">
+      <div class="row">
+        <div class="brk on"><i></i></div>
+        <div class="nmwrap"><div class="rnm">github</div>
+          <div class="rsub">running · 41 tools · 3 calls</div></div>
+        <div class="num">1.2s</div>
+        <div class="rstate"><span class="dot live"></span>Running</div>
+      </div>
+      <div class="row">
+        <div class="brk"><i></i></div>
+        <div class="nmwrap"><div class="rnm">sift</div>
+          <div class="rsub">idle · 14 tools</div></div>
+        <div class="num">—</div>
+        <div class="rstate"><span class="dot idle"></span>Idle</div>
+      </div>
+    </div>
+    <div class="strip">
+      <span class="dot live"></span><span class="lbl">Router running</span>
+      <span class="push"></span>
+      <button class="btn sm q" data-go="offline">Show it stopped again</button>
+    </div>`
+};
+
+function show(name){
+  pane.innerHTML = PANES[name];
+  if (name === 'starting') setTimeout(() => show('ready'), 1100);
+}
+pane.addEventListener('click', e => {
+  const go = e.target.closest('[data-go]');
+  if (go) show(go.dataset.go);
+});
+show('offline');
+
+// The stream strip. Rows dim rather than clear, because a dropped socket is a fact
+// about the connection, not about the calls that already happened.
+const strip = document.getElementById('strip');
+const log = document.getElementById('log');
+
+const STREAM = {
+  live: `<span class="dot live"></span><span class="lbl">Live</span>
+         <span class="push"></span><span class="age">last call 4s ago</span>`,
+  reconnecting: `<span class="dot a"></span><span class="lbl">Reconnecting…</span>
+         <span class="push"></span><span class="age">last call 31s ago</span>`,
+  down: `<span class="dot f"></span>
+         <span class="lbl">Not receiving updates — the router closed the connection.</span>
+         <span class="push"></span>
+         <button class="btn sm">Reconnect</button>`
+};
+
+function stream(state){
+  strip.innerHTML = STREAM[state];
+  log.querySelectorAll('.lrow').forEach(r => r.classList.toggle('stale', state !== 'live'));
+  document.querySelectorAll('[data-stream]').forEach(b =>
+    b.classList.toggle('p', b.dataset.stream === state));
+}
+document.querySelectorAll('[data-stream]').forEach(b =>
+  b.addEventListener('click', () => stream(b.dataset.stream)));
+stream('live');
+</script>
+</body>
+</html>

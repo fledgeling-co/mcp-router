@@ -4,11 +4,19 @@ dist/
 
 # Dependencies
 node_modules/
+# The bare name too: a worktree symlinks node_modules to the main checkout, and a symlink
+# is a file to git, so the trailing-slash pattern above does not match it. One was committed
+# that way — an absolute path to one machine, in a public repo.
+node_modules
 
 # The router's own runtime state lives in ~/.claude/mcp-router/, never here,
 # but keep these ignored in case someone runs with a local --config.
-servers.json
-manifest.json
+# Anchored to the repo root: unanchored, these match at every depth, and the bare
+# name silently swallowed app/Sources/MCPRouterKit/Control/Fixtures/servers.json —
+# a source file, gone from the branch while still present in its author's worktree,
+# so its own gate passed and only the merged tree failed.
+/servers.json
+/manifest.json
 *.log
 
 # Generated launchd plists — install.sh writes these with machine-specific

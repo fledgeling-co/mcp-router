@@ -207,3 +207,79 @@ could reach while nothing ran the router as a process.
   `MCPR_ROUTER_BINARY` unset both agents run `node dist/index.js`; with it set, **only** the `serve`
   agent runs the Swift binary and `watch` stays on node.
 - **The user's router was never stopped, restarted or contacted.**
+
+---
+
+## 9 · Independent re-run, and the hole it closed
+
+A second runner picked this item up at `4309392` and re-measured rather than trusting §5. Two things
+came out of it.
+
+### 9.1 The HTTP upstream clients were compiled and never executed
+
+§4's `mcp` lane seeded **stdio upstreams only**. `HTTPUpstreamTransport`, `HTTPUpstreamSession` and
+`listTools`/`callTool` on an HTTP session were therefore built, linked, and never once run — on
+either side. "The HTTP clients R2 deferred" is a named scope item of this brief, so a lane that never
+reached them was claiming a delivery it had not measured.
+
+The lane now stands a **third router** up on `:8998` and registers it as an HTTP-type upstream on
+*both* sides, so the seventh `tools/call` shape travels **router → HTTP → router → stdio**. A
+reference router is itself an MCP server over HTTP, which makes it the honest upstream to point at.
+The case additionally asserts `fixture:ping` appears in the Swift answer, so both sides agreeing on
+an *error* cannot pass it.
+
+Three smaller holes closed in the same pass:
+
+| Hole | Fix |
+|---|---|
+| `/health` compared two bodies that were never required to *be* anything — two empty answers diff clean | both sides must contain `"ok":true` before the comparison is believed |
+| `tools/list` compared only the de-framed SSE payload, leaving the status line and every header uncompared on the row carrying the largest corpus | the SSE **head** is diffed as well as the body |
+| `div-r2r-d8` asserted status and code only, so a Swift router that had stopped emitting a message at all would still have recorded the divergence intact | both messages must carry the `invalid JSON body: ` prefix **and** the suffixes must actually differ — it now goes stale from either end |
+
+A dead `both()` helper that took arguments it never used was deleted.
+
+### 9.2 The number, re-measured rather than inherited
+
+Run from `.worktrees/R2R` with `swift build` green first, with the strengthened lane above:
+
+```
+  control     11 of 15 proven, 4 blocked      mcp          5 of  5 proven
+  fixture     23 of 24 proven, 1 blocked      cli          8 of 10 proven, 2 blocked
+  divergence  13 of 15 proven (4 by suite), 2 blocked   install      1 of  5 proven, 4 blocked
+  pool         6 of  6 proven                 state        1 of  1 proven
+                                              log          1 of  1 proven
+
+parity: 69 of 82 rows proven (4 of them by suite only, not by wire comparison), 13 blocked.
+The cutover requires 82 of 82. It has 69.
+exit=1
+```
+
+**69 of 82, 13 blocked, 0 mismatched** — the same number §5 reported, reproduced independently and
+now over a *stricter* mcp lane. The mcp lane itself reported `8 comparisons agreed, 0 did not`.
+
+`exit=1` is the designed outcome and is **not** this item's failure: the gate returns 0 only at 82 of
+82, which is the cutover's bar, and the cutover is R4's behind a decision the user takes. This item's
+bar was that the five structurally-blocked lanes become measurable. They did.
+
+### 9.3 Standing product constraints, checked directly
+
+| Constraint | Verified |
+|---|---|
+| `command`, `args`, `env` never writable through the control API's PATCH | `ControlHandler.swift:268` — they are not read. R3 code; this item does not touch `ControlHandler` |
+| MCP SDK pinned to an exact version, never a range | `Package.swift:29` — `exact: "0.12.1"` |
+| TypeScript stays the installed default until R4's gate passes | `docs/install.sh` — `MCPR_ROUTER_BINARY` defaults to empty, so both agents run node. Setting it moves the **`serve`** agent only; `watch` stays on node because no Swift watcher exists |
+| The Mac app talks to the router only over loopback HTTP | no second channel added; this item adds one listener, on loopback |
+
+### 9.4 Normalisation, audited as an adversary
+
+Every `sed` in all five lanes was read on the assumption it was hiding a real difference. What is
+normalised: the ISO timestamp, measured durations (`<ms>ms`, `<s>s alive`), the scratch home, the
+repo path, the port, and `import`'s `.bak-<epoch>` stamp. **No message text, level, ordering or count
+is touched anywhere.** `mcp-status` additionally normalises `port` and `idleSec`, each named as a
+coordinate or a clock, with the call sequence driven identically first so the counters stay
+comparable. Empty-versus-empty is guarded explicitly in `mcp` (health body, list body) and `log`
+(a `router.log` that does not exist records `fail`, never a clean diff).
+
+The gate's own aggregation was checked for the double-write the §9.1 guard introduces:
+`parity-gate.sh:172` treats **any** `fail` for a `(group, id)` as a mismatch regardless of a later
+`ok`, so a row can never be rescued by a second verdict. The strengthening is fail-safe.

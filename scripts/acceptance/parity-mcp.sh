@@ -41,17 +41,24 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 TS_PORT="${MCP_TS_PORT:-8992}"
 SWIFT_PORT="${MCP_SWIFT_PORT:-8993}"
+# A third router, used by BOTH sides as an HTTP upstream. Without it the HTTP client half of this
+# port is compiled and never run: every other lane seeds stdio upstreams only, so `open()`, the SSE
+# refusal, the 401 challenge, `listTools` and `callTool` on an HTTP session are all unexecuted. A
+# reference router IS an MCP server over HTTP, which makes it the honest upstream to point at.
+HUB_PORT="${MCP_HUB_PORT:-8998}"
 SWIFT_BIN="${SWIFT_BIN:-$REPO_ROOT/app/.build/debug/MCPRouterCLI}"
 WORK="$(mktemp -d -t parity-mcp)"
 RESULTS="${PARITY_RESULTS:-}"
 TS_PID=""
 SWIFT_PID=""
+HUB_PID=""
 
 MAIN_PID=$$
 cleanup() {
   [ "$BASHPID" != "$MAIN_PID" ] && return 0
   [ -n "$TS_PID" ] && kill "$TS_PID" 2>/dev/null
   [ -n "$SWIFT_PID" ] && kill "$SWIFT_PID" 2>/dev/null
+  [ -n "$HUB_PID" ] && kill "$HUB_PID" 2>/dev/null
   rm -rf "$WORK"
 }
 trap cleanup EXIT
@@ -86,7 +93,7 @@ command -v node >/dev/null 2>&1 || { echo "environment: node is not installed"; 
 [ -x "$SWIFT_BIN" ] || {
   echo "environment: no Swift router at ${SWIFT_BIN#"$REPO_ROOT/"}."
   echo "             Build it with: cd app && swift build"; exit 2; }
-for port in "$TS_PORT" "$SWIFT_PORT"; do
+for port in "$TS_PORT" "$SWIFT_PORT" "$HUB_PORT"; do
   if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
     echo "environment: something is already listening on :$port. This harness never shares a port"
     echo "             and never touches the router on 8975/8976."; exit 2
@@ -110,11 +117,33 @@ for side in ts swift; do
     "slow": {
       "command": "node",
       "args": ["$REPO_ROOT/scripts/fixtures/slow-mcp-server.mjs"]
+    },
+    "hub": {
+      "type": "http",
+      "url": "http://127.0.0.1:$HUB_PORT/mcp"
     }
   }
 }
 JSON
 done
+
+# The hub: a reference router with one stdio upstream, serving MCP over HTTP.
+mkdir -p "$WORK/hub"
+echo "toolset" > "$WORK/hub/toolset"
+cat > "$WORK/hub/servers.json" <<JSON
+{
+  "mcpServers": {
+    "probe": {
+      "command": "node",
+      "args": ["$REPO_ROOT/scripts/fixtures/mcp-fixture-server.mjs", "stdio"],
+      "env": { "FIXTURE_TOOLSET_FILE": "$WORK/hub/toolset" }
+    }
+  }
+}
+JSON
+MCP_ROUTER_HOME="$WORK/hub" node "$REPO_ROOT/dist/index.js" serve \
+  --port "$HUB_PORT" --idle-ms 120000 >"$WORK/hub.log" 2>&1 &
+HUB_PID=$!
 
 MCP_ROUTER_HOME="$WORK/ts" node "$REPO_ROOT/dist/index.js" serve \
   --port "$TS_PORT" --idle-ms 3000 >"$WORK/ts.log" 2>&1 &
@@ -131,6 +160,12 @@ wait_ready() { # port pid label
   done
   echo "environment: the $3 router never answered /health"; return 1
 }
+wait_ready "$HUB_PORT" "$HUB_PID" "HTTP upstream hub" || { tail -20 "$WORK/hub.log"; exit 2; }
+hub_token="$(cat "$WORK/hub/control.token" 2>/dev/null)"
+curl -fsS -m 30 -X POST -H "x-mcpr-token: $hub_token" -H 'content-type: application/json' \
+  "http://127.0.0.1:$HUB_PORT/servers/probe/reindex" >/dev/null 2>&1 || {
+  echo "environment: the hub could not index its own upstream"; exit 2; }
+
 wait_ready "$TS_PORT" "$TS_PID" reference || { tail -20 "$WORK/ts.log"; exit 2; }
 wait_ready "$SWIFT_PORT" "$SWIFT_PID" Swift || { tail -20 "$WORK/swift.log"; exit 2; }
 
@@ -138,7 +173,7 @@ wait_ready "$SWIFT_PORT" "$SWIFT_PID" Swift || { tail -20 "$WORK/swift.log"; exi
 for side in ts:$TS_PORT swift:$SWIFT_PORT; do
   home="$WORK/${side%%:*}"; port="${side##*:}"
   token="$(cat "$home/control.token" 2>/dev/null)"
-  for server in probe slow; do
+  for server in probe slow hub; do
     curl -fsS -m 30 -X POST -H "x-mcpr-token: $token" -H 'content-type: application/json' \
       "http://127.0.0.1:$port/servers/$server/reindex" >"$WORK/reindex-${side%%:*}-$server.json" 2>&1 || {
       echo "environment: $server could not be indexed on ${side%%:*}"
@@ -154,13 +189,6 @@ ACCEPT='accept: application/json, text/event-stream'
 normalise() { sed -e 's/^Date: .*/Date: <normalised>/' -e "s/127\.0\.0\.1:$TS_PORT/127.0.0.1:<port>/g" \
                   -e "s/127\.0\.0\.1:$SWIFT_PORT/127.0.0.1:<port>/g" \
                   -e "s|$WORK/ts|<home>|g" -e "s|$WORK/swift|<home>|g" ; }
-
-# One request at both routers, heads and bodies compared. `--raw` keeps curl from de-chunking, but
-# the SSE body is compared after de-framing for the reason in this file's header.
-both() { # label -- curl args...
-  local label="$1"; shift; shift
-  curl -sS -i -m 10 "$@" --url-query 2>/dev/null >/dev/null || true
-}
 
 # Issue one request against a port and write head and body to files.
 issue() { # port outfile [curl args...]
@@ -182,6 +210,11 @@ echo
 # --------------------------------------------------------------------------------------- mcp-health
 issue "$TS_PORT"    "$WORK/health.ts"    "http://127.0.0.1:__PORT__/health"
 issue "$SWIFT_PORT" "$WORK/health.swift" "http://127.0.0.1:__PORT__/health"
+# Two identically-empty answers diff clean, so the answer has to BE something before it can agree.
+for side in ts swift; do
+  grep -q '"ok":true' "$WORK/health.$side" || {
+    echo "environment: the $side router did not answer /health with a body"; exit 2; }
+done
 compare mcp mcp-health "GET /health — status, headers and body" "$WORK/health.ts" "$WORK/health.swift"
 
 # --------------------------------------------------------------------------------------- mcp-endpoint
@@ -227,12 +260,23 @@ sw_d8="$(grep -c '"code":-32603' "$WORK/d8.swift" || true)"
 ts_500="$(head -1 "$WORK/d8.ts" | grep -c ' 500 ' || true)"
 sw_500="$(head -1 "$WORK/d8.swift" | grep -c ' 500 ' || true)"
 ts_v8="$(grep -c 'Unexpected token' "$WORK/d8.ts" || true)"
-if [ "$ts_d8" = 1 ] && [ "$sw_d8" = 1 ] && [ "$ts_500" = 1 ] && [ "$sw_500" = 1 ] && [ "$ts_v8" = 1 ]; then
+# The Swift half is MEASURED rather than asserted: its message must carry the same
+# `invalid JSON body: ` prefix the reference's does, and the two suffixes must actually DIFFER. A
+# check that only looked at the status and the code would call the divergence intact on a Swift
+# router that had silently stopped saying anything at all, and one that never compared the suffixes
+# could not notice the divergence being fixed from either end.
+ts_prefix="$(grep -c 'invalid JSON body: ' "$WORK/d8.ts" || true)"
+sw_prefix="$(grep -c 'invalid JSON body: ' "$WORK/d8.swift" || true)"
+ts_msg="$(sed -n 's/.*invalid JSON body: \(.*\)"}.*/\1/p' "$WORK/d8.ts" | head -1)"
+sw_msg="$(sed -n 's/.*invalid JSON body: \(.*\)"}.*/\1/p' "$WORK/d8.swift" | head -1)"
+if [ "$ts_d8" = 1 ] && [ "$sw_d8" = 1 ] && [ "$ts_500" = 1 ] && [ "$sw_500" = 1 ] \
+   && [ "$ts_v8" = 1 ] && [ "$ts_prefix" = 1 ] && [ "$sw_prefix" = 1 ] \
+   && [ -n "$sw_msg" ] && [ "$ts_msg" != "$sw_msg" ]; then
   verdict divergence div-r2r-d8 1 \
-    "both answer 500/-32603; only the parser text differs, as declared"
+    "both answer 500/-32603 with the \"invalid JSON body: \" prefix; the parser text differs, as declared (ts=\"$(printf '%s' "$ts_msg" | cut -c1-40)\" swift=\"$(printf '%s' "$sw_msg" | cut -c1-40)\")"
 else
   verdict divergence div-r2r-d8 0 \
-    "stale: ts(500=$ts_500,-32603=$ts_d8,v8=$ts_v8) swift(500=$sw_500,-32603=$sw_d8) — the declared divergence no longer describes either side"
+    "stale: ts(500=$ts_500,-32603=$ts_d8,v8=$ts_v8,prefix=$ts_prefix) swift(500=$sw_500,-32603=$sw_d8,prefix=$sw_prefix) msg-differ=$([ "$ts_msg" != "$sw_msg" ] && echo yes || echo no) — the declared divergence no longer describes either side"
 fi
 
 # --------------------------------------------------------------------------------------- tools/list
@@ -244,11 +288,27 @@ issue "$TS_PORT"    "$WORK/list.ts"    -X POST "http://127.0.0.1:__PORT__/mcp" \
   -H 'content-type: application/json' -H "$ACCEPT" -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 issue "$SWIFT_PORT" "$WORK/list.swift" -X POST "http://127.0.0.1:__PORT__/mcp" \
   -H 'content-type: application/json' -H "$ACCEPT" -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+# The HEAD as well as the payload. `sse_body` drops the status line, every header and the
+# `event: message` line, so comparing only its output would leave the SSE framing uncompared on the
+# two rows that carry the largest corpora.
+sse_head() { sed -n '1,/^$/p' "$1"; }
+sse_head "$WORK/list.ts"    | normalise > "$WORK/list.ts.head"
+sse_head "$WORK/list.swift" | normalise > "$WORK/list.swift.head"
 sse_body "$WORK/list.ts"    | normalise > "$WORK/list.ts.body"
 sse_body "$WORK/list.swift" | normalise > "$WORK/list.swift.body"
 [ -s "$WORK/list.ts.body" ] || { echo "environment: the reference returned no tools/list frame"; exit 2; }
-compare mcp mcp-tools-list "tools/list — the whole envelope, byte for byte" \
-  "$WORK/list.ts.body" "$WORK/list.swift.body"
+[ -s "$WORK/list.swift.body" ] || {
+  echo "the Swift router returned no tools/list frame at all"
+  verdict mcp mcp-tools-list 0 "the Swift router returned no tools/list frame"
+  }
+list_ok=1
+diff "$WORK/list.ts.head" "$WORK/list.swift.head" >/dev/null 2>&1 || {
+  printf '  FAIL tools/list SSE head differs\n'; list_ok=0; }
+diff "$WORK/list.ts.body" "$WORK/list.swift.body" >"$WORK/d.list" 2>&1 || {
+  printf '  FAIL tools/list body — %s\n' "$(head -4 "$WORK/d.list" | tr '\n' ' ' | cut -c1-140)"
+  list_ok=0; }
+verdict mcp mcp-tools-list "$list_ok" \
+  "tools/list — SSE head and the whole envelope, byte for byte"
 
 # --------------------------------------------------------------------------------------- tools/call
 call_ok=1
@@ -270,7 +330,18 @@ call_case unknownserver '{"jsonrpc":"2.0","id":8,"method":"tools/call","params":
 call_case unknownmethod '{"jsonrpc":"2.0","id":9,"method":"nope/nope"}' || call_ok=0
 call_case initialize '{"jsonrpc":"2.0","id":10,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"parity","version":"1"}}}' || call_ok=0
 call_case ping '{"jsonrpc":"2.0","id":11,"method":"ping"}' || call_ok=0
-verdict mcp mcp-tools-call "$call_ok" "tools/call and the JSON-RPC envelope agree across six shapes"
+# The seventh shape, and the only one that travels over an HTTP upstream rather than a stdio child:
+# `hub` is a third router, so this call goes router -> HTTP -> router -> stdio. It is what exercises
+# HTTPUpstreamTransport, HTTPUpstreamSession, and `listTools`/`callTool` on an HTTP session — none of
+# which any other lane or test reaches, because every other upstream in this harness is stdio.
+call_case httpupstream '{"jsonrpc":"2.0","id":12,"method":"tools/call","params":{"name":"hub__probe__ping","arguments":{}}}' || call_ok=0
+# And the tool must actually have answered, rather than both sides agreeing on an error.
+if ! grep -q 'fixture:ping' "$WORK/call-httpupstream.swift"; then
+  printf '  FAIL the HTTP upstream call did not reach the tool on the Swift side\n'
+  call_ok=0
+fi
+verdict mcp mcp-tools-call "$call_ok" \
+  "tools/call agrees across seven shapes, one of them routed through an HTTP upstream"
 
 # --------------------------------------------------------------------------------------- mcp-status
 # Driven identically first, so `callsServed` and `inFlight` are comparable rather than incidental.

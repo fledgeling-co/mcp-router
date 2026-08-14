@@ -29,6 +29,13 @@ import { searchRegistries } from './registry.js';
 import { UsageStore, projectOf } from './usage.js';
 import { beginAuth, clearAuth, hasTokens, authorizedAt, currentFlow, FileOAuthProvider } from './auth.js';
 import { log } from './log.js';
+import {
+  discoverSkills,
+  discoverMarketplaces,
+  readKnownMarketplaces,
+  loadAndUpdateBaseline,
+  pluginsDirFor,
+} from './skills.js';
 
 export const TOKEN_PATH = join(ROUTER_HOME, 'control.token');
 
@@ -209,6 +216,8 @@ export function isControlPath(pathname: string): boolean {
     pathname.startsWith('/servers/') ||
     pathname === '/usage' ||
     pathname.startsWith('/usage/') ||
+    pathname === '/skills' ||
+    pathname === '/marketplaces' ||
     pathname.startsWith('/registry/')
   );
 }
@@ -242,9 +251,36 @@ export async function handleControl(
     }
   }
 
+  // ----------------------------------------------------- skills, marketplaces
+  //
+  // Read-only. The board these serve manages what is already installed; changing what is installed
+  // is a write against files Claude Code itself has open, and is deliberately not part of this
+  // surface yet — see planning/specs/spec-M4.md.
+  //
+  // A discovery error is a 500 with its own message rather than an empty list. `src/skills.ts`
+  // throws on a plugin manifest whose shape it does not recognise, precisely so this endpoint
+  // cannot answer "you have no skills" when the truth is "the file could not be understood".
+  if (p === '/skills' && req.method === 'GET') {
+    try {
+      const baseline = loadAndUpdateBaseline(ROUTER_HOME, readKnownMarketplaces(pluginsDirFor()));
+      json(res, 200, discoverSkills({ baseline }));
+    } catch (err) {
+      json(res, 500, { error: (err as Error).message });
+    }
+    return true;
+  }
+
+  if (p === '/marketplaces' && req.method === 'GET') {
+    try {
+      json(res, 200, { marketplaces: discoverMarketplaces({}) });
+    } catch (err) {
+      json(res, 500, { error: (err as Error).message });
+    }
+    return true;
+  }
+
   // ---------------------------------------------------------------- servers
-  if (p === '/servers' && req.method === 'GET') {
-    json(res, 200, {
+  if (p === '/servers' && req.method === 'GET') {    json(res, 200, {
       port: deps.cfg.port,
       idleMs: deps.cfg.idleMs,
       since: deps.usage.summary().since,

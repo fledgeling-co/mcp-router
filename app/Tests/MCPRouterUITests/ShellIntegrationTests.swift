@@ -55,9 +55,17 @@
 
         /// Every way a Swift file can reach the outside world without going through the client.
         /// A dependency graph cannot see a direct call; a source grep can.
+        /// Every spelling of "went around the control API" this gate knows about.
+        ///
+        /// The last four were added after a completeness critic observed that the set named sockets
+        /// and processes but nothing that reads a **file** — and that reading a bundled JSON is
+        /// precisely how a surface comes to display a number no router observed, which is what §6
+        /// and A18 are about. A grep is the only check that reaches these: `MCPRouterUI` links
+        /// Foundation, so all of them are always in scope and always one line away.
         private static let forbiddenChannels = [
             "URLSession", "Process(", "NSTask", "FileManager",
-            "NWConnection", "Socket(", "socket("
+            "NWConnection", "Socket(", "socket(",
+            "Data(contentsOf:", "Bundle", "URL(fileURLWithPath:", "contentsOfFile:"
         ]
 
         @Test("the shell opens no socket, no file and no process of its own")

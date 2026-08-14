@@ -192,9 +192,9 @@
             readout.normalisedPoints(at: clock())
         }
 
-        /// Feeds one scroll-geometry reading in.
-        public func observeScroll(offset: Double) {
-            scrollEdge.observe(offset: offset)
+        /// Feeds one scroll-geometry reading in, with the offset it moved from.
+        public func observeScroll(previous: Double, offset: Double) {
+            scrollEdge.observe(previous: previous, offset: offset)
         }
 
         /// Selects a destination — the operation `⌘1`–`⌘7` and `⌘,` perform.

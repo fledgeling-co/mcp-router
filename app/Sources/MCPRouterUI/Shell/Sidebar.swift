@@ -76,9 +76,34 @@
     }
 
     /// The sidebar: two named groups, an ungrouped tail, and the at-rest readout beneath them.
+    /// When the sidebar shows a focus ring, as a decision rather than a modifier chain.
+    ///
+    /// **A24 was measured unmet before this existed.** Driven on 2026-08-14: keyboard focus was moved
+    /// to the sidebar over the accessibility API — the outline's `AXFocused` went 0 → 1 — and a
+    /// window-scoped capture before and after was **byte-identical**. Zero pixels changed. The
+    /// selected row was already accent-tinted whether focused or not, so there was nothing on screen
+    /// that said where the keyboard was, and "keyboard focus is visible" was false.
+    ///
+    /// `DESIGN.md` §8 says focus rings are visible, accent-bound and 2px, and F2 already ships
+    /// exactly that as `focusRing(_:radius:)` reading `MetricToken.focusRing` and `ColorToken.accent`
+    /// — so this needs no new design value and no change to the shared system. What it needs is
+    /// somewhere to make the decision that a test can reach.
+    public enum SidebarFocusRules {
+        /// The ring appears on the selected row, and only while the sidebar holds the keyboard.
+        ///
+        /// Both halves matter and each is asserted. A ring on an unselected row would point at
+        /// nothing; a ring that persists after focus leaves would claim the keyboard is somewhere it
+        /// is not, which is worse than showing nothing at all.
+        public static func showsFocusRing(isSelected: Bool, isSidebarFocused: Bool) -> Bool {
+            isSelected && isSidebarFocused
+        }
+    }
+
     struct Sidebar: View {
         @Bindable var model: ShellModel
         @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+        /// Whether the list holds the keyboard. Drives A24's ring, and nothing else.
+        @FocusState private var isListFocused: Bool
 
         var body: some View {
             VStack(spacing: 0) {
@@ -98,6 +123,7 @@
                     }
                 }
                 .listStyle(.sidebar)
+                .focused($isListFocused)
                 // §3.2: sentence case, and the headers are stored that way — there is no case
                 // transform here to remove, which is what A12 asserts.
                 .environment(\.defaultMinListRowHeight, MetricToken.tableRows.leadingScalar)
@@ -138,6 +164,10 @@
             SidebarRow(
                 destination: destination,
                 isSelected: model.selection == destination,
+                showsFocusRing: SidebarFocusRules.showsFocusRing(
+                    isSelected: model.selection == destination,
+                    isSidebarFocused: isListFocused
+                ),
                 badge: model.badge(for: destination)
             )
             .tag(destination)
@@ -153,6 +183,8 @@
     struct SidebarRow: View {
         let destination: Destination
         let isSelected: Bool
+        /// A24: drawn only where `SidebarFocusRules` says, so the condition is not re-derived here.
+        let showsFocusRing: Bool
         let badge: Int?
 
         @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -183,6 +215,11 @@
             }
             .frame(height: MetricToken.tableRows.leadingScalar)
             .foregroundStyle(isSelected ? ColorToken.accent.color : ColorToken.t2.color)
+            // A24: F2's ring, at the selection's own radius so it sits on the fill rather than
+            // around a rectangle nothing else draws. Its width and colour are the design system's —
+            // `MetricToken.focusRing` and `ColorToken.accent` — which is why this item adds no
+            // number of its own here.
+            .focusRing(showsFocusRing, radius: MetricToken.selectionRadius.leadingScalar)
             // §7: the selection fill has no transition. Not "a fast one" — none.
             .animation(ShellMotion.selectionAnimation(), value: isSelected)
             .accessibilityElement(children: .combine)

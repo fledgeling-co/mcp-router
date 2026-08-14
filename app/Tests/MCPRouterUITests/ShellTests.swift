@@ -25,26 +25,42 @@
         func scrollEdgeThreshold() {
             for resting in [0.0, -22.0, 13.5] {
                 var state = ScrollEdgeState()
-                state.observe(offset: resting)
+                // The very first callback is already a movement: `onScrollGeometryChange` fires on a
+                // change, never on the resting value, so this is the shape every real reading has.
+                state.observe(previous: resting, offset: resting + ScrollEdgeState.threshold)
                 #expect(state.baseline == resting)
-                #expect(!state.isSeparatorVisible, "showed a separator before anything scrolled")
-
-                state.observe(offset: resting + ScrollEdgeState.threshold)
                 #expect(!state.isSeparatorVisible, "fired at the threshold rather than above it")
 
-                state.observe(offset: resting + ScrollEdgeState.threshold + 0.01)
+                state.observe(previous: resting, offset: resting + ScrollEdgeState.threshold + 0.01)
                 #expect(state.isSeparatorVisible, "did not appear once scrolled past the threshold")
 
-                state.observe(offset: resting)
+                state.observe(previous: resting + 40, offset: resting)
                 #expect(!state.isSeparatorVisible, "did not clear on the way back to the top")
             }
+        }
+
+        /// The defect this signature exists to prevent, asserted as itself.
+        ///
+        /// Measured on a fresh launch on 2026-08-14: the separator stayed hidden through 40 points of
+        /// scrolling, because the baseline had been taken from the first reading *received* — which
+        /// is where the first gesture ended — rather than from the offset it started at. A user
+        /// scrolling for the first time saw no separator at all.
+        @Test("the first movement is measured from where it started, not from where it landed")
+        func theFirstMovementShowsTheSeparator() {
+            var state = ScrollEdgeState()
+            // One callback, resting at 0, landing 120 points down. That must show the separator.
+            state.observe(previous: 0, offset: 120)
+            #expect(state.baseline == 0)
+            #expect(
+                state.isSeparatorVisible,
+                "the first scroll left the separator hidden — the baseline followed the gesture"
+            )
         }
 
         @Test("rubber-banding above the resting point never shows the separator")
         func rubberBandingDoesNotFire() {
             var state = ScrollEdgeState()
-            state.observe(offset: 0)
-            state.observe(offset: -40)
+            state.observe(previous: 0, offset: -40)
             #expect(!state.isSeparatorVisible)
         }
 
@@ -53,15 +69,14 @@
         @Test("changing destination re-measures the baseline rather than carrying the old one")
         func resetForgetsTheBaseline() {
             var state = ScrollEdgeState()
-            state.observe(offset: 0)
-            state.observe(offset: 200)
+            state.observe(previous: 0, offset: 200)
             #expect(state.isSeparatorVisible)
 
             state.reset()
             #expect(state.baseline == nil)
             #expect(!state.isSeparatorVisible)
 
-            state.observe(offset: -18)
+            state.observe(previous: -18, offset: -18.5)
             #expect(state.baseline == -18)
             #expect(!state.isSeparatorVisible)
         }
@@ -70,8 +85,7 @@
         @Test("selecting a different destination resets the shell's scroll edge")
         func selectionResetsScrollEdge() throws {
             let model = try ShellTestSupport.model(.populated)
-            model.observeScroll(offset: 0)
-            model.observeScroll(offset: 300)
+            model.observeScroll(previous: 0, offset: 300)
             #expect(model.scrollEdge.isSeparatorVisible)
 
             model.select(.servers)
@@ -102,8 +116,21 @@
                 try assertFailure(scenario, on: model)
             case .empty, .partial, .overflow, .disabled:
                 try assertShape(scenario, on: model)
-            case .populated, .success:
+            case .populated:
                 assertPopulated(scenario, on: model)
+            case .success:
+                // `.success` shared `.populated`'s assertions exactly, which a completeness critic
+                // pointed out means it was distinguished by nothing — two names, one check.
+                //
+                // The honest answer is that the *shell* cannot tell them apart, and saying so is
+                // better than inventing a difference: `.success` is a write that succeeded, and M1
+                // ships no write surface. So the readout is asserted to be the populated one, and
+                // the scenario's own observable is exercised where it actually exists — a reindex
+                // that comes back with no error and a tool count, which under `.populated` fails.
+                assertPopulated(scenario, on: model)
+                let result = try await model.client.reindex("anything")
+                #expect(result.error == nil, "the success scenario returned a failed write")
+                #expect(result.tools != nil, "the success scenario reported no tool count")
             default:
                 Issue.record("\(scenario) has no assertion")
             }

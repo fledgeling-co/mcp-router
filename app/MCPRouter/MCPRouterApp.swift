@@ -8,17 +8,16 @@ import SwiftUI
 /// Everything this file does is assembly. `app/MCPRouter` is not a SwiftPM target, so nothing here
 /// can be reached by `swift test` — which means anything with a decision in it would be a clause
 /// with no possible red-green evidence. The navigation model, the command inventory, the readout
-/// derivation and the shell's views all live in `MCPRouterKit` and `MCPRouterUI` for that reason,
-/// and what is left here is a `Scene` and six menu builders whose *contents* come from the model.
-///
-/// The client is `FixtureControlAPIClient` for now, deliberately and temporarily: the app has no
-/// pairing flow yet, so it has no control token, and `LiveControlAPIClient` without one would
-/// render the unauthorised state on every launch. M8 swaps this for the live client when there is a
-/// token to give it. Every state below is therefore reachable with no router running, which is A37.
+/// derivation, the shell's views and **which control client it talks to** all live in
+/// `MCPRouterKit` and `MCPRouterUI` for that reason, and what is left here is a `Scene` and six menu
+/// builders whose *contents* come from the model.
 @main
 struct MCPRouterApp: App {
     @NSApplicationDelegateAdaptor(ShellAppDelegate.self) private var appDelegate
-    @State private var model = ShellModel(client: FixtureControlAPIClient(.populated))
+    // A Release build gets the live loopback client and can never be talked into a fixture; a Debug
+    // build takes a scenario from the environment so the acceptance gate can drive the app into any
+    // of `DESIGN.md` §5's states. `ShellClientFactory` holds that rule, where a test reaches it.
+    @State private var model = ShellModel(client: ShellClientFactory.makeClient())
 
     var body: some Scene {
         WindowGroup("MCP Router") {

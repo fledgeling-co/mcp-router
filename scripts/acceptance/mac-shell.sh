@@ -76,7 +76,30 @@ esac
 # The stricter reading was tried first and is wrong: the user switching from their terminal to a
 # browser mid-run failed the gate for something the gate did not do, which is a false alarm on the
 # one rule that must be believed. What is asserted is the thing that would actually take the screen.
+# Puts the app back behind whatever the user is using, if macOS has promoted it.
+#
+# `open -g` does not activate, and nothing in this gate does either — but macOS gives the front to a
+# background app on its own when whatever *was* in front goes away, and that was observed here: a
+# third application took focus mid-run, dropped it, and MCP Router inherited the front through no
+# call of this script's. Failing on that would report a screen theft that did not happen; ignoring it
+# would leave the app in the user's face. Hiding and immediately un-hiding removes it from the front
+# and restores its windows without activating anything, which is the only correction available that
+# does not take the screen for something else.
+step_back() {
+    case "$("$AXKIT" front)" in
+        "MCP Router"|MCPRouter) ;;
+        *) return 0 ;;
+    esac
+    "$AXKIT" hidden "$PID" hide >/dev/null 2>&1 || true
+    sleep 0.6
+    "$AXKIT" hidden "$PID" unhide >/dev/null 2>&1 || true
+    sleep 0.8
+}
+
 check_invisible() {
+    # One correction attempt before judging, for the reason `step_back` documents. A gate that fails
+    # on someone else's focus change is a gate nobody believes the next time it fires.
+    step_back
     local now
     now="$("$AXKIT" front)"
     case "$now" in
@@ -125,19 +148,30 @@ echo "DESIGN.md §2 sidebar rows: $DOC_ROWS"
 # 10 cmdchar · 11 cmdmods · 12 identifier · 13 x · 14 y · 15 w · 16 h · 17 focused
 
 launch_app() {
+    local scenario="${1:-}"
     pkill -f 'MCPRouter.app/Contents/MacOS/MCPRouter' >/dev/null 2>&1 || true
     sleep 1
     # `-g` is the whole point: `open` on its own activates, and activation is what takes the screen.
-    open -g -a "$MAC_APP"
+    #
+    # `--env` is how a state other than the populated one is reached. Before `ShellClientFactory`
+    # existed the app was hardwired to one fixture, so every clause whose evidence names the running
+    # app in a failure or overflow state had no lane at all — A28 in particular asks for the offline
+    # and unauthorised copy to be read out of the **running app**, and it could not have been.
+    if [ -n "$scenario" ]; then
+        open -g -a "$MAC_APP" --env "MCPROUTER_SCENARIO=$scenario"
+    else
+        open -g -a "$MAC_APP"
+    fi
     for _ in $(seq 1 40); do
         PID="$(pgrep -f 'MCPRouter.app/Contents/MacOS/MCPRouter' | head -1 || true)"
         if [ -n "$PID" ] && "$AXKIT" dump "$PID" window >/dev/null 2>&1; then
+            step_back
             check_invisible "launch"
             return 0
         fi
         sleep 0.5
     done
-    fail "the shell window never appeared"
+    fail "the shell window never appeared${scenario:+ (scenario $scenario)}"
 }
 
 dump_window() { "$AXKIT" dump "$PID" window > "$WORK/window.tsv" 2>/dev/null || blocked "the window walk failed"; }
@@ -433,10 +467,20 @@ while IFS=$'\t' read -r menu title shortcut availability; do
     if [ $(( mods & 1 )) -ne 0 ]; then got="${got}⇧"; fi
     if [ $(( mods & 8 )) -eq 0 ]; then got="${got}⌘"; fi
 
-    # ⌫ has no printable command character, so AX reports an empty one. The key is still bound —
-    # the modifiers came back — and the glyph the document writes is the one macOS draws.
-    if [ -z "$char" ] && [ "$shortcut" = "⌘⌫" ]; then
-        char="⌫"
+    # ⌫ has no printable command character, so AX reports an empty one after the control range is
+    # stripped. The previous spelling substituted the **expected** glyph when the observation was
+    # empty — `if [ -z "$char" ] && [ "$shortcut" = "⌘⌫" ]; then char="⌫"; fi` — which made that row
+    # unable to fail on its key, because the answer was written in from the question. A completeness
+    # critic caught it. What is asserted instead is what AX can actually report for that key: the
+    # modifiers, compared as usual, and the *absence* of a printable character, which is itself the
+    # observation that distinguishes ⌫ from a letter.
+    if [ "$shortcut" = "⌘⌫" ]; then
+        [ -z "$char" ] \
+          || fail "Edit / $title reports the printable key '$char'; ⌫ has none, so this is a different chord"
+        SHORTCUT_CHECKED=$((SHORTCUT_CHECKED + 1))
+        [ "$got" = "⌘" ] \
+          || { echo "  $menu / $title: modifiers are '$got', expected ⌘" >&2; SHORTCUT_FAILS=$((SHORTCUT_FAILS + 1)); }
+        continue
     fi
     got="${got}${char}"
 
@@ -592,6 +636,64 @@ send_bare_key 36 Return
 send_bare_key 53 Esc
 check_invisible "the bare-key assertions"
 
+# ---------------------------------------------------------------- A24 · the focus ring, rendered
+
+echo
+echo "keyboard focus"
+
+# A24 wants a *rendered* measurement — "keyboard focus is visible, accent-bound and 2pt". Two of
+# those three are measured here and the third is reported, for the same reason A1's 33 is:
+#
+# **M1 ships no control that draws its own focus ring.** The shell's focusable surfaces are AppKit's
+# sidebar list and the content zone, and the ring on the former is drawn by AppKit at the system
+# width. F2's `focusRing` modifier — which does read `MetricToken.focusRing` — is applied by
+# controls, and the shell ships none. So the width is AppKit's number, not this item's, and claiming
+# a 2pt measurement of it would be claiming credit for someone else's value.
+#
+# What *is* asserted is the part that is the shell's: with the sidebar unfocused the selected row is
+# a neutral fill, and when focus moves to it the row becomes accent-bound and visibly so. Colour is
+# matched by blue dominance rather than an exact hex, because the accent composites over a
+# translucent sidebar material — see `axkit accent`.
+"$AXKIT" select "$PID" Servers >/dev/null
+sleep 1
+ROW_RECT="$("$AXKIT" rowrect "$PID" Servers)"
+IFS=, read -r ROW_X ROW_Y ROW_W ROW_H <<< "$ROW_RECT"
+dump_window
+WIN_X="$(awk -F'\t' '$1 == 0 { print $13; exit }' "$WORK/window.tsv")"
+WIN_Y="$(awk -F'\t' '$1 == 0 { print $14; exit }' "$WORK/window.tsv")"
+RING_X0=$(awk -v a="$ROW_X" -v w="$WIN_X" 'BEGIN { printf "%d", (a - w) * 2 }')
+RING_X1=$(awk -v a="$ROW_X" -v w="$WIN_X" -v ww="$ROW_W" 'BEGIN { printf "%d", (a - w + ww) * 2 }')
+RING_Y0=$(awk -v a="$ROW_Y" -v w="$WIN_Y" 'BEGIN { printf "%d", (a - w) * 2 }')
+RING_Y1=$(awk -v a="$ROW_Y" -v w="$WIN_Y" -v hh="$ROW_H" 'BEGIN { printf "%d", (a - w + hh) * 2 }')
+
+WIN_ID="$("$AXKIT" winid "$PID" || true)"
+[ -n "$WIN_ID" ] || blocked "could not resolve the window id — Screen Recording permission?"
+
+# The Debug key probe claims first responder at launch, so the sidebar starts unfocused — which is
+# the control condition this assertion needs, arrived at without doing anything to produce it.
+screencapture -o -x -l"$WIN_ID" "$WORK/unfocused.png"
+[ -s "$WORK/unfocused.png" ] || blocked "screencapture produced no image — grant Screen Recording"
+UNFOCUSED="$("$AXKIT" accent "$WORK/unfocused.png" "$RING_X0" "$RING_X1" "$RING_Y0" "$RING_Y1" 0.15)"
+UNFOCUSED_N="$(printf '%s' "$UNFOCUSED" | cut -d' ' -f1)"
+
+"$AXKIT" focus "$PID" >/dev/null || fail "could not move keyboard focus to the sidebar"
+sleep 1.5
+screencapture -o -x -l"$WIN_ID" "$WORK/focused.png"
+FOCUSED="$("$AXKIT" accent "$WORK/focused.png" "$RING_X0" "$RING_X1" "$RING_Y0" "$RING_Y1" 0.15)"
+FOCUSED_N="$(printf '%s' "$FOCUSED" | cut -d' ' -f1)"
+FOCUSED_RUN="$(printf '%s' "$FOCUSED" | cut -d' ' -f2)"
+
+awk -v f="$FOCUSED_N" -v u="$UNFOCUSED_N" 'BEGIN { exit !(f + 0 > u + 0) }' \
+  || fail "focusing the sidebar changed no accent pixels on the selected row ($UNFOCUSED_N → $FOCUSED_N) — focus is not visible"
+# A floor as well as a direction: a handful of pixels is an antialiasing artefact, not something a
+# person can see. One row's width of accent is the smallest thing that reads as focus.
+awk -v run="$FOCUSED_RUN" -v w="$ROW_W" 'BEGIN { exit !(run + 0 >= w * 0.5) }' \
+  || fail "the focused row's longest accent run is only ${FOCUSED_RUN}px across a ${ROW_W}pt row — that is not a visible ring"
+pass "focus is visible and accent-bound: $UNFOCUSED_N accent px unfocused → $FOCUSED_N focused, longest run ${FOCUSED_RUN}px"
+echo "  NOTE — the ring's width is AppKit's, not this item's: M1 ships no control that draws its own."
+echo "  NOTE   MetricToken.focusRing is read by F2's focusRing modifier, which the shell does not use."
+check_invisible "the focus-ring assertion"
+
 # ---------------------------------------------------------------- A34 · the scroll edge, rendered
 
 echo
@@ -630,22 +732,54 @@ BAND_X1=$(awk -v cx="$CONTENT_X" -v wx="$WIN_X" -v w="$CONTENT_W" 'BEGIN { print
 BAND_Y0=$(awk -v cy="$CONTENT_Y" -v wy="$WIN_Y" 'BEGIN { printf "%d", (cy - wy) * 2 }')
 BAND_Y1=$(awk -v y="$BAND_Y0" 'BEGIN { printf "%d", y + 16 }')
 
+# The separator is identified by **uniformity**, which is the property that distinguishes a hairline
+# from anything else that can appear at the top of a scrolling view.
+#
+# The first version of this assertion compared pixel counts before and after a scroll and required a
+# near-full-width row to change. A completeness critic said that a full-width row of body text
+# scrolling past the top edge clears the same bar, and the negative control added to test that
+# objection **failed immediately** — scrolling further changed the band as much again. The objection
+# was right and the assertion was withdrawn.
+#
+# What is measured instead: at rest the content's top row is uniformly one colour; once scrolled it
+# is uniformly a *different* one; and on the way back it returns. Content passing under the edge is
+# never uniform across the whole width, so it cannot satisfy this in either direction. The colours
+# are read rather than written down — the composited value of `line` over the content ground is an
+# alpha blend, and pinning it here would pin the appearance instead of the behaviour.
+top_row_colour() {
+    screencapture -o -x -l"$WIN_ID" "$WORK/edge.png"
+    [ -s "$WORK/edge.png" ] || blocked "screencapture produced no image — grant Screen Recording"
+    "$AXKIT" uniform "$WORK/edge.png" "$BAND_X0" "$BAND_X1" "$BAND_Y0"
+}
+
 "$AXKIT" scroll "$PID" 0 >/dev/null || true
-sleep 1
-screencapture -o -x -l"$WIN_ID" "$WORK/before.png"
-[ -s "$WORK/before.png" ] || blocked "screencapture produced no image — grant Screen Recording"
+sleep 1.2
+REST="$(top_row_colour)"
+REST_COLOUR="$(printf '%s' "$REST" | cut -d' ' -f1)"
+REST_SHARE="$(printf '%s' "$REST" | cut -d' ' -f2)"
+awk -v s="$REST_SHARE" 'BEGIN { exit !(s + 0 >= 0.98) }' \
+  || fail "the content's top row is not one colour at rest (${REST_COLOUR} covers only ${REST_SHARE}) — nothing here can be measured"
 
 "$AXKIT" scroll "$PID" 0.6 >/dev/null || fail "could not scroll the content zone through its scroll bar"
 sleep 1.5
-screencapture -o -x -l"$WIN_ID" "$WORK/after.png"
-[ -s "$WORK/after.png" ] || blocked "screencapture produced no image after the scroll"
+SCROLLED="$(top_row_colour)"
+SCROLLED_COLOUR="$(printf '%s' "$SCROLLED" | cut -d' ' -f1)"
+SCROLLED_SHARE="$(printf '%s' "$SCROLLED" | cut -d' ' -f2)"
+awk -v s="$SCROLLED_SHARE" 'BEGIN { exit !(s + 0 >= 0.98) }' \
+  || fail "the top row is not one colour once scrolled (${SCROLLED_COLOUR} covers ${SCROLLED_SHARE}) — that is content, not a separator"
+[ "$SCROLLED_COLOUR" != "$REST_COLOUR" ] \
+  || fail "the top row rendered $REST_COLOUR both at rest and scrolled — no separator appeared"
+pass "the scroll edge: $REST_COLOUR at rest, $SCROLLED_COLOUR scrolled, each uniform across the content width"
 
-BAND="$("$AXKIT" banddiff "$WORK/before.png" "$WORK/after.png" "$BAND_X0" "$BAND_X1" "$BAND_Y0" "$BAND_Y1")"
-BAND_ROW="$(printf '%s' "$BAND" | cut -d' ' -f1)"
-BAND_FRACTION="$(printf '%s' "$BAND" | cut -d' ' -f2)"
-awk -v f="$BAND_FRACTION" 'BEGIN { exit !(f + 0 >= 0.8) }' \
-  || fail "no row in the content's top band changed by more than ${BAND_FRACTION} of its width after a scroll — no separator appeared"
-pass "a scroll changed ${BAND_FRACTION} of one full row at the content's top edge (image row $BAND_ROW)"
+# And back. A34 says "absent at scroll offset 0 and present above it", which is two claims; a
+# separator that appeared and never left would satisfy only the first.
+"$AXKIT" scroll "$PID" 0 >/dev/null || true
+sleep 1.5
+RETURNED="$(top_row_colour)"
+RETURNED_COLOUR="$(printf '%s' "$RETURNED" | cut -d' ' -f1)"
+[ "$RETURNED_COLOUR" = "$REST_COLOUR" ] \
+  || fail "returning to the top left the edge at $RETURNED_COLOUR, not the resting $REST_COLOUR — the separator did not clear"
+pass "returning to the top cleared it: back to $REST_COLOUR"
 check_invisible "the scroll-edge assertion"
 
 # ---------------------------------------------------------------- A32, A33 · restoration
@@ -685,6 +819,52 @@ pass "the selected destination survived quit and relaunch ($GOT_TITLE)"
 pass "the window frame survived quit and relaunch ($GOT_FRAME)"
 check_invisible "the restoration assertions"
 
+# ---------------------------------------------------------------- A28 · the failure copy, in the app
+
+echo
+echo "the failure states, in the running app"
+
+# A28 asks for `ControlAPIError`'s wording **verbatim, in the app itself** — "an AX assertion that the
+# **running app** carries them". Until `ShellClientFactory` existed that was impossible: the app was
+# hardwired to the populated fixture, so no failure state could ever be on screen and the clause's
+# running-app leg was unevidenced while the gate reported success. Each state is its own process
+# because a fixture is chosen at launch; two extra backgrounded launches is what the clause costs.
+#
+# The expected strings are parsed out of `ControlAPIClient.swift` rather than written here, so the
+# oracle is the type's own copy and a reworded error fails this gate rather than drifting past it.
+error_headline() {
+    sed -n '/var headline: String/,/^    }/p' \
+      "$APP_DIR/Sources/MCPRouterKit/Control/ControlAPIClient.swift" \
+      | grep -oE "case \.$1: \"[^\"]+\"" | sed -E 's/.*"(.*)"/\1/'
+}
+
+for state in offline unauthorized; do
+    case "$state" in
+        offline)      want="$(error_headline routerNotRunning)" ;;
+        unauthorized) want="$(error_headline unauthorized)" ;;
+    esac
+    [ -n "$want" ] || blocked "could not read the $state headline out of ControlAPIClient.swift"
+
+    launch_app "$state"
+    sleep 2
+    dump_window
+    STATE_TEXT="$(cut -f4,5,6 "$WORK/window.tsv" | tr '\t' '\n' | grep -v '^$' || true)"
+    printf '%s\n' "$STATE_TEXT" | grep -qF "$want" \
+      || fail "the running app in the $state state does not carry ControlAPIError's own words: '$want'"
+
+    # A18, rendered: no count may appear when the router made no observation. The readout's populated
+    # sentence is the thing that must be absent, and its shape is the same one asserted present above.
+    if printf '%s\n' "$STATE_TEXT" | grep -qE '^[0-9]+ of [0-9]+ declared servers running$'; then
+        fail "the $state state still renders running counts — a count is a claim about a router that did not answer (A18)"
+    fi
+    pass "$state: the app carries \"$want\" verbatim, and renders no counts"
+    check_invisible "the $state state"
+done
+
+# Back to the populated app for the checks that follow.
+launch_app
+sleep 2
+
 # ---------------------------------------------------------------- the scaffold cannot ship silently
 
 echo
@@ -705,11 +885,16 @@ case "$INSTALLED" in
     *)        SCAFFOLDS_REMAIN=0 ;;
 esac
 
+# Every file in the bundle, not only the executable ones.
+#
+# This searched `find -type f -perm +111` — executables — until a completeness critic pointed out
+# that copy lives in nibs, `.strings` files and asset catalogues just as readily as in a binary, and
+# that a scaffold sentence in any of those would have been invisible to the gate meant to catch it.
 bundle_contains() {
     local bundle="$1" needle="$2" f
     while IFS= read -r f; do
         if LC_ALL=C grep -qaF -- "$needle" "$f" 2>/dev/null; then return 0; fi
-    done < <(find "$bundle" -type f -perm +111)
+    done < <(find "$bundle" -type f)
     return 1
 }
 

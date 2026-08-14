@@ -31,13 +31,19 @@
 
         public init() {}
 
-        /// Feeds one geometry reading in. The first call sets the baseline and shows nothing.
-        public mutating func observe(offset: Double) {
-            guard let baseline else {
-                baseline = offset
-                isSeparatorVisible = false
-                return
-            }
+        /// Feeds one geometry reading in, with the offset the view was at immediately before it.
+        ///
+        /// **`previous` is what makes the baseline the resting offset**, and getting this wrong was a
+        /// measured defect rather than a theoretical one. `onScrollGeometryChange` fires only when
+        /// the value *changes*, so the resting position is never delivered as a reading of its own —
+        /// an earlier version took the baseline from the first reading it received, which is where
+        /// the first scroll *ended up*. Driven on 2026-08-14 against a fresh launch: the separator
+        /// stayed hidden through 40 points of scrolling and appeared only past 40% of the range,
+        /// because the baseline had been set to wherever the first gesture landed. The old value of
+        /// that first callback is the resting offset, and it is the number this needs.
+        public mutating func observe(previous: Double, offset: Double) {
+            if baseline == nil { baseline = previous }
+            guard let baseline else { return }
             isSeparatorVisible = offset > baseline + Self.threshold
         }
 

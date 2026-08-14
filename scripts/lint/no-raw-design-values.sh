@@ -138,9 +138,15 @@ for f in "${SHELL_FILES[@]}"; do
   #    that is what lets the router be swapped underneath without the app changing. A dependency
   #    graph cannot see a direct call: `MCPRouterUI` legitimately links Foundation, so `URLSession`
   #    is always in scope and always one line away. A source grep is the only check that reaches it.
+  #
+  #    **Reading a file is one of the ways past the API, and this list did not say so.** The set was
+  #    sockets and processes plus a bare `FileManager`, which a completeness critic pointed out
+  #    leaves `Data(contentsOf:)`, `Bundle` and `URL(fileURLWithPath:)` — the spelling an actual
+  #    fixture reader uses — entirely unnamed. A18 and §6 turn on where a number came from, so a
+  #    shell that reads its own JSON is exactly the failure the clause is about.
   while IFS= read -r hit; do
     report "$rel:$hit  — the shell reaches past the control API; only F3's client may (A36)"
-  done < <(grep -nE '\b(URLSession|NSTask|NWConnection|NWListener|CFSocket)\b|\bProcess\(|\bFileManager\b|\bsocket\(' "$f" || true)
+  done < <(grep -nE '\b(URLSession|NSTask|NWConnection|NWListener|CFSocket|Bundle)\b|\bProcess\(|\bFileManager\b|\bsocket\(|Data\(contentsOf:|URL\(fileURLWithPath:|contentsOfFile:' "$f" || true)
 done
 
 # ------------------------------------------------------------------ the separation, and the bridge

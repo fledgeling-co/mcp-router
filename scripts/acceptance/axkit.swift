@@ -282,6 +282,69 @@ case "scroll":
     print(result == .success ? "OK" : "ERR \(result.rawValue)")
     if result != .success { exit(1) }
 
+case "rowrect":
+    // The screen rectangle of one sidebar row, so a pixel measurement has somewhere to look.
+    guard args.count >= 4 else { die("usage: axkit rowrect <pid> <row prefix>") }
+    let (_, app) = application(args[2])
+    guard let window = standardWindow(app), let outline = firstElement(in: window, role: "AXOutline") else {
+        die("no sidebar outline")
+    }
+    let rows = children(outline).filter { string($0, kAXRoleAttribute as String) == "AXRow" }
+    guard let row = rows.first(where: { spokenText($0).hasPrefix(args[3]) }) else {
+        die("no sidebar row starting '\(args[3])'", 1)
+    }
+    let p = pair(row, kAXPositionAttribute as String) ?? (-1, -1)
+    let s = pair(row, kAXSizeAttribute as String) ?? (-1, -1)
+    print(String(format: "%.0f,%.0f,%.0f,%.0f", p.0, p.1, s.0, s.1))
+
+case "focus":
+    // Moves keyboard focus to the sidebar, so A24 can compare a focused row with an unfocused one.
+    // `AXFocused` is settable on the outline, which is how a screen-reader user's focus moves there,
+    // and it needs no activation.
+    let (_, app) = application(args[2])
+    guard let window = standardWindow(app), let outline = firstElement(in: window, role: "AXOutline") else {
+        die("no sidebar outline")
+    }
+    let result = AXUIElementSetAttributeValue(outline, kAXFocusedAttribute as CFString, kCFBooleanTrue)
+    print(result == .success ? "OK" : "ERR \(result.rawValue)")
+    if result != .success { exit(1) }
+
+case "accent":
+    // Counts accent-coloured pixels in a rectangle, and reports the longest unbroken horizontal run
+    // of them and where it starts.
+    //
+    // A24 asks for a *rendered* measurement of keyboard focus — visible, accent-bound, 2pt. Colour
+    // is matched by dominance rather than by an exact hex, deliberately: `ColorToken.accent` is
+    // composited over a translucent sidebar material, so its rendered value is not its authored one
+    // and pinning the blend would pin the appearance instead of the meaning. Blue clearly ahead of
+    // both other channels is what "accent" means here and what no other shell colour satisfies —
+    // `live` is green, `attention` orange, `fail` red, and every tier is neutral.
+    guard args.count >= 8, let rep = bitmap(args[2]),
+          let x0 = Int(args[3]), let x1 = Int(args[4]), let y0 = Int(args[5]), let y1 = Int(args[6]),
+          let margin = Double(args[7]) else {
+        die("usage: axkit accent <png> <x0> <x1> <y0> <y1> <margin>")
+    }
+    var total = 0
+    var bestRun = 0
+    var bestRunX = -1
+    var bestRunY = -1
+    for y in y0 ... min(y1, rep.pixelsHigh - 1) {
+        var run = 0
+        for x in x0 ... min(x1, rep.pixelsWide - 1) {
+            guard let c = rep.colorAt(x: x, y: y) else { continue }
+            let isAccent = c.blueComponent - c.redComponent > margin
+                && c.blueComponent - c.greenComponent > margin
+            if isAccent {
+                total += 1
+                run += 1
+                if run > bestRun { bestRun = run; bestRunX = x - run + 1; bestRunY = y }
+            } else {
+                run = 0
+            }
+        }
+    }
+    print("\(total) \(bestRun) \(bestRunX) \(bestRunY)")
+
 case "setframe":
     guard args.count >= 7 else { die("usage: axkit setframe <pid> <x> <y> <w> <h>") }
     let (_, app) = application(args[2])
@@ -301,7 +364,19 @@ case "hidden":
         print("gone")
         exit(0)
     }
-    if args.count > 3, args[3] == "unhide" { running.unhide() }
+    if args.count > 3 {
+        switch args[3] {
+        case "unhide": running.unhide()
+        // Hiding is how this gate pushes the app **out** of the front without activating anything
+        // else. macOS promotes a background app to frontmost on its own when whatever was in front
+        // goes away, and observed on 2026-08-14 that is exactly what happened mid-run: another app
+        // took focus, dropped it, and this one inherited it. `hide()` removes it from the front and
+        // `unhide()` brings its windows back **without** activating — the pair is the only way to
+        // correct that without taking the screen for something else.
+        case "hide": running.hide()
+        default: break
+        }
+    }
     print(running.isHidden ? "hidden" : "visible")
 
 case "terminate":
@@ -325,6 +400,33 @@ case "sample":
         Int((c.greenComponent * 255).rounded()),
         Int((c.blueComponent * 255).rounded())
     ))
+
+case "uniform":
+    // The dominant colour of one row of pixels, and what share of the row it covers.
+    //
+    // This is what identifies a hairline. A separator is a **uniform** line across the whole content
+    // width; content scrolling under the top edge is not. An earlier version of the A34 assertion
+    // compared before/after pixel counts, which a completeness critic correctly showed could not
+    // tell the two apart — and the negative control that was added to check it promptly failed,
+    // confirming the band was tracking content.
+    guard args.count >= 6, let rep = bitmap(args[2]),
+          let x0 = Int(args[3]), let x1 = Int(args[4]), let y = Int(args[5]) else {
+        die("usage: axkit uniform <png> <x0> <x1> <y>")
+    }
+    guard y >= 0, y < rep.pixelsHigh else { die("row \(y) is outside the image") }
+    var counts: [String: Int] = [:]
+    var total = 0
+    for x in x0 ... min(x1, rep.pixelsWide - 1) {
+        guard let c = rep.colorAt(x: x, y: y) else { continue }
+        let key = String(format: "#%02X%02X%02X",
+                         Int((c.redComponent * 255).rounded()),
+                         Int((c.greenComponent * 255).rounded()),
+                         Int((c.blueComponent * 255).rounded()))
+        counts[key, default: 0] += 1
+        total += 1
+    }
+    guard total > 0, let best = counts.max(by: { $0.value < $1.value }) else { die("no pixels sampled") }
+    print(String(format: "%@ %.3f", best.key, Double(best.value) / Double(total)))
 
 case "banddiff":
     // How much of one row of pixels changed between two captures, across a horizontal span.

@@ -65,8 +65,10 @@
             }
             .onScrollGeometryChange(for: Double.self) { geometry in
                 geometry.contentOffset.y
-            } action: { _, offset in
-                model.observeScroll(offset: offset)
+            } action: { previous, offset in
+                // Both values, deliberately: the callback fires only on a change, so `previous` is
+                // the only place the resting offset ever appears. See `ScrollEdgeState.observe`.
+                model.observeScroll(previous: previous, offset: offset)
             }
             .overlay(alignment: .top) {
                 ScrollEdgeSeparator(isVisible: model.scrollEdge.isSeparatorVisible)

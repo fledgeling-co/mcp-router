@@ -20,13 +20,17 @@ import Foundation
 /// from "no", and rendering it as a failure would blame a capability for the router's own silence.
 /// `notApplicable` means the question does not arise for this subject at all: an upstream that
 /// carries no credentials cannot have current ones.
+///
+/// **The raw values are the observation vocabulary, not the case names.** The cases keep engineering
+/// names because `.passed` reads correctly in a `switch`; the raw values are what get written to the
+/// history file on disk, and a persisted `"verdict":"passed"` would put the grading noun into the
+/// one artifact a curious user is most likely to open when they want to know what actually ran. The
+/// plan gate caught that, and it is a one-line fix because nothing has been persisted yet.
 public enum CheckVerdict: String, Codable, Hashable, Sendable, CaseIterable {
-    case passed
-    case failed
-    /// Not observed. Never rendered as a pass, and never as a failure.
-    case unknown
-    /// The question does not arise for this subject.
-    case notApplicable
+    case passed = "confirmed"
+    case failed = "notMet"
+    case unknown = "notObserved"
+    case notApplicable = "notApplicable"
 
     /// Whether this verdict is one a human should look at.
     public var wantsAttention: Bool { self == .failed }
@@ -123,8 +127,12 @@ public struct SubjectKey: Codable, Hashable, Sendable {
 /// same device `ScaffoldedDestination` uses: a subject with no live fingerprint has no `Stamp` to
 /// hand the store, so the refusal is a type rather than a rule a caller has to remember. A
 /// `.standalone` skill has no version field anywhere in `SkillSource` — M4 modelled it as a closed
-/// enum whose standalone case carries only a path — and a server that has never been indexed has no
+/// enum whose standalone case carries only a path — and a server that has never been declared has no
 /// `hash`. Neither can be stamped, so neither is stored, because nothing could ever invalidate it.
+///
+/// **A stamp governs stored history, never a rendered verdict.** Every verdict on screen is computed
+/// from the response the board just fetched; nothing rendered is read back from the store. That
+/// separation exists because no single fingerprint could ever govern all eleven checks — see below.
 public struct Stamp: Codable, Hashable, Sendable {
     public let value: String
 
@@ -135,9 +143,17 @@ public struct Stamp: Codable, Hashable, Sendable {
         self.value = value
     }
 
-    /// A server's fingerprint is the digest of its tool surface — more precisely the version of the
-    /// thing being checked than a version string an upstream can leave unchanged while its tools
-    /// move underneath it.
+    /// A server's stamp is the digest of the entry **as declared**.
+    ///
+    /// `src/control.ts:163` sends `hash: upstreamHash(u)`, and `src/config.ts:98` computes that over
+    /// the command, args, cwd and env names for stdio, or the transport, URL and header names
+    /// otherwise. So it moves when the user edits the entry and at no other time — **an upstream that
+    /// silently changes its tools does not move it.**
+    ///
+    /// An earlier draft of this file claimed the opposite, that it was a digest of the tool surface,
+    /// and built the whole invalidation model on it. The spec gate disproved it by reading the router
+    /// source. What `hash` is genuinely good for is what it is used for here: stamping *evidence
+    /// about a declared server*, so a stored run can say it was gathered before the entry was edited.
     public static func forServer(_ server: MCPServer) -> Stamp? { Stamp(server.hash) }
 
     /// A skill's version is its **plugin's** version, shared by every skill that plugin supplies.

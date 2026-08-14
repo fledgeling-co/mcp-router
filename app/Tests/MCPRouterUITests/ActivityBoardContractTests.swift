@@ -185,17 +185,22 @@
             #expect(ScaffoldedDestination(.activity) == nil, "the placeholder cannot be built for it")
 
             // This read `installed == [.activity]` while M2 was the only board on the branch. M3
-            // then merged, M4 after it, M8 after that, and M5 after that — asserted exactly rather
-            // than by containment, so a board appearing or vanishing here is a deliberate edit
-            // rather than something a subset check waves through.
-            #expect(BoardRegistry.installed == [.servers, .activity, .skills, .settings, .discover])
-            #expect(BoardRegistry.scaffolded.count == 3)
-            // `.inbox` rather than `.discover`: M5 installed Discover, so it no longer builds a
-            // placeholder — which is exactly what this test proved about `.skills` before M4 and
-            // about `.discover` before M5. The subject has to be a destination that is *still*
-            // scaffolded, or this stops testing what it names. Repointing it is the designed action
-            // each time a board lands; renumbering the count alone would leave it asserting that a
-            // shipped board still builds a placeholder, which is the opposite of the invariant.
+            // then merged, M4 after it, M8 after that, M5 after that, and M7 after that — asserted
+            // exactly rather than by containment, so a board appearing or vanishing here is a
+            // deliberate edit rather than something a subset check waves through.
+            #expect(
+                BoardRegistry.installed
+                    == [.servers, .activity, .skills, .settings, .discover, .evals, .cleanup]
+            )
+            #expect(BoardRegistry.scaffolded.count == 1)
+            // `.inbox`, and after M7 it is the *only* destination this assertion can name: Evals and
+            // Cleanup were the last two besides it, so `ScaffoldedDestination` now returns nil for
+            // every other case. That is exactly what this test proved about `.skills` before M4 and
+            // `.discover` before M5. The subject has to be a destination that is *still* scaffolded,
+            // or this stops testing what it names. Repointing it is the designed action each time a
+            // board lands; renumbering the count alone would leave it asserting that a shipped board
+            // still builds a placeholder, which is the opposite of the invariant. When M6 lands,
+            // this assertion has no valid subject left and should be deleted rather than repointed.
             #expect(ScaffoldedDestination(.inbox) != nil, "a scaffolded destination still builds one")
         }
     }

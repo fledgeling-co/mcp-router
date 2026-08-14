@@ -170,9 +170,19 @@ public enum CheckCopy {
     /// never live text", and a history row is live text. The row is **kept** — invalidation is not
     /// deletion, and evidence gathered against an older version is still evidence of what was
     /// observed then.
+    ///
+    /// This form is for a **skill**, whose stamp is a readable version like `0.4.1`.
     public static func invalidatedLabel(stored: String, live: String) -> String {
         "gathered against \(stored) · now \(live)"
     }
+
+    /// The same, for a **server**, whose stamp is 16 characters of sha256 over its declaration.
+    ///
+    /// Two hex prefixes in one sentence is 45 characters of noise that does not say the thing the
+    /// reader needs. What a moved server stamp actually means is precise and short, so it is said:
+    /// the entry's command line or URL was edited after this evidence was gathered.
+    public static let invalidatedServerLabel =
+        "gathered before this entry was edited"
 
     /// Said where a stamp would be, for a subject nothing can be stamped against.
     public static let unstampable = "No version to stamp against"

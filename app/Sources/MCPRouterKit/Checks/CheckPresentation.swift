@@ -79,10 +79,29 @@ public enum CheckPresentation {
 
         public var id: String { verdict.rawValue }
         public var noun: String { CheckCopy.tallyNoun(for: verdict) }
-        /// Only a *not met* segment is tinted, and it is tinted `--fail`, which is literally what it
-        /// means. A confirmed check is never `--live`: `DESIGN.md` §2 binds that hue to one meaning,
-        /// "a child process is running", and a check that holds is not a running process.
-        public var isTinted: Bool { verdict == .failed }
+        /// The token this segment renders in — resolved here, not in the view.
+        public var token: ColorToken { CheckPresentation.token(for: verdict) }
+    }
+
+    /// The colour one verdict renders in.
+    ///
+    /// **In Kit, not in the view, so A21 has a function to iterate.** The plan gate caught that the
+    /// first draft left this decision inside `EvalsInspector` as a `switch` on `Color`, which
+    /// contradicted this file's own thesis and left the "no passing verdict is ever `--live`" test
+    /// with nothing to test against.
+    ///
+    /// `--fail` for *not met*, because that is literally what it means. **Never `--live` for a
+    /// confirmed check**: `DESIGN.md` §2 binds that hue to exactly one meaning, "a child process is
+    /// running", and states that nothing else in the app may be any of the three indicator hues. A
+    /// check that holds is not a running process, so confirmed is ordinary primary text — which is
+    /// also the right amount of emphasis for "this is fine".
+    public static func token(for verdict: CheckVerdict) -> ColorToken {
+        switch verdict {
+        case .passed: .t1
+        case .failed: .fail
+        // Not `--t4`: §2 binds that to disabled controls only, never live text.
+        case .unknown, .notApplicable: .t3
+        }
     }
 
     /// The segments for one subject's results, in verdict order, omitting empty ones.
@@ -172,6 +191,22 @@ public enum CheckPresentation {
             switch self {
             case let .current(stamp): stamp
             case let .invalidated(stored, live): CheckCopy.invalidatedLabel(stored: stored, live: live)
+            }
+        }
+
+        /// The label for a given subject kind.
+        ///
+        /// **A server's stamp is 16 characters of sha256 and a skill's is `0.4.1`, so one sentence
+        /// shape cannot serve both.** "gathered against 3f9a1c... · now 8b2e04..." is 45 characters of
+        /// hex in a 150pt column, and it does not say the thing the reader needs — which is *you
+        /// edited this entry*. The plan gate caught this; a server gets its own sentence, and the hex
+        /// stays available in the row's own stamp cell for anyone who wants it.
+        public func label(for kind: CheckSubjectKind) -> String {
+            switch (self, kind) {
+            case (.current, _): label
+            case (.invalidated, .server): CheckCopy.invalidatedServerLabel
+            case let (.invalidated(stored, live), .skill):
+                CheckCopy.invalidatedLabel(stored: stored, live: live)
             }
         }
     }

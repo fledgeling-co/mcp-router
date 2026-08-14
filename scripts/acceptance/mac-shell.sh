@@ -902,12 +902,31 @@ DEST_TOTAL="$(awk '
 ' "$DEST_FILE")"
 [ "$DEST_TOTAL" -gt 0 ] || blocked "counted zero destinations — the parse is wrong, not the code"
 
-# The declaration is one line, and it is read as one line. A `sed` *range* ending at `]` runs past
-# it to the next bracket anywhere below and swept three unrelated tokens in, which is how a count
-# that looked careful reported 3 of 8 for a set holding one.
-INSTALLED_LIST="$(grep -E 'installed: Set<Destination> *=' \
-  "$APP_DIR/Sources/MCPRouterUI/Shell/ScaffoldPane.swift" | head -1 | sed -E 's/.*\[(.*)\].*/\1/')"
+# The declaration is read from its `[` to its matching `]`, however many lines that spans.
+#
+# It used to be read as one line: `grep … | head -1 | sed -E 's/.*\[(.*)\].*/\1/'`. That was correct
+# while the list was short, and it was six characters from lying. At M7 the line reaches 104
+# characters; `.swiftformat` sets `--maxwidth 110`, so M5's `.discover` and M8's `.settings` wrap it —
+# and a wrapped declaration makes the `sed` match nothing, yielding an empty list, a count of zero,
+# and a **passing** gate that reports zero installed boards. A gate whose failure mode is silence
+# about the thing it exists to count is worse than no gate.
+#
+# (An earlier fix here replaced a `sed` *range* that ran past the declaration to the next bracket
+# anywhere below, sweeping in three unrelated tokens. Same lesson, opposite direction: read exactly
+# the declaration, and nothing else.)
+INSTALLED_LIST="$(awk '
+    /installed: Set<Destination> *=/ { collecting = 1 }
+    collecting                       { line = line " " $0 }
+    collecting && /\]/               { exit }
+    END {
+        if (match(line, /\[[^]]*\]/)) print substr(line, RSTART + 1, RLENGTH - 2)
+    }
+' "$APP_DIR/Sources/MCPRouterUI/Shell/ScaffoldPane.swift")"
 INSTALLED_COUNT="$(printf '%s' "$INSTALLED_LIST" | grep -oE '\.[a-z][a-zA-Z]*' | wc -l | tr -d ' ')"
+
+# An empty parse is a broken parse, never an empty set: `installed` is non-empty from M2 onward, so
+# zero here means the reader stopped matching the source rather than that no board shipped.
+[ "$INSTALLED_COUNT" -gt 0 ] || blocked "parsed zero installed boards — the reader is wrong, not the code"
 
 if [ "$INSTALLED_COUNT" -lt "$DEST_TOTAL" ]; then
     SCAFFOLDS_REMAIN=1

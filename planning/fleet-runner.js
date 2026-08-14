@@ -91,9 +91,30 @@ Rules that override ship-feature's defaults:
   share it, so a push will fail with an explanation rather than succeed quietly. If you
   believe the main tree needs a change, REPORT it in your final message and stop.
 
-- NEVER end your turn to wait for a background task. Your wrapper returns the moment you
-  stop, and no wake-up notification can reach you — you are dead, not paused. Wait
-  synchronously: foreground the command, or poll in a loop.
+- ONLY TEST A SCREEN WHEN YOU HAVE CHANGED THAT SCREEN, AND TEST ONLY THAT SCREEN. Not
+  the others, not the full matrix. This is a direct standing instruction from the user,
+  and it outranks any sweep-everything habit in the pipeline skills.
+    · Changed a row, a menu item, one pane? Test that one thing. A one-line change does
+      not re-earn a pass over every screen in the app.
+    · Changed nothing under a screen since it was last proven? Do not test it at all.
+      Cite the existing evidence instead.
+    · Never relaunch the app or boot a simulator per screen. One launch, one pass, cover
+      what actually changed, quit.
+  Why this is a rule and not a preference: M1 and I1 have each been through FOUR runs, and
+  every relaunch restarted UI verification from zero, because nothing on disk recorded what
+  had already been proven. The Mac lane drives the user's REAL screen through osascript —
+  they sat and watched the same windows and menus driven over and over. That is their time,
+  not just tokens.
+  So write the evidence where your successor can find it: \`planning/evidence/<ID>-acceptance.md\`,
+  one row per screen — screen · how it was verified (the actual command or AX path) · the
+  commit SHA it was verified at · result. Append, never rewrite, and commit it. Read it
+  BEFORE testing anything: if a screen has a row and \`git diff <that SHA>..HEAD\` does not
+  touch the files behind it, that row IS the evidence — skip the test and say so in your
+  report.
+  This narrows repetition, never rigour. A screen that has genuinely never been tested still
+  gets tested properly, once; behavioural claims still need behavioural proof; the designed
+  states are still designed. Report what you skipped and why, so a reader can tell a
+  deliberate skip from a gap.
 
 - MESSAGING THE ORCHESTRATOR COSTS YOU YOUR TURN. Observed twice on 2026-08-14: a runner
   that calls SendMessage stops there, and from outside it is indistinguishable from one

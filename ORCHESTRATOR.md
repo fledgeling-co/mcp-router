@@ -41,6 +41,27 @@ every state change, before acting on that change.
   saving anywhere in this product.
 - The Swift MCP SDK is pre-1.0 and warns that minor bumps may break — pin exact.
 
+### Only test a screen you changed, and only that screen — user instruction, 2026-08-14
+
+Standing, and it outranks any sweep-everything habit in the pipeline skills. Changed a row,
+a menu item, one pane? Test that one thing. Changed nothing under a screen since it was last
+proven? Do not test it at all — cite the existing evidence. Never relaunch the app or boot a
+simulator per screen: one launch, one pass, quit.
+
+The measurement behind it: **M1 and I1 have each been through four runs**, and every relaunch
+restarted UI verification from zero because nothing on disk recorded what had already been
+proven. The Mac lane drives the user's *real* screen through `osascript`, so they sat watching
+the same windows and menus driven over and over. That is their time, not just tokens.
+
+The fix that makes it stick across a relaunch: each UI item keeps
+`planning/evidence/<ID>-acceptance.md` — one row per screen: screen · how it was verified
+(the actual command or AX path) · the commit SHA · result. Append, never rewrite, commit it,
+and **read it before testing anything**. A row whose SHA-to-HEAD diff does not touch the files
+behind that screen IS the evidence.
+
+This narrows repetition, never rigour: a screen never yet tested still gets tested properly,
+once, and behavioural claims still need behavioural proof. Skips get reported as skips.
+
 ### The codex lane is down until 2026-08-20 — read before any out-of-family gate
 
 Verified by the orchestrator on 2026-08-14: every `codex exec` call, down to a one-word

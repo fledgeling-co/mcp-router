@@ -1,0 +1,285 @@
+{
+  "description": "Number(x) for every string the control API can receive as a query value (N4, N6).",
+  "cases": [
+    {
+      "id": "number-0",
+      "text": "",
+      "kind": "finite",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-1",
+      "text": " ",
+      "kind": "finite",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-2",
+      "text": "\t\n\r ",
+      "kind": "finite",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-3",
+      "text": "0",
+      "kind": "finite",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-4",
+      "text": "-0",
+      "kind": "finite",
+      "value": 0,
+      "negativeZero": true
+    },
+    {
+      "id": "number-5",
+      "text": "12",
+      "kind": "finite",
+      "value": 12,
+      "negativeZero": false
+    },
+    {
+      "id": "number-6",
+      "text": " 12 ",
+      "kind": "finite",
+      "value": 12,
+      "negativeZero": false
+    },
+    {
+      "id": "number-7",
+      "text": "12 ",
+      "kind": "finite",
+      "value": 12,
+      "negativeZero": false
+    },
+    {
+      "id": "number-8",
+      "text": " 12",
+      "kind": "finite",
+      "value": 12,
+      "negativeZero": false
+    },
+    {
+      "id": "number-9",
+      "text": "+12",
+      "kind": "finite",
+      "value": 12,
+      "negativeZero": false
+    },
+    {
+      "id": "number-10",
+      "text": "-12",
+      "kind": "finite",
+      "value": -12,
+      "negativeZero": false
+    },
+    {
+      "id": "number-11",
+      "text": "12.5",
+      "kind": "finite",
+      "value": 12.5,
+      "negativeZero": false
+    },
+    {
+      "id": "number-12",
+      "text": ".5",
+      "kind": "finite",
+      "value": 0.5,
+      "negativeZero": false
+    },
+    {
+      "id": "number-13",
+      "text": "5.",
+      "kind": "finite",
+      "value": 5,
+      "negativeZero": false
+    },
+    {
+      "id": "number-14",
+      "text": "1e3",
+      "kind": "finite",
+      "value": 1000,
+      "negativeZero": false
+    },
+    {
+      "id": "number-15",
+      "text": "1E3",
+      "kind": "finite",
+      "value": 1000,
+      "negativeZero": false
+    },
+    {
+      "id": "number-16",
+      "text": "1e-3",
+      "kind": "finite",
+      "value": 0.001,
+      "negativeZero": false
+    },
+    {
+      "id": "number-17",
+      "text": "1.2e+3",
+      "kind": "finite",
+      "value": 1200,
+      "negativeZero": false
+    },
+    {
+      "id": "number-18",
+      "text": "Infinity",
+      "kind": "inf",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-19",
+      "text": "-Infinity",
+      "kind": "-inf",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-20",
+      "text": "+Infinity",
+      "kind": "inf",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-21",
+      "text": "infinity",
+      "kind": "nan",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-22",
+      "text": "NaN",
+      "kind": "nan",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-23",
+      "text": "abc",
+      "kind": "nan",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-24",
+      "text": "12abc",
+      "kind": "nan",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-25",
+      "text": "abc12",
+      "kind": "nan",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-26",
+      "text": "1 2",
+      "kind": "nan",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-27",
+      "text": "1,2",
+      "kind": "nan",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-28",
+      "text": "0x1f",
+      "kind": "finite",
+      "value": 31,
+      "negativeZero": false
+    },
+    {
+      "id": "number-29",
+      "text": "0X1F",
+      "kind": "finite",
+      "value": 31,
+      "negativeZero": false
+    },
+    {
+      "id": "number-30",
+      "text": "0b101",
+      "kind": "finite",
+      "value": 5,
+      "negativeZero": false
+    },
+    {
+      "id": "number-31",
+      "text": "0o17",
+      "kind": "finite",
+      "value": 15,
+      "negativeZero": false
+    },
+    {
+      "id": "number-32",
+      "text": "0xg",
+      "kind": "nan",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-33",
+      "text": "0b",
+      "kind": "nan",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-34",
+      "text": "1_000",
+      "kind": "nan",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-35",
+      "text": "١٢",
+      "kind": "nan",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-36",
+      "text": "null",
+      "kind": "nan",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-37",
+      "text": "undefined",
+      "kind": "nan",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-38",
+      "text": "true",
+      "kind": "nan",
+      "value": 0,
+      "negativeZero": false
+    },
+    {
+      "id": "number-39",
+      "text": " \u000b12 ",
+      "kind": "finite",
+      "value": 12,
+      "negativeZero": false
+    }
+  ]
+}

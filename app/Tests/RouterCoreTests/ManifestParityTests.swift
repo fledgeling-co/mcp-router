@@ -9,6 +9,20 @@ import Testing
 /// a type that cannot represent the property under test would make every ordering assertion pass
 /// for free.
 enum ManifestVectors {
+    /// The whole vector document, for the files that carry a shared input alongside their cases —
+    /// the usage log every `?limit=` case is read from, the row set every registry slice is taken
+    /// of. Duplicating that input into each case would bloat the file and, worse, let two cases
+    /// disagree about what they were run against.
+    static func document(_ name: String) throws -> JSONValue {
+        guard let url = Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Vectors")
+            ?? Bundle.module.url(forResource: name, withExtension: "json")
+        else {
+            Issue.record("vector file \(name).json is missing — the corpus cannot shrink silently")
+            throw Vectors.VectorError.missing(name)
+        }
+        return try JSONParser.parse(Data(contentsOf: url))
+    }
+
     static func cases(_ name: String) throws -> [JSONValue] {
         guard let url = Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Vectors")
             ?? Bundle.module.url(forResource: name, withExtension: "json")

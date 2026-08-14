@@ -164,7 +164,13 @@ enum LogEventMapping {
 struct VectorRegistryTests {
     /// The count `make parity` gates on. Raising it is a deliberate act; a corpus that shrinks below
     /// it fails the build rather than quietly proving less than it did yesterday.
-    static let executedFloor = 224
+    ///
+    /// R1 left this at 224. R3 ports three more reference modules, and a port that added no vectors
+    /// would be claiming a parity it never measured — so B76 requires this number to *rise*, not
+    /// merely to hold. The 128 added here are the control API's routing predicate, `Number`,
+    /// `localeCompare`, `basename`, and the two `?limit=` pipelines, each driven from the reference
+    /// or from the engine whose semantics the Swift reimplements.
+    static let executedFloor = 352
 
     /// The attestation. Every registered file is loaded, every case is put through the assertion
     /// that consumes it, and the consumer reports how many it compared — so a vector that is

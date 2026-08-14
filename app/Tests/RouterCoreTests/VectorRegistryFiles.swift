@@ -7,7 +7,11 @@ import Testing
 /// Split out of `VectorRegistry.swift` so neither file outgrows the repo's length limits: the
 /// registry proper holds the named-input table and the attestation tests, this holds the consumers.
 extension VectorRegistry {
-    static let files: [RegisteredVectorFile] = [
+    /// Every registered vector file. R3's are in `VectorRegistryControlFiles.swift`; they are
+    /// concatenated rather than listed here so neither file passes the 400-line cap.
+    static let files: [RegisteredVectorFile] = coreFiles + controlFiles
+
+    static let coreFiles: [RegisteredVectorFile] = [
         RegisteredVectorFile(
             file: "json-roundtrip", rows: ["N7"], consumer: "JSONParityTests.compactRoundTrip"
         ) { cases in

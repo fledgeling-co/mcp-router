@@ -184,6 +184,7 @@ lint: tools
 	swiftformat --lint . --config .swiftformat
 	swiftlint lint --strict --config .swiftlint.yml
 	./scripts/lint/no-raw-design-values.sh
+	./scripts/lint/no-wire-codable.sh
 
 ## Writes formatting changes in place. Not part of `all` — a gate that edits your files is a gate
 ## that can turn a red build green without anyone reading the diff.

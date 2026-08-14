@@ -1,0 +1,64 @@
+{
+  "description": "usage.projectOf — the project label the activity view groups by.",
+  "cases": [
+    {
+      "id": "project-0",
+      "cwd": "/Users/x/Dev/app",
+      "project": "app"
+    },
+    {
+      "id": "project-1",
+      "cwd": "/Users/x/Dev/app/",
+      "project": "app"
+    },
+    {
+      "id": "project-2",
+      "cwd": "/Users/x/Dev/app//",
+      "project": "app"
+    },
+    {
+      "id": "project-3",
+      "cwd": "/",
+      "project": ""
+    },
+    {
+      "id": "project-4",
+      "cwd": "//",
+      "project": ""
+    },
+    {
+      "id": "project-5",
+      "cwd": ""
+    },
+    {
+      "id": "project-6",
+      "cwd": "app",
+      "project": "app"
+    },
+    {
+      "id": "project-7",
+      "cwd": "./app",
+      "project": "app"
+    },
+    {
+      "id": "project-8",
+      "cwd": "/a b/c d",
+      "project": "c d"
+    },
+    {
+      "id": "project-9",
+      "cwd": "/Users/x/Dev/.hidden",
+      "project": ".hidden"
+    },
+    {
+      "id": "project-10",
+      "cwd": "/Users/x/Dev/app.tar.gz",
+      "project": "app.tar.gz"
+    },
+    {
+      "id": "project-11",
+      "cwd": "/日本語/プロジェクト",
+      "project": "プロジェクト"
+    }
+  ]
+}

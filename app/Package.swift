@@ -79,6 +79,16 @@ let package = Package(
         // this talks to the actual router. It is an executable rather than a test because it needs
         // a running daemon, and a unit suite that needs a daemon is a unit suite that fails on a
         // machine where one is not running.
+        // The differential acceptance oracle: answers one control request through the Swift
+        // handler so a script can diff its bytes against the running TypeScript router's. Every
+        // other check in this package compares the port against something we wrote; this one
+        // compares it against the reference, running, now.
+        .executableTarget(
+            name: "ControlDiff",
+            dependencies: ["RouterCore"],
+            path: "Sources/ControlDiff",
+            swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
         .executableTarget(
             name: "ControlProbe",
             dependencies: ["MCPRouterKit"],

@@ -25,10 +25,11 @@
         /// matches zero items is the failure this whole file is about.
         @MainActor
         @discardableResult
-        public static func apply(to menu: NSMenu) -> Int {
+        public static func apply(to menu: NSMenu, context: MenuCommand.CommandContext = .none) -> Int {
             var applied = 0
             for item in menu.items {
-                if let command = command(titled: item.title), let reason = command.availability.reason {
+                let availability = command(titled: item.title)?.availability(in: context)
+                if let reason = availability?.reason {
                     // Both, and for different readers. `toolTip` is what a person sees when they
                     // rest on the item; `setAccessibilityHelp` is what VoiceOver reads and what
                     // `AXHelp` returns. Setting only the tool tip leaves the reason invisible to
@@ -46,7 +47,7 @@
                     applied += 1
                 }
                 if let submenu = item.submenu {
-                    applied += apply(to: submenu)
+                    applied += apply(to: submenu, context: context)
                 }
             }
             return applied
@@ -92,11 +93,32 @@
         ///
         /// SwiftUI owns these `NSMenuItem`s and replaces them on its own schedule, so the only thing
         /// that survives is re-applying.
+        /// Where the live context comes from while the app is running.
+        ///
+        /// A registered closure rather than a parameter, because `install()` is armed by the app
+        /// delegate at launch — before any window exists — while the facts a command branches on
+        /// (which boards are installed, which server is selected) belong to a window that appears
+        /// later. The poll below reads it on every tick, so a window registering afterwards is
+        /// picked up without re-arming anything.
+        ///
+        /// Nil means `.none`, which is M1's world and the honest answer when no shell window is up.
+        @MainActor private static var contextProvider: (@MainActor () -> MenuCommand.CommandContext)?
+
+        @MainActor
+        public static func provideContext(_ provider: @escaping @MainActor () -> MenuCommand.CommandContext) {
+            contextProvider = provider
+        }
+
+        @MainActor
+        public static var liveContext: MenuCommand.CommandContext {
+            contextProvider?() ?? .none
+        }
+
         @MainActor
         public static func install() {
             Task { @MainActor in
                 while !Task.isCancelled {
-                    if let main = NSApp.mainMenu { apply(to: main) }
+                    if let main = NSApp.mainMenu { apply(to: main, context: liveContext) }
                     do {
                         try await Task.sleep(for: reapplyInterval)
                     } catch {

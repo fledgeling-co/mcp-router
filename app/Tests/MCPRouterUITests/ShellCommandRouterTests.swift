@@ -50,7 +50,12 @@
         /// The direction that catches an invented operation: a command whose surface does not exist,
         /// or one macOS performs itself, must map to nothing. Without this, `showSidebar` could be
         /// quietly wired to a selection and only the first direction above would still pass.
-        @Test("every command outside the View menu's own three has no shell operation")
+        ///
+        /// The acting set grows with each board that ships. M3 added the four the Servers board owns
+        /// — `⌘N`, `⌘F`, `⌘R`, `⌘⌫` — which `DESIGN.md` §3.9 requires to work from the menu bar,
+        /// since the menu bar is the complete command surface. Everything else is still asserted to
+        /// map to nothing, so the guard is narrowed by exactly what shipped rather than relaxed.
+        @Test("every command outside the acting set has no shell operation")
         func nothingElseActsOnTheModel() {
             let acting: Set<MenuCommand> = Set(
                 Destination.allCases
@@ -58,12 +63,67 @@
                     .map { MenuCommand.selectDestination($0) }
             )
             .union([.settings, .showSidebar, .about])
+            .union([.addServer, .find, .resetServer, .removeServer])
 
             for command in MenuCommand.allCases where !acting.contains(command) {
                 #expect(
                     ShellCommandRouter.operation(for: command) == .none,
                     "\(command.title) claims an operation the shell does not perform"
                 )
+            }
+        }
+
+        /// The Servers board's four, each mapped to its own operation rather than sharing one.
+        @Test("the Servers board's commands each map to their own operation")
+        func boardCommandsMapToTheirOperations() {
+            #expect(ShellCommandRouter.operation(for: .addServer) == .addServer)
+            #expect(ShellCommandRouter.operation(for: .find) == .focusSearch)
+            #expect(ShellCommandRouter.operation(for: .resetServer) == .resetSelectedServer)
+            #expect(ShellCommandRouter.operation(for: .removeServer) == .removeSelectedServer)
+        }
+
+        /// A26 — availability is a function of what is installed and what is selected.
+        @Test("the board's commands enable only once the board is installed and a server is selected")
+        func availabilityFollowsTheContext() {
+            let nothing = MenuCommand.CommandContext.none
+            #expect(MenuCommand.addServer.availability(in: nothing) == .surfaceAbsent)
+            #expect(MenuCommand.find.availability(in: nothing) == .surfaceAbsent)
+            #expect(MenuCommand.resetServer.availability(in: nothing) == .surfaceAbsent)
+            #expect(MenuCommand.removeServer.availability(in: nothing) == .surfaceAbsent)
+
+            let boardNoSelection = MenuCommand.CommandContext(
+                installedDestinations: [.servers], selectedServerIsTripped: nil
+            )
+            #expect(MenuCommand.addServer.availability(in: boardNoSelection) == .enabled)
+            #expect(MenuCommand.find.availability(in: boardNoSelection) == .enabled)
+            #expect(MenuCommand.resetServer.availability(in: boardNoSelection) == .needsServerSelection)
+            #expect(MenuCommand.removeServer.availability(in: boardNoSelection) == .needsServerSelection)
+
+            let healthySelected = MenuCommand.CommandContext(
+                installedDestinations: [.servers], selectedServerIsTripped: false
+            )
+            // Remove works on any selection; Reset only on a tripped one, because resetting a
+            // healthy server is a request the router has nothing to do with.
+            #expect(MenuCommand.removeServer.availability(in: healthySelected) == .enabled)
+            #expect(MenuCommand.resetServer.availability(in: healthySelected) == .needsServerSelection)
+
+            let trippedSelected = MenuCommand.CommandContext(
+                installedDestinations: [.servers], selectedServerIsTripped: true
+            )
+            #expect(MenuCommand.resetServer.availability(in: trippedSelected) == .enabled)
+            #expect(MenuCommand.removeServer.availability(in: trippedSelected) == .enabled)
+        }
+
+        /// A27 — M1's contract is untouched, which is what lets `spec-M1.md`'s inventory table and
+        /// the test that parses it keep passing without an edit.
+        @Test("the parameterless availability still answers in M1's world")
+        func parameterlessAvailabilityIsUnchanged() {
+            #expect(MenuCommand.addServer.availability == .surfaceAbsent)
+            #expect(MenuCommand.find.availability == .surfaceAbsent)
+            #expect(MenuCommand.resetServer.availability == .surfaceAbsent)
+            #expect(MenuCommand.removeServer.availability == .surfaceAbsent)
+            for command in MenuCommand.allCases {
+                #expect(command.availability == command.availability(in: .none))
             }
         }
 

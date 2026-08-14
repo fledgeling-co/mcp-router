@@ -70,7 +70,7 @@
 
         @Test("the shell opens no socket, no file and no process of its own")
         func theClientIsTheOnlyChannel() throws {
-            for file in ShellTestSupport.shellFiles {
+            for file in ShellTestSupport.gatedFiles {
                 let source = try ShellTestSupport.repoFile(file)
                 for forbidden in Self.forbiddenChannels {
                     #expect(
@@ -223,10 +223,42 @@
 
         // MARK: - The scaffold cannot outlive the surface it stands in for
 
-        @Test("M1 installs no board, so every destination is scaffolded")
-        func everyDestinationIsScaffoldedForNow() {
-            #expect(BoardRegistry.installed.isEmpty)
-            #expect(BoardRegistry.scaffolded == Destination.ordered)
+        @Test("the installed boards and the scaffolded destinations are exact complements")
+        func installedAndScaffoldedAreComplements() {
+            // This used to read `#expect(BoardRegistry.installed.isEmpty)`, which was true of M1 and
+            // is a statement about M1 rather than about the registry. M3 ships the Servers board, so
+            // the empty assertion had to go — and it is worth being precise about why that is not
+            // weakening a test (`SWIFT_PRACTICES.md` §7 forbids that): the assertion below is
+            // strictly stronger. `installed.isEmpty` says nothing about the relationship the type
+            // exists to maintain, while this says every destination is on exactly one side, which is
+            // the property the scaffold's whole design rests on.
+            for destination in Destination.allCases {
+                let hasBoard = BoardRegistry.installed.contains(destination)
+                let isScaffolded = BoardRegistry.scaffolded.contains(destination)
+                #expect(
+                    hasBoard != isScaffolded,
+                    "\(destination.title) is on both sides of the registry, or on neither"
+                )
+            }
+            #expect(
+                BoardRegistry.installed.count + BoardRegistry.scaffolded.count
+                    == Destination.allCases.count
+            )
+            // Scaffolded keeps sidebar order, so the placeholder list is readable as a list.
+            #expect(BoardRegistry.scaffolded == Destination.ordered
+                .filter { !BoardRegistry.installed.contains($0) })
+        }
+
+        /// M3's own half: the board is not merely written, it is **registered**.
+        ///
+        /// This is the assertion the item is actually done against. A board that compiles but is not
+        /// in `installed` still shows the user "This part of the app isn't built yet", which is the
+        /// exact failure the whole fleet was stopped over.
+        @Test("the Servers board is installed, so its pane is not the placeholder")
+        func serversBoardIsInstalled() {
+            #expect(BoardRegistry.hasBoard(.servers))
+            #expect(ScaffoldedDestination(.servers) == nil)
+            #expect(!BoardRegistry.scaffolded.contains(.servers))
         }
 
         /// The structural half of the orchestrator's condition: the placeholder cannot be built for
@@ -281,6 +313,31 @@
             #expect(
                 onDisk == listed,
                 "a shell file exists that the source-level gates never look at: \(onDisk) vs \(listed)"
+            )
+        }
+
+        /// The same pin for the boards, and it is not a formality.
+        ///
+        /// `boardFiles` was written by hand and immediately drifted: `Boards/` held ten files and the
+        /// list named nine, so `ServerInspectorSections.swift` — which renders the read-only
+        /// configuration section, the one place env and header **keys** reach the screen — was
+        /// skipped by both the one-channel grep and the indicator-colour declaration. The list's own
+        /// doc comment said a directory listing is the only thing that stops a file escaping every
+        /// source-level gate, and then did not have one. This is it.
+        @Test("the board file list this suite scans is the whole of what is on disk")
+        func boardFileListIsComplete() throws {
+            let boardsDir = try ShellTestSupport.repoRoot()
+                .appendingPathComponent("app/Sources/MCPRouterUI/Boards")
+            let onDisk = try FileManager.default
+                .contentsOfDirectory(atPath: boardsDir.path)
+                .filter { $0.hasSuffix(".swift") }
+                .sorted()
+            let listed = ShellTestSupport.boardFiles
+                .map { URL(fileURLWithPath: $0).lastPathComponent }
+                .sorted()
+            #expect(
+                onDisk == listed,
+                "a board file exists that the source-level gates never look at: \(onDisk) vs \(listed)"
             )
         }
     }

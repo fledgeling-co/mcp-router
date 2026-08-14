@@ -94,5 +94,30 @@
             "app/Sources/MCPRouterUI/Shell/ShellWindowFrame.swift",
             "app/Sources/MCPRouterUI/Shell/ShellMenuReasons.swift"
         ]
+
+        /// The board files, held separately because a completeness test pins `shellFiles` to the
+        /// contents of `Shell/` — a directory listing is the only thing that stops a new file
+        /// escaping every source-level gate, and folding two directories into one list would break
+        /// that check rather than extend it.
+        ///
+        /// The gates that read both are the ones about *boundaries* rather than about the shell:
+        /// A36's one-channel grep and the indicator-colour declaration. A board is more likely to be
+        /// tempted past the control API than the window frame is, because it is the surface with
+        /// data to show.
+        static let boardFiles = [
+            "app/Sources/MCPRouterUI/Boards/ServersBoard.swift",
+            "app/Sources/MCPRouterUI/Boards/ServersBoardRow.swift",
+            "app/Sources/MCPRouterUI/Boards/ServersBoardBanners.swift",
+            "app/Sources/MCPRouterUI/Boards/ServersBoardMetrics.swift",
+            "app/Sources/MCPRouterUI/Boards/ServersBoardModel.swift",
+            "app/Sources/MCPRouterUI/Boards/ServersBoardWrites.swift",
+            "app/Sources/MCPRouterUI/Boards/ServerInspector.swift",
+            "app/Sources/MCPRouterUI/Boards/ServerInspectorSections.swift",
+            "app/Sources/MCPRouterUI/Boards/ServerInspectorControls.swift",
+            "app/Sources/MCPRouterUI/Boards/ServerSheets.swift"
+        ]
+
+        /// Everything the boundary gates scan.
+        static var gatedFiles: [String] { shellFiles + boardFiles }
     }
 #endif

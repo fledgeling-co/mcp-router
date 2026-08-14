@@ -66,6 +66,9 @@ public struct ControlHandler: Sendable {
         }
 
         if let response = routeUsage(path, request, deps) { return response }
+        if path == "/registry/search", request.method == "GET" {
+            return await registrySearch(request, deps)
+        }
 
         // 7 — anything claimed and unhandled. `/servers/` reaches here, not 404.
         return .error(405, "\(request.method ?? "undefined") not allowed on \(path)")
@@ -306,8 +309,10 @@ public struct ControlHandler: Sendable {
 
                 // The fixed order `projects, warm, idleMs, placard`, each gated on key presence.
                 if let projects = supplied("projects") {
-                    let list = projects?.asArray ?? []
-                    set("projects", list.isEmpty ? nil : projects)
+                    // `b.projects?.length ? b.projects : undefined` — the raw value is stored when
+                    // its `length` reads truthy, so a string survives (B42). An `asArray` test here
+                    // would drop `projects: "x"`, which the reference keeps.
+                    set("projects", (projects?.jsLengthIsTruthy ?? false) ? projects : nil)
                 }
                 if let warm = supplied("warm") {
                     set("warm", (warm?.isTruthy ?? false) ? warm : nil)

@@ -139,6 +139,26 @@ public extension JSONValue {
         }
     }
 
+    /// `ToBoolean(value?.length)` — a **property read**, not an array test.
+    ///
+    /// The reference gates `projects` on `b.projects?.length`, which reads a `length` property off
+    /// whatever arrived and takes its truthiness. A string has one (its UTF-16 code-unit count), so
+    /// `projects: "x"` is stored **unchanged**; an object has one only if it declares the member;
+    /// a number and a boolean have none, so both read `undefined` and are falsy. Testing `asArray`
+    /// instead removes the member for every non-array, which is a silent divergence on the exact
+    /// vector B42 names.
+    var jsLengthIsTruthy: Bool {
+        switch self {
+        case let .string(text): !text.isEmpty
+        case let .array(items): !items.isEmpty
+        case let .object(members):
+            // `{length: 3}` is truthy; an object without the member reads `undefined`.
+            members.first { $0.key == JSString("length") }?.value.isTruthy ?? false
+        // No `length` property exists on these, so the read yields `undefined`.
+        case .null, .bool, .number: false
+        }
+    }
+
     /// How a template literal would render this value, used for the reason strings.
     var jsDisplayString: String {
         switch self {

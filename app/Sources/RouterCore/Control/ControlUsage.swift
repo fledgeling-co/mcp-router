@@ -9,8 +9,9 @@ extension ControlHandler {
 
     func usageRecent(_ request: ControlRequest, _ deps: ControlDeps) -> ControlResponse {
         // `Number(x ?? 200)` — a junk value is NaN, and `slice(-NaN)` is `slice(0)`, so it returns
-        // **every** record rather than none (N4).
-        let limit = request.first(named: "limit").map { Double($0) ?? Double.nan } ?? 200
+        // **every** record rather than none (N4). `Number` is not `Double.init`: an empty value is
+        // `0` and a padded one trims, where `Double` yields nil for both.
+        let limit = request.first(named: "limit").map(JSToNumber.number) ?? 200
         let records = deps.usage.recent(
             limit: limit,
             server: request.first(named: "server"),

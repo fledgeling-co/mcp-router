@@ -221,8 +221,8 @@ on an unrecognisable shape).
 
 | Field | Rule |
 |---|---|
-| `projects` | non-empty array → stored exactly; `[]` or nullish → **remove the member** (not null) |
-| `warm` | `ToBoolean` → store `true`; falsy → **remove** |
+| `projects` | `b.projects?.length ? b.projects : undefined` — a **property read**, so a string with a length is stored unchanged; a zero/absent length → **remove the member** (not null) |
+| `warm` | `b.warm \|\| undefined` — a truthy value is stored **as given** (`warm: 1` writes `1`); falsy → **remove** |
 | `idleMs` | assigned as given, including `0` and `null` (P2's ported inconsistency) |
 | `placard` | assigned as given |
 
@@ -238,7 +238,7 @@ request with them deleted.
 | `?keepHistory` | first value, `=== "1"` |
 | `/usage?limit` | `Number(v ?? 200)`; `NaN` → `slice(-NaN)` → everything; negative → from the front |
 | `/registry/search?limit` | `min(Number(v ?? 30) || 30, 60)` |
-| body | `body ?? {}` — `null`, array and primitive all coerce to empty object |
+| body | `body ?? {}` is **nullish only**: `null`/absent become `{}`, while an array or primitive survives. A primitive body then throws on `'k' in b` rather than editing |
 
 ---
 
@@ -275,3 +275,58 @@ Phases P2, P3 and P4 are file-disjoint and may run in parallel. **P1 must land f
 depends on the ports and the response model) and **P5 must land last** (it consumes all three).
 P6 and P7 follow P5. Cap: three concurrent implementation agents, none of which may edit
 `ControlHandler.swift`.
+
+---
+
+## Codex cross-family plan review — 2026-08-14
+
+Reviewer: `gpt-5.6-sol`, read-only, `max` effort, one call over the spec, this plan and all four
+reference files — `/tmp/gate-R3-plan.md`. **Wire header captured and verified**
+(`model: gpt-5.6-sol`, `reasoning effort: max`, workdir `.worktrees/R3`); 12,739 bytes returned.
+**Verdict: MATERIAL DEFECTS — 29 findings.**
+
+Every finding asserting a fact about the reference was checked against `src/*.ts` before being
+accepted, because a reviewer defending against a wrong port can also be wrong about it. Three were
+**rejected on that check**: the code already did the right thing and only this plan's wording was
+loose. That distinction matters — accepting them would have "fixed" working code into a divergence.
+
+**Accepted 23 · rejected 3 · already-correct-in-code 3 · escalated 0.**
+
+### Confirmed live defects, fixed on this branch
+
+| # | Defect | Reference | Fix |
+|---|---|---|---|
+| 3 | `projects` was gated with `asArray`, so `PATCH {"projects":"x"}` **removed** the member | `s.projects = b.projects?.length ? b.projects : undefined` — a **property read**: `"x".length` is 1, so the reference stores it | `JSONValue.jsLengthIsTruthy`, red-green proven (B42) |
+| 10 | `limit` used `Double(x) ?? .nan`, so `?limit=` was NaN and `?limit=%2012%20` was NaN | `Number("")` is `0`; `Number(" 12 ")` is `12` | `JSToNumber`, a real StrDecimalLiteral/radix implementation, red-green proven (B46, B54) |
+| 9 | `localeCompare` had no implementation and `<` was the obvious substitute | ICU root collation: `"a".localeCompare("B")` is `-1` and `"A".localeCompare("a")` is `1`, both the reverse of code-unit order | `JSLocaleCompare` over ICU, pinned against **Node's own output** for the ISO domain plus the letter cases (N8) |
+| 13 | Warning order and the merge pipeline were unstated | `Promise.all` plus two `.catch` pushes | Both fetches are issued before either is awaited; warnings are collected in **source order**. The reference's own order is whichever index rejects first in wall-clock time, which is not a reproducible contract — recorded as a timing-only divergence |
+
+### Rejected — the finding is wrong about this branch's code
+
+| # | Claim | Why it is rejected |
+|---|---|---|
+| 2 | "`warm` stores `true`, losing `warm: 1`" | The plan's table said that; `ControlHandler.patch` already does `set("warm", isTruthy ? warm : nil)`, storing the **raw** value. Plan table corrected instead |
+| 7 | "a missing `servers.json` becomes `{}` and is then refused by D1, breaking the first add" | `ConfigEdit` already narrows the refusal to the trap shape — no `mcpServers` **and** other top-level members. An absent or empty config initialises normally |
+| 12 | "an absent method cannot stringify to `undefined`" | The dispatcher already interpolates `request.method ?? "undefined"` (B25) |
+
+### Accepted and still open
+
+Carried into the completion note rather than silently closed. Findings 1, 4, 5, 6, 8, 11, 14, 15,
+16, 17 and the Q2 block 18–29 are **completeness gaps**, and most name behaviour this plan failed to
+specify even where the handler implements it. The ones that are genuinely undone:
+
+- **17 — a real spec defect, not a plan defect.** B12 requires every error body to be exactly
+  `{"error": …}`, but the reference answers a refused add with 422 `{error, hint}` and a failed
+  reindex with 422 `{name, tools, error}`. B12 must be scoped to the generic `jsonError` branches
+  with those two enumerated as exceptions; as written the three clauses cannot all hold.
+- **1 — `isLive`/`clearPending` still take Swift `String`**, which is canonical-equivalence
+  comparison where JavaScript uses code units. The map lookups already use `JSString`; these two
+  port methods do not, so a composed/decomposed name can disagree across the seam (S5, B24).
+- **5 and 27 — attribution.** The plan's failure table yields a *partial* identity where B69
+  requires an empty one, and there is no differential measurement against `lsof` (B71).
+- **6 — B68 needs R2's accept hook.** Nothing in `RouterCore` can install the resolver in an accept
+  handler, so the timing half of the deferred child is a boundary item, not a `PeerResolver` one.
+- **14, 26 — auth has no differential oracle and P4 is unbuilt.** See the completion note.
+- **29 — B75's vector/mutation manifest is not written**, and `PARITY-VECTORS-EXECUTED` is still
+  224, so **B76 is not met**.
+

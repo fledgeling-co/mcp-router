@@ -132,6 +132,9 @@ public struct ControlDeps: Sendable {
     public var fileSystem: any FileSystem
     public var tokenPath: String
     public var configPath: String
+    /// Absent until R2 wires a real HTTP client. `/registry/search` is the one endpoint that
+    /// reaches the network, so it is the one dependency that can legitimately be missing.
+    public var registry: RegistryDeps?
 
     public init(
         config: RouterConfig,
@@ -145,7 +148,8 @@ public struct ControlDeps: Sendable {
         clock: any RouterClock = SystemClock(),
         fileSystem: any FileSystem = RealFileSystem(),
         tokenPath: String,
-        configPath: String
+        configPath: String,
+        registry: RegistryDeps? = nil
     ) {
         self.config = config
         self.upstreams = upstreams
@@ -159,6 +163,7 @@ public struct ControlDeps: Sendable {
         self.fileSystem = fileSystem
         self.tokenPath = tokenPath
         self.configPath = configPath
+        self.registry = registry
     }
 
     /// Lookup by JavaScript string identity — a composed key does not match a decomposed request,

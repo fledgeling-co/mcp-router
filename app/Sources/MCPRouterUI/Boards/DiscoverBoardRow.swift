@@ -83,6 +83,18 @@
             .accessibilityElement(children: .combine)
             .accessibilityLabel(accessibilityLabel)
             .accessibilityAddTraits(.isButton)
+            // **The default action, so the row presses like the button it says it is.**
+            //
+            // Measured against the running app on 2026-08-15: with only the named action below, the
+            // row published `["AXScrollToVisible", "Name:Show details…"]` and **no `AXPress`** — so
+            // `.isButton` was a trait the element could not honour, and anything that presses a
+            // button (assistive technology, automation, the acceptance gate itself) got nothing
+            // while the trait promised otherwise. `AXUIElementPerformAction(kAXPressAction)` simply
+            // failed; a gate keyed on its return code would have called that a pass.
+            //
+            // Both are kept because they do different jobs: this one makes the button pressable,
+            // and the named one below makes the announcement say what pressing it *does*.
+            .accessibilityAction { onOpen() }
             // Named for what it does, so the announcement is "show details" rather than the
             // default "press" — and it never says "install", because it does not.
             .accessibilityAction(named: "Show details") { onOpen() }

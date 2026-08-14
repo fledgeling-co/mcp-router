@@ -1,7 +1,10 @@
-# R3: Swift router — control API, auth, usage, registry
+# R3: Swift router — control API, usage, registry
+
+> Auth (section G, B60–B66) was split out of this item into R5 after this spec was written.
+> See the note above that section.
 
 **ID:** R3
-**Status:** Draft — triage in progress
+**Status:** In Review — implemented on `ai/r3`, gates green, awaiting merge
 **Created:** 2026-08-14
 **Last updated:** 2026-08-14
 
@@ -190,7 +193,16 @@ a time. A clause is read as if each of these were appended to it.
 | B58 | An unreachable index degrades to a warning plus partial results; only a throw from the merge is 502 | test per branch |
 | B59 | The two registry bases default **only** when the environment variable is absent, preserving `""` exactly | test naming the empty-string case (S2) |
 
-### G — auth
+### G — auth *(reassigned to R5 — no longer this item's scope)*
+
+**These clauses are not delivered here and their absence is not a gap.** After this spec was
+written, auth was split out of this item into sibling item **R5** (`planning/specs/spec-R5.md`),
+which owns `Auth/`, the two auth routes, and B60–B66 below. They are left in place rather than
+deleted so the clause numbering that the review, the plan and the commit messages all cite stays
+stable, and so a reader who arrives at B63 from an external reference finds it rather than a hole.
+
+R5 inherits them as written, plus the two open items this item recorded against auth specifically.
+Anything in section G that appears unimplemented on this branch is R5's, by design.
 
 | # | Clause | Evidence type |
 |---|---|---|

@@ -72,6 +72,9 @@ R12@@Control/ControlHandler.swift@@        func supplied(_ key: String) -> JSONV
 R13@@Control/ControlToken.swift@@        let supplied: String = if header.hasPrefix("Bearer ") {@@        let supplied: String = if header.hasPrefix("Bearer "), header.count > 7 {@@let an empty Bearer fall through to x-mcpr-token instead of shadowing it
 R14@@Usage/AttributionCache.swift@@        byPid[pid] = identity\n        if byPid.count > Self.bound { byPid.removeAll() }@@        if byPid.count > Self.bound { byPid.removeAll() }\n        byPid[pid] = identity@@check the 512 bound BEFORE the insert, clearing one pid later than the reference
 R15@@Registry/RegistryMerge.swift@@                    if before(source[right], source[left]) {@@                    if !before(source[left], source[right]) {@@take the right run on a tie, losing arrival order among equal-ranked rows
+R16@@Usage/UsageStore.swift@@            let offset = size - Self.tailWindowBytes@@            let offset = max(0, units.count - Self.tailWindowBytes)@@CORRECT the byte offset into a UTF-16 index, which the reference does not do (N5)
+R17@@Usage/UsageStore.swift@@              stamp.size >= Self.maxLogBytes else { return }@@              stamp.size > Self.maxLogBytes else { return }@@rotate strictly above 8 MiB, so a log at exactly the boundary never rotates
+R18@@Usage/UsageStore.swift@@        return Array(out.suffix(Self.ringSize))@@        return Array(out.prefix(Self.ringSize))@@warm the ring from the FIRST 500 records of the log instead of the last
 TABLE
 )
 

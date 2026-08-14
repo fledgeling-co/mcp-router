@@ -94,6 +94,61 @@
                 element: "the board's one prominent action, Add server…",
                 token: .accent,
                 justification: "the one primary action"
+            ),
+            // M8's surfaces. Added here rather than left implicit: the token-level check passes for
+            // a new file the moment an earlier item has declared the same token, so a surface can
+            // start drawing an indicator colour without anything objecting. This list is the part a
+            // reviewer actually reads, and a list that stops naming where a colour is drawn stops
+            // being able to answer the question §2 asks.
+            IndicatorUse(
+                element: "the menu-bar status item's dot, whenever any server wants a decision",
+                token: .attention,
+                justification: "wants a human decision"
+            ),
+            IndicatorUse(
+                element: "a popover band row's glyph, for a held change or an unauthorised server",
+                token: .attention,
+                justification: "wants a human decision"
+            ),
+            IndicatorUse(
+                element: "a popover band row's glyph, for a server that failed to index",
+                token: .fail,
+                justification: "failed or tripped"
+            ),
+            IndicatorUse(
+                element: "the popover's stale-refresh notice, and a call row's dot when the call errored",
+                token: .fail,
+                justification: "failed or tripped"
+            ),
+            IndicatorUse(
+                element: "a popover call row's dot, for a call the router served without error",
+                token: .live,
+                justification: "a child process is running"
+            ),
+            IndicatorUse(
+                element: "a tool's newly added input parameter in the held-change diff",
+                token: .attention,
+                justification: "wants a human decision"
+            ),
+            IndicatorUse(
+                element: "the popover's one prominent action, Open MCP Router",
+                token: .accent,
+                justification: "the one primary action"
+            ),
+            IndicatorUse(
+                element: "Settings' Forget the stored token, while the router is rejecting it",
+                token: .accent,
+                justification: "the one primary action"
+            ),
+            IndicatorUse(
+                element: "Settings' router-unreachable banner",
+                token: .fail,
+                justification: "failed or tripped"
+            ),
+            IndicatorUse(
+                element: "Settings' keychain-unavailable banner",
+                token: .attention,
+                justification: "wants a human decision"
             )
         ]
 

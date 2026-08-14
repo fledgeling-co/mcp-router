@@ -14,7 +14,18 @@ public struct StandardErrorSink: LogSink {
     }
 }
 
-/// Everything this item logs.
+/// Anything the router can write to its log.
+///
+/// `LogEvent` below is a closed, typed set on purpose. That is worth keeping, but it makes the enum
+/// a shared surface every later item wants to append to, and two items appending to one enum is a
+/// merge conflict rather than a design. This protocol is the extension point instead: each item
+/// declares its own event type in its own file, and `RouterLog` keeps its single formatting path.
+public protocol LoggableEvent: Sendable {
+    var level: RouterLog.Level { get }
+    var message: String { get }
+}
+
+/// Everything R1 logs.
 ///
 /// This is divergence D5. The reference's `log.info(msg: string)` takes an unrestricted string, so
 /// nothing stops a caller writing `log.info(\`starting ${JSON.stringify(config)}\`)` — and a token
@@ -24,8 +35,8 @@ public struct StandardErrorSink: LogSink {
 /// that accepts anything but the fields below.
 ///
 /// The emitted bytes are still identical to the reference's (spec A30), so R4 sees no difference.
-/// A later item that needs a new line adds a case here rather than a format string at the call
-/// site.
+/// A later item that needs a new line declares its own `LoggableEvent` type rather than a format
+/// string at the call site — the same guarantee, without the shared file.
 public enum LogEvent: Sendable, Hashable {
     case manifestUnreadable(path: String, reason: String)
     case manifestReloaded(serverCount: Int)
@@ -117,6 +128,14 @@ public actor RouterLog {
     }
 
     public func log(_ event: LogEvent) {
+        record(event)
+    }
+
+    /// The single formatting path, open to any item's own event type.
+    ///
+    /// `log(_:)` keeps its exact signature so R1's leading-dot call sites still infer `LogEvent`;
+    /// a generic parameter there would have broken every one of them.
+    public func record(_ event: any LoggableEvent) {
         // Nothing at all happens for a debug line when verbosity is off — not even reading the
         // clock. The check has to come first for that to be true.
         guard event.level != .debug || verbose else { return }
@@ -135,3 +154,6 @@ public actor RouterLog {
         try? fileSystem.appendFile(bytes, atPath: logFile)
     }
 }
+
+/// R1's own events, on the shared extension point.
+extension LogEvent: LoggableEvent {}

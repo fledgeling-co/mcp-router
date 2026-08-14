@@ -103,6 +103,13 @@ PY
         while read -r item mtime finished; do
             [ -n "$item" ] || continue
 
+            # Merged and cleaned up: the orchestrator deletes `ai/<id>` once an item is merged, so
+            # a missing branch means this item is finished and its report already collected. Stop
+            # watching it. Without this, R4 reported STOPPED twice after it had been merged: a
+            # transient sourcekit process in its worktree counted as liveness and cleared its
+            # reported flag, and removing the worktree let it fire again.
+            git -C "$REPO" show-ref --verify --quiet "refs/heads/ai/$(printf '%s' "$item" | tr 'A-Z' 'a-z')" || continue
+
             # A journalled result does NOT retire an item from the watch. R5 proved why: a
             # message from the orchestrator resumes a stopped runner, that resumed turn
             # journals a result, and the runner then carries on building for another half

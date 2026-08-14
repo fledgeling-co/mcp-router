@@ -129,8 +129,8 @@ public enum LibraryCopy {
         case .footer:
             Entry(
                 body: """
-                    Adding, changing and removing all happen at your Mac. This is the same list, so you \
-                    know what you are carrying.
+                Adding, changing and removing all happen at your Mac. This is the same list, so you \
+                know what you are carrying.
                 """
             )
         case .narrowing:
@@ -163,8 +163,8 @@ public enum LibraryCopy {
             Entry(
                 headline: "No servers declared",
                 body: """
-                    {mac} has no MCP servers declared yet. Queue one from Triage and accept it at your \
-                    Mac, and it will appear here.
+                {mac} has no MCP servers declared yet. Queue one from Triage and accept it at your \
+                Mac, and it will appear here.
                 """,
                 actionLabel: "Go to Triage"
             )
@@ -178,8 +178,8 @@ public enum LibraryCopy {
             Entry(
                 headline: "The server list could not be read",
                 body: """
-                    The router answered with something this version does not understand. Nothing on your \
-                    Mac has changed.
+                The router answered with something this version does not understand. Nothing on your \
+                Mac has changed.
                 """,
                 actionLabel: "Try again"
             )
@@ -187,16 +187,16 @@ public enum LibraryCopy {
             Entry(
                 headline: "The router is not running on {mac}",
                 body: """
-                    The library is the router's own list of declared servers, so there is nothing to show \
-                    until it starts. Open MCP Router on your Mac.
+                The library is the router's own list of declared servers, so there is nothing to show \
+                until it starts. Open MCP Router on your Mac.
                 """
             )
         case .skillsAbsent:
             Entry(
                 headline: "Skills are not listed here.",
                 body: """
-                    The router publishes no skills endpoint, so this phone has nothing to read. Your Mac's \
-                    Skills board is the only place they appear.
+                The router publishes no skills endpoint, so this phone has nothing to read. Your Mac's \
+                Skills board is the only place they appear.
                 """
             )
         }

@@ -24,6 +24,25 @@ public enum CapabilitySummary {
         case credentialSmithery
         case archived
         case noInstall
+
+        /// Whether this clause, on its own, wants a human decision.
+        ///
+        /// **Two clauses want attention and the other five are facts**, and the split is the whole
+        /// of A6's colour rule. Running a program on the user's Mac is the case the colour exists
+        /// for; a credential on a host that has not already made one a foregone conclusion is the
+        /// other. A remote server, an unparseable host, an archived repository and a missing
+        /// descriptor are all facts the row states in words without claiming they need deciding.
+        ///
+        /// `.credentialSmithery` is a fact **because** every Smithery-hosted install declares a
+        /// required `Authorization` unconditionally (`src/registry.ts:172-179`): within that subset
+        /// the clause distinguishes nothing, and Smithery is a majority of the corpus, so treating
+        /// it as attention paints the colour on most rows and stops it meaning anything anywhere.
+        public var wantsAttention: Bool {
+            switch self {
+            case .runsLocally, .credential: true
+            case .remote, .remoteUnknownHost, .credentialSmithery, .archived, .noInstall: false
+            }
+        }
     }
 
     /// A resolved summary: the clauses in the plate's own order, and whether any of them wants a
@@ -71,9 +90,18 @@ public enum CapabilitySummary {
         let clauses = lines.compactMap(clause(for:))
         let host = lines.first { $0.kind == .remote }?.host
 
-        // Severity comes from the plate's own verdict, not from a second reading of the clause list.
-        // One question, one answer, one place it can be wrong.
-        let wantsAttention = CapabilityPlate.severity(of: lines) == .attention
+        // Severity is derived from the **clauses**, not from `CapabilityPlate.severity(of:)`.
+        //
+        // The plate marks its credential line `.attention` for the Smithery and non-Smithery cases
+        // alike and distinguishes them only by copy key — which is the right answer for a detail
+        // plate the user opened deliberately, and the wrong one for a row in a list. Taking the
+        // plate's verdict here made every Smithery-hosted entry want attention, and since Smithery
+        // is a majority of the corpus that fired the colour on most rows: exactly the noise A6
+        // exists to prevent, and the opposite of what this type's own documentation claimed it did.
+        //
+        // The plate is I2's merged surface and is deliberately left alone; the reduction to one
+        // line is this type's job, so the reduction is where the rule lives.
+        let wantsAttention = clauses.contains { $0.wantsAttention }
 
         return Resolved(
             clauses: clauses,

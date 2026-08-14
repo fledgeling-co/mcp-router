@@ -13,7 +13,7 @@ import SwiftUI
 /// awaiting entries. Every tab now resolves to a real surface, which is the phone's analogue of the
 /// Mac placeholder retiring at M6.
 public struct PhoneShell<Preview: View>: View {
-    @State private var selection: Tab = .settings
+    @State private var selection: Tab
 
     private let pairing: any PairingService
     private let store: any PairingRecordStore
@@ -68,6 +68,7 @@ public struct PhoneShell<Preview: View>: View {
         dismissals: any DismissalStore = InMemoryDismissalStore(),
         connection: ConnectionState = .reachable,
         macName: String? = nil,
+        initialTab: Tab = .settings,
         openSystemSettings: @escaping () -> Void = {},
         @ViewBuilder cameraPreview: @escaping (@escaping @MainActor (String) -> Void) -> Preview
     ) {
@@ -79,6 +80,14 @@ public struct PhoneShell<Preview: View>: View {
         self.dismissals = dismissals
         self.connection = connection
         self.macName = macName
+        // Seeded rather than hardcoded, so A30's per-tab assertion can host the shell *on* a tab.
+        // The default is unchanged, so nothing about the shipped app moves: Settings is where a
+        // phone with no paired Mac has to open, because pairing is the only useful act there.
+        //
+        // The criterion needs this. The claim is "each of Triage, Queue and Library renders its own
+        // surface", and the failure it exists to catch — three tabs all rendering Settings — is
+        // indistinguishable from success unless a test can select a tab and read what came back.
+        _selection = State(initialValue: initialTab)
         self.openSystemSettings = openSystemSettings
         self.cameraPreview = cameraPreview
     }
@@ -154,6 +163,7 @@ public extension PhoneShell where Preview == EmptyView {
         dismissals: any DismissalStore = InMemoryDismissalStore(),
         connection: ConnectionState = .reachable,
         macName: String? = nil,
+        initialTab: Tab = .settings,
         openSystemSettings: @escaping () -> Void = {}
     ) {
         self.init(
@@ -165,6 +175,7 @@ public extension PhoneShell where Preview == EmptyView {
             dismissals: dismissals,
             connection: connection,
             macName: macName,
+            initialTab: initialTab,
             openSystemSettings: openSystemSettings,
             cameraPreview: { _ in EmptyView() }
         )

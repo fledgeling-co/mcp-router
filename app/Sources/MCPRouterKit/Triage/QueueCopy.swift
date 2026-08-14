@@ -127,8 +127,8 @@ public enum QueueCopy {
         case .footer:
             Entry(
                 body: """
-                    Your Mac decides. This list is the record of what you have queued, and it stays on \
-                    this phone.
+                Your Mac decides. This list is the record of what you have queued, and it stays on \
+                this phone.
                 """
             )
         case .stamp:
@@ -150,7 +150,7 @@ public enum QueueCopy {
             Entry(
                 headline: "Nothing waiting",
                 body: """
-                    Things you send from Triage or Discover collect here until you are back at your Mac.
+                Things you send from Triage or Discover collect here until you are back at your Mac.
                 """,
                 actionLabel: "Go to Triage"
             )
@@ -167,8 +167,8 @@ public enum QueueCopy {
             Entry(
                 headline: "The queue could not be read.",
                 body: """
-                    Something is saved on this phone and this version cannot decode it, so it is not being \
-                    shown. Nothing has been deleted and nothing has been sent.
+                Something is saved on this phone and this version cannot decode it, so it is not being \
+                shown. Nothing has been deleted and nothing has been sent.
                 """,
                 actionLabel: "Try again"
             )
@@ -181,8 +181,8 @@ public enum QueueCopy {
             Entry(
                 headline: "This phone has nowhere to save.",
                 body: """
-                    MCP Router could not open its own storage, so nothing can be queued or turned down. \
-                    Reinstalling the app usually clears this.
+                MCP Router could not open its own storage, so nothing can be queued or turned down. \
+                Reinstalling the app usually clears this.
                 """,
                 carriesNarrowing: true
             )

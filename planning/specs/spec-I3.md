@@ -750,3 +750,86 @@ are still absent from `ColorToken`.
 2. **Triage's Undecided is the query-less registry page minus your decisions (Assumption A).** The
    alternative is that Triage holds only things explicitly saved from Discover — but an item saved
    from Discover is already decided, which would leave Undecided permanently empty. Accept?
+
+---
+
+## Progress — 2026-08-15
+
+**Status: Ready to merge.** Branch `ai/i3`, rebased onto `main` @ `6e4b7f9`, 0 behind, tree clean.
+
+### What this pass actually did
+
+The branch arrived with Phases 1, 2, 3, A, B and C committed — roughly 3,800 lines of kit and view
+code, well written and spec-traceable. It arrived with **1233 tests against `main`'s 1234**: a net
+loss of one, because the awaiting-placeholder tests were correctly deleted and nothing replaced them.
+`plan-I3.md`'s Phase D names eight mutations and, for each, "the assertion that should kill it" —
+and most of those assertions had never been written. A mutation cannot be proven red against a test
+that does not exist, so the work of this pass was the proof layer, and then the defects it found.
+
+Five suites, 73 tests: `TriageBucketTests`, `DismissalStoreTests`, `TriageCopyManifestTests`
+(`MCPRouterKitTests`), `TriageModelTests`, `TriageSourceGuardTests` (`MCPRouterUITests`), plus
+`TriageSurfaceIOSTests` in the device target. `make test` 1233 → **1306**; `make test-ios` 23 → **28**.
+
+### Four defects, all found by a test rather than by reading
+
+1. **A6's colour rule was inverted for a majority of the corpus.** `CapabilitySummary.resolve` took
+   `wantsAttention` from `CapabilityPlate.severity(of:)`, which marks the credential line
+   `.attention` for Smithery and non-Smithery hosts alike and separates them only by copy key. Every
+   Smithery install declares an `Authorization` unconditionally (`src/registry.ts:172-179`), so the
+   attention colour fired on most rows — the exact noise A6 exists to prevent, and the opposite of
+   what `CapabilitySummary`'s own doc comment claimed. Severity now derives from the clauses, with
+   `.credentialSmithery` a fact. **`CapabilityPlate` was left alone**: it is I2's merged surface and
+   its blanket severity is defensible for a plate the user opened deliberately; the reduction to one
+   line is this type's job, so the rule lives in the reduction.
+2. **A 22pt tap target on the primary act of the surface** (A3/A27). `TriageCheckbox` already ended
+   in a 44pt frame, so the row laid out correctly — but a `Button`'s hit region is its label's drawn
+   content, which is the 22pt box. The geometry looked right in every screenshot; only a measurement
+   of the *target* could see it. `.contentShape(Rectangle())` was the whole fix.
+3. **Sixteen shipped strings began with four spaces.** Swift strips a multiline literal's indentation
+   relative to its **closing** delimiter, and every closing `"""` in the three manifests sat four
+   columns left of its content. Invisible in source, visible in the app. `noStrayWhitespace` guards
+   the class rather than the sixteen strings.
+4. **The acceptance script's first version matched its own documentation.** A naive
+   `grep -qE "awaitingKey|AwaitingTab"` reported the deleted placeholder alive, because
+   `PhoneShell.swift`'s doc comment *explains the shape that was removed*. Comments are stripped
+   before the scan now — the same failure `PhoneSourceGuardTests.stripped` exists to prevent.
+
+### One merged surface changed, deliberately
+
+`PhoneShell.init` gained `initialTab: Tab = .settings`. A30's assertion is "hosting the shell selected
+on each of `.triage`, `.queue` and `.library` finds that surface's own copy", and the failure it
+exists to catch — all three routing to a final `else` and rendering Settings — is indistinguishable
+from success unless a test can select a tab. The shipped default is unchanged and is pinned by
+`defaultTabIsUnchanged`, which also asserts the seed is actually applied rather than accepted and
+ignored.
+
+### Gates
+
+| Gate | Exit | Detail |
+|---|---|---|
+| `make lint` | 0 | 0 violations, 0 serious, 411 files |
+| `make test` | 0 | 1306 tests, 158 suites |
+| `make build-mac` | 0 | — |
+| `make test-ios` | 0 | `TEST SUCCEEDED`, 28 tests, one reused simulator |
+| `make parity` | 0 | 358 vector cases (floor 358) |
+| `scripts/acceptance/i3-phone-triage.sh` | 0 | 5 assertions over the three I3 surfaces only |
+
+Lint was red twice and neither was worked around: `swiftformat` mechanical issues on the new files
+(fixed by `make format`, with every file re-counted afterwards because formatting has pushed a file
+past the 400-line cap in this repo), then a real `for_where` violation fixed on the seam. **No limit
+was raised and no rule disabled.**
+
+Eight mutations, each seen to fail and each restored by re-applying the original edit — never
+`git checkout` — with the file's SHA-256 verified identical afterwards. Every filter was confirmed to
+match its intended test first, because `swift test --filter` takes the function name and a
+display-name filter reports "0 tests passed". Full table in `planning/evidence/I3-acceptance.md`.
+
+### The interaction, and why it is a checklist
+
+The swipe deck, the numbered stepper and swipe-to-reveal were all rejected by the owner, and A1 states
+the criterion negatively so it is checkable rather than a matter of taste: **no view in this feature
+attaches a drag or a swipe action**, asserted by scanning the three surface directories. What replaced
+them is a checklist — a leading checkbox that selects, a meta block that expands in place, and a commit
+bar that is *absent* rather than disabled when nothing is ticked. The property the three rejects share
+is that the act happens where the affordance was not visible before it was touched; every act here is a
+discrete tap on a labelled control that is on screen first.

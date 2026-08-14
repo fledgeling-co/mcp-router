@@ -41,8 +41,8 @@ extension TriageCopy {
             Entry(
                 headline: "Some of those were not saved.",
                 body: """
-                    {count} are in the queue. The rest were refused by this phone and are still in \
-                    Undecided.
+                {count} are in the queue. The rest were refused by this phone and are still in \
+                Undecided.
                 """
             )
         case .writeFailed:
@@ -110,8 +110,8 @@ extension TriageCopy {
             Entry(
                 headline: "Nothing left to decide",
                 body: """
-                    You have decided on everything in these results. Search Discover for something \
-                    specific, or widen what you are looking at.
+                You have decided on everything in these results. Search Discover for something \
+                specific, or widen what you are looking at.
                 """,
                 actionLabel: "Go to Discover"
             )
@@ -125,8 +125,8 @@ extension TriageCopy {
             Entry(
                 headline: "Nothing turned down",
                 body: """
-                    Anything you turn down stays here, so a decision made on a train is still readable at \
-                    your desk.
+                Anything you turn down stays here, so a decision made on a train is still readable at \
+                your desk.
                 """
             )
         }
@@ -158,8 +158,8 @@ extension TriageCopy {
             Entry(
                 headline: "Repository details are incomplete.",
                 body: """
-                    GitHub limits how often it can be asked, so archive status is missing for some \
-                    entries. Everything else is complete.
+                GitHub limits how often it can be asked, so archive status is missing for some \
+                entries. Everything else is complete.
                 """
             )
         case .partialUnrecognised:
@@ -171,8 +171,8 @@ extension TriageCopy {
             Entry(
                 headline: "The registry search failed",
                 body: """
-                    The router answered, but not with results. Nothing was queued and nothing changed on \
-                    your Mac.
+                The router answered, but not with results. Nothing was queued and nothing changed on \
+                your Mac.
                 """,
                 actionLabel: "Try again"
             )
@@ -180,16 +180,16 @@ extension TriageCopy {
             Entry(
                 headline: "The router is not running on {mac}",
                 body: """
-                    Triage reads the registries through it, so there is nothing to decide on until it \
-                    starts. Open MCP Router on your Mac.
+                Triage reads the registries through it, so there is nothing to decide on until it \
+                starts. Open MCP Router on your Mac.
                 """
             )
         case .dismissalsUnreadable:
             Entry(
                 headline: "Your dismissals could not be read.",
                 body: """
-                    Something is saved on this phone and this version cannot decode it, so things you \
-                    turned down may be listed again. Nothing has been deleted.
+                Something is saved on this phone and this version cannot decode it, so things you \
+                turned down may be listed again. Nothing has been deleted.
                 """,
                 actionLabel: "Try again"
             )

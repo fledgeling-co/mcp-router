@@ -52,6 +52,17 @@ struct TriageRow: View {
         if bucket.isSelectable {
             Button(action: onToggleSelection) {
                 TriageCheckbox(isSelected: isSelected)
+                    // **The frame was already 44pt; the target was not.** `TriageCheckbox` ends in a
+                    // 44pt frame around its 22pt box, so the row laid out correctly — but a
+                    // Button's hit region defaults to its label's drawn content, which is the 22pt
+                    // rounded rectangle. `TriageSurfaceIOSTests.testRowTargetsMeetTheFloor` walks
+                    // the accessibility tree and measured exactly that: 22pt against a 44pt floor
+                    // (A3, A27), on the primary act of the whole surface.
+                    //
+                    // `contentShape` is what makes the transparent half of the frame tappable. It
+                    // is the failure worth remembering: the geometry looked right in every
+                    // screenshot, and only a measurement of the *target* could see it.
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .disabled(!summary.isSelectable)

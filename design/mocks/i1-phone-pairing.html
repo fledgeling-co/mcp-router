@@ -1,0 +1,944 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>I1 — iPhone shell and pairing</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════════════════
+   I1 — iPhone: shell and pairing.  The UI oracle for this feature.
+
+   Direction inherited from DESIGN.md: "Instrument Panel". Visitor mode is
+   OPERATE — the visitor is completing a task, so scanability, consistency and
+   native expectation outrank expression, and the brand lives in precise detail.
+
+   This file is NOT design/mocks/prototype.html. The prototype is the style
+   reference; this is the corrected representation, because the prototype is
+   stale on five points that DESIGN.md's own precedence resolves against it.
+   Each correction is recorded at the surface where it applies.
+
+   ── The five corrections ────────────────────────────────────────────────────
+   1. NAME. The prototype's phone copy calls the product "Conduit". The product
+      is MCP Router. Corrected everywhere.
+   2. DIRECTION. The prototype's phone "code" surface reads "Or show this to
+      your Mac" and renders a code for the Mac to read. That inverts M6, whose
+      ladder is QR -> can't scan -> enter code, with the MAC as issuer. It also
+      contradicts the prototype's OWN Mac sheet, which renders the QR on the Mac
+      and instructs "On your phone: -> Settings -> Pair Mac, then scan this."
+      So the prototype disagrees with itself, and the Mac half is the correct
+      half. Here the Mac issues and the phone consumes: the phone scans, and its
+      fallback is TYPING the code the Mac is showing. The fallback surface is an
+      INPUT, not a display.
+   3. CAUTION COLOUR. The prototype paints both pairing cautions in --fail. Per
+      DESIGN.md §2 the indicator hues are exclusive: --fail means "failed or
+      tripped", and nothing has failed when we are warning someone before they
+      act. A caution that wants a human decision is --attn. (The prototype's own
+      `.wants` class is already --attn; its phone surfaces opted into the `.r`
+      --fail variant. Corrected by dropping `.r`.)
+   4. VIEWFINDER ICONOGRAPHY. The prototype's viewfinder holds a magnifier,
+      which reads as search. A camera scanner gets scanner iconography: corner
+      brackets and a camera glyph.
+   5. OMITTED, NOT FIXED — the prototype's notification toggles render their
+      "on" track in --live, which is decorative use of an indicator colour.
+      Notifications belong to feature I3, so they are absent here rather than
+      corrected here. Reported upward as an I3 finding.
+
+   ── Stated assumptions (autonomous run: no human to ask) ────────────────────
+   A. TYPE LADDER. DESIGN.md §2 authors an eight-role ladder with a 26px large
+      title and 13px body, and the parity tests enforce it. iOS convention is
+      34/17. DESIGN.md is the stated authority, so its ladder wins and the phone
+      renders on it — as the prototype's phone already does. The tension is real
+      and is flagged to the spec rather than hidden: 13px body is small for a
+      phone. It is NOT flagged for the one place it would actually bite — a text
+      input under 16px triggers iOS auto-zoom — because the only text input this
+      feature has is the pairing code, which is set at LargeTitle in mono for
+      legibility and so is comfortably clear of the threshold.
+   B. COUNTDOWN HONESTY. DESIGN.md §6: no number is displayed that the system
+      does not observe. The Mac issues the code, so the phone cannot know the
+      expiry until the Mac tells it. Therefore the countdown appears ONLY after
+      a scan (the QR payload carries expiresAt) or after the Mac has answered.
+      The typed-entry surface shows no countdown before submission — it says the
+      code expires and that the Mac is showing how long is left.
+   C. TAB BADGES. None. A badge count is observed data owned by I2/I3; inventing
+      one here would be exactly the fabricated number §6 forbids.
+
+   Motion: transform and opacity only, springs, and nothing animates opacity
+   from 0 on entry (DESIGN.md §7). Reduced motion is a real toggle here, not a
+   claim — see section N.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* DARK — DESIGN.md §2, dark column. Graphite, never pure black. */
+  --ground:#1E1E1E;--panel:#232326;--raised:#2C2C2E;--raised2:#3A3A3C;
+  --line:rgba(255,255,255,.075);--lineS:rgba(255,255,255,.14);
+  --f1:rgba(255,255,255,.10);--f2:rgba(255,255,255,.08);--f3:rgba(255,255,255,.05);
+  --t1:rgba(255,255,255,1);--t2:rgba(255,255,255,.55);
+  --t3:rgba(255,255,255,.50);--t4:rgba(255,255,255,.25);
+  --live:#30D158;--attn:#FF9230;--fail:#FF4245;--accent:#0091FF;--onAccent:#FFFFFF;
+  --accentUp:#3CA9FF;
+  --shell:#0E0F11;      /* the page behind the phones — not an app token */
+  --bezel:#111316;
+  /* tinted wash for the caution block, derived from --attn */
+  --attnWash:rgba(255,146,48,.08);--attnLine:rgba(255,146,48,.28);
+  --failWash:rgba(255,66,69,.07);--failLine:rgba(255,66,69,.30);
+  --liveWash:rgba(48,209,88,.14);
+  /* Type ladder — DESIGN.md §2. Eight roles, nothing off it. */
+  --largeTitle:26px;--title1:22px;--title2:17px;--title3:15px;
+  --body:13px;--callout:12px;--subhead:11px;--caption:10px;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+}
+[data-appearance="light"]{
+  /* LIGHT — DESIGN.md §2, light column. Authored, not inverted. Every value is
+     the one measured against #ECECEE, including the reversal on --raised2:
+     emphasis always moves AWAY from the ground, and in light the resting
+     surface is already white, so darker is the only direction left. */
+  --ground:#ECECEE;--panel:#F5F5F7;--raised:#FFFFFF;--raised2:#E0E0E4;
+  --line:rgba(0,0,0,.10);--lineS:rgba(0,0,0,.19);
+  --f1:rgba(0,0,0,.13);--f2:rgba(0,0,0,.10);--f3:rgba(0,0,0,.06);
+  --t1:rgba(0,0,0,.95);--t2:rgba(0,0,0,.62);
+  --t3:rgba(0,0,0,.58);--t4:rgba(0,0,0,.33);
+  --live:#1B7B3C;--attn:#9F5A00;--fail:#CD2738;--accent:#0069CF;--onAccent:#FFFFFF;
+  --accentUp:#0058AD;
+  --shell:#DCDCE0;--bezel:#C9C9CF;
+  --attnWash:rgba(159,90,0,.10);--attnLine:rgba(159,90,0,.32);
+  --failWash:rgba(205,39,56,.09);--failLine:rgba(205,39,56,.32);
+  --liveWash:rgba(27,123,60,.14);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--shell);color:var(--t1);font:var(--body)/1.45 var(--sans);
+  -webkit-font-smoothing:antialiased;padding:24px 28px 90px}
+::selection{background:var(--accent);color:var(--onAccent)}
+button{font:inherit;color:inherit;background:none;border:none;text-align:left;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ── page chrome ───────────────────────────────────────────────────────── */
+.pg{max-width:1560px;margin:0 auto}
+.pghd h1{font:700 var(--title1)/1.2 var(--sans);letter-spacing:-.4px}
+.pghd p{color:var(--t2);font-size:var(--callout);max-width:82ch;margin-top:6px;line-height:1.55}
+.pghd .meta{color:var(--t3);font:var(--caption) var(--mono);margin-top:8px}
+.sect{margin-top:34px}
+.sect>h2{font:600 var(--title3)/1.3 var(--sans);letter-spacing:-.2px;
+  padding-bottom:7px;border-bottom:1px solid var(--line);display:flex;
+  align-items:baseline;gap:9px}
+.sect>h2 .k{font:600 var(--caption) var(--mono);color:var(--t3);
+  border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.sect>p{color:var(--t2);font-size:var(--callout);max-width:88ch;margin-top:8px;line-height:1.55}
+.row{display:flex;flex-wrap:wrap;gap:22px;margin-top:16px;align-items:flex-start}
+
+/* a labelled phone */
+.unit{width:302px}
+.unit>.cap{margin-bottom:7px}
+.unit>.cap b{display:block;font:600 var(--callout) var(--sans);letter-spacing:-.1px}
+.unit>.cap span{display:block;color:var(--t3);font-size:var(--subhead);line-height:1.45;margin-top:2px}
+
+/* ── the phone ─────────────────────────────────────────────────────────── */
+.ph{width:302px;height:646px;background:var(--bezel);border-radius:38px;
+  border:1px solid var(--lineS);padding:5px;flex-shrink:0}
+.scr{width:100%;height:100%;background:var(--ground);border-radius:33px;
+  overflow:hidden;display:flex;flex-direction:column;position:relative}
+.pstat{display:flex;padding:12px 22px 0;font:600 var(--subhead) var(--sans);
+  align-items:center;justify-content:space-between;flex-shrink:0}
+.pstat .r{display:flex;gap:5px;align-items:center;color:var(--t1);opacity:.9}
+.notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);
+  width:88px;height:24px;border-radius:13px;background:#050506}
+[data-appearance="light"] .notch{background:#1a1a1c}
+
+/* nav — iOS large title, and the collapsed bar title it becomes on scroll */
+.pnav{padding:13px 18px 8px;flex-shrink:0}
+.pnav h3{font:700 var(--largeTitle)/1.2 var(--sans);letter-spacing:-.6px}
+.pnav .back{display:flex;align-items:center;gap:3px;color:var(--accent);
+  font-size:var(--title3);margin-bottom:3px;padding:2px 0}
+.pbody{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 18px}
+.pbody::-webkit-scrollbar{width:0}
+.psub{color:var(--t2);font-size:var(--callout);line-height:1.5;margin-top:4px}
+
+/* tab bar — iOS: 5 tabs, outline at rest, filled when selected, 11px labels */
+.tabs{display:flex;padding:8px 4px 22px;border-top:1px solid var(--line);
+  background:var(--panel);flex-shrink:0}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  color:var(--t3);min-height:44px;padding-top:2px}
+.tab.on{color:var(--accent)}
+.tab i{display:block;height:22px}
+.tab span{font:500 var(--subhead) var(--sans);letter-spacing:-.1px}
+
+/* ── content atoms, matched to the prototype's vocabulary ──────────────── */
+.plbl{font:600 var(--subhead) var(--sans);color:var(--t3);margin:15px 0 6px}
+.li{display:flex;gap:11px;align-items:center;padding:9px 0;width:100%;
+  border-bottom:1px solid var(--line);min-height:44px}
+.li:last-child{border-bottom:none}
+.li .tx{flex:1;min-width:0}
+.li b{font-weight:600;font-size:var(--body);display:block;letter-spacing:-.1px}
+.li span{font-size:var(--subhead);color:var(--t3);display:block;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tile{width:30px;height:30px;border-radius:7px;flex-shrink:0;background:var(--raised2);
+  border:1px solid var(--line);display:grid;place-items:center;color:var(--t2)}
+
+.cta{display:block;width:100%;text-align:center;padding:12px;border-radius:12px;
+  background:var(--accent);color:var(--onAccent);font-weight:600;font-size:var(--title3);
+  margin-top:14px;min-height:44px;transition:transform .18s cubic-bezier(.32,.72,0,1)}
+.cta:hover{background:var(--accentUp)}
+.cta:active{transform:scale(.98)}
+.cta.sec{background:var(--f2);color:var(--t1);font-weight:500;margin-top:8px}
+.cta.sec:hover{background:var(--f1)}
+.cta.dis{background:var(--f3);color:var(--t4);cursor:not-allowed}
+.cta.dis:hover{background:var(--f3)}
+.cta.danger{background:transparent;color:var(--fail);font-weight:500}
+.cta.danger:hover{background:var(--failWash)}
+.note{font-size:var(--subhead);color:var(--t3);text-align:center;margin-top:10px;line-height:1.5}
+.note.l{text-align:left}
+
+/* caution — --attn by default. CORRECTION 3 lives here. */
+.wants{background:var(--attnWash);border:1px solid var(--attnLine);border-radius:11px;
+  padding:10px 12px;margin-top:14px}
+.wants h5{font:600 var(--subhead) var(--sans);margin-bottom:6px;color:var(--attn);
+  display:flex;align-items:center;gap:5px}
+.wl{display:flex;gap:8px;align-items:flex-start;padding:3px 0;
+  font-size:var(--callout);line-height:1.45}
+.wl .i{flex-shrink:0;width:10px;color:var(--attn);font-weight:700}
+/* the genuine-failure variant — used only where something HAS failed */
+.wants.f{background:var(--failWash);border-color:var(--failLine)}
+.wants.f h5{color:var(--fail)}
+.wants.f .wl .i{color:var(--fail)}
+
+/* empty / message state — title, one sentence, at most one action */
+.pempty{text-align:center;padding:44px 12px 0}
+.pempty .g{opacity:.42;margin-bottom:12px;display:flex;justify-content:center}
+.pempty b{font:600 var(--title3) var(--sans);display:block;margin-bottom:6px}
+.pempty p{color:var(--t2);font-size:var(--callout);line-height:1.55}
+
+/* the scanner viewfinder — CORRECTION 4 lives here */
+.finder{position:relative;width:100%;height:172px;border-radius:14px;margin-top:14px;
+  background:var(--f3);overflow:hidden;display:grid;place-items:center}
+.finder .br{position:absolute;width:34px;height:34px;border:2.5px solid var(--accent)}
+.finder .br.tl{top:12px;left:12px;border-right:none;border-bottom:none;border-radius:10px 0 0 0}
+.finder .br.tr{top:12px;right:12px;border-left:none;border-bottom:none;border-radius:0 10px 0 0}
+.finder .br.bl{bottom:12px;left:12px;border-right:none;border-top:none;border-radius:0 0 0 10px}
+.finder .br.br2{bottom:12px;right:12px;border-left:none;border-top:none;border-radius:0 0 10px 0}
+.finder .lbl{text-align:center;color:var(--t3);font-size:var(--subhead);margin-top:8px}
+.finder .cam{color:var(--t2);display:flex;justify-content:center}
+.finder.off{background:var(--f3);border:1.5px dashed var(--lineS)}
+.finder.off .br{display:none}
+
+/* code entry — 8 boxes in two groups. Set at LargeTitle mono: a code is
+   instrument data (DESIGN.md §2) and the size keeps it clear of iOS's
+   sub-16px input auto-zoom. */
+.code{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:22px}
+.cbox{width:26px;height:38px;border-radius:7px;background:var(--f3);
+  border:1px solid var(--lineS);display:grid;place-items:center;
+  font:700 var(--largeTitle)/1 var(--mono);color:var(--t1)}
+.cbox.e{color:var(--t4)}
+.cbox.cur{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.cbox.bad{border-color:var(--fail)}
+.cdash{color:var(--t4);font-size:var(--title3);padding:0 2px}
+.helper{text-align:center;color:var(--t3);font-size:var(--subhead);
+  margin-top:12px;line-height:1.5}
+/* the inline error sits next to what failed, per §6 */
+.inlineErr{display:flex;gap:7px;align-items:flex-start;margin-top:12px;
+  color:var(--fail);font-size:var(--callout);line-height:1.45}
+.inlineErr .i{flex-shrink:0;margin-top:1px}
+
+/* countdown — only ever rendered where the expiry was observed */
+.count{display:flex;gap:7px;align-items:center;justify-content:center;margin-top:16px}
+.count .m{font:600 var(--callout) var(--mono);color:var(--t2);
+  font-variant-numeric:tabular-nums}
+.ring{width:15px;height:15px;border-radius:50%;border:2px solid var(--lineS);
+  border-top-color:var(--attn);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* connection state — the always-legible indicator */
+.conn{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:10px;
+  font-size:var(--callout);margin-top:12px;line-height:1.4}
+.conn .dot{width:8px;height:8px;border-radius:4px;flex-shrink:0}
+.conn.ok{background:var(--liveWash)}
+.conn.ok .dot{background:var(--live)}
+/* Neutral, deliberately. --attn means "wants a human decision" (DESIGN.md §2) and an
+   unreachable Mac asks nothing of the user — it recovers on its own and the queued work
+   sends itself. Painting it amber spends an exclusive indicator hue on a state that is
+   merely informational, which is the decorative use §2 forbids. */
+.conn.down{background:var(--f3);border:1px solid var(--line)}
+.conn.down .dot{background:var(--t3)}
+.conn.none{background:var(--f3)}
+.conn.none .dot{background:var(--t4)}
+.conn b{font-weight:600}
+
+/* skeleton — matches the real row's geometry exactly, so nothing jumps */
+.sk{display:flex;gap:11px;align-items:center;padding:9px 0;min-height:44px;
+  border-bottom:1px solid var(--line)}
+.sk .t{width:30px;height:30px;border-radius:7px;background:var(--f2);flex-shrink:0}
+.sk .l{flex:1}
+.sk .l i{display:block;height:9px;border-radius:4px;background:var(--f2);margin-bottom:6px}
+.sk .l i:last-child{width:62%;height:8px;margin-bottom:0;background:var(--f3)}
+
+/* action sheet — iOS: destructive named, cancel separate and never the default */
+.sheetwrap{position:absolute;inset:0;background:rgba(0,0,0,.45);
+  display:flex;align-items:flex-end;padding:8px;border-radius:33px}
+[data-appearance="light"] .sheetwrap{background:rgba(0,0,0,.28)}
+.sheet{width:100%}
+.sheet .grp{background:var(--panel);border-radius:14px;overflow:hidden;
+  border:1px solid var(--line)}
+.sheet .ttl{padding:14px 16px 12px;text-align:center;border-bottom:1px solid var(--line)}
+.sheet .ttl b{display:block;font:600 var(--body) var(--sans);margin-bottom:4px}
+.sheet .ttl span{color:var(--t2);font-size:var(--subhead);line-height:1.45;display:block}
+.sheet .act{display:block;width:100%;text-align:center;padding:14px;
+  font-size:var(--title3);min-height:44px;border-bottom:1px solid var(--line)}
+.sheet .act:last-child{border-bottom:none}
+.sheet .act.d{color:var(--fail);font-weight:500}
+.sheet .cancel{margin-top:8px;background:var(--raised);border-radius:14px;
+  border:1px solid var(--line);display:block;width:100%;text-align:center;
+  padding:14px;font-size:var(--title3);font-weight:600;min-height:44px}
+
+/* success — in-place, no toast */
+/* --accent, not --live: DESIGN.md 2 reserves the indicator hues for their stated meanings
+   ("a child process is running"), and a confirmation mark is not a process state. */
+.doneMark{display:flex;justify-content:center;margin-top:30px;color:var(--accent)}
+
+/* tweak panel */
+.tweaks{position:fixed;right:18px;bottom:18px;z-index:90;background:var(--panel);
+  border:1px solid var(--lineS);border-radius:12px;padding:11px 13px;
+  box-shadow:0 12px 34px rgba(0,0,0,.45);display:flex;gap:16px;align-items:center}
+.tweaks .grp2{display:flex;gap:7px;align-items:center}
+.tweaks label{font:600 var(--caption) var(--sans);color:var(--t3);letter-spacing:.02em}
+.seg{display:flex;background:var(--f3);border-radius:7px;padding:2px;gap:2px}
+.seg button{font:500 var(--subhead) var(--sans);padding:4px 9px;border-radius:5px;color:var(--t2)}
+.seg button.on{background:var(--raised2);color:var(--t1)}
+
+/* annotation callout under a frame */
+.ann{margin-top:9px;font-size:var(--subhead);color:var(--t3);line-height:1.5;
+  border-left:2px solid var(--line);padding-left:9px}
+.ann b{color:var(--t2);font-weight:600}
+.ann.fix{border-left-color:var(--attn)}
+.ann.fix b{color:var(--attn)}
+
+/* §7 — reduced motion is honoured, not claimed */
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms !important;animation-iteration-count:1 !important;
+    transition-duration:.001ms !important}
+}
+[data-motion="reduced"] *{animation:none !important;transition:none !important}
+[data-motion="reduced"] .ring{border-top-color:var(--attn);opacity:.9}
+</style>
+</head>
+<body>
+<div class="pg">
+  <div class="pghd">
+    <h1>I1 — iPhone: shell and pairing</h1>
+    <p>Every surface, state, interaction and overlay this feature owns. The five-tab shell, the
+       pairing flow end to end, connection state, and Settings' paired-Mac section — each with the
+       nine states from DESIGN.md §5 and real copy on the unhappy paths. Corrections applied against
+       <code>design/mocks/prototype.html</code> are marked in amber where they appear.</p>
+    <div class="meta">mock oracle for feature I1 · design authority DESIGN.md · visitor mode: operate ·
+      both appearances authored — use the toggle, bottom right</div>
+  </div>
+
+  <div id="out"></div>
+</div>
+
+<div class="tweaks">
+  <div class="grp2"><label>Appearance</label>
+    <div class="seg" id="segAppear">
+      <button data-v="dark" class="on">Dark</button><button data-v="light">Light</button>
+    </div></div>
+  <div class="grp2"><label>Motion</label>
+    <div class="seg" id="segMotion">
+      <button data-v="full" class="on">Full</button><button data-v="reduced">Reduced</button>
+    </div></div>
+</div>
+
+<script>
+/* ═══════════════════ icons — drawn, 1.4 stroke on a 16 grid (DESIGN.md §4) ═══
+   Never unicode, never emoji. `currentColor` throughout so a tier or an
+   indicator colour drives them rather than a second palette. */
+const P = {
+  discover:'<circle cx="8" cy="8" r="6"/><path d="M10.4 5.6 9 9 5.6 10.4 7 7z"/>',
+  triage:'<path d="M6 4h7M6 8h7M6 12h7"/><path d="M2.4 4.2l1 1 1.6-1.8"/><path d="M2.4 8.2l1 1 1.6-1.8"/><path d="M2.4 12.2l1 1 1.6-1.8"/>',
+  queue:'<path d="M2.5 9.5v3a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-3"/><path d="M8 2.5v7"/><path d="M5.2 5.3 8 2.5l2.8 2.8"/>',
+  library:'<rect x="2.5" y="2.5" width="4.5" height="11" rx="1"/><rect x="9" y="2.5" width="4.5" height="5" rx="1"/><path d="M9 10.5h4.5"/><path d="M9 13h4.5"/>',
+  settings:'<circle cx="8" cy="8" r="2.2"/><path d="M8 1.6v1.8M8 12.6v1.8M14.4 8h-1.8M3.4 8H1.6M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3M12.5 12.5l-1.3-1.3M4.8 4.8 3.5 3.5"/>',
+  camera:'<path d="M2.5 5.5h2.2l1-1.6h4.6l1 1.6h2.2a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z"/><circle cx="8" cy="9.3" r="2.4"/>',
+  mac:'<rect x="2.2" y="3" width="11.6" height="8" rx="1.2"/><path d="M1 13h14"/>',
+  chev:'<path d="M6 3.5 10.5 8 6 12.5"/>',
+  chevL:'<path d="M10 3.5 5.5 8 10 12.5"/>',
+  warn:'<path d="M8 2.2 14.6 13.4H1.4z"/><path d="M8 6.4v3.1"/><path d="M8 11.3v.1"/>',
+  check:'<path d="M3 8.4 6.4 11.8 13 4.6"/>',
+  keyhole:'<circle cx="8" cy="6.4" r="3.4"/><path d="M8 9.8v3.8"/><path d="M6.4 12h3.2"/>',
+  wifiOff:'<path d="M2 6.1a10 10 0 0 1 4-2.3"/><path d="M14 6.1a10 10 0 0 0-5-2.4"/><path d="M4.6 8.7a6.4 6.4 0 0 1 2-1.3"/><path d="M11.4 8.7a6.4 6.4 0 0 0-2-1.3"/><path d="M8 12.4v.1"/><path d="M2 2l12 12"/>',
+  plug:'<path d="M6 2.4v3.4M10 2.4v3.4"/><path d="M4.2 5.8h7.6v2.1a3.8 3.8 0 0 1-3.8 3.8 3.8 3.8 0 0 1-3.8-3.8z"/><path d="M8 11.7v2.1"/>',
+  clock:'<circle cx="8" cy="8" r="5.9"/><path d="M8 4.6V8l2.3 1.4"/>'
+};
+const ic = (n, s = 16, w = 1.4) =>
+  `<svg width="${s}" height="${s}" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+     stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"
+     aria-hidden="true">${P[n]}</svg>`;
+
+/* ═══════════════════ shell ══════════════════════════════════════════════ */
+const TABS = [
+  ['discover','Discover'], ['triage','Triage'], ['queue','Queue'],
+  ['library','Library'], ['settings','Settings']
+];
+const tabbar = (sel) => `<div class="tabs">${TABS.map(([k,l])=>
+  `<span class="tab${k===sel?' on':''}"><i>${ic(k,22,k===sel?1.9:1.4)}</i><span>${l}</span></span>`
+).join('')}</div>`;
+
+/* iOS status-bar glyphs. Chrome, not app iconography — filled rather than the
+   1.4 stroke of DESIGN.md §4, because that is what the real status bar is. */
+const statusGlyphs = () => `
+  <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor" aria-hidden="true">
+    <rect x="0" y="7.5" width="2.6" height="3.5" rx=".8"/>
+    <rect x="3.9" y="5.5" width="2.6" height="5.5" rx=".8"/>
+    <rect x="7.8" y="3.2" width="2.6" height="7.8" rx=".8"/>
+    <rect x="11.7" y="1" width="2.6" height="10" rx=".8"/>
+  </svg>
+  <svg width="15" height="11" viewBox="0 0 15 11" fill="none" stroke="currentColor"
+       stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+    <path d="M1 3.4a9.6 9.6 0 0 1 13 0"/><path d="M3.7 6.2a5.8 5.8 0 0 1 7.6 0"/>
+    <path d="M7.5 9.2v.05"/>
+  </svg>
+  <svg width="24" height="11" viewBox="0 0 24 11" fill="none" aria-hidden="true">
+    <rect x=".6" y=".6" width="20" height="9.8" rx="2.8" stroke="currentColor"
+          stroke-opacity=".45" stroke-width="1.1"/>
+    <rect x="2.2" y="2.2" width="14" height="6.6" rx="1.6" fill="currentColor"/>
+    <path d="M22.4 3.9v3.2" stroke="currentColor" stroke-opacity=".45"
+          stroke-width="1.6" stroke-linecap="round"/>
+  </svg>`;
+
+/* Named statusBar rather than status: `status` is a property of window, so a
+   top-level `const status` both shadows it and is easy to delete by accident. */
+const statusBar = () =>
+  `<div class="pstat"><span>9:41</span><span class="r">${statusGlyphs()}</span></div>
+   <div class="notch"></div>`;
+
+/* opts: {tab, title, back, sub, sheet} */
+const phone = (opts, body) => `
+  <div class="ph"><div class="scr">
+    ${statusBar()}
+    <div class="pnav">
+      ${opts.back ? `<span class="back">${ic('chevL',15)} ${opts.back}</span>` : ''}
+      ${opts.title ? `<h3>${opts.title}</h3>` : ''}
+      ${opts.sub ? `<div class="psub">${opts.sub}</div>` : ''}
+    </div>
+    <div class="pbody">${body}</div>
+    ${opts.tab ? tabbar(opts.tab) : ''}
+    ${opts.sheet || ''}
+  </div></div>`;
+
+const unit = (label, note, frame, ann) => `
+  <div class="unit">
+    <div class="cap"><b>${label}</b>${note?`<span>${note}</span>`:''}</div>
+    ${frame}
+    ${ann ? `<div class="ann${ann.fix?' fix':''}">${ann.fix?'<b>Corrects the prototype.</b> ':''}${ann.t}</div>` : ''}
+  </div>`;
+
+const sec = (k, title, blurb, rows) => `
+  <section class="sect"><h2><span class="k">${k}</span>${title}</h2>
+    ${blurb?`<p>${blurb}</p>`:''}
+    <div class="row">${rows}</div></section>`;
+
+/* ═══════════════════ shared copy ════════════════════════════════════════
+   One name per state across both devices (DESIGN.md §6). The Mac's action is
+   "Pair iPhone"; the phone's is "Pair Mac". Both spellings appear in the
+   prototype's Mac sheet, so this pair is inherited, not invented. */
+const MAC = "Luke's MacBook Pro";
+const MAC_LONG = "Luke's 16-inch MacBook Pro (work, Ventura office)";
+const NEVER_INSTALLS =
+  "This app queues items for review on your Mac. It cannot install, update or remove anything — that happens only at your Mac.";
+
+const cautionScan = `
+  <div class="wants"><h5>${ic('warn',13)} Before you scan</h5>
+    <div class="wl"><span class="i">&rsaquo;</span><span>Treat that code like a password.</span></div>
+    <div class="wl"><span class="i">&rsaquo;</span><span>Anyone who scans it can queue items on your Mac until it expires.</span></div>
+  </div>`;
+
+/* ═══════════════════ surfaces ═══════════════════════════════════════════ */
+const out = [];
+
+/* ── A · the tab shell ────────────────────────────────────────────────── */
+out.push(sec('A','The tab shell',
+  `Five tabs, iOS grammar: outline icons at rest, heavier stroke and accent when selected, 11px labels,
+   a 44pt minimum target on every one. I1 owns the shell; the content of Discover belongs to I2 and
+   Triage / Queue / Library to I3, so those four are represented here exactly as they will ship before
+   their feature lands — a designed awaiting state, never fake rows. No badges: a count is observed data
+   this feature does not own, and inventing one is the fabricated number DESIGN.md §6 forbids.`,
+  [
+    unit('Discover — awaiting I2','tab selected · honest placeholder',
+      phone({tab:'discover',title:'Discover'},
+        `<div class="pempty"><div class="g">${ic('discover',34,1.2)}</div>
+          <b>Nothing to browse yet</b>
+          <p>Browsing arrives in a later update. Pairing and your library are here now.</p></div>`),
+      {t:'The four non-Settings tabs each carry their own awaiting state. A tab that opens onto a blank pane reads as a broken app.'}),
+
+    unit('Triage — awaiting I3','',
+      phone({tab:'triage',title:'Triage'},
+        `<div class="pempty"><div class="g">${ic('triage',34,1.2)}</div>
+          <b>Nothing to triage yet</b>
+          <p>Capabilities you have not decided on will collect here once browsing arrives.</p></div>`)),
+
+    unit('Queue — awaiting I3','',
+      phone({tab:'queue',title:'Queue'},
+        `<div class="pempty"><div class="g">${ic('queue',34,1.2)}</div>
+          <b>You have not sent anything yet</b>
+          <p>Items you send to your Mac appear here with what happened to them at the Mac.</p></div>`)),
+
+    unit('Library — awaiting I3','',
+      phone({tab:'library',title:'Library'},
+        `<div class="pempty"><div class="g">${ic('library',34,1.2)}</div>
+          <b>Your library lives on your Mac</b>
+          <p>What is installed there will be listed here, read-only. ${NEVER_INSTALLS}</p></div>`),
+      {t:'Carries the queues-never-installs statement, because Library is the surface most likely to be mistaken for an install surface.'})
+  ].join('')));
+
+/* ── B · never paired ─────────────────────────────────────────────────── */
+out.push(sec('B','Settings — before any Mac is paired',
+  `The entry point. Empty state discipline: an illustration, one sentence, one action — never a bare
+   "No items". This is also where the narrowing is stated first, because someone deciding whether to pair
+   deserves to know what pairing does and does not grant before they do it.`,
+  [
+    unit('Never paired','the empty state · one action',
+      phone({tab:'settings',title:'Settings'},
+        `<div class="plbl">Paired Mac</div>
+         <div class="pempty" style="padding-top:26px"><div class="g">${ic('mac',34,1.2)}</div>
+           <b>No Mac paired yet</b>
+           <p>Pair with the Mac running MCP Router to send it capabilities to review.</p></div>
+         <button class="cta">Pair Mac</button>
+         <div class="note l">${NEVER_INSTALLS}</div>`),
+      {t:'“Pair Mac” on the phone, “Pair iPhone” on the Mac — one name per action per device, inherited from the prototype’s own Mac sheet.'})
+  ].join('')));
+
+/* ── C · scan ─────────────────────────────────────────────────────────── */
+out.push(sec('C','Pairing — scan the code your Mac is showing',
+  `The primary path. The Mac issues the code and the phone consumes it. The caution is the floor rather
+   than decoration: a pairing code lets a remote party put executable code on a laptop, so it is stated
+   before the camera is useful, not after.`,
+  [
+    unit('Scan','primary path · camera live',
+      phone({back:'Settings',title:'Pair Mac',
+        sub:`On your Mac, open <b>MCP Router → Settings → Pair iPhone</b>, then point this camera at the code it shows.`},
+        `<div class="finder">
+           <span class="br tl"></span><span class="br tr"></span>
+           <span class="br bl"></span><span class="br br2"></span>
+           <div><div class="cam">${ic('camera',30,1.2)}</div>
+             <div class="lbl">Point at the code on your Mac</div></div>
+         </div>
+         ${cautionScan}
+         <button class="cta sec">Can't scan? Type the code</button>
+         <div class="note">No code on your Mac? Check MCP Router is running there and that both devices
+           are on the same network.</div>`),
+      {fix:true,t:'Caution is <b>--attn</b>, not --fail — nothing has failed when we warn someone before they act. Viewfinder uses scanner brackets and a camera glyph, not the prototype’s magnifier.'})
+  ].join('')));
+
+/* ── D · camera permission ────────────────────────────────────────────── */
+out.push(sec('D','Pairing — camera permission',
+  `Two genuinely different states that a single "no camera" screen would collapse. Not-yet-asked is a
+   pre-prompt that explains why the camera is wanted before iOS asks, which is what earns the yes.
+   Denied is unrecoverable in-app, so the only honest action is the one that leaves the app.`,
+  [
+    unit('Permission not yet granted','pre-prompt · before the iOS alert',
+      phone({back:'Settings',title:'Pair Mac'},
+        `<div class="finder off"><div><div class="cam">${ic('camera',30,1.2)}</div>
+           <div class="lbl">Camera not started</div></div></div>
+         <div class="wants"><h5>${ic('keyhole',13)} Why the camera</h5>
+           <div class="wl"><span class="i">&rsaquo;</span><span>It reads the pairing code on your Mac's screen and nothing else.</span></div>
+           <div class="wl"><span class="i">&rsaquo;</span><span>No image is stored or sent anywhere.</span></div></div>
+         <button class="cta">Allow camera access</button>
+         <button class="cta sec">Enter the code instead</button>`),
+      {t:'The typed path is offered here too, so a refusal is never a dead end.'}),
+
+    unit('Permission denied','recovery leaves the app',
+      phone({back:'Settings',title:'Pair Mac'},
+        `<div class="finder off"><div><div class="cam">${ic('camera',30,1.2)}</div>
+           <div class="lbl">Camera unavailable</div></div></div>
+         <div class="wants f"><h5>${ic('warn',13)} Camera access is off</h5>
+           <div class="wl"><span class="i">&rsaquo;</span><span>MCP Router can't open the camera, so it can't scan the code.
+             Turn it on in iOS Settings, or type the code instead.</span></div></div>
+         <button class="cta">Open iOS Settings</button>
+         <button class="cta sec">Enter the code instead</button>`),
+      {t:'<b>--fail</b> is correct here: a capability the flow depends on is genuinely unavailable. Both recoveries are offered; neither is a dead end.'}),
+
+    unit('Permission restricted','not the same as denied',
+      phone({back:'Settings',title:'Pair Mac'},
+        `<div class="finder off"><div><div class="cam">${ic('camera',30,1.2)}</div>
+           <div class="lbl">Camera unavailable</div></div></div>
+         <div class="wants f"><h5>${ic('warn',13)} Camera access isn't available</h5>
+           <div class="wl"><span class="i">&rsaquo;</span><span>Something on this device prevents camera
+             use, and it may not be yours to change. You can still pair by typing the code your Mac
+             is showing.</span></div></div>
+         <button class="cta">Enter the code instead</button>`),
+      {fix:true,t:'A fourth state the first pass missed. <code>AVAuthorizationStatus.restricted</code> is set by a device policy or Screen Time, so the user may have <em>no way</em> to grant it — which makes "Open iOS Settings" a dead end. The typed path is the primary action here, not the fallback.'})
+  ].join('')));
+
+/* ── E · typed entry ──────────────────────────────────────────────────── */
+out.push(sec('E','Pairing — enter the code (the fallback)',
+  `The fallback is an INPUT, not a display — the phone types the code the Mac is showing. This is the
+   correction that matters most: the prototype had the phone <em>displaying</em> a code for the Mac to
+   read, which inverts M6 and contradicts the prototype's own Mac sheet. No countdown appears on this
+   surface before submission, because the phone has not spoken to the Mac yet and so does not observe the
+   expiry — DESIGN.md §6 forbids showing a number the system does not observe.`,
+  [
+    unit('Empty','8 characters, two groups',
+      phone({back:'Scan',title:'Enter the code',
+        sub:'Type the eight characters your Mac is showing.'},
+        `<div class="code">
+           ${[0,1,2,3].map((i)=>`<span class="cbox e${i===0?' cur':''}">·</span>`).join('')}
+           <span class="cdash">–</span>
+           ${[0,1,2,3].map(()=>`<span class="cbox e">·</span>`).join('')}
+         </div>
+         <div class="helper">The code expires. Your Mac is showing how long is left.</div>
+         <button class="cta dis">Pair Mac</button>`),
+      {fix:true,t:'Direction inverted back: the Mac issues, the phone consumes. <b>No countdown here</b> — the phone has no observed expiry until the Mac answers.'}),
+
+    unit('Partially typed','commit still disabled',
+      phone({back:'Scan',title:'Enter the code'},
+        `<div class="code">
+           <span class="cbox">K</span><span class="cbox">7</span><span class="cbox">Q</span><span class="cbox">N</span>
+           <span class="cdash">–</span>
+           <span class="cbox">4</span><span class="cbox e cur">·</span>
+           <span class="cbox e">·</span><span class="cbox e">·</span>
+         </div>
+         <div class="helper">The code expires. Your Mac is showing how long is left.</div>
+         <button class="cta dis">Pair Mac</button>`),
+      {t:'Disabled dims in place and never disappears (§3.4). It becomes enabled on the eighth character.'}),
+
+    unit('Code not recognised','error adjacent to the field',
+      phone({back:'Scan',title:'Enter the code'},
+        `<div class="code">
+           <span class="cbox bad">K</span><span class="cbox bad">7</span><span class="cbox bad">Q</span><span class="cbox bad">N</span>
+           <span class="cdash">–</span>
+           <span class="cbox bad">4</span><span class="cbox bad">F</span><span class="cbox bad">M</span><span class="cbox bad">B</span>
+         </div>
+         <div class="inlineErr"><span class="i">${ic('warn',13)}</span>
+           <span>That code isn't one your Mac is showing. Check it against your Mac and type it
+             again — the code changes when it expires.</span></div>
+         <button class="cta">Pair Mac</button>`),
+      {t:'States what happened and what to do, adjacent to the field, without blaming and without emoting (§6).'}),
+
+    unit('Code expired','a designed state, not a silence',
+      phone({back:'Scan',title:'Enter the code'},
+        `<div class="code">
+           <span class="cbox">K</span><span class="cbox">7</span><span class="cbox">Q</span><span class="cbox">N</span>
+           <span class="cdash">–</span>
+           <span class="cbox">4</span><span class="cbox">F</span><span class="cbox">M</span><span class="cbox">D</span>
+         </div>
+         <div class="inlineErr"><span class="i">${ic('clock',13)}</span>
+           <span>That code has expired. Your Mac is already showing a new one — type that, or scan it.</span></div>
+         <button class="cta sec">Scan instead</button>`),
+      {t:'Expiry is a real recovery, not a failure: the Mac has already issued the next code, so the copy points at it.'})
+  ].join('')));
+
+/* ── F · verifying ────────────────────────────────────────────────────── */
+out.push(sec('F','Pairing — verifying',
+  `The handshake in flight. This is the one surface where a countdown is honest, and only on the scanned
+   path: the QR payload carries the code's expiry, so the phone has observed it and may show it.`,
+  [
+    unit('Verifying — after a scan','countdown is observed, so it shows',
+      phone({back:'Scan',title:'Pair Mac'},
+        `<div class="pempty" style="padding-top:56px">
+           <div class="g">${ic('mac',34,1.2)}</div>
+           <b>Checking with ${MAC}</b>
+           <p>Confirming the code and exchanging keys.</p></div>
+         <div class="count"><span class="ring"></span>
+           <span class="m">code expires in 4:52</span></div>`),
+      {t:'The expiry came from the scanned payload. On the typed path this same screen shows the spinner and no number.'}),
+
+    unit('Verifying — after typing','no observed expiry, so no number',
+      phone({back:'Enter the code',title:'Pair Mac'},
+        `<div class="pempty" style="padding-top:56px">
+           <div class="g">${ic('mac',34,1.2)}</div>
+           <b>Checking the code</b>
+           <p>Confirming it with your Mac.</p></div>
+         <div class="count"><span class="ring"></span>
+           <span class="m">working…</span></div>`),
+      {fix:true,t:'The same moment without a fabricated number. This pair is the honesty rule made visible.'})
+  ].join('')));
+
+/* ── G · success ──────────────────────────────────────────────────────── */
+out.push(sec('G','Pairing — paired',
+  `An in-place state change. The flow's one designed high moment sits here, at the end, and it is a tick
+   and a sentence rather than a celebration — proportional to what happened.`,
+  [
+    unit('Paired','success · returns you to Settings',
+      phone({tab:'settings',title:'Pair Mac'},
+        `<div class="doneMark">${ic('check',40,2)}</div>
+         <div class="pempty" style="padding-top:14px">
+           <b>Paired with ${MAC}</b>
+           <p>You can send capabilities to it for review.</p></div>
+         <div class="wants"><h5>${ic('keyhole',13)} What this phone can do</h5>
+           <div class="wl"><span class="i">&rsaquo;</span><span>Queue items for review, and read your library.</span></div>
+           <div class="wl"><span class="i">&rsaquo;</span><span>It cannot install, update or remove anything.</span></div></div>
+         <button class="cta">Done</button>`),
+      {t:'The narrowing restated at the moment permission is granted — the one moment the user is actually thinking about what they just allowed.'}),
+
+    unit('Paired, but not saved','the Mac paired · the Keychain write failed',
+      phone({tab:'settings',title:'Pair Mac'},
+        `<div class="pempty" style="padding-top:34px"><div class="g">${ic('warn',34,1.2)}</div>
+          <b>Paired, but this phone couldn't save it</b>
+          <p>${MAC} accepted the pairing, but it couldn't be stored on this phone, so it won't
+             survive closing the app. Ask your Mac for a new code and pair again.</p></div>
+         <button class="cta">Pair again</button>`),
+      {t:'Neither the success surface nor the failure pane. The Mac really did pair, so calling it a failure would send the user to spend a second one-use code; but the record is what survives a relaunch, so a silent success would let the pairing vanish overnight with nothing having said so.'})
+  ].join('')));
+
+/* ── H · pairing failures ─────────────────────────────────────────────── */
+out.push(sec('H','Pairing — the ways it fails',
+  `Four distinct failures with four distinct recoveries. Collapsing them into one "pairing failed" screen
+   is how a user ends up retrying the thing that cannot work.`,
+  [
+    unit('Code already used','',
+      phone({back:'Enter the code',title:'Pair Mac'},
+        `<div class="pempty" style="padding-top:40px"><div class="g">${ic('warn',34,1.2)}</div>
+           <b>That code has already been used</b>
+           <p>Each code pairs one device once. Ask your Mac for a new one — MCP Router → Settings →
+              Pair iPhone.</p></div>
+         <button class="cta">Scan a new code</button>`)),
+
+    unit('Version mismatch','',
+      phone({back:'Enter the code',title:'Pair Mac'},
+        `<div class="pempty" style="padding-top:40px"><div class="g">${ic('warn',34,1.2)}</div>
+           <b>${MAC} is running an older MCP Router</b>
+           <p>That version pairs differently, so this app can't complete it. Update MCP Router on your
+              Mac, then pair again.</p></div>
+         <button class="cta sec">Try again</button>`),
+      {t:'Names the device and the actual blocker. "Something went wrong" would send the user back to retype a code that can never work.'}),
+
+    unit('Mac unreachable','the network, not the code',
+      phone({back:'Enter the code',title:'Pair Mac'},
+        `<div class="pempty" style="padding-top:40px"><div class="g">${ic('wifiOff',34,1.2)}</div>
+           <b>Can't reach ${MAC}</b>
+           <p>The code is fine, but nothing answered. Your Mac may be asleep, on another network, or
+              MCP Router may not be running there.</p></div>
+         <button class="cta">Try again</button>`),
+      {t:'The phone genuinely cannot tell which of the three it is, so the copy names all three rather than guessing one.'}),
+
+    unit('Mac refused','',
+      phone({back:'Enter the code',title:'Pair Mac'},
+        `<div class="pempty" style="padding-top:40px"><div class="g">${ic('warn',34,1.2)}</div>
+           <b>${MAC} declined the pairing</b>
+           <p>Someone dismissed the request at the Mac. Start pairing again there if that wasn't
+              intended.</p></div>
+         <button class="cta sec">Back to Settings</button>`),
+      {t:'A refusal is a decision someone made, not an error — so it is reported without alarm and without a retry as the primary action.'}),
+
+    unit('Not an MCP Router code','the QR was something else entirely',
+      phone({back:'Scan',title:'Pair Mac'},
+        `<div class="inlineErr"><span class="i">${ic('warn',13)}</span>
+           <span>That isn't an MCP Router pairing code. Scan the code your Mac is showing under
+             Settings → Pair iPhone.</span></div>
+         <button class="cta">Scan again</button>`),
+      {fix:true,t:'The scanner will read any QR in front of it — a Wi-Fi code, a URL, a parcel label. Decoding the envelope <em>before</em> the version is what keeps this distinct from "your Mac is running an older MCP Router", which is a different problem with a different fix.'}),
+
+    unit('Code unreadable','ours, and broken',
+      phone({back:'Scan',title:'Pair Mac'},
+        `<div class="inlineErr"><span class="i">${ic('warn',13)}</span>
+           <span>That code couldn't be read. Ask your Mac for a new one and scan it again.</span></div>
+         <button class="cta">Scan again</button>`),
+      {fix:true,t:'The third decode outcome: our envelope, our version, a body that did not hold up. Folding it into either neighbour would tell the user to do the wrong thing.'})
+  ].join('')));
+
+/* ── I · settings paired ──────────────────────────────────────────────── */
+out.push(sec('I','Settings — paired',
+  `Which Mac, when it was paired, when it was last seen, and whether it can be reached right now. Unpair
+   is destructive and gets a named-consequence sheet — never a bare "Are you sure", and never the default
+   button.`,
+  [
+    unit('Paired and reachable','the default state',
+      phone({tab:'settings',title:'Settings'},
+        `<div class="plbl">Paired Mac</div>
+         <div class="li"><span class="tile">${ic('mac',15)}</span>
+           <span class="tx"><b>${MAC}</b><span>paired 12 Aug · last seen just now</span></span>
+           <span style="color:var(--t3)">${ic('chev',15)}</span></div>
+         <div class="conn ok"><span class="dot"></span><span>Reachable — items you send arrive now.</span></div>
+         <button class="cta danger">Unpair this Mac</button>
+         <div class="plbl">About</div>
+         <div class="note l">${NEVER_INSTALLS}</div>`),
+      {t:'Notifications are deliberately absent — they belong to I3, and the prototype renders their switch track in --live, which is decorative use of an indicator colour.'}),
+
+    unit('Paired, not reachable','the brief\'s explicit requirement',
+      phone({tab:'settings',title:'Settings'},
+        `<div class="plbl">Paired Mac</div>
+         <div class="li"><span class="tile">${ic('mac',15)}</span>
+           <span class="tx"><b>${MAC}</b><span>paired 12 Aug · last seen 2 hours ago</span></span>
+           <span style="color:var(--t3)">${ic('chev',15)}</span></div>
+         <div class="conn down"><span class="dot"></span>
+           <span><b>Can't reach it right now.</b> It may be asleep, on another network, or MCP Router
+             may not be running. Anything you send waits here until it's back.</span></div>
+         <button class="cta danger">Unpair this Mac</button>`),
+      {t:'"A phone that silently fails to send is worse than one that says it cannot." The state names the uncertainty honestly and says what happens to queued work.'}),
+
+    unit('Unpair — named consequence','destructive · cancel is separate',
+      phone({tab:'settings',title:'Settings',
+        sheet:`<div class="sheetwrap"><div class="sheet">
+          <div class="grp">
+            <div class="ttl"><b>Unpair ${MAC}?</b>
+              <span>This phone will stop being able to queue items. Anything already waiting at the Mac
+                stays there. You can pair again with a new code.</span></div>
+            <button class="act d">Unpair</button>
+          </div>
+          <button class="cancel">Cancel</button>
+        </div></div>`},
+        `<div class="plbl">Paired Mac</div>
+         <div class="li"><span class="tile">${ic('mac',15)}</span>
+           <span class="tx"><b>${MAC}</b><span>paired 12 Aug · last seen just now</span></span></div>`),
+      {t:'The consequence is named in the sheet, not implied. Cancel is its own separated control, which on iOS is the one your thumb lands on.'}),
+
+    unit('Unpair — it failed','the delete threw · the Mac is still paired',
+      phone({tab:'settings',title:'Settings'},
+        `<div class="wants fail"><h5>${ic('warn',13)} Couldn't unpair ${MAC}</h5>
+           <div class="wl"><span class="i">&rsaquo;</span><span>The pairing couldn't be removed, so this Mac is still paired.
+             Nothing changed — try again.</span></div></div>
+         <div class="plbl">Paired Mac</div>
+         <div class="li"><span class="tile">${ic('mac',15)}</span>
+           <span class="tx"><b>${MAC}</b><span>paired 12 Aug · last seen just now</span></span></div>
+         <button class="cta danger">Unpair this Mac</button>`),
+      {t:'Without this the row simply stays put after the user confirmed, which reads as the app ignoring them. The state it reports is the true one — still paired — and it names what was observed without guessing why.'})
+  ].join('')));
+
+/* ── J · connection state ─────────────────────────────────────────────── */
+out.push(sec('J','Connection state, wherever you are',
+  `The indicator is not confined to Settings. Any surface that offers to send states whether sending will
+   work, before the user commits to it — and when it will not, the commit dims in place with the reason
+   beside it rather than failing after the tap.`,
+  [
+    unit('The three states','side by side',
+      `<div class="ph"><div class="scr">${statusBar()}
+        <div class="pnav"><h3>Connection</h3></div>
+        <div class="pbody">
+          <div class="plbl">Reachable</div>
+          <div class="conn ok"><span class="dot"></span><span>${MAC} — items you send arrive now.</span></div>
+          <div class="plbl">Not reachable</div>
+          <div class="conn down"><span class="dot"></span><span>Can't reach ${MAC}. Anything you send waits here until it's back.</span></div>
+          <div class="plbl">Never paired</div>
+          <div class="conn none"><span class="dot"></span><span>No Mac paired. Pair one to send anything.</span></div>
+        </div>${tabbar('settings')}</div></div>`,
+      {t:'One vocabulary, three states, reused wherever sending is offered. --live for reachable and --attn for unreachable are both doing their own job: a reachable Mac genuinely has the router running, and an unreachable one genuinely wants a decision.'}),
+
+    unit('Cannot send right now','commit disabled, reason adjacent',
+      phone({tab:'queue',title:'Queue'},
+        `<div class="conn down"><span class="dot"></span>
+           <span><b>Can't reach ${MAC}.</b> Two items are waiting to go.</span></div>
+         <div class="plbl">Waiting to send</div>
+         <div class="li"><span class="tile">${ic('plug',15)}</span>
+           <span class="tx"><b>filesystem-mcp</b><span>queued 09:12 · waiting for your Mac</span></span></div>
+         <div class="li"><span class="tile">${ic('plug',15)}</span>
+           <span class="tx"><b>sqlite-explorer</b><span>queued 09:14 · waiting for your Mac</span></span></div>
+         <button class="cta dis">Send 2 to Mac</button>
+         <div class="note">They'll go on their own as soon as your Mac is reachable.</div>`),
+      {t:'Queue content is I3\'s; this frame exists only to show I1\'s connection state doing its job on a sending surface. The disabled commit dims in place and the reason sits directly above it.'})
+  ].join('')));
+
+/* ── L · the nine states ──────────────────────────────────────────────── */
+out.push(sec('L','The nine states — Settings, paired Mac',
+  `DESIGN.md §5 in full for this feature's data surface, with real copy on every unhappy path. Default,
+   empty, offline and disabled are drawn in sections B, I and J above and are named here rather than
+   redrawn; the five that have no other home are drawn below.`,
+  [
+    unit('Loading','skeleton matches the real row exactly',
+      phone({tab:'settings',title:'Settings'},
+        `<div class="plbl">Paired Mac</div>
+         <div class="sk"><span class="t"></span><span class="l"><i></i><i></i></span></div>
+         <div class="note l" style="margin-top:14px">Checking whether your Mac is reachable.</div>`),
+      {t:'Same 44pt row height and 30pt tile as the populated row, so nothing jumps when the data lands. Never a spinner over a blank pane.'}),
+
+    unit('Partial','what arrived, what did not, why',
+      phone({tab:'settings',title:'Settings'},
+        `<div class="plbl">Paired Mac</div>
+         <div class="li"><span class="tile">${ic('mac',15)}</span>
+           <span class="tx"><b>${MAC}</b><span>paired 12 Aug · last seen unknown</span></span></div>
+         <div class="conn down"><span class="dot"></span>
+           <span>Reachable, but it hasn't reported since this app opened, so "last seen" is unknown rather
+             than guessed.</span></div>`),
+      {t:'The gap is explained rather than filled, and the banner uses the same word the row does — "unknown", not "blank". A plausible invented timestamp is exactly the fabricated number §6 forbids.'}),
+
+    unit('Error','the pairing record is unreadable',
+      phone({tab:'settings',title:'Settings'},
+        `<div class="plbl">Paired Mac</div>
+         <div class="wants f"><h5>${ic('warn',13)} Can't read this phone's pairing</h5>
+           <div class="wl"><span class="i">&rsaquo;</span><span>The stored pairing couldn't be opened, so
+             this phone can't reach your Mac. Pair with your Mac again to fix it.</span></div></div>
+         <button class="cta">Pair Mac</button>`),
+      {fix:true,t:'Describes what was observed and stops there. An earlier draft blamed a backup restore — but a restore to a <em>different</em> device leaves this Keychain item <b>absent</b>, not unreadable, and absent renders "No Mac paired yet". Naming a cause the app has not observed is the same fabrication as naming a number it has not measured.'}),
+
+    unit('Success','in-place, no toast',
+      phone({tab:'settings',title:'Settings'},
+        `<div class="plbl">Paired Mac</div>
+         <div class="li"><span class="tile">${ic('mac',15)}</span>
+           <span class="tx"><b>${MAC}</b><span>paired just now · last seen just now</span></span></div>
+         <div class="conn ok"><span class="dot"></span><span>Paired. Items you send arrive now.</span></div>`),
+      {t:'The row simply becomes true. macOS does not toast a click and neither does this.'}),
+
+    unit('Overflow','a long name truncates; the row does not grow',
+      phone({tab:'settings',title:'Settings'},
+        `<div class="plbl">Paired Mac</div>
+         <div class="li"><span class="tile">${ic('mac',15)}</span>
+           <span class="tx"><b style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${MAC_LONG}</b>
+             <span>paired 12 Aug · last seen just now</span></span>
+           <span style="color:var(--t3)">${ic('chev',15)}</span></div>
+         <div class="li"><span class="tile">${ic('mac',15)}</span>
+           <span class="tx"><b>${MAC}</b><span>paired 12 Aug · last seen just now</span></span>
+           <span style="color:var(--t3)">${ic('chev',15)}</span></div>`),
+      {t:'Both rows are the same height. The full name is available on the detail view the chevron opens.'})
+  ].join('')));
+
+/* ── N · reduced motion ───────────────────────────────────────────────── */
+out.push(sec('N','Reduced motion',
+  `DESIGN.md §7 binds: motion animates transform and opacity only, honours the accessibility setting, and
+   nothing animates opacity from 0 on entry. Flip the Motion toggle bottom-right — the spinner stops and
+   the state it was reporting stays exactly as legible, because the animation was never what carried the
+   meaning.`,
+  [
+    unit('Verifying, motion honoured','toggle Motion to compare',
+      phone({back:'Scan',title:'Pair Mac'},
+        `<div class="pempty" style="padding-top:56px"><div class="g">${ic('mac',34,1.2)}</div>
+           <b>Checking with ${MAC}</b>
+           <p>Confirming the code and exchanging keys.</p></div>
+         <div class="count"><span class="ring"></span><span class="m">code expires in 4:52</span></div>`),
+      {t:'Reduce Motion removes the animation and never the state change — the ring holds its position and the countdown still counts.'})
+  ].join('')));
+
+document.getElementById('out').innerHTML = out.join('');
+
+/* ═══════════════════ tweaks ═════════════════════════════════════════════ */
+function wire(id, attr){
+  const el = document.getElementById(id);
+  el.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    [...el.children].forEach(c => c.classList.toggle('on', c === b));
+    document.documentElement.setAttribute(attr, b.dataset.v);
+  });
+}
+wire('segAppear','data-appearance');
+wire('segMotion','data-motion');
+document.documentElement.setAttribute('data-appearance','dark');
+document.documentElement.setAttribute('data-motion','full');
+
+/* ═══════════════════ deep links ═════════════════════════════════════════
+   ?sec=E isolates one section, ?appearance=light and ?motion=reduced set the
+   toggles. Same argument the prototype makes for its own deep links: a mock
+   you can only reach by scrolling is a mock nobody screenshots — and every
+   later stage of this feature cites individual surfaces from this file. */
+{
+  const q = new URLSearchParams(location.search);
+  const s = q.get('sec');
+  if (s) {
+    document.querySelectorAll('.sect').forEach(el => {
+      const k = el.querySelector('h2 .k');
+      if (!k || k.textContent.trim().toUpperCase() !== s.toUpperCase()) el.remove();
+    });
+    document.querySelector('.pghd').style.display = 'none';
+    const kept = document.querySelector('.sect');
+    if (kept) {
+      kept.style.marginTop = '0';
+      const blurb = [...kept.children].find(c => c.tagName === 'P');
+      if (blurb) blurb.style.display = 'none';
+    }
+  }
+  for (const [k, attr] of [['appearance','data-appearance'], ['motion','data-motion']]) {
+    const v = q.get(k);
+    if (!v) continue;
+    document.documentElement.setAttribute(attr, v);
+    const seg = document.getElementById(k === 'appearance' ? 'segAppear' : 'segMotion');
+    [...seg.children].forEach(c => c.classList.toggle('on', c.dataset.v === v));
+  }
+}
+</script>
+</body>
+</html>

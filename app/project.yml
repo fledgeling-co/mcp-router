@@ -99,6 +99,13 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
+        # Required, and not a formality: `AVCaptureDevice.requestAccess(for: .video)` traps at
+        # runtime when this key is absent, so an app that ships without it crashes the first time
+        # anyone taps "Allow camera access". The wording states the single narrow use and what does
+        # not happen, which is what the pre-prompt surface promises the user.
+        NSCameraUsageDescription:
+          MCP Router uses the camera once, to read the pairing code shown on your Mac.
+          Nothing is recorded.
     # The companion is sandboxed by definition on iOS and currently needs no capability of its
     # own. The file exists but is empty on purpose: a later item adds to a reviewed baseline
     # rather than introducing the first entitlement alongside a feature.
@@ -109,3 +116,42 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.fledgeling.mcprouter.ios
         TARGETED_DEVICE_FAMILY: "1"
+
+  # ---------------------------------------------------------------- iOS tests
+  #
+  # A real iOS test target, hosted by the app, and it exists because the alternative is a suite that
+  # cannot fail. `MCPRouterUITests` runs on the macOS host: it can prove a view constructs, that its
+  # copy comes from the manifest, and that its state machine behaves — but it cannot prove a 44pt
+  # touch target on an iPhone, a safe-area inset, a system tab bar, Dynamic Type at an accessibility
+  # size, or that the *generated* Info.plist carries the camera purpose string. Asserting any of
+  # those on macOS would be a green light for a claim nobody measured.
+  #
+  # Hosted rather than standalone specifically so `Bundle.main` is the app bundle, which is what
+  # makes the Info.plist assertion read the artifact that actually ships.
+  MCPRouterIOSTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: MCPRouterIOSTests
+    dependencies:
+      - target: MCPRouterIOS
+      - package: MCPRouterKit
+        product: MCPRouterKit
+      - package: MCPRouterKit
+        product: MCPRouterUI
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.fledgeling.mcprouter.ios.tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/MCPRouterIOS.app/MCPRouterIOS"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+schemes:
+  MCPRouterIOS:
+    build:
+      targets:
+        MCPRouterIOS: all
+        MCPRouterIOSTests: [test]
+    test:
+      targets:
+        - MCPRouterIOSTests

@@ -351,3 +351,40 @@ divergences, all fixed and red-green proven:
 | An empty base **throws** `TypeError: Invalid URL` rather than defaulting | B59 preserves `""`; `new URL('/v0/servers','')` throws, and the message reaches the warning | `""` produced a relative URL and a stub-dependent failure |
 | `cache[key] = rec` overwrites **in place** | the refreshed key keeps its slot | remove-and-append moved it to the end, rewriting the cache file's order every run |
 
+
+---
+
+## Close-out — 2026-08-14
+
+What this plan asked for, and what shipped. Written for R4's reader, who needs to know which parts
+of the port are proven and by what.
+
+| Phase | State | Evidence |
+|---|---|---|
+| P1 seams and response model | delivered | `Control/ControlPorts.swift`, `ControlAPIRequest.swift` |
+| P2 usage and attribution | delivered | `Usage/*`, `AttributionTests`, `UsageLogTests` |
+| P3 registry | delivered | `Registry/*`, `RegistryTests`, `RegistryEnrichmentTests` |
+| **P4 auth** | **moved to R5** | split out after this plan was written; `Auth/` is R5's |
+| P5 the control handler | delivered | `ControlHandler.swift`, `ControlFixtureTests` |
+| P6 vectors, fixtures, mutation gate | delivered | 352 vector cases · 35 mutations, all load-bearing |
+| P7 wiring, guardrails, gates | delivered | `no-wire-codable.sh` wired into `make lint`; `make all` green |
+
+**P6.4 finished here, and it was worth finishing.** The table had 24 mutations covering the
+behaviours the earlier passes named. Adding the three this plan enumerated but the table lacked —
+null-as-undefined, gating before `isControlPath`, rejecting rather than ignoring a PATCH's
+`command` — and three more for behaviours nothing broke took it to 30, and **three of the six
+stayed green**: B2's null `cwd`, B17's `Bearer` shadowing, and B40's command-line guarantee were
+each unguarded. All had passing fixture tests. That is exactly the S6 failure the spec warned about,
+and only this gate could have surfaced it.
+
+A clause-by-clause sweep for *evidence* rather than for mentions then found B50 and B51 with no test
+of any kind, and reading `src/usage.ts` to check the new rotation test asserted parity turned up one
+live divergence: a failed rotation swallowed its error and appended anyway, where the reference's
+single `try` skips the append. Five more mutations (R15–R19) close all of it.
+
+**Final counts:** 359 tests in 57 suites · `parity: 352 vector cases (floor 352)` · `parity-regen`
+reproduces the committed corpus from the reference exactly · 35/35 mutations red · the live
+differential compares 32 rows against the running TypeScript router with 0 failures.
+
+Full evidence, one row per clause with the commit it was verified at:
+`planning/evidence/R3-acceptance.md`.

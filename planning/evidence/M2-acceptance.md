@@ -390,3 +390,33 @@ re-run at the same commit. R5's suite, unrelated to this item, and the machine w
 other worktrees at the time. This is the second such observation in this file (the first was
 `RegistryEnrichmentTests`), and two port-binding-shaped flakes under load in one merged suite is
 worth someone looking at deliberately rather than each runner re-rolling until green.
+
+## Lint close-out — no UI re-verification, and why
+
+A file reorganisation only: `ActivityModel.swift` split on the boundary
+`ActivityModel+Presentation.swift` had already declared, the merge rule lifted into
+`ActivityModel+Merge.swift`, and seven duplicated tests deleted from
+`ActivityBoardRulesTests`. No view, no copy, no state machine and no wire call was
+edited — every screen row above stands at its recorded SHA, and `git diff` over the
+Activity view files is empty, so re-driving the pane would only have re-proved what
+those rows already record.
+
+| Screen | How verified | Commit | Result |
+|---|---|---|---|
+| Activity pane (all nine states) | not re-run — no file behind it changed; rows above stand | see rows above | carried forward |
+
+What was run instead, on the final tree: `make lint` 0 violations in 265 files;
+`make test` 822 tests in 113 suites, exit 0; `make build-mac` BUILD SUCCEEDED. The
+test count fell 829 -> 822 because seven tests were **duplicates** — every one
+byte-identical to its copy in `ActivityBoardContractTests` — not because coverage was
+removed. If the split had changed behaviour the suite is what would have said so, and
+it did not.
+
+Red-green on the one new guard, because a registration that is never tested is a
+registration that can be silently wrong. `ActivityModel+Merge.swift` must be listed in
+`ShellTestSupport.activityFiles` or it falls outside every source-level boundary gate
+(the one-channel grep, the indicator-colour declaration, the entry-motion rule).
+Removing the line: *"the Activity file list this suite scans is the whole of what is on
+disk"* **failed**, naming `ActivityModel+Merge.swift` as the file on disk and not in the
+list. Restoring it: **passed**. So the new file is inside the gates, not merely beside
+them.

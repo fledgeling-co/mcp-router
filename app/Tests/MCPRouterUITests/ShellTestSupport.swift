@@ -138,6 +138,7 @@
             "app/Sources/MCPRouterUI/Activity/ActivityFilterBar.swift",
             "app/Sources/MCPRouterUI/Activity/ActivityInspector.swift",
             "app/Sources/MCPRouterUI/Activity/ActivityModel.swift",
+            "app/Sources/MCPRouterUI/Activity/ActivityModel+Merge.swift",
             "app/Sources/MCPRouterUI/Activity/ActivityModel+Presentation.swift"
         ]
 

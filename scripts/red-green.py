@@ -247,9 +247,89 @@ mut(
 mut(
     "M20", "A13", "the router's own ordering is preserved",
     SRC / "ServerStateTracker.swift",
-    "        TrackerState(servers: order.compactMap { servers[$0] }, phase: phase)",
-    "        TrackerState(servers: order.sorted().compactMap { servers[$0] }, phase: phase)",
+    "        let visible = order.compactMap { servers[$0] }",
+    "        let visible = order.sorted().compactMap { servers[$0] }",
     "the router's own ordering is preserved",
+)
+
+# ---------------------------------------------------------------- failure states (F4)
+
+# The defect F4 exists to fix. Reintroducing `try?` discards every typed error, and the
+# ONLY tests that notice are the ones driving the real poll loop — the direct
+# apply(pollFailure:) tests pass against the defect, which is why they are not the anchor
+# here.
+mut(
+    "M40", "F4-A1", "the poll loop reports a typed error instead of discarding it",
+    SRC / "ServerStateTracker.swift",
+    "            do {\n"
+    "                let response = try await client.servers()\n"
+    "                apply(poll: response)\n"
+    "            } catch {",
+    "            if let response = try? await client.servers() { apply(poll: response) }\n"
+    "            if false {",
+    "a router that is not running is reported",
+)
+M[-1].paired = (
+    "                apply(pollFailure: error)\n",
+    "                apply(pollFailure: .routerNotRunning)\n",
+)
+
+mut(
+    "M41", "F4-A3", "a stale snapshot is not collapsed into a plain failure",
+    SRC / "ServerStateTracker.swift",
+    "        loadKind = hasLoaded ? .stale(error) : .failed(error)",
+    "        loadKind = .failed(error)",
+    "a failure after a success is stale",
+)
+
+mut(
+    "M42", "F4-A3", "a failed poll does not delete the servers it already had",
+    SRC / "ServerStateTracker.swift",
+    "        loadKind = hasLoaded ? .stale(error) : .failed(error)\n        publish()",
+    "        loadKind = hasLoaded ? .stale(error) : .failed(error)\n"
+    "        servers = [:]\n        order = []\n        publish()",
+    "a failure after a success is stale",
+)
+
+mut(
+    "M43", "F4-A6", "a tracker with no stream is not born claiming a dropped one",
+    SRC / "ServerStateTracker.swift",
+    "        self.streamCondition = stream == nil ? .notConfigured : .phase(.disconnected)",
+    "        self.streamCondition = .phase(.disconnected)",
+    "is not-configured, never a dropped stream",
+)
+
+mut(
+    "M44", "F4-A8", "a phase cannot be fabricated for a tracker that has no stream",
+    SRC / "ServerStateTracker.swift",
+    "        guard case let .phase(current) = streamCondition else { return }",
+    "        let current = if case let .phase(p) = streamCondition { p } "
+    "else { StreamPhase.disconnected }",
+    "a phase cannot be fabricated",
+)
+
+mut(
+    "M45", "F4-A11", "subscribing registers before updates() returns, losing nothing",
+    SRC / "ServerStateTracker.swift",
+    "        register(id, continuation)",
+    "        Task { self.register(id, continuation) }",
+    "published immediately after subscribing is delivered",
+)
+
+mut(
+    "M46", "F4-A11", "an unchanged state is not republished",
+    SRC / "ServerStateTracker.swift",
+    "        guard snapshot != lastPublished else { return }",
+    "        if false { return }",
+    "an identical state is not published twice",
+)
+
+mut(
+    "M47", "F4-A4", "run() twice does not start a second poll loop",
+    SRC / "ServerStateTracker.swift",
+    "        guard !isRunning else { return }",
+    "        if false { return }",
+    "running twice does not start a second poll loop",
 )
 
 # ---------------------------------------------------------------- secrets (A5, A7)

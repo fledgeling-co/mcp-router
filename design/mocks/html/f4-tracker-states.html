@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>F4 — Tracker states</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!--
+  F4 — the nine states of DESIGN.md §5, each derived from one `TrackerState` value.
+
+  F4 ships no surface of its own. M2 (Activity) and M3 (Servers board) do. What this
+  page specifies is the thing between them: for every state §5 requires, the exact
+  `ServerStateTracker.TrackerState` value a surface reads to know it is in that state,
+  and the copy it shows when it gets there.
+
+  That mapping is the whole feature. A surface cannot render a state its data source
+  cannot express, and before F4 the tracker could express three of the nine — it
+  discarded every typed error with `try?` and pinned `phase` to `.disconnected`
+  forever. So the acceptance test for F4 is not "does it compile", it is "can a
+  surface, holding nothing but a TrackerState, tell these nine apart".
+
+  Copy discipline (DESIGN.md §6): the offline and unauthorised strings are NOT written
+  here. They are `ControlAPIError.headline` / `.advice` / `.actionLabel`, shipped by
+  F3, and `ControlCopyTests` asserts this file contains them verbatim. A paraphrase
+  here would put two wordings of one failure in front of one user.
+
+  Tokens transcribed from DESIGN.md §2, identical to design/mocks/prototype.html and
+  f3-connection-states.html. Nothing here edits a shared file — F2 owns the SwiftUI
+  design system, and this is a specimen sheet, not a component.
+
+  Assumptions recorded (autonomous run, no human to ask):
+  · The stale state shows NO age or timestamp. The tracker does not observe one, and
+    §6 forbids displaying a number no source measured. "The last successful check" is
+    the honest phrasing and needs no figure.
+  · "No stream configured" renders as an absence of the live indicator, not as a
+    fault. Polling-only is a supported configuration, not a degraded one.
+  · Overflow truncates at the row and keeps the full value for the inspector M3 owns.
+-->
+<style>
+:root{
+  /* Grounds — graphite, never pure black. macOS 27 dark window is #1E1E1E. */
+  --ground:#1E1E1E;--panel:#232326;--raised:#2C2C2E;--raised2:#3A3A3C;
+  --line:rgba(255,255,255,.075);--lineS:rgba(255,255,255,.14);
+  /* Label tiers. Tertiary sits at 50%, not the kit's 25% — DESIGN.md §2's stated
+     deviation. 25% is retained for disabled only, where dimming *is* the message. */
+  --t1:rgba(255,255,255,1);--t2:rgba(255,255,255,.55);
+  --t3:rgba(255,255,255,.50);--t4:rgba(255,255,255,.25);
+  --f1:rgba(255,255,255,.10);--f2:rgba(255,255,255,.08);--f3:rgba(255,255,255,.05);
+  /* The four exclusive meanings. Nothing decorative may be any of them. */
+  --live:#30D158;--attn:#FF9230;--fail:#FF4245;--accent:#0091FF;
+  --accentUp:#3CA9FF;
+  --largeTitle:26px;--title1:22px;--title2:17px;--title3:15px;
+  --body:13px;--callout:12px;--subhead:11px;--caption:10px;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;
+}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;background:#141415;color:var(--t1);font:var(--body)/16px var(--sans);
+  -webkit-font-smoothing:antialiased}
+::selection{background:rgba(0,145,255,.32)}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.16);border-radius:6px;
+  border:3px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-track{background:transparent}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+.sheet{max-width:1180px;margin:0 auto;padding:var(--s7) var(--s5) 96px}
+.sheet>header{border-bottom:1px solid var(--line);padding-bottom:var(--s5);
+  margin-bottom:var(--s6)}
+h1{font:700 var(--largeTitle)/32px var(--sans);margin:0 0 var(--s2);letter-spacing:-.01em}
+.lede{color:var(--t2);font-size:var(--body);margin:0;max-width:74ch;line-height:19px}
+.lede code,.sectnote code,td code{font:var(--callout)/1 var(--mono);color:var(--t1);
+  background:var(--f3);padding:2px 5px;border-radius:4px}
+h2{font:700 var(--title1)/26px var(--sans);margin:var(--s7) 0 var(--s2);
+  letter-spacing:-.01em}
+h2:first-of-type{margin-top:var(--s5)}
+.sectnote{color:var(--t2);font-size:var(--callout);margin:0 0 var(--s5);max-width:74ch;
+  line-height:17px}
+
+/* ---- the derivation table ------------------------------------------------ */
+table{width:100%;border-collapse:collapse;margin-bottom:var(--s5);
+  border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{text-align:left;padding:9px var(--s3);border-bottom:1px solid var(--line);
+  font-size:var(--callout);line-height:17px;vertical-align:top}
+th{font-weight:600;color:var(--t2);background:rgba(0,0,0,.16);font-size:var(--subhead);
+  text-transform:uppercase;letter-spacing:.04em}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600;white-space:nowrap}
+td.d{color:var(--t2)}
+
+/* A specimen: the label rail, then the real surface at real geometry. */
+.spec{margin-bottom:var(--s5);border:1px solid var(--line);border-radius:12px;
+  background:var(--panel);overflow:hidden}
+.spec>figcaption{display:flex;align-items:baseline;gap:var(--s3);flex-wrap:wrap;
+  padding:11px var(--s4);border-bottom:1px solid var(--line);background:rgba(0,0,0,.16)}
+.spec .nm{font:600 var(--title3)/20px var(--sans)}
+.spec .src{font:var(--caption)/13px var(--mono);color:var(--t3);
+  border:1px solid var(--line);padding:2px 7px;border-radius:5px;white-space:nowrap}
+.spec .why{color:var(--t2);font-size:var(--callout);line-height:16px;flex:1 1 260px;
+  min-width:0}
+.stage{background:var(--ground);padding:var(--s4)}
+.stage.flush{padding:0}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4)}
+@media (max-width:900px){.pair{grid-template-columns:1fr}}
+
+/* ---- the app window fragment --------------------------------------------- */
+.win{background:var(--ground);border:1px solid var(--lineS);border-radius:10px;
+  overflow:hidden}
+.toolbar{height:52px;display:flex;align-items:center;gap:var(--s3);
+  padding:0 var(--s3);border-bottom:1px solid var(--line);background:var(--panel)}
+.wtitle{font:600 var(--title3)/20px var(--sans)}
+.tb-sp{flex:1}
+.pane{min-height:236px;display:flex;flex-direction:column}
+.pane.centre{align-items:center;justify-content:center;text-align:center;
+  padding:var(--s5) var(--s6)}
+
+/* ---- controls ------------------------------------------------------------ */
+.btn{font:12px var(--sans);padding:3.5px 10px;border-radius:5px;
+  background:linear-gradient(180deg,#34383F,#2A2E34);border:1px solid var(--lineS);
+  color:var(--t1);white-space:nowrap;cursor:default;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 1px 2px rgba(0,0,0,.35);
+  transition:background .18s ease,box-shadow .18s ease}
+.btn:hover{background:linear-gradient(180deg,#3E434B,#33373E)}
+.btn:active{background:linear-gradient(180deg,#2A2E34,#24272C)}
+.btn.p{background:linear-gradient(180deg,#33A5FF,#0080EE);border-color:transparent;
+  color:var(--t1);font-weight:500;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 1px 3px rgba(0,60,120,.5)}
+.btn.p:hover{background:linear-gradient(180deg,#4FB2FF,#0A8CF5)}
+.btn.q{background:none;border-color:transparent;color:var(--t2);box-shadow:none}
+.btn.q:hover{background:rgba(255,255,255,.07)}
+.btn.sm{font-size:11px;padding:2px 8px}
+.btn[disabled]{color:var(--t4);background:linear-gradient(180deg,#2C3037,#26292E);
+  box-shadow:none;border-color:var(--line)}
+.btn[disabled]:hover{background:linear-gradient(180deg,#2C3037,#26292E)}
+.reason{color:var(--t3);font-size:var(--subhead);line-height:14px;white-space:nowrap}
+
+.i{width:15px;height:15px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.4;
+  stroke-linecap:round;stroke-linejoin:round;display:block}
+.i.xl{width:34px;height:34px;stroke-width:1.1}
+
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot.live{background:var(--live);box-shadow:0 0 0 3px rgba(48,209,88,.16)}
+.dot.idle{background:var(--t4)}
+.dot.a{background:var(--attn);box-shadow:0 0 0 3px rgba(255,146,48,.16)}
+.dot.f{background:var(--fail);box-shadow:0 0 0 3px rgba(255,66,69,.16)}
+
+/* ---- server rows: 56pt, fixed. Overflow never changes this. -------------- */
+.rows{display:flex;flex-direction:column}
+.row{height:56px;display:grid;
+  grid-template-columns:18px minmax(0,1fr) 96px 92px;
+  align-items:center;gap:var(--s3);padding:0 var(--s4);
+  border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .nmw{min-width:0}
+.row .n{font:500 var(--body)/17px var(--sans);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+.row .s{color:var(--t3);font-size:var(--subhead);line-height:14px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.row .c{color:var(--t2);font:var(--callout)/16px var(--mono);text-align:right}
+.row.dim .n,.row.dim .c{color:var(--t4)}
+.row.dim .s{color:var(--t4)}
+
+/* skeleton — matches the 56pt row geometry exactly, never a spinner */
+.sk{background:linear-gradient(90deg,var(--f3),var(--f2),var(--f3));
+  background-size:200% 100%;border-radius:4px;height:11px}
+@media (prefers-reduced-motion:no-preference){
+  .sk{animation:sh 1.4s ease-in-out infinite}
+}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.sk.t{height:13px;width:52%}
+.sk.b{height:9px;width:31%;margin-top:5px}
+.sk.d{width:18px;height:18px;border-radius:50%}
+.sk.c{width:44px;margin-left:auto}
+
+/* ---- the state banner: what a stale snapshot wears ----------------------- */
+.banner{display:flex;align-items:flex-start;gap:var(--s3);padding:11px var(--s4);
+  background:rgba(255,146,48,.10);border-bottom:1px solid rgba(255,146,48,.22)}
+.banner.f{background:rgba(255,66,69,.10);border-bottom-color:rgba(255,66,69,.22)}
+.banner .i{margin-top:1px;color:var(--attn)}
+.banner.f .i{color:var(--fail)}
+.banner .bt{font:600 var(--callout)/16px var(--sans)}
+.banner .bd{color:var(--t2);font-size:var(--subhead);line-height:15px;margin-top:2px}
+.banner .bsp{flex:1}
+
+/* ---- the full-pane conditions -------------------------------------------- */
+.pane.centre .i.xl{color:var(--t3);margin-bottom:var(--s3)}
+.pane.centre h3{font:600 var(--title2)/22px var(--sans);margin:0 0 var(--s2);
+  max-width:38ch}
+.pane.centre p{color:var(--t2);font-size:var(--callout);line-height:17px;margin:0;
+  max-width:52ch}
+.pane.centre .acts{margin-top:var(--s4);display:flex;gap:var(--s2);
+  justify-content:center;align-items:center}
+
+/* ---- the stream strip ---------------------------------------------------- */
+.strip{display:flex;align-items:center;gap:var(--s2);padding:7px var(--s4);
+  border-top:1px solid var(--line);background:var(--panel);
+  font-size:var(--subhead);color:var(--t2);line-height:15px}
+.strip .sp{flex:1}
+.strip code{font:var(--caption)/1 var(--mono);color:var(--t3)}
+
+.note{color:var(--t3);font-size:var(--subhead);line-height:16px;
+  padding:10px var(--s4) 0;max-width:78ch}
+.k{font:var(--caption)/1 var(--mono);color:var(--t2);background:var(--f3);
+  padding:2px 5px;border-radius:4px;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="sheet">
+<header>
+  <h1>F4 — Tracker states</h1>
+  <p class="lede">
+    Every state <code>DESIGN.md</code> §5 requires, and the exact
+    <code>ServerStateTracker.TrackerState</code> value a surface reads to know it is in
+    that state. F4 ships no surface. It ships the ability to tell these apart — which
+    the tracker did not have, because <code>pollLoop()</code> discarded every typed
+    error with <code>try?</code> and <code>phase</code> was pinned to
+    <code>.disconnected</code> for any tracker built without a stream.
+  </p>
+</header>
+
+<h2>The derivation</h2>
+<p class="sectnote">
+  Two independent facts, not one. <code>load</code> says what the last poll produced;
+  <code>stream</code> says whether an event stream exists and what it is doing. They are
+  separate because they fail separately: a healthy poll with a dropped stream is a real
+  and common condition, and folding them into one value forces a surface to lie about
+  one of them. <strong>The row that matters most is Partial</strong> — a snapshot that
+  loaded and has since stopped refreshing is the ordinary failure in practice, and
+  collapsing it to an error throws away data the user is reading.
+</p>
+<table>
+  <thead><tr><th>§5 state</th><th>TrackerState</th><th>What the surface shows</th></tr></thead>
+  <tbody>
+    <tr><td>Loading</td><td><code>load: .loading</code></td>
+        <td class="d">Skeleton at the real 56pt row geometry. Never a spinner over a blank pane.</td></tr>
+    <tr><td>Default</td><td><code>load: .loaded</code>, <code>servers</code> non-empty</td>
+        <td class="d">The populated board, in the router's own order.</td></tr>
+    <tr><td>Empty</td><td><code>load: .loaded</code>, <code>servers</code> empty</td>
+        <td class="d">First-run: illustration, one sentence, one action. This is a <em>successful</em> read that found nothing, which is why it can never be confused with Loading.</td></tr>
+    <tr><td>Partial</td><td><code>load: .stale(error)</code></td>
+        <td class="d">The last good snapshot, still readable, under a banner naming what arrived, what did not, and why.</td></tr>
+    <tr><td>Error</td><td><code>load: .failed(.unauthorized)</code><br><code>.failed(.server/.malformed/.transport)</code></td>
+        <td class="d">Full pane, F3's own copy, with its one action where it has one.</td></tr>
+    <tr><td>Offline</td><td><code>load: .failed(.routerNotRunning)</code></td>
+        <td class="d">Its own state, never a generic error. Says the router is not running and offers to start it.</td></tr>
+    <tr><td>Success</td><td><code>.stale</code> or <code>.failed</code> → <code>.loaded</code></td>
+        <td class="d">The banner leaves and the rows refresh in place. macOS does not toast a click.</td></tr>
+    <tr><td>Disabled</td><td><code>stream: .notConfigured</code>; per-server <code>state</code></td>
+        <td class="d">Dims in place with a discoverable reason. A polling-only tracker is a supported configuration, not a fault.</td></tr>
+    <tr><td>Overflow</td><td>any, long <code>server.name</code></td>
+        <td class="d">Truncates with the full value kept for the inspector. Row height never changes.</td></tr>
+  </tbody>
+</table>
+
+<h2>Why <code>.stale</code> is its own case</h2>
+<p class="sectnote">
+  <code>.failed</code> and <code>.stale</code> carry the same error and mean opposite
+  things to a surface. <code>.failed</code> means there is nothing behind the error —
+  no poll has ever succeeded, so the pane is the error. <code>.stale</code> means a poll
+  <em>did</em> succeed, those servers are real, and only the refresh is broken — so the
+  data stays and the error goes above it. A two-case model (<em>ok</em> / <em>error</em>)
+  cannot express the second, and every surface built on it either throws away good data
+  to show a failure, or hides a failure to keep the data. Both are wrong, and both are
+  what the tracker forced before F4.
+</p>
+
+<figure class="spec">
+  <figcaption>
+    <span class="nm">Partial — loaded, now failing</span>
+    <span class="src">load: .stale(.transport)</span>
+    <span class="why">The most common real state. The rows are the last good snapshot and
+      stay fully readable; the banner says what stopped and what is still true.</span>
+  </figcaption>
+  <div class="stage flush">
+    <div class="win">
+      <div class="toolbar">
+        <span class="wtitle">Servers</span><span class="tb-sp"></span>
+        <button class="btn sm">Check again</button>
+      </div>
+      <div class="pane">
+        <div class="banner">
+          <svg class="i" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+          <div>
+            <div class="bt">These servers are from the last successful check</div>
+            <div class="bd">Updates have stopped — the request did not complete. What you can see is still accurate as of that check; nothing has been removed.</div>
+          </div>
+          <div class="bsp"></div>
+          <button class="btn sm">Check again</button>
+        </div>
+        <div class="rows">
+          <div class="row"><span class="dot live"></span>
+            <div class="nmw"><div class="n">filesystem</div><div class="s">Running · 4 tools</div></div>
+            <div class="c">18 calls</div><div class="c">12 ms</div></div>
+          <div class="row"><span class="dot idle"></span>
+            <div class="nmw"><div class="n">github</div><div class="s">Idle · 31 tools</div></div>
+            <div class="c">204 calls</div><div class="c">61 ms</div></div>
+          <div class="row"><span class="dot idle"></span>
+            <div class="nmw"><div class="n">sqlite</div><div class="s">Idle · 6 tools</div></div>
+            <div class="c">7 calls</div><div class="c">9 ms</div></div>
+        </div>
+      </div>
+      <div class="strip">
+        <span class="dot a"></span> Call log reconnecting
+        <span class="sp"></span><code>stream: .phase(.reconnecting)</code>
+      </div>
+    </div>
+    <p class="note">
+      The rows are not dimmed. Dimming them would say they are disabled, which is a
+      different state with a different meaning — they are accurate, merely unverified,
+      and the banner is where that is said.
+    </p>
+  </div>
+</figure>
+
+<h2>The two full-pane conditions</h2>
+<p class="sectnote">
+  Both are <code>.failed</code>: no poll has ever succeeded, so there is nothing to show
+  behind the message. The copy on both is <code>ControlAPIError.headline</code>,
+  <code>.advice</code> and <code>.actionLabel</code> — shipped by F3, asserted verbatim
+  against this file by <code>ControlCopyTests</code>. They are two <em>different</em>
+  states, and F4's job is that a surface can still tell them apart after the poll loop
+  has handled them: <code>.routerNotRunning</code> and <code>.unauthorized</code> are
+  distinct values and neither degrades into "an error".
+</p>
+
+<div class="pair">
+  <figure class="spec">
+    <figcaption>
+      <span class="nm">Offline</span>
+      <span class="src">load: .failed(.routerNotRunning)</span>
+    </figcaption>
+    <div class="stage flush">
+      <div class="win">
+        <div class="toolbar"><span class="wtitle">Servers</span><span class="tb-sp"></span></div>
+        <div class="pane centre">
+          <svg class="i xl" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="7" rx="2"/><rect x="2" y="13" width="20" height="7" rx="2"/><path d="M6 7.5h.01M6 16.5h.01"/><path d="m17 6 4 4M21 6l-4 4"/></svg>
+          <h3>The router isn't running</h3>
+          <p>Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a moment and your servers stay exactly as you left them.</p>
+          <div class="acts"><button class="btn p">Start the router</button></div>
+        </div>
+        <div class="strip">
+          <span class="dot idle"></span> Call log unavailable
+          <span class="sp"></span><code>stream: .phase(.disconnected)</code>
+        </div>
+      </div>
+    </div>
+  </figure>
+
+  <figure class="spec">
+    <figcaption>
+      <span class="nm">Error — unauthorised</span>
+      <span class="src">load: .failed(.unauthorized)</span>
+    </figcaption>
+    <div class="stage flush">
+      <div class="win">
+        <div class="toolbar"><span class="wtitle">Servers</span><span class="tb-sp"></span></div>
+        <div class="pane centre">
+          <svg class="i xl" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0"/><path d="M12 14.5v2.5"/></svg>
+          <h3>This app isn't authorised to talk to the router</h3>
+          <p>The control token was rotated or removed. Re-pair to continue — your servers and their history are untouched.</p>
+          <div class="acts"><button class="btn p">Re-pair…</button></div>
+        </div>
+        <div class="strip">
+          <span class="dot idle"></span> Call log unavailable
+          <span class="sp"></span><code>stream: .phase(.disconnected)</code>
+        </div>
+      </div>
+    </div>
+  </figure>
+</div>
+
+<h2>Loading, Default and Empty</h2>
+<p class="sectnote">
+  The three <code>load</code> values a healthy tracker moves through. Empty is the one
+  most often got wrong: it is a <em>successful</em> read that returned no servers, and it
+  is only distinguishable from Loading because <code>.loaded</code> and
+  <code>.loading</code> are different values — an empty array alone cannot tell you which
+  you are looking at. The TypeScript router already shipped that exact bug once, reading
+  a flat config as zero servers with no error at all.
+</p>
+
+<figure class="spec">
+  <figcaption>
+    <span class="nm">Loading</span>
+    <span class="src">load: .loading</span>
+    <span class="why">Skeleton at the real row geometry, so nothing moves when the data
+      lands. No spinner, and no empty-state copy — nothing is known yet.</span>
+  </figcaption>
+  <div class="stage flush">
+    <div class="win">
+      <div class="toolbar"><span class="wtitle">Servers</span><span class="tb-sp"></span></div>
+      <div class="pane">
+        <div class="rows">
+          <div class="row"><span class="sk d"></span>
+            <div class="nmw"><div class="sk t"></div><div class="sk b"></div></div>
+            <div><div class="sk c"></div></div><div><div class="sk c"></div></div></div>
+          <div class="row"><span class="sk d"></span>
+            <div class="nmw"><div class="sk t" style="width:38%"></div><div class="sk b" style="width:24%"></div></div>
+            <div><div class="sk c"></div></div><div><div class="sk c"></div></div></div>
+          <div class="row"><span class="sk d"></span>
+            <div class="nmw"><div class="sk t" style="width:45%"></div><div class="sk b" style="width:28%"></div></div>
+            <div><div class="sk c"></div></div><div><div class="sk c"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</figure>
+
+<div class="pair">
+  <figure class="spec">
+    <figcaption>
+      <span class="nm">Default</span>
+      <span class="src">load: .loaded · servers non-empty</span>
+    </figcaption>
+    <div class="stage flush">
+      <div class="win">
+        <div class="toolbar"><span class="wtitle">Servers</span><span class="tb-sp"></span></div>
+        <div class="pane">
+          <div class="rows">
+            <div class="row"><span class="dot live"></span>
+              <div class="nmw"><div class="n">filesystem</div><div class="s">Running · 4 tools</div></div>
+              <div class="c">18 calls</div><div class="c">12 ms</div></div>
+            <div class="row"><span class="dot idle"></span>
+              <div class="nmw"><div class="n">github</div><div class="s">Idle · 31 tools</div></div>
+              <div class="c">204 calls</div><div class="c">61 ms</div></div>
+            <div class="row"><span class="dot idle"></span>
+              <div class="nmw"><div class="n">sqlite</div><div class="s">Idle · 6 tools</div></div>
+              <div class="c">7 calls</div><div class="c">9 ms</div></div>
+          </div>
+        </div>
+        <div class="strip"><span class="dot live"></span> Call log live
+          <span class="sp"></span><code>stream: .phase(.live)</code></div>
+      </div>
+    </div>
+  </figure>
+
+  <figure class="spec">
+    <figcaption>
+      <span class="nm">Empty</span>
+      <span class="src">load: .loaded · servers empty</span>
+    </figcaption>
+    <div class="stage flush">
+      <div class="win">
+        <div class="toolbar"><span class="wtitle">Servers</span><span class="tb-sp"></span></div>
+        <div class="pane centre">
+          <svg class="i xl" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01"/></svg>
+          <h3>No servers yet</h3>
+          <p>The router is running and has none declared. Add one and it will start on its first tool call, not before.</p>
+          <div class="acts"><button class="btn p">Add a server…</button></div>
+        </div>
+        <div class="strip"><span class="dot live"></span> Call log live
+          <span class="sp"></span><code>stream: .phase(.live)</code></div>
+      </div>
+    </div>
+  </figure>
+</div>
+
+<h2>Success — the recovery, in place</h2>
+<p class="sectnote">
+  A poll succeeding after a failure is a state change, not an event to announce. The
+  banner leaves, the rows update where they are, and nothing is toasted. This is the
+  transition <code>.stale(error)</code> → <code>.loaded</code>, which a surface observes
+  through <code>updates()</code> — the same subscription it already holds, with no
+  separate success channel to subscribe to.
+</p>
+<figure class="spec">
+  <figcaption>
+    <span class="nm">Success</span>
+    <span class="src">.stale(.transport) → .loaded</span>
+    <span class="why">The same board as Partial, with the banner gone and one row moved
+      to running. The identity of every row is its name, so nothing re-enters.</span>
+  </figcaption>
+  <div class="stage flush">
+    <div class="win">
+      <div class="toolbar"><span class="wtitle">Servers</span><span class="tb-sp"></span>
+        <button class="btn sm">Check again</button></div>
+      <div class="pane">
+        <div class="rows">
+          <div class="row"><span class="dot live"></span>
+            <div class="nmw"><div class="n">filesystem</div><div class="s">Running · 4 tools</div></div>
+            <div class="c">19 calls</div><div class="c">12 ms</div></div>
+          <div class="row"><span class="dot live"></span>
+            <div class="nmw"><div class="n">github</div><div class="s">Running · 31 tools</div></div>
+            <div class="c">206 calls</div><div class="c">58 ms</div></div>
+          <div class="row"><span class="dot idle"></span>
+            <div class="nmw"><div class="n">sqlite</div><div class="s">Idle · 6 tools</div></div>
+            <div class="c">7 calls</div><div class="c">9 ms</div></div>
+        </div>
+      </div>
+      <div class="strip"><span class="dot live"></span> Call log live
+        <span class="sp"></span><code>stream: .phase(.live)</code></div>
+    </div>
+  </div>
+</figure>
+
+<h2>Disabled — and the state that did not exist</h2>
+<p class="sectnote">
+  <code>stream: .notConfigured</code> is the second half of F4. A tracker built without
+  an event stream is polling-only, which is a supported configuration — M1 runs one. The
+  old type could not say so: <code>phase</code> defaulted to <code>.disconnected</code>
+  and nothing ever moved it, so a polling-only tracker reported a dropped stream forever
+  and a surface trusting it drew disconnected chrome over live data. <em>No stream
+  configured</em> and <em>the stream dropped</em> are different conditions and now have
+  different values.
+</p>
+
+<div class="pair">
+  <figure class="spec">
+    <figcaption>
+      <span class="nm">Disabled — no stream configured</span>
+      <span class="src">stream: .notConfigured</span>
+    </figcaption>
+    <div class="stage flush">
+      <div class="win">
+        <div class="toolbar"><span class="wtitle">Servers</span><span class="tb-sp"></span></div>
+        <div class="pane">
+          <div class="rows">
+            <div class="row"><span class="dot live"></span>
+              <div class="nmw"><div class="n">filesystem</div><div class="s">Running · 4 tools</div></div>
+              <div class="c">18 calls</div><div class="c">12 ms</div></div>
+            <div class="row dim"><span class="dot idle"></span>
+              <div class="nmw"><div class="n">postgres</div><div class="s">Disabled · not started</div></div>
+              <div class="c">—</div>
+              <div style="text-align:right"><span class="reason">Turned off here</span></div></div>
+          </div>
+        </div>
+        <div class="strip">
+          <span class="dot idle"></span> Live call log off — this window polls every 5s
+          <span class="sp"></span><code>stream: .notConfigured</code>
+        </div>
+      </div>
+    </div>
+    <p class="note" style="padding:0 var(--s4) var(--s4)">
+      The strip states the reason rather than showing a fault colour. Amber here would
+      claim something is wrong with a configuration that is working as designed — and the
+      four indicator colours only mean anything because nothing else is allowed to use
+      them.
+    </p>
+  </figure>
+
+  <figure class="spec">
+    <figcaption>
+      <span class="nm">Overflow</span>
+      <span class="src">any load · long server.name</span>
+    </figcaption>
+    <div class="stage flush">
+      <div class="win">
+        <div class="toolbar"><span class="wtitle">Servers</span><span class="tb-sp"></span></div>
+        <div class="pane">
+          <div class="rows">
+            <div class="row"><span class="dot live"></span>
+              <div class="nmw"><div class="n">internal-platform-observability-metrics-gateway-staging</div><div class="s">Running · 12 tools</div></div>
+              <div class="c">44 calls</div><div class="c">27 ms</div></div>
+            <div class="row"><span class="dot idle"></span>
+              <div class="nmw"><div class="n">sqlite</div><div class="s">Idle · 6 tools</div></div>
+              <div class="c">7 calls</div><div class="c">9 ms</div></div>
+          </div>
+        </div>
+        <div class="strip"><span class="dot live"></span> Call log live
+          <span class="sp"></span><code>stream: .phase(.live)</code></div>
+      </div>
+    </div>
+    <p class="note" style="padding:0 var(--s4) var(--s4)">
+      Row height is unchanged at 56pt and the full name is kept intact on the model for
+      the inspector M3 owns. The tracker never truncates — a shortened name in the data
+      would be a value no source reported.
+    </p>
+  </figure>
+</div>
+
+<h2>The stream condition, in full</h2>
+<p class="sectnote">
+  Four values, and the first is the one F4 adds. <code>StreamPhase</code> itself is F3's
+  and is unchanged — R4 diffs F3's recorded fixtures against the Swift router, and
+  widening a type it already pinned would move that contract. <code>StreamCondition</code>
+  wraps it instead, so "there is no stream" is expressible without touching what a stream
+  reports about itself.
+</p>
+<table>
+  <thead><tr><th>Value</th><th>Means</th><th>Strip</th></tr></thead>
+  <tbody>
+    <tr><td><code>.notConfigured</code></td><td class="d">No event stream was supplied. Polling is the only source, by design.</td><td class="d">Live call log off — this window polls every 5s</td></tr>
+    <tr><td><code>.phase(.live)</code></td><td class="d">Connected and delivering.</td><td class="d">Call log live</td></tr>
+    <tr><td><code>.phase(.reconnecting)</code></td><td class="d">Dropped and retrying, within the reconnect policy's bound.</td><td class="d">Call log reconnecting</td></tr>
+    <tr><td><code>.phase(.disconnected)</code></td><td class="d">Not connected — either not started yet, or retries are exhausted.</td><td class="d">Call log unavailable</td></tr>
+  </tbody>
+</table>
+
+</div>
+</body>
+</html>

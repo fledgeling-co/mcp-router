@@ -130,6 +130,15 @@ public enum PairingCopy {
         case unpairConfirm
         case sendingBlocked
 
+        /// The connection banner's three states.
+        ///
+        /// They are manifest entries rather than sentences built in the view, and the distinction
+        /// is not academic: the banner previously assembled its own reachable line by interpolating
+        /// the Mac's name, which drifted from the approved "Reachable — items you send arrive now."
+        /// without any of the three copy checks being able to see it. A string written at the call
+        /// site is a string the mock-parity check cannot reach.
+        case bannerReachable, bannerNotReachable, bannerNeverPaired
+
         // Chrome and inline strings. They are here for the same reason the pane copy is: a string
         // written at the call site is a string the mock-parity check cannot see, and a section
         // label or a placeholder is exactly the kind of copy that drifts unnoticed.
@@ -151,6 +160,7 @@ public enum PairingCopy {
                  .outcomeRefused, .outcomeNotAPairingCode, .outcomeMalformedPayload: .outcome
             case .unpairConfirm: .unpair
             case .sendingBlocked: .sending
+            case .bannerReachable, .bannerNotReachable, .bannerNeverPaired: .sending
             case .settingsSectionPairedMac, .settingsSectionAbout, .settingsUnpairAction: .settings
             case .scanInstruction, .cameraPlaceholderIdle, .cameraPlaceholderUnavailable: .scan
             case .typedEntryHelper: .typedEntry
@@ -405,6 +415,16 @@ public enum PairingCopy {
                 headline: "Can't reach {mac}.",
                 body: "They'll go on their own as soon as your Mac is reachable."
             )
+
+        // MARK: The connection banner
+        // Reachable names no Mac. The banner sits on a surface that has already said which Mac is
+        // paired, and repeating the name here is the sentence the spec's state matrix rejected.
+        case .bannerReachable:
+            Entry(body: "Reachable — items you send arrive now.")
+        case .bannerNotReachable:
+            Entry(body: "Can't reach {mac}. Anything you send waits here until it's back.")
+        case .bannerNeverPaired:
+            Entry(body: "No Mac paired. Pair one to send anything.")
 
         // MARK: Chrome and inline strings
         case .settingsSectionPairedMac:

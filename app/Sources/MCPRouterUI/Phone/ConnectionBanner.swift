@@ -38,17 +38,22 @@ public struct ConnectionBanner: View {
         state == .reachable ? .f2 : .f3
     }
 
-    /// What the banner says. One vocabulary, reused wherever sending is offered.
-    var message: String {
-        let name = macName ?? "your Mac"
+    /// What the banner says, read from the copy manifest rather than assembled here.
+    ///
+    /// It was assembled here once, and that is precisely how the reachable line drifted from the
+    /// approved wording: a sentence built at the call site is invisible to all three copy checks —
+    /// the pinned literal, the render assertion and the mock-parity scan. `{mac}` is substituted by
+    /// `Entry.resolved`, so the one place a Mac gets named is the one place that knows how.
+    var messageKey: PairingCopy.Key {
         switch state {
-        case .reachable:
-            return "\(name) — items you send arrive now."
-        case .notReachable:
-            return "Can't reach \(name). Anything you send waits here until it's back."
-        case .neverPaired:
-            return "No Mac paired. Pair one to send anything."
+        case .reachable: .bannerReachable
+        case .notReachable: .bannerNotReachable
+        case .neverPaired: .bannerNeverPaired
         }
+    }
+
+    var message: String {
+        PairingCopy.entry(messageKey).resolved(macName: macName).body
     }
 
     public var body: some View {
@@ -136,9 +141,8 @@ public struct SendCommitBar: View {
             }
 
             Button(commitLabel, action: action)
-                .buttonStyle(ProminentButtonStyle())
+                .buttonStyle(PhoneProminentButtonStyle())
                 .disabled(!state.canSend)
-                .frame(minHeight: PhoneMetric.minimumTarget)
                 .frame(maxWidth: .infinity)
 
             if !state.canSend {

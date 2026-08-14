@@ -17,8 +17,8 @@ struct AnyPhoneButton: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         Group {
             switch kind {
-            case .prominent: ProminentButtonStyle().makeBody(configuration: configuration)
-            case .standard: StandardButtonStyle().makeBody(configuration: configuration)
+            case .prominent: PhoneProminentButtonStyle().makeBody(configuration: configuration)
+            case .standard: PhoneStandardButtonStyle().makeBody(configuration: configuration)
             }
         }
     }
@@ -70,8 +70,7 @@ struct PairedSuccessView: View {
             )
 
             Button(entry.actionLabel ?? "Done", action: onDone)
-                .buttonStyle(ProminentButtonStyle())
-                .frame(minHeight: PhoneMetric.minimumTarget)
+                .buttonStyle(PhoneProminentButtonStyle())
                 .frame(maxWidth: .infinity)
 
             Spacer()

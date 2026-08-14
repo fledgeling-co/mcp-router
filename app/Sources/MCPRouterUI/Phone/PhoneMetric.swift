@@ -38,6 +38,17 @@ enum PhoneMetric {
     /// Card and banner radius. Concentric with the tile per `DESIGN.md` §2.
     static let cardRadius: Double = 11
 
+    /// A control's corner radius at the phone's touch height.
+    ///
+    /// Derived rather than picked, using the exact formula `ControlScale` applies on the Mac —
+    /// `selectionRadius × (height / 32)` — so a phone control and a Mac control are the same shape
+    /// rule evaluated at two heights, not two unrelated radii that happen to look similar.
+    static let controlRadius: Double =
+        MetricToken.selectionRadius.leadingScalar * (minimumTarget / 32)
+
+    /// A control's horizontal padding, read from the same token the Mac ladder reads.
+    static let controlPadding: Double = MetricToken.selectionInset.leadingScalar * 2
+
     /// The code field's boxes.
     static let codeBox: Double = 34
     static let codeBoxHeight: Double = 44

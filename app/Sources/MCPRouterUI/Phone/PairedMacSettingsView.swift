@@ -145,13 +145,11 @@ struct PhoneMessageBlock: View {
 
             if let label = entry.actionLabel, let action {
                 Button(label, action: action)
-                    .buttonStyle(ProminentButtonStyle())
-                    .frame(minHeight: PhoneMetric.minimumTarget)
+                    .buttonStyle(PhoneProminentButtonStyle())
             }
             if let label = entry.secondaryActionLabel, let secondaryAction {
                 Button(label, action: secondaryAction)
-                    .buttonStyle(StandardButtonStyle())
-                    .frame(minHeight: PhoneMetric.minimumTarget)
+                    .buttonStyle(PhoneStandardButtonStyle())
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -264,8 +262,7 @@ public struct PairedMacSettingsView: View {
             role: .destructive,
             action: onUnpair
         )
-        .buttonStyle(StandardButtonStyle())
-        .frame(minHeight: PhoneMetric.minimumTarget)
+        .buttonStyle(PhoneStandardButtonStyle())
         .padding(.top, PhoneMetric.tight)
     }
 }

@@ -132,8 +132,7 @@ struct ScanView<Preview: View>: View {
             PhoneNoticeList(entry: PairingCopy.entry(.scanCaution))
 
             Button(PairingCopy.entry(.scanReady).actionLabel ?? "", action: onTypeInstead)
-                .buttonStyle(StandardButtonStyle())
-                .frame(minHeight: PhoneMetric.minimumTarget)
+                .buttonStyle(PhoneStandardButtonStyle())
                 .frame(maxWidth: .infinity)
 
             Text(PairingCopy.entry(.scanNoCode).body)
@@ -172,14 +171,12 @@ struct CameraPermissionView: View {
             )
 
             Button(entry.actionLabel ?? "", action: primaryAction)
-                .buttonStyle(ProminentButtonStyle())
-                .frame(minHeight: PhoneMetric.minimumTarget)
+                .buttonStyle(PhoneProminentButtonStyle())
                 .frame(maxWidth: .infinity)
 
             if let secondary = entry.secondaryActionLabel {
                 Button(secondary, action: onTypeInstead)
-                    .buttonStyle(StandardButtonStyle())
-                    .frame(minHeight: PhoneMetric.minimumTarget)
+                    .buttonStyle(PhoneStandardButtonStyle())
                     .frame(maxWidth: .infinity)
             }
         }
@@ -328,7 +325,6 @@ struct PairingOutcomeView: View {
                 // someone made a decision at the Mac, and pressing a prominent "Try again" against
                 // that decision is the app arguing with its user.
                 .buttonStyle(isRefusal ? AnyPhoneButton(.standard) : AnyPhoneButton(.prominent))
-                .frame(minHeight: PhoneMetric.minimumTarget)
                 .frame(maxWidth: .infinity)
 
             Spacer()

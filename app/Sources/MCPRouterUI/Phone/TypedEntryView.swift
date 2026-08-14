@@ -135,16 +135,14 @@ struct TypedEntryView: View {
 
             if inlineKey == .typedEntryExpired {
                 Button(PairingCopy.entry(.typedEntryExpired).actionLabel ?? "", action: onScanInstead)
-                    .buttonStyle(StandardButtonStyle())
-                    .frame(minHeight: PhoneMetric.minimumTarget)
+                    .buttonStyle(PhoneStandardButtonStyle())
                     .frame(maxWidth: .infinity)
             } else {
                 // Disabled until all eight are present, and disabled **dims in place** rather than
                 // disappearing — §3.4. A button that vanishes takes its own explanation with it.
                 Button(ready.actionLabel ?? "Pair Mac", action: onSubmit)
-                    .buttonStyle(ProminentButtonStyle())
+                    .buttonStyle(PhoneProminentButtonStyle())
                     .disabled(!entry.isComplete)
-                    .frame(minHeight: PhoneMetric.minimumTarget)
                     .frame(maxWidth: .infinity)
             }
         }

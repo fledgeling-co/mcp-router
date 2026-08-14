@@ -204,7 +204,13 @@ struct ConnectionStateTests {
         let unreachable = ConnectionBanner(.notReachable, macName: "Luke's MacBook Pro").message
         let never = ConnectionBanner(.neverPaired).message
 
-        #expect(reachable == "Luke's MacBook Pro — items you send arrive now.")
+        // The approved wording, from `spec-I1.md` §State matrix. It deliberately names no Mac: the
+        // banner only ever appears on a surface that has already said which Mac is paired, so
+        // repeating the name is noise. This assertion previously pinned the interpolated version,
+        // which is how the view's hand-assembled sentence survived three copy checks — the string
+        // it produced and the string the test expected were wrong in the same direction.
+        #expect(reachable == "Reachable — items you send arrive now.")
+        #expect(reachable == PairingCopy.entry(.bannerReachable).body, "the banner left the manifest")
         #expect(unreachable.contains("Can't reach Luke's MacBook Pro"))
         #expect(
             unreachable.contains("waits here until it's back"),

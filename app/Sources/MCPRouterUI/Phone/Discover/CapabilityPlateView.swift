@@ -36,7 +36,7 @@ struct CapabilityPlateView: View {
 
             if let invocation {
                 VStack(alignment: .leading, spacing: PhoneMetric.tight) {
-                    Text(DiscoverCopy.entry(.plateInvocationLabel).body)
+                    Text(DiscoverCopy.entry(.plate(.invocationLabel)).body)
                         .typeRole(.caption)
                         .foregroundStyle(ColorToken.t3.color)
 

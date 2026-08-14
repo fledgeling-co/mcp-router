@@ -11,6 +11,7 @@
         private let inner = FixtureControlAPIClient(.populated)
         private let lock = NSLock()
         private var searches: [String] = []
+        private var limits: [Int] = []
         private var adds: [NewServer] = []
 
         /// Answers handed out in order; the last one repeats. Empty means "the fixture's answer".
@@ -23,13 +24,21 @@
 
         var searchQueries: [String] { lock.withLock { searches } }
 
+        /// The `limit` each search asked for. `/registry/search` caps it at 60 and takes no other
+        /// parameter, so what a surface asks for is the whole of its request.
+        var searchLimits: [Int] { lock.withLock { limits } }
+
         var addedServers: [NewServer] { lock.withLock { adds } }
 
         /// Synchronous on purpose: `NSLock.lock()` is unavailable from an async context, so the
         /// recording happens in a non-async helper the async method calls.
-        private func record(search query: String) -> Result<RegistrySearchResponse, ControlAPIError>? {
+        private func record(
+            search query: String,
+            limit: Int
+        ) -> Result<RegistrySearchResponse, ControlAPIError>? {
             lock.withLock {
                 searches.append(query)
+                limits.append(limit)
                 let answer = staged.isEmpty ? nil : staged[min(cursor, staged.count - 1)]
                 cursor += 1
                 return answer
@@ -44,7 +53,7 @@
             query: String,
             limit: Int
         ) async throws(ControlAPIError) -> RegistrySearchResponse {
-            let answer = record(search: query)
+            let answer = record(search: query, limit: limit)
 
             if searchDelayNanoseconds > 0 {
                 try? await Task.sleep(nanoseconds: searchDelayNanoseconds)

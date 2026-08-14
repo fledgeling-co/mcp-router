@@ -69,7 +69,7 @@ public enum CapabilityPlate {
             lines.append(Line(
                 kind: .unknownTransport,
                 severity: .fact,
-                copyKey: .plateNoInstall,
+                copyKey: .plate(.noInstall),
                 host: nil
             ))
             if archived == true {
@@ -83,7 +83,7 @@ public enum CapabilityPlate {
             lines.append(Line(
                 kind: .runsLocally,
                 severity: .attention,
-                copyKey: .plateStdio,
+                copyKey: .plate(.stdio),
                 host: nil
             ))
         case .http, .sse:
@@ -94,7 +94,7 @@ public enum CapabilityPlate {
             lines.append(Line(
                 kind: .remote,
                 severity: .fact,
-                copyKey: .plateRemote,
+                copyKey: .plate(.remote),
                 host: host(of: install.url) ?? "an address neither index published"
             ))
         }
@@ -109,7 +109,7 @@ public enum CapabilityPlate {
             lines.append(Line(
                 kind: .credential,
                 severity: .attention,
-                copyKey: isSmitheryHosted ? .plateCredentialSmithery : .plateCredential,
+                copyKey: isSmitheryHosted ? .plate(.credentialSmithery) : .plate(.credential),
                 host: nil
             ))
         }
@@ -124,7 +124,7 @@ public enum CapabilityPlate {
     private static let archivedLine = Line(
         kind: .archived,
         severity: .fact,
-        copyKey: .plateArchived,
+        copyKey: .plate(.archived),
         host: nil
     )
 

@@ -66,7 +66,7 @@ public final class DiscoverModel {
                 limit: Self.searchLimit
             )
             entries = response.results
-            state = Self.resolveState(
+            state = DiscoverListState.resolve(
                 response: response,
                 query: query.trimmingCharacters(in: .whitespacesAndNewlines)
             )
@@ -82,24 +82,6 @@ public final class DiscoverModel {
                 state = .offline
             }
         }
-    }
-
-    /// The one place a response becomes a surface state.
-    ///
-    /// Static and pure so the mapping is testable without a model, a client or a main actor.
-    static func resolveState(
-        response: RegistrySearchResponse,
-        query: String
-    ) -> DiscoverListState {
-        let warnings = WarningClass.classify(response.warnings)
-        if response.results.isEmpty {
-            // A degraded search that returned nothing says *why* it returned nothing. Reporting
-            // "neither index listed anything" when one of them never answered would be a false
-            // statement about the registries.
-            if !warnings.isEmpty { return .partial(warnings) }
-            return query.isEmpty ? .emptyNoQuery : .emptyQuery(query)
-        }
-        return warnings.isEmpty ? .populated : .partial(warnings)
     }
 
     public func clearSearch() async {

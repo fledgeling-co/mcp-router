@@ -1,18 +1,5 @@
 import Foundation
 
-// swiftlint:disable cyclomatic_complexity function_body_length type_body_length file_length
-//
-// The same four metric rules `PairingCopy.swift` disables, disabled here for the same reason and
-// on the same terms. `entry(_:)` is one exhaustive `switch` over `Key`, and that exhaustiveness is
-// the guarantee: a tenth state added to a surface fails to **compile** until someone writes its
-// copy, rather than shipping a blank pane. A switch over a 40-case enum has a cyclomatic
-// complexity of 40 by construction, so the metric and the compile-time guarantee cannot both hold.
-// Splitting it into per-surface functions returning `Entry?` chained with `??` is exactly how the
-// guarantee is lost — a missing key becomes a runtime nil instead of a build failure.
-//
-// Every case is a `return` with no condition and nothing that can fail. The rules that catch real
-// defects — force-unwrap, line length, naming — stay on. The exemption covers this file only.
-
 /// Every user-facing string in Discover and capability detail, keyed by **surface × state**.
 ///
 /// A **sibling** of `PairingCopy`, never an extension of it. `PairingCopy` is a merged shared
@@ -26,6 +13,27 @@ import Foundation
 /// formats a value into one. That is what makes A1 and A7 — "no rate, delta or percentage
 /// anywhere" and "every numeric string maps to a named `RegistryEntry` field" — assertions over an
 /// enumerable set rather than hopes about a view hierarchy.
+///
+/// ## Why the key is nested rather than flat
+///
+/// The guarantee this manifest exists to provide is a **compile-time** one: a tenth state added to
+/// a surface fails to build until someone writes its copy, rather than shipping a blank pane. That
+/// guarantee comes from `switch` exhaustiveness, and a flat 47-case key makes it come from *one*
+/// switch — one function with a cyclomatic complexity of 47 and a 200-line body.
+///
+/// `PairingCopy` answers that by disabling the metric rules for its whole file and re-enabling them
+/// on the last line, which satisfies the linter without changing the shape. This file does not,
+/// because the shape is what was wrong. `Key` is instead a sum over one small key type **per UI
+/// element** — the band header, the window control, the units, the list, detail, the plate, the
+/// commit — so `entry(_:)` is a seven-arm dispatch and each element's copy is a total switch over
+/// its own type. Exhaustiveness is not weakened anywhere: adding a case to `ListKey` still fails to
+/// compile until `ListKey.entry` handles it.
+///
+/// The seam is the one the file already had. `Surface` existed before this split, every key already
+/// carried its element's name as a prefix, and `DiscoverBand.titleKey`, `RecencyWindow.copyKey` and
+/// `CommitState.copyKey` were already returning keys drawn from exactly these groups. What changed
+/// is that the grouping is now structural rather than a naming convention plus a hand-written
+/// 47-case `surface` switch that had to be kept in step with it by hand.
 public enum DiscoverCopy {
     // MARK: - Substitution
 
@@ -124,414 +132,86 @@ public enum DiscoverCopy {
         case commit
     }
 
-    /// Every surface-and-state that renders copy in this feature.
-    public enum Key: String, Sendable, CaseIterable {
-        // MARK: Controls, bands and units
+    /// Every surface-and-state that renders copy in this feature, as a sum over one key type per
+    /// UI element. The element types themselves are in `DiscoverCopyKeys.swift`.
+    public enum Key: Hashable, Sendable, CaseIterable {
+        case band(BandKey)
+        case window(WindowKey)
+        case unit(UnitKey)
+        case list(ListKey)
+        case detail(DetailKey)
+        case plate(PlateKey)
+        case commit(CommitKey)
 
-        case searchPlaceholder
-        case bandMostUsed
-        case bandMostUsedNote
-        case bandRecentlyChanged
-        case bandRecentlyChangedNote
-        case windowLabel
-        case windowAppliesTo
-        case windowDisabledInSearch
-        case windowAnyTime
-        case windowNinety
-        case windowThirty
-        case windowSeven
-        case useCountUnit
-        case starsUnit
-        case truncated
-
-        // MARK: The list — `DESIGN.md` §5's nine states
-        //
-        // `Default` is the populated list and carries no copy of its own; `Success` is absent by
-        // construction, because the list has no commit. Both are recorded in the spec's state
-        // matrix rather than given invented strings.
-
-        case listEmptyNoQuery
-        case listEmptyQuery
-        case listBandEmpty
-        case listPartialOfficialDown
-        case listPartialSmitheryDown
-        case listPartialGitHubLimited
-        case listPartialUnrecognised
-        case listError
-        case listOffline
-
-        // MARK: Detail
-        //
-        // Detail performs no fetch (A11), so its Empty, Loading and Error are structurally
-        // unreachable and have no keys. Their absence is the point: writing plausible copy for a
-        // state that cannot occur is scaffolding wearing a design's clothes.
-
-        case detailPartialNoRepository
-        case detailPartialGitHubLimited
-        case detailOffline
-        case detailNoLastCommit
-        case detailLastCommit
-        case chipSourceOfficial
-        case chipSourceSmithery
-        case chipSourceBoth
-        case chipArchived
-
-        // MARK: The capability plate — the five derivations of A13
-
-        case plateStdio
-        case plateRemote
-        case plateCredential
-        case plateCredentialSmithery
-        case plateArchived
-        case plateNoInstall
-        case plateInvocationLabel
-
-        // MARK: The commit — the seven states of A16–A21
-
-        case commitReachable
-        case commitNotReachable
-        case commitNeverPaired
-        case commitNoDescriptor
-        case commitQueuedReachable
-        case commitQueuedNotReachable
-        case commitAlreadyDeclared
+        /// Hand-written because `CaseIterable` is not synthesised for an enum with associated
+        /// values. `DiscoverCopyTests` pins the total and asserts every case of every element type
+        /// is reachable from here, so a group dropped from this list fails a test rather than
+        /// quietly shrinking the set every completeness check runs over.
+        public static var allCases: [Key] {
+            BandKey.allCases.map(Key.band)
+                + WindowKey.allCases.map(Key.window)
+                + UnitKey.allCases.map(Key.unit)
+                + ListKey.allCases.map(Key.list)
+                + DetailKey.allCases.map(Key.detail)
+                + PlateKey.allCases.map(Key.plate)
+                + CommitKey.allCases.map(Key.commit)
+        }
 
         /// The surface this key renders on.
+        ///
+        /// Structural now rather than a hand-maintained switch over every key: the band header, the
+        /// window control and the units are all chrome around the list, and the remaining four
+        /// element types map one-to-one onto the surfaces they name.
         public var surface: Surface {
             switch self {
-            case .searchPlaceholder, .bandMostUsed, .bandMostUsedNote, .bandRecentlyChanged,
-                 .bandRecentlyChangedNote, .windowLabel, .windowAppliesTo, .windowDisabledInSearch,
-                 .windowAnyTime, .windowNinety, .windowThirty, .windowSeven, .useCountUnit,
-                 .starsUnit, .truncated:
-                .controls
-            case .listEmptyNoQuery, .listEmptyQuery, .listBandEmpty, .listPartialOfficialDown,
-                 .listPartialSmitheryDown, .listPartialGitHubLimited, .listPartialUnrecognised,
-                 .listError, .listOffline:
-                .list
-            case .detailPartialNoRepository, .detailPartialGitHubLimited, .detailOffline,
-                 .detailNoLastCommit, .detailLastCommit, .chipSourceOfficial, .chipSourceSmithery,
-                 .chipSourceBoth, .chipArchived:
-                .detail
-            case .plateStdio, .plateRemote, .plateCredential, .plateCredentialSmithery,
-                 .plateArchived, .plateNoInstall, .plateInvocationLabel:
-                .plate
-            case .commitReachable, .commitNotReachable, .commitNeverPaired, .commitNoDescriptor,
-                 .commitQueuedReachable, .commitQueuedNotReachable, .commitAlreadyDeclared:
-                .commit
+            case .band, .window, .unit: .controls
+            case .list: .list
+            case .detail: .detail
+            case .plate: .plate
+            case .commit: .commit
+            }
+        }
+
+        /// A stable identifier for this key, for test failure messages and nothing else. Not a wire
+        /// format and not persisted — no copy key is ever written to disk or sent anywhere.
+        public var name: String {
+            switch self {
+            case let .band(key): "band.\(key.rawValue)"
+            case let .window(key): "window.\(key.rawValue)"
+            case let .unit(key): "unit.\(key.rawValue)"
+            case let .list(key): "list.\(key.rawValue)"
+            case let .detail(key): "detail.\(key.rawValue)"
+            case let .plate(key): "plate.\(key.rawValue)"
+            case let .commit(key): "commit.\(key.rawValue)"
             }
         }
     }
 
     /// The seven commit states, which are the seven keys that must carry the narrowing (A20).
     ///
-    /// Derived from `Key.surface` rather than written out a second time, so the set cannot drift
-    /// from the enum it describes — a hand-maintained list would be a second source of truth about
+    /// Derived from `CommitKey` rather than written out a second time, so the set cannot drift from
+    /// the enum it describes — a hand-maintained list would be a second source of truth about
     /// something the type system already knows.
     public static var narrowingKeys: Set<Key> {
-        Set(Key.allCases.filter { $0.surface == .commit })
+        Set(CommitKey.allCases.map(Key.commit))
     }
 
     // MARK: - The copy
 
+    /// The one entry point every surface reads its strings through.
+    ///
+    /// Seven arms, each delegating to a switch that is total over one element's key type. The
+    /// compile-time guarantee lives in those seven switches, unchanged: a case added to any element
+    /// type fails to build until its copy is written.
     public static func entry(_ key: Key) -> Entry {
         switch key {
-        // MARK: Controls, bands and units
-
-        case .searchPlaceholder:
-            // Plural, because two indexes are searched and either can fail alone (A9). It never
-            // says "skills": there is no skills index on either router, so a placeholder promising
-            // one would promise a capability the product does not have.
-            Entry(body: "Search the server registries")
-
-        case .bandMostUsed:
-            Entry(body: "Most used")
-
-        case .bandMostUsedNote:
-            Entry(body: """
-            Sessions started on Smithery, all-time, of the results shown. The only popularity \
-            figure either index publishes — the official registry publishes none, so entries it \
-            alone carries are absent from this band rather than ranked at zero.
-            """)
-
-        case .bandRecentlyChanged:
-            Entry(body: "Recently changed")
-
-        case .bandRecentlyChangedNote:
-            Entry(body: """
-            The most recently changed of the results shown. The official registry reports when an \
-            entry was last edited; Smithery reports when it was created. They are different stamps \
-            under one field, so this orders them without claiming they mean the same thing.
-            """)
-
-        case .windowLabel:
-            Entry(body: "Chosen window")
-
-        case .windowAppliesTo:
-            Entry(body: """
-            The window filters recently changed. Most used is an all-time total and has no window.
-            """)
-
-        case .windowDisabledInSearch:
-            Entry(body: "Search results aren't windowed.", isDisabled: true)
-
-        case .windowAnyTime:
-            Entry(body: "Any time")
-
-        case .windowNinety:
-            Entry(body: "90 days")
-
-        case .windowThirty:
-            Entry(body: "30 days")
-
-        case .windowSeven:
-            Entry(body: "7 days")
-
-        case .useCountUnit:
-            // "sessions on Smithery" — never "installs", never "downloads". Smithery publishes
-            // sessions started, and the unit names both the quantity and who published it (A6).
-            Entry(body: "{count} sessions on Smithery")
-
-        case .starsUnit:
-            Entry(body: "{count} stars on GitHub")
-
-        case .truncated:
-            Entry(body: "Showing the first {count} matches. Narrow the search to see others.")
-
-        // MARK: The list
-
-        case .listEmptyNoQuery:
-            Entry(
-                headline: "Nothing came back from either index.",
-                body: "Both registries answered and neither listed anything.",
-                actionLabel: "Try again"
-            )
-
-        case .listEmptyQuery:
-            Entry(
-                headline: "No server matches \u{201C}{query}\u{201D}.",
-                body: """
-                Search covers the official MCP registry and Smithery. Try a shorter word, or clear \
-                the search to browse the bands.
-                """,
-                actionLabel: "Clear search"
-            )
-
-        case .listBandEmpty:
-            // A5: one band empty while the other is populated is the common case, not an edge
-            // case, and it is not the whole-list Empty state.
-            Entry(
-                headline: "Nothing in these results changed in the last {window} days.",
-                body: "Widen the window to see more.",
-                actionLabel: "Any time"
-            )
-
-        case .listPartialOfficialDown:
-            Entry(
-                headline: "Showing Smithery only.",
-                body: "The official registry didn't answer, so anything it alone lists is missing.",
-                actionLabel: "Try again"
-            )
-
-        case .listPartialSmitheryDown:
-            Entry(
-                headline: "Showing the official registry only.",
-                body: """
-                Smithery didn't answer, so anything it alone lists is missing — including the \
-                session counts Most used ranks on.
-                """,
-                actionLabel: "Try again"
-            )
-
-        case .listPartialGitHubLimited:
-            Entry(
-                headline: "Repository details are incomplete.",
-                body: """
-                GitHub limits how often it can be asked, so stars and archive status are missing \
-                for some entries. Everything else is complete.
-                """
-            )
-
-        case .listPartialUnrecognised:
-            // A25: a warning matching no known class renders verbatim under a generic heading
-            // rather than being dropped. The wire carries free text and the classification is by
-            // prefix, so this is the case that keeps a reworded warning visible.
-            Entry(headline: "The search reported a problem.", body: "{warning}")
-
-        case .listError:
-            Entry(
-                headline: "The registry search failed.",
-                body: "{reason}. Nothing was queued and nothing changed on your Mac.",
-                actionLabel: "Try again"
-            )
-
-        case .listOffline:
-            // A27: `DESIGN.md` §5 asks Offline to "offer to start it". The phone cannot start a
-            // process on the Mac, so it gives the instruction instead — a recorded deviation with
-            // its reason, not a criterion quietly passed off as satisfied.
-            Entry(
-                headline: "The router isn't running on {mac}.",
-                body: """
-                Discover reads the registries through it, so nothing can be searched until it \
-                starts. Open MCP Router on your Mac.
-                """
-            )
-
-        // MARK: Detail
-
-        case .detailPartialNoRepository:
-            // A26: a fact, not a failure. GitHub was never asked, because a Smithery entry's
-            // repository is its smithery.ai homepage and that is not a parseable repo URL.
-            Entry(
-                headline: "Smithery doesn't publish repository activity for this entry.",
-                body: "There's no last-commit date or archive status to show."
-            )
-
-        case .detailPartialGitHubLimited:
-            Entry(
-                headline: "Repository details are missing for this entry.",
-                body: """
-                GitHub limits how often it can be asked, so the last-commit date and archive \
-                status couldn't be fetched this time.
-                """
-            )
-
-        case .detailOffline:
-            Entry(
-                headline: "The router isn't running on {mac}.",
-                body: "You can still save this here — send it from Queue when the router is back."
-            )
-
-        case .detailNoLastCommit:
-            Entry(body: "No last-commit date")
-
-        case .detailLastCommit:
-            Entry(body: "Last commit {count}")
-
-        case .chipSourceOfficial:
-            Entry(body: "Official registry")
-
-        case .chipSourceSmithery:
-            Entry(body: "Smithery")
-
-        case .chipSourceBoth:
-            Entry(body: "Both registries")
-
-        case .chipArchived:
-            Entry(body: "Archived")
-
-        // MARK: The capability plate
-        //
-        // Every line here is *derived from the install descriptor*, never authored per entry, and
-        // the plate is drawn above the commit rather than behind a disclosure control (A12). The
-        // brief's rule: the security fact is never behind a tap the user can skip.
-
-        case .plateStdio:
-            Entry(body: "Runs a program on your Mac, with your own access")
-
-        case .plateRemote:
-            // A13: this names the host, and is a fact line rather than an amber one. For a remote
-            // MCP server the decision that matters is that tool arguments leave the machine —
-            // treating remote as the quiet case inverts the real risk. It is not `--attn` because
-            // the user is queueing for review, not granting access, and an amber block that fires
-            // on everything stops meaning anything.
-            Entry(body: "Nothing runs on your Mac; requests go to {host}")
-
-        case .plateCredential:
-            Entry(body: "Needs a credential, entered on your Mac")
-
-        case .plateCredentialSmithery:
-            // A14: every Smithery-hosted install declares a required `Authorization`
-            // unconditionally, so within that subset the line distinguishes nothing. Saying so is
-            // the difference between a warning and noise.
-            Entry(body: """
-            Needs a Smithery API key, entered on your Mac. Every Smithery-hosted entry asks for \
-            one, so this doesn't set this server apart from the others there.
-            """)
-
-        case .plateArchived:
-            Entry(body: "The repository is archived; nobody is maintaining it")
-
-        case .plateNoInstall:
-            Entry(body: "Neither index says how this server runs")
-
-        case .plateInvocationLabel:
-            Entry(body: "What would run")
-
-        // MARK: The commit
-        //
-        // Seven states, all carrying the narrowing (A20). Verb-first and no ellipsis, because it
-        // commits now rather than opening a further view (A16, `DESIGN.md` §3.4, §6).
-
-        case .commitReachable:
-            Entry(
-                body: "Reachable — items you send arrive now.",
-                actionLabel: "Send to Mac",
-                carriesNarrowing: true
-            )
-
-        case .commitNotReachable:
-            // A18: live, and relabelled. This writes one item to a local queue, which succeeds
-            // with the Mac asleep — so disabling it would refuse an act that works. The label
-            // changes because a button reading "Send" above a note reading "saved" contradicts
-            // itself. This diverges from I1's `SendCommitBar` deliberately: that is Queue's
-            // *send these now* batch control and is right to disable on `.notReachable`.
-            Entry(
-                body: """
-                Can't reach {mac} right now. This is saved here; send it from Queue when it's back.
-                """,
-                actionLabel: "Save for your Mac",
-                carriesNarrowing: true
-            )
-
-        case .commitNeverPaired:
-            Entry(
-                body: "No Mac paired yet, so there's nowhere to send this.",
-                actionLabel: "Send to Mac",
-                isDisabled: true,
-                carriesNarrowing: true
-            )
-
-        case .commitNoDescriptor:
-            Entry(
-                body: """
-                Neither index says how this server runs, so there's nothing for your Mac to review.
-                """,
-                actionLabel: "Send to Mac",
-                isDisabled: true,
-                carriesNarrowing: true
-            )
-
-        case .commitQueuedReachable:
-            // Success is an in-place state change. macOS does not toast a click and neither does
-            // this (`DESIGN.md` §5, §7).
-            Entry(
-                body: "Waiting for review on {mac}.",
-                actionLabel: "Queued for your Mac",
-                isDisabled: true,
-                carriesNarrowing: true
-            )
-
-        case .commitQueuedNotReachable:
-            // A21: says where the item is and how it goes, never that it will go on its own. No
-            // item owns flush-on-reachable, so copy promising one would promise nothing.
-            Entry(
-                body: "Send it from Queue when {mac} is back.",
-                actionLabel: "Saved on this phone",
-                isDisabled: true,
-                carriesNarrowing: true
-            )
-
-        case .commitAlreadyDeclared:
-            // A23: rendered as the name match it is. The router compares `displayName` against
-            // locally declared server keys, which both false-positives on a shared last path
-            // segment and misses on case — so the copy may not assert an identity the comparison
-            // cannot establish.
-            Entry(
-                body: "A server called {name} is already declared on {mac}.",
-                actionLabel: "Already on your Mac",
-                isDisabled: true,
-                carriesNarrowing: true
-            )
+        case let .band(key): key.entry
+        case let .window(key): key.entry
+        case let .unit(key): key.entry
+        case let .list(key): key.entry
+        case let .detail(key): key.entry
+        case let .plate(key): key.entry
+        case let .commit(key): key.entry
         }
     }
 }

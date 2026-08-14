@@ -98,8 +98,8 @@ struct DiscoverBandSection: View {
     }
 
     private var bandEmptyCopy: DiscoverCopy.Entry {
-        let days = window.days.map(String.init) ?? DiscoverCopy.entry(.windowAnyTime).body
-        return DiscoverCopy.entry(.listBandEmpty).resolved([.window: days])
+        let days = window.days.map(String.init) ?? DiscoverCopy.entry(.window(.anyTime)).body
+        return DiscoverCopy.entry(.list(.bandEmpty)).resolved([.window: days])
     }
 }
 
@@ -116,11 +116,11 @@ struct DiscoverWindowControl: View {
     var body: some View {
         VStack(alignment: .leading, spacing: PhoneMetric.tight) {
             HStack(spacing: PhoneMetric.snug) {
-                Text(DiscoverCopy.entry(.windowLabel).body)
+                Text(DiscoverCopy.entry(.window(.label)).body)
                     .typeRole(.subheadline)
                     .foregroundStyle(ColorToken.t3.color)
 
-                Picker(DiscoverCopy.entry(.windowLabel).body, selection: $window) {
+                Picker(DiscoverCopy.entry(.window(.label)).body, selection: $window) {
                     ForEach(RecencyWindow.allCases) { option in
                         Text(option.label).tag(option)
                     }
@@ -144,6 +144,6 @@ struct DiscoverWindowControl: View {
     /// Both asymmetries are stated rather than left to be discovered — the tidier alternatives
     /// (windowing both bands, hiding the control) are false.
     private var reason: String {
-        DiscoverCopy.entry(isSearching ? .windowDisabledInSearch : .windowAppliesTo).body
+        DiscoverCopy.entry(isSearching ? .window(.disabledInSearch) : .window(.appliesTo)).body
     }
 }

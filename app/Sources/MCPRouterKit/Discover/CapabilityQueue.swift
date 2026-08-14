@@ -175,5 +175,7 @@ public actor InMemoryCapabilityQueue: CapabilityQueueWriter {
         return items.contains { $0.id == id }
     }
 
-    public func all() -> [QueuedCapability] { items }
+    public func all() -> [QueuedCapability] {
+        items
+    }
 }

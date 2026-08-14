@@ -34,7 +34,7 @@ public struct DiscoverScreen: View {
                 .background(ColorToken.ground.color)
                 .searchable(
                     text: $model.query,
-                    prompt: Text(DiscoverCopy.entry(.searchPlaceholder).body)
+                    prompt: Text(DiscoverCopy.entry(.unit(.searchPlaceholder)).body)
                 )
                 .navigationDestination(item: $selected) { entry in
                     CapabilityDetailView(entry: entry, model: model)
@@ -64,21 +64,21 @@ public struct DiscoverScreen: View {
 
         case .emptyNoQuery:
             DiscoverMessageState(
-                entry: model.copy(.listEmptyNoQuery),
+                entry: model.copy(.list(.emptyNoQuery)),
                 action: { Task { await model.search() } }
             )
             .frame(maxHeight: .infinity)
 
         case let .emptyQuery(query):
             DiscoverMessageState(
-                entry: model.copy(.listEmptyQuery, extra: [.query: query]),
+                entry: model.copy(.list(.emptyQuery), extra: [.query: query]),
                 action: { Task { await model.clearSearch() } }
             )
             .frame(maxHeight: .infinity)
 
         case let .failed(reason):
             DiscoverMessageState(
-                entry: model.copy(.listError, extra: [.reason: reason.text]),
+                entry: model.copy(.list(.failed), extra: [.reason: reason.text]),
                 icon: .bang,
                 tint: .fail,
                 action: { Task { await model.search() } }
@@ -89,7 +89,14 @@ public struct DiscoverScreen: View {
             // A27: its own state, never a generic error banner. `DESIGN.md` §5 asks Offline to
             // offer to start the router; the phone cannot start a process on the Mac, so it gives
             // the instruction instead — a recorded deviation with its reason.
-            DiscoverMessageState(entry: model.copy(.listOffline), icon: .bolt, tint: .attention)
+            //
+            // The tint is `--t3`, a label tier, and deliberately **not** `--attn`. §2 reserves
+            // amber for "wants a human decision", and a router that is not running asks for an
+            // action rather than a decision — there is nothing here to weigh. `ConnectionBanner`
+            // already settled this for the same class of state on this device: reachable is
+            // `--live` and "the other two are label tiers, not indicators". Spending amber here
+            // is the dilution §2 names as the thing that stops one amber dot meaning anything.
+            DiscoverMessageState(entry: model.copy(.list(.offline)), icon: .bolt, tint: .t3)
                 .frame(maxHeight: .infinity)
         }
     }
@@ -104,7 +111,6 @@ public struct DiscoverScreen: View {
         .accessibilityLabel("Searching the server registries")
     }
 
-    @ViewBuilder
     private func populatedList(warnings: [WarningClass]) -> some View {
         List {
             if !warnings.isEmpty {

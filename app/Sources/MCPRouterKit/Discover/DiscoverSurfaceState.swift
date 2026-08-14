@@ -1,14 +1,14 @@
 import Foundation
 
-/// The states Discover's two surfaces can be in, as values a test can construct and enumerate.
-///
-/// `DESIGN.md` §5 requires nine states per data surface, and the reliable failure in AI-generated
-/// UI is shipping only the populated one. Driving each surface from an enum rather than from a
-/// scatter of optionals is what makes that checkable: a test enumerates the cases, renders each,
-/// and a tenth state added without copy fails to compile rather than shipping blank.
-///
-/// **Where a state is absent, its absence is deliberate and commented.** An omission that reads as
-/// an oversight is worse than a stub, so each one names the criterion it follows from.
+// The states Discover's two surfaces can be in, as values a test can construct and enumerate.
+//
+// `DESIGN.md` §5 requires nine states per data surface, and the reliable failure in AI-generated
+// UI is shipping only the populated one. Driving each surface from an enum rather than from a
+// scatter of optionals is what makes that checkable: a test enumerates the cases, renders each,
+// and a tenth state added without copy fails to compile rather than shipping blank.
+//
+// Where a state is absent, its absence is deliberate and commented. An omission that reads as an
+// oversight is worse than a stub, so each one names the criterion it follows from.
 
 // MARK: - Why a search failed
 
@@ -89,10 +89,10 @@ public enum WarningClass: Sendable, Equatable, Hashable {
 
     public var copyKey: DiscoverCopy.Key {
         switch self {
-        case .officialDown: .listPartialOfficialDown
-        case .smitheryDown: .listPartialSmitheryDown
-        case .githubLimited: .listPartialGitHubLimited
-        case .unrecognised: .listPartialUnrecognised
+        case .officialDown: .list(.partialOfficialDown)
+        case .smitheryDown: .list(.partialSmitheryDown)
+        case .githubLimited: .list(.partialGitHubLimited)
+        case .unrecognised: .list(.partialUnrecognised)
         }
     }
 }
@@ -127,6 +127,25 @@ public enum DiscoverListState: Sendable, Equatable {
     case failed(DiscoverFailureReason)
     /// The router is not running on the paired Mac. Its own state, never a generic error (A27).
     case offline
+
+    /// The one place a search response becomes a surface state.
+    ///
+    /// Pure, and here rather than on the model, so the mapping is testable without a model, a
+    /// client or a main actor — and so it sits beside the states it produces.
+    public static func resolve(
+        response: RegistrySearchResponse,
+        query: String
+    ) -> DiscoverListState {
+        let warnings = WarningClass.classify(response.warnings)
+        if response.results.isEmpty {
+            // A degraded search that returned nothing says *why* it returned nothing. Reporting
+            // "neither index listed anything" when one of them never answered would be a false
+            // statement about the registries.
+            if !warnings.isEmpty { return .partial(warnings) }
+            return query.isEmpty ? .emptyNoQuery : .emptyQuery(query)
+        }
+        return warnings.isEmpty ? .populated : .partial(warnings)
+    }
 }
 
 // MARK: - Detail
@@ -183,13 +202,13 @@ public enum CommitState: Sendable, Equatable, CaseIterable {
 
     public var copyKey: DiscoverCopy.Key {
         switch self {
-        case .reachable: .commitReachable
-        case .notReachable: .commitNotReachable
-        case .neverPaired: .commitNeverPaired
-        case .noDescriptor: .commitNoDescriptor
-        case .queuedReachable: .commitQueuedReachable
-        case .queuedNotReachable: .commitQueuedNotReachable
-        case .alreadyDeclared: .commitAlreadyDeclared
+        case .reachable: .commit(.reachable)
+        case .notReachable: .commit(.notReachable)
+        case .neverPaired: .commit(.neverPaired)
+        case .noDescriptor: .commit(.noDescriptor)
+        case .queuedReachable: .commit(.queuedReachable)
+        case .queuedNotReachable: .commit(.queuedNotReachable)
+        case .alreadyDeclared: .commit(.alreadyDeclared)
         }
     }
 

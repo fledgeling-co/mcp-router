@@ -31,7 +31,7 @@ public enum DiscoverPresentation {
     /// product forbids.
     public static func useCountText(_ entry: RegistryEntry) -> String? {
         guard let useCount = entry.useCount else { return nil }
-        return DiscoverCopy.entry(.useCountUnit)
+        return DiscoverCopy.entry(.unit(.useCount))
             .resolved([.count: grouped(useCount)])
             .body
     }
@@ -44,7 +44,7 @@ public enum DiscoverPresentation {
     /// is rendered as an explained absence rather than as a zero.
     public static func starsText(_ entry: RegistryEntry) -> String? {
         guard let stars = entry.stars else { return nil }
-        return DiscoverCopy.entry(.starsUnit)
+        return DiscoverCopy.entry(.unit(.stars))
             .resolved([.count: grouped(stars)])
             .body
     }
@@ -58,7 +58,7 @@ public enum DiscoverPresentation {
     /// see and cannot reach.
     public static func truncationText(shown: Int, limit: Int) -> String? {
         guard shown >= limit, limit > 0 else { return nil }
-        return DiscoverCopy.entry(.truncated)
+        return DiscoverCopy.entry(.unit(.truncated))
             .resolved([.count: grouped(shown)])
             .body
     }
@@ -82,7 +82,7 @@ public enum DiscoverPresentation {
     /// whose membership is an artifact of a fetch budget is a claim the data cannot support.
     public static func lastCommitText(_ entry: RegistryEntry) -> String? {
         guard let pushed = date(from: entry.pushedAt) else { return nil }
-        return DiscoverCopy.entry(.detailLastCommit)
+        return DiscoverCopy.entry(.detail(.lastCommit))
             .resolved([.count: display(pushed)])
             .body
     }
@@ -131,6 +131,7 @@ public enum DiscoverPresentation {
     }
 
     // MARK: - Formatting primitives
+
     //
     // Private, and the only two formatters in the feature. A view that wants a number formatted
     // has to come through one of the functions above, which is what makes the honesty scan's claim

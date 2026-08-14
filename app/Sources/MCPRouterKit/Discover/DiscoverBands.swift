@@ -25,8 +25,8 @@ public enum DiscoverBand: String, Sendable, CaseIterable, Identifiable {
 
     public var titleKey: DiscoverCopy.Key {
         switch self {
-        case .mostUsed: .bandMostUsed
-        case .recentlyChanged: .bandRecentlyChanged
+        case .mostUsed: .band(.mostUsed)
+        case .recentlyChanged: .band(.recentlyChanged)
         }
     }
 
@@ -39,8 +39,8 @@ public enum DiscoverBand: String, Sendable, CaseIterable, Identifiable {
     /// may only make claims about the rows in front of the user.
     public var noteKey: DiscoverCopy.Key {
         switch self {
-        case .mostUsed: .bandMostUsedNote
-        case .recentlyChanged: .bandRecentlyChangedNote
+        case .mostUsed: .band(.mostUsedNote)
+        case .recentlyChanged: .band(.recentlyChangedNote)
         }
     }
 
@@ -49,7 +49,7 @@ public enum DiscoverBand: String, Sendable, CaseIterable, Identifiable {
     /// Only `recentlyChanged` does. `useCount` is a cumulative all-time total, and slicing it by a
     /// window would assert a per-window figure that was never measured — the same defect as a
     /// trend band, in a quieter costume. The asymmetry is stated on the control itself
-    /// (`DiscoverCopy.Key.windowAppliesTo`) rather than left to be discovered.
+    /// (`DiscoverCopy.Key.window(.appliesTo)`) rather than left to be discovered.
     public var respondsToWindow: Bool { self == .recentlyChanged }
 }
 
@@ -79,10 +79,10 @@ public enum RecencyWindow: String, Sendable, CaseIterable, Identifiable {
 
     public var copyKey: DiscoverCopy.Key {
         switch self {
-        case .anyTime: .windowAnyTime
-        case .ninety: .windowNinety
-        case .thirty: .windowThirty
-        case .seven: .windowSeven
+        case .anyTime: .window(.anyTime)
+        case .ninety: .window(.ninety)
+        case .thirty: .window(.thirty)
+        case .seven: .window(.seven)
         }
     }
 
@@ -122,7 +122,7 @@ public enum DiscoverBands {
 
         case .recentlyChanged:
             let cutoff = window.days.map { days in
-                now.addingTimeInterval(-Double(days) * 86_400)
+                now.addingTimeInterval(-Double(days) * 86400)
             }
             return entries
                 .compactMap { entry -> (RegistryEntry, Date)? in

@@ -52,7 +52,7 @@ struct CapabilityDetailView: View {
         #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
         #endif
-        .task { await model.refreshQueuedState(for: entry) }
+            .task { await model.refreshQueuedState(for: entry) }
     }
 
     private var header: some View {
@@ -89,7 +89,7 @@ struct CapabilityDetailView: View {
         HStack(spacing: PhoneMetric.snug) {
             chip(DiscoverCopy.entry(sourceKey).body)
             if entry.archived == true {
-                chip(DiscoverCopy.entry(.chipArchived).body)
+                chip(DiscoverCopy.entry(.detail(.chipArchived)).body)
             }
             if let stars = DiscoverPresentation.starsText(entry) {
                 chip(stars)
@@ -100,9 +100,9 @@ struct CapabilityDetailView: View {
 
     private var sourceKey: DiscoverCopy.Key {
         switch entry.source {
-        case .official: .chipSourceOfficial
-        case .smithery: .chipSourceSmithery
-        case .both: .chipSourceBoth
+        case .official: .detail(.chipSourceOfficial)
+        case .smithery: .detail(.chipSourceSmithery)
+        case .both: .detail(.chipSourceBoth)
         }
     }
 
@@ -131,8 +131,8 @@ struct CapabilityDetailView: View {
                 .foregroundStyle(ColorToken.t2.color)
         } else {
             let key: DiscoverCopy.Key = entry.source == .smithery
-                ? .detailPartialNoRepository
-                : .detailPartialGitHubLimited
+                ? .detail(.partialNoRepository)
+                : .detail(.partialGitHubLimited)
             let copy = DiscoverCopy.entry(key)
             VStack(alignment: .leading, spacing: PhoneMetric.tight) {
                 if let headline = copy.headline {
@@ -152,7 +152,7 @@ struct CapabilityDetailView: View {
     /// A27 on Detail: the router being down does not stop a local save, so this states where the
     /// item goes rather than refusing the act.
     private var offlineNote: some View {
-        let copy = model.copy(.detailOffline)
+        let copy = model.copy(.detail(.offline))
         return VStack(alignment: .leading, spacing: PhoneMetric.tight) {
             if let headline = copy.headline {
                 Text(headline)

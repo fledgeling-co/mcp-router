@@ -64,6 +64,8 @@ R4@@Registry/RegistrySearch.swift@@        let truthy = (value == 0 || value.isN
 R5@@Registry/JSLocaleCompare.swift@@        switch lhs.compare(rhs, options: [], range: nil, locale: Locale(identifier: "en_US")) {@@        switch (lhs < rhs ? ComparisonResult.orderedAscending : lhs == rhs ? ComparisonResult.orderedSame : ComparisonResult.orderedDescending) {@@rank updatedAt with Swift < instead of ICU root collation
 R6@@Control/ControlRequest.swift@@        self.headers = Self.normalized(headers)@@        self.headers = headers@@stop normalising headers, so a repeated name resolves by hash order
 R7@@Control/Describe.swift@@        let failed = entry?.hasError ?? false@@        let failed = entry?.member("error") != nil@@test the index error with != nil, zeroing tools when error is ""
+R8@@Control/Describe.swift@@            JSONMember(key: "projects", value: rawOrEmptyArray(upstream.raw.member("projects"))),@@            JSONMember(key: "projects", value: .array((upstream.projects ?? []).map { .string(JSString($0)) })),@@serialise the TYPED projects, denying a non-array the router just stored
+R9@@Control/Describe.swift@@            members.append(JSONMember(key: "args", value: rawOrEmptyArray(upstream.raw.member("args"))))@@            members.append(JSONMember(key: "args", value: .array(upstream.args.map { .string(JSString($0)) })))@@serialise the TYPED args, stringifying [1,2] into ["1","2"]
 TABLE
 )
 

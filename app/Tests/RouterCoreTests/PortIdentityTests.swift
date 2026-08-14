@@ -110,6 +110,44 @@ struct PortIdentityTests {
         }
     }
 
+    /// Shared by `RawFieldParityTests` — a `ControlDeps` over caller-supplied upstreams, with
+    /// every dependency inert so the row is a function of the config alone.
+    static func deps(
+        upstreams: [(name: JSString, upstream: UpstreamConfig)]
+    ) throws -> ControlDeps {
+        let clock = ManualClock(milliseconds: 1_770_000_000_000)
+        return ControlDeps(
+            config: RouterConfig(
+                port: 8971, host: "127.0.0.1", idleMs: 300_000, startupTimeoutMs: 60000,
+                upstreams: upstreams.map(\.upstream), manifestPath: "/tmp/m.json",
+                logPath: "/tmp/r.log", usagePath: "/tmp/mcprouter-none/u.jsonl",
+                statsPath: "/tmp/mcprouter-none/s.json", authDir: "/tmp/auth"
+            ),
+            upstreams: upstreams,
+            pool: Pool(),
+            indexer: NeverIndexer(),
+            auth: NoAuth(),
+            usage: UsageStore(
+                logPath: "/tmp/mcprouter-none/u.jsonl",
+                statsPath: "/tmp/mcprouter-none/s.json", clock: clock
+            ),
+            manifest: .empty,
+            clock: clock,
+            tokenPath: "/tmp/control.token",
+            configPath: "/tmp/servers.json"
+        )
+    }
+
+    struct NoAuth: AuthStore {
+        func hasTokens(_: JSString) -> Bool { false }
+        func authorizedAt(_: JSString) -> String? { nil }
+        @discardableResult func clear(_: JSString) -> Bool { false }
+    }
+
+    struct NeverIndexer: UpstreamIndexerPort {
+        func index(_: UpstreamConfig) async -> IndexOutcome { IndexOutcome(tools: 0) }
+    }
+
     @Test("an ASCII name round-trips through JSString unchanged, so the typing costs nothing")
     func asciiRoundTrips() {
         for name in ["fixture-stdio", "a_b", "Server1"] {

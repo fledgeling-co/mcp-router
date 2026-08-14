@@ -61,12 +61,16 @@ public enum Describe {
     private static func transportMembers(_ upstream: UpstreamConfig) -> [JSONMember] {
         var members: [JSONMember] = []
         if upstream.isStdio {
+            // `command: u.command` and `args: u.args ?? []` in `config.ts`, both **raw**. The typed
+            // fields cannot stand in: `ServerParser` coerces `command` to a string and maps `args`
+            // to `[String]`, so a config carrying `"command": true` or `"args": [1,2]` — both of
+            // which the reference accepts and stores — would be reported back as `"true"` and
+            // `["1","2"]`. `cwd` was already read this way; these are the same rule.
             members.append(JSONMember(
-                key: "command", value: .string(JSString(upstream.command ?? ""))
+                key: "command",
+                value: upstream.raw.member("command") ?? .string(JSString(upstream.command ?? ""))
             ))
-            members.append(JSONMember(
-                key: "args", value: .array(upstream.args.map { .string(JSString($0)) })
-            ))
+            members.append(JSONMember(key: "args", value: rawOrEmptyArray(upstream.raw.member("args"))))
             // `cwd` is the one member where absent and null are both reachable and different:
             // `JSON.stringify` omits an undefined member and emits `"cwd":null` for a null one, so
             // the raw config is consulted rather than the parsed optional, which collapses them.
@@ -113,14 +117,22 @@ public enum Describe {
     /// asymmetric because the reference is.
     private static func scopeMembers(_ upstream: UpstreamConfig) -> [JSONMember] {
         [
-            JSONMember(
-                key: "projects",
-                value: .array((upstream.projects ?? []).map { .string(JSString($0)) })
-            ),
+            // `projects: u.projects ?? []`, and `u.projects` is `s.projects` verbatim. The `??` is
+            // nullish, so a truthy non-array survives to the wire. PATCH already preserves such a
+            // value on disk (`b.projects?.length` is a property read), so reporting `[]` here made
+            // the router deny a value it had just written.
+            JSONMember(key: "projects", value: rawOrEmptyArray(upstream.raw.member("projects"))),
             JSONMember(
                 key: "warm", value: .bool(upstream.raw.member("warm")?.isTruthy ?? false)
             )
         ]
+    }
+
+    /// `x ?? []` — **nullish**, so `false`, `0` and `"abc"` all survive and only absent or `null`
+    /// becomes an empty array.
+    private static func rawOrEmptyArray(_ member: JSONValue?) -> JSONValue {
+        guard let member, member != .null else { return .array([]) }
+        return member
     }
 
     private static func pendingChange(_ entry: CachedServer) -> JSONValue {

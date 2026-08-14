@@ -33,15 +33,17 @@ extension ControlHandler {
                 members2.first { $0.key == JSString("projects") }?.value.asObjectMembers
             }) ?? []
             members.append(JSONMember(key: "projectNames", value: .array(projects.map { project in
-                .object([
-                    JSONMember(key: "cwd", value: .string(project.key)),
-                    JSONMember(
-                        key: "project",
-                        value: projectOf(project.key.string)
-                            .map { .string(JSString($0)) } ?? .null
-                    ),
-                    JSONMember(key: "calls", value: project.value)
-                ])
+                // `project: projectOf(d)` is `undefined` for an empty cwd, and `JSON.stringify`
+                // **omits** an undefined member rather than writing null (S3). Emitting `null` here
+                // added a member the reference never sends.
+                var row: [JSONMember] = [
+                    JSONMember(key: "cwd", value: .string(project.key))
+                ]
+                if let name = projectOf(project.key.string) {
+                    row.append(JSONMember(key: "project", value: .string(JSString(name))))
+                }
+                row.append(JSONMember(key: "calls", value: project.value))
+                return .object(row)
             })))
             return .object(members)
         }

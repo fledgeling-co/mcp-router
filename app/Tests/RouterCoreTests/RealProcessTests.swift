@@ -37,6 +37,44 @@ struct RealProcessTests {
         #expect(await StubServer.waitUntilGone(pid), "shutdown must reap the child, not just drop it")
     }
 
+    @Test("E0/P1a — the child is launched with the configured argv, cwd and environment")
+    func childIsLaunchedAsConfigured() async throws {
+        let directory = try directory()
+        defer { remove(directory) }
+        let workingDirectory = directory.appendingPathComponent("work")
+        try FileManager.default.createDirectory(at: workingDirectory, withIntermediateDirectories: true)
+
+        // `PATH` is deliberately one of the overrides: the reference merges the router's own
+        // environment first and lets the server win, and a router that merged the other way would
+        // look identical until a server tried to override something that mattered.
+        let config = try StubServer.config(
+            name: "launched",
+            mode: .reports,
+            directory: directory,
+            extraArguments: ["--flag", "value with spaces"],
+            environment: [
+                JSStringPair(key: JSString("ROUTER_TEST_TOKEN"), value: JSString("from-config")),
+                JSStringPair(
+                    key: JSString("PATH"),
+                    value: JSString(ProcessInfo.processInfo.environment["PATH"] ?? "")
+                )
+            ],
+            workingDirectory: workingDirectory.path
+        )
+        let session = try await StdioUpstreamTransport().open(config, timeoutMilliseconds: 8000)
+        defer { Task { await session.shutdown() } }
+
+        let launch = try StubServer.launch(name: "launched", directory: directory)
+        #expect(
+            launch.argv == ["--flag", "value with spaces"],
+            "arguments are passed as an array, not a shell string"
+        )
+        #expect(URL(fileURLWithPath: launch.cwd).resolvingSymlinksInPath().path
+            == workingDirectory.resolvingSymlinksInPath().path)
+        #expect(launch.env["ROUTER_TEST_TOKEN"] == "from-config", "the server's own env must reach it")
+        #expect(launch.env["HOME"] != nil, "the router's environment is inherited, not replaced")
+    }
+
     @Test("E0/P2a — a start that times out leaves no orphan behind")
     func timedOutStartLeavesNoOrphan() async throws {
         let directory = try directory()
@@ -164,6 +202,78 @@ struct RealProcessTests {
         await pool.release(second)
         await pool.shutdown()
         #expect(await StubServer.waitUntilGone(secondPid))
+    }
+
+    @Test("E0/P2 — concurrent callers on a cold upstream spawn exactly one real child")
+    func concurrentLeasesSpawnOneRealChild() async throws {
+        let directory = try directory()
+        defer { remove(directory) }
+        let config = try StubServer.config(
+            name: "shared", mode: .responsive, directory: directory, idleMs: 60000
+        )
+        let pool = UpstreamPool(
+            upstreams: [config],
+            defaultIdleMilliseconds: 60000,
+            defaultStartupTimeoutMilliseconds: 8000,
+            transporting: StdioUpstreamTransport()
+        )
+
+        // Five callers arriving while the child is still starting. Without a cohort this spawns five
+        // interpreters and keeps one, which a fake transport can count but cannot make expensive.
+        let leases = try await withThrowingTaskGroup(of: UpstreamLease.self) { group in
+            for _ in 0 ..< 5 {
+                group.addTask { try await pool.lease("shared") }
+            }
+            var collected: [UpstreamLease] = []
+            for try await lease in group {
+                collected.append(lease)
+            }
+            return collected
+        }
+
+        #expect(leases.count == 5)
+        #expect(Set(leases.map(\.handle)).count == 1, "every caller must be given the same upstream")
+        // Every member of a cold cohort is labelled cold, and that is parity rather than an
+        // oversight: the reference reads `!pool.isLive(name)` before the call at `router.ts:136`,
+        // so in Node all N concurrent callers also see a dead upstream and all N are marked cold.
+        // Narrowing this to "the one that paid" would read better and diff worse.
+        let coldCount = leases.filter(\.cold).count
+        #expect(coldCount == leases.count, "matches the reference's pre-call isLive read")
+
+        let pid = try #require(await pool.processIdentifiers()["shared"])
+        #expect(StubServer.isAlive(pid))
+        for lease in leases {
+            await pool.release(lease)
+        }
+        await pool.shutdown()
+        #expect(await StubServer.waitUntilGone(pid))
+    }
+
+    @Test("E0/P10 — memory is measured from a live child, and absent for one that is not running")
+    func residentMemoryIsMeasuredNotInvented() async throws {
+        let directory = try directory()
+        defer { remove(directory) }
+        let configs = try ["live", "idle"].map {
+            try StubServer.config(name: $0, mode: .responsive, directory: directory, idleMs: 60000)
+        }
+        let pool = UpstreamPool(
+            upstreams: configs,
+            defaultIdleMilliseconds: 60000,
+            defaultStartupTimeoutMilliseconds: 5000,
+            transporting: StdioUpstreamTransport()
+        )
+
+        let lease = try await pool.lease("live")
+        let measured = await pool.residentMb()
+
+        // DESIGN.md forbids displaying a number the router does not observe, so the assertion is
+        // that this figure came from `ps` reading a real process — not that it has some value.
+        let resident = try #require(measured["live"])
+        #expect(resident > 0, "a running Python interpreter has a resident set; \(resident) MB is not it")
+        #expect(measured["idle"] == nil, "an upstream that was never started reports nothing at all")
+
+        await pool.release(lease)
+        await pool.shutdown()
     }
 
     @Test("E0/P9 — shutdown reaps every real child it opened")

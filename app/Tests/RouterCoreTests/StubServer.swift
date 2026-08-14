@@ -23,6 +23,9 @@ enum StubServer {
         /// Writes far more than a pipe buffer to stderr before answering, so a router that does not
         /// drain stderr deadlocks here rather than in production.
         case chatty
+        /// Answers, and first records its own argv, working directory and environment, so what the
+        /// router actually launched can be compared against what was configured.
+        case reports
     }
 
     private static let source = """
@@ -37,6 +40,14 @@ enum StubServer {
 
     if mode == "stubborn":
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
+
+    if mode == "reports":
+        with open(pid_path + ".launch.json", "w") as handle:
+            json.dump({
+                "argv": sys.argv[4:],
+                "cwd": os.getcwd(),
+                "env": dict(os.environ),
+            }, handle)
 
     if mode == "chatty":
         # Comfortably past a 64 KiB pipe buffer: an undrained stderr blocks the write below, and the
@@ -86,14 +97,18 @@ enum StubServer {
         directory: URL,
         trigger: URL? = nil,
         idleMs: Int? = nil,
-        startupTimeoutMs: Int? = nil
+        startupTimeoutMs: Int? = nil,
+        extraArguments: [String] = [],
+        environment: [JSStringPair] = [],
+        workingDirectory: String? = nil
     ) throws -> UpstreamConfig {
         let script = directory.appendingPathComponent("stub-server.py")
         if !FileManager.default.fileExists(atPath: script.path) {
             try source.write(to: script, atomically: true, encoding: .utf8)
         }
         var arguments = [script.path, mode.rawValue, pidFile(name: name, directory: directory).path]
-        if let trigger { arguments.append(trigger.path) }
+        arguments.append(trigger?.path ?? "")
+        arguments.append(contentsOf: extraArguments)
         return UpstreamConfig(
             name: name,
             transport: .stdio,
@@ -105,12 +120,24 @@ enum StubServer {
             placard: nil,
             command: "python3",
             args: arguments,
-            env: [],
-            cwd: nil,
+            env: environment,
+            cwd: workingDirectory,
             url: nil,
             headers: [],
             oauth: nil
         )
+    }
+
+    /// What the child reported about how it was launched.
+    struct Launch: Decodable {
+        let argv: [String]
+        let cwd: String
+        let env: [String: String]
+    }
+
+    static func launch(name: String, directory: URL) throws -> Launch {
+        let path = pidFile(name: name, directory: directory).appendingPathExtension("launch.json")
+        return try JSONDecoder().decode(Launch.self, from: Data(contentsOf: path))
     }
 
     static func pidFile(name: String, directory: URL) -> URL {

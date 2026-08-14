@@ -398,3 +398,96 @@ Reported to the orchestrator, not registered here.
 | **R2-W** | Swift router: the `~/.claude.json` watcher and its cross-process adoption protocol | R2, R3 | W10 needs R3's PATCH to exist to be tested against; building it earlier means guessing the protocol or shipping a data-loss window |
 | **D-h** | Rename `callsServed` to what it measures, across router, control API, client and surfaces | R4 | D6 — it is an acquisition counter. Wire-visible, so it needs R4's gate to have passed and F3 + the Mac surfaces to move together |
 | **D-i** | Fix the lost router restart in the TypeScript watcher | — | D7 — a latent bug in the reference: an adopted server can never reach the running router |
+
+## Progress — 2026-08-14
+
+**Status: delivered, not merged.** Branch `ai/r2`, worktree `.worktrees/R2`. Scope is Phases 0–2 of
+`plan-R2.md` — the frozen seams and the lazy pool, with real-process evidence. The relay, the HTTP
+listener, HTTP upstream clients and the composition root remain with child spec **R2-R**; the
+config watcher remains with **R2-W**.
+
+### Gate evidence
+
+| Gate | Result |
+|---|---|
+| `make test` | `Test run with 279 tests in 44 suites passed` / `executed 279 tests` |
+| `make lint` | `Found 0 violations, 0 serious in 95 files` · `no-raw-design-values: clean` |
+| `make parity` | `parity: 224 vector cases compared (floor 224)` |
+| `app/Scripts/pool-mutation-gate.sh` | `MUTATION GATE: all thirteen guards proved load-bearing` |
+
+### E0 — which clauses have real-resource evidence
+
+E0 says a clause may not be discharged by a double standing in for the thing under test. Ten tests
+in `RealProcessTests.swift` run against a real spawned child, real pipes, real signals and a real
+handshake over the pinned SDK. The table separates those from the clauses whose evidence is still
+only the state machine, because "tested" and "tested against the thing" are different claims.
+
+| Clause | Evidence | Type |
+|---|---|---|
+| P1 | `poolSpawnsAndReapsARealChild` — nothing spawned before the first lease | real process |
+| P1a | `childIsLaunchedAsConfigured` — child reports its own argv, cwd and env back | real process |
+| P2 | `concurrentLeasesSpawnOneRealChild` — five callers, one interpreter | real process |
+| P2a | `timedOutStartLeavesNoOrphan`, `lateStartIsClosed` | real process + red-green |
+| P3 | `poolSpawnsAndReapsARealChild` — the pid is gone after the idle window | real process |
+| P4 | `callOutstandingIsNeverReaped`, `reaperCannotBeatTheWaitingLease` | red-green + mutation |
+| P4a | `releaseIsExactlyOnce` | red-green + mutation |
+| P5, P6, P7 | warm and idle-window behaviour | state machine only |
+| P8 | `realChildThatExitsIsEvicted` — a real child exits, the pool notices and reopens | real process |
+| P8a, P8b | `staleCloseCannotEvict`, `selfEndedSessionIsClosed`, `endedSessionIsEvictedBeforeAnySuspension` | red-green + mutation |
+| P9 | `shutdownReapsEveryChild`, `stubbornChildIsKilled`, `shutdownIsABarrier` | real process + mutation |
+| P10 | `residentMemoryIsMeasuredNotInvented` — RSS read by `ps` from a live pid | measurement |
+| P11 | `callsServedCountsAcquisitions` and the transition table | state machine only |
+| P12 | `chattyChildDoesNotWedge` — 300 KB of stderr before the first reply | real process |
+| P13 | `timedOutStartLeavesNoOrphan` | real process |
+| P14, P15 | pending-auth recording; the SSE capability gap fails loudly | state machine only |
+| S1, S3, S4, S5 | `StandingConstraintsTests`, `make lint`, the exact `0.12.1` pin | measurement |
+| T1–T4, R-1…R-10, H1–H8, C1–C2 | **not delivered** — R2-R | — |
+| W1–W10 | **not delivered** — R2-W | — |
+| S2 | **not delivered** — the listener is R2-R's, and the swift-nio pin lands with it | — |
+
+Seam sufficiency is covered separately by `SeamTests.swift`: a query string survives, a stream
+delivers as produced, a dropped reader reaches the producer, an authorizer is accepted by the SDK's
+own transport, and each inert default behaves correctly unattached.
+
+### What the real-process evidence found that the doubles could not
+
+Wiring the pinned SDK to an actual child immediately produced a deadlock, and the shape of it is
+worth recording. `handshake` raced `Client.connect` against a timer inside a `withTaskGroup`, and a
+task group does not return until **every** child task finishes. A server that never answers leaves
+`connect` awaiting a reply that will not come; cancellation is cooperative and does not reach it; so
+the group waits forever — the exact hang the startup timeout exists to prevent. `waitForExit` had
+the same shape, which meant the SIGKILL escalation could never fire for the stubborn child it was
+written for. Both now publish the winner to a box and abandon the loser.
+
+A second finding: every member of a cold cohort is labelled `cold`, not just the caller that paid
+for the start. That is parity, not an oversight — the reference reads `!pool.isLive(name)` before
+the call at `router.ts:136`, so in Node all *N* concurrent callers also see a dead upstream. Making
+it read more sensibly would have made it diff worse under R4.
+
+### Phase D completeness critic — disposition
+
+Out-of-family, `gpt-5.6-sol` at `max`, read-only, log at `/tmp/gate-R2-phased.md`. Verdict **REJECT**,
+19 findings. Every one is dispositioned below; none is left silent.
+
+| # | Disposition |
+|---|---|
+| 1 | **Fixed.** Phase 2 delivered: `StdioUpstreamTransport` plus ten real-process tests. The table above now records an evidence type per clause. |
+| 2 | **Fixed.** `sessionEnded` evicts and persists synchronously before any `await`; proved by `endedSessionIsEvictedBeforeAnySuspension` with a blocking log sink. |
+| 3 | **Fixed.** A self-ended session is now closed, not merely forgotten; `selfEndedSessionIsClosed` asserts `shutdownCount == 1`. |
+| 4 | **Fixed.** A waiter reservation is taken before suspending, so no timer is armed while a caller waits for the start it paid for. |
+| 5 | **Fixed.** `shutdown()` is a shared flight; a second caller awaits the first rather than returning into a half-torn-down pool. |
+| 6 | **Rejected, with reason.** The reference does not hot-reload its upstream list — `watch.ts:361-371` says so and restarts the daemon via `launchctl kickstart`. A `reload` API would invent behaviour R4 diffs against. R3 does not need one. |
+| 7 | **Fixed.** `ControlRequest` carries `rawQuery` beside a query-free `path`. |
+| 8 | **Fixed.** `ControlBody.stream` models `/usage/stream`; disconnection arrives through the stream's own `onTermination`. |
+| 9 | **Fixed.** The seam names `(any HTTPClientAuthorizer)?` — what `HTTPClientTransport` actually accepts — so a wrong authorizer fails at compile time rather than at the first HTTP upstream. |
+| 10 | **Deferred to R2-R, deliberately.** `UpstreamSession` cannot yet relay a call. Designing that API without the relay in hand would be guessing, and the constraint is recorded for R2-R: `tools/list` must be served as raw JSON (`CachedTool.sdkTool()` drops `title` and `x-vendor`, which the union corpus requires) and calls must go through `Client.send(CallTool.request(...))`, since `callTool` drops `structuredContent` and `_meta`. |
+| 11 | **Fixed.** The mutation gate parses the executed count and requires it to be non-zero, distinguishes `HANG` from `HOLE`, and fails on a mutation that no longer applies. It now covers thirteen guards. |
+| 12 | **Open — a product decision, not mine.** `spawning` logs the command line and `childStderr` logs child output, either of which can contain a token. The reference does exactly the same, so redacting diverges from a surface R4 diffs byte for byte. Raised in the runner's report. |
+| 13–19 | Belong to the deferred relay/listener scope; carried into `R2-R`'s brief rather than closed here. |
+
+### Deferred children
+
+- **R2-R — Swift router: relay, HTTP listener, HTTP upstreams, composition.** Depends on R2 and R3.
+  Carries T1–T4, R-1…R-10, H1–H8, C1–C2, S2, and Phase D findings 10 and 13–19.
+- **R2-W — Swift config watcher.** Depends on R2-R. Carries W1–W10, whose central requirement is a
+  cross-process mutation protocol that cannot be tested without R3's control API.

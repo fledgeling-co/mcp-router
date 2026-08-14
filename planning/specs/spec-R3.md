@@ -208,7 +208,7 @@ a time. A clause is read as if each of these were appended to it.
 |---|---|---|
 | B67 | Attribution resolves **in-process**, with no subprocess, returning pid, process name and cwd for a peer port | measurement against a real loopback connection |
 | B68 | Resolution completes **inside the accept handler**, before any request byte is read, so a client that connects, calls once and exits is attributed | red-green test: a one-shot client is attributed; the same test against a simulated 80 ms lookup is not |
-| B69 | Every failure path yields an empty identity, never a throw and never a partial one: no such pid, a pid exiting mid-scan, a non-TCP socket, unlistable descriptors | test per path |
+| B69 | Each of the four **peer-identification** failure paths yields a wholly empty identity, never a throw and never a partial one: no such pid, a pid exiting mid-scan, a non-TCP socket, unlistable descriptors. **Scoped to those four paths only**; a resolved pid and client carrying no `cwd` is the one enumerated exception and is governed by B71, not by this clause (see the amendment below) | test per path, plus a resolved-pid-without-`cwd` vector asserting B71 |
 | B70 | The identity cache is keyed by pid, bounded at 512, and cleared wholesale on overflow | test at the boundary |
 | B71 | Resolved values **equal** what the reference resolves for the same live connection — same pid, name and cwd — so the change is a divergence in timing only | differential test against `lsof` |
 
@@ -230,6 +230,66 @@ server's**, therefore R2's, and are excluded here deliberately rather than by om
 `splitToolName` and the `JSON.stringify` spelling rules are R1's, already ported and differentially
 proven by a 224-case corpus and a 16-mutation gate. This item consumes them and adds vectors where
 it uses them in new ways; re-deriving them would fork the oracle.
+
+---
+
+## Amendments to the clause table
+
+Two clauses state a general rule that is right, and each has exactly one enumerated case genuinely
+outside it. Both are recorded here rather than by loosening the rule, because a rule weakened to
+accommodate its own exception stops constraining the ordinary case — which is the case that matters.
+
+### B12 — the one-member error body
+
+`{"error": <string>}` is the shape of every **generic** error branch. Two branches carry more, and
+both are the reference's own bytes rather than a liberty this port takes:
+
+| Branch | Body | Clause |
+|---|---|---|
+| A candidate that failed to start, `POST /servers` | 422 `{error, hint}` | B28 |
+| `POST /servers/:name/reindex` | `{name, tools, error}`, at 200 or 422 | B33 |
+
+Everything else — 400, 401, 404, 405, 415, 409, 502 — is the one-member object exactly, and a test
+that finds a second member on any of them is reporting a defect.
+
+### B69 — "never a partial identity", scoped
+
+**The conflict.** B69 as first written required *every* attribution failure path to yield an empty
+identity, "never a partial one". B71 requires resolved values to **equal** what the reference
+resolves for the same live connection. These cannot both hold, because the reference emits
+
+```js
+{ pid, client, cwd: cwd || undefined }
+```
+
+— so when `cwd` is falsy the reference **itself** emits a partial identity. Satisfying B69 as
+written would have meant emitting nothing where the reference emits a pid and a client, which is
+precisely the divergence B71 exists to forbid, and it would have shown up in R4's gate as a Swift
+regression against a reference that was behaving correctly.
+
+**The amendment.** B69 is scoped to its four enumerated *peer-identification* paths — no such pid,
+a pid exiting mid-scan, a non-TCP socket, unlistable descriptors. Each of those must still yield a
+wholly empty identity: none of them establishes *who* the peer is, so anything emitted would be
+invention. The **`cwd` case is an explicit exception**: a resolved pid and client with an absent
+`cwd` is a *complete* identity by the reference's own definition — the peer was identified, and one
+optional attribute of it was not readable — and B71 governs what is emitted. This is the same shape
+as B12's carve-out above and is adopted for the same reason.
+
+**Provenance.** The contradiction was found and reasoned out by R5 while reading this item's
+attribution code, and is written out in `planning/specs/spec-R5.md` §4. It is recorded here because
+this is the spec that carries B69, and a clause whose governing amendment lives only in a sibling's
+document is a clause the next reader implements wrongly. Whichever item builds attribution inherits
+B69 in this scoped form.
+
+**Two attribution facts this branch settled**, recorded so a later reader does not rediscover them:
+
+- A pid whose `proc_name` lookup fails used to escape as a bare `{pid}`. The reference cannot
+  produce that shape at all — it reads pid and command from a single `lsof -Fpc` record, so either
+  both are known or neither is — and it is now `.unknown`, which is a B69 path proper.
+- B70's cache exists as `AttributionCache`, following the reference's order exactly: consulted
+  after pid resolution and **before** the cwd lookup, with `set` then `if size > 512 { clear() }`.
+  The check is *after* the insert, so the 513th pid empties the cache wholesale rather than
+  evicting one entry.
 
 ---
 

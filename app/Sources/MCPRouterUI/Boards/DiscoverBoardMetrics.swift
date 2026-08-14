@@ -28,7 +28,11 @@
 
         static var nameColumn: Double { unit * 9 }
         static var markColumn: Double { unit * 2 }
-        static var figureColumn: Double { unit * 4 }
+        /// Six units, not four. Measured on the rendered board: `2,984 sessions` in the instrument
+        /// face needs ~130pt, and at four units it truncated to `2,984 sessi…` — which loses the
+        /// **unit**, and the unit is the entire reason this column exists. A bare `2,984` beside a
+        /// `9` on the next row reads as one scale, and they are not on one scale.
+        static var figureColumn: Double { unit * 6 }
         static var dateColumn: Double { unit * 5 }
         static var stateColumn: Double { unit * 3 }
         static var searchWidth: Double { unit * 10 }

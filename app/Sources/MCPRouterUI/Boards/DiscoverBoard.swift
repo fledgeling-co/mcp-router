@@ -129,15 +129,22 @@
             } else {
                 LazyVStack(spacing: DiscoverBoardMetrics.hairline) {
                     ForEach(rows) { entry in
-                        DiscoverBoardRow(entry: entry, isSelected: board.selection == entry.id)
-                            .contentShape(Rectangle())
-                            .onTapGesture { board.selection = entry.id }
-                            // Opening detail is the row's only action, and it is deliberately not
-                            // an install.
-                            .simultaneousGesture(TapGesture(count: 2).onEnded {
+                        DiscoverBoardRow(
+                            entry: entry,
+                            isSelected: board.selection == entry.id,
+                            onOpen: {
                                 board.selection = entry.id
                                 _ = board.commitDefaultAction()
-                            })
+                            }
+                        )
+                        .contentShape(Rectangle())
+                        .onTapGesture { board.selection = entry.id }
+                        // Opening detail is the row's only action, and it is deliberately not
+                        // an install.
+                        .simultaneousGesture(TapGesture(count: 2).onEnded {
+                            board.selection = entry.id
+                            _ = board.commitDefaultAction()
+                        })
                     }
                 }
                 // A re-query keeps its rows on screen and says they are being replaced, rather than

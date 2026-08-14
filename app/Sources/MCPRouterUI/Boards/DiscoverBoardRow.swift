@@ -10,6 +10,14 @@
     struct DiscoverBoardRow: View {
         let entry: RegistryEntry
         let isSelected: Bool
+        /// Opening the detail, as an action the row itself offers.
+        ///
+        /// The board also attaches tap gestures, but a gesture is invisible to the accessibility
+        /// plane: the row published no `AXPress`, so the only way to reach the detail sheet was a
+        /// mouse. That is a real defect rather than a testing inconvenience — the sheet is where a
+        /// user learns what a server will run before they run it, and it was unreachable by
+        /// keyboard-and-VoiceOver alone. Found by driving the rendered board over AX.
+        let onOpen: () -> Void
 
         private var dateCell: RegistryPresentation.DateCell? {
             RegistryPresentation.dateCell(for: entry)
@@ -74,6 +82,10 @@
             .selectionFill(isSelected)
             .accessibilityElement(children: .combine)
             .accessibilityLabel(accessibilityLabel)
+            .accessibilityAddTraits(.isButton)
+            // Named for what it does, so the announcement is "show details" rather than the
+            // default "press" — and it never says "install", because it does not.
+            .accessibilityAction(named: "Show details") { onOpen() }
         }
 
         /// `name` under `displayName` where they differ — or the archived warning, which outranks it.
@@ -177,7 +189,18 @@
                     }
                 } else {
                     // The recess: a place where a thing would be, not a thing that is off.
-                    shape.fill(ColorToken.f3.color)
+                    //
+                    // **An outline rather than a dimmer fill, and that is a correction.** The first
+                    // build drew this as `f3` against the filled cell's `f1`. Both are white at
+                    // different alphas, so on the rendered board the two cells read as two nearly
+                    // identical grey squares and the mark said nothing — the one fact this board is
+                    // built around, invisible. An empty outline differs by *shape*, which survives
+                    // the alpha being subtle, and it is the vocabulary `SlotRow` already uses for a
+                    // slot whose contents are not asserted.
+                    shape.strokeBorder(
+                        ColorToken.lineStrong.color,
+                        lineWidth: DiscoverBoardMetrics.hairline
+                    )
                 }
             }
             .frame(width: DiscoverBoardMetrics.markCell, height: DiscoverBoardMetrics.markCell)

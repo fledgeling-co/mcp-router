@@ -174,11 +174,11 @@
             await board.load()
             #expect(board.rows.map(\.id) == ["alpha"])
 
-            client.searchDelayNanoseconds = 200_000_000
+            client.searchDelayNanoseconds = 800_000_000
             board.search = "beta"
             board.submitSearch()
             // Mid-flight: the previous reading is still what the board draws.
-            try await Task.sleep(nanoseconds: 50_000_000)
+            try await Task.sleep(nanoseconds: 120_000_000)
             #expect(board.rows.map(\.id) == ["alpha"], "rows stay put while the query is in flight")
         }
 
@@ -193,9 +193,12 @@
             ]
             let board = DiscoverBoardModel(client: client)
             await board.load()
-            board.submitSearch()
-            // Let the submit's task run to completion.
-            try? await Task.sleep(nanoseconds: 100_000_000)
+            // A second read, awaited directly rather than fired through `submitSearch` and slept on.
+            // `load` and the debounced path share `fetch`, which is where the stale-versus-failed
+            // decision lives, so this exercises the same branch — and it does so deterministically.
+            // The slept version passed twice and then failed once under fleet load, which is the
+            // definition of a test that reports the machine rather than the code.
+            await board.load()
 
             #expect(board.rows.map(\.id) == ["alpha"])
             #expect(board.state.error == .routerNotRunning)

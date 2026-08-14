@@ -106,16 +106,7 @@
                 model?.select(.servers)
                 model?.serversBoard.sheet = .addServer
             case .focusSearch:
-                // Focuses the search on the board you are looking at. Before the Skills board
-                // existed this always selected Servers, which was right when Servers was the only
-                // board and becomes wrong the moment there are two: `⌘F` on Skills would have
-                // navigated away from the pane the user was filtering.
-                if model?.selection == .skills {
-                    model?.skillsBoard.requestSearchFocus()
-                } else {
-                    model?.select(.servers)
-                    model?.serversBoard.focusSearch()
-                }
+                focusSearch(on: model)
             case .showMarketplaces:
                 // Same rule as `addServer`: land on the board the sheet belongs to first, so the
                 // sheet never opens over an unrelated pane.
@@ -124,6 +115,29 @@
             case .resetSelectedServer, .removeSelectedServer:
                 performServerOperation(operation(for: command), on: model)
             case .none: break
+            }
+        }
+
+        /// `⌘F` on whichever board is showing, split out for the same reason
+        /// `performServerOperation` is: a third board's case pushed `perform` past the complexity
+        /// limit.
+        ///
+        /// Focuses the search on the board you are looking at. Before the Skills board existed this
+        /// always selected Servers, which was right when Servers was the only board and becomes
+        /// wrong the moment there are two: `⌘F` on Skills would have navigated away from the pane
+        /// the user was filtering. Discover is the third, and its search is a *query to two
+        /// third-party indexes* rather than a local filter — so `⌘F` navigating off it would not
+        /// merely move the focus, it would abandon a search the user is composing.
+        @MainActor
+        private static func focusSearch(on model: ShellModel?) {
+            switch model?.selection {
+            case .skills:
+                model?.skillsBoard.requestSearchFocus()
+            case .discover:
+                model?.discoverBoard.requestSearchFocus()
+            default:
+                model?.select(.servers)
+                model?.serversBoard.focusSearch()
             }
         }
 

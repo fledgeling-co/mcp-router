@@ -76,6 +76,12 @@
         @ObservationIgnored public private(set) lazy var skillsBoard: SkillsBoardModel =
             .init(client: client)
 
+        /// The Discover board's own state, for the same two reasons as the boards above — and one
+        /// more that is specific to it: it owns a debounced search task, and a model rebuilt on
+        /// every render would leave that task running against a model nobody reads.
+        @ObservationIgnored public private(set) lazy var discoverBoard: DiscoverBoardModel =
+            .init(client: client)
+
         /// The readout's numbers and the condition it is in.
         public private(set) var readout = ReadoutModel()
 

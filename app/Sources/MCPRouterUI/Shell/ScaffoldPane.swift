@@ -28,8 +28,16 @@
         /// it `ContentZone` still renders the placeholder, however complete the view is.
         ///
         /// `.servers` is M3's (`ServersBoard`); `.skills` is M4's (`SkillsBoard`); `.activity` is
-        /// M2's (`ActivityBoard`); `.settings` is M8's (`SettingsBoard`).
-        public static let installed: Set<Destination> = [.servers, .skills, .activity, .settings]
+        /// M2's (`ActivityBoard`); `.settings` is M8's (`SettingsBoard`); `.discover` is M5's
+        /// (`DiscoverBoard`).
+        ///
+        /// **Keep this declaration on one line.** `scripts/acceptance/mac-shell.sh` reads it with
+        /// `grep … | head -1 | sed -E 's/.*\[(.*)\].*/\1/'`, so a wrapped collection leaves the sed
+        /// with no bracket pair to capture and the installed count silently reads zero — a gate
+        /// reporting the opposite of the truth, which is the exact defect that comment block was
+        /// written about. At five members it is 107 characters against a 110 limit, so the next
+        /// board to land needs a different parse rather than a longer line.
+        public static let installed: Set<Destination> = [.servers, .skills, .activity, .settings, .discover]
 
         public static func hasBoard(_ destination: Destination) -> Bool {
             installed.contains(destination)

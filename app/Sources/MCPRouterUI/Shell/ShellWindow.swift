@@ -171,7 +171,9 @@
                 SkillsBoard(shell: model, board: model.skillsBoard)
             case .settings:
                 SettingsBoard(shell: model)
-            case .discover, .inbox, .evals, .cleanup:
+            case .discover:
+                DiscoverBoard(board: model.discoverBoard)
+            case .inbox, .evals, .cleanup:
                 // Unreachable: every one of these is still in `scaffolded`, and the branch in
                 // `body` catches them. Deliberately not a second placeholder — a placeholder here
                 // is the very thing `ScaffoldedDestination` exists to make impossible. M5–M7

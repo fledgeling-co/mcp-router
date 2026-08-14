@@ -164,7 +164,13 @@
             "app/Sources/MCPRouterUI/Boards/SettingsBoardParts.swift",
             // Split out of ServerSheets.swift for the same reason. It is also the view M8
             // changed, so keeping it separately gated is the honest arrangement.
-            "app/Sources/MCPRouterUI/Boards/ToolChangeCard.swift"
+            "app/Sources/MCPRouterUI/Boards/ToolChangeCard.swift",
+            // M5's Discover pane.
+            "app/Sources/MCPRouterUI/Boards/DiscoverBoard.swift",
+            "app/Sources/MCPRouterUI/Boards/DiscoverBoardRow.swift",
+            "app/Sources/MCPRouterUI/Boards/DiscoverBoardMetrics.swift",
+            "app/Sources/MCPRouterUI/Boards/DiscoverBoardModel.swift",
+            "app/Sources/MCPRouterUI/Boards/DiscoverDetailSheet.swift"
         ]
 
         /// M2's board, listed for the same reason `boardFiles` is.

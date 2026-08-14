@@ -26,3 +26,15 @@ first.
 | I1 | iPhone: shell and pairing | `I1-ios-shell-pairing.md` | — | — | Untriaged |
 | I2 | iPhone: Discover and detail | `I2-ios-discover.md` | — | — | Untriaged |
 | I3 | iPhone: Triage, Queue, Library, Settings | `I3-ios-triage.md` | — | — | Untriaged |
+| P1 | Make the two auth routes reachable | `P1-auth-routes-reachable.md` | — | — | Untriaged |
+| P2 | The `import` verb and the config rewrite | `P2-import-verb.md` | — | — | Untriaged |
+| P3 | Oracles for the usage stream and registry search | `P3-stream-and-registry-oracles.md` | — | — | Untriaged |
+| P4 | Derive the manifest rows; fix the directory-dependent normaliser | `P4-derive-manifest-rows.md` | — | — | Untriaged |
+| M13 | The scroll-edge separator, A34 | `M13-scroll-edge.md` | — | — | Untriaged |
+| G1 | Stop the checks blaming the app for being out of date | `G1-gate-hygiene.md` | — | — | Untriaged |
+| V1 | Re-run the out-of-family review on the router items (grok) | `V1-outside-review-router.md` | — | — | Untriaged |
+| I4 | Let the phone install directly | `I4-phone-direct-install.md` | — | — | Untriaged |
+| D1 | Deferred register: router side (12 children) | `D1-deferred-router.md` | — | — | Untriaged |
+| D2 | Deferred register: Mac surfaces and design authority (14) | `D2-deferred-mac.md` | — | — | Untriaged |
+| D3 | Deferred register: phone copy and the harness limit (4) | `D3-deferred-phone-harness.md` | — | — | Untriaged |
+| — | **BLOCKED: the Apple developer identity** | `BLOCKED-apple-identity.md` | — | — | **Needs input — `as-found`, not confirmed** |

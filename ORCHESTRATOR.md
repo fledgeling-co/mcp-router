@@ -207,6 +207,13 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 | D-i3-g | The Triage commit button says **"Send"** where nothing sends | I3 | The phone queues; the Mac decides. A11 specifies that string **verbatim** and it passed the spec gate, so I3 declined to rewrite it unilaterally. A **spec-level** fix |
 | D-i3-h | Decided buckets are the intersection with the current results page | I3 | So the Dismissed empty state claims a durability it does not deliver — dismissals appear to vanish when the page changes. Also spec-level |
 | D-i3-a | No phone surface scales with Dynamic Type | — | `TypeToken.font` is a fixed `Font.system(size:weight:)` **shared with every Mac surface**, and `DESIGN.md` §2 fixes the eight sizes deliberately, so this is a shared design decision rather than a bug in any one item. I1's Dynamic Type test **overrides a UIKit trait that measurably never reaches the SwiftUI view** — I3 deliberately did not copy that pattern |
+| **D-m6-a** | **Pairing transport: the wave-6 round-trip gate is explicitly NOT met** | I4 | M6 reported this rather than claiming it. The Mac side of pairing exists and the round trip has never been proven end to end against the phone. Folded into **I4**, since direct install cannot be built on an unproven transport |
+| D-m6-b | Envelope versioning for the pairing protocol | I4 | No version field, so a phone and a Mac on different builds cannot detect the mismatch; they just misread each other |
+| D-m6-c | Rename `ScaffoldPane.swift` | — | The file no longer holds a scaffold; it holds the registry. Five other items’ acceptance scripts read it by name, which is why M6 declined to rename it alone |
+| D-m6-d | The popover has no inbox band | M6 | The menu-bar popover is the app’s most visible surface and the one place a queued item should appear without opening the window |
+| D-m6-e | An accent-substrate token | M6 | M6 hand-rolled a `0.16` selection alpha where every other row uses the shared `selectionFill`; the fix is a token, not a constant |
+| D-m6-f | `CleanupPresentationTests.weakWindowBoundary` | M7 | M7’s merged file, outside M6’s diff. Mechanism recorded, not re-run until green |
+| D-m6-g | The readout repaints the whole window once a second | M6 | A cadence problem rather than a correctness one, and the acceptance script works around it by re-walking a fresh element |
 ---
 
 ## Needs input — not blocking any wave
@@ -220,6 +227,24 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 ---
 
 ## Changelog
+
+- 2026-08-15 — **Owner answers received and dispositioned** (`mcp-router-status-answers.json`, 6 of 6
+  answered, 5 confirmed, 1 as-found, 2 flagged blocksAutomation). Eleven new pipeline items written to
+  `planning/features-to-triage/` and the ledger. The pipeline root is **`planning/`, not `docs/`**;
+  `docs/` is the published GitHub Pages site and this repo is public.
+
+  | Question | Answer | Origin | Disposition |
+  |---|---|---|---|
+  | `cutover` | finish-first | own choice | **P1-P4** finish parity to 82/82, then **R4-C** flips. The switch is licensed, but only once the number is complete |
+  | `red-checks` | all-three | took the recommendation | **M13** + **G1** |
+  | `deferred-plan` | schedule-all | **chose differently** — I recommended picking off the handful that were real gaps | **D1/D2/D3**, all 46 children batched by surface |
+  | `review-rerun` | rerun-the-router | took the recommendation, **note qualifies it** | **V1**, on grok-4.6 rather than codex, per the note. Lane probe-verified before scheduling |
+  | `phone-install` | allow-install | own choice, against the shipped default | **I4**. Widens the pairing threat model; the page stated that plainly and it was accepted |
+  | `apple-identity` | give-me-the-id | **`as-found` — never confirmed**, blocksAutomation | **NOT scheduled.** `BLOCKED-apple-identity.md`. Its note points at a 1Password vault, and the bundle id it gives (`mcp-relay.fledgeling.app`) is domain-shaped rather than reverse-DNS and conflicts with the assumed `app.fledgeling.mcprouter`. Guessing would bake the guess into the signing identity and the App Store record |
+
+  **Also registered: M6's seven deferred children (`D-m6-a` … `D-m6-g`), which M6 reported and nobody
+  had written into the table.** That is the same unregistered-child gap that cost R2-R a whole item.
+  The register is 46 rows, not 40.
 
 - 2026-08-15 — **Wave M6 + I2 launched** `wf_6527714f-b4a`, two runners. Two, not four: a dAIolog
   runner is live on this machine and the four-wide waves died twice on `503 no-eligible-account`.

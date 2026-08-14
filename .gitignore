@@ -60,3 +60,7 @@ xcuserdata/
 *.xcodeproj/
 app/**/Info.plist
 app/.derived/
+
+# Private status pages. This repo is public and docs/ is the published site;
+# these name project state and are written for one reader.
+planning/status/

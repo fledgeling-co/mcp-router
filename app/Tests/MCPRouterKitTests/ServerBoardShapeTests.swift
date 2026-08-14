@@ -84,13 +84,13 @@ struct ServerBoardShapeTests {
             Self.server(name: "a", state: .running, tools: 30),
             Self.server(name: "b", state: .idle, tools: 12)
         ]
-        let current = ServersBoardHeader(servers: servers, isCurrent: true)
+        let current = ServersBoardHeader(servers: servers, reading: .current)
         #expect(current.tools == 42)
         #expect(current.servers == 2)
         #expect(current.running == 1)
         #expect(current.subtitle() == "42 tools from 2 servers · 1 running")
 
-        let stale = ServersBoardHeader(servers: servers, isCurrent: false)
+        let stale = ServersBoardHeader(servers: servers, reading: .stale)
         #expect(stale.running == nil, "a running count is a present-tense claim about a silent router")
         // No duration and no timestamp: nothing observes when the poll answered, so the stale form
         // claims only what is known. An earlier draft read `last read {ago}` from the newest
@@ -106,7 +106,7 @@ struct ServerBoardShapeTests {
     /// server whose index failed, so the total genuinely understates.
     @Test("Partial — an unindexed server is counted and named rather than quietly dropped")
     func partialNoteNamesUnindexedServers() throws {
-        let clean = try ServersBoardHeader(servers: [Self.server(tools: 5)], isCurrent: true)
+        let clean = try ServersBoardHeader(servers: [Self.server(tools: 5)], reading: .current)
         #expect(clean.partialNote == nil)
 
         let broken = try ServersBoardHeader(
@@ -114,7 +114,7 @@ struct ServerBoardShapeTests {
                 Self.server(name: "a", tools: 5),
                 Self.server(name: "b", indexError: "spawn ENOENT", tools: 0)
             ],
-            isCurrent: true
+            reading: .current
         )
         #expect(broken.unindexed == 1)
         #expect(broken.partialNote?.contains("One server") == true)

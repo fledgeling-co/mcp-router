@@ -43,10 +43,12 @@ public struct ServerSubtitle: Equatable, Sendable {
     /// Failure and decision outrank lifecycle because they are what a person can act on. Within
     /// lifecycle, warm outranks running.
     ///
-    /// `idleMs` is the router's own reap horizon from `ServersResponse`. It has no default: a
-    /// default would be a number this app invented, and the countdown is the one figure on this row
-    /// that is arithmetic rather than a field.
-    public static func forServer(_ server: MCPServer, idleMs: Int) -> ServerSubtitle {
+    /// `idleMs` is the router's own reap horizon from `ServersResponse`, and it is **optional**.
+    ///
+    /// The board briefly wrote `state.idleMs ?? 300_000` — the prototype's hardcoded horizon wearing
+    /// a parameter's clothes, counting a row down against a number the router never sent. There is
+    /// no default now; see `runningSubtitle` for what an unknown horizon renders instead.
+    public static func forServer(_ server: MCPServer, idleMs: Int?) -> ServerSubtitle {
         if server.inFlight > 0 {
             return ServerSubtitle(text: "\(server.inFlight) in flight", tint: .t2)
         }
@@ -66,7 +68,7 @@ public struct ServerSubtitle: Equatable, Sendable {
         }
         switch server.state {
         case .running:
-            return ServerSubtitle(text: "reaps in \(reapSeconds(server, idleMs: idleMs))s", tint: .t2)
+            return runningSubtitle(server, idleMs: idleMs)
         case .starting:
             return ServerSubtitle(text: "starting", tint: .t2)
         case .stopping:
@@ -79,6 +81,16 @@ public struct ServerSubtitle: Equatable, Sendable {
             return ServerSubtitle(text: "scoped to \(server.projects.count) \(noun)", tint: .t2)
         }
         return ServerSubtitle(text: "dormant", tint: .t3)
+    }
+
+    /// What a running server says, which depends on whether the router has told us its horizon.
+    ///
+    /// An **unknown** horizon renders `running` with no countdown, because "how long until it is
+    /// reaped" is a question nothing has answered. Extracted rather than inlined as a `guard`: the
+    /// extra branch took `forServer` to a cyclomatic complexity of 11 against a limit of 10.
+    private static func runningSubtitle(_ server: MCPServer, idleMs: Int?) -> ServerSubtitle {
+        guard let idleMs else { return ServerSubtitle(text: "running", tint: .t2) }
+        return ServerSubtitle(text: "reaps in \(reapSeconds(server, idleMs: idleMs))s", tint: .t2)
     }
 
     /// Seconds until the reaper would close this server, floored at zero.
@@ -299,7 +311,7 @@ public struct ServerRowModel: Equatable, Sendable, Identifiable {
     public let lastUsed: Date?
     public let action: ServerRowAction?
 
-    public init(server: MCPServer, idleMs: Int, pendingAuth: PendingAuth?) {
+    public init(server: MCPServer, idleMs: Int?, pendingAuth: PendingAuth?) {
         id = server.name
         name = server.name
         subtitle = ServerSubtitle.forServer(server, idleMs: idleMs)
@@ -310,63 +322,5 @@ public struct ServerRowModel: Equatable, Sendable, Identifiable {
         errors = server.usage.errors
         lastUsed = server.usage.lastUsed?.asControlAPIDate
         action = ServerRowAction.forServer(server, pendingAuth: pendingAuth)
-    }
-}
-
-// MARK: - The header
-
-/// The three figures under the board's title, and the one that goes absent.
-public struct ServersBoardHeader: Equatable, Sendable {
-    public let tools: Int
-    public let servers: Int
-    /// **`nil` on a stale load, and that is the point.** "1 running" is a present-tense claim about
-    /// a router that is not currently answering. Showing the last known figure as though it were
-    /// current is a quieter lie than showing a zero, and the same kind — M1 draws this line for the
-    /// readout and this is the same line on the board. Optional rather than a flag beside an `Int`,
-    /// so the absent case cannot be rendered by accident.
-    public let running: Int?
-    /// Servers whose index failed, so their tools are missing from `tools`.
-    ///
-    /// The router reports `tools: 0` and `toolNames: []` for a server with an `indexError`
-    /// (`src/control.ts` — `entry?.error ? 0 : …`), so the total genuinely understates. `DESIGN.md`
-    /// §5's Partial state is "say what arrived and what did not, with the reason", and this is the
-    /// count that makes that sentence sayable.
-    public let unindexed: Int
-
-    public init(servers list: [MCPServer], isCurrent: Bool) {
-        tools = list.reduce(0) { $0 + $1.tools }
-        servers = list.count
-        running = isCurrent ? list.filter { $0.state == .running }.count : nil
-        unindexed = list.filter { $0.indexError != nil }.count
-    }
-
-    /// The subtitle line.
-    ///
-    /// **There is no timestamp here, and its absence is deliberate.** A phrase like "as of 14:32" or
-    /// "last read 2m ago" needs the moment the poll answered, and nothing observes it: `LoadState`
-    /// carries servers and an error, and no `apply` entry point records a time. An earlier draft
-    /// derived one from the newest `lastUsed` across the servers, which is when a *tool was called* —
-    /// a different fact wearing the same clothes, and precisely the invention §6 exists to stop.
-    ///
-    /// So the stale form claims no precision. It says the reading is not current, which is the whole
-    /// of what is actually known.
-    public func subtitle() -> String {
-        let noun = servers == 1 ? "server" : "servers"
-        let head = "\(tools) tools from \(servers) \(noun)"
-        if let running {
-            return "\(head) · \(running) running"
-        }
-        return "\(head) · last reading, not current"
-    }
-
-    /// The Partial note, or nil when everything indexed.
-    public var partialNote: String? {
-        guard unindexed > 0 else { return nil }
-        let subject = unindexed == 1 ? "One server" : "\(unindexed) servers"
-        let verb = unindexed == 1 ? "its" : "their"
-        return """
-        \(subject) could not be indexed, so \(verb) tools are missing from this count. \
-        Those rows say why.
-        """
     }
 }

@@ -79,6 +79,79 @@
             )
         }
 
+        // MARK: - The header before anything has answered
+
+        /// The defect this exists to keep out: with a two-case `isCurrent: Bool`, `.loading` fell to
+        /// the not-current branch and the cold-start board rendered
+        /// `0 tools from 0 servers · last reading, not current`. The zeros were invented and the
+        /// sentence asserted a prior reading that had never happened — on screen, before the first
+        /// poll returned, on every launch.
+        ///
+        /// The assertion is on **digits**, not on the wording. A test for the new sentence would
+        /// pass if a later edit appended a fabricated count to it, and a fabricated count is the
+        /// thing being guarded, not the phrasing.
+        @MainActor
+        @Test("The header claims nothing at all until a poll has answered")
+        func headerClaimsNothingBeforeAnyPollAnswers() throws {
+            let board = Self.board()
+
+            for load in [ServerStateTracker.LoadState.loading, .failed(.routerNotRunning)] {
+                let state = ServerStateTracker.TrackerState(load: load, stream: .notConfigured)
+                let header = board.header(from: state)
+                #expect(header.reading == .none, "\(load) has never had a poll answer")
+
+                let subtitle = header.subtitle()
+                #expect(
+                    subtitle.rangeOfCharacter(from: .decimalDigits) == nil,
+                    "the header displayed a figure before anything observed one: \(subtitle)"
+                )
+                #expect(
+                    !subtitle.contains("last reading"),
+                    "the header claimed an earlier reading that never happened: \(subtitle)"
+                )
+            }
+
+            // And the stale wording is still reachable — the fix narrowed which loads may say it,
+            // rather than removing the sentence a genuinely-gone-quiet router earns.
+            let stale = try ServerStateTracker.TrackerState(
+                load: .stale([Self.server()], .routerNotRunning), stream: .notConfigured
+            )
+            #expect(board.header(from: stale).subtitle().contains("last reading, not current"))
+        }
+
+        // MARK: - The reap horizon the router never sent
+
+        /// `rows(from:)` briefly read `state.idleMs ?? 300_000`, defended by a comment arguing the
+        /// fallback was unreachable. 300_000 is the prototype's hardcoded horizon, so a tracker that
+        /// had servers but no `idleMs` counted a row down against a number nothing sent — the exact
+        /// class of fabricated figure `DESIGN.md` §6 forbids.
+        ///
+        /// This asserts through the **board**, not through `ServerSubtitle`, because the type
+        /// accepting `Int?` proves only that the absence is representable; the defect was the board
+        /// filling it in.
+        @MainActor
+        @Test("A6 — an unknown reap horizon drops the countdown rather than inventing 300s")
+        func unknownReapHorizonDropsTheCountdown() throws {
+            let board = Self.board()
+            let running = try [Self.server(state: .running)]
+
+            let unknown = ServerStateTracker.TrackerState(
+                load: .loaded(running), stream: .notConfigured, idleMs: nil
+            )
+            let subtitle = try #require(board.rows(from: unknown).first).subtitle.text
+            #expect(subtitle == "running")
+            #expect(!subtitle.contains("300"), "the board counted down to the prototype's horizon")
+            #expect(!subtitle.contains("reaps in"))
+
+            // Given the horizon, the countdown returns — the absence is targeted, not a regression
+            // that silenced the figure everywhere.
+            let known = ServerStateTracker.TrackerState(
+                load: .loaded(running), stream: .notConfigured, idleMs: 300_000
+            )
+            let withHorizon = try #require(board.rows(from: known).first).subtitle.text
+            #expect(withHorizon.hasPrefix("reaps in"))
+        }
+
         // MARK: - A19, as a declared mapping
 
         @Test("A19 — every one of the nine states names where it is rendered on this board")

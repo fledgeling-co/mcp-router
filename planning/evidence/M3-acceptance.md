@@ -130,3 +130,72 @@ make build-mac → ** BUILD SUCCEEDED **
   menu command reaches its window through `@FocusedValue` and an **inactive app has no focused
   scene**, so `AXPress` on a menu item returns `.success` and does nothing. The mapping is therefore
   proved in `ShellCommandRouterTests`, which is where M1 moved that decision for exactly this reason.
+
+---
+
+## Second pass — at the gap-fix, after three honesty defects were closed
+
+The first pass (above) was recorded at `589ab2e`. This pass exists because
+`git diff 589ab2e..HEAD` **does** touch the files behind the Servers-pane rows —
+`ServersBoard.swift`, `ServersBoardModel.swift`, `ServerPresentation.swift` — so those rows no
+longer carry themselves and the skip rule does not apply. Nothing else was re-driven.
+
+### What changed, and why each was a lie rather than a bug
+
+| # | Defect | What the user saw | Fix |
+|---|---|---|---|
+| 1 | `rows(from:)` read `state.idleMs ?? 300_000` | a row counting down to a horizon **the router never sent** — 300_000 is precisely `design/mocks/prototype.html`'s hardcoded literal, the one figure `DESIGN.md` §6 names | `idleMs` is `Int?` end to end; an unknown horizon renders `running` with no countdown |
+| 2 | `ServersBoardHeader(isCurrent: Bool)` collapsed "nothing has answered yet" into "not current" | `0 tools from 0 servers · last reading, not current` **on every cold start** — fabricated zeros *and* an asserted prior reading that never happened | `Reading` is a three-case enum (`.current` / `.stale` / `.none`); `.none` renders `Reading the router…` and claims nothing |
+| 3 | `header(isCurrent:)` in the view took a flag it then ignored | nothing yet — two places deciding one thing, which is how they come to disagree | the view's `header` takes no flag; `board.header(from:)` derives currency from the load state alone |
+
+Defect 1's comment argued the fallback was "unreachable in practice". It was reachable: the tracker
+retains `idleMs` only from a poll that answered, and `.stale` keeps servers while `idleMs` may be
+absent. "Unreachable in practice" is not a guarantee, and the number it fell back to was the
+prototype's.
+
+### Screens verified — one launch per scenario, both terminated
+
+The scenario is an environment variable read at launch, so the two states need two processes. Both
+were launched **directly from this worktree's binary** — never `open -g -a`, which the first pass
+recorded attaching to another runner's app with the same bundle id — and driven by pid only.
+
+| Screen | How verified | Commit | Result |
+|---|---|---|---|
+| Servers pane, `loading` — the cold-start header (defect 2) | `MCPROUTER_SCENARIO=loading` direct launch; `axkit select <pid> Servers`; `axkit dump <pid> window` | this commit | **pass** — header reads `Reading the router…`; **no digits anywhere in the subtitle**, and no `last reading` claim. Skeleton present as `Loading servers`; sidebar readout `Loading the router's status` |
+| Servers pane, `populated` — regression on the figures that are real | same, `MCPROUTER_SCENARIO=populated` | this commit | **pass** — `2 tools from 4 servers · 1 running`; segments `All 4 / Running 1 / Idle 3 / Needs you 1`; search field present; first row `fixture-stdio` at height `56.0`pt (`MetricToken.serversRow`); sidebar `1 of 4 declared servers running` |
+| Scaffold absent | not re-driven — `ScaffoldedDestination` is **failable** and cannot be constructed for a destination in `BoardRegistry.installed`, so board and placeholder are mutually exclusive by construction, and the board's own content rendering above is the same evidence | this commit | pass, by construction |
+| The other six destinations | **not tested, deliberately** — `BoardRegistry.installed == [.servers]`; each renders `ScaffoldPane` and there is nothing in them to drive | this commit | skipped |
+| Menu bar | **not re-tested** — `ShellMenuReasons.swift` and `ShellCommandRouter.swift` are untouched since `589ab2e`, so that pass's row still carries itself | `589ab2e` | cited, not repeated |
+
+**Invisibility held.** `axkit front` reported `Ghostty` before and after **both** launches, and each
+pid was killed at the end of its read. No `open -a`, no `activate`, no `set frontmost to true`, no
+`screencapture -R`. Confirmed afterwards that no MCPRouter process of this worktree survived.
+
+### Red–green: both new guards were seen to fail first
+
+`SWIFT_PRACTICES.md` §7. Two mutants, each reinstating the exact defect, each run, each restored.
+
+| Mutant | Reinstates | Caught by | Observed failure |
+|---|---|---|---|
+| A | `idleMs: state.idleMs ?? 300_000` | `unknownReapHorizonDropsTheCountdown` | 3 issues — `(subtitle → "reaps in 300s") == "running"` |
+| B | `case .loading, .failed: .stale` | `headerClaimsNothingBeforeAnyPollAnswers` | 6 issues — subtitle came back as the literal `0 tools from 0 servers · last reading, not current` |
+
+Mutant B is worth noting: it reproduced the shipped defect **string for string**, which is the
+strongest evidence available that the guard is pointed at the real thing rather than at its own
+wording. The assertion is on **digits**, not on the new sentence — a wording assertion would pass
+if a later edit appended a fabricated count to `Reading the router…`, and the fabricated count is
+the defect.
+
+## Gates at this commit
+
+```
+make test      → Test run with 724 tests in 102 suites passed
+                 executed 724 tests   (714 at 589ab2e; +10)
+make lint      → clean (SwiftFormat + SwiftLint, 222 files)
+make build-mac → ** BUILD SUCCEEDED **
+```
+
+`ServersBoardHeader` moved to its own file during this pass: closing defect 2 took
+`ServerPresentation.swift` past SwiftLint's 400-line ceiling, and the split is along a real seam —
+what remains in that file describes one *row*, the new file describes the *board*. Shaving the
+explanations would have bought the same six lines by deleting reasoning.

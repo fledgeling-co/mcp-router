@@ -149,11 +149,13 @@
                 .map {
                     ServerRowModel(
                         server: $0,
-                        // A poll has answered at least once whenever there are servers to draw, so
-                        // this fallback is unreachable in practice. It is the router's documented
-                        // default rather than a number chosen here, and a subtitle computed from it
-                        // would still be the router's figure.
-                        idleMs: state.idleMs ?? 300_000,
+                        // Passed through, never defaulted. This briefly read `state.idleMs ?? 300_000`
+                        // with a comment arguing the fallback was unreachable — but "unreachable in
+                        // practice" is not a guarantee, and 300_000 is precisely the prototype's
+                        // hardcoded horizon, which `DESIGN.md` §6 forbids this app from displaying as
+                        // an observation. `nil` now reaches `ServerSubtitle`, which drops the
+                        // countdown rather than counting down to a number nothing sent.
+                        idleMs: state.idleMs,
                         pendingAuth: state.pendingAuth
                     )
                 }
@@ -169,15 +171,25 @@
             return counts
         }
 
+        /// The three figures under the title, and how much they are allowed to claim.
+        ///
+        /// **Three cases, not a boolean.** The earlier `isCurrent: Bool` collapsed "no poll has
+        /// answered yet" into "the reading is not current", so a cold start rendered
+        /// `0 tools from 0 servers · last reading, not current` — a fabricated zero *and* a claim
+        /// that an earlier reading existed. Both were false, and both were on screen before the
+        /// first poll returned.
+        ///
+        /// `.loaded` is the only load that is a statement about now. `.stale` is real data from a
+        /// router that has since gone quiet, so its present-tense figure is withheld but its totals
+        /// stand. `.loading` and `.failed` have both never had a poll answer — `LoadState` documents
+        /// `.failed` as "none has ever succeeded" — so neither may claim anything at all.
         public func header(from state: ServerStateTracker.TrackerState) -> ServersBoardHeader {
-            // `.loaded` is the only load that is a statement about now. A `.stale` reading is real
-            // data from a router that has since gone quiet, so its present-tense figure is withheld.
-            let isCurrent = if case .loaded = state.load {
-                true
-            } else {
-                false
+            let reading: ServersBoardHeader.Reading = switch state.load {
+            case .loaded: .current
+            case .stale: .stale
+            case .loading, .failed: .none
             }
-            return ServersBoardHeader(servers: state.servers, isCurrent: isCurrent)
+            return ServersBoardHeader(servers: state.servers, reading: reading)
         }
 
         public func server(named name: String, in state: ServerStateTracker.TrackerState) -> MCPServer? {

@@ -75,19 +75,19 @@
             VStack(alignment: .leading, spacing: 0) {
                 switch state.load {
                 case .loading:
-                    header(isCurrent: false)
+                    header
                     // §5: a skeleton at the real row geometry, never a spinner over a blank pane.
                     SkeletonRows()
                 case let .loaded(servers) where servers.isEmpty:
-                    header(isCurrent: true)
+                    header
                     MessageState(ServersBoardCopy.empty, icon: .conduit) {
                         board.sheet = .addServer
                     }
                     .frame(maxWidth: .infinity)
                 case .loaded:
-                    populated(isCurrent: true, staleError: nil)
+                    populated(staleError: nil)
                 case let .stale(_, error):
-                    populated(isCurrent: false, staleError: error)
+                    populated(staleError: error)
                 case let .failed(error):
                     // Offline is one of the nine and has its own pane; every other refusal renders
                     // from the same three strings, so there is exactly one wording per state (§6).
@@ -102,8 +102,8 @@
         // MARK: - The populated board, current or stale
 
         @ViewBuilder
-        private func populated(isCurrent: Bool, staleError: ControlAPIError?) -> some View {
-            header(isCurrent: isCurrent)
+        private func populated(staleError: ControlAPIError?) -> some View {
+            header
 
             if let staleError {
                 StaleReadingBanner(error: staleError)
@@ -128,7 +128,12 @@
 
         // MARK: - Header
 
-        private func header(isCurrent _: Bool) -> some View {
+        /// The title and its three figures.
+        ///
+        /// It takes no "is this current" flag: an earlier version threaded one through from the load
+        /// switch and then ignored it, because `board.header(from:)` already derives currency from
+        /// the load state itself. Two places deciding one thing is how they come to disagree.
+        private var header: some View {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: ServersBoardMetrics.tightGap) {
                     Text(Destination.servers.title)

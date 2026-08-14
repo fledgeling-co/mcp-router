@@ -183,12 +183,12 @@ struct DiscoverCommitTests {
     /// I1's `PairingStorageFailureTests` is the precedent this is written against: there, a `try?`
     /// made a refused Keychain write render as paired while nothing had been written.
     @Test("a refused write throws and never reports success")
-    func refusedWriteThrows() async {
+    func refusedWriteThrows() async throws {
         let queue = InMemoryCapabilityQueue(failure: .writeFailed("disk full"))
         await #expect(throws: CapabilityQueueError.writeFailed("disk full")) {
             try await queue.enqueue(Self.item(id: "x"))
         }
-        #expect(await queue.all().isEmpty, "a refused write left an item behind")
+        #expect(try await queue.all().isEmpty, "a refused write left an item behind")
     }
 
     /// A decode path whose failure mode is emptiness is the exact defect `SWIFT_PRACTICES.md` §2

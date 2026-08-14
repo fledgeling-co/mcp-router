@@ -70,12 +70,31 @@ public protocol CapabilityQueueWriter: Sendable {
     func contains(_ id: String) async throws -> Bool
 }
 
+/// The read half, which I3 adopted as I2 handed it over.
+///
+/// Separate from the writer rather than folded into it, because the two have different callers: the
+/// Discover and Triage commits write, and only the Queue surface reads. A surface that can only
+/// write cannot accidentally render the queue, and one that can only read cannot accidentally
+/// enqueue.
+///
+/// **`all()` throws, and that is the load-bearing part.** A reader that answered `[]` on a corrupt
+/// file would make an unreadable queue indistinguishable from an empty one — the exact
+/// failure-mode-is-emptiness defect `SWIFT_PRACTICES.md` §2 records from this repo's own TypeScript
+/// router, where a flat `servers.json` loaded zero servers with no error at all.
+public protocol CapabilityQueueReader: Sendable {
+    /// Everything queued on this phone. Throws rather than returning `[]` on a file it cannot read.
+    func all() async throws -> [QueuedCapability]
+    /// Take an item back out. Undoable at the surface; there is no confirmation dialog, because
+    /// removing something from your own outbox has no blast radius.
+    func remove(_ id: String) async throws
+}
+
 /// The shipped writer: a JSON file in the app's Application Support directory.
 ///
 /// An `actor` because the queue is genuinely mutable shared state reached from a `@MainActor`
 /// surface — the case `SWIFT_PRACTICES.md` §1 says to reach for an actor for, rather than as a way
 /// to silence a diagnostic.
-public actor FileCapabilityQueueWriter: CapabilityQueueWriter {
+public actor FileCapabilityQueueWriter: CapabilityQueueWriter, CapabilityQueueReader {
     private let url: URL
     private let fileManager: FileManager
 
@@ -111,6 +130,22 @@ public actor FileCapabilityQueueWriter: CapabilityQueueWriter {
 
     public func contains(_ id: String) async throws -> Bool {
         try read().contains { $0.id == id }
+    }
+
+    // MARK: - CapabilityQueueReader (I3)
+
+    public func all() async throws -> [QueuedCapability] {
+        try read()
+    }
+
+    public func remove(_ id: String) async throws {
+        let items = try read()
+        let remaining = items.filter { $0.id != id }
+        // Removing something that is not there is a no-op rather than an error. The surface offers
+        // the act only on rows it is showing, so a mismatch means the file changed under us — and
+        // failing would surface a fault the user can do nothing about.
+        guard remaining.count != items.count else { return }
+        try write(remaining)
     }
 
     // MARK: - Storage
@@ -154,14 +189,30 @@ public actor FileCapabilityQueueWriter: CapabilityQueueWriter {
 }
 
 /// An in-memory writer, for previews and for the host tests that have no container.
-public actor InMemoryCapabilityQueue: CapabilityQueueWriter {
+public actor InMemoryCapabilityQueue: CapabilityQueueWriter, CapabilityQueueReader {
     private var items: [QueuedCapability] = []
     private let failure: CapabilityQueueError?
+    private let readFailure: CapabilityQueueError?
 
-    /// - Parameter failure: when set, every `enqueue` throws it. This is how the refused-write
-    ///   path is exercised, rather than by hoping a real filesystem refuses something.
-    public init(failure: CapabilityQueueError? = nil) {
+    /// - Parameter failure: when set, every **write** throws it. This is how the refused-write path
+    ///   is exercised, rather than by hoping a real filesystem refuses something.
+    /// - Parameter readFailure: when set, `all()` throws it. Added by I3, because the
+    ///   unreadable-queue state is the most important one on the Queue surface and a double whose
+    ///   reads always succeed cannot drive it.
+    ///
+    ///   **The two are separate, and a merged test is the reason.**
+    ///   `DiscoverCommitTests.refusedWriteThrows` asserts that after a refused write the queue is
+    ///   *empty* — the I1 precedent where a swallowed Keychain error rendered "Paired." while
+    ///   nothing was stored. Folding reads into the same flag would make `all()` throw there, and
+    ///   the only ways to keep that test compiling would have been to assert something weaker or to
+    ///   assert something else entirely. A refused write and an unreadable file are two different
+    ///   faults; one flag for both was the wrong shape.
+    public init(
+        failure: CapabilityQueueError? = nil,
+        readFailure: CapabilityQueueError? = nil
+    ) {
         self.failure = failure
+        self.readFailure = readFailure
     }
 
     public func enqueue(_ item: QueuedCapability) async throws {
@@ -175,7 +226,16 @@ public actor InMemoryCapabilityQueue: CapabilityQueueWriter {
         return items.contains { $0.id == id }
     }
 
-    public func all() -> [QueuedCapability] {
-        items
+    /// **`async throws` as of I3.** It was a plain synchronous accessor, which could neither conform
+    /// to `CapabilityQueueReader` nor produce the unreadable state. Its callers are previews and
+    /// tests, and they moved in the same change.
+    public func all() async throws -> [QueuedCapability] {
+        if let readFailure { throw readFailure }
+        return items
+    }
+
+    public func remove(_ id: String) async throws {
+        if let failure { throw failure }
+        items.removeAll { $0.id == id }
     }
 }

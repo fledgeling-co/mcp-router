@@ -200,6 +200,27 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 
 ## Changelog
 
+- 2026-08-14 — **`wf_03c742d3-20a` reported `completed` having lost M4 to a 503, and a workflow
+  resume was the wrong instrument.** The run returned 2 of 3: R2-R (merged), M2 (ready-to-merge),
+  and **M4 dead** on `API Error: 503 … no-eligible-account, over_reserve` — a death with zero
+  retries that the run still reports as completed.
+
+  **The resume was rejected on liveness, not on cache economics.** By `journal started=3 results=2`
+  the arithmetic favours a resume: two cached hits, one re-run. But the cache miss flag is sticky,
+  and a miss on M2 spawns a *second* M2 runner into its worktree. M2 is demonstrably still working:
+  its report names `ai/m2 @ 5d15aff`, **`5d15aff` is not an ancestor of `ai/m2`** (it rebased), the
+  branch now contains `cd3be8d` — a ledger commit made minutes ago — and `make test` and
+  `make build-mac` are live in `.worktrees/M2`. lifeline reports that agent `done`; the process
+  tree and the reflog disagree, and on this repo the process tree has been right every time.
+  **A fifth two-writer incident is not worth two cached replays.**
+
+  M4 is recovered directly instead. Its branch is **7 commits ahead** with 6 files uncommitted
+  mid-edit — it was splitting `SkillPresentation` and closing two sheet findings when the 503 hit,
+  at `788 pass, lint clean`. Per the resume skill, a branch ahead of main is resumed in its own
+  worktree, never restarted. **Its lifeline entry is deliberately left `paused-manual`** so that
+  lifeline cannot retry it into the same worktree as the fresh runner — the pause is now a
+  concurrency control rather than a leftover.
+
 - 2026-08-14 — **The parity gate's verdict depends on the name of the directory it is run from
   (`D-o`).** Re-running the gate on merged `main` from the repo root returned **68 of 82 with 1
   DIVERGED**, where R2-R had reported **69 of 82, 0 DIVERGED** on a byte-identical tree. Neither

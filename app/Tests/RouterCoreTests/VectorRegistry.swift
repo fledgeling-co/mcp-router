@@ -170,7 +170,9 @@ struct VectorRegistryTests {
     /// merely to hold. The 128 added here are the control API's routing predicate, `Number`,
     /// `localeCompare`, `basename`, and the two `?limit=` pipelines, each driven from the reference
     /// or from the engine whose semantics the Swift reimplements.
-    static let executedFloor = 352
+    /// R5 adds the six auth-page vectors, so the floor rises again to 358: the ratchet is the
+    /// point — a floor left at 352 would let the auth corpus be deleted without failing.
+    static let executedFloor = 358
 
     /// B81. A bare total is satisfied by any unrelated vectors, so the auth corpus is asserted
     /// **by name** as well as by count — the substitute out-of-family gate found that a floor alone
@@ -190,6 +192,7 @@ struct VectorRegistryTests {
         print("PARITY-VECTORS-AUTH: \(authExecuted)")
         #expect(authExecuted >= 6, "the auth corpus executed \(authExecuted) cases")
     }
+
     /// The attestation. Every registered file is loaded, every case is put through the assertion
     /// that consumes it, and the consumer reports how many it compared — so a vector that is
     /// decoded and never checked cannot pass, and neither can a file with no consumer.

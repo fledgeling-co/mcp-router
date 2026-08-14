@@ -201,6 +201,30 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 
 ## Changelog
 
+- 2026-08-15 — **Capacity returned, the orchestrator took the recovery back from lifeline, and all
+  four items relaunched with briefs that describe reality (`wf_997da1e0-2d0`).** A one-word probe
+  (`claude -p` → `OK`) confirmed the outage had cleared before anything was spent on a wave.
+
+  **Why take it back rather than let lifeline retry: lifeline replays the ORIGINAL prompt.** M5's,
+  M7's and M8's all said `resume: fresh`, and by then M5 had 9 uncommitted files, M7 a design commit,
+  and M8 six commits. A lifeline retry would have handed each runner a brief contradicting its own
+  worktree. Both old runs were paused first so the two could not race.
+
+  **The WIP rescue declined an hour ago was taken now, and the difference is control of the clock.**
+  With lifeline paused and zero live processes verified immediately beforehand, committing is safe;
+  while lifeline could fire at any second it was not. Four rescue commits, each labelled as the
+  orchestrator's and explicitly **not claimed to compile or pass**: M5 `cf0acdc` (9 files), M7
+  `a8169a9`, M8 `c799153`, I2 `e5f7fb5`.
+
+  State the briefs were written from, rather than assumed: **M8** is closest — 6 commits, spec, plan
+  and evidence — but its `installed` reads `[.servers, .settings]` because it branched before M4 and
+  M2, so **its rebase will conflict on exactly the pair M2 hit an hour ago** and the brief says
+  resolve as a union. **M5** is deep in Phase 4 with `.discover` already registered and five new
+  files, but *one commit on its branch and that one is mine*, which is why the brief warns it looks
+  emptier than it is. **M7** and **I2** both have a spec and no plan — Phase 3. Only M8 and M5 will
+  trip the board-registry assertions; both briefs name that as the designed edit and flag the
+  `ScaffoldedDestination(.x) != nil` trap that has to be repointed rather than renumbered.
+
 - 2026-08-15 — **Both waves died at once on capacity, not code, and the correct response was to do
   nothing.** All five agents across `wf_67a6b2b6-231` and `wf_4dda644a-0ae` failed within minutes of
   each other on `503 no-eligible-account / over_reserve` (*"9 of 11 accounts at or over their usage

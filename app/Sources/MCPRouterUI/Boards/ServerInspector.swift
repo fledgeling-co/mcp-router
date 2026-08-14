@@ -137,7 +137,14 @@
                                 Task { await board.perform(action, on: server) }
                             }
                             .buttonStyle(StandardButtonStyle(scale: .small))
-                            .disabled(isWriting)
+                            // `disabledReason`, not `isWriting`. This read `.disabled(isWriting)`
+                            // and so stayed live on a stale load — a POST offered beside a Keep-warm
+                            // toggle dimming for that same condition, one section above. The reason
+                            // machinery already existed here; this control was the one that skipped
+                            // it.
+                            .disabled(disabledReason != nil)
+                            .help(disabledReason ?? "")
+                            .accessibilityHint(disabledReason ?? "")
                         }
                     }
                 }

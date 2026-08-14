@@ -163,12 +163,45 @@
 
         /// Counts for the segmented control. Taken before the search, so switching filters while
         /// searching does not show a count that contradicts the rows.
+        ///
+        /// **The live counts are withheld on a reading that is not current, for exactly the reason
+        /// the header withholds "1 running".** They were not, and that was the fourth figure this
+        /// board displayed without observing: `controls` is rendered inside `populated(staleError:)`,
+        /// which serves `.stale` as well as `.loaded`, so a router that had gone quiet still showed
+        /// `Running 1` — a present-tense claim about a live child process — roughly thirty points
+        /// below a header deliberately refusing to make it. The board broke its own stated rule
+        /// twice in one screen.
+        ///
+        /// The split is the header's split, not a new one. `All` is a count of *declared* servers,
+        /// which is configuration and survives a failure to refresh, and `Needs you` is a count of
+        /// conditions the router reported — held descriptions, placards, failed indexes, waiting
+        /// authorisations — which is the same kind of fact as the header's `unindexed` and does not
+        /// evaporate when a poll stops answering. `Running` and `Idle` are claims about what a
+        /// process is doing *now*, and nothing that is not answering can support one.
+        ///
+        /// A withheld count is **absent from the dictionary**, not zero: `ServerFilterBar.label(for:)`
+        /// already renders the bare title when there is no count, so the segment reads `Running`
+        /// rather than `Running 0`. A zero here would be a fabricated figure, which is the defect
+        /// rather than the fix.
         public func counts(from state: ServerStateTracker.TrackerState) -> [ServerFilter: Int] {
+            let current = reading(for: state) == .current
             var counts: [ServerFilter: Int] = [:]
-            for filter in ServerFilter.allCases {
+            for filter in ServerFilter.allCases where current || !filter.isPresentTense {
                 counts[filter] = state.servers.filter { filter.matches($0) }.count
             }
             return counts
+        }
+
+        /// How much any figure on this board may claim, derived in **one** place.
+        ///
+        /// The header and the filter bar disagreed because each decided this for itself. They now
+        /// read the same function, so a future load state cannot be honest in one and not the other.
+        func reading(for state: ServerStateTracker.TrackerState) -> ServersBoardHeader.Reading {
+            switch state.load {
+            case .loaded: .current
+            case .stale: .stale
+            case .loading, .failed: .none
+            }
         }
 
         /// The three figures under the title, and how much they are allowed to claim.
@@ -184,12 +217,7 @@
         /// stand. `.loading` and `.failed` have both never had a poll answer — `LoadState` documents
         /// `.failed` as "none has ever succeeded" — so neither may claim anything at all.
         public func header(from state: ServerStateTracker.TrackerState) -> ServersBoardHeader {
-            let reading: ServersBoardHeader.Reading = switch state.load {
-            case .loaded: .current
-            case .stale: .stale
-            case .loading, .failed: .none
-            }
-            return ServersBoardHeader(servers: state.servers, reading: reading)
+            ServersBoardHeader(servers: state.servers, reading: reading(for: state))
         }
 
         public func server(named name: String, in state: ServerStateTracker.TrackerState) -> MCPServer? {
@@ -225,6 +253,24 @@
         MCP Router can't start the daemon itself yet. Start it the way you normally do \
         and this fills in on its own.
         """
+
+        /// What removing this server does to the tool lists, which depends on whether it is scoped.
+        ///
+        /// **The footer was corrected for exactly this claim and the dialog kept making it.** The
+        /// old wording was *"Its N tools leave every session's tool list"*, and `visibleTo(u,
+        /// opts.cwd)` in `src/manifest.ts` filters a scoped server by the calling session's
+        /// directory — so a scoped server was never in every session's list, and saying it leaves
+        /// one overstates the consequence of the single irreversible action on this surface. The
+        /// footer already carries the honest version two views away.
+        ///
+        /// A function rather than a branch in the view, so the wording is testable without a host.
+        public static func removeToolsConsequence(tools: Int, isScoped: Bool) -> String {
+            let noun = tools == 1 ? "tool" : "tools"
+            guard isScoped else {
+                return "Its \(tools) \(noun) leave every session's tool list."
+            }
+            return "It is scoped, so its \(tools) \(noun) leave the sessions it is scoped to."
+        }
 
         /// The named consequence of removing a server, which branches on whether the app could ever
         /// put the entry back.

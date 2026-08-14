@@ -229,13 +229,66 @@ public enum ServerFilter: String, CaseIterable, Sendable, Identifiable {
         }
     }
 
+    /// Whether this filter's count is a claim about **now** rather than about what is declared.
+    ///
+    /// `running` and `idle` both describe what a child process is doing at this instant, so neither
+    /// can be supported by a router that has stopped answering. `all` counts declared servers, which
+    /// is configuration and survives a failed refresh; `needsYou` counts conditions the router
+    /// reported — held descriptions, placards, failed indexes, waiting authorisations — which are
+    /// the same kind of fact as the header's unindexed count and do not evaporate either.
+    ///
+    /// Used by `ServersBoardModel.counts(from:)` to withhold a figure rather than show a stale one
+    /// as current.
+    public var isPresentTense: Bool {
+        switch self {
+        case .running, .idle: true
+        case .all, .needsYou: false
+        }
+    }
+
     /// What an empty result under this filter says.
     ///
     /// Worded per filter rather than once. The prototype uses one string — *"Every server is
     /// behaving. Switch to All to see the rest."* — which is simply false under `Running`, where the
     /// truth is that nothing is up. Placeholder or reused copy hides comprehension failures, which
     /// is the reason `DESIGN.md` §5 asks for real wording in the unhappy paths.
-    public func emptyMessage(totalServers: Int) -> (title: String, detail: String) {
+    ///
+    /// **`reading` is not decoration.** These sentences are in the present tense — *"No server has a
+    /// child process up right now"*, *"Everything is running"* — and this message is reachable from
+    /// the stale branch, so a router that had gone quiet was asserting what was true at some
+    /// unknown earlier moment as though it were true now. `.idle` was the worst of them: it attached
+    /// an observed count to a present-tense verb, which is §6's defect in its literal form.
+    ///
+    /// A reading that is not current therefore gets one honest message instead of four confident
+    /// ones. It says what is actually known — that this is the last reading, that it is not current,
+    /// and what matched in it — and claims nothing about now.
+    public func emptyMessage(
+        totalServers: Int,
+        reading: ServersBoardHeader.Reading = .current
+    ) -> (title: String, detail: String) {
+        guard reading == .current else {
+            return (
+                title: "Nothing matched, in the last reading",
+                detail: """
+                The router has stopped answering, so this is what it last said — and nothing in it \
+                was \(staleNoun). What is true now is not something this can see.
+                """
+            )
+        }
+        return currentEmptyMessage(totalServers: totalServers)
+    }
+
+    /// How the stale message names this filter, as a plain noun phrase rather than a claim.
+    private var staleNoun: String {
+        switch self {
+        case .all: "declared"
+        case .running: "running"
+        case .idle: "idle"
+        case .needsYou: "waiting on you"
+        }
+    }
+
+    private func currentEmptyMessage(totalServers: Int) -> (title: String, detail: String) {
         switch self {
         case .all:
             (

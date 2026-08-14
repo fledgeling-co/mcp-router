@@ -95,7 +95,22 @@
                 }
                 Button("Index and add") { Task { await submit(force: false) } }
                     .buttonStyle(ProminentButtonStyle())
-                    .disabled(name.isEmpty || fragment.isEmpty)
+                    .disabled(addReason != nil)
+                    .help(addReason ?? "")
+                    .accessibilityHint(addReason ?? "")
+            }
+        }
+
+        /// Why `Index and add` is dimmed, or `nil` when it is live.
+        ///
+        /// §3.4: a dimmed control owes a reason. It dimmed with nothing said, so the only way to
+        /// learn what was missing was to guess which of the two fields mattered.
+        private var addReason: String? {
+            switch (name.isEmpty, fragment.isEmpty) {
+            case (true, true): "Give the server a name and a command."
+            case (true, false): "Give the server a name."
+            case (false, true): "Give the server a command to run."
+            case (false, false): nil
             }
         }
 
@@ -119,6 +134,18 @@
     struct HeldChangeSheet: View {
         @Bindable var board: ServersBoardModel
         let serverName: String
+
+        /// Why `Accept the new text` is dimmed, or `nil` when it is live.
+        ///
+        /// Loading, failed and empty are three different situations and the old
+        /// `.disabled(board.heldChanges?.changes.isEmpty ?? true)` said none of them — so during the
+        /// sheet's own load the user saw a dead prominent button and no explanation at all.
+        private var acceptReason: String? {
+            if board.isLoadingHeldChanges { return "Reading the held descriptions…" }
+            if board.heldChangesError != nil { return "The held descriptions could not be read." }
+            if board.heldChanges?.changes.isEmpty ?? true { return "There is nothing held to accept." }
+            return nil
+        }
 
         var body: some View {
             SheetFrame(title: "\(serverName) rewrote a tool description") {
@@ -167,7 +194,9 @@
                     Task { await board.approveHeldChange(serverName) }
                 }
                 .buttonStyle(ProminentButtonStyle())
-                .disabled(board.heldChanges?.changes.isEmpty ?? true)
+                .disabled(acceptReason != nil)
+                .help(acceptReason ?? "")
+                .accessibilityHint(acceptReason ?? "")
             }
         }
     }
@@ -257,7 +286,10 @@
                     Text(
                         """
                         This deletes its entry from the config file it is declared in. \
-                        Its \(server.tools) tools leave every session's tool list.
+                        \(ServersBoardModel.removeToolsConsequence(
+                            tools: server.tools,
+                            isScoped: !server.projects.isEmpty
+                        ))
                         """
                     )
                     .typeRole(.body)

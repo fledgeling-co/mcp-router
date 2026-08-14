@@ -207,6 +207,7 @@
                         row: row,
                         isSelected: board.selection == row.id,
                         isWriting: board.writesInFlight.contains(row.id),
+                        canWrite: board.canWrite(to: state),
                         error: board.rowErrors[row.id],
                         select: { board.selection = row.id },
                         act: { action in
@@ -246,7 +247,10 @@
                 )
             } else {
                 {
-                    let copy = board.filter.emptyMessage(totalServers: state.servers.count)
+                    let copy = board.filter.emptyMessage(
+                        totalServers: state.servers.count,
+                        reading: board.reading(for: state)
+                    )
                     return StateMessage(
                         title: copy.title,
                         detail: copy.detail,

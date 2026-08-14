@@ -14,9 +14,25 @@
         let row: ServerRowModel
         let isSelected: Bool
         let isWriting: Bool
+        /// Whether the router can be told anything at all right now.
+        ///
+        /// The row's action is a **write** — a PATCH or a reindex — and it was gated on `isWriting`
+        /// alone, so on a stale load it stayed live one column away from a Behaviour toggle dimming
+        /// with `cannotWriteReason` for exactly that condition. Offering a control that will fail is
+        /// worse than dimming one that explains itself (`DESIGN.md` §3.4), and the board already
+        /// said so in `ServersBoardModel.cannotWriteReason` while this control ignored it.
+        let canWrite: Bool
         let error: ControlAPIError?
         let select: () -> Void
         let act: (ServerRowAction) async -> Void
+
+        /// Why the action is dimmed, or `nil` when it is live. Mirrors the inspector's property of
+        /// the same name so the two cannot drift into disagreeing about one condition.
+        private var disabledReason: String? {
+            if isWriting { return ServersBoardModel.applyingReason }
+            if !canWrite { return ServersBoardModel.cannotWriteReason }
+            return nil
+        }
 
         @FocusState private var isFocused: Bool
 
@@ -124,8 +140,12 @@
                 // `Add server…`. The prototype paints `Review…` with the accent class, against its
                 // own rule.
                 .buttonStyle(StandardButtonStyle(scale: .small))
-                .disabled(isWriting)
-                .accessibilityHint(isWriting ? ServersBoardModel.applyingReason : "")
+                .disabled(disabledReason != nil)
+                // `.help` as well as the hint: a dimmed control owes a *visible* reason, and a
+                // hint reaches VoiceOver only. This is the same carrier M1 used for a disabled
+                // menu command.
+                .help(disabledReason ?? "")
+                .accessibilityHint(disabledReason ?? "")
             }
         }
     }

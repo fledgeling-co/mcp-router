@@ -18,16 +18,24 @@ final class FakeSession: UpstreamSession, Sendable {
     private let state = Mutex(State())
     let processIdentifier: Int32?
     let label: String
+    /// How long `shutdown()` takes. Zero by default; a test that needs to observe whether a caller
+    /// waited for teardown sets it, because an instantaneous close makes "waited" and "did not
+    /// wait" indistinguishable.
+    let shutdownDelayNanoseconds: UInt64
 
-    init(label: String, processIdentifier: Int32? = nil) {
+    init(label: String, processIdentifier: Int32? = nil, shutdownDelayNanoseconds: UInt64 = 0) {
         self.label = label
         self.processIdentifier = processIdentifier
+        self.shutdownDelayNanoseconds = shutdownDelayNanoseconds
     }
 
     var shutdownCount: Int { state.withLock { $0.shutdownCount } }
     var wasShutDown: Bool { shutdownCount > 0 }
 
     func shutdown() async {
+        if shutdownDelayNanoseconds > 0 {
+            try? await Task.sleep(nanoseconds: shutdownDelayNanoseconds)
+        }
         let waiting = state.withLock { current -> [CheckedContinuation<Void, Never>] in
             current.shutdownCount += 1
             current.ended = true
@@ -75,6 +83,7 @@ final class FakeTransport: UpstreamTransporting, Sendable {
         var gates: [CheckedContinuation<Void, Never>] = []
         var gated = false
         var failNext = false
+        var shutdownDelayNanoseconds: UInt64 = 0
     }
 
     private let state = Mutex(State())
@@ -85,6 +94,12 @@ final class FakeTransport: UpstreamTransporting, Sendable {
     /// When set, every open parks until `openGate()` is called.
     func setGated(_ value: Bool) {
         state.withLock { $0.gated = value }
+    }
+
+    /// Make every session opened from now on take this long to close, so a test can tell a caller
+    /// that waited for teardown from one that returned while it was still running.
+    func setShutdownDelay(nanoseconds: UInt64) {
+        state.withLock { $0.shutdownDelayNanoseconds = nanoseconds }
     }
 
     /// When set, the next open throws.
@@ -108,7 +123,12 @@ final class FakeTransport: UpstreamTransporting, Sendable {
                 state.withLock { $0.gates.append(continuation) }
             }
         }
-        let session = FakeSession(label: upstream.name, processIdentifier: upstream.isStdio ? 4242 : nil)
+        let delay = state.withLock { $0.shutdownDelayNanoseconds }
+        let session = FakeSession(
+            label: upstream.name,
+            processIdentifier: upstream.isStdio ? 4242 : nil,
+            shutdownDelayNanoseconds: delay
+        )
         state.withLock { $0.sessions.append(session) }
         return session
     }
@@ -195,4 +215,32 @@ func httpUpstream(_ name: String, transport: ServerTransport = .http) -> Upstrea
         headers: [],
         oauth: nil
     )
+}
+
+/// A sink that makes one *chosen* log line take real time.
+///
+/// Logging is a hop to another actor, and an actor hop is a suspension point: anything the pool has
+/// not finished before it is not atomic, however synchronous the surrounding code looks. Blocking
+/// the sink turns that invisible window into one a test can act inside.
+/// Matched on the line's text rather than by position: blocking "the first write" blocks whichever
+/// line happens to come first, and a cold start logs a spawn long before anything closes — the
+/// window would then open and shut before the code under test ever ran.
+final class BlockingSink: LogSink, Sendable {
+    private let armed = Mutex<Bool>(true)
+    private let marker: String
+    private let seconds: Double
+
+    init(matching marker: String, seconds: Double = 0.3) {
+        self.marker = marker
+        self.seconds = seconds
+    }
+
+    func write(_ bytes: Data) throws {
+        guard let line = String(bytes: bytes, encoding: .utf8), line.contains(marker) else { return }
+        let shouldBlock = armed.withLock { pending -> Bool in
+            defer { pending = false }
+            return pending
+        }
+        if shouldBlock { Thread.sleep(forTimeInterval: seconds) }
+    }
 }

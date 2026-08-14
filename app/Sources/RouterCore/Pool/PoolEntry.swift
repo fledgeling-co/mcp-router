@@ -80,6 +80,9 @@ struct PoolEntry {
     var inFlight: Int = 0
     /// Live lease ids, so a release is honoured exactly once.
     var activeLeases: Set<LeaseID> = []
+    /// Callers that have committed to taking a lease but are still awaiting the start. The reaper
+    /// treats these exactly like work outstanding, because that is what they are about to become.
+    var pendingWaiters: Int = 0
 }
 
 /// An upstream that answered 401 and wants the user to authorize in a browser.
@@ -130,6 +133,7 @@ public enum PoolError: Error, Sendable, Equatable, CustomStringConvertible {
     case superseded(String)
     case startupTimeout(name: String, milliseconds: Int)
     case legacySSEUnsupported(String)
+    case spawnFailed(name: String, reason: String)
 
     public var description: String {
         switch self {
@@ -145,6 +149,8 @@ public enum PoolError: Error, Sendable, Equatable, CustomStringConvertible {
             "Upstream \"\(name)\" uses the legacy SSE transport, which the Swift router "
                 + "cannot speak. Keep this server on the TypeScript router until it is migrated "
                 + "to streamable HTTP."
+        case let .spawnFailed(name, reason):
+            "upstream \"\(name)\" could not be started: \(reason)"
         }
     }
 }

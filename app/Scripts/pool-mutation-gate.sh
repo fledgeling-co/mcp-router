@@ -17,9 +17,11 @@ cd /Users/lukerhodes/Dev/mcp-router/.worktrees/R2/app || exit 90
 # The actor is split across two files (file-length limit), so both are mutated and both restored.
 CORE=Sources/RouterCore/Pool/UpstreamPool.swift
 REAP=Sources/RouterCore/Pool/UpstreamPoolReaping.swift
+TRANS=Sources/RouterCore/Pool/StdioUpstreamTransport.swift
 CORE_BACKUP=$(mktemp); cp "$CORE" "$CORE_BACKUP"
 REAP_BACKUP=$(mktemp); cp "$REAP" "$REAP_BACKUP"
-restore() { cp "$CORE_BACKUP" "$CORE"; cp "$REAP_BACKUP" "$REAP"; }
+TRANS_BACKUP=$(mktemp); cp "$TRANS" "$TRANS_BACKUP"
+restore() { cp "$CORE_BACKUP" "$CORE"; cp "$REAP_BACKUP" "$REAP"; cp "$TRANS_BACKUP" "$TRANS"; }
 trap restore EXIT
 
 fail=0
@@ -27,7 +29,7 @@ fail=0
 mutate() {
   local name="$1" test="$2" find="$3" replace="$4"
   restore
-  FIND="$find" REPLACE="$replace" python3 - "$CORE" "$REAP" <<'PY'
+  FIND="$find" REPLACE="$replace" python3 - "$CORE" "$REAP" "$TRANS" <<'PY'
 import os, sys
 find, replace = os.environ["FIND"], os.environ["REPLACE"]
 for path in sys.argv[1:]:
@@ -35,7 +37,7 @@ for path in sys.argv[1:]:
     if find in text:
         open(path, "w").write(text.replace(find, replace))
 PY
-  if ! grep -q "MUTATED" "$CORE" "$REAP"; then
+  if ! grep -q "MUTATED" "$CORE" "$REAP" "$TRANS"; then
     echo "SKIP  $name — the mutation did not apply; the source has moved"
     fail=1
     return
@@ -87,17 +89,64 @@ mutate "P6a reap deadline" "staleTimerCannotReap" \
   'true // MUTATED: no deadline check'
 
 mutate "P8a close identity" "staleCloseCannotEvict" \
-  'guard var entry = entries[name], entry.handle?.id == handle else { return }' \
-  'guard var entry = entries[name], entry.handle != nil else { return } // MUTATED'
+  'guard var entry = entries[name], let live = entry.handle, live.id == handle else { return }
+
+        // Evict first' \
+  'guard var entry = entries[name], let live = entry.handle else { return } // MUTATED: no identity
+        _ = handle
+
+        // Evict first'
+
+mutate "P4a waiter reservation" "reaperCannotBeatTheWaitingLease" \
+  'guard entry.inFlight == 0, entry.pendingWaiters == 0, let handle = entry.handle else { return }' \
+  'guard entry.inFlight == 0, let handle = entry.handle else { return } // MUTATED: no reservation'
+
+mutate "P8b evict before suspending" "endedSessionIsEvictedBeforeAnySuspension" \
+  'guard var entry = entries[name], let live = entry.handle, live.id == handle else { return }
+
+        // Evict first' \
+  'guard var entry = entries[name], let live = entry.handle, live.id == handle else { return }
+        await log?.record(PoolLogEvent.closedItself(server: name)) // MUTATED: suspend first
+
+        // Evict first'
+
+mutate "P8b close on self-end" "selfEndedSessionIsClosed" \
+  '        await live.session.shutdown()' \
+  '        _ = live // MUTATED: evict without closing'
+
+mutate "P9 shutdown barrier" "shutdownIsABarrier" \
+  '        if let flight = shutdownFlight {
+            await flight.value
+            return
+        }' \
+  '        if shutdownFlight != nil { return } // MUTATED: not a barrier'
 
 mutate "single-flight cohort join" "singleFlight" \
   '            return try await flight.task.value' \
   '            _ = flight // MUTATED: no cohort join'
 
+# The real-process guards. Each of these is a thing a fake transport cannot have an opinion about,
+# which is the whole argument for E0: the evidence has to be produced against real OS resources.
+mutate "E0 stderr drain" "chattyChildDoesNotWedge" \
+  '        drainStandardError(of: pipes, named: upstream.name)' \
+  '        _ = pipes // MUTATED: stderr is never drained'
+
+mutate "E0 timeout teardown" "timedOutStartLeavesNoOrphan" \
+  '        case .timedOut:
+            // A throwing open must leave nothing behind, so the half-open child is closed here
+            // rather than left for a reaper that will never be told it exists.
+            await session.shutdown()' \
+  '        case .timedOut:
+            _ = session // MUTATED: leave the orphan running'
+
+mutate "E0 SIGKILL escalation" "stubbornChildIsKilled" \
+  '            kill(process.processIdentifier, SIGKILL)' \
+  '            // MUTATED: no escalation past SIGTERM'
+
 restore
 echo "---"
 if [ "$fail" -eq 0 ]; then
-  echo "MUTATION GATE: all six guards proved load-bearing"
+  echo "MUTATION GATE: all thirteen guards proved load-bearing"
 else
   echo "MUTATION GATE: FAILED — see above"
 fi

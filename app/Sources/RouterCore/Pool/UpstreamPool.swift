@@ -43,6 +43,8 @@ public actor UpstreamPool {
     var entries: [String: PoolEntry] = [:]
     var pendingAuth: [String: PendingAuth] = [:]
     var shuttingDown = false
+    /// The one in-flight shutdown, awaited by every later caller so shutdown is a real barrier.
+    var shutdownFlight: Task<Void, Never>?
 
     var startIDs = IdentitySequence()
     var handleIDs = IdentitySequence()
@@ -78,19 +80,38 @@ public actor UpstreamPool {
         if config.transport == .sse { throw PoolError.legacySSEUnsupported(name) }
 
         let wasLive = entries[name]?.handle != nil
-        let handle = try await acquire(name: name, config: config)
+
+        // Register as a waiter *before* suspending. Installing a handle arms the idle timer with
+        // nothing in flight, so on a short idle window the reaper could legitimately pass all four
+        // of its checks and close the upstream in the gap between the start completing and this
+        // caller's lease being recorded — the cold call would then fail on a child that had just
+        // been spawned for it.
+        var reserving = entries[name] ?? PoolEntry()
+        reserving.pendingWaiters += 1
+        entries[name] = reserving
+
+        let handle: PoolHandle
+        do {
+            handle = try await acquire(name: name, config: config)
+        } catch {
+            releaseWaiter(name)
+            throw error
+        }
 
         // Everything from here to the return is synchronous, so no reap, close or shutdown can
         // interleave: this is the critical section the "atomic lease" claim is actually about.
         guard !shuttingDown else {
+            releaseWaiter(name)
             throw PoolError.shuttingDown
         }
         var entry = entries[name] ?? PoolEntry()
         guard entry.handle?.id == handle.id else {
             // The handle we acquired was replaced while we were suspended. Refuse rather than lease
             // a handle the pool no longer owns.
+            releaseWaiter(name)
             throw PoolError.superseded(name)
         }
+        entry.pendingWaiters = max(0, entry.pendingWaiters - 1)
         let lease = LeaseID(leaseIDs.take())
         entry.activeLeases.insert(lease)
         entry.inFlight += 1
@@ -120,6 +141,16 @@ public actor UpstreamPool {
             armReap(name: lease.server, entry: &entry)
         }
         entries[lease.server] = entry
+    }
+
+    /// Drop a waiter reservation on a path that will not become a lease.
+    func releaseWaiter(_ name: String) {
+        guard var entry = entries[name] else { return }
+        entry.pendingWaiters = max(0, entry.pendingWaiters - 1)
+        entries[name] = entry
+        if entry.inFlight == 0, entry.pendingWaiters == 0, entry.handle != nil {
+            armReapIfIdle(name: name)
+        }
     }
 
     /// Whether this upstream is live right now — used to label a call as a cold start.
@@ -238,14 +269,30 @@ public actor UpstreamPool {
 
     /// An upstream that went away on its own. Identity-checked: a close from one incarnation must
     /// not evict its replacement.
+    ///
+    /// Ending and closing are different things, and conflating them leaks a process. "Ended" is the
+    /// session telling us its receive stream finished; on stdio that is EOF on the child's stdout,
+    /// which says nothing about whether the child exited — a server that closes stdout, or wedges
+    /// after writing its last frame, is still running. D1 records that closing a Swift transport
+    /// does not kill the child, so evicting the handle without shutting the session down strands
+    /// the client, the transport, both parent descriptors and the process itself, with nothing left
+    /// holding a reference that could reap it later.
     func sessionEnded(name: String, handle: HandleID) async {
-        guard var entry = entries[name], entry.handle?.id == handle else { return }
-        await log?.record(PoolLogEvent.closedItself(server: name))
+        guard var entry = entries[name], let live = entry.handle, live.id == handle else { return }
+
+        // Evict first, and without suspending. `entry` is a *copy*; a suspension here lets another
+        // task install a replacement handle, which this stale copy would then erase on write-back —
+        // and lets a lease taken during the gap be handed the session we are about to close.
         cancelReap(&entry)
         entry.handle = nil
         entry.inFlight = 0
         entry.activeLeases.removeAll()
         entries[name] = entry
+
+        // Release what we still hold. Idempotent, and the watcher that brought us here has already
+        // finished, so this cannot re-enter.
+        await live.session.shutdown()
+        await log?.record(PoolLogEvent.closedItself(server: name))
     }
 }
 

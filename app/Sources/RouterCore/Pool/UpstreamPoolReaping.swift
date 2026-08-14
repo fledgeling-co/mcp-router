@@ -20,7 +20,7 @@ public extension UpstreamPool {
 
     internal func armReap(name: String, entry: inout PoolEntry) {
         cancelReap(&entry)
-        guard entry.inFlight == 0, let handle = entry.handle else { return }
+        guard entry.inFlight == 0, entry.pendingWaiters == 0, let handle = entry.handle else { return }
         guard let config = upstreams[name] else { return }
 
         // A warm server is one the user has committed to paying for. Reaping it would undo the only
@@ -172,6 +172,18 @@ public extension UpstreamPool {
 
     /// Resident size of each live stdio child, in MB.
     ///
+    /// The pid behind each live upstream, in configuration order.
+    ///
+    /// Separate from `status()` because a pid is not a status field: the reference does not report
+    /// one, and adding it there would put a number on a surface R4 diffs byte for byte.
+    func processIdentifiers() -> [String: Int32] {
+        var out: [String: Int32] = [:]
+        for name in orderedNames {
+            if let pid = entries[name]?.handle?.session.processIdentifier { out[name] = pid }
+        }
+        return out
+    }
+
     /// One `ps` for every pid rather than one per server: the warm set is a budget the user sets in
     /// memory, so the number behind it has to be measured. An upstream with no local process is
     /// **omitted**, matching the reference — reporting a zero would be reporting a number nobody
@@ -194,9 +206,26 @@ public extension UpstreamPool {
 
     /// Refuse new acquisitions, await every start in flight, cancel every timer, then force-reap
     /// everything — including entries with calls outstanding, because leaving a child open there is
-    /// the orphan this exists to avoid. Idempotent.
+    /// the orphan this exists to avoid.
+    ///
+    /// Idempotent in the strong sense: a second caller **awaits the first** rather than returning
+    /// early. Returning early would be the more obvious reading of "no-op", and it is wrong here —
+    /// this is what a signal handler awaits before the process exits, so a caller that returns
+    /// while children are still being terminated is exactly the orphan shutdown exists to prevent.
+    /// The flag is set synchronously, before any suspension, so acquisitions are refused from the
+    /// first instant regardless of which caller owns the teardown.
     func shutdown() async {
         shuttingDown = true
+        if let flight = shutdownFlight {
+            await flight.value
+            return
+        }
+        let flight = Task { await performShutdown() }
+        shutdownFlight = flight
+        await flight.value
+    }
+
+    internal func performShutdown() async {
         let names = orderedNames.filter { entries[$0] != nil }
 
         // Await starts before reaping. `reap` returns immediately when there is no handle yet, so a
@@ -206,8 +235,14 @@ public extension UpstreamPool {
             guard let flight = entries[name]?.starting else { continue }
             _ = try? await flight.task.value
         }
-        for name in names {
-            await reap(name: name, force: true)
+        // Close concurrently: a serial loop makes shutdown as slow as the sum of every upstream's
+        // teardown, and launchd does not wait forever.
+        await withTaskGroup(of: Void.self) { group in
+            for name in names {
+                group.addTask { [weak self] in
+                    await self?.reap(name: name, force: true)
+                }
+            }
         }
     }
 }

@@ -12,14 +12,16 @@ struct PoolReapingTests {
         _ upstreams: [UpstreamConfig],
         transport: FakeTransport,
         clock: TestClock = TestClock(),
-        idleMs: Int = 60000
+        idleMs: Int = 60000,
+        log: RouterLog? = nil
     ) -> UpstreamPool {
         UpstreamPool(
             upstreams: upstreams,
             defaultIdleMilliseconds: idleMs,
             defaultStartupTimeoutMilliseconds: 1000,
             transporting: transport,
-            clock: clock
+            clock: clock,
+            log: log
         )
     }
 

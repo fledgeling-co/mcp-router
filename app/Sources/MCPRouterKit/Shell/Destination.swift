@@ -13,16 +13,25 @@ public enum DestinationGroup: String, CaseIterable, Sendable {
 
 /// Where a destination's badge count comes from, when it has one.
 ///
-/// Modelled rather than left implicit because `DESIGN.md` §6 forbids displaying a number the
-/// router does not observe, and the way that rule gets broken is by someone adding a plausible
-/// count to a row. Every case here names a field the router actually serves on `MCPServer`; a
-/// destination with no router-observed source has `nil`, and `ShellDestinationTests` fails if
-/// that ever stops being true for Skills or Inbox.
+/// Modelled rather than left implicit because `DESIGN.md` §6 forbids displaying a number the system
+/// has not observed, and the way that rule gets broken is by someone adding a plausible count to a
+/// row. Every case here names a thing that is genuinely counted somewhere; a destination with no
+/// such source has `nil`, and `ShellDestinationTests` fails if that ever stops being true for Skills.
+///
+/// **Two of the three are fields the router serves; the third is not, and that is deliberate.** M6's
+/// inbox queue is held by the app itself, so its count is observed by the app rather than reported
+/// by the router — which is a different provenance, not a weaker one. What §6 forbids is a figure
+/// nobody observed at all (its example is a memory saving computed against a world the router never
+/// runs). A count of the rows a surface is currently rendering is the most directly observed number
+/// available, and `InboxBoardModel.waitingCount` derives it from the same array the list draws, so
+/// the badge and the list cannot disagree.
 public enum BadgeSource: String, CaseIterable, Sendable {
     /// Servers wanting a human decision — `MCPServer.needsAttention`.
     case serversNeedingAttention
     /// Servers nobody has ever called — `MCPServer.neverUsed`.
     case serversNeverUsed
+    /// Items a paired phone has queued and nobody has acted on — the app's own inbox.
+    case queuedFromPhone
 }
 
 /// The eight places the sidebar can take you.
@@ -91,17 +100,22 @@ public enum Destination: String, CaseIterable, Sendable, Identifiable {
 
     /// Where this destination's badge count comes from, or `nil` when it may not have one.
     ///
-    /// **Skills and Inbox are deliberately `nil`.** `design/mocks/prototype.html` draws a badge on
-    /// both, and the control API serves neither: there is no skills endpoint at all, and Inbox
-    /// means the phone's review queue (`DESIGN.md` §9), which the router does not serve today.
-    /// `heldChanges` is not an inbox — it is one server's held tool-surface change, and it is
-    /// already counted by `needsAttention` on the Servers badge. A count on either row would be
-    /// invented, which §6 forbids.
+    /// **Skills is deliberately `nil`.** The prototype draws a badge on it and the control API
+    /// serves no skills endpoint at all, so a count there would be invented.
+    ///
+    /// **Inbox was `nil` until M6 and is not any more.** The reason it was is recorded here because
+    /// it is the reason it changed: Inbox means the phone's review queue (`DESIGN.md` §9), the
+    /// router does not serve it, and until a surface actually held that queue there was nothing
+    /// counting it. M6 builds the queue into the app, so the count is now an observation the app
+    /// makes directly rather than a number nobody took. `heldChanges` is still not an inbox — it is
+    /// one server's held tool-surface change, already counted by `needsAttention` on the Servers
+    /// badge — and nothing here reads it.
     public var badgeSource: BadgeSource? {
         switch self {
         case .servers: .serversNeedingAttention
         case .cleanup: .serversNeverUsed
-        case .activity, .skills, .discover, .inbox, .evals, .settings: nil
+        case .inbox: .queuedFromPhone
+        case .activity, .skills, .discover, .evals, .settings: nil
         }
     }
 

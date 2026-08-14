@@ -42,10 +42,8 @@
         func discoverIsInstalled() {
             #expect(BoardRegistry.hasBoard(.discover))
             #expect(BoardRegistry.installed.contains(.discover))
-            #expect(
-                ScaffoldedDestination(.discover) == nil,
-                "the placeholder can no longer be constructed for this destination"
-            )
+            // The `ScaffoldedDestination(.discover) == nil` line went with the type when M6 removed
+            // the placeholder. This is the same claim, made against what still exists.
             #expect(!BoardRegistry.scaffolded.contains(.discover))
         }
 

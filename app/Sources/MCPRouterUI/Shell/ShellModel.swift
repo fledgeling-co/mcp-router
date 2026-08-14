@@ -97,6 +97,19 @@
         @ObservationIgnored public private(set) lazy var cleanupBoard: CleanupBoardModel =
             .init(client: client)
 
+        /// The Inbox board's state, and the pairing session hanging off it.
+        ///
+        /// Owned here for the reasons every board model is — a menu command reaches a window through
+        /// `@FocusedValue`, and `Pair iPhone…` is a File-menu command that has to reach a live
+        /// session. There is one more reason specific to this board: the pairing session runs a
+        /// one-second ticker while a code is alive, and a model rebuilt on every render would leave
+        /// that ticker running against a model nobody reads.
+        ///
+        /// The service comes from `ShellPairingFactory`, which is where the Release-never-renders-a
+        /// -fixture rule lives.
+        @ObservationIgnored public private(set) lazy var inboxBoard: InboxBoardModel =
+            .init(client: client, service: ShellPairingFactory.makeService())
+
         /// The readout's numbers and the condition it is in.
         public private(set) var readout = ReadoutModel()
 
@@ -262,8 +275,17 @@
         // MARK: - What the views ask it
 
         /// This destination's badge, or nil where it may not have one.
+        ///
+        /// Switched over `BadgeSource` rather than delegating unconditionally, so a source added
+        /// later forces a decision here instead of silently returning nil. Inbox is the one
+        /// destination whose count is not derived from `servers`: the queue is held by the app, so
+        /// the badge reads the board's own rows and cannot disagree with the list it sits beside.
         public func badge(for destination: Destination) -> Int? {
-            destination.badgeCount(from: servers)
+            switch destination.badgeSource {
+            case .queuedFromPhone: inboxBoard.waitingCount
+            case .serversNeedingAttention, .serversNeverUsed, .none:
+                destination.badgeCount(from: servers)
+            }
         }
 
         /// The footer's trace line, at the current instant.

@@ -42,6 +42,12 @@
             case none
             /// Open the Servers board's add sheet — `⌘N`.
             case addServer
+            /// Open the Mac's pairing sheet — `Pair iPhone…`.
+            ///
+            /// M1 shipped the menu item routing to `.none`, which was right while nothing could
+            /// answer it. M6 gives it a surface, and this is the moment the item stops being a
+            /// disabled promise.
+            case openPairing
             /// Put the keyboard in the board's search field — `⌘F`.
             case focusSearch
             /// Clear the selected server's placard, or re-index it — `⌘R`.
@@ -55,14 +61,45 @@
         /// The whole mapping, exhaustive over `MenuCommand` so a new command cannot be added
         /// without a decision being made about what it does.
         ///
-        /// **Kept as one flat switch on purpose.** Adding M4's command pushed this past the linter's
-        /// complexity limit, and the obvious fix — splitting the tail into a helper — requires that
-        /// helper to carry a `default:`, because a Swift switch over an enum is exhaustive or it is
-        /// nothing. A `default:` would silently route the next command anybody adds to `.none`,
-        /// which is the exact failure this function's shape exists to prevent: a menu item that
-        /// appears, does nothing, and explains nothing. Merging the two `.none` groups into one case
-        /// list bought the branch back, so exhaustiveness is kept and no rule is waived.
+        /// **Split into two exhaustive halves, and the shape of the split is the point.** M6's
+        /// `pairPhone` pushed this past the linter's complexity limit. The obvious fix — moving the
+        /// tail into a helper with a `default:` — was rejected when M4 hit the same wall, and is
+        /// still wrong: a `default:` would silently route the next command anybody adds to `.none`,
+        /// which is the exact failure this function's shape exists to prevent (a menu item that
+        /// appears, does nothing, and explains nothing).
+        ///
+        /// So both halves stay **exhaustive over the whole enum** and return an optional instead.
+        /// Neither carries a `default:`, so a new command fails to compile in *both* places until
+        /// someone decides what it does — a slightly stronger guarantee than the single switch gave,
+        /// for the same reason it is now two functions. No rule is waived and no limit is raised.
         public static func operation(for command: MenuCommand) -> Operation {
+            boardOperation(for: command) ?? shellOperation(for: command)
+        }
+
+        /// The commands a board owns. M3's four, M4's one, M6's one.
+        ///
+        /// Each is a real operation rather than `.none`, which is what makes the menu bar the
+        /// complete command surface (§3.9) rather than a list of items the mouse duplicates.
+        private static func boardOperation(for command: MenuCommand) -> Operation? {
+            switch command {
+            case .addServer: .addServer
+            case .find: .focusSearch
+            case .resetServer: .resetSelectedServer
+            case .removeServer: .removeSelectedServer
+            case .addMarketplace: .showMarketplaces
+            case .pairPhone: .openPairing
+            case .selectDestination, .settings, .showSidebar, .about,
+                 .hide, .hideOthers, .showAll, .quit, .closeWindow,
+                 .undo, .redo, .cut, .copy, .paste, .selectAll,
+                 .minimise, .zoom, .bringAllToFront,
+                 .exportLibrary,
+                 .help, .whatTheRouterDoes, .reportIssue:
+                nil
+            }
+        }
+
+        /// The shell's own commands, and everything macOS performs for itself.
+        private static func shellOperation(for command: MenuCommand) -> Operation {
             switch command {
             case let .selectDestination(destination): .select(destination)
             // `⌘,` selects the Settings destination rather than opening a further view, which is why
@@ -71,18 +108,11 @@
             case .settings: .select(.settings)
             case .showSidebar: .toggleSidebar
             case .about: .aboutPanel
-            // M3's four and M4's one. Each is a real operation rather than `.none`, which is what
-            // makes the menu bar the complete command surface (§3.9) rather than a list of items
-            // the mouse duplicates.
-            case .addServer: .addServer
-            case .find: .focusSearch
-            case .resetServer: .resetSelectedServer
-            case .removeServer: .removeSelectedServer
-            case .addMarketplace: .showMarketplaces
-            case .hide, .hideOthers, .showAll, .quit, .closeWindow,
+            case .addServer, .find, .resetServer, .removeServer, .addMarketplace, .pairPhone,
+                 .hide, .hideOthers, .showAll, .quit, .closeWindow,
                  .undo, .redo, .cut, .copy, .paste, .selectAll,
                  .minimise, .zoom, .bringAllToFront,
-                 .pairPhone, .exportLibrary,
+                 .exportLibrary,
                  .help, .whatTheRouterDoes, .reportIssue:
                 .none
             }
@@ -114,6 +144,12 @@
                 model?.skillsBoard.sheet = .marketplaces
             case .resetSelectedServer, .removeSelectedServer:
                 performServerOperation(operation(for: command), on: model)
+            case .openPairing:
+                // Same rule as `addServer` and `showMarketplaces`: land on the board the sheet
+                // belongs to first, so it never opens over an unrelated pane. Pairing is reachable
+                // from the File menu from anywhere, which is what §3.9 asks for.
+                model?.select(.inbox)
+                model?.inboxBoard.pairing.open()
             case .none: break
             }
         }

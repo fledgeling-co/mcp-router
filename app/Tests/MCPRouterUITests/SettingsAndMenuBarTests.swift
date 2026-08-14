@@ -13,11 +13,13 @@
 
         /// A board that exists but is not registered still shows the user a placeholder, so this is
         /// the line between "the view compiles" and "the item shipped".
-        @Test("Settings has a board and no scaffold")
+        @Test("Settings has a board")
         func settingsIsInstalled() {
             #expect(BoardRegistry.installed.contains(.settings))
             #expect(BoardRegistry.hasBoard(.settings))
-            #expect(ScaffoldedDestination(.settings) == nil)
+            // The `ScaffoldedDestination(.settings) == nil` line that used to sit here went with the
+            // type, which M6 deleted when the last board landed. The complement below is what
+            // survives of it and is still capable of being false.
             #expect(!BoardRegistry.scaffolded.contains(.settings))
         }
 

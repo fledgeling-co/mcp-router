@@ -1,117 +1,59 @@
 #if os(macOS)
     import MCPRouterKit
-    import SwiftUI
 
-    /// Which destinations have a board, and which are still the shell's honest placeholder.
+    /// Which destinations have a board.
     ///
-    /// The orchestrator's condition on the scaffold copy was that it must not be able to survive
-    /// into a Release build of a shipped surface, preferably as something enforced rather than
-    /// promised. This is the enforcement, in three parts:
+    /// **Every destination now has one, and the placeholder this file was named for is gone.** M6
+    /// was the eighth and last board; `ScaffoldedDestination`, `ScaffoldCopy` and `ScaffoldPane` are
+    /// deleted rather than left registering an empty set, because
+    /// `scripts/acceptance/mac-shell.sh:952` requires the Release bundle **not** to contain the
+    /// placeholder sentence once `installed` covers every destination — and a compiled
+    /// `ScaffoldCopy.sentinel` *is* that sentence.
     ///
-    /// 1. **Structural.** `ScaffoldedDestination` is failable and refuses to exist for a destination
-    ///    in `installed`, so the placeholder cannot be constructed for a surface that has shipped —
-    ///    not "should not", cannot.
-    /// 2. **Tested.** `ShellIntegrationTests` asserts the two sets are exact complements in both
-    ///    directions, so shipping a board without retiring its scaffold fails, and so does the
-    ///    reverse.
-    /// 3. **In the binary.** `scripts/acceptance/mac-shell.sh` reads this list out of the source and
-    ///    requires the Release bundle to carry the scaffold copy **iff** the list is non-empty. When
-    ///    the last board lands, a Release build still containing the sentence fails the gate.
+    /// **Why this file survives with a name it no longer earns.** Four acceptance scripts read
+    /// `installed` out of this exact path — `mac-shell.sh`, `m2-activity.sh`, `m5-discover.sh` and
+    /// `m7-evals-cleanup.sh` — and `mac-shell.sh:884` additionally greps the sentinel out of it, and
+    /// *blocks* when it cannot find one. So deleting the file would not satisfy that gate; it would
+    /// stop it running. Renaming it means editing four other items' scripts inside this item's diff,
+    /// which the diff-scope rule forbids. The rename is registered as `D-m6-c` for whoever can move
+    /// the scripts in the same change.
     ///
-    /// M1 installs no boards, which is the whole point of it: the shell is the deliverable and the
-    /// seven boards are seven other items.
+    /// The sentence itself is recorded below **as a comment**, in the shape that grep matches.
+    /// A comment is not compiled, so the gate can still read the string it must search the bundle
+    /// for while the bundle no longer contains it — which is what lets the Release assertion be
+    /// *reached* rather than blocked. A `let` would put it straight back into the binary.
+    ///
+    ///     sentinel = "isn't built yet"
+    ///
     public enum BoardRegistry {
-        /// Destinations whose real surface is compiled into this build.
+        /// Destinations whose real surface is compiled into this build — now all of them.
         ///
-        /// M2–M8 each add exactly one entry here alongside the view that justifies it. This line is
-        /// the whole difference between a board that exists and a board the user can reach: without
-        /// it `ContentZone` still renders the placeholder, however complete the view is.
+        /// M2–M8 each added exactly one entry here alongside the view that justified it, and this
+        /// line rather than the view was the moment each item shipped: without it `ContentZone`
+        /// rendered a placeholder however complete the view was. M6's `.inbox` closes the set.
         ///
-        /// `.servers` is M3's (`ServersBoard`); `.skills` is M4's (`SkillsBoard`); `.activity` is
-        /// M2's (`ActivityBoard`); `.settings` is M8's (`SettingsBoard`); `.discover` is M5's
-        /// (`DiscoverBoard`); `.evals` and `.cleanup` are M7's (`EvalsBoard`, `CleanupBoard`).
-        ///
-        /// A board that exists but is not named here still shows the user a placeholder, which is
-        /// why this line rather than the view is the moment an item ships.
-        ///
-        /// **This declaration may now wrap**, and at seven members it has to: one line would be 124
-        /// characters against `.swiftformat`'s `--maxwidth 110`. The instruction that used to stand
-        /// here — keep it on one line — was load-bearing while
-        /// `scripts/acceptance/mac-shell.sh` read it with `head -1 | sed`, because a wrapped
-        /// collection left that `sed` no bracket pair to capture and the gate then reported zero
-        /// installed boards *and passed*. M7 replaced that reader with one that collects from `[` to
-        /// the matching `]` however many lines it spans, so the constraint is retired rather than
-        /// deferred again. Keep the two in step: a change to this shape wants the awk block checked.
+        /// **This declaration wraps**, and must keep doing so carefully: the reader in
+        /// `scripts/acceptance/board-registry.sh` collects from `[` to the matching `]` across any
+        /// number of lines, so a change to this shape wants that awk block checked. The comment
+        /// above sits deliberately **before** the declaration rather than between it and its
+        /// closing bracket, where a stray `[` would be swept into the collected line.
         public static let installed: Set<Destination> = [
-            .servers, .skills, .activity, .settings, .discover, .evals, .cleanup
+            .servers, .skills, .activity, .settings, .discover, .evals, .cleanup, .inbox
         ]
 
         public static func hasBoard(_ destination: Destination) -> Bool {
             installed.contains(destination)
         }
 
-        /// The destinations still showing the placeholder, in sidebar order.
+        /// The destinations still showing a placeholder, in sidebar order.
+        ///
+        /// Permanently empty now, and kept rather than deleted because it is what
+        /// `ShellIntegrationTests` asserts the complement against: a `Destination` added later and
+        /// forgotten here appears in this list, and that assertion fails. An empty computed property
+        /// is the cheapest possible tripwire for the one mistake this whole mechanism existed to
+        /// prevent.
         public static var scaffolded: [Destination] {
             Destination.ordered.filter { !hasBoard($0) }
-        }
-    }
-
-    /// Permission to render the placeholder, which only a destination without a board can obtain.
-    ///
-    /// A plain `Destination` parameter would let a future edit hand the scaffold a shipped surface
-    /// and nothing would object until someone noticed the sentence on screen. This makes that a
-    /// `nil` at the call site instead.
-    public struct ScaffoldedDestination: Equatable, Sendable {
-        public let destination: Destination
-
-        public init?(_ destination: Destination) {
-            guard !BoardRegistry.hasBoard(destination) else { return nil }
-            self.destination = destination
-        }
-    }
-
-    /// The copy the scaffold renders, held as data so the gate can read it out of source.
-    public enum ScaffoldCopy {
-        /// The sentence the Release gate greps for. Deliberately one literal, in one place.
-        public static let sentinel = "isn't built yet"
-
-        public static func title(for destination: Destination) -> String {
-            "\(destination.title) \(sentinel)"
-        }
-
-        /// Names what *is* here and what the missing part is waiting on, rather than apologising.
-        /// No action control: the thing that would fix this is another item shipping, which is not
-        /// something a button can do.
-        public static func detail(for destination: Destination) -> String {
-            """
-            This build ships the window, its menus and its keyboard. \
-            The \(destination.title.lowercased()) surface arrives with the item that owns it.
-            """
-        }
-    }
-
-    /// The honest per-destination placeholder.
-    struct ScaffoldPane: View {
-        let scaffolded: ScaffoldedDestination
-
-        private var destination: Destination { scaffolded.destination }
-
-        var body: some View {
-            VStack(spacing: MetricToken.selectionRadius.leadingScalar) {
-                IconView(Icon(rawValue: destination.iconName) ?? .conduit, size: TypeToken.title1.size)
-                    .foregroundStyle(ColorToken.t3.color)
-                Text(ScaffoldCopy.title(for: destination))
-                    .typeRole(.title3)
-                    .foregroundStyle(ColorToken.t1.color)
-                Text(ScaffoldCopy.detail(for: destination))
-                    .typeRole(.body)
-                    .foregroundStyle(ColorToken.t2.color)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: MetricToken.sidebar.leadingScalar * 2)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .accessibilityElement(children: .combine)
         }
     }
 #endif

@@ -129,7 +129,11 @@
             "app/Sources/MCPRouterUI/Shell/MenuBarRouter.swift",
             // Split out of ShellModel.swift to keep it under the 400-line limit — the limit was
             // met by splitting rather than raised, per this repo's own lesson from R2R.
-            "app/Sources/MCPRouterUI/Shell/ShellRestoration.swift"
+            "app/Sources/MCPRouterUI/Shell/ShellRestoration.swift",
+            // M6's factory. Enrolled here rather than merely added to the directory, because it is
+            // the file that decides whether a build may render a fixture — and a fixture reaching a
+            // Release build of *this* seam draws a QR code for an endpoint nothing is listening on.
+            "app/Sources/MCPRouterUI/Shell/ShellPairingFactory.swift"
         ]
 
         /// The board files, held separately because a completeness test pins `shellFiles` to the
@@ -142,6 +146,14 @@
         /// tempted past the control API than the window frame is, because it is the surface with
         /// data to show.
         static let boardFiles = [
+            // M6's inbox and pairing surfaces.
+            "app/Sources/MCPRouterUI/Boards/InboxBoard.swift",
+            "app/Sources/MCPRouterUI/Boards/InboxBoardRow.swift",
+            "app/Sources/MCPRouterUI/Boards/InboxBoardModel.swift",
+            "app/Sources/MCPRouterUI/Boards/InboxBoardMetrics.swift",
+            "app/Sources/MCPRouterUI/Boards/InboxReviewSheet.swift",
+            "app/Sources/MCPRouterUI/Boards/PairingSheet.swift",
+            "app/Sources/MCPRouterUI/Boards/PairingSessionModel.swift",
             "app/Sources/MCPRouterUI/Boards/ServersBoard.swift",
             "app/Sources/MCPRouterUI/Boards/ServersBoardRow.swift",
             "app/Sources/MCPRouterUI/Boards/ServersBoardBanners.swift",

@@ -1,0 +1,30 @@
+{
+  "results": [
+    {
+      "id": "authored:local-notes",
+      "name": "local-notes",
+      "displayName": "Local notes",
+      "description": "Reads and writes notes in a folder you choose.",
+      "source": "official",
+      "install": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@example/local-notes-mcp"]
+      }
+    },
+    {
+      "id": "authored:local-notes-long",
+      "name": "local-notes-long",
+      "displayName": "Local notes, scratch drafts, and everything else in that one folder",
+      "description": "Reads and writes notes in a folder you choose.",
+      "source": "official",
+      "install": {
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@example/local-notes-mcp"]
+      }
+    }
+  ],
+  "sources": { "official": 2, "smithery": 0, "merged": 2 },
+  "warnings": []
+}

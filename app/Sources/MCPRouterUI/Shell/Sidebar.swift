@@ -238,6 +238,9 @@
             return switch source {
             case .serversNeedingAttention: "\(destination.title), \(badge) need attention"
             case .serversNeverUsed: "\(destination.title), \(badge) never used"
+            // Spoken as what it counts, like the other two. "Inbox, 2" would make a reader ask
+            // two of what, on the one row whose number is about something a person sent them.
+            case .queuedFromPhone: "\(destination.title), \(badge) waiting from your phone"
             }
         }
     }

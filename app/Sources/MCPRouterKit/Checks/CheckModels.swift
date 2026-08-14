@@ -129,7 +129,8 @@ public struct SubjectKey: Codable, Hashable, Sendable {
 /// A fingerprint a result can be stamped against.
 ///
 /// **Failable on purpose, and this is the whole of the "no result without a version" rule.** The
-/// same device `ScaffoldedDestination` uses: a subject with no live fingerprint has no `Stamp` to
+/// same device `AcceptableInboxItem` uses (and `ScaffoldedDestination` used before M6 retired it):
+/// a subject with no live fingerprint has no `Stamp` to
 /// hand the store, so the refusal is a type rather than a rule a caller has to remember. A
 /// `.standalone` skill has no version field anywhere in `SkillSource` — M4 modelled it as a closed
 /// enum whose standalone case carries only a path — and a server that has never been declared has no

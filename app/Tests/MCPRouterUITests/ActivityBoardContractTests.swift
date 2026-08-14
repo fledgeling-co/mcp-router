@@ -179,29 +179,28 @@
 
         @Test("this build installs Activity alongside the boards already shipped")
         func registryIsTheShippedSet() {
-            // M2's own half first: the board is registered, not merely written. A board that
-            // compiles but is absent from `installed` still shows the reader a placeholder.
+            // M2's own half first: the board is registered, not merely written.
             #expect(BoardRegistry.hasBoard(.activity))
-            #expect(ScaffoldedDestination(.activity) == nil, "the placeholder cannot be built for it")
 
-            // This read `installed == [.activity]` while M2 was the only board on the branch. M3
-            // then merged, M4 after it, M8 after that, M5 after that, and M7 after that — asserted
-            // exactly rather than by containment, so a board appearing or vanishing here is a
-            // deliberate edit rather than something a subset check waves through.
+            // Asserted exactly rather than by containment, so a board appearing or vanishing here is
+            // a deliberate edit rather than something a subset check waves through. M3 merged after
+            // M2, then M4, M8, M5, M7, and finally M6 — which closed the set.
             #expect(
                 BoardRegistry.installed
-                    == [.servers, .activity, .skills, .settings, .discover, .evals, .cleanup]
+                    == [.servers, .activity, .skills, .settings, .discover, .evals, .cleanup, .inbox]
             )
-            #expect(BoardRegistry.scaffolded.count == 1)
-            // `.inbox`, and after M7 it is the *only* destination this assertion can name: Evals and
-            // Cleanup were the last two besides it, so `ScaffoldedDestination` now returns nil for
-            // every other case. That is exactly what this test proved about `.skills` before M4 and
-            // `.discover` before M5. The subject has to be a destination that is *still* scaffolded,
-            // or this stops testing what it names. Repointing it is the designed action each time a
-            // board lands; renumbering the count alone would leave it asserting that a shipped board
-            // still builds a placeholder, which is the opposite of the invariant. When M6 lands,
-            // this assertion has no valid subject left and should be deleted rather than repointed.
-            #expect(ScaffoldedDestination(.inbox) != nil, "a scaffolded destination still builds one")
+            #expect(BoardRegistry.scaffolded.isEmpty)
+
+            // **The assertion that used to live here has been deleted rather than repointed, as its
+            // own comment instructed.** It read `ScaffoldedDestination(.inbox) != nil` — "a
+            // scaffolded destination still builds one" — and it was repointed at each board landing:
+            // `.skills` before M4, `.discover` before M5, `.inbox` after M7. M6 installed the last
+            // one, so there is no destination left that can be its subject, and the type it named no
+            // longer exists. Keeping it green against a destination that *has* a board would have
+            // asserted the opposite of the invariant. What replaced it is
+            // `ShellIntegrationTests.placeholderIsNotReintroduced`, which tests the thing that can
+            // still go wrong: the sentence coming back.
+            #expect(Destination.allCases.allSatisfy(BoardRegistry.hasBoard))
         }
     }
 #endif

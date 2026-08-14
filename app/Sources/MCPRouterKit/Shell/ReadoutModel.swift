@@ -203,14 +203,21 @@ public extension Destination {
     ///
     /// Three rules, each one a clause. **`nil` servers means `nil` badge** — when the router is not
     /// running there is no observation, and a zero would be one (A18). **A destination with no
-    /// `badgeSource` never gets a count**, whatever a caller passes, which is what keeps Skills and
-    /// Inbox bare (A13). And **zero renders no badge at all**: an empty badge is noise, not
-    /// information, and every row would carry one.
+    /// `badgeSource` never gets a count**, whatever a caller passes, which is what keeps Skills bare
+    /// (A13). And **zero renders no badge at all**: an empty badge is noise, not information, and
+    /// every row would carry one.
+    ///
+    /// **`.queuedFromPhone` returns nil here, and that is the point rather than an omission.** The
+    /// inbox queue is held by the app, not served on `MCPServer`, so there is nothing in `servers`
+    /// from which to derive it — and deriving it from an unrelated array is exactly the fabrication
+    /// this function exists to prevent. `ShellModel.badge(for:)` routes that case to
+    /// `InboxBoardModel.waitingCount`, which counts the same rows the list renders.
     func badgeCount(from servers: [MCPServer]?) -> Int? {
         guard let badgeSource, let servers else { return nil }
         let count = switch badgeSource {
         case .serversNeedingAttention: servers.filter(\.needsAttention).count
         case .serversNeverUsed: servers.filter(\.neverUsed).count
+        case .queuedFromPhone: 0
         }
         return count > 0 ? count : nil
     }

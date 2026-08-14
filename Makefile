@@ -224,6 +224,7 @@ mutation:
 acceptance: build-mac build-mac-release
 	./scripts/acceptance/shells.sh
 	./scripts/acceptance/control-client.sh
+	./scripts/acceptance/mac-shell.sh
 
 lint: tools
 	swiftformat --lint . --config .swiftformat

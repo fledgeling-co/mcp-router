@@ -159,28 +159,28 @@ public enum MenuCommand: Hashable, Sendable {
         case .about: "About MCP Router"
         case .settings: "Settings"
         case .hide: "Hide MCP Router"
-        case .hideOthers: "Hide others"
-        case .showAll: "Show all"
+        case .hideOthers: "Hide Others"
+        case .showAll: "Show All"
         case .quit: "Quit MCP Router"
         case .addServer: "Add server…"
         case .addMarketplace: "Add marketplace…"
         case .pairPhone: "Pair iPhone…"
         case .exportLibrary: "Export library…"
-        case .closeWindow: "Close window"
+        case .closeWindow: "Close"
         case .undo: "Undo"
         case .redo: "Redo"
         case .cut: "Cut"
         case .copy: "Copy"
         case .paste: "Paste"
-        case .selectAll: "Select all"
+        case .selectAll: "Select All"
         case .find: "Find"
         case .resetServer: "Reset server"
         case .removeServer: "Remove server"
         case let .selectDestination(destination): destination.title
         case .showSidebar: "Show sidebar"
-        case .minimise: "Minimise"
+        case .minimise: "Minimize"
         case .zoom: "Zoom"
-        case .bringAllToFront: "Bring all to front"
+        case .bringAllToFront: "Bring All to Front"
         case .help: "MCP Router help"
         case .whatTheRouterDoes: "What the router actually does"
         case .reportIssue: "Report an issue"
@@ -192,6 +192,40 @@ public enum MenuCommand: Hashable, Sendable {
     /// Derived from the title rather than stored beside it, so the two cannot disagree — a stored
     /// flag and a title ending in an ellipsis are two places to say one thing.
     public var opensAFurtherView: Bool { title.hasSuffix("…") }
+
+    /// Whether **macOS** puts this item in the menu bar rather than the app declaring it.
+    ///
+    /// Fourteen of the thirty-three are the system's. The app does not build them, cannot rename
+    /// them, and re-declaring one would produce two items that do the same thing under two
+    /// spellings. They are in this inventory because they are genuinely in the menu bar and §3.9
+    /// makes it the complete command surface — but the acceptance walk needs to know which are the
+    /// app's, because "the menu bar carries exactly the inventory" is only checkable in both
+    /// directions over the items the app is responsible for.
+    ///
+    /// This is also why six of the titles above are title case against `DESIGN.md` §6's sentence
+    /// case: they are the kit's own strings, measured from the running menu bar — `Hide Others`,
+    /// `Show All`, `Select All`, `Minimize`, `Bring All to Front`, `Close`. `DESIGN.md`'s own
+    /// precedence rule settles it: where the document and the macOS kit disagree, the kit wins.
+    public var isSystemProvided: Bool {
+        switch self {
+        case .hide, .hideOthers, .showAll, .quit,
+             .closeWindow,
+             .undo, .redo, .cut, .copy, .paste, .selectAll,
+             .minimise, .zoom, .bringAllToFront:
+            true
+        case .about, .settings,
+             .addServer, .addMarketplace, .pairPhone, .exportLibrary,
+             .find, .resetServer, .removeServer,
+             .selectDestination, .showSidebar,
+             .help, .whatTheRouterDoes, .reportIssue:
+            false
+        }
+    }
+
+    /// The commands the app itself builds, which is what A19 compares in both directions.
+    public static var appDeclared: [MenuCommand] {
+        allCases.filter { !$0.isSystemProvided }
+    }
 
     public var shortcut: KeyChord? {
         switch self {
@@ -216,9 +250,14 @@ public enum MenuCommand: Hashable, Sendable {
             destination.selectionDigit.map { KeyChord("\($0)") }
         case .showSidebar: KeyChord("S", [.command, .control])
         case .minimise: KeyChord("M")
-        case .help: KeyChord("?")
+        // `MCP Router help` deliberately carries **no** shortcut, and this is measured rather
+        // than assumed. `DESIGN.md` §8 never asked for one; an earlier draft of the inventory
+        // invented `⌘?`, which is `⇧⌘/` on every layout macOS ships and is **reserved by the
+        // system** for the Help menu's own search field — it silently binds nothing. Verified by
+        // binding `⌘J` to this same item in this same menu, which appeared immediately, so the
+        // Help menu does not strip shortcuts and `⇧⌘/` specifically is unavailable.
         case .about, .showAll, .pairPhone, .zoom, .bringAllToFront,
-             .whatTheRouterDoes, .reportIssue: nil
+             .help, .whatTheRouterDoes, .reportIssue: nil
         }
     }
 

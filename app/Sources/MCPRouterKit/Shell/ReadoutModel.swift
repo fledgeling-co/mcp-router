@@ -32,6 +32,12 @@ public struct ReadoutModel: Equatable, Sendable {
     public private(set) var running: Int?
     /// Servers declared, from the same response.
     public private(set) var declared: Int?
+    /// Declared servers whose tool surface could not be read — `MCPServer.indexError` is set.
+    ///
+    /// This is what makes `DESIGN.md` §5's Partial state real rather than decorative: the router
+    /// tells us which servers failed to index and why, so the readout can say what arrived and
+    /// what did not instead of presenting a short list as a complete one.
+    public private(set) var notIndexed: Int?
     /// The samples still inside the window, oldest first.
     public private(set) var samples: [Sample]
     /// The condition replacing the counts, when the last poll failed.
@@ -40,11 +46,13 @@ public struct ReadoutModel: Equatable, Sendable {
     public init(
         running: Int? = nil,
         declared: Int? = nil,
+        notIndexed: Int? = nil,
         samples: [Sample] = [],
         failure: ControlAPIError? = nil
     ) {
         self.running = running
         self.declared = declared
+        self.notIndexed = notIndexed
         self.samples = samples
         self.failure = failure
     }
@@ -60,6 +68,7 @@ public struct ReadoutModel: Equatable, Sendable {
         return ReadoutModel(
             running: live,
             declared: response.servers.count,
+            notIndexed: response.servers.filter { $0.indexError != nil }.count,
             samples: Self.evicting(samples + [Sample(at: now, running: live)], at: now),
             failure: nil
         )
@@ -77,6 +86,7 @@ public struct ReadoutModel: Equatable, Sendable {
         ReadoutModel(
             running: nil,
             declared: nil,
+            notIndexed: nil,
             samples: Self.evicting(samples, at: now),
             failure: error
         )
@@ -132,5 +142,65 @@ public struct ReadoutModel: Equatable, Sendable {
                 y: Double(sample.running) / Double(peak)
             )
         }
+    }
+}
+
+// MARK: - The state the readout is in
+
+/// Which of `DESIGN.md` §5's states the readout is rendering, as a value the view switches over.
+///
+/// A view that reconstructs this from three optionals gets it subtly wrong the first time someone
+/// adds a fourth — "no counts" and "no answer yet" are different conditions with different copy,
+/// and the difference between them is the whole of A18. Deriving it once, here, means the test can
+/// drive the boundary and the view holds no logic to disagree with.
+public enum ReadoutState: Equatable, Sendable {
+    /// No answer has arrived yet. The skeleton renders — never a spinner (§5).
+    case loading
+    /// The router answered and declares nothing.
+    case empty
+    /// The router answered and some servers could not be indexed. `DESIGN.md` §5's Partial: say
+    /// what arrived and what did not.
+    case partial(running: Int, declared: Int, notIndexed: Int)
+    /// The router answered and everything it declares was read.
+    case populated(running: Int, declared: Int)
+    /// The last poll failed. The condition's own copy renders, verbatim.
+    case failed(ControlAPIError)
+}
+
+public extension ReadoutModel {
+    /// The state this model puts the readout in.
+    ///
+    /// Order matters and is deliberate: a failure outranks stale counts, because the counts have
+    /// already been cleared to `nil` by `applying(_ error:)` and rendering them would present an
+    /// observation nobody made. `loading` is last among the count-free cases precisely because it
+    /// is the *absence* of both an answer and a failure.
+    var state: ReadoutState {
+        if let failure { return .failed(failure) }
+        guard let running, let declared else { return .loading }
+        if declared == 0 { return .empty }
+        if let notIndexed, notIndexed > 0 {
+            return .partial(running: running, declared: declared, notIndexed: notIndexed)
+        }
+        return .populated(running: running, declared: declared)
+    }
+}
+
+// MARK: - Badges
+
+public extension Destination {
+    /// This destination's badge count, from what the router served.
+    ///
+    /// Three rules, each one a clause. **`nil` servers means `nil` badge** — when the router is not
+    /// running there is no observation, and a zero would be one (A18). **A destination with no
+    /// `badgeSource` never gets a count**, whatever a caller passes, which is what keeps Skills and
+    /// Inbox bare (A13). And **zero renders no badge at all**: an empty badge is noise, not
+    /// information, and every row would carry one.
+    func badgeCount(from servers: [MCPServer]?) -> Int? {
+        guard let badgeSource, let servers else { return nil }
+        let count = switch badgeSource {
+        case .serversNeedingAttention: servers.filter(\.needsAttention).count
+        case .serversNeverUsed: servers.filter(\.neverUsed).count
+        }
+        return count > 0 ? count : nil
     }
 }

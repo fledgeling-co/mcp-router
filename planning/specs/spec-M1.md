@@ -43,20 +43,20 @@ in the menu bar and missing here.
 | MCP Router | About MCP Router | — | enabled |
 | MCP Router | Settings | ⌘, | enabled |
 | MCP Router | Hide MCP Router | ⌘H | enabled |
-| MCP Router | Hide others | ⌥⌘H | enabled |
-| MCP Router | Show all | — | enabled |
+| MCP Router | Hide Others | ⌥⌘H | enabled |
+| MCP Router | Show All | — | enabled |
 | MCP Router | Quit MCP Router | ⌘Q | enabled |
 | File | Add server… | ⌘N | surfaceAbsent |
 | File | Add marketplace… | ⇧⌘N | surfaceAbsent |
 | File | Pair iPhone… | — | surfaceAbsent |
 | File | Export library… | ⌘E | surfaceAbsent |
-| File | Close window | ⌘W | enabled |
+| File | Close | ⌘W | enabled |
 | Edit | Undo | ⌘Z | enabled |
 | Edit | Redo | ⇧⌘Z | enabled |
 | Edit | Cut | ⌘X | enabled |
 | Edit | Copy | ⌘C | enabled |
 | Edit | Paste | ⌘V | enabled |
-| Edit | Select all | ⌘A | enabled |
+| Edit | Select All | ⌘A | enabled |
 | Edit | Find | ⌘F | surfaceAbsent |
 | Edit | Reset server | ⌘R | surfaceAbsent |
 | Edit | Remove server | ⌘⌫ | surfaceAbsent |
@@ -68,19 +68,34 @@ in the menu bar and missing here.
 | View | Evals | ⌘6 | enabled |
 | View | Cleanup | ⌘7 | enabled |
 | View | Show sidebar | ⌃⌘S | enabled |
-| Window | Minimise | ⌘M | enabled |
+| Window | Minimize | ⌘M | enabled |
 | Window | Zoom | — | enabled |
-| Window | Bring all to front | — | enabled |
-| Help | MCP Router help | ⌘? | enabled |
+| Window | Bring All to Front | — | enabled |
+| Help | MCP Router help | — | enabled |
 | Help | What the router actually does | — | enabled |
 | Help | Report an issue | — | enabled |
 
 One row per command, deliberately: a compound row ("Cut / Copy / Paste") cannot be parsed
 unambiguously, and an oracle a test has to guess at is not an oracle. `MenuCommandTests` parses
 this table out of this file and compares it against `MenuCommand.allCases` in **both**
-directions. The Window menu additionally lists the app's open windows — including the Debug-only
-design gallery — which is macOS contributing entries rather than the app declaring commands; the
-test excludes system-contributed window entries by name rather than by tolerance.
+directions.
+
+**Six titles here are title case against `DESIGN.md` §6, and that is the kit winning.** `Hide
+Others`, `Show All`, `Close`, `Select All`, `Minimize` and `Bring All to Front` are items **macOS
+contributes itself** — the app does not build them and cannot rename them. The strings above were
+measured from the running menu bar rather than guessed, and `DESIGN.md`'s own precedence rule
+settles the conflict: where the document and the macOS 27 kit disagree, the kit wins. Writing
+`Minimise` here would have produced an inventory that can never match the menu bar it describes.
+
+**Fourteen of the thirty-three are the system's**, marked by `MenuCommand.isSystemProvided`. That
+matters for how A19 is checkable: macOS also contributes items this inventory does **not** list —
+Services, Close All, Delete, Writing Tools, AutoFill, Start Dictation, Emoji & Symbols, Show Tab
+Bar, Show All Tabs, Enter Full Screen, Minimize All, Zoom All, Fill, Center, Move & Resize, Full
+Screen Tile, Remove Window from Set, Arrange in Front, the tab commands, the Window menu's list of
+open windows (including the Debug-only design gallery), and the whole Apple menu. All of those
+were enumerated from the running app. So A19's two directions are asymmetric on purpose:
+*completeness* is checked over the whole inventory, and *no extras* is checked over the commands
+the **app declares**, with the system's contributions excluded by name rather than by tolerance.
 
 `…` marks a command that opens a further view; its absence means the command commits now
 (§3.4). Two disabled reasons exist and no third may be invented at a call site:
@@ -104,7 +119,7 @@ launched and driven through the accessibility tree, which is the lane
 | A1 | The window is a three-zone shell whose titlebar, unified toolbar and sidebar measure **33 / 52 / 256**, and each rendered measurement is asserted **against `MetricToken`'s own value** rather than against a copied number — so changing the token moves the assertion | measurement of rendered frames compared to `MetricToken.titlebar/.unifiedToolbar/.sidebar`, plus A3's gate proving no literal was written |
 | A2 | Sidebar selection is a **flat inset rounded fill** at `selectionRadius` / `selectionInset` with accent text — never a full-bleed bar (§3.1) | measurement against the tokens + red-green test |
 | A3 | No file added by this item writes a raw colour, size, radius or font size. The gate scans `MCPRouterUI`, `app/MCPRouter` and `app/MCPRouterIOS`; anything this item adds to `MCPRouterKit` is **data only** and renders nothing, which is asserted separately by the kit's no-UI-import rule | `no-raw-design-values.sh`, extended with the sidebar-row check in A4 |
-| A4 | The sidebar row height is `MetricToken.tableRows` — the documented 24pt dense-list row — and is **not** a literal and **not** a repurposed inset. M1 uses exactly one row size | red-green test asserting the rendered row height equals the token |
+| A4 | The sidebar row's **content frame** is `MetricToken.tableRows` — not a literal and not a repurposed inset — and every destination row renders at **one** height, which is one of `DESIGN.md` §2's documented sidebar row sizes (`rows 24/32/40`), parsed out of the document. The rendered 32 is AppKit's own sidebar inset around a 24pt content frame, not a number this item chose | red-green test that the content frame reads the token + exercised AX measurement that all destination rows share one height and that it is in §2's documented set |
 | A5 | Both appearances render: every token the shell uses resolves to its authored light value under a light appearance and its dark value under dark, and light is never an inversion (§2) | red-green test over the shell's token set in both appearances + a rendered light-appearance pixel sample |
 | A6 | The four indicator colours are used **only** for their stated meanings. Nothing in the shell is accent, live, attention or fail decoratively (§2) | red-green test enumerating every indicator-coloured element in the shell and its justification, failing on an unclassified use |
 | A7 | Every string the shell renders takes a role from the eight-role ladder, and monospace appears **only** on instrument data — counts, durations, the loopback address — never on prose (§2) | red-green test over the shell's type roles |

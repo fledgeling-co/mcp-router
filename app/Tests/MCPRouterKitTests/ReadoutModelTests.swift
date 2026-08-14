@@ -174,13 +174,20 @@ struct ReadoutModelTests {
     /// There is deliberately nothing in `ReadoutModel` from which a memory saving could be
     /// computed. This asserts the absence, because the failure mode is someone adding the field
     /// later and it looking reasonable.
+    ///
+    /// The allow-list is exhaustive rather than a substring filter, and it earned that when
+    /// `notIndexed` was added for §5's Partial state: this test went red on a field that turned out
+    /// to be legitimate, which is the behaviour that makes it worth having. Every name below traces
+    /// to something the router serves — `running` and `declared` to `/servers`, `notIndexed` to
+    /// `MCPServer.indexError`, `samples` to the app's own timestamped record of those polls, and
+    /// `failure` to the typed error. A field that cannot be traced that way does not belong here.
     @Test("the model exposes no figure the router does not measure")
     func noFabricatedMetricExists() async throws {
         let model = try await ReadoutModel().applying(Self.response(running: 3, declared: 8), at: Self.t0)
         let mirror = Mirror(reflecting: model)
         let fields = Set(mirror.children.compactMap(\.label))
         #expect(
-            fields == ["running", "declared", "samples", "failure"],
+            fields == ["running", "declared", "notIndexed", "samples", "failure"],
             "an unexpected field appeared: \(fields)"
         )
 

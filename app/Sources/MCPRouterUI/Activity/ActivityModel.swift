@@ -103,15 +103,26 @@
         /// de-duplicates by id. Replacing would silently drop every call made during the request.
         public func load() async {
             requestCount += 1
+            // **Only the newest request may write.** `isReconnecting` serialises reconnects against
+            // each other and against nothing else, and `start()` does not consult it — so a board
+            // whose stream endpoint refuses quickly shows the disconnected banner while the first
+            // `GET /usage` is still outstanding, and a reader who taps Reconnect then has two
+            // requests in flight. Whichever *returned* second used to win, so an older window could
+            // land on top of a newer one and roll the log backwards, and `merge` would run its
+            // provenance check against the wrong response.
+            loadGeneration += 1
+            let generation = loadGeneration
             do {
                 let response = try await client.usage(
                     limit: ActivityRecords.capacity,
                     server: nil,
                     cwd: nil
                 )
+                guard generation == loadGeneration else { return }
                 records = merge(response)
                 failure = nil
             } catch {
+                guard generation == loadGeneration else { return }
                 // A failed reload does not discard a history that did load, and does not discard a
                 // stream that is delivering. The board keeps what it has and names the part that is
                 // missing; throwing the rows away would lose the half that arrived, which is the
@@ -119,6 +130,23 @@
                 failure = error
             }
             dropSelectionIfHidden()
+        }
+
+        /// Which `load()` is allowed to write. Bumped on entry; a response whose generation is stale
+        /// is discarded rather than merged.
+        @ObservationIgnored private var loadGeneration = 0
+
+        /// Compares two router timestamps, parsed where they parse.
+        ///
+        /// The string fallback is not a shrug: both values come from the same endpoint family in the
+        /// same fixed format, so lexicographic order is the correct order for them — and a parse
+        /// that fails on a format this version does not know should not silently answer "not newer",
+        /// which would quietly drop a live record.
+        static func isNewer(_ lhs: String, than rhs: String) -> Bool {
+            if let left = lhs.asControlAPIDate, let right = rhs.asControlAPIDate {
+                return left > right
+            }
+            return lhs > rhs
         }
 
         /// Merges a fresh response into whatever is already held, newest first.
@@ -164,18 +192,49 @@
             // second is ordinary: `start()` runs both halves concurrently, so on a busy router a
             // record routinely arrives before `GET /usage` comes back. Discarding it there is the
             // exact defect B23 exists to prevent.
-            let arrivedSince = held.records.filter {
-                streamArrivals.contains($0.id) && !returned.contains($0.id)
+            // **Provenance says which records *could* be newer; the timestamp says which are.**
+            //
+            // Provenance alone was not enough, and the gap is a real defect rather than a nicety.
+            // "Held, delivered by the feed, and absent from this response" covers two opposite
+            // situations: a record that arrived *after* the snapshot was taken (newer — must stay)
+            // and one that rolled *out of the router's ring* while the board held it (older — must
+            // go). Promoting the second put a stale call at row 0 of a newest-first log, where
+            // `newestTimestamp` reads it and the feed banner announces it as the newest call held.
+            //
+            // The earlier comment here refused to compare timestamps, on the grounds that "the wire
+            // promises no total order across the two sources". That is too cautious about this
+            // particular pair: `GET /usage` and `GET /usage/stream` report the *same* `CallRecord`s,
+            // stamped by the one router process, so `ts` is comparable between them. What is not
+            // comparable is a timestamp against this machine's clock, which nothing here does.
+            //
+            // A response carrying no records leaves nothing to be newer than, so everything the feed
+            // delivered stands.
+            let newestReturned = response.records.first?.ts
+            let arrivedSince = held.records.filter { record in
+                guard streamArrivals.contains(record.id), !returned.contains(record.id) else {
+                    return false
+                }
+                guard let newestReturned else { return true }
+                return Self.isNewer(record.ts, than: newestReturned)
             }
             let merged = ActivityRecords(
                 records: arrivedSince + response.records,
                 since: response.since
             )
-            // Everything this response carried is now accounted for, and anything truncation
-            // dropped is no longer held — so neither is still "waiting for a response to explain
-            // it". Pruning here is what keeps the set bounded by the window rather than by uptime.
-            let kept = Set(merged.records.map(\.id))
-            streamArrivals = streamArrivals.subtracting(returned).intersection(kept)
+            // **Emptied, not pruned, and the difference is a defect.** This read
+            // `subtracting(returned).intersection(kept)`, which keeps exactly the ids `arrivedSince`
+            // just promoted — they are in `kept` and, by construction, not in `returned`. So the set
+            // came to mean "delivered by the feed and never seen in *any* response" rather than
+            // "since the last response landed", and a record that had rolled out of the router's
+            // ring was promoted to row 0 of a newest-first log, then promoted again by every
+            // subsequent reload, for the life of the board. `newestTimestamp` reads index 0, so the
+            // feed banner went on to name that stale moment as the newest call the board holds.
+            //
+            // A record's provenance relative to *this* response says nothing about its relation to
+            // the *next* one — which is the same blind spot that retired the positional reading, one
+            // merge later. After a response lands, everything held is either in it or is older than
+            // it, so nothing is still waiting to be explained.
+            streamArrivals = []
             return merged
         }
 
@@ -228,10 +287,41 @@
         /// `start()`'s own cancellation handler cancels the task **it** installed, which is not
         /// enough on its own: a reconnect replaces the slot, and that replacement is awaited by
         /// nothing, so a reader who presses Reconnect and then navigates away would leave a feed
-        /// running behind a board that is gone. The board pairs this with its `.task`.
+        /// running behind a board that is gone.
         public func stopFeed() {
             feed?.cancel()
             feed = nil
+            // The phase described a subscription that no longer exists. Left set, a board rebuilt on
+            // the next visit renders "live" in its subtitle over a feed that has not connected yet —
+            // a claim about the router made entirely inside the app.
+            phase = nil
+        }
+
+        /// Which board currently owns this model, and whether one does at all.
+        ///
+        /// The model outlives the view: `ShellModel` holds it as a stored lazy so the log survives a
+        /// destination switch, while `ContentZone` rebuilds `ActivityBoard` on every switch. A bare
+        /// `stopFeed()` from `.onDisappear` therefore has no idea *which* board is asking, and
+        /// SwiftUI does not promise that an outgoing view's `.onDisappear` runs before an incoming
+        /// view's `.task`. If it runs second, an unguarded teardown cancels the feed the new board
+        /// just started and nothing re-arms it: a full list, no live feed, and — before `stopFeed`
+        /// also cleared it — a subtitle still reading "live".
+        @ObservationIgnored private var session = 0
+        @ObservationIgnored private var isAttached = false
+
+        /// Claims the model for a board that is appearing, and returns the token it must hand back.
+        @discardableResult
+        public func beginSession() -> Int {
+            session += 1
+            isAttached = true
+            return session
+        }
+
+        /// Releases the model, ignoring a token that a superseded board is holding.
+        public func endSession(_ token: Int) {
+            guard token == session else { return }
+            isAttached = false
+            stopFeed()
         }
 
         /// Consume the live feed until the task is cancelled or the stream gives up.
@@ -272,6 +362,12 @@
         /// leave a hole the board could not see and would not mention.
         public func reconnect() async {
             guard !isReconnecting else { return }
+            // The board this was pressed on may already be gone: `FeedBanner` runs the action in an
+            // unstructured `Task`, so a reader who presses Reconnect and immediately switches
+            // destination leaves it to resume after `endSession` has torn the feed down. Installing
+            // a subscription then would put a live feed behind a board nobody is looking at, which
+            // is the thing the teardown had just prevented.
+            guard isAttached else { return }
             isReconnecting = true
             defer { isReconnecting = false }
             // **The subscription is started, not awaited, and that is the whole fix.** This read
@@ -316,6 +412,16 @@
             }
             let inserted = held.prepend(record)
             records = held
+            // **Bounded by the window, not by uptime.** `merge` empties this set, but a board whose
+            // feed never drops never merges again — `load()` is reached only from `start()` and
+            // `reconnect()` — so on a long-lived healthy board this would otherwise take one id per
+            // call for as long as the app is open. Only ids still in the window can ever be read
+            // from it, and `prepend` evicts at capacity, so re-deriving against what is actually
+            // held is both correct and a hard ceiling. Done on the threshold rather than per record
+            // because the intersection is O(n) and this runs on every arriving call.
+            if streamArrivals.count > ActivityRecords.capacity {
+                streamArrivals.formIntersection(held.records.map(\.id))
+            }
             if inserted {
                 // The reason this is here and not only in `filter.didSet`: the window rolls. A
                 // record arriving at capacity drops the oldest, and the option the reader filtered

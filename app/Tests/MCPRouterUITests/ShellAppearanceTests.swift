@@ -160,6 +160,15 @@
                     !source.contains(".transition(.opacity"),
                     "\(file) names the fade explicitly as its entry transition"
                 )
+                // And the spelling that survives every check above: a transform combined *with* an
+                // opacity fade. The named helper is still there and its own definition is untouched,
+                // so nothing else in this suite would notice.
+                for line in source.split(separator: "\n") where line.contains(".transition(") {
+                    #expect(
+                        !line.contains("opacity"),
+                        "\(file) combines opacity into an entry transition: \(line.trimmingCharacters(in: .whitespaces))"
+                    )
+                }
             }
         }
 
@@ -171,8 +180,17 @@
         /// exactly what `ActivityBoard` did, under a comment asserting it did not.
         ///
         /// So the rule is stated positively: a file that animates a collection must say how its
-        /// members enter. Passing by declaring `.transition(.opacity)` is closed off by the
-        /// assertion above.
+        /// members enter. Passing by declaring `.transition(.opacity)` — or by combining opacity
+        /// into a transform — is closed off by the assertions above.
+        ///
+        /// **What this does not reach, stated rather than left to be discovered.** The
+        /// `.animation(` precondition is an opt-out: a file that animates its list from *outside*
+        /// itself, by moving the modifier to a parent or by wrapping the mutation in
+        /// `withAnimation`, is skipped entirely while its rows still animate. Two files are skipped
+        /// on that basis today — `ActivityFilterBar.swift` and `ActivityRow.swift`, neither of which
+        /// animates a list. Closing it properly needs a Swift parse rather than a grep, and the
+        /// per-board assertion in `ActivityBoardRulesTests` is what actually holds the shipped
+        /// board's row to its transition.
         ///
         /// One exemption, named rather than pattern-matched, and its reason is asserted below so it
         /// cannot quietly stop being true.

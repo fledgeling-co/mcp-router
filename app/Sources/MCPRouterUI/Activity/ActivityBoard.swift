@@ -14,6 +14,9 @@
         @Environment(\.accessibilityReduceMotion) private var reduceMotion
         @FocusState private var isListFocused: Bool
 
+        /// This board instance's claim on the shared model. See the `.task` below.
+        @State private var session = 0
+
         /// Reports the list's scroll geometry to the shell, so the scroll-edge separator behaves
         /// the same over a board as it does over the placeholder.
         private let onScroll: ((Double, Double) -> Void)?
@@ -45,10 +48,14 @@
             // Scoped to this board. Leaving Activity cancels both, so no socket is held open behind
             // a surface nobody is looking at, and coming back re-reads rather than showing a list
             // that stopped updating while it was away.
-            .task { await model.start() }
-            // Paired with the `.task` because a reconnect installs a subscription that the `.task`
-            // does not own — see `ActivityModel.stopFeed()`.
-            .onDisappear { model.stopFeed() }
+            .task {
+                // The token is this board instance's own `@State`, which is what makes the teardown
+                // below safe: a superseded board hands back a number the model has moved past, and
+                // the model ignores it rather than cancelling the feed its replacement just started.
+                session = model.beginSession()
+                await model.start()
+            }
+            .onDisappear { model.endSession(session) }
         }
 
         // MARK: - The board's own column
@@ -252,8 +259,16 @@
     /// The partial state's banner: adjacent to the list, never replacing it.
     struct FeedBanner: View {
         let message: StateMessage
-        /// `async`, so the reconnect runs in the button's own task rather than in an unstructured
-        /// `Task { }` that outlives the board it was pressed on.
+        /// `async` so the work is awaited rather than fired and forgotten.
+        ///
+        /// This comment used to claim the reconnect "runs in the button's own task rather than in an
+        /// unstructured `Task { }` that outlives the board it was pressed on", directly above a
+        /// `Button` whose action is an unstructured `Task { }`. SwiftUI's `Button` action is
+        /// synchronous, so there is no button task to run it in — the `Task` is unavoidable here,
+        /// and it genuinely can outlive this view. What makes that safe is on the model instead:
+        /// `reconnect()` refuses to install a subscription once `endSession` has detached the model,
+        /// so a press followed immediately by a destination switch does nothing rather than leaving
+        /// a feed running behind a board that is gone.
         let reconnect: () async -> Void
 
         static let identifier = "activity-feed-banner"

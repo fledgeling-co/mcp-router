@@ -303,3 +303,90 @@ calling `blocked` if it was absent. M3 merging turned the set into `[.servers, .
 gate would have reported *"there would be no board to verify"* about a board that was installed —
 a precondition designed to prevent testing a placeholder, refusing to test a shipped surface. It now
 reads the declaration line and looks for `.activity` within it.
+
+---
+
+# Fourth pass — an adversarial critic on the fix itself (2026-08-14)
+
+The two blockers were fixed and the fix was then put through its own adversarial review, briefed to
+refute rather than approve. It found one **blocker** in the fix, four majors and three minors. All
+were real; all are addressed below. Recording them because the first two — the blocker and M2 —
+were introduced *by the repair*, which is the argument for reviewing a repair as hard as the thing
+it repairs.
+
+## The blocker: a rolled-out record pinned to the top of a newest-first log
+
+`streamArrivals` was pruned with `subtracting(returned).intersection(kept)`. That keeps exactly the
+ids the merge has just promoted — they are in `kept` and, by construction, absent from `returned` —
+so the set came to mean *"delivered by the feed and never seen in any response"* rather than *"since
+the last response landed"*. A record that arrived on the feed and then rolled out of the router's
+500-entry ring was therefore promoted to row 0 of a newest-first log by **every** subsequent reload,
+for the life of the board.
+
+It is not only a wrong order. `newestTimestamp` reads index 0 rather than a maximum, so the feed
+banner would go on to announce that stale record's time as *"The newest call here is from 09:00"* —
+a sentence about the router's data that the app made up. That is the one thing this surface may not
+do.
+
+**Clearing the set was necessary and not sufficient.** With `streamArrivals = []` after the merge,
+the second promotion stops and the first still happens, because at the first merge the board cannot
+tell "arrived after the snapshot" from "rolled out while held" by provenance alone. Two tests in the
+suite pull in opposite directions on exactly that record — `reloadDoesNotTruncateTheLiveHalf` wants
+a stream record the response omits **kept**, and the new rolled-ring test wants one **dropped** — so
+no rule over provenance alone can satisfy both.
+
+The fact that separates them is the timestamp, which the previous comment had explicitly refused to
+use on the grounds that "the wire promises no total order across the two sources". That is too
+cautious about this pair: `GET /usage` and `GET /usage/stream` report the *same* `CallRecord`s
+stamped by the one router process, so their `ts` values are comparable with each other. (What is not
+comparable is a router timestamp against this machine's clock, and nothing here does that.) A held
+feed record is now kept only if it is newer than the newest record the response carried, which keeps
+the 23:59 arrival and drops the 09:00 one.
+
+## Everything the review found, and what was done
+
+| # | Finding | Disposition |
+|---|---|---|
+| **B1** | `streamArrivals` prune keeps promoted ids; rolled-out records pinned to row 0 forever, and named as newest by the banner | **fixed** — set cleared at each merge, plus the timestamp comparison above. Two new tests, one of which pulls the opposite way so the fix cannot over-correct |
+| **M1** | the documented bound on `streamArrivals` is false — `merge` is the only pruner and a healthy board never merges again, so it grows one id per call for as long as the app is open | **fixed** — re-derived against the held window when it exceeds `capacity`, on the threshold rather than per record |
+| **M2** | `FeedBanner`'s comment claimed the reconnect runs in the button's own task, directly above a `Button` whose action is an unstructured `Task`. Press Reconnect then switch destination and the resumed task installs a feed behind a board that is gone | **fixed** — `reconnect()` refuses once `endSession` has detached the model; the comment now says what the code does and why the `Task` is unavoidable |
+| **M3** | `stopFeed()` had no idea which board was asking. SwiftUI does not order an outgoing view's `.onDisappear` before an incoming view's `.task`, so a stale teardown could cancel the feed its replacement had just started — leaving a full list, no feed, and no banner | **fixed** — `beginSession()` / `endSession(token)`; the token is the board instance's own `@State`, so a superseded board hands back a number the model has moved past and is ignored |
+| **M4** | `animatedListsDeclareTheirEntryTransition` could be passed by a board that still fades: `.transition(rowInsertion(...).combined(with: .opacity))` satisfies every check | **fixed for the two reachable defeats** — the board's row is asserted as an exact expression, and no line containing `.transition(` may contain `opacity`. The third (moving `.animation` out of the file) is **not** closed and is now stated in the guard's own doc comment rather than left to be discovered; a grep cannot see it |
+| **M5** | `load()` had no request generation, so `start()` and `reconnect()` overlapping could land an older window on top of a newer one | **fixed** — a load generation; a stale response is discarded rather than merged, and does not write `failure` either |
+| **m1** | `stopFeed()` left `phase` set, so a rebuilt board rendered "live" in its subtitle before anything had connected | **fixed** — the phase is cleared with the feed |
+| **m2** | `reconnectIsNotReentrant` asserted `requestCount <= 2`, which admits the stacked reconnect it is named for | **fixed** — `== 1` |
+| **m3** | the same test's body was on its signature line | **fixed** |
+
+The review also confirmed under attack that `withTaskCancellationHandler` does reach the unstructured
+task, that `replaceFeed()` cannot leave two loops installed (no suspension point between the cancel
+and the install, on the MainActor), that `subscribe()`'s cancellation check sits before the `switch`
+that writes — load-bearing ordering, now that it has been said out loud — and that `reconnect()` no
+longer awaiting the feed does fix the blocker it was written for.
+
+## Runs at `HEAD`
+
+| Screen | How it was verified | Result |
+|---|---|---|
+| Activity — all nine states, the inspector, and a live arrival | `scripts/acceptance/m2-activity.sh`, full run, exit 0. Same 22 assertions as the third pass, re-driven because the board's lifecycle (`beginSession` / `endSession`) and the merge both changed | **pass** — `frontmost at start: Ghostty`, `frontmost at end: Ghostty`, MCP Router never in front |
+| Mac shell | **not re-run.** No shell file changed in this pass — `ShellWindow.swift` and `ScaffoldPane.swift` are untouched since the run recorded in the third pass, and `git diff` over them is empty. That row is the evidence | — |
+
+- `make test` — **801 tests in 108 suites passed**.
+- `no-raw-design-values.sh` clean over 52 files, 31 under the geometry and boundary rules;
+  `no-wire-codable.sh` clean.
+- `make build-mac-release` — `** BUILD SUCCEEDED **`.
+
+## Red-green
+
+`rolledOutStreamArrivalIsNotPinnedToTheTop` was written first and run against the old prune: **red**,
+two assertions — the rolled-out record was `visible.first` and was still on the board. With the set
+cleared but no timestamp comparison it was **still red** on the first assertion, which is what
+established that clearing alone was insufficient. Green only with both.
+
+## A second observed flake, recorded rather than ignored
+
+`CallbackLifecycleTests` / *"a listener binds once — reuse is refused rather than quietly racing"*
+failed once with `the callback listener was cancelled before it bound`, and passed on an immediate
+re-run at the same commit. R5's suite, unrelated to this item, and the machine was building three
+other worktrees at the time. This is the second such observation in this file (the first was
+`RegistryEnrichmentTests`), and two port-binding-shaped flakes under load in one merged suite is
+worth someone looking at deliberately rather than each runner re-rolling until green.

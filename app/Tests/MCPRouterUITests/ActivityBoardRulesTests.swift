@@ -397,9 +397,20 @@
             )
             let rows = try #require(source.range(of: "ForEach(model.visible)"))
             let list = source[rows.upperBound...]
+            let declared = try #require(list.range(of: ".transition("))
+
+            // The modifier as written, up to its closing newline. Asserting the *whole* expression
+            // rather than that it merely contains `rowInsertion` is what closes the obvious defeat:
+            // `.transition(ActivityMotion.rowInsertion(reduceMotion: reduceMotion)
+            //     .combined(with: .opacity))` restores the fade from zero while satisfying every
+            // check that only looks for a substring — the named helper is still there, its own
+            // definition is untouched, and no `.opacity(0)` or `.transition(.opacity` appears
+            // anywhere for a grep to find.
+            let modifier = list[declared.lowerBound...]
+                .prefix(while: { $0 != "\n" })
             #expect(
-                list.contains(".transition(ActivityMotion.rowInsertion("),
-                "the row no longer declares an entry transition, so it fades in from zero"
+                modifier == ".transition(ActivityMotion.rowInsertion(reduceMotion: reduceMotion))",
+                "the row's entry transition is no longer exactly the transform-only one: \(modifier)"
             )
         }
 

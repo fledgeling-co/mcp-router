@@ -134,6 +134,7 @@ shared file — changed.
 | `ContentZone.activityModel` rebuilt the model in `body` | A new `ActivityModel` — and a new subscription — on every body evaluation until the deferred `Task` landed. Now a stored lazy on `ShellModel` |
 | `FeedBanner` reconnected in an unstructured `Task` | The work outlived the board it was pressed on |
 | `Start the router` / `Re-pair…` were enabled and wired to `break` | A control reporting a capability the app does not have, silent when pressed. §3.4's answer applied instead: dimmed in place with a discoverable reason (spec B44) |
+| `ActivityFilter.Key.attributed` carried `client` in its hashable payload | The router resolves the client name per connection and legitimately reports it for one call and not the next — so **one session split into two menu entries with two half-counts**, and because the same equality drives the rolled-window fallback, one of the two could never be cleared. D2 always said the match was on `pid` alone; the type says it now, and the display name is resolved from an exemplar record instead. Covered by *"a session is one option even when the router names its client inconsistently"* |
 
 ## Runs
 

@@ -69,6 +69,7 @@ clear_reported() { reported=" $(printf '%s' "$reported" | tr ' ' '\n' | grep -v 
 while true; do
     now=$(date +%s)
     live=0
+    seen=0
 
     # Every process cwd on the machine, captured once per pass. This is the last and
     # strongest liveness test: a worktree with a live builder in it is not abandoned,
@@ -99,7 +100,7 @@ for name in os.listdir(run):
         continue
     path = os.path.join(run, name)
     with open(path, errors="ignore") as fh:
-        hit = re.search(r"FEATURE: ([A-Z0-9]+)", fh.read())
+        hit = re.search(r"(?:FEATURE|YOUR ITEM): ([A-Z][A-Z0-9]*(?:-[A-Za-z0-9]+)?)", fh.read())
     if not hit:
         continue
     item = hit.group(1)
@@ -112,6 +113,7 @@ PY
 )
         while read -r item mtime finished; do
             [ -n "$item" ] || continue
+            seen=$(( seen + 1 ))
 
             # Merged and cleaned up: the orchestrator deletes `ai/<id>` once an item is merged, so
             # a missing branch means this item is finished and its report already collected. Stop
@@ -169,6 +171,15 @@ PY
 
         done <<< "$items"
     done
-    [ "$live" -eq 0 ] && { echo "ALL QUIET — every item in $* has stopped writing; the wave is over or wholly stalled"; exit 0; }
+    # An EMPTY item set is not a quiet wave, it is a blind watcher — and "every item has stopped"
+    # is trivially true of zero items. That false pass fired on 2026-08-15: this script identifies
+    # an item by grepping each transcript for `FEATURE: <ID>`, the launcher wrote `YOUR ITEM: <ID>`
+    # instead, nothing matched, and the wave was declared over about forty seconds after it started
+    # while both runners were writing. Same shape as the parity gate that passed by firing zero.
+    if [ "$seen" -eq 0 ]; then
+        echo "WATCHER BLIND — matched 0 items across $* (transcripts exist but none carry a recognised item marker). Not a quiet wave: the watcher cannot see the run. Check the item-marker regex against the launcher's prompt."
+        exit 3
+    fi
+    [ "$live" -eq 0 ] && { echo "ALL QUIET — every item in $* has stopped writing ($seen item(s) watched); the wave is over or wholly stalled"; exit 0; }
     sleep 120
 done

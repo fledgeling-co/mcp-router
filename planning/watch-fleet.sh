@@ -115,11 +115,28 @@ PY
             [ -n "$item" ] || continue
             seen=$(( seen + 1 ))
 
-            # Merged and cleaned up: the orchestrator deletes `ai/<id>` once an item is merged, so
-            # a missing branch means this item is finished and its report already collected. Stop
-            # watching it. Without this, R4 reported STOPPED twice after it had been merged: a
-            # transient sourcekit process in its worktree counted as liveness and cleared its
-            # reported flag, and removing the worktree let it fire again.
+            wt=$(wt_mtime "$item")
+            [ "$wt" -gt "$mtime" ] && mtime=$wt
+            silent=$(( now - mtime ))
+            key="$id/$item"
+
+            # FRESHNESS IS TESTED BEFORE THE BRANCH EXISTS, and the order is the whole point.
+            # A missing `ai/<id>` used to mean "merged and cleaned up, stop watching" — but at the
+            # START of a wave no runner has created its branch yet, and branch-existence alone
+            # cannot tell those two states apart. On 2026-08-15 that fired ALL QUIET on a
+            # three-runner wave about one second after arming: all three were skipped as
+            # "retired", `live` stayed 0, and `seen` was 3 so the blind-watcher guard did not
+            # catch it either. An item that wrote seconds ago is alive whatever git says.
+            if [ "$silent" -lt "$QUIET" ]; then
+                live=$(( live + 1 ))
+                clear_reported "$key"
+                continue
+            fi
+
+            # Only now is a missing branch meaningful: an item that has been silent this long AND
+            # has no branch really is merged and its report collected. Without this, R4 reported
+            # STOPPED twice after merging — a transient sourcekit process in its worktree counted
+            # as liveness and cleared its reported flag, and removing the worktree let it fire again.
             git -C "$REPO" show-ref --verify --quiet "refs/heads/ai/$(printf '%s' "$item" | tr 'A-Z' 'a-z')" || continue
 
             # A journalled result does NOT retire an item from the watch. R5 proved why: a
@@ -131,16 +148,6 @@ PY
             # it probably died. A finished, idle item therefore fires exactly once, which
             # is the reminder to go and collect it.
 
-            wt=$(wt_mtime "$item")
-            [ "$wt" -gt "$mtime" ] && mtime=$wt
-            silent=$(( now - mtime ))
-            key="$id/$item"
-
-            if [ "$silent" -lt "$QUIET" ]; then
-                live=$(( live + 1 ))
-                clear_reported "$key"
-                continue
-            fi
             was_reported "$key" && continue
 
             # Last check before firing: is anything actually working in there?

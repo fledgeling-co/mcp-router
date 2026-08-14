@@ -125,9 +125,10 @@
                     StateMessage(title: empty.title, detail: empty.detail, actionLabel: empty.action),
                     icon: .search
                 ) {
-                    // The action matches the message: a search that matched nothing clears the
-                    // search, and a filter that holds nothing widens the filter.
-                    if board.search.isEmpty { board.filter = .all } else { board.search = "" }
+                    // The action matches the message because it reads the same judgement that
+                    // wrote the label, rather than re-deciding "is there a search" against an
+                    // untrimmed string the presentation layer would have called blank.
+                    if empty.clearsSearch { board.search = "" } else { board.filter = .all }
                 }
                 .frame(maxWidth: .infinity)
             } else {

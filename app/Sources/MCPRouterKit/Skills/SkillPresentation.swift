@@ -113,6 +113,16 @@ public enum SkillPresentation {
         public var title: String
         public var detail: String
         public var action: String
+
+        /// Whether the button clears the search rather than widening the filter.
+        ///
+        /// Carried on the message rather than re-derived at the call site, because the call site
+        /// cannot re-derive it correctly: the emptiness decision trims the search, so a search of
+        /// `"   "` is *not* a search here, while `search.isEmpty` at the view says it is. Reading
+        /// that flag the view offered "Show all skills" and then cleared the whitespace instead,
+        /// leaving the filter narrow and the list still empty — a button that appeared to do
+        /// nothing. One judgement, made once, decides both the label and what the label does.
+        public var clearsSearch: Bool
     }
 
     /// What an empty result says, given both the filter AND the search.
@@ -131,7 +141,8 @@ public enum SkillPresentation {
                 detail: filter == .all
                     ? "No skill's name, plugin or marketplace contains that."
                     : "No skill under \(filter.title.lowercased()) matches that. Another filter may.",
-                action: "Clear search"
+                action: "Clear search",
+                clearsSearch: true
             )
         }
         switch filter {
@@ -144,7 +155,8 @@ public enum SkillPresentation {
                 A new version is held when it asks for more than the one you have. Nothing is \
                 waiting.
                 """,
-                action: "Show all skills"
+                action: "Show all skills",
+                clearsSearch: false
             )
         case .local:
             return EmptyFilterMessage(
@@ -153,7 +165,8 @@ public enum SkillPresentation {
                 Every skill here came from a marketplace. A skill you place in a client's skills \
                 folder yourself would appear under this filter.
                 """,
-                action: "Show all skills"
+                action: "Show all skills",
+                clearsSearch: false
             )
         case .needsAttention:
             return EmptyFilterMessage(
@@ -162,7 +175,8 @@ public enum SkillPresentation {
                 Nothing is held for review and no marketplace has changed hands since this Mac \
                 first saw it.
                 """,
-                action: "Show all skills"
+                action: "Show all skills",
+                clearsSearch: false
             )
         }
     }

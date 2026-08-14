@@ -13,6 +13,36 @@ import Foundation
 /// ECMAScript spec is written in terms of — the digit string `s` and the decimal point position
 /// `n` — and then apply the spec's own formatting rules.
 public enum JSNumber {
+    /// `Int(_: Double)` without the abort, for a number that came out of a JSON file.
+    ///
+    /// Swift's `Int(_: Double)` is a **trapping** conversion: it aborts the process on NaN, on an
+    /// infinity, and on any finite magnitude outside `Int`'s range. JavaScript has no such edge — it
+    /// carries the `Double` wherever the number goes — so every place this port converts a
+    /// config-sourced number is a place a file can halt the process. `JSONCursor.parseNumber` turns
+    /// `1e400` into an infinity exactly as `JSON.parse` does, and `1e300` is finite and far past
+    /// `Int.max`, so both arrive here as ordinary parsed values.
+    ///
+    /// Returns `nil` rather than clamping. Every caller already has a defined answer for "this key
+    /// is not a usable number" — the reference's own default — and inventing `Int.max` as a timeout
+    /// or an idle window would be a number nobody wrote.
+    ///
+    /// The range test is `>` and `<` rather than `>=`/`<=` on purpose: `Double(Int.max)` rounds up
+    /// to 2^63, which is not representable as an `Int`, so a value merely *equal* to it would still
+    /// trap.
+    public static func int(_ value: Double) -> Int? {
+        guard value.isFinite, value > Double(Int.min), value < Double(Int.max) else { return nil }
+        return Int(value)
+    }
+
+    /// The same guard for `Int32`, which `pid` needs. `Int32(3_000_000_000)` traps where the
+    /// reference simply keeps the number it read.
+    public static func int32(_ value: Double) -> Int32? {
+        guard value.isFinite, value > Double(Int32.min), value < Double(Int32.max) else {
+            return nil
+        }
+        return Int32(value)
+    }
+
     /// `JSON.stringify` semantics, which differ from `String(n)` for the non-finite values:
     /// `String(NaN)` is `"NaN"`, but `JSON.stringify(NaN)` is `null`, and likewise for infinities.
     public static func stringifyValue(_ value: Double) -> String {

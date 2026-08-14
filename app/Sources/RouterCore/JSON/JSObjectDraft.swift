@@ -21,6 +21,20 @@ struct JSObjectDraft {
         return member.value
     }
 
+    /// `o.k ?? fallback` — the JavaScript **nullish** operator, which fires on `null` as well as on
+    /// `undefined`.
+    ///
+    /// Swift's own `??` only fires on `nil`, and ``get(_:)`` returns `.some(.null)` for a member
+    /// that is present and null. Writing `get("x") ?? y` therefore keeps a JSON `null` as a value,
+    /// where the reference would replace it — which is how `"description": null` and a merged
+    /// `"useCount": null` reached the wire (S2).
+    func nullish(_ key: String) -> JSONValue? {
+        switch get(key) {
+        case nil, .some(.null): nil
+        case let other: other
+        }
+    }
+
     /// `'k' in o` — presence, which `get` cannot answer for an `undefined`-valued member (N9).
     func has(_ key: String) -> Bool {
         members.contains { $0.key == JSString(key) }

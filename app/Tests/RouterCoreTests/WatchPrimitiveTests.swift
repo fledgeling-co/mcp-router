@@ -158,7 +158,7 @@ struct WatchPrimitiveTests {
         try WatchWorld.write("{}", to: preserved, mode: 0o600)
         try WatchBackup.writeAtomic(
             "{\"a\":1}", toPath: preserved, fileSystem: fileSystem,
-            processIdentifier: 1, mode: .preserveExisting(orDefault: 0o644)
+            processIdentifier: 1, mode: .preserveExisting
         )
         #expect(try fileSystem.fileMode(atPath: preserved) == 0o600)
 

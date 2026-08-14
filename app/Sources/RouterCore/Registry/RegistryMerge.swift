@@ -126,7 +126,7 @@ public enum Registry {
             .string(JSString(nameText.string.split(separator: "/", omittingEmptySubsequences: false).last
                     .map(String.init) ?? nameText.string))
         )
-        out.set("description", draft.get("description") ?? .string(JSString("")))
+        out.set("description", draft.nullish("description") ?? .string(JSString("")))
         out.set("source", .string(JSString("official")))
         out.set(
             "repository",
@@ -158,7 +158,7 @@ public enum Registry {
             "displayName",
             .string((display?.isTruthy ?? false) ? (display?.asString ?? qualifiedText) : qualifiedText)
         )
-        out.set("description", draft.get("description") ?? .string(JSString("")))
+        out.set("description", draft.nullish("description") ?? .string(JSString("")))
         out.set("source", .string(JSString("smithery")))
         out.set("repository", draft.get("homepage"))
         out.set("updatedAt", draft.get("createdAt"))
@@ -210,9 +210,9 @@ public enum Registry {
             // in the slot the official row already gave the key, and only genuinely new keys append.
             var merged = existing.spread()
             merged.set("source", .string(JSString("both")))
-            merged.set("useCount", row.get("useCount") ?? existing.get("useCount"))
-            merged.set("verified", row.get("verified") ?? existing.get("verified"))
-            merged.set("iconUrl", row.get("iconUrl") ?? existing.get("iconUrl"))
+            merged.set("useCount", row.nullish("useCount") ?? existing.get("useCount"))
+            merged.set("verified", row.nullish("verified") ?? existing.get("verified"))
+            merged.set("iconUrl", row.nullish("iconUrl") ?? existing.get("iconUrl"))
             // Official install wins: it is the authoritative statement of how to run it.
             merged.set("install", existing.get("install") ?? row.get("install"))
             byKey[key] = merged

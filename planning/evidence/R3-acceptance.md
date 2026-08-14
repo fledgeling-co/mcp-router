@@ -168,3 +168,45 @@ rather than merely this port's behaviour — which is the habit worth keeping, n
 **Net: six coverage gaps closed, one live divergence fixed, zero findings outstanding.** Every one
 is red-green proven by a mutation. That is a real result, and it is still not a substitute for a
 reviewer who did not write the code.
+
+---
+
+## V1 — the out-of-family Phase D review, re-run 2026-08-15
+
+**Verdict: MATERIAL DEFECTS — 15 findings, 15 accepted, 0 rejected.**
+Full dispositions in `planning/evidence/V1-review.md`.
+
+**Lane: `grok-4.6` at `high` effort, out of family, no downgrade.** Wire model captured from the
+run's own JSON envelope — `modelUsage: grok-4.6-build`, 22 turns, 33,581 reasoning tokens. This
+closes the gap the section above records honestly and at length: R3's Phase D critic **never ran**,
+because codex was account-limited and both in-family critics starved without returning. Until this
+review, the shipped implementation had been read only by its author.
+
+Nine findings changed code, each proved by a mutation that went red and was restored by re-applying
+the original edit:
+
+| Finding | Sev | What was wrong | Now |
+|---|---|---|---|
+| F1 | critical | `ServerParser.swift:81-82` — `Int($0)` on `idleMs`/`startupTimeoutMs` **traps** on `1e20` or `1e400`, taking the daemon down after the write has landed and again on every restart | `JSNumber.int` |
+| F2 | critical | `UsageRecord.swift:84` — `Int32($0)` on `pid` traps, so one line of `usage.jsonl` decided whether the router could start | `JSNumber.int32` |
+| F6 | high | `control.token` written at the umask default (`0644` in a `0755` dir) where the reference uses `0600`/`0700` — and the type's own comment claimed `0600`. B18 never named a mode | `0600` in `0700`, asserted on the bits on disk |
+| F7 | high | `servers.json` committed through a mode-less temporary, so a file holding every server's `env` landed `0644`. **B31 names `0600` explicitly** | `0600`, per `src/control.ts:95` |
+| F9 | medium | `firstSeen ??=` implemented as "key absent", so a present `null` was never filled in | nullish |
+| F10 | medium | Registry `??` treated a present JSON `null` as a value, so `"description": null` reached the wire and a null `useCount` **overwrote** the official count | `JSObjectDraft.nullish` at five sites |
+| F11 | medium | `forget` filtered the ring with Swift `String ==` (canonical equivalence) while the aggregate is keyed by `JSString`, so forgetting one server dropped a normalisation-equivalent sibling's history too | `JSString` identity |
+| F14 | medium | An unreadable `usage-stats.json` returned a silently empty history while the comment claimed a warning existed (B52 requires one) | comment corrected; warning is `D-v1c` |
+
+**Deferred, with a mechanism each** (see `V1-review.md`): **`D-v1a`** — the control API's writes
+never reach the live process, because `RouterServiceDispatch.controlResponse` discards the `deps` it
+passed `inout`, so `POST /servers` answers 201 and `GET /servers` still lists the old set;
+**`D-v1b`** the usage debounce that is declared and never scheduled; **`D-v1d`** attribution starting
+after accept rather than completing inside it (B68); **`D-v1e`** a `JSToNumber` radix edge; and
+**`D-v1g`** two document defects — **B23 and B44 are wrong as written** and two real divergences are
+missing from the D-table R4 consumes.
+
+**F4 — `POST /servers/:name/approve` answering 405 — was found independently and is already `D-j`,**
+in flight as P1. Not re-registered.
+
+Gates on the changed tree: `make lint` **0**, `make test` **0** (1359 tests, 167 suites),
+`control-differential.sh` 47 of 49 rows ok with both failures being the script's own named `D-j`
+rows — which is the evidence that the `0600` change moved no response bytes.

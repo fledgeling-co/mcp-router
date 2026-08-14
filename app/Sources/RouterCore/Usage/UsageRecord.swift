@@ -81,7 +81,7 @@ public struct UsageRecord: Sendable, Hashable {
             ok: value.member("ok")?.asBool ?? false,
             ms: value.member("ms")?.asNumber ?? 0,
             cold: value.member("cold")?.asBool ?? false,
-            pid: value.member("pid")?.asNumber.map { Int32($0) },
+            pid: value.member("pid")?.asNumber.flatMap(JSNumber.int32),
             cwd: text("cwd"),
             project: text("project"),
             client: text("client"),

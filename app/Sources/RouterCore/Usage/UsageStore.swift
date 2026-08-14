@@ -44,8 +44,13 @@ public final class UsageStore: @unchecked Sendable {
 
     // MARK: - Loading
 
-    /// An unreadable or wrong-version stats file starts fresh — the one place emptiness is a
-    /// recovery, and it is labelled by the warning rather than passed off as "no history" (B52).
+    /// An unreadable or wrong-version stats file starts fresh.
+    ///
+    /// **B52 also requires a warning here, and there is none** — this type holds no logger, so
+    /// saying so costs a dependency threaded from `RouterService`. Recorded as deferred child
+    /// `D-v1c` rather than left as the previous comment's claim that the emptiness "is labelled by
+    /// the warning": a comment asserting evidence that does not exist is what stops the next reader
+    /// checking, which is exactly how B50 and B51 reached merge with no test at all.
     private func readStats() {
         guard fileSystem.fileExists(atPath: statsPath),
               let data = try? fileSystem.readFile(atPath: statsPath),
@@ -108,9 +113,14 @@ public final class UsageStore: @unchecked Sendable {
         var stat = statLocked(record.server) ?? .fresh()
         stat.set("calls", .number(stat.calls + 1))
         if !record.ok { stat.set("errors", .number(stat.errors + 1)) }
-        // `??=` — nullish, so an existing empty string is kept rather than overwritten.
-        if stat.member("firstSeen") == nil {
+        // `??=` — **nullish**, so a present `null` is replaced and a present empty string is kept.
+        // Testing `== nil` alone is absence only, which leaves `"firstSeen": null` on the wire
+        // forever where the reference would fill it in on the next call (S2).
+        switch stat.member("firstSeen") {
+        case nil, .some(.null):
             stat.set("firstSeen", .string(JSString(record.ts)))
+        default:
+            break
         }
         stat.set("lastUsed", .string(JSString(record.ts)))
         if let cwd = record.cwd, !cwd.isEmpty {
@@ -286,7 +296,10 @@ public final class UsageStore: @unchecked Sendable {
         lock.lock()
         let key = JSString(server)
         servers.removeAll { $0.key == key }
-        ring.removeAll { $0.server == server }
+        // Compared as a JavaScript string, like the aggregate above. Swift's `String ==` is
+        // canonical equivalence, so a decomposed ring entry matched a composed request and this
+        // dropped a *different* server's history alongside the one asked for (S5).
+        ring.removeAll { JSString($0.server) == key }
         dirty = true
         lock.unlock()
         flush()

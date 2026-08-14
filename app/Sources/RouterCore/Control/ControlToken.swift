@@ -29,12 +29,24 @@ public enum ControlPaths {
 /// and the JSON content-type requirement forces a preflight that is never answered.
 public struct ControlToken: Sendable {
     private let path: String
-    private let fileSystem: any FileSystem
+    private let fileSystem: any FileSystem & FileModeWriting
     private let randomBytes: @Sendable (Int) -> [UInt8]
+
+    /// The modes the reference writes, and the reason they are not decoration.
+    ///
+    /// `writeFileSync(TOKEN_PATH, …, { mode: 0o600 })` and
+    /// `mkdirSync(ROUTER_HOME, { recursive: true, mode: 0o700 })` (`src/control.ts:51-53`). Written
+    /// through the mode-less `FileSystem` overloads instead, the token lands at the umask default —
+    /// `0644` in a `0755` directory — and the whole argument above collapses: the secret that gates
+    /// an endpoint whose job is to run an arbitrary command line becomes readable by every account
+    /// on the machine. `FileAuthStore` already writes its records this way (`0700`/`0600`); this is
+    /// the same rule for the higher-value secret.
+    static let tokenMode: UInt16 = 0o600
+    static let homeMode: UInt16 = 0o700
 
     public init(
         path: String,
-        fileSystem: any FileSystem = RealFileSystem(),
+        fileSystem: any FileSystem & FileModeWriting = RealFileSystem(),
         randomBytes: @escaping @Sendable (Int) -> [UInt8] = { count in
             (0 ..< count).map { _ in UInt8.random(in: 0 ... 255) }
         }
@@ -60,9 +72,11 @@ public struct ControlToken: Sendable {
             let trimmed = Self.jsTrim(String(decoding: data, as: UTF8.self))
             if !trimmed.isEmpty { return trimmed }
         }
-        try fileSystem.createDirectory(atPath: (path as NSString).deletingLastPathComponent)
+        try fileSystem.createDirectory(
+            atPath: (path as NSString).deletingLastPathComponent, mode: Self.homeMode
+        )
         let token = randomBytes(32).map { String(format: "%02x", $0) }.joined()
-        try fileSystem.writeFile(Data((token + "\n").utf8), atPath: path)
+        try fileSystem.writeFile(Data((token + "\n").utf8), atPath: path, mode: Self.tokenMode)
         return token
     }
 

@@ -137,3 +137,42 @@ Full dispositions, including the four declared rather than changed, are in `spec
 - **No `src/*.ts` change**, so D-i stays open on the TypeScript side as registered.
 - **No reload endpoint** — refused by the parent's Phase D finding 6.
 - **No lock on `manifest.json`'s other writers** — deferred child D-w3, declared as W-D6.
+
+---
+
+## V1 — the out-of-family review, re-run 2026-08-15
+
+**Verdict: 6 findings — 3 fixed, 2 accepted and deferred/owned elsewhere, 1 an artefact of the
+review racing the branch.** Full dispositions in `planning/evidence/V1-review.md`.
+
+**Lane: `grok-4.6` at `high` effort, out of family, no downgrade** — `modelUsage: grok-4.6-build`,
+30 turns, 49,498 reasoning tokens. This replaces the `codex: usage limit -> claude (downgrade)`
+recorded above for both the plan gate and the Phase D critic: those reviews were in family, and this
+one was not.
+
+| Finding | Sev | Disposition |
+|---|---|---|
+| F3 | high | **Fixed.** `ServerParser.swift:82` traps on a staged `~/.claude.json` entry carrying `"idleMs": 1e400`, so a single staged server could abort the one-shot before indexing, on every launchd fire. Now `JSNumber.int` |
+| F5 | medium | **Fixed.** A `~/.claude.json` deleted between the W5 re-read and the write was **recreated** from the stale snapshot, restoring session state the user had just discarded. The reference cannot: `statSync(CLAUDE_JSON)` at `watch.ts:328` throws. `ModeRule.preserveExisting` no longer carries a fallback, so the mode read is the throw |
+| F6 | low | **Fixed.** X2a justifies not sharing `ConfigEdit.edit` partly because "it writes mode 0600" — it did not; the call was the mode-less overload. Now it does |
+| F2 | high | **Accepted, deferred `D-v1f`.** `WatchRunStaging.swift:20→50` rewrites the whole ~268 KB document from a snapshot with no lock, so a concurrent Claude Code write is lost — X4b's own argument applied to the file the clause table never named. And a write landing between the rename and the post-write hash seals a foreign hash, after which every fire takes the W1 fast path and the entry never leaves user scope. Deferred because the reference has the identical window (`watch.ts:288`), so closing it is a **new declared divergence** and an R4 decision |
+| F4 | medium | **Accepted, already owned by P2.** X2 claims `ConfigEdit.edit` is the only path into `servers.json`; `ImportVerb.swift:128` writes it unlocked. The ORCHESTRATOR already requires P2's rewrite to "use R2-W's sidecar flock rather than inventing a second scheme" |
+| F1 | high | **Artefact.** It described `value.isFinite \|\| !value.isFinite` at `WatchRun.swift:314` — a deliberately broken mutation applied moments earlier to prove a test went red, and restored immediately after. The reviewer read the disk mid-edit and said so. Its by-product was real: it pointed at `ConfigLoader.intMember`, where the check is `isFinite` **only** with no range test, so `1e300` trapped there too — a third site now on the shared guard |
+
+**Two further defects in this item were found by this runner before the reviews returned**, and both
+are the same shape — a guarantee the tests could not observe:
+
+- **The watcher ran with two homes.** `WatchPaths` honours `$HOME` (X10, W-D2) while
+  `WatchRunner.init` defaulted `home:` to `RouterHome()`, which reads `NSHomeDirectory()` and ignores
+  it. `WatchVerb.swift:14`, the only production caller, took both defaults — so under a scratch
+  `HOME` the watcher read the scratch `~/.claude.json` and wrote the **real account's**
+  `servers.json`, the exact hazard X10 exists to prevent. `homeComesFromTheEnvironment` asserts only
+  the `WatchPaths` half, and `WatchTestSupport.swift:35-36` always passes a matching pair, so no test
+  could see it. Fixed: the default is now `paths.routerHome`.
+- **`WatchRun.swift:294`'s `Int(value)`** on `startupTimeoutMs`, unguarded, where `UsageStore.swift:184`
+  in the neighbouring item already documents this exact trap and clamps for it.
+
+Gates on the changed tree: `make lint` **0**, `make test` **0** (1359 tests, 167 suites),
+`parity-install.sh` **0** — with the watch-agent row's one red run measured against a freshly built
+detached `main` before it was dismissed; the Swift side answered identically on both trees and the
+reference side was what flapped.

@@ -37,7 +37,15 @@ public struct WatchRunner: Sendable {
 
     public init(
         paths: WatchPaths = WatchPaths(),
-        home: RouterHome = RouterHome(),
+        // `nil` resolves to `paths.routerHome`, which is derived from the **same** `HOME` as
+        // `~/.claude.json`. Defaulting this to `RouterHome()` instead is the shape this had, and it
+        // splits the run across two homes: `WatchPaths` honours `$HOME` (X10, W-D2) while
+        // `RouterHome()` reads `NSHomeDirectory()`, which ignores it. Under a scratch `HOME` with no
+        // `MCP_ROUTER_HOME` the watcher then read the scratch `~/.claude.json` and wrote the real
+        // account's `servers.json` — the precise hazard X10 exists to prevent, left open on the
+        // other half of the pair. The reference cannot produce it: one `homedir()` feeds both
+        // (`src/config.ts:79`, `src/watch.ts:45`).
+        home: RouterHome? = nil,
         fileSystem: any FileSystem & FileModeWriting = RealFileSystem(),
         clock: any RouterClock = SystemClock(),
         transporting: (any UpstreamTransporting)? = nil,
@@ -53,7 +61,7 @@ public struct WatchRunner: Sendable {
         emit: @escaping @Sendable (String) -> Void = { _ in }
     ) {
         self.paths = paths
-        self.home = home
+        self.home = home ?? paths.routerHome
         self.fileSystem = fileSystem
         self.clock = clock
         // `cmdWatch` never calls `log.configure`, so the reference's pool logs to **stderr** — the
@@ -291,6 +299,16 @@ public struct WatchRunner: Sendable {
               let value = members.first(where: { $0.key == JSString("startupTimeoutMs") })?
               .value.asNumber
         else { return RouterHome.defaultStartupTimeoutMs }
-        return Int(value)
+        // `Int(_: Double)` **traps** on a value that is infinite, NaN, or outside `Int`'s range, and
+        // every one of those is reachable from this file: `JSONCursor.parseNumber` turns `1e400`
+        // into an infinity exactly as `JSON.parse` does, and `1e300` is finite but far past
+        // `Int.max`. Measured: `Int(Double("1e400")!)` aborts with "Double value cannot be converted
+        // to Int because it is either infinite or NaN". The reference has no such edge — it hands
+        // the raw number to the pool — so a `servers.json` the reference merely finds odd would
+        // crash this launchd one-shot on every fire.
+        //
+        // `JSNumber.int` is the shared guard; falling back to the default here matches what a
+        // non-numeric `startupTimeoutMs` already does two lines above.
+        return JSNumber.int(value) ?? RouterHome.defaultStartupTimeoutMs
     }
 }

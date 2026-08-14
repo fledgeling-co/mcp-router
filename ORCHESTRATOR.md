@@ -132,6 +132,28 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 
 ## Changelog
 
+- 2026-08-14 — **I1 returned early and the fleet read it as delivered.** The runner
+  finished Phase 1, wrote a genuinely good design report — 12 sections, 30 phone frames,
+  both appearances — and ended its turn. A returned turn is a *success* to the harness, so
+  `agent()` journaled a result, nothing retried it, and the item looked complete while no
+  spec, no plan and no code existed. Its only artifact sat **untracked** in the worktree,
+  one `git clean` from gone.
+
+  This is a different failure from a death and hides better: a dead agent leaves an error,
+  this one leaves a good report. The tell was liveness, not output — its transcript stopped
+  at 12:43 while the other three were still writing. Worth noting the two adjacent states
+  it was distinguished from in the same sweep: R2 looked equally idle on disk but was alive
+  inside a 10-minute codex plan gate, and an earlier check reported all four worktrees
+  untouched, which was a **broken predicate** (`find -newermt` with a relative time returns
+  nothing on BSD find) rather than four idle runners. Uniform zeros are a bug until proven
+  otherwise.
+
+  Actions: Phase 1 committed by the orchestrator as `af0234f`; I1 relaunched from Phase 2
+  in the same worktree on the same branch, with the failure named in its resume brief; and
+  `planning/fleet-runner.js` now carries "finish the whole item in one turn — a phase report
+  is not a deliverable", with the instruction that a report naming its own incompleteness is
+  recoverable while one that looks finished is not.
+
 - 2026-08-14 — **A runner pushed to `main`, and the instruction against it is now a hook.**
   A wave-3 runner committed `04eac69` ("Ignore .worktrees/") in the shared main checkout and
   pushed it to origin. The change is **correct and kept** — an untracked `.worktrees/` is a

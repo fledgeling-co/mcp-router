@@ -67,6 +67,15 @@ Rules that override ship-feature's defaults:
   stop, and no wake-up notification can reach you — you are dead, not paused. Wait
   synchronously: foreground the command, or poll in a loop.
 
+- FINISH THE WHOLE ITEM IN ONE TURN. A phase report is not a deliverable. You are done when
+  acceptance evidence is green AND your work is committed on your branch — not when a phase
+  produces a good artifact. The I1 runner ended its turn after Phase 1 with an excellent
+  design report; because a returned turn is a SUCCESS to the harness, nothing retried it,
+  and the item read as delivered while no spec, no plan and no code existed. Its artifact
+  was left untracked and would have been lost. If you are running out of room, commit what
+  you have and say exactly which phase you stopped at and what remains — a report that
+  names its own incompleteness is recoverable; one that looks finished is not.
+
 - NEVER pass \`-c user.email\` or \`-c user.name\` to git. This repo's identity is already
   configured (Luke Rhodes <luke@rhodes.gg>) and overriding it rewrites the commit AUTHOR,
   which deployment gating keys on. Attribution belongs in the Co-Authored-By trailer.

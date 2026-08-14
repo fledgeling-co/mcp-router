@@ -42,7 +42,14 @@ public enum Describe {
         members.append(contentsOf: manifestMembers(entry))
         members.append(contentsOf: scopeMembers(upstream))
 
-        if let placard = ToolUnion.placardFor(upstream, entry: entry) {
+        // `placardFor` is `u.placard || (entry.error && {reason: entry.error})`, and `u.placard` is
+        // the RAW config value — the reference echoes whatever was written there, including a bare
+        // string. `ServerParser` types it into a `Placard`, which drops anything that is not the
+        // `{reason, …}` shape, so a config saying `"placard": "on hold"` reported no placard at all
+        // while the reference reports the string. Same rule as command/args/projects above.
+        if let raw = upstream.raw.member("placard"), raw.isTruthy {
+            members.append(JSONMember(key: "placard", value: raw))
+        } else if let placard = ToolUnion.placardFor(upstream, entry: entry) {
             members.append(JSONMember(key: "placard", value: placardValue(placard)))
         }
         if let entry, entry.pending?.isTruthy == true {

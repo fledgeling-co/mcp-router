@@ -90,18 +90,6 @@ public struct ControlHandler: Sendable {
         return nil
     }
 
-    private func routeUsage(
-        _ path: String, _ request: ControlRequest, _ deps: ControlDeps
-    ) -> ControlResponse? {
-        switch (path, request.method) {
-        case ("/usage", "GET"): usageRecent(request, deps)
-        case ("/usage/summary", "GET"): usageSummary(deps)
-        case ("/usage/reset", "POST"): usageReset(deps)
-        case ("/usage/stream", "GET"): usageStream()
-        default: nil
-        }
-    }
-
     // MARK: - /servers
 
     private func serversEnvelope(_ deps: ControlDeps) -> ControlResponse {
@@ -278,10 +266,33 @@ public struct ControlHandler: Sendable {
     /// distinction that matters: a handler that 400s on their presence satisfies a naive reading of
     /// the guarantee while diverging from a reference that returns 200 and applies the allowed
     /// sibling fields (B40).
+    /// ## A deliberate divergence, in the same family as D1 and D2
+    ///
+    /// The reference gates each field on `'projects' in b`. A primitive body survives `body ?? {}`
+    /// and reaches that `in`, where V8 throws. Nothing catches it, so **the router process dies** —
+    /// measured, not inferred: `PATCH /servers/s1` with `42`, `"hi"` or `true` each killed the
+    /// running reference outright on 2026-08-14, and the client saw an empty reply.
+    ///
+    /// This port answers 400 instead. Reproducing the crash would be porting a denial of service
+    /// into the replacement, and the project already has the precedent for declining that: D1
+    /// refuses the config-destroying write the reference performs. The 400 carries the reference's
+    /// own `TypeError` text so the divergence is legible to R4's parity gate rather than looking
+    /// like an unrelated error, and `scripts/acceptance/control-differential.sh` asserts it as a
+    /// **named expected divergence** — so it can never quietly become an accidental one.
     private func patch(
         _ request: ControlRequest, name: JSString, deps: inout ControlDeps
     ) -> ControlResponse {
-        let body = request.bodyObject
+        let body: [JSONMember]
+        switch request.bodyDisposition {
+        case let .usable(members):
+            body = members
+        case let .primitive(value):
+            return .error(
+                400,
+                "Cannot use 'in' operator to search for 'projects' in \(Self.jsToString(value))"
+            )
+        }
+
         func supplied(_ key: String) -> JSONValue?? {
             let target = JSString(key)
             guard let member = body.first(where: { $0.key == target }) else { return nil }
@@ -345,42 +356,18 @@ public struct ControlHandler: Sendable {
     }
 }
 
-/// `^/servers/([^/]+)(/[a-z]+)?$` — the sub-path is **lowercase only**, so `/servers/x/Reindex`
-/// does not match and reaches the 405 fallback (B23).
-struct ServerRoute {
-    let rawName: String
-    let sub: String?
-
-    init?(encodedPath: String) {
-        guard encodedPath.hasPrefix("/servers/") else { return nil }
-        let rest = String(encodedPath.dropFirst("/servers/".count))
-        guard !rest.isEmpty else { return nil }
-        let parts = rest.split(separator: "/", omittingEmptySubsequences: false)
-        switch parts.count {
-        case 1:
-            guard !parts[0].isEmpty else { return nil }
-            rawName = String(parts[0])
-            sub = nil
-        case 2:
-            guard !parts[0].isEmpty, !parts[1].isEmpty,
-                  parts[1].allSatisfy({ $0.isASCII && $0.isLowercase && $0.isLetter })
-            else { return nil }
-            rawName = String(parts[0])
-            sub = "/" + String(parts[1])
-        default:
-            return nil
+/// Split out of the main type so the dispatch table does not count against its body length —
+/// `private` still resolves, because these are same-file extensions.
+extension ControlHandler {
+    private func routeUsage(
+        _ path: String, _ request: ControlRequest, _ deps: ControlDeps
+    ) -> ControlResponse? {
+        switch (path, request.method) {
+        case ("/usage", "GET"): usageRecent(request, deps)
+        case ("/usage/summary", "GET"): usageSummary(deps)
+        case ("/usage/reset", "POST"): usageReset(deps)
+        case ("/usage/stream", "GET"): usageStream()
+        default: nil
         }
     }
-
-    /// `decodeURIComponent` — nil on a malformed escape, which the reference turns into a thrown
-    /// `URIError` rather than a 404.
-    var decodedName: JSString? {
-        guard let decoded = rawName.removingPercentEncoding else { return nil }
-        return JSString(decoded)
-    }
-}
-
-extension String {
-    /// JavaScript truthiness for a string: everything except the empty one.
-    var isJSTruthyString: Bool { !isEmpty }
 }

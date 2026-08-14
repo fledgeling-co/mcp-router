@@ -139,13 +139,23 @@ struct PortIdentityTests {
     }
 
     struct NoAuth: AuthStore {
-        func hasTokens(_: JSString) -> Bool { false }
-        func authorizedAt(_: JSString) -> String? { nil }
-        @discardableResult func clear(_: JSString) -> Bool { false }
+        func hasTokens(_: JSString) -> Bool {
+            false
+        }
+
+        func authorizedAt(_: JSString) -> String? {
+            nil
+        }
+
+        @discardableResult func clear(_: JSString) -> Bool {
+            false
+        }
     }
 
     struct NeverIndexer: UpstreamIndexerPort {
-        func index(_: UpstreamConfig) async -> IndexOutcome { IndexOutcome(tools: 0) }
+        func index(_: UpstreamConfig) async -> IndexOutcome {
+            IndexOutcome(tools: 0)
+        }
     }
 
     @Test("an ASCII name round-trips through JSString unchanged, so the typing costs nothing")

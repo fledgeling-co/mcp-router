@@ -89,9 +89,43 @@ public struct ControlRequest: Sendable {
     /// `body ?? {}` — a `null`, array or primitive body all coerce to an empty object, and a body
     /// that does not parse does too. The reference casts rather than validates, so nothing here
     /// rejects a shape (B44).
+    ///
+    /// This is what `POST /servers` needs, because it only ever *reads a property*: `b.name` on a
+    /// primitive is `undefined` in JavaScript, not an error, so the reference answers 400
+    /// `name is required` — measured against the running router. A caller that instead applies the
+    /// `in` operator must use ``bodyDisposition``.
     public var bodyObject: [JSONMember] {
         guard let body, let parsed = try? JSONParser.parse(body) else { return [] }
         return parsed.asObjectMembers ?? []
+    }
+
+    /// `body ?? {}`, split by whether the reference can then apply the `in` operator to it.
+    ///
+    /// `PATCH` gates each field on `'projects' in b`, and `in` is only defined over objects. The
+    /// nullish coalesce catches `null` and an absent body, and an array is an object — but a
+    /// **primitive** survives the coalesce and reaches `in`, where V8 throws a `TypeError`.
+    ///
+    /// That is not a theoretical branch. Measured against the running reference on 2026-08-14, a
+    /// `PATCH` carrying `42`, `"hi"` or `true` throws out of the async request handler, is caught by
+    /// nobody, and **terminates the router process** — see ``ControlHandler/patch(_:name:deps:)``
+    /// for what this port does instead and why.
+    public var bodyDisposition: BodyDisposition {
+        guard let body, let parsed = try? JSONParser.parse(body) else { return .usable([]) }
+        switch parsed {
+        case let .object(members): return .usable(members)
+        // `null ?? {}` is `{}`, and an array *is* an object, so `'projects' in [1,2]` is a
+        // well-formed `false`. Both reach the mutator with nothing to apply.
+        case .null, .array: return .usable([])
+        case .bool, .number, .string: return .primitive(parsed)
+        }
+    }
+
+    /// Whether a parsed body can carry the reference's `in` test. See ``bodyDisposition``.
+    public enum BodyDisposition: Sendable {
+        /// An object's members, or none — for a body the reference would treat as `{}`.
+        case usable([JSONMember])
+        /// A primitive, which makes the reference's `in` throw.
+        case primitive(JSONValue)
     }
 }
 

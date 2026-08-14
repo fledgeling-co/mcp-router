@@ -80,14 +80,26 @@ wanted() {
 }
 
 restore() { git -C "$ROOT" checkout -- "$SRC" 2>/dev/null || true; }
-trap 'restore' EXIT
 
-# A dirty tree would be silently reverted by the restore, which is a good way to lose work.
+# The dirty-tree guard runs BEFORE the restore trap is armed, and the ordering is the whole point.
+#
+# It used to be the other way round: `trap 'restore' EXIT` was installed first, then this guard
+# called `exit 1`. That fired the trap on the way out, so the check written to protect uncommitted
+# work was the one thing guaranteed to destroy it — `git checkout -- app/Sources/RouterCore`, on
+# the exact tree it had just refused to touch. It ate an afternoon's edits before anyone noticed,
+# because the error message says "would destroy them" in the past-conditional and reads like a
+# refusal that already happened.
+#
+# Arming the trap only after the tree is known clean means the restore can never run over work it
+# did not itself create.
 if ! git -C "$ROOT" diff --quiet -- "$SRC"; then
   echo "error: $SRC has uncommitted changes. This script reverts it after every mutation and"
   echo "       would destroy them. Commit or stash first."
+  echo "       (Nothing was reverted: the restore is armed below this check, deliberately.)"
   exit 1
 fi
+
+trap 'restore' EXIT
 
 echo "Baseline: the gate must be green before any mutation means anything."
 if ! make parity >/tmp/mutation-baseline.log 2>&1; then

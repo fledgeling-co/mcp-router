@@ -27,7 +27,7 @@ Every row is a measurement, an exercised request, or a red-green test. No row is
 | 1 | The Swift handler answers **what the running TypeScript reference answers**, byte for byte, over a 32-row matrix: the acceptance rows, fault injection, data-shape stress, and the security surface | `bash scripts/acceptance/control-differential.sh` (starts `dist/` on 8973 against a scratch MCPR home, issues each request to both, diffs bytes) | `cfb9ecb` | **32 rows compared, 32 ok, 0 failed** |
 | 2 | The parity corpus is **reference-derived, not back-fitted** — regenerating every vector from the built reference reproduces the committed files exactly | `make parity-regen` (runs `scripts/parity/generate-vectors.mjs` against `dist/`, `diff -ru` against the committed corpus) | `cfb9ecb` | `parity-regen: the committed vectors match the reference exactly` |
 | 3 | The corpus is **executed**, not merely present — the attestation prints a count and the floor refuses a shrinking corpus | `make parity` | `cfb9ecb` | `parity: 352 vector cases compared (floor 352)` |
-| 4 | Every named behaviour is **load-bearing**: break it in the source, the gate must go red, restore | `scripts/parity/mutation-gate.sh` (31 mutations) | `cfb9ecb` | **31/31 red.** 17 caught by the vector corpus (N1–N13, R1, R2, R4, R5), 14 by the suite (D1, D3, D4, R3, R6–R15). Zero decorations, zero misapplied |
+| 4 | Every named behaviour is **load-bearing**: break it in the source, the gate must go red, restore | `scripts/parity/mutation-gate.sh` (31 mutations at `cfb9ecb`, 34 at `1c96484`) | `cfb9ecb` / `1c96484` | **34/34 red.** 17 caught by the vector corpus (N1–N13, R1, R2, R4, R5), 17 by the suite (D1, D3, D4, R3, R6–R18). Zero decorations, zero misapplied |
 | 5 | **B10** — no env or header **value** is reachable through any response the API can emit | the canary sweep inside row 1: a planted env value, scanned for across every compared response body | `cfb9ecb` | `no env value appears in any compared response` |
 | 6 | **B40** — a PATCH carrying `command`, `args`, `env` is *ignored, not rejected*: status, response bytes and the config file on disk all equal the same request with those three members deleted | `WireGuaranteeTests.commandLineMembersAreIgnoredNotRejected`, red-green proven by mutation R12 | `cfb9ecb` | red under R12, green restored |
 | 7 | **B2 / S3** — an explicit `cwd: null` is emitted as `"cwd":null`; an absent `cwd` emits no key at all; a value emits the value | `WireGuaranteeTests.nullCwdIsEmitted` + `cwdTriState`, red-green proven by mutation R10 | `cfb9ecb` | red under R10, green restored |
@@ -39,6 +39,9 @@ Every row is a measurement, an exercised request, or a red-green test. No row is
 | 13 | The recorded fixtures are reproduced from **constructed dependencies**, never from a lookup table (S6) | `ControlFixtureTests` — 15 tests over the recorded responses, each building the row from config + manifest + pool + usage doubles | `cfb9ecb` | pass |
 | 14 | The **declared divergences** are real and directional: five inputs kill the reference process and this port answers 400 instead | rows in the row-1 matrix, which assert the reference **died** and Swift answered | `cfb9ecb` | `reference DIED (TypeError) · swift 400` ×3, `(URIError) · swift 400` ×2 |
 | 15 | **B74** — the TypeScript reference is untouched | `git diff main -- src/ install.sh package.json` | `cfb9ecb` | empty |
+| 16 | **B51 / N5** — a non-ASCII log is cut where the *reference* cuts it: the byte-derived offset applied to a UTF-16 string, overshooting the end and keeping nothing, where a byte-correct implementation would keep half the log | `UsageLogTests.byteOffsetIsAppliedToUTF16` (+ a paired ASCII case so it cannot be passed by returning nothing for any large log), red-green proven by mutation R16 | `1c96484` | red under R16, green restored |
+| 17 | **B50** — the log rotates at *exactly* 8 MiB: asserted at the boundary, one byte below and one above, which is the only trio separating `>=` from `>` | `UsageLogTests.rotatesAtTheBoundary`, red-green proven by mutation R17 | `1c96484` | red under R17, green restored |
+| 18 | **B50** — the ring warms from the **last** 500 records of a longer log, in order, and a torn final line is skipped rather than losing the read | `UsageLogTests.ringKeepsTheLastFiveHundred` + `tornFinalLineIsSkipped`, red-green proven by mutation R18 | `1c96484` | red under R18, green restored |
 
 ## Preconditions, recorded so they are not mistaken for acceptance
 
@@ -80,3 +83,16 @@ touches one test file's formatting and nothing else, so the behavioural evidence
 differential (row 1), `parity-regen` (row 2) and the 31-mutation gate (row 4) each cost a full
 reference run or a full rebuild per mutation, and repeating them for a whitespace change would be
 the exact repetition this file exists to prevent.
+
+| `1c96484` | `UsageLogTests.swift` added; three mutations added to the gate. No change under `app/Sources/`. | `make test`, then `scripts/parity/mutation-gate.sh R16 R17 R18` | `358 tests in 57 suites passed` · all three red under mutation, green restored |
+
+### How rows 16–18 were found
+
+Not by the critic and not by the fixtures — by sweeping the clause table for **evidence** rather
+than for mentions. `for n in $(seq 1 76); do grep -rqE "B$n\b" app/Tests app/Sources/RouterCore; done`
+listed twenty clauses named nowhere in the tree. Most turned out to be covered by tests that simply
+did not cite the clause number, which is why a missing mention is a signal and not a finding. Three
+did not: B50's ring and rotation boundary and B51's byte-offset cut had no test of any kind, and
+`maxLogBytes` carried a doc comment asserting it was "tested at the boundary" — a claim about
+evidence that did not exist. That comment is the reason this was worth sweeping for: it is the kind
+of statement that stops the next reader checking.

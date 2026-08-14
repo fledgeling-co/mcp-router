@@ -247,9 +247,139 @@ mut(
 mut(
     "M20", "A13", "the router's own ordering is preserved",
     SRC / "ServerStateTracker.swift",
-    "        TrackerState(servers: order.compactMap { servers[$0] }, phase: phase)",
-    "        TrackerState(servers: order.sorted().compactMap { servers[$0] }, phase: phase)",
+    "        let visible = order.compactMap { servers[$0] }",
+    "        let visible = order.sorted().compactMap { servers[$0] }",
     "the router's own ordering is preserved",
+)
+
+# ---------------------------------------------------------------- failure states (F4)
+
+# The defect F4 exists to fix. Reintroducing `try?` discards every typed error, and the
+# ONLY tests that notice are the ones driving the real poll loop — the direct
+# apply(pollFailure:) tests pass against the defect, which is why they are not the anchor
+# here.
+mut(
+    "M50", "F4-A1", "the poll loop reports a typed error instead of discarding it",
+    SRC / "ServerStateTracker.swift",
+    "            do {\n"
+    "                let response = try await client.servers()\n"
+    "                apply(poll: response)\n"
+    "            } catch {",
+    "            if let response = try? await client.servers() { apply(poll: response) }\n"
+    "            if false {",
+    "a router that is not running is reported",
+)
+M[-1].paired = (
+    "                apply(pollFailure: error)\n",
+    "                apply(pollFailure: .routerNotRunning)\n",
+)
+
+mut(
+    "M51", "F4-A3", "a stale snapshot is not collapsed into a plain failure",
+    SRC / "ServerStateTracker.swift",
+    "        loadKind = hasLoaded ? .stale(error) : .failed(error)",
+    "        loadKind = .failed(error)",
+    "a failure after a success is stale",
+)
+
+mut(
+    "M52", "F4-A3", "a failed poll does not delete the servers it already had",
+    SRC / "ServerStateTracker.swift",
+    "        loadKind = hasLoaded ? .stale(error) : .failed(error)\n        publish()",
+    "        loadKind = hasLoaded ? .stale(error) : .failed(error)\n"
+    "        servers = [:]\n        order = []\n        publish()",
+    "a failure after a success is stale",
+)
+
+mut(
+    "M53", "F4-A6", "a tracker with no stream is not born claiming a dropped one",
+    SRC / "ServerStateTracker.swift",
+    "        streamCondition = stream == nil ? .notConfigured : .phase(.disconnected)",
+    "        streamCondition = .phase(.disconnected)",
+    "is not-configured, never a dropped stream",
+)
+
+mut(
+    "M54", "F4-A8", "a phase cannot be fabricated for a tracker that has no stream",
+    SRC / "ServerStateTracker.swift",
+    "        guard case let .phase(current) = streamCondition else { return }",
+    "        let current = if case let .phase(p) = streamCondition { p } "
+    "else { StreamPhase.disconnected }",
+    "a phase cannot be fabricated",
+)
+
+# Registration must complete before `updates()` returns.
+#
+# The obvious mutation — `Task { self.register(id, continuation) }` — is an EQUIVALENT MUTANT and
+# was measured as one: it survived 4 of 5 full-suite runs, and the fifth red was an unrelated
+# flake this pass then fixed. The reason is scheduling, not coverage. `Task {}` inside an
+# actor-isolated method inherits that actor's executor and is enqueued during `updates()`, so it
+# is ahead of every call an external caller can make afterwards; the actor runs it first and no
+# outside observer can see the difference. No test can kill it, and pretending otherwise would
+# have meant writing a priority-race test that is flaky by construction.
+#
+# `Task.detached` was adopted next on the reasoning that not inheriting the executor would make
+# the registration genuinely land after a following publish. **That reasoning is wrong, and was
+# measured wrong.** Not inheriting the executor changes where the task *starts*, not where the
+# actor-isolated call it makes is *queued*: the detached task is created while `updates()` still
+# holds the actor, so its `await self.register(...)` is enqueued on the actor ahead of anything an
+# external caller can enqueue afterwards. `firstStateIsTheStateAtSubscription` asserts the
+# invariant that would expose the loss — the first element a subscriber receives must be the state
+# current when `updates()` returned — over 40 consecutive trials, and the deferred registration
+# won all 40. M55 therefore stays SURVIVED, honestly, rather than being relabelled as killed.
+#
+# It is NOT marked equivalent, because it is not: ordering here is an implementation detail of the
+# actor executor, and `Task.detached` runs at unspecified priority, so a priority difference or a
+# loaded machine can still make it lose. The synchronous `register` is kept because it is a
+# language-level guarantee rather than an observed schedule, and the 40-trial test is the guard
+# that catches the deferral on any run where it does lose. What no test can do is force the loss
+# on demand — a test that tried would be flaky by construction, which is worse than a recorded
+# survivor.
+mut(
+    "M55", "F4-A11", "subscribing registers before updates() returns, losing nothing",
+    SRC / "ServerStateTracker.swift",
+    "        register(id, continuation)",
+    "        Task.detached { await self.register(id, continuation) }",
+    "published immediately after subscribing is delivered",
+)
+
+mut(
+    "M56", "F4-A11", "an unchanged state is not republished",
+    SRC / "ServerStateTracker.swift",
+    "        guard snapshot != lastPublished else { return }",
+    "        if false { return }",
+    "an identical state is not published twice",
+)
+
+mut(
+    "M57", "F4-A4", "run() twice does not start a second poll loop",
+    SRC / "ServerStateTracker.swift",
+    "        guard !isRunning else { return }",
+    "        if false { return }",
+    "running twice does not start a second poll loop",
+)
+
+# A failure that is stored but never published leaves a subscribed surface frozen on the last good
+# frame — the same invisible failure as the original `try?`, one layer further out. Nothing
+# mutated this line before, so the `publish()` in `apply(pollFailure:)` was a decoration.
+mut(
+    "M58", "F4-A11", "a poll failure is published, not merely recorded",
+    SRC / "ServerStateTracker.swift",
+    "        loadKind = hasLoaded ? .stale(error) : .failed(error)\n        publish()",
+    "        loadKind = hasLoaded ? .stale(error) : .failed(error)",
+    ["notified of a poll failure", "the failure and its recovery"],
+)
+
+# A cancelled `run()` is a deliberate teardown, not a stream that gave up. Without this guard the
+# ordinary shutdown path publishes `.disconnected` to every subscriber — a drop that did not
+# happen, which is the same lie as the pinned `.disconnected` F4 exists to remove, arriving from
+# the other end of the lifecycle. Found by the Phase D completeness critic.
+mut(
+    "M59", "F4-A7", "a cancelled run() does not report the stream as dropped",
+    SRC / "ServerStateTracker.swift",
+    "        guard !Task.isCancelled else { return }\n        apply(phase: .disconnected)",
+    "        apply(phase: .disconnected)",
+    "cancelling run() does not report a parked stream as dropped",
 )
 
 # ---------------------------------------------------------------- secrets (A5, A7)
@@ -494,13 +624,34 @@ mut(
 RESULTS = []
 
 
+# A mutation can make the suite *hang* rather than fail — a deferred registration leaves a
+# subscriber waiting on a value that will never arrive, and `for await` has no deadline of its
+# own. Without a bound here that is indistinguishable from a slow run, and the gate simply never
+# returns. Found the hard way: an unbounded run took a session with it.
+#
+# A timeout is a KILL, not an error. The mutant changed observable behaviour — a test stopped
+# terminating — and recording it as anything else would let a hang read as a survivor.
+SUITE_TIMEOUT_S = 300
+
+
 def run_suite() -> tuple[bool, str]:
-    proc = subprocess.run(
-        ["swift", "test", "--no-parallel"],
-        cwd=APP, capture_output=True, text=True,
-    )
+    try:
+        proc = subprocess.run(
+            ["swift", "test", "--no-parallel"],
+            cwd=APP, capture_output=True, text=True, timeout=SUITE_TIMEOUT_S,
+        )
+        ok, output = proc.returncode == 0, proc.stdout + proc.stderr
+    except subprocess.TimeoutExpired as expired:
+        captured = (expired.stdout or b"") + (expired.stderr or b"")
+        if isinstance(captured, bytes):
+            captured = captured.decode("utf-8", "replace")
+        ok = False
+        output = captured + (
+            f'\nTest "«suite did not terminate»" failed: '
+            f"no result within {SUITE_TIMEOUT_S}s — the mutation deadlocked a test\n"
+        )
     scrub_residue()
-    return proc.returncode == 0, proc.stdout + proc.stderr
+    return ok, output
 
 
 def scrub_residue() -> None:

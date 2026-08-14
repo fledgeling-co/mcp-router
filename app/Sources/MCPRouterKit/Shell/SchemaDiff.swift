@@ -19,19 +19,23 @@ import Foundation
 /// re-encoded sorted and indented. That means a change lands on its own line, and a difference in
 /// serialisation order is correctly reported as no change at all.
 public enum SchemaDiff {
+    /// How one top-level parameter differs.
+    ///
+    /// A sibling of `ParameterChange` rather than nested inside it, because SwiftLint caps nesting
+    /// at one level and a third level here would be depth for its own sake.
+    public enum ParameterChangeKind: String, Equatable, Sendable, Hashable, CaseIterable {
+        /// An input the tool did not previously ask for. **The case that matters.**
+        case added
+        case removed
+        case altered
+    }
+
     /// One top-level parameter that differs between the approved schema and the pending one.
     public struct ParameterChange: Equatable, Sendable, Identifiable, Hashable {
-        public enum Kind: String, Equatable, Sendable, Hashable, CaseIterable {
-            /// An input the tool did not previously ask for. **The case that matters.**
-            case added
-            case removed
-            case altered
-        }
-
         public let name: String
-        public let kind: Kind
+        public let kind: ParameterChangeKind
 
-        public init(name: String, kind: Kind) {
+        public init(name: String, kind: ParameterChangeKind) {
             self.name = name
             self.kind = kind
         }

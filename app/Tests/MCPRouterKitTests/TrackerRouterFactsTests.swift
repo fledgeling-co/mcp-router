@@ -21,18 +21,18 @@ struct TrackerRouterFactsTests {
     }
 
     static func response(port: Int, since: String) throws -> ServersResponse {
-        ServersResponse(
+        try ServersResponse(
             port: port,
             idleMs: 300_000,
             since: since,
-            servers: [try server("alpha")]
+            servers: [server("alpha")]
         )
     }
 
     @Test("a successful poll carries the router's port and counting window onto the state")
     func factsArriveFromThePoll() async throws {
         let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
-        await tracker.apply(poll: try Self.response(port: 9999, since: "2026-08-12T09:14:00.000Z"))
+        try await tracker.apply(poll: Self.response(port: 9999, since: "2026-08-12T09:14:00.000Z"))
 
         let state = await tracker.state()
         #expect(state.port == 9999, "the observed port did not reach the state")
@@ -54,21 +54,21 @@ struct TrackerRouterFactsTests {
     @Test("a failed poll after a successful one keeps the port and the counting window")
     func factsSurviveAFailedRefresh() async throws {
         let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
-        await tracker.apply(poll: try Self.response(port: 9999, since: "2026-08-12T09:14:00.000Z"))
+        try await tracker.apply(poll: Self.response(port: 9999, since: "2026-08-12T09:14:00.000Z"))
         await tracker.apply(pollFailure: .routerNotRunning)
 
         let state = await tracker.state()
         #expect(state.port == 9999, "a failed refresh discarded the router's port")
         #expect(state.since == "2026-08-12T09:14:00.000Z", "a failed refresh discarded the counting window")
         // And the retention is not a side effect of the load state staying loaded — it went stale.
-        #expect(state.load != .loaded([try Self.server("alpha")]))
+        #expect(try state.load != .loaded([Self.server("alpha")]))
     }
 
     @Test("a later successful poll replaces the facts rather than merging them")
     func factsAreReplacedByAFreshPoll() async throws {
         let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
-        await tracker.apply(poll: try Self.response(port: 8879, since: "2026-08-12T09:14:00.000Z"))
-        await tracker.apply(poll: try Self.response(port: 9999, since: "2026-08-13T10:00:00.000Z"))
+        try await tracker.apply(poll: Self.response(port: 8879, since: "2026-08-12T09:14:00.000Z"))
+        try await tracker.apply(poll: Self.response(port: 9999, since: "2026-08-13T10:00:00.000Z"))
 
         let state = await tracker.state()
         #expect(state.port == 9999)

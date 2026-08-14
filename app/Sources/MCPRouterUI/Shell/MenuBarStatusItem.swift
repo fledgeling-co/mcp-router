@@ -10,15 +10,20 @@
     /// cause is a failed index, which the popover's own row draws in `--fail`. Two dot colours in a
     /// 16pt glyph are a code nobody learns; the distinction is drawn where there is a sentence to
     /// carry it.
-    struct MenuBarStatusItem: View {
+    public struct MenuBarStatusItem: View {
         let servers: [MCPServer]?
+
+        public init(servers: [MCPServer]?) {
+            self.servers = servers
+        }
+
         @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
 
         private var wantsAttention: Bool {
             MenuBarPresentation.statusItemNeedsAttention(servers ?? [])
         }
 
-        var body: some View {
+        public var body: some View {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: "square.stack.3d.up")
                     // Template rendering, so macOS tints it for the bar's appearance and it inverts

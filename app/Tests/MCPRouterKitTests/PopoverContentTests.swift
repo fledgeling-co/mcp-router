@@ -44,8 +44,8 @@ struct PopoverContentTests {
     /// unit test can see it.
     @Test("nothing wanting a decision produces a nil band, never an empty one")
     func quietStateHasNoBand() throws {
-        let content = PopoverContent.make(
-            trackerState: .init(load: .loaded([try Self.server("quiet")]), stream: .notConfigured),
+        let content = try PopoverContent.make(
+            trackerState: .init(load: .loaded([Self.server("quiet")]), stream: .notConfigured),
             records: [Self.record("quiet", secondsAgo: 2)],
             now: Self.now
         )
@@ -55,9 +55,9 @@ struct PopoverContentTests {
 
     @Test("a server wanting a decision produces a band with that row")
     func attentionProducesABand() throws {
-        let content = PopoverContent.make(
+        let content = try PopoverContent.make(
             trackerState: .init(
-                load: .loaded([try Self.server("quiet"), try Self.server("held", held: true)]),
+                load: .loaded([Self.server("quiet"), Self.server("held", held: true)]),
                 stream: .notConfigured
             ),
             records: [Self.record("quiet", secondsAgo: 2)],
@@ -75,11 +75,11 @@ struct PopoverContentTests {
     /// which is every cold start, which is exactly when someone is looking at the popover.
     @Test("running and idle sum to the declared total across all four lifecycle states")
     func countsCoverTheWholeStateSpace() throws {
-        let servers = [
-            try Self.server("a", state: .running, tools: 3),
-            try Self.server("b", state: .idle, tools: 3),
-            try Self.server("c", state: .starting, tools: 3),
-            try Self.server("d", state: .stopping, tools: 3)
+        let servers = try [
+            Self.server("a", state: .running, tools: 3),
+            Self.server("b", state: .idle, tools: 3),
+            Self.server("c", state: .starting, tools: 3),
+            Self.server("d", state: .stopping, tools: 3)
         ]
         let counts = MenuBarPresentation.counts(from: servers)
         #expect(counts.running == 1)
@@ -92,9 +92,9 @@ struct PopoverContentTests {
 
     @Test("the stale notice is its own value and the band keeps its causes' tints")
     func staleDoesNotRecolourTheBand() throws {
-        let content = PopoverContent.make(
+        let content = try PopoverContent.make(
             trackerState: .init(
-                load: .stale([try Self.server("held", held: true)], .transport(detail: "timed out")),
+                load: .stale([Self.server("held", held: true)], .transport(detail: "timed out")),
                 stream: .notConfigured
             ),
             records: [Self.record("held", secondsAgo: 40)],
@@ -140,8 +140,11 @@ struct PopoverContentTests {
 
     @Test("a loaded router with no calls keeps its counts and says the log is empty")
     func emptyLogKeepsItsCounts() throws {
-        let content = PopoverContent.make(
-            trackerState: .init(load: .loaded([try Self.server("a", state: .running, tools: 4)]), stream: .notConfigured),
+        let content = try PopoverContent.make(
+            trackerState: .init(
+                load: .loaded([Self.server("a", state: .running, tools: 4)]),
+                stream: .notConfigured
+            ),
             records: [],
             now: Self.now
         )
@@ -155,8 +158,8 @@ struct PopoverContentTests {
     @Test("at most six rows are rendered, newest first")
     func callsAreCappedAtSix() throws {
         let records = (0 ..< 20).map { Self.record("a", secondsAgo: $0) }
-        let content = PopoverContent.make(
-            trackerState: .init(load: .loaded([try Self.server("a")]), stream: .notConfigured),
+        let content = try PopoverContent.make(
+            trackerState: .init(load: .loaded([Self.server("a")]), stream: .notConfigured),
             records: records,
             now: Self.now
         )
@@ -170,8 +173,8 @@ struct PopoverContentTests {
             Self.record("a", secondsAgo: 1, ok: true, cold: true),
             Self.record("a", secondsAgo: 2, ok: false, cold: false)
         ]
-        let content = PopoverContent.make(
-            trackerState: .init(load: .loaded([try Self.server("a")]), stream: .notConfigured),
+        let content = try PopoverContent.make(
+            trackerState: .init(load: .loaded([Self.server("a")]), stream: .notConfigured),
             records: records,
             now: Self.now
         )

@@ -33,8 +33,12 @@
     ///
     /// Liquid Glass is legitimate here and only here in M8: §3.3 permits it on floating chrome and
     /// forbids it on content, so the window's panes stay opaque and this does not.
-    struct MenuBarPopover: View {
+    public struct MenuBarPopover: View {
         @Bindable var shell: ShellModel
+
+        public init(shell: ShellModel) {
+            self.shell = shell
+        }
 
         @State private var records: [CallRecord] = []
         @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -47,7 +51,7 @@
             )
         }
 
-        var body: some View {
+        public var body: some View {
             VStack(alignment: .leading, spacing: PopoverMetrics.gap) {
                 header
                 if let stale = content.stale { staleRow(stale) }
@@ -77,7 +81,6 @@
 
         // MARK: - Header
 
-        @ViewBuilder
         private var header: some View {
             HStack(spacing: PopoverMetrics.gap) {
                 if let counts = content.counts {
@@ -200,7 +203,7 @@
         private var footer: some View {
             HStack(spacing: PopoverMetrics.gap) {
                 Button(MenuBarPresentation.openWindowLabel) { MenuBarRouter.openWindow() }
-                .buttonStyle(ProminentButtonStyle())
+                    .buttonStyle(ProminentButtonStyle())
                 Spacer(minLength: 0)
                 Button(MenuBarPresentation.quitLabel) { MenuBarRouter.quit() }
                     .buttonStyle(StandardButtonStyle())

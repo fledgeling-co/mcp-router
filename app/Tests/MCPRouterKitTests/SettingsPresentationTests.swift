@@ -8,9 +8,11 @@ import Testing
 struct SettingsPresentationTests {
     static let home = URL(fileURLWithPath: "/Users/example/.claude/mcp-router", isDirectory: true)
 
-    static func facts(port: Int = 8879, idleMs: Int = 300_000, since: String = "2026-08-12T09:14:00Z")
-        -> SettingsPresentation.RouterFacts
-    {
+    static func facts(
+        port: Int = 8879,
+        idleMs: Int = 300_000,
+        since: String = "2026-08-12T09:14:00Z"
+    ) -> SettingsPresentation.RouterFacts {
         .init(port: port, idleMs: idleMs, since: since, home: home)
     }
 
@@ -67,7 +69,9 @@ struct SettingsPresentationTests {
     func warmSetSummary() async throws {
         var servers = try await FixtureControlAPIClient(.populated).servers().servers
         #expect(servers.count >= 2, "the populated fixture is too small; the recording changed")
-        for index in servers.indices { servers[index].warm = index < 2 }
+        for index in servers.indices {
+            servers[index].warm = index < 2
+        }
 
         let set = SettingsPresentation.WarmSet(servers: servers)
         #expect(set.names.count == 2)
@@ -75,7 +79,9 @@ struct SettingsPresentationTests {
         #expect(set.summary == "2 of \(servers.count) servers")
         #expect(!set.isEmpty)
 
-        for index in servers.indices { servers[index].warm = false }
+        for index in servers.indices {
+            servers[index].warm = false
+        }
         let none = SettingsPresentation.WarmSet(servers: servers)
         #expect(none.isEmpty)
         #expect(none.summary == "None of \(servers.count) servers")
@@ -101,7 +107,8 @@ struct SettingsPresentationTests {
             // The rendered value is a fixed sentence with no interpolation of anything secret.
             #expect(!status.value.isEmpty)
         }
-        #expect(SettingsPresentation.TokenStatus.unavailable(status: -25300).banner?.contains("-25300") == true)
+        #expect(SettingsPresentation.TokenStatus.unavailable(status: -25300).banner?
+            .contains("-25300") == true)
     }
 
     // MARK: - A9 · forget, and when it is available
@@ -166,31 +173,102 @@ struct SettingsPresentationTests {
 
     /// The failure mode here is not a bug in today's code — it is a plausible megabyte figure added
     /// later by someone who has not read `DESIGN.md` §6. A test over today's rendered output cannot
-    /// see that coming, so this reads the source of the four files M8 owns and fails on a memory
-    /// unit appearing in a user-facing string.
+    /// see that coming, so this reads the source of every file M8 owns and fails on a memory unit
+    /// appearing in a **string literal**.
+    ///
+    /// Scanning literals rather than whole lines is what makes it both sound and quiet: the doc
+    /// comments in these files legitimately use the word "megabyte" while arguing that none may be
+    /// shown, and a line-level grep would either flag those or be narrowed until it flagged nothing.
+    /// It also catches `"\(n)MB"`, which a `" MB"` search misses.
     @Test("no memory unit appears in any string M8 renders")
     func noMemoryUnitInRenderedCopy() throws {
         let root = URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()   // MCPRouterKitTests
-            .deletingLastPathComponent()   // Tests
-            .deletingLastPathComponent()   // app
+            .deletingLastPathComponent() // MCPRouterKitTests
+            .deletingLastPathComponent() // Tests
+            .deletingLastPathComponent() // app
+        // Every file M8 added or whose copy it owns, including the views — the earlier version of
+        // this guard scanned the two presentation files only, which left the surfaces that actually
+        // render unguarded.
         let files = [
             "Sources/MCPRouterKit/Shell/SettingsPresentation.swift",
-            "Sources/MCPRouterKit/Shell/MenuBarPresentation.swift"
+            "Sources/MCPRouterKit/Shell/MenuBarPresentation.swift",
+            "Sources/MCPRouterKit/Shell/PopoverContent.swift",
+            "Sources/MCPRouterKit/Shell/SchemaDiff.swift",
+            "Sources/MCPRouterUI/Boards/SettingsBoard.swift",
+            "Sources/MCPRouterUI/Boards/SettingsBoardParts.swift",
+            "Sources/MCPRouterUI/Boards/SettingsBoardModel.swift",
+            "Sources/MCPRouterUI/Shell/MenuBarPopover.swift",
+            "Sources/MCPRouterUI/Shell/MenuBarStatusItem.swift"
         ]
-        // Only the copy is searched, not the prose explaining why there is none — the doc comments
-        // in these files legitimately say "megabyte" while arguing that none may be shown.
-        let forbidden = [" MB\"", " KB\"", " GB\"", " MB ", "megabytes of"]
+        // Units are matched **case-sensitively**, and that is not laziness: a case-insensitive
+        // "MB" matches "remembers", which is in this pane's own subtitle. The units only ever
+        // appear capitalised in real copy ("240MB"), and the spelled-out words are checked
+        // case-insensitively, where no such collision exists.
+        let units = ["MB", "KB", "GB", "MiB", "GiB"]
+        let words = ["megabyte", "kilobyte", "gigabyte"]
+
         for relative in files {
             let url = root.appendingPathComponent(relative)
             let source = try String(contentsOf: url, encoding: .utf8)
             #expect(!source.isEmpty, "\(relative) is empty or moved; this guard is not running")
-            for needle in forbidden {
-                #expect(
-                    !source.contains(needle),
-                    "\(relative) contains \(needle) — the router serves no memory figure (DESIGN.md §6)"
-                )
+
+            for literal in Self.stringLiterals(in: source) {
+                for unit in units {
+                    #expect(
+                        !literal.contains(unit),
+                        """
+                        \(relative) renders "\(literal)", which carries \(unit). \
+                        `residentMb()` has no callers and never reaches the wire, so there is no \
+                        memory figure the router observes (DESIGN.md §6).
+                        """
+                    )
+                }
+                for word in words {
+                    #expect(
+                        !literal.localizedCaseInsensitiveContains(word),
+                        "\(relative) renders \"\(literal)\", which names \(word)s (DESIGN.md §6)."
+                    )
+                }
             }
         }
+    }
+
+    /// Every double-quoted literal in a Swift source, with comment lines dropped first.
+    ///
+    /// Deliberately simple: it is a guard over this repo's own copy, not a Swift parser. Dropping
+    /// `//` lines is what keeps the doc comments — which argue *for* this rule using the very words
+    /// it forbids — from failing it.
+    static func stringLiterals(in source: String) -> [String] {
+        var literals: [String] = []
+        for line in source.split(separator: "\n", omittingEmptySubsequences: false) {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard !trimmed.hasPrefix("//"), !trimmed.hasPrefix("///") else { continue }
+            var inLiteral = false
+            var current = ""
+            var previous: Character?
+            for character in line {
+                if character == "\"", previous != "\\" {
+                    if inLiteral { literals.append(current); current = "" }
+                    inLiteral.toggle()
+                } else if inLiteral {
+                    current.append(character)
+                }
+                previous = character
+            }
+        }
+        return literals
+    }
+
+    /// The guard above is only worth having if it can fail. Proving that here rather than only in a
+    /// commit message: a literal carrying a unit is rejected, and the prose around it is not.
+    @Test("the memory-unit guard rejects a literal and ignores a comment")
+    func memoryGuardCanFail() {
+        let offending = """
+        let label = "Warm set uses 240MB"
+        """
+        #expect(Self.stringLiterals(in: offending).contains { $0.contains("MB") })
+
+        let commentary = "/// residentMb() reports megabytes and has no callers."
+        #expect(Self.stringLiterals(in: commentary).isEmpty)
     }
 }

@@ -174,6 +174,6 @@ public struct PopoverContent: Equatable, Sendable {
     /// The newest call's timestamp, used to age the stale notice. `nil` when there are no calls to
     /// date it from, in which case the notice reports zero rather than inventing an age.
     private static func lastAnswer(before _: Date, records: [CallRecord]) -> Date? {
-        records.compactMap { $0.ts.asControlAPIDate }.max()
+        records.compactMap(\.ts.asControlAPIDate).max()
     }
 }

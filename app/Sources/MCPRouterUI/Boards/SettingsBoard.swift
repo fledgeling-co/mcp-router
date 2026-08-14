@@ -101,7 +101,6 @@
 
         // MARK: - Router
 
-        @ViewBuilder
         private var routerGroup: some View {
             SettingsGroup(.router) {
                 if let error = offlineError {
@@ -112,10 +111,15 @@
                     Banner(icon: .bang, tint: .fail) {
                         Text("\(error.headline). \(error.advice)")
                     }
-                    Text("Its endpoint, reaper and counting window are the router's own and are only knowable while it is up.")
-                        .typeRole(.subheadline)
-                        .foregroundStyle(ColorToken.t3.color)
-                        .fixedSize(horizontal: false, vertical: true)
+                    Text(
+                        """
+                        Its endpoint, reaper and counting window are the router's own and are \
+                        only knowable while it is up.
+                        """
+                    )
+                    .typeRole(.subheadline)
+                    .foregroundStyle(ColorToken.t3.color)
+                    .fixedSize(horizontal: false, vertical: true)
                 } else if let facts {
                     SettingsCard {
                         SettingsRow(label: "Endpoint", value: facts.endpoint)

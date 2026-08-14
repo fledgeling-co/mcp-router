@@ -85,7 +85,7 @@ struct MenuBarPresentationTests {
         // appear by a new API being added here.
         var many: [MCPServer] = []
         for index in 0 ..< 12 {
-            many.append(try await Self.server(named: "s\(index)", held: true))
+            try await many.append(Self.server(named: "s\(index)", held: true))
         }
         #expect(MenuBarPresentation.statusItemNeedsAttention(many))
         #expect(MenuBarPresentation.statusItemDotToken == .attention)
@@ -167,7 +167,7 @@ struct MenuBarPresentationTests {
     func countsAgreeWithTheReadout() async throws {
         var servers: [MCPServer] = []
         for index in 0 ..< 8 {
-            servers.append(try await Self.server(named: "s\(index)", running: index < 3, tools: 5))
+            try await servers.append(Self.server(named: "s\(index)", running: index < 3, tools: 5))
         }
         let counts = MenuBarPresentation.counts(from: servers)
         let readout = ReadoutModel().applying(servers, at: Date())

@@ -180,22 +180,19 @@
         /// about this release.
         @ViewBuilder
         private var autoUpdateSection: some View {
-            if let origin = skill.source.pluginOrigin {
+            switch SkillPresentation.autoUpdateItem(for: skill, in: board.marketplaces) {
+            case .notApplicable:
+                EmptyView()
+            case let .unread(sentence):
                 section("Auto-update") {
-                    if let marketplace = board.marketplaces.first(where: { $0.name == origin.marketplace }) {
-                        ToggleRow(
-                            title: SkillPresentation.autoUpdateLine(for: marketplace),
-                            help: SkillPresentation.autoUpdateReason(for: marketplace),
-                            isOn: marketplace.autoUpdate,
-                            disabledReason: SkillPresentation.autoUpdateReason(for: marketplace),
-                            set: { _ in }
-                        )
-                    } else {
-                        Text(SkillPresentation.autoUpdateUnread)
-                            .typeRole(.caption)
-                            .foregroundStyle(ColorToken.t3.color)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
+                    Text(sentence)
+                        .typeRole(.caption)
+                        .foregroundStyle(ColorToken.t3.color)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            case let .setting(line, reason, isOn):
+                section("Auto-update") {
+                    ToggleRow(title: line, help: reason, isOn: isOn, disabledReason: reason, set: { _ in })
                 }
             }
         }

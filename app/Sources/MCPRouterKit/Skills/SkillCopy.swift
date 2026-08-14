@@ -38,6 +38,34 @@ public extension SkillPresentation {
     Not shown — the marketplace list didn't load, and the setting lives on the marketplace.
     """
 
+    /// What inspector item 7 shows for one skill — the decision, not the drawing.
+    ///
+    /// Three outcomes, and the distinction between the last two is the whole reason this is a type
+    /// rather than an optional: a skill whose marketplace record did not load is **not** a skill
+    /// whose auto-update is off. Collapsing them would have the panel assert a setting nobody read,
+    /// which is the one thing this board is not allowed to do.
+    enum AutoUpdateItem: Equatable {
+        /// A hand-placed skill. It has no marketplace, so there is no setting to state and the
+        /// section is omitted rather than rendered empty.
+        case notApplicable
+        /// There is a marketplace, but its record is not in hand.
+        case unread(String)
+        /// The setting, as read off the record, with the reason its toggle cannot be moved.
+        case setting(line: String, reason: String, isOn: Bool)
+    }
+
+    static func autoUpdateItem(for skill: Skill, in marketplaces: [Marketplace]) -> AutoUpdateItem {
+        guard let origin = skill.source.pluginOrigin else { return .notApplicable }
+        guard let marketplace = marketplaces.first(where: { $0.name == origin.marketplace }) else {
+            return .unread(autoUpdateUnread)
+        }
+        return .setting(
+            line: autoUpdateLine(for: marketplace),
+            reason: autoUpdateReason(for: marketplace),
+            isOn: marketplace.autoUpdate
+        )
+    }
+
     static func removeReason(for marketplace: Marketplace) -> String {
         if marketplace.suppliedSkillCount > 0 {
             let n = marketplace.suppliedSkillCount

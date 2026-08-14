@@ -80,6 +80,54 @@ struct SkillPresentationStateTests {
         #expect(unread != SkillPresentation.autoUpdateLine(for: off))
     }
 
+    @Test("Inspector item 7 resolves to one of three outcomes, and never confuses two of them")
+    func autoUpdateItemPicksTheRightOutcome() {
+        let record = Marketplace(
+            name: "fledgeling-plugins",
+            source: .github(repo: "fledgeling-co/fledgeling-plugins"),
+            autoUpdate: true
+        )
+        let skill = SkillPresentationTests.testPluginSkill(marketplace: "fledgeling-plugins")
+
+        // Present: the setting is read off the record, with the reason its toggle cannot move.
+        #expect(
+            SkillPresentation.autoUpdateItem(for: skill, in: [record])
+                == .setting(
+                    line: "Auto-update on",
+                    reason: SkillPresentation.writesNotYetAvailable,
+                    isOn: true
+                )
+        )
+        // Absent record — the list did not load, or this marketplace is not in it. NOT `.setting`
+        // with isOn false, which would be a claim about a file nobody read.
+        #expect(
+            SkillPresentation.autoUpdateItem(for: skill, in: [])
+                == .unread(SkillPresentation.autoUpdateUnread)
+        )
+        // A hand-placed skill has no marketplace at all, so the section is omitted rather than
+        // rendered as an unread one — there is nothing that could ever load.
+        #expect(
+            SkillPresentation.autoUpdateItem(for: SkillPresentationTests.testStandaloneSkill(), in: [record])
+                == .notApplicable
+        )
+    }
+
+    @Test("A local-directory marketplace's reason is permanent, not 'not yet'")
+    func autoUpdateItemDistinguishesLocalFromUnbuilt() {
+        // Two different dimmed toggles that must not share a sentence: one cannot be moved until a
+        // later item ships, the other has nothing to fetch no matter what ships.
+        let local = Marketplace(name: "atlas", source: .directory(path: "/Dev/atlas"))
+        let skill = SkillPresentationTests.testPluginSkill(marketplace: "atlas")
+        guard case let .setting(line, reason, _) = SkillPresentation.autoUpdateItem(for: skill, in: [local])
+        else {
+            Issue.record("a present local record must still resolve to a setting")
+            return
+        }
+        #expect(line == "Local directory")
+        #expect(reason.contains("nothing to fetch"))
+        #expect(reason != SkillPresentation.writesNotYetAvailable)
+    }
+
     // MARK: - The held-version sheet
 
     @Test("The held sheet's title states the finding and names both versions")

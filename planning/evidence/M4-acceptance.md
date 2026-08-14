@@ -171,3 +171,101 @@ the lane exists and a later runner can drive them with `MCPROUTER_SCENARIO`. The
 because the rule is one launch per pass and the populated state is the one this item changed most;
 their copy is asserted as literals by test. A runner picking this up should drive them rather than
 assume this row covers them.
+
+---
+
+# Second pass — the resume, after the 503
+
+Appended, not rewritten. The rows above still stand: they were taken at `3f52f14`+fixes, which
+survived the rebase as `33463a2`, and this pass re-verifies only what changed since.
+
+## What changed since the rows above, and therefore what was in scope
+
+`git diff 33463a2..HEAD --name-only` names ten files. Four are UI:
+
+| File | What changed | Rendered effect |
+|---|---|---|
+| `SkillsBoard.swift` | empty-state message now keyed on filter **and** search; segment labels search-aware | yes |
+| `SkillSheets.swift` | marketplace `Remove` became a visible `DisabledAction` instead of a `.help()` tooltip; missing-subject copy reworded | yes |
+| `SkillInspector.swift` | **new** — inspector item 7, the auto-update section | yes |
+| `SkillsBoardModel.swift` | `Task.isCancelled` guards | no — a cancelled load leaves no banner |
+
+Everything else is `SkillPresentation` / `SkillCopy` copy and the tests over them.
+
+**Still one screen: the Skills pane.** `BoardRegistry.installed` is `[.servers, .skills]`, so five of
+seven destinations remain `ScaffoldPane` and were **not** driven — there is nothing in them to drive.
+The **Servers pane was not re-verified**: `git diff 33463a2..HEAD` touches no file behind it, so M3's
+rows at `589ab2e` remain its evidence. The menu bar was **not** re-read: `SkillsMenuTests` is
+unchanged and still green, and no menu code was touched this pass.
+
+## The rendered pass is BLOCKED, and was not faked
+
+The accessibility plane is unavailable to this session. Two probes, per the two-probe rule:
+
+| Probe | Command | Result |
+|---|---|---|
+| 1 — a freshly built toolkit | `swiftc -O -o /tmp/m4-pass/axkit scripts/acceptance/axkit.swift` then `axkit trusted` | `no` |
+| 2 — the toolkit the earlier passes actually used | `/tmp/m3-ax/axkit trusted` (built 20:18, the binary behind the rows above) | `no` |
+
+`axkit front` still answers (`Ledger`) because that reads `NSWorkspace`, not the AX API — so the
+process runs, and it is specifically the **AX trust grant** that is absent. The grant belongs to the
+responsible process; it was present when the rows above were taken and is not present for processes
+this session spawns. Granting it means editing TCC, which is a change to the user's system
+permissions and is not mine to make unilaterally. `proctor` is not exposed as a tool in this session,
+so the documented fallback was unavailable too.
+
+**A launch was attempted and cleanly abandoned.** The app was started from the worktree binary
+directly (never `open -a`, never `activate`), `axkit select` and `axkit dump` both returned
+`axkit: not trusted for accessibility`, and the process was terminated. `axkit front` was sampled at
+four points across the attempt — before launch, after select, after the key event, after teardown —
+and returned **`Ledger`** every time. The user's screen was never taken.
+
+## What was done instead of faking it
+
+The one genuinely new rendered element is inspector item 7. Rather than assert a string and call it
+proof, its **decision** was extracted out of the view into `SkillPresentation.autoUpdateItem(for:in:)`,
+which returns a three-case enum, and the view became a `switch` with no logic in it. That is the seam
+`SkillPresentation.swift` already declares — decisions in Kit, sentences in Copy, drawing in UI — and
+it converts an untestable view branch into a tested one.
+
+| Clause | Evidence | Result |
+|---|---|---|
+| Item 7 present for a marketplace skill, with the setting read off the record | `autoUpdateItemPicksTheRightOutcome` | pass |
+| A missing record resolves to `.unread`, **never** to `.setting(isOn: false)` | same | pass |
+| A hand-placed skill omits the section rather than showing an unread one | same | pass |
+| A local directory's reason is permanent ("nothing to fetch"), not the board-wide "not yet" | `autoUpdateItemDistinguishesLocalFromUnbuilt` | pass |
+| The unread sentence is not mistakable for either real state | `autoUpdateWithoutARecordSaysSo` | pass |
+| Empty-state label and action are one judgement (`clearsSearch`) | `actionMatchesItsLabel` | pass |
+| Segment counts follow the search | `countsFollowTheSearch` | pass |
+| A search matching nothing is explained under every filter, `All` included | `searchEmptinessIsAlwaysExplained` | pass |
+| The held body promises no action the sheet cannot perform | `heldBodyDoesNotPromisePromotion` | pass |
+
+### Red-green: both new guards broken and watched to fail
+
+| Mutation | Guard | Issues raised |
+|---|---|---|
+| `autoUpdateItem` returns `.setting(line: "Auto-update off", isOn: false)` where it should return `.unread` — the exact collapse the enum exists to prevent | `autoUpdateItemPicksTheRightOutcome` | **1** |
+| `autoUpdateReason` gives a local directory the generic "not yet" sentence | `autoUpdateItemDistinguishesLocalFromUnbuilt`, `suppliesNothing` | **3** |
+
+Both went red; the suite is green with the source restored.
+
+## Gates, this pass
+
+| Gate | Result |
+|---|---|
+| `make -C .worktrees/M4 test` | **819 tests in 113 suites passed** |
+| `make -C .worktrees/M4 lint` | **0 violations, 0 serious in 257 files**; `no-raw-design-values: clean`; `no-wire-codable: clean` |
+| `make -C .worktrees/M4 build-mac` | `** BUILD SUCCEEDED **` |
+
+Note on the lint gate: the first run was issued without `-C` and linted the **main checkout** (243
+files) rather than this worktree. Re-run against the worktree it reports 257 files. The 257-file run
+is the one that counts, and the main checkout was confirmed unmodified afterwards.
+
+## Still not verified in a running app, and said so plainly
+
+The **Empty, Loading, Partial, Offline and Error** states remain undriven — same as the first pass,
+and now for a second reason on top of the first. `FixtureControlAPIClient` answers all five via
+`MCPROUTER_SCENARIO`, so the lane exists. **Inspector item 7 has never been seen rendered**, by
+anyone: its logic is tested in all three branches and its layout is not. A runner that inherits a
+working AX grant should drive the Skills pane with a row selected and confirm the section draws,
+and should not treat the table above as covering that.

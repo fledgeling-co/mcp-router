@@ -27,7 +27,7 @@ Every row is a measurement, an exercised request, or a red-green test. No row is
 | 1 | The Swift handler answers **what the running TypeScript reference answers**, byte for byte, over a 32-row matrix: the acceptance rows, fault injection, data-shape stress, and the security surface | `bash scripts/acceptance/control-differential.sh` (starts `dist/` on 8973 against a scratch MCPR home, issues each request to both, diffs bytes) | `cfb9ecb` | **32 rows compared, 32 ok, 0 failed** |
 | 2 | The parity corpus is **reference-derived, not back-fitted** — regenerating every vector from the built reference reproduces the committed files exactly | `make parity-regen` (runs `scripts/parity/generate-vectors.mjs` against `dist/`, `diff -ru` against the committed corpus) | `cfb9ecb` | `parity-regen: the committed vectors match the reference exactly` |
 | 3 | The corpus is **executed**, not merely present — the attestation prints a count and the floor refuses a shrinking corpus | `make parity` | `cfb9ecb` | `parity: 352 vector cases compared (floor 352)` |
-| 4 | Every named behaviour is **load-bearing**: break it in the source, the gate must go red, restore | `scripts/parity/mutation-gate.sh` (31 mutations at `cfb9ecb`, 34 at `1c96484`) | `cfb9ecb` / `1c96484` | **34/34 red.** 17 caught by the vector corpus (N1–N13, R1, R2, R4, R5), 17 by the suite (D1, D3, D4, R3, R6–R18). Zero decorations, zero misapplied |
+| 4 | Every named behaviour is **load-bearing**: break it in the source, the gate must go red, restore | `scripts/parity/mutation-gate.sh` — 31 mutations at `cfb9ecb`, 34 at `1c96484`, 35 at `0ef3cf2` | `cfb9ecb` → `0ef3cf2` | **35/35 red.** 17 caught by the vector corpus (N1–N13, R1, R2, R4, R5), 18 by the suite (D1, D3, D4, R3, R6–R19). Zero decorations, zero misapplied |
 | 5 | **B10** — no env or header **value** is reachable through any response the API can emit | the canary sweep inside row 1: a planted env value, scanned for across every compared response body | `cfb9ecb` | `no env value appears in any compared response` |
 | 6 | **B40** — a PATCH carrying `command`, `args`, `env` is *ignored, not rejected*: status, response bytes and the config file on disk all equal the same request with those three members deleted | `WireGuaranteeTests.commandLineMembersAreIgnoredNotRejected`, red-green proven by mutation R12 | `cfb9ecb` | red under R12, green restored |
 | 7 | **B2 / S3** — an explicit `cwd: null` is emitted as `"cwd":null`; an absent `cwd` emits no key at all; a value emits the value | `WireGuaranteeTests.nullCwdIsEmitted` + `cwdTriState`, red-green proven by mutation R10 | `cfb9ecb` | red under R10, green restored |
@@ -42,6 +42,7 @@ Every row is a measurement, an exercised request, or a red-green test. No row is
 | 16 | **B51 / N5** — a non-ASCII log is cut where the *reference* cuts it: the byte-derived offset applied to a UTF-16 string, overshooting the end and keeping nothing, where a byte-correct implementation would keep half the log | `UsageLogTests.byteOffsetIsAppliedToUTF16` (+ a paired ASCII case so it cannot be passed by returning nothing for any large log), red-green proven by mutation R16 | `1c96484` | red under R16, green restored |
 | 17 | **B50** — the log rotates at *exactly* 8 MiB: asserted at the boundary, one byte below and one above, which is the only trio separating `>=` from `>` | `UsageLogTests.rotatesAtTheBoundary`, red-green proven by mutation R17 | `1c96484` | red under R17, green restored |
 | 18 | **B50** — the ring warms from the **last** 500 records of a longer log, in order, and a torn final line is skipped rather than losing the read | `UsageLogTests.ringKeepsTheLastFiveHundred` + `tornFinalLineIsSkipped`, red-green proven by mutation R18 | `1c96484` | red under R18, green restored |
+| 19 | **S7 on the log write** — a *refused* rotation skips the append, matching the reference's single `try`, so the record is not written into a log that should have been rotated away | `UsageLogTests.failedRotationSkipsTheAppend` (injects a refused `moveItem`, asserts the file is byte-identical afterwards), red-green proven by mutation R19 | `0ef3cf2` | red under R19, green restored |
 
 ## Preconditions, recorded so they are not mistaken for acceptance
 
@@ -96,3 +97,9 @@ did not: B50's ring and rotation boundary and B51's byte-offset cut had no test 
 `maxLogBytes` carried a doc comment asserting it was "tested at the boundary" — a claim about
 evidence that did not exist. That comment is the reason this was worth sweeping for: it is the kind
 of statement that stops the next reader checking.
+
+| `0ef3cf2` | `UsageStore.record` / `rotateIfBig` — a **source** change: a failed rotation now skips the append. | `make all`, `scripts/acceptance/control-differential.sh`, `mutation-gate.sh R16 R17 R18 R19` | `0 violations` · `359 tests in 57 suites passed` · `parity: 352` · **differential re-run: 32 rows, 32 ok, 0 failed** · R16–R19 all red under mutation |
+
+The differential (row 1) **was** re-run here, unlike at `04b978e`, because this commit changes
+`app/Sources/` and the `/usage` endpoints are in the compared matrix. That is the rule working in
+both directions: a doc or formatting change reuses the evidence, a behaviour change re-earns it.

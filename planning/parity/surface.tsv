@@ -80,26 +80,27 @@ divergence	div-r3-d3	R3 D3 PATCH body true terminates the reference	proven	-	Ass
 divergence	div-r3-d4	R3 D4 a bare %ZZ escape terminates the reference	proven	-	Asserted both ways
 divergence	div-r3-d5	R3 D5 a truncated escape terminates the reference	proven	-	Asserted both ways
 divergence	div-r5-p7	R5 P7 callback framing is content-length + close	proven-by-suite	-	The reference sends chunked keep-alive. RouterCoreTests/CallbackWireTests.pageResponseBytes asserts the exact bytes; no OAuth callback is issued by this gate, so the reference side is not driven
+divergence	div-r2r-d8	R2R D8 an unparseable POST body carries V8's parser text	proven	-	Both routers answer 500 with code -32603 and a message beginning "invalid JSON body: "; only the parser text after that prefix differs, because the reference's is V8's own. Asserted in BOTH directions by parity-mcp.sh, so either side moving records stale
 # ---------------------------------------------------------------------------------------------
 # mcp — the endpoint the brief's tool-list and call-result corpora travel over.
 # There is no Swift MCP endpoint. RouterCore is a library; nothing wraps it in a process.
-mcp	mcp-endpoint	POST /mcp	blocked	R2-R	The relay does not exist in Swift. src/router.ts serves /mcp; RouterCore has no listener
-mcp	mcp-tools-list	tools/list	blocked	R2-R	Requires the relay. This is one of the five corpora the brief names, and it cannot be compared at all
-mcp	mcp-tools-call	tools/call	blocked	R2-R	Requires the relay and the upstream HTTP clients
-mcp	mcp-health	GET /health	blocked	R2-R	src/router.ts answers it; docs/install.sh verifies the install against it
-mcp	mcp-status	GET /status	blocked	R2-R	src/router.ts answers it; docs/install.sh verifies the install against it
+mcp	mcp-endpoint	POST /mcp	proven	-	the framing refusals (403 bad Host, 406 wrong Accept, 415 no content-type, 400 empty body) and the 404 compared byte for byte on both live routers by parity-mcp.sh
+mcp	mcp-tools-list	tools/list	proven	-	both routers started on copies of one home; the whole SSE envelope diffed byte for byte, member order included
+mcp	mcp-tools-call	tools/call	proven	-	six shapes — ok, un-namespaced, unknown server, unknown method, initialize, ping — bodies diffed byte for byte against the live reference
+mcp	mcp-health	GET /health	proven	-	status line, application headers and body diffed against the live reference
+mcp	mcp-status	GET /status	proven	-	diffed after an identical call sequence; port and idleSec normalised, being a coordinate and a clock
 # ---------------------------------------------------------------------------------------------
 # cli — the ten verbs src/index.ts dispatches. docs/install.sh calls serve, watch, import and index.
-cli	cli-serve	serve	blocked	R2-R	The launchd agent runs `node dist/index.js serve`. No Swift binary answers it
+cli	cli-serve	serve	proven	-	both binaries bound, answered /health, wrote the same three log lines and exited 0 on SIGTERM
 cli	cli-watch	watch	blocked	R2-W	The second launchd agent. The Swift config watcher is R2-W and does not exist
-cli	cli-import	import	blocked	R2-R	Called directly by the installer
-cli	cli-index	index	blocked	R2-R	Called directly by the installer
-cli	cli-refresh	refresh	blocked	R2-R	No Swift entry point
-cli	cli-status	status	blocked	R2-R	No Swift entry point
-cli	cli-tools	tools	blocked	R2-R	No Swift entry point
-cli	cli-auth	auth	blocked	R2-R	No Swift entry point
-cli	cli-usage	usage	blocked	R2-R	No Swift entry point
-cli	cli-help	help	blocked	R2-R	No Swift entry point; --help and -h are aliases of the same arm
+cli	cli-import	import	proven	-	one ~/.claude.json copy; stdout, exit code AND the written servers.json compared
+cli	cli-index	index	proven	-	same input, both binaries; stdout, stderr and exit code compared separately
+cli	cli-refresh	refresh	proven	-	compared against the REFERENCE's refresh, not against Swift's own index — an alias asserted against itself proves nothing
+cli	cli-status	status	proven	-	against nothing listening; stdout, stderr and exit code compared separately, since this verb writes offline to stdout where usage writes to stderr
+cli	cli-tools	tools	proven	-	same manifest copy; stdout, stderr and exit code compared separately, in BOTH the empty case and a populated one built by each binary's own index
+cli	cli-auth	auth	blocked	R2-R	The Swift entry point now exists, so the original note is stale. The verb cannot be compared because the Swift router answers 405 on POST /servers/:name/auth where the reference answers 400 — defect D-j. Fixing D-j makes control-differential.sh record a stale-defect failure, so it is not this item's to fix
+cli	cli-usage	usage	proven	-	usage against nothing listening: this exercises the OFFLINE error path only — the verb throws before reading any store, so no usage store is seeded and none is compared. stdout, stderr and exit code compared separately
+cli	cli-help	help	proven	-	four arms — help, --help, -h and an unknown verb, each run at both binaries; stdout, stderr and exit code compared separately
 # ---------------------------------------------------------------------------------------------
 # pool — spawn and reap decisions. The Swift side is a library actor with a test suite; the
 # reference side is driven over its own /mcp and observed through /servers. A row is proven when
@@ -108,20 +109,20 @@ pool	pool-p1	nothing spawns before the first lease	proven	-	Reference observed i
 pool	pool-p2	concurrent leases spawn one child	proven	-	Reference serves N concurrent calls from one child; Swift RouterCoreTests/RealProcessTests.concurrentLeasesSpawnOneRealChild
 pool	pool-p3	an idle child is reaped after the window	proven	-	Reference reaps with a short idleMs; Swift RouterCoreTests/RealProcessTests.poolSpawnsAndReapsARealChild
 pool	pool-p8	a child that exits is evicted and reopened	proven	-	Reference reopens after the child dies; Swift RouterCoreTests/RealProcessTests.realChildThatExitsIsEvicted
-pool	pool-p4	a call outstanding is never reaped	blocked	R2-R	Needs traffic arriving over a Swift MCP endpoint to observe the guard on the port side. The reference half is observable; the Swift half is proven only in-process, which is not a differential
-pool	pool-reap-traffic	reap decisions under live traffic	blocked	R2-R	Needs a Swift daemon carrying real traffic. Nothing on the Swift side can be put under load
+pool	pool-p4	a call outstanding is never reaped	proven	-	a 6s call held open across a 3s idle window at BOTH routers; neither reaped it
+pool	pool-reap-traffic	reap decisions under live traffic	proven	-	burst, idle past the window, burst again — the spawn/reap sequence read off /servers and compared as a sequence at both routers
 # ---------------------------------------------------------------------------------------------
 # install — what docs/install.sh actually does. These rows were missing from the first census, and
 # their absence RAISED the reported coverage: the installer is the thing the cutover edits, so a
 # capability it depends on that has no row is a capability nobody is counting.
 install	install-claude-json	rewrite ~/.claude.json to point at the router	blocked	D-k	install.sh:141 rewrites the user's own config through a node -e script, adding the mcp-router HTTP entry and preserving the file mode. This is the step that actually points Claude Code at the router; an installer that flips the binary and skips it leaves the user with nothing serving them
 install	install-import-servers	import stdio servers out of ~/.claude.json	blocked	D-k	install.sh:77 runs `node dist/index.js import`. The CLI verb is counted separately; this row is the on-disk RESULT it produces, which a Swift router would have to read
-install	install-launchd-serve	the serve launchd agent	blocked	R2-R	install.sh:109-123 writes RunAtLoad, KeepAlive/SuccessfulExit=false and StandardOut/ErrorPath. A Swift binary must survive the same supervision, including relaunch on a non-zero exit
+install	install-launchd-serve	the serve launchd agent	proven	-	two real launchd agents, one per binary, with install.sh's own RunAtLoad, ThrottleInterval, KeepAlive/SuccessfulExit=false and log paths: both started at load, relaunched after SIGKILL, stayed down after bootout, and wrote a NON-EMPTY log to the same stream pattern as the reference (launchd creates both files at bootstrap, so mere existence proves nothing)
 install	install-launchd-watch	the watch launchd agent	blocked	R2-W	The second agent, same supervision contract, and there is no Swift watcher to supervise
 install	install-rollback	putting a cut-over machine back on TypeScript	blocked	R4-C	docs/uninstall.sh restores the ~/.claude.json backup, but nothing has established that a machine moved to Swift can be moved back. A cutover with no exercised rollback is a one-way door
 # ---------------------------------------------------------------------------------------------
 # state — the files a cutover inherits rather than creates.
-state	state-ondisk-compat	servers.json, the usage store and the tool index written by one router and read by the other	blocked	R2-R	A cutover leaves behind files the TypeScript router wrote over months. Nothing has observed the Swift router reading a full set of them as produced by a real TS run, because no Swift daemon runs to read them
+state	state-ondisk-compat	servers.json, the usage store and the tool index written by one router and read by the other	proven	-	the reference wrote servers.json, manifest.json, usage.jsonl and usage-stats.json for real; the Swift router was then started on exactly those files and served an identical tools/list and /usage
 # ---------------------------------------------------------------------------------------------
 # log — the brief's fifth corpus.
-log	log-bytes	log bytes over a live run	blocked	R2-R	The reference writes router.log while serving. Swift emits RouterLog events from a library that no process runs, so there is no log file to diff
+log	log-bytes	log bytes over a live run	proven	-	one scripted session at each router; 13 log lines diffed in order, normalised only for timestamps, durations and paths

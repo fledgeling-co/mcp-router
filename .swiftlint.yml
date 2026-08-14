@@ -58,6 +58,18 @@ disabled_rules:
   - todo                    # tracked in the pipeline's specs, not by the linter
   - trailing_comma          # SwiftFormat owns comma style; two tools fighting is worse than either
 
+# The same "two tools fighting" case as `trailing_comma` above, and settled the same way — but
+# narrowed to the one construct they actually disagree about rather than by disabling the rule.
+#
+# SwiftFormat's `wrapMultilineStatementBraces` puts the opening brace of a *wrapped multi-line
+# condition* on its own line; SwiftLint's `opening_brace` wants it on the same line as the last
+# condition. Verified empirically rather than assumed: moving the brace by hand and re-running
+# `swiftformat` puts it straight back, so no source text satisfies both and the gate is
+# unsatisfiable without a decision here. Brace position everywhere else — declarations, function
+# signatures, type headers — is still enforced.
+opening_brace:
+  ignore_multiline_statement_conditions: true
+
 # A force unwrap in a test is a deliberate assertion that the value is there; in shipped code it
 # is a crash waiting for the one input nobody tried.
 force_unwrapping:

@@ -31,15 +31,86 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
         self.terminationGraceNanoseconds = terminationGraceNanoseconds
     }
 
+    /// A running child and the two handles that outlive this call: the pipes it owns and the signal
+    /// that fires when it exits.
+    private struct Child {
+        let process: Process
+        let pipes: ChildPipes
+        let ending: EndSignal
+    }
+
     public func open(
         _ upstream: UpstreamConfig,
         timeoutMilliseconds: Int
     ) async throws -> any UpstreamSession {
+        let child = try spawn(upstream)
+
+        // Wrapped in a `TappingTransport` so the raw bytes of every response survive the SDK's
+        // decode. `MCP.Value`'s object case is an unordered dictionary, so a `tools/call` result
+        // read back through the SDK has already lost the member order the relay has to reproduce.
+        let tap = ResponseTap()
+        let transport = TappingTransport(
+            wrapping: StdioTransport(
+                input: FileDescriptor(
+                    rawValue: child.pipes.output.fileHandleForReading.fileDescriptor
+                ),
+                output: FileDescriptor(
+                    rawValue: child.pipes.input.fileHandleForWriting.fileDescriptor
+                )
+            ),
+            tap: tap
+        )
+        let client = Client(name: clientName, version: clientVersion)
+        let session = StdioUpstreamSession(
+            name: upstream.name,
+            process: child.process,
+            pipes: child.pipes,
+            client: client,
+            transport: transport,
+            tap: tap,
+            ending: child.ending,
+            terminationGraceNanoseconds: terminationGraceNanoseconds
+        )
+
+        let outcome = await handshake(
+            client: client,
+            transport: transport,
+            timeoutMilliseconds: timeoutMilliseconds
+        )
+        switch outcome {
+        case .succeeded:
+            return session
+        case .timedOut:
+            // A throwing open must leave nothing behind, so the half-open child is closed here
+            // rather than left for a reaper that will never be told it exists.
+            await session.shutdown()
+            throw PoolError.startupTimeout(name: upstream.name, milliseconds: timeoutMilliseconds)
+        case let .failed(reason):
+            await session.shutdown()
+            throw PoolError.spawnFailed(name: upstream.name, reason: reason)
+        }
+    }
+
+    /// Everything between a command line in `~/.claude.json` and a running child with its stderr
+    /// being drained — the half of `open` that has nothing to do with MCP.
+    private func spawn(_ upstream: UpstreamConfig) throws -> Child {
         guard upstream.isStdio else {
             throw PoolError.spawnFailed(name: upstream.name, reason: "not a stdio upstream")
         }
         guard let command = upstream.command, !command.isEmpty else {
             throw PoolError.spawnFailed(name: upstream.name, reason: "no command configured")
+        }
+
+        // Resolved before anything is spawned, so a command that does not exist fails **now** with
+        // the reference's own message rather than sixty seconds later with a timeout.
+        //
+        // The cause is `/usr/bin/env`, which the spawn below uses on purpose to keep the PATH
+        // semantics the reference has. `env` itself always exists, so `Process.run()` succeeds, the
+        // child then exits immediately, and the handshake sits there until the startup budget runs
+        // out. Measured: `mcp-router import` reported `upstream "broken" did not initialize within
+        // 60000ms` where the reference reported `spawn /nonexistent/... ENOENT` in milliseconds.
+        guard Self.resolve(command) != nil else {
+            throw PoolError.spawnFailed(name: upstream.name, reason: "spawn \(command) ENOENT")
         }
 
         let pipes = ChildPipes()
@@ -68,39 +139,23 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
         }
 
         drainStandardError(of: pipes, named: upstream.name)
+        return Child(process: process, pipes: pipes, ending: ending)
+    }
 
-        let transport = StdioTransport(
-            input: FileDescriptor(rawValue: pipes.output.fileHandleForReading.fileDescriptor),
-            output: FileDescriptor(rawValue: pipes.input.fileHandleForWriting.fileDescriptor)
-        )
-        let client = Client(name: clientName, version: clientVersion)
-        let session = StdioUpstreamSession(
-            name: upstream.name,
-            process: process,
-            pipes: pipes,
-            client: client,
-            transport: transport,
-            ending: ending,
-            terminationGraceNanoseconds: terminationGraceNanoseconds
-        )
-
-        let outcome = await handshake(
-            client: client,
-            transport: transport,
-            timeoutMilliseconds: timeoutMilliseconds
-        )
-        switch outcome {
-        case .succeeded:
-            return session
-        case .timedOut:
-            // A throwing open must leave nothing behind, so the half-open child is closed here
-            // rather than left for a reaper that will never be told it exists.
-            await session.shutdown()
-            throw PoolError.startupTimeout(name: upstream.name, milliseconds: timeoutMilliseconds)
-        case let .failed(reason):
-            await session.shutdown()
-            throw PoolError.spawnFailed(name: upstream.name, reason: reason)
+    /// Where a command lands, if anywhere: an absolute or relative path as given, otherwise the
+    /// first executable match on `PATH`. This is the lookup `/usr/bin/env` is about to perform, done
+    /// early so its failure can be reported as the reference reports it.
+    static func resolve(_ command: String, environment: [String: String]? = nil) -> String? {
+        let fileManager = FileManager.default
+        if command.contains("/") {
+            return fileManager.isExecutableFile(atPath: command) ? command : nil
         }
+        let path = (environment ?? ProcessInfo.processInfo.environment)["PATH"] ?? ""
+        for directory in path.split(separator: ":", omittingEmptySubsequences: true) {
+            let candidate = (String(directory) as NSString).appendingPathComponent(command)
+            if fileManager.isExecutableFile(atPath: candidate) { return candidate }
+        }
+        return nil
     }
 
     /// The router's own environment first, then the server's overrides — the reference's order, and
@@ -152,7 +207,7 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
     /// which is what actually unblocks it.
     private func handshake(
         client: Client,
-        transport: StdioTransport,
+        transport: any Transport,
         timeoutMilliseconds: Int
     ) async -> Handshake {
         let outcome = FirstOutcome()
@@ -269,87 +324,5 @@ final class EndSignal: Sendable {
             // it while holding this mutex is how a deadlock gets built.
             if alreadyFired { continuation.resume() }
         }
-    }
-}
-
-/// One live stdio upstream: a child process, its pipes, and the SDK client speaking to it.
-final class StdioUpstreamSession: UpstreamSession, Sendable {
-    let processIdentifier: Int32?
-    private let name: String
-    private let process: Process
-    private let pipes: ChildPipes
-    private let client: Client
-    private let transport: StdioTransport
-    private let ending: EndSignal
-    private let terminationGraceNanoseconds: UInt64
-    private let didShutdown = Mutex(false)
-
-    init(
-        name: String,
-        process: Process,
-        pipes: ChildPipes,
-        client: Client,
-        transport: StdioTransport,
-        ending: EndSignal,
-        terminationGraceNanoseconds: UInt64
-    ) {
-        self.name = name
-        self.process = process
-        self.pipes = pipes
-        self.client = client
-        self.transport = transport
-        self.ending = ending
-        self.terminationGraceNanoseconds = terminationGraceNanoseconds
-        processIdentifier = process.processIdentifier
-    }
-
-    func waitUntilEnded() async {
-        await ending.wait()
-    }
-
-    /// Close everything this session owns, once.
-    ///
-    /// The order is the point. Disconnecting first stops the SDK's receive loop reading a
-    /// descriptor that is about to close; SIGTERM then gives the child its documented chance to
-    /// exit; SIGKILL is what stops a wedged server from holding the router's shutdown open forever;
-    /// and the descriptors close last, when nothing is left that could still be reading them.
-    func shutdown() async {
-        let alreadyDone = didShutdown.withLock { value -> Bool in
-            defer { value = true }
-            return value
-        }
-        guard !alreadyDone else { return }
-
-        await client.disconnect()
-        if process.isRunning {
-            process.terminate()
-            await waitForExit()
-        }
-        pipes.closeAll()
-    }
-
-    /// Wait for the child to exit, then kill it if it will not.
-    ///
-    /// Polled rather than raced against a timer in a task group, for the same reason the handshake
-    /// is: a group waits for every child task, so a branch parked on "the process ended" cannot be
-    /// abandoned when the process never does — which is precisely the stubborn server this escalation
-    /// exists for. `waitUntilExit()` is unusable here too, being a blocking call.
-    ///
-    /// Both waits are bounded. A shutdown that cannot finish still finishes.
-    private func waitForExit() async {
-        if await !poll(untilExitedWithin: terminationGraceNanoseconds), process.isRunning {
-            kill(process.processIdentifier, SIGKILL)
-            _ = await poll(untilExitedWithin: 2_000_000_000)
-        }
-    }
-
-    private func poll(untilExitedWithin nanoseconds: UInt64) async -> Bool {
-        let bounded = Int64(min(nanoseconds, UInt64(Int64.max)))
-        let deadline = ContinuousClock.now.advanced(by: .nanoseconds(bounded))
-        while ContinuousClock.now < deadline {
-            if !process.isRunning { return true }
-            try? await Task.sleep(nanoseconds: 20_000_000)
-        }
-        return !process.isRunning
     }
 }

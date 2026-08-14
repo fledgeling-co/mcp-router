@@ -17,6 +17,11 @@ public actor ManifestStore {
     private let path: String
     private let fileSystem: FileSystem
     private let clock: RouterClock
+    /// Optional, and absent in every unit test — but present in the serving process, because the
+    /// reference logs `manifest reloaded: N servers cached` on every successful re-read and
+    /// `parity-log.sh` diffs the line sequence. R1 declared both events and the store never had a
+    /// logger to fire them, which nothing noticed while no process ran it.
+    private let log: RouterLog?
     private var manifest: Manifest
     /// `nil` stands for the reference's empty stamp string: the file could not be stat'd.
     private var stamp: FileStamp?
@@ -29,11 +34,13 @@ public actor ManifestStore {
     public init(
         path: String,
         fileSystem: FileSystem = RealFileSystem(),
-        clock: RouterClock = SystemClock()
+        clock: RouterClock = SystemClock(),
+        log: RouterLog? = nil
     ) {
         self.path = path
         self.fileSystem = fileSystem
         self.clock = clock
+        self.log = log
         let load = ManifestIO.load(path: path, fileSystem: fileSystem)
         manifest = load.manifest
         lastProblem = load.problem
@@ -61,11 +68,18 @@ public actor ManifestStore {
             stamp = current
             retryAfter = 0
             lastProblem = nil
+            let count = manifest.serverCount
+            if let log {
+                Task { await log.log(.manifestReloaded(serverCount: count)) }
+            }
         } catch {
             // The stamp is deliberately not recorded: the writer may still be mid-write and finish
             // inside the same millisecond, and recording it would mean never looking again.
             retryAfter = now + Self.retryBackoffMilliseconds
             lastProblem = .malformed(path: path, reason: "\(error)")
+            if let log {
+                Task { await log.log(.manifestReloadFailed(reason: "\(error)")) }
+            }
         }
         return manifest
     }

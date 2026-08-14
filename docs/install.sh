@@ -89,6 +89,34 @@ say "indexing (spawns each server once, then shuts it down)"
 NODE_DIR="$(dirname "$NODE_BIN")"
 LAUNCHD_PATH="$NODE_DIR:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
 
+# The Swift router ships ALONGSIDE the TypeScript one, and this is the seam between them.
+#
+# `node dist/index.js` stays what this installer writes. Setting MCPR_ROUTER_BINARY to a built Swift
+# binary points the `serve` agent at it instead — deliberately opt-in, deliberately undocumented in
+# the README, and deliberately not a flag: flipping the default is R4's, behind its differential
+# parity gate and behind a decision the user takes, because it changes the router their own live
+# sessions depend on.
+#
+# The `watch` agent is NOT switched. There is no Swift watcher (R2-W), so a variable that moved both
+# agents would leave the second one running a verb the binary does not implement, and the user would
+# find out when a new server silently stopped being adopted.
+ROUTER_BINARY="${MCPR_ROUTER_BINARY:-}"
+if [ -n "$ROUTER_BINARY" ]; then
+  [ -x "$ROUTER_BINARY" ] || die "MCPR_ROUTER_BINARY is set to \"$ROUTER_BINARY\", which is not executable"
+  say "MCPR_ROUTER_BINARY is set: the serve agent will run $ROUTER_BINARY"
+  say "  the watch agent stays on node — there is no Swift watcher yet"
+fi
+
+# `serve` runs whichever binary is selected; every other verb stays on node.
+program_args() { # verb
+  if [ -n "$ROUTER_BINARY" ] && [ "$1" = serve ]; then
+    printf '\t\t<string>%s</string>\n\t\t<string>%s</string>\n' "$ROUTER_BINARY" "$1"
+  else
+    printf '\t\t<string>%s</string>\n\t\t<string>%s</string>\n\t\t<string>%s</string>\n' \
+      "$NODE_BIN" "$REPO_ROOT/dist/index.js" "$1"
+  fi
+}
+
 write_plist() {
   local label="$1" verb="$2" extra="$3"
   cat > "$AGENTS/$label.plist" <<PLIST
@@ -99,10 +127,7 @@ write_plist() {
 	<key>Label</key><string>$label</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>$NODE_BIN</string>
-		<string>$REPO_ROOT/dist/index.js</string>
-		<string>$verb</string>
-	</array>
+$(program_args "$verb")	</array>
 	<key>EnvironmentVariables</key>
 	<dict><key>PATH</key><string>$LAUNCHD_PATH</string></dict>
 	<key>WorkingDirectory</key><string>$REPO_ROOT</string>

@@ -94,6 +94,22 @@ let package = Package(
             dependencies: ["MCPRouterKit"],
             path: "Sources/ControlProbe",
             swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+        // The router itself: the process the cutover would point a launchd agent at.
+        //
+        // R2 shipped the pool, the supervision and the passthrough value layer and deferred the
+        // process that uses them, so until this target existed `RouterCore` was a library nothing
+        // ran — and R4's parity gate had five lanes it could not measure at all, because there was
+        // no Swift binary to invoke, no listener to drive and no long-lived process to hold state
+        // or write a log.
+        //
+        // It ships **alongside** `node dist/index.js`, which stays the installed default until
+        // R4's differential parity gate passes.
+        .executableTarget(
+            name: "MCPRouterCLI",
+            dependencies: ["RouterCore"],
+            path: "Sources/MCPRouterCLI",
+            swiftSettings: [.swiftLanguageMode(.v6)]
         )
     ]
 )

@@ -5,7 +5,7 @@ import Foundation
 /// Deliberately not `URLRequest` or a Foundation type: the spec's S5 makes the **encoded** pathname
 /// and the **first** value of a repeated query parameter part of the contract, and both are things
 /// Foundation is helpfully willing to normalise away.
-public struct ControlRequest: Sendable {
+public struct ControlAPIRequest: Sendable {
     /// The method exactly as it arrived. Comparison is case-sensitive, so `post` is not `POST`
     /// (B16), and `nil` interpolates as the literal `undefined` in the 405 message (B25).
     public let method: String?
@@ -134,7 +134,7 @@ public struct ControlRequest: Sendable {
 /// `handled` travels **with** the response rather than beside it, because S8 makes the disposition
 /// part of the contract: a branch that answers correctly while reporting "not handled" lets the
 /// caller answer a second time, and a `Bool` returned separately is the thing a refactor drops.
-public struct ControlResponse: Sendable {
+public struct ControlAPIResponse: Sendable {
     public enum Body: Sendable {
         case bytes([UInt8])
         /// `/usage/stream`. The socket belongs to R2, so this describes the stream rather than
@@ -156,16 +156,16 @@ public struct ControlResponse: Sendable {
 
     /// The path this item does not own. No header is read and nothing is sent — an unauthenticated
     /// `POST /mcp` has to reach the MCP endpoint, not a 401 (B14).
-    public static let notHandled = ControlResponse(
+    public static let notHandled = ControlAPIResponse(
         status: 0, headers: [], body: .bytes([]), handled: false
     )
 
     /// The reference's `json()` helper: the three headers, in its order, and **no**
     /// `Access-Control-Allow-Origin` anywhere — a page may be able to send a simple request, but it
     /// must never read one back.
-    public static func json(_ status: Int, _ value: JSONValue) -> ControlResponse {
+    public static func json(_ status: Int, _ value: JSONValue) -> ControlAPIResponse {
         let bytes = Array(JSStringify.compact(value).utf8)
-        return ControlResponse(
+        return ControlAPIResponse(
             status: status,
             headers: [
                 ("content-type", "application/json"),
@@ -180,7 +180,7 @@ public struct ControlResponse: Sendable {
 
     /// Every error body is exactly `{"error": <string>}` — one member, never an extra, never a
     /// null-valued one (B12).
-    public static func error(_ status: Int, _ message: String) -> ControlResponse {
+    public static func error(_ status: Int, _ message: String) -> ControlAPIResponse {
         json(status, .object([JSONMember(key: JSString("error"), value: .string(JSString(message)))]))
     }
 }

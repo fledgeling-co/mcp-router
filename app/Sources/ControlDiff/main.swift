@@ -41,7 +41,7 @@ struct ControlDiff {
 
         var deps = dependencies(env: env)
         let split = Self.split(target)
-        let request = ControlRequest(
+        let request = ControlAPIRequest(
             method: method,
             encodedPath: split.path,
             query: split.query,
@@ -120,7 +120,7 @@ struct ControlDiff {
         return headers
     }
 
-    static func emit(_ response: ControlResponse) {
+    static func emit(_ response: ControlAPIResponse) {
         guard response.handled else {
             // Not a control path. Distinct from a 404: the reference returns without touching the
             // response at all, and the script needs to see that as its own answer.
@@ -177,7 +177,7 @@ private struct IdlePool: UpstreamPoolPort {
         []
     }
 
-    func pending() -> [PendingAuth] {
+    func pending() -> [PendingAuthRow] {
         []
     }
 

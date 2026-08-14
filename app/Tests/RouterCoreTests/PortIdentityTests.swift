@@ -47,12 +47,12 @@ struct PortIdentityTests {
 
     struct Pool: UpstreamPoolPort {
         var live: [LiveUpstream] = []
-        var pendingRows: [PendingAuth] = []
+        var pendingRows: [PendingAuthRow] = []
         func status() -> [LiveUpstream] {
             live
         }
 
-        func pending() -> [PendingAuth] {
+        func pending() -> [PendingAuthRow] {
             pendingRows
         }
 
@@ -76,7 +76,7 @@ struct PortIdentityTests {
     @Test("firstPending does not lend one spelling's authorization URL to the other")
     func pendingLookupIsCodeUnitKeyed() {
         let pool = Pool(pendingRows: [
-            PendingAuth(server: JSString(Self.decomposed), url: "https://example.invalid/auth")
+            PendingAuthRow(server: JSString(Self.decomposed), url: "https://example.invalid/auth")
         ])
         #expect(pool.firstPending(JSString(Self.composed)) == nil)
         #expect(pool.firstPending(JSString(Self.decomposed))?.url == "https://example.invalid/auth")
@@ -176,7 +176,7 @@ struct PortIdentityTests {
 struct HeaderNormalizationTests {
     @Test("names are lowercased once, at construction")
     func lowercasesNames() {
-        let request = ControlRequest(
+        let request = ControlAPIRequest(
             method: "POST", encodedPath: "/servers",
             headers: [(name: "Content-Type", value: "application/json")]
         )
@@ -187,7 +187,7 @@ struct HeaderNormalizationTests {
     @Test("repeated names join with a comma and a space, in arrival order")
     func joinsRepeats() {
         // Node's `req.headers` presents duplicates already joined; a handler never sees two.
-        let request = ControlRequest(
+        let request = ControlAPIRequest(
             method: "POST", encodedPath: "/servers",
             headers: [
                 (name: "Authorization", value: "Bearer one"),
@@ -206,9 +206,9 @@ struct HeaderNormalizationTests {
             (name: "X-A", value: "1"), (name: "x-a", value: "2"),
             (name: "X-B", value: "3"), (name: "x-b", value: "4")
         ]
-        let expected = ControlRequest(method: "GET", encodedPath: "/servers", headers: pairs).headers
+        let expected = ControlAPIRequest(method: "GET", encodedPath: "/servers", headers: pairs).headers
         for _ in 0 ..< 200 {
-            let again = ControlRequest(method: "GET", encodedPath: "/servers", headers: pairs).headers
+            let again = ControlAPIRequest(method: "GET", encodedPath: "/servers", headers: pairs).headers
             #expect(again.map(\.name) == expected.map(\.name))
             #expect(again.map(\.value) == expected.map(\.value))
         }
@@ -218,7 +218,7 @@ struct HeaderNormalizationTests {
 
     @Test("first arrival sets the position, so order follows the request not the hash")
     func orderFollowsArrival() {
-        let request = ControlRequest(
+        let request = ControlAPIRequest(
             method: "GET", encodedPath: "/servers",
             headers: [(name: "z", value: "1"), (name: "a", value: "2"), (name: "Z", value: "3")]
         )

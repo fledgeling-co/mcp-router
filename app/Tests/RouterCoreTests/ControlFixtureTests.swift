@@ -25,14 +25,14 @@ struct ControlFixtureTests {
 
     struct IdlePool: UpstreamPoolPort {
         var live: [LiveUpstream] = []
-        var pendingAuths: [PendingAuth] = []
+        var pendingAuths: [PendingAuthRow] = []
         let calls = PoolCalls()
 
         func status() -> [LiveUpstream] {
             live
         }
 
-        func pending() -> [PendingAuth] {
+        func pending() -> [PendingAuthRow] {
             pendingAuths
         }
 
@@ -131,7 +131,7 @@ struct ControlFixtureTests {
         )
     }
 
-    static func body(_ response: ControlResponse) -> String {
+    static func body(_ response: ControlAPIResponse) -> String {
         guard case let .bytes(bytes) = response.body else { return "" }
         // swiftlint:disable:next optional_data_string_conversion
         return String(decoding: bytes, as: UTF8.self)
@@ -230,7 +230,7 @@ struct ControlDispatchTests {
         var deps = try Fixtures.makeDeps()
         let handler = ControlHandler(token: "secret")
         let response = await handler.handle(
-            ControlRequest(method: "POST", encodedPath: "/mcp"), &deps
+            ControlAPIRequest(method: "POST", encodedPath: "/mcp"), &deps
         )
         // Gating before ownership would answer 401 here and break the MCP endpoint outright.
         #expect(response.handled == false)
@@ -242,7 +242,7 @@ struct ControlDispatchTests {
         var deps = try Fixtures.makeDeps()
         let handler = ControlHandler(token: "secret")
         let response = await handler.handle(
-            ControlRequest(method: "DELETE", encodedPath: "/servers/ghost"), &deps
+            ControlAPIRequest(method: "DELETE", encodedPath: "/servers/ghost"), &deps
         )
         #expect(response.status == 401)
         #expect(Fixtures.body(response).contains("unauthorized; the token is in"))
@@ -253,7 +253,7 @@ struct ControlDispatchTests {
         var deps = try Fixtures.makeDeps()
         let handler = ControlHandler(token: "secret")
         let response = await handler.handle(
-            ControlRequest(method: "GET", encodedPath: "/servers/"), &deps
+            ControlAPIRequest(method: "GET", encodedPath: "/servers/"), &deps
         )
         #expect(response.status == 405)
         #expect(Fixtures.body(response) == #"{"error":"GET not allowed on /servers/"}"#)
@@ -278,7 +278,7 @@ struct ControlDispatchTests {
 
     @Test("a Bearer prefix shadows x-mcpr-token even when the bearer value is wrong")
     func bearerShadowsHeader() {
-        let request = ControlRequest(
+        let request = ControlAPIRequest(
             method: "POST", encodedPath: "/servers",
             headers: [(name: "Authorization", value: "Bearer wrong"),
                       (name: "x-mcpr-token", value: "secret")]
@@ -289,7 +289,7 @@ struct ControlDispatchTests {
 
     @Test("x-mcpr-token is consulted only when no Bearer prefix is present")
     func headerUsedWithoutBearer() {
-        let request = ControlRequest(
+        let request = ControlAPIRequest(
             method: "POST", encodedPath: "/servers",
             headers: [(name: "x-mcpr-token", value: "secret")]
         )
@@ -298,8 +298,8 @@ struct ControlDispatchTests {
 
     @Test("the content-type gate tests a prefix, so application/jsonp is accepted")
     func contentTypePrefix() {
-        func request(_ value: String) -> ControlRequest {
-            ControlRequest(
+        func request(_ value: String) -> ControlAPIRequest {
+            ControlAPIRequest(
                 method: "POST", encodedPath: "/servers",
                 headers: [(name: "content-type", value: value)]
             )

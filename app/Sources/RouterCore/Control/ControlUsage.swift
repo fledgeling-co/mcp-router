@@ -7,7 +7,7 @@ import Foundation
 extension ControlHandler {
     // MARK: - /usage
 
-    func usageRecent(_ request: ControlRequest, _ deps: ControlDeps) -> ControlResponse {
+    func usageRecent(_ request: ControlAPIRequest, _ deps: ControlDeps) -> ControlAPIResponse {
         // `Number(x ?? 200)` — a junk value is NaN, and `slice(-NaN)` is `slice(0)`, so it returns
         // **every** record rather than none (N4). `Number` is not `Double.init`: an empty value is
         // `0` and a padded one trims, where `Double` yields nil for both.
@@ -23,7 +23,7 @@ extension ControlHandler {
         ]))
     }
 
-    func usageSummary(_ deps: ControlDeps) -> ControlResponse {
+    func usageSummary(_ deps: ControlDeps) -> ControlAPIResponse {
         let stats = deps.usage.summaryServers()
         let rows: [JSONValue] = deps.upstreams.map { entry in
             let stat = stats.first { $0.key == entry.name }?.value.asObjectMembers
@@ -53,7 +53,7 @@ extension ControlHandler {
         ]))
     }
 
-    func usageReset(_ deps: ControlDeps) -> ControlResponse {
+    func usageReset(_ deps: ControlDeps) -> ControlAPIResponse {
         deps.usage.reset()
         return .json(200, .object([
             JSONMember(key: "ok", value: .bool(true)),
@@ -61,8 +61,8 @@ extension ControlHandler {
         ]))
     }
 
-    func usageStream() -> ControlResponse {
-        ControlResponse(
+    func usageStream() -> ControlAPIResponse {
+        ControlAPIResponse(
             status: 200,
             headers: [
                 ("content-type", "text/event-stream"),

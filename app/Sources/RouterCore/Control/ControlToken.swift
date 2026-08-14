@@ -103,7 +103,7 @@ public struct ControlToken: Sendable {
     /// accepts either would authorise a request the reference rejects (B17). And the length check
     /// is on **UTF-8 bytes**, matching `Buffer.from`, so 64 `é` characters never reach the
     /// comparison against a 64-byte ASCII token.
-    public static func isAuthorized(_ request: ControlRequest, expected: String) -> Bool {
+    public static func isAuthorized(_ request: ControlAPIRequest, expected: String) -> Bool {
         let header = request.header("authorization") ?? ""
         let supplied: String = if header.hasPrefix("Bearer ") {
             String(header.dropFirst(7))
@@ -124,7 +124,7 @@ public struct ControlToken: Sendable {
     ///
     /// So `application/jsonp` is accepted — the reference tests a prefix, not equality, and a port
     /// that tightens this to equality-or-`;` rejects a request the reference allows (B21).
-    public static func hasJSONContentType(_ request: ControlRequest) -> Bool {
+    public static func hasJSONContentType(_ request: ControlAPIRequest) -> Bool {
         (request.header("content-type") ?? "").hasPrefix("application/json")
     }
 }

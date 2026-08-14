@@ -5,7 +5,7 @@ import Foundation
 /// Split from the dispatcher for the same reason the usage endpoints are: file length. The
 /// coercions and the envelope are the reference's.
 extension ControlHandler {
-    func registrySearch(_ request: ControlRequest, _ deps: ControlDeps) async -> ControlResponse {
+    func registrySearch(_ request: ControlAPIRequest, _ deps: ControlDeps) async -> ControlAPIResponse {
         guard let registryDeps = deps.registry else {
             // The network client is R2's to supply. Answering 502 with the reference's own error
             // shape keeps the surface honest rather than inventing an empty result set, which would

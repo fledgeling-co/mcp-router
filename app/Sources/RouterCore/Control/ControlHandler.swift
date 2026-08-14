@@ -30,7 +30,7 @@ public struct ControlHandler: Sendable {
     /// answer an unauthenticated `POST /mcp` with 401 instead of letting it fall through (B14).
     /// And because stage 2 precedes stage 6, `DELETE /servers/ghost` without a token is **401**,
     /// not 404 — the draft of this spec asserted the opposite and was wrong.
-    public func handle(_ request: ControlRequest, _ deps: inout ControlDeps) async -> ControlResponse {
+    public func handle(_ request: ControlAPIRequest, _ deps: inout ControlDeps) async -> ControlAPIResponse {
         let path = request.encodedPath
 
         // 1 — ownership. No header is read and nothing is sent for a path this item does not own.
@@ -78,7 +78,7 @@ public struct ControlHandler: Sendable {
     ///
     /// GET is deliberately ungated, matching the reference; that exposure is recorded as a ported
     /// defect rather than quietly fixed, because changing it would move the wire.
-    private func gate(_ request: ControlRequest, tokenPath: String) -> ControlResponse? {
+    private func gate(_ request: ControlAPIRequest, tokenPath: String) -> ControlAPIResponse? {
         guard request.isMutating else { return nil }
         guard ControlToken.isAuthorized(request, expected: token) else {
             return .error(401, "unauthorized; the token is in \(tokenPath)")
@@ -92,7 +92,7 @@ public struct ControlHandler: Sendable {
 
     // MARK: - /servers
 
-    private func serversEnvelope(_ deps: ControlDeps) -> ControlResponse {
+    private func serversEnvelope(_ deps: ControlDeps) -> ControlAPIResponse {
         var members: [JSONMember] = [
             JSONMember(key: "port", value: .number(Double(deps.config.port))),
             JSONMember(key: "idleMs", value: .number(Double(deps.config.idleMs))),
@@ -113,7 +113,10 @@ public struct ControlHandler: Sendable {
         return .json(200, .object(members))
     }
 
-    private func addServer(_ request: ControlRequest, _ deps: inout ControlDeps) async -> ControlResponse {
+    private func addServer(
+        _ request: ControlAPIRequest,
+        _ deps: inout ControlDeps
+    ) async -> ControlAPIResponse {
         let body = request.bodyObject
         let nameValue = body.first { $0.key == JSString("name") }?.value
         // `!b.name` — falsiness, so an empty string is "required", not a valid name (S1).
@@ -179,9 +182,9 @@ public struct ControlHandler: Sendable {
         route: ServerRoute,
         upstream: UpstreamConfig,
         name: JSString,
-        request: ControlRequest,
+        request: ControlAPIRequest,
         deps: inout ControlDeps
-    ) async -> ControlResponse? {
+    ) async -> ControlAPIResponse? {
         switch (route.sub, request.method) {
         case (nil, "GET"):
             return .json(200, Describe.row(upstream, deps))
@@ -243,8 +246,8 @@ public struct ControlHandler: Sendable {
     /// step prevents every later one, which is why this is a sequence rather than a transaction
     /// that reaches the same end state.
     private func removeServer(
-        name: JSString, request: ControlRequest, deps: inout ControlDeps
-    ) -> ControlResponse {
+        name: JSString, request: ControlAPIRequest, deps: inout ControlDeps
+    ) -> ControlAPIResponse {
         do {
             try ConfigEdit.edit(path: deps.configPath, fileSystem: deps.fileSystem) { servers in
                 servers.removeAll { $0.key == name }
@@ -280,8 +283,8 @@ public struct ControlHandler: Sendable {
     /// like an unrelated error, and `scripts/acceptance/control-differential.sh` asserts it as a
     /// **named expected divergence** — so it can never quietly become an accidental one.
     private func patch(
-        _ request: ControlRequest, name: JSString, deps: inout ControlDeps
-    ) -> ControlResponse {
+        _ request: ControlAPIRequest, name: JSString, deps: inout ControlDeps
+    ) -> ControlAPIResponse {
         let body: [JSONMember]
         switch request.bodyDisposition {
         case let .usable(members):
@@ -360,8 +363,8 @@ public struct ControlHandler: Sendable {
 /// `private` still resolves, because these are same-file extensions.
 extension ControlHandler {
     private func routeUsage(
-        _ path: String, _ request: ControlRequest, _ deps: ControlDeps
-    ) -> ControlResponse? {
+        _ path: String, _ request: ControlAPIRequest, _ deps: ControlDeps
+    ) -> ControlAPIResponse? {
         switch (path, request.method) {
         case ("/usage", "GET"): usageRecent(request, deps)
         case ("/usage/summary", "GET"): usageSummary(deps)

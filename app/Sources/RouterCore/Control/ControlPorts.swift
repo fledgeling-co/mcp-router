@@ -35,7 +35,7 @@ public struct LiveUpstream: Sendable, Hashable {
 /// Distinct from ``AuthFlowSummary``: this is the pool noticing a 401 mid-call, that is the router
 /// driving a browser flow. The recorded fixtures carry a top-level `pendingAuth` from the second
 /// while the server row's `pendingUrl` is absent, which is only explicable if they are two things.
-public struct PendingAuth: Sendable, Hashable {
+public struct PendingAuthRow: Sendable, Hashable {
     public let server: JSString
     public let url: String
 
@@ -52,7 +52,7 @@ public struct PendingAuth: Sendable, Hashable {
 /// single-row fixture and is wrong (B6, B7).
 public protocol UpstreamPoolPort: Sendable {
     func status() -> [LiveUpstream]
-    func pending() -> [PendingAuth]
+    func pending() -> [PendingAuthRow]
     func isLive(_ name: JSString) -> Bool
     /// Requested, never awaited: a warming failure must not turn a 200 into an error (B43).
     func warmUp()
@@ -64,7 +64,7 @@ public extension UpstreamPoolPort {
         status().first { $0.name == name }
     }
 
-    func firstPending(_ name: JSString) -> PendingAuth? {
+    func firstPending(_ name: JSString) -> PendingAuthRow? {
         pending().first { $0.server == name }
     }
 }

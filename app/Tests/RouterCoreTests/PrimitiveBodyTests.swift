@@ -44,7 +44,7 @@ struct PrimitiveBodyTests {
         try body(path)
     }
 
-    private func patch(_ rawBody: String, configPath: String) async throws -> ControlResponse {
+    private func patch(_ rawBody: String, configPath: String) async throws -> ControlAPIResponse {
         let parsed = try JSONParser.parse(#"{"mcpServers":{"s1":{"command":"/bin/echo"}}}"#)
         let entries = parsed.member("mcpServers")?.asObjectMembers ?? []
         var upstreams: [(name: JSString, upstream: UpstreamConfig)] = []
@@ -57,7 +57,7 @@ struct PrimitiveBodyTests {
         var deps = try PortIdentityTests.deps(upstreams: upstreams)
         deps.configPath = configPath
 
-        let request = ControlRequest(
+        let request = ControlAPIRequest(
             method: "PATCH",
             encodedPath: "/servers/s1",
             query: [],
@@ -125,8 +125,8 @@ struct PrimitiveBodyTests {
     /// would get wrong in the opposite direction — refusing where the reference proceeds.
     @Test("the disposition splits exactly where the `in` operator does")
     func dispositionBoundary() {
-        func disposition(_ raw: String?) -> ControlRequest.BodyDisposition {
-            ControlRequest(
+        func disposition(_ raw: String?) -> ControlAPIRequest.BodyDisposition {
+            ControlAPIRequest(
                 method: "PATCH", encodedPath: "/servers/s1", query: [], headers: [],
                 body: raw.map { Data($0.utf8) }
             ).bodyDisposition

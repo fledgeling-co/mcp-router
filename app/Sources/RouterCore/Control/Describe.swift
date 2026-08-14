@@ -178,7 +178,7 @@ public enum Describe {
     }
 
     private static func authValue(
-        needsAuth: Bool, name: JSString, deps: ControlDeps, pending: PendingAuth?
+        needsAuth: Bool, name: JSString, deps: ControlDeps, pending: PendingAuthRow?
     ) -> JSONValue {
         guard needsAuth else {
             return .object([

@@ -26,6 +26,7 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SWIFT_BIN="${SWIFT_BIN:-$REPO_ROOT/app/.build/debug/ControlDiff}"
+SWIFT_CLI="${SWIFT_CLI:-$REPO_ROOT/app/.build/debug/MCPRouterCLI}"
 PORT="${DIVERGENCE_PORT:-8965}"
 WORK="$(mktemp -d -t parity-divergence)"
 RESULTS="${PARITY_RESULTS:-}"
@@ -42,6 +43,18 @@ trap cleanup EXIT
 record() {
   [ -n "$RESULTS" ] || return 0
   printf '%s\t%s\t%s\t%s\n' "divergence" "$1" "$2" "$3" >> "$RESULTS"
+}
+
+# A stdio server held at the door: it announces itself, waits for a release file, then becomes the
+# ordinary fixture server. This is what makes D7's window deterministic — a `sleep` racing an index
+# that may finish first would exercise the ordinary path and report it as a pass.
+gated_child() { # started gate
+  cat <<'SH'
+#!/bin/sh
+touch "$1"
+while [ ! -e "$2" ]; do sleep 0.05; done
+exec node "$3" stdio
+SH
 }
 
 command -v node >/dev/null 2>&1 || { echo "environment: node is not installed"; exit 2; }
@@ -169,6 +182,94 @@ else
   fail=$((fail + 1))
   echo "  FAIL swift_kept=$swift_kept reference_kept=$ts_kept — a writer dropped a key it did not set"
   record div-r1-d3-control fail "a writer dropped an unknown top-level key: swift_kept=$swift_kept reference_kept=$ts_kept"
+fi
+
+# ---------------------------------------------------------------------------------------------
+# R2 D7 — the reference loses a router restart; the Swift watcher does not.
+#
+# `watch.ts` writes `servers.json` (line 279-283), then re-reads `~/.claude.json` before deleting
+# the adopted entry. When that re-read fails to parse it returns at line 299 — **past** the
+# `restartRouter()` at line 336. The next fire finds the config already matching, so `configChanged`
+# is false and the restart is never issued: the adopted server can never reach the running router.
+# spec-R2 declares this as D7 and forbids R2-W from reproducing it (spec-R2W W-D1).
+#
+# The oracle is `watch.log`, and the assertion is that a restart was **issued** — either the success
+# line or the `could not restart` line. Asserting the success line would make this row pass only on
+# a machine where the label happens to be loaded, and pass by restarting a real service.
+#
+# SIDE EFFECT, stated because it is real: the reference's kickstart target is hardcoded
+# (`watch.ts:49`) and it calls `/bin/launchctl` by absolute path, so it cannot be redirected. This
+# scenario relies on the reference NOT reaching its restart — which is the divergence itself. If
+# that ever stops being true this row fails STALE, and the developer's own router will have been
+# restarted once on the way. The Swift side is redirected to a scratch label and cannot touch it.
+echo
+echo "R2 D7 — a lost restart on an unparseable ~/.claude.json"
+d7run() { # side binary...
+  local side="$1"; shift
+  local home="$WORK/d7-$side" claudehome="$WORK/d7-$side-home"
+  mkdir -p "$home" "$claudehome"
+  local started="$WORK/d7-$side.started" gate="$WORK/d7-$side.gate"
+  rm -f "$started" "$gate"
+
+  gated_child > "$WORK/d7-$side-child.sh"
+  chmod +x "$WORK/d7-$side-child.sh"
+  cat > "$claudehome/.claude.json" <<JSON
+{
+  "numStartups": 41,
+  "mcpServers": {
+    "probe": {
+      "command": "$WORK/d7-$side-child.sh",
+      "args": ["$started", "$gate", "$REPO_ROOT/scripts/fixtures/mcp-fixture-server.mjs"]
+    }
+  }
+}
+JSON
+  cat > "$home/servers.json" <<'JSON'
+{
+  "port": 8879,
+  "host": "127.0.0.1",
+  "idleMs": 300000,
+  "mcpServers": {}
+}
+JSON
+
+  # Corrupt the staging file while the child is held, then release it. The watcher therefore writes
+  # servers.json and then finds ~/.claude.json unparseable — D7's exact window.
+  (
+    for _ in $(seq 1 600); do [ -e "$started" ] && break; sleep 0.05; done
+    printf '{ truncated mid-write' > "$claudehome/.claude.json"
+    touch "$gate"
+  ) &
+  local saboteur=$!
+
+  HOME="$claudehome" MCP_ROUTER_HOME="$home" \
+    MCPR_LAUNCHD_LABEL="gg.rhodes.mcp-router-parity-$$" \
+    "$@" watch >"$home/watch.out" 2>&1
+  wait "$saboteur" 2>/dev/null || true
+
+  # Three observables: the config was written, the re-read failed, and whether a restart was issued.
+  local wrote=no reread=no restarted=no
+  grep -q '"probe"' "$home/servers.json" 2>/dev/null && wrote=yes
+  grep -q 'no longer parses' "$home/watch.log" 2>/dev/null && reread=yes
+  grep -Eq 'restarted gg\.rhodes|could not restart gg\.rhodes' \
+    "$home/watch.log" 2>/dev/null && restarted=yes
+  printf '%s,%s,%s' "$wrote" "$reread" "$restarted"
+}
+
+ts_d7="$(d7run ts node "$REPO_ROOT/dist/index.js")"
+swift_d7="$(d7run swift "$SWIFT_CLI")"
+echo "  reference: $ts_d7"
+echo "  swift:     $swift_d7"
+echo "  (servers.json written, re-read failed, restart issued)"
+
+if [ "$ts_d7" = "yes,yes,no" ] && [ "$swift_d7" = "yes,yes,yes" ]; then
+  pass=$((pass + 1))
+  echo "  ok   the reference loses the restart on this path; the Swift watcher issues it"
+  record div-r2-d7 ok "reference=$ts_d7 swift=$swift_d7 (written,re-read-failed,restart-issued)"
+else
+  fail=$((fail + 1))
+  echo "  STALE the declared divergence no longer describes both sides"
+  record div-r2-d7 fail "stale: reference=$ts_d7 swift=$swift_d7 — expected yes,yes,no vs yes,yes,yes"
 fi
 
 echo

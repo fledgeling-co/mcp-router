@@ -73,7 +73,7 @@ divergence	div-r1-d3-control	both writers preserve unknown top-level keys on the
 divergence	div-r1-d4	R1 D4 logging failure is contained	proven-by-suite	-	Not observable on the wire; spec-R1 line 149 says so. RouterCoreTests/LogParityTests.loggingNeverThrows drives an unwritable directory, a failing append and a failing stderr
 divergence	div-r1-d5	R1 D5 the log API takes a structured event	proven-by-suite	-	A type-level property; no call accepts a whole config or env dictionary. Enforced mechanically by scripts/lint/no-wire-codable.sh rather than by a test
 divergence	div-r2-d6	R2 D6 callsServed counts acquisitions	proven	-	Reproduced exactly rather than corrected, because this gate diffs it. Covered by the control and fixture lanes
-divergence	div-r2-d7	R2 D7 reference loses a restart on an unparseable ~/.claude.json	blocked	R2-W	A latent bug in the reference, declared so the Swift watcher does not reproduce it. The Swift watcher is R2-W and does not exist, so this divergence has only one side and cannot be asserted in both directions
+divergence	div-r2-d7	R2 D7 reference loses a restart on an unparseable ~/.claude.json	proven	-	asserted in both directions by the divergence lane: the reference writes servers.json, fails the pre-delete re-read and issues no restart; the Swift watcher issues one. The oracle is that a restart was ISSUED (either the success or the could-not-restart line), so the row does not depend on a launchd job being loaded
 divergence	div-r3-d1	R3 D1 PATCH body 42 terminates the reference	proven	-	Asserted both ways by the control lane's diverges() helper
 divergence	div-r3-d2	R3 D2 PATCH body "hi" terminates the reference	proven	-	Asserted both ways
 divergence	div-r3-d3	R3 D3 PATCH body true terminates the reference	proven	-	Asserted both ways
@@ -92,7 +92,7 @@ mcp	mcp-status	GET /status	proven	-	diffed after an identical call sequence; por
 # ---------------------------------------------------------------------------------------------
 # cli — the ten verbs src/index.ts dispatches. docs/install.sh calls serve, watch, import and index.
 cli	cli-serve	serve	proven	-	both binaries bound, answered /health, wrote the same three log lines and exited 0 on SIGTERM
-cli	cli-watch	watch	blocked	R2-W	The second launchd agent. The Swift config watcher is R2-W and does not exist
+cli	cli-watch	watch	proven	-	three scenarios over identical inputs with a scratch HOME per side: the fast path, an indexed-and-adopted server, and an unparseable staging file. stdout, stderr, exit code, servers.json and the remaining ~/.claude.json all compared; manifest.json is not, because builtAt is per-run
 cli	cli-import	import	proven	-	one ~/.claude.json copy; stdout, exit code AND the written servers.json compared
 cli	cli-index	index	proven	-	same input, both binaries; stdout, stderr and exit code compared separately
 cli	cli-refresh	refresh	proven	-	compared against the REFERENCE's refresh, not against Swift's own index — an alias asserted against itself proves nothing
@@ -118,7 +118,7 @@ pool	pool-reap-traffic	reap decisions under live traffic	proven	-	burst, idle pa
 install	install-claude-json	rewrite ~/.claude.json to point at the router	blocked	D-k	install.sh:141 rewrites the user's own config through a node -e script, adding the mcp-router HTTP entry and preserving the file mode. This is the step that actually points Claude Code at the router; an installer that flips the binary and skips it leaves the user with nothing serving them
 install	install-import-servers	import stdio servers out of ~/.claude.json	blocked	D-k	install.sh:77 runs `node dist/index.js import`. The CLI verb is counted separately; this row is the on-disk RESULT it produces, which a Swift router would have to read
 install	install-launchd-serve	the serve launchd agent	proven	-	two real launchd agents, one per binary, with install.sh's own RunAtLoad, ThrottleInterval, KeepAlive/SuccessfulExit=false and log paths: both started at load, relaunched after SIGKILL, stayed down after bootout, and wrote a NON-EMPTY log to the same stream pattern as the reference (launchd creates both files at bootstrap, so mere existence proves nothing)
-install	install-launchd-watch	the watch launchd agent	blocked	R2-W	The second agent, same supervision contract, and there is no Swift watcher to supervise
+install	install-launchd-watch	the watch launchd agent	proven	-	one scratch RunAtLoad+WatchPaths agent per binary under real launchd: ran at load, re-ran on a watched-file change, stayed one-shot, wrote the same streams
 install	install-rollback	putting a cut-over machine back on TypeScript	blocked	R4-C	docs/uninstall.sh restores the ~/.claude.json backup, but nothing has established that a machine moved to Swift can be moved back. A cutover with no exercised rollback is a one-way door
 # ---------------------------------------------------------------------------------------------
 # state — the files a cutover inherits rather than creates.

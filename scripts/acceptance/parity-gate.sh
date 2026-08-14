@@ -29,7 +29,7 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 MANIFEST="${PARITY_MANIFEST:-$REPO_ROOT/planning/parity/surface.tsv}"
-LANES="${PARITY_LANES:-control fixture divergence pool suite}"
+LANES="${PARITY_LANES:-control fixture divergence pool suite mcp cli install state log}"
 WORK="$(mktemp -d -t parity-gate)"
 RESULTS="$WORK/results.tsv"
 : > "$RESULTS"

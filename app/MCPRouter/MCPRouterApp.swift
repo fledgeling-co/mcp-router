@@ -51,6 +51,12 @@ struct MCPRouterApp: App {
 /// is driven by the model is every item's title, shortcut, enabled state and disabled reason, which
 /// is the part A19 and A20 actually check.
 ///
+/// **No item names its own operation.** Each action is the same generic line — hand the command to
+/// `ShellCommandRouter` — because nothing in this file can be reached by `swift test`, and a
+/// decision written here is a decision with no evidence lane. `ShellCommandRouterTests` asserts the
+/// whole mapping, and its `assemblyCarriesNoOperation` test greps this file to keep the line
+/// generic. See `ShellCommandRouter`'s note for why driving the menu instead was not an option.
+///
 /// Four kinds of item are deliberately **not** declared here: Hide / Hide Others / Show All / Quit
 /// in the app menu, Close in File, the standard Edit items, and Minimize / Zoom / Bring All to
 /// Front in Window. macOS contributes all of those itself, and re-declaring one would produce two
@@ -59,47 +65,52 @@ struct MCPRouterApp: App {
 struct ShellCommands: Commands {
     @FocusedValue(\.shellModel) private var model
 
+    /// One item, wired to the router rather than to an operation chosen here.
+    private func item(_ command: MenuCommand) -> some View {
+        CommandItem(command) { ShellCommandRouter.perform(command, on: model) }
+    }
+
     var body: some Commands {
         CommandGroup(replacing: .appInfo) {
-            CommandItem(.about) { NSApp.orderFrontStandardAboutPanel(nil) }
+            item(.about)
         }
 
         CommandGroup(replacing: .appSettings) {
             // No ellipsis: Settings is a sidebar destination in this build, so `⌘,` selects a pane
             // rather than opening a further view. §3.4 makes that distinction the ellipsis's whole
             // job, so writing one here would be a false promise about what the key does.
-            CommandItem(.settings) { model?.select(.settings) }
+            item(.settings)
         }
 
         CommandGroup(replacing: .newItem) {
-            CommandItem(.addServer)
-            CommandItem(.addMarketplace)
-            CommandItem(.pairPhone)
+            item(.addServer)
+            item(.addMarketplace)
+            item(.pairPhone)
             Divider()
-            CommandItem(.exportLibrary)
+            item(.exportLibrary)
         }
 
         CommandGroup(after: .pasteboard) {
             Divider()
-            CommandItem(.find)
-            CommandItem(.resetServer)
-            CommandItem(.removeServer)
+            item(.find)
+            item(.resetServer)
+            item(.removeServer)
         }
 
         // Replacing `.sidebar` puts these in the View menu and removes the system's own sidebar
         // toggle, so there is one command for showing the sidebar rather than two.
         CommandGroup(replacing: .sidebar) {
             ForEach(Destination.ordered.filter { $0.selectionDigit != nil }, id: \.self) { target in
-                CommandItem(.selectDestination(target)) { model?.select(target) }
+                item(.selectDestination(target))
             }
             Divider()
-            CommandItem(.showSidebar) { model?.isSidebarVisible.toggle() }
+            item(.showSidebar)
         }
 
         CommandGroup(replacing: .help) {
-            CommandItem(.help)
-            CommandItem(.whatTheRouterDoes)
-            CommandItem(.reportIssue)
+            item(.help)
+            item(.whatTheRouterDoes)
+            item(.reportIssue)
         }
     }
 }

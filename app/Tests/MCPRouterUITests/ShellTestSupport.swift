@@ -89,6 +89,8 @@
             "app/Sources/MCPRouterUI/Shell/ScrollEdge.swift",
             "app/Sources/MCPRouterUI/Shell/ShellChrome.swift",
             "app/Sources/MCPRouterUI/Shell/ShellCommands.swift",
+            "app/Sources/MCPRouterUI/Shell/ShellCommandRouter.swift",
+            "app/Sources/MCPRouterUI/Shell/ShellWindowFrame.swift",
             "app/Sources/MCPRouterUI/Shell/ShellMenuReasons.swift"
         ]
     }

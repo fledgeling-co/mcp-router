@@ -37,6 +37,11 @@
             // How a menu command reaches this window's state. A menu is outside every scene, so
             // there is no other supported route from a `CommandGroup` to the focused window.
             .focusedSceneValue(\.shellModel, model)
+            // A33: this app stores its own window frame rather than relying on SwiftUI's implicit
+            // autosave — `ShellWindowFrame.swift` records what was measured wrong with that, including
+            // a relaunch that restored the window off every screen. Zero-size and behind everything,
+            // so it draws nothing and receives nothing.
+            .background(WindowFrameRestorer(store: model.store).frame(width: 0, height: 0))
             .task { await model.run() }
         }
 
@@ -139,7 +144,10 @@
             static let identifier = "mcprouter-key-probe"
             static let idle = "none"
 
-            func makeNSView(context _: Context) -> KeyClaimView { KeyClaimView() }
+            func makeNSView(context _: Context) -> KeyClaimView {
+                KeyClaimView()
+            }
+
             func updateNSView(_: KeyClaimView, context _: Context) {}
         }
 
@@ -152,7 +160,9 @@
 
             override var acceptsFirstResponder: Bool { true }
             /// So the click that focuses it is not spent activating the window instead.
-            override func acceptsFirstMouse(for _: NSEvent?) -> Bool { true }
+            override func acceptsFirstMouse(for _: NSEvent?) -> Bool {
+                true
+            }
 
             /// Claims focus as soon as it is in a window, rather than waiting to be clicked.
             ///
@@ -193,31 +203,46 @@
                 setAccessibilityValue(key)
             }
 
-            override func isAccessibilityElement() -> Bool { true }
-            override func accessibilityRole() -> NSAccessibility.Role? { .staticText }
-            override func accessibilityLabel() -> String? { KeyClaimProbe.identifier }
-            override func accessibilityIdentifier() -> String { KeyClaimProbe.identifier }
-            override func accessibilityValue() -> Any? { lastKey }
+            override func isAccessibilityElement() -> Bool {
+                true
+            }
+
+            override func accessibilityRole() -> NSAccessibility.Role? {
+                .staticText
+            }
+
+            override func accessibilityLabel() -> String? {
+                KeyClaimProbe.identifier
+            }
+
+            override func accessibilityIdentifier() -> String {
+                KeyClaimProbe.identifier
+            }
+
+            override func accessibilityValue() -> Any? {
+                lastKey
+            }
         }
     #endif
 
-    // **Why there is no frame-autosave bridge here.**
+    // **Where the frame restoration lives, and why it is not SwiftUI's.**
     //
-    // A33 asks for the window's frame to survive quit and relaunch, and it does — SwiftUI's
-    // `WindowGroup` gives its window an NSWindow frame-autosave name of its own and both saves and
-    // restores through it. Measured on this build: moved to 300,200 at 1000x640, quit, relaunched,
-    // and the window came back at exactly 300,200 at 1000x640, with the frame written to the app's
-    // defaults domain under SwiftUI's own key.
+    // A33 asks for the window's frame to survive quit and relaunch. An earlier revision of this item
+    // left that to SwiftUI: a `WindowGroup` gives its window an implicit NSWindow frame-autosave
+    // name, one run measured a move surviving through it, and the bridge that had been written was
+    // removed as redundant.
     //
-    // An `NSViewRepresentable` bridge that set a *named* autosave was tried first and removed,
-    // because it did not work and could not be made to: the representable's view has no window
-    // when `makeNSView` runs, and SwiftUI reassigns its own autosave name afterwards regardless.
-    // It wrote no key to defaults in any variant. Keeping it would have been a comment claiming
-    // credit for restoration that SwiftUI was performing, which is worse than no code at all.
+    // Re-measured on 2026-08-14 across several runs, that conclusion does not hold. A programmatic
+    // move updated the implicit autosave key on one run and left it at the launch frame on the next
+    // two; the frame the app came back at was one from an earlier session rather than the last one;
+    // and one relaunch restored the window to `-266,-1172`, off every attached screen, from a frame
+    // saved while an external display was attached. The name is also fragile by construction — it
+    // embeds the root view's type signature, so wrapping one more modifier around `ShellWindow`
+    // silently starts a new saved window.
     //
-    // The cost of relying on SwiftUI's name is that the name embeds the root view's type
-    // signature, so changing the modifiers wrapped around `ShellWindow` silently starts a new
-    // saved frame. That is a real fragility and it is reported rather than hidden; the acceptance
-    // gate measures the frame across a real relaunch, so a regression fails there rather than
-    // going unnoticed.
+    // So the frame is now the app's own, stored beside the selected destination and applied on first
+    // appearance, with an explicit usability rule so an unreachable frame is never restored.
+    // `ShellWindowFrame.swift` holds it; `ShellFrameRestorationTests` tests the decisions; and the
+    // acceptance gate still measures a real move across a real relaunch, so a regression fails there
+    // rather than going unnoticed.
 #endif

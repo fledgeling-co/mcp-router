@@ -54,7 +54,9 @@
         /// second subscription behind a surface that renders nothing from it.
         @ObservationIgnored public let tracker: ServerStateTracker
         @ObservationIgnored private let clock: @MainActor () -> Date
-        @ObservationIgnored private let store: ShellRestoration
+        /// Where the shell's restorable state lives. Exposed so the window's frame bridge writes to
+        /// the same store the destination does, rather than opening a second one.
+        @ObservationIgnored public let store: ShellRestoration
 
         /// The readout's numbers and the condition it is in.
         public private(set) var readout = ReadoutModel()
@@ -221,6 +223,7 @@
     public struct ShellRestoration: @unchecked Sendable {
         public static let destinationKey = "shell.selectedDestination"
         public static let sidebarVisibleKey = "shell.sidebarVisible"
+        public static let windowFrameKey = "shell.windowFrame"
 
         private let defaults: UserDefaults
 
@@ -248,6 +251,26 @@
 
         public func save(sidebarVisible: Bool) {
             defaults.set(sidebarVisible, forKey: Self.sidebarVisibleKey)
+        }
+
+        /// The window frame this app last had, or nil if it has never stored a usable one.
+        ///
+        /// Stored as four numbers rather than as an archived `NSRect`, so the value is readable in
+        /// `defaults read` and cannot fail to decode across an OS release. A partial, mistyped or
+        /// zero-sized entry reads as nil, which falls back to macOS's own placement — a window is
+        /// better placed by AppKit than by half a stored frame.
+        public func restoredFrame() -> CGRect? {
+            guard let numbers = defaults.array(forKey: Self.windowFrameKey) as? [Double],
+                  numbers.count == 4,
+                  numbers[2] > 0, numbers[3] > 0 else { return nil }
+            return CGRect(x: numbers[0], y: numbers[1], width: numbers[2], height: numbers[3])
+        }
+
+        public func save(frame: CGRect) {
+            defaults.set(
+                [frame.origin.x, frame.origin.y, frame.width, frame.height],
+                forKey: Self.windowFrameKey
+            )
         }
     }
 #endif

@@ -184,6 +184,7 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 | D-r2r-a | `mcp-router tools` has no empty state | R4-C | `DESIGN.md` §5 wants one sentence and one action; the reference has no empty branch, so adding it is a *divergence* on an owned row until the cutover happens |
 | D-r2r-b | The control API has never been compared **over a socket** | R4 | `control-differential.sh` drives `ControlDiff`, an in-process oracle. R2-R made `ControlHandler` reachable over a socket for the first time and **that surface has no lane** — 11 `control` rows are proven against an oracle that is not the wire |
 | D-r2r-c | Retire the stale known-defect assertions when D-j lands | D-j | Same change or the gate reports a failure *because* the defect was fixed |
+| **D-o** | **The fixture lane's project normaliser drops any project name containing a hyphen** | R4 | `parity-fixture.sh:121` normalises with `"project":"[A-Za-z0-9]+"` — **no `-`, no `_`**. Project attribution is the directory a call came from, so the gate's verdict depends on the *name of the directory it is run from*. Proven: `F3` and `R2R` normalise, `mcp-router` and `my_project` do not. From `.worktrees/R2R` the gate reports **69 of 82, 0 DIVERGED**; from the repo root, on the identical tree, **68 of 82, 1 DIVERGED** (`fixture usage`, `recorded="<project>" live="mcp-router"`). Every runner works in a worktree named alphanumerically, so no runner can hit it — which is why it survived R4's three adversarial reviews and R2-R's re-measure. **The cutover decision will be taken from the repo root**, where the false DIVERGED is what a reader sees. Fix is the character class; the orchestrator did not apply it because it moves the coverage number *up* and that diff should be reviewed by someone who does not benefit from it |
 
 ---
 
@@ -198,6 +199,25 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 ---
 
 ## Changelog
+
+- 2026-08-14 — **The parity gate's verdict depends on the name of the directory it is run from
+  (`D-o`).** Re-running the gate on merged `main` from the repo root returned **68 of 82 with 1
+  DIVERGED**, where R2-R had reported **69 of 82, 0 DIVERGED** on a byte-identical tree. Neither
+  number was wrong about the code and neither runner was careless: `parity-fixture.sh:121`
+  normalises attributed projects with `"project":"[A-Za-z0-9]+"`, a class that **omits `-` and
+  `_`**. A call's project is the directory it came from, so `R2R` normalises and `mcp-router`
+  does not, and the `fixture usage` row reports `recorded="<project>" live="mcp-router"`.
+
+  **The reason it survived every review is the interesting part.** Runners work in worktrees named
+  `R2R`, `M2`, `I1` — alphanumeric, all of them — so no runner could reach the bug, and R4's three
+  adversarial gates and R2-R's independent re-measure all ran from inside one. It is reachable only
+  from the repo root, which is exactly where the cutover decision gets taken. A false DIVERGED
+  there is worse than a missing row, because the lesson a reader takes from it is to discount
+  DIVERGED.
+
+  Registered as `D-o` and **not fixed here**: the diff is one character class and it moves coverage
+  *up*, which is the one direction the orchestrator should not move a number it is also reporting.
+  It goes to R4 with the mechanism and the proof attached.
 
 - 2026-08-14 — **Twelve unregistered work items found and registered — the R2-R failure repeating,
   seven-fold.** R2-R's evidence groups its 13 blocked parity rows "by the item that would unblock

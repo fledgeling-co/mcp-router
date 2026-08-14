@@ -1,0 +1,1092 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>M8 — Settings, the menu-bar popover, and the quarantine route</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!--
+  M8 — the three surfaces that finish the Mac app.
+
+  This page specifies, in order: the Settings pane (four groups, every state), the
+  menu-bar status item and its popover (every state), and the *route* from the popover
+  into the schema-quarantine review.
+
+  ── The one thing to read before anything else ────────────────────────────────────
+  **M8 does not build the quarantine review sheet. M3 already shipped it.**
+  `MCPRouterUI/Boards/ServerSheets.swift:134` is `HeldChangeSheet` — the before/after
+  diff, the invisible-codepoint warning, the three actions, the disabled-accept reason,
+  and its loading / failed / no-longer-held states. It is wired to
+  `ControlAPIClient.heldChanges(for:)` and `.approvePendingChange(server:)` through
+  `ServersBoardWrites.swift:89,135`. Rebuilding it would give the product two review
+  surfaces that drift apart, and the second one would be the one the security story
+  depends on. What M8 owes is the part M3 could not build from inside the Servers board:
+  **reachability**. Today a held description is only findable by opening the app,
+  landing on Servers, noticing an amber row, selecting it, and reading the inspector.
+  The brief's menu-bar popover is the glanceable instrument, so the popover is where a
+  held change announces itself, and one press puts the user in front of M3's sheet.
+  §6 below specifies that route and nothing else about the sheet.
+
+  ── What the router actually observes, which is what Settings may show ─────────────
+  DESIGN.md §6: "Numbers the router does not observe are never displayed." That rule did
+  most of the design work here, because the brief names five settings groups and the
+  control API supports **read** for two of them and **write** for none.
+
+  Measured against the merged tree, not assumed:
+  · `GET /servers` returns `port`, `idleMs`, `since`, `pendingAuth`, `servers`
+    (`src/control.ts:245-252`; `ServersResponse` in `Control/Models.swift:120`).
+  · There is **no settings-write endpoint at all**. `isControlPath` admits only
+    `/servers`, `/usage` and `/registry` (`src/control.ts:206-215`), and the only
+    mutation shape for an existing server is `ServerPatch` — `projects`, `warm`,
+    `idleMs`, `placard` — which is per-server and cannot carry a router setting.
+  · `residentMb()` in `src/pool.ts:319` measures each child's RSS **and has zero
+    callers**. It never reaches `describe()` and never reaches the wire.
+  · `RouterCore` — where `ClientConfigs.discover` lives — is linked by **neither app**,
+    deliberately (`app/Package.swift`, the `RouterCore` target comment).
+
+  So the four groups this pane ships are Router (observed, read-only), Menu bar
+  (app-owned, writable), Warm set (observed, read-only, acts on Servers) and Control
+  token (local, writable). §10 lists what was left out, each with the measurement that
+  made it dishonest to draw.
+
+  ── Assumptions recorded (autonomous run, no human to ask) ────────────────────────
+  · **The app is "MCP Router", not "Conduit".** `design/mocks/prototype.html` still says
+    Conduit throughout, including in this pane's popover footer. DESIGN.md's own
+    precedence rule makes the prototype stale where it disagrees, and `project.yml`'s
+    `CFBundleName` says MCP Router. M1 recorded the same assumption.
+  · **Settings stays a sidebar destination.** M1 assumed it and bound ⌘, to selecting it
+    rather than opening a Settings scene; `MenuCommand.settings` carries no ellipsis for
+    exactly that reason. M8 was named as the item that might move it to its own window.
+    It does not: a router whose facts change while you watch belongs in the same polling
+    window as the boards, and a separate scene would need its own poller for data the
+    shell already has. Recorded as a decision rather than left implicit.
+  · **A "Show in the menu bar" checkbox, not a new menu command.**
+    `design/mocks/prototype.html` puts "Show Menu Bar Popover" in the View menu. A menu
+    item that opens a popover anchored to a status item is a command whose target may not
+    exist, and DESIGN.md §3.9 wants every command in the menu bar — which would make the
+    popover a command needing a menu item needing a status item. The checkbox breaks that
+    loop, is where a Mac user looks for this (System Settings does the same for Wi-Fi and
+    Bluetooth), and adds nothing to `MenuCommand` while M2 and M4 are editing it.
+  · **"Reset call history" is not here.** The prototype puts it in Settings' Danger group
+    and it would fit this pane, but M2's spec already filed it as child **M2a** with a new
+    File-menu command attached (`spec-M2.md:365`). Building the button without the command
+    breaks §3.9; building both means editing `MenuCommand.swift` while two runners are in
+    it. Left to M2a, and reported.
+  · **No "Start the router" button in the offline state.** `ControlAPIError` offers the
+    label (`ControlAPIClient.swift:81`) and nothing in the merged tree renders it as an
+    action — M3's banners show headline and advice only. A button that cannot start
+    anything is worse than the sentence that says what happened, so the copy ships and
+    the action does not, consistently with M3.
+  · **The popover shows no skills count.** The prototype's popover header reads
+    "… · 6 skills". There is no skills endpoint on `ControlAPIClient`. §6 forbids it.
+  · **`cold` is real and is shown.** `CallRecord.cold` is on the wire
+    (`Control/Models.swift:129`), so the ❄ marker on a call row is an observation, not a
+    decoration. It is the one place the popover earns its "instrument" claim.
+-->
+<style>
+:root{
+  /* Grounds — graphite, never pure black (DESIGN.md §2). */
+  --ground:#1E1E1E;--panel:#232326;--raised:#2C2C2E;--raised2:#3A3A3C;
+  --line:rgba(255,255,255,.075);--lineS:rgba(255,255,255,.14);
+  --f1:rgba(255,255,255,.10);--f2:rgba(255,255,255,.08);--f3:rgba(255,255,255,.05);
+  /* Label tiers. Tertiary is 50%, not the kit's 25% — DESIGN.md §2's stated deviation.
+     25% is retained for disabled only, where dimming *is* the message. */
+  --t1:rgba(255,255,255,1);--t2:rgba(255,255,255,.55);
+  --t3:rgba(255,255,255,.50);--t4:rgba(255,255,255,.25);
+  /* The four exclusive meanings. Nothing decorative may be any of them. */
+  --accent:#0091FF;--live:#30D158;--attn:#FF9230;--fail:#FF4245;--onAccent:#FFFFFF;
+  --largeTitle:26px;--title1:22px;--title2:17px;--title3:15px;
+  --body:13px;--callout:12px;--subhead:11px;--caption:10px;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+  --titlebar:33px;--toolbar:52px;--sidebar:256px;
+  --selRadius:8px;--selInset:4px;--focusRing:2px;--popRadius:20px;--tableRow:24px;
+}
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;background:#141415;color:var(--t1);
+  font:var(--body)/16px var(--sans);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;text-align:left;
+  cursor:default}
+::selection{background:rgba(0,145,255,.32)}
+:focus-visible{outline:var(--focusRing) solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* ───────────────────────── page furniture (not the product) ───────────────────────── */
+.page{max-width:1180px;margin:0 auto;padding:40px 28px 96px}
+h1{font:600 var(--largeTitle)/32px var(--sans);letter-spacing:-.6px;margin:0 0 6px}
+.lede{color:var(--t2);max-width:74ch;margin:0 0 34px}
+h2{font:600 var(--title2)/22px var(--sans);margin:52px 0 6px;letter-spacing:-.2px}
+h2 .n{color:var(--t3);font:600 var(--subhead)/22px var(--mono);margin-right:9px}
+h3{font:600 var(--title3)/20px var(--sans);margin:30px 0 6px}
+.note{color:var(--t2);max-width:76ch;margin:0 0 18px;font-size:var(--callout);line-height:17px}
+.note code,.note b{color:var(--t1)}
+.note code{font:var(--subhead)/1 var(--mono)}
+.grid{display:flex;flex-wrap:wrap;gap:22px;align-items:flex-start}
+figure{margin:0}
+figcaption{color:var(--t3);font:var(--caption)/14px var(--mono);margin-top:7px;max-width:46ch}
+figcaption b{color:var(--t2);font-weight:600;font-family:var(--sans);font-size:var(--subhead)}
+table{border-collapse:collapse;width:100%;font-size:var(--callout)}
+th{text-align:left;color:var(--t3);font:600 var(--subhead)/18px var(--sans);
+  padding:5px 12px 5px 0;border-bottom:1px solid var(--line)}
+td{padding:6px 12px 6px 0;border-bottom:1px solid var(--line);color:var(--t2);
+  vertical-align:top}
+td b{color:var(--t1);font-weight:500}
+td code{font:var(--subhead)/1.5 var(--mono);color:var(--t1)}
+kbd{font:var(--subhead)/1 var(--mono);color:var(--t1);background:var(--raised);
+  border:1px solid var(--lineS);border-radius:4px;padding:2px 5px;white-space:nowrap}
+
+/* ───────────────────────── the pane ─────────────────────────
+   The content zone of M1's window. Opaque (§3.3) — no glass on content. */
+.pane{width:560px;background:var(--ground);border:1px solid var(--lineS);
+  border-radius:10px;overflow:hidden}
+.pane.wide{width:600px}
+.ph{padding:15px 18px 11px;border-bottom:1px solid var(--line)}
+.ph h4{margin:0;font:700 var(--title1)/26px var(--sans);letter-spacing:-.3px}
+.ph .sb{color:var(--t2);font-size:var(--callout);margin-top:3px}
+.body{padding:14px 18px 20px;max-height:560px;overflow:auto}
+
+/* A settings group. Sentence-case header, secondary colour, no tracked uppercase (§3.2). */
+.sec{margin-bottom:22px}
+.sec>h6{margin:0 0 7px;font:600 var(--subhead)/14px var(--sans);color:var(--t3)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:2px 12px}
+/* label-left / control-right on one shared axis — the brief's requirement. The label
+   column is fixed so every control in the pane lines up, not just within a card. */
+.kv{display:flex;align-items:center;gap:12px;min-height:32px;
+  border-bottom:1px solid var(--line)}
+.kv:last-child{border-bottom:0}
+.kv>span:first-child{width:150px;flex:none;color:var(--t2);font-size:var(--body)}
+.kv>.v{margin-left:auto;text-align:right;color:var(--t1);
+  font:var(--callout)/16px var(--mono)}
+.kv>.v.dim{color:var(--t2)}
+.help{color:var(--t3);font-size:var(--subhead);line-height:16px;margin:7px 2px 0;
+  max-width:64ch}
+.help b{color:var(--t2);font-weight:500}
+.help code{font:var(--caption)/1 var(--mono);color:var(--t2)}
+
+/* Controls, from F2's ladder: regular is 24pt. */
+.row{display:flex;align-items:center;gap:12px;min-height:32px}
+.row .lab{width:150px;flex:none;color:var(--t2)}
+.row .ctl{margin-left:auto;display:flex;align-items:center;gap:8px}
+.chk{display:inline-flex;align-items:center;gap:8px;color:var(--t1)}
+.box{width:14px;height:14px;border-radius:3.5px;border:1px solid var(--lineS);
+  background:var(--f2);flex:none;display:grid;place-items:center;
+  font:700 9px/1 var(--sans);color:transparent}
+.box.on{background:var(--accent);border-color:var(--accent);color:var(--onAccent)}
+.box.off{}
+.btn{height:24px;padding:0 11px;border-radius:6px;background:var(--raised);
+  border:1px solid var(--lineS);color:var(--t1);font-size:var(--callout);
+  display:inline-flex;align-items:center;gap:6px}
+.btn.p{background:var(--accent);border-color:transparent;color:var(--onAccent);
+  font-weight:600}
+.btn.d{color:var(--fail)}
+.btn.dis{color:var(--t4);border-color:var(--line);background:var(--f3)}
+.chip{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:5px;
+  background:var(--f2);border:1px solid var(--line);color:var(--t2);
+  font:var(--subhead)/1 var(--mono);margin:0 5px 5px 0}
+
+/* Banners — the shape M3 ships, reused so there is one banner in the product. */
+.ban{display:flex;gap:9px;padding:9px 11px;border-radius:8px;font-size:var(--callout);
+  line-height:17px;color:var(--t2);align-items:flex-start;margin-top:10px}
+.ban b{color:var(--t1);font-weight:600}
+.ban .g{flex:none;font-size:12px;line-height:17px}
+.ban.a{background:rgba(255,146,48,.10);border:1px solid rgba(255,146,48,.28)}
+.ban.a .g{color:var(--attn)}
+.ban.f{background:rgba(255,66,69,.10);border:1px solid rgba(255,66,69,.28)}
+.ban.f .g{color:var(--fail)}
+.ban.i{background:var(--f3);border:1px solid var(--line)}
+.ban.i .g{color:var(--t3)}
+
+/* Skeletons — must match the real row's geometry exactly, never a spinner (§5). */
+.sk{background:linear-gradient(90deg,var(--f2),var(--f1),var(--f2));border-radius:4px;
+  height:11px}
+.empty{text-align:center;padding:40px 24px}
+.empty .ill{width:44px;height:44px;margin:0 auto 12px;border-radius:11px;
+  background:var(--f2);border:1px solid var(--line);display:grid;place-items:center;
+  color:var(--t3);font-size:19px}
+.empty h5{margin:0 0 5px;font:600 var(--title3)/20px var(--sans);color:var(--t1)}
+.empty p{margin:0 auto 14px;color:var(--t2);font-size:var(--callout);max-width:42ch;
+  line-height:17px}
+
+/* ───────────────────────── the menu bar item + popover ─────────────────────────
+   Liquid Glass is permitted on floating chrome (§3.3) and this is the only place in
+   M8 that uses it. The popover radius is 20 (§2), its children are concentric. */
+.mbar{display:flex;align-items:center;gap:14px;height:26px;padding:0 12px;
+  background:linear-gradient(180deg,#2E3237,#262A2F);border:1px solid var(--lineS);
+  border-radius:7px;backdrop-filter:blur(20px);width:420px;justify-content:flex-end}
+.mbar .sp{margin-right:auto;color:var(--t2);font:var(--subhead)/1 var(--mono)}
+.stat{position:relative;width:22px;height:18px;display:grid;place-items:center;
+  border-radius:5px;color:var(--t1)}
+.stat.on{background:rgba(255,255,255,.16)}
+.stat .pip{position:absolute;top:0;right:1px;width:6px;height:6px;border-radius:50%;
+  background:var(--attn);box-shadow:0 0 0 1.5px #2A2E33}
+.pop{width:340px;background:rgba(38,40,44,.97);border:1px solid var(--lineS);
+  border-radius:var(--popRadius);backdrop-filter:blur(30px);overflow:hidden;
+  box-shadow:0 18px 46px rgba(0,0,0,.6)}
+/* child radius = parent − padding (§2 concentric corners): 20 − 6 = 14 */
+.pop .inner{padding:6px}
+.poph{display:flex;align-items:center;gap:7px;padding:8px 10px 9px;
+  font-size:var(--callout)}
+.poph .n{font-weight:600;color:var(--t1)}
+.poph .d{color:var(--t2)}
+.poph .sep{color:var(--t4)}
+.band{border-radius:14px;overflow:hidden;background:var(--f3);
+  border:1px solid rgba(255,146,48,.24);margin-bottom:6px}
+.bandr{display:flex;align-items:center;gap:9px;padding:8px 10px;width:100%;
+  border-bottom:1px solid var(--line)}
+.bandr:last-child{border-bottom:0}
+.bandr.on{background:var(--accent)}
+.bandr.on *{color:var(--onAccent)!important}
+.bandr .g{flex:none;font-size:12px;color:var(--attn)}
+.bandr .g.f{color:var(--fail)}
+.bandr .tx{flex:1;min-width:0}
+.bandr .tx b{display:block;font:600 var(--callout)/15px var(--sans);color:var(--t1);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bandr .tx span{display:block;font-size:var(--subhead);color:var(--t2);line-height:15px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bandr .chev{color:var(--t4);font-size:10px;flex:none}
+.callr{display:flex;align-items:center;gap:8px;height:26px;padding:0 10px;
+  font-size:var(--subhead)}
+.callr .dot{width:5px;height:5px;border-radius:50%;background:var(--live);flex:none}
+.callr .dot.f{background:var(--fail)}
+.callr .ago{width:34px;color:var(--t3);font-family:var(--mono)}
+.callr .srv{width:86px;color:var(--t1);font-weight:500;font-size:var(--callout);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.callr .tool{flex:1;color:var(--t2);font-family:var(--mono);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.callr .ms{width:56px;text-align:right;color:var(--t3);font-family:var(--mono)}
+.popf{display:flex;align-items:center;gap:8px;padding:7px 10px 8px;
+  border-top:1px solid var(--line);margin-top:6px}
+.popf .r{margin-left:auto}
+.popmsg{padding:16px 14px 18px;text-align:center}
+.popmsg h5{margin:0 0 5px;font:600 var(--body)/17px var(--sans);color:var(--t1)}
+.popmsg p{margin:0;color:var(--t2);font-size:var(--subhead);line-height:16px}
+
+.flow{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.step{background:var(--raised);border:1px solid var(--lineS);border-radius:8px;
+  padding:8px 11px;font-size:var(--callout);max-width:210px}
+.step b{display:block;color:var(--t1);font-weight:600;margin-bottom:2px}
+.step span{color:var(--t2);font-size:var(--subhead);line-height:15px}
+.arw{color:var(--t3);font-size:15px}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>M8 — Settings, the menu-bar popover, and the quarantine route</h1>
+<p class="lede">
+  Three surfaces that finish the Mac app: the pane that says what the router is, the
+  glanceable instrument that lives in the menu bar, and the one press that gets a held
+  tool description in front of a human. Every value drawn below is one the router
+  actually serves — the four groups this pane ships are what survived that test, and
+  <a href="#deferred" style="color:var(--accent)">§10</a> records what did not, with the
+  measurement that ruled it out.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<h2><span class="n">§1</span>Settings — the populated pane</h2>
+<p class="note">
+  Grouped inset cards; label-left, control-right, on <b>one shared axis across the whole
+  pane</b> rather than per card — the label column is a fixed 150pt so the Router card's
+  values and the Menu bar group's checkbox line up with each other. Section headers are
+  sentence case in <code>--t3</code> (§3.2). Instrument values are <code>SF Mono</code>;
+  prose is not (§2).
+</p>
+<div class="grid">
+<figure>
+<div class="pane">
+  <div class="ph">
+    <h4>Settings</h4>
+    <div class="sb">What the router is, and what this Mac remembers about it</div>
+  </div>
+  <div class="body">
+
+    <div class="sec">
+      <h6>Router</h6>
+      <div class="card">
+        <div class="kv"><span>Endpoint</span><span class="v">http://127.0.0.1:8879/mcp</span></div>
+        <div class="kv"><span>Home</span><span class="v">~/.claude/mcp-router</span></div>
+        <div class="kv"><span>Idle reaper</span><span class="v">300s</span></div>
+        <div class="kv"><span>Counting since</span><span class="v">12 Aug, 09:14</span></div>
+      </div>
+      <p class="help">
+        Read from the router, not set here. The app reaches the router over one loopback
+        channel and that channel has no endpoint that rewrites the router's own
+        configuration — deliberately, because an API that can rewrite a command line can
+        run anything. Change these in <code>~/.claude/mcp-router/servers.json</code> and
+        restart the router.
+      </p>
+    </div>
+
+    <div class="sec">
+      <h6>Menu bar</h6>
+      <div class="row">
+        <span class="lab">Status item</span>
+        <span class="ctl"><span class="chk"><span class="box on">✓</span>
+          Show MCP Router in the menu bar</span></span>
+      </div>
+      <p class="help">
+        The item is a plain symbol and stays one. It takes a dot only while something
+        wants a decision — a held tool description, a server that needs authorising, one
+        that failed to index. An icon that changes constantly is one the eye learns to
+        skip, and then it skips the change that mattered.
+      </p>
+    </div>
+
+    <div class="sec">
+      <h6>Warm set</h6>
+      <div class="card">
+        <div class="kv"><span>Kept resident</span><span class="v">2 of 8 servers</span></div>
+      </div>
+      <div style="margin-top:9px">
+        <span class="chip">github</span><span class="chip">postgres-prod</span>
+      </div>
+      <div class="row" style="margin-top:5px">
+        <span class="lab"></span>
+        <span class="ctl"><button class="btn">Show in Servers</button></span>
+      </div>
+      <p class="help">
+        A warm server is not closed when it goes idle, so its next call is not a cold
+        start. The switch is on each server's own row, because that is where you can see
+        what it costs you — <b>this pane counts the set, it does not edit it</b>.
+      </p>
+    </div>
+
+    <div class="sec">
+      <h6>Control token</h6>
+      <div class="card">
+        <div class="kv"><span>Token</span><span class="v">Stored in this Mac's keychain</span></div>
+        <div class="kv"><span>Read from</span><span class="v dim">~/.claude/mcp-router/control.token</span></div>
+      </div>
+      <div class="row" style="margin-top:9px">
+        <span class="lab"></span>
+        <span class="ctl"><button class="btn">Forget the stored token</button></span>
+      </div>
+      <p class="help">
+        The token is never shown, here or in a log. Forgetting it makes the app re-read
+        the router's file on its next request, which is the fix when the router has been
+        reset and this app is still sending the token it had before.
+      </p>
+    </div>
+
+  </div>
+</div>
+<figcaption><b>Settings · default</b><br>
+  Four groups. Every value in the Router card comes from one <code>GET /servers</code>
+  the shell is already making — no second poller, and no number the router does not send.
+</figcaption>
+</figure>
+
+<figure style="max-width:430px">
+  <table>
+    <tr><th style="width:34%">Row</th><th>Where the value comes from</th></tr>
+    <tr><td><b>Endpoint</b></td>
+      <td><code>ServersResponse.port</code>, composed into the loopback URL the app itself
+        talks to. Never typed in.</td></tr>
+    <tr><td><b>Home</b></td>
+      <td><code>RouterTokenFile.url</code>'s parent — the same directory the client already
+        resolves to find the token, so the path shown is the path used.</td></tr>
+    <tr><td><b>Idle reaper</b></td>
+      <td><code>ServersResponse.idleMs</code>, already retained on
+        <code>TrackerState.idleMs</code> for M3's "reaps in" copy.</td></tr>
+    <tr><td><b>Counting since</b></td>
+      <td><code>ServersResponse.since</code> — the moment the usage counter last opened,
+        which is what every per-server total is measured against.</td></tr>
+    <tr><td><b>Kept resident</b></td>
+      <td><code>MCPServer.warm</code>, counted. <b>Not</b> a megabyte figure: see §10.</td></tr>
+    <tr><td><b>Token</b></td>
+      <td><code>ControlTokenStore.read()</code> — presence only. The value never leaves
+        the keychain and never reaches a view.</td></tr>
+  </table>
+</figure>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<h2><span class="n">§2</span>Settings — the nine states</h2>
+<p class="note">
+  DESIGN.md §5. The interesting one is <b>partial</b>, and it is peculiar to this pane:
+  Settings is the only surface in the app that still has something true to say when the
+  router is unreachable, because the token and the home path are on this Mac's disk. So
+  the router card degrades and the rest of the pane keeps working, rather than the whole
+  pane becoming an error.
+</p>
+
+<div class="grid">
+
+<figure>
+<div class="pane" style="width:400px">
+  <div class="ph"><h4>Settings</h4><div class="sb">What the router is, and what this Mac remembers about it</div></div>
+  <div class="body">
+    <div class="sec"><h6>Router</h6>
+      <div class="card">
+        <div class="kv"><span>Endpoint</span><span class="v"><span class="sk" style="display:block;width:130px"></span></span></div>
+        <div class="kv"><span>Home</span><span class="v"><span class="sk" style="display:block;width:104px"></span></span></div>
+        <div class="kv"><span>Idle reaper</span><span class="v"><span class="sk" style="display:block;width:38px"></span></span></div>
+        <div class="kv"><span>Counting since</span><span class="v"><span class="sk" style="display:block;width:76px"></span></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<figcaption><b>Loading</b><br>
+  Four skeleton rows in the real rows' geometry, at 32pt each, so nothing moves when the
+  values land. Never a spinner over a blank pane.
+</figcaption>
+</figure>
+
+<figure>
+<div class="pane" style="width:400px">
+  <div class="ph"><h4>Settings</h4><div class="sb">What the router is, and what this Mac remembers about it</div></div>
+  <div class="body">
+    <div class="sec"><h6>Router</h6>
+      <div class="ban f"><span class="g">▲</span><span>
+        <b>The router isn't running.</b> Nothing is listening on the control port, so there
+        is nothing to show yet. Starting it takes a moment and your servers stay exactly as
+        you left them.</span></div>
+      <p class="help">Its endpoint, reaper and counting window are the router's own and are
+        only knowable while it is up.</p>
+    </div>
+    <div class="sec"><h6>Menu bar</h6>
+      <div class="row"><span class="lab">Status item</span>
+        <span class="ctl"><span class="chk"><span class="box on">✓</span>
+          Show MCP Router in the menu bar</span></span></div>
+    </div>
+    <div class="sec"><h6>Warm set</h6>
+      <div class="card"><div class="kv"><span>Kept resident</span>
+        <span class="v dim">Not known while the router is down</span></div></div>
+    </div>
+    <div class="sec"><h6>Control token</h6>
+      <div class="card">
+        <div class="kv"><span>Token</span><span class="v">Stored in this Mac's keychain</span></div>
+        <div class="kv"><span>Read from</span><span class="v dim">~/.claude/mcp-router/control.token</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<figcaption><b>Offline / partial — the same render</b><br>
+  Verbatim <code>ControlAPIError.routerNotRunning</code> (headline + advice), already
+  approved in F3 and asserted by <code>ControlCopyTests</code>. One wording per state.
+  <b>No "Start the router" button</b>: nothing in the tree can start it, and M3 shows the
+  same sentence with no action. The two local groups keep working — that is the partial
+  half, and it is the honest one.
+</figcaption>
+</figure>
+
+<figure>
+<div class="pane" style="width:400px">
+  <div class="ph"><h4>Settings</h4><div class="sb">What the router is, and what this Mac remembers about it</div></div>
+  <div class="body">
+    <div class="sec"><h6>Router</h6>
+      <div class="ban f"><span class="g">▲</span><span>
+        <b>This app isn't authorised to talk to the router.</b> The control token was
+        rotated or removed. Re-pair to continue — your servers and their history are
+        untouched.</span></div>
+    </div>
+    <div class="sec"><h6>Control token</h6>
+      <div class="card">
+        <div class="kv"><span>Token</span><span class="v">Stored, and the router rejected it</span></div>
+        <div class="kv"><span>Read from</span><span class="v dim">~/.claude/mcp-router/control.token</span></div>
+      </div>
+      <div class="row" style="margin-top:9px"><span class="lab"></span>
+        <span class="ctl"><button class="btn p">Forget the stored token</button></span></div>
+      <p class="help">The router has a token this app does not. Forgetting the stored one
+        makes the app read the router's file again on its next request, which is usually
+        the whole fix.</p>
+    </div>
+  </div>
+</div>
+<figcaption><b>Error — unauthorised</b><br>
+  The one state where "Forget the stored token" is the pane's <b>prominent</b> action,
+  because here it is the fix rather than a maintenance chore. One prominent action per
+  view (§3.4), and it moves to this group only while this condition holds.
+</figcaption>
+</figure>
+
+<figure>
+<div class="pane" style="width:400px">
+  <div class="ph"><h4>Settings</h4><div class="sb">What the router is, and what this Mac remembers about it</div></div>
+  <div class="body">
+    <div class="sec"><h6>Warm set</h6>
+      <div class="card"><div class="kv"><span>Kept resident</span>
+        <span class="v">None of 8 servers</span></div></div>
+      <p class="help">Every server is started when something first calls it and closed when
+        the reaper reaches it. Keep one warm from its row in Servers when its cold start is
+        the thing you keep waiting on.</p>
+    </div>
+    <div class="sec"><h6>Control token</h6>
+      <div class="card">
+        <div class="kv"><span>Token</span><span class="v">Not stored yet</span></div>
+        <div class="kv"><span>Read from</span><span class="v dim">~/.claude/mcp-router/control.token</span></div>
+      </div>
+      <div class="row" style="margin-top:9px"><span class="lab"></span>
+        <span class="ctl"><button class="btn dis">Forget the stored token</button></span></div>
+      <p class="help">The router writes a token to that file the first time it starts. The
+        app reads it from there and keeps it in the keychain.</p>
+    </div>
+  </div>
+</div>
+<figcaption><b>Empty · disabled</b><br>
+  Empty is a sentence that says what will happen, never "No items" — and it is a sentence
+  in each group rather than an illustration for the pane, because a pane with four groups
+  is never wholly empty. <b>Forget</b> dims in place with a reason in its help tag; it
+  never disappears (§3.4).
+</figcaption>
+</figure>
+
+<figure>
+<div class="pane" style="width:400px">
+  <div class="ph"><h4>Settings</h4><div class="sb">What the router is, and what this Mac remembers about it</div></div>
+  <div class="body">
+    <div class="sec"><h6>Warm set</h6>
+      <div class="card"><div class="kv"><span>Kept resident</span><span class="v">3 of 42 servers</span></div></div>
+      <div style="margin-top:9px">
+        <span class="chip">github</span><span class="chip">postgres-produ…</span><span class="chip">+1</span>
+      </div>
+    </div>
+    <div class="sec"><h6>Control token</h6>
+      <div class="card">
+        <div class="kv"><span>Read from</span>
+          <span class="v dim" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;
+            white-space:nowrap;direction:rtl">/Users/l/Library/Containers/…/mcp-router/control.token</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<figcaption><b>Overflow</b><br>
+  A long server name truncates inside its chip and the row keeps its height; the set
+  collapses to <code>+n</code> past what fits on one line. A long path truncates from the
+  <i>left</i> (<code>direction:rtl</code>) — the filename is the part that identifies it,
+  and a path clipped at the right end shows only the part every path shares.
+</figcaption>
+</figure>
+
+<figure>
+<div class="pane" style="width:400px">
+  <div class="ph"><h4>Settings</h4><div class="sb">What the router is, and what this Mac remembers about it</div></div>
+  <div class="body">
+    <div class="sec"><h6>Control token</h6>
+      <div class="card">
+        <div class="kv"><span>Token</span><span class="v">Not stored — this Mac's keychain refused</span></div>
+        <div class="kv"><span>Read from</span><span class="v dim">~/.claude/mcp-router/control.token</span></div>
+      </div>
+      <div class="ban a"><span class="g">◈</span><span>
+        <b>The keychain would not hand over the token</b> (item not found, −25300). The app
+        is still using the copy it read from the router's file, so nothing has stopped
+        working; it will read it again next time it starts.</span></div>
+    </div>
+  </div>
+</div>
+<figcaption><b>Error — keychain</b><br>
+  Adjacent to the group that failed, never a window-level banner. States what happened,
+  what still works, and what happens next; carries the OSStatus because that is the one
+  detail a support conversation needs. Non-blaming, and it does not emote (§6).
+</figcaption>
+</figure>
+
+</div>
+
+<h3>Success is in place, and there is no toast</h3>
+<p class="note">
+  §5: macOS does not toast a click. Ticking <b>Show MCP Router in the menu bar</b> makes
+  the item appear or disappear immediately — the change <i>is</i> the feedback. Pressing
+  <b>Forget the stored token</b> flips the Token row to "Not stored yet" and dims the
+  button in the same frame. Nothing confirms, nothing announces, and nothing needs
+  dismissing.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<h2><span class="n">§3</span>The status item, and the one rule it obeys</h2>
+<p class="note">
+  A template symbol, so macOS tints it for the menu bar's appearance and it inverts
+  correctly when the bar is light. It carries a dot <b>only</b> while at least one server
+  wants a decision — <code>MCPServer.needsAttention</code>, which is already the Servers
+  badge's source, so the bar and the sidebar can never disagree about whether something
+  is wrong.
+</p>
+<div class="grid">
+  <figure>
+    <div class="mbar"><span class="sp">Finder  File  Edit  View</span>
+      <span class="stat">◈</span><span style="color:var(--t2);font:var(--subhead)/1 var(--mono)">9:41</span></div>
+    <figcaption><b>At rest</b><br>Nothing wants a decision. One quiet glyph.</figcaption>
+  </figure>
+  <figure>
+    <div class="mbar"><span class="sp">Finder  File  Edit  View</span>
+      <span class="stat"><span class="pip"></span>◈</span><span style="color:var(--t2);font:var(--subhead)/1 var(--mono)">9:41</span></div>
+    <figcaption><b>Something is held</b><br>
+      A single <code>--attn</code> dot, ringed in the bar's own colour so it reads on both
+      appearances. <b>No count.</b> The number is in the popover; in the bar the question
+      is only whether to look.</figcaption>
+  </figure>
+  <figure>
+    <div class="mbar"><span class="sp">Finder  File  Edit  View</span>
+      <span class="stat on"><span class="pip"></span>◈</span><span style="color:var(--t2);font:var(--subhead)/1 var(--mono)">9:41</span></div>
+    <figcaption><b>Popover open</b><br>The item takes the system's own pressed fill.</figcaption>
+  </figure>
+</div>
+<p class="note" style="margin-top:16px">
+  <b>The dot is never <code>--fail</code>, even for a tripped server.</b> Both conditions
+  end in the same place — a human deciding something — and two dot colours in a 16pt glyph
+  are two things to learn for no gain. The distinction is drawn in the popover, where there
+  is room for a sentence. <code>--live</code> never appears in the bar at all: a running
+  child process is the normal state, and marking it would make the icon change constantly,
+  which is the exact failure the brief names.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<h2><span class="n">§4</span>The popover — what is running, what wants you, what just happened</h2>
+<p class="note">
+  Liquid Glass (§3.3 — floating chrome only), radius 20 with concentric children at 14.
+  Three zones and one action. It answers one question and vanishes; there is no navigation
+  in it and no setting.
+</p>
+<div class="grid">
+<figure>
+<div class="pop"><div class="inner">
+  <div class="poph"><span class="n">3 running</span><span class="sep">·</span>
+    <span class="d">5 idle</span><span class="sep">·</span><span class="d">115 tools</span></div>
+  <div class="band">
+    <button class="bandr"><span class="g f">▲</span><span class="tx">
+      <b>namecheap</b><span>failed to index — will not retry on its own</span></span>
+      <span class="chev">›</span></button>
+    <button class="bandr"><span class="g">◈</span><span class="tx">
+      <b>fetch-pro</b><span>changed a tool description — held, not served</span></span>
+      <span class="chev">›</span></button>
+    <button class="bandr"><span class="g">◈</span><span class="tx">
+      <b>linear</b><span>needs authorising before it can answer</span></span>
+      <span class="chev">›</span></button>
+  </div>
+  <div class="callr"><span class="dot"></span><span class="ago">2s</span>
+    <span class="srv">github</span><span class="tool">search_issues</span><span class="ms">210ms</span></div>
+  <div class="callr"><span class="dot"></span><span class="ago">9s</span>
+    <span class="srv">postgres-prod</span><span class="tool">query</span><span class="ms">44ms</span></div>
+  <div class="callr"><span class="dot f"></span><span class="ago">31s</span>
+    <span class="srv">namecheap</span><span class="tool">list_domains</span><span class="ms">1.2s</span></div>
+  <div class="callr"><span class="dot"></span><span class="ago">1m</span>
+    <span class="srv">github</span><span class="tool">get_file</span><span class="ms">❄ 890ms</span></div>
+  <div class="callr"><span class="dot"></span><span class="ago">2m</span>
+    <span class="srv">fetch-pro</span><span class="tool">fetch_url</span><span class="ms">302ms</span></div>
+  <div class="callr"><span class="dot"></span><span class="ago">4m</span>
+    <span class="srv">github</span><span class="tool">search_code</span><span class="ms">156ms</span></div>
+  <div class="popf"><button class="btn p">Open MCP Router</button>
+    <span class="r"><button class="btn">Quit</button></span></div>
+</div></div>
+<figcaption><b>Popover · default</b><br>
+  Header counts, an attention band, the last six calls, one action. 26pt call rows, mono
+  for every instrument value, ❄ where the router recorded a cold start.
+</figcaption>
+</figure>
+
+<figure style="max-width:430px">
+  <table>
+    <tr><th style="width:30%">Element</th><th>Source, and why it is allowed</th></tr>
+    <tr><td><b>3 running</b></td><td><code>MCPServer.state == .running</code>, counted —
+      the same derivation as M1's readout, so the popover and the window cannot disagree.</td></tr>
+    <tr><td><b>5 idle</b></td><td>declared minus running.</td></tr>
+    <tr><td><b>115 tools</b></td><td>sum of <code>MCPServer.tools</code>.</td></tr>
+    <tr><td><b>No skills count</b></td><td>The prototype shows one. There is no skills
+      endpoint on <code>ControlAPIClient</code>; §6 forbids the number.</td></tr>
+    <tr><td><b>Attention rows</b></td><td><code>needsAttention</code>, split into its three
+      real causes — <code>pendingChange</code>, <code>auth.supported && !auth.authorized</code>,
+      <code>indexError</code> — so each row says which one it is.</td></tr>
+    <tr><td><b>Call rows</b></td><td><code>usage(limit: 6)</code> →
+      <code>CallRecord</code>: <code>ts</code>, <code>server</code>, <code>tool</code>,
+      <code>ok</code>, <code>ms</code>, <code>cold</code>.</td></tr>
+    <tr><td><b>Quit</b></td><td>Quits the app, not the router. Its help tag says so — see the
+      copy table in §9.</td></tr>
+  </table>
+</figure>
+</div>
+
+<h3>The popover's states</h3>
+<div class="grid">
+  <figure>
+    <div class="pop"><div class="inner">
+      <div class="poph"><span class="n">3 running</span><span class="sep">·</span>
+        <span class="d">5 idle</span><span class="sep">·</span><span class="d">115 tools</span></div>
+      <div class="callr"><span class="dot"></span><span class="ago">2s</span>
+        <span class="srv">github</span><span class="tool">search_issues</span><span class="ms">210ms</span></div>
+      <div class="callr"><span class="dot"></span><span class="ago">9s</span>
+        <span class="srv">postgres-prod</span><span class="tool">query</span><span class="ms">44ms</span></div>
+      <div class="callr"><span class="dot"></span><span class="ago">1m</span>
+        <span class="srv">github</span><span class="tool">get_file</span><span class="ms">❄ 890ms</span></div>
+      <div class="popf"><button class="btn p">Open MCP Router</button>
+        <span class="r"><button class="btn">Quit</button></span></div>
+    </div></div>
+    <figcaption><b>Nothing wants a decision</b><br>
+      The band is <b>absent</b>, not empty. A permanent "all clear" row is a thing to read
+      every time that says nothing, and it would make the band's presence stop meaning
+      anything.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="pop"><div class="inner">
+      <div class="poph"><span class="n">0 running</span><span class="sep">·</span>
+        <span class="d">8 idle</span><span class="sep">·</span><span class="d">115 tools</span></div>
+      <div class="popmsg"><h5>No calls yet</h5>
+        <p>Tool calls appear here as your sessions make them. Nothing is running until
+          something asks.</p></div>
+      <div class="popf"><button class="btn p">Open MCP Router</button>
+        <span class="r"><button class="btn">Quit</button></span></div>
+    </div></div>
+    <figcaption><b>Empty</b><br>
+      Counts are real and stay; only the log is empty. One sentence that says what will
+      fill it — the same wording M2's Activity board uses, because it is the same fact.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="pop"><div class="inner">
+      <div class="poph"><span class="sk" style="width:66px"></span>
+        <span class="sk" style="width:44px"></span><span class="sk" style="width:54px"></span></div>
+      <div class="callr"><span class="sk" style="width:5px;height:5px;border-radius:50%"></span>
+        <span class="sk" style="width:26px"></span><span class="sk" style="width:74px"></span>
+        <span class="sk" style="flex:1"></span><span class="sk" style="width:40px"></span></div>
+      <div class="callr"><span class="sk" style="width:5px;height:5px;border-radius:50%"></span>
+        <span class="sk" style="width:26px"></span><span class="sk" style="width:62px"></span>
+        <span class="sk" style="flex:1"></span><span class="sk" style="width:40px"></span></div>
+      <div class="callr"><span class="sk" style="width:5px;height:5px;border-radius:50%"></span>
+        <span class="sk" style="width:26px"></span><span class="sk" style="width:80px"></span>
+        <span class="sk" style="flex:1"></span><span class="sk" style="width:40px"></span></div>
+      <div class="popf"><button class="btn p">Open MCP Router</button>
+        <span class="r"><button class="btn">Quit</button></span></div>
+    </div></div>
+    <figcaption><b>Loading</b><br>
+      Only on the first open of a session; afterwards the shell's poll has already
+      answered and there is nothing to wait for. Rows at their real 26pt.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="pop"><div class="inner">
+      <div class="popmsg"><h5>The router isn't running</h5>
+        <p>Nothing is listening on the control port, so there is nothing to show yet.
+          Starting it takes a moment and your servers stay exactly as you left them.</p></div>
+      <div class="popf"><button class="btn p">Open MCP Router</button>
+        <span class="r"><button class="btn">Quit</button></span></div>
+    </div></div>
+    <figcaption><b>Offline</b><br>
+      Verbatim <code>ControlAPIError.routerNotRunning</code> again — one wording per state
+      across every surface and both devices. Counts are gone rather than zeroed: nobody
+      answered, and zero is an answer.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="pop"><div class="inner">
+      <div class="poph"><span class="n">3 running</span><span class="sep">·</span>
+        <span class="d">5 idle</span><span class="sep">·</span><span class="d">115 tools</span></div>
+      <div class="band" style="border-color:rgba(255,66,69,.24)">
+        <button class="bandr"><span class="g f">▲</span><span class="tx">
+          <b>Last refresh failed</b><span>showing what the router said 40s ago</span></span></button>
+      </div>
+      <div class="callr" style="opacity:.6"><span class="dot"></span><span class="ago">40s</span>
+        <span class="srv">github</span><span class="tool">search_issues</span><span class="ms">210ms</span></div>
+      <div class="callr" style="opacity:.6"><span class="dot"></span><span class="ago">1m</span>
+        <span class="srv">postgres-prod</span><span class="tool">query</span><span class="ms">44ms</span></div>
+      <div class="popf"><button class="btn p">Open MCP Router</button>
+        <span class="r"><button class="btn">Quit</button></span></div>
+    </div></div>
+    <figcaption><b>Partial — stale</b><br>
+      The tracker's <code>.stale</code> case: the servers are real, so they stay; the
+      counts are a claim about <i>now</i>, so the header says when it was true. This is
+      M1's existing rule applied to a second surface, not a new one.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="pop"><div class="inner">
+      <div class="poph"><span class="n">3 running</span><span class="sep">·</span>
+        <span class="d">5 idle</span><span class="sep">·</span><span class="d">115 tools</span></div>
+      <div class="band">
+        <button class="bandr on"><span class="g">◈</span><span class="tx">
+          <b>a-very-long-server-name-that…</b><span>changed a tool description — held, not served</span></span>
+          <span class="chev">›</span></button>
+      </div>
+      <div class="callr"><span class="dot"></span><span class="ago">2s</span>
+        <span class="srv">a-very-long-s…</span><span class="tool">some_extremely_long_tool_name_here</span><span class="ms">210ms</span></div>
+      <div class="popf"><button class="btn p">Open MCP Router</button>
+        <span class="r"><button class="btn">Quit</button></span></div>
+    </div></div>
+    <figcaption><b>Overflow · hover/focus</b><br>
+      Names truncate with an ellipsis and rows never change height; the full value is in
+      the window. The focused band row takes an accent fill with
+      <code>--onAccent</code> throughout — the popover's rows are the one place selection
+      is a fill rather than an inset (§3.1 governs list selection; this is a pressable
+      row, like a menu item).</figcaption>
+  </figure>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<h2><span class="n">§5</span>Disabled, and the two places it happens</h2>
+<div class="grid">
+  <figure>
+    <div class="pane" style="width:400px"><div class="body" style="padding-top:18px">
+      <div class="row"><span class="lab">Status item</span>
+        <span class="ctl"><span class="chk" style="color:var(--t4)">
+          <span class="box" style="background:var(--f3);border-color:var(--line)"></span>
+          Show MCP Router in the menu bar</span></span></div>
+      <p class="help">Turned off for every app in this Mac's menu bar settings. Nothing this
+        app does can put an item back until that is changed.</p>
+    </div></div>
+    <figcaption><b>Disabled — dims in place with a reason</b><br>
+      It never disappears (§3.4), and the reason is discoverable in the help tag as well as
+      in the line beneath, because a help tag alone is not discoverable by keyboard.</figcaption>
+  </figure>
+  <figure style="max-width:430px">
+    <table>
+      <tr><th style="width:38%">Control</th><th>Dimmed when, and what it says</th></tr>
+      <tr><td><b>Forget the stored token</b></td>
+        <td>No token is stored. <i>"There is no stored token to forget."</i></td></tr>
+      <tr><td><b>Show in Servers</b></td>
+        <td>Never dimmed — Servers is always reachable. It is a plain button rather than a
+          link because it changes the window's selection, which is a command.</td></tr>
+      <tr><td><b>Attention row</b></td>
+        <td>Never dimmed. A row that cannot be acted on is not drawn: the band only ever
+          contains servers that want something.</td></tr>
+    </table>
+  </figure>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<h2 id="quarantine"><span class="n">§6</span>The quarantine route — M3 owns the sheet</h2>
+<p class="note">
+  The brief asks for a surface that shows the before/after diff of a changed tool
+  description and requires an explicit accept. <b>That surface exists and is good.</b>
+  <code>HeldChangeSheet</code> renders one <code>ToolChangeCard</code> per
+  <code>ToolChange</code> with <code>was</code> and <code>now</code> fields, names any
+  invisible codepoints the description carries, and offers <b>Remove <i>server</i></b> /
+  <b>Keep serving the old text</b> / <b>Accept the new text</b> with the accept button
+  disabled-with-a-reason while the diff is loading, failed, or empty.
+</p>
+<p class="note">
+  What M8 adds is the shortest path to it. Today the only way in is: open the app → land on
+  whichever pane was restored → go to Servers → notice an amber row → select it → find the
+  banner in the inspector → press Review. A held tool description is a server trying to
+  redirect an agent, and six steps behind a window that may not be open is not where that
+  belongs.
+</p>
+<div class="flow">
+  <div class="step"><b>Status item</b><span>Takes its dot the moment
+    <code>needsAttention</code> becomes true.</span></div>
+  <span class="arw">→</span>
+  <div class="step"><b>Popover band row</b><span>"fetch-pro — changed a tool description —
+    held, not served"</span></div>
+  <span class="arw">→</span>
+  <div class="step"><b>One press</b><span>Activates the app, selects Servers, selects that
+    server, opens its held-change sheet.</span></div>
+  <span class="arw">→</span>
+  <div class="step" style="border-color:rgba(0,145,255,.4)"><b>M3's HeldChangeSheet</b>
+    <span>Unchanged. M8 writes none of it.</span></div>
+</div>
+<p class="note" style="margin-top:16px">
+  <b>The routes for the other two causes differ, and that is deliberate.</b> A server that
+  needs authorising and one that failed to index both land on Servers with that row
+  selected and <b>no sheet</b> — their next action is in the inspector, and opening a sheet
+  the user did not ask for would put a modal in front of a decision they may not want to
+  make yet. Only the held change opens a sheet, because only the held change is a security
+  decision the product is actively holding bytes back for.
+</p>
+<p class="note">
+  <b>This is the one press in the app that legitimately activates it.</b> Everywhere else
+  the popover is the surface; here the destination is a window. Pressing the row calls
+  <code>NSApp.activate</code> and closes the popover — a sheet behind a menu-bar popover on
+  an unactivated app is a sheet nobody can reach.
+</p>
+
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<h2><span class="n">§7</span>Keyboard, focus, accessibility</h2>
+<div class="grid">
+<figure style="max-width:520px">
+<table>
+  <tr><th style="width:22%">Key</th><th>Where</th><th>Behaviour</th></tr>
+  <tr><td><kbd>⌘,</kbd></td><td>anywhere</td><td>Selects Settings. Already M1's, unchanged
+    — M8 adds no shortcut and no menu item.</td></tr>
+  <tr><td><kbd>Tab</kbd></td><td>Settings</td><td>Runs the groups in reading order and each
+    group's control after its label: Router card is not focusable (it holds no controls),
+    then the checkbox, then <b>Show in Servers</b>, then <b>Forget the stored token</b>.</td></tr>
+  <tr><td><kbd>Space</kbd></td><td>Settings</td><td>Toggles the focused checkbox. The
+    shell reserves <kbd>Space</kbd> for a selected row's breaker and Settings has no rows,
+    so there is no contest.</td></tr>
+  <tr><td><kbd>Return</kbd></td><td>Settings</td><td>Nothing. The pane has no single default
+    action — four groups with unrelated controls have no one thing <kbd>Return</kbd> could
+    mean, and binding it to the last-focused control is how a keyboard user deletes a token
+    by accident.</td></tr>
+  <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>popover</td><td>Moves through the band rows
+    then the call rows. Call rows are not pressable and are skipped.</td></tr>
+  <tr><td><kbd>Return</kbd></td><td>popover</td><td>Opens the focused band row's
+    destination — the popover's one default action.</td></tr>
+  <tr><td><kbd>Esc</kbd></td><td>popover</td><td>Dismisses it. The system provides this for
+    a <code>MenuBarExtra</code> in <code>.window</code> style; it is listed because it is
+    part of the contract, not because M8 implements it.</td></tr>
+</table>
+</figure>
+<figure style="max-width:430px">
+  <p class="note" style="margin:0">
+    <b>The status item needs a label, and it is the accessibility surface most likely to be
+    forgotten.</b> A template symbol with no
+    <code>accessibilityLabel</code> is announced as "button" by VoiceOver. It reads
+    <i>"MCP Router"</i> at rest and <i>"MCP Router, 3 items need a decision"</i> when the
+    dot is showing — so the information the dot carries visually is carried in the label
+    too, which is the same requirement <code>accessibilityDifferentiateWithoutColor</code>
+    states for the dot itself.
+  </p>
+  <p class="note">
+    <b>Colour is never the only signal.</b> Each band row carries a glyph (▲ failed, ◈ held
+    or unauthorised) and a sentence naming the condition; the dot on a call row is paired
+    with the <code>ok</code>-derived colour <i>and</i> the row's error text in the window.
+    Under <code>accessibilityDifferentiateWithoutColor</code> the status item's dot gains a
+    hairline ring so it reads as a shape.
+  </p>
+</figure>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<h2><span class="n">§8</span>Motion</h2>
+<table style="max-width:760px">
+  <tr><th style="width:26%">Moment</th><th>Feel</th></tr>
+  <tr><td><b>Popover entry</b></td><td>Materialises from the status item, which is what
+    <code>MenuBarExtra(.window)</code> does itself. Never a centre fade, and never an
+    opacity-from-0 (§7 — content is unreadable for half of it).</td></tr>
+  <tr><td><b>Status dot appearing</b></td><td>A small scale bump, transform only. Never a
+    colour flash and never a pulse: a menu bar that moves in the corner of the eye is a
+    menu bar people turn off.</td></tr>
+  <tr><td><b>Attention count changing</b></td><td>Nothing. The dot does not carry a count,
+    so 3→2 is not a visual event at all — which is the point of not putting a number
+    there.</td></tr>
+  <tr><td><b>Checkbox toggling</b></td><td>The system's own. The status item's appearance
+    or disappearance is immediate and unanimated; macOS does not animate menu-bar items and
+    imitating one would be a web tell.</td></tr>
+  <tr><td><b>Reduce Motion</b></td><td>Removes the scale bump and the popover's own
+    transition. The state change always happens.</td></tr>
+  <tr><td><b>Reduce Transparency</b></td><td>The popover's glass becomes an opaque
+    <code>--panel</code> fill. It is the only glass M8 draws, so this is the whole
+    adaptation.</td></tr>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<h2><span class="n">§9</span>Every string, in one place</h2>
+<p class="note">
+  Sentence case, verb-first buttons, one name per state across both devices (§6). The two
+  <code>ControlAPIError</code> sentences are <b>not rewritten</b> — they are F3's, asserted
+  by <code>ControlCopyTests</code>, and reused verbatim.
+</p>
+<table>
+  <tr><th style="width:26%">Where</th><th>String</th></tr>
+  <tr><td>Pane title / subtitle</td><td><b>Settings</b> · "What the router is, and what this
+    Mac remembers about it"</td></tr>
+  <tr><td>Group headers</td><td>"Router" · "Menu bar" · "Warm set" · "Control token"</td></tr>
+  <tr><td>Router rows</td><td>"Endpoint" · "Home" · "Idle reaper" · "Counting since"</td></tr>
+  <tr><td>Router helper</td><td>"Read from the router, not set here. The app reaches the
+    router over one loopback channel and that channel has no endpoint that rewrites the
+    router's own configuration — deliberately, because an API that can rewrite a command
+    line can run anything. Change these in <code>~/.claude/mcp-router/servers.json</code>
+    and restart the router."</td></tr>
+  <tr><td>Menu bar control</td><td>"Show MCP Router in the menu bar"</td></tr>
+  <tr><td>Menu bar helper</td><td>"The item is a plain symbol and stays one. It takes a dot
+    only while something wants a decision — a held tool description, a server that needs
+    authorising, one that failed to index. An icon that changes constantly is one the eye
+    learns to skip, and then it skips the change that mattered."</td></tr>
+  <tr><td>Warm set values</td><td>"2 of 8 servers" · "None of 8 servers" · "Not known while
+    the router is down"</td></tr>
+  <tr><td>Warm set empty helper</td><td>"Every server is started when something first calls
+    it and closed when the reaper reaches it. Keep one warm from its row in Servers when its
+    cold start is the thing you keep waiting on."</td></tr>
+  <tr><td>Warm set button</td><td>"Show in Servers"</td></tr>
+  <tr><td>Token values</td><td>"Stored in this Mac's keychain" · "Not stored yet" · "Stored,
+    and the router rejected it" · "Not stored — this Mac's keychain refused"</td></tr>
+  <tr><td>Token button</td><td>"Forget the stored token"</td></tr>
+  <tr><td>Token disabled reason</td><td>"There is no stored token to forget."</td></tr>
+  <tr><td>Keychain failure</td><td>"The keychain would not hand over the token (item not
+    found, −25300). The app is still using the copy it read from the router's file, so
+    nothing has stopped working; it will read it again next time it starts."</td></tr>
+  <tr><td>Offline (F3, verbatim)</td><td>"The router isn't running" / "Nothing is listening
+    on the control port, so there is nothing to show yet. Starting it takes a moment and
+    your servers stay exactly as you left them."</td></tr>
+  <tr><td>Unauthorised (F3, verbatim)</td><td>"This app isn't authorised to talk to the
+    router" / "The control token was rotated or removed. Re-pair to continue — your servers
+    and their history are untouched."</td></tr>
+  <tr><td>Popover attention rows</td><td>"changed a tool description — held, not served" ·
+    "needs authorising before it can answer" · "failed to index — will not retry on its
+    own"</td></tr>
+  <tr><td>Popover empty</td><td><b>No calls yet</b> · "Tool calls appear here as your
+    sessions make them. Nothing is running until something asks."</td></tr>
+  <tr><td>Popover stale</td><td><b>Last refresh failed</b> · "showing what the router said
+    40s ago"</td></tr>
+  <tr><td>Popover actions</td><td>"Open MCP Router" · "Quit"</td></tr>
+  <tr><td>Quit help tag</td><td>"Quits MCP Router. The router keeps running and your
+    sessions keep working."</td></tr>
+  <tr><td>Status item label</td><td>"MCP Router" · "MCP Router, 3 items need a decision"</td></tr>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════════════════════════ -->
+<h2 id="deferred"><span class="n">§10</span>What the brief named and this pane does not draw</h2>
+<p class="note">
+  Each of these was measured against the merged tree rather than assumed absent. A control
+  for a mechanism that does not exist is worse than no control: a dimmed "RAM budget"
+  slider tells the user the budget exists and is merely off, and the next person to read
+  the code believes it too.
+</p>
+<table>
+  <tr><th style="width:24%">Named in the brief</th><th style="width:38%">What is actually there</th><th>Disposition</th></tr>
+  <tr><td><b>Router port and lifecycle</b></td>
+    <td><code>port</code> and <code>idleMs</code> are served on <code>GET /servers</code>.
+      Nothing writes them: <code>isControlPath</code> admits only
+      <code>/servers</code>, <code>/usage</code>, <code>/registry</code>
+      (<code>src/control.ts:206</code>), and <code>ServerPatch</code> is per-server.</td>
+    <td><b>Shipped, read-only</b>, with the reason on the pane. Writing
+      <code>servers.json</code> from the app would be a second channel, which the product's
+      standing constraint forbids.</td></tr>
+  <tr><td><b>Warm-set RAM budget</b></td>
+    <td><code>residentMb()</code> exists in <code>src/pool.ts:319</code> and <b>has zero
+      callers</b>. It never reaches <code>describe()</code> and never reaches the wire.
+      There is no eviction-by-memory mechanism anywhere in the router.</td>
+    <td><b>Deferred child.</b> Needs the router to serve the measurement and to implement a
+      budget; both are R-lane. The warm <i>set</i> ships, counted from
+      <code>MCPServer.warm</code>, with no megabyte figure.</td></tr>
+  <tr><td><b>Auto-update policy</b></td>
+    <td>No updater exists in the app — no Sparkle, no update check, nothing that could obey
+      a policy.</td>
+    <td><b>Deferred child.</b> The policy is the second half of a feature whose first half
+      is not built.</td></tr>
+  <tr><td><b>Per-client install targets</b></td>
+    <td><code>ClientConfigs.discover</code> knows all six clients and their paths — and it
+      lives in <code>RouterCore</code>, which <code>app/Package.swift</code> links from
+      <b>neither app</b>, deliberately, so that reading a config file directly has to be
+      added on purpose. Its own doc comment says writing back "belongs to a later item".</td>
+    <td><b>Deferred child.</b> Needs either a control-API endpoint or an explicit decision
+      to give the app a second channel. That is a product decision, not a UI one.</td></tr>
+  <tr><td><b>The control token</b></td>
+    <td><code>ControlTokenStore</code> (keychain) and <code>RouterTokenFile</code> both
+      exist and the live client already reads, caches and re-reads on rotation.</td>
+    <td><b>Shipped.</b> Presence, source path, and forget. The value is never rendered.</td></tr>
+  <tr><td><i>(prototype)</i> Update promotion toggles</td>
+    <td>Three toggles about promoting capability updates. There is no skills or marketplace
+      model in the merged tree and no endpoint behind any of them.</td>
+    <td><b>Deferred</b> to whichever item owns capability updates (M4/M7).</td></tr>
+  <tr><td><i>(prototype)</i> Paired devices</td>
+    <td>Pairing, naming and revoking a phone.</td>
+    <td><b>M6 owns it</b> by its own brief. Not M8's, and building it here would give the
+      product two pairing surfaces.</td></tr>
+  <tr><td><i>(prototype)</i> Reset call history</td>
+    <td><code>resetUsage()</code> exists on the client and no built surface calls it.</td>
+    <td><b>M2's child M2a</b>, which also specifies a File-menu command. Left intact rather
+      than half-built here; reported to the orchestrator.</td></tr>
+</table>
+
+<h2><span class="n">§11</span>Where this page departs from the prototype</h2>
+<table>
+  <tr><th style="width:34%">Prototype</th><th>Here, and why</th></tr>
+  <tr><td>"Conduit" throughout</td><td>"MCP Router". The prototype is stale on the app's
+    name; <code>CFBundleName</code> and the brief agree.</td></tr>
+  <tr><td>Settings subtitle "Router, updates, and the paired phone"</td>
+    <td>Two of those three are not in this item. The subtitle names what the pane actually
+      holds.</td></tr>
+  <tr><td>Popover header "… · 6 skills"</td><td>Dropped. No skills endpoint exists; §6.</td></tr>
+  <tr><td>Popover footer "Open Conduit" + "Quit"</td><td>Kept, renamed, and Quit gains a help
+    tag saying the router keeps running — the one thing a user might reasonably fear when
+    quitting an app whose whole subject is a daemon.</td></tr>
+  <tr><td>Router card row "Started — 3d 4h ago · pid 41208"</td>
+    <td><b>Replaced by "Counting since".</b> The router serves no start time and no pid on
+      any endpoint; that row is two invented numbers. <code>since</code> is real and is what
+      the usage totals are measured from.</td></tr>
+  <tr><td>Danger group</td><td>Absent — see §10, it is M2a.</td></tr>
+</table>
+
+</div>
+</body>
+</html>

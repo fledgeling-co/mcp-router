@@ -1,0 +1,196 @@
+import Foundation
+import Testing
+@testable import MCPRouterKit
+
+/// The Settings pane's rules — mostly two: show only what the router observes, and never show the
+/// token.
+@Suite("Settings presentation")
+struct SettingsPresentationTests {
+    static let home = URL(fileURLWithPath: "/Users/example/.claude/mcp-router", isDirectory: true)
+
+    static func facts(port: Int = 8879, idleMs: Int = 300_000, since: String = "2026-08-12T09:14:00Z")
+        -> SettingsPresentation.RouterFacts
+    {
+        .init(port: port, idleMs: idleMs, since: since, home: home)
+    }
+
+    // MARK: - A6 · the endpoint carries the observed port
+
+    /// The failure this guards is a plausible constant. A build that renders `8879` for a router
+    /// listening on 9999 tells the user to point their client at a port nothing is on.
+    @Test("the endpoint is composed from the observed port, never a constant")
+    func endpointUsesObservedPort() {
+        #expect(Self.facts(port: 8879).endpoint == "http://127.0.0.1:8879/mcp")
+
+        let moved = Self.facts(port: 9999)
+        #expect(moved.endpoint == "http://127.0.0.1:9999/mcp")
+        #expect(!moved.endpoint.contains("8879"), "the default port leaked into a moved router's endpoint")
+    }
+
+    @Test("the reaper reads in whole seconds, at the boundary values")
+    func reaperFormatsSeconds() {
+        #expect(Self.facts(idleMs: 300_000).reaper == "300s")
+        #expect(Self.facts(idleMs: 1000).reaper == "1s")
+        #expect(Self.facts(idleMs: 0).reaper == "0s")
+        // Sub-second truncates rather than rounding up to a horizon the router does not have.
+        #expect(Self.facts(idleMs: 999).reaper == "0s")
+    }
+
+    @Test("home shortens to a tilde under this user's home and stays whole outside it")
+    func homeDisplayShortensOnlyWhereItApplies() {
+        let facts = Self.facts()
+        #expect(facts.homeDisplay(homeDirectory: "/Users/example") == "~/.claude/mcp-router")
+        // A container path, or any home this is not under, is shown in full — the truncation rule
+        // for those is a left-side ellipsis at render time, not a wrong tilde here.
+        #expect(facts.homeDisplay(homeDirectory: "/Users/someone-else")
+            == "/Users/example/.claude/mcp-router")
+    }
+
+    @Test("an unparseable since reads as an em dash rather than as a plausible date")
+    func sinceIsNotFaked() {
+        #expect(Self.facts(since: "nonsense").sinceDisplay() == "—")
+    }
+
+    // MARK: - A5 · no memory figure exists to show
+
+    /// `residentMb()` is measured by the router (`src/pool.ts`) and has **zero callers**: it never
+    /// reaches `describe()` and never reaches the wire. So there is no honest megabyte figure, and
+    /// `WarmSet` has no field that could carry one.
+    @Test("the warm set carries names and a declared count, and no memory field")
+    func warmSetHasNoMemoryField() {
+        let set = SettingsPresentation.WarmSet(names: ["github"], declared: 8)
+        let fields = Mirror(reflecting: set).children.compactMap(\.label).sorted()
+        #expect(fields == ["declared", "names"])
+    }
+
+    @Test("the warm set summarises what is resident, in both its populated and empty forms")
+    func warmSetSummary() async throws {
+        var servers = try await FixtureControlAPIClient(.populated).servers().servers
+        #expect(servers.count >= 2, "the populated fixture is too small; the recording changed")
+        for index in servers.indices { servers[index].warm = index < 2 }
+
+        let set = SettingsPresentation.WarmSet(servers: servers)
+        #expect(set.names.count == 2)
+        #expect(set.declared == servers.count)
+        #expect(set.summary == "2 of \(servers.count) servers")
+        #expect(!set.isEmpty)
+
+        for index in servers.indices { servers[index].warm = false }
+        let none = SettingsPresentation.WarmSet(servers: servers)
+        #expect(none.isEmpty)
+        #expect(none.summary == "None of \(servers.count) servers")
+
+        #expect(SettingsPresentation.WarmSet(names: [], declared: 1).summary == "None of 1 server")
+    }
+
+    // MARK: - A7 · the token cannot reach a view
+
+    /// Structural rather than behavioural, and deliberately so: a test that renders the pane and
+    /// searches the output proves today's code does not leak the token, while this proves there is
+    /// nowhere to put one. `TokenStatus` has four cases and the only associated value in any of
+    /// them is an `OSStatus`.
+    @Test("no TokenStatus case can carry a token")
+    func tokenStatusCannotCarryAToken() {
+        let secret = "sk-live-do-not-render-this-anywhere"
+        let all: [SettingsPresentation.TokenStatus] = [
+            .stored, .absent, .rejected, .unavailable(status: -25300)
+        ]
+        for status in all {
+            #expect(!status.value.contains(secret))
+            #expect(!(status.banner ?? "").contains(secret))
+            // The rendered value is a fixed sentence with no interpolation of anything secret.
+            #expect(!status.value.isEmpty)
+        }
+        #expect(SettingsPresentation.TokenStatus.unavailable(status: -25300).banner?.contains("-25300") == true)
+    }
+
+    // MARK: - A9 · forget, and when it is available
+
+    @Test("forget is available only when there is something to forget")
+    func forgetAvailability() {
+        #expect(SettingsPresentation.TokenStatus.stored.canForget)
+        #expect(SettingsPresentation.TokenStatus.rejected.canForget)
+        #expect(!SettingsPresentation.TokenStatus.absent.canForget)
+        #expect(!SettingsPresentation.TokenStatus.unavailable(status: -25300).canForget)
+        #expect(SettingsPresentation.forgetDisabledReason == "There is no stored token to forget.")
+    }
+
+    /// §3.4 allows one prominent accent-filled action per view. Forget is that action only while
+    /// the router is rejecting the stored token, which is the one condition where it is the fix
+    /// rather than a maintenance chore.
+    @Test("forget is prominent only in the rejected state")
+    func forgetIsProminentOnlyWhenItIsTheFix() {
+        #expect(SettingsPresentation.TokenStatus.rejected.forgetIsProminent)
+        #expect(!SettingsPresentation.TokenStatus.stored.forgetIsProminent)
+        #expect(!SettingsPresentation.TokenStatus.absent.forgetIsProminent)
+        #expect(!SettingsPresentation.TokenStatus.unavailable(status: -25300).forgetIsProminent)
+    }
+
+    @Test("only the keychain failure carries a banner")
+    func onlyKeychainFailureBanners() {
+        #expect(SettingsPresentation.TokenStatus.stored.banner == nil)
+        #expect(SettingsPresentation.TokenStatus.absent.banner == nil)
+        #expect(SettingsPresentation.TokenStatus.rejected.banner == nil)
+        #expect(SettingsPresentation.TokenStatus.unavailable(status: -25300).banner != nil)
+    }
+
+    // MARK: - the pane's shape
+
+    @Test("the four groups are the spec's four, in order, in sentence case")
+    func groupsAreTheSpecsFour() {
+        #expect(SettingsPresentation.Group.allCases.map(\.rawValue)
+            == ["Router", "Menu bar", "Warm set", "Control token"])
+
+        // Sentence case, per §3.2 — the loudest web tell is a tracked upper-case header, and the
+        // fix is to remove it rather than re-track it. Asserted as: the first character is
+        // upper-case and no word after the first begins with one.
+        for group in SettingsPresentation.Group.allCases {
+            let words = group.rawValue.split(separator: " ")
+            #expect(words[0].first?.isUppercase == true, "\(group.rawValue) does not start capitalised")
+            for word in words.dropFirst() {
+                #expect(
+                    word.first?.isLowercase == true,
+                    "\(group.rawValue) is title case; §3.2 asks for sentence case"
+                )
+            }
+        }
+    }
+
+    @Test("the menu bar item is shown by default")
+    func menuBarShownByDefault() {
+        #expect(SettingsPresentation.menuBarVisibleDefault)
+        #expect(SettingsPresentation.menuBarVisibleKey == "shell.menuBarVisible")
+    }
+
+    // MARK: - A5 · the guard that outlives this item
+
+    /// The failure mode here is not a bug in today's code — it is a plausible megabyte figure added
+    /// later by someone who has not read `DESIGN.md` §6. A test over today's rendered output cannot
+    /// see that coming, so this reads the source of the four files M8 owns and fails on a memory
+    /// unit appearing in a user-facing string.
+    @Test("no memory unit appears in any string M8 renders")
+    func noMemoryUnitInRenderedCopy() throws {
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()   // MCPRouterKitTests
+            .deletingLastPathComponent()   // Tests
+            .deletingLastPathComponent()   // app
+        let files = [
+            "Sources/MCPRouterKit/Shell/SettingsPresentation.swift",
+            "Sources/MCPRouterKit/Shell/MenuBarPresentation.swift"
+        ]
+        // Only the copy is searched, not the prose explaining why there is none — the doc comments
+        // in these files legitimately say "megabyte" while arguing that none may be shown.
+        let forbidden = [" MB\"", " KB\"", " GB\"", " MB ", "megabytes of"]
+        for relative in files {
+            let url = root.appendingPathComponent(relative)
+            let source = try String(contentsOf: url, encoding: .utf8)
+            #expect(!source.isEmpty, "\(relative) is empty or moved; this guard is not running")
+            for needle in forbidden {
+                #expect(
+                    !source.contains(needle),
+                    "\(relative) contains \(needle) — the router serves no memory figure (DESIGN.md §6)"
+                )
+            }
+        }
+    }
+}

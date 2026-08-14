@@ -39,6 +39,14 @@ public actor ServerStateTracker {
     /// used to be dropped on the floor here.
     private var idleMs: Int?
     private var pendingAuth: PendingAuth?
+    /// The port the router is listening on, and when its usage counter last opened.
+    ///
+    /// Retained here for the same reason `idleMs` is, and added by the same argument: Settings
+    /// renders the endpoint and the counting window, and the only honest source for either is the
+    /// router. Composing an endpoint from a hardcoded 8879 would point the user at the wrong port
+    /// the moment they change it, which is a fabricated observation rather than a cosmetic slip.
+    private var port: Int?
+    private var since: String?
     /// Whether any poll has ever succeeded.
     ///
     /// **Derived, not stored.** As a stored flag it duplicated a fact `loadKind` already carries,
@@ -167,6 +175,21 @@ public actor ServerStateTracker {
         /// and the second press abandons the first flow.
         public let pendingAuth: PendingAuth?
 
+        /// The port the router answered on, from the last poll that answered.
+        ///
+        /// Settings composes its endpoint row from this rather than from a constant, so a router
+        /// moved to another port is described correctly instead of plausibly. `nil` until a poll
+        /// has succeeded, and — like `idleMs` — **not cleared by a failure**: a refresh that did
+        /// not complete is not evidence that the router changed its port.
+        public let port: Int?
+
+        /// When the router's usage counter last opened, from the last poll that answered.
+        ///
+        /// Every per-server total is measured from this instant, so a surface reporting totals
+        /// without it is reporting a rate with no window. Retained across failure for the same
+        /// reason as the two above.
+        public let since: String?
+
         /// The servers to show, whatever the load state — empty when nothing has ever loaded.
         ///
         /// Derived rather than stored, so it cannot disagree with `load`.
@@ -182,12 +205,16 @@ public actor ServerStateTracker {
             load: LoadState,
             stream: StreamCondition,
             idleMs: Int? = nil,
-            pendingAuth: PendingAuth? = nil
+            pendingAuth: PendingAuth? = nil,
+            port: Int? = nil,
+            since: String? = nil
         ) {
             self.load = load
             self.stream = stream
             self.idleMs = idleMs
             self.pendingAuth = pendingAuth
+            self.port = port
+            self.since = since
         }
     }
 
@@ -213,7 +240,9 @@ public actor ServerStateTracker {
             load: load,
             stream: streamCondition,
             idleMs: idleMs,
-            pendingAuth: pendingAuth
+            pendingAuth: pendingAuth,
+            port: port,
+            since: since
         )
     }
 
@@ -278,6 +307,8 @@ public actor ServerStateTracker {
         // rather than from a number it made up.
         idleMs = response.idleMs
         pendingAuth = response.pendingAuth
+        port = response.port
+        since = response.since
         publish()
     }
 

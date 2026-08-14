@@ -27,7 +27,9 @@
             private var index = 0
             private let windows: [[CallRecord]]
 
-            init(windows: [[CallRecord]]) { self.windows = windows }
+            init(windows: [[CallRecord]]) {
+                self.windows = windows
+            }
 
             /// The next window, then the last one for every call after it.
             func next(fallback: [CallRecord]) -> [CallRecord] {

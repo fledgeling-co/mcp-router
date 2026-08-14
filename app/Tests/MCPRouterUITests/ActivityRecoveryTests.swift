@@ -4,43 +4,19 @@
     @testable import MCPRouterKit
     @testable import MCPRouterUI
 
-    /// The four defects a completeness critic found in the delivered board, each with the test that
-    /// would have caught it.
+    /// What the board's **record window** does when its two independent sources interact badly — run
+    /// in series instead of together, merged in the wrong order, or reloaded over a ring that has
+    /// rolled forward underneath it.
     ///
-    /// Their own suite because they share a subject the rest of the model tests do not: what happens
-    /// when the board's **two independent sources** interact badly — in series instead of together,
-    /// merged in the wrong order, reconnected twice at once, or reloaded into a failure. Every one of
-    /// them was green code with no coverage of any kind.
+    /// Their own suite because they share a subject the rest of the model tests do not: a history from
+    /// `GET /usage` and a live half from `GET /usage/stream` that must end up as one correctly ordered
+    /// list. The *subscription's* own lifecycle — which taps are refused, which teardowns are ignored
+    /// — is `ActivityReconnectTests`, and both build from `ActivityFixture`. Every defect below was
+    /// green code with no coverage of any kind.
     @MainActor
     @Suite("Activity — the two sources, interacting badly")
     struct ActivityRecoveryTests {
-        static let now = Date(timeIntervalSince1970: 1_755_166_918)
-
-        static func model(
-            _ scenario: FixtureControlAPIClient.Scenario = .populated,
-            source: (any ActivityEventSource)? = nil
-        ) -> ActivityModel {
-            let model = ActivityModel(
-                client: FixtureControlAPIClient(scenario), source: source, clock: { now }
-            )
-            // A board is on screen in every scenario below, which is what `beginSession` says. A
-            // model nobody is looking at refuses to reconnect, and that is its own test.
-            model.beginSession()
-            return model
-        }
-
-        static func record(
-            ts: String = "2026-08-14T09:41:58.412Z",
-            tool: String = "browser_navigate",
-            pid: Int? = 51310,
-            client: String? = "claude"
-        ) -> CallRecord {
-            CallRecord(
-                ts: ts, server: "obscura", tool: tool, ok: true, ms: 42, cold: false,
-                pid: pid, cwd: "/Users/x/Dev/mcp-router", project: "mcp-router",
-                client: client, err: nil
-            )
-        }
+        private typealias Fixture = ActivityFixture
 
         // MARK: - The blockers the completeness critic found
 
@@ -51,12 +27,12 @@
         func startIsConcurrent() async {
             let events: [StreamEvent] = [
                 .phase(.live),
-                .record(Self.record(ts: "2026-08-14T23:00:00.000Z", tool: "arrived_during_the_fetch"))
+                .record(Fixture.record(ts: "2026-08-14T23:00:00.000Z", tool: "arrived_during_fetch"))
             ]
-            let subject = Self.model(source: ReplayActivityEventSource(events))
+            let subject = Fixture.model(source: ReplayActivityEventSource(events))
             await subject.start()
             #expect(subject.phase == .live)
-            #expect(subject.visible.contains { $0.tool == "arrived_during_the_fetch" })
+            #expect(subject.visible.contains { $0.tool == "arrived_during_fetch" })
             #expect(subject.visible.count > 1, "the backfill landed too")
         }
 
@@ -65,15 +41,15 @@
         @Test("a reload with a full backfill keeps the records the stream delivered")
         func reloadDoesNotTruncateTheLiveHalf() async {
             let full = (0 ..< ActivityRecords.capacity).map {
-                Self.record(ts: "2026-08-14T08:00:\($0).000Z", tool: "backfilled\($0)")
+                Fixture.record(ts: "2026-08-14T08:00:\($0).000Z", tool: "backfilled\($0)")
             }
             let subject = ActivityModel(
-                client: StaticUsageClient(records: full), source: nil, clock: { Self.now }
+                client: StaticUsageClient(records: full), source: nil, clock: { Fixture.now }
             )
             await subject.load()
             #expect(subject.visible.count == ActivityRecords.capacity)
 
-            subject.apply(Self.record(ts: "2026-08-14T23:59:59.000Z", tool: "streamed"))
+            subject.apply(Fixture.record(ts: "2026-08-14T23:59:59.000Z", tool: "streamed"))
             await subject.load()
 
             #expect(
@@ -84,17 +60,6 @@
         }
 
         // MARK: - The hole that fix left open
-
-        /// A distinct, ordered timestamp per index, so 520 records have 520 ids.
-        static func timestamp(_ index: Int) -> String {
-            String(format: "2026-08-14T08:%02d:%02d.000Z", index / 60, index % 60)
-        }
-
-        /// `capacity` records, newest first, ending at `newest`.
-        static func window(newest: Int) -> [CallRecord] {
-            stride(from: newest, through: newest - ActivityRecords.capacity + 1, by: -1)
-                .map { record(ts: timestamp($0), tool: "call\($0)") }
-        }
 
         /// **The mirror of the truncation bug, and the one its fix opened.**
         ///
@@ -113,11 +78,11 @@
             let rolled = 20
             let subject = ActivityModel(
                 client: StaticUsageClient(windows: [
-                    Self.window(newest: newest),
-                    Self.window(newest: newest + rolled)
+                    Fixture.window(newest: newest),
+                    Fixture.window(newest: newest + rolled)
                 ]),
                 source: nil,
-                clock: { Self.now }
+                clock: { Fixture.now }
             )
             await subject.load()
             #expect(subject.visible.first?.tool == "call\(newest)")
@@ -146,11 +111,11 @@
             let newest = ActivityRecords.capacity - 1
             let subject = ActivityModel(
                 client: StaticUsageClient(windows: [
-                    Self.window(newest: newest),
-                    Self.window(newest: newest + ActivityRecords.capacity + 10)
+                    Fixture.window(newest: newest),
+                    Fixture.window(newest: newest + ActivityRecords.capacity + 10)
                 ]),
                 source: nil,
-                clock: { Self.now }
+                clock: { Fixture.now }
             )
             await subject.load()
             await subject.load()
@@ -163,99 +128,6 @@
                 !subject.visible.contains { $0.tool == "call0" },
                 "records the router's ring no longer carries are still on the board"
             )
-        }
-
-        /// Two taps used to stack two subscription loops writing into one model.
-        @Test("a second reconnect while one is running is refused rather than stacked")
-        func reconnectIsNotReentrant() async {
-            let subject = Self.model(source: ReplayActivityEventSource([.phase(.live)]))
-            async let first: Void = subject.reconnect()
-            async let second: Void = subject.reconnect()
-            _ = await (first, second)
-            #expect(!subject.isReconnecting, "the guard is released when the reconnect finishes")
-            // `<= 2` admitted the very thing this test is named for: two calls that both got past
-            // the guard would issue exactly two requests. One reconnect is one reload.
-            #expect(subject.requestCount == 1, "the second reconnect was not refused")
-        }
-
-        /// **The reconnect button was dead after its first success, and every test here missed it.**
-        ///
-        /// `reconnect()` awaited `start()` under a `defer { isReconnecting = false }`. Against
-        /// `ReplayActivityEventSource` that is fine, because a replay finishes after its last event
-        /// and `start()` returns — which is why `reconnectIsNotReentrant` above passed over a broken
-        /// button. Against the real feed it is not: `ControlEventStream.events()` loops until its
-        /// retry ladder is exhausted and only *then* finishes its continuation, so over a healthy
-        /// connection `start()` never returns, the deferred clear never runs, and the guard at the
-        /// top of `reconnect()` refuses every later tap for the life of the board.
-        ///
-        /// The waits are bounded because the defect is a call that never returns: awaiting it
-        /// directly would hang this suite rather than fail it.
-        @Test("a reconnect over a feed that stays live releases its guard, so the next one works")
-        func reconnectIsNotDeadAfterItsFirstSuccess() async {
-            let subject = Self.model(source: LiveForeverEventSource([.phase(.live)]))
-            defer { subject.stopFeed() }
-
-            #expect(
-                await Self.completes { await subject.reconnect() },
-                "reconnect did not return while the feed stayed live"
-            )
-            #expect(!subject.isReconnecting, "the guard is still held over a healthy feed")
-
-            let before = subject.requestCount
-            _ = await Self.completes { await subject.reconnect() }
-            #expect(
-                subject.requestCount == before + 1,
-                "the second reconnect issued no request — the button is dead after the first"
-            )
-        }
-
-        /// Set once the work finishes. A plain `Bool` captured by the closure would be a copy.
-        @MainActor
-        final class Latch {
-            private(set) var isSet = false
-            func set() { isSet = true }
-        }
-
-        /// Runs `body` under a deadline, so a call that never returns **fails** rather than hanging
-        /// the suite.
-        ///
-        /// The obvious spelling — race `await work.value` against a sleep in a task group — does not
-        /// work and is worth recording: awaiting a `Task`'s `value` does not stop when the *awaiting*
-        /// task is cancelled, so the group's own cancellation cannot reclaim it and the group never
-        /// returns. Measured here on 2026-08-14: the suite hung for eleven minutes rather than
-        /// failing in two seconds. Polling a latch and cancelling the work is what actually bounds it.
-        static func completes(
-            within duration: Duration = .seconds(2),
-            _ body: @escaping @MainActor () async -> Void
-        ) async -> Bool {
-            let latch = Latch()
-            let work = Task { @MainActor in
-                await body()
-                latch.set()
-            }
-            defer { work.cancel() }
-            let deadline = ContinuousClock.now.advanced(by: duration)
-            while ContinuousClock.now < deadline {
-                if latch.isSet { return true }
-                try? await Task.sleep(for: .milliseconds(10))
-            }
-            return false
-        }
-
-        /// A reconnect whose reload fails used to land on `.populated`: a stale list, a subtitle
-        /// reading "connecting", no banner and no way back.
-        @Test("a failed reconnect leaves the board saying so rather than looking healthy")
-        func failedReconnectStillNamesTheProblem() async {
-            let subject = ActivityModel(
-                client: FailingUsageClient(), source: nil, clock: { Self.now }
-            )
-            subject.beginSession()
-            subject.apply(Self.record())
-            await subject.reconnect()
-            guard case .historyUnavailable = subject.condition else {
-                Issue.record("expected historyUnavailable, got \(subject.condition)")
-                return
-            }
         }
 
         // MARK: - The second critic's findings
@@ -272,13 +144,13 @@
         /// where the two meet, which is the one the provenance rewrite introduced.
         @Test("a feed record that rolled out of the ring is not promoted, and is not promoted twice")
         func rolledOutStreamArrivalIsNotPinnedToTheTop() async {
-            let old = Self.record(ts: "2026-08-14T09:00:00.000Z", tool: "rolled_out_of_the_ring")
+            let old = Fixture.record(ts: "2026-08-14T09:00:00.000Z", tool: "rolled_out_of_the_ring")
             // The router's window has moved entirely past `old` — it shares no record with it.
             let fresh = (0 ..< 3).map {
-                Self.record(ts: "2026-08-14T09:3\($0):00.000Z", tool: "current\($0)")
+                Fixture.record(ts: "2026-08-14T09:3\($0):00.000Z", tool: "current\($0)")
             }
             let client = StaticUsageClient(records: Array(fresh.reversed()))
-            let subject = ActivityModel(client: client, source: nil, clock: { Self.now })
+            let subject = ActivityModel(client: client, source: nil, clock: { Fixture.now })
             subject.beginSession()
 
             subject.apply(old)
@@ -306,51 +178,14 @@
         /// Stated beside the test above so the fix cannot be "drop everything the response omits".
         @Test("a record that arrived during the fetch is still kept")
         func arrivalDuringTheFetchSurvivesTheMerge() async {
-            let subject = Self.model(
+            let subject = Fixture.model(
                 source: ReplayActivityEventSource([
                     .phase(.live),
-                    .record(Self.record(ts: "2026-08-14T23:00:00.000Z", tool: "arrived_during"))
+                    .record(Fixture.record(ts: "2026-08-14T23:00:00.000Z", tool: "arrived_during"))
                 ])
             )
             await subject.start()
             #expect(subject.visible.contains { $0.tool == "arrived_during" })
-        }
-
-        /// **A reconnect pressed on a board that is gone must not install a feed.**
-        ///
-        /// `FeedBanner`'s action runs in an unstructured `Task`, so it can resume after the reader
-        /// has switched destination and `endSession` has torn the subscription down. Installing one
-        /// then leaves a live feed behind a board nobody is looking at — the thing the teardown had
-        /// just prevented.
-        @Test("a reconnect after the board has gone away does nothing")
-        func detachedReconnectDoesNotReinstallTheFeed() async {
-            let subject = Self.model(source: LiveForeverEventSource([.phase(.live)]))
-            let before = subject.requestCount
-            subject.endSession(1)
-            _ = await Self.completes { await subject.reconnect() }
-            #expect(
-                subject.requestCount == before,
-                "a detached model reloaded and resubscribed behind a board that is gone"
-            )
-            #expect(subject.phase == nil, "the teardown left a phase describing a dead feed")
-        }
-
-        /// **A superseded board's teardown must not kill its replacement's feed.**
-        ///
-        /// The model outlives the view, and SwiftUI does not promise that an outgoing view's
-        /// `.onDisappear` runs before an incoming view's `.task`. If it runs second, an unguarded
-        /// `stopFeed()` cancels the feed the new board just started, and nothing re-arms it: a full
-        /// list, no live feed, and a subtitle that would still have read "live".
-        @Test("a stale teardown from a superseded board is ignored")
-        func staleTeardownDoesNotKillTheLiveFeed() async {
-            let subject = Self.model(source: LiveForeverEventSource([.phase(.live)]))
-            let stale = subject.beginSession() - 1 // what the first board is still holding
-            subject.endSession(stale)
-            _ = await Self.completes { await subject.reconnect() }
-            #expect(
-                subject.requestCount > 0,
-                "the model refused to reconnect — a superseded board's teardown detached it"
-            )
         }
 
         /// Finding 6: one session reported with a client name for some calls and without it for
@@ -358,11 +193,11 @@
         @Test("a session is one option even when the router names its client inconsistently")
         func sessionIdentityIgnoresTheClientName() {
             let subject = ActivityModel(
-                client: FixtureControlAPIClient(.empty), source: nil, clock: { Self.now }
+                client: FixtureControlAPIClient(.empty), source: nil, clock: { Fixture.now }
             )
-            subject.apply(Self.record(ts: "…1", pid: 900, client: "claude"))
-            subject.apply(Self.record(ts: "…2", pid: 900, client: nil))
-            subject.apply(Self.record(ts: "…3", pid: 900, client: "claude"))
+            subject.apply(Fixture.record(ts: "…1", pid: 900, client: "claude"))
+            subject.apply(Fixture.record(ts: "…2", pid: 900, client: nil))
+            subject.apply(Fixture.record(ts: "…3", pid: 900, client: "claude"))
 
             let sessions = subject.sessions
             #expect(sessions.count == 1, "the client name split one session into \(sessions.count)")
@@ -372,20 +207,20 @@
 
         @Test("the selection follows the record, not the row index, across an insert")
         func selectionFollowsTheRecord() async throws {
-            let subject = Self.model()
+            let subject = Fixture.model()
             await subject.load()
             // `try #require`, not `try?`: the optional form passes when the value is nil, which is
             // the exact failure this is written to catch.
             let chosen = try #require(subject.visible.first)
             subject.selection = chosen.id
-            subject.apply(Self.record(ts: "2026-08-14T23:59:59.000Z", tool: "brand_new"))
+            subject.apply(Fixture.record(ts: "2026-08-14T23:59:59.000Z", tool: "brand_new"))
             #expect(subject.selection == chosen.id)
             #expect(subject.selectedRecord?.id == chosen.id)
         }
 
         @Test("a selection the filter hides is cleared rather than left describing an unseen row")
         func filteringClearsAHiddenSelection() async throws {
-            let subject = Self.model()
+            let subject = Fixture.model()
             await subject.load()
             let orphan = try #require(subject.visible.first { $0.pid == nil })
             subject.selection = orphan.id

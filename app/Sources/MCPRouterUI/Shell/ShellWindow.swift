@@ -132,7 +132,6 @@
         private static let boardsThatScrollThemselves: Set<Destination> = [.activity]
 
         /// The shell's own scroll view — the one the scroll-edge separator reads.
-        @ViewBuilder
         private func outerScroll(@ViewBuilder _ content: () -> some View) -> some View {
             ScrollView {
                 content()

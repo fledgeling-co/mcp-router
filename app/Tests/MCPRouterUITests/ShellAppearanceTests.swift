@@ -164,9 +164,10 @@
                 // opacity fade. The named helper is still there and its own definition is untouched,
                 // so nothing else in this suite would notice.
                 for line in source.split(separator: "\n") where line.contains(".transition(") {
+                    let declaration = line.trimmingCharacters(in: .whitespaces)
                     #expect(
                         !line.contains("opacity"),
-                        "\(file) combines opacity into an entry transition: \(line.trimmingCharacters(in: .whitespaces))"
+                        "\(file) combines opacity into an entry transition: \(declaration)"
                     )
                 }
             }

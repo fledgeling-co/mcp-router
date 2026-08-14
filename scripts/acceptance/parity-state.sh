@@ -103,6 +103,13 @@ capture() { # prefix
     -H "$ACCEPT" -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' \
     | grep '^data: ' | sed 's/^data: //' > "$WORK/$1.tools"
   curl -sS -m 10 "http://127.0.0.1:$PORT/usage?limit=10" > "$WORK/$1.usage"
+  # Both answers have to BE something before agreeing means anything. curl writes its errors to
+  # stderr, so a symmetric harness fault — a router that never came up, a request that timed out on
+  # both sides — otherwise leaves two empty files that diff clean, and `strip_since` renders an
+  # empty /usage as `{}` on both sides. Phase 1 guards its four inherited files this way already;
+  # this is the same guard on the two files the comparison actually reads.
+  [ -s "$WORK/$1.tools" ] || { echo "environment: $1 returned no tools/list frame"; exit 2; }
+  [ -s "$WORK/$1.usage" ] || { echo "environment: $1 returned no /usage body"; exit 2; }
 }
 
 echo "phase 1 — the reference writes the state, for real"

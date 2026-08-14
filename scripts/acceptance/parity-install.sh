@@ -165,8 +165,17 @@ observe() { # side program args...
   fi
 
   # 4 — read before the bootout, because booting out truncates nothing but the process may still be
-  # buffering. Both paths must exist; the router writes its own log to stderr.
-  [ -f "$home/agent.out" ] && [ -f "$home/agent.err" ] && logged=yes
+  # buffering. This records WHICH streams carry bytes, as a two-character pattern (`o`/`e`, `-` for
+  # an empty stream), and the caller compares the pattern between the two binaries.
+  #
+  # It used to be `[ -f out ] && [ -f err ]`. launchd creates both files at bootstrap whether or not
+  # the program writes a byte, so that term was `yes` for any agent that got as far as being loaded:
+  # it could not tell the two binaries apart, and a Swift router that logged nothing at all to
+  # either stream still scored it `yes` under a note claiming it "wrote both log paths". Requiring
+  # non-empty makes silence visible; recording the pattern rather than a boolean makes a router that
+  # logs to the OTHER stream than the reference visible too.
+  logged="$([ -s "$home/agent.out" ] && printf o || printf -)$([ -s "$home/agent.err" ] && printf e || printf -)"
+  [ "$logged" = "--" ] && logged=none
 
   # 3 — a clean stop must not relaunch it. `bootout` is the clean stop.
   launchctl bootout "gui/$(id -u)/$label" >/dev/null 2>&1
@@ -184,7 +193,9 @@ swift_result="$(observe swift "$SWIFT_BIN" serve --port "$PORT")"
 
 echo "  reference: $ts_result"
 echo "  swift:     $swift_result"
-echo "  (started, relaunched-after-SIGKILL, stayed-down-after-bootout, both-log-paths-written)"
+echo "  (started, relaunched-after-SIGKILL, stayed-down-after-bootout, log-streams-written)"
+echo "  the fourth term is which streams carry bytes: o=stdout, e=stderr, - =empty, none=silent."
+echo "  Both routers log to stderr only, so \`-e\` is the agreeing answer, not a partial one."
 echo
 
 # A refused bootstrap is an environment failure, not a Swift failure. On a machine where the session
@@ -198,7 +209,8 @@ case "$ts_result$swift_result" in
     exit 2 ;;
 esac
 
-if [ "$ts_result" = "$swift_result" ] && [ "$swift_result" = "yes,yes,yes,yes" ]; then
+if [ "$ts_result" = "$swift_result" ] && [ "${swift_result%,*}" = "yes,yes,yes" ] \
+   && [ "${swift_result##*,}" != none ]; then
   echo "  ok   both binaries survive the installer's supervision identically"
   record install install-launchd-serve ok \
     "both: started at load, relaunched after SIGKILL, stayed down after bootout, wrote both log paths"

@@ -59,7 +59,16 @@ cleanup() {
   [ -n "$TS_PID" ] && kill "$TS_PID" 2>/dev/null
   [ -n "$SWIFT_PID" ] && kill "$SWIFT_PID" 2>/dev/null
   [ -n "$HUB_PID" ] && kill "$HUB_PID" 2>/dev/null
+  # WAIT for each one to actually go. `kill` only asks; it returns long before the process has run
+  # its shutdown and released the port. Without this the lane can exit while a router still holds
+  # its listener, and the NEXT run of this lane refuses to start with "something is already
+  # listening" — which the self-test scores as "could not run", inconclusive rather than a pass.
+  # Observed: two consecutive mcp checks both exited 2 because the first run's hub outlived it.
+  [ -n "$TS_PID" ] && wait "$TS_PID" 2>/dev/null
+  [ -n "$SWIFT_PID" ] && wait "$SWIFT_PID" 2>/dev/null
+  [ -n "$HUB_PID" ] && wait "$HUB_PID" 2>/dev/null
   rm -rf "$WORK"
+  return 0
 }
 trap cleanup EXIT
 

@@ -106,6 +106,14 @@ normalise() { sed -e "s|$WORK/ts|<home>|g" -e "s|$WORK/swift|<home>|g" \
 run_both() { # id label -- args...
   local id="$1" label="$2"; shift 3
   rm -rf "$WORK/ts" "$WORK/swift"; seed "$WORK/ts"; seed "$WORK/swift"
+  # An optional preparation verb, run on each side with its OWN binary. Without it every verb here
+  # runs against a freshly seeded home, so a verb whose output depends on built state — `tools`
+  # reading a manifest — was only ever compared in its empty case, and a populated surface that
+  # sorted differently or aligned its columns differently could not be seen.
+  if [ -n "${PREP:-}" ]; then
+    MCP_ROUTER_HOME="$WORK/ts" node "$REPO_ROOT/dist/index.js" $PREP >/dev/null 2>&1
+    MCP_ROUTER_HOME="$WORK/swift" "$SWIFT_BIN" $PREP >/dev/null 2>&1
+  fi
 
   MCP_ROUTER_HOME="$WORK/ts" node "$REPO_ROOT/dist/index.js" "$@" \
     >"$WORK/ts.out" 2>"$WORK/ts.err"; local ts_code=$?
@@ -129,8 +137,20 @@ run_both() { # id label -- args...
 echo "comparing both binaries verb by verb"
 echo
 
+# `help` is four separate arms in src/index.ts:360-365 — `help`, `--help`, `-h`, and the default arm
+# an unknown verb falls through to. The note claimed all four and ran only the first, so an `-h` that
+# printed nothing, or an unknown verb exiting 0 where the reference exits 1, would have stayed green.
+# Four invocations, one row: parity-gate.sh:172 makes any `fail` beat a later `ok`.
 run_both cli-help   "help prints the usage block"        -- help
+run_both cli-help   "--help is the same arm"             -- --help
+run_both cli-help   "-h is the same arm"                 -- -h
+run_both cli-help   "an unknown verb falls to help"      -- not-a-real-verb
 run_both cli-tools  "tools lists the cached surface"     -- tools
+# And the populated case. `run_both` re-seeds before every verb, so `tools` above only ever saw an
+# empty manifest — the case where both binaries printing nothing agrees trivially.
+PREP=index
+run_both cli-tools  "tools lists a populated surface"    -- tools
+PREP=""
 run_both cli-index  "index builds the manifest"          -- index
 run_both cli-refresh "refresh is the same arm as index"  -- refresh
 run_both cli-usage  "usage with nothing listening"       -- usage --port "$PORT"
@@ -193,9 +213,15 @@ serve_side() { # dir binary... -> prints "health-status|exit-code"
   kill -TERM "$SERVE_PID" 2>/dev/null
   wait "$SERVE_PID" 2>/dev/null; local code=$?
   SERVE_PID=""
-  # The log lines with their timestamps and the port removed: both are per-run.
-  grep -oE '(mcp-router listening on|serving [0-9]+ tools from [0-9]+ upstreams|SIG[A-Z]+ received; closing upstreams)' \
-    "$home/serve.out" | tr '\n' ',' > "$home/serve.lines"
+  # The WHOLE of what serve wrote, normalised for clocks and coordinates only.
+  #
+  # This used to be a three-literal `grep -oE` allowlist, which discarded every other line either
+  # binary wrote instead of comparing it — the one place in these five lanes where normalisation
+  # removed content rather than a clock or a coordinate. A Swift runtime warning, an NWListener
+  # error, or a duplicated listening line all survived it untouched. It was also concealing a real
+  # line: both routers open with `wrote a new control token -> <path>`, which the allowlist dropped.
+  # Both sides get their own freshly seeded home, so that line appears on both or neither.
+  normalise < "$home/serve.out" | tr '\n' ',' > "$home/serve.lines"
   printf '%s|%s' "$health" "$code"
 }
 rm -rf "$WORK/ts" "$WORK/swift"; seed "$WORK/ts"; seed "$WORK/swift"

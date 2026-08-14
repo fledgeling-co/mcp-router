@@ -97,10 +97,10 @@ cli	cli-import	import	proven	-	one ~/.claude.json copy; stdout, exit code AND th
 cli	cli-index	index	proven	-	same input, both binaries; stdout, stderr and exit code compared separately
 cli	cli-refresh	refresh	proven	-	compared against the REFERENCE's refresh, not against Swift's own index — an alias asserted against itself proves nothing
 cli	cli-status	status	proven	-	against nothing listening; stdout, stderr and exit code compared separately, since this verb writes offline to stdout where usage writes to stderr
-cli	cli-tools	tools	proven	-	same manifest copy; stdout compared, empty case included
+cli	cli-tools	tools	proven	-	same manifest copy; stdout, stderr and exit code compared separately, in BOTH the empty case and a populated one built by each binary's own index
 cli	cli-auth	auth	blocked	R2-R	The Swift entry point now exists, so the original note is stale. The verb cannot be compared because the Swift router answers 405 on POST /servers/:name/auth where the reference answers 400 — defect D-j. Fixing D-j makes control-differential.sh record a stale-defect failure, so it is not this item's to fix
-cli	cli-usage	usage	proven	-	same store; stdout, stderr and exit code compared separately
-cli	cli-help	help	proven	-	help, --help, -h and an unknown verb; stdout and exit codes compared
+cli	cli-usage	usage	proven	-	usage against nothing listening: this exercises the OFFLINE error path only — the verb throws before reading any store, so no usage store is seeded and none is compared. stdout, stderr and exit code compared separately
+cli	cli-help	help	proven	-	four arms — help, --help, -h and an unknown verb, each run at both binaries; stdout, stderr and exit code compared separately
 # ---------------------------------------------------------------------------------------------
 # pool — spawn and reap decisions. The Swift side is a library actor with a test suite; the
 # reference side is driven over its own /mcp and observed through /servers. A row is proven when
@@ -117,7 +117,7 @@ pool	pool-reap-traffic	reap decisions under live traffic	proven	-	burst, idle pa
 # capability it depends on that has no row is a capability nobody is counting.
 install	install-claude-json	rewrite ~/.claude.json to point at the router	blocked	D-k	install.sh:141 rewrites the user's own config through a node -e script, adding the mcp-router HTTP entry and preserving the file mode. This is the step that actually points Claude Code at the router; an installer that flips the binary and skips it leaves the user with nothing serving them
 install	install-import-servers	import stdio servers out of ~/.claude.json	blocked	D-k	install.sh:77 runs `node dist/index.js import`. The CLI verb is counted separately; this row is the on-disk RESULT it produces, which a Swift router would have to read
-install	install-launchd-serve	the serve launchd agent	proven	-	two real launchd agents, one per binary, with install.sh's own RunAtLoad, ThrottleInterval, KeepAlive/SuccessfulExit=false and log paths: both started at load, relaunched after SIGKILL, stayed down after bootout and wrote both log paths
+install	install-launchd-serve	the serve launchd agent	proven	-	two real launchd agents, one per binary, with install.sh's own RunAtLoad, ThrottleInterval, KeepAlive/SuccessfulExit=false and log paths: both started at load, relaunched after SIGKILL, stayed down after bootout, and wrote a NON-EMPTY log to the same stream pattern as the reference (launchd creates both files at bootstrap, so mere existence proves nothing)
 install	install-launchd-watch	the watch launchd agent	blocked	R2-W	The second agent, same supervision contract, and there is no Swift watcher to supervise
 install	install-rollback	putting a cut-over machine back on TypeScript	blocked	R4-C	docs/uninstall.sh restores the ~/.claude.json backup, but nothing has established that a machine moved to Swift can be moved back. A cutover with no exercised rollback is a one-way door
 # ---------------------------------------------------------------------------------------------

@@ -15,10 +15,17 @@
 #   | lane    | seeded defect                          | what should notice |
 #   |---------|----------------------------------------|--------------------|
 #   | cli     | one word of stdout altered             | the stdout diff |
+#   | cli     | the product name altered on BOTH streams | help, usage, status, index, refresh, tools |
 #   | mcp     | --idle-ms forced to 999999             | pool-p4 / pool-reap-traffic |
+#   | mcp     | the Swift side serves toolset `b`      | tools/list and tools/call |
 #   | log     | --idle-ms forced to 999999             | the reap lines, and the idle-window line |
 #   | state   | served from an empty config            | the tools/list corpus |
 #   | install | the binary exits immediately            | RunAtLoad never comes up |
+#
+# One defect does NOT exercise every row its lane owns, and this script used to report only
+# "every lane went red", which invited the reader to assume it did. It now prints a per-row
+# failability roll-up at the end naming every row it has NOT shown able to fail, because a row
+# whose oracle is inert looks exactly like a row that agrees.
 #
 # The break is injected through a **shim on `$SWIFT_BIN`**, never through a hook in the router. A
 # test-only branch inside the product is a branch that can ship.
@@ -67,6 +74,33 @@ case "$MODE" in
     if [ "$1" = serve ]; then exec "$REAL" "$@"; fi
     "$REAL" "$@" | sed 's/tools from/toolz from/'
     exit ${PIPESTATUS[0]}
+    ;;
+  streams)
+    # Both streams mangled, not just the one word `stdout` reaches. The `stdout` defect rewrites
+    # "tools from", which only `index`, `refresh` and `tools` ever print — so `cli-help`,
+    # `cli-usage`, `cli-status` and `cli-import` had no demonstrated ability to go red at all. This
+    # rewrites the product's own name, which appears in the help block, in the `mcp-router: ` prefix
+    # the offline `usage` error carries on stderr, and in `status`'s output.
+    #
+    # `serve` is exempt for the reason `stdout` gives: a pipeline makes the real binary a CHILD of
+    # the shim, and killing the shim then orphans a listening router.
+    if [ "$1" = serve ]; then exec "$REAL" "$@"; fi
+    out="$(mktemp)"; err="$(mktemp)"
+    "$REAL" "$@" >"$out" 2>"$err"; rc=$?
+    sed 's/mcp-router/mcp-rooter/g' "$out"
+    sed 's/mcp-router/mcp-rooter/g' "$err" >&2
+    rm -f "$out" "$err"
+    exit $rc
+    ;;
+  toolset)
+    # The Swift side serves a DIFFERENT tool surface. The fixture server picks its toolset from the
+    # file named by FIXTURE_TOOLSET_FILE, and `b` is a real variant of it, so indexing still
+    # succeeds and the upstream still answers — only the corpus differs. That matters: emptying
+    # servers.json instead would make reindex fail and the lane exit 2, which is "could not run",
+    # not a demonstration. This is what gives `mcp-tools-list` and `mcp-tools-call` — the two
+    # largest corpora in the whole gate — a demonstrated ability to go red.
+    [ -f "$MCP_ROUTER_HOME/toolset" ] && printf 'b' > "$MCP_ROUTER_HOME/toolset"
+    exec "$REAL" "$@"
     ;;
   idle)
     # The idle window is replaced with one that never expires, so nothing is ever reaped. A router
@@ -122,7 +156,18 @@ check() { # lane defect ports...
     tail -8 "$WORK/$lane.log" | sed 's/^/      /'
     return
   fi
+  # A non-zero exit with no `fail` row is NOT a demonstration. The lane may have exited 1 for an
+  # unrelated reason — a curl that failed, a guard that tripped — while the seeded defect went
+  # unnoticed by every comparison. Scoring that as "went red" credited the lane with a failability
+  # it had not shown.
+  if [ "$reds" = 0 ]; then
+    echo "exited $status but recorded NO failing row — not a demonstration ($rows rows)"
+    failures=$((failures + 1))
+    tail -12 "$WORK/$lane.log" | sed 's/^/      /'
+    return
+  fi
   echo "went red ($reds of $rows rows failed)"
+  awk -F'\t' '$3 == "fail" { print $1 "/" $2 }' "$WORK/results.tsv" >> "$WORK/failable.txt"
   awk -F'\t' '$3 == "fail" { printf "      %s/%s: %s\n", $1, $2, substr($4, 1, 120) }' \
     "$WORK/results.tsv"
 }
@@ -133,10 +178,40 @@ echo
 # Ports distinct from the ones the lanes use by default, so a self-test can run while nothing else
 # is in flight and still never collide with 8975/8976.
 check cli     stdout      env CLI_PORT=8981
-check mcp     idle        env MCP_TS_PORT=8982 MCP_SWIFT_PORT=8983
+check cli     streams     env CLI_PORT=8981
+check mcp     idle        env MCP_TS_PORT=8982 MCP_SWIFT_PORT=8983 MCP_HUB_PORT=8996
+check mcp     toolset     env MCP_TS_PORT=8982 MCP_SWIFT_PORT=8983 MCP_HUB_PORT=8997
 check log     idle        env LOG_PORT=8984
 check state   emptyconfig env STATE_PORT=8985
 check install nostart     env INSTALL_PORT=8986
+
+# Which rows this actually demonstrates, and which it does not.
+#
+# One seeded defect per lane does NOT exercise every row that lane owns, and reporting only
+# "every lane went red" invited the reader to assume it did. A defect that trips two of a lane's
+# eight rows leaves the other six with no demonstrated ability to fail — they may be sound, but this
+# script has not shown it, and a row whose oracle is inert looks exactly like a row that agrees.
+echo
+echo "failability by row — a row absent here has not been shown able to go red:"
+ALL_ROWS="mcp/mcp-endpoint mcp/mcp-tools-list mcp/mcp-tools-call mcp/mcp-health mcp/mcp-status
+pool/pool-p4 pool/pool-reap-traffic divergence/div-r2r-d8
+cli/cli-serve cli/cli-import cli/cli-index cli/cli-refresh cli/cli-status cli/cli-tools
+cli/cli-usage cli/cli-help install/install-launchd-serve state/state-ondisk-compat log/log-bytes"
+sort -u "$WORK/failable.txt" 2>/dev/null > "$WORK/failable.sorted" || : > "$WORK/failable.sorted"
+shown=0; unshown=0; missing=""
+for row in $ALL_ROWS; do
+  if grep -qxF "$row" "$WORK/failable.sorted" 2>/dev/null; then
+    shown=$((shown + 1))
+  else
+    unshown=$((unshown + 1)); missing="$missing $row"
+  fi
+done
+echo "  demonstrated: $shown of $((shown + unshown))"
+if [ -n "$missing" ]; then
+  echo "  NOT demonstrated:"
+  for row in $missing; do echo "    $row"; done
+  echo "  These rows are recorded proven by a lane whose ability to fail on THAT row is unproven."
+fi
 
 echo
 if [ "$failures" = 0 ]; then

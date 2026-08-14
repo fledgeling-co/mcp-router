@@ -91,6 +91,30 @@ Rules that override ship-feature's defaults:
   share it, so a push will fail with an explanation rather than succeed quietly. If you
   believe the main tree needs a change, REPORT it in your final message and stop.
 
+- NEVER TAKE THE USER'S SCREEN. This outranks every other testing instruction, and it is the
+  one the previous version of these rules missed. Measured on the Mac runner: it was in an
+  ordinary build -> launch -> probe -> fix -> rebuild -> relaunch loop, three cycles deep, and
+  every cycle was legitimate because it HAD changed the screen each time. A rule about redundant
+  testing does not touch that. What the user experiences is their desktop being taken over, and
+  an honest edit-run loop does that just as well as a wasteful one. So the developer loop must
+  be INVISIBLE:
+    · Launch backgrounded: \`open -g -a "$APP"\`. Never a bare \`open -a\`, which activates.
+    · NEVER \`osascript -e 'tell application ... to activate'\` and NEVER \`set frontmost to true\`.
+      Those two lines are what steal the screen.
+    · Read and drive over the accessibility plane BY PID. AX answers for a background, occluded
+      or other-Space window; \`click menu item ...\` through System Events does not need the
+      process frontmost.
+    · Prefer the \`proctor\` MCP, installed and granted on this machine (proctor_doctor reports
+      ready, no blockers): \`proctor_apps\` to attach, \`proctor_act\` for background-safe actions,
+      \`proctor_capture\` for a window-scoped screenshot of a window that is NOT in front. Avoid
+      its synthetic-event kinds (click, hover, key, dragPath) — those need foreground. Use the
+      process-directed kinds (press, menu, setValue, focus).
+    · NEVER \`screencapture -R x,y,w,h\` — it photographs whatever is on top of that region, not
+      your window. Use proctor_capture or \`screencapture -l<CGWindowID>\`.
+    · Quit the app when the pass ends.
+  If a check genuinely cannot be done without the window in front, SAY SO in your report and
+  leave it for a human rather than taking the screen and hoping nobody is using it.
+
 - ONLY TEST A SCREEN WHEN YOU HAVE CHANGED THAT SCREEN, AND TEST ONLY THAT SCREEN. Not
   the others, not the full matrix. This is a direct standing instruction from the user,
   and it outranks any sweep-everything habit in the pipeline skills.

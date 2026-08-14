@@ -148,7 +148,7 @@ final class ResponseBox: @unchecked Sendable {
 
 /// `receive` with the arguments this client never varies, so the completion's parameters fit on the
 /// line with its brace — which the linter requires and the four-argument call leaves no room for.
-private extension NWConnection {
+extension NWConnection {
     func receiveWholeResponse(_ handler: @escaping @Sendable (Data?, Bool, Bool) -> Void) {
         receive(minimumIncompleteLength: 1, maximumLength: 65536) { data, _, isComplete, error in
             handler(data, isComplete, error != nil)

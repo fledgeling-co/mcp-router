@@ -189,4 +189,49 @@ struct CallbackLifecycleTests {
         }
         #expect(splitResponse(reply).body == "/callback?code=split")
     }
+
+    @Test("a connection accepted before stop() is still answered after it")
+    func lateRequestOnAnOpenConnectionIsAnswered() async throws {
+        let listener = LoopbackCallbackListener()
+        try await listener.start(port: 0) { target in
+            CallbackReply(status: 200, contentType: "text/plain", body: "late:\(target)")
+        }
+        let port = await listener.boundPort ?? 0
+        let endpointPort = try #require(NWEndpoint.Port(rawValue: UInt16(port)))
+        let connection = NWConnection(host: .ipv4(.loopback), port: endpointPort, using: .tcp)
+
+        // Connect, and let the accept land on the actor before anything else happens.
+        let ready: String = try await withCheckedThrowingContinuation { continuation in
+            let box = ResponseBox(continuation)
+            connection.stateUpdateHandler = { state in
+                switch state {
+                case .ready: box.succeed("ready")
+                case let .failed(error): box.fail(error)
+                case let .waiting(error): box.fail(error)
+                default: break
+                }
+            }
+            connection.start(queue: .global())
+        }
+        #expect(ready == "ready")
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        // The listener stops with the connection open — which is exactly what a settle does, since
+        // cleanup runs while the browser is still holding the socket it will send on.
+        await listener.stop()
+
+        // Node's `server.close()` stops accepting and still hands this request to the handler.
+        let reply: String = try await withCheckedThrowingContinuation { continuation in
+            let box = ResponseBox(continuation)
+            connection.send(
+                content: Data("GET /callback?code=late HTTP/1.1\r\nHost: x\r\n\r\n".utf8),
+                completion: .contentProcessed { _ in }
+            )
+            connection.receiveWholeResponse { data, _, _ in
+                box.succeed(String(bytes: data ?? Data(), encoding: .utf8) ?? "")
+            }
+        }
+        #expect(splitResponse(reply).body == "late:/callback?code=late")
+        connection.cancel()
+    }
 }

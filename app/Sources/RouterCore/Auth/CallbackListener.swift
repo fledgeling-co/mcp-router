@@ -121,10 +121,15 @@ public actor LoopbackCallbackListener: CallbackListening {
     /// land. Measured, not theorised: an immediate rebind after an unwaited cancel fails.
     ///
     /// Idempotent, because every termination path runs cleanup and two of them can race.
+    ///
+    /// The handler is deliberately **kept**. A connection accepted before the stop can still send
+    /// its request afterwards, and `server.close()` in Node hands that request to the handler as
+    /// usual — dropping it here would be a divergence on a path a slow browser actually reaches.
+    /// It cannot exchange a code twice: `AuthFlowCoordinator.exchange` refuses any request that is
+    /// not for the flow currently in flight, so a late one renders the 500 it earns.
     public func stop() async {
         guard let listener else { return }
         self.listener = nil
-        handler = nil
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             stopContinuation = continuation
             listener.cancel()

@@ -366,5 +366,28 @@
                 "a board file exists that the source-level gates never look at: \(onDisk) vs \(listed)"
             )
         }
+
+        /// The same pin for `Activity/`, and it is the one that was actually missing.
+        ///
+        /// `activityFiles` did not exist at all: `Activity/` was outside every source-level gate,
+        /// which is how a row that fades in from zero passed a repository containing a test named
+        /// `neverFadesInFromZero`. A hand-written list without a directory pin would only have
+        /// deferred the same failure to the next file added here.
+        @Test("the Activity file list this suite scans is the whole of what is on disk")
+        func activityFileListIsComplete() throws {
+            let activityDir = try ShellTestSupport.repoRoot()
+                .appendingPathComponent("app/Sources/MCPRouterUI/Activity")
+            let onDisk = try FileManager.default
+                .contentsOfDirectory(atPath: activityDir.path)
+                .filter { $0.hasSuffix(".swift") }
+                .sorted()
+            let listed = ShellTestSupport.activityFiles
+                .map { URL(fileURLWithPath: $0).lastPathComponent }
+                .sorted()
+            #expect(
+                onDisk == listed,
+                "an Activity file exists that the source-level gates never look at: \(onDisk) vs \(listed)"
+            )
+        }
     }
 #endif

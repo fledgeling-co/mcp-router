@@ -148,15 +148,104 @@
             ))
         }
 
-        @Test("no shell file animates opacity from zero on entry")
+        @Test("no surface file animates opacity from zero on entry")
         func neverFadesInFromZero() throws {
-            for file in ShellTestSupport.shellFiles {
+            for file in ShellTestSupport.animatedSurfaceFiles {
                 let source = try ShellTestSupport.repoFile(file)
                 #expect(
                     !source.contains(".opacity(0)") || file.hasSuffix("ScrollEdge.swift"),
                     "\(file) may fade content in from nothing"
                 )
+                #expect(
+                    !source.contains(".transition(.opacity"),
+                    "\(file) names the fade explicitly as its entry transition"
+                )
             }
+        }
+
+        /// The half the grep above structurally cannot see, and the half that was wrong.
+        ///
+        /// **An absent transition is not "no animation".** A `ForEach` row inside an animated
+        /// container takes SwiftUI's *default* insertion transition, which is `.opacity` — so the
+        /// row fades in from nothing while the file contains no opacity for a grep to find. That is
+        /// exactly what `ActivityBoard` did, under a comment asserting it did not.
+        ///
+        /// So the rule is stated positively: a file that animates a collection must say how its
+        /// members enter. Passing by declaring `.transition(.opacity)` is closed off by the
+        /// assertion above.
+        ///
+        /// One exemption, named rather than pattern-matched, and its reason is asserted below so it
+        /// cannot quietly stop being true.
+        static let noRowsEverEnter = [
+            // The sidebar's `ForEach`es are over `DestinationGroup.allCases` and
+            // `Destination.inGroup(_:)`, both fixed at compile time — no row is ever inserted or
+            // removed, so there is no entry to declare. Its `.animation` is the badge bump on a
+            // child, not a list transition.
+            "app/Sources/MCPRouterUI/Shell/Sidebar.swift"
+        ]
+
+        @Test("a file that animates a list declares how its rows enter")
+        func animatedListsDeclareTheirEntryTransition() throws {
+            for file in ShellTestSupport.animatedSurfaceFiles {
+                guard !Self.noRowsEverEnter.contains(file) else { continue }
+                let source = try ShellTestSupport.repoFile(file)
+                guard source.contains("ForEach"), source.contains(".animation(") else { continue }
+                // **After the `ForEach`, not merely somewhere in the file.** A whole-file grep
+                // passes on a view that declares a transition for something else entirely — which
+                // is not hypothetical: `ActivityBoard` carries `.transition(.move(edge: .trailing))`
+                // on its inspector a hundred lines above the list, and that alone satisfied this
+                // check while the rows themselves fell back to SwiftUI's default `.opacity`.
+                let rows = try #require(source.range(of: "ForEach("))
+                #expect(
+                    source[rows.upperBound...].contains(".transition("),
+                    """
+                    \(file) animates a ForEach without declaring a transition on it, so its rows \
+                    take SwiftUI's default .opacity and fade in from zero
+                    """
+                )
+            }
+        }
+
+        /// The exemption's own premise. A sidebar whose rows became dynamic would need an entry
+        /// transition like any other list, and would otherwise keep its pass for free.
+        @Test("the exempt list is exempt for the reason given")
+        func theExemptionsPremiseHolds() throws {
+            for file in Self.noRowsEverEnter {
+                let source = try ShellTestSupport.repoFile(file)
+                let iterated = ["DestinationGroup.allCases", "Destination.inGroup("]
+                for collection in iterated {
+                    #expect(
+                        source.contains("ForEach(\(collection)"),
+                        "\(file) no longer iterates \(collection), so rows may now enter it"
+                    )
+                }
+                // And nothing else: a second `ForEach` over something dynamic would sit under the
+                // same exemption and inherit a pass it has not earned.
+                #expect(
+                    source.components(separatedBy: "ForEach(").count - 1 == iterated.count + 1,
+                    "\(file) gained a ForEach the exemption does not account for"
+                )
+            }
+        }
+
+        /// The value itself, so the rule survives the row being rewritten.
+        ///
+        /// `AnyTransition` is opaque and not `Equatable`, so there is nothing to compare at runtime
+        /// — asserting `!= nil` on a non-optional would be a test that cannot fail. What is
+        /// checkable is the declaration, and it is one function in one place precisely so that a
+        /// four-line read is the whole of it.
+        @Test("a row enters by transform, and Reduce Motion removes the movement not the row")
+        func rowInsertionIsTransformOnly() throws {
+            let source = try ShellTestSupport.repoFile(
+                "app/Sources/MCPRouterUI/Activity/ActivityChrome.swift"
+            )
+            let body = try #require(
+                source.components(separatedBy: "func rowInsertion(").last?
+                    .components(separatedBy: "}").first
+            )
+            #expect(body.contains(".move(edge:"), "the row no longer enters by a transform")
+            #expect(body.contains(".identity"), "Reduce Motion no longer removes the movement")
+            #expect(!body.contains("opacity"), "the row's entry touches opacity")
         }
 
         /// Each setting removes the effect and keeps the information — which is the half that is

@@ -123,7 +123,28 @@
             "app/Sources/MCPRouterUI/Boards/SkillSheets.swift"
         ]
 
+        /// M2's board, listed for the same reason `boardFiles` is.
+        ///
+        /// It is called out separately because its absence was a live defect rather than a tidiness
+        /// point: `neverFadesInFromZero` iterated `shellFiles` only, so the one board whose list
+        /// animates insertions was the one file the entry-motion guard could not see, and a row
+        /// that faded in from zero passed every gate in the repository.
+        static let activityFiles = [
+            "app/Sources/MCPRouterUI/Activity/ActivityBoard.swift",
+            "app/Sources/MCPRouterUI/Activity/ActivityRow.swift",
+            "app/Sources/MCPRouterUI/Activity/ActivityChrome.swift",
+            "app/Sources/MCPRouterUI/Activity/ActivityCondition.swift",
+            "app/Sources/MCPRouterUI/Activity/ActivityCopy.swift",
+            "app/Sources/MCPRouterUI/Activity/ActivityFilterBar.swift",
+            "app/Sources/MCPRouterUI/Activity/ActivityInspector.swift",
+            "app/Sources/MCPRouterUI/Activity/ActivityModel.swift",
+            "app/Sources/MCPRouterUI/Activity/ActivityModel+Presentation.swift"
+        ]
+
         /// Everything the boundary gates scan.
-        static var gatedFiles: [String] { shellFiles + boardFiles }
+        static var gatedFiles: [String] { shellFiles + boardFiles + activityFiles }
+
+        /// Every file that draws a surface, and so must obey §7's entry-motion rule.
+        static var animatedSurfaceFiles: [String] { shellFiles + boardFiles + activityFiles }
     }
 #endif

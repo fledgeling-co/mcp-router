@@ -42,11 +42,15 @@ public enum ActivityCopy {
     /// surface which is still a placeholder in this build, or no button. `StateMessage.actionLabel`
     /// is optional for exactly this case — "nil where the state genuinely offers nothing — never a
     /// disabled placeholder button".
-    public static func empty(since: String) -> StateMessage {
-        StateMessage(
+    public static func empty(since: String?) -> StateMessage {
+        // The clause is omitted rather than filled with a placeholder when the router has not said
+        // when its window opened. "Nothing has called a tool since —" states a fact about a moment
+        // nothing observed, which is the one thing this surface may not do.
+        let opened = since.map { " since \($0)" } ?? ""
+        return StateMessage(
             title: "No calls yet",
             detail: """
-            Nothing has called a tool since \(since). Servers stay asleep until an agent asks \
+            Nothing has called a tool\(opened). Servers stay asleep until an agent asks \
             for one — this list fills itself the moment that happens.
             """
         )
@@ -164,8 +168,12 @@ public enum ActivityCopy {
     /// total would be wrong by any margin you like. It is also deliberately *unfiltered* — the
     /// filtered pair is `filteredCount`'s `N of M`, and one number that silently changed meaning
     /// when a filter was set would put the two in an undefined relation.
-    public static func subtitle(count: Int, since: String, feed: String) -> String {
-        "Showing \(count) call\(count == 1 ? "" : "s") · since \(since) · \(feed)"
+    /// `since` is optional for the same reason `empty`'s is: a window seeded by the stream before
+    /// the first backfill returned has no opening moment the router has stated, and the clause is
+    /// dropped rather than guessed.
+    public static func subtitle(count: Int, since: String?, feed: String) -> String {
+        let opened = since.map { "since \($0) · " } ?? ""
+        return "Showing \(count) call\(count == 1 ? "" : "s") · \(opened)\(feed)"
     }
 
     /// What the feed is doing, in one phrase per condition.

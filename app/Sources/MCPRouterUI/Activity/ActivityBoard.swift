@@ -46,6 +46,9 @@
             // a surface nobody is looking at, and coming back re-reads rather than showing a list
             // that stopped updating while it was away.
             .task { await model.start() }
+            // Paired with the `.task` because a reconnect installs a subscription that the `.task`
+            // does not own — see `ActivityModel.stopFeed()`.
+            .onDisappear { model.stopFeed() }
         }
 
         // MARK: - The board's own column
@@ -147,6 +150,11 @@
                             }
                             .buttonStyle(ActivityRowButtonStyle())
                             .id(record.id)
+                            // Without this the row takes SwiftUI's default insertion transition,
+                            // which is `.opacity` — an arriving call would fade in from nothing,
+                            // against §7 and B35, with no opacity written anywhere in this file.
+                            // Transform only, and `.identity` under Reduce Motion.
+                            .transition(ActivityMotion.rowInsertion(reduceMotion: reduceMotion))
                         }
                     }
                 }

@@ -257,4 +257,30 @@
             try await inner.resetUsage()
         }
     }
+
+    /// A feed that opens, reports, and then **stays open** — which is what the real one does.
+    ///
+    /// `ReplayActivityEventSource` finishes its continuation after the last recorded event, so a
+    /// consumer of it always returns. `ControlEventStream` does not: it loops until its retry ladder
+    /// is exhausted and finishes only then, so over a healthy connection the consumer never returns
+    /// at all. Every reconnect test in this repository was written against the replay, and the
+    /// difference between the two is exactly the gap a dead reconnect button lived in.
+    ///
+    /// It ends only when the consuming task is cancelled, which is what `stopFeed()` does.
+    struct LiveForeverEventSource: ActivityEventSource {
+        private let opening: [StreamEvent]
+
+        init(_ opening: [StreamEvent]) {
+            self.opening = opening
+        }
+
+        func events() -> AsyncStream<StreamEvent> {
+            AsyncStream { continuation in
+                for event in opening {
+                    continuation.yield(event)
+                }
+                // Deliberately no `finish()`.
+            }
+        }
+    }
 #endif

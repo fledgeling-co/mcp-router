@@ -382,12 +382,41 @@
 
         // MARK: - B2 · the registry stays a complement
 
-        @Test("this build installs exactly one board and scaffolds the other seven")
+        // MARK: - B35 · a row enters by transform, never by fading up from nothing
+
+        /// The row's own entry, asserted by name rather than by "some transition exists somewhere".
+        ///
+        /// A `ForEach` row with no `.transition(_:)` is not "no animation": SwiftUI applies its
+        /// default insertion transition, which is `.opacity`, so an arriving call fades in from
+        /// nothing — against §7 and B35 — while the file contains no opacity for any grep to find.
+        /// That is exactly what this board did, under a comment claiming it did not.
+        @Test("the row declares the transform-only entry transition")
+        func rowDeclaresItsEntryTransition() throws {
+            let source = try ShellTestSupport.repoFile(
+                "app/Sources/MCPRouterUI/Activity/ActivityBoard.swift"
+            )
+            let rows = try #require(source.range(of: "ForEach(model.visible)"))
+            let list = source[rows.upperBound...]
+            #expect(
+                list.contains(".transition(ActivityMotion.rowInsertion("),
+                "the row no longer declares an entry transition, so it fades in from zero"
+            )
+        }
+
+        @Test("this build installs Activity alongside the boards already shipped")
         func registryIsTheShippedSet() {
-            #expect(BoardRegistry.installed == [.activity])
-            #expect(BoardRegistry.scaffolded.count == 7)
+            // M2's own half first: the board is registered, not merely written. A board that
+            // compiles but is absent from `installed` still shows the reader a placeholder.
+            #expect(BoardRegistry.hasBoard(.activity))
             #expect(ScaffoldedDestination(.activity) == nil, "the placeholder cannot be built for it")
-            #expect(ScaffoldedDestination(.servers) != nil)
+
+            // This read `installed == [.activity]` while M2 was the only board on the branch. M3
+            // merged, so the set is both — asserted exactly rather than by containment, so a board
+            // appearing or vanishing here is a deliberate edit rather than something a subset check
+            // waves through.
+            #expect(BoardRegistry.installed == [.servers, .activity])
+            #expect(BoardRegistry.scaffolded.count == 6)
+            #expect(ScaffoldedDestination(.skills) != nil, "a scaffolded destination still builds one")
         }
     }
 #endif

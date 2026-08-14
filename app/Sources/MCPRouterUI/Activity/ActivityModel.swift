@@ -70,6 +70,16 @@
         /// filter issues none — the claim that filtering is client-side is otherwise unfalsifiable.
         public private(set) var requestCount = 0
 
+        /// The ids the **feed** delivered that no response has yet accounted for.
+        ///
+        /// This is the provenance `merge` needs and position cannot supply: a held record in this
+        /// set arrived after the last snapshot, so it is newer than any response now landing. One
+        /// that is not in it came from an older response and is superseded.
+        ///
+        /// It is pruned on every merge to the ids the merged window actually still holds, so it is
+        /// bounded by `ActivityRecords.capacity` rather than growing for the life of the board.
+        @ObservationIgnored private var streamArrivals: Set<CallRecord.ID> = []
+
         public init(
             client: any ControlAPIClient,
             source: (any ActivityEventSource)? = nil,
@@ -136,7 +146,10 @@
         /// compared: the wire promises no total order across the two sources, and the ring's
         /// contiguity is the fact actually known.
         private func merge(_ response: UsageResponse) -> ActivityRecords {
-            guard let held = records, !held.isEmpty else { return ActivityRecords(response) }
+            guard let held = records, !held.isEmpty else {
+                streamArrivals = []
+                return ActivityRecords(response)
+            }
             let returned = Set(response.records.map(\.id))
             // **Provenance, not position.** Which held records are newer than this response is a
             // fact about where they came from, and the board knows it: `streamArrivals` is exactly
@@ -154,10 +167,16 @@
             let arrivedSince = held.records.filter {
                 streamArrivals.contains($0.id) && !returned.contains($0.id)
             }
-            return ActivityRecords(
+            let merged = ActivityRecords(
                 records: arrivedSince + response.records,
                 since: response.since
             )
+            // Everything this response carried is now accounted for, and anything truncation
+            // dropped is no longer held — so neither is still "waiting for a response to explain
+            // it". Pruning here is what keeps the set bounded by the window rather than by uptime.
+            let kept = Set(merged.records.map(\.id))
+            streamArrivals = streamArrivals.subtracting(returned).intersection(kept)
+            return merged
         }
 
         /// The board's whole conversation with the router, with **both** halves in flight at once.
@@ -170,8 +189,49 @@
         /// job it was written for and the overlap is free.
         public func start() async {
             async let backfill: Void = load()
-            async let feed: Void = subscribe()
+            async let feed: Void = runFeed()
             _ = await (backfill, feed)
+        }
+
+        /// The live subscription, owned here rather than by whichever task happened to start it.
+        ///
+        /// Two taps used to stack two subscription loops writing into one model. The `isReconnecting`
+        /// flag no longer prevents that — it cannot, because it is released while the feed is still
+        /// running — so the guarantee is structural instead: there is one slot, and starting a feed
+        /// cancels whatever was in it.
+        @ObservationIgnored private var feed: Task<Void, Never>?
+
+        /// Starts a fresh subscription, replacing any running one, and awaits it.
+        ///
+        /// The cancellation handler is what keeps the board's `.task` scoping intact: the work runs
+        /// in an unstructured `Task` so that a *later* call can cancel it, and without the handler
+        /// that task would outlive the view whose `.task` started it.
+        private func runFeed() async {
+            let task = replaceFeed()
+            await withTaskCancellationHandler {
+                await task.value
+            } onCancel: {
+                task.cancel()
+            }
+        }
+
+        @discardableResult
+        private func replaceFeed() -> Task<Void, Never> {
+            feed?.cancel()
+            let task = Task { [weak self] in await self?.subscribe() ?? () }
+            feed = task
+            return task
+        }
+
+        /// Ends the live subscription, whoever started it.
+        ///
+        /// `start()`'s own cancellation handler cancels the task **it** installed, which is not
+        /// enough on its own: a reconnect replaces the slot, and that replacement is awaited by
+        /// nothing, so a reader who presses Reconnect and then navigates away would leave a feed
+        /// running behind a board that is gone. The board pairs this with its `.task`.
+        public func stopFeed() {
+            feed?.cancel()
+            feed = nil
         }
 
         /// Consume the live feed until the task is cancelled or the stream gives up.
@@ -211,16 +271,25 @@
         /// and only a fresh `GET /usage` can bring them back. Subscribing without reloading would
         /// leave a hole the board could not see and would not mention.
         public func reconnect() async {
-            // Two taps used to stack two live subscription loops writing into one model. The guard
-            // is on the model rather than on the button because the button is not the only caller a
-            // later surface might add.
             guard !isReconnecting else { return }
             isReconnecting = true
             defer { isReconnecting = false }
+            // **The subscription is started, not awaited, and that is the whole fix.** This read
+            // `await start()` under a `defer`, which is dead after the first success: the real
+            // `ControlEventStream.events()` loops until its retry ladder is exhausted and only then
+            // finishes its continuation, so `start()` does not return while the connection is
+            // healthy. The deferred clear therefore ran when the feed *next died* rather than when
+            // the reconnect completed, leaving `isReconnecting` true across a working feed and
+            // making every later tap hit the guard above and do nothing. Only the backfill is
+            // awaited here, because only the backfill has an end.
+            //
+            // Stacking is still ruled out — `replaceFeed()` cancels the running subscription before
+            // installing the new one, which is a stronger guarantee than the flag ever gave.
+            replaceFeed()
             // The phase is **not** cleared first. It used to be, and a reload that then failed left
             // `condition` on `.populated` — a stale list, a subtitle reading "connecting", no banner
             // and no way back. It is replaced by whatever the new subscription reports.
-            await start()
+            await load()
         }
 
         /// Whether a reconnect is already running.
@@ -230,6 +299,10 @@
         /// stream it also has to build.
         @discardableResult
         public func apply(_ record: CallRecord) -> Bool {
+            // Recorded before either branch: this record's provenance is the feed whether it seeds
+            // the window or is prepended to one, and `merge` reads exactly this to decide which
+            // held records survive a later response.
+            streamArrivals.insert(record.id)
             guard var held = records else {
                 // A record arriving before the backfill landed is still a real call. It seeds the
                 // window rather than being dropped, and the backfill de-duplicates against it.
@@ -337,7 +410,7 @@
             case .populated, .loading:
                 nil
             case .empty:
-                ActivityCopy.empty(since: displaySince(records?.since ?? ""))
+                ActivityCopy.empty(since: displaySince(records?.since))
             case let .filteredToNothing(total):
                 ActivityCopy.filteredToNothing(total: total)
             case let .partial(feed):

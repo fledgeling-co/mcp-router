@@ -161,13 +161,76 @@
 
         /// Two taps used to stack two subscription loops writing into one model.
         @Test("a second reconnect while one is running is refused rather than stacked")
-        func reconnectIsNotReentrant() async {
-            let subject = Self.model(source: ReplayActivityEventSource([.phase(.live)]))
+        func reconnectIsNotReentrant() async {            let subject = Self.model(source: ReplayActivityEventSource([.phase(.live)]))
             async let first: Void = subject.reconnect()
             async let second: Void = subject.reconnect()
             _ = await (first, second)
             #expect(!subject.isReconnecting, "the guard is released when the reconnect finishes")
             #expect(subject.requestCount <= 2, "a stacked reconnect would issue more")
+        }
+
+        /// **The reconnect button was dead after its first success, and every test here missed it.**
+        ///
+        /// `reconnect()` awaited `start()` under a `defer { isReconnecting = false }`. Against
+        /// `ReplayActivityEventSource` that is fine, because a replay finishes after its last event
+        /// and `start()` returns — which is why `reconnectIsNotReentrant` above passed over a broken
+        /// button. Against the real feed it is not: `ControlEventStream.events()` loops until its
+        /// retry ladder is exhausted and only *then* finishes its continuation, so over a healthy
+        /// connection `start()` never returns, the deferred clear never runs, and the guard at the
+        /// top of `reconnect()` refuses every later tap for the life of the board.
+        ///
+        /// The waits are bounded because the defect is a call that never returns: awaiting it
+        /// directly would hang this suite rather than fail it.
+        @Test("a reconnect over a feed that stays live releases its guard, so the next one works")
+        func reconnectIsNotDeadAfterItsFirstSuccess() async {
+            let subject = Self.model(source: LiveForeverEventSource([.phase(.live)]))
+            defer { subject.stopFeed() }
+
+            #expect(
+                await Self.completes { await subject.reconnect() },
+                "reconnect did not return while the feed stayed live"
+            )
+            #expect(!subject.isReconnecting, "the guard is still held over a healthy feed")
+
+            let before = subject.requestCount
+            _ = await Self.completes { await subject.reconnect() }
+            #expect(
+                subject.requestCount == before + 1,
+                "the second reconnect issued no request — the button is dead after the first"
+            )
+        }
+
+        /// Set once the work finishes. A plain `Bool` captured by the closure would be a copy.
+        @MainActor
+        final class Latch {
+            private(set) var isSet = false
+            func set() { isSet = true }
+        }
+
+        /// Runs `body` under a deadline, so a call that never returns **fails** rather than hanging
+        /// the suite.
+        ///
+        /// The obvious spelling — race `await work.value` against a sleep in a task group — does not
+        /// work and is worth recording: awaiting a `Task`'s `value` does not stop when the *awaiting*
+        /// task is cancelled, so the group's own cancellation cannot reclaim it and the group never
+        /// returns. Measured here on 2026-08-14: the suite hung for eleven minutes rather than
+        /// failing in two seconds. Polling a latch and cancelling the work is what actually bounds it.
+        static func completes(
+            within duration: Duration = .seconds(2),
+            _ body: @escaping @MainActor () async -> Void
+        ) async -> Bool {
+            let latch = Latch()
+            let work = Task { @MainActor in
+                await body()
+                latch.set()
+            }
+            defer { work.cancel() }
+            let deadline = ContinuousClock.now.advanced(by: duration)
+            while ContinuousClock.now < deadline {
+                if latch.isSet { return true }
+                try? await Task.sleep(for: .milliseconds(10))
+            }
+            return false
         }
 
         /// A reconnect whose reload fails used to land on `.populated`: a stale list, a subtitle

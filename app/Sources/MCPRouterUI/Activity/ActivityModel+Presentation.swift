@@ -23,7 +23,13 @@
         ///
         /// Falling back to the raw string rather than to a placeholder: the router sent something,
         /// and showing it unparsed is honest where showing "—" would discard a fact.
-        func displaySince(_ raw: String) -> String {
+        ///
+        /// `nil` in, `nil` out, and that case is real: a window seeded by a record that arrived on
+        /// the stream before the first backfill returned has no `since`, because the router has not
+        /// said when its counting window opened and the record's own `ts` is not that answer. The
+        /// callers omit the clause rather than inventing one.
+        func displaySince(_ raw: String?) -> String? {
+            guard let raw else { return nil }
             guard let date = raw.asControlAPIDate else { return raw }
             return Self.timeOfDay.string(from: date)
         }

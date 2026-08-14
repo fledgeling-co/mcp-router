@@ -1,6 +1,27 @@
 #if os(macOS)
     import Foundation
     import MCPRouterKit
+    import SwiftUI
+
+    /// How a row enters this list, held as data so §7's rule is checkable rather than asserted.
+    ///
+    /// **A `ForEach` row with no `.transition(_:)` is not "no animation".** SwiftUI applies its
+    /// default insertion transition, which is `.opacity` — so an inserted row fades in from nothing,
+    /// which is precisely what §7 and B35 forbid, and it happens without any opacity appearing in
+    /// the source. That is why this is a named value with a test rather than a comment claiming the
+    /// list does not fade: the previous version of `ActivityBoard` carried exactly such a comment
+    /// directly above the row that was fading.
+    public enum ActivityMotion {
+        /// A row arriving on the live feed. **Transform only**: it slides down from the top edge,
+        /// which is where a newest-first log puts it, and its opacity is never touched.
+        ///
+        /// Reduce Motion removes the movement and keeps the row — `.identity` means the row is
+        /// simply there on the next frame, which is the setting's own rule: remove the effect, never
+        /// the information.
+        public static func rowInsertion(reduceMotion: Bool) -> AnyTransition {
+            reduceMotion ? .identity : .move(edge: .top)
+        }
+    }
 
     /// What the Activity board is allowed to draw an exclusive indicator colour in, and why.
     ///

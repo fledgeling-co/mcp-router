@@ -41,7 +41,8 @@
                 return .live
             }
             guard let named = environment[scenarioVariable],
-                  let scenario = FixtureControlAPIClient.Scenario(rawValue: named) else {
+                  let scenario = FixtureControlAPIClient.Scenario(rawValue: named)
+            else {
                 return .fixture(.populated)
             }
             return .fixture(scenario)

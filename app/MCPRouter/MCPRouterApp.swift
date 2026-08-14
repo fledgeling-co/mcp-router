@@ -14,9 +14,9 @@ import SwiftUI
 @main
 struct MCPRouterApp: App {
     @NSApplicationDelegateAdaptor(ShellAppDelegate.self) private var appDelegate
-    // A Release build gets the live loopback client and can never be talked into a fixture; a Debug
-    // build takes a scenario from the environment so the acceptance gate can drive the app into any
-    // of `DESIGN.md` §5's states. `ShellClientFactory` holds that rule, where a test reaches it.
+    /// A Release build gets the live loopback client and can never be talked into a fixture; a Debug
+    /// build takes a scenario from the environment so the acceptance gate can drive the app into any
+    /// of `DESIGN.md` §5's states. `ShellClientFactory` holds that rule, where a test reaches it.
     @State private var model = ShellModel(client: ShellClientFactory.makeClient())
 
     var body: some Scene {

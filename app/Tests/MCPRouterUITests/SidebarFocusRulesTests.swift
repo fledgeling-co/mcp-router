@@ -40,11 +40,20 @@
         /// come from F2's `focusRing` modifier — `MetricToken.focusRing` and `ColorToken.accent` —
         /// and the raw-values lint already forbids a literal; this asserts the modifier is the one
         /// actually applied, which the lint cannot see.
+        ///
+        /// The second half used to be `!source.contains("MetricToken.focusRing")`, which failed
+        /// against correct code: a whole-file substring search matches this rule's own explanatory
+        /// comments, and it matches `badgeBumpScale`, which legitimately derives a ratio from the
+        /// ring against a control rung and draws nothing. What the rule actually forbids is the row
+        /// *drawing* its own ring, so assert the absence of the primitives that would do it — a
+        /// claim that can genuinely fail, rather than one that fires on prose.
         @Test("the row applies F2's focus ring rather than drawing its own")
         func theRingIsTheDesignSystems() throws {
             let source = try ShellTestSupport.repoFile("app/Sources/MCPRouterUI/Shell/Sidebar.swift")
             #expect(source.contains(".focusRing(showsFocusRing"))
-            #expect(!source.contains("MetricToken.focusRing"), "the row re-derives the ring's width")
+            for primitive in ["lineWidth", ".stroke(", ".border("] {
+                #expect(!source.contains(primitive), "the row draws its own ring with \(primitive)")
+            }
         }
     }
 #endif

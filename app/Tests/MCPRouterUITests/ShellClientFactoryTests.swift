@@ -40,7 +40,8 @@
             for scenario in FixtureControlAPIClient.Scenario.allCases {
                 let environment = [ShellClientFactory.scenarioVariable: scenario.rawValue]
                 #expect(
-                    ShellClientFactory.choice(isDebugBuild: true, environment: environment) == .fixture(scenario)
+                    ShellClientFactory
+                        .choice(isDebugBuild: true, environment: environment) == .fixture(scenario)
                 )
             }
         }
@@ -48,7 +49,8 @@
         @Test("an unrecognised scenario name falls back rather than crashing")
         func unknownNamesFallBack() {
             let environment = [ShellClientFactory.scenarioVariable: "not-a-scenario"]
-            #expect(ShellClientFactory.choice(isDebugBuild: true, environment: environment) == .fixture(.populated))
+            #expect(ShellClientFactory
+                .choice(isDebugBuild: true, environment: environment) == .fixture(.populated))
         }
 
         /// The assembly layer must not name a client, for the same reason it must not name an

@@ -321,7 +321,8 @@ case "accent":
     // `live` is green, `attention` orange, `fail` red, and every tier is neutral.
     guard args.count >= 8, let rep = bitmap(args[2]),
           let x0 = Int(args[3]), let x1 = Int(args[4]), let y0 = Int(args[5]), let y1 = Int(args[6]),
-          let margin = Double(args[7]) else {
+          let margin = Double(args[7])
+    else {
         die("usage: axkit accent <png> <x0> <x1> <y0> <y1> <margin>")
     }
     var total = 0
@@ -410,7 +411,8 @@ case "uniform":
     // tell the two apart — and the negative control that was added to check it promptly failed,
     // confirming the band was tracking content.
     guard args.count >= 6, let rep = bitmap(args[2]),
-          let x0 = Int(args[3]), let x1 = Int(args[4]), let y = Int(args[5]) else {
+          let x0 = Int(args[3]), let x1 = Int(args[4]), let y = Int(args[5])
+    else {
         die("usage: axkit uniform <png> <x0> <x1> <y>")
     }
     guard y >= 0, y < rep.pixelsHigh else { die("row \(y) is outside the image") }
@@ -418,10 +420,12 @@ case "uniform":
     var total = 0
     for x in x0 ... min(x1, rep.pixelsWide - 1) {
         guard let c = rep.colorAt(x: x, y: y) else { continue }
-        let key = String(format: "#%02X%02X%02X",
-                         Int((c.redComponent * 255).rounded()),
-                         Int((c.greenComponent * 255).rounded()),
-                         Int((c.blueComponent * 255).rounded()))
+        let key = String(
+            format: "#%02X%02X%02X",
+            Int((c.redComponent * 255).rounded()),
+            Int((c.greenComponent * 255).rounded()),
+            Int((c.blueComponent * 255).rounded())
+        )
         counts[key, default: 0] += 1
         total += 1
     }

@@ -87,6 +87,17 @@
             try await inner.searchRegistry(query: query, limit: limit)
         }
 
+        /// M4 added these to `ControlAPIClient` after these doubles were written. An Activity
+        /// double serves no skills, and saying so is more useful than an empty response that
+        /// would let a skills-shaped assertion pass here by accident.
+        func skills() async throws(ControlAPIError) -> SkillsResponse {
+            throw .malformedResponse(detail: "this double serves no skills")
+        }
+
+        func marketplaces() async throws(ControlAPIError) -> MarketplacesResponse {
+            throw .malformedResponse(detail: "this double serves no marketplaces")
+        }
+
         func add(_ server: NewServer, force: Bool) async throws(ControlAPIError) -> AddedServer {
             try await inner.add(server, force: force)
         }
@@ -158,6 +169,17 @@
             try await inner.searchRegistry(query: query, limit: limit)
         }
 
+        /// M4 added these to `ControlAPIClient` after these doubles were written. An Activity
+        /// double serves no skills, and saying so is more useful than an empty response that
+        /// would let a skills-shaped assertion pass here by accident.
+        func skills() async throws(ControlAPIError) -> SkillsResponse {
+            throw .malformedResponse(detail: "this double serves no skills")
+        }
+
+        func marketplaces() async throws(ControlAPIError) -> MarketplacesResponse {
+            throw .malformedResponse(detail: "this double serves no marketplaces")
+        }
+
         func add(_ server: NewServer, force: Bool) async throws(ControlAPIError) -> AddedServer {
             try await inner.add(server, force: force)
         }
@@ -225,6 +247,17 @@
             limit: Int
         ) async throws(ControlAPIError) -> RegistrySearchResponse {
             try await inner.searchRegistry(query: query, limit: limit)
+        }
+
+        /// M4 added these to `ControlAPIClient` after these doubles were written. An Activity
+        /// double serves no skills, and saying so is more useful than an empty response that
+        /// would let a skills-shaped assertion pass here by accident.
+        func skills() async throws(ControlAPIError) -> SkillsResponse {
+            throw .malformedResponse(detail: "this double serves no skills")
+        }
+
+        func marketplaces() async throws(ControlAPIError) -> MarketplacesResponse {
+            throw .malformedResponse(detail: "this double serves no marketplaces")
         }
 
         func add(_ server: NewServer, force: Bool) async throws(ControlAPIError) -> AddedServer {

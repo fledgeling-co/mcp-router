@@ -66,3 +66,17 @@ re-testing per worktree rather than trusted or dismissed.
   implementations. Those clauses are covered by the unit suite against doubles instead.
 - **Section G (auth, B60–B66) is not R3's.** It was split out into R5 after the spec was written.
   Its absence here is scope, not a gap.
+
+## Re-verification log
+
+Appended rather than rewritten, per the rule at the top of this file.
+
+| When | What changed since the rows above | What was re-run | Result |
+|---|---|---|---|
+| `04b978e` | `WireGuaranteeTests.swift` only — a redundant type annotation and one 111-character assertion message, both formatting. No behaviour, no source under `app/Sources/`. | `make all` (lint + build + test + parity) | `0 violations` · `353 tests in 56 suites passed` · `parity: 352 vector cases compared (floor 352)` |
+
+Rows 1–15 were verified at `cfb9ecb` and are **not** re-run here: `git diff cfb9ecb..04b978e`
+touches one test file's formatting and nothing else, so the behavioural evidence stands. The
+differential (row 1), `parity-regen` (row 2) and the 31-mutation gate (row 4) each cost a full
+reference run or a full rebuild per mutation, and repeating them for a whitespace change would be
+the exact repetition this file exists to prevent.

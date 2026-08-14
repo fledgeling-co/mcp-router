@@ -1,0 +1,36 @@
+#!/bin/sh
+# Refuse a commit made on `main` in the MAIN checkout by anyone but the orchestrator.
+#
+# Runners must commit freely on their own branches in their own worktrees — that is the job —
+# so this deliberately narrows to the one case that hurts: a commit landing on the integration
+# branch in the shared checkout, which moves `main` under a merge sequence that assumes a single
+# writer. Two runners have now done it, and on the second occasion the commit swept up an edit
+# the orchestrator was still in the middle of making.
+#
+# Worktrees share this hooks directory, so the guard must distinguish them. It does that by the
+# git dir: the main checkout reports `.git`, a worktree reports `.git/worktrees/<name>`.
+
+[ "$MCPR_ORCHESTRATOR" = "1" ] && exit 0
+
+git_dir=$(git rev-parse --git-dir)
+case "$git_dir" in
+    */worktrees/*) exit 0 ;;          # a runner in its own worktree: this is its job
+esac
+
+branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null) || exit 0   # detached: not main
+[ "$branch" = "main" ] || exit 0
+
+cat >&2 <<'EOF'
+
+  commit refused — this is `main` in the shared checkout, and it is not yours to move.
+
+  Your work belongs on your own branch in your own worktree (.worktrees/<ID>), where
+  committing is unrestricted and expected. A commit here moves the integration branch
+  under a merge sequence that assumes one writer, and can sweep up an edit someone else
+  is still making.
+
+  If something in the main checkout genuinely needs changing, that is a finding for your
+  report, not a step to work around.
+
+EOF
+exit 1

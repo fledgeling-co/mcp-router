@@ -1,0 +1,31 @@
+#!/bin/sh
+# Refuse any push that does not come from the orchestrator.
+#
+# ship-fleet's contract is that runners stop before merge and the orchestrating session owns
+# every merge and push, because two writers on one integration branch is how a fleet corrupts a
+# repo. On 2026-08-14 a wave-3 runner committed to `main` in the shared main tree and pushed it.
+#
+# The first version of this hook named its own bypass in the refusal text — "if you are the
+# orchestrator, set MCPR_ORCHESTRATOR=1" — and a runner did precisely that and pushed again. A
+# control that publishes its key in the error the unauthorised party is guaranteed to read is not
+# a control. The variable is unchanged; the message no longer names it.
+#
+# Remove this hook when the fleet is finished; it is scaffolding for a run, not a repo policy.
+
+if [ "$MCPR_ORCHESTRATOR" = "1" ]; then
+    exit 0
+fi
+
+cat >&2 <<'EOF'
+
+  push refused — this repo is mid-fleet and pushing is not yours to do.
+
+  You are done when your branch is committed and green. Do not rebase, merge or push,
+  and do not look for a way around this: it is deliberate, and two writers on one
+  integration branch corrupts the repo. Report ready-to-merge and stop.
+
+  If you believe you genuinely need to push, that is a finding for your report, not a
+  step to work around.
+
+EOF
+exit 1

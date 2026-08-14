@@ -107,6 +107,48 @@ for f in "${FILES[@]}"; do
   done < <(grep -nE '\.custom\([^)]*size:' "$f" || true)
 done
 
+# ------------------------------------------------------------------ the shell's own two rules
+#
+# Scoped to the files M1 added, so no merged gate changes meaning for code that was reviewed under
+# the old rules. Both are things the checks above structurally cannot see.
+
+SHELL_DIR="$ROOT/app/Sources/MCPRouterUI/Shell"
+[ -d "$SHELL_DIR" ] || { echo "error: $SHELL_DIR does not exist — the shell checks did not run" >&2; exit 1; }
+
+SHELL_FILES=()
+while IFS= read -r f; do SHELL_FILES+=("$f"); done < <(find "$SHELL_DIR" -name '*.swift' -type f)
+[ "${#SHELL_FILES[@]}" -gt 0 ] || { echo "error: no Swift files under $SHELL_DIR — the shell checks did not run" >&2; exit 1; }
+
+echo "no-raw-design-values: $(printf '%s\n' "${SHELL_FILES[@]}" | wc -l | tr -d ' ') shell files under the extra rules"
+
+for f in "${SHELL_FILES[@]}"; do
+  rel="${f#"$ROOT"/}"
+
+  # 1. A geometry literal. The checks above catch a colour and a font size; they say nothing about
+  #    `.frame(height: 24)` or `cornerRadius: 8`, which are design values that reach the screen
+  #    without ever passing through MetricToken — the same hole a hex literal opens, spelled in
+  #    numbers. Zero is deliberately allowed: `spacing: 0` is the *absence* of a gap rather than a
+  #    value picked from the document, and forbidding it would push code into naming a token that
+  #    means nothing.
+  while IFS= read -r hit; do
+    report "$rel:$hit  — geometry literal; read the value from MetricToken"
+  done < <(grep -nE '(\.frame\((width|height|minWidth|minHeight|maxWidth|maxHeight): *[1-9])|(\.padding\( *[1-9])|(cornerRadius: *[1-9])|(lineWidth: *[1-9])|(spacing: *[1-9])|(radius: *[1-9])' "$f" || true)
+
+  # 2. The boundary — A36. The Mac app talks to the router ONLY over the loopback control API, and
+  #    that is what lets the router be swapped underneath without the app changing. A dependency
+  #    graph cannot see a direct call: `MCPRouterUI` legitimately links Foundation, so `URLSession`
+  #    is always in scope and always one line away. A source grep is the only check that reaches it.
+  #
+  #    **Reading a file is one of the ways past the API, and this list did not say so.** The set was
+  #    sockets and processes plus a bare `FileManager`, which a completeness critic pointed out
+  #    leaves `Data(contentsOf:)`, `Bundle` and `URL(fileURLWithPath:)` — the spelling an actual
+  #    fixture reader uses — entirely unnamed. A18 and §6 turn on where a number came from, so a
+  #    shell that reads its own JSON is exactly the failure the clause is about.
+  while IFS= read -r hit; do
+    report "$rel:$hit  — the shell reaches past the control API; only F3's client may (A36)"
+  done < <(grep -nE '\b(URLSession|NSTask|NWConnection|NWListener|CFSocket|Bundle)\b|\bProcess\(|\bFileManager\b|\bsocket\(|Data\(contentsOf:|URL\(fileURLWithPath:|contentsOfFile:' "$f" || true)
+done
+
 # ------------------------------------------------------------------ the separation, and the bridge
 #
 # Two structural rules that no per-file pattern above can express.

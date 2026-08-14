@@ -1,34 +1,41 @@
+import AppKit
 import MCPRouterKit
 import MCPRouterUI
 import SwiftUI
 
-/// The macOS shell.
+/// The macOS shell: the window, the menu bar, and nothing decidable.
 ///
-/// This is scaffolding, and it says so rather than inventing content. The server board, activity,
-/// skills and settings arrive with the surface items that depend on this one; a placeholder that
-/// showed a fake server list or a made-up count would be the exact failure the product forbids —
-/// no number is displayed that the router does not observe, and this build observes none.
-///
-/// What it does do is draw entirely through `MCPRouterUI`. The private colour bridge that used to
-/// live at the bottom of this file is gone: there is one design system now, in one place, and both
-/// apps read it. A Debug build additionally carries the design gallery, which is the surface that
-/// makes the system reviewable rather than merely asserted.
+/// Everything this file does is assembly. `app/MCPRouter` is not a SwiftPM target, so nothing here
+/// can be reached by `swift test` — which means anything with a decision in it would be a clause
+/// with no possible red-green evidence. The navigation model, the command inventory, the readout
+/// derivation, the shell's views and **which control client it talks to** all live in
+/// `MCPRouterKit` and `MCPRouterUI` for that reason, and what is left here is a `Scene` and six menu
+/// builders whose *contents* come from the model.
 @main
 struct MCPRouterApp: App {
+    @NSApplicationDelegateAdaptor(ShellAppDelegate.self) private var appDelegate
+    /// A Release build gets the live loopback client and can never be talked into a fixture; a Debug
+    /// build takes a scenario from the environment so the acceptance gate can drive the app into any
+    /// of `DESIGN.md` §5's states. `ShellClientFactory` holds that rule, where a test reaches it.
+    @State private var model = ShellModel(client: ShellClientFactory.makeClient())
+
     var body: some Scene {
         WindowGroup("MCP Router") {
-            FoundationView()
-                .frame(minWidth: 480, minHeight: 320)
+            ShellWindow(model: model)
+                .frame(
+                    minWidth: MetricToken.sidebar.leadingScalar * 2,
+                    minHeight: MetricToken.sidebar.leadingScalar
+                )
         }
-        .windowResizability(.contentSize)
+        .commands { ShellCommands() }
 
         #if DEBUG
             // Debug only, and the acceptance harness asserts its identifier is absent from a
             // Release binary. A reference surface that shipped would be a feature nobody designed.
             //
-            // A `Window` scene is listed in the Window menu under its own title, so this needs no
-            // custom command to be reachable — and §3.9 wants every command reachable from the
-            // menu bar, which this satisfies by construction rather than by addition.
+            // A `Window` scene is listed in the Window menu under its own title, which is macOS
+            // contributing an entry rather than the app declaring a command — A19 excludes it by
+            // name for exactly that reason.
             Window("Design system", id: "design-gallery") {
                 DesignGallery()
             }
@@ -36,33 +43,87 @@ struct MCPRouterApp: App {
     }
 }
 
-struct FoundationView: View {
-    private var version: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—"
+/// The complete command surface, per `DESIGN.md` §3.9.
+///
+/// Six explicit builders rather than a loop, because SwiftUI's `CommandsBuilder` cannot iterate
+/// top-level menus — command groups are *positions* in a menu macOS already owns, not a list. What
+/// is driven by the model is every item's title, shortcut, enabled state and disabled reason, which
+/// is the part A19 and A20 actually check.
+///
+/// **No item names its own operation.** Each action is the same generic line — hand the command to
+/// `ShellCommandRouter` — because nothing in this file can be reached by `swift test`, and a
+/// decision written here is a decision with no evidence lane. `ShellCommandRouterTests` asserts the
+/// whole mapping, and its `assemblyCarriesNoOperation` test greps this file to keep the line
+/// generic. See `ShellCommandRouter`'s note for why driving the menu instead was not an option.
+///
+/// Four kinds of item are deliberately **not** declared here: Hide / Hide Others / Show All / Quit
+/// in the app menu, Close in File, the standard Edit items, and Minimize / Zoom / Bring All to
+/// Front in Window. macOS contributes all of those itself, and re-declaring one would produce two
+/// items that do the same thing with different spellings. They are in the inventory because they
+/// are in the menu bar; they are absent here because the system puts them there.
+struct ShellCommands: Commands {
+    @FocusedValue(\.shellModel) private var model
+
+    /// One item, wired to the router rather than to an operation chosen here.
+    private func item(_ command: MenuCommand) -> some View {
+        CommandItem(command) { ShellCommandRouter.perform(command, on: model) }
     }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("MCP Router")
-                .typeRole(.title1)
-                .foregroundStyle(ColorToken.t1.color)
-
-            Text("Version \(version)")
-                .typeRole(.callout, monospaced: true)
-                .foregroundStyle(ColorToken.t2.color)
-
-            Text(
-                """
-                The generated project and shared library are in place. The server board, \
-                activity and settings arrive with the surfaces built on top of this.
-                """
-            )
-            .typeRole(.body)
-            .foregroundStyle(ColorToken.t2.color)
-            .fixedSize(horizontal: false, vertical: true)
+    var body: some Commands {
+        CommandGroup(replacing: .appInfo) {
+            item(.about)
         }
-        .padding(24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(ColorToken.ground.color)
+
+        CommandGroup(replacing: .appSettings) {
+            // No ellipsis: Settings is a sidebar destination in this build, so `⌘,` selects a pane
+            // rather than opening a further view. §3.4 makes that distinction the ellipsis's whole
+            // job, so writing one here would be a false promise about what the key does.
+            item(.settings)
+        }
+
+        CommandGroup(replacing: .newItem) {
+            item(.addServer)
+            item(.addMarketplace)
+            item(.pairPhone)
+            Divider()
+            item(.exportLibrary)
+        }
+
+        CommandGroup(after: .pasteboard) {
+            Divider()
+            item(.find)
+            item(.resetServer)
+            item(.removeServer)
+        }
+
+        // Replacing `.sidebar` puts these in the View menu and removes the system's own sidebar
+        // toggle, so there is one command for showing the sidebar rather than two.
+        CommandGroup(replacing: .sidebar) {
+            ForEach(Destination.ordered.filter { $0.selectionDigit != nil }, id: \.self) { target in
+                item(.selectDestination(target))
+            }
+            Divider()
+            item(.showSidebar)
+        }
+
+        CommandGroup(replacing: .help) {
+            item(.help)
+            item(.whatTheRouterDoes)
+            item(.reportIssue)
+        }
+    }
+}
+
+/// The one thing the app needs AppKit for.
+///
+/// SwiftUI's `.help(_:)` does not reach an `NSMenuItem` — measured against this very build, every
+/// item in all six menus reported `AXHelp` as `missing value` while the modifier was applied. §3.4
+/// requires a disabled command to carry a discoverable reason, and a menu item's tool tip is the
+/// only place macOS has for one, so the reasons are applied through AppKit each time a menu opens.
+///
+/// The walker itself is in `MCPRouterUI` where a test can reach it; this is only where it is armed.
+final class ShellAppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_: Notification) {
+        ShellMenuReasons.install()
     }
 }

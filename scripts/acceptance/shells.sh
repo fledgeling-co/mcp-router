@@ -212,10 +212,16 @@ APPLESCRIPT
 # failures read as a broken app; one reads as a broken harness, which is what it would be.
 [ -n "$(printf '%s' "$AX_TEXT" | tr -d '[:space:]')" ] || blocked "the accessibility tree read as empty — harness or permission problem, not an assertion failure"
 
-for needle in "MCP Router" "Version"; do
+# These two needles used to be "MCP Router" and "Version", which were F1's scaffold view. M1
+# replaced that view with the real shell, so the strings are gone — but the *claim* they carried is
+# unchanged and is now carried by better evidence: `Activity` and `Running` are `Destination.title`
+# and `DestinationGroup.rawValue`, both defined in MCPRouterKit, so finding them on screen still
+# proves a value from the shared library reached the accessibility tree. The full shell walk lives
+# in `scripts/acceptance/mac-shell.sh`.
+for needle in "Activity" "Running"; do
     printf '%s' "$AX_TEXT" | grep -qF "$needle" \
       || fail "the macOS window's accessibility tree does not carry '$needle'"
-    pass "accessibility tree carries '$needle'"
+    pass "accessibility tree carries '$needle' (from MCPRouterKit)"
 done
 
 # The render assertion. Sample well inside the window, below the text block.

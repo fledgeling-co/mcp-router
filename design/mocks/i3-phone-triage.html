@@ -763,7 +763,10 @@ const navAct=(t,act)=>`<div class="pnav" style="display:flex;align-items:flex-en
    The narrowing sentence is ONE constant, verbatim on every commit surface —
    `PairingCopy.neverInstalls` in the shipped code. It is written once here for
    the same reason: two copies of a security sentence become two sentences. */
-const NEVER_INSTALLS='Nothing installs from your phone. Your Mac shows you these same lines again before anything runs.';
+/* VERBATIM `PairingCopy.neverInstalls`, pinned by PhoneCopyTests.narrowingIsExact.
+   Not a paraphrase: A11/A20 require the shared constant itself, and the mock-parity
+   check compares this string against the shipped one. */
+const NEVER_INSTALLS='This app queues items for review on your Mac. It cannot install, update or remove anything \u2014 that happens only at your Mac.';
 const MAC="Luke's MacBook Pro";
 
 /* ═══════════════════ fixture entries ═════════════════════════════════════

@@ -127,7 +127,12 @@ public enum LibraryCopy {
         case .filterPlaceholder:
             Entry(body: "Filter")
         case .footer:
-            Entry(body: "Adding, changing and removing all happen at your Mac. This is the same list, so you know what you are carrying.")
+            Entry(
+                body: """
+                    Adding, changing and removing all happen at your Mac. This is the same list, so you \
+                    know what you are carrying.
+                """
+            )
         case .narrowing:
             // The shared constant itself, not a paraphrase of it. A second wording of a security
             // sentence is a second sentence, and the one nobody updates is the one that ships.
@@ -157,7 +162,10 @@ public enum LibraryCopy {
         case .empty:
             Entry(
                 headline: "No servers declared",
-                body: "{mac} has no MCP servers declared yet. Queue one from Triage and accept it at your Mac, and it will appear here.",
+                body: """
+                    {mac} has no MCP servers declared yet. Queue one from Triage and accept it at your \
+                    Mac, and it will appear here.
+                """,
                 actionLabel: "Go to Triage"
             )
         case .emptyFiltered:
@@ -169,18 +177,27 @@ public enum LibraryCopy {
         case .failed:
             Entry(
                 headline: "The server list could not be read",
-                body: "The router answered with something this version does not understand. Nothing on your Mac has changed.",
+                body: """
+                    The router answered with something this version does not understand. Nothing on your \
+                    Mac has changed.
+                """,
                 actionLabel: "Try again"
             )
         case .offline:
             Entry(
                 headline: "The router is not running on {mac}",
-                body: "The library is the router's own list of declared servers, so there is nothing to show until it starts. Open MCP Router on your Mac."
+                body: """
+                    The library is the router's own list of declared servers, so there is nothing to show \
+                    until it starts. Open MCP Router on your Mac.
+                """
             )
         case .skillsAbsent:
             Entry(
                 headline: "Skills are not listed here.",
-                body: "The router publishes no skills endpoint, so this phone has nothing to read. Your Mac's Skills board is the only place they appear."
+                body: """
+                    The router publishes no skills endpoint, so this phone has nothing to read. Your Mac's \
+                    Skills board is the only place they appear.
+                """
             )
         }
     }

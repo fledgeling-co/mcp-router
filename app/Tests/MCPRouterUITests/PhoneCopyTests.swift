@@ -136,9 +136,19 @@ struct PhoneCopyTests {
     @Test("exactly the required surfaces carry the narrowing")
     func narrowingPlacement() {
         #expect(
-            PairingCopy.narrowingKeys == [.settingsNeverPaired, .pairedSuccess, .libraryAwaiting],
+            PairingCopy.narrowingKeys == [.settingsNeverPaired, .pairedSuccess],
             "the narrowing moved surfaces: \(PairingCopy.narrowingKeys)"
         )
+
+        // The third surface did not lose the narrowing — it moved manifests. `.libraryAwaiting`
+        // was the placeholder I3 retires, and the reason it carried the sentence ("the surface most
+        // likely to be mistaken for an install surface") is still true of the real Library. This
+        // assertion is what stops the move being a quiet deletion.
+        #expect(
+            LibraryCopy.entry(.chrome(.narrowing)).body == PairingCopy.neverInstalls,
+            "the Library's narrowing drifted from the shared constant"
+        )
+        #expect(LibraryCopy.narrowingKeys == [.chrome(.narrowing)])
     }
 
     @Test("every key has non-empty copy")

@@ -1,64 +1,17 @@
 import MCPRouterKit
 import SwiftUI
 
-/// A tab whose content another item owns, drawn as a designed awaiting state.
-///
-/// Not a placeholder, and the distinction matters. A tab that opens onto a blank pane reads as a
-/// broken app; a tab that opens onto invented rows is worse, because it is a lie that survives
-/// until someone taps one. `DESIGN.md` §5's empty-state rule — an illustration, one sentence, one
-/// action — applies here with the action omitted, since the action these four will eventually offer
-/// does not exist yet and inventing a disabled one would be theatre.
-public struct AwaitingTab: View {
-    private let icon: Icon
-    private let key: PairingCopy.Key
-
-    public init(icon: Icon, key: PairingCopy.Key) {
-        self.icon = icon
-        self.key = key
-    }
-
-    public var body: some View {
-        let entry = PairingCopy.entry(key)
-
-        VStack(spacing: PhoneMetric.normal) {
-            IconView(icon, size: PhoneMetric.emptyGlyph, weight: .light)
-                .foregroundStyle(ColorToken.t3.color)
-                .accessibilityHidden(true)
-
-            if let headline = entry.headline {
-                Text(headline)
-                    .typeRole(.title3)
-                    .foregroundStyle(ColorToken.t1.color)
-                    .multilineTextAlignment(.center)
-            }
-
-            Text(entry.body)
-                .typeRole(.body)
-                .foregroundStyle(ColorToken.t2.color)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-
-            if entry.carriesNarrowing {
-                Text(PairingCopy.neverInstalls)
-                    .typeRole(.callout)
-                    .foregroundStyle(ColorToken.t3.color)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, PhoneMetric.tight)
-            }
-        }
-        .padding(.horizontal, PhoneMetric.section)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(ColorToken.ground.color)
-    }
-}
-
 /// The companion's root: five tabs, iOS grammar, Settings last.
 ///
 /// **No badges anywhere, and their absence is a decision.** A badge is a count, a count is observed
-/// data, and this feature observes none of it — I2 and I3 own the things that would be counted. A
-/// plausible number on a tab is the fabricated figure `DESIGN.md` §6 forbids, and it is the kind
-/// that survives review precisely because it looks like an implementation detail.
+/// data, and this shell observes none of it. A plausible number on a tab is the fabricated figure
+/// `DESIGN.md` §6 forbids, and it is the kind that survives review precisely because it looks like
+/// an implementation detail. Triage's bucket counts are a different thing: they are the sizes of
+/// sets the user's own decisions produced, and they sit on the surface that produced them.
+///
+/// **`AwaitingTab` is gone as of I3**, along with `awaitingKey` and all four of `PairingCopy`'s
+/// awaiting entries. Every tab now resolves to a real surface, which is the phone's analogue of the
+/// Mac placeholder retiring at M6.
 public struct PhoneShell<Preview: View>: View {
     @State private var selection: Tab = .settings
 
@@ -68,11 +21,12 @@ public struct PhoneShell<Preview: View>: View {
     private let openSystemSettings: () -> Void
     private let cameraPreview: (@escaping @MainActor (String) -> Void) -> Preview
 
-    /// Discover's dependencies. Defaulted to the fixture client and an in-memory queue so every
-    /// existing preview and macOS host test keeps constructing the shell unchanged — I1's callers
-    /// predate this feature and should not have to learn about it to keep compiling.
+    /// The surfaces' dependencies. Defaulted so every existing preview and macOS host test keeps
+    /// constructing the shell unchanged — callers that predate a feature should not have to learn
+    /// about it to keep compiling.
     private let client: any ControlAPIClient
-    private let queue: any CapabilityQueueWriter
+    private let queue: any CapabilityQueueWriter & CapabilityQueueReader
+    private let dismissals: any DismissalStore
     private let connection: ConnectionState
     private let macName: String?
 
@@ -103,22 +57,6 @@ public struct PhoneShell<Preview: View>: View {
             case .settings: .settings
             }
         }
-
-        /// The awaiting copy, for the tabs whose content is another item's.
-        ///
-        /// **`.discover` returns nil**: I2 ships it, so it resolves to `DiscoverScreen` rather than
-        /// to `AwaitingTab`. Returning nil here rather than leaving a key behind is what makes the
-        /// awaiting branch unreachable for this tab — a view that compiles behind a tab still
-        /// rendering the awaiting state does not satisfy A32.
-        public var awaitingKey: PairingCopy.Key? {
-            switch self {
-            case .discover: nil
-            case .triage: .triageAwaiting
-            case .queue: .queueAwaiting
-            case .library: .libraryAwaiting
-            case .settings: nil
-            }
-        }
     }
 
     public init(
@@ -126,7 +64,8 @@ public struct PhoneShell<Preview: View>: View {
         store: any PairingRecordStore = InMemoryPairingStore(),
         camera: any CameraAuthorizing = FixtureCameraAuthorization(),
         client: any ControlAPIClient = FixtureControlAPIClient(),
-        queue: any CapabilityQueueWriter = InMemoryCapabilityQueue(),
+        queue: any CapabilityQueueWriter & CapabilityQueueReader = InMemoryCapabilityQueue(),
+        dismissals: any DismissalStore = InMemoryDismissalStore(),
         connection: ConnectionState = .reachable,
         macName: String? = nil,
         openSystemSettings: @escaping () -> Void = {},
@@ -137,6 +76,7 @@ public struct PhoneShell<Preview: View>: View {
         self.camera = camera
         self.client = client
         self.queue = queue
+        self.dismissals = dismissals
         self.connection = connection
         self.macName = macName
         self.openSystemSettings = openSystemSettings
@@ -160,23 +100,37 @@ public struct PhoneShell<Preview: View>: View {
         .tint(ColorToken.accent.color)
     }
 
+    /// **An exhaustive `switch`, one case per surface**, and the exhaustiveness is the guard.
+    ///
+    /// The previous shape was `if .discover { … } else if let key = awaitingKey { … } else {
+    /// PhoneSettingsScreen }`. Under that shape, making `awaitingKey` return nil for the three
+    /// remaining tabs would not have retired the placeholder — it would have routed Triage, Queue
+    /// and Library to the **final `else`**, so all three would have rendered Settings while every
+    /// "no awaiting copy is compiled" check stayed green. A `switch` cannot fail that way: a sixth
+    /// tab added without a surface does not compile.
     @ViewBuilder
     private func content(for tab: Tab) -> some View {
-        if tab == .discover {
-            // A32: the Discover tab is reachable and real in the running app. This is the branch
-            // that used to resolve to `AwaitingTab`, and replacing it is what this item ships.
+        switch tab {
+        case .discover:
             DiscoverScreen(
                 client: client,
                 queue: queue,
                 connection: connection,
                 macName: macName
             )
-        } else if let key = tab.awaitingKey {
-            NavigationStack {
-                AwaitingTab(icon: tab.icon, key: key)
-                    .navigationTitle(tab.title)
-            }
-        } else {
+        case .triage:
+            TriageScreen(
+                client: client,
+                queue: queue,
+                dismissals: dismissals,
+                connection: connection,
+                macName: macName
+            )
+        case .queue:
+            QueueScreen(queue: queue, connection: connection, macName: macName)
+        case .library:
+            LibraryScreen(client: client, macName: macName)
+        case .settings:
             PhoneSettingsScreen(
                 pairing: pairing,
                 store: store,
@@ -196,7 +150,8 @@ public extension PhoneShell where Preview == EmptyView {
         store: any PairingRecordStore = InMemoryPairingStore(),
         camera: any CameraAuthorizing = FixtureCameraAuthorization(),
         client: any ControlAPIClient = FixtureControlAPIClient(),
-        queue: any CapabilityQueueWriter = InMemoryCapabilityQueue(),
+        queue: any CapabilityQueueWriter & CapabilityQueueReader = InMemoryCapabilityQueue(),
+        dismissals: any DismissalStore = InMemoryDismissalStore(),
         connection: ConnectionState = .reachable,
         macName: String? = nil,
         openSystemSettings: @escaping () -> Void = {}
@@ -207,6 +162,7 @@ public extension PhoneShell where Preview == EmptyView {
             camera: camera,
             client: client,
             queue: queue,
+            dismissals: dismissals,
             connection: connection,
             macName: macName,
             openSystemSettings: openSystemSettings,

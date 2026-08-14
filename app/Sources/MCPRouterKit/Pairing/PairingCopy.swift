@@ -86,8 +86,14 @@ public enum PairingCopy {
     }
 
     /// Which surface a piece of copy belongs to. Used for grouping in the completeness check.
+    ///
+    /// **`shell` was removed by I3**, and its removal is the point rather than tidying. The four
+    /// awaiting keys were that surface's only members, so deleting them alone would have left
+    /// `Surface.shell` with no copy at all and failed `PhoneCopyTests.everySurfaceIsCovered` — a
+    /// merged test that names none of the deleted symbols and so is invisible to a grep for them.
+    /// The phone shell no longer owns any pairing copy: its three new surfaces carry their own
+    /// manifests, and the narrowing that lived on the library placeholder moved to `LibraryCopy`.
     public enum Surface: String, Sendable, CaseIterable {
-        case shell
         case settings
         case scan
         case camera
@@ -100,9 +106,6 @@ public enum PairingCopy {
 
     /// Every surface-and-state that renders copy in this feature.
     public enum Key: String, Sendable, CaseIterable {
-        /// The four tabs whose content another item owns.
-        case discoverAwaiting, triageAwaiting, queueAwaiting, libraryAwaiting
-
         // Settings, the feature's data surface — the nine states of `DESIGN.md` §5.
         case settingsNeverPaired
         case settingsReachable
@@ -161,7 +164,6 @@ public enum PairingCopy {
 
         public var surface: Surface {
             switch self {
-            case .discoverAwaiting, .triageAwaiting, .queueAwaiting, .libraryAwaiting: .shell
             case .settingsNeverPaired, .settingsReachable, .settingsLoading, .settingsPartial,
                  .settingsUnreadable, .settingsJustPaired, .settingsMacUnreachable: .settings
             case .scanReady, .scanCaution, .scanNoCode: .scan
@@ -185,33 +187,8 @@ public enum PairingCopy {
     /// The copy. Exhaustive by construction.
     public static func entry(_ key: Key) -> Entry {
         switch key {
-        // MARK: The shell's awaiting states
-
-        case .discoverAwaiting:
-            Entry(
-                headline: "Nothing to browse yet",
-                body: "Browsing arrives in a later update. Pairing and your library are here now."
-            )
-        case .triageAwaiting:
-            Entry(
-                headline: "Nothing to triage yet",
-                body: "Capabilities you have not decided on will collect here once browsing arrives."
-            )
-        case .queueAwaiting:
-            Entry(
-                headline: "You have not sent anything yet",
-                body: "Items you send to your Mac appear here with what happened to them at the Mac."
-            )
-        case .libraryAwaiting:
-            // Library carries the narrowing too: it is the surface most likely to be mistaken for
-            // an install surface, since it lists what *is* installed.
-            Entry(
-                headline: "Your library lives on your Mac",
-                body: "What is installed there will be listed here, read-only.",
-                carriesNarrowing: true
-            )
-
         // MARK: Settings
+
         case .settingsNeverPaired:
             Entry(
                 headline: "No Mac paired yet",

@@ -1,0 +1,110 @@
+import Foundation
+import MCPRouterKit
+
+/// Triage's three acts: queue a batch, dismiss a batch, and reverse either one.
+///
+/// Split from `TriageModel` on a real seam — state and loading there, the acts here — rather than
+/// letting one file grow toward the 400-line cap and then be split under a red gate.
+@MainActor
+public extension TriageModel {
+    // MARK: - Queue
+
+    /// Queue every selected entry, then reload.
+    ///
+    /// **Per item, and the outcome is counted rather than assumed.** `enqueue` is idempotent on
+    /// `id`, so a batch containing something already queued produces no second row and does not
+    /// double the count. An item whose write is refused stays in Undecided and is named — the batch
+    /// never reports success for something it did not save (A14).
+    func queueSelected() async {
+        let ids = selected
+        guard !ids.isEmpty else { return }
+
+        let entries = buckets.undecided.filter { ids.contains($0.id) }
+        var saved: [String] = []
+        var refused: [String] = []
+
+        for entry in entries {
+            do {
+                try await queue.enqueue(QueuedCapability(entry: entry))
+                saved.append(entry.id)
+            } catch {
+                refused.append(entry.id)
+            }
+        }
+
+        writeFailure = refused.isEmpty
+            ? nil
+            : TriageWriteFailure(saved: saved.count, refused: refused)
+        // Undo covers what actually landed. Offering to undo a write that was refused would undo
+        // nothing and say it had.
+        undo = saved.isEmpty ? nil : .queued(saved)
+        selected.removeAll()
+        await load()
+    }
+
+    // MARK: - Dismiss
+
+    /// Turn down every selected entry, then reload.
+    func dismissSelected() async {
+        let ids = selected
+        guard !ids.isEmpty else { return }
+
+        let entries = buckets.undecided.filter { ids.contains($0.id) }
+        var saved: [String] = []
+        var refused: [String] = []
+
+        for entry in entries {
+            do {
+                try await dismissals.dismiss(DismissedCapability(entry: entry))
+                saved.append(entry.id)
+            } catch {
+                refused.append(entry.id)
+            }
+        }
+
+        writeFailure = refused.isEmpty
+            ? nil
+            : TriageWriteFailure(saved: saved.count, refused: refused)
+        undo = saved.isEmpty ? nil : .dismissed(saved)
+        selected.removeAll()
+        await load()
+    }
+
+    /// Put one dismissed entry back in Undecided. The per-row act in the Not-for-me bucket.
+    func restore(_ id: String) async {
+        try? await dismissals.restore(id)
+        undo = nil
+        await load()
+    }
+
+    // MARK: - Undo
+
+    /// Reverse the last batch.
+    ///
+    /// Reverses the *whole* batch, because that is the act the user took — undoing three of five
+    /// would leave a state nobody chose.
+    func undoLast() async {
+        guard let undo else { return }
+
+        switch undo {
+        case let .queued(ids):
+            for id in ids {
+                try? await queue.remove(id)
+            }
+        case let .dismissed(ids):
+            for id in ids {
+                try? await dismissals.restore(id)
+            }
+        }
+
+        self.undo = nil
+        writeFailure = nil
+        await load()
+    }
+
+    /// Clear the undo offer without acting on it — what a bucket change or a fresh load does.
+    func clearUndo() {
+        undo = nil
+        writeFailure = nil
+    }
+}

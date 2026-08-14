@@ -24,7 +24,12 @@ public enum TriageSurfaceState: Sendable, Equatable {
     /// the failure-mode-is-emptiness defect, applied to the set nobody thinks to check.
     case dismissalsUnreadable
 
-    /// Resolve from what the surface actually has.
+    /// Resolve the **load outcome** from what the surface actually has.
+    ///
+    /// It never returns `.empty`. Which bucket is empty is a fact about the bucket the user has
+    /// chosen, and that changes without another load — so it is derived at the model
+    /// (`TriageModel.displayState`) from `TriageBuckets.count(in:)`. Folding it in here would mean
+    /// re-resolving on every segment tap with inputs the resolver would have to be handed twice.
     ///
     /// The order of the guards is the order of the claims: an unreadable dismissal set outranks a
     /// populated list, because a list rendered from a dismissal set that failed to load is a list
@@ -32,8 +37,7 @@ public enum TriageSurfaceState: Sendable, Equatable {
     public static func resolve(
         results: Result<RegistrySearchResponse, ControlAPIError>?,
         queuedIDs: Set<String>,
-        dismissedIDs: Result<Set<String>, DismissalStoreError>,
-        bucket: TriageBucket
+        dismissedIDs: Result<Set<String>, DismissalStoreError>
     ) -> TriageSurfaceState {
         guard case let .success(dismissed) = dismissedIDs else {
             return .dismissalsUnreadable
@@ -58,7 +62,7 @@ public enum TriageSurfaceState: Sendable, Equatable {
             if !warnings.isEmpty {
                 return .partial(buckets, warnings)
             }
-            return buckets.count(in: bucket) == 0 ? .empty(bucket) : .populated(buckets)
+            return .populated(buckets)
         }
     }
 

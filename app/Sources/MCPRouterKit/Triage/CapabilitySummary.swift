@@ -57,7 +57,17 @@ public enum CapabilitySummary {
     /// already admits this by choosing a different copy key; the summary carries the admission
     /// through by giving that key a clause of its own **with no attention severity**.
     public static func resolve(for entry: RegistryEntry) -> Resolved {
-        let lines = CapabilityPlate.lines(install: entry.install, archived: entry.archived)
+        resolve(install: entry.install, archived: entry.archived)
+    }
+
+    /// The same derivation from the two inputs it actually reads.
+    ///
+    /// Mirrors `CapabilityPlate.lines(install:archived:)` deliberately. The Queue renders a
+    /// `QueuedCapability`, which carries an `install` but is not a `RegistryEntry` — and
+    /// synthesising a `RegistryEntry` from it just to call the other overload would be fabricating a
+    /// registry result out of queue data, which is exactly the kind of thing that later reads as one.
+    public static func resolve(install: RegistryInstall?, archived: Bool?) -> Resolved {
+        let lines = CapabilityPlate.lines(install: install, archived: archived)
         let clauses = lines.compactMap(clause(for:))
         let host = lines.first { $0.kind == .remote }?.host
 
@@ -69,7 +79,7 @@ public enum CapabilitySummary {
             clauses: clauses,
             host: host,
             wantsAttention: wantsAttention,
-            isSelectable: entry.install != nil
+            isSelectable: install != nil
         )
     }
 

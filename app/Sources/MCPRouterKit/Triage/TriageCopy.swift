@@ -7,9 +7,12 @@ import Foundation
 /// contains, and this phone already carries two manifests that other items own.
 ///
 /// Three manifests ship rather than one, **split before they grew rather than after**: Triage, Queue
-/// and Library are three surfaces with three vocabularies, which is a real seam. I2 shipped a single
-/// manifest, hit the 400-line cap mid-item, and a run before this one silenced three lint rules at
-/// file scope instead of splitting it. The seam was always there; only the timing is new.
+/// and Library are three surfaces with three vocabularies, which is a real seam.
+///
+/// The precedent is I1's, and it is worth citing correctly. `PairingCopy.swift:3` carries a
+/// **four**-rule file-scope suppression — `cyclomatic_complexity`, `function_body_length`,
+/// `type_body_length`, `file_length` — rather than a split. I2 then did the opposite and split
+/// `DiscoverCopy` into six files with no suppressions at all. This item follows I2.
 ///
 /// Substitution follows `DiscoverCopy`'s enumerated-token mechanism rather than `PairingCopy`'s
 /// single-value one: a token that no case declares fails a test, where free interpolation renders a
@@ -171,7 +174,7 @@ public enum TriageCopy {
 
     // MARK: - Controls
 
-    private static func control(_ key: ControlKey) -> Entry {
+    static func control(_ key: ControlKey) -> Entry {
         switch key {
         case .hint:
             Entry(body: "Tap a name to read what it can do. Tick what is worth your Mac's attention.")
@@ -189,136 +192,6 @@ public enum TriageCopy {
             Entry(body: "Move back to Undecided")
         case .expandedHeading:
             Entry(body: "What it would be able to do")
-        }
-    }
-
-    // MARK: - The commit
-
-    private static func commit(_ key: CommitKey) -> Entry {
-        switch key {
-        case .ready:
-            Entry(
-                body: "Queues them for review on {mac}.",
-                actionLabel: "Send {count} to Mac",
-                carriesNarrowing: true
-            )
-        case .neverPaired:
-            Entry(
-                body: "No Mac paired yet, so there is nowhere to send this. Pair one in Settings.",
-                actionLabel: "Send {count} to Mac",
-                isDisabled: true,
-                carriesNarrowing: true
-            )
-        case .dismiss:
-            Entry(body: "Not for me")
-        case .undoQueued:
-            Entry(body: "{count} queued for your Mac")
-        case .undoDismissed:
-            Entry(body: "{count} moved to Not for me")
-        case .undo:
-            Entry(body: "Undo")
-        case .partialWrite:
-            Entry(
-                headline: "Some of those were not saved.",
-                body: "{count} are in the queue. The rest were refused by this phone and are still in Undecided."
-            )
-        case .writeFailed:
-            Entry(
-                headline: "That was not saved.",
-                body: "This phone refused the write, so nothing was queued. Try again."
-            )
-        }
-    }
-
-    // MARK: - The capability clauses
-
-    private static func clause(_ key: ClauseKey) -> Entry {
-        switch key {
-        case .runsLocally:
-            Entry(body: "Runs a program on your Mac")
-        case .remote:
-            Entry(body: "Nothing runs on your Mac · {host}")
-        case .remoteUnknownHost:
-            // The plate's own reasoning, kept: a line naming the wrong host is worse than one
-            // admitting it does not know which, because the point of the line is telling the user
-            // where their arguments go.
-            Entry(body: "Nothing runs on your Mac · the index does not say where requests go")
-        case .credential:
-            Entry(body: "needs a credential")
-        case .credentialSmithery:
-            // Carries no attention severity, and the words say why. Every Smithery-hosted install
-            // declares a required Authorization unconditionally, so inside that subset the warning
-            // distinguishes nothing — and Smithery is most of the corpus.
-            Entry(body: "needs Smithery's key, which every entry there declares")
-        case .archived:
-            Entry(body: "repository archived")
-        case .noInstall:
-            Entry(body: "Neither index says how this runs")
-        }
-    }
-
-    // MARK: - States
-
-    private static func state(_ key: StateKey) -> Entry {
-        switch key {
-        case .emptyUndecided:
-            // No recency claim. There is no feed, no cursor and no seen-state anywhere in this
-            // product, so "nothing new since Tuesday" is not a thing that can be said honestly.
-            Entry(
-                headline: "Nothing left to decide",
-                body: "You have decided on everything in these results. Search Discover for something specific, or widen what you are looking at.",
-                actionLabel: "Go to Discover"
-            )
-        case .emptyQueued:
-            Entry(
-                headline: "Nothing queued yet",
-                body: "Tick something in Undecided and send it across.",
-                actionLabel: "Go to Undecided"
-            )
-        case .emptyDismissed:
-            Entry(
-                headline: "Nothing turned down",
-                body: "Anything you turn down stays here, so a decision made on a train is still readable at your desk."
-            )
-        case .partialOfficialDown:
-            Entry(
-                headline: "Showing Smithery only.",
-                body: "The official registry did not answer, so anything it alone lists is missing.",
-                actionLabel: "Try again"
-            )
-        case .partialSmitheryDown:
-            Entry(
-                headline: "Showing the official registry only.",
-                body: "Smithery did not answer, so anything it alone lists is missing.",
-                actionLabel: "Try again"
-            )
-        case .partialGitHubLimited:
-            Entry(
-                headline: "Repository details are incomplete.",
-                body: "GitHub limits how often it can be asked, so archive status is missing for some entries. Everything else is complete."
-            )
-        case .partialUnrecognised:
-            Entry(
-                headline: "The search reported a problem.",
-                body: "{warning}"
-            )
-        case .failed:
-            Entry(
-                headline: "The registry search failed",
-                body: "The router answered, but not with results. Nothing was queued and nothing changed on your Mac.",
-                actionLabel: "Try again"
-            )
-        case .offline:
-            Entry(
-                headline: "The router is not running on {mac}",
-                body: "Triage reads the registries through it, so there is nothing to decide on until it starts. Open MCP Router on your Mac."
-            )
-        case .dismissalsUnreadable:
-            Entry(
-                headline: "Your dismissals could not be read.",
-                body: "Something is saved on this phone and this version cannot decode it, so things you turned down may be listed again. Nothing has been deleted.",
-                actionLabel: "Try again"
-            )
         }
     }
 

@@ -94,6 +94,11 @@ public enum QueueCopy {
         /// emptiness is the defect this repo's own TypeScript router already shipped once.
         case unreadable
         case writeRefused
+        /// The app could not resolve a storage directory at all, so neither the queue nor the
+        /// dismissal set has anywhere to live. Its own state because the honest `try?` alternative —
+        /// falling back to in-memory stores — silently reproduces the defect the file-backed wiring
+        /// exists to fix: everything the user queues vanishes at the next launch, with nothing said.
+        case storageUnavailable
     }
 
     public enum Key: Sendable, Equatable, Hashable {
@@ -120,7 +125,12 @@ public enum QueueCopy {
             // States where the items are and what the user does next. No verb implying transfer.
             Entry(body: "On this phone. Open MCP Router on {mac} to review them.")
         case .footer:
-            Entry(body: "Your Mac decides. This list is the record of what you have queued, and it stays on this phone.")
+            Entry(
+                body: """
+                    Your Mac decides. This list is the record of what you have queued, and it stays on \
+                    this phone.
+                """
+            )
         case .stamp:
             Entry(body: "Queued {when}")
         case .remove:
@@ -139,7 +149,9 @@ public enum QueueCopy {
         case .empty:
             Entry(
                 headline: "Nothing waiting",
-                body: "Things you send from Triage or Discover collect here until you are back at your Mac.",
+                body: """
+                    Things you send from Triage or Discover collect here until you are back at your Mac.
+                """,
                 actionLabel: "Go to Triage"
             )
         case .neverPaired:
@@ -154,13 +166,25 @@ public enum QueueCopy {
         case .unreadable:
             Entry(
                 headline: "The queue could not be read.",
-                body: "Something is saved on this phone and this version cannot decode it, so it is not being shown. Nothing has been deleted and nothing has been sent.",
+                body: """
+                    Something is saved on this phone and this version cannot decode it, so it is not being \
+                    shown. Nothing has been deleted and nothing has been sent.
+                """,
                 actionLabel: "Try again"
             )
         case .writeRefused:
             Entry(
                 headline: "That item was not saved.",
                 body: "This phone refused the write, so it is not in the queue. Try again from Triage."
+            )
+        case .storageUnavailable:
+            Entry(
+                headline: "This phone has nowhere to save.",
+                body: """
+                    MCP Router could not open its own storage, so nothing can be queued or turned down. \
+                    Reinstalling the app usually clears this.
+                """,
+                carriesNarrowing: true
             )
         }
     }

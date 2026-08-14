@@ -103,3 +103,68 @@ of statement that stops the next reader checking.
 The differential (row 1) **was** re-run here, unlike at `04b978e`, because this commit changes
 `app/Sources/` and the `/usage` endpoints are in the compared matrix. That is the rule working in
 both directions: a doc or formatting change reuses the evidence, a behaviour change re-earns it.
+
+## Phase D — the completeness critic, and what actually reviewed this item
+
+This is recorded in full because the gate **degraded twice**, and a degraded gate that is not
+written down reads afterwards as a gate that passed.
+
+### Lane 1 — codex `gpt-5.6-sol`, the out-of-family reviewer: UNAVAILABLE
+
+The pipeline's three out-of-family gates exist because every other reviewer here is Claude auditing
+Claude. This one could not run: the account is at its usage limit until 20 Aug 2026, verified by the
+orchestrator, and the limit is account-level rather than per-session, so no retry inside this fleet's
+horizon would clear it.
+
+Recorded exactly as the fleet requires: **`codex: usage limit -> claude (downgrade)`**.
+
+The trap worth carrying forward: `codex exec` **exits 0 on a usage limit**. A gate keyed on `$?`
+records a pass for a review that never ran. The only honest tells are the ERROR line in the log and
+a missing or empty `-o` file.
+
+### Lane 2 — an in-family `claude -p` opus-5 critic, briefed to refute: STARVED
+
+Two were launched against this branch — one over the whole clause table and tree, one narrowed to
+S1–S8 and B1–B44 with four named files — both told that finding nothing counts as a **failed
+review** rather than a pass.
+
+Neither returned. Measured rather than assumed: after 23 minutes the first had consumed **22 seconds
+of CPU** and written no output, and 96 `claude` processes were resident on this machine — the rest of
+the fleet. They were blocked on API contention, not thinking. Left running; if either lands, its
+findings belong in a follow-up rather than being back-dated into this file.
+
+### What reviewed this item instead, and what it found
+
+A systematic pass by the runner. This is **weaker** than an independent reviewer and is labelled as
+such: it is the author checking the author, which is the exact weakness the out-of-family gate
+exists to remove. It is not offered as equivalent. What it did:
+
+**1 — every clause swept for evidence rather than for mentions.**
+`for n in $(seq 1 76); do grep -rqE "B$n\b" app/Tests app/Sources/RouterCore; done` returned twenty
+clauses named nowhere. Most were covered by tests that simply did not cite the number. Three were
+not covered at all: **B50 and B51** — the ring, the rotation boundary, the byte-offset cut — closed
+by rows 17, 18 and 16.
+
+**2 — the mutation table extended, which is the one instrument that finds this class.**
+Six mutations added for behaviours the plan named; **three stayed green**, meaning the behaviour was
+unguarded despite a passing fixture: **B2**'s null `cwd`, **B17**'s `Bearer` shadowing, and
+**B40**'s command-line guarantee. Closed by rows 7, 8 and 6.
+
+**3 — the Swift read against `src/*.ts` line by line, for divergences the register does not list.**
+Checked directly: B6 (`!isStdio && oauth !== false`, and the stdio branch's `authorized: true`),
+B9 (`stat ?? {calls:0,errors:0,projects:{}}` passed through unchanged), B14/B22 (`isControlPath`
+before the token gate, token before the route lookup — statement for statement against
+`control.ts:228-243`), B21 (`startsWith`, so `application/jsonp` is accepted), B29
+(`{added, tools, error, needsAuth}` with `error` omitted when undefined), B33 (`error ? 422 : 200`
+as ToBoolean, so `error: ""` is 200 *carrying* `"error":""`), B45 (`if (opts.server)` is ToBoolean,
+so `?server=` skips the filter rather than matching nothing), B50 (`size < MAX` → return, so `>=`
+rotates). **All eight matched.**
+
+One did not, and it is row 19: `UsageStore.record` swallowed a failed rotation and appended anyway,
+where the reference's single `try` skips the append. An unlisted divergence, therefore a regression
+by this spec's own rule. Found by reading the reference to check that a *new test* asserted parity
+rather than merely this port's behaviour — which is the habit worth keeping, not the finding.
+
+**Net: six coverage gaps closed, one live divergence fixed, zero findings outstanding.** Every one
+is red-green proven by a mutation. That is a real result, and it is still not a substitute for a
+reviewer who did not write the code.

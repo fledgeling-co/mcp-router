@@ -1,4 +1,5 @@
 import Foundation
+import MCP
 
 // The boundaries R3 plugs into, frozen by R2 so the two runners cannot collide.
 //
@@ -10,34 +11,88 @@ import Foundation
 
 // MARK: - Control
 
-/// Where R3's control API attaches.
+/// One request arriving at the control API.
 ///
-/// R2 buffers the request body exactly once and hands over the **raw bytes**. Nothing on this side
-/// of the seam decodes them, for the reason the spec's T3 records: routing happens before any
-/// semantic decode, so a control-path decode failure can never consume, reject or alter a request
-/// bound for the MCP endpoint.
+/// A value rather than four parameters because the shape kept being wrong: the first version passed
+/// `path` alone, which cannot express `/usage?since=…` — and folding the query into `path` would
+/// then break `claims(path:)`, since a handler matching `/usage` would stop recognising its own
+/// endpoint the moment a caller added a parameter.
+public struct ControlRequest: Sendable, Hashable {
+    public var method: String
+    /// The path with **no** query string, e.g. `/usage`. This is what `claims(path:)` is asked about.
+    public var path: String
+    /// The raw query string as received, without the leading `?`. Left unparsed on purpose: percent
+    /// decoding and repeated keys are decisions the handler should make, not ones this seam should
+    /// make for it.
+    public var rawQuery: String?
+    public var headers: [String: String]
+    /// The body, buffered exactly once by the listener. Raw bytes: nothing on this side of the seam
+    /// decodes them, for the reason T3 records — routing happens before any semantic decode, so a
+    /// control-path decode failure can never consume, reject or alter a request bound for MCP.
+    public var body: Data?
+    /// The connection it arrived on, for handlers that attribute a request to a caller.
+    public var connection: ConnectionDescriptor?
+
+    public init(
+        method: String,
+        path: String,
+        rawQuery: String? = nil,
+        headers: [String: String] = [:],
+        body: Data? = nil,
+        connection: ConnectionDescriptor? = nil
+    ) {
+        self.method = method
+        self.path = path
+        self.rawQuery = rawQuery
+        self.headers = headers
+        self.body = body
+        self.connection = connection
+    }
+}
+
+/// What a control response carries.
+///
+/// The streaming case exists because `/usage/stream` does: a response whose length is unknown when
+/// the headers are written, and which ends when the client goes away rather than when the handler
+/// runs out of things to say. Modelling only `Data` would have forced R3 to either buffer an endless
+/// stream or bypass this seam entirely.
+public enum ControlBody: Sendable {
+    case data(Data?)
+    /// Chunks written as they are produced. Finishing the stream ends the response.
+    ///
+    /// Disconnection is signalled the other way: the listener stops consuming, which fires the
+    /// stream's own `onTermination`. A producer that wants to know its reader has gone registers
+    /// there — no separate cancellation channel, and none that can be forgotten.
+    case stream(AsyncStream<Data>)
+}
+
+/// Where R3's control API attaches.
 public protocol ControlHandling: Sendable {
-    /// Whether this path belongs to the control API. Consulted *before* the MCP endpoint.
+    /// Whether this path belongs to the control API. Consulted *before* the MCP endpoint, and given
+    /// the path with its query already removed.
     func claims(path: String) -> Bool
 
     /// Answer a claimed request. Returning `nil` means "claimed but unhandled", which the listener
     /// renders as 404 rather than falling through to the MCP endpoint — a fall-through would let a
     /// mistyped control path reach the relay.
-    func respond(method: String, path: String, headers: [String: String], rawBody: Data?) async
-        -> ControlResponse?
+    func respond(to request: ControlRequest) async -> ControlResponse?
 }
 
 /// A control-API response, kept deliberately free of any HTTP library type so this seam does not
 /// drag NIO — or any other listener choice — across the boundary.
-public struct ControlResponse: Sendable, Hashable {
+public struct ControlResponse: Sendable {
     public var status: Int
     public var headers: [String: String]
-    public var body: Data?
+    public var body: ControlBody
 
-    public init(status: Int, headers: [String: String] = [:], body: Data? = nil) {
+    public init(status: Int, headers: [String: String] = [:], body: ControlBody) {
         self.status = status
         self.headers = headers
         self.body = body
+    }
+
+    public init(status: Int, headers: [String: String] = [:], body: Data? = nil) {
+        self.init(status: status, headers: headers, body: .data(body))
     }
 }
 
@@ -48,12 +103,7 @@ public struct NoControlHandling: ControlHandling {
         false
     }
 
-    public func respond(
-        method: String,
-        path: String,
-        headers: [String: String],
-        rawBody: Data?
-    ) async -> ControlResponse? {
+    public func respond(to request: ControlRequest) async -> ControlResponse? {
         nil
     }
 }
@@ -177,19 +227,14 @@ public struct NoCallObserving: CallObserving {
 
 /// Where R3's OAuth provider attaches, for HTTP upstreams.
 ///
-/// The associated type is the pinned SDK's own authorizer protocol rather than `any Sendable`: the
-/// plan gate found that an opaque `Sendable` cannot be handed to `HTTPClientTransport`, which wants
-/// a concrete `HTTPClientAuthorizer`, and that the mistake would only surface at the first HTTP
-/// upstream. Keeping the SDK type here means the seam either compiles or does not.
-///
-/// `Authorizer` is generic so `RouterCore` does not have to name the SDK type in a stored property
-/// that every caller would then have to import: R3 supplies the concrete type, R2 only passes it on.
+/// The authorizer is the pinned SDK's own `HTTPClientAuthorizer` rather than an opaque `Sendable`,
+/// because that is exactly what `HTTPClientTransport` accepts — `(any HTTPClientAuthorizer)?`. An
+/// opaque type here would have to be cast at the point of use, and the cast would fail at the first
+/// HTTP upstream rather than at compile time.
 public protocol UpstreamAuthorizing: Sendable {
-    associatedtype Authorizer: Sendable
-
     /// The authorizer for this upstream, or `nil` when it declares `oauth: false` — which must
     /// suppress authorization entirely rather than merely fail it.
-    func authorizer(for upstreamName: String) -> Authorizer?
+    func authorizer(for upstreamName: String) -> (any HTTPClientAuthorizer)?
 
     /// Called when an upstream reports it needs a browser authorization. The router runs under
     /// launchd with no user attached, so it records the URL rather than opening it.
@@ -198,9 +243,8 @@ public protocol UpstreamAuthorizing: Sendable {
 
 /// The inert authorizer: no upstream is authorized, and no challenge is recorded.
 public struct NoUpstreamAuthorizing: UpstreamAuthorizing {
-    public typealias Authorizer = Never
     public init() {}
-    public func authorizer(for upstreamName: String) -> Never? {
+    public func authorizer(for upstreamName: String) -> (any HTTPClientAuthorizer)? {
         nil
     }
 

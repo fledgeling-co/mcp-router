@@ -538,8 +538,12 @@ trusted).
 
 ### The nine states
 
-- **A19 (T)** Each of the nine `SurfaceState` cases has a rendering on this board, exhaustively
-  switched so a tenth case fails to compile.
+- **A19 (T)** Each of the nine `SurfaceState` cases names **where on this board it is rendered**,
+  as an exhaustive switch in `ServersBoardStates.treatment(for:)`, so a tenth case stops the board
+  compiling. Deliberately *not* an exhaustive switch in a preview: the board's own switch is over
+  `LoadState` and has six branches, and the nine states are not alternatives to one another —
+  Success, Disabled and Overflow are properties a populated board has as well. A compile check on a
+  preview surface would have proved that a screen nobody opens is exhaustive.
 - **A20 (T)** Loading renders skeleton rows at exactly `MetricToken.serversRow`, equal to the
   populated row height — the board does not jump when data lands.
 - **A21 (T)** `.stale` keeps its rows and shows the Partial banner; `.failed` shows the full-pane
@@ -741,3 +745,36 @@ fixed or answered above. The five blockers are worth naming because each was a r
 | B3 | A13 was unsatisfiable — `Add server…` legitimately sends `command`/`args`/`env` | A13 narrowed to PATCH, with the add case asserted as its deliberate opposite |
 | B4 | The Partial banner displayed a time nothing observes, and overstated the rows as a snapshot | Timestamp removed entirely; copy corrected |
 | B5 | A router that dies **after working** is `.stale`, so offline rendered as a generic banner | Offline copy and action now render in both load states |
+
+
+---
+
+## The plan gate — in-family, and what it found
+
+Same lane and same downgrade as the spec gate: **codex: usage limit → claude (downgrade)**, a fresh
+Opus 5 reviewer briefed to refute. It read the delivered code as well as the plan.
+
+**Verdict: REJECT — 4 blockers, 9 majors, 5 minors.** Two of its blockers were live defects in the
+delivered work and are fixed:
+
+| # | Finding | Resolution |
+|---|---|---|
+| B3 | `boardFiles` listed **9** files while `Boards/` held **10** — `ServerInspectorSections.swift`, the file that renders the read-only configuration, escaped the one-channel grep and the indicator-colour scan. The list's own comment said a directory listing is the only thing preventing exactly that, and it had none. | File added; `boardFileListIsComplete` now pins the list to the directory, as `shellFiles` already was |
+| B1 | A9 was proved only by `ServersBoardHeader.running` being an `Int?`, which shows the figure *can* be absent and nothing about whether the board withholds it | `boardWithholdsTheRunningCountWhenNotCurrent` asserts the board's own decision across all four load states |
+| M6 | A29's second half — the board draws `Breaker`, never `BreakerToggle` — had no assertion | `theBoardDrawsTheIndicatorNotAToggle`, with a positive check so it cannot pass on a board that draws no breaker |
+| M9 | A19 was satisfiable by an exhaustive switch on a preview nobody opens | Restated above and backed by `ServersBoardStates` |
+| M5 | `MenuCommand.availability` keeping M1's meaning left `MenuCommandTests` certifying a default the shipping app never reads — a drift guard that cannot see the drift | `theShippingContextEnablesTheBoardsCommands` asserts the context `ShellModel` actually passes, and asserts it differs from the parameterless form |
+| M8 | A30 claimed no size literal in the board's sources, with no mechanism | The geometry-literal rule in `scripts/lint/no-raw-design-values.sh`, previously scoped to `Shell/`, now covers `Boards/` — 22 files |
+
+B2 and B4 are true of the plan and were already satisfied by the delivered work: A26 is asserted in
+`ShellCommandRouterTests.availabilityFollowsTheContext`, and A1's test edit is carried with its
+"strictly stronger" argument in both the test and this spec.
+
+The majors this run **accepts rather than fixes**, with reasons: M1 (the plan's five-file sizing was
+wrong — the delivered shape is 11 source files, recorded in the plan's own appendix), M2 and M3 (the
+tracker and `ShellModel` were edited and the plan did not declare it — recorded in the appendix), M4
+(the injection seam was decided during implementation as `ServersBoardModel.forApp`), M7 (the
+registration should have been Phase A, not Phase D — the ordering cost nothing here because the
+registration is one line, but the observation is correct and worth carrying to M2–M8), and m2
+(`selectedServerIsTripped: Bool?` overloads `nil`; it answers the four questions asked of it and
+should become `selectedServer` if a fifth arrives).

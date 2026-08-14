@@ -40,3 +40,30 @@
         static var sheetHeight: Double { MetricToken.sidebar.leadingScalar * 2 }
     }
 #endif
+
+/// Where each of `DESIGN.md` §5's nine states is met on this board.
+///
+/// **A19 used to claim an exhaustive `switch` over `SurfaceState` in a preview surface, which was
+/// the wrong gate on the wrong thing** — the board's own switch is over `LoadState` and has six
+/// branches, so a compile check on a preview would have proved that a screen nobody opens is
+/// exhaustive. The nine are not alternatives to one another: five are load states, and Success,
+/// Disabled and Overflow are properties a *populated* board also has, all at once.
+///
+/// So the mapping is declared here instead, exhaustively, and a tenth case stops this compiling —
+/// which is the moment someone should be deciding what it looks like. Each entry names the place
+/// the state is actually rendered, so the claim is checkable by reading rather than by hoping.
+enum ServersBoardStates {
+    static func treatment(for state: SurfaceState) -> String {
+        switch state {
+        case .populated: "LoadState.loaded with rows — the table"
+        case .empty: "LoadState.loaded([]) — ServersBoardCopy.empty"
+        case .loading: "LoadState.loading — SkeletonRows at MetricToken.serversRow"
+        case .partial: "LoadState.stale — StaleReadingBanner; and PartialIndexNote for an unindexed server"
+        case .error: "LoadState.failed — ConnectionFailurePane from ControlAPIError"
+        case .success: "in place, from the server the router returned via apply(updated:)"
+        case .offline: "ControlAPIError.routerNotRunning, in either failed or stale"
+        case .disabled: "per control — canWrite, writesInFlight, and DisabledAction for Start the router"
+        case .overflow: "ServerRowView — one line, tail truncation, fixed row height"
+        }
+    }
+}

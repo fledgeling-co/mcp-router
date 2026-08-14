@@ -112,6 +112,7 @@
             "app/Sources/MCPRouterUI/Boards/ServersBoardModel.swift",
             "app/Sources/MCPRouterUI/Boards/ServersBoardWrites.swift",
             "app/Sources/MCPRouterUI/Boards/ServerInspector.swift",
+            "app/Sources/MCPRouterUI/Boards/ServerInspectorSections.swift",
             "app/Sources/MCPRouterUI/Boards/ServerInspectorControls.swift",
             "app/Sources/MCPRouterUI/Boards/ServerSheets.swift"
         ]

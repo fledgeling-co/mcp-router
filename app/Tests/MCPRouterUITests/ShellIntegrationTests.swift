@@ -315,5 +315,30 @@
                 "a shell file exists that the source-level gates never look at: \(onDisk) vs \(listed)"
             )
         }
+
+        /// The same pin for the boards, and it is not a formality.
+        ///
+        /// `boardFiles` was written by hand and immediately drifted: `Boards/` held ten files and the
+        /// list named nine, so `ServerInspectorSections.swift` — which renders the read-only
+        /// configuration section, the one place env and header **keys** reach the screen — was
+        /// skipped by both the one-channel grep and the indicator-colour declaration. The list's own
+        /// doc comment said a directory listing is the only thing that stops a file escaping every
+        /// source-level gate, and then did not have one. This is it.
+        @Test("the board file list this suite scans is the whole of what is on disk")
+        func boardFileListIsComplete() throws {
+            let boardsDir = try ShellTestSupport.repoRoot()
+                .appendingPathComponent("app/Sources/MCPRouterUI/Boards")
+            let onDisk = try FileManager.default
+                .contentsOfDirectory(atPath: boardsDir.path)
+                .filter { $0.hasSuffix(".swift") }
+                .sorted()
+            let listed = ShellTestSupport.boardFiles
+                .map { URL(fileURLWithPath: $0).lastPathComponent }
+                .sorted()
+            #expect(
+                onDisk == listed,
+                "a board file exists that the source-level gates never look at: \(onDisk) vs \(listed)"
+            )
+        }
     }
 #endif

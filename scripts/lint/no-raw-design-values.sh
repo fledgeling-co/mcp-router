@@ -112,21 +112,29 @@ done
 # Scoped to the files M1 added, so no merged gate changes meaning for code that was reviewed under
 # the old rules. Both are things the checks above structurally cannot see.
 
-SHELL_DIR="$ROOT/app/Sources/MCPRouterUI/Shell"
-[ -d "$SHELL_DIR" ] || { echo "error: $SHELL_DIR does not exist — the shell checks did not run" >&2; exit 1; }
+# The geometry rule was scoped to the shell when only the shell existed. A board draws far more
+# geometry than the shell does — column widths, row heights, a skeleton that has to match the row it
+# stands in for — so a board outside this list is the largest unguarded surface in the app. Each
+# board directory joins as it ships.
+GEOMETRY_DIRS=(
+  "$ROOT/app/Sources/MCPRouterUI/Shell"
+  "$ROOT/app/Sources/MCPRouterUI/Activity"
+  "$ROOT/app/Sources/MCPRouterUI/Boards"
+)
 
 # M3 brings the boards under the same two rules. They were scoped to the shell so that a merged gate
 # would not change meaning for already-reviewed code — that reason does not apply to a directory this
 # item created, and a board is the surface most likely to reach for a raw frame height or a second
 # channel, because it is the one with data to draw.
-BOARDS_DIR="$ROOT/app/Sources/MCPRouterUI/Boards"
-[ -d "$BOARDS_DIR" ] || { echo "error: $BOARDS_DIR does not exist — the board checks did not run" >&2; exit 1; }
 
 SHELL_FILES=()
-while IFS= read -r f; do SHELL_FILES+=("$f"); done < <(find "$SHELL_DIR" "$BOARDS_DIR" -name '*.swift' -type f)
-[ "${#SHELL_FILES[@]}" -gt 0 ] || { echo "error: no Swift files under $SHELL_DIR — the shell checks did not run" >&2; exit 1; }
+for dir in "${GEOMETRY_DIRS[@]}"; do
+  [ -d "$dir" ] || { echo "error: $dir does not exist — the geometry checks did not run" >&2; exit 1; }
+  while IFS= read -r f; do SHELL_FILES+=("$f"); done < <(find "$dir" -name '*.swift' -type f)
+done
+[ "${#SHELL_FILES[@]}" -gt 0 ] || { echo "error: no Swift files under the geometry directories — the checks did not run" >&2; exit 1; }
 
-echo "no-raw-design-values: $(printf '%s\n' "${SHELL_FILES[@]}" | wc -l | tr -d ' ') shell and board files under the extra rules"
+echo "no-raw-design-values: $(printf '%s\n' "${SHELL_FILES[@]}" | wc -l | tr -d ' ') files under the geometry and boundary rules"
 
 for f in "${SHELL_FILES[@]}"; do
   rel="${f#"$ROOT"/}"

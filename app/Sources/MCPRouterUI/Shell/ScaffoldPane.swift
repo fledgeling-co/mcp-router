@@ -23,11 +23,13 @@
     public enum BoardRegistry {
         /// Destinations whose real surface is compiled into this build.
         ///
-        /// M2–M8 each add exactly one entry here alongside the view that justifies it. M3 added
-        /// `.servers`, and this line is the whole difference between a board that exists and a board
-        /// the user can reach: without it `ContentZone` still renders the placeholder, however
-        /// complete the view is.
-        public static let installed: Set<Destination> = [.servers, .skills]
+        /// M2–M8 each add exactly one entry here alongside the view that justifies it. This line is
+        /// the whole difference between a board that exists and a board the user can reach: without
+        /// it `ContentZone` still renders the placeholder, however complete the view is.
+        ///
+        /// `.servers` is M3's (`ServersBoard`); `.skills` is M4's (`SkillsBoard`); `.activity` is
+        /// M2's (`ActivityBoard`).
+        public static let installed: Set<Destination> = [.servers, .skills, .activity]
 
         public static func hasBoard(_ destination: Destination) -> Bool {
             installed.contains(destination)

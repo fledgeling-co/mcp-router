@@ -223,30 +223,44 @@
 
         // MARK: - The scaffold cannot outlive the surface it stands in for
 
-        @Test("the installed boards and the scaffolded destinations are exact complements")
+        /// The two sets are exact complements, in both directions.
+        ///
+        /// This used to read "M1 installs no board, so every destination is scaffolded" and asserted
+        /// `installed.isEmpty`. That is not the invariant — it is the *state* the invariant happened
+        /// to have while no board had shipped, and a board landing would have failed it for doing
+        /// exactly what it was supposed to. What must always hold is that every destination has
+        /// precisely one of the two, which is what makes "a board exists but is not registered"
+        /// (the reader sees a placeholder over a finished surface) and "registered with no board"
+        /// (the reader sees nothing at all) both impossible.
+        @Test("installed and scaffolded are exact complements, both ways")
         func installedAndScaffoldedAreComplements() {
-            // This used to read `#expect(BoardRegistry.installed.isEmpty)`, which was true of M1 and
-            // is a statement about M1 rather than about the registry. M3 ships the Servers board, so
-            // the empty assertion had to go — and it is worth being precise about why that is not
-            // weakening a test (`SWIFT_PRACTICES.md` §7 forbids that): the assertion below is
-            // strictly stronger. `installed.isEmpty` says nothing about the relationship the type
-            // exists to maintain, while this says every destination is on exactly one side, which is
-            // the property the scaffold's whole design rests on.
-            for destination in Destination.allCases {
-                let hasBoard = BoardRegistry.installed.contains(destination)
-                let isScaffolded = BoardRegistry.scaffolded.contains(destination)
-                #expect(
-                    hasBoard != isScaffolded,
-                    "\(destination.title) is on both sides of the registry, or on neither"
-                )
-            }
+            let installed = BoardRegistry.installed
+            let scaffolded = Set(BoardRegistry.scaffolded)
+
+            #expect(installed.isDisjoint(with: scaffolded), "a destination cannot be both")
+            #expect(
+                installed.union(scaffolded) == Set(Destination.ordered),
+                "every destination is one or the other"
+            )
             #expect(
                 BoardRegistry.installed.count + BoardRegistry.scaffolded.count
                     == Destination.allCases.count
             )
-            // Scaffolded keeps sidebar order, so the placeholder list is readable as a list.
-            #expect(BoardRegistry.scaffolded == Destination.ordered
-                .filter { !BoardRegistry.installed.contains($0) })
+            #expect(
+                BoardRegistry.scaffolded == Destination.ordered.filter { !installed.contains($0) },
+                "the scaffolded list keeps sidebar order"
+            )
+        }
+
+        /// The count, stated separately so a board landing is a deliberate edit here rather than
+        /// something that slides through a set-algebra assertion unnoticed.
+        @Test("this build installs exactly the boards that have shipped")
+        func installedIsTheShippedSet() {
+            #expect(
+                BoardRegistry.installed == [.servers, .activity],
+                "M2 ships Activity and M3 ships Servers; M4–M8 each add one and update this line"
+            )
+            #expect(BoardRegistry.scaffolded.count == 6)
         }
 
         /// M3's own half: the board is not merely written, it is **registered**.
@@ -259,6 +273,14 @@
             #expect(BoardRegistry.hasBoard(.servers))
             #expect(ScaffoldedDestination(.servers) == nil)
             #expect(!BoardRegistry.scaffolded.contains(.servers))
+        }
+
+        /// M2's own half, for the same reason.
+        @Test("the Activity board is installed, so its pane is not the placeholder")
+        func activityBoardIsInstalled() {
+            #expect(BoardRegistry.hasBoard(.activity))
+            #expect(ScaffoldedDestination(.activity) == nil)
+            #expect(!BoardRegistry.scaffolded.contains(.activity))
         }
 
         /// The structural half of the orchestrator's condition: the placeholder cannot be built for
@@ -276,10 +298,14 @@
 
         @Test("the scaffold copy names the surface and offers no action it cannot perform")
         func scaffoldCopyIsHonest() throws {
-            let title = ScaffoldCopy.title(for: .activity)
-            #expect(title == "Activity isn't built yet")
+            // Deliberately a destination that is still scaffolded. Asking for the placeholder copy
+            // of an installed board would still pass — `ScaffoldCopy` is a pure formatter — while
+            // testing a sentence the reader can never be shown.
+            let example = try #require(BoardRegistry.scaffolded.first)
+            let title = ScaffoldCopy.title(for: example)
+            #expect(title == "\(example.title) isn't built yet")
             #expect(title.contains(ScaffoldCopy.sentinel))
-            #expect(ScaffoldCopy.detail(for: .activity).contains("activity"))
+            #expect(ScaffoldCopy.detail(for: example).contains(example.title.lowercased()))
 
             let source = try ShellTestSupport.repoFile("app/Sources/MCPRouterUI/Shell/ScaffoldPane.swift")
             #expect(!source.contains("Button("), "the scaffold offered a control with nothing behind it")

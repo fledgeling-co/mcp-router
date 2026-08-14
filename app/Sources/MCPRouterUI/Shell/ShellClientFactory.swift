@@ -67,5 +67,29 @@
             case let .fixture(scenario): FixtureControlAPIClient(scenario)
             }
         }
+
+        /// The live call feed, chosen by exactly the same rule as the client.
+        ///
+        /// It is here rather than inside the board for one reason: a Debug build running a fixture
+        /// must not open a socket to 127.0.0.1. If the board built its own `ControlEventStream` it
+        /// would do precisely that — the client would be answering from a recording while the feed
+        /// hammered a port with nothing behind it, and the reconnect policy would spend its six
+        /// attempts before reporting a disconnection that says nothing about the app. One decision,
+        /// made once, in the place that already makes it.
+        ///
+        /// A fixture scenario whose recording cannot be read returns `nil` rather than a source that
+        /// yields nothing: "no feed configured" and "the feed is silent" are different conditions,
+        /// and a surface told the second about the first would sit reporting a live stream forever.
+        public static func makeEventSource(
+            environment: [String: String] = ProcessInfo.processInfo.environment
+        ) -> (any ActivityEventSource)? {
+            switch currentChoice(environment: environment) {
+            case .live:
+                LiveActivityEventSource(ControlEventStream())
+            case let .fixture(scenario):
+                (try? FixtureControlAPIClient(scenario).streamEvents())
+                    .map(ReplayActivityEventSource.init)
+            }
+        }
     }
 #endif

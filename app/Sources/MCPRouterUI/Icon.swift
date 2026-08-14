@@ -16,6 +16,12 @@ public enum Icon: String, CaseIterable, Sendable {
     case activity, servers, skills, discover, inbox, evals, cleanup, settings
     case search, chev, check, warn, bang, shield, bolt, tray, book, list, compass, layers
     case conduit
+    /// The cold-start mark on a call row.
+    ///
+    /// §4 says drawn, never unicode, and the prototype marks a cold call with `❄` — a character,
+    /// at whatever weight the font happens to carry, on no grid. This is the symbol that replaces
+    /// it, so the mark sits at the same stroke weight as every other icon in the app.
+    case frost
 
     /// The SF Symbol that carries this icon, or nil when it is authored here instead.
     ///
@@ -47,6 +53,7 @@ public enum Icon: String, CaseIterable, Sendable {
         case .compass: "location.north.circle"
         case .layers: "square.3.layers.3d"
         case .conduit: nil
+        case .frost: "snowflake"
         }
     }
 

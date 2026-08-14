@@ -177,7 +177,12 @@ public struct FixtureControlAPIClient: ControlAPIClient {
     ) async throws(ControlAPIError) -> UsageResponse {
         try guardFailure()
         if scenario == .loading { try await Self.forever() }
-        var response = try decode("usage", as: UsageResponse.self)
+        var response = try decode(Self.usageFixtureName(for: scenario), as: UsageResponse.self)
+        // A router that is up with nothing declared has also served nothing, and this scenario used
+        // to answer `/usage` with the recording's records regardless — which made the empty call log
+        // unreachable through the double, and so made a log surface's empty state untestable. The
+        // scenario's own contract is that it is "genuinely empty rather than merely small".
+        if scenario == .empty { response.records = [] }
         // The double filters the recording rather than ignoring the arguments. A double that
         // accepts a filter and returns everything lets a surface's test pass while the surface
         // shows the wrong rows against a real router.
@@ -185,6 +190,30 @@ public struct FixtureControlAPIClient: ControlAPIClient {
         if let cwd { response.records = response.records.filter { $0.cwd == cwd } }
         if let limit { response.records = Array(response.records.prefix(limit)) }
         return response
+    }
+
+    /// Which call-log recording a scenario answers with.
+    ///
+    /// `usage.json` is a **capture**, written by `scripts/capture-control-fixtures.sh` from a real
+    /// router, and it is one record — enough to prove a record survives the wire, which is what it
+    /// exists for, and not enough to drive a surface built *out of* records. Hand-editing it would
+    /// turn a recording into an invention, so the scenarios that need a log with shape read
+    /// `usage-call-log.json` instead: an **authored** fixture, deliberately a separate file so the
+    /// two can never be confused for each other.
+    ///
+    /// What the authored one carries, and why each is there: two attributed sessions and one
+    /// unattributed record (the router omits `pid`/`cwd` whenever `lsof` cannot name the caller, and
+    /// a surface has to group those rather than drop them), three working directories, cold and warm
+    /// calls, two failures with real `err` strings, and one tool name and one server name past any
+    /// column's width. Every one of those is a state some surface has to render and could not
+    /// otherwise be driven into.
+    static func usageFixtureName(for scenario: Scenario) -> String {
+        switch scenario {
+        case .populated, .overflow, .streamLive, .streamReconnecting, .streamDisconnected:
+            "usage-call-log"
+        case .empty, .loading, .partial, .error, .success, .offline, .unauthorized, .disabled:
+            "usage"
+        }
     }
 
     public func usageSummary() async throws(ControlAPIError) -> UsageSummary {
@@ -277,7 +306,10 @@ public struct FixtureControlAPIClient: ControlAPIClient {
     public func streamEvents() throws(ControlAPIError) -> [StreamEvent] {
         let records: [CallRecord]
         do {
-            records = try Self.decodeFixture("usage", as: UsageResponse.self).records
+            records = try Self.decodeFixture(
+                Self.usageFixtureName(for: scenario),
+                as: UsageResponse.self
+            ).records
         } catch let error as ControlAPIError {
             throw error
         } catch {

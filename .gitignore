@@ -4,6 +4,10 @@ dist/
 
 # Dependencies
 node_modules/
+# The bare name too: a worktree symlinks node_modules to the main checkout, and a symlink
+# is a file to git, so the trailing-slash pattern above does not match it. One was committed
+# that way — an absolute path to one machine, in a public repo.
+node_modules
 
 # The router's own runtime state lives in ~/.claude/mcp-router/, never here,
 # but keep these ignored in case someone runs with a local --config.

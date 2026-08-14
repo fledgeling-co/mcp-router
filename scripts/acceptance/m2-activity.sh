@@ -43,9 +43,15 @@ pass() { echo "  ok — $*"; }
 REGISTRY="$ROOT/app/Sources/MCPRouterUI/Shell/ScaffoldPane.swift"
 # Membership, not equality. This read `= [.activity]` while M2 was the only board on the branch, so
 # M3 merging turned the set into `[.servers, .activity]` and this precondition BLOCKED a board that
-# was installed — a gate reporting "there is nothing to verify" about a shipped surface. The
-# declaration is one line, so the line is read and `.activity` looked for within it.
-grep -E 'installed: Set<Destination> *=' "$REGISTRY" | head -1 | grep -qE '\[[^]]*\.activity\b' \
+# was installed — a gate reporting "there is nothing to verify" about a shipped surface.
+#
+# It then did it again, for a different reason. The reader was `head -1`, on the stated grounds that
+# "the declaration is one line" — and at M7 it is seven members, 124 characters, wrapped by
+# swiftformat, so the read matched nothing and this blocked on `.activity` a second time. The reader
+# now lives in `board-registry.sh` and handles a declaration of any shape.
+# shellcheck source=scripts/acceptance/board-registry.sh
+. "$ROOT/scripts/acceptance/board-registry.sh"
+board_registry_installs "$REGISTRY" activity \
   || blocked "the tree being tested does not install .activity — there would be no board to verify"
 pass "build tree: .activity is installed (the running app is checked separately, below)"
 

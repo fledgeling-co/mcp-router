@@ -44,7 +44,11 @@ pass() { echo "  ok — $*"; PASSED=$((PASSED + 1)); }
 # looking at a board rather than a placeholder is the sentinel absence against the running process,
 # below. Membership rather than equality, because every board that lands adds a member.
 REGISTRY="$APP_DIR/Sources/MCPRouterUI/Shell/ScaffoldPane.swift"
-grep -E 'installed: Set<Destination> *=' "$REGISTRY" | head -1 | grep -qE '\[[^]]*\.discover\b' \
+# The reader lives in `board-registry.sh` since M7 wrapped the declaration across lines: the previous
+# `head -1` read matched nothing on a wrapped collection and blocked a board that had shipped.
+# shellcheck source=scripts/acceptance/board-registry.sh
+. "$ROOT/scripts/acceptance/board-registry.sh"
+board_registry_installs "$REGISTRY" discover \
   || blocked "the tree being tested does not install .discover — there would be no board to verify"
 pass "precondition: the build tree installs .discover (the running app is checked separately, below)"
 

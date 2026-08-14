@@ -914,15 +914,10 @@ DEST_TOTAL="$(awk '
 # (An earlier fix here replaced a `sed` *range* that ran past the declaration to the next bracket
 # anywhere below, sweeping in three unrelated tokens. Same lesson, opposite direction: read exactly
 # the declaration, and nothing else.)
-INSTALLED_LIST="$(awk '
-    /installed: Set<Destination> *=/ { collecting = 1 }
-    collecting                       { line = line " " $0 }
-    collecting && /\]/               { exit }
-    END {
-        if (match(line, /\[[^]]*\]/)) print substr(line, RSTART + 1, RLENGTH - 2)
-    }
-' "$APP_DIR/Sources/MCPRouterUI/Shell/ScaffoldPane.swift")"
-INSTALLED_COUNT="$(printf '%s' "$INSTALLED_LIST" | grep -oE '\.[a-z][a-zA-Z]*' | wc -l | tr -d ' ')"
+# shellcheck source=scripts/acceptance/board-registry.sh
+. "$ROOT/scripts/acceptance/board-registry.sh"
+INSTALLED_LIST="$(board_registry_installed "$APP_DIR/Sources/MCPRouterUI/Shell/ScaffoldPane.swift")"
+INSTALLED_COUNT="$(board_registry_installed_count "$APP_DIR/Sources/MCPRouterUI/Shell/ScaffoldPane.swift")"
 
 # An empty parse is a broken parse, never an empty set: `installed` is non-empty from M2 onward, so
 # zero here means the reader stopped matching the source rather than that no board shipped.

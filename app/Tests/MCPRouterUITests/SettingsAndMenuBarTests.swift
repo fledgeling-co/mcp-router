@@ -217,6 +217,94 @@
             #expect(model.status == .absent)
         }
 
+        // MARK: - A28 · offline loses the router's facts and nothing else
+
+        /// The lines of the group stack in `body`, stripped and without blanks.
+        ///
+        /// The stack is found by its own spacing token rather than by line number, so an edit above
+        /// it does not silently make this read a different block.
+        private static func groupStackBody(in source: String) throws -> [String] {
+            let opener = "VStack(alignment: .leading, spacing: SettingsMetrics.groupGap) {"
+            let after = try #require(
+                source.range(of: opener),
+                "the settings pane no longer composes its groups in a groupGap stack"
+            )
+            let rest = source[after.upperBound...]
+            let close = try #require(rest.range(of: "\n                    }"), "the stack never closes")
+            return rest[..<close.lowerBound]
+                .components(separatedBy: "\n")
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+        }
+
+        /// A28 was true and asserted nowhere, for the same reason A29 was: the four groups sit
+        /// unconditionally in `body`, so an offline router can only empty the *Router* group and can
+        /// never remove Menu bar or Control token. "True by construction" is precisely the property
+        /// a later edit removes without anything objecting — wrapping the token group in
+        /// `if facts != nil` to "tidy up the offline pane" is a one-line change that reads as
+        /// reasonable and silently deletes the only surface for forgetting a rejected credential.
+        ///
+        /// Textual, deliberately, and for the reason A29 gives: this is a claim about how the view
+        /// is *built*. A rendered assertion that the two groups appear while offline cannot tell
+        /// "they are unconditional" from "they happen to be reachable in the one state I drove".
+        @Test("A28 — every group but Router is unconditional, so offline cannot remove one")
+        func offlineKeepsEveryOtherGroup() throws {
+            let source = try ShellTestSupport.repoFile(
+                "app/Sources/MCPRouterUI/Boards/SettingsBoard.swift"
+            )
+            let lines = try Self.groupStackBody(in: source)
+            #expect(
+                lines == ["routerGroup", "menuBarGroup", "warmSetGroup", "tokenGroup"],
+                """
+                The pane's four groups must be four bare properties in spec order. Found: \(lines). \
+                Anything else — an `if`, a `guard`, a group moved inside another — means a router \
+                that is down can take a group with it, which is the partial rule A28 states.
+                """
+            )
+        }
+
+        /// A28's second half: the pane never shows a router value it does not have.
+        ///
+        /// `routerGroup` must test the error **before** the facts, so the two cannot both render.
+        /// Reversing the branches compiles, passes every other test, and draws stale endpoint rows
+        /// beside a banner saying the router never answered.
+        @Test("A28 — the offline branch precedes the facts branch, so neither renders beside the other")
+        func offlineBranchPrecedesFacts() throws {
+            let source = try ShellTestSupport.repoFile(
+                "app/Sources/MCPRouterUI/Boards/SettingsBoard.swift"
+            )
+            let error = try #require(source.range(of: "if let error = offlineError {"))
+            let facts = try #require(source.range(of: "} else if let facts {"))
+            #expect(
+                error.upperBound < facts.lowerBound,
+                "the facts branch must be the `else` of the offline branch, not the other way round"
+            )
+            // And there is exactly one place facts are read, so a second, unguarded one cannot hide
+            // further down the file.
+            #expect(source.components(separatedBy: "else if let facts {").count - 1 == 1)
+        }
+
+        /// The A28 guards' own red-green, kept rather than performed once by hand.
+        @Test("A28's guards can fail")
+        func groupStackGuardCanFail() throws {
+            // Built with the real terminator rather than written as a literal, so the fixture cannot
+            // drift from what `groupStackBody` actually looks for.
+            let close = "\n                    }"
+            let wrapped = "VStack(alignment: .leading, spacing: SettingsMetrics.groupGap) {\n"
+                + "                        routerGroup\n"
+                + "                        if facts != nil { tokenGroup }"
+                + close
+            let lines = try Self.groupStackBody(in: wrapped)
+            #expect(lines == ["routerGroup", "if facts != nil { tokenGroup }"])
+            #expect(lines != ["routerGroup", "menuBarGroup", "warmSetGroup", "tokenGroup"])
+
+            // The ordering half: a reversed pair puts `facts` first, and the comparison flips.
+            let reversed = "} else if let facts {\nif let error = offlineError {"
+            let error = try #require(reversed.range(of: "if let error = offlineError {"))
+            let factsRange = try #require(reversed.range(of: "} else if let facts {"))
+            #expect(!(error.upperBound < factsRange.lowerBound))
+        }
+
         // MARK: - A29 · the skeleton and the populated row are the same height
 
         /// Every `minHeight:` in a file, as written.

@@ -12,20 +12,44 @@ import UIKit
 /// import of its own.
 ///
 /// **`FixturePairingService` is deliberate, not a stub left behind.** M6 owns the Mac's pairing
-/// endpoint and is unmerged; the seam it implements is `PairingService`, published in
-/// `planning/specs/spec-I1.md`. Shipping an invented network client now would mean M6 discovering
-/// our wire rather than agreeing one.
+/// endpoint; the transport it needs is deferred (D-m6-a), and the seam this implements is
+/// `PairingService`, published in `planning/specs/spec-I1.md`. Shipping an invented network client
+/// now would mean the Mac discovering our wire rather than agreeing one.
+///
+/// **The control client is no longer a fixture by default, and the queue is no longer in memory.**
+/// Until I3 this call site passed neither, so `PhoneShell` took `FixtureControlAPIClient()` and
+/// `InMemoryCapabilityQueue()` in every configuration — meaning a Release build rendered recorded
+/// servers as the user's real library, and a queued item did not survive relaunching the app
+/// despite `FileCapabilityQueueWriter` existing and being tested. Both are wired properly here.
 @main
 struct MCPRouterIOSApp: App {
+    /// Where the queue and the dismissal set live, resolved once.
+    ///
+    /// **A failure here is carried, not swallowed.** `defaultDirectory` throws, and the tempting
+    /// `try?` would fall back to an in-memory store — silently reproducing the exact defect this
+    /// wiring exists to fix, and rendering a queue that quietly forgets everything on relaunch.
+    /// So the failure becomes a value the surfaces can show.
+    private let storage: Result<URL, Error> = Result {
+        try FileCapabilityQueueWriter.defaultDirectory()
+    }
+
     var body: some Scene {
         WindowGroup {
-            PhoneShell(
-                pairing: FixturePairingService(),
-                store: KeychainPairingStore(),
-                camera: LiveCameraAuthorization(),
-                openSystemSettings: openSystemSettings,
-                cameraPreview: { onCode in QRScannerView(onCode: onCode) }
-            )
+            switch storage {
+            case let .success(directory):
+                PhoneShell(
+                    pairing: FixturePairingService(),
+                    store: KeychainPairingStore(),
+                    camera: LiveCameraAuthorization(),
+                    client: PhoneClientFactory.makeClient(),
+                    queue: FileCapabilityQueueWriter(directory: directory),
+                    dismissals: FileDismissalStore(directory: directory),
+                    openSystemSettings: openSystemSettings,
+                    cameraPreview: { onCode in QRScannerView(onCode: onCode) }
+                )
+            case let .failure(error):
+                StorageUnavailableView(reason: error.localizedDescription)
+            }
         }
     }
 

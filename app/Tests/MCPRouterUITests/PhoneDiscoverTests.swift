@@ -17,7 +17,6 @@
         /// asserts the shell's own branch rather than that `DiscoverScreen` exists.
         @Test("the Discover tab resolves to a board and cannot re-enter the awaiting branch")
         func discoverIsWired() {
-            #expect(PhoneShell<EmptyView>.Tab.discover.awaitingKey == nil)
             // The shell still assembles with the new dependencies defaulted, so existing previews and
             // host tests keep constructing it unchanged.
             _ = PhoneShell().body

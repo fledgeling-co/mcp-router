@@ -113,4 +113,36 @@ enum PhoneMetric {
     /// The invocation block sits inside the plate. `DESIGN.md` §2: concentric corners throughout —
     /// child radius = parent radius − padding.
     static let invocationRadius: Double = plateRadius - tight
+
+    // MARK: - Triage, Queue, Library (I3)
+
+    /// The checkbox's visible box. Half the touch target, which is the same relation the fact chip
+    /// uses to say "deliberately smaller than the thing you tap": the control is quiet, the target
+    /// is not. The 44pt frame around it is `minimumTarget`, unchanged.
+    static let checkbox: Double = minimumTarget / 2
+
+    /// The checkbox's radius, from the same formula `controlRadius` and `chipRadius` use, evaluated
+    /// at the checkbox's height. One shape rule at four heights rather than four unrelated radii.
+    static let checkboxRadius: Double =
+        MetricToken.selectionRadius.leadingScalar * (checkbox / 32)
+
+    /// The checkbox's border. Heavier than a hairline because it is a control bezel rather than a
+    /// divider, and `DESIGN.md` §2 gives bezels their own token (`--lineS`) for the same reason.
+    static let checkboxBorder: Double = hairline * 1.5
+
+    /// The tick inside the checkbox, and the glyph on a capability clause. Both derived from the
+    /// type ladder rather than picked: a glyph beside a subheadline reads as part of the line only
+    /// if it is that line's size.
+    static let checkGlyph: Double = TypeToken.caption.size
+    static let clauseGlyph: Double = TypeToken.subheadline.size
+
+    /// The bucket segments' height. The Mac's small control, which is what a segmented control sits
+    /// at on the ladder; the 44pt floor is met by the segment's own frame, not by inflating this.
+    static let segmentHeight: Double = MetricToken.controlSmall.leadingScalar + snug
+
+    /// The segmented control's outer radius, and its selected segment's — concentric, so the child
+    /// radius is the parent's less the track padding (`DESIGN.md` §2).
+    static let segmentTrackRadius: Double = cardRadius - tight
+    static let segmentPadding: Double = 2
+    static let segmentRadius: Double = segmentTrackRadius - segmentPadding
 }

@@ -51,9 +51,22 @@ struct PhoneIndicatorTests {
         for (name, source) in files {
             let body = PhoneSourceGuardTests.stripped(source)
 
+            // `--live` means "a child process is running", and two surfaces now observe exactly
+            // that:
+            //
+            //  - `ConnectionBanner` — the connection dot.
+            //  - `Library/LibraryScreen` — I3's library row, where the hue marks a server whose
+            //    `MCPServer.state` is `.running`. That is not an analogy for the meaning, it is
+            //    the meaning: the router has a live child process for that server right now. The
+            //    row's other two states (idle, never started) take label tiers, and the fact is
+            //    also stated in words, so the hue is emphasis rather than the only signal.
+            let liveSurfaces: Set = [
+                "ConnectionBanner.swift",
+                "Library/LibraryScreen.swift"
+            ]
             if body.contains("ColorToken.live") || body.contains(": .live") {
                 #expect(
-                    name == "ConnectionBanner.swift",
+                    liveSurfaces.contains(name),
                     """
                     \(name) uses --live, which DESIGN.md §2 reserves for "a child process is \
                     running". Only the connection dot observes that. A confirmation mark, a trend \
@@ -72,12 +85,20 @@ struct PhoneIndicatorTests {
             //    with your own access, and it needs a credential. Those are the decision the
             //    surface exists to put in front of the user before the commit (spec-I2 A12–A13),
             //    which is exactly §2's meaning rather than an extension of it.
+            //  - `Triage/TriageRow` — I3's capability line, which is the same argument one level
+            //    up. The row states what queueing this entry would let it do *before* anything is
+            //    ticked, and amber marks the two clauses that carry a consequence: it runs a
+            //    program on your Mac, and it needs a credential. The tick is the decision, and
+            //    this line is what the decision is taken on.
             //
             // Offline is deliberately absent: `DiscoverScreen` renders "the router isn't running"
-            // in `--t3`, because that asks for an action, not a decision.
+            // in `--t3`, because that asks for an action, not a decision. I3's Triage follows it —
+            // its offline pane is `--t3` and its unreadable-dismissals pane is `--fail`, since a
+            // file that will not decode has failed rather than asked for a judgement.
             let attnSurfaces: Set = [
                 "PairedMacSettingsView.swift",
-                "Discover/CapabilityPlateView.swift"
+                "Discover/CapabilityPlateView.swift",
+                "Triage/TriageRow.swift"
             ]
             if body.contains("ColorToken.attention") || body.contains(": .attention") {
                 #expect(

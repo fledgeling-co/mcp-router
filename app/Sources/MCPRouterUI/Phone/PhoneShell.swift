@@ -68,6 +68,14 @@ public struct PhoneShell<Preview: View>: View {
     private let openSystemSettings: () -> Void
     private let cameraPreview: (@escaping @MainActor (String) -> Void) -> Preview
 
+    /// Discover's dependencies. Defaulted to the fixture client and an in-memory queue so every
+    /// existing preview and macOS host test keeps constructing the shell unchanged — I1's callers
+    /// predate this feature and should not have to learn about it to keep compiling.
+    private let client: any ControlAPIClient
+    private let queue: any CapabilityQueueWriter
+    private let connection: ConnectionState
+    private let macName: String?
+
     /// The five tabs, in order. `Settings` is last, which is where iOS users look for it.
     public enum Tab: String, CaseIterable, Sendable {
         case discover, triage, queue, library, settings
@@ -96,10 +104,15 @@ public struct PhoneShell<Preview: View>: View {
             }
         }
 
-        /// The awaiting copy, for the four whose content is another item's.
+        /// The awaiting copy, for the tabs whose content is another item's.
+        ///
+        /// **`.discover` returns nil**: I2 ships it, so it resolves to `DiscoverScreen` rather than
+        /// to `AwaitingTab`. Returning nil here rather than leaving a key behind is what makes the
+        /// awaiting branch unreachable for this tab — a view that compiles behind a tab still
+        /// rendering the awaiting state does not satisfy A32.
         public var awaitingKey: PairingCopy.Key? {
             switch self {
-            case .discover: .discoverAwaiting
+            case .discover: nil
             case .triage: .triageAwaiting
             case .queue: .queueAwaiting
             case .library: .libraryAwaiting
@@ -112,12 +125,20 @@ public struct PhoneShell<Preview: View>: View {
         pairing: any PairingService = FixturePairingService(),
         store: any PairingRecordStore = InMemoryPairingStore(),
         camera: any CameraAuthorizing = FixtureCameraAuthorization(),
+        client: any ControlAPIClient = FixtureControlAPIClient(),
+        queue: any CapabilityQueueWriter = InMemoryCapabilityQueue(),
+        connection: ConnectionState = .reachable,
+        macName: String? = nil,
         openSystemSettings: @escaping () -> Void = {},
         @ViewBuilder cameraPreview: @escaping (@escaping @MainActor (String) -> Void) -> Preview
     ) {
         self.pairing = pairing
         self.store = store
         self.camera = camera
+        self.client = client
+        self.queue = queue
+        self.connection = connection
+        self.macName = macName
         self.openSystemSettings = openSystemSettings
         self.cameraPreview = cameraPreview
     }
@@ -141,7 +162,16 @@ public struct PhoneShell<Preview: View>: View {
 
     @ViewBuilder
     private func content(for tab: Tab) -> some View {
-        if let key = tab.awaitingKey {
+        if tab == .discover {
+            // A32: the Discover tab is reachable and real in the running app. This is the branch
+            // that used to resolve to `AwaitingTab`, and replacing it is what this item ships.
+            DiscoverScreen(
+                client: client,
+                queue: queue,
+                connection: connection,
+                macName: macName
+            )
+        } else if let key = tab.awaitingKey {
             NavigationStack {
                 AwaitingTab(icon: tab.icon, key: key)
                     .navigationTitle(tab.title)
@@ -165,12 +195,20 @@ public extension PhoneShell where Preview == EmptyView {
         pairing: any PairingService = FixturePairingService(),
         store: any PairingRecordStore = InMemoryPairingStore(),
         camera: any CameraAuthorizing = FixtureCameraAuthorization(),
+        client: any ControlAPIClient = FixtureControlAPIClient(),
+        queue: any CapabilityQueueWriter = InMemoryCapabilityQueue(),
+        connection: ConnectionState = .reachable,
+        macName: String? = nil,
         openSystemSettings: @escaping () -> Void = {}
     ) {
         self.init(
             pairing: pairing,
             store: store,
             camera: camera,
+            client: client,
+            queue: queue,
+            connection: connection,
+            macName: macName,
             openSystemSettings: openSystemSettings,
             cameraPreview: { _ in EmptyView() }
         )

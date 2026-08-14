@@ -138,7 +138,8 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 | R2 | Router: pool, relay, passthrough | router | R1 ✓ | — | Opus | **Merged** `a8091bb` | — | 279 tests · 224 parity · 13 mutation guards load-bearing · 10 behavioural tests against a REAL spawned child (pipes, signals, PATH, SDK handshake) · gate run on the rebased tree |
 | R3 | Router: control, usage, registry | router | R1 ✓ R2 ✓ | — | Opus | **Merged** `e154bae` | — | 386 tests · 352 parity (parity-regen matches the reference exactly) · differential harness vs the RUNNING TypeScript router: 32/32 rows, 3 of which kill the reference where Swift answers 400 · 35/35 mutations red · 8 live port defects · **Phase D critic never ran** (codex account limit) — degraded, not passed |
 | R5 | Router: OAuth and the auth routes | router | R3 ✓ | — | Opus | **Merged** `b7c527c` | — | 456 tests · 358 parity (352 core + 6 auth, asserted by name) · 10 mutations red-green · the real NWListener exposed 5 defects the double could not, incl. a CheckedContinuation double-resume in `AuthFlow.cleanup` that traps and kills the daemon · Phase D in-family (downgrade logged) 11 findings/8 fixed · one guard correct-by-construction but untested, recorded in the evidence file |
-| R4 | Parity harness and cutover | router | R2 ✓ R3 ✓ R5 ✓ | — | Opus — never downgrade | **In progress** `wf_175aca22-5dd` | — | Unblocked: the Swift router is complete on main. Builds on F3's 23 fixtures and R3's `control-differential.sh`. **The cutover is a SEPARATE final commit** — the installer flip + `src/*.ts` deletion changes the router the user's own live sessions depend on, so the harness can merge while the cutover is held |
+| **R2-R** | **Router: the process that actually serves** | router | R2 ✓ R3 ✓ R5 ✓ | — | Opus — never downgrade | **Ready — CRITICAL PATH** | — | **Registered by the orchestrator; it was a deferral inside R2's plan, in no ledger, owned by nobody.** The composition root, the HTTP listener, the relay + MCP endpoint, the deferred HTTP clients, and lifecycle. Verified: `grep NWListener` over RouterCore returns `Auth/CallbackListener.swift` ALONE. **R4's `parity-gate.sh` is its acceptance test** — and must not be edited to pass |
+| R4 | Parity harness and cutover | router | R2 ✓ R3 ✓ R5 ✓ | — | Opus — never downgrade | **Merged (harness only)** `e129779` | — | **Cutover NOT performed and NOT recommended.** `parity-gate.sh` exits 1 at **50/81** — `mcp` 0/5, `cli` 0/10, `install` 0/5, `state` 0/1, `log` 0/1, all blocked structurally because **there is no Swift router process**. All 3 gates REJECT, all 3 independently confirmed the no-daemon finding, all 3 rejected the coverage number (was overstated five ways; denominator rose 71→81). Gate proven by hiding `dist/`, by a lane exiting 0 recording nothing, and by a fabricated test name |
 | M1 | Mac shell, menu bar, keyboard | mac | F2 ✓ F3 ✓ F4 ✓ | `?only=mac` | Opus | **In progress** `ai/m1` `wf_175aca22-5dd` | `ai/m1` | Spec (37 clauses) + plan committed and BOTH already REJECT-gated and rewritten — not to be re-run. No SwiftUI view exists yet: plan phases B/C/D are the whole remaining job. F4 merged, so §5 failure states are now renderable from the tracker. Its four questions are answered in the brief |
 | M2 | Activity | mac | M1 | `?only=mac&pane=activity` | Opus | Untriaged | — | — |
 | M3 | Servers: the breaker board | mac | M1 | `?only=mac&pane=servers` | Opus | Untriaged | — | — |
@@ -147,7 +148,7 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 | M6 | Inbox and pairing (Mac) | mac | M5 | `?only=mac&pane=inbox`, `?sheet=pair` | Opus | Untriaged | — | — |
 | M7 | Evals and Cleanup | mac | M3, M4 | `?pane=evals`, `?pane=cleanup` | Opus | Untriaged | — | — |
 | M8 | Settings, popover, quarantine | mac | M3 | `?pane=settings`, `?popover=1`, `?sheet=held` | Opus | Untriaged | — | — |
-| I1 | iPhone shell and pairing | ios | F2 ✓ F3 ✓ | `?only=phone&pairing=1` | Opus | **In progress** `ai/i1` `wf_175aca22-5dd` | `ai/i1` | Pairing surfaces, copy, QR scanner, typed entry and settings on the branch. Last run died to `Killed: 9` — SIGKILL from fleet-wide memory pressure, not a code fault; concurrency now 3 |
+| I1 | iPhone shell and pairing | ios | F2 ✓ F3 ✓ | `?only=phone&pairing=1` | Opus | **Merged** `d582d43` | — | 566 tests / 86 suites · 12 iOS tests on ONE reused simulator · 6 red-green mutations · fixed two `try?` sites swallowing Keychain failures (a refused save rendered "Paired." while nothing was written) · Phase D critic 8/6 caught `PhoneStorageFailureTests.swift` **untracked** — the fix would have shipped with no tests while `make test` still rose · unblocks I2 |
 | I2 | iPhone Discover and detail | ios | I1 | `?only=phone&tab=discover` | Opus | Untriaged | — | — |
 | I3 | iPhone Triage, Queue, Library | ios | I2 | `?only=phone&tab=triage` | Opus | Untriaged | — | — |
 
@@ -185,6 +186,35 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 ---
 
 ## Changelog
+
+- 2026-08-14 — **R4 refused the cutover, and the refusal is the most valuable thing the fleet has
+  produced.** Its parity gate exits 1 at **50 of 81 rows**, and the blocked lanes are structural,
+  not a matter of effort: `mcp` 0/5, `cli` 0/10, `install` 0/5, `state` and `log` 0/1 each.
+  **There is no Swift router process to cut over to.** `RouterCore` is a library; the only
+  `NWListener` in it is R5's single-shot OAuth callback; `docs/install.sh` writes launchd agents
+  running `node dist/index.js serve`. Verified here independently before acting on it, because it
+  invalidates a standing plan.
+  The cause: R2 shipped Phases 0–2 and deferred the relay, listener, HTTP clients and composition
+  root to **"R2-R" — a name that appeared in R2's plan, in no ledger, and was owned by nobody.**
+  Now registered as a first-class item on the critical path, with R4's gate as its acceptance test
+  and an explicit instruction not to edit the gate to make it pass.
+  All three of R4's reviews rejected its **coverage number**, correctly: it had been 50 of 74 and
+  was overstated five ways — a lane recording `blocked` read as proven, group-blind reconciliation,
+  `proven-by-suite` counting because a test merely existed, a pool lane naming Swift tests it never
+  ran, and a route extractor that saw 15 where there were 16. The denominator rose 71 → 81 once six
+  missing rows were added, so **their absence had been inflating the reported coverage.**
+- 2026-08-14 — **I1 merged.** 566 tests in 86 suites, 12 iOS tests on one reused simulator. The
+  substantive fix was two `try?` sites discarding a Keychain failure: a refused save rendered the
+  "Paired." success surface while nothing was written, so the pairing vanished at the next launch
+  with nothing having said so. Its in-family Phase D critic caught that
+  `PhoneStorageFailureTests.swift` was **untracked** — the fix would have committed with no tests
+  while `make test` still reported a rising count.
+  Two orchestrator errors worth recording. `git merge -q -F -` with a heredoc silently failed
+  (`could not read file '-'`) and a `;` let the "merged" echo print anyway; the tell was the gate
+  reporting 456 tests where I1's own count was 566. **A merge is verified by the test count moving
+  and HEAD changing, not by the word that follows it.** Separately, backticks inside a `git commit
+  -m "…"` were eaten by zsh and dropped a word from R5's pushed merge message — commit messages go
+  through a heredoc file, never `-m` with backticks.
 
 - 2026-08-14 — **Four items merged after the fleet was killed and restarted: R2, F4, R3, R5.**
   `main` went `b093122 → a8091bb → aba30bd → e154bae → b7c527c`, each merge gated on the

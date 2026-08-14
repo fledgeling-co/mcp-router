@@ -171,7 +171,16 @@
         @Test("the app's Scene mutates no model state directly")
         func assemblyCarriesNoOperation() throws {
             let source = try ShellTestSupport.repoFile("app/MCPRouter/MCPRouterApp.swift")
-            for forbidden in ["model?.select", "model?.isSidebarVisible", "model.select"] {
+            for forbidden in [
+                "model?.select", "model?.isSidebarVisible", "model.select",
+                // M8's additions. The menu-bar popover's row action goes through `MenuBarRouter`
+                // for the same reason a menu item goes through `ShellCommandRouter`: a decision
+                // written in this file is a decision no test can reach. `isMenuBarVisible` may be
+                // *bound* here — that is the `isInserted` binding, which is assembly — but never
+                // assigned.
+                "model.reveal", "model?.reveal",
+                "model.isMenuBarVisible =", "NSApp.activate", "NSApp.terminate"
+            ] {
                 #expect(
                     !source.contains(forbidden),
                     "the Scene carries '\(forbidden)' — that decision belongs in ShellCommandRouter"

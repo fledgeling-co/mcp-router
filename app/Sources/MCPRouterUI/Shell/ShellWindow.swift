@@ -42,7 +42,11 @@
             // a relaunch that restored the window off every screen. Zero-size and behind everything,
             // so it draws nothing and receives nothing.
             .background(WindowFrameRestorer(store: model.store).frame(width: 0, height: 0))
-            .task { await model.run() }
+            // The window no longer *owns* the poll — `startPolling()` retains it on the model, whose
+            // lifetime is the app's. M8 added a menu-bar item whose normal state is window-closed,
+            // and a `.task` here would cancel the poll behind it the moment this window went away.
+            // See `ShellModel.startPolling()` for the argument in full.
+            .task { model.startPolling() }
             .onAppear {
                 // The menu's reason walker is armed at launch, before any window exists. This is
                 // where it learns which window's state to ask.
@@ -165,10 +169,12 @@
                 ServersBoard(shell: model, board: model.serversBoard)
             case .skills:
                 SkillsBoard(shell: model, board: model.skillsBoard)
-            case .discover, .inbox, .evals, .cleanup, .settings:
+            case .settings:
+                SettingsBoard(shell: model)
+            case .discover, .inbox, .evals, .cleanup:
                 // Unreachable: every one of these is still in `scaffolded`, and the branch in
                 // `body` catches them. Deliberately not a second placeholder — a placeholder here
-                // is the very thing `ScaffoldedDestination` exists to make impossible. M5–M8
+                // is the very thing `ScaffoldedDestination` exists to make impossible. M5–M7
                 // replace these cases one at a time, and the exhaustive switch is what makes each
                 // one visible.
                 EmptyView()

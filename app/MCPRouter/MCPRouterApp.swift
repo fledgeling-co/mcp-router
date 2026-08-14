@@ -29,6 +29,23 @@ struct MCPRouterApp: App {
         }
         .commands { ShellCommands() }
 
+        // The glanceable instrument. `isInserted` is the gating API — `SceneBuilder` has no
+        // `buildOptional`, so `if flag { MenuBarExtra(…) }` does not compile, and this is the only
+        // way a scene can be conditionally present.
+        //
+        // The binding is on the model rather than an `@AppStorage` here, so the preference has an
+        // evidence lane: nothing in this directory is a SwiftPM target, and a value read straight
+        // from a `Scene` is a value no test can drive. `ShellRestoration` owns it.
+        //
+        // Assembly only, like everything else in this file: the popover's counts, sentences, tints
+        // and actions are all settled in `MCPRouterUI` and `MCPRouterKit`.
+        MenuBarExtra(isInserted: $model.isMenuBarVisible) {
+            MenuBarPopover(shell: model)
+        } label: {
+            MenuBarStatusItem(servers: model.servers)
+        }
+        .menuBarExtraStyle(.window)
+
         #if DEBUG
             // Debug only, and the acceptance harness asserts its identifier is absent from a
             // Release binary. A reference surface that shipped would be a feature nobody designed.

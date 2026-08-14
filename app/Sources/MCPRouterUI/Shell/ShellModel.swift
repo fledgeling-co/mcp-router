@@ -46,6 +46,8 @@
         public static let pollInterval: Duration = .seconds(2)
 
         @ObservationIgnored public let client: any ControlAPIClient
+        /// The retained poll loop. See ``startPolling()`` for why it is not owned by a scene.
+        @ObservationIgnored private var pollTask: Task<Void, Never>?
         /// The one reader of the control API, and the authority on what is running.
         ///
         /// Constructed **poll-only** — `stream` is nil, so the tracker reports `.notConfigured`
@@ -112,6 +114,18 @@
             }
         }
 
+        /// Whether the menu-bar status item is showing. Persisted alongside the destination.
+        ///
+        /// Observable on the model rather than read from `UserDefaults` by the scene, so the
+        /// `MenuBarExtra`'s `isInserted` binding reacts the instant the checkbox changes, and so the
+        /// preference has a place a test can reach.
+        public var isMenuBarVisible: Bool {
+            didSet {
+                guard oldValue != isMenuBarVisible else { return }
+                store.save(menuBarVisible: isMenuBarVisible)
+            }
+        }
+
         /// The scroll-edge separator's state, and the resting baseline it is measured against.
         public private(set) var scrollEdge = ScrollEdgeState()
 
@@ -153,6 +167,7 @@
             self.clock = clock
             selection = store.restoredDestination()
             isSidebarVisible = store.restoredSidebarVisible()
+            isMenuBarVisible = store.restoredMenuBarVisible()
         }
 
         // MARK: - Talking to the router
@@ -250,6 +265,64 @@
             selection = destination
         }
 
+        /// Puts a server in front of the user, from a surface that is not the window.
+        ///
+        /// The menu-bar popover's whole job is to be the shortest path to a decision, and the
+        /// decision lives on the Servers board. This is that path, expressed as one operation on the
+        /// model rather than as three statements in a scene — so a test can assert the resulting
+        /// state instead of a sequence of calls, and so `MCPRouterApp.swift`, which no test can
+        /// reach, keeps deciding nothing.
+        ///
+        /// **`openingHeldChange` awaits the diff, and that `await` is the point.** Opening the sheet
+        /// takes two operations — setting `sheet` and loading the change — and an implementation
+        /// that sets the sheet alone renders "Reading the held descriptions…" forever with the
+        /// accept button dimmed. The one press this whole surface exists for would land on a dead
+        /// sheet, and a criterion asserting only the sheet case would pass it.
+        ///
+        /// Only a held change opens a sheet. A server that needs authorising and one that failed to
+        /// index land on the board with the row selected and nothing modal in front of them: their
+        /// next action is in the inspector, and a sheet the user did not ask for is a sheet that
+        /// gets dismissed rather than read.
+        public func reveal(server name: String, openingHeldChange: Bool) async {
+            selection = .servers
+            serversBoard.selection = name
+            guard openingHeldChange else {
+                serversBoard.sheet = nil
+                return
+            }
+            serversBoard.sheet = .heldChange(server: name)
+            await serversBoard.loadHeldChanges(name)
+        }
+
+        /// Starts the poll loop, once.
+        ///
+        /// **Why the model owns this rather than a scene.** `run()` used to be driven by
+        /// `ShellWindow`'s `.task`, which cancels when the window goes away — correct while the
+        /// window was the only surface, and the reasoning was written down as such. M8 adds a
+        /// menu-bar item whose normal operating state is *window-closed*, and a status item whose
+        /// dot froze the moment you closed the window would be a glanceable instrument that
+        /// silently stops being true.
+        ///
+        /// So the task is retained here, where the lifetime is the app's, and no scene cancels it.
+        /// The cost is a two-second poll against loopback for as long as the app runs, which for an
+        /// app whose entire subject is live status is the feature rather than a leak.
+        ///
+        /// Idempotent, and that matters: the window and the menu bar both call it, and two loops
+        /// would overlap their requests so an older response could land after a newer one.
+        public func startPolling() {
+            guard pollTask == nil else { return }
+            pollTask = Task { [weak self] in
+                await self?.run()
+            }
+        }
+
+        /// Stops it. Not called by any scene — it exists so a test can end the loop it started, and
+        /// so the model does not outlive its own task in a fixture.
+        public func stopPolling() {
+            pollTask?.cancel()
+            pollTask = nil
+        }
+
         /// What the menu bar needs to know to enable or dim its items.
         ///
         /// Computed rather than stored, so it cannot disagree with the board it describes. The
@@ -290,6 +363,9 @@
         public static let destinationKey = "shell.selectedDestination"
         public static let sidebarVisibleKey = "shell.sidebarVisible"
         public static let windowFrameKey = "shell.windowFrame"
+        /// Whether the menu-bar status item is shown. Named on `SettingsPresentation` so the pane
+        /// and the store cannot disagree about which key they mean.
+        public static let menuBarVisibleKey = SettingsPresentation.menuBarVisibleKey
 
         private let defaults: UserDefaults
 
@@ -317,6 +393,25 @@
 
         public func save(sidebarVisible: Bool) {
             defaults.set(sidebarVisible, forKey: Self.sidebarVisibleKey)
+        }
+
+        /// Whether the menu-bar status item is shown.
+        ///
+        /// Shown by default, so an absent key must read as `true` for the same reason the sidebar's
+        /// does: `bool(forKey:)` returns `false` for a key nobody has written, which would hide a
+        /// menu-bar app's main affordance on every first launch.
+        ///
+        /// This lives here rather than as `@AppStorage` in the scene so it has an evidence lane at
+        /// all. `app/MCPRouter` is not a SwiftPM target, so a preference read straight from a
+        /// `Scene` is a preference no test can drive; here, restoration across a process boundary is
+        /// assertable against a scratch defaults domain.
+        public func restoredMenuBarVisible() -> Bool {
+            defaults.object(forKey: Self.menuBarVisibleKey) as? Bool
+                ?? SettingsPresentation.menuBarVisibleDefault
+        }
+
+        public func save(menuBarVisible: Bool) {
+            defaults.set(menuBarVisible, forKey: Self.menuBarVisibleKey)
         }
 
         /// The window frame this app last had, or nil if it has never stored a usable one.

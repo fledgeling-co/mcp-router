@@ -99,10 +99,22 @@
             "thickMaterial", "ultraThickMaterial", "VisualEffectView"
         ]
 
+        /// The files that draw **window content**, where §3.3 forbids glass outright.
+        ///
+        /// `Shell/` stopped being synonymous with "content" when M8 added the menu-bar popover.
+        /// §3.3's rule has two halves — *"Liquid Glass on floating chrome only; content is
+        /// opaque"* — and a check that scanned every shell file could only ever express the second.
+        /// Excluding the popover here does not weaken the rule: it is the only floating surface in
+        /// the module, it is named rather than pattern-matched, and `popoverIsGlassAndAdapts`
+        /// below asserts the *first* half against it, which nothing did before.
+        private static var contentFiles: [String] {
+            ShellTestSupport.shellFiles.filter { !$0.hasSuffix("MenuBarPopover.swift") }
+        }
+
         @Test("the window's content is an opaque token, never a material")
         func contentIsOpaque() throws {
             #expect(ShellChrome.contentBackground == .ground)
-            for file in ShellTestSupport.shellFiles {
+            for file in Self.contentFiles {
                 let source = try ShellTestSupport.repoFile(file)
                 for material in Self.materials {
                     #expect(
@@ -111,6 +123,29 @@
                     )
                 }
             }
+        }
+
+        /// The other half of §3.3, which had no test until the app grew a floating surface.
+        ///
+        /// The popover is chrome, so it *should* be glass — and it must fall back to an opaque
+        /// token under Reduce Transparency, which is the accessibility setting §7 names.
+        @Test("the menu-bar popover is glass, and becomes opaque under Reduce Transparency")
+        func popoverIsGlassAndAdapts() throws {
+            let source = try ShellTestSupport.repoFile(
+                "app/Sources/MCPRouterUI/Shell/MenuBarPopover.swift"
+            )
+            #expect(
+                Self.materials.contains(where: source.contains),
+                "the popover is floating chrome and draws no material — §3.3 permits glass here"
+            )
+            #expect(
+                source.contains("accessibilityReduceTransparency"),
+                "the popover's glass does not honour Reduce Transparency"
+            )
+            #expect(
+                source.contains("ColorToken.panel.color"),
+                "the popover has no opaque fallback to fall back *to*"
+            )
         }
 
         @Test("no shell element sets a pointing-hand cursor")

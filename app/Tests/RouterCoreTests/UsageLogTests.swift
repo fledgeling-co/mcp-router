@@ -80,13 +80,23 @@ struct UsageLogTests {
         let (store, fileSystem) = Self.store(log: Data(log.utf8))
         let stamped = (try? fileSystem.attributes(atPath: Self.logPath).size) ?? 0
 
-        store.record(UsageRecord(ts: "2026-08-14T00:00:01.000Z", server: "s", tool: "t", ok: true, ms: 1, cold: false))
+        store.record(UsageRecord(
+            ts: "2026-08-14T00:00:01.000Z",
+            server: "s",
+            tool: "t",
+            ok: true,
+            ms: 1,
+            cold: false
+        ))
         store.flush()
 
         let rotated = fileSystem.fileExists(atPath: "\(Self.logPath).1")
         #expect(
             rotated == expectRotation,
-            "a log stamped \(stamped) bytes \(rotated ? "rotated" : "did not rotate"), against \(UsageStore.maxLogBytes)"
+            """
+            a log stamped \(stamped) bytes \(rotated ? "rotated" : "did not rotate"), \
+            against a threshold of \(UsageStore.maxLogBytes)
+            """
         )
     }
 

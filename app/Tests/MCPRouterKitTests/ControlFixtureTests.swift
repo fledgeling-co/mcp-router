@@ -40,13 +40,6 @@ struct ControlFixtureTests {
         expect("server-placarded", MCPServer.self),
         expect("patch-response", MCPServer.self),
         expect("usage", UsageResponse.self),
-        // The one **authored** fixture in this set, and the only one not written by
-        // `capture-control-fixtures.sh`. `usage.json` is a capture of a single call — enough to
-        // prove a record survives the wire, and not enough to drive a surface built out of records
-        // — and editing a capture to add shape would turn a recording into an invention. So the
-        // call log with shape is a separate file: two sessions, one unattributed record, three
-        // directories, cold and warm calls, two failures, and names past any column's width.
-        expect("usage-call-log", UsageResponse.self),
         expect("usage-summary", UsageSummary.self),
         expect("usage-reset", UsageReset.self),
         expect("changes-none", HeldChanges.self),

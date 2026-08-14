@@ -27,6 +27,16 @@
         /// Wide enough for a four-digit millisecond value and the cold mark beside it.
         static let took = MetricToken.controlExtraLarge.leadingScalar
             + MetricToken.controlRegular.leadingScalar
+        /// The one height every row in this list is drawn at — populated, header-adjacent and
+        /// skeleton alike.
+        ///
+        /// Named rather than repeated, because `DESIGN.md` §5's rule is that the row height never
+        /// moves and the skeleton matches the real geometry exactly. Two independent
+        /// `.frame(height: MetricToken.tableRows...)` expressions satisfy that by coincidence and
+        /// stop satisfying it the moment one is edited; one constant, asserted to be the only
+        /// height either draws at, cannot drift apart.
+        static let rowHeight = MetricToken.tableRows.leadingScalar
+
         /// The gutter between columns, and the row's own leading inset.
         static let gutter = MetricToken.selectionRadius.leadingScalar
         static let inset = MetricToken.selectionRadius.leadingScalar * 2
@@ -84,7 +94,7 @@
                 took
             }
             .padding(.horizontal, ActivityColumn.inset)
-            .frame(height: MetricToken.tableRows.leadingScalar)
+            .frame(height: ActivityColumn.rowHeight)
             .frame(maxWidth: .infinity)
             .background(isSelected ? ColorToken.f1.color : Color.clear)
             .contentShape(Rectangle())
@@ -216,7 +226,7 @@
                         bar(width: ActivityColumn.took)
                     }
                     .padding(.horizontal, ActivityColumn.inset)
-                    .frame(height: MetricToken.tableRows.leadingScalar)
+                    .frame(height: ActivityColumn.rowHeight)
                 }
             }
             .accessibilityElement(children: .ignore)

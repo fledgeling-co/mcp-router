@@ -710,7 +710,14 @@ echo "the scroll edge"
 # cursor over the window and posting scroll-wheel events, which is what this script used to do —
 # moves the user's pointer, and a wheel event posted to the pid instead was measured to be dropped
 # entirely (byte-identical captures).
-"$AXKIT" select "$PID" Activity >/dev/null
+# Driven on a **scaffolded** destination rather than on Activity. This used to select Activity,
+# which was then a placeholder with a deliberately over-tall stack inside the shell's own scroll
+# view — ideal for the assertion. M2 ships the Activity board, and a board brings its own scrolling
+# list and its own header, so the top row sampled below would be a column header rather than the
+# shell's content edge. The clause is about **the shell's** scroll edge, and any pane still using
+# the shell's scroll container proves it; Servers is the first such destination in sidebar order.
+# When the last board lands this needs the assertion moved onto a board's own list instead.
+"$AXKIT" select "$PID" Servers >/dev/null
 sleep 1
 dump_window
 CONTENT_X="$(awk -F'\t' '$2 == "AXScrollArea" { print $13 }' "$WORK/window.tsv" | tail -1)"

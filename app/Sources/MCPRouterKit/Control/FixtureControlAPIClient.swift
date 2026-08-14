@@ -57,8 +57,23 @@ public struct FixtureControlAPIClient: ControlAPIClient {
     // MARK: - Loading the recordings
 
     /// Fixtures are read from the library's own bundle, so a consumer needs no test resources.
+    ///
+    /// **Two directories, and the difference is load-bearing.** `Control/Fixtures` holds
+    /// *recordings*: bodies captured from a live router by `capture-control-fixtures.sh`, replayed
+    /// one file at a time against the running TypeScript reference by
+    /// `scripts/acceptance/parity-fixture.sh`, and required to carry a row in
+    /// `planning/parity/surface.tsv`. A hand-written file in there is a file the parity harness will
+    /// replay and the reference will not reproduce — it would fail a gate that is correct, for a
+    /// reason that is not a defect.
+    ///
+    /// `Control/Authored` holds fixtures written by hand for states a capture cannot easily reach.
+    /// Nothing replays them against a reference and nothing claims they are what the router said.
+    /// `usage-call-log.json` is the only one, and it exists because the captured call log is a
+    /// single record — enough to prove a record survives the wire, and not enough to drive a surface
+    /// built out of records.
     public static func fixtureData(_ name: String) throws -> Data {
         guard let url = Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Fixtures")
+            ?? Bundle.module.url(forResource: name, withExtension: "json", subdirectory: "Authored")
             ?? Bundle.module.url(forResource: name, withExtension: "json")
         else {
             throw ControlAPIError.malformedResponse(detail: "missing fixture \(name).json")

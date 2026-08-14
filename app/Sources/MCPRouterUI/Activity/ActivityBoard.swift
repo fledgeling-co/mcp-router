@@ -257,7 +257,11 @@
             .padding(.horizontal, ActivityColumn.inset)
             .padding(.bottom, MetricToken.selectionRadius.leadingScalar)
             .accessibilityIdentifier(Self.identifier)
-            .accessibilityElement(children: .combine)
+            // **Not** `.accessibilityElement(children: .combine)`. Combining folds the whole banner
+            // into one static element and takes its button with it — the reconnect control stops
+            // being reachable to assistive technology, and the only way back from a spent feed is
+            // gone for anyone not using a mouse. The acceptance run caught this by looking for the
+            // button and not finding it; a sighted pass would have seen it drawn and moved on.
         }
     }
 

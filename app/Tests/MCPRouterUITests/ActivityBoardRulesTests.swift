@@ -188,10 +188,14 @@
             #expect(Icon.frost.systemName == "snowflake")
             // Not the accent: on this board an accent-coloured duration competes with the selected
             // row, and §2 reserves the token for selection, focus and the one primary action.
-            #expect(!row
-                .contains(
-                    "IconView(.frost, size: TypeToken.caption.size, weight: .medium)\n                        .foregroundStyle(ColorToken.accent"
-                ))
+            let mark = try #require(
+                row.range(of: "IconView(.frost").map { String(row[$0.upperBound...].prefix(200)) }
+            )
+            #expect(mark.contains("ColorToken.t2.color"), "the cold mark is a quiet tier")
+            #expect(
+                !mark.contains("ColorToken.accent.color"),
+                "the cold mark is drawn in the selection colour and competes with the selected row"
+            )
         }
 
         // MARK: - B10 · the instrument voice does not leak into prose
@@ -233,6 +237,39 @@
             let design = try ShellTestSupport.repoFile("DESIGN.md")
             let flattened = design.split(whereSeparator: \.isWhitespace).joined(separator: " ")
             #expect(flattened.contains("numerals, counts, durations, error codes, status subtitles"))
+        }
+
+        // MARK: - B5 · the row height never moves, and the skeleton matches it exactly
+
+        /// The value check alone would be circular — it would compare the constant to the token it
+        /// was defined from. What catches drift is the second half: **every** height either the row
+        /// or the skeleton draws at must be that one constant, so a literal, or a different token,
+        /// or a second independent expression, all fail.
+        @Test("the row, the header row and the skeleton are all drawn at the one documented height")
+        func rowHeightIsOneDocumentedValue() throws {
+            #expect(ActivityColumn.rowHeight == MetricToken.tableRows.leadingScalar)
+            #expect(
+                MetricToken.tableRows.leadingScalar == 24,
+                "DESIGN.md §2 documents 24–28pt for dense lists and the token resolves its lower bound"
+            )
+
+            let row = try ShellTestSupport.repoFile(
+                "app/Sources/MCPRouterUI/Activity/ActivityRow.swift"
+            )
+            // Code lines only. The doc comment above `rowHeight` explains the rule by quoting the
+            // expression it forbids, and a scan that reads comments fails on its own explanation.
+            let code = row.split(separator: "\n")
+                .filter { !$0.trimmingCharacters(in: .whitespaces).hasPrefix("//") }
+                .joined(separator: "\n")
+            let heights = code.components(separatedBy: ".frame(height:").dropFirst()
+                .map { String($0.prefix(60)) }
+            #expect(heights.count >= 2, "the populated row and the skeleton row both set a height")
+            for height in heights {
+                #expect(
+                    height.contains("ActivityColumn.rowHeight"),
+                    "a height in ActivityRow.swift is not the shared row height: \(height)"
+                )
+            }
         }
 
         // MARK: - B41 · one scroll view, not two

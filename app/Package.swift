@@ -36,7 +36,7 @@ let package = Package(
             // test double is for *consumers* — the two app targets' own tests need to construct a
             // client with no router running, and a resource that lived in this package's test
             // bundle would be unreachable from theirs.
-            resources: [.copy("Control/Fixtures")],
+            resources: [.copy("Control/Fixtures"), .copy("Control/Authored")],
             swiftSettings: [.swiftLanguageMode(.v6)]
         ),
         .target(

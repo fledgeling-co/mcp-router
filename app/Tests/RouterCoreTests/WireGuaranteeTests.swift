@@ -145,7 +145,7 @@ struct WireGuaranteeTests {
         var deps = try PortIdentityTests.deps(
             upstreams: Self.upstreams(from: #"{"mcpServers":{"s1":{"command":"/bin/echo"}}}"#)
         )
-        var headers: [(name: String, value: String)] = [(name: "x-mcpr-token", value: "t")]
+        var headers = [(name: "x-mcpr-token", value: "t")]
         if !authorization.isEmpty {
             headers.append((name: "authorization", value: authorization))
         }
@@ -205,7 +205,11 @@ struct WireGuaranteeTests {
         )
         #expect(
             Self.bodyText(carrying.response) == Self.bodyText(without.response),
-            "response bodies differ: \(Self.bodyText(carrying.response)) vs \(Self.bodyText(without.response))"
+            """
+            response bodies differ:
+              carrying: \(Self.bodyText(carrying.response))
+              without:  \(Self.bodyText(without.response))
+            """
         )
         #expect(
             carrying.onDisk == without.onDisk,

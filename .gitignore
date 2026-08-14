@@ -36,6 +36,11 @@ node_modules
 .Spotlight-V100
 .Trashes
 
+# Fleet worktrees. `git worktree add .worktrees/<ID>` puts a whole second checkout inside this
+# one, and git sees it as an untracked directory — one `git add -A` from the repo root would
+# commit another branch's entire working tree into this branch.
+.worktrees/
+
 # Fidelity-loop trajectory data: the per-round score.json and candidate.svg are
 # the evidence and are committed; the residual/edge bitmaps are 21 MB of
 # regenerable diagnostic imagery and stay local.

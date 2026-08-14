@@ -82,3 +82,93 @@ make test-ios:  ** TEST SUCCEEDED ** — executed 11 iOS tests
 make build-mac: ** BUILD SUCCEEDED **
 make parity:    358 vector cases compared (floor 358)
 ```
+
+---
+
+# Gap-fix pass — 2026-08-14, at `11034c1`
+
+Rebased onto `main` (`4a6d1dc`) first. **`git diff 036fd34..main -- app/` is empty**, so nothing
+`main` merged touched a file behind any row above: every row at `a960957` / `639d0d7` stands, and
+none of those screens was re-tested. The two diagnostics the orchestrator recorded when the wave was
+stopped — a missing `PairingCopy.Key.bannerReachable` and `PhoneProminentButtonStyle` out of scope —
+were **stale**: both are present and correct, and `639d0d7` ("the two defects the on-device suite
+found") is the commit that added them. Confirmed by a clean build, not by reading.
+
+## What changed, and therefore what was tested
+
+Two `try?` sites were discarding a Keychain failure. Only the surfaces behind that change were
+exercised; every other screen cites its row above.
+
+| Screen / surface | How verified | Commit | Result |
+|---|---|---|---|
+| Pairing — refused Keychain write does not render as paired | macOS host, `PairingStorageFailureTests.refusedSaveIsNotSuccess` — a store whose `save` throws drives the model; the step must be `.pairedNotStored`, not `.paired` | `11034c1` | **pass (was red: rendered `.paired`)** |
+| Pairing — a successful write still reaches paired | macOS host, `successfulSaveIsStillSuccess` — the negative above cannot pass by breaking the happy path | `11034c1` | pass |
+| Pairing — not-stored copy is honest | macOS host, `notStoredCopyIsHonest` — says the pairing worked, says a new code is needed, and is not the success sentence | `11034c1` | pass |
+| Pairing — not-stored surface **renders** its manifest copy (A27 leg 2) | iOS sim, `testStorageFailureSurfacesRenderTheirCopy` — read from the rendered accessibility tree, not from the manifest describing it | `11034c1` | pass |
+| Pairing — not-stored surface, 44pt targets (A5) | iOS sim, `testEveryControlMeetsTheMinimumTarget` — surface added to the measured set | `11034c1` | **pass (was red: 20.3pt with `.buttonStyle(.plain)`)** |
+| Pairing — "Pair again" re-asks the camera (A16) | macOS host, `restartRechecksTheCamera` — a denied camera must reach `.cameraBlocked(.denied)`, never `.scan` | `11034c1` | **pass (was red: `.scan`)** |
+| Unpair — a refused clear is reported, not discarded | macOS host, `refusedClearIsReported` — `unpair()` returns `.failed` on a throwing store and `.cleared` on a working one | `11034c1` | **pass (was red: reported `.cleared`)** |
+| Unpair — failure copy states the Mac is still paired, guesses no cause | macOS host, `unpairFailedCopyIsHonest` | `11034c1` | pass |
+| Unpair — failure block **renders** its manifest copy (A27 leg 2) | iOS sim, `testStorageFailureSurfacesRenderTheirCopy` — the block in the shape the settings screen constructs it | `11034c1` | pass |
+| A24 — a refused write logs shape, never the record | macOS host, `refusedWriteLogsNoSecret` — against a collecting sink, with a store that throws an error **whose description is a credential** | `11034c1` | **pass (was red: `fp=`, `host=`, `port=` all reached the log)** |
+
+## Red-green proving pass
+
+Five mutations. Each was applied, the failure observed, and the mutation reverted.
+
+| Guard | Mutation | Observed failure |
+|---|---|---|
+| Save failure is not success | restored `try? await store.save(mac)` | `a failed write rendered as .paired(...) rather than as its own state` |
+| A27 mock parity, new entry | "survive closing the app" → "survive quitting the app" | `.pairedNotStored.body sentence is not in the mock` **and** the pinned-literal test |
+| Unpair reports its failure | `catch` returns `.cleared` | `Expectation failed: await failing.unpair() == .failed` |
+| A5 on the new surface | `PhoneProminentButtonStyle()` → `.plain` | `pairing/notStored: a control is 20.333333333333343pt tall, under the 44pt floor` |
+| A16 on the recovery path | `restart()` sets `.scan` instead of `await start()` | `restart dropped a denied-camera user onto a dead scanner: .scan` |
+| A24 bound on the log | `logSafe` → `"\(error)"` | `'SHA256:5f2b9c0e' reached a log line: … fp=SHA256:5f2b9c0e host=192.168.1.24 port=7333` |
+
+The last one is the one worth reading. The critic found the original A24 test **vacuous** — the
+injected error had no stored properties, so `\(error)` rendered `"WriteRefused()"` and the guard
+would have held even if production logged the whole record. The error now carries the credential, so
+the assertion can fail; the mutation above proves it does.
+
+## The completeness critic
+
+**`codex: usage limit → claude (downgrade).`** The out-of-family lane is account-limited until
+20 Aug 2026 and was verified unavailable by the orchestrator, so the Phase D critic ran in-family:
+a fresh `claude -p` opus-5 reviewer at high effort, briefed to refute and told that finding nothing
+would be a failed review rather than a pass. **This is the weaker arrangement** — Claude auditing
+Claude — and it is recorded here so the weakness travels with the evidence.
+
+It returned **8 ACCEPT / 6 REJECT**, and every accept was a real defect. All eight are fixed in
+`11034c1`; the rejects were argued rather than waved through. The accept worth naming: the new test
+file was **untracked**, so the whole fix would have committed with no tests at all while `make test`
+still reported a rising count.
+
+## Known limits of this pass
+
+Stated rather than left for the next runner to rediscover.
+
+- **The `unpairFailure` lifecycle is not covered by a test.** Clearing it on re-pair and on a new
+  pairing attempt is three assignments inside SwiftUI `@State`, which no host test can reach. The
+  *decision* it renders (`store.unpair()`) is proven red-green, and the block it renders is proven
+  on the simulator; the three assignments are proven by reading. A model seam would make it
+  testable and is not worth a refactor of a working screen at this size.
+- **`make test` is flaky on this machine, for reasons outside I1.** `CallbackListenerTests` and
+  `CallbackHostileInputTests` (R5, merged) intermittently fail with
+  `POSIXErrorCode(rawValue: 48): Address already in use` and a failed loopback connect. Cause: five
+  `defer { Task { await listener.stop() } }` teardowns, which do not await the listener's shutdown,
+  so a socket can outlive its test — visible only when another fleet runner's suite runs
+  concurrently. **I1's own 112 tests pass with zero flake in isolation**
+  (`swift test --filter "Phone|Pairing|Connection|Verifying"`). Reported for R5's owner; not fixed
+  here.
+
+## Gate output at `11034c1`
+
+```
+swiftformat:    0/180 files require formatting, 58 files skipped
+swiftlint:      Found 0 violations, 0 serious in 178 files
+no-raw-design-values: clean          no-wire-codable: clean
+make test:      Test run with 566 tests in 86 suites passed — executed 566 tests
+make test-ios:  ** TEST SUCCEEDED ** — executed 12 iOS tests (one simulator, reused, no new boot)
+make parity:    358 vector cases compared (floor 358)
+```
+

@@ -38,7 +38,24 @@ model. An inventory that defines itself is not an inventory; this is the externa
 the test fails in both directions — a command here and missing from the menu bar, or a command
 in the menu bar and missing here.
 
-| Menu | Command | Shortcut | Availability in M1 |
+**Three of the four columns are that oracle; the fourth is a contract, and the difference is
+load-bearing.** Menu, Command and Shortcut are facts a model cannot check about itself, and the
+acceptance walk compares them against the running menu bar exactly as described above. The
+availability column is a different kind of claim: it records the answer in
+`MenuCommand.CommandContext.none` — no board installed, nothing selected, which is the world M1
+itself shipped — and `MenuCommandTests` compares it against `MenuCommand.availability` in both
+directions. It is **not** the availability of a build that has boards installed, and reading it as
+one is a mistake this document has now caused twice.
+
+`MenuCommand.availability(in:)` *computes* the live answer from the installed boards and the
+current selection, so a hand-written column of live answers is a restatement of a rule that
+already exists — and it went stale silently at M3 (Servers) and again at M4 (Skills) while
+reading as authoritative. So `scripts/acceptance/mac-shell.sh` derives the live expectation by
+compiling `MenuCommand.swift` and asking it, with the registry's installed set and no selection,
+rather than reading this column. That leaves each oracle where it can be right: the table for
+what exists and what it is bound to, the model for what it can do right now.
+
+| Menu | Command | Shortcut | Availability in M1 (`CommandContext.none`) |
 |---|---|---|---|
 | MCP Router | About MCP Router | — | enabled |
 | MCP Router | Settings | ⌘, | enabled |
@@ -102,6 +119,18 @@ the **app declares**, with the system's contributions excluded by name rather th
 `surfaceAbsent` → "This part of the app isn't built yet." and `needsServerSelection` →
 "Select a server first." M1 uses only the first; the servers board switches these to the
 second or to enabled.
+
+**What that switch cost, recorded here because the table is where the next reader will look.**
+M11 measured the built app with all eight boards installed and found `Add server…`, `Add
+marketplace…` and `Find` dimmed and carrying no reason at all. The rule was right and both tests
+of it passed: `MenuCommand.availability(in:)` returned `.enabled` for each, and `SkillsMenuTests`
+had asserted exactly that since M4. What no test covered was **which context the menu item asked**
+— `CommandItem` read `MenuCommand.availability`, the `.none` shorthand, so the whole live-context
+mechanism reached the disabled *reason* through `ShellMenuReasons` and never reached the disabled
+*state*. Two contexts, one menu, and §3.4 broken in both directions: a command whose surface had
+shipped was permanently unusable, and silent about why. The item now resolves its availability
+from the live context, the reason walker clears an annotation that has stopped being true, and
+`ShellIntegrationTests.commandItemsReadTheLiveContext` fails if either regresses.
 
 ---
 

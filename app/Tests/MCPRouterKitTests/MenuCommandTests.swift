@@ -223,6 +223,45 @@ struct MenuCommandTests {
         #expect(CommandAvailability.needsServerSelection.reason == "Select a server first.")
     }
 
+    /// **Which board each command gates on**, asserted where the shipping registry cannot see it.
+    ///
+    /// This is the fact M11's derived acceptance oracle gave up. That oracle compiles this very
+    /// file, so a change to the gating map moves the expectation with the app and no gate goes red;
+    /// `inventoryMatchesTheModelBothWays` above only reads `.none`, where every board-dependent
+    /// command answers `surfaceAbsent` and the map is invisible; and with all eight boards
+    /// installed *any* required destination yields `.enabled`. So the map is only falsifiable
+    /// against **partial** contexts, which is what this builds.
+    ///
+    /// Repointing `find` at `.evals` instead of `.servers` passes every other test in this repo.
+    /// It fails here.
+    @Test("each command gates on its own board, not merely on some board")
+    func gatingMapIsPerCommand() {
+        func context(_ installed: Set<Destination>) -> MenuCommand.CommandContext {
+            MenuCommand.CommandContext(installedDestinations: installed, selectedServerIsTripped: nil)
+        }
+        let serversOnly = context([.servers])
+        let skillsOnly = context([.skills])
+
+        // Servers is what these three need, and Skills does not stand in for it.
+        for command in [MenuCommand.addServer, .find] {
+            #expect(command.availability(in: serversOnly) == .enabled, "\(command.title)")
+            #expect(command.availability(in: skillsOnly) == .surfaceAbsent, "\(command.title)")
+        }
+        // The two that act on a selection get past the surface question and stop at the selection.
+        for command in [MenuCommand.resetServer, .removeServer] {
+            #expect(command.availability(in: serversOnly) == .needsServerSelection, "\(command.title)")
+            #expect(command.availability(in: skillsOnly) == .surfaceAbsent, "\(command.title)")
+        }
+        // And marketplaces are the Skills board's, which is the pair that would swap silently.
+        #expect(MenuCommand.addMarketplace.availability(in: skillsOnly) == .enabled)
+        #expect(MenuCommand.addMarketplace.availability(in: serversOnly) == .surfaceAbsent)
+
+        // Owned by nothing that has shipped, so no installed set turns them on.
+        for command in [MenuCommand.pairPhone, .exportLibrary] {
+            #expect(command.availability(in: context(Set(Destination.allCases))) == .surfaceAbsent)
+        }
+    }
+
     @Test("shortcuts render in Apple's modifier order")
     func modifierOrder() {
         #expect(KeyChord("N", [.command, .shift]).display == "⇧⌘N")

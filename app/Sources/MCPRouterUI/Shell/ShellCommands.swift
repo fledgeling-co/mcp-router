@@ -60,13 +60,32 @@
             self.action = action
         }
 
+        /// What this item should say about itself right now.
+        ///
+        /// **Read from the live context, not from `MenuCommand.availability`.** That shorthand
+        /// answers in `CommandContext.none` — M1's world, where no board is installed — and this
+        /// view used it, which meant the whole live-context mechanism reached the disabled *reason*
+        /// through `ShellMenuReasons` and never reached the disabled *state* at all. Measured on the
+        /// built app on 2026-08-15, with all eight boards installed: `Add server…`, `Add
+        /// marketplace…` and `Find` each reported `AXEnabled` 0 and an empty `AXHelp` — dimmed
+        /// because M1 had no Servers board, and silent because the live context correctly says there
+        /// is nothing left to explain. Two contexts, one menu, and §3.4 broken in both directions:
+        /// a command whose surface shipped was unusable, with no reason given.
+        ///
+        /// Internal rather than private so `ShellIntegrationTests` can assert which context this
+        /// reads. A test that only checked `MenuCommand.availability(in:)` would have passed
+        /// throughout — `SkillsMenuTests` did, from M4 until this was found.
+        var resolvedAvailability: CommandAvailability {
+            command.availability(in: ShellMenuReasons.liveContext)
+        }
+
         public var body: some View {
             item
                 // §3.4: disabled dims in place and never disappears, with a discoverable reason. On
                 // macOS a menu item's only place for that reason is its help tag, which is what the
                 // accessibility walk reads back.
-                .disabled(!command.availability.isEnabled)
-                .help(command.availability.reason ?? "")
+                .disabled(!resolvedAvailability.isEnabled)
+                .help(resolvedAvailability.reason ?? "")
         }
 
         @ViewBuilder

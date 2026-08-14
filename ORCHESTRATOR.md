@@ -140,6 +140,8 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 | R5 | Router: OAuth and the auth routes | router | R3 ✓ | — | Opus | **Merged** `b7c527c` | — | 456 tests · 358 parity (352 core + 6 auth, asserted by name) · 10 mutations red-green · the real NWListener exposed 5 defects the double could not, incl. a CheckedContinuation double-resume in `AuthFlow.cleanup` that traps and kills the daemon · Phase D in-family (downgrade logged) 11 findings/8 fixed · one guard correct-by-construction but untested, recorded in the evidence file |
 | **R2-R** | **Router: the process that actually serves** | router | R2 ✓ R3 ✓ R5 ✓ | — | Opus — never downgrade | **Merged** `62678aa` | — | The daemon exists: composition root, `LoopbackHTTPServer`, `MCPEndpoint`, `MCPRouterCLI`, lifecycle. **Parity gate 50/81 → 69 of 82, 0 DIVERGED** — the five structurally-blocked lanes (`mcp`, `cli`, `install`, `state`, `log`) are now measurable rather than blocked. Merged-tree gates re-run by the orchestrator, not taken on report: lint **0 violations / 243 files**, **750 tests / 106 suites**, **358 parity vectors**; merged tree byte-identical to the gated tree (`163597f7`). Lint went green by splitting on real seams (`RouterService` → root/dispatch/collaborators, `MCPEndpoint` split, `StdioUpstreamTransport.open` → spawn + handshake) — **no limit raised**. Real violation count was **31, not 29**: swiftformat's wrapping pushed three more files past the 400-line cap. One narrow config change for a genuine swiftformat↔swiftlint `opening_brace` deadlock, verified by hand. The gate still exits 1 by design; the cutover stays with R4 and the user |
 | R4 | Parity harness and cutover | router | R2 ✓ R3 ✓ R5 ✓ | — | Opus — never downgrade | **Merged (harness only)** `e129779` | — | **Cutover NOT performed and NOT recommended.** `parity-gate.sh` exits 1 at **50/81** — `mcp` 0/5, `cli` 0/10, `install` 0/5, `state` 0/1, `log` 0/1, all blocked structurally because **there is no Swift router process**. All 3 gates REJECT, all 3 independently confirmed the no-daemon finding, all 3 rejected the coverage number (was overstated five ways; denominator rose 71→81). Gate proven by hiding `dist/`, by a lane exiting 0 recording nothing, and by a fabricated test name |
+| **R2-W** | **Router: the `~/.claude.json` watcher and its adoption protocol** | router | R2 ✓ R3 ✓ | — | Opus — never downgrade | **Ready** | — | **Registered by the orchestrator 2026-08-14; it was named in `spec-R2.md`'s deferred table and in no ledger** — the same gap that cost R2-R. The second launchd agent and the cross-process adoption protocol. `install.sh` installs a `watch` agent that still runs `node dist/index.js` even when `MCPR_ROUTER_BINARY` is set, because there is no Swift watcher to point it at. **Blocks 3 parity rows** (`cli-watch`, `install-launchd-watch`, divergence `R2 D7`) and is a hard dependency of the cutover |
+| **R4-C** | **The installer cutover** | router | R2-R ✓ R4 ✓ · R2-W · D-j · D-k | — | Opus — never downgrade | **Blocked — needs 82/82 and a user decision** | — | **Registered by the orchestrator 2026-08-14.** Flip `install.sh` to the Swift binary and retire `src/*.ts`. The commit is already specified in `spec-R4.md`. Two gates on it, and the second is not technical: the parity gate must reach **82 of 82** (it is at 69), and **the user decides**, because this changes the router their own live Claude Code sessions depend on |
 | M1 | Mac shell, menu bar, keyboard | mac | F2 ✓ F3 ✓ F4 ✓ | `?only=mac` | Opus | **Merged** `10cad44` | — | 671 tests / 97 suites, lint clean over 205 files. **The FRAME, not the app** — `BoardRegistry.installed` is empty, so all seven destinations render the same placeholder; the boards are M2–M8. Real: three-zone window, sidebar + F2 focus ring, six menus with disabled reasons, keyboard routing, frame restoration, readout via F4's tracker, scroll-edge. Placeholder cannot outlive the boards — failable type, complement test, Release gate reading the list from source. Stopped before its critic: it was running over seven identical placeholders |
 | M2 | Activity | mac | M1 | `?only=mac&pane=activity` | Opus | Untriaged | — | — |
 | M3 | Servers: the breaker board | mac | M1 | `?only=mac&pane=servers` | Opus | Untriaged | — | — |
@@ -172,6 +174,16 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 | D-e | Signed/notarized macOS packaging | new item, after M8 | Blocked on **Needs input #1**, not on code |
 | D-f | Machine-readable token block in `DESIGN.md` | M1 | F2's parity gate parses prose tables today; a fenced block would make it robust to editing |
 | D-g | Parity vectors for divergences D1/D3/D4 | R4 | R1 recorded three deliberate divergences from the TypeScript router with **no parity vector**. R4 must not read their absence as agreement |
+| D-h | Rename `callsServed` to what it measures, across router, control API, client and surfaces | R4-C | R2 D6 — it is an *acquisition* counter, not a served-call count. Wire-visible, so F3 and the Mac surfaces move together with it |
+| D-i | Fix the lost router restart in the TypeScript watcher | — | R2 D7 — a latent bug in the **reference**: an adopted server can never reach the running router. Declared so the Swift watcher does not reproduce it |
+| D-j | Wire `AuthRoutes.approve` and `AuthRoutes.authStart` into `ControlHandler`'s dispatch | R3 | Both implemented, both unreachable over the wire, both answering 405 where the reference answers 409/400. **Blocks 2 parity rows.** Fixing it also retires `control-differential.sh`'s stale known-defect assertions in the same change (`D-r2r-c`), or the gate goes red on a *fixed* defect |
+| D-k | Swift implementations of the remaining CLI verbs | R2-R ✓ / R4-C | `serve watch import index refresh status tools auth usage help`. R2-R shipped the CLI and proved 8 of 10; `import` and the `~/.claude.json` rewrite remain. **Blocks 3 parity rows** |
+| D-l | An SSE differential for `GET /usage/stream` | R4 | The body is an open stream, so there is no byte oracle. Framing agreement is not body parity. **Blocks 1 parity row** |
+| D-m | A recorded oracle for `registry/search` | — | The reference calls live registries; two runs a second apart differ. Either record a fixture-server registry or accept the route as permanently uncomparable. **Blocks 2 parity rows** |
+| D-n | Derive the `cli` and `mcp` manifest rows from source | R4 | `src/index.ts`'s ten `case` arms and `src/router.ts`'s endpoints are mechanically extractable. Until they are, **42 of 82 rows are hand-maintained and deleting one raises the coverage figure** — the gate's own worst failure mode |
+| D-r2r-a | `mcp-router tools` has no empty state | R4-C | `DESIGN.md` §5 wants one sentence and one action; the reference has no empty branch, so adding it is a *divergence* on an owned row until the cutover happens |
+| D-r2r-b | The control API has never been compared **over a socket** | R4 | `control-differential.sh` drives `ControlDiff`, an in-process oracle. R2-R made `ControlHandler` reachable over a socket for the first time and **that surface has no lane** — 11 `control` rows are proven against an oracle that is not the wire |
+| D-r2r-c | Retire the stale known-defect assertions when D-j lands | D-j | Same change or the gate reports a failure *because* the defect was fixed |
 
 ---
 
@@ -186,6 +198,30 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 ---
 
 ## Changelog
+
+- 2026-08-14 — **Twelve unregistered work items found and registered — the R2-R failure repeating,
+  seven-fold.** R2-R's evidence groups its 13 blocked parity rows "by the item that would unblock
+  them" and names `D-j`, `D-k`, `D-l`, `D-m`, `D-r2r-a/b/c`, `R2-W` and `R4-C`. **Not one of them
+  appeared in this ledger or in `LEDGER.md`** — the deferred table stopped at `D-g`, and `D-h`
+  through `D-n` lived only inside `spec-R2.md`'s and `plan-R2R.md`'s own tables. `spec-R4.md:68`
+  had already written the general form of this down — *"`R2-R` is registered nowhere … the single
+  largest missing piece of the Swift router is named only in a deferred table"* — and the same
+  thing was true of eleven more items at the moment it said so.
+
+  Two are real work items, now in the ledger rather than in prose: **`R2-W`**, the `~/.claude.json`
+  watcher and its adoption protocol — `install.sh` installs a `watch` launchd agent that still runs
+  `node dist/index.js` even when `MCPR_ROUTER_BINARY` is set, because there is no Swift watcher to
+  point it at — and **`R4-C`**, the cutover itself, blocked on 82/82 *and* on a user decision.
+
+  The one that should worry a future reader most is **`D-n`**: 42 of the gate's 82 rows are
+  hand-maintained, so **deleting a row raises the coverage figure**. That is the gate's own worst
+  failure mode and it is currently unguarded. **`D-r2r-b`** is the same shape one level down — 11
+  `control` rows are proven against `ControlDiff`, an in-process oracle, not against the socket
+  R2-R just made reachable.
+
+  The lesson is mechanical, not moral: a deferred child named in a spec is invisible to the fleet.
+  Registration is the orchestrator's job and nobody else's, and the check is cheap — grep every
+  item id a runner's report mentions against this file before accepting the report.
 
 - 2026-08-14 — **R2-R merged `62678aa`: the router is now a process, and R4's gate went 50/81 → 69
   of 82 with 0 DIVERGED.** The five lanes R4 could not measure at all — `mcp`, `cli`, `install`,

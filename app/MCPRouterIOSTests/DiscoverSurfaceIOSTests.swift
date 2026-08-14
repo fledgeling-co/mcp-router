@@ -352,6 +352,12 @@ final class DiscoverSurfaceIOSTests: XCTestCase {
                 frame.minY.rounded(), safe.minY.rounded() - 1,
                 "content is under the status bar"
             )
+            // The other half. This asserted only `minY` while the evidence claimed "status bar
+            // **or home indicator**" — the row overstated the test by half.
+            XCTAssertLessThanOrEqual(
+                frame.maxY.rounded(), safe.maxY.rounded() + 1,
+                "content is under the home indicator"
+            )
         }
         XCTAssertGreaterThan(checked, 0, "nothing was measured, so this proved nothing")
     }

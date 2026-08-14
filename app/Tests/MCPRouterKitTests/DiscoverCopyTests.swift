@@ -43,7 +43,7 @@ struct DiscoverCopyTests {
 
         // The residual hole the loops above cannot see: a whole element type added to `Key` and
         // omitted from both `allCases` and this test. The total is pinned so that shows up.
-        #expect(all.count == 47, "the manifest holds \(all.count) keys")
+        #expect(all.count == 53, "the manifest holds \(all.count) keys")
         #expect(DiscoverCopy.Key.allCases.count == all.count, "allCases contains a duplicate")
     }
 
@@ -176,6 +176,31 @@ struct DiscoverCopyTests {
                 #expect(!text.contains(promise), "\(key.name) promises \(promise)")
             }
         }
+    }
+
+    /// A5 + A4: three band-empty sentences, because one cannot be true of all three cases.
+    ///
+    /// The single shared template rendered "Nothing in these results changed in the last Any time
+    /// days" under the default window — ungrammatical, and false, since under Any time no window
+    /// is applied. It was also used for Most used, which the window does not reach at all.
+    @Test("each band-empty sentence fits the case it describes")
+    func bandEmptyCopyIsSplit() {
+        // Most used: no window language, and no action, because none would change what is shown.
+        let mostUsed = DiscoverCopy.entry(.list(.bandEmptyMostUsed))
+        #expect(mostUsed.headline?.contains("session count") == true)
+        #expect(mostUsed.actionLabel == nil, "Most used offers an action the window cannot deliver")
+        #expect(!(mostUsed.headline ?? "").contains("{window}"))
+        #expect(!(mostUsed.body).lowercased().contains("widen the window"))
+
+        // Recently changed under Any time: no window was applied, so it says something else.
+        let anyTime = DiscoverCopy.entry(.list(.bandEmptyRecentlyChangedAnyTime))
+        #expect(anyTime.actionLabel == nil, "the action reset the window already selected")
+        #expect(!(anyTime.headline ?? "").contains("{window}"))
+
+        // Only the windowed sentence carries the substitution and the reset.
+        let windowed = DiscoverCopy.entry(.list(.bandEmptyRecentlyChangedWindowed))
+        #expect(windowed.headline?.contains("{window}") == true)
+        #expect(windowed.actionLabel == "Any time")
     }
 
     /// A23: the router compares display names, so the copy may not assert an identity the

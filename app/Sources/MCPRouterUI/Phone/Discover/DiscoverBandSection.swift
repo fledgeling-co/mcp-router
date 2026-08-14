@@ -51,19 +51,30 @@ struct DiscoverMessageState: View {
 struct DiscoverBandSection: View {
     let band: DiscoverBand
     let entries: [RegistryEntry]
+    /// Whether this band is empty **within a populated list** — the A5 case.
+    ///
+    /// Supplied by the model rather than derived from `entries.isEmpty` here, so the one guard
+    /// that knows the difference between "this band has nothing" and "the search returned
+    /// nothing" is the one that decides. Derived locally it was the same expression minus that
+    /// distinction, and `DiscoverBands.isBandEmptyWithinResults` had no caller at all — a proven
+    /// function guarding nothing while the view re-implemented it without the guard.
+    let isEmptyWithinResults: Bool
     let window: RecencyWindow
     let onSelect: (RegistryEntry) -> Void
     let onResetWindow: () -> Void
 
     var body: some View {
         Section {
-            if entries.isEmpty {
+            if isEmptyWithinResults {
                 // A5: one band empty while the other is populated is the common case, not an edge
-                // case, and it is not the whole-list Empty state. Its own copy, its own action.
+                // case, and it is not the whole-list Empty state. Its own copy, and an action only
+                // where one exists.
                 DiscoverMessageState(
-                    entry: bandEmptyCopy,
+                    entry: DiscoverCopy.entry(bandEmptyKey).resolved(bandEmptySubstitutions),
                     icon: .discover,
-                    action: onResetWindow
+                    action: bandEmptyKey == .list(.bandEmptyRecentlyChangedWindowed)
+                        ? onResetWindow
+                        : nil
                 )
                 .listRowBackground(Color.clear)
             } else {
@@ -97,9 +108,28 @@ struct DiscoverBandSection: View {
         }
     }
 
-    private var bandEmptyCopy: DiscoverCopy.Entry {
-        let days = window.days.map(String.init) ?? DiscoverCopy.entry(.window(.anyTime)).body
-        return DiscoverCopy.entry(.list(.bandEmpty)).resolved([.window: days])
+    /// Which empty sentence this band gets.
+    ///
+    /// Three, not one. Most used does not respond to the window (A4), so a sentence about a
+    /// window is false there and its "widen the window" action cannot change what is shown. And
+    /// Recently changed under Any time has no window applied either, so the windowed sentence
+    /// rendered "…in the last Any time days" — ungrammatical, false, and offering a reset to the
+    /// window already selected.
+    private var bandEmptyKey: DiscoverCopy.Key {
+        switch band {
+        case .mostUsed:
+            .list(.bandEmptyMostUsed)
+        case .recentlyChanged where window.days == nil:
+            .list(.bandEmptyRecentlyChangedAnyTime)
+        case .recentlyChanged:
+            .list(.bandEmptyRecentlyChangedWindowed)
+        }
+    }
+
+    /// Only the windowed sentence carries a substitution, and only there is `days` non-nil.
+    private var bandEmptySubstitutions: [DiscoverCopy.Token: String] {
+        guard let days = window.days else { return [:] }
+        return [.window: String(days)]
     }
 }
 

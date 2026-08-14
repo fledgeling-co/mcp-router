@@ -30,7 +30,7 @@ public extension DiscoverCopy.DetailKey {
             DiscoverCopy.Entry(body: "No last-commit date")
 
         case .lastCommit:
-            DiscoverCopy.Entry(body: "Last commit {count}")
+            DiscoverCopy.Entry(body: "Last commit {date}")
 
         case .chipSourceOfficial:
             DiscoverCopy.Entry(body: "Official registry")

@@ -163,8 +163,11 @@ actually observes). `bandRecentlyChangedNote` states the two-stamp difference ex
 Options: **Any time (default) / 90 days / 30 days / 7 days**, filtering **Recently changed** only.
 Most used does not respond: `useCount` is a cumulative all-time total and slicing it by a window
 would assert a per-window figure that was never measured. Any time is the default so the first render
-is populated; the recorded fixture's newest stamp is 2025-11-28, which is outside every offered
-window, and a default that renders an empty band would be a designed-in empty state.
+is populated; the band ranks on `updatedAt`, and the recorded fixture's newest `updatedAt` is
+2025-11-19, which is outside every offered window, so a default that renders an empty band would be
+a designed-in empty state. (The fixture also carries a `pushedAt` of 2025-11-28, on a different
+entry and on a field this band does not rank on — an earlier draft of this criterion cited that
+stamp, which made the argument true by accident rather than by the field it turns on.)
 
 **A5 — each band has its own empty state, distinct from the list's.**
 One band empty while the other is populated is the common case, not an edge case, and it is not the

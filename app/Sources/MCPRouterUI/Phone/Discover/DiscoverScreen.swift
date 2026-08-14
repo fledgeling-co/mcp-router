@@ -108,7 +108,7 @@ public struct DiscoverScreen: View {
             }
         }
         .listStyle(.plain)
-        .accessibilityLabel("Searching the server registries")
+        .accessibilityLabel(DiscoverCopy.entry(.unit(.searchingAccessibility)).body)
     }
 
     private func populatedList(warnings: [WarningClass]) -> some View {
@@ -121,7 +121,21 @@ public struct DiscoverScreen: View {
                 }
             }
 
-            if model.isSearching {
+            if model.entries.isEmpty {
+                // A degraded search can return warnings *and* nothing else, and `resolve` reports
+                // that as `.partial` so the surface can say why it is empty. Drawing the bands here
+                // put a per-band empty state on both bands over a page with no results at all —
+                // two "this band is empty" sentences standing in for "nothing came back". The
+                // warnings above explain the degradation; this says what arrived.
+                DiscoverMessageState(
+                    entry: model.isSearching
+                        ? model.copy(.list(.emptyQuery), extra: [.query: model.query])
+                        : model.copy(.list(.emptyNoQuery)),
+                    icon: .discover,
+                    action: { Task { await model.search() } }
+                )
+                .listRowBackground(Color.clear)
+            } else if model.isSearching {
                 // A10: bands order the whole page and stop meaning anything once the user has
                 // narrowed it, so a query shows one flat ranked list in the endpoint's own order.
                 Section {
@@ -140,6 +154,7 @@ public struct DiscoverScreen: View {
                     DiscoverBandSection(
                         band: band,
                         entries: model.members(of: band),
+                        isEmptyWithinResults: model.isBandEmpty(band),
                         window: model.window,
                         onSelect: { selected = $0 },
                         onResetWindow: { model.resetWindow() }

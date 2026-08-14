@@ -91,11 +91,12 @@ public enum CapabilityPlate {
             // matters is that tool arguments leave the machine. It is a fact rather than an
             // attention line: the user is queueing for review, not granting access, and an amber
             // block that fires on everything stops meaning anything.
+            let host = host(of: install.url)
             lines.append(Line(
                 kind: .remote,
                 severity: .fact,
-                copyKey: .plate(.remote),
-                host: host(of: install.url) ?? "an address neither index published"
+                copyKey: host == nil ? .plate(.unknownHost) : .plate(.remote),
+                host: host
             ))
         }
 

@@ -54,15 +54,22 @@ struct DiscoverCommitTests {
         #expect(DiscoverCopy.entry(state.copyKey).actionLabel == "Send to Mac")
     }
 
-    /// A17: **both, and only these two.** With no Mac there is nowhere to write; with no descriptor
-    /// there is nothing to queue. Everything else stays live.
-    @Test("exactly two states disable the commit")
-    func onlyTwoStatesDisable() {
-        let disabled = CommitState.allCases.filter { !$0.isActionable }
-        // Queued states are also inert, but they are inert because the act is already done rather
-        // than refused — they are asserted separately below.
-        #expect(disabled.contains(.neverPaired))
-        #expect(disabled.contains(.noDescriptor))
+    /// A17: exactly two states **refuse** the commit. With no Mac there is nowhere to write; with
+    /// no descriptor there is nothing to queue.
+    ///
+    /// The inert set is larger than the refused set, and the distinction is the point: the three
+    /// queued/declared states are also inert, because the act is already done rather than refused.
+    /// Asserting membership for two and stopping let a claim of "exactly two" stand over a set of
+    /// five, so both sets are now pinned exhaustively.
+    @Test("exactly two states refuse the commit, and exactly five render inert")
+    func refusedAndInertSetsArePinned() {
+        let inert = Set(CommitState.allCases.filter { !$0.isActionable })
+        #expect(inert == [.neverPaired, .noDescriptor, .queuedReachable, .queuedNotReachable,
+                          .alreadyDeclared])
+
+        // The two that are refused rather than already-done are the two `resolve` guards on.
+        let refused: Set<CommitState> = [.neverPaired, .noDescriptor]
+        #expect(refused.isSubset(of: inert))
 
         #expect(CommitState.resolve(
             connection: .neverPaired,
@@ -116,13 +123,22 @@ struct DiscoverCommitTests {
         ) == .alreadyDeclared)
     }
 
-    /// The predicate that dims the button and the note that says why are read from one entry, so
-    /// they cannot disagree.
-    @Test("every commit state's dimming agrees with its own copy")
-    func dimmingAgreesWithCopy() {
+    /// `DESIGN.md` §3.4: a disabled control dims in place **with a discoverable reason**.
+    ///
+    /// This asserted `state.isActionable == !entry.isDisabled`, and `isActionable` is *defined* as
+    /// `!DiscoverCopy.entry(copyKey).isDisabled` — `x == x`, which cannot fail. What is worth
+    /// checking is that the dimmed states are the expected ones and that each carries a reason.
+    @Test("every dimmed commit state carries a discoverable reason")
+    func dimmedStatesCarryTheirReason() {
+        let expectedDimmed: Set<CommitState> = [
+            .neverPaired, .noDescriptor, .queuedReachable, .queuedNotReachable, .alreadyDeclared
+        ]
         for state in CommitState.allCases {
             let entry = DiscoverCopy.entry(state.copyKey)
-            #expect(state.isActionable == !entry.isDisabled, "\(state) disagrees with its note")
+            #expect(
+                entry.isDisabled == expectedDimmed.contains(state),
+                "\(state) is dimmed: \(entry.isDisabled), expected \(expectedDimmed.contains(state))"
+            )
             #expect(!entry.body.isEmpty, "\(state) dims with no discoverable reason")
         }
     }

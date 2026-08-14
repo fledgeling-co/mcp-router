@@ -48,6 +48,10 @@ public enum DiscoverCopy {
         case mac
         /// A count that came from a named `RegistryEntry` field, already formatted.
         case count
+        /// A date from a named `RegistryEntry` field, already formatted. Separate from `count`
+        /// because a token documented as "a count" whose only use is a date is a contract the
+        /// next author will read and honour wrongly.
+        case date
         /// The user's search text, echoed back.
         case query
         /// The chosen recency window, in days.
@@ -142,6 +146,7 @@ public enum DiscoverCopy {
         case detail(DetailKey)
         case plate(PlateKey)
         case commit(CommitKey)
+        case queueFailure(QueueFailureKey)
 
         /// Hand-written because `CaseIterable` is not synthesised for an enum with associated
         /// values. `DiscoverCopyTests` pins the total and asserts every case of every element type
@@ -155,6 +160,7 @@ public enum DiscoverCopy {
                 + DetailKey.allCases.map(Key.detail)
                 + PlateKey.allCases.map(Key.plate)
                 + CommitKey.allCases.map(Key.commit)
+                + QueueFailureKey.allCases.map(Key.queueFailure)
         }
 
         /// The surface this key renders on.
@@ -168,7 +174,7 @@ public enum DiscoverCopy {
             case .list: .list
             case .detail: .detail
             case .plate: .plate
-            case .commit: .commit
+            case .commit, .queueFailure: .commit
             }
         }
 
@@ -183,6 +189,7 @@ public enum DiscoverCopy {
             case let .detail(key): "detail.\(key.rawValue)"
             case let .plate(key): "plate.\(key.rawValue)"
             case let .commit(key): "commit.\(key.rawValue)"
+            case let .queueFailure(key): "queueFailure.\(key.rawValue)"
             }
         }
     }
@@ -212,6 +219,7 @@ public enum DiscoverCopy {
         case let .detail(key): key.entry
         case let .plate(key): key.entry
         case let .commit(key): key.entry
+        case let .queueFailure(key): key.entry
         }
     }
 }

@@ -20,6 +20,14 @@ public extension DiscoverCopy.PlateKey {
             // on everything stops meaning anything.
             DiscoverCopy.Entry(body: "Nothing runs on your Mac; requests go to {host}")
 
+        case .unknownHost:
+            // A13's remote line when the url does not parse. Naming the wrong host is worse than
+            // admitting which host is unknown, because the whole point of the line is telling the
+            // user where their tool arguments go.
+            DiscoverCopy.Entry(body: """
+            Nothing runs on your Mac; requests go to an address neither index published
+            """)
+
         case .credential:
             DiscoverCopy.Entry(body: "Needs a credential, entered on your Mac")
 
@@ -40,6 +48,27 @@ public extension DiscoverCopy.PlateKey {
 
         case .invocationLabel:
             DiscoverCopy.Entry(body: "What would run")
+        }
+    }
+}
+
+public extension DiscoverCopy.QueueFailureKey {
+    /// The write failed. States what happened and what to do, next to the thing that failed, and
+    /// does not blame or emote (`DESIGN.md` §6, `SWIFT_PRACTICES.md` §3).
+    ///
+    /// Here rather than in the view, because a sentence assembled at a call site is invisible to
+    /// all three copy checks — the pinned literal, the render assertion and the mock-parity scan.
+    var entry: DiscoverCopy.Entry {
+        switch self {
+        case .unreadable:
+            DiscoverCopy.Entry(
+                body: "This phone's queue couldn't be read, so nothing was saved. Try again."
+            )
+
+        case .writeFailed:
+            DiscoverCopy.Entry(
+                body: "This phone couldn't save the item, so nothing was queued. Try again."
+            )
         }
     }
 }

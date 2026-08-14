@@ -168,18 +168,50 @@ enum DiscoverSpecimens {
         return files
     }
 
-    /// Remove comments and string literals, so a rule cannot be tripped by prose that mentions the
-    /// thing it forbids — the doc comments in these files discuss `useCount` at length — and,
-    /// more importantly, cannot be evaded by a value hidden in an interpolation.
+    /// Remove **comments only**, leaving string literals in place.
+    ///
+    /// It stripped literals too, and that made the source scan structurally unable to see the one
+    /// defect class it exists to catch: copy authored inside a view instead of in `DiscoverCopy`.
+    /// Four such strings were live while the scan reported clean. Comments still go, because the
+    /// doc comments in these files discuss `useCount` at length and would trip the field check.
+    ///
+    /// The escape handling matters for the same reason. The previous version toggled an
+    /// in-string flag on every quote without accounting for `\\"`, so one escaped quote
+    /// desynchronised it and it mis-stripped the whole remainder of the file — silently, and in
+    /// the direction of finding nothing.
     static func stripped(_ source: String) -> String {
         var out = ""
         for line in source.components(separatedBy: .newlines) {
-            let withoutComment = line.components(separatedBy: "//").first ?? ""
-            var inString = false
             var kept = ""
-            for character in withoutComment {
-                if character == "\"" { inString.toggle(); continue }
-                if !inString { kept.append(character) }
+            var inString = false
+            var escaped = false
+            var previous: Character?
+            for character in line {
+                if escaped {
+                    escaped = false
+                    kept.append(character)
+                    previous = character
+                    continue
+                }
+                if character == "\\", inString {
+                    escaped = true
+                    kept.append(character)
+                    previous = character
+                    continue
+                }
+                if character == "\"" {
+                    inString.toggle()
+                    kept.append(character)
+                    previous = character
+                    continue
+                }
+                // A `//` outside a string starts a comment; the rest of the line goes.
+                if character == "/", previous == "/", !inString {
+                    kept.removeLast()
+                    break
+                }
+                kept.append(character)
+                previous = character
             }
             out += kept + "\n"
         }

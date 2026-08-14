@@ -128,6 +128,28 @@ public enum DiscoverListState: Sendable, Equatable {
     /// The router is not running on the paired Mac. Its own state, never a generic error (A27).
     case offline
 
+    /// The states, without their payloads.
+    ///
+    /// Exists so a completeness test can compare against a count **the type knows** rather than
+    /// against a literal the test itself wrote. `DiscoverListState` carries associated values, so
+    /// `CaseIterable` is not synthesised for it; `kind` is an exhaustive switch, which means a new
+    /// case fails to compile here until it is named — and `Kind.allCases.count` then moves.
+    enum Kind: String, Sendable, CaseIterable {
+        case populated, loading, emptyNoQuery, emptyQuery, partial, failed, offline
+    }
+
+    var kind: Kind {
+        switch self {
+        case .populated: .populated
+        case .loading: .loading
+        case .emptyNoQuery: .emptyNoQuery
+        case .emptyQuery: .emptyQuery
+        case .partial: .partial
+        case .failed: .failed
+        case .offline: .offline
+        }
+    }
+
     /// The one place a search response becomes a surface state.
     ///
     /// Pure, and here rather than on the model, so the mapping is testable without a model, a
@@ -175,6 +197,20 @@ public enum DetailState: Sendable, Equatable {
     case githubLimited
     /// The router is not running on the paired Mac. Detail still allows a local save (A18).
     case offline
+
+    /// The states, without their payloads — see `DiscoverListState.Kind` for why this exists.
+    enum Kind: String, Sendable, CaseIterable {
+        case populated, noRepositoryData, githubLimited, offline
+    }
+
+    var kind: Kind {
+        switch self {
+        case .populated: .populated
+        case .noRepositoryData: .noRepositoryData
+        case .githubLimited: .githubLimited
+        case .offline: .offline
+        }
+    }
 }
 
 // MARK: - The commit
@@ -233,7 +269,12 @@ public enum CommitState: Sendable, Equatable, CaseIterable {
         isAlreadyDeclared: Bool
     ) -> CommitState {
         // Order is the precedence. Never-paired and no-descriptor come first because they are the
-        // only two states that disable the commit (A17), and neither is recoverable by tapping.
+        // only two states that **refuse** the commit (A17) — neither is recoverable by tapping.
+        //
+        // They are not the only two that render inert: the three queued/declared states are inert
+        // too, because the act is already done rather than refused. `isActionable` cannot tell
+        // those apart, and a comment claiming "the only two states that disable the commit" was
+        // wrong about the predicate for that reason.
         guard connection.canQueue else { return .neverPaired }
         guard hasInstallDescriptor else { return .noDescriptor }
         if isAlreadyDeclared { return .alreadyDeclared }

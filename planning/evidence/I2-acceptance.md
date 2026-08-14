@@ -59,7 +59,7 @@ change is asserted directly (A32).
 | Gate | Command | Exit | Result |
 |---|---|---|---|
 | lint | `make lint` | 0 | 0 violations over 362 files, all four linters run |
-| test | `make test` | 0 | 1157 tests / 144 suites |
+| test | `make test` | 0 | 1160 tests / 144 suites |
 | test-ios | `make test-ios` | 0 | 23 iOS tests, one simulator |
 | parity | `make parity` | 0 | 358 vector cases (floor 358) |
 | build-mac | `make build-mac` | 0 | `** BUILD SUCCEEDED **` |
@@ -67,7 +67,7 @@ change is asserted directly (A32).
 
 ## Mutations, red-green
 
-Five guards were deliberately broken, watched go red, and restored. Each filter was first
+Eight guards were deliberately broken, watched go red, and restored. Each filter was first
 confirmed to match exactly one test — a `--filter` that matches nothing exits 0 and proves nothing.
 
 | # | What was broken | Guard that caught it |
@@ -79,12 +79,46 @@ confirmed to match exactly one test — a `--filter` that matches nothing exits 
 | M5 | one element group dropped from the hand-written `Key.allCases` | `everyElementKeyIsReachable` |
 | M6 | `.discover` pointed back at an awaiting key | the acceptance script's placeholder guard |
 | M7 | the offline note's condition widened back to include `.neverPaired` | `testNeverPairedDoesNotClaimTheRouterIsDown` — and the failure message captured the contradiction verbatim: *"The router isn't running on Luke's MacBook Pro."* and *"No Mac paired yet, so there's nowhere to send this."* in one rendered tree |
+| M8 | `DiscoverModel.isBandEmpty` reverted to `members(of: band).isEmpty` — the pre-critic behaviour | `bandEmptyRoutesThroughTheGuard`, reporting *".mostUsed claimed band-empty over an empty list"* and the same for `.recentlyChanged` |
 
 **A trap worth recording.** M7 was reverted with `git checkout -- <file>`, which restored the file
 to `HEAD` — and the fix under test was **uncommitted**, so the revert discarded the fix along with
 the mutation. The acceptance run immediately afterwards was still green, because the guard's
 subject had gone back to the state the guard was written against. Mutating an uncommitted file
 needs the fix committed first, or the revert has to be a re-application rather than a checkout.
+
+## Phase D — in-family completeness critic
+
+The codex lane is account-limited until 2026-08-20, so the out-of-family critic ran in-family:
+a fresh `claude -p` opus-5 reviewer, briefed adversarially and told that finding nothing is a
+failed review rather than a pass. Recorded as `codex: usage limit -> claude (downgrade)`.
+
+**Verdict: REJECT**, 16 findings. Every one was checked against source before being accepted;
+none was taken on the reviewer's word.
+
+| # | Sev | Finding | Disposition |
+|---|---|---|---|
+| 1 | HIGH | band-empty rendered *"…changed in the last **Any time** days"*, with an action resetting to the window already selected | **fixed.** `bandEmptyKey` splits three ways; `bandEmptyCopyIsSplit` guards it |
+| 2 | HIGH | the same windowed sentence applied to **Most used**, which `respondsToWindow` excludes — contradicting the A4 asymmetry | **fixed.** Most used gets its own sentence and no action |
+| 3 | HIGH | `DiscoverBands.isBandEmptyWithinResults` had **no call site**; the view used `entries.isEmpty`, so `.partial` with zero results drew band-empty copy over a page with no results | **fixed.** The model routes to the guard, `DiscoverScreen` gained the whole-list-empty branch, and **M8** proves the routing red-green |
+| 4 | MED | A28 violated in four places (authored sentences in views) | **fixed.** All four moved to the manifest |
+| 5 | MED | `stripped(_:)` removed string literals before the scan, so the honesty suite structurally could not see finding 4 | **fixed.** `viewsDoNotAuthorCopy` scans the unstripped-literal form |
+| 6 | MED | `where name != "DiscoverModel.swift"` exempted the one logic-bearing file | **fixed.** The exemption is gone; the file is scanned like every other |
+| 7 | MED | `dimmingAgreesWithCopy` asserted `x == x` | **fixed.** It asserts against the manifest, not itself |
+| 8 | MED | `onlyTwoStatesDisable` never asserted set size; five entries carry `isDisabled: true` | **fixed.** The comment conflated "refused" with "already done"; both the assertion and the comment now say which is which |
+| 9 | MED | `#expect(states.count == 7)` counted a literal the test wrote; `state == state` is true for every value | **fixed.** Counted against `CommitState.allCases` |
+| 10 | MED | the safe-area test asserted only `minY`, so the evidence overstated it by half | **fixed.** Both edges asserted |
+| 11 | LOW/MED | A8 says `== limit`, code is `>= limit`; the positive branch was never rendered | **fixed.** `truncationOnlyWhenFull` now asserts the rendered sentence |
+| 12 | LOW | `lastCommitText` resolved `.count` with a formatted date | **fixed.** A `.date` token was added |
+| 13 | LOW | no `forksText`, omission unrecorded | **fixed.** Recorded in `DiscoverPresentation` with its reason |
+| 14 | LOW | A26 branched on `source` only, so a `.both`-sourced entry with a Smithery homepage rendered failure copy for a case where nothing failed | **fixed.** `repositoryFactKey(for:)` branches on whether GitHub could have been asked |
+| 15 | LOW | spec A4 cited 2025-11-28, which is a `pushedAt`; the field the band ranks on is `updatedAt`, newest 2025-11-19 | **fixed in spec and plan.** The argument held by accident; it now turns on the field it depends on |
+| 16 | LOW | plan §2 drift — `DiscoverModel` location, `DiscoverSkeletonRow`/`DiscoverWindowControl` inlined, `Key` no longer `String`-raw | **recorded.** plan §2 gained a *Delivered shape* subsection naming each deviation and why, rather than back-fitting the tables |
+
+What the critic recorded as clean: DESIGN §5's absences are each argued structurally, `--attn`
+appears only under `severity == .attention` and the offline `--t3` choice is reasoned, there are no
+force-unwraps or `try?` in the feature, and the `PhoneFlowTests` / `PhoneIndicatorTests` edits both
+trace to A32 and A12 respectively.
 
 ## Declared, not fixed
 

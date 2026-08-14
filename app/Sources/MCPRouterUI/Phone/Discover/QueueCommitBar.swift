@@ -61,10 +61,8 @@ struct QueueCommitBar: View {
     /// does not blame or emote (`DESIGN.md` §6, `SWIFT_PRACTICES.md` §3).
     private func failureText(_ failure: CapabilityQueueError) -> String {
         switch failure {
-        case .unreadable:
-            "This phone's queue couldn't be read, so nothing was saved. Try again."
-        case .writeFailed:
-            "This phone couldn't save the item, so nothing was queued. Try again."
+        case .unreadable: DiscoverCopy.entry(.queueFailure(.unreadable)).body
+        case .writeFailed: DiscoverCopy.entry(.queueFailure(.writeFailed)).body
         }
     }
 }

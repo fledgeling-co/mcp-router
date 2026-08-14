@@ -63,6 +63,27 @@ public enum DiscoverPresentation {
             .body
     }
 
+    // **`forks` is decoded and deliberately not rendered.** A7 permits it, and nothing displays
+    // it: a fork count says something about GitHub's social graph rather than about whether this
+    // capability is worth queueing, and it shares `stars`' coverage problem — present for at most
+    // ten entries per search and never for a Smithery-hosted one. Recorded here, beside the four
+    // fields that are rendered, so its absence reads as a decision rather than an oversight.
+
+    /// Which repository-fact copy an entry gets when it has no last-commit date (A26).
+    ///
+    /// Decided by **whether GitHub could have been asked**, not by `source`. `enrichWithStars`
+    /// needs a parseable `github.com/owner/repo`, and a Smithery-hosted entry carries its
+    /// smithery.ai homepage there — so GitHub was never asked and nothing failed. Branching on
+    /// `source` alone got a `.both`-sourced entry with a Smithery homepage wrong: it rendered the
+    /// failure copy, "couldn't be fetched this time", for a case where nothing was attempted.
+    ///
+    /// Here rather than in the view, so the fact/failure split is a value a test can assert.
+    public static func repositoryFactKey(for entry: RegistryEntry) -> DiscoverCopy.Key {
+        CapabilityPlate.host(of: entry.repository) == "github.com"
+            ? .detail(.partialGitHubLimited)
+            : .detail(.partialNoRepository)
+    }
+
     // MARK: - Dates
 
     /// The date an entry was last changed, from `updatedAt`.
@@ -83,7 +104,7 @@ public enum DiscoverPresentation {
     public static func lastCommitText(_ entry: RegistryEntry) -> String? {
         guard let pushed = date(from: entry.pushedAt) else { return nil }
         return DiscoverCopy.entry(.detail(.lastCommit))
-            .resolved([.count: display(pushed)])
+            .resolved([.date: display(pushed)])
             .body
     }
 

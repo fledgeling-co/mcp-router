@@ -152,6 +152,37 @@
 
         // MARK: - Helpers
 
+        /// The seam the band-empty guard actually runs through.
+        ///
+        /// `DiscoverBands.isBandEmptyWithinResults` was proven in the Kit suite while **nothing
+        /// called it**: the view derived the same question from `entries.isEmpty` and lost the
+        /// distinction the guard exists to keep — "this band has no members" against "the search
+        /// returned nothing". A proven function with no call site guards nothing, so this asserts
+        /// the model routes the question to it and the Kit proof reaches the surface.
+        @Test("the model's band-empty question is the guard's, not entries.isEmpty")
+        func bandEmptyRoutesThroughTheGuard() async {
+            // Results arrived and none carries a use count: Most used is empty *within* results,
+            // which is A5's case and not the list's Empty state.
+            let uncounted = DiscoverFixtures.entry(id: "uncounted", useCount: nil, install: nil)
+            let client = DiscoverRecordingClient()
+            client.staged = [.success(Self.response(results: [uncounted]))]
+            let model = Self.model(client: client)
+            await model.search()
+
+            #expect(model.isBandEmpty(.mostUsed), "no member inside a populated list is band-empty")
+            #expect(!model.isBandEmpty(.recentlyChanged))
+
+            // No results at all is the list's own Empty state, and no band may claim it — two
+            // band-empty sentences standing in for "nothing came back" is the defect this catches.
+            let bare = DiscoverRecordingClient()
+            bare.staged = [.success(Self.response(results: []))]
+            let empty = Self.model(client: bare)
+            await empty.search()
+            for band in DiscoverBand.allCases {
+                #expect(!empty.isBandEmpty(band), "\(band) claimed band-empty over an empty list")
+            }
+        }
+
         static func model(
             client: any ControlAPIClient = FixtureControlAPIClient(),
             queue: any CapabilityQueueWriter = InMemoryCapabilityQueue(),

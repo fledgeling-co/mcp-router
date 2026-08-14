@@ -23,7 +23,7 @@ Read out of the tree, not assumed.
 | `RegistryEntry`, `RegistrySearchResponse`, `RegistryInstall`, `RegistryRequirement` | `Kit/Control/RegistryModels.swift` | **read-only.** Every field I2 renders already exists. |
 | `ControlAPIClient.searchRegistry(query:limit:)` | `Kit/Control/ControlAPIClient.swift:134` | **called, not changed.** No new endpoint (A11). |
 | `FixtureControlAPIClient.searchRegistry` | `Kit/Control/FixtureControlAPIClient.swift:250` | ignores `query` and always returns `registry-search.json`. Adequate for Default; **insufficient for Empty-on-query, Partial and truncation**, so this plan adds a test double (§6.1) rather than widening the shared fixture. |
-| `registry-search.json` | `Kit/Control/Fixtures/` | **read-only.** 3 results, `merged: 5`, `warnings: []`, newest `pushedAt` 2025-11-28. |
+| `registry-search.json` | `Kit/Control/Fixtures/` | **read-only.** 3 results, `merged: 5`, `warnings: []`, newest `updatedAt` 2025-11-19 (the field **Recently changed** ranks on), newest `pushedAt` 2025-11-28. |
 | `PhoneShell.Tab.discover → AwaitingTab` | `UI/Phone/PhoneShell.swift:144` | **the one line this feature replaces** (A32). |
 | `PhoneMetric` | `UI/Phone/PhoneMetric.swift` | **extended**, and it stays the only file under `Phone/` writing geometry (A31). |
 | `PairingCopy` | `Kit/Pairing/PairingCopy.swift` | **read-only except**: `neverInstalls` is consumed verbatim (A20). `DiscoverCopy` is a *sibling*, never an extension (spec §Codebase grounding). |
@@ -87,6 +87,35 @@ and it is why the presentation layer is a value type rather than logic inside th
 | `UI/Phone/PhoneShell.swift` | `.discover` resolves to `DiscoverScreen`; `awaitingKey` returns `nil` for it (A32). Injection point for the client, connection state and queue writer. |
 | `UI/Phone/PhoneMetric.swift` | New named values (§5). |
 | `app/project.yml` | Only if a new directory needs declaring; the target globs `Sources/**`, so verify before editing. |
+
+### Delivered shape — where the build diverged from this inventory, and why
+
+Three deviations, recorded here rather than back-fitted into the tables above, so the plan stays a
+record of what was planned and this stays a record of what shipped.
+
+1. **`DiscoverCopy.swift` is six files, and `Key` is a nested sum type rather than
+   `enum Key: String, CaseIterable`.** One flat enum reached 47 cases, which put `entry(_:)` at
+   cyclomatic complexity 47 against a cap of 10 — and the only ways to keep one file were a
+   file-scope lint disable or a raised limit, both barred. `Key` now sums seven per-element
+   sub-enums (`BandKey`, `WindowKey`, `UnitKey`, `ListKey`, `DetailKey`, `PlateKey`, `CommitKey`,
+   `QueueFailureKey`), each with its own `entry` beside its own copy in
+   `DiscoverCopyKeys/Controls/List/Detail/Commit.swift`. The property A28 turns on is unchanged:
+   the `switch` is still exhaustive, so an unhandled key is still a build failure rather than a
+   runtime nil. Each sub-enum keeps its `String` raw value (that is what `key.name` renders in a
+   test failure); only the outer `Key` drops it, because a nested case has no single raw value.
+   `DiscoverCopyTests` pins `allCases.count == 53` so a whole element type added to `Key` and
+   omitted from `allCases` is caught rather than silently uncovered.
+2. **`DiscoverModel.swift` is at `UI/Phone/Discover/`, not `Kit/Discover/`.** It is
+   `@MainActor @Observable` holding `@Bindable` state for SwiftUI, and Kit is deliberately
+   SwiftUI-free (SWIFT_PRACTICES §8) so the router tests can import it. Its testable half did move
+   to Kit: state resolution is `DiscoverListState.resolve(response:query:)` in
+   `DiscoverSurfaceState.swift`, so the nine-state decision is a pure function a Kit test asserts
+   rather than a method only a view can reach.
+3. **`DiscoverSkeletonRow` and `DiscoverWindowControl` are not their own files.** They are declared
+   in `DiscoverRow.swift` and `DiscoverBandSection.swift`, beside the view each one mirrors —
+   the skeleton is sized from the row's own type roles, and the control is only ever drawn as that
+   section's header. The source-scan guards assert `files.count >= 6` rather than an exact count,
+   so the inlining does not weaken them.
 
 ---
 
@@ -336,10 +365,12 @@ alongside the evidence.
    suite, not a separate optional check.
 2. **`canSend` is used by reflex.** The single likeliest defect in this feature, and the reason
    A19 is a criterion. Mitigated by red-green proof 2.
-3. **The fixture's newest stamp (2025-11-28) is outside every offered window.** With `anyTime` as
-   the default (A4) the first render is populated; any *other* default would ship a designed-in
+3. **The fixture's newest `updatedAt` (2025-11-19) is outside every offered window.** With `anyTime`
+   as the default (A4) the first render is populated; any *other* default would ship a designed-in
    empty band. Tests must not "fix" this by widening the fixture — the fixture is the recorded
-   truth, and A5's per-band empty state is exactly what it exercises.
+   truth, and A5's per-band empty state is exactly what it exercises. The stamp that matters is
+   `updatedAt`, because that is the field **Recently changed** ranks on; the fixture's 2025-11-28 is
+   a `pushedAt` on a different entry and does not bear on this risk either way.
 4. **Detail's three structurally-absent states** read as an oversight to a later reviewer.
    Mitigated by each omission carrying a comment naming A11, and by a test asserting the case
    counts.

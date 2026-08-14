@@ -67,6 +67,9 @@ public extension DiscoverCopy.UnitKey {
             // one would promise a capability the product does not have.
             DiscoverCopy.Entry(body: "Search the server registries")
 
+        case .searchingAccessibility:
+            DiscoverCopy.Entry(body: "Searching the server registries")
+
         case .useCount:
             // "sessions on Smithery" — never "installs", never "downloads". Smithery publishes
             // sessions started, and the unit names both the quantity and who published it (A6).

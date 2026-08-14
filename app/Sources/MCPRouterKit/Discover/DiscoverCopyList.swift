@@ -20,13 +20,35 @@ public extension DiscoverCopy.ListKey {
                 actionLabel: "Clear search"
             )
 
-        case .bandEmpty:
-            // A5: one band empty while the other is populated is the common case, not an edge
-            // case, and it is not the whole-list Empty state.
+        case .bandEmptyMostUsed:
+            // A5, and Most used gets its own sentence because **the window does not reach this
+            // band** (A4). Offering "widen the window" here would advise an action that cannot
+            // change what is shown, under a claim about a filter that was never applied. It is the
+            // common case rather than an edge one: the official registry publishes no popularity
+            // figure at all, so an all-official page empties this band every time.
+            DiscoverCopy.Entry(
+                headline: "No result here has a session count.",
+                body: """
+                Only Smithery publishes one, so entries the official registry alone carries are \
+                absent from this band rather than ranked at zero.
+                """
+            )
+
+        case .bandEmptyRecentlyChangedWindowed:
             DiscoverCopy.Entry(
                 headline: "Nothing in these results changed in the last {window} days.",
                 body: "Widen the window to see more.",
                 actionLabel: "Any time"
+            )
+
+        case .bandEmptyRecentlyChangedAnyTime:
+            // Under Any time no window is applied, so emptiness means something else entirely: no
+            // entry carried a change date this app could read. One shared template rendered
+            // "Nothing in these results changed in the last Any time days" — ungrammatical, false,
+            // and offering an "Any time" action that reset the window to the one already chosen.
+            DiscoverCopy.Entry(
+                headline: "No result here carries a change date.",
+                body: "Neither index reported when these entries were last changed."
             )
 
         case .partialOfficialDown:

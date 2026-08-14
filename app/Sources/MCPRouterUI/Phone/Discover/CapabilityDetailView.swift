@@ -137,9 +137,9 @@ struct CapabilityDetailView: View {
                 .typeRole(.callout, monospaced: true)
                 .foregroundStyle(ColorToken.t2.color)
         } else {
-            let key: DiscoverCopy.Key = entry.source == .smithery
-                ? .detail(.partialNoRepository)
-                : .detail(.partialGitHubLimited)
+            // A26's fact/failure split. The decision lives in `DiscoverPresentation` so it is a
+            // value a test can assert rather than a branch buried in a view.
+            let key = DiscoverPresentation.repositoryFactKey(for: entry)
             let copy = DiscoverCopy.entry(key)
             VStack(alignment: .leading, spacing: PhoneMetric.tight) {
                 if let headline = copy.headline {

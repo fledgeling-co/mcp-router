@@ -130,6 +130,10 @@ struct DiscoverHonestyTests {
         #expect(DiscoverPresentation.truncationText(shown: 29, limit: 30) == nil)
         let full = try #require(DiscoverPresentation.truncationText(shown: 30, limit: 30))
         #expect(digits(full) == "30")
+        // The sentence the user actually sees, asserted rather than just its digits — the only
+        // test of this before checked the nil branch against a three-result fixture, so the
+        // positive half was never rendered by anything.
+        #expect(full == "Showing the first 30 matches. Narrow the search to see others.")
     }
 
     // MARK: - The scan
@@ -152,7 +156,10 @@ struct DiscoverHonestyTests {
         // The direct half: no formatter, anywhere.
         let formatters = [".formatted(", "NumberFormatter", "DateFormatter", "String(format:"]
 
-        for (name, source) in files where name != "DiscoverModel.swift" {
+        // `DiscoverModel.swift` is scanned like every other file. It was exempted, with no stated
+        // reason, and it is the one logic-bearing file in the directory — the single file most
+        // able to break the funnel was the one the funnel's scan skipped.
+        for (name, source) in files {
             let stripped = DiscoverSpecimens.stripped(source)
             for field in numericFields {
                 let read = "\\.\(field)(?![A-Za-z0-9_])"
@@ -165,6 +172,40 @@ struct DiscoverHonestyTests {
                 #expect(
                     !stripped.contains(formatter),
                     "\(name) formats a value: \(formatter) — DiscoverPresentation owns formatting"
+                )
+            }
+        }
+    }
+
+    /// A28: every user-facing sentence lives in `DiscoverCopy`, so a view may not author one.
+    ///
+    /// This is the defect class the source scan exists for and could not previously see, because
+    /// `stripped` removed string literals before scanning. Four authored strings were live while
+    /// the scan reported clean: an accessibility label paraphrasing `searchPlaceholder`, both
+    /// queue-failure sentences, and the unparseable-host line.
+    ///
+    /// A sentence is approximated as a literal with a space in it and some length. That is a
+    /// proxy, and it is the right side of the trade: an identifier or a symbol name has no space,
+    /// and anything long enough to read as prose has to justify itself in the manifest instead.
+    @Test("no view under Phone/Discover authors a user-facing sentence")
+    func viewsDoNotAuthorCopy() throws {
+        let files = try DiscoverSpecimens.swiftFiles(under: "app/Sources/MCPRouterUI/Phone/Discover")
+        #expect(files.count >= 6, "only \(files.count) Discover view files were scanned")
+
+        for (name, source) in files {
+            let stripped = DiscoverSpecimens.stripped(source)
+            var cursor = stripped.startIndex
+            while let found = stripped.range(
+                of: #""[^"\n]{12,}""#,
+                options: .regularExpression,
+                range: cursor ..< stripped.endIndex
+            ) {
+                let literal = String(stripped[found])
+                cursor = found.upperBound
+                guard literal.contains(" ") else { continue }
+                #expect(
+                    Bool(false),
+                    "\(name) authors \(literal) — user-facing copy belongs in DiscoverCopy"
                 )
             }
         }

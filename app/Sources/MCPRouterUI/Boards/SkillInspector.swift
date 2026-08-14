@@ -47,6 +47,7 @@
                     versionSection
                     sourceSection
                     provenanceSection
+                    autoUpdateSection
                     actions
                 }
                 .padding(SkillsBoardMetrics.rowPadding * 2)
@@ -164,6 +165,37 @@
                     .typeRole(.body)
                     .foregroundStyle(ColorToken.attention.color)
                     .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+
+        /// Item 7 — the marketplace's auto-update setting, with its toggle.
+        ///
+        /// The setting belongs to the **marketplace**, not to the skill, so it is looked up by the
+        /// origin's marketplace name and omitted entirely for a hand-placed skill, which has no
+        /// marketplace to have a setting. The toggle ships dimmed: the plan cut P6's writes, and a
+        /// control that cannot act dims in place with a discoverable reason rather than vanishing
+        /// (§3.4). For a local directory the reason is not "not yet" but "there is nothing to
+        /// fetch", which is a permanent fact about that marketplace rather than a temporary one
+        /// about this release.
+        @ViewBuilder
+        private var autoUpdateSection: some View {
+            if let origin = skill.source.pluginOrigin {
+                section("Auto-update") {
+                    if let marketplace = board.marketplaces.first(where: { $0.name == origin.marketplace }) {
+                        ToggleRow(
+                            title: SkillPresentation.autoUpdateLine(for: marketplace),
+                            help: SkillPresentation.autoUpdateReason(for: marketplace),
+                            isOn: marketplace.autoUpdate,
+                            disabledReason: SkillPresentation.autoUpdateReason(for: marketplace),
+                            set: { _ in }
+                        )
+                    } else {
+                        Text(SkillPresentation.autoUpdateUnread)
+                            .typeRole(.caption)
+                            .foregroundStyle(ColorToken.t3.color)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             }
         }

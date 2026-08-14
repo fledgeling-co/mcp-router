@@ -29,6 +29,15 @@ public extension SkillPresentation {
         return writesNotYetAvailable
     }
 
+    /// Inspector item 7 has no marketplace record to read from.
+    ///
+    /// Said out loud rather than drawn as a switch in the off position. A marketplace list that
+    /// failed to load is a different fact from auto-update being off, and rendering the second when
+    /// only the first is known would be the board asserting a setting nobody read.
+    static let autoUpdateUnread = """
+    Not shown — the marketplace list didn't load, and the setting lives on the marketplace.
+    """
+
     static func removeReason(for marketplace: Marketplace) -> String {
         if marketplace.suppliedSkillCount > 0 {
             let n = marketplace.suppliedSkillCount

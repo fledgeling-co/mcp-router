@@ -67,6 +67,19 @@ struct SkillPresentationStateTests {
         #expect(SkillPresentation.autoUpdateLine(for: off) == "Auto-update off")
     }
 
+    @Test("A missing marketplace record is said out loud, never drawn as a switch in the off position")
+    func autoUpdateWithoutARecordSaysSo() {
+        // Inspector item 7 reads a setting that lives on the marketplace. When the marketplace list
+        // did not load there is no record to read, and "off" would be the board asserting a setting
+        // nobody observed — the one thing DESIGN.md forbids everywhere else on this board.
+        let unread = SkillPresentation.autoUpdateUnread
+        #expect(unread.contains("didn't load"))
+        #expect(!unread.lowercased().contains("auto-update off"))
+        // It must not be mistakable for either real state.
+        let off = Marketplace(name: "b", source: .github(repo: "x/z"), autoUpdate: false)
+        #expect(unread != SkillPresentation.autoUpdateLine(for: off))
+    }
+
     // MARK: - The held-version sheet
 
     @Test("The held sheet's title states the finding and names both versions")

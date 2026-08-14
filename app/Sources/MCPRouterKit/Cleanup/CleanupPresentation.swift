@@ -218,16 +218,33 @@ public enum CleanupPresentation {
     /// the figure is unobserved the sentence drops the count and keeps every consequence — the reader
     /// still learns exactly what is lost and that it cannot come back, without being told a number
     /// nobody measured.
+    ///
+    /// **An observed zero is a third case, not the first one with a small number in it.** The Phase D
+    /// critic found the sentence false for it: "0 calls are discarded, and there is no way to bring
+    /// them back" warns of a loss that does not occur, and it is reachable on the *success* path —
+    /// `usageSummary()` answering with an empty `servers` array folds to `.some(0)` through the
+    /// `reduce` seed, so the optional that exists to prevent exactly this sentence was defeated one
+    /// line upstream of it.
+    ///
+    /// Resetting is still not a no-op when nothing is recorded: `usage.reset()` moves `since` to now
+    /// (`src/usage.ts:283`), restarting the observation window that every reading on this pane is
+    /// measured against. So the zero case names *that* consequence rather than an imaginary one, and
+    /// rather than claiming there is none.
     public static func resetConsequence(calls: Int?, window: Window?) -> String {
         let span = window.map { " recorded across the past \($0.label)" } ?? " recorded so far"
-        let subject = if let calls {
-            "\(calls) \(calls == 1 ? "call" : "calls")\(span) are discarded"
-        } else {
-            "Every call\(span) is discarded — the router has not said how many"
+        guard let calls else {
+            return "Every call\(span) is discarded — the router has not said how many — and there "
+                + "is no way to bring them back. Every server will read as never-used until calls "
+                + "are recorded again, so this list will propose things that are in daily use."
         }
-        return "\(subject), and there is no way to bring them back. "
-            + "Every server will read as never-used until calls are recorded again, so this list "
-            + "will propose things that are in daily use."
+        guard calls > 0 else {
+            return "No calls have been recorded, so there is nothing to discard. Resetting still "
+                + "restarts the observation window, which is what every reading on this pane is "
+                + "measured against."
+        }
+        return "\(calls) \(calls == 1 ? "call" : "calls")\(span) are discarded, and there is no way "
+            + "to bring them back. Every server will read as never-used until calls are recorded "
+            + "again, so this list will propose things that are in daily use."
     }
 
     public static let resetConfirm = "Reset history"

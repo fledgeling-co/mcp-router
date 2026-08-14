@@ -299,3 +299,40 @@ Attempt 3 reviews `CleanupSheets.swift` — the removal and reset dialogs — an
 is the highest-value target (the only irreversible actions on either pane) but it is a narrower
 review than the gate is meant to be. The rest of the item was reviewed by the author, which is
 exactly the weakness this gate exists to cover, and is not a substitute for it.
+
+### The Phase D critic's verdict: REJECT, 11 findings — and what came of each
+
+Attempt 3 stalled like the first two; attempt 4 (~2 KB, the reset-consequence function alone, with a
+hard `pkill` watchdog rather than trusting `alarm`) returned **4,384 bytes** and **REJECTED**.
+
+| # | Finding | Verdict after checking it |
+|---|---|---|
+| **1** | The forbidden zero is manufactured on the **success** path: `summary.servers.reduce(0)` folds an empty array to `.some(0)`, so the `Int?` added to prevent "0 calls are discarded" is defeated one line upstream | **VALID — fixed.** The sharper half is finding 5: for a real zero the sentence is *false*. |
+| 2 | The sentence scopes the loss to the window; the endpoint discards everything older | **INVALID.** `usage.reset()` moves `since` to now (`src/usage.ts:283`), so the named window *is* the whole recorded history. Checked in the router's source rather than argued. |
+| 3 | `?? " recorded so far"` asserts all-time coverage for a figure whose span was never reported | **PARTIALLY VALID — accepted as a hedge.** "So far" states no span; it is vaguer than the alternative rather than falser. Not changed. |
+| 4 | A `.stale` reading is shown in the dialog in the present tense with no marker | **VALID, not fixed — deferred.** The figure *was* observed, just earlier. Marking staleness inside a modal is a design decision, not a defect this item may settle alone. Raised as **M12** below. |
+| **5** | Zero has no true reading: "0 calls are discarded … no way to bring them back" warns of a loss that does not occur | **VALID — fixed with 1.** |
+| 6 | `Int?` admits negatives; `-1` would render as a count | **INVALID in practice.** A negative would be a router defect upstream of this surface; nothing in the wire type or the router produces one. Not guarded. |
+| 7 | The function cannot refuse — no return path meaning "I cannot state this" | **INVALID as stated.** Every branch is now true, so there is nothing to refuse. |
+| 8 | No as-of time; calls accruing between load and POST are discarded uncounted | **VALID, minor — accepted.** The figure is a lower bound. Folded into M12 rather than fixed here. |
+| 9 | `$0.label` interpolated raw | **INVALID.** `Window.label` is built by `window(since:now:)` from a parsed duration; it is never a raw code and never empty when a window exists. |
+| 10 | "Every server will read as never-used" asserted unconditionally | **ADDRESSED by the fix.** The prediction now appears only on the branch where calls were actually recorded. |
+| 11 | Unformatted and unlocalised | **OUT OF SCOPE.** The whole app is unlocalised; not M7's to change. |
+
+**Tally: 11 raised · 3 valid and fixed (1, 5, 10) · 2 valid and deferred (4, 8 → M12) · 1 accepted as
+a hedge (3) · 5 rejected with a citation (2, 6, 7, 9, 11).**
+
+The fix is red-green: with the zero branch removed, the suite reports the defect sentence verbatim —
+`"0 calls recorded across the past 1mo are discarded, and there is no way to bring them back…"` —
+across five assertions.
+
+Finding 1 is the most useful thing this gate produced, and it is worth naming why the author missed
+it: the gap-fix commit put the count behind an `Int?` and tested the `nil` branch, which is the
+branch it had just written. The reachable-but-untested path was the *success* one, and the author's
+own recording double (`UsageSummary(since: "", servers: [])`) had been feeding it a zero the whole
+time without anyone reading the sentence it produced.
+
+**M12** — *Staleness and as-of time inside a destructive dialog* (deps M7). Findings 4 and 8. The
+reset dialog shows a count from the last successful poll, in the present tense, with no marker when
+the reading is `.stale`, and no "as of" time for calls accruing between load and POST. Both are
+honest-figure questions the pane answers elsewhere (`StaleReadingBanner`) and the dialog does not.

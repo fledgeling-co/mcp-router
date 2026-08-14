@@ -161,11 +161,48 @@ struct CleanupPresentationTests {
         #expect(consequence.contains("never-used"))
         #expect(consequence.contains("has not said how many"))
 
-        // And an observed zero is a different sentence from an unobserved one: a router that really
-        // recorded nothing may say so.
+        // And an observed zero is a third sentence, not the first one with a small number in it.
+        // See `resetIsThreeSentencesNotTwo` below for why.
         let observedZero = CleanupPresentation.resetConsequence(calls: 0, window: window)
-        #expect(observedZero.contains("0 calls"))
         #expect(observedZero != consequence)
+        #expect(!observedZero.contains("no way to bring them back"))
+    }
+
+    /// The Phase D critic's finding 1, and the reason it is worth a test of its own.
+    ///
+    /// The unobserved-zero fix put `recordedCalls` behind an `Int?` so the dialog could never say
+    /// "0 calls are discarded". The critic then found the sentence reachable anyway, on the
+    /// **success** path: `usageSummary()` answering with an empty `servers` array folds to `.some(0)`
+    /// through `reduce(0)`, so the optional was defeated one line upstream of the function it was
+    /// added to protect.
+    ///
+    /// The deeper half of the finding is that the sentence was *false* for a real zero — nothing is
+    /// discarded, so "there is no way to bring them back" warns of a loss that does not happen.
+    /// Resetting is still not a no-op (`usage.reset()` moves `since` to now), so the zero case names
+    /// the consequence that does occur.
+    @Test("A15b: an observed zero gets a true sentence, not the loss warning")
+    func resetIsThreeSentencesNotTwo() {
+        let now = Date()
+        let window = CleanupPresentation.window(since: Self.iso(daysAgo: 41, from: now), now: now)
+
+        let zero = CleanupPresentation.resetConsequence(calls: 0, window: window)
+        let one = CleanupPresentation.resetConsequence(calls: 1, window: window)
+        let unobserved = CleanupPresentation.resetConsequence(calls: nil, window: window)
+
+        // All three are different sentences.
+        #expect(Set([zero, one, unobserved]).count == 3)
+
+        // Zero does not warn about a loss that does not occur.
+        #expect(!zero.contains("no way to bring them back"))
+        #expect(!zero.contains("0 call"))
+        #expect(zero.contains("nothing to discard"))
+        // But it does not claim the action is inert either — the window really does restart.
+        #expect(zero.contains("observation window"))
+
+        // One and many still carry the full warning, so this narrowed the zero case only.
+        #expect(one.contains("no way to bring them back"))
+        #expect(one.contains("1 call"))
+        #expect(unobserved.contains("no way to bring them back"))
     }
 
     /// A removal dialog whose row has left the list has no tool count and no key names to state, so

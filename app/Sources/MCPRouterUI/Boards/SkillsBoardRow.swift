@@ -20,7 +20,7 @@
             HStack(spacing: SkillsBoardMetrics.rowPadding) {
                 SkillTile(skill: skill)
 
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: SkillsBoardMetrics.hairline) {
                     Text(skill.name)
                         .typeRole(.body)
                         .foregroundStyle(ColorToken.t1.color)
@@ -38,7 +38,10 @@
                     // it: a version is a value read off a file, and "unversioned" is this app saying
                     // there was no value to read. Setting a statement in the instrument face would
                     // dress it as a reading.
-                    .typeRole(version.isInstrument ? .callout : .subheadline, monospaced: version.isInstrument)
+                    .typeRole(
+                        version.isInstrument ? .callout : .subheadline,
+                        monospaced: version.isInstrument
+                    )
                     .foregroundStyle(version.isHeld ? ColorToken.attention.color : ColorToken.t2.color)
                     .lineLimit(1)
                     .frame(width: SkillsBoardMetrics.versionColumn, alignment: .leading)
@@ -64,7 +67,7 @@
             if let warning = SkillPresentation.provenanceLine(for: skill) {
                 // Amber, because "wants a human decision" is exactly what a moved owner means. The
                 // colour is never the only signal: the sentence says it too.
-                HStack(spacing: 2) {
+                HStack(spacing: SkillsBoardMetrics.labelGap) {
                     IconView(.warn, size: TypeToken.caption.size)
                     Text(warning).lineLimit(1).truncationMode(.tail)
                 }
@@ -129,7 +132,7 @@
         let clients: [SkillClient]
 
         var body: some View {
-            HStack(spacing: 2) {
+            HStack(spacing: SkillsBoardMetrics.labelGap) {
                 ForEach(clients) { client in
                     slot(for: client)
                 }
@@ -157,7 +160,10 @@
                         RoundedRectangle(cornerRadius: radius)
                             .strokeBorder(
                                 ColorToken.lineStrong.color,
-                                style: StrokeStyle(lineWidth: 1, dash: [2, 2])
+                                style: StrokeStyle(
+                                    lineWidth: SkillsBoardMetrics.hairline,
+                                    dash: [SkillsBoardMetrics.labelGap, SkillsBoardMetrics.labelGap]
+                                )
                             )
                     }
                 }
@@ -182,13 +188,13 @@
         var count: Int = 6
 
         var body: some View {
-            VStack(spacing: 1) {
+            VStack(spacing: SkillsBoardMetrics.hairline) {
                 ForEach(0 ..< count, id: \.self) { _ in
                     HStack(spacing: SkillsBoardMetrics.rowPadding) {
                         RoundedRectangle(cornerRadius: SkillsBoardMetrics.tileRadius, style: .continuous)
                             .fill(ColorToken.f2.color)
                             .frame(width: SkillsBoardMetrics.tile, height: SkillsBoardMetrics.tile)
-                        VStack(alignment: .leading, spacing: 3) {
+                        VStack(alignment: .leading, spacing: SkillsBoardMetrics.tightGap) {
                             bar(width: SkillsBoardMetrics.nameColumn * 0.7, height: TypeToken.body.size)
                             bar(width: SkillsBoardMetrics.nameColumn * 0.45, height: TypeToken.caption.size)
                         }

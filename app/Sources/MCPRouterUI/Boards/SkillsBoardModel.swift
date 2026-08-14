@@ -84,7 +84,7 @@
             }
             // The marketplace list is a second, independent read: its failure must not blank the
             // skills board, and the sheet that needs it says so itself if it is missing.
-            marketplaces = (try? await client.marketplaces())?.marketplaces ?? []
+            marketplaces = await (try? client.marketplaces())?.marketplaces ?? []
         }
 
         public var rows: [Skill] {

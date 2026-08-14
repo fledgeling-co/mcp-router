@@ -103,6 +103,15 @@ struct ServerStateTrackerTests {
             try await rest.usageSummary()
         }
 
+        /// Delegated like every other call this scripted client does not itself script.
+        func skills() async throws(ControlAPIError) -> SkillsResponse {
+            try await rest.skills()
+        }
+
+        func marketplaces() async throws(ControlAPIError) -> MarketplacesResponse {
+            try await rest.marketplaces()
+        }
+
         func heldChanges(for name: String) async throws(ControlAPIError) -> HeldChanges {
             try await rest.heldChanges(for: name)
         }

@@ -30,7 +30,7 @@ public enum SkillFixtures {
         SkillClient(
             id: "claudeDesktop", displayName: "Claude Desktop", supportsSkills: false, status: .unsupported
         ),
-        SkillClient(id: "chatGPT", displayName: "ChatGPT", supportsSkills: false, status: .unsupported),
+        SkillClient(id: "chatGPT", displayName: "ChatGPT", supportsSkills: false, status: .unsupported)
     ]
 
     private static func presence(
@@ -116,15 +116,20 @@ public enum SkillFixtures {
             path: "/Users/you/.claude/skills/graphify",
             source: .standalone(path: "/Users/you/.claude/skills/graphify"),
             presence: presence(.present, .absent, .absent, .absent)
-        ),
+        )
     ]
+
+    private static let overflowPath = "/Users/you/.claude/plugins/cache/"
+        + "a-very-long-marketplace-name-that-keeps-going-plugins/"
+        + "create-disclosure-consistency-page-generator-extended/10.14.2-rc.1/skills/"
+        + "create-disclosure-consistency-page-generator-extended"
 
     /// A name and a marketplace wider than their columns.
     public static let overflow: [Skill] = [
         Skill(
             name: "create-disclosure-consistency-page-generator-extended",
             description: String(repeating: "A very long description that keeps going. ", count: 6),
-            path: "/Users/you/.claude/plugins/cache/a-very-long-marketplace-name-that-keeps-going-plugins/create-disclosure-consistency-page-generator-extended/10.14.2-rc.1/skills/create-disclosure-consistency-page-generator-extended",
+            path: overflowPath,
             source: .plugin(PluginOrigin(
                 plugin: "create-disclosure-consistency-page-generator-extended",
                 marketplace: "a-very-long-marketplace-name-that-keeps-going-plugins",
@@ -133,7 +138,7 @@ public enum SkillFixtures {
                 commit: "0123456789ab", siblingSkillCount: 4
             )),
             presence: presence(.present, .absent, .absent, .absent)
-        ),
+        )
     ]
 
     /// Cursor could not be read: the Partial state, where a slot is *unknown* rather than off.
@@ -170,6 +175,6 @@ public enum SkillFixtures {
         Marketplace(
             name: "atlas-plugins", source: .directory(path: "/Users/you/Dev/atlas-app/apps/atlas-plugins"),
             autoUpdate: false, installedPluginCount: 0, suppliedSkillCount: 0
-        ),
+        )
     ]
 }

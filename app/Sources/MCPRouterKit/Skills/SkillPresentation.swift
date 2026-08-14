@@ -29,7 +29,7 @@ public enum SkillPresentation {
         ).count
         var parts = [
             "\(skills) \(skills == 1 ? "skill" : "skills")",
-            "\(marketplaces) \(marketplaces == 1 ? "marketplace" : "marketplaces")",
+            "\(marketplaces) \(marketplaces == 1 ? "marketplace" : "marketplaces")"
         ]
         let held = response.skills.filter { $0.held?.wantsMore ?? false }.count
         // Omitted entirely at zero rather than rendered "0 held", which reads as a warning that
@@ -102,27 +102,44 @@ public enum SkillPresentation {
     ///
     /// Never the first-run empty state, which would claim the user has no skills when they have
     /// dozens and have merely narrowed to a filter nothing matches.
-    public static func emptyInFilter(_ filter: Filter) -> (title: String, detail: String, action: String)? {
+    /// A named type rather than a tuple: three anonymous strings at a call site is three chances
+    /// to render the detail where the title belongs.
+    public struct EmptyFilterMessage: Equatable, Sendable {
+        public var title: String
+        public var detail: String
+        public var action: String
+    }
+
+    public static func emptyInFilter(_ filter: Filter) -> EmptyFilterMessage? {
         switch filter {
         case .all:
-            return nil
+            nil
         case .held:
-            return (
-                "No skills are held for review",
-                "A new version is held when it asks for more than the one you have. Nothing is waiting.",
-                "Show all skills"
+            EmptyFilterMessage(
+                title: "No skills are held for review",
+                detail: """
+                A new version is held when it asks for more than the one you have. Nothing is \
+                waiting.
+                """,
+                action: "Show all skills"
             )
         case .local:
-            return (
-                "No skills were added by hand",
-                "Every skill here came from a marketplace. A skill you place in a client's skills folder yourself would appear under this filter.",
-                "Show all skills"
+            EmptyFilterMessage(
+                title: "No skills were added by hand",
+                detail: """
+                Every skill here came from a marketplace. A skill you place in a client's skills \
+                folder yourself would appear under this filter.
+                """,
+                action: "Show all skills"
             )
         case .needsAttention:
-            return (
-                "Nothing needs a decision",
-                "Nothing is held for review and no marketplace has changed hands since this Mac first saw it.",
-                "Show all skills"
+            EmptyFilterMessage(
+                title: "Nothing needs a decision",
+                detail: """
+                Nothing is held for review and no marketplace has changed hands since this Mac \
+                first saw it.
+                """,
+                action: "Show all skills"
             )
         }
     }
@@ -236,7 +253,8 @@ public enum SkillPresentation {
         }
         let unsupported = response.unsupportedClients.map(\.displayName)
         if !unsupported.isEmpty {
-            lines.append("\(list(unsupported)) \(unsupported.count == 1 ? "has" : "have") no skills mechanism")
+            lines
+                .append("\(list(unsupported)) \(unsupported.count == 1 ? "has" : "have") no skills mechanism")
         }
         return lines
     }
@@ -320,7 +338,8 @@ public enum SkillPresentation {
     public static func removeReason(for marketplace: Marketplace) -> String {
         if marketplace.suppliedSkillCount > 0 {
             let n = marketplace.suppliedSkillCount
-            return "\(n) installed \(n == 1 ? "skill comes" : "skills come") from this marketplace. Remove them first."
+            let noun = n == 1 ? "skill comes" : "skills come"
+            return "\(n) installed \(noun) from this marketplace. Remove them first."
         }
         return writesNotYetAvailable
     }
@@ -330,7 +349,9 @@ public enum SkillPresentation {
         guard marketplace.suppliedSkillCount > 0 else { return "Supplies nothing" }
         let skills = marketplace.suppliedSkillCount
         let plugins = marketplace.installedPluginCount
-        return "\(skills) \(skills == 1 ? "skill" : "skills") from \(plugins) \(plugins == 1 ? "plugin" : "plugins")"
+        let skillNoun = skills == 1 ? "skill" : "skills"
+        let pluginNoun = plugins == 1 ? "plugin" : "plugins"
+        return "\(skills) \(skillNoun) from \(plugins) \(pluginNoun)"
     }
 
     public static func autoUpdateLine(for marketplace: Marketplace) -> String {

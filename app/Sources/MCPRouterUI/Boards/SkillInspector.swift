@@ -29,9 +29,10 @@
                         }
                     }
                     section("Installed into") {
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: SkillsBoardMetrics.labelGap) {
                             ForEach(
-                                Array(SkillPresentation.clientSentences(for: skill, in: response).enumerated()),
+                                Array(SkillPresentation.clientSentences(for: skill, in: response)
+                                    .enumerated()),
                                 id: \.offset
                             ) { index, line in
                                 Text(line)
@@ -58,7 +59,7 @@
                 SkillTile(skill: skill)
                     .scaleEffect(1.5)
                     .frame(width: SkillsBoardMetrics.tile * 1.5, height: SkillsBoardMetrics.tile * 1.5)
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: SkillsBoardMetrics.hairline) {
                     Text(skill.name)
                         .typeRole(.title3)
                         .foregroundStyle(ColorToken.t1.color)
@@ -75,7 +76,7 @@
         private var versionSection: some View {
             if let origin = skill.source.pluginOrigin {
                 section("Plugin version") {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: SkillsBoardMetrics.labelGap) {
                         Text(origin.pluginVersion)
                             .typeRole(.body, monospaced: true)
                             .foregroundStyle(ColorToken.t1.color)
@@ -95,14 +96,19 @@
                 }
             } else {
                 section("Version") {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: SkillsBoardMetrics.labelGap) {
                         Text("unversioned")
                             .typeRole(.body)
                             .foregroundStyle(ColorToken.t2.color)
-                        Text("Added by hand rather than by a marketplace, so there is no version recorded anywhere.")
-                            .typeRole(.caption)
-                            .foregroundStyle(ColorToken.t3.color)
-                            .fixedSize(horizontal: false, vertical: true)
+                        Text(
+                            """
+                            Added by hand rather than by a marketplace, so there is no version \
+                            recorded anywhere.
+                            """
+                        )
+                        .typeRole(.caption)
+                        .foregroundStyle(ColorToken.t3.color)
+                        .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
@@ -112,7 +118,7 @@
         private var sourceSection: some View {
             if let origin = skill.source.pluginOrigin {
                 section("Source") {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: SkillsBoardMetrics.labelGap) {
                         Text("\(origin.plugin) · \(origin.marketplace)")
                             .typeRole(.callout, monospaced: true)
                             .foregroundStyle(ColorToken.t2.color)
@@ -162,7 +168,6 @@
             }
         }
 
-        @ViewBuilder
         private var actions: some View {
             VStack(alignment: .leading, spacing: SkillsBoardMetrics.tightGap) {
                 if let held = skill.held, held.wantsMore {
@@ -179,9 +184,8 @@
             .padding(.top, SkillsBoardMetrics.tightGap)
         }
 
-        @ViewBuilder
         private func section(_ title: String, @ViewBuilder content: () -> some View) -> some View {
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: SkillsBoardMetrics.tightGap) {
                 // Sentence case, secondary colour — never tracked uppercase (§3.2).
                 Text(title)
                     .typeRole(.caption)

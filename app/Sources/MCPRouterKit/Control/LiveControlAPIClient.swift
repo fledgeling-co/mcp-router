@@ -268,7 +268,7 @@ public actor LiveControlAPIClient: ControlAPIClient {
     ) async throws(ControlAPIError) -> T {
         do {
             return try await send(.get, path, as: type)
-        } catch let error {
+        } catch {
             if case let .server(status, _, _) = error, status == 404 {
                 throw ControlAPIError.malformedResponse(detail: "this router has no /\(path) endpoint")
             }

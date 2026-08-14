@@ -122,7 +122,7 @@
                 }
                 .frame(maxWidth: .infinity)
             } else {
-                LazyVStack(spacing: 1) {
+                LazyVStack(spacing: SkillsBoardMetrics.hairline) {
                     ForEach(rows) { skill in
                         SkillsBoardRow(
                             skill: skill,
@@ -142,10 +142,9 @@
             }
         }
 
-        @ViewBuilder
         private func header(response: SkillsResponse?) -> some View {
             HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: SkillsBoardMetrics.labelGap) {
                     Text("Skills")
                         .typeRole(.title1)
                         .foregroundStyle(ColorToken.t1.color)
@@ -162,7 +161,6 @@
             .padding(.bottom, SkillsBoardMetrics.gap)
         }
 
-        @ViewBuilder
         private func controls(_ response: SkillsResponse) -> some View {
             HStack(spacing: SkillsBoardMetrics.gap) {
                 // A segmented control switches the view in place and is never primary navigation
@@ -194,7 +192,6 @@
             return "\(filter.title) \(count)"
         }
 
-        @ViewBuilder
         private func columnHeaders(_ response: SkillsResponse) -> some View {
             HStack(spacing: SkillsBoardMetrics.rowPadding) {
                 Color.clear.frame(width: SkillsBoardMetrics.tile, height: 1)
@@ -212,7 +209,7 @@
             .padding(.horizontal, SkillsBoardMetrics.rowPadding)
             .padding(.bottom, SkillsBoardMetrics.tightGap)
             .overlay(alignment: .bottom) {
-                Rectangle().fill(ColorToken.line.color).frame(height: 1)
+                Rectangle().fill(ColorToken.line.color).frame(height: SkillsBoardMetrics.hairline)
             }
         }
     }

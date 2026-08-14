@@ -1,19 +1,19 @@
 import Foundation
 
-/// The wire shapes for skills and marketplaces, transcribed from `src/skills.ts`.
-///
-/// **The one modelling decision everything else follows from.** A *plugin* is the unit that gets
-/// installed and versioned; a *skill* is one of the things a plugin contains, and a plugin can
-/// contain thirty of them. So a skill's version is its **plugin's** version, and every type here
-/// says `pluginVersion` rather than `version` — a field called `version` on a `Skill` reads as a
-/// property of the skill, and thirty rows would silently claim thirty independent versions that
-/// are really one.
-///
-/// **What is absent, by construction.** There is no `runs`, `lastRun` or `eval` field anywhere in
-/// this file. A skill is markdown the *client* loads into an agent's context; it never traverses
-/// the router, so the process that would count an invocation never sees one, and no eval runner
-/// exists in this product. `DESIGN.md` §6 forbids displaying a figure the router does not observe,
-/// and the strongest form of that rule is a type with nowhere to put one.
+// The wire shapes for skills and marketplaces, transcribed from `src/skills.ts`.
+//
+// **The one modelling decision everything else follows from.** A *plugin* is the unit that gets
+// installed and versioned; a *skill* is one of the things a plugin contains, and a plugin can
+// contain thirty of them. So a skill's version is its **plugin's** version, and every type here
+// says `pluginVersion` rather than `version` — a field called `version` on a `Skill` reads as a
+// property of the skill, and thirty rows would silently claim thirty independent versions that
+// are really one.
+//
+// **What is absent, by construction.** There is no `runs`, `lastRun` or `eval` field anywhere in
+// this file. A skill is markdown the *client* loads into an agent's context; it never traverses
+// the router, so the process that would count an invocation never sees one, and no eval runner
+// exists in this product. `DESIGN.md` §6 forbids displaying a figure the router does not observe,
+// and the strongest form of that rule is a type with nowhere to put one.
 
 /// Whether one skill is reachable from one client.
 ///

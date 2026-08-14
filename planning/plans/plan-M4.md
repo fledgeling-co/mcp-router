@@ -8,6 +8,31 @@
 
 ---
 
+## What actually happened to the phases
+
+The plan below was written assuming M4 would ship the router surface as well as the board. **A
+merged gate closed that route mid-build** — `StandingConstraintsTests.theReferenceIsUntouched` (A38)
+fails any branch whose `git diff main -- src/ install.sh package.json` is non-empty, and
+`SWIFT_PRACTICES.md` §7 forbids weakening a test to pass. The TypeScript endpoints were written,
+validated against the real filesystem, and reverted. The Swift half has no daemon to serve it while
+R2R is unmerged.
+
+| Phase | Planned | Shipped |
+|---|---|---|
+| P1 | TypeScript read endpoints | **Reverted.** Validated algorithm handed to R2R/R4 in the spec's appendix |
+| P2 | Kit models + client + fixture | Shipped |
+| P3 | `SkillPresentation` | Shipped |
+| P4 | The board, `.skills` registered | **Shipped — the item** |
+| P5 | Inspector, sheets, keyboard | Shipped |
+| P6 | Write operations | **Cut, deliberately.** The spec gate showed them unsafe as specified; every control ships dimmed with its reason |
+| P7 | Swift `RouterCore` parity | **Cut.** Serves nothing until R2R lands a daemon, and would collide with the item that owns control serving |
+| P8 | Gates and evidence | Shipped |
+
+Everything below is the plan as written, kept rather than rewritten so the reasoning that led here
+is legible.
+
+---
+
 ## Phase order, and the cut order if room runs out
 
 Phases are ordered so the **item becomes real as early as possible** — P4 is where `.skills` enters

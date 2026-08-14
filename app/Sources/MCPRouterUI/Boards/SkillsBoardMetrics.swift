@@ -12,6 +12,12 @@
         private static var unit: Double { MetricToken.tableRows.leadingScalar }
         private static var inset: Double { MetricToken.selectionInset.leadingScalar }
 
+        /// One point, expressed as half the focus ring rather than as `1`. Used for the hairline
+        /// between rows and for the tightest label stacks, so a change to the ring's documented
+        /// width moves them with it instead of leaving a literal behind.
+        static var hairline: Double { MetricToken.focusRing.leadingScalar / 2 }
+        /// Two points — the gap inside a two-line label, and between slot pips.
+        static var labelGap: Double { MetricToken.focusRing.leadingScalar }
         static var tightGap: Double { inset }
         static var gap: Double { inset * 2 }
         static var rowPadding: Double { MetricToken.selectionRadius.leadingScalar }

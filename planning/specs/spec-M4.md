@@ -49,18 +49,40 @@ Two standing constraints then close every easy route:
 Therefore **M4 includes the router-side skills surface**. That is not scope inflation; it is the
 only path by which this board can display anything at all. Without it the item ships a screenshot.
 
-### Which router, and why both
+### Which router serves it — and the answer that a merged gate forced
 
-| | Serves today? | Why M4 touches it |
+The first version of this spec assumed adding two read routes to `src/control.ts` was permitted,
+on the reading that the standing constraint forbids *deleting* `src/*.ts` and *touching*
+`install.sh` and does neither. **That assumption is false, and the repo enforces the stronger
+reading as a test.** `StandingConstraintsTests.theReferenceIsUntouched` (A38, merged) runs
+
+```
+git diff --stat main -- src/ install.sh package.json
+```
+
+and fails the suite unless it is empty. The TypeScript reference is untouched until R4's parity
+gate passes, full stop.
+
+The implementation had already been written and validated against this machine before that gate
+ran. It was reverted rather than kept, and the gate was not weakened — `SWIFT_PRACTICES.md` §7 is
+explicit that a test is never loosened to make a change pass. What was learned from it is recorded
+below and in the appendix, which is the deliverable for whoever does implement it.
+
+So the router-side surface has **no legal home in this item**:
+
+| | Available to M4? | Why |
 |---|---|---|
-| TypeScript (`src/`) | **Yes** — it is the installed default until R4's parity gate passes | Without it the board renders the version-skew error for every real user, which is a placeholder with better copy |
-| Swift (`RouterCore/`) | No — R2R (the process that actually serves) is unmerged; R4 records "there is no Swift router process" | Parity. An endpoint in one router and not the other is exactly the divergence R4's differential gate exists to catch |
+| TypeScript (`src/`) | **No** | A38 forbids it as an executable gate |
+| Swift (`RouterCore/`) | **No, in practice** | R2R — the process that actually serves — is in flight and unmerged; R4 records "there is no Swift router process". Routes added here would serve nothing and would collide with the item that owns control serving |
 
-One wire contract, two implementations, parity vectors for both. `install.sh` is untouched and no
-`src/*.ts` file is deleted — the standing constraint forbids those two specific acts and neither is
-performed here.
+**Consequence, stated plainly rather than hidden.** Against the router a user runs today, this board
+renders the version-skew Error state: *"The router sent a response this version doesn't understand
+— the router may be newer or older than this app."* That state was designed for exactly this (design
+doc §7) and is now load-bearing rather than hypothetical. The populated board is reachable in Debug
+through the fixture lane, which is how M1 shipped and how the acceptance gate drives every state.
 
----
+The endpoint itself is a **deferred child owned by R2R/R4**, with the wire contract, the measured
+filesystem facts and a validated algorithm handed over in the appendix.
 
 ## What the router actually observes
 
@@ -294,30 +316,37 @@ the app, not a second set written here.
 - **A3** The Release scaffold gate still passes: the sentinel is present iff `scaffolded` is
   non-empty, which it still is.
 
-### The router observes it
+### The wire contract
 
-- **A4** `GET /skills` exists on the TypeScript router and returns every skill found across the
-  four clients with a skills mechanism, each carrying its per-client presence.
-- **A5** `GET /marketplaces` returns every entry in `known_marketplaces.json` with its source,
-  auto-update state, and the count of installed skills it supplies.
-- **A6** A skill present in two clients appears **once**, with two slots on — not twice.
-- **A7** A client whose skills directory is absent is reported as `absent`, and one that exists but
-  cannot be read is reported as `unreadable` with its reason. The two are distinct on the wire and
-  the board renders them differently.
-- **A8** A malformed `installed_plugins.json` fails decoding loudly. **No decode path returns an
-  empty collection on a shape it does not recognise** — the trap `SWIFT_PRACTICES.md` §2 records
-  from this repo's own flat-`servers.json` bug.
-- **A9** The Swift `RouterCore` implementation returns byte-identical JSON to the TypeScript one for
-  the same filesystem, proven by shared parity vectors.
+M4 owns the contract and the client; the server is R2R/R4's (see above). These are what this item
+can actually be held to.
+
+- **A4** `ControlAPIClient` carries `skills()` and `marketplaces()`, so the app has no reason to
+  reach for a second channel. A shape that is modelled but not callable is what forces one.
+- **A5** Every closed set on the wire is a Swift enum that **fails decoding on an unknown value** —
+  no `String` plus a guessing `default`.
+- **A6** `SkillSource` is a tagged union whose `.standalone` case has **no version field**, so a
+  hand-placed skill cannot be given a version by a careless default. Asserted by decoding.
+- **A7** `SkillPresence` has three cases, and `unreadable` is distinct from `absent` on the wire and
+  in the board. A boolean would collapse "not installed there" with "we could not look".
+- **A8** A `SkillsResponse` whose `skills` key is missing **fails decoding** rather than yielding an
+  empty list — the flat-`servers.json` trap `SWIFT_PRACTICES.md` §2 records. Proven red-green.
+- **A9** A 404 from `/skills` maps to `malformedResponse`, not `server(status:)`, because a router
+  predating this item answers 404 and "The router couldn't complete that" is the wrong sentence for
+  "this router does not have the feature".
 
 ### What is displayed is what is observed
 
-- **A10** The string `run`, as a count, appears nowhere in the board's rendered output; there is no
-  runs column, no last-run column and no eval column in any state.
+- **A10** No type in the wire model has a `runs`, `lastRun` or `eval` field, asserted against the
+  **encoded JSON** rather than by reflection — reflection sees stored properties and would miss a
+  computed property or a `CodingKeys` mapping that still puts a key on the wire. (The first draft
+  of this criterion asked for a grep for the string "run", which the spec gate correctly called
+  untestable: it collides with "Running" and would pass without the feature working.)
 - **A11** A local skill renders `unversioned`, never a version number, and `unversioned` is not in
   the monospace face.
-- **A12** Every number in the header subtitle is a count of records the router returned. A grep of
-  the board's sources finds no arithmetic on a figure the wire does not carry.
+- **A12** Every number in the header subtitle is a count of records the router returned, asserted
+  by driving `SkillPresentation.subtitle` with known inputs. A zero held-count is omitted entirely
+  rather than rendered "0 held".
 - **A13** The two clients with no skills mechanism have no slot, and are named in the inspector as
   having none.
 - **A14** Auto-update state is read from the marketplace record; a marketplace with no `autoUpdate`
@@ -342,8 +371,9 @@ the app, not a second set written here.
 
 ### The nine states
 
-- **A19** Each of `SurfaceState`'s nine cases has a named treatment on this board, declared
-  exhaustively so a tenth case fails to compile.
+- **A19** `SkillsBoardStates.treatment` switches over all nine `SurfaceState` cases with no
+  `default`, so a tenth case stops the module compiling. This is a compile-time guarantee rather
+  than a test, and is described as one.
 - **A20** Each unhappy state's copy is the real copy in this spec, asserted as a literal.
 - **A21** Offline renders `routerNotRunning`'s two strings unchanged from `ControlAPIError` — no
   second wording.
@@ -409,9 +439,12 @@ that ships wrong.
 
 ### Assumptions recorded — autonomous run, no human to ask
 
-- **AS1** Adding two read routes to `src/control.ts` is permitted. The standing constraint forbids
-  *deleting* `src/*.ts` and *touching* `install.sh`; neither is done. Without this the board is an
-  error pane for every user, since Release is always `.live` and the Swift daemon does not exist.
+- **AS1 — MADE, THEN PROVEN WRONG BY A MERGED GATE.** The assumption was that adding two read
+  routes to `src/control.ts` is permitted because the constraint forbids only deleting `src/*.ts`
+  and touching `install.sh`. `StandingConstraintsTests` (A38) enforces the stronger reading and
+  failed. The TypeScript work was written, validated against the real filesystem, and then
+  reverted; the gate was not weakened. This is the assumption a reviewer should look at first,
+  because it was load-bearing and it was wrong.
 - **AS2** Write operations mutate `~/.claude/plugins/known_marketplaces.json`, which the router
   already does for server config via `ConfigWriter`. They are implemented behind the same file-write
   discipline and injected `FileSystem` seam, so no test touches a real home directory, and they are
@@ -445,3 +478,92 @@ that ships wrong.
   Not done — it is M3's shared surface and renaming it touches a merged board. Reported instead.
 - **S2** `MessageState` / `Banner` / `DisabledAction` want lifting out of `ServersBoardBanners.swift`
   into a shared file. Same reason: reported, not done. This board imports them where they are.
+
+---
+
+## The spec gate — in-family, and what it found
+
+**codex: usage limit → claude (downgrade).** The out-of-family lane was unavailable for this fleet
+(account-level limit to 20 Aug 2026, verified by the orchestrator), so the gate ran as a fresh
+`claude -p` Opus reviewer briefed adversarially: refute, and treat an inability to find defects as a
+failed review. The weakness travels with the evidence — every reviewer in this pipeline was Claude
+auditing Claude.
+
+**Verdict: REJECT, 0 of 6 areas accepted.** Every factual claim it made was checked against the real
+filesystem before acting, and every one held.
+
+| # | Finding | Verified how | Outcome |
+|---|---|---|---|
+| 1 | A plugin is not a skill; `installed_plugins.json` is keyed `<plugin>@<marketplace>` and `vercel` alone holds 30 skills | `python3` over the real file: **96 plugin records**; `ls .../vercel/*/skills` → **30** | **Accepted.** Wire renamed to `pluginVersion`, `siblingSkillCount` added, column headed "plugin version", row names its plugin |
+| 2 | Client slots measure symlinks, not installs | `ls -la ~/.cursor/skills` → **87 symlinks** into the plugin cache; `~/.claude`, `~/.codex`, `~/.config/opencode` all link into a shared `~/.agents/skills` | **Accepted.** Identity is the resolved real path. Before the fix one skill reachable from four clients was four rows; after it, **81 skills** correctly dedupe |
+| 3 | The Error copy cannot be produced by the path it names — non-2xx maps to `.server`, not `.malformedResponse` | Read `LiveControlAPIClient.swift:197–201` | **Accepted.** 404 on these two reads maps explicitly to `malformedResponse` (A9) |
+| 4 | Held-version detection scans a path that is 99% scratch | `ls ~/.claude/plugins/cache \| wc -l` → 692, of which **685** are `temp_git_*` | **Accepted.** Enumerated from each record's own `installPath`, never by walking `cache/` |
+| 5 | `ControlAPIClient` was never extended, and it is the only channel | Read the protocol's own doc comment | **Accepted.** `skills()` and `marketplaces()` added; both test doubles implement them explicitly rather than via a default that would return empty |
+| 6 | The Swift `RouterCore` half is dead code and is the seam | R4's record that no Swift router process exists | **Accepted, and then overtaken** — A38 closed the TypeScript route too, so the whole server side is deferred |
+| 7 | The writes are the weakest part | — | **Accepted.** AS2 withdrawn; the board ships read-only |
+| 8 | Untestable or vacuous criteria (A10, A12, A19, A9) | — | **Accepted.** All four rewritten |
+| 9 | Missing surfaces: changelog, add-marketplace failures, filter-field contradiction | — | Partly accepted; changelog and add-marketplace failures leave with the writes, and the filter is a segmented control with a separate search field |
+| 10 | §6 miscited — it forbids unobserved *numbers*, and an eval result is not one | — | Accepted; the removal stands on the no-runner argument alone |
+
+A second reviewer (`claude-fable-5`) was consulted separately on the scoping question before any
+code was written, and endorsed removing the three unobservable columns rather than rendering them
+empty: *"Rendering '—' asserts knowledge of absence you don't have; that's fabrication with extra
+steps."* It also supplied the rule that an undiscoverable client must read as **unsupported**, a
+capability statement, rather than **empty**, a data claim — which is why Claude Desktop and ChatGPT
+have no slot at all.
+
+---
+
+## Appendix — the discovery algorithm, validated, for R2R/R4
+
+This was implemented and run against a real machine on 2026-08-14 before A38 forced its removal. The
+numbers below are measured, not estimated. Whoever implements the endpoint should not have to
+rediscover any of it.
+
+**Inputs**
+
+| Path | Carries |
+|---|---|
+| `~/.claude/plugins/installed_plugins.json` | `plugins["<plugin>@<marketplace>"][]` → `version`, `installedAt`, `lastUpdated`, `gitCommitSha`, `installPath` |
+| `~/.claude/plugins/known_marketplaces.json` | per marketplace: `source.source` (`github`/`directory`), `source.repo` or `source.path`, `lastUpdated`, optional `autoUpdate` |
+| `~/.claude/skills`, `~/.codex/skills`, `~/.cursor/skills`, `~/.config/opencode/skills` | per-client skill roots, **overwhelmingly symlinks** |
+| `<installPath>/skills/` | the skills a plugin supplies — how Claude Code reaches them |
+
+**Algorithm**
+
+1. For each of the four clients with a skills root: list entries, `realpath` each one, keep those
+   resolving to a directory. Record `absent` (no root) and `unreadable` (root exists, listing threw)
+   as **distinct** outcomes.
+2. Key every skill by its **resolved real path**. Two clients resolving to the same path are one
+   skill with two slots.
+3. Fold in each installed plugin's own `<installPath>/skills/*` as reachable by **Claude Code** —
+   without this step a marketplace supplying 47 skills reports 0, because Claude Code loads a
+   plugin's skills from the plugin rather than from `~/.claude/skills`.
+4. Attribute a skill to a plugin by `installPath` **prefix match** against the resolved path. Never
+   walk `cache/`.
+5. A held version is a *different version directory beside the installed one*, found in
+   `dirname(installPath)`. Compare capability sets read from each `SKILL.md`; an empty added-set may
+   promote, a non-empty one is held.
+6. Provenance needs a baseline the client files do not have — they record a commit but never an
+   owner. The router must keep its **own** first-seen record (`skills-provenance.json` in the router
+   home, written atomically), and the copy must then say "when this Mac first saw this marketplace",
+   which is what is actually known.
+
+**Measured on this machine, after the corrections**
+
+| Figure | Value |
+|---|---|
+| Skills discovered | **161** |
+| Reachable from more than one client | **81** |
+| Claude Code / Cursor / Codex / opencode | 155 / 87 / 1 / 1 |
+| From a plugin / standalone | 144 / 17 |
+| With a held version | 68 |
+| Marketplaces | 7, from 96 installed plugin records |
+
+**Traps, each of which produced a wrong answer before it was fixed**
+
+- Keying on the directory name instead of the resolved path — one skill became four.
+- Walking `cache/` — 685 of 692 entries are `temp_git_*` clone scratch and become invented plugins.
+- Reading `~/.claude/skills` alone for Claude Code — reports 0 skills for a marketplace supplying 47.
+- Returning `[]` when `installed_plugins.json` lacks its `plugins` key — renders as "every skill you
+  have is standalone and unversioned", confidently and silently.

@@ -45,7 +45,7 @@
                     .fixedSize(horizontal: false, vertical: true)
 
                 if let held = skill.held {
-                    VStack(alignment: .leading, spacing: 3) {
+                    VStack(alignment: .leading, spacing: SkillsBoardMetrics.tightGap) {
                         ForEach(held.addedCapabilities, id: \.self) { capability in
                             HStack(alignment: .firstTextBaseline, spacing: SkillsBoardMetrics.tightGap) {
                                 Text("+")
@@ -110,7 +110,7 @@
 
         var body: some View {
             VStack(alignment: .leading, spacing: SkillsBoardMetrics.gap) {
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: SkillsBoardMetrics.labelGap) {
                     Text("Marketplaces")
                         .typeRole(.title2)
                         .foregroundStyle(ColorToken.t1.color)
@@ -131,7 +131,7 @@
                     .fixedSize(horizontal: false, vertical: true)
                 } else {
                     ScrollView {
-                        VStack(spacing: 1) {
+                        VStack(spacing: SkillsBoardMetrics.hairline) {
                             ForEach(board.marketplaces) { marketplace in
                                 MarketplaceRow(marketplace: marketplace)
                             }
@@ -168,7 +168,7 @@
 
         var body: some View {
             HStack(spacing: SkillsBoardMetrics.rowPadding) {
-                VStack(alignment: .leading, spacing: 1) {
+                VStack(alignment: .leading, spacing: SkillsBoardMetrics.hairline) {
                     Text(marketplace.name)
                         .typeRole(.body)
                         .foregroundStyle(ColorToken.t1.color)

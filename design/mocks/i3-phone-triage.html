@@ -113,11 +113,20 @@
    Read literally those two are in tension — a pinned height with a wrapping
    line clips at large text sizes. The tension is resolved the way I2's A29
    resolved it: 44pt is a MINIMUM, not a fixed height. Rows are uniform within a
-   text size because their content is uniform, they grow together with the text
-   size, and nothing ellipsises. DESIGN.md §5's "rows never change height" is an
-   Overflow rule about long VALUES, and is satisfied by truncating the entry
-   NAME — one line, tail-truncated, full value on expand — while the capability
-   line, which is the security fact, always renders whole.
+   text size because their content is uniform, and nothing ellipsises.
+
+   One correction to how I2 stated that, because two merged documents should not
+   assert opposite facts about the same file: A29 says the row "grows with
+   Dynamic Type", and it does not. `TypeToken.font` is
+   `.system(size:weight:)` with a FIXED size, so nothing on the phone scales
+   today. The accurate statement is that a row is a minimum plus intrinsic
+   content, so it is READY to grow if the ladder is ever made to scale — not
+   that it does. Registered as D-i3-e rather than edited into I2's merged spec.
+
+   DESIGN.md §5's "rows never change height" is an Overflow rule about long
+   VALUES, and is satisfied by truncating the entry NAME — one line,
+   tail-truncated, full value on expand — while the capability line, which is
+   the security fact, always renders whole.
 
    ── Stated assumptions (autonomous run: no human to ask) ───────────────────
    A. Triage's candidate set is the SAME endpoint Discover already uses, called
@@ -1044,24 +1053,24 @@ sec('D','Queue — what is on this phone, and nothing about a Mac',
   be bound to a reachability value nothing observes, so it would render enabled and do nothing.`,
  [
   unit('Default','Newest first. The stamp is instrument data, so it is monospace.',
-    phone('queue', nav('Queue',`Waiting for ${MAC} to collect them.`),
-      `<div class="plbl">Waiting</div>`+
+    phone('queue', nav('Queue',`On this phone. Open MCP Router on ${MAC} to review them.`),
+      
       qrow(E[1],'today, 09:12')+qrow(E[2],'today, 08:47')+qrow(E[3],'yesterday, 19:30')+
       `<div class="note" style="margin-top:16px">Your Mac decides. This list is the record of what you
-       sent it, and it stays here until your Mac has it.</div>`)),
+       queued, and it stays on this phone.</div>`)),
   unit('Empty','One sentence, one action — DESIGN.md §5.',
     phone('queue', nav('Queue'),
       empty('tray','Nothing waiting',
         'Things you send from Triage or Discover collect here until you are back at your Mac.',
         'Go to Triage'))),
   unit('Removing an item','Undo, not a confirmation. Removing something from your own outbox is not a destructive act with a blast radius — the named-consequence dialog DESIGN.md §9 reserves is for the Mac.',
-    phone('queue', nav('Queue',`Waiting for ${MAC} to collect them.`),
+    phone('queue', nav('Queue',`On this phone. Open MCP Router on ${MAC} to review them.`),
       undoBar('Exa search removed from the queue')+
-      `<div class="plbl">Waiting</div>`+qrow(E[2],'today, 08:47')+qrow(E[3],'yesterday, 19:30'))),
+      qrow(E[2],'today, 08:47')+qrow(E[3],'yesterday, 19:30'))),
   unit('Never paired','Items queued before pairing are kept, not discarded. The state names what is missing without deleting the user\'s work.',
     phone('queue', nav('Queue'),
       `<div class="inlineErr">${ic('bang','md')}<div><b>No Mac is paired.</b><br>
-        These are kept here and go to the first Mac you pair.
+        These are kept here. Pair a Mac and you can review them there.
         <button style="color:var(--accent);font-weight:600;display:block;margin-top:6px;min-height:44px">Pair a Mac</button></div></div>`+
       qrow(E[1],'today, 09:12')+qrow(E[2],'today, 08:47'))),
   unit('Unreadable — the state that must never look empty','The queue file exists and will not decode. <b>This is the single most important state on the surface.</b> A decode path whose failure mode is emptiness is the defect this repo already shipped once in its TypeScript router, where a flat servers.json loaded zero servers with no error at all. An empty queue and an unreadable queue look identical unless one of them says so.',
@@ -1072,10 +1081,10 @@ sec('D','Queue — what is on this phone, and nothing about a Mac',
         Nothing has been deleted and nothing has been sent.
         <button style="color:var(--accent);font-weight:600;display:block;margin-top:6px;min-height:44px">Try again</button></div></div>`)),
   unit('Write refused','A refused write renders as a failure and never as a queued item — I1\'s precedent, where a swallowed Keychain error rendered "Paired." while nothing was written.',
-    phone('queue', nav('Queue',`Waiting for ${MAC} to collect them.`),
+    phone('queue', nav('Queue',`On this phone. Open MCP Router on ${MAC} to review them.`),
       `<div class="inlineErr">${ic('warn','md')}<div><b>That item was not saved.</b><br>
         This phone refused the write, so it is not in the queue. Try again from Triage.</div></div>`+
-      `<div class="plbl">Waiting</div>`+qrow(E[2],'today, 08:47'))),
+      qrow(E[2],'today, 08:47'))),
  ]);
 
 /* ── E · Library ─────────────────────────────────────────────────────────── */
@@ -1200,8 +1209,8 @@ compared without toggling.</p>
       segs('new',{new:5,queued:2,no:1})+triHint+E.slice(0,4).map((e,i)=>trow(e,{pick:i===0})).join(''),
       commitBar(1))}</div>`)}
   ${unit('Queue, light','The stamp and the counts stay monospace in both.',`<div data-appearance="light">${
-    phone('queue', nav('Queue',`Waiting for ${MAC} to collect them.`),
-      `<div class="plbl">Waiting</div>`+qrow(E[1],'today, 09:12')+qrow(E[2],'today, 08:47'))}</div>`)}
+    phone('queue', nav('Queue',`On this phone. Open MCP Router on ${MAC} to review them.`),
+      qrow(E[1],'today, 09:12')+qrow(E[2],'today, 08:47'))}</div>`)}
 </div></div>`);
 
 /* ── H · the floor ───────────────────────────────────────────────────────── */
@@ -1219,14 +1228,16 @@ SEC.push(`<div class="sect"><h2>Targets, colour, and the row-height rule<span cl
   <div style="max-width:34ch">
     <div class="ann"><b>The row-height rule, resolved.</b> The brief asks for rows that are a fixed
     height and never ellipsise. Read literally those two fight: a pinned height with a wrapping line
-    clips. So 44pt is a <i>minimum</i>. Rows are uniform because their content is uniform, they grow
-    together if the type ladder ever scales, and the thing that truncates is the entry
-    <i>name</i> — one line, tail — while the capability line always renders whole. DESIGN.md §5's
-    "rows never change height" is an Overflow rule about long values, and that is how it is met.</div>
+    clips. So 44pt is a <i>minimum</i>. Rows are uniform because their content is uniform, and the
+    thing that truncates is the entry <i>name</i> — one line, tail — while the capability line
+    always renders whole. DESIGN.md §5's "rows never change height" is an Overflow rule about long
+    values, and that is how it is met.</div>
     <div class="ann"><b>Dynamic Type.</b> No phone surface scales today: <code>TypeToken.font</code>
     is a fixed <code>Font.system(size:weight:)</code> shared with every Mac surface, and DESIGN.md §2
     fixes the eight sizes deliberately. Not changed here — it is a shared design surface. What these
-    surfaces do about it is refuse to pin a height that would clip if it changed.</div>
+    surfaces do about it is refuse to pin a height that would clip if it changed, so they are
+    <i>ready</i> to grow rather than growing. I2's A29 says the row "grows with Dynamic Type"; it
+    does not, and that is registered as D-i3-e rather than edited into a merged spec.</div>
   </div>
 </div></div>`);
 

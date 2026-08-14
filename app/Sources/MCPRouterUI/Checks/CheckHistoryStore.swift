@@ -8,8 +8,8 @@
     /// here: every one is computed from the response the board just fetched. That separation is the
     /// whole correction this item's spec gate forced, and it is what makes "a stale verdict cannot
     /// render as current" a property of the architecture rather than a promise — the code path a stale
-    /// verdict would need does not exist, and `M7SourceGuardTests` asserts no board row type
-    /// references this type.
+    /// verdict would need does not exist, and `CheckHistoryStoreTests` asserts no board row or view
+    /// type references this type.
     ///
     /// **Why local persistence is not a second channel.** The Mac app talks to the router only over
     /// the loopback control API, and that is untouched: this file records *the app's own observations

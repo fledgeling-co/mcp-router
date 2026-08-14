@@ -200,6 +200,41 @@ Reported by wave-1/2 runners. Each names the item that should absorb it; none bl
 
 ## Changelog
 
+- 2026-08-14 — **M4 died on capacity, not code; M2 hit a merge-only lint defect; both relaunched.
+  M8 and I2 survived the session boundary and were left alone.**
+
+  **M4** was reported lost to a `503 no-eligible-account` from the inference gateway. The disk said
+  otherwise: `ai/m4` carries **7 commits**, `.skills` is registered in `BoardRegistry.installed`,
+  and `planning/evidence/M4-acceptance.md` is written. It was killed *mid-edit*, leaving an
+  uncommitted 5-file delta that is good work and currently broken — it fails to compile
+  (`'SkillPresentationStateTests' has no member 'testPluginSkill'`) and pushes a test file to 453
+  lines against the 400 cap. Worth keeping because it fixes two real defects: a filter badge
+  counting the **unsearched** set, so `Held 1` sat above a list saying nothing was held; and the
+  `All` filter with a non-matching search falling through to no message at all, drawing column
+  headers over blank space. Relaunched to finish it rather than restart.
+
+  **M2** returned ready-to-merge and its own numbers held on the rebased tree — **822 tests / 111
+  suites**, parity 358 — but rebasing onto the R2-R main turned lint red. This is a **merge-only
+  defect**: R2-R brought a stricter formatting and lint config, so M2's earlier files fail rules
+  that did not exist when they were written. Red on neither branch alone. `make format` fixed three
+  files, and — the same trap R2-R documented — that unmasked **5 structural swiftlint violations**
+  that had been invisible behind `swiftformat --lint`'s short-circuit. Relaunched as a lint
+  close-out with its acceptance evidence explicitly ring-fenced from re-running.
+
+  **Two orchestrator errors worth keeping.** First, I ran `make format` and `make lint` inside M2's
+  worktree while my own backgrounded `make build-mac` was still running there, and got
+  `** BUILD FAILED **` — `build.db … database is locked. Possibly there are two concurrent builds
+  running in the same filesystem location.` A self-inflicted race that reads exactly like "M2 does
+  not build". **The orchestrator gates a worktree or a runner owns it, never both at once.**
+  Second, `git rebase main` printed *"Current branch ai/m2 is up to date"* while its own reflog
+  showed five `rebase (pick)` entries and a `rebase (finish)`. Another case of the word after the
+  command not being the verification — ancestry and the reflog are.
+
+  **M8 and I2 are alive** and were not touched. A 45-second no-write probe on their worktrees
+  returned nothing, which is a false death signal: both were sitting in adversarial `claude -p`
+  spec and plan gates, which think for minutes and write nothing. Liveness was settled by walking
+  the gate processes' parents to a live session (PID 92491), not by file mtime.
+
 - 2026-08-14 — **`wf_03c742d3-20a` reported `completed` having lost M4 to a 503, and a workflow
   resume was the wrong instrument.** The run returned 2 of 3: R2-R (merged), M2 (ready-to-merge),
   and **M4 dead** on `API Error: 503 … no-eligible-account, over_reserve` — a death with zero

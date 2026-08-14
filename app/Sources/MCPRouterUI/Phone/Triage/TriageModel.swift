@@ -78,13 +78,21 @@ public final class TriageModel {
             dismissedIDs = .failure(.unreadable(error.localizedDescription))
         }
 
-        var queuedIDs: Set<String> = []
-        // A queue that will not decode is the Queue surface's error to report, not this one's.
-        // Triage degrades to "nothing is queued" for its bucket derivation and says nothing false:
-        // an entry that is queued but unreadable appears in Undecided, where re-queueing it is
-        // idempotent and harmless.
-        if let items = try? await queue.all() {
-            queuedIDs = Set(items.map(\.id))
+        // Taken as a `Result`, exactly as the dismissal read above is.
+        //
+        // An earlier shape was `if let items = try? await queue.all()`, reasoning that an
+        // unreadable queue was "the Queue surface's error to report, not this one's". That is
+        // wrong, and A9 says why in its own words: `Undecided = results − queued − dismissed`, so a
+        // queue that will not decode returns every already-queued entry to Undecided and offers it
+        // for queueing again. The Queue tab reports the same file correctly one tap away, so the
+        // two surfaces disagree and the honest one is the quieter.
+        let queuedIDs: Result<Set<String>, CapabilityQueueError>
+        do {
+            queuedIDs = try await .success(Set(queue.all().map(\.id)))
+        } catch let error as CapabilityQueueError {
+            queuedIDs = .failure(error)
+        } catch {
+            queuedIDs = .failure(.unreadable(error.localizedDescription))
         }
 
         let results: Result<RegistrySearchResponse, ControlAPIError>
@@ -96,10 +104,13 @@ public final class TriageModel {
             results = .failure(.transport(detail: error.localizedDescription))
         }
 
-        if case let .success(dismissed) = dismissedIDs, case let .success(response) = results {
+        if case let .success(dismissed) = dismissedIDs,
+           case let .success(queued) = queuedIDs,
+           case let .success(response) = results
+        {
             buckets = TriageBuckets.resolve(
                 results: response.results,
-                queuedIDs: queuedIDs,
+                queuedIDs: queued,
                 dismissedIDs: dismissed
             )
         }
@@ -151,8 +162,16 @@ public final class TriageModel {
     /// from the three bucket arrays — which is a fabricated input standing in for a real one, and
     /// exactly the kind of thing that later reads as a genuine response.
     public var displayState: TriageSurfaceState {
-        guard case .populated = state else { return state }
-        return buckets.count(in: bucket) == 0 ? .empty(bucket) : state
+        // **`.partial` gets the same treatment as `.populated`.** An earlier guard matched only
+        // `.populated`, so with the official registry down and everything Smithery returned already
+        // queued, Undecided rendered the segments, the warning and the hint — and nothing below
+        // them. A blank list under a warning reads as the warning having eaten the results.
+        switch state {
+        case .populated, .partial:
+            buckets.count(in: bucket) == 0 ? .empty(bucket) : state
+        default:
+            state
+        }
     }
 
     public var commitState: TriageCommitState {

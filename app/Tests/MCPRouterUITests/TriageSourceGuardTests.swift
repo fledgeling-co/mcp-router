@@ -78,7 +78,13 @@
             for root in Self.surfaceRoots {
                 for file in try Self.swiftFiles(under: root) {
                     let source = Self.stripped(file.source)
-                    let forbiddenGestures = ["DragGesture", "swipeActions", "onDelete", "gesture("]
+                    // `gesture(` does not match `.simultaneousGesture(` or `.highPriorityGesture(`
+                    // — capital G — and `draggable`/`dropDestination` are a separate spelling of the
+                    // same act. All four are named rather than left to a substring that misses them.
+                    let forbiddenGestures = [
+                        "DragGesture", "swipeActions", "onDelete", "gesture(",
+                        "simultaneousGesture(", "highPriorityGesture(", "draggable(", "dropDestination("
+                    ]
                     for forbidden in forbiddenGestures where source.contains(forbidden) {
                         offenders.append("\(root)/\(file.name): \(forbidden)")
                     }
@@ -141,10 +147,17 @@
                 .first { $0.name.hasSuffix("PhoneShell.swift") }
             let source = try Self.stripped(#require(shell?.source, "PhoneShell.swift was not scanned"))
 
-            let body = try #require(
-                source.components(separatedBy: "private func content(for tab: Tab)").last,
+            // **Not `#require(components.last)`** — `components(separatedBy:)` returns at least one
+            // element for any input, so `.last` is never nil and that message could never print. On
+            // a rename the require would pass with `body` set to the whole file, and the arms below
+            // would then match wherever `case .triage:` and `TriageScreen` happen to co-occur. The
+            // count is what actually proves the separator was found.
+            let parts = source.components(separatedBy: "private func content(for tab: Tab)")
+            #expect(
+                parts.count > 1,
                 "content(for:) was not found — the dispatch was renamed and this guard went blind"
             )
+            let body = parts.count > 1 ? parts[1] : ""
 
             let expected: [(String, String)] = [
                 ("case .discover:", "DiscoverScreen"),

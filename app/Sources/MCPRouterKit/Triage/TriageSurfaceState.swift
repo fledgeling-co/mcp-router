@@ -23,6 +23,9 @@ public enum TriageSurfaceState: Sendable, Equatable {
     /// because a dismissal set silently read as empty re-offers everything the user turned down —
     /// the failure-mode-is-emptiness defect, applied to the set nobody thinks to check.
     case dismissalsUnreadable
+    /// The queue file exists and will not decode. Distinct from `dismissalsUnreadable` because the
+    /// two sets fail for different reasons and the user can act on a different one of them.
+    case queueUnreadable
 
     /// Resolve the **load outcome** from what the surface actually has.
     ///
@@ -36,11 +39,20 @@ public enum TriageSurfaceState: Sendable, Equatable {
     /// showing things the user already rejected, and looking correct while doing it.
     public static func resolve(
         results: Result<RegistrySearchResponse, ControlAPIError>?,
-        queuedIDs: Set<String>,
+        queuedIDs: Result<Set<String>, CapabilityQueueError>,
         dismissedIDs: Result<Set<String>, DismissalStoreError>
     ) -> TriageSurfaceState {
         guard case let .success(dismissed) = dismissedIDs else {
             return .dismissalsUnreadable
+        }
+
+        // The queue read is taken as a `Result` for the same reason the dismissal read is. An
+        // earlier shape used `try?` here, which meant an unreadable queue degraded to "nothing is
+        // queued" — returning every already-queued entry to Undecided, silently, while the Queue
+        // tab one tap away reported the file correctly. Two surfaces disagreeing about one file,
+        // with the honest one quieter.
+        guard case let .success(queued) = queuedIDs else {
+            return .queueUnreadable
         }
 
         guard let results else { return .loading }
@@ -55,7 +67,7 @@ public enum TriageSurfaceState: Sendable, Equatable {
         case let .success(response):
             let buckets = TriageBuckets.resolve(
                 results: response.results,
-                queuedIDs: queuedIDs,
+                queuedIDs: queued,
                 dismissedIDs: dismissed
             )
             let warnings = WarningClass.classify(response.warnings)
@@ -80,6 +92,7 @@ public enum TriageSurfaceState: Sendable, Equatable {
         case .failed: .state(.failed)
         case .offline: .state(.offline)
         case .dismissalsUnreadable: .state(.dismissalsUnreadable)
+        case .queueUnreadable: .state(.queueUnreadable)
         }
     }
 }

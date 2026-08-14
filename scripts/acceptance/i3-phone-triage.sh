@@ -97,19 +97,22 @@ fi
 echo "guard: the awaiting placeholder is deleted, not bypassed"
 
 # --- Guard 2: the Mac still ships the board this phone's copy points at ---------------------------
-if [ -f "$SCAFFOLD_SOURCE" ]; then
-    installed="$(board_registry_installed "$SCAFFOLD_SOURCE")"
-    if [ -z "$installed" ]; then
-        fail "the Mac's board registry could not be read — a broken reader, never an empty set"
-    fi
-    if ! board_registry_installs "$SCAFFOLD_SOURCE" inbox; then
-        fail "BLOCKED: the Mac does not install .inbox, so the Queue's
-      'Open MCP Router on {mac} to review them' promises a screen that does not exist."
-    fi
-    echo "guard: the Mac installs .inbox, so the Queue's instruction is true"
-else
-    echo "note: ScaffoldPane.swift not found — the cross-device guard did not run (reported, not passed)"
+#
+# **Fails closed, like Guard 1 on the same condition.** An earlier version printed a note and
+# continued, so a Mac-side rename would have left every subsequent run printing PASS with this
+# question unasked — and a note in a passing log is not read.
+[ -f "$SCAFFOLD_SOURCE" ] || fail "cannot find ScaffoldPane.swift — the cross-device guard did not run.
+      This is the guard behind the Queue's 'Open MCP Router on {mac} to review them'."
+
+installed="$(board_registry_installed "$SCAFFOLD_SOURCE")"
+if [ -z "$installed" ]; then
+    fail "the Mac's board registry could not be read — a broken reader, never an empty set"
 fi
+if ! board_registry_installs "$SCAFFOLD_SOURCE" inbox; then
+    fail "BLOCKED: the Mac does not install .inbox, so the Queue's
+      'Open MCP Router on {mac} to review them' promises a screen that does not exist."
+fi
+echo "guard: the Mac installs .inbox, so the Queue's instruction is true"
 
 # --- One simulator, reused ------------------------------------------------------------------------
 #

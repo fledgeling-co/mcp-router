@@ -145,6 +145,12 @@ public enum TriageCopy {
         /// A9: the dismissal file exists and will not decode. Its own state, because a dismissal
         /// set silently read as empty re-offers everything the user turned down.
         case dismissalsUnreadable
+        /// A9/A17 applied to the other persisted set. `Undecided = results − queued − dismissed`,
+        /// so a queue that will not decode silently returns everything already queued to Undecided
+        /// and offers it for queueing again — the same failure, on the set the Queue tab reports
+        /// correctly one tap away. A9's whole argument is that the two stores fail alike; they now
+        /// do on this surface too.
+        case queueUnreadable
     }
 
     /// The sum. One switch per element type, each total over its own type.

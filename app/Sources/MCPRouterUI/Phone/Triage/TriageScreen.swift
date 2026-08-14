@@ -78,8 +78,13 @@ public struct TriageScreen: View {
         case let .empty(bucket):
             emptyPane(for: bucket)
 
-        case let .failed(reason):
-            message(.state(.failed), extra: [:], icon: .bang, tint: .fail, reason: reason)
+        case .failed:
+            // **The reason is deliberately not rendered, and the parameter that pretended to carry
+            // it is gone.** Two signatures took a `DiscoverFailureReason` and bound it to `_`, which
+            // reads as a wiring bug rather than a decision. `TriageCopy.state(.failed)` has no
+            // `{reason}` token, so surfacing it is a copy change and belongs to whoever writes that
+            // copy — until then the omission is visible in the code instead of disguised.
+            message(.state(.failed), extra: [:], icon: .bang, tint: .fail)
 
         case .offline:
             // Its own state, never a generic error. The tint is a label tier, not `--attn`: amber
@@ -88,6 +93,12 @@ public struct TriageScreen: View {
 
         case .dismissalsUnreadable:
             message(.state(.dismissalsUnreadable), extra: [:], icon: .warn, tint: .fail)
+
+        case .queueUnreadable:
+            // A9's symmetry, honoured rather than asserted: the queue file fails the way the
+            // dismissal file does, so it gets a state of its own rather than degrading to "nothing
+            // is queued" and re-offering everything already sent.
+            message(.state(.queueUnreadable), extra: [:], icon: .warn, tint: .fail)
         }
     }
 
@@ -188,10 +199,9 @@ public struct TriageScreen: View {
         _ key: TriageCopy.Key,
         extra: [TriageCopy.Token: String],
         icon: Icon,
-        tint: ColorToken,
-        reason: DiscoverFailureReason? = nil
+        tint: ColorToken
     ) -> some View {
-        messageState(for: key, icon: icon, tint: tint, extra: extra, reason: reason)
+        messageState(for: key, icon: icon, tint: tint, extra: extra)
             .frame(maxHeight: .infinity)
     }
 
@@ -199,8 +209,7 @@ public struct TriageScreen: View {
         for key: TriageCopy.Key,
         icon: Icon,
         tint: ColorToken = .t3,
-        extra: [TriageCopy.Token: String] = [:],
-        reason _: DiscoverFailureReason? = nil
+        extra: [TriageCopy.Token: String] = [:]
     ) -> some View {
         var values = extra
         values[.mac] = model.macName ?? "your Mac"
@@ -242,8 +251,15 @@ public struct TriageScreen: View {
         case .githubLimited: .state(.partialGitHubLimited)
         case .unrecognised: .state(.partialUnrecognised)
         }
-        let text = if case let .unrecognised(raw) = warning {
+        // `.partialUnrecognised`'s body is the bare `{warning}` token, so an empty substitution
+        // renders a headline over nothing. That cannot happen for the three classified cases, which
+        // use their own keys and never read this value — but an unrecognised warning whose raw text
+        // is empty is a real wire shape, and the honest rendering is to say the router reported a
+        // problem it did not describe rather than to draw a blank.
+        let text = if case let .unrecognised(raw) = warning, !raw.isEmpty {
             raw
+        } else if case .unrecognised = warning {
+            "The router did not say what went wrong."
         } else { "" }
         let entry = TriageCopy.entry(key).resolved([.warning: text])
 

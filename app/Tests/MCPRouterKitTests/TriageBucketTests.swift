@@ -40,9 +40,15 @@ struct TriageBucketTests {
         #expect(buckets.count(in: .queued) == 2)
         #expect(buckets.count(in: .dismissed) == 1)
         #expect(buckets.count(in: .undecided) == TriageSpecimens.all.count - 3)
-        for bucket in TriageBucket.allCases {
-            #expect(buckets.count(in: bucket) == buckets.entries(in: bucket).count)
-        }
+
+        // Not `count(in:) == entries(in:).count` — `count(in:)` is *defined* as that, so the
+        // comparison is a tautology. The property the surface actually depends on is that the three
+        // segments partition the results: no entry is in two buckets and none is dropped.
+        let total = TriageBucket.allCases.reduce(0) { $0 + buckets.count(in: $1) }
+        #expect(
+            total == TriageSpecimens.all.count,
+            "the three buckets do not partition the results: \(total) of \(TriageSpecimens.all.count)"
+        )
     }
 
     /// Stated in the type's own comment, so it is asserted rather than left to a reader: queueing is
@@ -106,12 +112,28 @@ struct TriageBucketTests {
 
     /// The clause vocabulary is closed, which is the only thing that makes "this line never
     /// truncates" (A5) a guarantee rather than a hope about entry names.
-    @Test("no entry produces a clause outside the seven")
+    /// **Not `allCases.contains(clause)`** — that is true for every value of a `CaseIterable` enum,
+    /// including a broken one, so the first version of this test could not fail. What can break is
+    /// the vocabulary growing without the row learning to render it, and a clause rendering to
+    /// nothing or to an unsubstituted token.
+    @Test("the clause vocabulary is seven, and every one of them renders")
     func vocabularyIsClosed() {
-        for entry in TriageSpecimens.all {
-            for clause in CapabilitySummary.resolve(for: entry).clauses {
-                #expect(CapabilitySummary.Clause.allCases.contains(clause))
-            }
+        #expect(
+            CapabilitySummary.Clause.allCases.count == 7,
+            "the clause vocabulary changed size — an eighth clause is a deliberate edit, not a drift"
+        )
+
+        for clause in CapabilitySummary.Clause.allCases {
+            // Rendered through the same path the row uses, so a clause the presentation cannot
+            // render fails here rather than reaching a user as a blank or a literal `{host}`.
+            let text = TriagePresentation.summaryText(CapabilitySummary.Resolved(
+                clauses: [clause],
+                host: "example.com",
+                wantsAttention: clause.wantsAttention,
+                isSelectable: true
+            ))
+            #expect(!text.isEmpty, "\(clause) renders nothing")
+            #expect(!text.contains("{"), "\(clause) renders an unsubstituted token: \(text)")
         }
     }
 
@@ -203,6 +225,21 @@ struct TriageBucketTests {
     /// half nobody would check.
     @Test("the row's clauses agree with the plate's lines on every specimen")
     func rowAndPlateAgree() {
+        // **Correspondence, not cardinality.** Comparing counts was provably always true: both
+        // sides are the same `lines` array compact-mapped through the same filter, so the counts
+        // are equal by construction for every input — including one where `clause(for:)` maps the
+        // wrong key, which is the single thing this test exists to catch. The expected mapping is
+        // therefore declared here, independently of the implementation.
+        let expected: [DiscoverCopy.PlateKey: CapabilitySummary.Clause] = [
+            .stdio: .runsLocally,
+            .remote: .remote,
+            .unknownHost: .remoteUnknownHost,
+            .credential: .credential,
+            .credentialSmithery: .credentialSmithery,
+            .archived: .archived,
+            .noInstall: .noInstall
+        ]
+
         for entry in TriageSpecimens.all {
             let resolved = CapabilitySummary.resolve(for: entry)
             let plateKeys = CapabilityPlate.lines(install: entry.install, archived: entry.archived)
@@ -213,8 +250,8 @@ struct TriageBucketTests {
                 .filter { $0 != .invocationLabel }
 
             #expect(
-                resolved.clauses.count == plateKeys.count,
-                "\(entry.id): row has \(resolved.clauses.count) clauses, plate has \(plateKeys.count)"
+                resolved.clauses == plateKeys.compactMap { expected[$0] },
+                "\(entry.id): row \(resolved.clauses) does not correspond to plate \(plateKeys)"
             )
         }
     }

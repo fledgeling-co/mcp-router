@@ -72,7 +72,15 @@ public extension TriageModel {
 
     /// Put one dismissed entry back in Undecided. The per-row act in the Not-for-me bucket.
     func restore(_ id: String) async {
-        try? await dismissals.restore(id)
+        // **Counted, not swallowed.** This is the only path out of the Dismissed bucket, so a
+        // refused restore that reported nothing would leave the row where it was with no
+        // explanation — and the user's last act was the one that failed.
+        do {
+            try await dismissals.restore(id)
+            writeFailure = nil
+        } catch {
+            writeFailure = TriageWriteFailure(saved: 0, refused: [id])
+        }
         undo = nil
         await load()
     }
@@ -86,19 +94,36 @@ public extension TriageModel {
     func undoLast() async {
         guard let undo else { return }
 
+        // Refusals are counted here the way `queueSelected` counts them. The earlier shape used
+        // `try?` and then cleared `writeFailure`, so a wholly refused undo returned the surface to
+        // a clean list with nothing said — the app reporting success for the user's last act
+        // precisely when that act failed.
+        var refused: [String] = []
+        var saved = 0
+
         switch undo {
         case let .queued(ids):
             for id in ids {
-                try? await queue.remove(id)
+                do {
+                    try await queue.remove(id)
+                    saved += 1
+                } catch {
+                    refused.append(id)
+                }
             }
         case let .dismissed(ids):
             for id in ids {
-                try? await dismissals.restore(id)
+                do {
+                    try await dismissals.restore(id)
+                    saved += 1
+                } catch {
+                    refused.append(id)
+                }
             }
         }
 
         self.undo = nil
-        writeFailure = nil
+        writeFailure = refused.isEmpty ? nil : TriageWriteFailure(saved: saved, refused: refused)
         await load()
     }
 

@@ -6,16 +6,29 @@ import SwiftUI
 @MainActor
 @Observable
 public final class QueueModel {
-    @ObservationIgnored public let queue: any CapabilityQueueReader
+    /// **The writer as well as the reader, and A10 is why.** An earlier shape held the reader alone
+    /// and reasoned that undo could therefore only clear its own banner. That is backwards: the
+    /// button was still rendered, still labelled "Undo", and still did nothing but dismiss the
+    /// message saying what had happened — the precise defect M6 recorded, an undo that undid
+    /// neither half of what it named.
+    ///
+    /// A10 requires inline undo on *removing from the Queue*, and A19 says removal is undoable
+    /// rather than confirmed. Honouring that needs a re-enqueue, which needs the writer. Holding it
+    /// does not give this surface a send control (A16) — `enqueue` writes to this phone's own file
+    /// and there is nothing on this screen that offers it a new entry.
+    @ObservationIgnored public let queue: any CapabilityQueueWriter & CapabilityQueueReader
 
     public var macName: String?
     public var connection: ConnectionState
 
     public internal(set) var state: QueueSurfaceState = .loading
     public internal(set) var undo: QueuedCapability?
+    /// A14 on the one surface that writes. `QueueSurfaceState.writeRefused`, its copy and its render
+    /// arm all existed already; nothing ever set this, so all three were unreachable.
+    public internal(set) var lastWriteFailed = false
 
     public init(
-        queue: any CapabilityQueueReader,
+        queue: any CapabilityQueueWriter & CapabilityQueueReader,
         connection: ConnectionState = .reachable,
         macName: String? = nil
     ) {
@@ -33,23 +46,42 @@ public final class QueueModel {
         } catch {
             items = .failure(.unreadable(error.localizedDescription))
         }
-        state = QueueSurfaceState.resolve(items: items)
+        state = QueueSurfaceState.resolve(items: items, lastWriteFailed: lastWriteFailed)
     }
 
     /// Undoable rather than confirmed. Removing something from your own outbox has no blast radius,
     /// and the named-consequence dialog `DESIGN.md` §9 reserves is the Mac's.
+    ///
+    /// **A refused removal is reported and offers no undo.** The row is still in the list, so a
+    /// banner saying it was removed would put two contradictory claims on screen and make the true
+    /// one the quieter — I1's precedent, where a refused Keychain write rendered "Paired."
     public func remove(_ item: QueuedCapability) async {
-        try? await queue.remove(item.id)
-        undo = item
+        do {
+            try await queue.remove(item.id)
+            lastWriteFailed = false
+            undo = item
+        } catch {
+            lastWriteFailed = true
+            undo = nil
+        }
         await load()
     }
 
-    /// There is no re-enqueue on the reader, so undo is offered only where the surface can honour
-    /// it. This is stated rather than silently degraded: the reader removes, and putting an item
-    /// back needs the writer, which the Queue deliberately does not hold — a surface that can write
-    /// to the queue is a surface that can queue things, and this one only shows them.
-    public func clearUndo() {
+    /// Put the removed item back. The act the button has always named.
+    ///
+    /// `enqueue` is idempotent on `id` and the original `queuedAt` is carried on the item we kept,
+    /// so an undo restores the row the user was looking at rather than a fresh one stamped now.
+    public func undoLast() async {
+        guard let item = undo else { return }
+        do {
+            try await queue.enqueue(item)
+            lastWriteFailed = false
+        } catch {
+            // A refused restore is a failure, not a silent no-op: the item is still gone.
+            lastWriteFailed = true
+        }
         undo = nil
+        await load()
     }
 }
 
@@ -63,7 +95,7 @@ public struct QueueScreen: View {
     @State private var model: QueueModel
 
     public init(
-        queue: any CapabilityQueueReader,
+        queue: any CapabilityQueueWriter & CapabilityQueueReader,
         connection: ConnectionState = .reachable,
         macName: String? = nil
     ) {
@@ -124,7 +156,7 @@ public struct QueueScreen: View {
             if let undone = model.undo {
                 UndoBar(
                     text: resolved(.chrome(.undoRemoved), extra: [.name: undone.displayName]).body,
-                    onUndo: { model.clearUndo() }
+                    onUndo: { Task { await model.undoLast() } }
                 )
                 .listRowSeparator(.hidden)
             }

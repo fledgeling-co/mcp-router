@@ -142,6 +142,20 @@ extension TriageCopy {
         case .emptyUndecided: emptyState(.undecided)
         case .emptyQueued: emptyState(.queued)
         case .emptyDismissed: emptyState(.dismissed)
+        case .partialOfficialDown, .partialSmitheryDown, .partialGitHubLimited,
+             .partialUnrecognised:
+            partialState(key)
+        case .failed, .offline, .queueUnreadable, .dismissalsUnreadable:
+            failureState(key)
+        }
+    }
+
+    /// **Results arrived and something is missing.** Split from the failure states on a real
+    /// seam rather than to satisfy a length rule: these four say *what you are looking at is
+    /// incomplete, and here is what is absent*, and every one of them renders rows underneath.
+    /// The failures below say *there is nothing to look at*. Two questions, two functions.
+    private static func partialState(_ key: StateKey) -> Entry {
+        switch key {
         case .partialOfficialDown:
             Entry(
                 headline: "Showing Smithery only.",
@@ -167,6 +181,16 @@ extension TriageCopy {
                 headline: "The search reported a problem.",
                 body: "{warning}"
             )
+        default:
+            // Unreachable: the caller routes only the four partial keys here, and the compiler
+            // checks that at the call site. A crash would be worse than a truthful sentence.
+            Entry(body: "The search reported a problem.")
+        }
+    }
+
+    /// **Nothing arrived, or a persisted set could not be read.** None of these renders rows.
+    private static func failureState(_ key: StateKey) -> Entry {
+        switch key {
         case .failed:
             Entry(
                 headline: "The registry search failed",
@@ -184,6 +208,15 @@ extension TriageCopy {
                 starts. Open MCP Router on your Mac.
                 """
             )
+        case .queueUnreadable:
+            Entry(
+                headline: "Your queue could not be read.",
+                body: """
+                Something is saved on this phone and this version cannot decode it, so things you \
+                already queued may be offered again. Nothing has been deleted or sent.
+                """,
+                actionLabel: "Try again"
+            )
         case .dismissalsUnreadable:
             Entry(
                 headline: "Your dismissals could not be read.",
@@ -193,6 +226,8 @@ extension TriageCopy {
                 """,
                 actionLabel: "Try again"
             )
+        default:
+            Entry(body: "Something went wrong.")
         }
     }
 }

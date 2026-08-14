@@ -130,14 +130,32 @@ struct TriageCopyManifestTests {
 
     /// A token with no supplied value is left as its placeholder rather than silently emptied: a
     /// visible `{mac}` is a bug report, and a sentence that quietly loses its subject is not.
-    @Test("an unsupplied token stays visible rather than emptying the sentence")
+    /// **Exercised with a PARTIAL dictionary, which is what the surfaces actually construct.**
+    /// `resolved([:])` returns the entry unchanged — `Entry.resolved` iterates the dictionary, so an
+    /// empty one never enters the loop — making any assertion over it a tautology on the identity
+    /// function. The real risk is substituting one token on an entry that carries two.
+    @Test("substituting one token leaves the others visible rather than emptying them")
     func unsuppliedTokenStaysVisible() {
+        var exercised = 0
         for key in TriageCopy.Key.allCases {
             let entry = TriageCopy.entry(key)
-            guard entry.tokens.contains(.mac) else { continue }
-            let resolved = entry.resolved([:])
-            #expect(resolved.body.contains("{mac}") || !entry.body.contains("{mac}"))
+            guard entry.body.contains(TriageCopy.Token.mac.placeholder) else { continue }
+            exercised += 1
+
+            // Supply everything EXCEPT `{mac}`, so a substitution pass that emptied unsupplied
+            // tokens would be visible here.
+            let others = Dictionary(
+                uniqueKeysWithValues: TriageCopy.Token.allCases
+                    .filter { $0 != .mac }
+                    .map { ($0, "x") }
+            )
+            let resolved = entry.resolved(others)
+            #expect(
+                resolved.body.contains(TriageCopy.Token.mac.placeholder),
+                "\(key) lost its {mac} when other tokens were substituted"
+            )
         }
+        #expect(exercised > 0, "no entry carries {mac} in its body, so this proved nothing")
     }
 
     @Test("supplying a token substitutes it everywhere it appears")
@@ -160,7 +178,11 @@ struct TriageCopyManifestTests {
             let entry = TriageCopy.entry(key)
             let text = ((entry.headline ?? "") + " " + entry.body + " " + (entry.actionLabel ?? ""))
                 .lowercased()
-            for phrase in [" new ", "since ", "latest", "unread", "recently"] where text.contains(phrase) {
+            // `" new "` needed a space on both sides, so it missed "What's new", "Nothing new."
+            // and a sentence-initial "New". Matched on word boundaries instead.
+            let words = text.components(separatedBy: CharacterSet.alphanumerics.inverted)
+            if words.contains("new") { offenders.append("\(key): new") }
+            for phrase in ["since ", "latest", "unread", "recently"] where text.contains(phrase) {
                 offenders.append("\(key): \(phrase)")
             }
         }

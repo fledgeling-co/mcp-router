@@ -155,162 +155,20 @@
             await model.queueSelected()
 
             #expect(try await queue.all().count == 2)
-            #expect(model.undo == .queued([TriageSpecimens.stdio.id, TriageSpecimens.remote.id])
-                || model.undo?.ids.count == 2)
+            // No disjunction: `undo?.ids.count == 2` passed for `.dismissed`, for any two ids in
+            // any order, and for two entirely different servers — on a test whose name asserts the
+            // queued case specifically. The case is asserted, and the ids as a set so ordering is
+            // not pinned.
+            guard case let .queued(ids) = model.undo else {
+                Issue.record("undo is \(String(describing: model.undo)), not .queued")
+                return
+            }
+            #expect(Set(ids) == [TriageSpecimens.stdio.id, TriageSpecimens.remote.id])
             #expect(model.selected.isEmpty, "the selection outlived the commit")
 
             await model.undoLast()
             #expect(try await queue.all().isEmpty, "undo left rows in the queue")
             #expect(model.undo == nil)
-        }
-
-        // MARK: - A14: a refused write is never a queued item
-
-        /// I1's precedent: two `try?` sites made a refused Keychain write render "Paired." while
-        /// nothing was stored. A refused write is surfaced, names what was not saved, and the item
-        /// does not move.
-        @Test("a wholly refused batch reports the failure and queues nothing")
-        func refusedBatchIsSurfaced() async throws {
-            let queue = InMemoryCapabilityQueue(failure: .writeFailed("no space"))
-            let (model, _) = Self.model(queue: queue)
-            await model.load()
-
-            model.toggleSelection(TriageSpecimens.stdio.id)
-            model.toggleSelection(TriageSpecimens.remote.id)
-            await model.queueSelected()
-
-            let failure = try #require(model.writeFailure)
-            #expect(failure.saved == 0)
-            #expect(failure.refused.count == 2)
-            #expect(failure.isTotal)
-            #expect(model.undo == nil, "undo was offered for a write that never landed")
-            #expect(try await queue.all().isEmpty)
-
-            // The refused entries stay in Undecided, because that is where they are.
-            #expect(model.buckets.undecided.contains { $0.id == TriageSpecimens.stdio.id })
-        }
-
-        /// A partial batch reports what did and did not land, and reads differently from a total
-        /// failure — "three of five landed" is not "nothing landed".
-        @Test("a partial failure and a total failure carry different copy")
-        func partialAndTotalDiffer() {
-            let total = TriageWriteFailure(saved: 0, refused: ["a", "b"])
-            let partial = TriageWriteFailure(saved: 3, refused: ["c"])
-
-            #expect(total.isTotal)
-            #expect(!partial.isTotal)
-            #expect(total.copyKey != partial.copyKey, "both failures render the same sentence")
-        }
-
-        @Test("a refused dismissal is surfaced and dismisses nothing")
-        func refusedDismissalIsSurfaced() async throws {
-            let dismissals = InMemoryDismissalStore(failure: .writeFailed("refused"))
-            let (model, _) = Self.model(dismissals: dismissals)
-            await model.load()
-
-            model.toggleSelection(TriageSpecimens.stdio.id)
-            await model.dismissSelected()
-
-            #expect(model.writeFailure?.isTotal == true)
-            #expect(model.undo == nil)
-            #expect(try await dismissals.all().isEmpty)
-        }
-
-        // MARK: - A9: the unreadable dismissal set outranks everything
-
-        /// A list rendered from a dismissal set that failed to load is a list showing things the
-        /// user already rejected, and looking correct while doing it. So it gets its own state,
-        /// ahead of the populated one.
-        @Test("an unreadable dismissal set is its own state, not a populated list")
-        func unreadableDismissalsOutrankPopulated() async {
-            let dismissals = InMemoryDismissalStore(readFailure: .unreadable("corrupt"))
-            let (model, _) = Self.model(dismissals: dismissals)
-            await model.load()
-
-            #expect(model.state == .dismissalsUnreadable)
-            #expect(model.displayState == .dismissalsUnreadable)
-            #expect(model.state.copyKey == .state(.dismissalsUnreadable))
-        }
-
-        /// The resolver's guard order is the order of the claims, and it holds even when the
-        /// registry answered perfectly.
-        @Test("the dismissal failure outranks a successful search")
-        func dismissalFailureOutranksSuccess() {
-            let state = TriageSurfaceState.resolve(
-                results: .success(TriageSpecimens.response()),
-                queuedIDs: [],
-                dismissedIDs: .failure(.unreadable("corrupt"))
-            )
-            #expect(state == .dismissalsUnreadable)
-        }
-
-        // MARK: - A23: offline is its own state
-
-        /// `routerNotRunning` renders as its own state, never as a generic error.
-        @Test("the router not running is offline, not a failure")
-        func offlineIsItsOwnState() async {
-            let (model, _) = Self.model(failure: .routerNotRunning)
-            await model.load()
-
-            #expect(model.state == .offline)
-            #expect(model.state.copyKey == .state(.offline))
-        }
-
-        @Test("any other control error is a failure, not offline")
-        func otherErrorsAreFailures() async {
-            let (model, _) = Self.model(failure: .transport(detail: "reset by peer"))
-            await model.load()
-
-            guard case .failed = model.state else {
-                Issue.record("a transport error did not resolve to failed: \(model.state)")
-                return
-            }
-        }
-
-        // MARK: - A24: bucket emptiness is derived from the chosen bucket
-
-        /// Which bucket is empty is a fact about the bucket the user has chosen, and that changes
-        /// without another load.
-        @Test("an empty chosen bucket renders that bucket's own empty state")
-        func emptyIsPerBucket() async {
-            let (model, _) = Self.model()
-            await model.load()
-
-            #expect(model.displayState != .empty(.undecided), "Undecided was empty with results in")
-
-            model.select(bucket: .dismissed)
-            #expect(model.displayState == .empty(.dismissed))
-            #expect(model.displayState.copyKey == .state(.emptyDismissed))
-
-            model.select(bucket: .queued)
-            #expect(model.displayState.copyKey == .state(.emptyQueued))
-        }
-
-        // MARK: - A9: a dismissal is reversible from its own bucket
-
-        @Test("a dismissed entry moves to its bucket and comes back")
-        func dismissThenRestore() async {
-            let dismissals = InMemoryDismissalStore()
-            let (model, _) = Self.model(dismissals: dismissals)
-            await model.load()
-
-            model.toggleSelection(TriageSpecimens.stdio.id)
-            await model.dismissSelected()
-            #expect(model.buckets.dismissed.map(\.id) == [TriageSpecimens.stdio.id])
-
-            await model.restore(TriageSpecimens.stdio.id)
-            #expect(model.buckets.dismissed.isEmpty)
-            #expect(model.buckets.undecided.contains { $0.id == TriageSpecimens.stdio.id })
-        }
-
-        // MARK: - A16: Triage reads the registry with the same page Discover does
-
-        @Test("the search asks for the same limit Discover asks for")
-        func searchLimitMatchesDiscover() async {
-            let (model, client) = Self.model()
-            await model.load()
-
-            #expect(client.searchLimits == [TriageModel.searchLimit])
         }
     }
 #endif

@@ -220,20 +220,23 @@ final class HTTPUpstreamSession: UpstreamSession, Sendable {
 /// The seam R3 declared and nobody implemented. It is what `POST /servers/:name/reindex` and
 /// `mcp-router index` both run, which is why it lives here rather than inside either.
 public struct ManifestIndexer: UpstreamIndexerPort {
-    let pool: UpstreamPool
+    let startupTimeoutMs: Int
+    let transporting: any UpstreamTransporting
     let manifestPath: String
     let fileSystem: any FileSystem
     let clock: any RouterClock
     let log: RouterLog?
 
     public init(
-        pool: UpstreamPool,
+        startupTimeoutMs: Int,
+        transporting: any UpstreamTransporting,
         manifestPath: String,
         fileSystem: any FileSystem = RealFileSystem(),
         clock: any RouterClock = SystemClock(),
         log: RouterLog? = nil
     ) {
-        self.pool = pool
+        self.startupTimeoutMs = startupTimeoutMs
+        self.transporting = transporting
         self.manifestPath = manifestPath
         self.fileSystem = fileSystem
         self.clock = clock
@@ -241,11 +244,41 @@ public struct ManifestIndexer: UpstreamIndexerPort {
     }
 
     public func index(_ upstream: UpstreamConfig) async -> IndexOutcome {
+        // A pool of ONE, idle 0, torn down before this returns — `control.ts:191-199` constructs
+        // exactly this and shuts it down in a `finally`, so indexing never touches the serving pool.
+        //
+        // It used to lease from the serving pool. That left the child alive for the whole idle
+        // window after a reindex, which is two defects rather than one: the next `tools/call`
+        // recorded `cold:false` where the reference records `cold:true` (the stream lane's frame
+        // diff is what caught it), and a reindex from the Mac app left a subprocess running that
+        // the user never called a tool on — the opposite of what this router is for.
+        let pool = UpstreamPool(
+            upstreams: [upstream],
+            defaultIdleMilliseconds: 0,
+            defaultStartupTimeoutMilliseconds: startupTimeoutMs,
+            transporting: transporting,
+            clock: clock,
+            log: log
+        )
+        let outcome = await index(upstream, using: pool)
+        // Not a `defer`: `defer` cannot await, and a fire-and-forget teardown would let the caller
+        // observe the child still live — which is the bug this replaced.
+        await pool.shutdown()
+        return outcome
+    }
+
+    private func index(_ upstream: UpstreamConfig, using pool: UpstreamPool) async -> IndexOutcome {
         let tools: [CachedTool]
         do {
             let lease = try await pool.lease(upstream.name)
-            defer { Task { [pool] in await pool.release(lease) } }
-            let listed = try await lease.session.listTools()
+            let listed: JSONValue
+            do {
+                listed = try await lease.session.listTools()
+            } catch {
+                await pool.release(lease)
+                throw error
+            }
+            await pool.release(lease)
             guard case let .object(members) = listed,
                   case let .array(items)? = members.first(where: { $0.key == JSString("tools") })?.value
             else {

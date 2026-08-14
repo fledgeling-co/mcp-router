@@ -268,7 +268,9 @@ public actor RouterService {
             config: config,
             upstreams: config.upstreams.map { (name: JSString($0.name), upstream: $0) },
             pool: await PoolSnapshotPort(pool: pool),
-            indexer: ManifestIndexer(pool: pool, manifestPath: config.manifestPath,
+            indexer: ManifestIndexer(startupTimeoutMs: config.startupTimeoutMs,
+                                     transporting: RoutingUpstreamTransport(log: log),
+                                     manifestPath: config.manifestPath,
                                      fileSystem: fileSystem, clock: clock, log: log),
             auth: await SnapshotAuthStore(
                 store: auth, servers: config.upstreams.map { JSString($0.name) }

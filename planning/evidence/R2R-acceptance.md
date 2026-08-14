@@ -178,18 +178,20 @@ lists the five lane names R4's report at `:201` already printed headings for.
 
 ## 6 · Defects this work found and fixed
 
-Each was found by a lane rather than by reading, and each is a real gap in merged code that no test
-could reach while nothing ran the router as a process.
+Each was found by a lane rather than by reading. **Four are gaps in merged code that no test could
+reach while nothing ran the router as a process; three are bugs in this item's own new code, caught
+by the lanes before they were committed.** The distinction matters and the original wording lost it
+by framing all seven as pre-existing.
 
-| # | Defect | Where | Found by |
-|---|---|---|---|
-| 1 | `PoolLogEvent.ready` was declared by R2 and **never fired** — the Swift router never logged `upstream "x" ready in Nms` | `UpstreamPool.commit` | the log lane's ordered diff |
-| 2 | `ManifestStore` had no logger, so `manifest reloaded: N servers cached` was never emitted | `ManifestStore.current()` | the log lane |
-| 3 | A missing command **hung for 60 seconds** and reported a timeout, where the reference reports `spawn <cmd> ENOENT` immediately. Cause: spawning through `/usr/bin/env`, which always exists | `StdioUpstreamTransport.open` | the cli lane's `import` comparison |
-| 4 | A spawn failure's wire message was wrapped (`upstream "x" could not be started: …`) where the reference reports the raw message | `PoolError.message` | the same |
-| 5 | The listener ignored `Connection: close`, so a client reading until the peer hangs up waited out the keep-alive window — the CLI's own `status` verb reported "no router answering" against a live router | `LoopbackHTTPServer.serve` | driving the CLI |
-| 6 | Response header order differed from the reference (`Transfer-Encoding` before `Date`) | `HTTPWire.head` | the first live comparison |
-| 7 | The startup log emitted the token line before the stale-manifest warning; the reference emits them the other way round | `RouterService.start` | the first live comparison |
+| # | Defect | Where | Pre-existing or new here | Found by |
+|---|---|---|---|---|
+| 1 | `PoolLogEvent.ready` was declared by R2 and **never fired** — the Swift router never logged `upstream "x" ready in Nms` | `UpstreamPool.commit` | pre-existing (R2) | the log lane's ordered diff |
+| 2 | `ManifestStore` had no logger, so `manifest reloaded: N servers cached` was never emitted | `ManifestStore.current()` | pre-existing (R2) | the log lane |
+| 3 | A missing command **hung for 60 seconds** and reported a timeout, where the reference reports `spawn <cmd> ENOENT` immediately. Cause: spawning through `/usr/bin/env`, which always exists | `StdioUpstreamTransport.open` | pre-existing (R2) | the cli lane's `import` comparison |
+| 4 | A spawn failure's wire message was wrapped (`upstream "x" could not be started: …`) where the reference reports the raw message | `PoolError.message` | pre-existing (R2) | the same |
+| 5 | The listener ignored `Connection: close`, so a client reading until the peer hangs up waited out the keep-alive window — the CLI's own `status` verb reported "no router answering" against a live router | `LoopbackHTTPServer.serve` | **new in this item** | driving the CLI |
+| 6 | Response header order differed from the reference (`Transfer-Encoding` before `Date`) | `HTTPWire.head` | **new in this item** | the first live comparison |
+| 7 | The startup log emitted the token line before the stale-manifest warning; the reference emits them the other way round | `RouterService.start` | **new in this item** | the first live comparison |
 
 ## 7 · What is owed, and not claimed
 
@@ -283,3 +285,91 @@ comparable. Empty-versus-empty is guarded explicitly in `mcp` (health body, list
 The gate's own aggregation was checked for the double-write the §9.1 guard introduces:
 `parity-gate.sh:172` treats **any** `fail` for a `(group, id)` as a mismatch regardless of a later
 `ok`, so a row can never be rescued by a second verdict. The strengthening is fail-safe.
+
+---
+
+## 10 · The completeness critic, and what it changed
+
+The third out-of-family gate was owed and had never run. codex is account-limited until 2026-08-20
+and **exits 0 on that limit**, so it ran in-family: a fresh adversarial `claude -p` opus-5 reviewer,
+briefed to refute and told that finding nothing is a failed review.
+`codex: usage limit -> claude (downgrade)`.
+
+**Verdict: REJECT — 0 blockers, 5 majors, 5 minors.** Two further blockers it had drafted died at
+`64d0057` before it reported. Its own summary of the headline: *"No finding touches the headline
+claim: the Swift router exists, all five lanes measure, the gate was not weakened, and 69 of 82 with
+0 mismatches is the number the current tree produces."*
+
+It refuted the gate-tampering charge on evidence rather than assertion: `parity-gate.sh` differs from
+`main` by exactly one line, and `control-differential.sh`, `parity-control.sh`, `parity-fixture.sh`,
+`parity-divergence.sh`, `parity-pool.sh`, `parity-suite.sh` and `parity-manifest-check.sh` have zero
+diff lines each.
+
+What it found was narrower and correct: **four rows recorded `proven` under notes describing an
+oracle stronger than the one that executes.** Every major is fixed below.
+
+| # | Finding | Fix |
+|---|---|---|
+| M1 | the negative control demonstrated failability for ~8 of 19 rows while reading as if it covered all of them; and `check()` scored a lane exiting non-zero with **no failing row** as "went red" | `check()` now requires at least one `fail`; two new seeded defects (`streams`, `toolset`); and the self-test prints a per-row roll-up **naming every row it has not shown able to fail**. 8 → **11 of 19 demonstrated**, with the other 8 named in its own output |
+| M2 | `cli-help`'s note claimed `help`, `--help`, `-h` and an unknown verb; the lane ran `help` alone. Three of four arms in `src/index.ts:360-365` never executed | all four arms now run at both binaries. All four agree |
+| M3 | `cli-tools` only ever saw an **empty** manifest (`run_both` re-seeds per verb); `cli-usage`'s note claimed "same store" when the verb throws before reading any store | a `PREP` hook adds a populated `tools` case built by each binary's own `index`; `cli-usage`'s note narrowed to what it proves — the offline error path |
+| M4 | `install`'s observation 4 was `[ -f out ] && [ -f err ]`. **launchd creates both files at bootstrap**, so it was `yes` for any agent that loaded and could not tell the binaries apart | it now records **which streams carry bytes** as a pattern (`o`/`e`/`-`/`none`) and compares the pattern. Measured: both routers report `-e` — stdout is empty on both, so the old note "wrote both log paths" was false |
+| M5 | `cli-serve` compared a three-literal `grep -oE` allowlist, discarding every other line either binary wrote — the one place normalisation removed content rather than a clock | the **whole** normalised stdout is diffed. It was concealing a real line: both routers open with `wrote a new control token -> <path>` |
+| m1 | `parity-state.sh`'s `capture()` had no non-empty guard — the hazard `64d0057` fixed in the mcp lane, not carried across | both captured files must be non-empty or the lane exits 2 |
+| m2 | the seven defects in §6 were framed as all pre-existing; three are bugs in this item's own new code | §6 now states which are which: 4 pre-existing, 3 new-here |
+| m5 | §9.2's number carried no SHA, breaking this file's own contract at `:6-7` | §10.2 below carries one |
+
+Not fixed, and why: **m3** (the Swift daemon serves `/health`, `/status` and `/mcp` and no control
+routes) is a scope boundary the plan states in §8 and the spec never promised — reported, not
+silently closed. **m4** (`RouterService`, `ServicePorts`, `UpstreamCalling` and the CLI carry no unit
+tests of their own; their coverage is the five shell lanes) is real and is raised as a deferred
+child rather than absorbed here.
+
+### 10.1 A flaky row, found by re-running rather than by reading
+
+`pool-reap-traffic` passed, then failed, then passed again across three runs with no code change
+between them, reporting Swift `running,unknown,unknown`. `unknown` is a **failed read**, not an
+observed state: the state probe's `curl`/`python3` missed its 5s budget under load. The read is now
+retried up to five times, and — stricter than before — **any** `unknown` on either side now fails the
+row, where previously only an all-unknown *reference* sequence did. Retrying an absent answer cannot
+mask a divergence, because a real divergence reports a definite state that differs.
+
+### 10.2 The gate, re-measured with every strengthened oracle in place
+
+Run from `.worktrees/R2R` at `64d0057` plus the working tree committed as this section's commit,
+`swift build` green first:
+
+```
+  control     11 of 15 proven, 4 blocked      mcp          5 of  5 proven
+  fixture     23 of 24 proven, 1 blocked      cli          8 of 10 proven, 2 blocked
+  divergence  13 of 15 proven (4 by suite), 2 blocked   install      1 of  5 proven, 4 blocked
+  pool         6 of  6 proven                 state        1 of  1 proven
+                                              log          1 of  1 proven
+
+parity: 69 of 82 rows proven (4 of them by suite only, not by wire comparison), 13 blocked.
+The cutover requires 82 of 82. It has 69.
+exit=1
+```
+
+**69 of 82, 13 blocked, 0 DIVERGED.** The number did not move when the oracles were tightened, which
+is the outcome that matters: the strengthening removed overstatement without inflating the count.
+
+### 10.3 A contaminated run, recorded because it will bite the next runner
+
+One gate run in this pass reported **7 rows DIVERGED**. Every one was a `proven-by-suite` citation
+(`RealProcessTests`, `CallbackWireTests`, `ManifestIOParityTests`, `LogParityTests`). The tree
+compiled (`swift build --build-tests` green in 2.1s) and all **43 tests in those 6 suites passed when
+run directly**. The cause was load: `uptime` reported load averages of **10.86 / 18.80 / 22.06** with
+an unrelated `proctor-mcp` whole-module release build saturating 16 cores, and the suite lane runs one
+`swift test --filter` per citation.
+
+This is §1's lesson in a second form. §1 recorded that a tree that does not **compile** produces a
+meaningless parity number; this run shows a tree that compiles perfectly can produce one too, when
+the machine is too busy to run the tests inside their budget. **Check `uptime` before believing a
+DIVERGED row in the suite lane, and re-run the citation directly before treating it as a regression.**
+
+### 10.4 The user's router, throughout
+
+`8975` was held by `node 11356` before, during and after every run in this pass, and was never
+contacted. Ports used: 8981–8998. After the final run: no stray listener on any harness port, no
+stray `MCPRouterCLI`, and `launchctl list` showed **0** scratch agents.

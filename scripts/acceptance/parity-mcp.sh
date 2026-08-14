@@ -399,27 +399,50 @@ fi
 # burst, idle past the window, burst again — and the spawn/reap sequence read off /status compared as
 # a sequence rather than as a final state, because a router that never reaps and one that reaps and
 # reopens end in the same place.
+# `unknown` is a FAILED READ, not an observed state, so it is retried rather than recorded. Under
+# load — several fleet runners on one machine — the curl or the python3 spawn can miss its 5s
+# budget, and a single miss turned `running,idle,running` into `running,unknown,unknown` and failed
+# the row. Measured: this row passed, failed, then passed again across three runs with no code
+# change between them. Retrying a failed read cannot mask a divergence, because a real divergence
+# reports a definite state that differs; only an absent answer is retried, and an answer that never
+# arrives still ends as `unknown` and still fails.
+state_of() { # port -> state, or unknown after 5 tries
+  local port="$1" s=""
+  for _ in 1 2 3 4 5; do
+    s="$(curl -fsS -m 5 "http://127.0.0.1:$port/servers/probe" 2>/dev/null \
+         | python3 -c 'import json,sys; print(json.load(sys.stdin)["state"])' 2>/dev/null)"
+    [ -n "$s" ] && { printf '%s' "$s"; return 0; }
+    sleep 0.5
+  done
+  printf 'unknown'
+}
 sequence() { # port
   local out=""
   for _ in 1 2 3; do
     node "$REPO_ROOT/scripts/fixtures/call-through-router.mjs" \
       "http://127.0.0.1:$1/mcp" ping >/dev/null 2>&1 || true
   done
-  out="$out$(curl -fsS -m 5 "http://127.0.0.1:$1/servers/probe" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["state"])' 2>/dev/null || echo unknown)"
+  out="$out$(state_of "$1")"
   sleep 5
-  out="$out,$(curl -fsS -m 5 "http://127.0.0.1:$1/servers/probe" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["state"])' 2>/dev/null || echo unknown)"
+  out="$out,$(state_of "$1")"
   node "$REPO_ROOT/scripts/fixtures/call-through-router.mjs" \
     "http://127.0.0.1:$1/mcp" ping >/dev/null 2>&1 || true
-  out="$out,$(curl -fsS -m 5 "http://127.0.0.1:$1/servers/probe" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["state"])' 2>/dev/null || echo unknown)"
+  out="$out,$(state_of "$1")"
   printf '%s' "$out"
 }
 ts_seq="$(sequence "$TS_PORT")"
 sw_seq="$(sequence "$SWIFT_PORT")"
-if [ "$ts_seq" = "$sw_seq" ] && [ "$ts_seq" != "unknown,unknown,unknown" ]; then
-  verdict pool pool-reap-traffic 1 "spawn/reap under live traffic: both reported $ts_seq"
-else
-  verdict pool pool-reap-traffic 0 "reference reported $ts_seq, Swift reported $sw_seq"
-fi
+# A sequence containing ANY unknown is an unread state, not an agreement. Two sides that both failed
+# to answer would otherwise diff clean and record a pass.
+case "$ts_seq$sw_seq" in
+  *unknown*) verdict pool pool-reap-traffic 0 \
+      "a state read never answered after 5 tries: reference $ts_seq, Swift $sw_seq" ;;
+  *) if [ "$ts_seq" = "$sw_seq" ]; then
+       verdict pool pool-reap-traffic 1 "spawn/reap under live traffic: both reported $ts_seq"
+     else
+       verdict pool pool-reap-traffic 0 "reference reported $ts_seq, Swift reported $sw_seq"
+     fi ;;
+esac
 
 echo
 echo "mcp: $pass comparisons agreed, $fail did not"

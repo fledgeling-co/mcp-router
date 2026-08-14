@@ -96,15 +96,10 @@ struct MCPRouterCLI {
         let log = RouterLog()
         await log.configure(file: loaded.config.logPath, verbose: options.has("verbose"))
 
-        let pool = UpstreamPool(
-            upstreams: loaded.config.upstreams,
-            defaultIdleMilliseconds: loaded.config.idleMs,
-            defaultStartupTimeoutMilliseconds: loaded.config.startupTimeoutMs,
-            transporting: RoutingUpstreamTransport(log: log),
-            log: log
-        )
         let indexer = ManifestIndexer(
-            pool: pool, manifestPath: loaded.config.manifestPath, log: log
+            startupTimeoutMs: loaded.config.startupTimeoutMs,
+            transporting: RoutingUpstreamTransport(log: log),
+            manifestPath: loaded.config.manifestPath, log: log
         )
         let force = options.has("force")
         let manifest = ManifestIO.load(
@@ -126,7 +121,6 @@ struct MCPRouterCLI {
                 built.append("\(upstream.name) (\(outcome.tools) tools)")
             }
         }
-        await pool.shutdown()
 
         for line in built { Out.print("  ok    \(line)\n") }
         for line in failed { Out.print("  FAIL  \(line)\n") }

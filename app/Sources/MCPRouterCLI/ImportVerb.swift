@@ -52,14 +52,11 @@ extension MCPRouterCLI {
         await log.configure(file: home.logPath, verbose: options.has("verbose"))
         Out.print("checking \(candidates.count) server(s) before adopting any\n")
 
-        let pool = UpstreamPool(
-            upstreams: candidates.map(\.upstream),
-            defaultIdleMilliseconds: 0,
-            defaultStartupTimeoutMilliseconds: 60000,
+        let indexer = ManifestIndexer(
+            startupTimeoutMs: 60000,
             transporting: RoutingUpstreamTransport(log: log),
-            log: log
+            manifestPath: home.manifestPath, log: log
         )
-        let indexer = ManifestIndexer(pool: pool, manifestPath: home.manifestPath, log: log)
 
         var adopt: [JSONMember] = []
         var failed: [String] = []
@@ -77,7 +74,6 @@ extension MCPRouterCLI {
                 Out.print("  ok    \(name) (\(outcome.tools) tools)\n")
             }
         }
-        await pool.shutdown()
 
         try fileSystem.createDirectory(atPath: home.root)
         if fileSystem.fileExists(atPath: home.configPath) {

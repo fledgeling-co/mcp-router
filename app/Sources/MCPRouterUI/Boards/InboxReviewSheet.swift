@@ -173,10 +173,10 @@
         /// default button, because the destructive-feeling option never is.
         private var actionBar: some View {
             VStack(alignment: .leading, spacing: InboxBoardMetrics.tightGap) {
-                if case let .failed(error) = board.acceptState {
+                if let failure = failureLine {
                     HStack(alignment: .top, spacing: InboxBoardMetrics.labelGap) {
                         IconView(.bang, size: TypeToken.caption.size)
-                        Text("\(error.headline) \(error.advice)")
+                        Text(failure)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .typeRole(.caption)
@@ -206,6 +206,19 @@
             }
             .padding(InboxBoardMetrics.panePadding)
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+
+        /// What went wrong with the last press, next to the control that made it (§5).
+        ///
+        /// Exhaustive over `AcceptState` rather than matching one case, so a state added later has
+        /// to be given a sentence or fail to compile. `.notInstallable` is a *local* condition and
+        /// says so — reporting it in the router's voice would describe a request nobody made.
+        private var failureLine: String? {
+            switch board.acceptState {
+            case .idle, .accepting: nil
+            case let .failed(error): "\(error.headline) \(error.advice)"
+            case .notInstallable: InboxCopy.notInstallableDetail
+            }
         }
 
         /// The button's whole state machine comes from `RegistryCapability.action`, so this sheet

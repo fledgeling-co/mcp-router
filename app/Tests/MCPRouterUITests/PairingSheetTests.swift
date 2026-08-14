@@ -107,21 +107,47 @@
         ///
         /// Asserted against the **sources that draw the sheet**, because the value being absent from
         /// a rendered string is what matters — a type-level check would miss a view interpolating it.
+        ///
+        /// **The token list is the whole test, and the first one could not fail.** It scanned for
+        /// `endpoint.host`, `endpoint.port` and `endpoint.fingerprint`; the string `endpoint` occurs
+        /// nowhere in any of these four files, and a view reaching the value would spell it
+        /// `availability.endpoint?.host`, `payload.host` or `session.…` — none of which the list
+        /// matched. So it scanned for a spelling that could not appear and passed on its absence.
+        ///
+        /// The fix is to forbid the **field names as accessors**, whatever they hang off. The one
+        /// exception is `InboxReviewSheet`'s `statement.host`, which is the *registry entry's* remote
+        /// host — the thing Discover renders too, and not what A7 is about — so that file is scanned
+        /// for the other two. The running-app half of A7 is in `m6-inbox-pairing.sh`, which sweeps
+        /// the accessibility tree for the fixture's literal values under a scenario where they exist.
         @Test("no source that draws pairing reads the endpoint's fields")
         func endpointFieldsAreNeverDrawn() throws {
-            let drawn = [
-                "app/Sources/MCPRouterUI/Boards/PairingSheet.swift",
-                "app/Sources/MCPRouterUI/Boards/InboxBoard.swift",
-                "app/Sources/MCPRouterUI/Boards/InboxBoardRow.swift",
-                "app/Sources/MCPRouterUI/Boards/InboxReviewSheet.swift"
+            let everyField = [".host", ".port", ".fingerprint"]
+            let drawn: [(path: String, forbidden: [String])] = [
+                ("app/Sources/MCPRouterUI/Boards/PairingSheet.swift", everyField),
+                ("app/Sources/MCPRouterUI/Boards/InboxBoard.swift", everyField),
+                ("app/Sources/MCPRouterUI/Boards/InboxBoardRow.swift", everyField),
+                // `statement.host` is the registry entry's own remote host, not the Mac's endpoint.
+                ("app/Sources/MCPRouterUI/Boards/InboxReviewSheet.swift", [".port", ".fingerprint"])
             ]
-            for path in drawn {
+            for (path, forbidden) in drawn {
                 let source = try ShellTestSupport.repoFile(path)
-                for accessor in ["endpoint.host", "endpoint.port", "endpoint.fingerprint",
-                                 ".fingerprint)", "mac.host", "mac.port"]
-                {
-                    #expect(!source.contains(accessor), "\(path) renders \(accessor)")
+                for accessor in forbidden {
+                    #expect(!source.contains(accessor), "\(path) reads \(accessor)")
                 }
+            }
+        }
+
+        /// The guard above only bites if the fields are spelled that way on the type. If a rename
+        /// ever made them something else, the scan would go quiet rather than red — so the names it
+        /// forbids are pinned to the type they came from.
+        @Test("the forbidden accessor names are the endpoint's actual field names")
+        func theScannedNamesAreReal() throws {
+            let source = try ShellTestSupport.repoFile("app/Sources/MCPRouterKit/Pairing/MacPairing.swift")
+            for field in ["host", "port", "fingerprint"] {
+                #expect(
+                    source.contains("public let \(field)"),
+                    "PairingEndpoint no longer has a '\(field)' — the A7 scan is looking for nothing"
+                )
             }
         }
 

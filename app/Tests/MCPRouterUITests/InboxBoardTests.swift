@@ -170,23 +170,44 @@
             board.decline(item)
             #expect(board.rows.count == 1)
             #expect(board.undoLabel() == InboxCopy.declined(item.title))
+            #expect(board.isUndoable, "a decline changed nothing outside this list")
 
             board.undoLastDisposition()
             #expect(board.rows.count == 2)
             #expect(board.undoLabel() == nil, "one slot, and it is spent")
         }
 
-        @Test("accepting is reported and its row returns on undo")
-        func acceptIsReported() async throws {
-            let board = Self.model(.paired)
+        /// **Accepting is reported and is not offered as reversible**, and the recorder is what
+        /// makes that a real assertion rather than a claim about the list.
+        ///
+        /// The Phase D critic found the earlier version of this: `undoLastDisposition` restored the
+        /// row while the server it had declared stayed installed, under a control labelled "Undo".
+        /// The test passed because it only watched the list — on a non-recording client, `remove`
+        /// being zero was never observed, so the half that was wrong was the half nothing looked at.
+        ///
+        /// So this asserts all three: the row goes, the report names where the reversal lives, and
+        /// **nothing was removed** — because an undo that silently left the server behind is
+        /// exactly what a list-only assertion cannot see.
+        @Test("accepting is reported, offers no undo, and removes nothing")
+        func acceptIsReportedAndNotUndoable() async throws {
+            let recorder = RecordingControlAPIClient(wrapping: FixtureControlAPIClient(.populated))
+            let board = InboxBoardModel(client: recorder, service: FixtureInboxService(.paired))
             await board.load()
             let item = try #require(board.rows.first { !$0.isPartial })
             try await board.accept(#require(AcceptableInboxItem(item)))
 
             #expect(board.undoLabel() == InboxCopy.accepted(item.title))
+            #expect(board.undoLabel()?.contains("Servers") == true, "the report says where to reverse it")
             #expect(!board.rows.contains { $0.id == item.id })
+
+            #expect(!board.isUndoable, "an accept declared a server; this surface cannot take that back")
             board.undoLastDisposition()
-            #expect(board.rows.contains { $0.id == item.id })
+            #expect(
+                !board.rows.contains { $0.id == item.id },
+                "the row must not return — it would be acceptable a second time"
+            )
+            #expect(recorder.calls.remove == 0, "no undo path reaches remove, so none may claim to")
+            #expect(recorder.calls.add == 1, "and the accept itself is still exactly one call")
         }
 
         /// One slot, not a stack: a deeper history would promise a record this surface does not keep.

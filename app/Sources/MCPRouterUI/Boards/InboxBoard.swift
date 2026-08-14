@@ -70,7 +70,13 @@
             VStack(alignment: .leading, spacing: 0) {
                 switch board.state {
                 case .loading:
-                    header
+                    // **No subtitle here, and that is the point.** Before an answer arrives there
+                    // are no rows and no device, so the assembled subtitle would read "Nothing
+                    // waiting · no phone paired" — two claims about a queue and a pairing nobody
+                    // has observed yet. The badge already refuses exactly this (`waitingCount` is
+                    // nil while loading); rendering the sentence anyway made the two derivations
+                    // disagree, with the wrong one written out in words. `DESIGN.md` §6.
+                    header(subtitle: nil)
                     InboxSkeletonRows()
                     Text(InboxCopy.loadingDetail)
                         .typeRole(.caption)
@@ -81,10 +87,11 @@
                 case let .stale(_, error):
                     populated(staleError: error)
                 case let .failed(error):
-                    header
+                    // Same rule: a failed read observed nothing, so it claims nothing.
+                    header(subtitle: nil)
                     MessageState(
                         StateMessage(
-                            title: InboxCopy.routerOfflineTitle,
+                            title: failureTitle(error),
                             detail: failureDetail(error)
                         ),
                         icon: .tray
@@ -98,16 +105,46 @@
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
 
+        /// The headline for a read failure, derived from the failure rather than fixed.
+        ///
+        /// **It used to be `routerOfflineTitle` unconditionally**, which meant a queue file this Mac
+        /// could not read was announced as "The router isn't running" — a cause the app had not
+        /// observed and, for that error, had no reason to suspect. The two conditions have different
+        /// recoveries, so they get different headlines; the router copy is kept for the one case
+        /// that is actually the router being down.
+        private func failureTitle(_ error: InboxServiceError) -> String {
+            switch error {
+            case .unreadable:
+                InboxCopy.unreadableTitle
+            case let .registryUnreadable(control):
+                control == .routerNotRunning ? InboxCopy.routerOfflineTitle : control.headline
+            }
+        }
+
         private func failureDetail(_ error: InboxServiceError) -> String {
             switch error {
-            case let .unreadable(detail): InboxCopy.readFailure(detail: detail)
-            case .registryUnreadable: InboxCopy.registryFailureDetail
+            case let .unreadable(detail):
+                InboxCopy.readFailure(detail: detail)
+            case let .registryUnreadable(control):
+                control == .routerNotRunning
+                    ? InboxCopy.routerOfflineDetail
+                    : InboxCopy.registryFailureDetail
             }
         }
 
         @ViewBuilder
         private func populated(staleError: InboxServiceError?) -> some View {
-            header
+            // Read **once** per render and threaded through. `rows` filters and sorts on every
+            // access, and reading it separately for the header's count and for the list was work
+            // done twice in a body for two values that must never disagree.
+            let rows = board.rows
+
+            header(
+                subtitle: InboxCopy.subtitle(
+                    waiting: rows.count,
+                    device: board.pairedDeviceName
+                )
+            )
 
             if let staleError {
                 Text(failureDetail(staleError))
@@ -117,7 +154,6 @@
                     .padding(.bottom, InboxBoardMetrics.gap)
             }
 
-            let rows = board.rows
             if rows.isEmpty {
                 MessageState(
                     StateMessage(
@@ -157,7 +193,9 @@
             undoLine
         }
 
-        private var header: some View {
+        /// The pane's heading. `subtitle` is optional because a state that has observed nothing
+        /// says nothing about what is waiting or what is paired.
+        private func header(subtitle: String?) -> some View {
             HStack(alignment: .top, spacing: InboxBoardMetrics.gap) {
                 VStack(alignment: .leading, spacing: InboxBoardMetrics.labelGap) {
                     Text(InboxCopy.title)
@@ -165,14 +203,11 @@
                         .foregroundStyle(ColorToken.t1.color)
                     // Every part comes from state. The prototype hardcodes a device name; a build
                     // with no pairing must not claim one.
-                    Text(
-                        InboxCopy.subtitle(
-                            waiting: board.rows.count,
-                            device: board.pairedDeviceName
-                        )
-                    )
-                    .typeRole(.subheadline)
-                    .foregroundStyle(ColorToken.t2.color)
+                    if let subtitle {
+                        Text(subtitle)
+                            .typeRole(.subheadline)
+                            .foregroundStyle(ColorToken.t2.color)
+                    }
                 }
                 Spacer(minLength: 0)
                 // Quiet, not prominent: §3.4 allows one prominent accent action per view and this
@@ -186,6 +221,11 @@
 
         /// The report half of §9's reversible-and-reported. In place, never a toast — macOS does not
         /// toast a click (§5).
+        ///
+        /// The Undo control appears only where there is something to undo. An accept is reported
+        /// with the same prominence and no control, because the sentence tells the user where the
+        /// reversal actually lives (§8's remove, on Servers) — which is more use than a button that
+        /// would return the row to the queue and leave the server installed.
         @ViewBuilder
         private var undoLine: some View {
             if let label = board.undoLabel() {
@@ -193,8 +233,10 @@
                     Text(label)
                         .typeRole(.caption)
                         .foregroundStyle(ColorToken.t3.color)
-                    Button(InboxCopy.undoAction) { board.undoLastDisposition() }
-                        .buttonStyle(StandardButtonStyle())
+                    if board.isUndoable {
+                        Button(InboxCopy.undoAction) { board.undoLastDisposition() }
+                            .buttonStyle(StandardButtonStyle())
+                    }
                 }
                 .padding(.top, InboxBoardMetrics.gap)
             }

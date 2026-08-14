@@ -382,10 +382,18 @@ I1's merged code alone. Each below names an M6 type or asserts a positive.
 - **A5** *Positive.* Given `.available(endpoint)`, `MacPairing.issue` returns a code and
   `MacPairing.encode` produces bytes carrying that exact code. Given `.noEndpoint`, the sheet's state
   is the no-endpoint one and neither function is called.
-- **A6** `ShellPairingFactory.choice(isDebugBuild: false, environment:)` returns `.noEndpoint` for
-  **every** value of `MCPROUTER_PAIRING`, including each named scenario.
-- **A7** No `host`, `port` or `fingerprint` appears in any rendered string or log line, asserted by
-  scanning M6's own view sources for the accessors.
+- **A6** `ShellPairingFactory.choice(isDebugBuild: false, environment:)` returns **`.noTransport`**
+  for **every** value of `MCPROUTER_PAIRING`, including each named scenario. (The criterion named
+  `.noEndpoint` — the *sheet's* phase — where the factory returns `.noTransport`, the *service*
+  choice. The two are different types one step apart, and the Phase D critic was right that a
+  criterion naming neither the code's spelling nor its test's is not a criterion anybody can check.)
+- **A7** No `host`, `port` or `fingerprint` appears in any rendered string or log line. Asserted
+  **twice**: by scanning M6's view sources for the field names as accessors, and by sweeping the
+  running app's accessibility tree for the fixture endpoint's literal values **under `paired`**,
+  where the endpoint exists. (Both halves were unfalsifiable before Phase D — the scan looked for
+  `endpoint.host`, a spelling that appears in none of those files and that no realistic
+  reintroduction would use, and the runtime sweep ran only under `none`, the one scenario with no
+  endpoint to leak.)
 
 ### The wire is I1's, not a second one
 
@@ -409,25 +417,43 @@ I1's merged code alone. Each below names an M6 type or asserts a positive.
 
 - **A13** *Positive.* Accepting one item calls `add(_:force:)` exactly once with `force == false`,
   counted on a recording double; declining, decoding, loading and rendering call it zero times.
-- **A14** Declining returns the item to the queue and accepting is reversible, both through the
-  single-slot undo, asserted on the model.
+- **A14** **Declining** returns the item to the queue through the single-slot undo. **Accepting is
+  reported and is not offered as reversible**: the row does not return, no undo control is drawn, and
+  the report names where the reversal actually lives (§8's remove, on Servers). Asserted on the model
+  **against a recording client**, so `remove == 0` is observed rather than assumed.
+
+  The criterion previously said accepting was reversible "through the single-slot undo", and the code
+  implemented exactly that — restoring the row while the server it had declared stayed installed,
+  under a control labelled "Undo". Its test watched only the list, so the half that was wrong was the
+  half nothing looked at. **The criterion was wrong, not merely unmet**, and it is the affordance
+  that changed rather than the assertion.
 
 ### The sidebar badge
 
-- **A18** `model.badge(for: .inbox)` equals the number of rows `InboxBoard` renders, in every
-  scenario including `partial` and `overflow`, and is `nil` when nothing is paired.
-  `Destination.inbox.badgeCount(from:)` stays `nil` for any `[MCPServer]`.
+- **A18** `model.badge(for: .inbox)` equals the number of rows `InboxBoard` renders, and is `nil`
+  when nothing is paired. `Destination.inbox.badgeCount(from:)` stays `nil` for any `[MCPServer]`.
+  **Asserted after a disposition, not only at rest** — the unit test declines first, and the
+  acceptance script now declines a row through the accessibility API and re-reads both numbers. At
+  rest the two are trivially equal, so a badge wired to the loaded snapshot rather than to the
+  rendered rows passes the resting form and is wrong the instant anything is acted on.
 
 ### Colour, words and the native floor
 
 - **A15** No M6 view uses `--fail`, `--live` or `--attn` for anything other than its own meaning;
-  the prototype's `--fail` capability text is not reproduced. Asserted by scanning M6's sources.
-- **A16** Sentence case throughout; one prominent accent action, trailing; Cancel leads.
+  the prototype's `--fail` capability text is not reproduced. Asserted by scanning M6's sources in
+  `InboxConformanceTests` — which pins *which files* spend `attention` (the review sheet's provenance
+  note and the pairing sheet's warning, both asking for a human decision) rather than only counting.
+- **A16** Sentence case throughout; one prominent accent action, trailing; Cancel leads; the `…`
+  rule holds. Asserted in `InboxConformanceTests` — a mid-sentence capital that is not a proper noun
+  fails, `ProminentButtonStyle` must appear exactly once and only in the sheet, and Cancel must
+  precede the commit in source order.
 
 ### The states
 
 - **A17** Every cell in the matrix is reached **in the running app** under its named scenario, and
-  its real copy is read back from the accessibility tree.
+  its real copy is read back from the accessibility tree. All eight scenarios are launched:
+  `paired`, `pairedEmpty`, `partial`, `none`, `loading`, `failed`, `overflow`, `expiring`. (Four of
+  the eight had never been launched; the criterion was being claimed on the half that had.)
 
 ---
 
@@ -439,6 +465,46 @@ I1's merged code alone. Each below names an M6 type or asserts a positive.
 | D-m6-b | I3 may amend the inbox envelope | M6 writes the wire because the consumer needed something exact, reversing I1's direction. A new field bumps `supportedVersions` rather than widening v1 — the closed set is what makes an unknown version a named failure instead of a silent empty read. |
 | D-m6-c | Rename `ScaffoldPane.swift` | It now contains `BoardRegistry` and no pane. The rename must move `mac-shell.sh`, `m2-activity.sh`, `m5-discover.sh`, `m7-evals-cleanup.sh` and `m8-settings-menubar.sh` in the same change, which is five other items' files and out of scope here. |
 | D-m6-d | The menu-bar popover has no inbox band | The prototype draws one (*"N queued from iPhone"*); M8's shipped popover has no inbox reference at all. M8's surface, registered so it is not mistaken for something M6 dropped. |
+| D-m6-e | A substrate token for a fill on accent | `ColorToken.onAccent` stands in where a filled-accent shape needs a foreground. It is right for this one use and is not a general substrate ramp; a later item that needs several should add the ramp rather than widen this. |
+| D-m6-f | `CleanupPresentationTests.weakWindowBoundary` builds its fixtures at whole-second resolution and asserts on exact day boundaries | M7's merged file, outside this item's diff. Mechanism recorded in `planning/evidence/M6-acceptance.md`; the fix is the same whole-second correction M6 applied to its own expiry. |
+| D-m6-g | The window is rebuilt once a second by the readout poll, so an accessibility element resolved by a tree walk can be replaced before an action reaches it | Measured 2026-08-15: `axkit dump` intermittently reports "no window" mid-rebuild and `AXUIElementPerformAction` fails on a stale ref. Harmless to a human (a click hit-tests at the instant of the click) and invisible to every other item's script because none of them actuates a control twice. M6's script retries against a freshly walked tree. A shell-level fix — not repainting the whole window for a poll that changed one number — belongs with whoever owns the readout cadence. |
+
+---
+
+## Phase D · completeness critic
+
+`codex: usage limit -> claude (downgrade)` — the codex account limit runs to 2026-08-20, past this
+fleet's horizon, and `codex exec` **exits 0 on a usage limit**, so a gate keyed on `$?` would have
+recorded a pass for a review that never ran. A fresh adversarial in-family reviewer was briefed to
+refute and told that finding nothing is a failed review. Verdict: **AMEND**, ten findings.
+
+Six of the ten were defects in shipped behaviour, two were gates that could not fail, and two were
+criteria the spec stated wrongly. Nothing was rejected as noise.
+
+| # | Finding | Disposition |
+|---|---|---|
+| 1 | A14: undo after an accept restored the row and left the server installed, under a control labelled "Undo" | **Accepted, code changed.** Accepting is no longer offered as reversible; `InboxCopy.accepted` names where the reversal lives. Its test now runs against `RecordingControlAPIClient` and asserts `remove == 0` — the half the list-only assertion could not see. A14 rewritten: the criterion was wrong, not merely unmet. |
+| 2 | The subtitle claimed "Nothing waiting · no phone paired" while `.loading` — two facts nobody had observed, and the badge refused the same claim | **Accepted, code changed.** `header(subtitle:)` takes an optional; `.loading` and `.failed` pass nil. |
+| 3 | A7's scan could not fail: it looked for `endpoint.host`, a string absent from all four files, and the runtime sweep ran only under `none` | **Accepted, both halves fixed.** The scan forbids the field names as accessors (with `statement.host` — the *registry entry's* remote host — excluded by name); the sweep moved to `paired`. A second test pins the forbidden names to `PairingEndpoint`'s real fields so a rename cannot quietly empty the scan. |
+| 4 | A17 unmet: four of eight scenarios were never launched | **Accepted.** `loading`, `failed`, `overflow` and `expiring` are now driven, each with a copy assertion. |
+| 5 | A18's script clause compared two numbers that are equal until something is dispositioned | **Accepted.** The script declines a row through the accessibility API and re-reads both. |
+| 6 | `try?`-and-`nil` in the fixture registry read: a renamed file would render every row as Partial, and the Partial assertions would pass on it | **Accepted.** `entries(in:)` throws `.registryUnreadable`; an absent *entry* still returns nil, which is the honest Partial. The two conditions are now distinguishable, which is what `SWIFT_PRACTICES.md` §2 asks for. |
+| 7 | The scenario-distinctness assertion was arithmetic (`seen.count == allCases.count - 1`) over strings prefixed with their own scenario name | **Accepted, and it found a real gap.** The fingerprint now carries only observables. `.paired` and `.expiring` were byte-identical — the near-expiry state existed in the enum and nowhere else — so `InboxService.pairingLifetime()` was added as a seam and the acceptance script reads a real `expires in 0:09`. |
+| 8 | A11, A15 and A16 had no located enforcement; A6 named `.noEndpoint` where the code says `.noTransport` | **Accepted.** `InboxConformanceTests` added for the three; A6's wording corrected. |
+| 9 | Work in `body`: `board.rows` (filter + sort) read twice per render | **Accepted.** Read once and threaded. The `RegistryCapability.statement` calls were **not** changed — pure derivation in a body is what a body is for; the rule is about side effects and mutation, and the real instance of that (lazy-var initialisation mutating an `@Observable` mid-render) was the 0×0 window fixed before this review. |
+| 10 | Minor: the accept path returned silently when no declaration could be built; a hardcoded `0.16` selection alpha; a test double shipping in the Kit | **All three accepted.** `AcceptState.notInstallable` reports the local refusal in its own voice rather than as a router error; the row now uses the shared `selectionFill` every other board row uses; `RecordingControlAPIClient` moved to the test target. |
+
+**Two defects the critic did not find, caught by the fixes' own gates:**
+
+- **The failed pane blamed the router for a failure it had not observed.** It rendered
+  `routerOfflineTitle` for *every* read failure, so a queue file this Mac could not open was
+  announced as "The router isn't running". The title is now derived from the error.
+- **A queued row announced itself as a button, answered `AXPress` with `.success`, and did nothing.**
+  `.accessibilityElement(children: .combine)` had collapsed the row's Review and Decline controls
+  into the label without restoring them as actions — so a VoiceOver user could reach every row and
+  act on none of them, while the API reported success. Fixed with an explicit default action plus
+  named Review and Decline actions; the acceptance script's decline step now runs through that path,
+  which is what makes it a standing assertion rather than a one-off repair.
 
 ---
 

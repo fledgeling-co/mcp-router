@@ -28,7 +28,12 @@
 
         @ObservationIgnored private let service: any InboxService
         @ObservationIgnored private let clock: @MainActor () -> Date
-        @ObservationIgnored private let macName: String
+        /// Resolved when a code is issued rather than at init.
+        ///
+        /// `ProcessInfo.hostName` is ~40 ms on a cold call, and this model is now constructed during
+        /// `ShellModel.init` — on the launch path, before the first frame. A Release build never
+        /// issues a payload at all, so it should never pay for a host name it will not render.
+        @ObservationIgnored private let macNameProvider: () -> String
 
         public private(set) var phase: Phase = .noEndpoint
         public var isOpen = false
@@ -45,11 +50,11 @@
 
         public init(
             service: any InboxService,
-            macName: String = PairingSessionModel.hostName(),
+            macName: @autoclosure @escaping () -> String = PairingSessionModel.hostName(),
             clock: @escaping @MainActor () -> Date = { Date() }
         ) {
             self.service = service
-            self.macName = macName
+            macNameProvider = macName
             self.clock = clock
             now = clock()
         }
@@ -90,8 +95,12 @@
         }
 
         private func issue(from endpoint: PairingEndpoint) {
-            let issued = MacPairing.issue(at: clock())
-            let payload = MacPairing.payload(for: issued, endpoint: endpoint, macName: macName)
+            // The window comes from the service rather than from the constant, so a build whose
+            // transport mints shorter-lived codes is described accurately — and so the near-expiry
+            // state is reachable in the running app at all. A five-minute countdown cannot be driven
+            // by an acceptance script, which is why the `expiring` scenario existed and did nothing.
+            let issued = MacPairing.issue(at: clock(), lifetime: service.pairingLifetime())
+            let payload = MacPairing.payload(for: issued, endpoint: endpoint, macName: macNameProvider())
             do {
                 phase = try .live(issued, encoded: MacPairing.encode(payload))
             } catch {

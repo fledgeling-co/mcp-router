@@ -1,6 +1,14 @@
 import Foundation
+import MCPRouterKit
 
 /// A `ControlAPIClient` that records what was called on it, wrapping a real one.
+///
+/// **It lives in the test target, not in the Kit.** It was written into
+/// `MCPRouterKit/Inbox/` and the Phase D critic was right to call that out: nothing in either app
+/// references it, so shipping it meant a test instrument inside the product binary — where a later
+/// caller could reach for it and where it counts toward the shipping surface for no benefit. The
+/// fixtures next to it are a different case and stay: those are *selectable* by a Debug scenario
+/// and exist to render designed states. This one only counts calls.
 ///
 /// **Why a decorator rather than a stub.** The assertion M6 needs is not "the row disappeared" — a
 /// local mutation looks identical to an install from the outside. It is *"`add` was called exactly

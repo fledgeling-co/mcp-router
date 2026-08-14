@@ -44,6 +44,23 @@ public protocol InboxService: Sendable {
     /// Whether this Mac can be paired with at all. Synchronous: it is a fact about this build's
     /// transport, not a question anyone has to be asked.
     func availability() -> PairingAvailability
+
+    /// How long a code minted against this service stays live.
+    ///
+    /// On the seam rather than as a constant read by the session model, because the near-expiry
+    /// state is otherwise unreachable in the running app: a five-minute window cannot be driven by
+    /// an acceptance script, and a scenario that differs from `paired` in no observable way is a
+    /// state the matrix claims to cover and does not. The Phase D critic found exactly that —
+    /// `.expiring` produced a snapshot identical to `.paired`, so the distinctness guard passed on
+    /// arithmetic rather than on a difference.
+    func pairingLifetime() -> TimeInterval
+}
+
+public extension InboxService {
+    /// The real window, which every implementation but the near-expiry fixture wants.
+    func pairingLifetime() -> TimeInterval {
+        MacPairing.lifetime
+    }
 }
 
 /// The inbox of a build that has no transport: empty, unpaired, and unpairable.
@@ -124,6 +141,12 @@ public struct FixtureInboxService: InboxService {
         }
     }
 
+    /// A code that expires in seconds rather than minutes, so the countdown and the expired branch
+    /// are reachable in the running app instead of only in a test with an injected clock.
+    public func pairingLifetime() -> TimeInterval {
+        scenario == .expiring ? 12 : MacPairing.lifetime
+    }
+
     public func snapshot() async throws(InboxServiceError) -> InboxSnapshot {
         switch scenario {
         case .none:
@@ -138,11 +161,14 @@ public struct FixtureInboxService: InboxService {
         case .failed:
             throw .unreadable(detail: "the queue file could not be read")
         case .paired, .expiring:
-            return InboxSnapshot(items: Self.populated(at: now), pairedDeviceName: Self.fixtureDevice)
+            return try InboxSnapshot(items: Self.populated(at: now), pairedDeviceName: Self.fixtureDevice)
         case .partial:
-            return InboxSnapshot(items: Self.withUnresolved(at: now), pairedDeviceName: Self.fixtureDevice)
+            return try InboxSnapshot(
+                items: Self.withUnresolved(at: now),
+                pairedDeviceName: Self.fixtureDevice
+            )
         case .overflow:
-            return InboxSnapshot(items: Self.withLongName(at: now), pairedDeviceName: Self.fixtureDevice)
+            return try InboxSnapshot(items: Self.withLongName(at: now), pairedDeviceName: Self.fixtureDevice)
         }
     }
 
@@ -176,8 +202,8 @@ public struct FixtureInboxService: InboxService {
         )
     }
 
-    static func populated(at now: Date) -> [InboxItem] {
-        [
+    static func populated(at now: Date) throws(InboxServiceError) -> [InboxItem] {
+        try [
             item(id: "q-1", entry: authoredStdioID, name: "Local notes", ago: 120, at: now),
             item(id: "q-2", entry: "smithery:deepwiki", name: "DeepWiki", ago: 3600, at: now)
         ]
@@ -185,8 +211,8 @@ public struct FixtureInboxService: InboxService {
 
     /// One resolved item and one that could not be — the Partial state, which is `resolved == nil`
     /// rather than a flag beside it.
-    static func withUnresolved(at now: Date) -> [InboxItem] {
-        [
+    static func withUnresolved(at now: Date) throws(InboxServiceError) -> [InboxItem] {
+        try [
             item(id: "q-1", entry: authoredStdioID, name: "Local notes", ago: 120, at: now),
             item(
                 id: "q-missing",
@@ -198,8 +224,8 @@ public struct FixtureInboxService: InboxService {
         ]
     }
 
-    static func withLongName(at now: Date) -> [InboxItem] {
-        [
+    static func withLongName(at now: Date) throws(InboxServiceError) -> [InboxItem] {
+        try [
             item(
                 id: "q-long",
                 entry: authoredLongNameID,
@@ -218,8 +244,8 @@ public struct FixtureInboxService: InboxService {
         name: String,
         ago: TimeInterval,
         at now: Date
-    ) -> InboxItem {
-        InboxItem(
+    ) throws(InboxServiceError) -> InboxItem {
+        try InboxItem(
             envelope: envelope(
                 id: id,
                 entry: entry,
@@ -232,12 +258,20 @@ public struct FixtureInboxService: InboxService {
 
     /// Reads one entry out of the authored and recorded fixtures, in that order.
     ///
-    /// Returns `nil` when neither holds it, and the caller renders that as Partial — which is true:
-    /// the entry genuinely was not resolved. A stub entry here would be a fabricated row that looks
-    /// resolved, which is the one thing this whole surface refuses to do.
-    static func resolve(entryID: String) -> RegistryEntry? {
+    /// **Two failures live here and they are not the same one.** An entry that is genuinely not in
+    /// either file returns `nil`, and the caller renders Partial — which is true, and is what the
+    /// `partial` scenario's `smithery:withdrawn-entry` exercises. A registry file that is *missing
+    /// or malformed* throws.
+    ///
+    /// The Phase D critic found these collapsed into one `try?`-and-`nil`, which meant a renamed
+    /// resource made every row say "This entry could not be read" and the acceptance script's
+    /// Partial assertions passed on it. A decode whose failure mode is a wrong screen is exactly
+    /// what `SWIFT_PRACTICES.md` §2 forbids, and the Partial state was the wrong screen: it names
+    /// the registry as the thing that lacks the entry, when in fact the app could not read the
+    /// registry at all.
+    static func resolve(entryID: String) throws(InboxServiceError) -> RegistryEntry? {
         for resource in ["inbox-entries", "registry-search"] {
-            guard let entry = entries(in: resource)?.first(where: { $0.id == entryID }) else {
+            guard let entry = try entries(in: resource).first(where: { $0.id == entryID }) else {
                 continue
             }
             return entry
@@ -245,17 +279,34 @@ public struct FixtureInboxService: InboxService {
         return nil
     }
 
-    private static func entries(in resource: String) -> [RegistryEntry]? {
+    /// Internal rather than private **so the missing-file branch can be exercised at all**.
+    ///
+    /// Both named resources are bundled, so nothing reachable through `resolve` ever takes that
+    /// branch — a mutation replacing the throw with an empty array survived every test until this
+    /// was callable with a name that is deliberately not there. A branch no test can reach is not
+    /// covered by the tests that pass around it.
+    static func entries(in resource: String) throws(InboxServiceError) -> [RegistryEntry] {
         guard let url = Bundle.module.url(
             forResource: resource,
             withExtension: "json",
             subdirectory: "Fixtures"
         )
             ?? Bundle.module.url(forResource: resource, withExtension: "json", subdirectory: "Authored")
-            ?? Bundle.module.url(forResource: resource, withExtension: "json"),
-            let data = try? Data(contentsOf: url),
-            let response = try? JSONDecoder().decode(RegistrySearchResponse.self, from: data)
-        else { return nil }
-        return response.results
+            ?? Bundle.module.url(forResource: resource, withExtension: "json")
+        else {
+            throw .registryUnreadable(
+                .malformedResponse(detail: "the bundled registry fixture '\(resource).json' is missing")
+            )
+        }
+        do {
+            let data = try Data(contentsOf: url)
+            return try JSONDecoder().decode(RegistrySearchResponse.self, from: data).results
+        } catch {
+            throw .registryUnreadable(
+                .malformedResponse(
+                    detail: "the bundled registry fixture '\(resource).json' could not be read"
+                )
+            )
+        }
     }
 }

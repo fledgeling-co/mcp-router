@@ -130,6 +130,8 @@
             // Split out of ShellModel.swift to keep it under the 400-line limit — the limit was
             // met by splitting rather than raised, per this repo's own lesson from R2R.
             "app/Sources/MCPRouterUI/Shell/ShellRestoration.swift",
+            // M6's badge lookup, moved out of ShellModel so it cannot mutate the model.
+            "app/Sources/MCPRouterUI/Shell/ShellModelBadges.swift",
             // M6's factory. Enrolled here rather than merely added to the directory, because it is
             // the file that decides whether a build may render a fixture — and a fixture reaching a
             // Release build of *this* seam draws a QR code for an endpoint nothing is listening on.

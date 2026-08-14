@@ -144,7 +144,8 @@ struct InboxItemTests {
 
     @Test("a resolved item can, and carries the entry the Mac read")
     func resolvedIsAcceptable() throws {
-        let entry = try #require(FixtureInboxService.resolve(entryID: "authored:local-notes"))
+        let found = try FixtureInboxService.resolve(entryID: "authored:local-notes")
+        let entry = try #require(found)
         let item = InboxItem(envelope: Self.envelope, resolved: entry)
         let acceptable = try #require(AcceptableInboxItem(item))
         #expect(!item.isPartial)
@@ -155,7 +156,8 @@ struct InboxItemTests {
     /// A resolved item showing the phone's name would let a sender relabel something.
     @Test("a resolved item shows what the Mac read, never what the phone said")
     func titlePrefersTheResolvedEntry() throws {
-        let entry = try #require(FixtureInboxService.resolve(entryID: "authored:local-notes"))
+        let found = try FixtureInboxService.resolve(entryID: "authored:local-notes")
+        let entry = try #require(found)
         #expect(InboxItem(envelope: Self.envelope, resolved: entry).title == entry.displayName)
         #expect(InboxItem(envelope: Self.envelope, resolved: entry).title != Self.envelope.displayName)
         // And falls back only when there is nothing else to say which thing it is.
@@ -164,24 +166,71 @@ struct InboxItemTests {
         )
     }
 
-    /// Every scenario produces a distinct snapshot, so a state added later cannot ship with no way
-    /// to see it — the same coverage guard `PairingOutcomeCoverageTests` applies on the phone.
-    @Test("every fixture scenario is reachable and distinct")
+    /// Every scenario produces a distinct **observable**, so a state added later cannot ship with no
+    /// way to see it — the same coverage guard `PairingOutcomeCoverageTests` applies on the phone.
+    ///
+    /// **The earlier assertion was arithmetic.** It appended one string per iteration and then
+    /// checked `seen.count == allCases.count - 1`, which is true for any loop over that collection
+    /// whatever the snapshots contain — the property the test is named for was never asserted. And
+    /// the strings it built were prefixed with the scenario's own `rawValue`, so even a set-based
+    /// check would have been distinct by construction.
+    ///
+    /// The fingerprint below carries **only what a user could observe** — the rows, the device, the
+    /// availability, the code's lifetime — and never the scenario name. That immediately found a
+    /// real gap: `.paired` and `.expiring` were byte-identical, so the near-expiry state existed in
+    /// the enum and nowhere else. `pairingLifetime()` is what now separates them.
+    @Test("every fixture scenario is reachable and observably distinct")
     func scenarioCoverage() async throws {
         var seen: [String] = []
         for scenario in FixtureInboxService.Scenario.allCases where scenario != .loading {
             let service = FixtureInboxService(scenario)
             if scenario == .failed {
                 await #expect(throws: InboxServiceError.self) { try await service.snapshot() }
-                seen.append("failed")
+                seen.append("threw")
                 continue
             }
             let snapshot = try await service.snapshot()
-            seen.append("\(scenario.rawValue):\(snapshot.items.count):\(snapshot.pairedDeviceName ?? "-")")
+            let ids = snapshot.items.map(\.id).joined(separator: ",")
+            let device = snapshot.pairedDeviceName ?? "-"
+            let reach = "\(service.availability())|\(service.pairingLifetime())"
+            seen.append("\(ids)|\(device)|\(reach)")
         }
         // `.loading` is excluded deliberately: it never returns, which is the state. Sleeping on it
         // here would hang the suite rather than assert anything.
+        #expect(
+            Set(seen).count == seen.count,
+            "two scenarios are observably identical, so one of them is a state nobody can reach: \(seen)"
+        )
         #expect(seen.count == FixtureInboxService.Scenario.allCases.count - 1)
+    }
+
+    /// The split the Partial state depends on: an entry that is genuinely absent resolves to `nil`,
+    /// and only a missing or malformed registry *file* throws.
+    ///
+    /// Collapsing the two is what `SWIFT_PRACTICES.md` §2 forbids, and the collapse was live here —
+    /// `try?` returning `nil` meant a renamed fixture would have made every row say "This entry
+    /// could not be read", with the acceptance script's Partial assertions passing on it.
+    @Test("an absent entry is nil, and the registry files themselves are readable")
+    func absentEntryIsNotAnUnreadableRegistry() throws {
+        let absent = try FixtureInboxService.resolve(entryID: "smithery:withdrawn-entry")
+        let present = try FixtureInboxService.resolve(entryID: FixtureInboxService.authoredStdioID)
+        #expect(absent == nil)
+        #expect(present != nil)
+    }
+
+    /// The other half, and the one the tests above cannot reach: a registry file that is **not
+    /// there** is a named failure rather than an empty read.
+    ///
+    /// Both bundled resources exist, so nothing reachable through `resolve` takes this branch — a
+    /// mutation returning `[]` in place of the throw survived the whole suite until this test
+    /// existed. An empty read here would resolve every item to `nil` and render the entire queue as
+    /// Partial, which reads as "the registry does not have these" when the truth is "this app could
+    /// not open its own registry" (`SWIFT_PRACTICES.md` §2).
+    @Test("a registry file that is not there fails loudly, never emptily")
+    func missingRegistryFileIsNamed() {
+        #expect(throws: InboxServiceError.self) {
+            try FixtureInboxService.entries(in: "no-such-registry-fixture")
+        }
     }
 
     /// The default scenario is what ships, not the richest one.

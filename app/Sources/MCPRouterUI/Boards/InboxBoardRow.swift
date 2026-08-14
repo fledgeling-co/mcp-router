@@ -29,20 +29,27 @@
             // Fixed height: §5's Overflow rule is that rows never change height, and this list grows
             // and shrinks as items arrive and are dispositioned.
             .frame(height: InboxBoardMetrics.rowHeight)
-            .background {
-                // §3.1: an inset rounded fill at the documented radius, never a full-bleed bar.
-                if isSelected {
-                    RoundedRectangle(
-                        cornerRadius: MetricToken.selectionRadius.leadingScalar,
-                        style: .continuous
-                    )
-                    .fill(ColorToken.accent.color.opacity(0.16))
-                    .padding(.horizontal, MetricToken.selectionInset.leadingScalar)
-                }
-            }
+            // The shared modifier every other board row uses (§3.1: an inset rounded fill at the
+            // documented radius, never a full-bleed bar). This row hand-rolled the same shape with
+            // an invented `0.16` alpha over `--accent`, which drew a *different* selection from the
+            // one Servers, Skills, Discover, Evals and Cleanup draw — a raw design value, and a
+            // second implementation of a decision `Controls.selectionFill` already owns.
+            .selectionFill(isSelected)
             .accessibilityElement(children: .combine)
             .accessibilityLabel(accessibilityLabel)
             .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
+            // **`.combine` collapses the row's own controls, so the actions have to be restored
+            // here.** Without these the row announced itself as a button, carried `.isButton`, and
+            // did nothing at all when activated — the Review and Decline controls were merged into
+            // the label and became unreachable. Measured against the running app: an `AXPress` on
+            // the row returned `.success` and changed nothing, which is a control that reports
+            // working while doing nothing, for the one user who cannot see that nothing happened.
+            //
+            // The default action opens the review sheet and never accepts, which is the same rule
+            // the pointer and `Return` follow: no path from a list row installs anything.
+            .accessibilityAction(.default) { onOpen() }
+            .accessibilityAction(named: Text(InboxCopy.reviewAction)) { onOpen() }
+            .accessibilityAction(named: Text(InboxCopy.declineAction)) { onDecline() }
         }
 
         @ViewBuilder

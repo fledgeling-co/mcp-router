@@ -55,6 +55,9 @@ public enum InboxCopy {
     be accepted without that.
     """
 
+    /// The queue itself could not be read — this Mac's own storage, not the router.
+    public static let unreadableTitle = "The inbox could not be read"
+
     public static func readFailure(detail: String) -> String {
         "The queue could not be read: \(detail)."
     }
@@ -82,14 +85,32 @@ public enum InboxCopy {
 
     public static let acceptAction = "Install on this Mac"
 
+    /// The entry resolved but describes no way to install it — so there is nothing to send, and
+    /// nothing the router could have refused. Said about the entry rather than about the router.
+    public static let notInstallableDetail = """
+    This entry does not say how it would be installed, so there is nothing to run. Nothing was sent \
+    to the router.
+    """
+
     // MARK: - Dispositions, and their undo
 
+    /// Declining is fully reversible, so this line is paired with an Undo control.
     public static func declined(_ name: String) -> String {
         "Declined \(name)."
     }
 
+    /// Accepting is **not** reversible from here, and the sentence says where it is reversible
+    /// instead of offering a control that would not do it.
+    ///
+    /// The earlier wording was "Installed \(name)." beside an Undo button, and the Phase D critic
+    /// was right that this is the worst kind of dishonest affordance: pressing it returned the row
+    /// to the queue and left the server installed, so the one word on the control described neither
+    /// half of what happened. Removing a server is `DESIGN.md` §8's own undoable operation on the
+    /// Servers board, with its own confirmation and its own consequences for stored secrets;
+    /// reaching across to perform it from here would be a second implementation of a destructive
+    /// action. So the report stays and the control goes.
     public static func accepted(_ name: String) -> String {
-        "Installed \(name)."
+        "Installed \(name). Removing it is done on Servers."
     }
 
     public static let undoAction = "Undo"

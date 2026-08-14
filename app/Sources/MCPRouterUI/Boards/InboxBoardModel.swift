@@ -48,6 +48,15 @@
             case idle
             case accepting
             case failed(ControlAPIError)
+            /// The entry resolved, but carries no install block to declare — so there is nothing to
+            /// send and no router error to report.
+            ///
+            /// Its own case rather than a `ControlAPIError`: every one of those says "the router"
+            /// did something, and this condition is entirely local. Reporting it as a malformed
+            /// router response would put a sentence about the router's version in front of a user
+            /// whose router was never asked anything. Before this existed the branch returned
+            /// silently, leaving the sheet on `.idle` with the press having done nothing visible.
+            case notInstallable
         }
 
         @ObservationIgnored public let client: any ControlAPIClient
@@ -154,7 +163,10 @@
             guard let declaration = RegistryCapability.declaration(
                 for: acceptable.entry,
                 values: requirementValues
-            ) else { return }
+            ) else {
+                acceptState = .notInstallable
+                return
+            }
 
             acceptState = .accepting
             do {
@@ -182,18 +194,29 @@
             if selection == disposition.item.id { selection = nil }
         }
 
-        /// Put the last disposition back.
+        /// Put the last **decline** back.
         ///
-        /// **Declining is fully reversible; accepting is reversible only as far as the queue.** An
-        /// accepted item was declared as a server, and undoing that would mean removing a server —
-        /// which `DESIGN.md` §8 makes its own undoable operation on the Servers board, with its own
-        /// confirmation rules and its own consequences for stored secrets. Reaching across to
-        /// perform it from here would be a second implementation of a destructive action, so this
-        /// restores the row and says plainly that the server stays. Reported, not silent.
+        /// **Declining is reversible; accepting is not, and the affordance now says so.** The Phase
+        /// D critic found the earlier version restoring an accepted item to the queue while the
+        /// server it declared stayed installed — a control labelled "Undo" that undid neither half
+        /// of what happened, and left the row acceptable a second time. Removing a server is
+        /// `DESIGN.md` §8's own undoable operation on the Servers board, with its own confirmation
+        /// and its own consequences for stored secrets, so performing it from here would be a
+        /// second implementation of a destructive action.
+        ///
+        /// So an accept is recorded and reported (`InboxCopy.accepted` names where to remove it)
+        /// and `isUndoable` is false for it, which is what removes the button rather than leaving
+        /// one that silently does the wrong thing.
         public func undoLastDisposition() {
-            guard let last = lastDisposition else { return }
-            dispositioned[last.item.id] = nil
+            guard let last = lastDisposition, case let .declined(item) = last else { return }
+            dispositioned[item.id] = nil
             lastDisposition = nil
+        }
+
+        /// Whether the last disposition can be taken back — true only for a decline.
+        public var isUndoable: Bool {
+            if case .declined = lastDisposition { return true }
+            return false
         }
 
         /// What the undo affordance says it will do, or nil when there is nothing to undo.

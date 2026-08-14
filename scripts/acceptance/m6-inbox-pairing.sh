@@ -42,12 +42,25 @@ board_registry_installs "$REGISTRY" inbox \
   || blocked "the tree being tested does not install .inbox — there would be no board to verify"
 pass "precondition: the build tree installs .inbox"
 
-# M6 is the last board, so this is the run where the count reaches the total. Asserted here because
-# a partial set would mean some *other* destination silently lost its board in this diff.
-DEST_TOTAL="$(grep -cE '^    case [a-z]' "$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift" || true)"
+# M6 is the last board, so this is the run where the installed count reaches the total — and that is
+# asserted rather than printed, because a partial set here would mean some *other* destination
+# silently lost its board in this diff.
+#
+# Counted from `Destination`'s own body, not from every `case` line in the file: `DestinationGroup`
+# and `BadgeSource` live in the same file and a whole-file grep counts their cases too. That read 13
+# where the answer is 8, which is the shape of a precondition that reports a number nobody checked.
+DEST_TOTAL="$(awk '
+    /^public enum Destination:/ { inside = 1; next }
+    inside && /^}/              { exit }
+    inside && /^    case [a-z]/ { n++ }
+    END { print n + 0 }
+' "$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift")"
 INSTALLED_COUNT="$(board_registry_installed_count "$REGISTRY")"
 [ "$INSTALLED_COUNT" -gt 0 ] || blocked "parsed zero installed boards — the reader is wrong, not the code"
-pass "precondition: $INSTALLED_COUNT boards installed (Destination declares $DEST_TOTAL cases)"
+[ "$DEST_TOTAL" -gt 0 ] || blocked "parsed zero destinations — the reader is wrong, not the code"
+[ "$INSTALLED_COUNT" = "$DEST_TOTAL" ] \
+  || fail "$INSTALLED_COUNT of $DEST_TOTAL destinations have a board — M6 is the item that closes that gap"
+pass "precondition: all $INSTALLED_COUNT destinations have a board, and none is scaffolded"
 
 AXKIT="$WORK/axkit"
 swiftc -O -o "$AXKIT" "$ROOT/scripts/acceptance/axkit.swift" 2>"$WORK/axkit.log" \
@@ -103,6 +116,28 @@ select_inbox() {
     dump
 }
 
+# `AXPress`, retried, and the retry is a measurement rather than a superstition.
+#
+# The shell polls the router once a second, so the window is rebuilt on that cadence — measured on
+# 2026-08-15, `axkit dump` intermittently reports "no window" mid-rebuild, and an `AXUIElementRef`
+# resolved by the tree walk can be replaced before the press reaches it, which returns an error
+# rather than pressing anything. A human clicking hits whatever is on screen at the instant of the
+# click and never sees this; a script that resolves an element and then acts on it does.
+#
+# So the press is retried against a freshly walked tree, and a press that never lands inside the
+# budget is still a failure — the retry buys a live element, not a green result.
+press_retry() {
+    local needle="$1" attempts="${2:-10}" i result
+    for i in $(seq 1 "$attempts"); do
+        result="$("$AXKIT" press "$PID" "$needle" 2>&1 || true)"
+        if [ "$result" = "OK" ]; then
+            return 0
+        fi
+        sleep 1
+    done
+    return 1
+}
+
 echo
 echo "=============================================================="
 echo "A1-A4 — the board is installed, and the placeholder is gone"
@@ -131,6 +166,20 @@ pass "A4: the pane renders InboxBoard's own header, so this is not a blank-pane 
 ROWS="$(inbox_rows)"
 [ "$ROWS" = "2" ] || fail "expected the fixture's 2 queued rows, found $ROWS"
 pass "A1: $ROWS queued rows rendered from the fixture"
+
+# ---------------------------------------------------------------- A7, where it can actually fail
+#
+# **This sweep belongs here, under `paired`, and used to sit only under `none`.** The Phase D critic
+# was right that it proved nothing there: `none` is the scenario with no endpoint, so grepping for
+# the endpoint's values under it asserts that a value which does not exist was not rendered. Under
+# `paired` the fixture endpoint is live and every one of these three is a real string the app holds
+# and could leak. It stays under `none` as well, further down, because the two are different claims.
+for secret in "192.168.1.24" "7333" "SHA256:5f2b9c0e"; do
+    if spoken | grep -qF "$secret"; then
+        fail "the window speaks '$secret' while paired — host, port and fingerprint are never rendered"
+    fi
+done
+pass "A7: with a live endpoint, none of host, port or fingerprint reaches the tree"
 check_invisible "the A1 assertions"
 
 echo
@@ -209,19 +258,111 @@ check_invisible "the no-endpoint assertions"
 
 echo
 echo "=============================================================="
-echo "A18 — the sidebar badge counts the rows on screen"
+echo "A17 — the four states a fixture reaches without a queue in it"
+echo "=============================================================="
+# `loading`, `failed` and `overflow` complete the matrix. A17 says every cell is reached **in the
+# running app**, and the Phase D critic was right that four of eight had never been launched — the
+# criterion was claimed on the four that had. `expiring` is driven below, where the sheet is opened.
+launch loading
+select_inbox
+spoken | grep -q "Reading what is waiting" \
+  || fail "the loading state does not say what it is doing"
+# The skeleton, not a spinner (§5) — and no subtitle, because nothing has been observed to describe.
+if spoken | grep -qE "Nothing waiting|waiting from|no phone paired"; then
+    fail "the loading pane claims something about a queue that has not answered yet"
+fi
+pass "A17: loading renders its own copy and claims nothing about the queue"
+check_invisible "the loading state"
+
+launch failed
+select_inbox
+# The condition named is the one that happened. The `failed` fixture's error is `.unreadable` — this
+# Mac's own queue storage — so a headline about the router would name a cause nobody observed, which
+# is what this pane used to do for every read failure.
+spoken | grep -q "The inbox could not be read" \
+  || fail "the failed state does not name the condition that actually occurred"
+spoken | grep -q "the queue file could not be read" \
+  || fail "the failed state does not carry the failure's own detail"
+if spoken | grep -q "The router is not running"; then
+    fail "a queue-read failure is announced as the router being down — a cause nobody observed"
+fi
+pass "A17: the failed state names its own condition and blames nothing it did not observe"
+check_invisible "the failed state"
+
+launch overflow
+select_inbox
+OVERFLOW_ROWS="$(inbox_rows)"
+[ "$OVERFLOW_ROWS" = "1" ] || fail "expected 1 row in the overflow fixture, found $OVERFLOW_ROWS"
+spoken | grep -q "Local notes, scratch drafts" \
+  || fail "the overflowing name is not rendered at all"
+pass "A17: a name wider than its column still lists, on one row"
+check_invisible "the overflow state"
+
+echo
+echo "=============================================================="
+echo "A17 — the countdown, on a code that is actually near expiry"
+echo "=============================================================="
+# The `expiring` scenario exists because a five-minute window cannot be driven from a script. It
+# mints a twelve-second code, so the countdown is observable rather than theoretical — and this is
+# the assertion that proves `InboxService.pairingLifetime()` is wired, which is the seam that made
+# `expiring` differ from `paired` at all.
+launch expiring
+select_inbox
+press_retry "Pairing" || fail "could not open the pairing sheet through the accessibility API"
+sleep 2
+dump
+spoken | grep -qE "expires in 0:[0-9][0-9]" \
+  || fail "a near-expiry code renders no sub-minute countdown — the lifetime seam is not wired"
+pass "A17: the countdown reads from the code that was issued, at its real remaining time"
+check_invisible "the countdown"
+
+echo
+echo "=============================================================="
+echo "A18 — the sidebar badge counts the rows on screen, after a change"
 echo "=============================================================="
 launch paired
 select_inbox
+
+badge_count() {
+    "$AXKIT" dump "$PID" window > "$WORK/window.tsv"
+    cut -f4,5,6,7 "$WORK/window.tsv" | tr '\t' ' ' \
+      | grep -oE 'Inbox, [0-9]+ waiting from your phone' | head -1 | grep -oE '[0-9]+' | head -1 || true
+}
+
 # The badge is spoken as what it counts, per A35's rule: "Inbox, 2 waiting from your phone".
-"$AXKIT" dump "$PID" window > "$WORK/window.tsv"
-BADGE="$(cut -f4,5,6,7 "$WORK/window.tsv" | tr '\t' ' ' | grep -oE 'Inbox, [0-9]+ waiting from your phone' | head -1 || true)"
-[ -n "$BADGE" ] || fail "the Inbox row speaks no badge — A18 cannot be verified"
-BADGE_N="$(printf '%s' "$BADGE" | grep -oE '[0-9]+' | head -1)"
+BADGE_N="$(badge_count)"
+[ -n "$BADGE_N" ] || fail "the Inbox row speaks no badge — A18 cannot be verified"
 ROWS="$(inbox_rows)"
 [ "$BADGE_N" = "$ROWS" ] \
   || fail "the badge says $BADGE_N and the board renders $ROWS rows — they must be one observation"
-pass "A18: badge ($BADGE_N) equals the rendered row count ($ROWS) — '$BADGE'"
+pass "A18: badge ($BADGE_N) equals the rendered row count ($ROWS) at rest"
+
+# **The half that can fail.** At rest the two numbers are trivially equal — a badge wired to the
+# loaded snapshot rather than to the rendered rows passes the clause above and is wrong the moment
+# anything is dispositioned. So one row is declined through the accessibility API and both are read
+# again: this is the only form of A18 that distinguishes the two derivations.
+# Through the review sheet, which is the only path a decline has — and pressing the row is itself
+# the assertion that a combined accessibility element still carries its actions. Before this item's
+# fix the row announced `.isButton`, answered AXPress with `.success`, and did nothing.
+press_retry "Local notes" || fail "the row's default accessibility action does not open review"
+sleep 2
+dump
+spoken | grep -q "has not run" || fail "pressing the row did not open the review sheet"
+press_retry "Decline" || fail "could not press Decline through the accessibility API"
+sleep 2
+dump
+AFTER_ROWS="$(inbox_rows)"
+AFTER_BADGE="$(badge_count)"
+[ "$AFTER_ROWS" = "1" ] \
+  || fail "declining one of 2 rows left $AFTER_ROWS on screen"
+[ "$AFTER_BADGE" = "$AFTER_ROWS" ] \
+  || fail "after a decline the badge says '$AFTER_BADGE' and the board renders $AFTER_ROWS rows"
+pass "A18: after a decline the badge follows the rendered rows ($AFTER_BADGE = $AFTER_ROWS)"
+
+# §9's report half: the decline says so, in place, and offers the undo.
+spoken | grep -q "Declined" || fail "declining reports nothing — §9 asks for reversible *and reported*"
+spoken | grep -q "Undo" || fail "a decline is reversible, so it offers the undo"
+pass "A14/§9: the decline is reported in place and offers its undo"
 check_invisible "the badge assertions"
 
 quit

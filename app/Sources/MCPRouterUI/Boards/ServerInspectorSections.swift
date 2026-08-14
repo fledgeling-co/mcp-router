@@ -113,12 +113,9 @@
                             Text("Signed in")
                                 .typeRole(.body)
                                 .foregroundStyle(ColorToken.t1.color)
-                            Text(
-                                server.auth.authorizedAt.map { "Authorised \(relative($0))." }
-                                    ?? "Credentials are stored for this server."
-                            )
-                            .typeRole(.callout)
-                            .foregroundStyle(ColorToken.t3.color)
+                            Text(ServerInspector.signedInDetail(server.auth.authorizedAt))
+                                .typeRole(.callout)
+                                .foregroundStyle(ColorToken.t3.color)
                         }
                         Spacer(minLength: 0)
                         Button("Sign out") { Task { await board.signOut(server.name) } }

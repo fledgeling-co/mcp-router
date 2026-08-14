@@ -199,3 +199,54 @@ make build-mac → ** BUILD SUCCEEDED **
 `ServerPresentation.swift` past SwiftLint's 400-line ceiling, and the split is along a real seam —
 what remains in that file describes one *row*, the new file describes the *board*. Shaving the
 explanations would have bought the same six lines by deleting reasoning.
+
+---
+
+## Third defect, found by sweeping for the class rather than waiting for a report
+
+After fixing two figures the router never sent, the board was swept for **every** value reaching a
+user-visible string without having been observed — each `??`, each fallback, each formatter. That
+found a third, of the same class and in the same product-critical direction.
+
+`ServerInspectorSections.swift` rendered the Signed-in detail as
+`server.auth.authorizedAt.map { "Authorised \(relative($0))." } ?? "Credentials are stored…"`.
+`relative()` answers **`Never`** for a string that will not parse as a date. That is the right word
+at its three other call sites — `Indexed`, `First seen` and `Last used` all pass an *optional* and
+all mean `Never` literally — but here the value is already non-nil, so `Never` could only ever mean
+"the router sent a timestamp I could not read". The rendered result was:
+
+> **Signed in**
+> Authorised Never.
+
+under a heading asserting the opposite, for a server whose `auth.authorized` is observed `true`.
+
+The fix is `ServerInspector.signedInDetail(_:)`: an unparseable timestamp falls back to the same
+sentence an absent one does. The server *is* authorised — that is observed, and it is the branch
+this sits inside — and only the *when* is unknown. Identical discipline to the reap horizon: drop
+the figure, keep the fact, invent nothing. `static` and taking the raw string, so it is testable
+without a view host.
+
+| Mutant | Reinstates | Caught by | Observed failure |
+|---|---|---|---|
+| C | the original `map`/`relative` call site | `unreadableAuthorisationTimestampDropsTheTime` | 8 issues — `(detail → "Authorised Never.") == "Credentials are stored for this server."`, on all four unreadable inputs, with `nil` still correct |
+
+**Not driven in the running app**, and deliberately so: the inspector needs a selection, a selection
+needs a click, and a click needs the window in front. It is proved by the red–green pair above at
+the boundary the defect lived on. A human pass over the inspector remains the honest next step and
+is left for one rather than taken by stealing the screen.
+
+The same sweep cleared the other fallbacks: `shell.trackerState ?? .loading` (absence of a tracker
+state *is* "nothing has loaded"), `envKeys?.count ?? 0` (arithmetic over absent keys, not an
+observation), `servers ?? []`, and `lastUsed.map { shortAgo($0) } ?? "Never"` (an optional, where
+`Never` is literally true). `ServerPatch` was re-checked against the standing constraint:
+`command`, `args` and `env` are absent by construction and guarded by `forbiddenWireKeys` plus
+assertions on the **encoded body**.
+
+## Gates at this commit
+
+```
+make test      → Test run with 725 tests in 102 suites passed
+make lint      → Found 0 violations, 0 serious in 223 files
+                 no-raw-design-values: clean · no-wire-codable: clean
+make build-mac → ** BUILD SUCCEEDED **
+```

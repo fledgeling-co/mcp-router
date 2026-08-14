@@ -152,6 +152,40 @@
             #expect(withHorizon.hasPrefix("reaps in"))
         }
 
+        // MARK: - The timestamp the router sent but nothing could read
+
+        /// The third figure of the same class, found by sweeping the board for values that reach a
+        /// string without having been observed. `relative()` answers `Never` for a string that will
+        /// not parse, which is correct at the three call sites passing an **optional** — `Indexed`,
+        /// `First seen`, `Last used` all mean it literally — and wrong at the one where the value is
+        /// already non-nil, where it rendered `Authorised Never.` under a heading reading `Signed in`.
+        ///
+        /// `auth.authorized` is observed and is the branch this sits inside, so the server *is*
+        /// signed in; only the *when* is unreadable. The fix drops the figure and keeps the fact.
+        @MainActor
+        @Test("An unreadable authorisation timestamp drops the time rather than saying 'Never'")
+        func unreadableAuthorisationTimestampDropsTheTime() {
+            let honest = "Credentials are stored for this server."
+
+            // Absent, and unparseable, must reach the same sentence — the router said nothing usable
+            // in both cases, and the user is owed the same truth.
+            #expect(ServerInspector.signedInDetail(nil) == honest)
+            for unreadable in ["", "not-a-date", "0000", "yesterday"] {
+                let detail = ServerInspector.signedInDetail(unreadable)
+                #expect(detail == honest, "'\(unreadable)' produced: \(detail)")
+                #expect(
+                    !detail.contains("Never"),
+                    "a server that IS signed in was told its credentials were never authorised"
+                )
+            }
+
+            // A timestamp that does parse still reports when — the fallback is targeted, not a
+            // regression that silenced the figure everywhere.
+            let real = ServerInspector.signedInDetail("2026-08-14T10:00:00.000Z")
+            #expect(real.hasPrefix("Authorised "))
+            #expect(!real.contains("Never"))
+        }
+
         // MARK: - A19, as a declared mapping
 
         @Test("A19 — every one of the nine states names where it is rendered on this board")

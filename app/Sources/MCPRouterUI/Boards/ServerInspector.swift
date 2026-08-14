@@ -200,6 +200,29 @@
             return shortAgo(date)
         }
 
+        /// What the Signed in row says under it, which depends on whether the router gave a usable
+        /// timestamp — not merely on whether it gave one.
+        ///
+        /// **The bug this replaces rendered `Authorised Never.`** The call site was
+        /// `authorizedAt.map { "Authorised \(relative($0))." }`, and `relative` answers `Never` when
+        /// a string will not parse as a date. `Never` is the right word at the three call sites that
+        /// pass an **optional** — `Indexed`, `First seen`, `Last used` all mean it literally — but
+        /// here the value is already non-nil, so `Never` could only ever mean "the router sent
+        /// something I could not read", which is not a fact about the user's credentials.
+        ///
+        /// So an unparseable timestamp falls back to the same sentence an absent one does. The
+        /// server *is* authorised — that is `auth.authorized`, observed, and the branch this is
+        /// inside — and only the *when* is unknown. Exactly the discipline applied to the reap
+        /// horizon: drop the figure, keep the fact, invent nothing.
+        ///
+        /// `static` and taking the raw string so it is testable without a view host.
+        static func signedInDetail(_ authorizedAt: String?) -> String {
+            guard let date = authorizedAt?.asControlAPIDate else {
+                return "Credentials are stored for this server."
+            }
+            return "Authorised \(shortAgo(date))."
+        }
+
         func section(_ title: String, @ViewBuilder content: () -> some View) -> some View {
             VStack(alignment: .leading, spacing: ServersBoardMetrics.gap) {
                 // §3.2: section headers are sentence case, system font, secondary colour. Tracked

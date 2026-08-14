@@ -51,7 +51,7 @@ than barriering on whole waves, so the real overlap is greater than the table im
 | Wave | Items | Peak slots | Gate to leave |
 |---|---|---|---|
 | 1 | F1 | 1 | ✅ **CLEARED** — both targets build, CI green on a clean runner, `SWIFT_PRACTICES.md` landed |
-| 2 | F2 · F3 · R1 | 3 | Design system renders every token; control client passes against recorded fixtures |
+| 2 | F2 · F3 · R1 | 3 | ✅ **CLEARED** — all three merged; merged-tree `make all` exit 0, 237 tests, lint clean |
 | 3 | M1 · R2 · R3 · I1 | 4 | Mac shell navigable; iOS pairs; Swift router relays a real call |
 | 4 | M2 · M3 · M4 · I2 · R4 | 5 | **R4 is the parity gate and may not pass on a subset** |
 | 5 | M5 · M7 · M8 · I3 | 4 | — |
@@ -79,9 +79,9 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 | ID | Title | Category | Deps | Mock (deep link) | Lane | Status | Branch | Outcome |
 |---|---|---|---|---|---|---|---|---|
 | F1 | Swift workspace, kit, three targets | foundation | — | — | Opus | **Merged** `0924040` | — | `make all` exit 0 on the merged tree · 31 tests · both targets build · **A12 (CI) MET** — run 31747021039 `build-and-test: success` on a clean GitHub runner, 2026-08-14 |
-| F2 | Design system in SwiftUI | foundation | F1 ✓ | `?only=mac` + `DESIGN.md` §§2–7 | Opus | **Paused — capacity** | `ai/f2` (4) | green, 65 tests · died mid Phase-D critic · checkpoint in spec |
-| F3 | Control-API client and models | foundation | F1 ✓ | — (surface: `src/control.ts`) | Opus | **Paused — capacity** | `ai/f3` (2) | green, 93 tests · 28 files orphaned, rescued by orchestrator · died entering red-green pass |
-| R1 | Router: core, config, manifest | router | F1 ✓ | — | Opus | **Paused — capacity, RED** | `ai/r1` (6) | **does not compile** — `VectorRegistry.swift:68` actor-isolated default · 24 files rescued red |
+| F2 | Design system in SwiftUI | foundation | F1 ✓ | `?only=mac` + `DESIGN.md` §§2–7 | Opus | **Merged** `22d1802` | — | merged-tree `make all` exit 0 · 75 tests · both appearances authored · tokens tested *against* `DESIGN.md`, so doc and code cannot drift · two recorded deviations (tertiary 50% not 25%; `--onAccent` 3.23:1, kit wins) |
+| F3 | Control-API client and models | foundation | F1 ✓ | — (surface: `src/control.ts`) | Opus | **Merged** `13825c9` | — | merged-tree `make all` exit 0 · 147 tests · 23 recorded fixtures + `ControlProbe` · **merge found a real defect**: unanchored `.gitignore` `servers.json` had silently swallowed a source fixture, green on the branch and red only when merged |
+| R1 | Router: core, config, manifest | router | F1 ✓ | — | Opus | **Merged** `c30eac9` | — | merged-tree `make all` exit 0 · 237 tests · 224 parity vectors · mutation gate exit 0 · SDK pinned exact `0.12.1`, confined to `RouterCore` which neither app links |
 | R2 | Router: pool, relay, passthrough | router | R1 | — | Opus | Untriaged | — | — |
 | R3 | Router: control, auth, usage, registry | router | R1 | — | Opus | Untriaged | — | — |
 | R4 | Parity harness and cutover | router | R2, R3 | — | Opus — never downgrade | Untriaged | — | — |
@@ -104,6 +104,22 @@ are pending deletion.
 
 ---
 
+## Deferred children — registered, not yet scheduled
+
+Reported by wave-1/2 runners. Each names the item that should absorb it; none blocks a wave.
+
+| # | Child | Absorbed by | Why it was deferred |
+|---|---|---|---|
+| D-a | Record the HTTP status alongside each recorded fixture | R4 | The fixture set proves the *body* decodes; the status is a second assertion the parity harness will want and the client currently infers |
+| D-b | Surface the call-log stream's skipped-record count | M2 | The stream already skips an unreadable record "not silently"; nothing yet displays the count, so a lossy stream looks clean |
+| D-c | Expose `usage(limit:server:cwd:)` in Activity's filters | M2 | The client takes all three filters; the Activity mock only offers server |
+| D-d | Make the router's caller attribution deterministic rather than `lsof`-raced | R3 | F3's fixture capture raced the async lookup and recorded an unattributable call. Worked around with a capture-time guard; the router-side fix belongs to whoever owns the control API |
+| D-e | Signed/notarized macOS packaging | new item, after M8 | Blocked on **Needs input #1**, not on code |
+| D-f | Machine-readable token block in `DESIGN.md` | M1 | F2's parity gate parses prose tables today; a fenced block would make it robust to editing |
+| D-g | Parity vectors for divergences D1/D3/D4 | R4 | R1 recorded three deliberate divergences from the TypeScript router with **no parity vector**. R4 must not read their absence as agreement |
+
+---
+
 ## Needs input — not blocking any wave
 
 | # | Question | Blocks |
@@ -115,6 +131,27 @@ are pending deletion.
 ---
 
 ## Changelog
+
+- 2026-08-14 — **Wave 2 cleared: F2, F3 and R1 all merged**, serially, each gated on the
+  merged tree rather than on its own branch. `22d1802` → `13825c9` → `c30eac9`; final
+  merged tree `make all` exit 0, **237 tests**, `no-raw-design-values: clean`. All three
+  worktrees removed and branches deleted, each proved merged by `git branch --merged`
+  first. Seven deferred children registered above.
+
+  **The merge found a defect no branch gate could have.** F3 was green on `ai/f3` and red
+  the moment it merged: five tests failing on one missing fixture. `.gitignore` carried a
+  bare `servers.json` for the router's runtime config, and an unanchored gitignore pattern
+  matches at *every* depth — so it silently swallowed
+  `app/Sources/MCPRouterKit/Control/Fixtures/servers.json`. The file stayed on disk in the
+  author's worktree, which is exactly why its own gate passed. Both runtime-state patterns
+  are now anchored (`/servers.json`, `/manifest.json`) and the fixture is committed. This
+  is the merge-only defect class again: the break existed on no branch.
+
+  Both merges conflicted in `app/Package.swift` and both were purely additive — F2's
+  `MCPRouterUI`/`MCPRouterUITests`, F3's `ControlProbe`, R1's `RouterCore` product,
+  `RouterCoreTests` and the exact-pinned MCP SDK. Kept all of them; the SDK stays confined
+  to `RouterCore`, which neither app target links, so the kit's no-external-dependencies
+  promise still holds for everything the apps compile.
 
 - 2026-08-14 — **A12 met and wave 1's exit gate cleared.** `main` pushed
   (`e5a61ce..e15b31d`, 10 commits) and Swift CI executed for the first time: run

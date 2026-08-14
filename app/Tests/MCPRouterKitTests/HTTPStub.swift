@@ -37,6 +37,7 @@ final class HTTPStub: @unchecked Sendable {
     private var streamScript: Stream?
     private var recorded: [String] = []
     private var connectionCount = 0
+    private var lastStreamLineAt: Date?
 
     var port: UInt16 { listener.port?.rawValue ?? 0 }
 
@@ -60,6 +61,18 @@ final class HTTPStub: @unchecked Sendable {
     var connections: Int {
         lock.lock(); defer { lock.unlock() }
         return connectionCount
+    }
+
+    /// When the stub handed its **last** scripted line to the socket.
+    ///
+    /// The oracle for "streamed, not batched". Comparing a record's arrival against a wall-clock
+    /// budget measured this instead: connection setup. On a contended CI runner the first record
+    /// took 0.52s against a 0.36s bound and the test failed — while streaming perfectly, because
+    /// most of that 0.52s was URLSession and the TCP handshake, not stream latency. Against this
+    /// timestamp the question becomes an ordering one with no threshold to tune.
+    var lastLineSentAt: Date? {
+        lock.lock(); defer { lock.unlock() }
+        return lastStreamLineAt
     }
 
     init() throws {
@@ -151,6 +164,11 @@ final class HTTPStub: @unchecked Sendable {
                         // that buffers rather than streams. The blank line after it is the SSE
                         // frame terminator the router itself sends.
                         let isLast = index == script.lines.count - 1
+                        if isLast {
+                            self.lock.lock()
+                            self.lastStreamLineAt = Date()
+                            self.lock.unlock()
+                        }
                         self.send(connection, head: line + "\n\n") {
                             // Cancelling straight after the loop would race the final write and
                             // truncate the last event — which reads in a test as "the stream

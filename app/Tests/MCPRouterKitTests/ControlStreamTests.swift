@@ -14,10 +14,16 @@ struct ControlStreamTests {
 
     /// The property that makes it a live log rather than a download.
     ///
-    /// Asserted by *timing* rather than by count, because a stream that buffers everything and
+    /// Asserted by *ordering* rather than by count, because a stream that buffers everything and
     /// delivers it at the end passes any count-based test while being the exact thing this is not
     /// allowed to be. The stub spaces its events out; the first has to arrive before the last is
     /// even sent.
+    ///
+    /// Ordering, specifically, and not a wall-clock budget. The budget version measured from
+    /// before the connection was opened, so it charged URLSession setup and the TCP handshake to
+    /// stream latency: on a contended CI runner the first record landed at 0.52s against a 0.36s
+    /// bound and failed, while streaming correctly. Comparing two instants on the stub's own
+    /// timeline removes setup from the question and leaves nothing to tune.
     @Test("events arrive as they happen, not in one batch at the end")
     func eventsArriveIncrementally() async throws {
         let stub = try HTTPStub()
@@ -40,8 +46,7 @@ struct ControlStreamTests {
             )
         )
 
-        let start = Date()
-        var firstRecordAt: TimeInterval?
+        var firstRecordAt: Date?
         var records: [CallRecord] = []
 
         // Scoped to the first connection. The stub replays its script to whoever connects, so
@@ -49,7 +54,7 @@ struct ControlStreamTests {
         collect: for await event in subject.events() {
             switch event {
             case let .record(record):
-                if firstRecordAt == nil { firstRecordAt = Date().timeIntervalSince(start) }
+                if firstRecordAt == nil { firstRecordAt = Date() }
                 records.append(record)
                 if records.count == 3 { break collect }
             case .phase(.reconnecting), .phase(.disconnected):
@@ -63,11 +68,12 @@ struct ControlStreamTests {
         #expect(records.map(\.tool) == ["one", "two", "three"])
 
         let arrival = try #require(firstRecordAt)
+        let lastSent = try #require(stub.lastLineSentAt, "the stub never sent its last line")
         #expect(
-            arrival < gap * 3,
+            arrival < lastSent,
             """
-            the first record took \(arrival)s, by which time all three had been sent — \
-            that is a batch delivered at the end, not a live stream
+            the first record surfaced \(arrival.timeIntervalSince(lastSent))s AFTER the stub's \
+            last line — a batch delivered at the end, not a live stream
             """
         )
     }

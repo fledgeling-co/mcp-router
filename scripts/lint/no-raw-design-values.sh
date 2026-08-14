@@ -115,11 +115,18 @@ done
 SHELL_DIR="$ROOT/app/Sources/MCPRouterUI/Shell"
 [ -d "$SHELL_DIR" ] || { echo "error: $SHELL_DIR does not exist — the shell checks did not run" >&2; exit 1; }
 
+# M3 brings the boards under the same two rules. They were scoped to the shell so that a merged gate
+# would not change meaning for already-reviewed code — that reason does not apply to a directory this
+# item created, and a board is the surface most likely to reach for a raw frame height or a second
+# channel, because it is the one with data to draw.
+BOARDS_DIR="$ROOT/app/Sources/MCPRouterUI/Boards"
+[ -d "$BOARDS_DIR" ] || { echo "error: $BOARDS_DIR does not exist — the board checks did not run" >&2; exit 1; }
+
 SHELL_FILES=()
-while IFS= read -r f; do SHELL_FILES+=("$f"); done < <(find "$SHELL_DIR" -name '*.swift' -type f)
+while IFS= read -r f; do SHELL_FILES+=("$f"); done < <(find "$SHELL_DIR" "$BOARDS_DIR" -name '*.swift' -type f)
 [ "${#SHELL_FILES[@]}" -gt 0 ] || { echo "error: no Swift files under $SHELL_DIR — the shell checks did not run" >&2; exit 1; }
 
-echo "no-raw-design-values: $(printf '%s\n' "${SHELL_FILES[@]}" | wc -l | tr -d ' ') shell files under the extra rules"
+echo "no-raw-design-values: $(printf '%s\n' "${SHELL_FILES[@]}" | wc -l | tr -d ' ') shell and board files under the extra rules"
 
 for f in "${SHELL_FILES[@]}"; do
   rel="${f#"$ROOT"/}"

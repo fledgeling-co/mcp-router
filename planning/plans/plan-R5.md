@@ -125,7 +125,7 @@ drives a whole flow carrying a token and asserts the token's bytes appear nowher
 ## P4 · The two routes
 
 ```
-  AuthRoutes.swift    authStart, authSignOut, approve — each -> (status: Int, body: JSONValue)
+  AuthRoutes.swift    authStart, approve — each -> (status: Int, body: JSONValue)
 ```
 
 Value-layer functions over R1 types only. **No `ControlResponse`, no `ControlRequest`, no
@@ -135,7 +135,7 @@ Value-layer functions over R1 types only. **No `ControlResponse`, no `ControlReq
 | Route | Outcomes | Clause |
 |---|---|---|
 | `POST …/auth` | 400 `{error:"stdio servers do not authorize; their credentials are env vars"}` when `u.transport == "stdio"`, **before** any port is bound; else 200 `{server, authorizationUrl}`; 502 `{error:<thrown message>}` | B77, B84 |
-| `DELETE …/auth` | `clear(name)` **then** `clearPending(name)`, then 200 `{server, signedOut}` | B62, B92 |
+| ~~`DELETE …/auth`~~ | **Out of scope.** Already shipped on `ai/r3`; R5 does not reimplement it | B92 |
 | `POST …/approve` | 409 `{error:"no pending change for \"<name>\""}` when the entry has no `pending`; else 200 `{server, approved:<count>}` | B78 |
 
 **B83 — the precondition neither route owns.** Both sit behind

@@ -45,11 +45,22 @@ public enum LogEvent: Sendable, Hashable {
     case serverIndexed(server: String, toolCount: Int)
     case serverSurfaceChanged(server: String, changeCount: Int)
     case serverIndexFailed(server: String, reason: String)
+    // R5 — auth. Appended rather than interleaved so the diff against a sibling branch is additive.
+    //
+    // B66 is enforced *here*, by the shape of these cases: every associated value is a server name,
+    // a count or a failure reason. There is no case that can carry a token, an `Authorization`
+    // header or a whole auth record, so a call site cannot log one even by mistake. That is the
+    // point of routing every line through a closed enum rather than a format string.
+    case upstreamAuthorized(server: String)
+    case authorizationIncomplete(server: String, reason: String)
+    case authRecordUnreadable(server: String, reason: String)
+    case toolSurfaceApproved(server: String, toolCount: Int)
 
     public var level: RouterLog.Level {
         switch self {
-        case .manifestReloaded, .serverIndexed: .info
-        case .manifestUnreadable, .manifestReloadFailed, .serverSurfaceChanged: .warn
+        case .manifestReloaded, .serverIndexed, .upstreamAuthorized, .toolSurfaceApproved: .info
+        case .manifestUnreadable, .manifestReloadFailed, .serverSurfaceChanged,
+             .authorizationIncomplete, .authRecordUnreadable: .warn
         case .serverIndexFailed: .error
         case .manifestCurrent: .debug
         }
@@ -73,6 +84,15 @@ public enum LogEvent: Sendable, Hashable {
                 + "serving the approved one until it is accepted"
         case let .serverIndexFailed(server, reason):
             "failed to index \"\(server)\": \(reason)"
+        // R5 — auth. Each string is the reference's, to the character; B94 and B100 pin them.
+        case let .upstreamAuthorized(server):
+            "authorized upstream \"\(server)\""
+        case let .authorizationIncomplete(server, reason):
+            "authorization for \"\(server)\" did not complete: \(reason)"
+        case let .authRecordUnreadable(server, reason):
+            "auth record for \"\(server)\" unreadable (\(reason)); treating as unauthorized"
+        case let .toolSurfaceApproved(server, count):
+            "approved \"\(server)\"'s new tool surface (\(count) tools)"
         }
     }
 }

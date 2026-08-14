@@ -185,11 +185,11 @@
             #expect(ScaffoldedDestination(.activity) == nil, "the placeholder cannot be built for it")
 
             // This read `installed == [.activity]` while M2 was the only board on the branch. M3
-            // then merged, and M4 after it — asserted exactly rather than by containment, so a board
-            // appearing or vanishing here is a deliberate edit rather than something a subset check
-            // waves through.
-            #expect(BoardRegistry.installed == [.servers, .activity, .skills])
-            #expect(BoardRegistry.scaffolded.count == 5)
+            // then merged, M4 after it, and M8 after that — asserted exactly rather than by
+            // containment, so a board appearing or vanishing here is a deliberate edit rather than
+            // something a subset check waves through.
+            #expect(BoardRegistry.installed == [.servers, .activity, .skills, .settings])
+            #expect(BoardRegistry.scaffolded.count == 4)
             // `.discover` rather than `.skills`: M4 installed Skills, so it no longer builds a
             // placeholder. The subject has to be a destination that is still scaffolded, or this
             // stops testing what it names.

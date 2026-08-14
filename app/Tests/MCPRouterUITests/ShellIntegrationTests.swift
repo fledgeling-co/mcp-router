@@ -257,10 +257,10 @@
         @Test("this build installs exactly the boards that have shipped")
         func installedIsTheShippedSet() {
             #expect(
-                BoardRegistry.installed == [.servers, .activity, .skills],
-                "M2 ships Activity, M3 Servers, M4 Skills; M5–M8 each add one and update this line"
+                BoardRegistry.installed == [.servers, .activity, .skills, .settings],
+                "M2 Activity, M3 Servers, M4 Skills, M8 Settings; M5–M7 each add one and edit this"
             )
-            #expect(BoardRegistry.scaffolded.count == 5)
+            #expect(BoardRegistry.scaffolded.count == 4)
         }
 
         /// M3's own half: the board is not merely written, it is **registered**.

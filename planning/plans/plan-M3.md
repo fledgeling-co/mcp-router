@@ -230,3 +230,36 @@ test an explicit `.none` context — never to weaken the assertion.
 - **No `idleMs` control.** Writable, not readable back.
 - **No second control-API channel and no second poll loop.**
 - **No edit to `install.sh` or `src/*.ts`.** That is R4's cutover.
+
+---
+
+## What actually happened — recorded after the fact
+
+The plan above was written before the spec gate ran. Five of its assumptions turned out to be
+wrong, and the corrections are worth carrying rather than quietly leaving the plan stale.
+
+1. **Phase D's premise was false.** The plan said registering `.servers` would satisfy a merged
+   complement test. `ShellIntegrationTests` actually asserted `BoardRegistry.installed.isEmpty`, so
+   the registration turned it **red**, and no test could ever have caught the omission because
+   `scaffolded` is derived from `installed`. The assertion was replaced with the complement
+   invariant plus a direct "the Servers board is installed" test.
+2. **The tracker had to grow.** `TrackerState` dropped `idleMs` and `pendingAuth` on the floor, so
+   the countdown had no honest source and the board could not tell "needs authorising" from "already
+   waiting in your browser". Both are now retained, additively, with defaulted initialiser
+   parameters so F4's six construction sites and 43 tests were untouched.
+3. **`apply(updated:)` was added** so a successful write is visible in place from *the server the
+   router returned*. Without it the plan's "no optimistic mutation" left Success with no mechanism
+   at all — the gate was right to call that out.
+4. **Two more shared files moved than the plan listed**: `ShellChrome.indicatorUses` had to declare
+   the board's `--fail` and `--attn` uses (an existing test asserted `--fail` was drawn nowhere), and
+   `ShellTestSupport` gained a `boardFiles` list so the A36 one-channel grep and the indicator
+   declaration now scan the boards too. Both are strengthenings.
+5. **File and type length limits forced a split** the plan did not anticipate: SwiftLint caps files
+   at 400 lines and type bodies at 250, so the board is nine files rather than five and two test
+   suites became four. No behaviour changed; the divisions fell along real seams (what the board
+   sends vs what it does with the answer; the read-only config vs the writable behaviour).
+
+The evidence rule the plan set was followed with one addition it did not foresee: `open -g -a`
+attached to a **concurrently running sibling worktree's app** with the same bundle identifier, so
+the pass has to launch the executable directly and drive its own pid. See
+`planning/evidence/M3-acceptance.md`.

@@ -93,7 +93,13 @@ async function runStdio() {
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: currentTools() }));
   server.setRequestHandler(CallToolRequestSchema, async (request) => ({
-    content: [{ type: 'text', text: `fixture:${request.params.name}` }],
+    // FIXTURE_CALL_SUFFIX exists so `mcp-tools-call` can be shown able to go red (`D-g1-e`). The
+    // two toolset variants change which tools are LISTED and leave every call RESULT identical, so
+    // seeding a toolset proves `mcp-tools-list` can fail and proves nothing about the call row.
+    // Unset in every ordinary run, including both sides of a real parity comparison.
+    content: [
+      { type: 'text', text: `fixture:${request.params.name}${process.env.FIXTURE_CALL_SUFFIX ?? ''}` },
+    ],
   }));
 
   await server.connect(new StdioServerTransport());

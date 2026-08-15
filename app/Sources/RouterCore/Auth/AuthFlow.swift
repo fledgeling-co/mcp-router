@@ -47,6 +47,26 @@ public actor AuthFlowCoordinator {
     }
 
     private var current: Running?
+    /// The outcome of the flow that settled most recently, and the reason `awaitCompletion` can
+    /// answer for a flow that finished before its observer arrived (`D-p1-c`).
+    ///
+    /// `settle` resumes any waiting observer and then calls `cleanup`, which clears `current`. An
+    /// observer that arrives after that saw a coordinator with nothing in flight and was told
+    /// `no authorization is in flight` — turning a SUCCESSFUL authorization into an `onIncomplete`
+    /// warn with no `clearPending` and no re-index, so the tokens landed on disk and the tools
+    /// never appeared. ``ControlPorts`` states the requirement this repairs: *a flow that settles
+    /// between the two calls must still be reported here as authorized*.
+    ///
+    /// Keyed by server, and read ONCE. A single slot was not enough: `settle` for a second server
+    /// would overwrite the first server's outcome before its observer had been scheduled, which is
+    /// the same defect one reordering further out. Consuming the entry on read bounds the map to
+    /// "settled but not yet observed" — a handful at most — and means a stray `awaitCompletion`
+    /// long afterwards gets the honest "no authorization is in flight" rather than an ancient
+    /// success.
+    ///
+    /// A SUPERSEDED flow is torn down through `cleanup`, which does not settle and does not record
+    /// here, so B85's rule that a superseded observer is never told "authorized" is unchanged.
+    private var settledOutcomes: [JSString: Result<Void, Error>] = [:]
     private let log: RouterLog?
     private let urlTimeoutMilliseconds: Double
     private let flowTimeoutMilliseconds: Double
@@ -105,6 +125,10 @@ public actor AuthFlowCoordinator {
         let continuation = running.completion
         running.completion = nil
         current = running
+        // Recorded BEFORE the observer is resumed and before cleanup clears `current`, so an
+        // observer that arrives after this point has an outcome to read rather than an empty
+        // coordinator (`D-p1-c`).
+        settledOutcomes[server] = result
         switch result {
         case .success: continuation?.resume()
         case let .failure(error): continuation?.resume(throwing: error)
@@ -129,6 +153,15 @@ public actor AuthFlowCoordinator {
         port: Int?,
         authorizationURL: @escaping @Sendable () async throws -> String
     ) async throws -> LiveFlow {
+        // A new flow for THIS server supersedes any outcome recorded for it. A flow for a
+        // DIFFERENT server must not, and the distinction is load-bearing: `AuthRoutes.authStart`
+        // captures `awaitCompletion` and runs it in a detached `Task`, so an authorization for
+        // `notion` can begin while `linear`'s observer is still waiting to be scheduled. Clearing
+        // on every `begin` would hand that observer `no authorization is in flight` and reinstate
+        // exactly the defect `D-p1-c` closes, for any machine loaded enough to reorder the two.
+        if settledOutcomes[server] != nil {
+            settledOutcomes[server] = nil
+        }
         // `current?.close()` — cleanup, NOT cancel. The superseded flow is torn down and its
         // completion is left un-resumed forever, which is precisely the reference's behaviour and
         // why a Swift port using structured cancellation would diverge (B85).
@@ -237,7 +270,18 @@ public actor AuthFlowCoordinator {
     /// actor rather than dropped, so a never-settled flow suspends its observer instead of tripping
     /// Swift's continuation-misuse check — the reference leaks the equivalent promise in the same
     /// shape.
+    ///
+    /// A flow that has ALREADY settled is answered from the recorded outcome rather than reported
+    /// absent (`D-p1-c`). ``ControlPorts/AuthFlowStarting/awaitCompletion(server:)`` requires it:
+    /// the callback can land before the route gets here, and answering "no authorization is in
+    /// flight" to a successful authorization drops the re-index that makes the tools appear.
     public func awaitCompletion(server: JSString) async throws {
+        if current?.server != server, let settled = settledOutcomes.removeValue(forKey: server) {
+            switch settled {
+            case .success: return
+            case let .failure(error): throw error
+            }
+        }
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             guard var running = current, running.server == server else {
                 continuation.resume(throwing: AuthFailure("no authorization is in flight"))

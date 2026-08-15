@@ -141,11 +141,16 @@ public protocol AuthFlowStarting: Sendable {
     ///
     /// **``begin(server:upstream:)`` must arm this channel before it returns.** A flow that settles
     /// between the two calls must still be reported here as authorized.
-    /// ``AuthFlowCoordinator/awaitCompletion(server:)`` does **not** satisfy that today — it throws
-    /// `no authorization is in flight` once the flow has settled, which would turn a *successful*
-    /// authorization into an `onIncomplete` warn with no `clearPending` and no re-index: the tokens
-    /// land on disk and the tools never appear. Registered as `D-p1-c`. The constraint lives here
-    /// so an implementer of `D-p1-a` meets it rather than rediscovering it.
+    /// ``AuthFlowCoordinator/awaitCompletion(server:)`` now meets that: it records the outcome of a
+    /// settled flow per server and answers from that record when nothing is in flight (`D-p1-c`,
+    /// closed). Before that it threw `no authorization is in flight` once the flow had settled,
+    /// which turned a *successful* authorization into an `onIncomplete` warn with no `clearPending`
+    /// and no re-index — the tokens landed on disk and the tools never appeared.
+    ///
+    /// Note that `AuthFlowCoordinator` does not *conform* to this protocol: nothing does yet, which
+    /// is `D-p1-a` and why `control-auth-post-http` is a blocked parity row. The requirement stays
+    /// stated here because whatever conforms will have to meet it in its own right, and the
+    /// coordinator's behaviour is the worked example rather than the inherited implementation.
     func awaitCompletion(server: JSString) async throws
 }
 

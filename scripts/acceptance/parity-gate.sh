@@ -42,8 +42,16 @@ RESULTS="$WORK/results.tsv"
 env_failed=0
 declare -a env_reasons=()
 
-cleanup() { rm -rf "$WORK"; }
-trap cleanup EXIT
+# D-g1-g. Sourced before the trap is installed, so `cleanup` can never name a function that does
+# not exist yet, and acquired before the manifest check and before any lane binds anything — so a
+# refused run prints its refusal and nothing that could be read as a result.
+# `parity_lock_acquire` exits 2 itself when the harness is busy; it never returns having failed.
+. "$REPO_ROOT/scripts/acceptance/parity-lock.sh"
+
+cleanup() { parity_lock_release; rm -rf "$WORK"; }
+trap cleanup EXIT INT TERM HUP
+
+parity_lock_acquire "parity-gate.sh"
 
 # ---------------------------------------------------------------------------------------------
 # The manifest is checked FIRST. Every number below it is computed from this file, so a manifest
@@ -301,7 +309,29 @@ by_suite="$(awk -F'\t' '$2 == "by-suite"' "$WORK/bygroup.txt" | wc -l | tr -d ' 
 suite_note=""
 [ "$by_suite" -gt 0 ] && suite_note=" ($by_suite of them by suite only, not by wire comparison)"
 
-if [ "$blocked" -gt 0 ]; then
+# D-g1-g. A run that could not run a lane does not get to print a coverage fraction.
+#
+# The arithmetic below is unchanged and nothing here can raise a number: this branch only ever
+# WITHHOLDS one. The reason it has to is that a fraction is the single thing a reader copies into a
+# ledger, and `parity: 69 of 83` from a run whose lanes never started is indistinguishable, at a
+# glance, from a real regression against a truth of 78. Both of those numbers are in this fleet's
+# history and neither was a measurement. The lane failures are printed instead, because "this run
+# did not happen" is the finding, and a smaller number is not a weaker version of it.
+if [ "$env_failed" = 1 ]; then
+  echo "parity: COVERAGE IS NOT REPORTED for this run."
+  echo
+  echo "A lane could not run, so the enumerated surface was not measured. A fraction computed now"
+  echo "would count what happened to report and would read as a low score rather than as a run that"
+  echo "did not take place. The lane that failed, and why, is at the bottom of this report."
+  if [ "$blocked" -gt 0 ]; then
+    echo
+    echo "rows with no result, grouped by the item that would unblock them:"
+    sort "$WORK/blocked.txt" | awk -F'\t' '
+      $1 != last { printf "\n  %s\n", $1; last = $1 }
+      { printf "    %-11s %-46s %s\n", $2, substr($3,1,46), substr($4,1,74) }'
+  fi
+  echo
+elif [ "$blocked" -gt 0 ]; then
   echo "parity: $proven of $total rows proven$suite_note, $blocked blocked. This is NOT a pass."
   echo
   echo "blocked, grouped by the item that would unblock them:"

@@ -478,7 +478,9 @@ NOT_LANES="parity-gate:the dispatcher itself, which runs the lanes
 parity-manifest-check:this file, which parity-gate runs before any lane
 parity-manifest-selftest:proves this file can fail; run by 'make parity-selftest'
 parity-lane-selftest:proves a lane can fail; run by 'make parity-selftest'
-parity-normalise-selftest:proves the normaliser can fail; run by 'make parity-selftest'"
+parity-normalise-selftest:proves the normaliser can fail; run by 'make parity-selftest'
+parity-lock:the harness lock (D-g1-g); sourced by parity-gate.sh and four other entry points
+parity-lock-selftest:proves the lock can refuse; run by 'make parity-selftest'"
 
 for script in "$REPO_ROOT"/scripts/acceptance/parity-*.sh; do
   [ -f "$script" ] || continue

@@ -235,13 +235,15 @@ mutation:
 ## router and no build. In `all` for that reason, unlike `mutation` and `acceptance`.
 parity-selftest:
 	./scripts/acceptance/parity-manifest-selftest.sh
+	./scripts/acceptance/parity-lock-selftest.sh
 	./scripts/acceptance/parity-normalise-selftest.sh
 	@$(MAKE) --no-print-directory parity-lane-selftest
 
-## Proves the five lanes R2-R added can actually GO RED, by running each against a deliberately
-## broken Swift router. It also reports failability per ROW, which is the only place that number
-## exists: on this tree it reads 11 of 19 demonstrated, and names the 8 rows that are "recorded
-## proven by a lane whose ability to fail on THAT row is unproven".
+## Proves the lanes can actually GO RED, by running each against a deliberately broken Swift
+## router. It also reports failability per ROW, which is the only place that number exists: on this
+## tree it reads 16 of 19 demonstrated, and names the 3 rows that are "recorded proven by a lane
+## whose ability to fail on THAT row is unproven" — along with what each of those three would need,
+## because all three were attempted and none has a lever through the shim.
 ##
 ## It was written as a script rather than a paragraph of evidence "for one reason: a paragraph is
 ## re-run by nothing" — and then nothing re-ran the script either. It appeared in no Makefile target

@@ -16,11 +16,25 @@
 #   |---------|----------------------------------------|--------------------|
 #   | cli     | one word of stdout altered             | the stdout diff |
 #   | cli     | the product name altered on BOTH streams | help, usage, status, index, refresh, tools |
-#   | mcp     | --idle-ms forced to 999999             | pool-p4 / pool-reap-traffic |
-#   | mcp     | the Swift side serves toolset `b`      | tools/list and tools/call |
+#   | mcp     | --idle-ms forced to 999999             | pool-reap-traffic, mcp-status |
+#   | mcp     | the Swift side serves toolset `b`      | tools/list |
 #   | log     | --idle-ms forced to 999999             | the reap lines, and the idle-window line |
 #   | state   | served from an empty config            | the tools/list corpus |
 #   | install | the binary exits immediately            | RunAtLoad never comes up |
+#   | mcp     | a phantom server in servers.json       | mcp-health |
+#   | mcp     | FIXTURE_CALL_SUFFIX on every upstream  | mcp-tools-call |
+#   | mcp     | --idle-ms forced to 50                 | pool-reap-traffic (see below) |
+#   | cli     | one extra stdout line from `status`    | cli-status |
+#   | cli     | one extra stdout line from `import`    | cli-import |
+#   | cli     | one extra line before `serve` starts   | cli-serve |
+#
+# The last six were added by `D-g1-e`, which measured that eight of the nineteen rows had never
+# been shown able to fail. Five of them hit their target and the roll-up moved from 11 of 19 to
+# 16 of 19. The sixth did not: `--idle-ms 50` was aimed at `pool-p4` and the row stayed green,
+# because the router withholds reaping on a call being OUTSTANDING rather than on the timer, so no
+# idle window can break it. That seed is kept — it reddens `pool-reap-traffic` from the opposite
+# direction to the 999999 one — but it is NOT counted as demonstrating the row it was aimed at.
+# The roll-up at the end says which three rows remain and exactly what each would need.
 #
 # One defect does NOT exercise every row its lane owns, and this script used to report only
 # "every lane went red", which invited the reader to assume it did. It now prints a per-row
@@ -38,7 +52,13 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 REAL_BIN="${SWIFT_BIN:-$REPO_ROOT/app/.build/debug/MCPRouterCLI}"
 WORK="$(mktemp -d -t parity-selftest)"
-trap 'rm -rf "$WORK"' EXIT
+
+# D-g1-g. This selftest seeds ports 8981-8986 and 8996-8997, two of which are the gate's own
+# `state` and `install` defaults, so `make parity` and `make parity-selftest` genuinely contend.
+. "$REPO_ROOT/scripts/acceptance/parity-lock.sh"
+cleanup() { parity_lock_release; rm -rf "$WORK"; }
+trap cleanup EXIT INT TERM HUP
+parity_lock_acquire "parity-lane-selftest.sh"
 
 [ -x "$REAL_BIN" ] || { echo "environment: no Swift router at $REAL_BIN"; exit 2; }
 
@@ -123,6 +143,79 @@ case "$MODE" in
     # Comes up and dies. launchd's RunAtLoad brings it back, and it dies again.
     exit 1
     ;;
+  # ------------------------------------------------------------------------------------- D-g1-e
+  # Six further defects, one per row that the four original seeds never reddened. Each is aimed at
+  # ONE row's own assertion rather than at whatever was easiest to break, because a seed that
+  # reddens a lane through some other row demonstrates that other row and leaves this one exactly
+  # as unproven as before.
+  reap)
+    # The mirror of `idle`. That one makes the router never reap and reddens `pool-reap-traffic`;
+    # this one makes it reap almost immediately, which is what `pool-p4` asserts cannot happen —
+    # a call still outstanding must survive the idle window.
+    args=(); skip=0
+    for a in "$@"; do
+      if [ "$skip" = 1 ]; then skip=0; continue; fi
+      if [ "$a" = "--idle-ms" ]; then skip=1; continue; fi
+      args+=("$a")
+    done
+    exec "$REAL" "${args[@]}" --idle-ms 50
+    ;;
+  healthskew)
+    # A server the reference does not have, so `GET /health` enumerates a different set. Aimed at
+    # `mcp-health`, whose comparison is the whole status/headers/body of that one response.
+    if [ -n "${MCP_ROUTER_HOME:-}" ] && [ -f "$MCP_ROUTER_HOME/servers.json" ]; then
+      python3 - "$MCP_ROUTER_HOME/servers.json" <<'PY'
+import json, sys
+path = sys.argv[1]
+try:
+    doc = json.load(open(path))
+except Exception:
+    sys.exit(0)
+doc.setdefault('mcpServers', {})['seeded-phantom'] = {'command': '/bin/echo', 'args': ['phantom']}
+json.dump(doc, open(path, 'w'))
+PY
+    fi
+    exec "$REAL" "$@"
+    ;;
+  callskew)
+    # The fixture appends FIXTURE_CALL_SUFFIX to every tools/call result, so the Swift side's call
+    # ANSWERS differ while the tool LIST stays identical. Aimed at `mcp-tools-call`: seeding a
+    # toolset changes what is listed and leaves every call result the same, which is why the
+    # original `toolset` seed demonstrated `mcp-tools-list` and never this row.
+    if [ -n "${MCP_ROUTER_HOME:-}" ] && [ -f "$MCP_ROUTER_HOME/servers.json" ]; then
+      python3 - "$MCP_ROUTER_HOME/servers.json" <<'PY'
+import json, sys
+path = sys.argv[1]
+try:
+    doc = json.load(open(path))
+except Exception:
+    sys.exit(0)
+for entry in doc.get('mcpServers', {}).values():
+    if isinstance(entry, dict) and 'command' in entry:
+        entry.setdefault('env', {})['FIXTURE_CALL_SUFFIX'] = '-seeded'
+json.dump(doc, open(path, 'w'))
+PY
+    fi
+    exec "$REAL" "$@"
+    ;;
+  statusskew)
+    # One extra line on stdout, for `status` alone. Gated on the verb so the seed cannot redden a
+    # different cli row and be counted as this one.
+    [ "${1:-}" = "status" ] && printf 'seeded: an extra line from status\n'
+    exec "$REAL" "$@"
+    ;;
+  importskew)
+    [ "${1:-}" = "import" ] && printf 'seeded: an extra line from import\n'
+    exec "$REAL" "$@"
+    ;;
+  serveskew)
+    # `cli-serve` compares the WHOLE of what serve wrote, so one extra line before the router starts
+    # is enough. Printed BEFORE `exec` deliberately: wrapping `serve` instead would leave the shim
+    # holding the pid the lane signals, and killing the shim orphans a listening router — which has
+    # already happened in this harness and stranded a port.
+    [ "${1:-}" = "serve" ] && printf 'seeded: an extra line before serve\n'
+    exec "$REAL" "$@"
+    ;;
   *)
     exec "$REAL" "$@"
     ;;
@@ -134,8 +227,8 @@ SHIM
 
 failures=0
 blocked=0
-check() { # lane defect ports...
-  local lane="$1" defect="$2"; shift 2
+check() { # lane defect expected-row ports...
+  local lane="$1" defect="$2" expect="$3"; shift 3
   printf '  %-8s seeded with %-12s ... ' "$lane" "$defect"
   : > "$WORK/results.tsv"
   local shim; shim="$(make_shim "$defect")"
@@ -172,6 +265,20 @@ check() { # lane defect ports...
     return
   fi
   echo "went red ($reds of $rows rows failed)"
+  # A lane going red is not the same as the SEEDED ROW going red. A seed aimed at `mcp-health` that
+  # actually trips `mcp-status` reddens the lane, satisfies every check above, and leaves the row it
+  # was written for exactly as undemonstrated as before — while the roll-up counts it. That is the
+  # miscount this whole script exists to prevent, one level down, and an oracle changing later is
+  # precisely when it would happen silently.
+  if [ "$expect" != "-" ]; then
+    if awk -F'\t' -v want="$expect" '$3 == "fail" && $2 == want { found = 1 }
+        END { exit found ? 0 : 1 }' "$WORK/results.tsv"; then
+      printf '      (aimed at %s, and %s went red)\n' "$expect" "$expect"
+    else
+      printf '      SEED MISSED ITS TARGET: aimed at %s, which did NOT go red\n' "$expect"
+      failures=$((failures + 1))
+    fi
+  fi
   awk -F'\t' '$3 == "fail" { print $1 "/" $2 }' "$WORK/results.tsv" >> "$WORK/failable.txt"
   awk -F'\t' '$3 == "fail" { printf "      %s/%s: %s\n", $1, $2, substr($4, 1, 120) }' \
     "$WORK/results.tsv"
@@ -182,13 +289,27 @@ echo
 
 # Ports distinct from the ones the lanes use by default, so a self-test can run while nothing else
 # is in flight and still never collide with 8975/8976.
-check cli     stdout      env CLI_PORT=8981
-check cli     streams     env CLI_PORT=8981
-check mcp     idle        env MCP_TS_PORT=8982 MCP_SWIFT_PORT=8983 MCP_HUB_PORT=8996
-check mcp     toolset     env MCP_TS_PORT=8982 MCP_SWIFT_PORT=8983 MCP_HUB_PORT=8997
-check log     idle        env LOG_PORT=8984
-check state   emptyconfig env STATE_PORT=8985
-check install nostart     env INSTALL_PORT=8986
+check cli     stdout      -                  env CLI_PORT=8981
+check cli     streams     -                  env CLI_PORT=8981
+check mcp     idle        pool-reap-traffic  env MCP_TS_PORT=8982 MCP_SWIFT_PORT=8983 MCP_HUB_PORT=8996
+check mcp     toolset     mcp-tools-list     env MCP_TS_PORT=8982 MCP_SWIFT_PORT=8983 MCP_HUB_PORT=8997
+check log     idle        log-bytes          env LOG_PORT=8984
+check state   emptyconfig state-ondisk-compat env STATE_PORT=8985
+check install nostart     install-launchd-serve env INSTALL_PORT=8986
+
+# D-g1-e — six seeds aimed at rows the four above never reddened. The checks run serially, so the
+# ports are reused rather than multiplied. Each names the row it is aimed at, and `check` fails if
+# that row does not go red — a seed that reddens a lane through some OTHER row would otherwise be
+# counted as demonstrating this one.
+#
+# `reap` names pool-reap-traffic, not pool-p4. It was WRITTEN for pool-p4 and did not move it, so
+# it is declared against what it actually demonstrates rather than what was hoped for.
+check mcp     healthskew  mcp-health         env MCP_TS_PORT=8982 MCP_SWIFT_PORT=8983 MCP_HUB_PORT=8996
+check mcp     callskew    mcp-tools-call     env MCP_TS_PORT=8982 MCP_SWIFT_PORT=8983 MCP_HUB_PORT=8997
+check mcp     reap        pool-reap-traffic  env MCP_TS_PORT=8982 MCP_SWIFT_PORT=8983 MCP_HUB_PORT=8996
+check cli     statusskew  cli-status         env CLI_PORT=8981
+check cli     importskew  cli-import         env CLI_PORT=8981
+check cli     serveskew   cli-serve          env CLI_PORT=8981
 
 # Which rows this actually demonstrates, and which it does not.
 #
@@ -219,6 +340,21 @@ if [ -n "$missing" ]; then
   echo "  NOT demonstrated:"
   for row in $missing; do echo "    $row"; done
   echo "  These rows are recorded proven by a lane whose ability to fail on THAT row is unproven."
+  echo
+  echo "  Three of them were ATTEMPTED and have no lever here, which is a different fact from"
+  echo "  never having been tried, and is recorded so the next runner does not repeat the attempt:"
+  echo "    pool/pool-p4         seeded with --idle-ms 50 and the row still passed. The router"
+  echo "                         withholds reaping on a call being OUTSTANDING, not on the timer,"
+  echo "                         so no idle window can break it."
+  echo "    mcp/mcp-endpoint     the four framing refusals and the 404 are decided entirely inside"
+  echo "                         the HTTP layer."
+  echo "    divergence/div-r2r-d8 asserts the two parser texts DIFFER, so reddening it means making"
+  echo "                         them agree."
+  echo "  All three need a fault injected into a response the router has already composed. Every"
+  echo "  seed here works through the shim — arguments, \$MCP_ROUTER_HOME files, or refusing to"
+  echo "  start — and none of those reaches a composed response. Closing them needs either a"
+  echo "  mangling proxy in front of the Swift router or a fault-injection hook in the product,"
+  echo "  and a hook in the product is the thing this harness has refused to add throughout."
 fi
 
 echo

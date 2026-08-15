@@ -24,11 +24,18 @@ PORT="${PORT:-8973}"
 HOME_DIR="$(mktemp -d -t mcprouter-acceptance)"
 ROUTER_PID=""
 
+# D-g1-g. Binds :8973, which parity-control.sh reaches through control-differential.sh, so this
+# script contends with a full gate run even though it is not one of its lanes.
+. "$ROOT/scripts/acceptance/parity-lock.sh"
+
 cleanup() {
+  parity_lock_release
   [ -n "$ROUTER_PID" ] && kill "$ROUTER_PID" 2>/dev/null || true
   rm -rf "$HOME_DIR"
 }
-trap cleanup EXIT
+trap cleanup EXIT INT TERM HUP
+
+parity_lock_acquire "control-client.sh"
 
 fail()    { echo "FAIL: $*" >&2; exit 1; }
 skip()    { echo "SKIP: $*" >&2; exit 2; }

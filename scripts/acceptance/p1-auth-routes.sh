@@ -38,12 +38,20 @@ pass=0
 fail=0
 declare -a failures=()
 
+# D-g1-g. This script binds :8983 with no `lsof` pre-guard of its own — measured, a collision here
+# surfaces as EADDRINUSE from the daemon and an exit 2, which is loud but only after a router has
+# been started and a scratch home built. The lock refuses before any of that.
+. "$REPO_ROOT/scripts/acceptance/parity-lock.sh"
+
 cleanup() {
+  parity_lock_release
   [ -n "$ROUTER_PID" ] && kill "$ROUTER_PID" 2>/dev/null
   wait "$ROUTER_PID" 2>/dev/null
   rm -rf "$HOME_DIR"
 }
-trap cleanup EXIT
+trap cleanup EXIT INT TERM HUP
+
+parity_lock_acquire "p1-auth-routes.sh"
 
 [ -x "$SWIFT_BIN" ] || { echo "environment: no MCPRouterCLI at $SWIFT_BIN (run: make build or swift build --package-path app)"; exit 2; }
 command -v curl >/dev/null 2>&1 || { echo "environment: curl is not installed"; exit 2; }

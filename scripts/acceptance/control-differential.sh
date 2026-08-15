@@ -53,12 +53,19 @@ ROUTER_PID=""
 # response body, which reads as 28 divergences in the port rather than one defect in this script.
 # `$$` is the top-level shell and does not change in a subshell; `$BASHPID` does.
 MAIN_PID=$$
+# D-g1-g. Release sits INSIDE the BASHPID guard above deliberately: the same subshell inheritance
+# that killed the router mid-run would otherwise drop the lock mid-run, letting a second run bind
+# :8973 underneath this one. `parity_lock_release` carries its own BASHPID guard as well, so this
+# is belt and braces on the failure this script already paid for once.
+. "$REPO_ROOT/scripts/acceptance/parity-lock.sh"
 cleanup() {
   [ "$BASHPID" != "$MAIN_PID" ] && return 0
+  parity_lock_release
   [ -n "$ROUTER_PID" ] && kill "$ROUTER_PID" 2>/dev/null || true
   rm -rf "$HOME_DIR"
 }
-trap cleanup EXIT
+trap cleanup EXIT INT TERM HUP
+parity_lock_acquire "control-differential.sh"
 
 command -v node >/dev/null 2>&1 || { echo "environment: node is not installed"; exit 2; }
 command -v curl >/dev/null 2>&1 || { echo "environment: curl is not installed"; exit 2; }

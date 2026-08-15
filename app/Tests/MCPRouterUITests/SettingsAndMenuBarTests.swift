@@ -225,14 +225,31 @@
         ///
         /// The stack is found by its own spacing token rather than by line number, so an edit above
         /// it does not silently make this read a different block.
+        ///
+        /// **Its closing brace is found at the opener's own indentation, computed rather than
+        /// written down.** This used to search for a literal `"\n" + 20 spaces + "}"`, which made
+        /// the helper robust to edits *above* the stack — as the paragraph above claims — and
+        /// brittle to a change in the stack's own nesting depth, which the claim does not cover.
+        /// D2 removed the redundant `ScrollView` that wrapped this stack; the four groups were
+        /// unchanged, the assertion was still true, and the helper dedented by four spaces, missed
+        /// its terminator, ran on to the next 20-space brace and returned **thirty-six** lines of
+        /// the rest of the file. A28 failed while the property it guards held perfectly.
+        ///
+        /// A slice terminator that encodes how deeply nested the code happens to be today is a
+        /// second, invisible assertion about nesting that nobody wrote and nobody wants.
         private static func groupStackBody(in source: String) throws -> [String] {
             let opener = "VStack(alignment: .leading, spacing: SettingsMetrics.groupGap) {"
             let after = try #require(
                 source.range(of: opener),
                 "the settings pane no longer composes its groups in a groupGap stack"
             )
+            // The whitespace between the previous newline and the opener — the depth this stack is
+            // written at, whatever that happens to be.
+            let lineStart = source[..<after.lowerBound].lastIndex(of: "\n")
+                .map { source.index(after: $0) } ?? source.startIndex
+            let indent = String(source[lineStart ..< after.lowerBound])
             let rest = source[after.upperBound...]
-            let close = try #require(rest.range(of: "\n                    }"), "the stack never closes")
+            let close = try #require(rest.range(of: "\n" + indent + "}"), "the stack never closes")
             return rest[..<close.lowerBound]
                 .components(separatedBy: "\n")
                 .map { $0.trimmingCharacters(in: .whitespaces) }

@@ -276,8 +276,17 @@ failures.
 
 - Sentence case everywhere — headers, labels, buttons.
 - Buttons are verb-first and name the action. "Send 2 to Mac", never "Submit" or "OK".
-- One name per state across both devices. A skill with no evaluation reads
-  "not evaluated" on the Mac and on the phone; never "no eval" on one of them.
+- One name per state across both devices, taken from one source rather than spelled twice. The
+  worked example is the router being unreachable: `ControlAPIError.routerNotRunning` carries the
+  wording, the Mac's popover quotes it verbatim, and the phone's Discover and Triage render the
+  same state rather than inventing a second phrasing for it.
+  **The example this rule used to carry named a state the product cannot be in.** It read *"a
+  skill with no evaluation reads 'not evaluated' on the Mac and on the phone"* — but there is no
+  eval runner in this product in any form: no eval endpoint on the control API, no eval field on
+  any wire type, and every board that could have drawn one dropped the column as fabricated
+  (Servers, Skills, Discover, Inbox). So the clause mandated a reading that the last bullet of
+  this same section forbids, and a runner implementing it faithfully would have shipped an
+  invented state. The rule is right and only its illustration was dead.
 - Errors state what happened and how to fix it, next to the thing that failed.
 - Helper text is one quiet secondary sentence under its control.
 - Numbers the router does not observe are never displayed. There is no fabricated memory

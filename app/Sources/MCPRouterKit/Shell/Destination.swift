@@ -58,6 +58,20 @@ public enum Destination: String, CaseIterable, Sendable, Identifiable {
     /// The label, and the window title while this destination is selected.
     ///
     /// `DESIGN.md` §3.7: the window title says what you are looking at, not the app's name.
+    ///
+    /// **`.evals` reads `Checks`, and the case name deliberately does not follow it.** M7 renamed
+    /// this concept when it built the board — `MCPRouterKit/Checks/` holds `CheckModels`,
+    /// `CheckCopy`, `CheckPresentation`, `ServerChecks` and `SkillChecks`, and `CheckCopy`'s
+    /// user-facing strings are check vocabulary throughout — but the label kept saying `Evals`,
+    /// which is the one word in the app that promises a grading verdict this product cannot
+    /// produce (there is no eval runner anywhere in it). So this closes a rename that was already
+    /// half-applied rather than introducing a name.
+    ///
+    /// The `rawValue`, the `iconName` and the deep-link slug stay `evals` on purpose: they are
+    /// **identifiers**, persisted in frame restoration and used by the prototype's `?pane=evals`
+    /// link, and `DESIGN.md` §6 governs words a user reads rather than keys a machine matches.
+    /// Aligning them would break restoration for anyone who has already run the app and every mock
+    /// link in `ORCHESTRATOR.md`, for no visible gain.
     public var title: String {
         switch self {
         case .activity: "Activity"
@@ -65,7 +79,7 @@ public enum Destination: String, CaseIterable, Sendable, Identifiable {
         case .skills: "Skills"
         case .discover: "Discover"
         case .inbox: "Inbox"
-        case .evals: "Evals"
+        case .evals: "Checks"
         case .cleanup: "Cleanup"
         case .settings: "Settings"
         }

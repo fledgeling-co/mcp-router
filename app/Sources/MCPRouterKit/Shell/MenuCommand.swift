@@ -253,7 +253,6 @@ public enum MenuCommand: Hashable, Sendable {
         case .quit: KeyChord("Q")
         case .addServer: KeyChord("N")
         case .addMarketplace: KeyChord("N", [.command, .shift])
-        case .exportLibrary: KeyChord("E")
         case .closeWindow: KeyChord("W")
         case .undo: KeyChord("Z")
         case .redo: KeyChord("Z", [.command, .shift])
@@ -274,7 +273,17 @@ public enum MenuCommand: Hashable, Sendable {
         // system** for the Help menu's own search field — it silently binds nothing. Verified by
         // binding `⌘J` to this same item in this same menu, which appeared immediately, so the
         // Help menu does not strip shortcuts and `⇧⌘/` specifically is unavailable.
-        case .about, .showAll, .pairPhone, .zoom, .bringAllToFront,
+        // `Export library…` deliberately carries **no** shortcut, for the same reason `MCP Router
+        // help` does not, and it used to carry `⌘E`. Two things are wrong with that and neither is
+        // about export. `DESIGN.md` §8's table is where this app's ⌘-combinations are granted and
+        // it never granted `⌘E`. And `⌘E` is a **standard macOS shortcut** already — Finder's
+        // *Eject*, and Cocoa's *Use Selection for Find* in any text context — so the app was
+        // claiming a system combination for a command that can never fire, since `exportLibrary` is
+        // `.featureUnbuilt` in every context. Same class as the `⌘?` draft below: a shortcut nobody
+        // can reach, discovered by reading rather than by measuring the key.
+        //
+        // The day export ships, §8 is the place that grants it a key, not this switch.
+        case .about, .showAll, .pairPhone, .exportLibrary, .zoom, .bringAllToFront,
              .help, .whatTheRouterDoes, .reportIssue: nil
         }
     }

@@ -137,10 +137,29 @@
         private static let boardsThatScrollThemselves: Set<Destination> = [.activity]
 
         /// The shell's own scroll view — the one the scroll-edge separator reads.
+        ///
+        /// **`alignment: .top` is load-bearing, and it was measured before it was added.** The
+        /// `minHeight` above hands every board 768pt whether it wants them or not, and SwiftUI's
+        /// default alignment is `.center` — so a board shorter than that is centred in the surplus.
+        /// Measured on the running app over the accessibility plane: the Servers board's first
+        /// element sat at `y = 400.5` against a content top of 191, a **209.5pt** drop, and its own
+        /// content measures ≈351pt, so `(768 − 351) / 2 = 208.5`. The arithmetic and the AX reading
+        /// agree, which is what makes this the mechanism rather than a guess.
+        ///
+        /// It belongs **here** rather than on the board because the frame that creates the surplus
+        /// is here. Six boards had already worked around it privately, each carrying its own
+        /// `.frame(maxHeight: .infinity, alignment: .topLeading)` — `SkillsBoard` even records "~170pt
+        /// of dead space above the header, measured in the acceptance capture". So one defect was
+        /// patched six times and fixed none, and the seventh board that never added the workaround
+        /// is the one that shipped it. Top alignment is the shell's contract now, so a board added
+        /// later inherits it instead of rediscovering it.
+        ///
+        /// Those six frames are deliberately **kept**: they also let `ConnectionFailurePane` fill
+        /// the pane in the `.failed` branch, which this alignment does not do for them.
         private func outerScroll(@ViewBuilder _ content: () -> some View) -> some View {
             ScrollView {
                 content()
-                    .frame(maxWidth: .infinity, minHeight: scrollableMinHeight)
+                    .frame(maxWidth: .infinity, minHeight: scrollableMinHeight, alignment: .top)
             }
             .onScrollGeometryChange(for: Double.self) { geometry in
                 geometry.contentOffset.y

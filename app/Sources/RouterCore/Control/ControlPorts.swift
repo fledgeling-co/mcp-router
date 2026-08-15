@@ -124,6 +124,31 @@ public struct AuthFlowSummary: Sendable, Hashable {
     }
 }
 
+/// Beginning a browser authorization — the reference's `beginAuth(name, authTransportFor(u))`.
+///
+/// **Optional on ``ControlDeps``**, because the collaborator behind it does not exist yet: no type
+/// conforms to ``AuthTransport``, so nothing can drive an OAuth exchange (`D-p1-a`). A handler that
+/// constructed the coordinator itself could not be told that, and would have to invent an answer
+/// for a flow it cannot drive. With this absent, a non-stdio `POST /servers/:name/auth` falls
+/// through to the 405 it has always answered rather than claiming a failure that never happened.
+public protocol AuthFlowStarting: Sendable {
+    /// Returns once the authorization URL is known. Throws on either pre-flow failure (B84), which
+    /// the route turns into a 502.
+    func begin(server: JSString, upstream: UpstreamConfig) async throws -> LiveFlow
+
+    /// Resolves when the flow terminates: returns on success, throws the rejection on failure, and
+    /// throws ``AuthAbandoned`` when the flow was superseded (B85).
+    ///
+    /// **``begin(server:upstream:)`` must arm this channel before it returns.** A flow that settles
+    /// between the two calls must still be reported here as authorized.
+    /// ``AuthFlowCoordinator/awaitCompletion(server:)`` does **not** satisfy that today — it throws
+    /// `no authorization is in flight` once the flow has settled, which would turn a *successful*
+    /// authorization into an `onIncomplete` warn with no `clearPending` and no re-index: the tokens
+    /// land on disk and the tools never appear. Registered as `D-p1-c`. The constraint lives here
+    /// so an implementer of `D-p1-a` meets it rather than rediscovering it.
+    func awaitCompletion(server: JSString) async throws
+}
+
 /// Everything the handler reads. Assembled by R2's router; every member is injectable, which is
 /// what makes S6 — the handler as a total function of its dependencies — testable rather than
 /// aspirational.
@@ -146,6 +171,14 @@ public struct ControlDeps: Sendable {
     /// Absent until R2 wires a real HTTP client. `/registry/search` is the one endpoint that
     /// reaches the network, so it is the one dependency that can legitimately be missing.
     public var registry: RegistryDeps?
+    /// The router's log. Optional because the in-process differential oracle has none, and because
+    /// every line the control API emits is a side effect rather than part of a response — a nil log
+    /// changes no status and no byte on the wire. `POST /servers/:name/approve` is the one route
+    /// that logs (B94).
+    public var log: RouterLog?
+    /// Starting a browser authorization. Nil until something conforms to ``AuthTransport``
+    /// (`D-p1-a`); see ``AuthFlowStarting`` for what its absence means on the wire.
+    public var authFlow: (any AuthFlowStarting)?
 
     public init(
         config: RouterConfig,
@@ -160,7 +193,9 @@ public struct ControlDeps: Sendable {
         fileSystem: any FileSystem & FileModeWriting = RealFileSystem(),
         tokenPath: String,
         configPath: String,
-        registry: RegistryDeps? = nil
+        registry: RegistryDeps? = nil,
+        log: RouterLog? = nil,
+        authFlow: (any AuthFlowStarting)? = nil
     ) {
         self.config = config
         self.upstreams = upstreams
@@ -175,6 +210,8 @@ public struct ControlDeps: Sendable {
         self.tokenPath = tokenPath
         self.configPath = configPath
         self.registry = registry
+        self.log = log
+        self.authFlow = authFlow
     }
 
     /// Lookup by JavaScript string identity — a composed key does not match a decomposed request,

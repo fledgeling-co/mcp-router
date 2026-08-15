@@ -4,9 +4,10 @@
 #
 # The ten verbs `src/index.ts` dispatches. Eight are compared here; two are not, and saying which is
 # the point of this header:
-#   · `cli-auth` is blocked on D-j. The verb exists on both sides, but the Swift router answers 405
-#     on `POST /servers/:name/auth` where the reference answers 400, because `AuthRoutes` is never
-#     reached from `ControlHandler`'s dispatch. Comparing the verb would compare that defect.
+#   · `cli-auth` is NOT blocked on D-j any more — P1 wired the dispatch and the control lane
+#     compares both routes green. It is blocked on this lane having no running router for the verb:
+#     `auth` POSTs to a live daemon and then polls the auth dir, and `run_both` starts none, so a
+#     comparison today would be two connection failures agreeing with each other. Tracked as D-p1-d.
 #
 # **stdout, stderr and the exit code are captured separately and compared separately.** They differ
 # per verb and a combined capture hides it: `status` writes "no router answering" to stdout and sets
@@ -338,6 +339,9 @@ echo
 echo "cli: $pass verbs agreed, $fail did not"
 echo "     Every row is a simultaneous comparison of two binaries over identical inputs, with"
 echo "     stdout, stderr and the exit code compared separately."
-echo "     cli-auth stays blocked on D-j and is not claimed here."
+echo "     cli-auth is NOT claimed here, and D-j is no longer why: P1 dispatched the route and"
+echo "     the control lane now compares it green. What blocks it is this lane — \`auth\` POSTs to a"
+echo "     RUNNING router and then polls the auth dir, and run_both starts none, so comparing it"
+echo "     today would compare two connection failures agreeing. Needs a serve_side-backed row."
 [ "$fail" -gt 0 ] && exit 1
 exit 0

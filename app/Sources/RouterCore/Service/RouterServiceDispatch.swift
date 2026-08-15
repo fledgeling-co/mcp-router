@@ -126,7 +126,15 @@ extension RouterService {
             clock: clock,
             fileSystem: fileSystem,
             tokenPath: tokenPath,
-            configPath: configPath
+            configPath: configPath,
+            // B94's `approved "<name>"'s new tool surface (N tools)` is emitted by
+            // `AuthRoutes.approve`, which takes the log as a parameter. Without this the daemon
+            // passed nil and the line was unemittable in the one process that ships — the route
+            // would answer correctly and log nothing, which no response assertion can see.
+            log: log
+            // `authFlow:` is deliberately left at nil. Nothing conforms to `AuthTransport` yet
+            // (`D-p1-a`), so there is no flow to begin; supplying a starter that could only fail
+            // would be worse than the honest 405 the absence produces. See `AuthFlowStarting`.
         )
         let handler = ControlHandler(token: token)
         let response = await handler.handle(

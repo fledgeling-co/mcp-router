@@ -345,7 +345,8 @@ fi
 # parameter, so an unauthorized case there proves nothing about the wire.
 echo
 echo "6f — the token gate on the live router"
-for probe in "POST /servers" "DELETE /servers/diff-stdio" "PATCH /servers/diff-stdio"; do
+for probe in "POST /servers" "DELETE /servers/diff-stdio" "PATCH /servers/diff-stdio" \
+             "POST /servers/diff-stdio/approve" "POST /servers/diff-stdio/auth"; do
   set -- $probe
   code="$(curl -sS -m 10 -o /dev/null -w '%{http_code}' -X "$1" \
           -H 'content-type: application/json' --data-binary '{}' \
@@ -432,51 +433,39 @@ diverges control-server-get div-r3-d5 "GET a truncated escape kills it"      GET
   "400" '{"error":"URI malformed"}'
 
 # ---------------------------------------------------------------------------------------------
-# R4 — the two routes where this port is simply WRONG, asserted rather than left uncompared.
+# P1 — the two routes that used to be asserted here as KNOWN DEFECTS, now compared for real.
 #
-# `AuthRoutes.approve` and `AuthRoutes.authStart` are implemented in RouterCore and are never
-# wired into `ControlHandler`'s dispatch, which carries only ("/auth", "DELETE"). Both functions
-# are unit-tested in isolation and neither is reachable over the wire, so a fixture suite and a
-# unit suite both pass while the port answers 405 to a route the reference answers.
+# `AuthRoutes.approve` and `AuthRoutes.authStart` were both implemented by R5, both unit-tested,
+# and both reachable by nothing: `ControlHandler`'s dispatch carried ("/auth", "DELETE") and no
+# POST arm at all, so the wire answered 405 to two routes the reference answers. That was `D-j`,
+# and this file used to hold a `known_defect` helper asserting the defect in BOTH directions so it
+# could not be mistaken for coverage.
 #
-# Asserted in BOTH directions, like the divergences above: the row passes only when the reference
-# really answers what it answers AND Swift really answers 405. The moment D-j is fixed this row
-# goes red and says the record is stale — which is the only way a "known defect" list stays honest.
-# It is recorded as a FAILING manifest row regardless, because a known defect is not parity.
-known_defect() {
-  local id="$1" label="$2" method="$3" target="$4" body="$5" ts_want="$6" swift_want="$7"
-
-  kill -0 "$ROUTER_PID" 2>/dev/null || start_router
-
-  local args=(-sS -m 5 -o "$HOME_DIR/k.body" -w '%{http_code}' -X "$method"
-              "http://127.0.0.1:$PORT$target" -H "x-mcpr-token: $TOKEN"
-              -H 'content-type: application/json' --data-binary "$body")
-  local ts_code; ts_code="$(curl "${args[@]}" 2>/dev/null || echo 000)"
-  local ts_body; ts_body="$(cat "$HOME_DIR/k.body")"
-
-  local swift_out; swift_out="$("$SWIFT_BIN" "$method" "$target" "$body" 2>&1)" || true
-  local swift_status; swift_status="$(printf '%s' "$swift_out" | head -1)"
-
-  if [ "$ts_code" = "$ts_want" ] && [ "$swift_status" = "$swift_want" ]; then
-    printf '  DEFECT %-42s ts=%s swift=%s (D-j)\n' "$label" "$ts_code" "$swift_status"
-    printf '         ts:    %s\n' "$ts_body"
-    fail=$((fail + 1)); failures+=("$label (known defect D-j)")
-    record "$id" fail "known defect D-j: ts=$ts_code swift=$swift_status — AuthRoutes is not dispatched"
-  else
-    printf '  STALE  %-42s ts=%s (wanted %s) swift=%s (wanted %s)\n' \
-      "$label" "$ts_code" "$ts_want" "$swift_status" "$swift_want"
-    printf '         The recorded defect no longer describes either side. Re-measure before trusting it.\n'
-    fail=$((fail + 1)); failures+=("stale defect record: $label")
-    record "$id" fail "stale defect record: $label"
-  fi
-}
-
+# `D-r2r-c` is the instruction that the helper had to go in the SAME change that fixed D-j —
+# otherwise the harness reports a failure *because* the defect was fixed, which is the worst kind
+# of red. P1 did both, so the helper is deleted rather than left dead and these are ordinary
+# `compare` rows.
+#
+# `compare` and not `compare_mutating`: neither request issued here writes anything. `/approve`
+# against a server with no pending change returns 409 before any write, and `/auth` against a
+# stdio server returns 400 before any flow begins or any port is bound. A mutating harness would
+# snapshot and restore `servers.json` around two requests that never touch it.
+#
+# The non-stdio half of `/auth` is NOT compared here, and its absence is not agreement: the
+# reference answers 200 with an authorization URL and this router answers 405, because nothing
+# conforms to `AuthTransport` yet. That is carried as its own manifest row, `control-auth-post-http`,
+# blocked on `D-p1-a` — declared rather than left to look like parity.
 echo
-echo "R4 — known defects, asserted so they cannot be mistaken for coverage"
-known_defect control-approve-post "POST /servers/:name/approve" POST "/servers/diff-stdio/approve" '{}' \
-  "409" "405"
-known_defect control-auth-post    "POST /servers/:name/auth"    POST "/servers/diff-stdio/auth" '{}' \
-  "400" "405"
+echo "P1 — the two auth routes, reachable at last"
+# The two rows immediately above kill the reference on purpose — that IS `div-r3-d4`/`d5`, an
+# unhandled `URIError` in `decodeURIComponent`. The deleted `known_defect` helper carried this same
+# guard for the same reason; `compare` does not restart on its own, and without it every row below
+# reports "the reference exited" (exit 2) rather than comparing anything.
+kill -0 "$ROUTER_PID" 2>/dev/null || start_router
+compare control-approve-post    "POST /servers/:name/approve"        POST "/servers/diff-stdio/approve" '{}'
+compare control-auth-post       "POST /servers/:name/auth"           POST "/servers/diff-stdio/auth" '{}'
+compare control-approve-post    "approve on an unknown server"       POST "/servers/nope/approve" '{}'
+compare control-auth-post       "POST auth on an unknown server"     POST "/servers/nope/auth" '{}'
 
 # ---------------------------------------------------------------------------------------------
 # R4 — the mutating routes. R3's matrix compared only their error paths, so the success path of

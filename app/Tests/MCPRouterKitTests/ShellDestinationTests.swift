@@ -79,4 +79,32 @@ struct ShellDestinationTests {
         #expect(Set(names).count == names.count, "two destinations draw the same icon")
         #expect(names.allSatisfy { !$0.isEmpty })
     }
+
+    /// **The label reads `Checks`; the identifier stays `evals`. Both halves are deliberate, and
+    /// until now neither was pinned.**
+    ///
+    /// M9 renamed the one word in this app that promised a graded verdict the product cannot
+    /// produce — there is no eval runner in it, in any form. What a user reads moved. What a machine
+    /// matches did not: the `rawValue` is persisted by frame restoration and used by the prototype's
+    /// `?pane=evals` deep link, so aligning it would silently break restoration for anyone who had
+    /// already run the app, and every mock link with it.
+    ///
+    /// Nothing in the suite held either fact. An out-of-family critic pointed out that the
+    /// acceptance script forbids the *old* word without ever asserting the *current* strings agree,
+    /// so a third spelling — `Health`, say, on the pane heading alone — would have left the sidebar
+    /// and the pane it opens disagreeing with every gate green. `CheckCopy.evalsTitle` is now
+    /// derived from this property rather than spelled again, and this is the guard for anyone who
+    /// re-inlines the literal.
+    @Test("the destination reads Checks, and its restoration key is still evals")
+    func evalsReadsAsChecksWithoutMovingItsKey() {
+        #expect(Destination.evals.title == "Checks")
+        #expect(CheckCopy.evalsTitle == Destination.evals.title)
+
+        // The identifier half. `restoring` is the path a relaunch actually takes.
+        #expect(Destination.evals.rawValue == "evals")
+        #expect(Destination.restoring("evals") == .evals)
+
+        // And the word is gone from every label a user reads, rather than from this one only.
+        #expect(!Destination.allCases.contains { $0.title == "Evals" })
+    }
 }

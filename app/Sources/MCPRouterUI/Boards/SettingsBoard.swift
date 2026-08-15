@@ -64,19 +64,30 @@
             return nil
         }
 
+        /// **This board does not install a `ScrollView` of its own, and that is a correction rather
+        /// than an omission.** It used to wrap its four groups in one while sitting *inside* the
+        /// shell's — measured over the accessibility plane, Settings published **three**
+        /// `AXScrollArea`s where every other board published two, the inner one `716×699` nested in
+        /// a `716×568` parent. An inner scroll view taller than its own viewport is not the thing
+        /// that scrolls, so the outer one moved, and the header this arrangement existed to keep
+        /// still travelled with it.
+        ///
+        /// `ShellWindow.boardsThatScrollThemselves` states the criterion for owning a scroll view:
+        /// **sticky chrome** — a column header or filter bar that must not ride a five-hundred-row
+        /// log off the top. That is Activity. Settings has a pane title and a subtitle, which is
+        /// what Servers, Skills, Discover, Inbox, Checks and Cleanup all have, and all six of them
+        /// scroll inside the shell. So the registry was right and this board was the anomaly.
         var body: some View {
             VStack(alignment: .leading, spacing: 0) {
                 header
-                ScrollView {
-                    VStack(alignment: .leading, spacing: SettingsMetrics.groupGap) {
-                        routerGroup
-                        menuBarGroup
-                        warmSetGroup
-                        tokenGroup
-                    }
-                    .padding(.horizontal, SettingsMetrics.panePadding)
-                    .padding(.bottom, SettingsMetrics.panePadding)
+                VStack(alignment: .leading, spacing: SettingsMetrics.groupGap) {
+                    routerGroup
+                    menuBarGroup
+                    warmSetGroup
+                    tokenGroup
                 }
+                .padding(.horizontal, SettingsMetrics.panePadding)
+                .padding(.bottom, SettingsMetrics.panePadding)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .task { await model.load(unauthorized: offlineError == .unauthorized) }

@@ -66,7 +66,7 @@ what exists and what it is bound to, the model for what it can do right now.
 | File | Add server… | ⌘N | surfaceAbsent |
 | File | Add marketplace… | ⇧⌘N | surfaceAbsent |
 | File | Pair iPhone… | — | surfaceAbsent |
-| File | Export library… | ⌘E | featureUnbuilt |
+| File | Export library… | — | featureUnbuilt |
 | File | Close | ⌘W | enabled |
 | Edit | Undo | ⌘Z | enabled |
 | Edit | Redo | ⇧⌘Z | enabled |
@@ -82,7 +82,7 @@ what exists and what it is bound to, the model for what it can do right now.
 | View | Skills | ⌘3 | enabled |
 | View | Discover | ⌘4 | enabled |
 | View | Inbox | ⌘5 | enabled |
-| View | Evals | ⌘6 | enabled |
+| View | Checks | ⌘6 | enabled |
 | View | Cleanup | ⌘7 | enabled |
 | View | Show sidebar | ⌃⌘S | enabled |
 | Window | Minimize | ⌘M | enabled |
@@ -169,7 +169,7 @@ launched and driven through the accessibility tree, which is the lane
 
 | # | Clause | Evidence type |
 |---|---|---|
-| A11 | The sidebar carries exactly two named groups in order — **Running** (Activity, Servers, Skills) and **Library** (Discover, Inbox, Evals, Cleanup) — plus an ungrouped **Settings** | red-green test over the destination model |
+| A11 | The sidebar carries exactly two named groups in order — **Running** (Activity, Servers, Skills) and **Library** (Discover, Inbox, Checks, Cleanup) — plus an ungrouped **Settings** | red-green test over the destination model |
 | A12 | Group headers are **sentence case**, never tracked uppercase, and no uppercasing transform is applied anywhere in the shell (§3.2) | red-green test on the literal strings and on the absence of a case transform |
 | A13 | Badges derive only from what the router reports: Servers = count where `needsAttention`, Cleanup = count where `neverUsed`. **Skills and Inbox carry no badge** — Skills has no endpoint at all, and Inbox means the *phone's review queue* (§9), which M6 owns and which the router does not serve today. `heldChanges` is **not** an inbox: it is a server's held tool-surface change and is already counted by `needsAttention` on the Servers badge | red-green test per derivation against fixtures, plus a test that fails if a badge is introduced for a destination with no router-observed source |
 | A14 | A four-digit badge does not change a row's height or move its icon; the **label** truncates and the badge does not | measurement at a forced overflow |
@@ -208,7 +208,7 @@ launched and driven through the accessibility tree, which is the lane
 | A37 | Every state above renders with **no router running**, against the fixture double | the suite passing on a machine with no daemon |
 
 **Explicitly out of scope for M1.** The boards that fill the content zone — Activity (M2),
-Servers (M3), Skills (M4), Discover (M5), Inbox (M6), Evals/Cleanup (M7), Settings (M8). Also:
+Servers (M3), Skills (M4), Discover (M5), Inbox (M6), Checks/Cleanup (M7), Settings (M8). Also:
 the menu-bar extra (`NSStatusItem`) and its popover, any sheet, the inspector, daemon
 lifecycle, pairing, and any change to the TypeScript router or `install.sh`.
 

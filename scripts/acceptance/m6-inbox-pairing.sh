@@ -201,7 +201,7 @@ echo "=============================================================="
 # The one sweep this script performs, and it is justified: M6's claim is that the sentence has left
 # the *product*, which is not a claim about one pane. It is cheap — one selection each, one dump —
 # and it is the only run in the fleet that can make it.
-for dest in Activity Servers Skills Discover Inbox Evals Cleanup Settings; do
+for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
     "$AXKIT" select "$PID" "$dest" >/dev/null || fail "could not select $dest"
     sleep 1
     dump

@@ -624,6 +624,12 @@ threshold, the speculation column, the hardcoded window and the skill `Remove` b
 2. **The destination keeps the name "Evals".** `Destination.title` is a merged shared surface;
    renaming it to "Checks" is reported, not made. The permanent subtitle carries the disclosure,
    which is why it is a subtitle and not a footnote.
+   > **Superseded 2026-08-16 by D2 (M9). The rename was made.** The sidebar row, the window title,
+   > the View-menu item, this board's own heading and the Skills footer all read `Checks`; the enum
+   > case, its `rawValue` and the `?pane=evals` deep-link slug deliberately still read `evals`,
+   > because restoration and the prototype's links persist them. This note exists because the
+   > assumption above, left standing, reads as an instruction to put `Evals` back — an out-of-family
+   > critic flagged exactly that. `ShellDestinationTests` now pins both halves.
 3. **Check history is persisted locally, bounded at 20 runs per subject.** The brief asks for
    history across versions and the router stores none.
 4. **The observation track's reference is 30 days.** A rendering scale, labelled, with the real

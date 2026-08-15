@@ -45,10 +45,23 @@ public enum SkillPresentation {
     /// This sentence is why there is no runs column and no eval column. Saying it once is a claim
     /// that is true; an empty cell on every row would be a claim about each skill that the router
     /// cannot make, because it cannot tell "never run" from "run constantly, invisibly to me".
+    ///
+    /// **It used to end "evaluations arrive with Evals", and both halves of that were wrong.**
+    /// `Evals` is a pane name that no longer exists — M9 renamed the sidebar row, the window title,
+    /// the View-menu item and the board's own heading to `Checks`, and a forward reference left
+    /// pointing at the old word sends a reader to a row that is not there. `spec-M7.md:45` had
+    /// already recorded this sentence as a finding and left it.
+    ///
+    /// The worse half is the promise. There is **no eval runner in this product in any form**, so
+    /// "evaluations arrive" named a future the product has no route to, and it contradicted the very
+    /// pane it pointed at: `CheckCopy.evalsSubtitle` tells the reader, permanently, that "No
+    /// model-graded evaluation exists in this product." One surface promised what the other denied.
+    /// The replacement points at Checks for what the router *did* observe and repeats the denial
+    /// rather than contradicting it.
     public static let observationFooter = """
     Run counts and evaluation results are not shown. A skill is loaded into an agent's context by \
-    the client and never reaches the router, so the router does not see it run; evaluations arrive \
-    with Evals.
+    the client and never reaches the router, so the router does not see it run. Checks reports what \
+    the router observed for itself, and no model-graded evaluation exists in this product.
     """
 
     // MARK: - Filters

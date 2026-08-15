@@ -158,15 +158,54 @@ TITLE="$("$AXKIT" title "$PID" 2>/dev/null || true)"
   || fail "§3.7 · the window title is '$TITLE', not 'Settings'"
 
 # A9 — the disabled control dims **in place** and carries its reason, rather than disappearing.
-if grep -q "Forget the stored token" "$WORK/settings.txt"; then
-    pass "A9 · 'Forget the stored token' is present rather than hidden"
-    if grep -q "There is no stored token to forget\." "$WORK/settings.txt"; then
-        pass "A9 · its reason is on the element, readable by assistive technology"
-    else
-        fail "A9 · the disabled control carries no reason"
-    fi
-else
+#
+# This asserts the PAIRING §3.4 actually specifies — "disabled dims in place with a discoverable
+# reason" — rather than the presence of one string. The difference is not academic; the old form
+# was:
+#
+#     grep -q "Forget the stored token"      -> pass
+#     grep -q "There is no stored token…"    -> pass, else FAIL "carries no reason"
+#
+# which demands the reason **unconditionally**, of a control that is only sometimes disabled.
+# `SettingsPresentation.TokenStatus.canForget` is true for `.stored` and `.rejected`, and in those
+# two states the button is correctly ENABLED and correctly carries no reason — §3.4 asks for a
+# reason on a disabled control, not on every control. So the old check failed a correct app.
+#
+# **And it was self-poisoning, which is why it looked intermittent.** Measured here, same tree,
+# same binary, same scenario, back to back:
+#
+#     run 1, keychain clean   -> 21 passed, 0 failed, exit 0
+#     run 2, keychain primed  -> 20 passed, 1 failed, exit 1   (this assertion alone)
+#
+# The app's first run reads the router's token file and stores the token in this Mac's keychain, so
+# the status moves `.absent` -> `.stored`, `canForget` flips false -> true, and the button becomes
+# legitimately enabled. **Running this script once changes the machine state that decides its own
+# next verdict.** That is the whole of the 19/2 -> 20/1 -> 21/0 drift across G1 and D2; it was never
+# flaky, and it was never a product defect. `SettingsBoard.forgetButton` has always set
+# `.disabled()`, `.help()` and `.accessibilityHint()` together.
+#
+# The form below is true in both states and stronger in both directions: a disabled control with no
+# reason fails, and so does an enabled control that carries one.
+FORGET_ROW="$(awk -F'\t' '$6 == "Forget the stored token" { print; exit }' "$WORK/settings.txt")"
+if [ -z "$FORGET_ROW" ]; then
     fail "A9 · the forget control disappeared instead of dimming in place"
+else
+    pass "A9 · 'Forget the stored token' is present rather than hidden"
+    FORGET_ENABLED="$(printf '%s' "$FORGET_ROW" | awk -F'\t' '{ print $8 }')"
+    FORGET_REASON="$(printf '%s' "$FORGET_ROW" | awk -F'\t' '{ print $7 }')"
+    if [ "$FORGET_ENABLED" = "0" ]; then
+        if [ -n "$FORGET_REASON" ]; then
+            pass "A9 · disabled, and its reason is on the element for assistive technology"
+        else
+            fail "A9 · the control is disabled and carries no reason"
+        fi
+    else
+        if [ -z "$FORGET_REASON" ]; then
+            pass "A9 · enabled, and carries no disabled-reason (§3.4 asks for one only when dimmed)"
+        else
+            fail "A9 · the control is enabled and still carries a disabled-reason: '$FORGET_REASON'"
+        fi
+    fi
 fi
 
 # The empty warm set says what happens instead, rather than 'No items' (§5).

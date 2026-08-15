@@ -50,15 +50,41 @@
             #expect(ShellCommandRouter.operation(for: .addMarketplace) == .showMarketplaces)
         }
 
-        @Test("The two commands whose surfaces have not shipped still say so")
-        func othersStillAbsent() {
+        /// The two commands M1 gave one answer, which stopped being one fact.
+        ///
+        /// **This test used to assert the defect.** It read, under the title *"The two commands
+        /// whose surfaces have not shipped still say so"*, that `.pairPhone` and `.exportLibrary`
+        /// were both `.surfaceAbsent` against the real registry — correct when M4 wrote it, and a
+        /// green test pinning a falsehood from the moment M6 shipped the pairing sheet. It rotted
+        /// in the same window as the code and asserted the rot, which is why the suite never went
+        /// red while `Pair iPhone…` told the user the app was not built.
+        ///
+        /// The two are now separate facts and are asserted separately: pairing's surface **has**
+        /// shipped, export's feature has not, and no installed set changes the second.
+        @Test("Pair iPhone… is live in the build that ships, and export still says it is not")
+        func pairingIsLiveAndExportIsNot() {
             let real = MenuCommand.CommandContext(
                 installedDestinations: BoardRegistry.installed,
                 selectedServerIsTripped: nil
             )
-            // Narrowed by exactly what shipped, never relaxed.
-            #expect(MenuCommand.pairPhone.availability(in: real) == .surfaceAbsent)
-            #expect(MenuCommand.exportLibrary.availability(in: real) == .surfaceAbsent)
+            // Reads `BoardRegistry.installed` rather than a hand-built set, so this fails if the
+            // Inbox board is ever un-installed while the menu keeps claiming pairing works.
+            #expect(MenuCommand.pairPhone.availability(in: real) == .enabled)
+            #expect(MenuCommand.pairPhone.availability(in: real).reason == nil)
+
+            // Falsifiable per-command, which the assertion above cannot be on its own: with every
+            // destination installed, gating on *any* required board yields `.enabled`, so a rule
+            // pointed at the wrong board would pass. Without `.inbox` it must refuse.
+            let withoutInbox = MenuCommand.CommandContext(
+                installedDestinations: BoardRegistry.installed.subtracting([.inbox]),
+                selectedServerIsTripped: nil
+            )
+            #expect(MenuCommand.pairPhone.availability(in: withoutInbox) == .surfaceAbsent)
+
+            // Export is the product lacking a feature, not this build lacking a board — so it is
+            // `.featureUnbuilt`, and no installed set turns it on.
+            #expect(MenuCommand.exportLibrary.availability(in: real) == .featureUnbuilt)
+            #expect(MenuCommand.exportLibrary.availability(in: withoutInbox) == .featureUnbuilt)
         }
     }
 

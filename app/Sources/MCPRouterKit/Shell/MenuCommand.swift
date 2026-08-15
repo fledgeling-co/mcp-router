@@ -67,15 +67,27 @@ public struct KeyChord: Hashable, Sendable {
 
 /// Why a command cannot be used right now.
 ///
-/// Exactly two reasons exist, and they are on the type rather than at each call site so a third
+/// Exactly three reasons exist, and they are on the type rather than at each call site so a fourth
 /// cannot be invented in passing. `DESIGN.md` §3.4 requires a disabled control to dim in place
 /// with a discoverable reason and forbids hiding it; on macOS a menu item's only place for that
 /// reason is its help tag, which is where `MCPRouterUI` puts this string.
+///
+/// **The third was added by M14, on the type and once**, which is what the rule above protects:
+/// adding a reason *here* is a deliberate widening of the vocabulary, adding one at a call site is
+/// the drift it forbids. It exists because two refusals could not tell apart the only two ways a
+/// command can be unusable for good, and collapsing them shipped a live defect. `.surfaceAbsent`
+/// says **this build** lacks a surface the product has — a `Destination` whose board is not
+/// compiled in. `.featureUnbuilt` says **the product** lacks the thing entirely. With one refusal
+/// covering both, a command kept the answer it was given when its surface had not shipped, and
+/// nothing could detect that it had stopped being true: `Pair iPhone…` told the user the app was
+/// not built for two items after M6 shipped the pairing sheet it opens.
 public enum CommandAvailability: Hashable, Sendable {
     /// Usable now.
     case enabled
     /// The surface this command acts on is not installed in this build.
     case surfaceAbsent
+    /// The feature this command performs does not exist in the product yet, in any build.
+    case featureUnbuilt
     /// The command acts on a selected server and there is no selection.
     case needsServerSelection
 
@@ -84,10 +96,16 @@ public enum CommandAvailability: Hashable, Sendable {
     /// The sentence shown in the item's help tag. Non-blaming, non-emoting, and honest about the
     /// actual condition — a state-shaped reason for a surface that simply does not exist yet
     /// would be a lie, and `DESIGN.md` §6 rules out both blame and invention.
+    ///
+    /// `.featureUnbuilt`'s sentence is generic rather than naming the feature, because exactly one
+    /// command carries it. Naming it needs either an associated value — which changes every `==`
+    /// against the case — or moving reason resolution onto `MenuCommand`; both are larger than the
+    /// item that added the case, and both become worth doing the moment a second command takes it.
     public var reason: String? {
         switch self {
         case .enabled: nil
         case .surfaceAbsent: "This part of the app isn't built yet."
+        case .featureUnbuilt: "This feature hasn't been built yet."
         case .needsServerSelection: "Select a server first."
         }
     }
@@ -274,9 +292,11 @@ public enum MenuCommand: Hashable, Sendable {
 
     /// What the live app knows when it builds the menu.
     ///
-    /// Two facts, because two are what the reasons distinguish: whether the surface a command acts
-    /// on exists at all, and whether it has the selection it needs. `CommandAvailability` has
-    /// exactly those two refusals and no third, which is why nothing else is carried here.
+    /// Two facts, because two are what the *context-dependent* refusals distinguish: whether the
+    /// surface a command acts on exists in this build, and whether it has the selection it needs.
+    /// `.featureUnbuilt` is deliberately **not** represented here — a feature nobody has written is
+    /// not a fact about the running app's state, and giving it a context field would invite a
+    /// caller to switch it off, which is the one thing that answer must not be able to do.
     public struct CommandContext: Hashable, Sendable {
         public let installedDestinations: Set<Destination>
         /// `nil` when no server is selected; otherwise whether that server is tripped, which is the
@@ -316,9 +336,25 @@ public enum MenuCommand: Hashable, Sendable {
         // it is the shell disagreeing with its own window.
         case .addMarketplace:
             return context.installedDestinations.contains(.skills) ? .enabled : .surfaceAbsent
-        // Still owned by items that have not shipped.
-        case .pairPhone, .exportLibrary:
-            return .surfaceAbsent
+        // Pairing's sheet is hosted by the Inbox board: `ShellCommandRouter` selects `.inbox` and
+        // then calls `inboxBoard.pairing.open()` — the *same* call the board's own always-enabled
+        // `Pairing…` button makes. So this follows `addServer`'s rule with `.inbox` in place of
+        // `.servers`, and for the same reason: a menu that refuses what the board underneath it
+        // offers is the shell disagreeing with its own window.
+        //
+        // What this claims is bounded, and deliberately so. `…` means "opens a further view"
+        // (`DESIGN.md` §3.4), and the further view exists and ships. It does **not** claim a phone
+        // can pair: `ShellPairingFactory` returns `NoTransportInboxService` in every Release build,
+        // so the sheet reaches `.noEndpoint` and says "Pairing is not available in this build" —
+        // adjacent to the thing, which is where §6 puts it. Were the board's button ever gated on
+        // `PairingAvailability`, this would have to be gated the same way.
+        case .pairPhone:
+            return context.installedDestinations.contains(.inbox) ? .enabled : .surfaceAbsent
+        // No context makes an unwritten feature exist, so this arm does not ask about one. There is
+        // no export surface in either target; this is the product lacking the feature, not this
+        // build lacking a board, and the two now have different answers.
+        case .exportLibrary:
+            return .featureUnbuilt
         case .about, .settings, .hide, .hideOthers, .showAll, .quit, .closeWindow,
              .undo, .redo, .cut, .copy, .paste, .selectAll,
              .selectDestination, .showSidebar,

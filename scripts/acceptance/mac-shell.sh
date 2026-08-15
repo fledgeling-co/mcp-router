@@ -553,6 +553,7 @@ for command in MenuCommand.allCases {
     let token = switch availability {
     case .enabled: "enabled"
     case .surfaceAbsent: "surfaceAbsent"
+    case .featureUnbuilt: "featureUnbuilt"
     case .needsServerSelection: "needsServerSelection"
     }
     print([
@@ -1044,26 +1045,39 @@ done
 launch_app
 sleep 2
 
-# ---------------------------------------------------------------- the scaffold cannot ship silently
+# ---------------------------------------------------------------- the two ways a command can be off
 
 echo
-echo "the scaffold is bounded by what has shipped"
+echo "a command is off for a destination that has no board, or for a feature that does not exist"
 
-# The orchestrator's condition, enforced at the binary rather than promised in a comment: the
-# placeholder sentence may be in a Release build only while a destination still has no board. When
-# the last board lands, `BoardRegistry.installed` covers every destination and this flips — a
-# Release build still carrying the sentence fails here.
-SENTINEL="$(grep -oE 'sentinel = "[^"]+"' \
-  "$APP_DIR/Sources/MCPRouterUI/Shell/ScaffoldPane.swift" | sed -E 's/.*"(.*)"/\1/')"
-[ -n "$SENTINEL" ] || blocked "could not read the scaffold sentinel out of ScaffoldPane.swift"
-
-# **Counted, not pattern-matched.** This used to read `= []` as "scaffolds remain" and *anything
-# else* as "every board has shipped", which was true while the only two reachable states were none
-# and all. M2 ships one board of eight and the gate concluded "every destination has a board", then
-# failed a Release build for honestly carrying a placeholder six destinations still need. A binary
-# test of a partial set is a gate that reports the opposite of the truth.
+# **These are two different facts, and this block used to conflate them into one grep.**
 #
-# So both numbers are read: how many destinations exist, and how many are installed.
+# It read the sentinel `isn't built yet` out of `ScaffoldPane.swift`'s comment and failed if the
+# Release bundle still contained it once every destination had a board. That was the right idea
+# aimed at the wrong string. Measured on a clean Release build at `317d957`:
+#
+#   isn't built yet                          1   Contents/MacOS/MCPRouter
+#   This part of the app isn't built yet.    1   same file          <- surfaceAbsent's reason
+#   ScaffoldCopy                             0
+#   ScaffoldedDestination                    0
+#   ScaffoldPane                             2   same file          <- the FILE NAME, in metadata
+#   BoardRegistry                           17   same file          (control)
+#
+# So the scaffold really is gone — M6's deletion worked — and the sole hit was a **live menu help
+# tag** that shared a substring with the deleted pane's copy, on purpose, since M1. The gate was
+# reporting "the scaffold outlived the surface it stood in for" about a scaffold that does not
+# exist, while the actual defect it was standing next to went unnamed: `Pair iPhone…` answered
+# `surfaceAbsent` with every board installed.
+#
+# Two further things that table settles, and both shape what is asserted below:
+#
+#   * A bytes grep **cannot ask about reachability.** `Select a server first.` is present as a
+#     control; a reason literal is compiled in because `reason` is a `public` computed property on
+#     a `public` enum, whether or not any path reaches it. So "no command reports this case" has to
+#     be asked of the model, not of the binary.
+#   * The needle must be a **type the file no longer declares**, never the file's name: the path
+#     `ScaffoldPane.swift` survives in metadata at 2 while both deleted types sit at 0.
+
 DEST_FILE="$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift"
 [ -f "$DEST_FILE" ] || blocked "could not find Destination.swift to count destinations"
 DEST_TOTAL="$(awk '
@@ -1074,21 +1088,10 @@ DEST_TOTAL="$(awk '
 ' "$DEST_FILE")"
 [ "$DEST_TOTAL" -gt 0 ] || blocked "counted zero destinations — the parse is wrong, not the code"
 
-# The declaration is read from its `[` to its matching `]`, however many lines that spans.
-#
-# It used to be read as one line: `grep … | head -1 | sed -E 's/.*\[(.*)\].*/\1/'`. That was correct
-# while the list was short, and it was six characters from lying. At M7 the line reaches 104
-# characters; `.swiftformat` sets `--maxwidth 110`, so M5's `.discover` and M8's `.settings` wrap it —
-# and a wrapped declaration makes the `sed` match nothing, yielding an empty list, a count of zero,
-# and a **passing** gate that reports zero installed boards. A gate whose failure mode is silence
-# about the thing it exists to count is worse than no gate.
-#
-# (An earlier fix here replaced a `sed` *range* that ran past the declaration to the next bracket
-# anywhere below, sweeping in three unrelated tokens. Same lesson, opposite direction: read exactly
-# the declaration, and nothing else.)
+# The declaration is read from its `[` to its matching `]`, however many lines that spans — it wraps
+# at eight entries, and a one-line reader silently yielded an empty list and a passing gate.
 # shellcheck source=scripts/acceptance/board-registry.sh
 . "$ROOT/scripts/acceptance/board-registry.sh"
-INSTALLED_LIST="$(board_registry_installed "$APP_DIR/Sources/MCPRouterUI/Shell/ScaffoldPane.swift")"
 INSTALLED_COUNT="$(board_registry_installed_count "$APP_DIR/Sources/MCPRouterUI/Shell/ScaffoldPane.swift")"
 
 # An empty parse is a broken parse, never an empty set: `installed` is non-empty from M2 onward, so
@@ -1102,11 +1105,137 @@ else
 fi
 echo "  boards installed: $INSTALLED_COUNT of $DEST_TOTAL destinations"
 
-# Every file in the bundle, not only the executable ones.
+# `$WORK/expected.tsv` is the A22 oracle's output — `MenuCommand.availability(in:)` compiled from
+# this tree and asked with the real registry. Reused rather than recompiled, so G1 and G3 cannot
+# disagree with the availability assertions above about what the model says.
+[ -s "$WORK/expected.tsv" ] || blocked "the availability oracle produced nothing — G1/G3 have no input"
+
+# The missing-board sentence, **derived rather than written here**, so G3 cannot be fooled by
+# someone editing one reason to match the other. It is read by re-running the same oracle binary
+# with **no** installed destinations — `CommandContext.none`, M1's world — where `Add server…` and
+# friends are guaranteed to report `surfaceAbsent` and carry its reason in column 5. That is why
+# this does not need a second compile or a new oracle mode: the answer is already a function of the
+# same `MenuCommand.swift` the app was built from.
+"$WORK/menu-oracle" > "$WORK/expected-none.tsv" \
+  || blocked "the availability oracle did not run with an empty installed set"
+SURFACE_ABSENT_REASON="$(awk -F'\t' '$4 == "surfaceAbsent" { print $5; exit }' "$WORK/expected-none.tsv")"
+[ -n "$SURFACE_ABSENT_REASON" ] \
+  || blocked "no command reports surfaceAbsent even with no board installed — the oracle is wrong, not the app"
+
+# ---------------------------------------------------------------- G1 · no board missing, no command claiming one
 #
-# This searched `find -type f -perm +111` — executables — until a completeness critic pointed out
-# that copy lives in nibs, `.strings` files and asset catalogues just as readily as in a binary, and
-# that a scaffold sentence in any of those would have been invisible to the gate meant to catch it.
+# The structural half, and the assertion that is red on `main`: `.pairPhone` answered
+# `surfaceAbsent` unconditionally while all eight boards shipped.
+SURFACE_ABSENT_ROWS="$(awk -F'\t' '$4 == "surfaceAbsent" { print $1 " / " $2 }' "$WORK/expected.tsv")"
+SURFACE_ABSENT_COUNT="$(printf '%s' "$SURFACE_ABSENT_ROWS" | grep -c . || true)"
+
+if [ "$SCAFFOLDS_REMAIN" -eq 0 ]; then
+    [ "$SURFACE_ABSENT_COUNT" -eq 0 ] || fail "every destination has a board, but $SURFACE_ABSENT_COUNT command(s) still report surfaceAbsent — a command is refusing over a board that shipped:
+$SURFACE_ABSENT_ROWS"
+    pass "every destination has a board, and no command claims otherwise"
+else
+    # **Deliberately reported rather than asserted.** The inverse of the rule above is not sound: a
+    # destination can be added with no board *and* no command gated on it, and then demanding at
+    # least one `surfaceAbsent` report would fail a tree in which nothing is wrong. The direction
+    # that carries the invariant is the one above — every board present means no command may claim
+    # otherwise — and that one is asserted. This arm is unreachable on `main` today and is left
+    # honest rather than made to look thorough.
+    echo "  note: $((DEST_TOTAL - INSTALLED_COUNT)) destination(s) have no board; $SURFACE_ABSENT_COUNT command(s) report surfaceAbsent"
+    pass "boards are still landing, so surfaceAbsent is a legitimate answer here"
+fi
+
+# ---------------------------------------------------------------- G2 · the command this item exists to fix
+#
+# **Hand-written where everything around it is derived, and that is the point.** M11 moved A22's
+# expectation into the compiled oracle so it could not rot — but recorded, as its own finding M2,
+# that a derived oracle *cannot* falsify the gating map: a mutation moves the expectation and the
+# app together. G1 above is satisfied by re-classifying `Pair iPhone…` as `featureUnbuilt`, or
+# `needsServerSelection`, or `enabled`-for-the-wrong-board — every one of which leaves the defect on
+# screen. This row can only be satisfied by the item actually being usable and silent.
+#
+# It rots only if pairing is deliberately withdrawn, which is a deliberate edit here.
+PAIR_LINE="$(awk -F'\t' '$1 == "File" && $2 == "Pair iPhone…" { print; exit }' "$WORK/items.tsv")"
+[ -n "$PAIR_LINE" ] || fail "File / Pair iPhone… is not in the menu bar at all"
+PAIR_ENABLED="$(printf '%s' "$PAIR_LINE" | cut -f3)"
+PAIR_HELP="$(printf '%s' "$PAIR_LINE" | cut -f4)"
+[ "$PAIR_ENABLED" = "1" ] \
+  || fail "File / Pair iPhone… is dimmed, but M6 shipped the pairing sheet it opens and the Inbox board's own Pairing… button is live"
+[ -z "$PAIR_HELP" ] \
+  || fail "File / Pair iPhone… is usable and still carries the reason '$PAIR_HELP'"
+pass "File / Pair iPhone… is enabled and carries no reason — the menu agrees with the board underneath it"
+
+# ---------------------------------------------------------------- G2b · the other half of the pair
+#
+# Hand-written for the same reason G2 is, and it closes a hole a completeness critic found in G3:
+# G3's zero-count arm *skips*, so quietly recategorising `Export library…` as `needsServerSelection`
+# or `enabled` would leave G1, G3 and A22 all green while the command stopped telling the truth.
+# The two commands M1 gave one answer are the two this item separated, so both are named here.
+#
+# **When export ships, this row is a deliberate edit**, exactly like G2 when pairing changes. That
+# is the cost of naming a command, and it is the only thing that makes the claim falsifiable.
+EXPORT_LINE="$(awk -F'\t' '$1 == "File" && $2 == "Export library…" { print; exit }' "$WORK/items.tsv")"
+[ -n "$EXPORT_LINE" ] || fail "File / Export library… is not in the menu bar at all — §3.4 forbids hiding a disabled command"
+EXPORT_ENABLED="$(printf '%s' "$EXPORT_LINE" | cut -f3)"
+EXPORT_HELP="$(printf '%s' "$EXPORT_LINE" | cut -f4)"
+[ "$EXPORT_ENABLED" = "0" ] \
+  || fail "File / Export library… is offered as usable, but no export feature exists in either target"
+[ "$EXPORT_HELP" != "$SURFACE_ABSENT_REASON" ] \
+  || fail "File / Export library… explains itself with the missing-board sentence — its feature was never built, which is a different fact"
+[ -n "$EXPORT_HELP" ] \
+  || fail "File / Export library… is dimmed and says nothing — §3.4 requires a discoverable reason"
+pass "File / Export library… is dimmed and gives a reason of its own: '$EXPORT_HELP'"
+
+# ---------------------------------------------------------------- G3 · a feature that does not exist says so
+#
+# Conditional on the oracle's own count, never `>= 1`. An unconditional tripwire would make
+# *shipping export* a gate failure, which is the failure mode where a gate starts defending the
+# absence of a feature.
+#
+# **What this adds over A22, stated because most of it is overlap.** A22 already walks every
+# non-`enabled` row and compares `AXHelp` to the oracle's reason, so the presence and the dimming
+# below are a second reading of a check that already ran. The assertion that is *only* here is the
+# last one in the loop: an unbuilt feature must not explain itself with the missing-board sentence.
+# A22 cannot catch that — it compares the rendering to the oracle, so if the reason and the
+# rendering were *both* the missing-board sentence it passes, and the two refusals this item
+# separated would have quietly collapsed back into one. That is the mutation aimed at this block.
+FEATURE_UNBUILT_ROWS="$(awk -F'\t' '$4 == "featureUnbuilt"' "$WORK/expected.tsv")"
+FEATURE_UNBUILT_COUNT="$(printf '%s' "$FEATURE_UNBUILT_ROWS" | grep -c . || true)"
+
+if [ "$FEATURE_UNBUILT_COUNT" -eq 0 ]; then
+    # **This arm claims nothing about features, and an earlier draft did.** It said "every feature
+    # the menu offers exists", which the gate has no way to know: reclassifying `Export library…`
+    # as `needsServerSelection` takes this branch, leaves G1 and A22 green, and the sentence would
+    # have been false. What is actually observed is only what is printed.
+    echo "  note: the model reports no featureUnbuilt command; this gate cannot itself confirm every feature exists"
+    pass "no command reports featureUnbuilt in this build"
+else
+    FEATURE_CHECKED=0
+    while IFS=$'\t' read -r menu title kind availability reason; do
+        [ -n "$title" ] || continue
+        [ "$kind" = "app" ] \
+          || fail "$menu / $title reports featureUnbuilt but is a system item — macOS does not build the app's features"
+        line="$(awk -F'\t' -v m="$menu" -v t="$title" '$1 == m && $2 == t { print; exit }' "$WORK/items.tsv")"
+        [ -n "$line" ] || fail "$menu / $title reports featureUnbuilt and is not in the menu bar — §3.4 forbids hiding it"
+        enabled="$(printf '%s' "$line" | cut -f3)"
+        help="$(printf '%s' "$line" | cut -f4)"
+        [ "$enabled" = "0" ] || fail "$menu / $title has no feature behind it, but the menu bar offers it as usable"
+        [ "$help" = "$reason" ] \
+          || fail "$menu / $title carries '$help' where its own reason is '$reason'"
+        # The distinction this whole block exists for: an unbuilt feature must not be described with
+        # the sentence reserved for a destination whose board is missing from this build.
+        [ "$help" != "$SURFACE_ABSENT_REASON" ] \
+          || fail "$menu / $title has no feature at all, but explains itself with the missing-board sentence"
+        FEATURE_CHECKED=$((FEATURE_CHECKED + 1))
+    done <<< "$FEATURE_UNBUILT_ROWS"
+    [ "$FEATURE_CHECKED" -ge 1 ] || fail "the featureUnbuilt loop ran on nothing while the oracle named $FEATURE_UNBUILT_COUNT"
+    pass "$FEATURE_CHECKED command(s) with no feature behind them are dimmed, each with its own sentence"
+fi
+
+# ---------------------------------------------------------------- G4 · the scaffold cannot come back
+[ -d "$REL_APP" ] || blocked "no Release build at $REL_APP — run 'make build-mac-release' first"
+
+# Every file in the bundle, not only the executable ones: copy lives in nibs, `.strings` files and
+# asset catalogues just as readily as in a binary.
 bundle_contains() {
     local bundle="$1" needle="$2" f
     while IFS= read -r f; do
@@ -1115,18 +1244,17 @@ bundle_contains() {
     return 1
 }
 
-[ -d "$REL_APP" ] || blocked "no Release build at $REL_APP — run 'make build-mac-release' first"
-
-if [ "$SCAFFOLDS_REMAIN" -eq 1 ]; then
-    bundle_contains "$REL_APP" "$SENTINEL" \
-      || fail "destinations are still scaffolded but the Release bundle does not carry '$SENTINEL' — the placeholder is not what ships"
-    pass "$((DEST_TOTAL - INSTALLED_COUNT)) destinations are still scaffolded, and Release carries the placeholder honestly"
-else
-    if bundle_contains "$REL_APP" "$SENTINEL"; then
-        fail "every destination has a board, but the Release bundle still contains '$SENTINEL' — the scaffold outlived the surface it stood in for"
+# The two types the placeholder was built from. `ScaffoldPane` is **not** among them: the type is
+# deleted but the file survives (four acceptance scripts read `BoardRegistry.installed` out of it),
+# so its name is in the binary's metadata at 2 and would fail this check for a benign reason.
+# `ShellScaffoldRetirementTests.scaffoldTypesStayDeleted` asserts the same two at the source level;
+# this is its counterpart on the artifact that actually ships.
+for scaffold_type in ScaffoldCopy ScaffoldedDestination; do
+    if bundle_contains "$REL_APP" "$scaffold_type"; then
+        fail "the Release bundle contains '$scaffold_type' — the placeholder came back into the shipping app"
     fi
-    pass "every board has shipped and the placeholder is gone from Release"
-fi
+done
+pass "neither scaffold type is in the Release bundle"
 
 # The Debug-only key probe must not ship, for the same reason the design gallery must not.
 if bundle_contains "$REL_APP" "$PROBE_ID"; then

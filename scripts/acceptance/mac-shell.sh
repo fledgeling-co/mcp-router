@@ -39,6 +39,27 @@ pass() { echo "  ok — $*"; }
 
 [ -d "$MAC_APP" ] || blocked "no built app at $MAC_APP — run 'make build-mac' first"
 
+# ---------------------------------------------------------------- freshness and preconditions
+#
+# Both of these were checked in the wrong place, and both cost a runner a turn.
+#
+# **Freshness first.** Every assertion below judges the RUNNING app, so a binary older than the
+# tree makes every one of them a statement about a build nobody is looking at. This gate has
+# already reported exactly that as a product defect — `FAIL: the running app in the offline state
+# does not carry ControlAPIError's own words` against a tree where those words were correct and
+# the binary was four minutes old. Content, never mtime, so a rebase does not block it.
+#
+# **The Release build, here rather than at line ~1200.** `REL_APP` was assigned at the top of this
+# file and first tested at the very end, so a missing Release build cost a complete pass — every
+# launch, every menu walk, the restoration relaunch — before the harness said the one thing it
+# knew before it started.
+# shellcheck source=scripts/acceptance/build-freshness.sh
+source "$ROOT/scripts/acceptance/build-freshness.sh"
+# shellcheck source=scripts/acceptance/mac-app.sh
+source "$ROOT/scripts/acceptance/mac-app.sh"
+build_freshness_require Debug "$ROOT"
+build_freshness_require Release "$ROOT"
+
 # ---------------------------------------------------------------- the harness
 #
 # One compiled binary rather than a handful of `swift file.swift` invocations. The reason is
@@ -149,29 +170,23 @@ echo "DESIGN.md §2 sidebar rows: $DOC_ROWS"
 
 launch_app() {
     local scenario="${1:-}"
-    pkill -f 'MCPRouter.app/Contents/MacOS/MCPRouter' >/dev/null 2>&1 || true
-    sleep 1
-    # `-g` is the whole point: `open` on its own activates, and activation is what takes the screen.
+    # `mac-app.sh` owns the sequence and the taxonomy. What stood here was
+    # `pkill -f …; sleep 1; open -g -a …` with `open`'s status discarded, then 40 polls before
+    # concluding `the shell window never appeared` and exiting 1 — a PRODUCT verdict for what is
+    # almost always an environment failure. Measured with a shim making `open` exit 1, this script
+    # did not even reach that message: `set -euo pipefail` aborted at `open`, so it exited 1
+    # carrying nothing but `kLSServerCommunicationErr -600`.
     #
-    # `--env` is how a state other than the populated one is reached. Before `ShellClientFactory`
-    # existed the app was hardwired to one fixture, so every clause whose evidence names the running
-    # app in a failure or overflow state had no lane at all — A28 in particular asks for the offline
-    # and unauthorised copy to be read out of the **running app**, and it could not have been.
+    # The `pkill -f 'MCPRouter.app/Contents/MacOS/MCPRouter'` it used matched EVERY MCPRouter on
+    # the machine, so on a fleet running several worktrees it killed other runners' apps and could
+    # attach to their processes. The shared launcher binds to this bundle only.
     if [ -n "$scenario" ]; then
-        open -g -a "$MAC_APP" --env "MCPROUTER_SCENARIO=$scenario"
+        mac_app_launch "$MAC_APP" "$AXKIT" "MCPROUTER_SCENARIO=$scenario"
     else
-        open -g -a "$MAC_APP"
+        mac_app_launch "$MAC_APP" "$AXKIT"
     fi
-    for _ in $(seq 1 40); do
-        PID="$(pgrep -f 'MCPRouter.app/Contents/MacOS/MCPRouter' | head -1 || true)"
-        if [ -n "$PID" ] && "$AXKIT" dump "$PID" window >/dev/null 2>&1; then
-            step_back
-            check_invisible "launch"
-            return 0
-        fi
-        sleep 0.5
-    done
-    fail "the shell window never appeared${scenario:+ (scenario $scenario)}"
+    step_back
+    check_invisible "launch"
 }
 
 dump_window() { "$AXKIT" dump "$PID" window > "$WORK/window.tsv" 2>/dev/null || blocked "the window walk failed"; }
@@ -566,21 +581,19 @@ for command in MenuCommand.allCases {
 }
 SWIFT
 
-# **The oracle and the binary must be the same tree.** The oracle is compiled from source at run
-# time while the app under test was built earlier, so a source edit without a rebuild has the gate
-# comparing a fresh expectation against a stale app. The likely direction is a false red, which
-# wastes a run; the dangerous direction is the inverse — a binary built from a *fixed* tree passing
-# a gate whose oracle was compiled from a broken one, certifying code that is not what shipped.
-MENU_SOURCES=(
-  "$APP_DIR/Sources/MCPRouterKit/Shell/MenuCommand.swift"
-  "$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift"
-  "$APP_DIR/Sources/MCPRouterUI/Shell/ShellCommands.swift"
-  "$APP_DIR/Sources/MCPRouterUI/Shell/ShellMenuReasons.swift"
-)
-STALE="$(find "${MENU_SOURCES[@]}" -newer "$MAC_APP/Contents/MacOS/MCPRouter" 2>/dev/null || true)"
-[ -z "$STALE" ] \
-  || blocked "these sources are newer than the built app — run 'make build-mac' so the oracle and the binary are one tree:
-$STALE"
+# **The oracle and the binary must be the same tree**, and that is now decided by
+# `build_freshness_require` in the preflight rather than here.
+#
+# What stood here was an mtime comparison of these four sources against the built app. Its intent
+# was right and its instrument was not: a rebase rewrites mtimes without changing content, so
+# `xcodebuild` correctly declines to relink, the binary keeps its old mtime, and the check blocked
+# forever — `make build-mac` exiting 0 did not clear it, and only deleting the derived product did
+# (`D-m11-a`). Rebase-then-gate is this fleet's standard cycle, so it blocked every merge.
+#
+# It was also narrower than it read: it covered four named files, so an edit to anything else —
+# `ControlAPIClient.swift`, say, or a fixture JSON — left it silent while the same staleness
+# produced a FAIL naming the product. The content digest covers every input the app is built from
+# and is blind to mtimes, so it is both stricter and rebase-proof.
 
 swiftc -O -o "$WORK/menu-oracle" \
   "$APP_DIR/Sources/MCPRouterKit/Shell/MenuCommand.swift" \
@@ -1232,7 +1245,10 @@ else
 fi
 
 # ---------------------------------------------------------------- G4 · the scaffold cannot come back
-[ -d "$REL_APP" ] || blocked "no Release build at $REL_APP — run 'make build-mac-release' first"
+# The Release build's presence and freshness were both established in the preflight, next to the
+# Debug one. This block used to open with the only check for it, ~1,200 lines after `REL_APP` was
+# assigned — so a missing Release build cost a full pass before the harness reported something it
+# could have said at second one.
 
 # Every file in the bundle, not only the executable ones: copy lives in nibs, `.strings` files and
 # asset catalogues just as readily as in a binary.

@@ -30,6 +30,19 @@ pass() { echo "  ok — $*"; PASSED=$((PASSED + 1)); }
 
 [ -d "$MAC_APP" ] || blocked "no built app at $MAC_APP — run 'make build-mac' first"
 
+# ---------------------------------------------------------------- freshness
+#
+# Every assertion below judges the RUNNING app, so a binary older than the tree makes all of them
+# statements about a build nobody is looking at. This harness has reported exactly that as a
+# product defect — a correct tree, a four-minute-old binary, and a FAIL naming the app's own copy.
+# Decided on CONTENT, so a rebase (which rewrites mtimes and changes nothing) does not block it.
+# shellcheck source=scripts/acceptance/build-freshness.sh
+source "$ROOT/scripts/acceptance/build-freshness.sh"
+# shellcheck source=scripts/acceptance/mac-app.sh
+source "$ROOT/scripts/acceptance/mac-app.sh"
+build_freshness_require Debug "$ROOT"
+
+
 # ---------------------------------------------------------------- the registry precondition
 #
 # Do not run a UI acceptance pass over a placeholder. This reads the **build tree** and is labelled
@@ -91,13 +104,12 @@ check_invisible() {
 PID=""
 launch() {
     local pairing="$1"
-    [ -n "$PID" ] && { kill "$PID" 2>/dev/null || true; sleep 1; }
-    # `-g` is the whole of it. A bare `open -a` activates, which is what takes the screen.
-    # Both variables: the control client's scenario and M6's pairing scenario are separate seams.
-    open -g -a "$MAC_APP" --env "MCPROUTER_SCENARIO=populated" --env "MCPROUTER_PAIRING=$pairing"
-    sleep 3
-    PID="$(pgrep -n -f 'MCPRouter.app/Contents/MacOS/MCPRouter' || true)"
-    [ -n "$PID" ] || blocked "the app did not start under pairing scenario '$pairing'"
+    # `mac-app.sh` owns the sequence, and every step waits on an observable. Both variables are
+    # still passed: the control client's scenario and M6's pairing scenario are separate seams.
+    # What stood here was a flat `sleep 3` with `open`'s exit status discarded, and a `pgrep -f`
+    # matching ANY MCPRouter on the machine — including other worktrees' builds.
+    mac_app_launch "$MAC_APP" "$AXKIT" \
+        "MCPROUTER_SCENARIO=populated" "MCPROUTER_PAIRING=$pairing"
     check_invisible "launching under '$pairing'"
 }
 quit() { [ -n "$PID" ] && { kill "$PID" 2>/dev/null || true; }; PID=""; }

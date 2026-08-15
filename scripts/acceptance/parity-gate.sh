@@ -67,6 +67,26 @@ fi
 echo
 
 # ---------------------------------------------------------------------------------------------
+# One notice for one environment fact, said before the lanes rather than twenty-two times during
+# and after them.
+#
+# In a fresh worktree the reference is unbuilt, and the gate DOES run: it walks the whole manifest,
+# classifies every affected row blocked, exits 2 and names the remedy. That behaviour is correct
+# and is not changed here. What it also did was print "run npm run build" TWENTY-TWO times — once
+# per lane as it failed and once per lane again in the summary — so the one thing the reader needs
+# to do arrived buried in its own repetition, and only after the whole walk.
+#
+# This is a notice and nothing else. No lane is skipped, no verdict is altered, and nothing that
+# computes coverage is touched: the lanes keep their own messages, their own exit 2 and their own
+# blocked rows.
+if [ ! -f "${MCP_ROUTER_DIST:-$REPO_ROOT/dist/index.js}" ]; then
+  echo "notice: the TypeScript reference is not built, so every lane that compares against it will"
+  echo "        report an environment failure below and its rows will stay blocked."
+  echo "        Run 'npm install && npm run build' first. The gate still runs, and still exits 2."
+  echo
+fi
+
+# ---------------------------------------------------------------------------------------------
 # Lanes. Each writes `group<TAB>id<TAB>ok|fail<TAB>detail` rows to $RESULTS via PARITY_RESULTS.
 # A lane's own exit status is captured on the line after it runs — never through a pipe.
 lane_count="$(printf '%s\n' $LANES | wc -w | tr -d ' ')"

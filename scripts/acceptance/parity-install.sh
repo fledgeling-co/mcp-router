@@ -243,12 +243,31 @@ XML
 # and never reaches a config write — so no router is restarted (X12b).
 stage() { # claude-json-path marker
   mkdir -p "$(dirname "$1")"
-  cat > "$1" <<JSON
+  # Written temp-then-rename. `cat >` truncates and then fills, so a watcher can observe the file
+  # twice (empty, then complete) or parse it mid-write — either of which presents as a spurious or
+  # a malformed event rather than as the single change this is meant to be.
+  cat > "$1.staging" <<JSON
 {
   "numStartups": 41,
   "mcpServers": { "notadoptable-$2": { "note": "no command and no url" } }
 }
 JSON
+  mv "$1.staging" "$1"
+}
+
+# Wait until the agent is not running. Returns 1 if it is still up when the bound expires.
+#
+# `agent_pid` prints nothing once a job has exited: a stopped job's `launchctl print` carries
+# `state = not running` and NO `pid` line. That was checked against a real scratch agent rather
+# than assumed, because the opposite reading — a stopped job reporting `pid = 0` — would invert
+# every predicate built on it.
+watch_settled() { # label ticks
+  local tick
+  for ((tick = 0; tick < $2; tick++)); do
+    [ -z "$(agent_pid "$1")" ] && return 0
+    sleep 0.25
+  done
+  return 1
 }
 
 observe_watch() { # side program args...
@@ -274,9 +293,21 @@ observe_watch() { # side program args...
   local first=""
   [ "$ran" = yes ] && first="$(cat "$state")"
 
-  # A one-shot leaves no resident process. Read before the re-run, so a still-running first pass
-  # cannot be mistaken for a resident daemon.
-  [ -z "$(agent_pid "$label")" ] && oneshot=yes
+  # WAIT for the first run to finish before judging anything about it.
+  #
+  # This used to read `[ -z "$(agent_pid …)" ] && oneshot=yes` the instant the state file became
+  # non-empty — and the state file is written BY the running process, which is necessarily still
+  # alive at that moment. Whether `agent_pid` had stopped answering yet was decided by how fast the
+  # binary tore down after its last write, which differs between `node` and Swift and moves under
+  # load. The comment above it claimed the early read stopped a still-running first pass being
+  # mistaken for a resident daemon; it caused exactly that.
+  #
+  # Staging the second file also had to move after this wait. launchd does not queue a start for a
+  # job it already considers running, so a WatchPaths event delivered while the first run is alive
+  # can be legitimately DROPPED — and `reran` then reads `no` for a watcher behaving correctly.
+  local settled=yes
+  watch_settled "$label" 160 || settled=no
+  [ "$settled" = yes ] && oneshot=yes
 
   # ThrottleInterval is 10s in what the installer writes, so a re-run is allowed to take that long.
   # This waits it out rather than reporting an agent that is merely being throttled as broken.
@@ -348,15 +379,34 @@ case "$ts_watch$swift_watch" in
     exit 2 ;;
 esac
 
+# `install-launchd-watch` is BLOCKED in the manifest, so this lane measures it and RECORDS NOTHING.
+#
+# It was `proven`, and a proven row whose lane disagrees reports DIVERGED — which reads as "the two
+# routers behave differently" when what actually happened is that a racy lane lost a coin toss. P1
+# measured six consecutive runs: agreed 1 in 6, both terms unstable on BOTH binaries, the losing
+# side alternating. Two orchestrator runs since had the REFERENCE as the losing side.
+#
+# The two waits added above remove one real mechanism each — judging one-shot while the writing
+# process is still alive, and staging the second file into a job launchd still considers running.
+# They are genuine fixes and they are kept. They are NOT sufficient grounds to leave the row proven:
+# P1's own table shows the two terms varying INDEPENDENTLY (yes,yes,no twice; yes,no,yes three
+# times), so a single explanation was already refuted by the data, and promoting the row because a
+# run of greens followed would be re-running until green with extra steps — the `D-p` mistake this
+# fleet has made once.
+#
+# So the row is blocked with the mechanism in its note, which is P1's recommendation. Promotion
+# needs a named fix for each term and a bound fixed in advance, and it belongs to whoever takes that
+# on. The observation is still printed on every run, so the evidence keeps accruing where a future
+# owner can read it.
 if [ "$ts_watch" = "$swift_watch" ] && [ "${swift_watch%,*}" = "yes,yes,yes" ]; then
-  echo "  ok   both binaries answer the watch agent's supervision identically"
-  record install install-launchd-watch ok \
-    "both: ran at load, re-ran on a WatchPaths change, stayed one-shot, wrote the same streams"
+  echo "  note both binaries answered the watch agent's supervision identically this run"
+  echo "       ($ts_watch). The row stays BLOCKED: agreement on one run is not determinism, and"
+  echo "       this lane is known to alternate. Nothing is recorded, so nothing is claimed."
 else
-  echo "  FAIL the two binaries do not answer the same watch supervision"
-  record install install-launchd-watch fail \
-    "reference=$ts_watch swift=$swift_watch (ran,reran,one-shot,logged)"
-  failures=$((failures + 1))
+  echo "  note the two binaries did not answer the same watch supervision this run"
+  echo "       (reference=$ts_watch swift=$swift_watch; ran,reran,one-shot,logged). The row is"
+  echo "       BLOCKED, so this is an observation rather than a divergence — which is the point:"
+  echo "       a nondeterministic lane must not be able to report DIVERGED."
 fi
 
 echo

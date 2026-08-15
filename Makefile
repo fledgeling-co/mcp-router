@@ -16,7 +16,7 @@ UNSIGNED   := CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 IOS_DEST   ?= generic/platform=iOS Simulator
 MAC_DEST   ?= platform=macOS
 
-.PHONY: all tools generate build build-mac build-mac-release build-ios test test-ios parity parity-regen parity-selftest mutation acceptance lint format clean
+.PHONY: all tools generate build build-mac build-mac-release build-ios test test-ios parity parity-regen parity-selftest parity-lane-selftest mutation acceptance lint format clean
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
 all: tools lint build test test-ios parity parity-selftest
@@ -38,18 +38,26 @@ generate: tools
 build: build-mac build-ios
 
 build-mac: generate
+	@source scripts/acceptance/build-freshness.sh && build_freshness_begin Debug "$(CURDIR)"
 	xcodebuild -project $(PROJECT) -scheme MCPRouter -configuration Debug \
 	  -destination '$(MAC_DEST)' -derivedDataPath $(DERIVED) $(UNSIGNED) build
+	@source scripts/acceptance/build-freshness.sh && build_freshness_write Debug "$(CURDIR)"
 
 ## Proves the release posture is *configured* rather than *required*: hardened runtime and the
 ## Developer ID identity are set, and the build still completes with signing switched off.
 build-mac-release: generate
+	@source scripts/acceptance/build-freshness.sh && build_freshness_begin Release "$(CURDIR)"
 	xcodebuild -project $(PROJECT) -scheme MCPRouter -configuration Release \
 	  -destination '$(MAC_DEST)' -derivedDataPath $(DERIVED) $(UNSIGNED) build
+	@source scripts/acceptance/build-freshness.sh && build_freshness_write Release "$(CURDIR)"
 
 build-ios: generate
+	@source scripts/acceptance/build-freshness.sh \
+	  && build_freshness_begin Debug-iphonesimulator "$(CURDIR)"
 	xcodebuild -project $(PROJECT) -scheme MCPRouterIOS -configuration Debug \
 	  -destination '$(IOS_DEST)' -derivedDataPath $(DERIVED) $(UNSIGNED) build
+	@source scripts/acceptance/build-freshness.sh \
+	  && build_freshness_write Debug-iphonesimulator "$(CURDIR)"
 
 ## Swift Testing reports success for a suite that executed zero tests, so a target that silently
 ## stops matching its test files exits 0 and the gate says "passed". This guard closes that, and
@@ -228,6 +236,30 @@ mutation:
 parity-selftest:
 	./scripts/acceptance/parity-manifest-selftest.sh
 	./scripts/acceptance/parity-normalise-selftest.sh
+	@$(MAKE) --no-print-directory parity-lane-selftest
+
+## Proves the five lanes R2-R added can actually GO RED, by running each against a deliberately
+## broken Swift router. It also reports failability per ROW, which is the only place that number
+## exists: on this tree it reads 11 of 19 demonstrated, and names the 8 rows that are "recorded
+## proven by a lane whose ability to fail on THAT row is unproven".
+##
+## It was written as a script rather than a paragraph of evidence "for one reason: a paragraph is
+## re-run by nothing" — and then nothing re-ran the script either. It appeared in no Makefile target
+## and in no LANES list, so from R2-R until now it was executable, passing, and dispatched by
+## nothing. `parity-manifest-check.sh` grew a guard for exactly this class, and this is the live
+## instance that guard found.
+##
+## It needs the TypeScript reference and takes ~4.5 minutes, so it announces a skip loudly rather
+## than failing a selftest that must stay runnable in a fresh worktree. A silent skip would be the
+## same defect again.
+parity-lane-selftest:
+	@if [ -f dist/index.js ]; then \
+	  ./scripts/acceptance/parity-lane-selftest.sh; \
+	else \
+	  echo "parity-lane-selftest: SKIPPED — no dist/index.js. This is a skip, not a pass:"; \
+	  echo "  run 'npm install && npm run build' and re-run 'make parity-lane-selftest' to prove"; \
+	  echo "  the lanes can still go red."; \
+	fi
 
 ## Launches both shells and asserts each renders a value that came from MCPRouterKit.
 ##

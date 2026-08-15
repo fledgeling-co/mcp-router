@@ -44,6 +44,10 @@ SUITE="MCPRouterIOSTests/TriageSurfaceIOSTests"
 . "$(dirname "${BASH_SOURCE[0]}")/board-registry.sh"
 
 fail() { echo "FAIL: $*"; exit 1; }
+# Exit 2 is everything this harness could not establish; exit 1 is a claim about the product.
+blocked() { echo "BLOCKED: $*"; exit 2; }
+# shellcheck source=scripts/acceptance/xcode-outcome.sh
+source "$ROOT/scripts/acceptance/xcode-outcome.sh"
 
 # --- Guard 1: does each tab reach its own surface, or does it fall through to Settings? ------------
 #
@@ -124,18 +128,40 @@ c=[d for v in ds.values() for d in v if d.get('isAvailable') and 'iPhone' in d['
 c.sort(key=lambda d: d['state'] != 'Booted'); \
 print(c[0]['udid'] if c else '')")"
 
-[ -n "$udid" ] || fail "no available iPhone simulator, so nothing was measured.
+[ -n "$udid" ] || blocked "no available iPhone simulator, so nothing was measured.
       This is an environment failure, not a pass — the rendered claims went unmeasured."
 echo "simulator: $udid"
 
 # --- The pass -------------------------------------------------------------------------------------
 bundle="$(mktemp -d -t i3-xcresult)/result.xcresult"
+
+# Build and test are SEPARATE invocations, and each failure is judged by its reason rather than by
+# the phase it happened in. One `xcodebuild … test` into one status made a compile error and a
+# failed assertion produce the same exit 1 and the same sentence naming the surface.
+xcodebuild -project "$PROJECT" -scheme MCPRouterIOS -configuration Debug \
+    -destination "id=$udid" -derivedDataPath "$DERIVED" \
+    CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+    -only-testing:"$SUITE" \
+    build-for-testing > /tmp/i3-build.log 2>&1
+build_status=$?
+if [ "$build_status" -ne 0 ]; then
+    kind="$(xcode_failure_kind /tmp/i3-build.log)"
+    xcode_failure_excerpt /tmp/i3-build.log "$kind"
+    case "$kind" in
+        compile) fail "the iOS target does not compile (xcodebuild exit $build_status). This is the
+      product, not this harness, and no Triage, Queue or Library assertion was reached.
+      Log: /tmp/i3-build.log" ;;
+        *) blocked "the iOS test build could not be produced here ($kind, xcodebuild exit
+      $build_status), so none of these three surfaces was measured. Log: /tmp/i3-build.log" ;;
+    esac
+fi
+
 xcodebuild -project "$PROJECT" -scheme MCPRouterIOS -configuration Debug \
     -destination "id=$udid" -derivedDataPath "$DERIVED" \
     CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
     -resultBundlePath "$bundle" \
     -only-testing:"$SUITE" \
-    test > /tmp/i3-acceptance.log 2>&1
+    test-without-building > /tmp/i3-acceptance.log 2>&1
 status=$?
 
 # A suite that ran nothing exits 0 and means nothing, so the count is asserted rather than the code.
@@ -150,8 +176,13 @@ except Exception:
 echo "executed $ran assertions over Triage, Queue and Library"
 
 if [ "$status" -ne 0 ]; then
-    grep -E "error:|XCTAssert" /tmp/i3-acceptance.log | sort -u | head -20
-    fail "the I3 acceptance pass is red (xcodebuild exit $status). Log: /tmp/i3-acceptance.log"
+    kind="$(xcode_failure_kind /tmp/i3-acceptance.log)"
+    xcode_failure_excerpt /tmp/i3-acceptance.log "$kind"
+    case "$kind" in
+        infra|unknown) blocked "the I3 pass could not be run to completion ($kind, xcodebuild exit
+      $status), so its assertions were not measured. Log: /tmp/i3-acceptance.log" ;;
+        *) fail "the I3 acceptance pass is red (xcodebuild exit $status). Log: /tmp/i3-acceptance.log" ;;
+    esac
 fi
 if [ "${ran:-0}" -lt 1 ]; then
     fail "zero assertions ran. A filter that matches nothing exits 0 and proves nothing."

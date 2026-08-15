@@ -415,7 +415,12 @@ done <<< "$(grep -oE 'scripts/[a-z/-]+\.sh' "$MANIFEST" | sort -u)"
 # Each of that pair names the other in its note, and div-r1-d3 names div-r1-d3-control. Resolving
 # those citations makes the deletion break something. No list is maintained here: the citations are
 # already in the manifest, and this only insists they still resolve.
-KNOWN_NON_IDS='mcp-router'
+# Words that match the id SHAPE without being ids. `mcp-router` is the project. `install-entry` is
+# a CLI verb P2 added, and it is deliberately not a row: the capability it implements is
+# install-claude-json, which has a row and is proven by a lane that drives this very verb. A second
+# row for the verb would count one capability twice and inflate the denominator.
+KNOWN_NON_IDS='mcp-router
+install-entry'
 row_ids="$(awk -F'\t' '!/^#/ && NF == 6 { print $2 }' "$MANIFEST" | sort -u)"
 # Tokenised by splitting on every character an id cannot contain, rather than with \b, which is not
 # portable between BSD and GNU grep.

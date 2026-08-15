@@ -66,7 +66,7 @@ what exists and what it is bound to, the model for what it can do right now.
 | File | Add server… | ⌘N | surfaceAbsent |
 | File | Add marketplace… | ⇧⌘N | surfaceAbsent |
 | File | Pair iPhone… | — | surfaceAbsent |
-| File | Export library… | ⌘E | surfaceAbsent |
+| File | Export library… | ⌘E | featureUnbuilt |
 | File | Close | ⌘W | enabled |
 | Edit | Undo | ⌘Z | enabled |
 | Edit | Redo | ⇧⌘Z | enabled |
@@ -115,10 +115,19 @@ were enumerated from the running app. So A19's two directions are asymmetric on 
 the **app declares**, with the system's contributions excluded by name rather than by tolerance.
 
 `…` marks a command that opens a further view; its absence means the command commits now
-(§3.4). Two disabled reasons exist and no third may be invented at a call site:
-`surfaceAbsent` → "This part of the app isn't built yet." and `needsServerSelection` →
-"Select a server first." M1 uses only the first; the servers board switches these to the
-second or to enabled.
+(§3.4). Three disabled reasons exist and no fourth may be invented at a call site:
+`surfaceAbsent` → "This part of the app isn't built yet.", `featureUnbuilt` → "This feature
+hasn't been built yet." and `needsServerSelection` → "Select a server first." M1 uses only the
+first and the second; the servers board switches these to the third or to enabled.
+
+**M14 added the second, and the row it changed is `Export library…`.** The two were one case until
+then, which is how `Pair iPhone…` came to tell the user the app was not built for two items after
+M6 shipped the pairing sheet that command opens: with a single refusal meaning "no", nothing could
+distinguish *this build has no board for that destination* from *the product has no such feature*,
+so a command kept the answer it was given at M1 and no test could see it had stopped being true.
+**`Pair iPhone…`'s row above is deliberately unchanged** — this column is the answer in
+`CommandContext.none`, where no board is installed, so `surfaceAbsent` is still what it reports;
+what changed is the answer with the Inbox board installed, which is not what this column records.
 
 **What that switch cost, recorded here because the table is where the next reader will look.**
 M11 measured the built app with all eight boards installed and found `Add server…`, `Add
@@ -267,7 +276,10 @@ padding. Tokenising 32/40 is a shared-surface change, reported below and not mad
 3. **A disabled command reads "This part of the app isn't built yet."** A disabled macOS menu
    item shows its reason in a help tag and nowhere else, and in a shell-only build the true
    reason is that the surface is absent. A state-shaped reason would be a lie; hiding the command
-   would break §3.9.
+   would break §3.9. **M14 narrowed this**: that sentence is now `surfaceAbsent`'s alone, meaning
+   this build has no board for that destination. A command whose *feature* has never been built
+   reads "This feature hasn't been built yet." instead, and in M1's shell-only world
+   `Export library…` is the one command that does.
 4. **The trace is the app's own record of the router's polls.** The router publishes no history
    of running counts, so the 60s window is what the app was told, timestamped and evicted per
    A16. A17 requires it to name the window it actually holds.

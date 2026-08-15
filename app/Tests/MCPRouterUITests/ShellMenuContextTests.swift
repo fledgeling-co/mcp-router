@@ -34,9 +34,15 @@
             #expect(applied == disabled.count)
             #expect(applied > 0, "the walker matched nothing, which reads exactly like success")
 
-            for item in menu.items where item !== foreign {
-                #expect(item.toolTip == CommandAvailability.surfaceAbsent.reason)
-                #expect(item.accessibilityHelp() == CommandAvailability.surfaceAbsent.reason)
+            // Each item carries **its own** command's reason, not one shared sentence.
+            //
+            // This used to compare every tooltip against `surfaceAbsent.reason`, which passed only
+            // because every disabled command happened to share a single string. M14 gave export a
+            // different one, and the old form could not have told a walker writing the *right*
+            // reason from one writing *a* reason.
+            for (item, command) in zip(menu.items, disabled) {
+                #expect(item.toolTip == command.availability.reason, "\(command.title)")
+                #expect(item.accessibilityHelp() == command.availability.reason, "\(command.title)")
             }
             #expect(foreign.toolTip == nil, "the walker touched an item macOS owns")
         }
@@ -84,10 +90,14 @@
             for command in [MenuCommand.resetServer, .removeServer] {
                 #expect(CommandItem(command).resolvedAvailability == .needsServerSelection)
             }
-            // Still genuinely unbuilt, and still saying so.
-            for command in [MenuCommand.pairPhone, .exportLibrary] {
-                #expect(CommandItem(command).resolvedAvailability == .surfaceAbsent)
-            }
+            // Pairing's board shipped at M6, so this reads the live context as enabled and silent.
+            // It asserted `.surfaceAbsent` here until M14 — green, and describing an app that told
+            // the user a shipped command did not exist.
+            #expect(CommandItem(.pairPhone).resolvedAvailability == .enabled)
+            #expect(CommandItem(.pairPhone).resolvedAvailability.reason == nil)
+            // Export genuinely has no feature, and now says that rather than borrowing the
+            // missing-surface sentence.
+            #expect(CommandItem(.exportLibrary).resolvedAvailability == .featureUnbuilt)
 
             // With no window up there is no provider, and M1's world is the honest answer.
             ShellMenuReasons.ContextSource.shared.reset()

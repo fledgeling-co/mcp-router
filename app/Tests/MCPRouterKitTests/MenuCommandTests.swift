@@ -88,6 +88,7 @@ struct MenuCommandTests {
                     switch command.availability {
                     case .enabled: "enabled"
                     case .surfaceAbsent: "surfaceAbsent"
+                    case .featureUnbuilt: "featureUnbuilt"
                     case .needsServerSelection: "needsServerSelection"
                     }
                 }()
@@ -218,9 +219,15 @@ struct MenuCommandTests {
                 #expect(reason?.lowercased().contains("you did") == false)
             }
         }
-        // Exactly two reasons exist, so none can be invented at a call site.
+        // Exactly three reasons exist, so none can be invented at a call site.
         #expect(CommandAvailability.surfaceAbsent.reason == "This part of the app isn't built yet.")
+        #expect(CommandAvailability.featureUnbuilt.reason == "This feature hasn't been built yet.")
         #expect(CommandAvailability.needsServerSelection.reason == "Select a server first.")
+        // The two refusals M14 separated must not collapse back into one sentence. Pinning the
+        // strings above is not enough on its own: someone editing one to match the other would
+        // update both literals here in the same pass and this file would stay green. Asserting the
+        // *distinction* is what fails when the vocabulary silently narrows again.
+        #expect(CommandAvailability.surfaceAbsent.reason != CommandAvailability.featureUnbuilt.reason)
     }
 
     /// **Which board each command gates on**, asserted where the shipping registry cannot see it.
@@ -256,10 +263,18 @@ struct MenuCommandTests {
         #expect(MenuCommand.addMarketplace.availability(in: skillsOnly) == .enabled)
         #expect(MenuCommand.addMarketplace.availability(in: serversOnly) == .surfaceAbsent)
 
-        // Owned by nothing that has shipped, so no installed set turns them on.
-        for command in [MenuCommand.pairPhone, .exportLibrary] {
-            #expect(command.availability(in: context(Set(Destination.allCases))) == .surfaceAbsent)
+        // Owned by nothing that has shipped, so no installed set turns it on. `.featureUnbuilt`
+        // rather than `.surfaceAbsent`: there is no board that would make export appear, which is
+        // exactly the distinction M14 added the case for.
+        for installed in [Set<Destination>(), [.servers], [.inbox], Set(Destination.allCases)] {
+            #expect(MenuCommand.exportLibrary.availability(in: context(installed)) == .featureUnbuilt)
         }
+        // And pairing gates on the board that hosts its sheet, not on "some board". Asserted
+        // against partial contexts for the reason this whole test exists: with every destination
+        // installed any required one yields `.enabled`, so the map is invisible there.
+        #expect(MenuCommand.pairPhone.availability(in: context([.inbox])) == .enabled)
+        #expect(MenuCommand.pairPhone.availability(in: serversOnly) == .surfaceAbsent)
+        #expect(MenuCommand.pairPhone.availability(in: skillsOnly) == .surfaceAbsent)
     }
 
     @Test("shortcuts render in Apple's modifier order")

@@ -146,9 +146,16 @@ fi
 cli_groups="$(printf '%s\n' "$cli_switch" | awk '
 BEGIN { gi = 0 }
 /^[[:space:]]*case[[:space:]]/ {
-  if (match($0, /\047[^\047]*\047/)) {
-    lab = substr($0, RSTART + 1, RLENGTH - 2)
+  # EVERY quoted label on the line, in either quote style. Reading only the first match dropped
+  # the second arm of `case \047serve\047: case \047--serve\047:` written on one line — a new
+  # spelling with no row and no error, which is the hole this whole section exists to close. And
+  # a double-quoted `case "doctor":` produced no group at all, so the arm vanished from both
+  # sides of the comparison.
+  rest = $0
+  while (match(rest, /\047[^\047]*\047|"[^"]*"/)) {
+    lab = substr(rest, RSTART + 1, RLENGTH - 2)
     group[gi] = (gi in group ? group[gi] " " : "") lab
+    rest = substr(rest, RSTART + RLENGTH)
   }
   next
 }
@@ -200,7 +207,8 @@ done <<< "$cli_groups"
 # One direction only. A verb the help text advertises and the switch does not dispatch is a lie
 # printed to the user; a dispatched verb the help text omits is an editorial choice (`refresh` and
 # `help` are both deliberately undocumented today).
-usage_verbs="$(sed -n 's/^[[:space:]]*mcp-router \([a-z][a-z-]*\).*/\1/p' "$INDEX_TS" | sort -u)"
+usage_verbs="$(sed -n 's/^[[:space:]]*mcp-router[[:space:]]\{1,\}\([a-z][a-z-]*\).*/\1/p' \
+  "$INDEX_TS" | sort -u)"
 while IFS= read -r verb; do
   [ -z "$verb" ] && continue
   printf '%s\n' "$cli_labels" | grep -qxF -e "$verb" \
@@ -236,15 +244,28 @@ grep -q 'url.pathname !== MCP_PATH' "$ROUTER_TS" \
 # only literal comparisons. The delegation is asserted rather than extracted: without this line it
 # could be deleted while the mcp reconciliation stayed green and sixteen control rows described a
 # surface the router had stopped routing to.
-grep -q 'isControlPath(url.pathname)' "$ROUTER_TS" \
-  || note "src/router.ts no longer delegates to isControlPath — the 16 control rows describe a surface it does not reach"
+# Anchored to a dispatch line, not merely to the string: `grep -q` of the bare call was kept
+# green by any COMMENT that mentioned it, so the delegation could be deleted and described.
+grep -qE '^[[:space:]]*if \(isControlPath\(url\.pathname\)\)' "$ROUTER_TS" \
+  || note "src/router.ts no longer dispatches on isControlPath — the 16 control rows describe a surface it does not reach"
 
-pathname_lines="$(grep -cE "url\.pathname [!=]== " "$ROUTER_TS" || true)"
-extracted_paths="$(printf '%s\n%s\n' "$mcp_literals" "$mcp_path" | grep -c . || true)"
-if [ "$pathname_lines" != "$extracted_paths" ]; then
-  note "src/router.ts compares url.pathname on $pathname_lines line(s) but $extracted_paths path(s)"
-  note "  could be extracted. A path answered in a shape this check cannot read has no row."
-fi
+# The independent signal. Counting `url.pathname [!=]== ` lines and comparing them to what the
+# same idiom extracted is not independent at all: `url.pathname==='/metrics'` without spaces,
+# `url.pathname.startsWith('/admin')` and `['/a'].includes(url.pathname)` are each invisible to
+# BOTH sides, which reads as agreement. So every line mentioning url.pathname at all must be one
+# of the three shapes this check understands, and anything else is named.
+while IFS= read -r pathname_use; do
+  [ -z "$pathname_use" ] && continue
+  case "$pathname_use" in
+    *"url.pathname === '"*)          continue ;;
+    *'url.pathname !== MCP_PATH'*)   continue ;;
+    *'isControlPath(url.pathname)'*) continue ;;
+  esac
+  note "src/router.ts uses url.pathname in a shape this check cannot read:"
+  note "  ${pathname_use}"
+  note "  A path answered in an unreadable shape is absent from both the source list and the"
+  note "  manifest, which reads as agreement and raises the coverage figure."
+done <<< "$(grep -n 'url\.pathname' "$ROUTER_TS" || true)"
 
 # The JSON-RPC method names are NOT hand-mapped here. The symbol is read out of the source and the
 # name is read out of the SDK schema that pins it, so renaming a method upstream moves this check
@@ -255,6 +276,22 @@ if [ -z "$mcp_symbols" ]; then
   echo "environment: no setRequestHandler(...) call found in $ROUTER_TS. The registration shape"
   echo "             has changed and every JSON-RPC row would go undemanded."
   exit 2
+fi
+
+# The handlers get their own independent count, for the reason the control block gives for its
+# dispatch-line count. The extractor reads `setRequestHandler(Symbol` on one line; a registration
+# written across two lines —
+#     server.setRequestHandler(
+#       NewRequestSchema, …
+# — yields no symbol, so a THIRD JSON-RPC method would be absent from both the source list and the
+# manifest and the comparison would agree. The zero-guard above cannot see it, because the other
+# two handlers still extract.
+handler_calls="$(grep -c 'setRequestHandler(' "$ROUTER_TS" || true)"
+symbol_count="$(printf '%s\n' "$mcp_symbols" | grep -c . || true)"
+if [ "$handler_calls" != "$symbol_count" ]; then
+  note "src/router.ts registers $handler_calls request handler(s) but $symbol_count schema symbol(s)"
+  note "  could be read. A handler registered in a shape this check cannot read is a JSON-RPC"
+  note "  method with no manifest row."
 fi
 if ! mcp_methods="$(cd "$REPO_ROOT" && node -e '
   const t = require("@modelcontextprotocol/sdk/types.js");

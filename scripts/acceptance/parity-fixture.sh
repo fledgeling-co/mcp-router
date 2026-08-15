@@ -169,34 +169,45 @@ SUBS = [
 # because it mangled both sides the same way; it was also blind. Every `project` inside that array
 # has a sibling `cwd`, so the rule below covers it, and the array length and every `calls` value
 # now compare for the first time.
-def legitimate_projects(node, out):
+def project_violations(node, out, path=''):
+    """Every `project` in the body must be basename(cwd) of its OWN object and non-empty.
+
+    Checked as an invariant on each side separately, rather than used to build a set of
+    "safe" values to substitute. That distinction is the whole design, and the first draft got
+    it wrong: it collected the values that passed the pair test and then substituted each one
+    GLOBALLY, which put the decision back on the string. A body with two records —
+    {cwd:.../P4, project:"P4"} and {cwd:.../elsewhere, project:"P4"} — has one object passing
+    and one lying, and a global substitution rewrites both. That is the same shape as the
+    [^"]+ widening this file rejects above: a later, blunter rule washing out a distinction an
+    earlier, stricter one already had in its hand.
+
+    So nothing is substituted on the strength of the walk. The walk decides only whether the
+    field still means what src/usage.ts:305 says it means, and a body that fails is reported
+    as a difference and never normalised at all."""
     if isinstance(node, dict):
-        cwd, proj = node.get('cwd'), node.get('project')
-        if isinstance(cwd, str) and isinstance(proj, str) and proj \
-           and proj == posixpath.basename(cwd.rstrip('/')):
-            out.add(proj)
-        for value in node.values():
-            legitimate_projects(value, out)
+        if 'project' in node:
+            proj, cwd = node.get('project'), node.get('cwd')
+            where = path or '<root>'
+            if not isinstance(proj, str) or not proj:
+                out.append(f'{where}.project is {json.dumps(proj)}, not a non-empty string')
+            elif not isinstance(cwd, str):
+                out.append(f'{where}.project is present with no sibling cwd to check it against')
+            elif proj != posixpath.basename(cwd.rstrip('/')):
+                out.append(f'{where}.project is {json.dumps(proj)}, which is not the basename of '
+                           f'{json.dumps(cwd)}')
+        for key, value in node.items():
+            project_violations(value, out, f'{path}.{key}')
     elif isinstance(node, list):
-        for value in node:
-            legitimate_projects(value, out)
+        for index, value in enumerate(node):
+            project_violations(value, out, f'{path}[{index}]')
 
 
-def normalise(text):
-    # Structural first, and by literal substitution rather than by re-serialising the parsed
-    # document: the comparison downstream is byte-level, so dumping JSON back out would also
-    # normalise away whitespace and member order, which ARE compared today.
-    #
-    # A body that will not parse skips this pass, keeps its raw project value, and mismatches.
-    # That is the safe direction.
-    try:
-        projects = set()
-        legitimate_projects(json.loads(text), projects)
-    except Exception:
-        projects = set()
-    for value in projects:
-        text = re.sub(r'"project"\s*:\s*"' + re.escape(value) + '"',
-                      '"project":"<project>"', text)
+def normalise(text, project_checked):
+    # `project` is normalised only once the invariant above has been VERIFIED on this body. An
+    # unparseable body never gets that verification, keeps its raw value, and mismatches — which
+    # is the safe direction. Substituting it anyway would be normalising a field nobody checked.
+    if project_checked:
+        text = re.sub(r'"project"\s*:\s*"[^"]+"', '"project":"<project>"', text)
     for pattern, replacement in SUBS:
         text = re.sub(pattern, replacement, text)
     return text
@@ -230,8 +241,27 @@ def first_difference(a, b, path=''):
     return None
 
 recorded, recaptured = sys.argv[1], sys.argv[2]
-a = normalise(open(recorded).read().strip())
-b = normalise(open(recaptured).read().strip())
+raw = {'the recording': open(recorded).read().strip(),
+       'the live body': open(recaptured).read().strip()}
+
+# The invariant is asserted on each side INDEPENDENTLY, before anything is normalised. A body
+# that breaks it is reported as the difference — which is stronger than making the two agree,
+# because both sides breaking it the same way is still a change to what the reference reports.
+checked = {}
+for label, text in raw.items():
+    try:
+        problems = []
+        project_violations(json.loads(text), problems)
+    except Exception:
+        checked[label] = False       # unparseable: project is left alone and will mismatch
+        continue
+    if problems:
+        print(f'{label}: {problems[0]}')
+        sys.exit(1)
+    checked[label] = True
+
+a = normalise(raw['the recording'], checked['the recording'])
+b = normalise(raw['the live body'], checked['the live body'])
 if a == b:
     sys.exit(0)
 try:

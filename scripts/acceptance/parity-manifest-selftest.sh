@@ -129,6 +129,18 @@ PY
 expect_red "a cli row DELETED (import)" "$dir" \
   'src/index.ts dispatches "import"'
 
+# D-n's headline is a BLOCKED row disappearing: the numerator is untouched and the denominator
+# shrinks, so 73/83 becomes 73/82 and the reported coverage goes UP. cli-auth is the blocked one.
+dir="$(scratch)"
+python3 - "$dir/planning/parity/surface.tsv" <<'PY'
+import sys
+path = sys.argv[1]
+lines = [l for l in open(path) if not l.startswith('cli\tcli-auth\t')]
+open(path, 'w').writelines(lines)
+PY
+expect_red "the BLOCKED cli row deleted (auth) — pure denominator" "$dir" \
+  'src/index.ts dispatches "auth"'
+
 dir="$(scratch)"
 printf 'cli\tcli-doctor\tdoctor\tproven\t-\tinvented\n' >> "$dir/planning/parity/surface.tsv"
 expect_red "a cli row INVENTED (doctor)" "$dir" \
@@ -145,13 +157,22 @@ edit "$dir/src/index.ts" "    case 'serve':" "    case '--serve':
 expect_red "a new FLAG SPELLING added (--serve)" "$dir" \
   'src/index.ts dispatches "--serve"'
 
+# The alias-only group must redden for the RIGHT rule. Adding two UNDECLARED labels trips the
+# "neither a row nor a declared alias" rule first, which proves that rule and says nothing about
+# this one. So they are declared here, exactly as a maintainer would declare them, and the group
+# is then the only thing wrong with the tree.
 dir="$(scratch)"
+edit "$dir/scripts/acceptance/parity-manifest-check.sh" "CLI_ALIASES='--help
+-h'" "CLI_ALIASES='--help
+-h
+-q
+-z'" || true
 edit "$dir/src/index.ts" "    case 'help':" "    case '-q':
     case '-z':
       return usage();
     case 'help':" || true
-expect_red "an ALIAS-ONLY case group" "$dir" \
-  'src/index.ts dispatches "-q"'
+expect_red "an ALIAS-ONLY case group, aliases properly DECLARED" "$dir" \
+  'has no label carrying a cli manifest row'
 
 dir="$(scratch)"
 edit "$dir/src/index.ts" "    case '-h':
@@ -163,6 +184,27 @@ dir="$(scratch)"
 edit "$dir/src/index.ts" "  mcp-router status" "  mcp-router doctor" || true
 expect_red "usage() advertises a verb nothing dispatches" "$dir" \
   'usage() advertises "doctor"'
+
+# Column-aligned help. The first sed took exactly one space, so a verb in a tab- or double-space
+# aligned help line was not extracted at all and A3 stayed green over an advertised lie.
+dir="$(scratch)"
+edit "$dir/src/index.ts" "  mcp-router status" "  mcp-router	doctor" || true
+expect_red "usage() advertises a verb, TAB-aligned" "$dir" \
+  'usage() advertises "doctor"'
+
+# Two labels on one line. Reading only the first quoted string dropped the second entirely.
+dir="$(scratch)"
+edit "$dir/src/index.ts" "    case 'serve':" "    case 'serve': case '--serve':" || true
+expect_red "a second label on the SAME line (--serve)" "$dir" \
+  'src/index.ts dispatches "--serve"'
+
+# A double-quoted arm produced no group at all, so the whole verb vanished from both sides.
+dir="$(scratch)"
+edit "$dir/src/index.ts" "    case 'status':" "    case \"doctor\":
+      return cmdStatus();
+    case 'status':" || true
+expect_red "a DOUBLE-QUOTED case arm" "$dir" \
+  'src/index.ts dispatches "doctor"'
 
 dir="$(scratch)"
 edit "$dir/src/index.ts" "const run = async ()" "if (cmd === 'doctor') { void cmdIndex(); }
@@ -197,9 +239,37 @@ expect_red "a JSON-RPC handler REMOVED (tools/list)" "$dir" \
   'the manifest carries mcp row "tools/list", which src/router.ts does not answer'
 
 dir="$(scratch)"
-edit "$dir/src/router.ts" "isControlPath(url.pathname)" "isControlPathDisabled(url.pathname)" || true
+edit "$dir/src/router.ts" "if (isControlPath(url.pathname)) {" "if (isControlPathDisabled(url.pathname)) {" || true
 expect_red "the control delegation REMOVED" "$dir" \
-  'no longer delegates to isControlPath'
+  'no longer dispatches on isControlPath'
+
+# ... and removed while a comment still names it. A bare `grep -q` of the string stayed green here,
+# so the delegation could be deleted and described in the same edit.
+dir="$(scratch)"
+edit "$dir/src/router.ts" "      if (isControlPath(url.pathname)) {" \
+  "      // isControlPath(url.pathname) used to run here
+      if (false) {" || true
+expect_red "the delegation removed but NAMED IN A COMMENT" "$dir" \
+  'no longer dispatches on isControlPath'
+
+# A path answered in a shape the extractor cannot read. The first count shared the extractor's own
+# idiom, so both sides missed this and the manifest agreed with a source it had stopped reading.
+dir="$(scratch)"
+edit "$dir/src/router.ts" "      if (url.pathname === '/health') {" \
+  "      if (url.pathname.startsWith('/metrics')) { return json(res, 200, {}); }
+      if (url.pathname === '/health') {" || true
+expect_red "a path matched with .startsWith, unreadable by the extractor" "$dir" \
+  'uses url.pathname in a shape this check cannot read'
+
+# A third JSON-RPC handler registered across two lines: no symbol extracted, no row demanded, and
+# the zero-guard silent because the other two still extract.
+dir="$(scratch)"
+edit "$dir/src/router.ts" "  server.setRequestHandler(ListToolsRequestSchema" \
+  "  server.setRequestHandler(
+    PingRequestSchema, async () => ({}));
+  server.setRequestHandler(ListToolsRequestSchema" || true
+expect_red "a handler registered ACROSS TWO LINES" "$dir" \
+  'schema symbol(s)'
 
 # The method names are read out of the installed SDK rather than a table in the check. Proven by
 # giving one scratch repo its own SDK whose schema pins a DIFFERENT literal: if the check followed a

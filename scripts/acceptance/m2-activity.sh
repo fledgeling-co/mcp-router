@@ -30,6 +30,19 @@ pass() { echo "  ok — $*"; }
 
 [ -d "$MAC_APP" ] || blocked "no built app at $MAC_APP — run 'make build-mac' first"
 
+# ---------------------------------------------------------------- freshness
+#
+# Every assertion below judges the RUNNING app, so a binary older than the tree makes all of them
+# statements about a build nobody is looking at. This harness has reported exactly that as a
+# product defect — a correct tree, a four-minute-old binary, and a FAIL naming the app's own copy.
+# Decided on CONTENT, so a rebase (which rewrites mtimes and changes nothing) does not block it.
+# shellcheck source=scripts/acceptance/build-freshness.sh
+source "$ROOT/scripts/acceptance/build-freshness.sh"
+# shellcheck source=scripts/acceptance/mac-app.sh
+source "$ROOT/scripts/acceptance/mac-app.sh"
+build_freshness_require Debug "$ROOT"
+
+
 # ---------------------------------------------------------------- the registry precondition
 #
 # The rule that produced this script: do not run a UI acceptance pass over a placeholder. So the
@@ -85,12 +98,12 @@ check_invisible() {
 PID=""
 launch() {
     local scenario="$1"
-    [ -n "$PID" ] && { kill "$PID" 2>/dev/null || true; sleep 1; }
-    # `-g` is the whole of it. A bare `open -a` activates, which is what takes the screen.
-    open -g -a "$MAC_APP" --env "MCPROUTER_SCENARIO=$scenario"
-    sleep 3
-    PID="$(pgrep -n -f 'MCPRouter.app/Contents/MacOS/MCPRouter' || true)"
-    [ -n "$PID" ] || blocked "the app did not start under scenario '$scenario'"
+    # `mac-app.sh` owns the sequence, and every step waits on an observable. What stood here was a
+    # flat `sleep 3` with `open`'s exit status discarded, and a `pgrep -f` matching ANY MCPRouter
+    # on the machine — so on a fleet running several worktrees it attached to another runner's
+    # build and reported about that one. The shared launcher binds the pid to THIS bundle, and it
+    # separates "nothing launched" (blocked) from "the app started and died" (a real failure).
+    mac_app_launch "$MAC_APP" "$AXKIT" "MCPROUTER_SCENARIO=$scenario"
     check_invisible "launching under '$scenario'"
 }
 quit() { [ -n "$PID" ] && { kill "$PID" 2>/dev/null || true; }; PID=""; }

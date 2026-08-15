@@ -133,6 +133,7 @@ SHIM
 }
 
 failures=0
+blocked=0
 check() { # lane defect ports...
   local lane="$1" defect="$2"; shift 2
   printf '  %-8s seeded with %-12s ... ' "$lane" "$defect"
@@ -150,9 +151,13 @@ check() { # lane defect ports...
     tail -12 "$WORK/$lane.log" | sed 's/^/      /'
     return
   fi
+  # A lane that could not START has told us nothing about whether it can go red. Counting it with
+  # the lanes that ran and stayed green would report an environment fact — a port held by a
+  # concurrent run, a missing binary — as a claim that this check is inert. That is the confusion
+  # this whole item exists to remove, so it is counted separately and it exits 2, not 1.
   if [ "$status" = 2 ]; then
-    echo "could not run (exit 2) — inconclusive, not a pass"
-    failures=$((failures + 1))
+    echo "could not run (exit 2) — inconclusive, not a pass and not a failure"
+    blocked=$((blocked + 1))
     tail -8 "$WORK/$lane.log" | sed 's/^/      /'
     return
   fi
@@ -207,6 +212,9 @@ for row in $ALL_ROWS; do
   fi
 done
 echo "  demonstrated: $shown of $((shown + unshown))"
+if [ "$blocked" != 0 ]; then
+  echo "  ($blocked lane(s) could not run, so some rows below are unmeasured, not inert.)"
+fi
 if [ -n "$missing" ]; then
   echo "  NOT demonstrated:"
   for row in $missing; do echo "    $row"; done
@@ -214,10 +222,17 @@ if [ -n "$missing" ]; then
 fi
 
 echo
-if [ "$failures" = 0 ]; then
-  echo "every new lane went red against a broken router. The lanes can fail."
-  exit 0
+if [ "$failures" != 0 ]; then
+  echo "$failures lane(s) did not notice their seeded defect. A lane that cannot go red is not a"
+  echo "check, and any row it proves should be read as unproven."
+  [ "$blocked" != 0 ] && echo "($blocked further lane(s) could not run at all — see above.)"
+  exit 1
 fi
-echo "$failures lane(s) did not notice their seeded defect. A lane that cannot go red is not a"
-echo "check, and any row it proves should be read as unproven."
-exit 1
+if [ "$blocked" != 0 ]; then
+  echo "BLOCKED: $blocked lane(s) could not run, so their failability is unmeasured. Every lane that"
+  echo "DID run noticed its seeded defect. The commonest cause is a second parity run holding the"
+  echo "lane's fixed port — this harness never shares one. Re-run with nothing else in flight."
+  exit 2
+fi
+echo "every new lane went red against a broken router. The lanes can fail."
+exit 0

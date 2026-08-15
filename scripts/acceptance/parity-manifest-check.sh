@@ -37,7 +37,15 @@ FIXTURE_DIR="$REPO_ROOT/app/Sources/MCPRouterKit/Control/Fixtures"
 [ -d "$FIXTURE_DIR" ] || { echo "environment: no fixtures at $FIXTURE_DIR"; exit 2; }
 
 problems=0
+# `note` opens a finding: it prints and it counts. `detail` continues one: it prints and it does
+# NOT count.
+#
+# Every multi-line finding here used to call `note` once per line, so the gate whose entire subject
+# is that numbers are not inflated inflated its own — one problem reporting as two, three or four.
+# The split is the fix, and it changes no finding, no threshold and no verdict: only the number
+# that follows the word "problem(s)".
 note() { printf '  %s\n' "$1"; problems=$((problems + 1)); }
+detail() { printf '  %s\n' "$1"; }
 
 # ------------------------------------------------------------------ shape
 # Every row carries six tab-separated fields, a verdict from the closed set, and an owner
@@ -100,8 +108,8 @@ dispatch_lines="$(grep -cE "^[[:space:]]*if \(.*req\.method === '" "$CONTROL_TS"
 extracted_count="$(printf '%s\n' "$routes_from_source" | grep -c .)"
 if [ "$dispatch_lines" != "$extracted_count" ]; then
   note "control.ts has $dispatch_lines dispatch lines but $extracted_count routes could be extracted."
-  note "  A route is being dispatched in a shape this check cannot read, so it is missing from BOTH"
-  note "  the source list and the manifest — which reads as agreement and raises the coverage figure."
+  detail "  A route is being dispatched in a shape this check cannot read, so it is missing from BOTH"
+  detail "  the source list and the manifest — which reads as agreement and raises the coverage figure."
 fi
 
 routes_from_manifest="$(awk -F'\t' '$1 == "control" { print $3 }' "$MANIFEST" | sort -u)"
@@ -181,7 +189,7 @@ while IFS= read -r label; do
   if printf '%s\n' "$cli_rows"    | grep -qxF -e "$label"; then continue; fi
   if printf '%s\n' "$CLI_ALIASES" | grep -qxF -e "$label"; then continue; fi
   note "src/index.ts dispatches \"$label\", which is neither a cli manifest row nor a declared"
-  note "  alias. A verb with no row is CLI surface the gate does not count."
+  detail "  alias. A verb with no row is CLI surface the gate does not count."
 done <<< "$cli_labels"
 
 while IFS= read -r row; do
@@ -236,9 +244,9 @@ while IFS= read -r cmd_use; do
     *"//"*)                          continue ;;
   esac
   note "src/index.ts reads the command outside the switch:"
-  note "  ${cmd_use}"
-  note "  A verb dispatched in a shape this check cannot read is absent from BOTH the source list"
-  note "  and the manifest, which reads as agreement and raises the coverage figure."
+  detail "  ${cmd_use}"
+  detail "  A verb dispatched in a shape this check cannot read is absent from BOTH the source list"
+  detail "  and the manifest, which reads as agreement and raises the coverage figure."
 done <<< "$(grep -nE '(^|[^A-Za-z])cmd([^A-Za-z]|$)|argv\[2\]' "$INDEX_TS" || true)"
 
 # ------------------------------------------------------------------ mcp surface
@@ -288,9 +296,9 @@ while IFS= read -r pathname_use; do
     *) continue ;;
   esac
   note "src/router.ts uses url.pathname in a shape this check cannot read:"
-  note "  ${pathname_use}"
-  note "  A path answered in an unreadable shape is absent from both the source list and the"
-  note "  manifest, which reads as agreement and raises the coverage figure."
+  detail "  ${pathname_use}"
+  detail "  A path answered in an unreadable shape is absent from both the source list and the"
+  detail "  manifest, which reads as agreement and raises the coverage figure."
 done <<< "$(grep -n 'url\.pathname' "$ROUTER_TS" || true)"
 
 # The JSON-RPC method names are NOT hand-mapped here. The symbol is read out of the source and the
@@ -318,8 +326,8 @@ handler_calls="$(grep -o 'setRequestHandler(' "$ROUTER_TS" | grep -c . || true)"
 symbol_count="$(printf '%s\n' "$mcp_symbols" | grep -c . || true)"
 if [ "$handler_calls" != "$symbol_count" ]; then
   note "src/router.ts registers $handler_calls request handler(s) but $symbol_count schema symbol(s)"
-  note "  could be read. A handler registered in a shape this check cannot read is a JSON-RPC"
-  note "  method with no manifest row."
+  detail "  could be read. A handler registered in a shape this check cannot read is a JSON-RPC"
+  detail "  method with no manifest row."
 fi
 if ! mcp_methods="$(cd "$REPO_ROOT" && node -e '
   const t = require("@modelcontextprotocol/sdk/types.js");
@@ -434,8 +442,86 @@ while IFS= read -r token; do
   if printf '%s\n' "$row_ids"       | grep -qxF -e "$token"; then continue; fi
   if printf '%s\n' "$KNOWN_NON_IDS" | grep -qxF -e "$token"; then continue; fi
   note "a note cites \"$token\", which is not a row id in this manifest."
-  note "  Either the row it names was deleted, or the word is not an id and belongs in KNOWN_NON_IDS."
+  detail "  Either the row it names was deleted, or the word is not an id and belongs in KNOWN_NON_IDS."
 done <<< "$cited_ids"
+
+# ------------------------------------------------------------------ every lane is dispatched
+#
+# P4's orphan detection catches a ROW no lane speaks for. This is the inverse — a LANE SCRIPT that
+# nothing dispatches — and nothing caught it.
+#
+# `parity-stream.sh` sat on disk from R2-R until P3: written, executable, and passing when run by
+# hand, while being run by NOTHING, because `stream` was never in `parity-gate.sh`'s LANES list.
+# Its rows stayed blocked under their own notes for the whole of that time. The gate's
+# missing-script guard cannot reach this: it only fires for a lane the gate was ASKED about, so a
+# lane it was never asked about produces no result, no environment failure and no complaint.
+#
+# A lane script that exists and is dispatched by nothing is worse than an absent one, because it
+# reads as covered work. So every `parity-*.sh` must either appear in LANES or be named below with
+# the reason it is not a lane.
+GATE_SH="$REPO_ROOT/scripts/acceptance/parity-gate.sh"
+[ -f "$GATE_SH" ] || { echo "environment: no gate at $GATE_SH"; exit 2; }
+
+# Read the dispatch list out of the gate rather than keeping a second copy of it here. A copy is
+# free to drift, and a drifted copy would agree with the wrong answer — which is the failure this
+# whole file exists to prevent.
+lanes_dispatched="$(sed -n 's/^LANES="\${PARITY_LANES:-\(.*\)}".*/\1/p' "$GATE_SH" | head -1)"
+if [ -z "$lanes_dispatched" ]; then
+  echo "environment: could not read the LANES list out of $GATE_SH — the declaration has changed"
+  echo "             shape, and this check would otherwise pass every script by finding no lanes."
+  exit 2
+fi
+
+# Scripts under scripts/acceptance/ named parity-*.sh that are deliberately NOT lanes. Each needs a
+# reason, so that adding one is a decision a reviewer can see rather than a way to silence this.
+NOT_LANES="parity-gate:the dispatcher itself, which runs the lanes
+parity-manifest-check:this file, which parity-gate runs before any lane
+parity-manifest-selftest:proves this file can fail; run by 'make parity-selftest'
+parity-lane-selftest:proves a lane can fail; run by 'make parity-selftest'
+parity-normalise-selftest:proves the normaliser can fail; run by 'make parity-selftest'"
+
+for script in "$REPO_ROOT"/scripts/acceptance/parity-*.sh; do
+  [ -f "$script" ] || continue
+  base="$(basename "$script" .sh)"
+  lane="${base#parity-}"
+  printf '%s\n' $lanes_dispatched | grep -qxF -e "$lane" && continue
+  printf '%s\n' "$NOT_LANES" | grep -q "^$base:" && continue
+  note "$base.sh exists and no lane dispatches it: \"$lane\" is not in parity-gate.sh's LANES,"
+  detail "  and it is not declared as deliberately unwired. A lane script nothing runs passes by"
+  detail "  hand forever while its rows stay blocked — which is exactly what parity-stream.sh did"
+  detail "  from R2-R until P3. Add it to LANES, or name it in NOT_LANES with the reason."
+done
+
+# An exemption naming a script that no longer exists is its own kind of rot: it would keep a future
+# script of the same name invisible.
+#
+# And an exemption is not a waiver. If NOT_LANES only had to NAME a script, it would become the very
+# drain this section exists to close — parity-stream.sh with paperwork, executable and passing by
+# hand and run by nothing. So each exempted script must be REFERENCED somewhere that runs it: the
+# Makefile, or the gate itself. "Not a lane" has to mean "run another way", never "not run".
+while IFS= read -r entry; do
+  [ -z "$entry" ] && continue
+  name="${entry%%:*}"
+  if [ ! -f "$REPO_ROOT/scripts/acceptance/$name.sh" ]; then
+    note "NOT_LANES exempts \"$name\", and no such script exists — remove the stale exemption"
+    continue
+  fi
+  # The referenced-check needs a Makefile to read. `parity-manifest-selftest.sh` builds a MINIMAL
+  # scratch REPO_ROOT — a manifest, the reference sources and this script, and no Makefile — so
+  # asserting referencedness there would fail on every case and take the selftest's unmutated
+  # baseline red with it, which makes every red below the baseline prove nothing. Measured: it
+  # reported 3 spurious problems and the selftest said "the unmutated tree exits 1".
+  #
+  # Where there is no Makefile there is no wiring to have an opinion about, so this sub-check is
+  # skipped rather than failed. The LANES membership check above still runs in that tree.
+  [ -f "$REPO_ROOT/Makefile" ] || continue
+  if ! grep -q "$name" "$REPO_ROOT/Makefile" && ! grep -q "$name" "$GATE_SH"; then
+    note "NOT_LANES exempts \"$name\" as not-a-lane, and nothing runs it: it appears in neither the"
+    detail "  Makefile nor parity-gate.sh. An exemption has to mean \"run another way\", not \"not"
+    detail "  run\" — otherwise this list is just a waiver for the invisible-script defect it exists"
+    detail "  to catch."
+  fi
+done <<< "$NOT_LANES"
 
 # ------------------------------------------------------------------ ids are unique
 # Two rows sharing an id means one lane's result overwrites the other's during reconciliation,
@@ -466,11 +552,11 @@ total="$(awk -F'\t' '!/^#/ && NF == 6' "$MANIFEST" | wc -l | tr -d ' ')"
 pinned="$(sed -n 's/^# rows: \([0-9][0-9]*\).*/\1/p' "$MANIFEST" | head -1)"
 if [ -z "$pinned" ]; then
   note "the manifest carries no \`# rows: N\` pin, so its size is unconstrained and a row can"
-  note "  leave it without anything noticing."
+  detail "  leave it without anything noticing."
 elif [ "$pinned" != "$total" ]; then
   note "the manifest holds $total rows and pins itself at $pinned."
-  note "  A row was added or removed. If that was deliberate, move the pin in the same change and"
-  note "  say so — the denominator is the cutover target, and R4-C is expressed as a number."
+  detail "  A row was added or removed. If that was deliberate, move the pin in the same change and"
+  detail "  say so — the denominator is the cutover target, and R4-C is expressed as a number."
 fi
 
 if [ "$problems" -gt 0 ]; then

@@ -42,28 +42,50 @@ echo "  frontmost before: $FRONT_BEFORE"
 # ---------------------------------------------------------------- build and launch
 MAC_APP="${MAC_APP:-}"
 if [ -z "$MAC_APP" ]; then
-    MAC_APP="$(find "$ROOT/app/.derived" -maxdepth 4 -name 'MCPRouter.app' -type d 2>/dev/null | head -1)"
+    # Debug FIRST, explicitly, and only then whatever `find` turns up.
+    #
+    # This was `find … -name 'MCPRouter.app' | head -1` alone, and `find` returns Release before
+    # Debug on this layout. So the moment a Release build existed in the worktree, this script
+    # silently drove the RELEASE bundle — which carries none of the Debug fixture scenarios — and
+    # reported **7 failures naming missing Settings rows** on a completely correct app: `Endpoint`,
+    # `Home`, `Idle reaper`, `Counting since`, the composed endpoint, the disabled control's reason
+    # and the warm-set summary, all "missing" because the binary under test was never given the
+    # scenario. Measured: 14 passed / 7 failed against Release, 20 passed / 1 failed against Debug
+    # on the same tree in the same minute.
+    #
+    # It hid for as long as it did only because nothing in this worktree had built Release. That is
+    # the same class as the stale binary this item exists to fix — a gate reporting confidently about
+    # a build nobody meant to test — so it is fixed here rather than filed.
+    for candidate in "$ROOT/app/.derived/Build/Products/Debug/MCPRouter.app" \
+                     $(find "$ROOT/app/.derived" -maxdepth 4 -name 'MCPRouter.app' -type d 2>/dev/null); do
+        [ -d "$candidate" ] && { MAC_APP="$candidate"; break; }
+    done
 fi
 [ -n "$MAC_APP" ] && [ -d "$MAC_APP" ] || blocked "no MCPRouter.app; run 'make build-mac' first"
+
+# ---------------------------------------------------------------- freshness
+#
+# Every assertion below judges the RUNNING app, so a binary older than the tree makes all of them
+# statements about a build nobody is looking at. This harness has reported exactly that as a
+# product defect — a correct tree, a four-minute-old binary, and a FAIL naming the app's own copy.
+# Decided on CONTENT, so a rebase (which rewrites mtimes and changes nothing) does not block it.
+# shellcheck source=scripts/acceptance/build-freshness.sh
+source "$ROOT/scripts/acceptance/build-freshness.sh"
+# shellcheck source=scripts/acceptance/mac-app.sh
+source "$ROOT/scripts/acceptance/mac-app.sh"
+# Unlike its siblings this script DISCOVERS its bundle with a `find`, so it can legitimately land on
+# Debug or Release. Freshness is therefore asked about whichever configuration was actually
+# resolved — checking Debug while driving Release would certify a product this run never touched.
+build_freshness_require "$(basename "$(dirname "$MAC_APP")")" "$ROOT"
+
 echo "  bundle: $MAC_APP"
 
-# `open -g` and never a bare `open -a`, which activates.
-open -g -a "$MAC_APP" --env "MCPROUTER_SCENARIO=${SCENARIO:-populated}"
-
-# Resolve *our* pid by bundle path. A fleet runs several builds at once, and attaching to another
-# runner's app is a trap M3 recorded — it reads a different binary and reports about that one.
-PID=""
-for _ in $(seq 1 40); do
-    for candidate in $(pgrep -x MCPRouter 2>/dev/null || true); do
-        exe="$(ps -o comm= -p "$candidate" 2>/dev/null || true)"
-        case "$exe" in
-            "$MAC_APP"*) PID="$candidate"; break ;;
-        esac
-    done
-    [ -n "$PID" ] && break
-    sleep 0.25
-done
-[ -n "$PID" ] || blocked "MCPRouter did not start, or started from another bundle"
+# `mac-app.sh` owns the launch. This script already resolved its pid by bundle path — a trap M3
+# recorded, since a fleet runs several builds at once and attaching to another runner's app reads a
+# different binary. That method is now the SHARED one rather than the one script that got it right;
+# what the shared launcher adds is waiting out the previous instance, consulting `open`'s exit
+# status, and telling "nothing launched" apart from "the app started and died".
+mac_app_launch "$MAC_APP" "$AXKIT" "MCPROUTER_SCENARIO=${SCENARIO:-populated}"
 echo "  pid: $PID"
 sleep 1.5
 

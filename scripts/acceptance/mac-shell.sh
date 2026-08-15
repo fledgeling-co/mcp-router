@@ -1328,11 +1328,23 @@ E_BINDERS="$(awk -F'\t' '
     ($1 "\t" $2) in declared {
         c = $5; gsub(/[[:cntrl:]]/, "", c)
         mods = ($6 == "" ? 0 : $6) + 0
-        if ((c == "E" || c == "e") && and(mods, 8) == 0) print $1 " / " $2
+        # Bit 8 is the no-command-key bit, tested arithmetically. The default awk on macOS is the
+        # one true awk, which has NO and() function -- that is a gawk extension. See the note below
+        # this block for why writing it with and() was invisible until a mutation reached the line.
+        if ((c == "E" || c == "e") && int(mods / 8) % 2 == 0) print $1 " / " $2
     }
 ' "$WORK/expected.tsv" "$WORK/items.tsv")"
 [ -z "$E_BINDERS" ] \
   || fail "an app-declared command binds ⌘E, which §8's table never grants: $(printf '%s' "$E_BINDERS" | paste -sd'; ' -)"
+# **Why the bit test is arithmetic rather than `and(mods, 8)`.** It was written with `and()`, and
+# that version passed lint, passed a full green run, and passed mutation M4 — because awk
+# short-circuits `&&`, so `and()` was only ever reached by a row that actually violated the rule.
+# The one moment the assertion had a defect to report, it died with `awk: calling undefined function
+# and` and the script exited **2 — BLOCKED, not red**. macOS ships the one true awk, which has no
+# `and()`; that is a gawk extension. An assertion that can only ever block is indistinguishable from
+# a passing one right up until it matters, which is the exact class this fleet keeps finding. It was
+# caught by M4b, the mutation that binds ⌘E to a command other than Export — the only thing that
+# reaches this line, since the Export-specific check above fires first on the obvious mutation.
 pass "no app-declared command binds ⌘E — the chord stays with the system"
 
 # ---------------------------------------------------------------- G3 · a feature that does not exist says so

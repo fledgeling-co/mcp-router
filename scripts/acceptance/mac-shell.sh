@@ -830,10 +830,22 @@ check_invisible "the focus-ring assertion"
 # workaround, is the one that shipped it. The alignment now lives on the frame that creates the
 # surplus, so a board added later inherits it rather than rediscovering it.
 #
-# The 40pt threshold is a **band, not the measurement**. The real readings after the fix are 16pt on
-# the seven shell-scrolled boards and 0pt on Activity, against 209.5pt for Servers before it, so 40
-# sits an order of magnitude clear of both and cannot be met by accident. It is deliberately not
-# tightened to 20pt, which would redden a board whose column header legitimately sits below a title.
+# **The 40pt threshold, and what it does and does not cover.** The readings after the fix are 16pt
+# on the seven shell-scrolled boards (their top padding) and 0pt on Activity; the mutation that
+# removes the alignment puts Servers at 208.5pt. So 40 clears the real geometry comfortably.
+#
+# It is bounded, and the bound is worth stating rather than leaving for someone to discover. Centring
+# a board of height h in the 768pt frame drops it by (768 - h) / 2, so a drop of 40pt or less means
+# h >= 688pt: **this catches a centred board only while the board is shorter than ~688pt.** A board
+# nearly as tall as the frame has almost no dead space to be centred in, which is why that is an
+# acceptable bound rather than a hole — but it is a bound, not "an order of magnitude clear".
+#
+# An earlier version of this paragraph justified not tightening to 20pt by saying it "would redden a
+# board whose column header legitimately sits below a title". An out-of-family critic pointed out
+# that this is false of this check: it takes the **minimum** y over the content zone, so the title
+# always wins and a column header below it is never the measured element. The reason to keep 40
+# rather than 20 is the 16pt padding plus room for a board that pads its top a little more, not a
+# column header.
 #
 # **D2 — the content zone publishes exactly one scroll area.** `SettingsBoard` installed a
 # `ScrollView` of its own while staying out of `boardsThatScrollThemselves`, so Settings published
@@ -865,6 +877,14 @@ for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
     [ -n "$SIDE_R" ] || fail "$dest: could not find the sidebar outline to locate the content zone"
 
     # D2 — exactly one scroll area starts at or right of the sidebar's trailing edge.
+    #
+    # **This measures a board with no row selected, which is the state the walk creates and the only
+    # state in which "exactly one" is the right answer.** Selecting a row opens an inspector
+    # (`ServerInspector`, `EvalsInspector`, `SkillInspector` each install a `ScrollView` of their
+    # own), and a second content-zone scroll area is then correct rather than a defect — A34 below
+    # relies on exactly that fact. So the loop selects destinations and never rows. If a board ever
+    # auto-selects its first row on appear, this assertion will go red on a correct app, and the fix
+    # is to dismiss the inspector here rather than to raise the count.
     N_SCROLL="$(awk -F'\t' -v b="$SIDE_R" '$2 == "AXScrollArea" && $13 >= b - 2' "$WORK/window.tsv" | wc -l | tr -d ' ')"
     [ "$N_SCROLL" = "1" ] \
       || fail "$dest publishes $N_SCROLL scroll areas in the content zone, not 1 — a nested scroller means the inner one does not move and any header above it rides the outer one"
@@ -892,7 +912,16 @@ done
 # name: the split §6's one-name-per-state rule forbids, newly created by the fix for it.
 #
 # Swept over every pane's dump **and** the menu, because the word could survive in exactly one place
-# and a single-pane check would not see it. The enum case, its `rawValue` and the `?pane=evals`
+# and a single-pane check would not see it.
+#
+# **What this proves and what it does not.** This is an ABSENCE check: it proves the old word is
+# gone from the running app. It does not prove the surviving strings agree with each other — an
+# out-of-family critic pointed out that a third spelling (`Health` on the pane heading alone) would
+# leave the sidebar and the pane it opens disagreeing with this assertion still green. That claim is
+# pinned where it can be stated exactly rather than inferred from a dump:
+# `CheckCopy.evalsTitle` is now *derived from* `Destination.evals.title` rather than spelled a second
+# time, and `ShellDestinationTests.evalsReadsAsChecksWithoutMovingItsKey` asserts the equality for
+# anyone who re-inlines the literal. The two together are the guard; this half alone is not. The enum case, its `rawValue` and the `?pane=evals`
 # deep-link slug stay `evals` and are invisible here — they are identifiers, and §6 governs words a
 # user reads.
 if grep -qw "Evals" "$WORK/all-panes.tsv"; then
@@ -924,11 +953,14 @@ echo "the scroll edge"
 # shell's scroll view, and the other seven — Servers among them — are wrapped in `outerScroll`, whose
 # geometry is what drives `ScrollEdgeState`. Servers is correct and does not need moving.
 #
-# "Wrapped in it" is not the same as "scrolls in it", and one board is not what the set claims:
-# `SettingsBoard` installs a `ScrollView` of its own while staying out of
-# `boardsThatScrollThemselves`, so it nests one scroller inside another — which is the thing M2's
-# B41 said would not happen. That is a defect in the app, recorded by M13 and left for whoever owns
-# Settings; it does not touch Servers and it does not touch this assertion.
+# "Wrapped in it" is not the same as "scrolls in it", and M13 recorded one board where they came
+# apart: `SettingsBoard` installed a `ScrollView` of its own while staying out of
+# `boardsThatScrollThemselves`, nesting one scroller inside another — the thing M2's B41 said would
+# not happen. **That is fixed rather than outstanding**, and this paragraph used to say otherwise
+# four lines below the walk that disproves it: D2 removed the inner scroll view, and the D2
+# assertion above now measures exactly one content-zone scroll area on all eight panes, Settings
+# included. An out-of-family critic caught the contradiction — a stale defect report sitting
+# immediately after the assertion that retired it is how the next reader re-opens a closed finding.
 "$AXKIT" select "$PID" Servers >/dev/null
 sleep 1
 dump_window

@@ -75,7 +75,7 @@
         /// `ShellWindow.boardsThatScrollThemselves` states the criterion for owning a scroll view:
         /// **sticky chrome** — a column header or filter bar that must not ride a five-hundred-row
         /// log off the top. That is Activity. Settings has a pane title and a subtitle, which is
-        /// what Servers, Skills, Discover, Inbox, Evals and Cleanup all have, and all six of them
+        /// what Servers, Skills, Discover, Inbox, Checks and Cleanup all have, and all six of them
         /// scroll inside the shell. So the registry was right and this board was the anomaly.
         var body: some View {
             VStack(alignment: .leading, spacing: 0) {

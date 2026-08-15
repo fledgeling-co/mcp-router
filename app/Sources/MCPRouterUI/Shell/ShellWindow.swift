@@ -154,8 +154,12 @@
         /// is the one that shipped it. Top alignment is the shell's contract now, so a board added
         /// later inherits it instead of rediscovering it.
         ///
-        /// Those six frames are deliberately **kept**: they also let `ConnectionFailurePane` fill
-        /// the pane in the `.failed` branch, which this alignment does not do for them.
+        /// Those six frames are deliberately **kept**, and the reason is scope rather than a
+        /// mechanism this item verified. Each also carries `maxHeight: .infinity`, which governs how
+        /// that board's failure state fills the pane; removing six frames would need six failure-state
+        /// re-measurements, which is a board-by-board pass and not a register one. An out-of-family
+        /// critic was right to challenge the stronger claim this comment used to make, so it is not
+        /// made here. They are now redundant *for top alignment* and that is all that is asserted.
         private func outerScroll(@ViewBuilder _ content: () -> some View) -> some View {
             ScrollView {
                 content()

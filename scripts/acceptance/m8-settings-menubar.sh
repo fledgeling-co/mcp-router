@@ -181,7 +181,7 @@ TITLE="$("$AXKIT" title "$PID" 2>/dev/null || true)"
 # the status moves `.absent` -> `.stored`, `canForget` flips false -> true, and the button becomes
 # legitimately enabled. **Running this script once changes the machine state that decides its own
 # next verdict.** That is the whole of the 19/2 -> 20/1 -> 21/0 drift across G1 and D2; it was never
-# flaky, and it was never a product defect. `SettingsBoard.swift:221-223` has always set
+# flaky, and it was never a product defect. `SettingsBoard.forgetButton` has always set
 # `.disabled()`, `.help()` and `.accessibilityHint()` together.
 #
 # The form below is true in both states and stronger in both directions: a disabled control with no

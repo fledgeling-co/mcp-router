@@ -29,10 +29,22 @@
 # MCPR_LAUNCHD_LABEL.
 #
 # ROWS THIS LANE OWNS:  install: install-launchd-serve install-launchd-watch
+#                               install-import-servers install-claude-json
 #
 # CAVEAT, printed into the gate's report: two real agents under real launchd supervision, one per
 # binary, compared observation by observation. It does NOT run `docs/install.sh` itself — that would
-# rewrite the user's own `~/.claude.json`, which is `install-claude-json`'s row and D-k's to unblock.
+# rewrite the user's own `~/.claude.json` and load agents into their session.
+#
+# P2 added the two on-disk rows the installer produces, and both are driven the same way the
+# supervision rows are: the step is reproduced under installer-equivalent conditions rather than by
+# running the installer. `install-import-servers` runs `import` exactly as `install.sh:77` does —
+# no `--from`, no `MCP_ROUTER_HOME`, scratch `HOME`. `install-claude-json` runs the `node -e` body
+# EXTRACTED FROM install.sh at run time on the reference side, against `install-entry` on the Swift
+# side.
+#
+# What that does NOT establish, and the manifest note says so too: `docs/install.sh` still invokes
+# `node` for both steps. Flipping the caller is `D-p2-b` / R4-C's, and this lane going green is not
+# evidence that it happened.
 #
 # Exit codes: 0 both survived identically, 1 they did not, 2 the environment could not run.
 
@@ -60,6 +72,7 @@ record() {
   [ -n "$RESULTS" ] || return 0
   case "$1/$2" in
     install/install-launchd-serve|install/install-launchd-watch) ;;
+    install/install-import-servers|install/install-claude-json) ;;
     *) echo "  LANE BUG: refusing to record $1/$2, which this lane does not own" >&2; return 1 ;;
   esac
   printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" >> "$RESULTS"
@@ -347,6 +360,190 @@ else
 fi
 
 echo
+# ---------------------------------------------------------------------------------------------
+# P2 — the two on-disk rows the installer produces.
+#
+# Both are differentials over the SAME inputs with the destination isolated per side. Every
+# invocation carries a scratch HOME, because `import` with no `--from` reads `~/.claude.json` and
+# writes `$HOME/.claude/mcp-router/` — running either binary without one would adopt from, and
+# rewrite, the developer's own files.
+
+# `<home>` for the two scratch directories and `<epoch>` for import's backup stamp. Clocks and
+# coordinates only; no message text, ordering or count is touched. Without this the rows are
+# permanently red on absolute paths, and the tempting fix is to stop comparing stdout at all.
+norm() { sed -e "s|$1|<home>|g" -e 's/\.bak-[0-9][0-9]*/.bak-<epoch>/g'; }
+
+mode_of() { stat -f '%Lp' "$1" 2>/dev/null || echo "missing"; }
+
+# `install.sh:77` — `node dist/index.js import`, with no --from and no MCP_ROUTER_HOME.
+import_side() { # home binary...
+  local home="$1"; shift
+  mkdir -p "$home"
+  echo "toolset" > "$home/toolset"
+  cat > "$home/.claude.json" <<JSON
+{
+  "mcpServers": {
+    "probe": {
+      "command": "node",
+      "args": ["$REPO_ROOT/scripts/fixtures/mcp-fixture-server.mjs", "stdio"],
+      "env": { "FIXTURE_TOOLSET_FILE": "$home/toolset" }
+    }
+  }
+}
+JSON
+}
+
+# The seeded destination is EXACTLY the four keys the reference writes, in the reference's order.
+# Any extra top-level key would make the two sides differ by `div-r1-d3`'s own declared divergence
+# and redden this row for a reason that has nothing to do with the installer.
+seed_existing_config() { # home
+  mkdir -p "$1/.claude/mcp-router"
+  printf '{\n  "port": 8879,\n  "host": "127.0.0.1",\n  "idleMs": 300000,\n  "mcpServers": {}\n}' \
+    > "$1/.claude/mcp-router/servers.json"
+  chmod 644 "$1/.claude/mcp-router/servers.json"
+}
+
+import_scenario() { # label seed-existing(yes|no) expected-mode  -> prints "" or a problem string
+  local label="$1" seed="$2" expect_mode="$3"
+  local base="$WORK/imp-$label"
+  rm -rf "$base"
+  local ts="$base/ts" sw="$base/swift"
+  import_side "$ts"
+  import_side "$sw"
+  if [ "$seed" = yes ]; then seed_existing_config "$ts"; seed_existing_config "$sw"; fi
+
+  env -u MCP_ROUTER_HOME HOME="$ts" node "$REPO_ROOT/dist/index.js" import \
+    >"$base/ts.out" 2>"$base/ts.err"; local ts_code=$?
+  env -u MCP_ROUTER_HOME HOME="$sw" "$SWIFT_BIN" import \
+    >"$base/sw.out" 2>"$base/sw.err"; local sw_code=$?
+
+  local problems="" tsc="$ts/.claude/mcp-router/servers.json"
+  local swc="$sw/.claude/mcp-router/servers.json"
+  [ "$ts_code" = "$sw_code" ] || problems="$problems $label/exit:[ts=$ts_code swift=$sw_code]"
+  diff <(norm "$ts" <"$base/ts.out") <(norm "$sw" <"$base/sw.out") >"$base/d.out" 2>&1 \
+    || problems="$problems $label/stdout:[$(head -4 "$base/d.out" | tr '\n' ' ' | cut -c1-90)]"
+  # The destination path itself is the assertion that both binaries resolved ONE home from $HOME.
+  [ -f "$tsc" ] || problems="$problems $label/reference-wrote-nowhere"
+  [ -f "$swc" ] || problems="$problems $label/swift-wrote-nowhere"
+  if [ -f "$tsc" ] && [ -f "$swc" ]; then
+    diff <(norm "$ts" <"$tsc") <(norm "$sw" <"$swc") >"$base/d.cfg" 2>&1 \
+      || problems="$problems $label/servers.json:[$(head -6 "$base/d.cfg" | tr '\n' ' ' | cut -c1-90)]"
+    local tm sm; tm="$(mode_of "$tsc")"; sm="$(mode_of "$swc")"
+    [ "$tm" = "$sm" ] && [ "$tm" = "$expect_mode" ] \
+      || problems="$problems $label/mode:[ts=$tm swift=$sm want=$expect_mode]"
+    # Both sides ADOPTING NOTHING is the way this row passes without the capability it names: two
+    # empty `mcpServers` objects are byte-identical and agree at the same mode. So the fixture
+    # server has to be in both files, which is what makes the agreement about `import` rather than
+    # about two skeletons. Same third observation `div-r1-d3` carries.
+    grep -q '"probe"' "$tsc" || problems="$problems $label/reference-adopted-nothing"
+    grep -q '"probe"' "$swc" || problems="$problems $label/swift-adopted-nothing"
+  fi
+  printf '%s' "$problems"
+}
+
+echo "install-import-servers — import as install.sh:77 runs it (no --from, no MCP_ROUTER_HOME)"
+# Two scenarios: a fresh home must CREATE at 0600, an existing 0644 file must KEEP 0644. One alone
+# hides half of the mode rule, and `cli-import`'s own seeded home only ever sees the second.
+import_problems="$(import_scenario fresh no 600)$(import_scenario existing yes 644)"
+if [ -z "$import_problems" ]; then
+  echo "  ok   both binaries adopt into \$HOME/.claude/mcp-router at the same mode"
+  record install install-import-servers ok \
+    "fresh (created 0600) and pre-existing (kept 0644); stdout, exit, servers.json and mode agree"
+else
+  echo "  FAIL$import_problems"
+  record install install-import-servers fail "import —$import_problems"
+  failures=$((failures + 1))
+fi
+echo
+
+# `install.sh:168-189`. The oracle is EXTRACTED from the installer at run time rather than retyped:
+# a hand-copied copy drifts silently and would then certify agreement with a script nobody runs.
+NODE_BODY="$(awk "/^  node -e '\$/{f=1;next} f&&/^  ' /{f=0} f" "$REPO_ROOT/docs/install.sh")"
+# Three guards, because both obvious failure modes of a range extraction fail OPEN: a range whose
+# end anchor stops matching emits start-to-EOF (non-empty), and `node -e ''` is a successful no-op.
+extract_ok=1
+[ -n "$NODE_BODY" ] || extract_ok=0
+case "$NODE_BODY" in *mcpServers*renameSync*) ;; *) extract_ok=0 ;; esac
+case "$NODE_BODY" in *curl*|*launchctl*) extract_ok=0 ;; esac
+
+claude_scenario() { # label json port -> prints "" or a problem string
+  local label="$1" json="$2" port="$3"
+  local base="$WORK/cj-$label"
+  rm -rf "$base"; mkdir -p "$base/ts" "$base/swift"
+  printf '%s' "$json" > "$base/ts/.claude.json"
+  printf '%s' "$json" > "$base/swift/.claude.json"
+  chmod 600 "$base/ts/.claude.json" "$base/swift/.claude.json"
+
+  # install.sh:162's `cp` is the shell's on the reference side; `install-entry` owns its own, so
+  # the harness must NOT copy for Swift or there would be two backups on one side.
+  cp "$base/ts/.claude.json" "$base/ts/.claude.json.bak-mcp-router-$(date +%Y%m%d-%H%M%S)"
+  local oracle_port="$port"; [ "$port" = default ] && oracle_port=8879
+  node -e "$NODE_BODY" "$base/ts/.claude.json" "$oracle_port" >/dev/null 2>&1; local ts_code=$?
+  # `--port` is omitted for the `default-port` scenario, which is the ONLY thing that exercises
+  # `install-entry`'s own `?? RouterHome.defaultPort`; a unit test cannot reach it, because
+  # MCPRouterCLI has no test target.
+  if [ "$port" = default ]; then
+    env -u MCP_ROUTER_HOME "$SWIFT_BIN" install-entry \
+      --claude-json "$base/swift/.claude.json" >/dev/null 2>&1; local sw_code=$?
+  else
+    env -u MCP_ROUTER_HOME "$SWIFT_BIN" install-entry \
+      --claude-json "$base/swift/.claude.json" --port "$port" >/dev/null 2>&1; local sw_code=$?
+  fi
+
+  local problems=""
+  # A non-zero oracle used to `return 0`, i.e. record no problem, i.e. pass. `docs/install.sh` runs
+  # under `set -e`, so a failing `node -e` aborts the install; a lane that reads it as agreement is
+  # the fail-open shape this gate exists to prevent.
+  [ "$ts_code" = 0 ] || problems="$problems $label/reference-exit:[$ts_code]"
+  [ "$sw_code" = 0 ] || problems="$problems $label/swift-exit:[$sw_code]"
+  # Both sides must actually have CHANGED. All three scenarios add or rewrite `mcp-router`, so an
+  # unchanged file means the oracle no-opped — an environment failure, never an agreement.
+  for side in ts swift; do
+    if [ "$(cat "$base/$side/.claude.json")" = "$json" ]; then
+      problems="$problems $label/$side-unchanged"
+    fi
+    ls "$base/$side"/.claude.json.bak-mcp-router-* >/dev/null 2>&1 \
+      || problems="$problems $label/$side-no-backup"
+  done
+  diff "$base/ts/.claude.json" "$base/swift/.claude.json" >"$base/d" 2>&1 \
+    || problems="$problems $label/body:[$(head -6 "$base/d" | tr '\n' ' ' | cut -c1-90)]"
+  local tm sm; tm="$(mode_of "$base/ts/.claude.json")"; sm="$(mode_of "$base/swift/.claude.json")"
+  [ "$tm" = "$sm" ] && [ "$tm" = 600 ] || problems="$problems $label/mode:[ts=$tm swift=$sm]"
+  for side in ts swift; do
+    local backup; backup="$(ls "$base/$side"/.claude.json.bak-mcp-router-* 2>/dev/null | head -1)"
+    if [ -n "$backup" ] && [ "$(cat "$backup")" != "$json" ]; then
+      problems="$problems $label/$side-backup-not-the-pre-image"
+    fi
+  done
+  printf '%s' "$problems"
+}
+
+echo "install-claude-json — the router entry, against install.sh's own extracted node script"
+if [ "$extract_ok" = 0 ]; then
+  echo "environment: the node -e block could not be extracted from docs/install.sh."
+  echo "             Comparing against an empty oracle would pass for the wrong reason."
+  exit 2
+fi
+# Three scenarios: the delete is conditional, and a lane that never sees its false branch has not
+# tested it.
+cj_problems="$(claude_scenario plain '{"projects":{"a":1}}' 8879)"
+cj_problems="$cj_problems$(claude_scenario legacy-same \
+  '{"mcpServers":{"router":{"type":"http","url":"http://127.0.0.1:8879/mcp"},"keep":{}}}' 8879)"
+cj_problems="$cj_problems$(claude_scenario legacy-other \
+  '{"mcpServers":{"router":{"type":"http","url":"http://127.0.0.1:9999/mcp"}}}' 8879)"
+# No `--port` at all: the only exercise of the verb's own default.
+cj_problems="$cj_problems$(claude_scenario default-port '{"projects":{"a":1}}' default)"
+if [ -z "$cj_problems" ]; then
+  echo "  ok   both write the same ~/.claude.json at the same mode, each with its own backup"
+  record install install-claude-json ok \
+    "three scenarios vs the node -e body extracted from install.sh; body, mode and backup agree"
+else
+  echo "  FAIL$cj_problems"
+  record install install-claude-json fail "claude.json —$cj_problems"
+  failures=$((failures + 1))
+fi
+echo
+
 echo "install: four real agents under real launchd supervision, two per binary."
 [ "$failures" -gt 0 ] && exit 1
 exit 0

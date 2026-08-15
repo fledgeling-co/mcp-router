@@ -39,7 +39,9 @@ public struct WatchPaths: Sendable {
         homeDirectory: String = NSHomeDirectory(),
         home: RouterHome? = nil
     ) {
-        let resolvedHome = environment["HOME"].flatMap { $0.isEmpty ? nil : $0 } ?? homeDirectory
+        let resolvedHome = RouterHome.resolvedHomeDirectory(
+            environment: environment, homeDirectory: homeDirectory
+        )
         claudeJSON = (resolvedHome as NSString).appendingPathComponent(".claude.json")
 
         let routerHome = home ?? RouterHome(

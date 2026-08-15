@@ -273,6 +273,79 @@ else
 fi
 
 echo
+# ---------------------------------------------------------------------------------------------
+# R1 D3 on the writer D3 was actually written about — `src/index.ts`'s four-key import writer.
+#
+# `div-r1-d3-control` above measured the CONTROL-API writer and said so, because proving a
+# capability by measuring another one is the failure this gate exists to prevent. This is the
+# missing half: spec-R1:148 scopes D3 to the non-atomic writer reached through `import`, and until
+# P2 the Swift import writer was a faithful port of it, so there was no divergence to assert.
+#
+# **Each side gets its own MCP_ROUTER_HOME.** `import --from` sets only the READ path; the write
+# goes to ROUTER_HOME (`src/config.ts:79`). Without this the lane would rewrite the developer's own
+# `~/.claude/mcp-router/servers.json` — the footgun `WatchPaths.swift:8-10` exists for.
+echo "div-r1-d3 — the import writer preserves a top-level key the reference drops"
+d3home="$WORK/d3import"
+rm -rf "$d3home"
+for side in ts swift; do
+  mkdir -p "$d3home/$side"
+  echo "toolset" > "$d3home/$side/toolset"
+  # `startupTimeoutMs` is a key the router genuinely supports, so losing it resets a real setting
+  # rather than dropping a synthetic marker. `mcpServers` deliberately holds a name that is NOT in
+  # the staging file, so "Swift wrote" is observable rather than assumed.
+  cat > "$d3home/$side/servers.json" <<'JSON'
+{
+  "port": 8879,
+  "host": "127.0.0.1",
+  "idleMs": 300000,
+  "startupTimeoutMs": 45000,
+  "mcpServers": { "seedOnly": { "command": "/bin/true" } }
+}
+JSON
+done
+cat > "$d3home/claude.json" <<JSON
+{
+  "mcpServers": {
+    "probe": {
+      "command": "node",
+      "args": ["$REPO_ROOT/scripts/fixtures/mcp-fixture-server.mjs", "stdio"],
+      "env": { "FIXTURE_TOOLSET_FILE": "$d3home/ts/toolset" }
+    }
+  }
+}
+JSON
+MCP_ROUTER_HOME="$d3home/ts" node "$REPO_ROOT/dist/index.js" import \
+  --from "$d3home/claude.json" >/dev/null 2>&1
+MCP_ROUTER_HOME="$d3home/swift" "$SWIFT_CLI" import \
+  --from "$d3home/claude.json" >/dev/null 2>&1
+
+d3_ts_kept=no;    grep -q 'startupTimeoutMs' "$d3home/ts/servers.json"    && d3_ts_kept=yes
+d3_swift_kept=no; grep -q 'startupTimeoutMs' "$d3home/swift/servers.json" && d3_swift_kept=yes
+# The third observation, and the one revision 1 of this lane did not have. Without it a Swift side
+# that threw and wrote nothing leaves the seed key in place, the two files differ, and the row goes
+# green for the exact opposite of the reason it claims.
+d3_swift_wrote=no
+if grep -q '"probe"' "$d3home/swift/servers.json" \
+   && ! grep -q '"seedOnly"' "$d3home/swift/servers.json"; then
+  d3_swift_wrote=yes
+fi
+echo "  reference kept the key: $d3_ts_kept"
+echo "  swift kept the key:     $d3_swift_kept"
+echo "  swift actually wrote:   $d3_swift_wrote"
+
+if [ "$d3_ts_kept" = no ] && [ "$d3_swift_kept" = yes ] && [ "$d3_swift_wrote" = yes ]; then
+  pass=$((pass + 1))
+  echo "  ok   the reference drops the unknown key on import; Swift preserves it"
+  record div-r1-d3 ok \
+    "import: ts_kept=$d3_ts_kept swift_kept=$d3_swift_kept swift_wrote=$d3_swift_wrote (preservation half; atomicity is ImportConfigWriterTests W9)"
+else
+  fail=$((fail + 1))
+  echo "  STALE the declared divergence no longer describes both sides"
+  record div-r1-d3 fail \
+    "stale: ts_kept=$d3_ts_kept swift_kept=$d3_swift_kept swift_wrote=$d3_swift_wrote — expected no,yes,yes"
+fi
+echo
+
 echo "divergences: $pass as declared, $fail stale"
 [ "$fail" -gt 0 ] && exit 1
 exit 0

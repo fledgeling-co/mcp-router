@@ -464,6 +464,85 @@ case "uniform":
     guard total > 0, let best = counts.max(by: { $0.value < $1.value }) else { die("no pixels sampled") }
     print(String(format: "%@ %.3f", best.key, Double(best.value) / Double(total)))
 
+case "veil":
+    // Whether a **uniform translucent white line** is drawn on top of one row, and how opaque it is
+    // — solved from the pixels rather than written down.
+    //
+    // This is what identifies the scroll-edge separator over *arbitrary* content, which the
+    // `uniform` route cannot do. `uniform` asks the row to be one colour, and that is only a fair
+    // question while whatever sits behind the row is itself one flat colour across the whole width.
+    // Over a real board it is not: a heading glyph and an accent button under the top edge leave the
+    // row multi-coloured while the hairline is drawn perfectly, which is precisely how a correct
+    // separator was once reported as "content, not a separator".
+    //
+    // What is measured instead is the compositing equation. A translucent white line over a
+    // background B renders A = a·255 + (1 − a)·B, so a = (A − B) / (255 − B). Solve it at every x
+    // where the background is legible and the answer is the *same* number everywhere — one line, one
+    // opacity — whatever each x is drawn over. Content cannot produce that: it produces scattered
+    // alphas, because content is not a uniform veil over the row below it.
+    //
+    // B is read three rows down and is only trusted where those rows agree, so a stand-in for "what
+    // is underneath the line" is used only where the background is genuinely flat in y. A channel
+    // already close to white cannot resolve an alpha and is skipped.
+    //
+    // Prints: the share of the span that could be measured, the median opacity, the share of
+    // measured pixels agreeing with that median, and how many pixels that was. The opacity itself is
+    // never asserted here — the caller compares scrolled against at-rest, so the appearance stays
+    // free to change, and only the *magnitude* is reported so a dark line on a light ground reads
+    // the same as a light line on a dark one.
+    guard args.count >= 7, let rep = bitmap(args[2]),
+          let x0 = Int(args[3]), let x1 = Int(args[4]),
+          let yLine = Int(args[5]), let yBelow = Int(args[6])
+    else {
+        die("usage: axkit veil <png> <x0> <x1> <lineRow> <backgroundRow>")
+    }
+    func channels(_ x: Int, _ y: Int) -> (Double, Double, Double)? {
+        guard y >= 0, y < rep.pixelsHigh, x >= 0, x < rep.pixelsWide, let c = rep.colorAt(x: x, y: y)
+        else { return nil }
+        return (c.redComponent * 255, c.greenComponent * 255, c.blueComponent * 255)
+    }
+    var alphas: [Double] = []
+    var examined = 0
+    for x in x0 ... min(x1, rep.pixelsWide - 1) {
+        examined += 1
+        guard let below0 = channels(x, yBelow), let below1 = channels(x, yBelow + 1),
+              let below2 = channels(x, yBelow + 2), let line = channels(x, yLine)
+        else { continue }
+        let flat = abs(below0.0 - below1.0) < 1.5 && abs(below0.1 - below1.1) < 1.5
+            && abs(below0.2 - below1.2) < 1.5 && abs(below1.0 - below2.0) < 1.5
+            && abs(below1.1 - below2.1) < 1.5 && abs(below1.2 - below2.2) < 1.5
+        guard flat else { continue }
+        var solved: [Double] = []
+        for (over, under) in [(line.0, below0.0), (line.1, below0.1), (line.2, below0.2)] {
+            // Both appearances. `--line` is white at 7.5% on the dark ground and **black at 10% on
+            // the light one**, so a solver that only ever divides by (255 − B) reports nothing at
+            // all on a light Mac: every channel of `--ground` `#ECECEE` is 236, the denominator
+            // collapses, and the run fails for the appearance rather than for the separator. The
+            // direction is taken from the pixel itself and only the magnitude is reported, so the
+            // caller's "a line is present" test reads the same in either appearance.
+            if over > under, (255 - under) > 24 {
+                solved.append((over - under) / (255 - under))
+            } else if over < under, under > 24 {
+                solved.append((under - over) / under)
+            } else if over == under {
+                solved.append(0)
+            }
+        }
+        guard !solved.isEmpty else { continue }
+        alphas.append(solved.reduce(0, +) / Double(solved.count))
+    }
+    guard !alphas.isEmpty, examined > 0 else { print("0.000 0.0000 0.000 0"); exit(0) }
+    let ordered = alphas.sorted()
+    let median = ordered[ordered.count / 2]
+    let agreeing = alphas.filter { abs($0 - median) <= 0.012 }.count
+    print(String(
+        format: "%.3f %.4f %.3f %d",
+        Double(alphas.count) / Double(examined),
+        median,
+        Double(agreeing) / Double(alphas.count),
+        alphas.count
+    ))
+
 case "banddiff":
     // How much of one row of pixels changed between two captures, across a horizontal span.
     //

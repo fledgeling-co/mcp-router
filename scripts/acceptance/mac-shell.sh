@@ -806,23 +806,25 @@ echo
 echo "the scroll edge"
 
 # The separator is a hairline and is deliberately hidden from the accessibility tree — it repeats
-# nothing a screen reader needs. So this is a **rendered** assertion: the band of pixels at the top
-# of the content zone is captured before and after a real scroll, and a near-full-width row must
-# change. Comparing before with after rather than against a fixed colour keeps it from pinning an
-# alpha blend the appearance is free to change; requiring a *row* rather than any pixel is what
-# separates a hairline appearing from content moving behind it.
+# nothing a screen reader needs. So this is a **rendered** assertion, driven against a real scroll.
 #
 # The scroll is driven by setting the scroll bar's `AXValue`. The obvious alternative — warping the
 # cursor over the window and posting scroll-wheel events, which is what this script used to do —
 # moves the user's pointer, and a wheel event posted to the pid instead was measured to be dropped
 # entirely (byte-identical captures).
-# Driven on a **scaffolded** destination rather than on Activity. This used to select Activity,
-# which was then a placeholder with a deliberately over-tall stack inside the shell's own scroll
-# view — ideal for the assertion. M2 ships the Activity board, and a board brings its own scrolling
-# list and its own header, so the top row sampled below would be a column header rather than the
-# shell's content edge. The clause is about **the shell's** scroll edge, and any pane still using
-# the shell's scroll container proves it; Servers is the first such destination in sidebar order.
-# When the last board lands this needs the assertion moved onto a board's own list instead.
+#
+# Driven on **Servers**, and that is checked against the source rather than assumed. An earlier
+# version of this comment said the assertion would have to move onto a board's own list "when the
+# last board lands". That was wrong, and it cost M13 an investigation: `ContentZone` keeps
+# `boardsThatScrollThemselves = [.activity]`, so Activity is the one destination drawn *outside* the
+# shell's scroll view, and the other seven — Servers among them — are wrapped in `outerScroll`, whose
+# geometry is what drives `ScrollEdgeState`. Servers is correct and does not need moving.
+#
+# "Wrapped in it" is not the same as "scrolls in it", and one board is not what the set claims:
+# `SettingsBoard` installs a `ScrollView` of its own while staying out of
+# `boardsThatScrollThemselves`, so it nests one scroller inside another — which is the thing M2's
+# B41 said would not happen. That is a defect in the app, recorded by M13 and left for whoever owns
+# Settings; it does not touch Servers and it does not touch this assertion.
 "$AXKIT" select "$PID" Servers >/dev/null
 sleep 1
 dump_window
@@ -832,67 +834,131 @@ CONTENT_W="$(awk -F'\t' '$2 == "AXScrollArea" { print $15 }' "$WORK/window.tsv" 
 [ -n "$CONTENT_X" ] || fail "no content scroll area to scroll"
 WIN_X="$(awk -F'\t' '$1 == 0 { print $13; exit }' "$WORK/window.tsv")"
 WIN_Y="$(awk -F'\t' '$1 == 0 { print $14; exit }' "$WORK/window.tsv")"
+WIN_W="$(awk -F'\t' '$1 == 0 { print $15; exit }' "$WORK/window.tsv")"
+
+# Both the sample below and `axkit scroll` take the **last** scroll area in the tree, so they always
+# agree with each other — but "last" is only the shell's content zone while the content zone holds
+# one scroller. Selecting a server opens `ServerInspector`, which is a `ScrollView` of its own and
+# would become last; the run would then drive and photograph the inspector while reporting on the
+# shell's scroll edge. Requiring the sampled area to reach the window's trailing edge turns that
+# from a silent mis-measurement into a stop.
+awk -v cx="$CONTENT_X" -v cw="$CONTENT_W" -v wx="$WIN_X" -v ww="$WIN_W" \
+    'BEGIN { exit !(cx + cw >= wx + ww - 4) }' \
+  || fail "the last scroll area (x $CONTENT_X w $CONTENT_W) does not reach the window's trailing edge (x $WIN_X w $WIN_W) — a nested scroller is being sampled instead of the content zone"
 
 WIN_ID="$("$AXKIT" winid "$PID" || true)"
 [ -n "$WIN_ID" ] || blocked "could not resolve the window id — Screen Recording permission?"
 
-# Image coordinates are 2x on a Retina display and relative to the window's own backing store. The
-# band is the first 8pt of the content zone, inset from both edges so the scroll bar that appears
-# during a scroll is outside it — a scroll bar is not a separator, and it would otherwise be counted
-# as one.
-BAND_X0=$(awk -v cx="$CONTENT_X" -v wx="$WIN_X" 'BEGIN { printf "%d", (cx - wx + 8) * 2 }')
-BAND_X1=$(awk -v cx="$CONTENT_X" -v wx="$WIN_X" -v w="$CONTENT_W" 'BEGIN { printf "%d", (cx - wx + w - 24) * 2 }')
-BAND_Y0=$(awk -v cy="$CONTENT_Y" -v wy="$WIN_Y" 'BEGIN { printf "%d", (cy - wy) * 2 }')
-BAND_Y1=$(awk -v y="$BAND_Y0" 'BEGIN { printf "%d", y + 16 }')
-
-# The separator is identified by **uniformity**, which is the property that distinguishes a hairline
-# from anything else that can appear at the top of a scrolling view.
-#
-# The first version of this assertion compared pixel counts before and after a scroll and required a
-# near-full-width row to change. A completeness critic said that a full-width row of body text
-# scrolling past the top edge clears the same bar, and the negative control added to test that
-# objection **failed immediately** — scrolling further changed the band as much again. The objection
-# was right and the assertion was withdrawn.
-#
-# What is measured instead: at rest the content's top row is uniformly one colour; once scrolled it
-# is uniformly a *different* one; and on the way back it returns. Content passing under the edge is
-# never uniform across the whole width, so it cannot satisfy this in either direction. The colours
-# are read rather than written down — the composited value of `line` over the content ground is an
-# alpha blend, and pinning it here would pin the appearance instead of the behaviour.
-top_row_colour() {
-    screencapture -o -x -l"$WIN_ID" "$WORK/edge.png"
-    [ -s "$WORK/edge.png" ] || blocked "screencapture produced no image — grant Screen Recording"
-    "$AXKIT" uniform "$WORK/edge.png" "$BAND_X0" "$BAND_X1" "$BAND_Y0"
+capture_edge() {
+    screencapture -o -x -l"$WIN_ID" "$1"
+    [ -s "$1" ] || blocked "screencapture produced no image — grant Screen Recording"
 }
 
 "$AXKIT" scroll "$PID" 0 >/dev/null || true
 sleep 1.2
-REST="$(top_row_colour)"
-REST_COLOUR="$(printf '%s' "$REST" | cut -d' ' -f1)"
-REST_SHARE="$(printf '%s' "$REST" | cut -d' ' -f2)"
-awk -v s="$REST_SHARE" 'BEGIN { exit !(s + 0 >= 0.98) }' \
-  || fail "the content's top row is not one colour at rest (${REST_COLOUR} covers only ${REST_SHARE}) — nothing here can be measured"
+capture_edge "$WORK/edge-rest.png"
 
-"$AXKIT" scroll "$PID" 0.6 >/dev/null || fail "could not scroll the content zone through its scroll bar"
-sleep 1.5
-SCROLLED="$(top_row_colour)"
-SCROLLED_COLOUR="$(printf '%s' "$SCROLLED" | cut -d' ' -f1)"
-SCROLLED_SHARE="$(printf '%s' "$SCROLLED" | cut -d' ' -f2)"
-awk -v s="$SCROLLED_SHARE" 'BEGIN { exit !(s + 0 >= 0.98) }' \
-  || fail "the top row is not one colour once scrolled (${SCROLLED_COLOUR} covers ${SCROLLED_SHARE}) — that is content, not a separator"
-[ "$SCROLLED_COLOUR" != "$REST_COLOUR" ] \
-  || fail "the top row rendered $REST_COLOUR both at rest and scrolled — no separator appeared"
-pass "the scroll edge: $REST_COLOUR at rest, $SCROLLED_COLOUR scrolled, each uniform across the content width"
+# The backing scale is **measured, not assumed**. Every earlier band in this script multiplies points
+# by a hard-coded 2, which is right on this machine and silently wrong on a 1x external display or a
+# 3x panel — the band would land a point into the document or up in the toolbar, and the run would
+# report a missing separator for the display it was run on. The capture is window-scoped, so its
+# width over the window's width in points is the scale.
+IMG_W="$(sips -g pixelWidth "$WORK/edge-rest.png" | awk '/pixelWidth/ { print $2 }')"
+SCALE="$(awk -v i="$IMG_W" -v w="$WIN_W" 'BEGIN { printf "%.4f", (w > 0 ? i / w : 0) }')"
+awk -v s="$SCALE" 'BEGIN { exit !(s + 0 >= 0.9) }' \
+  || blocked "could not read the backing scale from the capture (${IMG_W}px over ${WIN_W}pt) — the band cannot be placed"
+
+# Image coordinates are relative to the window's own backing store. The band is inset from both edges
+# so the scroll bar that appears during a scroll is outside it — a scroll bar is not a separator, and
+# it would otherwise be counted as one.
+BAND_X0=$(awk -v cx="$CONTENT_X" -v wx="$WIN_X" -v s="$SCALE" 'BEGIN { printf "%d", (cx - wx + 8) * s }')
+BAND_X1=$(awk -v cx="$CONTENT_X" -v wx="$WIN_X" -v w="$CONTENT_W" -v s="$SCALE" 'BEGIN { printf "%d", (cx - wx + w - 24) * s }')
+BAND_Y0=$(awk -v cy="$CONTENT_Y" -v wy="$WIN_Y" -v s="$SCALE" 'BEGIN { printf "%d", (cy - wy) * s }')
+
+# `ScrollEdgeSeparator` is `MetricToken.focusRing.leadingScalar / 2` = 1pt tall. The first row that is
+# background rather than separator is therefore one point below the top, and that row is what the
+# line is compared against.
+LINE_Y="$BAND_Y0"
+BG_Y=$(awk -v y="$BAND_Y0" -v s="$SCALE" 'BEGIN { printf "%d", y + s }')
+LIVE_Y0=$(awk -v y="$BAND_Y0" -v s="$SCALE" 'BEGIN { printf "%d", y + 20 * s }')
+LIVE_Y1=$(awk -v y="$BAND_Y0" -v s="$SCALE" 'BEGIN { printf "%d", y + 100 * s }')
+
+# **How the separator is identified, and why the previous answer was wrong.**
+#
+# This assertion has been withdrawn twice. First it compared pixel counts before and after a scroll
+# and required a near-full-width row to change; a completeness critic pointed out that a full-width
+# row of body text scrolling past the edge clears the same bar, the negative control failed
+# immediately, and it was withdrawn. It was replaced by "the top row is uniformly one colour at rest
+# and uniformly a different one once scrolled" — and that is the version M13 found reporting a
+# perfectly good separator as a defect, `#2F2F2F covers 0.707 — that is content, not a separator`.
+#
+# Uniformity is only a fair question while *what sits behind the row* is itself one flat colour
+# across the whole content width. That held over a scaffolded placeholder. Over a real board it does
+# not: at a scroll offset where the Servers header has reached the top edge, the row contains the
+# heading's glyphs and the accent button as well as the hairline, so it is not one colour — while
+# the hairline is being drawn perfectly, at full width, over all three.
+#
+# What is measured now is the **compositing equation**, which is what a translucent line actually
+# is. A line of opacity a over a background B renders A = a·V + (1 − a)·B for the line's own colour
+# V, so a is solvable at every x whose background is legible — toward white on the dark ground,
+# toward black on the light one. A hairline drawn across the row yields the *same* a everywhere,
+# whatever each x is drawn over; content yields scattered values, because content is not a uniform
+# veil over the row beneath it. The opacity itself is never written down here — it is compared
+# against the at-rest reading — so the appearance stays free to change, and the assertion no longer
+# depends on the board leaving a flat region under the toolbar.
+read -r REST_Q REST_A REST_C REST_N <<< "$("$AXKIT" veil "$WORK/edge-rest.png" "$BAND_X0" "$BAND_X1" "$LINE_Y" "$BG_Y")"
+echo "  at rest: opacity ${REST_A} over ${REST_N}px (${REST_Q} of the band readable, ${REST_C} agreeing)"
+awk -v q="$REST_Q" 'BEGIN { exit !(q + 0 >= 0.30) }' \
+  || fail "only ${REST_Q} of the top row could be read against its background at rest — the edge cannot be measured here"
+awk -v a="$REST_A" 'BEGIN { exit !(a + 0 <= 0.010 && a + 0 >= -0.010) }' \
+  || fail "the content's top row is already veiled at rest (opacity ${REST_A}) — the separator is showing on a window nobody has scrolled"
+
+# The offset is chosen so that the board's **own content is under the top edge**, which is the moment
+# the separator exists for. A small offset would leave the sample sitting over the empty region above
+# a board and prove only the easy case; walking outward and taking the first offset that puts real
+# content under the edge keeps the measurement on the case that matters. If none does, that is a
+# failure — the clause cannot be evidenced — and never a quiet skip.
+CHOSEN=""
+for FRACTION in 0.6 0.85 0.95; do
+    "$AXKIT" scroll "$PID" "$FRACTION" >/dev/null || fail "could not scroll the content zone through its scroll bar"
+    sleep 1.5
+    capture_edge "$WORK/edge-scrolled.png"
+    UNDER_SHARE="$("$AXKIT" uniform "$WORK/edge-scrolled.png" "$BAND_X0" "$BAND_X1" "$BG_Y" | cut -d' ' -f2)"
+    if awk -v s="$UNDER_SHARE" 'BEGIN { exit !(s + 0 < 0.90) }'; then CHOSEN="$FRACTION"; break; fi
+done
+[ -n "$CHOSEN" ] \
+  || fail "no scroll offset brought the board's own content under the top edge — the separator cannot be measured at the moment the design says it must appear"
+
+# A scroll bar that accepts a value and moves nothing renders a top row identical to the resting one,
+# which would be reported below as "no separator appeared" — a confident wrong diagnosis of exactly
+# the species this rewrite exists to remove. So the run proves the view moved before it reads the
+# edge at all.
+LIVE_FRAC="$("$AXKIT" banddiff "$WORK/edge-rest.png" "$WORK/edge-scrolled.png" "$BAND_X0" "$BAND_X1" "$LIVE_Y0" "$LIVE_Y1" | cut -d' ' -f2)"
+awk -v f="$LIVE_FRAC" 'BEGIN { exit !(f + 0 > 0.05) }' \
+  || fail "the scroll bar accepted $CHOSEN but nothing below the top edge moved (best row changed ${LIVE_FRAC}) — this run cannot have seen a scroll edge"
+
+read -r SCR_Q SCR_A SCR_C SCR_N <<< "$("$AXKIT" veil "$WORK/edge-scrolled.png" "$BAND_X0" "$BAND_X1" "$LINE_Y" "$BG_Y")"
+echo "  scrolled to $CHOSEN (content under the edge, ${UNDER_SHARE} uniform below it):"
+echo "    opacity ${SCR_A} over ${SCR_N}px (${SCR_Q} of the band readable, ${SCR_C} agreeing)"
+awk -v q="$SCR_Q" 'BEGIN { exit !(q + 0 >= 0.30) }' \
+  || fail "only ${SCR_Q} of the top row could be read against its background once scrolled — too little to attribute"
+awk -v a="$SCR_A" 'BEGIN { exit !(a + 0 >= 0.030) }' \
+  || fail "no line is drawn over the top row once scrolled (opacity ${SCR_A}) — the separator did not appear"
+awk -v c="$SCR_C" 'BEGIN { exit !(c + 0 >= 0.95) }' \
+  || fail "the top row is lightened unevenly once scrolled (only ${SCR_C} of it shares one opacity) — that is content, not a single hairline drawn across the width"
+pass "the scroll edge: nothing at rest, one line at opacity ${SCR_A} across ${SCR_N}px of the content width once scrolled, with content underneath it"
 
 # And back. A34 says "absent at scroll offset 0 and present above it", which is two claims; a
 # separator that appeared and never left would satisfy only the first.
 "$AXKIT" scroll "$PID" 0 >/dev/null || true
 sleep 1.5
-RETURNED="$(top_row_colour)"
-RETURNED_COLOUR="$(printf '%s' "$RETURNED" | cut -d' ' -f1)"
-[ "$RETURNED_COLOUR" = "$REST_COLOUR" ] \
-  || fail "returning to the top left the edge at $RETURNED_COLOUR, not the resting $REST_COLOUR — the separator did not clear"
-pass "returning to the top cleared it: back to $REST_COLOUR"
+capture_edge "$WORK/edge-returned.png"
+read -r RET_Q RET_A RET_C RET_N <<< "$("$AXKIT" veil "$WORK/edge-returned.png" "$BAND_X0" "$BAND_X1" "$LINE_Y" "$BG_Y")"
+awk -v q="$RET_Q" 'BEGIN { exit !(q + 0 >= 0.30) }' \
+  || fail "only ${RET_Q} of the top row could be read against its background after returning to the top"
+awk -v a="$RET_A" 'BEGIN { exit !(a + 0 <= 0.010 && a + 0 >= -0.010) }' \
+  || fail "returning to the top left the edge veiled at opacity ${RET_A}, not cleared — the separator did not go away"
+pass "returning to the top cleared it: opacity back to ${RET_A}"
 check_invisible "the scroll-edge assertion"
 
 # ---------------------------------------------------------------- A32, A33 · restoration

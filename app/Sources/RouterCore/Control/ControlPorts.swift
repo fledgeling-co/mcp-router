@@ -168,8 +168,12 @@ public struct ControlDeps: Sendable {
     public var fileSystem: any FileSystem & FileModeWriting
     public var tokenPath: String
     public var configPath: String
-    /// Absent until R2 wires a real HTTP client. `/registry/search` is the one endpoint that
-    /// reaches the network, so it is the one dependency that can legitimately be missing.
+    /// `/registry/search` is the one endpoint that reaches the network, so it is the one
+    /// dependency that can legitimately be missing — and it was missing in the daemon until P3,
+    /// which is why the route answered 502 in the only process that ships. `RouterService` now
+    /// supplies ``RegistryHTTPClient``. It stays OPTIONAL because `ControlDiff`, the in-process
+    /// differential oracle, deliberately does not supply one: giving that harness a live client
+    /// would put a real registry call inside every control-lane run, unpinned and rate-limited.
     public var registry: RegistryDeps?
     /// The router's log. Optional because the in-process differential oracle has none, and because
     /// every line the control API emits is a side effect rather than part of a response — a nil log

@@ -29,7 +29,12 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 MANIFEST="${PARITY_MANIFEST:-$REPO_ROOT/planning/parity/surface.tsv}"
-LANES="${PARITY_LANES:-control fixture divergence pool suite mcp cli install state log}"
+# A lane that is not NAMED here is not run, and nothing says so. The missing-script guard below
+# only fires for a lane the gate was asked about, so a lane script that exists and is never
+# listed produces no results, no environment failure and no complaint — its rows simply stay
+# blocked under whatever note they carry. `stream` sat on disk in exactly that state from R2-R
+# until P3: written, executable, passing when run by hand, and dispatched by nothing.
+LANES="${PARITY_LANES:-control fixture divergence pool suite mcp cli install state log stream registry}"
 WORK="$(mktemp -d -t parity-gate)"
 RESULTS="$WORK/results.tsv"
 : > "$RESULTS"

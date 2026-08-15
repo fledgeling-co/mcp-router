@@ -127,6 +127,27 @@ extension RouterService {
             fileSystem: fileSystem,
             tokenPath: tokenPath,
             configPath: configPath,
+            // Until P3 this was left at nil, and `GET /registry/search` answered
+            // `502 registry search is unavailable: no HTTP client is configured` in the one
+            // process that ships — measured on the wire against a reference answering 200. The
+            // whole search pipeline existed and was unit-tested; nothing conformed to
+            // ``HTTPFetching`` outside the test targets, so none of it could run here.
+            //
+            // The two bases are read with `??` and nothing else, because the reference's
+            // `process.env.MCP_ROUTER_REGISTRY ?? 'https://…'` is NULLISH: a variable that is set
+            // and empty survives to `new URL('/v0/servers', '')`, which throws, and the search
+            // reports `official registry unreachable: Invalid URL`. Filtering the empty string out
+            // here — the natural-looking Swift — would silently pick the default instead and
+            // diverge on that input (B59).
+            registry: RegistryDeps(
+                http: RegistryHTTPClient(),
+                fileSystem: fileSystem,
+                routerHome: home.root,
+                officialBase: environment["MCP_ROUTER_REGISTRY"],
+                smitheryBase: environment["MCP_ROUTER_SMITHERY"],
+                githubToken: environment["GITHUB_TOKEN"] ?? environment["GH_TOKEN"],
+                nowMs: clock.nowMilliseconds
+            ),
             // B94's `approved "<name>"'s new tool surface (N tools)` is emitted by
             // `AuthRoutes.approve`, which takes the log as a parameter. Without this the daemon
             // passed nil and the line was unemittable in the one process that ships — the route

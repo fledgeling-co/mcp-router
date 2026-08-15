@@ -193,6 +193,7 @@ has none — `D-p4-b`); its `fixture` lane is complete and identical.
 | `.worktrees/P4` (12:48) | 1 | 72 | 9 | 2 — `div-r2-d6`, `install-launchd-watch` |
 | `.worktrees/P4`, final tree | 1 | **74** | 9 | **0** |
 | `.worktrees/P4`, final tree, again | 1 | 73 | 9 | 1 — `install-launchd-watch` |
+| **`.worktrees/P4`, REBASED onto main, final** | **1** | **74** | **9** | **0** |
 
 **73 before, 73–74 after, and the movement is one row of pre-existing instability.** The `fixture`
 group reads 23 of 24 proven, 1 blocked, **0 DIVERGED in every single run from every directory** —
@@ -297,8 +298,18 @@ that `parity-manifest-selftest.sh` was not wired into anything. Both are closed.
 tree has 73–74. P4 does not move the cutover decision; it makes the number underneath it mean what
 it says.
 
-Merged-tree gates are the orchestrator's to re-run. This branch is 0 commits behind `main`, so the
-branch tree and the merged tree are the same tree.
+Rebased onto `main` after M14 merged — clean, 0 conflicts, and 0 commits behind, so **the branch
+tree IS the merged tree**. M14 touched only `scripts/acceptance/mac-shell.sh`, which P4 does not.
+Every gate re-run on the rebased tree:
+
+| gate on the rebased tree | exit | |
+|---|---|---|
+| `parity-manifest-check.sh` | 0 | 83 rows |
+| `make parity-selftest` | 0 | 36 + 14 cases |
+| `parity-lane-selftest.sh` | 0 | |
+| `make lint` | 0 | 0 violations / 438 files |
+| `make test` | 0 | 1379 tests / 169 suites |
+| `parity-gate.sh` | 1 (by design) | **74 of 83 proven, 9 blocked, 0 DIVERGED, 0 orphans** |
 
 ## 9. Deferred children registered by this item
 

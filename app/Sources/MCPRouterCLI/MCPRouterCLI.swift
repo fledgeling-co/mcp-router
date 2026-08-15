@@ -34,9 +34,30 @@ struct MCPRouterCLI {
         }
     }
 
+    /// The whole verb surface: the reference's, plus **one verb it does not have**.
+    ///
+    /// `install-entry` (**P2-D1**) is handled here rather than as an eleventh arm inside
+    /// ``dispatchReferenceVerb(_:)``, so that function stays one-to-one with `src/index.ts` and can
+    /// still be read against it line by line. The reference performs that step inline in
+    /// `docs/install.sh` through a `node -e` script, and R4-C removes Node from the installer, so
+    /// the capability has to live in the binary. It is absent from `Copy.usage` for the reason
+    /// ``InstallEntryVerb`` records, which is what keeps `cli-help` — a proven parity row comparing
+    /// all four help arms — green.
+    ///
+    /// The split is also what keeps the reference's arm list inside the complexity budget: adding
+    /// an eleventh branch to it put the function at 11, and the honest seam is between "what the
+    /// reference dispatches" and "what this binary adds", not an arbitrary halving of the switch.
+    static func dispatch(_ arguments: [String]) async throws {
+        if arguments.first == "install-entry" {
+            try InstallEntryVerb.run(arguments)
+            return
+        }
+        try await dispatchReferenceVerb(arguments)
+    }
+
     /// One arm per verb `src/index.ts` dispatches, and nothing else — separate from `main` so the
     /// error handling around it stays legible as the two lines it is.
-    static func dispatch(_ arguments: [String]) async throws {
+    static func dispatchReferenceVerb(_ arguments: [String]) async throws {
         switch arguments.first ?? "serve" {
         case "serve": try await serve(arguments)
         case "index", "refresh": try await index(arguments)

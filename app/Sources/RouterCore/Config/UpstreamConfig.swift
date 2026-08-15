@@ -109,6 +109,22 @@ public struct RouterHome: Sendable, Hashable {
         }
     }
 
+    /// The home directory the **reference** would use: `os.homedir()`, which reads `$HOME`.
+    ///
+    /// `NSHomeDirectory()` does not. Measured on 2026-08-15: under `HOME=/tmp/fakehome`, node's
+    /// `os.homedir()` returns `/tmp/fakehome` and `NSHomeDirectory()` returns the real account's
+    /// directory. Every path the reference derives from `homedir()` therefore has to be derived
+    /// from this, or a run under a scratch `HOME` reads and writes the developer's own files —
+    /// which is a safety property before it is a parity one (`WatchPaths`, X10/W-D2).
+    ///
+    /// One implementation rather than two: ``WatchPaths`` and ``ImportPaths`` both call it.
+    public static func resolvedHomeDirectory(
+        environment: [String: String] = ProcessInfo.processInfo.environment,
+        homeDirectory: String = NSHomeDirectory()
+    ) -> String {
+        environment["HOME"].flatMap { $0.isEmpty ? nil : $0 } ?? homeDirectory
+    }
+
     private func path(_ component: String) -> String {
         (root as NSString).appendingPathComponent(component)
     }

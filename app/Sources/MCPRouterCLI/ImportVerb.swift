@@ -18,14 +18,18 @@ extension MCPRouterCLI {
     /// an unbuilt `dist/` ended up in both files and was retried every five minutes forever.
     static func importServers(_ arguments: [String]) async throws {
         let options = try Flags(arguments)
-        let from = options.value("from")
-            ?? (NSHomeDirectory() as NSString).appendingPathComponent(".claude.json")
+        // `~/.claude.json` AND the router home come from ONE resolved `$HOME` (`D-w2`). The
+        // reference derives both from a single `homedir()` call, so two homes in one run is not a
+        // shape it can produce — and `docs/install.sh:77` runs this verb with neither `--from` nor
+        // `MCP_ROUTER_HOME`, so both defaults are on the installer's own path.
+        let paths = ImportPaths()
+        let from = options.value("from") ?? paths.claudeJSON
         let fileSystem = RealFileSystem()
         guard fileSystem.fileExists(atPath: from) else {
             throw CLIError("no such file: \(from)")
         }
         let port = try options.number("port") ?? RouterHome.defaultPort
-        let home = RouterHome()
+        let home = paths.routerHome
 
         let reading = try Self.readCandidates(from: from, port: port, fileSystem: fileSystem)
 
@@ -110,8 +114,21 @@ extension MCPRouterCLI {
 
     /// Write the router's config, backing up whatever was there. The backup is timestamped rather
     /// than a single `.bak`, so a second import cannot destroy the first one's copy.
+    ///
+    /// **The backup stays here, outside the lock, on purpose.** Its path goes to stdout, and
+    /// `RouterCore` does not write to stdout — it is linked into the MCP process, where a stray
+    /// line corrupts the protocol stream. The reference also copies outside any mutual exclusion.
+    /// The consequence, stated rather than left to be found: under contention the backup is a
+    /// snapshot from before the lock, so it can differ from the pre-image the merge saw. That
+    /// matches the reference and is not worsened here.
+    ///
+    /// The write itself is ``ImportConfigWriter``, which is where R1's D3 (atomic, preserving) and
+    /// the create-only `0600` live.
     static func writeAdopted(
-        _ adopt: [JSONMember], port: Int, home: RouterHome, fileSystem: some FileSystem
+        _ adopt: [JSONMember],
+        port: Int,
+        home: RouterHome,
+        fileSystem: any FileSystem & FileModeWriting
     ) throws {
         try fileSystem.createDirectory(atPath: home.root)
         if fileSystem.fileExists(atPath: home.configPath) {
@@ -119,14 +136,18 @@ extension MCPRouterCLI {
             try fileSystem.writeFile(fileSystem.readFile(atPath: home.configPath), atPath: backup)
             Out.print("backed up existing config -> \(backup)\n")
         }
-        let written = JSONValue.object([
-            JSONMember(key: JSString("port"), value: .number(Double(port))),
-            JSONMember(key: JSString("host"), value: .string(JSString("127.0.0.1"))),
-            JSONMember(key: JSString("idleMs"), value: .number(300_000)),
-            JSONMember(key: JSString("mcpServers"), value: .object(adopt))
-        ])
-        try fileSystem.writeFile(
-            Data((JSStringify.prettyTwoSpace(written)).utf8), atPath: home.configPath
+        // The watcher's bound, not the daemon's: `import` is a one-shot with nothing waiting on it,
+        // and failing an import the user sat through a 60 s indexing pass for — because a PATCH
+        // held the lock for 100 ms — is the worse of the two available failures.
+        let destination = ImportConfigWriter.Destination(
+            path: home.configPath,
+            processIdentifier: ProcessInfo.processInfo.processIdentifier,
+            lockTimeoutMs: ConfigMutationLock.timeoutMilliseconds(
+                default: ConfigMutationLock.watcherTimeoutMs
+            )
+        )
+        try ImportConfigWriter.write(
+            adopted: adopt, port: port, to: destination, fileSystem: fileSystem
         )
     }
 

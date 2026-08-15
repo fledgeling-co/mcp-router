@@ -2,6 +2,11 @@ import Foundation
 
 /// Reading, changing and writing `servers.json`, plus reloading the live maps.
 public enum ConfigEdit {
+    /// The mode the reference commits `servers.json` at (`src/control.ts:95`), and the one B31
+    /// names. The watcher writes the same file at `0644` (`watch.ts:282`, ``WatchAdoption``), which
+    /// is the reference's own asymmetry and is preserved rather than reconciled.
+    static let configMode: UInt16 = 0o600
+
     public enum Problem: Error, Sendable, Equatable, CustomStringConvertible {
         /// D1 — the refusal the reference does not make.
         case unrecognisedShape(path: String)
@@ -44,7 +49,7 @@ public enum ConfigEdit {
     /// changed with it.
     public static func edit(
         path: String,
-        fileSystem: any FileSystem,
+        fileSystem: any FileSystem & FileModeWriting,
         processIdentifier: Int32 = ProcessInfo.processInfo.processIdentifier,
         lockTimeoutMs: Int = ConfigMutationLock.timeoutMilliseconds(
             default: ConfigMutationLock.daemonTimeoutMs
@@ -64,7 +69,7 @@ public enum ConfigEdit {
     /// than one edit — can reuse the mutation without re-entering the lock.
     static func editLocked(
         path: String,
-        fileSystem: any FileSystem,
+        fileSystem: any FileSystem & FileModeWriting,
         processIdentifier: Int32,
         _ mutate: (inout [JSONMember]) throws -> Void
     ) throws {
@@ -114,7 +119,12 @@ public enum ConfigEdit {
         let bytes = Data(JSStringify.prettyTwoSpace(.object(root)).utf8)
         let temporary = "\(path).tmp-\(processIdentifier)"
         do {
-            try fileSystem.writeFile(bytes, atPath: temporary)
+            // `writeFileSync(tmp, …, { mode: 0o600 })` (`src/control.ts:95`), and B31 names the mode
+            // as part of the byte contract. The mode travels with the rename, so writing the
+            // temporary through the mode-less overload left `servers.json` at the umask default —
+            // typically `0644` — on a file that holds every server's `env`, which is where API keys
+            // live. `B10` keeps those values off the wire; this keeps them off other accounts.
+            try fileSystem.writeFile(bytes, atPath: temporary, mode: Self.configMode)
             try fileSystem.moveItem(atPath: temporary, toPath: path)
         } catch {
             throw Problem.writeFailed(path: path, reason: "\(error)")

@@ -55,8 +55,9 @@ extension WatchRunner {
                 fileSystem: fileSystem,
                 processIdentifier: processIdentifier,
                 // The reference reads `statSync(CLAUDE_JSON).mode & 0o777` and writes it back: this
-                // file is 0600 on some machines and 0644 on others (W4).
-                mode: .preserveExisting(orDefault: 0o600)
+                // file is 0600 on some machines and 0644 on others (W4). That read also throws when
+                // the file has gone, which is what leaves a staging file deleted mid-run deleted.
+                mode: .preserveExisting
             )
             let removed = staged.map(\.key.string).filter { outcome.remove.contains($0) }
             log.record(.removedFromStaging(names: removed))

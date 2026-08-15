@@ -55,12 +55,18 @@ public enum WatchBackup {
         /// `servers.json` — `writeAtomic(…, 0o644)` at `watch.ts:282`.
         case fixed(UInt16)
         /// `~/.claude.json` — `statSync(CLAUDE_JSON).mode & 0o777` at `watch.ts:328`.
-        case preserveExisting(orDefault: UInt16)
+        ///
+        /// There is deliberately **no fallback**. That `statSync` runs immediately before the write
+        /// and throws when the path has gone, which is the whole of what stops the reference
+        /// rebuilding a staging file deleted during the run. A default mode here would turn that
+        /// throw into a successful write, recreating ~268 KB of session state the user had just
+        /// discarded — and the window is real, because the file is re-read seconds earlier.
+        case preserveExisting
 
-        func resolve(path: String, fileSystem: any FileModeWriting) -> UInt16 {
+        func resolve(path: String, fileSystem: any FileModeWriting) throws -> UInt16 {
             switch self {
             case let .fixed(mode): mode
-            case let .preserveExisting(fallback): (try? fileSystem.fileMode(atPath: path)) ?? fallback
+            case .preserveExisting: try fileSystem.fileMode(atPath: path)
             }
         }
     }
@@ -76,7 +82,7 @@ public enum WatchBackup {
         processIdentifier: Int32,
         mode rule: ModeRule
     ) throws {
-        let mode = rule.resolve(path: path, fileSystem: fileSystem)
+        let mode = try rule.resolve(path: path, fileSystem: fileSystem)
         let temporary = "\(path).mcpr-tmp-\(processIdentifier)"
         try fileSystem.writeFile(Data(contents.utf8), atPath: temporary, mode: mode)
         try fileSystem.moveItem(atPath: temporary, toPath: path)

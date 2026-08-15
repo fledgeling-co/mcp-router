@@ -36,7 +36,7 @@ public actor RouterService {
 
     let config: RouterConfig
     let home: RouterHome
-    let fileSystem: any FileSystem
+    let fileSystem: any FileSystem & FileModeWriting
     let clock: any RouterClock
     let log: RouterLog
     let manifest: ManifestStore
@@ -60,7 +60,7 @@ public actor RouterService {
         loaded: LoadedConfig,
         home: RouterHome,
         log: RouterLog,
-        fileSystem: any FileSystem = RealFileSystem(),
+        fileSystem: any FileSystem & FileModeWriting = RealFileSystem(),
         clock: any RouterClock = SystemClock(),
         resolver: (any PeerResolver)? = nil
     ) {

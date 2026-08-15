@@ -140,7 +140,7 @@ public struct ControlDeps: Sendable {
     public var manifest: Manifest
     public var currentFlow: AuthFlowSummary?
     public var clock: any RouterClock
-    public var fileSystem: any FileSystem
+    public var fileSystem: any FileSystem & FileModeWriting
     public var tokenPath: String
     public var configPath: String
     /// Absent until R2 wires a real HTTP client. `/registry/search` is the one endpoint that
@@ -157,7 +157,7 @@ public struct ControlDeps: Sendable {
         manifest: Manifest,
         currentFlow: AuthFlowSummary? = nil,
         clock: any RouterClock = SystemClock(),
-        fileSystem: any FileSystem = RealFileSystem(),
+        fileSystem: any FileSystem & FileModeWriting = RealFileSystem(),
         tokenPath: String,
         configPath: String,
         registry: RegistryDeps? = nil

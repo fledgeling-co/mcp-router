@@ -13,6 +13,13 @@ public struct WatchPaths: Sendable {
     public let statePath: String
     public let logPath: String
     public let backupDirectory: String
+    /// The router's own home, resolved from the **same** `HOME` as everything above.
+    ///
+    /// Exposed rather than kept local because ``WatchRunner`` needs `servers.json` and
+    /// `manifest.json` to come from this home and not from a separately-defaulted one. The
+    /// reference derives both from a single `homedir()` (`src/config.ts:79`, `src/watch.ts:45`), so
+    /// two homes in one run is not a shape it can produce.
+    public let routerHome: RouterHome
     /// The launchd job restarted after an adoption.
     ///
     /// The reference hardcodes this (`watch.ts:49`). It is overridable here because it is not
@@ -38,6 +45,7 @@ public struct WatchPaths: Sendable {
         let routerHome = home ?? RouterHome(
             environment: environment, homeDirectory: resolvedHome
         )
+        self.routerHome = routerHome
         let root = routerHome.root as NSString
         statePath = root.appendingPathComponent("watch-state.json")
         logPath = root.appendingPathComponent("watch.log")

@@ -141,9 +141,10 @@ public enum ConfigLoader {
     }
 
     private static func intMember(_ raw: JSONValue, _ key: String) -> Int? {
-        guard let value = raw.member(key), case let .number(number) = value,
-              number.isFinite else { return nil }
-        return Int(number)
+        // `isFinite` alone is not enough: `1e300` is finite and still far outside `Int`, so it
+        // traps. `JSNumber.int` carries both halves of the test.
+        guard let value = raw.member(key), case let .number(number) = value else { return nil }
+        return JSNumber.int(number)
     }
 
     private static func stringMember(_ raw: JSONValue, _ key: String) -> String? {

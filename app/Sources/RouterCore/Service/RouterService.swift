@@ -38,6 +38,11 @@ public actor RouterService {
     let home: RouterHome
     let fileSystem: any FileSystem & FileModeWriting
     let clock: any RouterClock
+    /// The process environment, captured once at construction because that is when the reference
+    /// reads it: `const OFFICIAL = process.env.MCP_ROUTER_REGISTRY ?? …` is a module-level `const`
+    /// (`src/registry.ts:18`), evaluated on import and fixed for the life of the process.
+    /// Injectable so a test can drive the registry bases without mutating the real environment.
+    let environment: [String: String]
     let log: RouterLog
     let manifest: ManifestStore
     let pool: UpstreamPool
@@ -62,13 +67,15 @@ public actor RouterService {
         log: RouterLog,
         fileSystem: any FileSystem & FileModeWriting = RealFileSystem(),
         clock: any RouterClock = SystemClock(),
-        resolver: (any PeerResolver)? = nil
+        resolver: (any PeerResolver)? = nil,
+        environment: [String: String] = ProcessInfo.processInfo.environment
     ) {
         config = loaded.config
         self.home = home
         self.fileSystem = fileSystem
         self.clock = clock
         self.log = log
+        self.environment = environment
         self.resolver = resolver ?? LibProcPeerResolver()
         configPath = home.configPath
         manifest = ManifestStore(

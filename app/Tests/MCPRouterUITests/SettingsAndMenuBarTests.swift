@@ -306,16 +306,35 @@
         /// The A28 guards' own red-green, kept rather than performed once by hand.
         @Test("A28's guards can fail")
         func groupStackGuardCanFail() throws {
-            // Built with the real terminator rather than written as a literal, so the fixture cannot
-            // drift from what `groupStackBody` actually looks for.
-            let close = "\n                    }"
-            let wrapped = "VStack(alignment: .leading, spacing: SettingsMetrics.groupGap) {\n"
-                + "                        routerGroup\n"
-                + "                        if facts != nil { tokenGroup }"
-                + close
+            // **Opener and terminator are derived from one indent**, because that is now the only
+            // relationship `groupStackBody` relies on. This fixture used to write the closer as a
+            // literal `"\n" + 20 spaces + "}"` while putting the opener at column zero, which was
+            // self-consistent only for as long as the helper looked for a fixed 20-space brace. The
+            // moment the helper started computing the indent from the opener — the change that
+            // stopped A28 breaking whenever the stack's nesting depth moved — this fixture asked for
+            // a terminator at a depth its own opener does not sit at, and the guard failed on a
+            // fixture that was wrong rather than on a property that was.
+            //
+            // Its comment already claimed the terminator was "built with the real terminator rather
+            // than written as a literal, so the fixture cannot drift". It was a literal, and it did
+            // drift. Deriving both from `indent` makes the claim true instead of aspirational.
+            let indent = String(repeating: " ", count: 20)
+            let wrapped = indent + "VStack(alignment: .leading, spacing: SettingsMetrics.groupGap) {\n"
+                + indent + "    routerGroup\n"
+                + indent + "    if facts != nil { tokenGroup }\n"
+                + indent + "}"
             let lines = try Self.groupStackBody(in: wrapped)
             #expect(lines == ["routerGroup", "if facts != nil { tokenGroup }"])
             #expect(lines != ["routerGroup", "menuBarGroup", "warmSetGroup", "tokenGroup"])
+
+            // The indent is load-bearing rather than incidental, so it gets its own red-green: the
+            // same stack written at a different depth must still be read correctly. This is the
+            // case the old fixed terminator could not survive, and it is why the helper changed.
+            let deeper = String(repeating: " ", count: 8)
+            let nested = deeper + "VStack(alignment: .leading, spacing: SettingsMetrics.groupGap) {\n"
+                + deeper + "    routerGroup\n"
+                + deeper + "}"
+            #expect(try Self.groupStackBody(in: nested) == ["routerGroup"])
 
             // The ordering half: a reversed pair puts `facts` first, and the comparison flips.
             let reversed = "} else if let facts {\nif let error = offlineError {"

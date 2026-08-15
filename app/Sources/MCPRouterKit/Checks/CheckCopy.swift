@@ -146,9 +146,18 @@ public enum CheckCopy {
     public static let descriptionUnreadable =
         "Its directory could not be read, so whether it declares a description is unobserved."
 
-    // MARK: - The Evals pane
+    // MARK: - The Checks pane
 
-    public static let evalsTitle = "Evals"
+    /// The pane's own heading, and it has to move with `Destination.evals.title` rather than after
+    /// it. M9 renames the sidebar row, the window title and the View-menu item to `Checks`; this is
+    /// the **second** copy of that word, drawn as the board's `title1`, and a rename that moved one
+    /// and not the other would leave the shell and the pane it opens disagreeing about what the
+    /// pane is called — the split §6's one-name-per-state rule exists to forbid, newly created by
+    /// the fix for it.
+    ///
+    /// The constant keeps its `evals` spelling for the same reason `Destination.evals` does: it is
+    /// an identifier, and only the string a user reads is in scope.
+    public static let evalsTitle = "Checks"
 
     /// **Permanent, and present even while loading.** It is a statement about the product rather
     /// than about the data, so a loading pane that omitted it would be the one moment a user forms

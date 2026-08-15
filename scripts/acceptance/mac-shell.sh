@@ -273,7 +273,7 @@ WINDOW_TEXT="$(cut -f4,5,6 "$WORK/window.tsv" | tr '\t' '\n' | grep -v '^$' || t
 # Destinations are matched as a **prefix**, not exactly, because a row that carries a badge
 # announces it as part of one sentence — "Servers, 1 need attention" rather than "Servers" and a
 # loose number. That is the point of the label, so the assertion has to allow for it.
-for needle in Activity Servers Skills Discover Inbox Evals Cleanup Settings; do
+for needle in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
     printf '%s\n' "$WINDOW_TEXT" | grep -qE "^$needle(,|$)" \
       || fail "the accessibility tree does not carry a row for '$needle'"
 done
@@ -311,7 +311,7 @@ pass "the readout announces its counts as a sentence"
 
 TITLE="$("$AXKIT" title "$PID")"
 case "$TITLE" in
-    Activity|Servers|Skills|Discover|Inbox|Evals|Cleanup|Settings) ;;
+    Activity|Servers|Skills|Discover|Inbox|Checks|Cleanup|Settings) ;;
     *) fail "the window title is '$TITLE', which is not a destination name (§3.7 forbids the app's name)" ;;
 esac
 pass "window title is '$TITLE' — the view, not the app"
@@ -814,6 +814,96 @@ echo "  NOTE — the ring's width is AppKit's, not this item's: M1 ships no cont
 echo "  NOTE   MetricToken.focusRing is read by F2's focusRing modifier, which the shell does not use."
 check_invisible "the focus-ring assertion"
 
+# ------------------------------------------------- D1, D2, D3 · every board, top-aligned and single-scrolled
+#
+# One walk of all eight destinations inside the launch that is already open. Three claims, and each
+# was a defect that had been patched locally instead of fixed at the shell.
+#
+# **D1 — the board starts at the top of the content zone.** `ContentZone.outerScroll` hands every
+# board `minHeight: scrollableMinHeight` (256 × 3 = 768pt) and SwiftUI's default alignment is
+# `.center`, so a board shorter than that was centred in the surplus. Measured on Servers before the
+# fix: first element at `y = 400.5` against a content top of 191 — a **209.5pt** drop, and Servers'
+# own content measures ≈351pt, so `(768 − 351) / 2 = 208.5`. The arithmetic and the AX reading agree.
+# Six boards had already worked around it privately with their own `.topLeading` frames — `SkillsBoard`
+# still records "~170pt of dead space above the header, measured in the acceptance capture" — so one
+# defect was patched six times and fixed none, and the seventh board, which never added the
+# workaround, is the one that shipped it. The alignment now lives on the frame that creates the
+# surplus, so a board added later inherits it rather than rediscovering it.
+#
+# The 40pt threshold is a **band, not the measurement**. The real readings after the fix are 16pt on
+# the seven shell-scrolled boards and 0pt on Activity, against 209.5pt for Servers before it, so 40
+# sits an order of magnitude clear of both and cannot be met by accident. It is deliberately not
+# tightened to 20pt, which would redden a board whose column header legitimately sits below a title.
+#
+# **D2 — the content zone publishes exactly one scroll area.** `SettingsBoard` installed a
+# `ScrollView` of its own while staying out of `boardsThatScrollThemselves`, so Settings published
+# **three** `AXScrollArea`s where every other board published two: the inner one `716×699` nested in a
+# `716×568` parent. An inner scroll view taller than its own viewport is not the thing that scrolls,
+# so the outer one moved and the header the arrangement existed to keep still travelled with it.
+# The registry was right and the board was the anomaly.
+#
+# **The content zone is found from the sidebar's own right edge, never from an absolute x.**
+# `AXPosition` is in **screen** coordinates, so a literal threshold ("x > 450") encodes where this
+# window happened to be sitting when someone measured it — it silently matches nothing once the
+# window moves, and a count assertion that matches nothing passes by finding zero of the thing it
+# forbids. Measured: the same content zone reads x=444 on Servers and x=374.5 on Discover, whose
+# sidebar is collapsed differently, so no single constant is right even at one window position.
+echo
+echo "every board: top-aligned, single-scrolled"
+
+: > "$WORK/all-panes.tsv"
+for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
+    "$AXKIT" select "$PID" "$dest" >/dev/null || fail "could not select $dest"
+    sleep 1.2
+    dump_window
+    cat "$WORK/window.tsv" >> "$WORK/all-panes.tsv"
+
+    PANE_TITLE="$("$AXKIT" title "$PID")"
+    [ "$PANE_TITLE" = "$dest" ] || fail "selecting $dest left the window title '$PANE_TITLE'"
+
+    SIDE_R="$(awk -F'\t' '$2 == "AXOutline" { print $13 + $15; exit }' "$WORK/window.tsv")"
+    [ -n "$SIDE_R" ] || fail "$dest: could not find the sidebar outline to locate the content zone"
+
+    # D2 — exactly one scroll area starts at or right of the sidebar's trailing edge.
+    N_SCROLL="$(awk -F'\t' -v b="$SIDE_R" '$2 == "AXScrollArea" && $13 >= b - 2' "$WORK/window.tsv" | wc -l | tr -d ' ')"
+    [ "$N_SCROLL" = "1" ] \
+      || fail "$dest publishes $N_SCROLL scroll areas in the content zone, not 1 — a nested scroller means the inner one does not move and any header above it rides the outer one"
+
+    # D1 — the topmost thing the board draws sits within the band of the content zone's own top.
+    CY="$(awk -F'\t' -v b="$SIDE_R" '$2 == "AXScrollArea" && $13 >= b - 2 { print $14; exit }' "$WORK/window.tsv")"
+    TY="$(awk -F'\t' -v b="$SIDE_R" -v cy="$CY" '
+        $13 >= b - 2 && $14 >= cy && $15 > 0 && $16 > 0 &&
+        ($2 == "AXStaticText" || $2 == "AXButton" || $2 == "AXTextField") {
+            if (m == "" || $14 < m) m = $14
+        } END { print m }' "$WORK/window.tsv")"
+    [ -n "$TY" ] || fail "$dest: the content zone draws no text or control to measure"
+    DROP="$(awk -v a="$TY" -v b="$CY" 'BEGIN { printf "%.1f", a - b }')"
+    awk -v d="$DROP" 'BEGIN { exit !(d <= 40 && d >= -1) }' \
+      || fail "$dest starts ${DROP}pt below the content top — the board is centred in the shell's over-tall frame rather than aligned to it"
+    echo "  ok — $dest: 1 content scroll area, first element ${DROP}pt below the content top"
+done
+
+# D3 — the rename is complete rather than half-applied. `Evals` was the one label in this app
+# promising a graded verdict the product cannot produce; the concept was renamed to `Checks` in the
+# source (`MCPRouterKit/Checks/`, `CheckCopy`, `CheckPresentation`) and only the words a user reads
+# lagged. Two of those words existed — `Destination.evals.title` for the sidebar row, the window
+# title and the View-menu item, and `CheckCopy.evalsTitle` for the board's own heading — so moving
+# one and not the other would have left the shell and the pane it opens disagreeing about the pane's
+# name: the split §6's one-name-per-state rule forbids, newly created by the fix for it.
+#
+# Swept over every pane's dump **and** the menu, because the word could survive in exactly one place
+# and a single-pane check would not see it. The enum case, its `rawValue` and the `?pane=evals`
+# deep-link slug stay `evals` and are invisible here — they are identifiers, and §6 governs words a
+# user reads.
+if grep -qw "Evals" "$WORK/all-panes.tsv"; then
+    fail "'Evals' is still rendered somewhere: $(grep -ohw "Evals" "$WORK/all-panes.tsv" | wc -l | tr -d ' ') occurrence(s) across the eight panes"
+fi
+if grep -qw "Evals" "$WORK/menu.tsv"; then
+    fail "'Evals' is still in the menu bar — the View menu and the sidebar disagree"
+fi
+pass "'Evals' appears in neither the eight panes nor the menu bar; the sidebar, the title and the pane heading all read 'Checks'"
+check_invisible "the board-alignment and rename assertions"
+
 # ---------------------------------------------------------------- A34 · the scroll edge, rendered
 
 echo
@@ -986,12 +1076,12 @@ echo "restoration across a relaunch"
 # that do not activate the app — `AXPosition`/`AXSize` and `NSRunningApplication.terminate()`.
 "$AXKIT" setframe "$PID" 180 140 980 620 >/dev/null || fail "could not move and resize the window"
 sleep 1
-"$AXKIT" select "$PID" Evals >/dev/null || fail "could not select Evals"
+"$AXKIT" select "$PID" Checks >/dev/null || fail "could not select Checks"
 sleep 1.5
 
 WANT_TITLE="$("$AXKIT" title "$PID")"
 WANT_FRAME="$("$AXKIT" frame "$PID")"
-[ "$WANT_TITLE" = "Evals" ] || fail "the selection did not move to Evals (title is '$WANT_TITLE')"
+[ "$WANT_TITLE" = "Checks" ] || fail "the selection did not move to Checks (title is '$WANT_TITLE')"
 echo "  before quit: $WANT_TITLE at $WANT_FRAME"
 
 "$AXKIT" terminate "$PID" >/dev/null
@@ -1197,6 +1287,53 @@ EXPORT_HELP="$(printf '%s' "$EXPORT_LINE" | cut -f4)"
 [ -n "$EXPORT_HELP" ] \
   || fail "File / Export library… is dimmed and says nothing — §3.4 requires a discoverable reason"
 pass "File / Export library… is dimmed and gives a reason of its own: '$EXPORT_HELP'"
+
+# ---------------------------------------------------------------- D4 · a shortcut §8 never granted
+#
+# `Export library…` used to carry `⌘E`, and two separate things were wrong with it.
+#
+# `DESIGN.md` §8's table is where this app's ⌘-combinations are granted, and it never granted `⌘E`.
+# And `⌘E` is already a **standard macOS combination** — Finder's *Eject*, and Cocoa's *Use Selection
+# for Find* in any text context — so the app was claiming a system chord for a command that can
+# never fire, since `exportLibrary` is `featureUnbuilt` in every context.
+#
+# **A20 structurally cannot catch this**, which is why the assertion is here rather than left to it.
+# A20 walks the inventory and skips every row whose documented shortcut is `—` (`[ "$shortcut" = "-" ]
+# && continue`), so a command that carries a chord the document does not grant is never compared to
+# anything. The check has to run from the *running menu* toward the document, and that direction is
+# only this block.
+#
+# The general sweep is the load-bearing half: naming Export alone would pass the day some other
+# command picked the same ungranted chord up.
+EXPORT_CHAR="$(printf '%s' "$EXPORT_LINE" | cut -f5 | tr -d '[:cntrl:]')"
+[ -z "$EXPORT_CHAR" ] \
+  || fail "File / Export library… binds '$EXPORT_CHAR', but §8's table grants it no shortcut and the command can never fire"
+pass "File / Export library… carries no shortcut — §8 granted it none"
+
+#
+# **Two things this has to get right, and the first draft got both wrong — measured, not reasoned.**
+# It swept every row in `items.tsv` for the character `E` and reported `Edit / Emoji & Symbols` as a
+# violation. That item is real and it does carry the character `E`, but it does not bind `⌘E`:
+# `AXMenuItemCmdModifiers` is a bitmask whose **bit 8 means "no command key"**, and the item reports
+# `24`, so the ⌘ is not in its chord at all. A sweep that reads the character and ignores the
+# bitmask calls every unrelated chord on the same letter a violation. The modifier is decoded here
+# exactly as A20 decodes it, so the two agree about what a chord is.
+#
+# And that row is **AppKit's**, inserted into the Edit menu rather than declared by this app, so even
+# a genuine ⌘E on it would be nothing this app could grant or withdraw. The claim is about what the
+# app declares, so it is joined against the availability oracle's own `app` rows — the same derived
+# split A22 uses, rather than a second hand-written list of system items.
+E_BINDERS="$(awk -F'\t' '
+    NR == FNR { if ($3 == "app") declared[$1 "\t" $2] = 1; next }
+    ($1 "\t" $2) in declared {
+        c = $5; gsub(/[[:cntrl:]]/, "", c)
+        mods = ($6 == "" ? 0 : $6) + 0
+        if ((c == "E" || c == "e") && and(mods, 8) == 0) print $1 " / " $2
+    }
+' "$WORK/expected.tsv" "$WORK/items.tsv")"
+[ -z "$E_BINDERS" ] \
+  || fail "an app-declared command binds ⌘E, which §8's table never grants: $(printf '%s' "$E_BINDERS" | paste -sd'; ' -)"
+pass "no app-declared command binds ⌘E — the chord stays with the system"
 
 # ---------------------------------------------------------------- G3 · a feature that does not exist says so
 #

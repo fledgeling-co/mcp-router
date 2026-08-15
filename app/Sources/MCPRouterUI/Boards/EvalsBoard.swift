@@ -14,11 +14,18 @@
     /// against. The disclosure is the pane's permanent subtitle rather than a footnote, the vocabulary
     /// is observation rather than grading, and every check shows the field and value behind it.
     ///
-    /// **The known residual gap, recorded because hiding it would be the same failure this board is
-    /// about:** the destination is still called "Evals" in the sidebar, the window title and the menu
-    /// bar. `Destination.title` is a merged shared surface, so this item reports that change rather
-    /// than making it (M9). Until then the disclosure is structural inside the pane and the word is
-    /// structural everywhere else.
+    /// **The residual gap this board recorded is now closed, and the record is kept rather than
+    /// deleted.** This comment used to read: "the destination is still called 'Evals' in the
+    /// sidebar, the window title and the menu bar. `Destination.title` is a merged shared surface,
+    /// so this item reports that change rather than making it (M9)." D2 made it. The sidebar row,
+    /// the window title, the View-menu item and this board's own heading all read `Checks`; the
+    /// enum case, its `rawValue` and the deep-link slug stay `evals` because they are identifiers
+    /// that frame restoration and the prototype's `?pane=evals` link both persist.
+    ///
+    /// It is left standing because the honesty this board is about is the reason the word mattered:
+    /// `Evals` was the one label in the app promising a graded verdict the product cannot produce.
+    /// The disclosure inside the pane was never a substitute for the name, and now it does not have
+    /// to be.
     ///
     /// As with Servers and Skills, every branch comes from `CheckPresentation` and is testable without
     /// a host. This file draws answers; it decides nothing.

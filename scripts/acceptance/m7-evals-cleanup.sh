@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# M7 acceptance: the Evals and Cleanup boards, measured and driven in the running app — in ONE
+# M7 acceptance: the Checks and Cleanup boards, measured and driven in the running app — in ONE
 # launch covering both, and never brought to the front.
 #
 # **Scope is two panes.** The standing rule for this fleet and `planning/practices/UI_VERIFICATION.md`
@@ -127,23 +127,23 @@ launch populated
 
 echo
 echo "=============================================================="
-echo "A1 — Evals is installed, and is not the placeholder"
+echo "A1 — Checks is installed, and is not the placeholder"
 echo "=============================================================="
-open_pane Evals
+open_pane Checks
 
 if spoken | grep -q "isn't built yet"; then
-    fail "the Evals pane still renders the shell's placeholder — the board is not installed"
+    fail "the Checks pane still renders the shell's placeholder — the board is not installed"
 fi
-pass "A1: no scaffold sentinel in the Evals pane"
+pass "A1: no scaffold sentinel in the Checks pane"
 
 TITLE="$("$AXKIT" title "$PID")"
-[ "$TITLE" = "Evals" ] || fail "the window title is '$TITLE', not 'Evals'"
-pass "A1: §3.7 — the window title names the view: 'Evals'"
+[ "$TITLE" = "Checks" ] || fail "the window title is '$TITLE', not 'Checks'"
+pass "A1: §3.7 — the window title names the view: 'Checks'"
 
 EVAL_ROWS="$(row_labels | grep -c . || true)"
-[ "$EVAL_ROWS" -gt 0 ] || fail "the Evals board rendered no rows from the populated fixture"
+[ "$EVAL_ROWS" -gt 0 ] || fail "the Checks board rendered no rows from the populated fixture"
 pass "A1: $EVAL_ROWS row-bearing elements rendered from the shipped fixture"
-check_invisible "the Evals A1 assertions"
+check_invisible "the Checks A1 assertions"
 
 echo
 echo "=============================================================="
@@ -153,10 +153,10 @@ echo "=============================================================="
 # re-tabulation read as a grade. These are the words a reader would take as a judgement of quality.
 for word in "healthy" "unhealthy" "score" "grade" "rating" "passed all" "failing" "good" "bad" "excellent" "poor"; do
     if spoken | grep -qiw "$word"; then
-        fail "the Evals pane speaks a grading word: '$word'"
+        fail "the Checks pane speaks a grading word: '$word'"
     fi
 done
-pass "A17b: no grading verb or adjective in anything the Evals pane speaks"
+pass "A17b: no grading verb or adjective in anything the Checks pane speaks"
 
 # And the four observation nouns are present, which proves the search above ran over a tree that
 # does discuss verdicts — so it was never vacuous.
@@ -175,7 +175,7 @@ for pattern in '[0-9]+ *ms\b' '[0-9]+ *s\b .*(elapsed|duration)' '[0-9,]+ *(byte
                '[0-9]+ *runs?\b' '[0-9]+ *% *(pass|fail)' '[0-9]+/[0-9]+ *(passed|scored)' \
                'memory (saved|freed|reclaimed)' 'saved [0-9]'; do
     if spoken | grep -qEi "$pattern"; then
-        fail "the Evals pane renders a figure the router does not observe, matching /$pattern/"
+        fail "the Checks pane renders a figure the router does not observe, matching /$pattern/"
     fi
 done
 pass "A4: no run count, duration, byte figure or memory saving is rendered anywhere"
@@ -184,7 +184,7 @@ pass "A4: no run count, duration, byte figure or memory saving is rendered anywh
 spoken | grep -qi "router" \
   || blocked "the pane says nothing about the router, so the disclosure assertion below is unfounded"
 pass "A18: the pane's subtitle speaks about what the router observes"
-check_invisible "the Evals honesty assertions"
+check_invisible "the Checks honesty assertions"
 
 echo
 echo "=============================================================="

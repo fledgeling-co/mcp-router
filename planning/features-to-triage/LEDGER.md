@@ -38,3 +38,4 @@ first.
 | D2 | Deferred register: Mac surfaces and design authority (14) | `D2-deferred-mac.md` | — | — | Untriaged |
 | D3 | Deferred register: phone copy and the harness limit (4) | `D3-deferred-phone-harness.md` | — | — | Untriaged |
 | — | **BLOCKED: the Apple developer identity** | `BLOCKED-apple-identity.md` | — | — | **Needs input — `as-found`, not confirmed** |
+| M14 | A shipped menu tells the user the app is not built | `M14-menu-says-not-built.md` | — | — | Untriaged |

@@ -50,7 +50,8 @@ bash "$REPO_ROOT/scripts/acceptance/parity-manifest-check.sh"
 manifest_status=$?
 if [ "$manifest_status" = 2 ]; then
   echo
-  echo "the manifest could not be read, so there is no surface to report against."
+  echo "the manifest could not be checked — the reason is printed above. There is no surface to"
+  echo "report against, so no coverage is computed."
   exit 2
 fi
 if [ "$manifest_status" != 0 ]; then
@@ -189,6 +190,46 @@ while IFS=$'\t' read -r group id subject verdict owner note; do
 done < "$MANIFEST"
 
 # ---------------------------------------------------------------------------------------------
+# The reconciliation above walks the MANIFEST, so it can only ever notice a row that is present.
+# A row DELETED from the manifest is not blocked, not mismatched and not proven — it is simply not
+# considered, and since the denominator is the manifest, deleting one raises the coverage fraction.
+# Deleting a BLOCKED row raises it outright: the numerator does not move.
+#
+# `parity-manifest-check.sh` closes that for every group it can derive from a source file. It
+# cannot derive `divergence`, `install`, `pool`, `state` or `log`, because those name declarations
+# and scenarios rather than a surface some file exposes.
+#
+# This closes it for every row a LANE speaks for, with no list to maintain: the lanes already say
+# which ids they tested, so a result whose id the manifest does not carry means the row was
+# deleted while the work that proves it went on running. It is the same reconciliation, read in
+# the other direction.
+#
+# It does not reach a blocked row, because no lane speaks for one. Four such rows are outside
+# every check here — three `install` and one `divergence` — and that residue is recorded in
+# planning/specs/spec-P4.md rather than implied.
+orphans=0
+: > "$WORK/orphans.txt"
+while IFS=$'\t' read -r group id status detail; do
+  [ -z "${id:-}" ] && continue
+  awk -F'\t' -v g="$group" -v i="$id" \
+    '$1 == g && $2 == i { found = 1 } END { exit !found }' "$MANIFEST" && continue
+  orphans=$((orphans + 1))
+  printf '%s\t%s\n' "$group" "$id" >> "$WORK/orphans.txt"
+done < "$RESULTS"
+
+if [ "$orphans" -gt 0 ]; then
+  echo "───────────────────────────────────────────────────────────────────────"
+  echo "a lane reported a result for a row this manifest does not carry:"
+  sort -u "$WORK/orphans.txt" | while IFS=$'\t' read -r group id; do
+    printf '  %-11s %s\n' "$group" "$id"
+  done
+  echo
+  echo "The lane tested it, so the row existed when the lane was written. A row that leaves the"
+  echo "manifest leaves the denominator, and the coverage fraction goes up. Exit 1."
+  echo
+fi
+
+# ---------------------------------------------------------------------------------------------
 # The report. DESIGN.md §5 states, with real copy on the unhappy paths — this output IS this
 # item's user-facing surface, and a gate whose failure output is worse than its success output is
 # a gate people learn to skim. §6 governs the words: no number that is not observed.
@@ -261,6 +302,14 @@ fi
 # on. Both are non-zero; which non-zero it is decides what gets read first.
 if [ "$mismatched" -gt 0 ]; then
   echo "A mismatch is a divergence from the reference that nothing declared. Exit 1."
+  exit 1
+fi
+
+# Ranked directly below a divergence and above a lost lane. A row that has left the manifest is a
+# claim quietly withdrawn, and unlike a lost lane it makes the number LOOK BETTER, so it must not
+# be reported behind a line about an incomplete run.
+if [ "$orphans" -gt 0 ]; then
+  echo "$orphans row(s) were tested by a lane and are not in the manifest. Exit 1."
   exit 1
 fi
 

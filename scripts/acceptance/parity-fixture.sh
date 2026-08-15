@@ -83,7 +83,7 @@ echo
 # was made in .worktrees/F3, which no longer exists, so the hash cannot match and its difference
 # carries no information about the port. It is normalised, and this comment is the record of that.
 cat > "$WORK/normalise.py" <<'PY'
-import json, re, sys
+import json, posixpath, re, sys
 
 SUBS = [
     # Any ISO-8601 value, whatever its key. Written as one rule rather than a list of member
@@ -111,23 +111,103 @@ SUBS = [
     (r'127\.0\.0\.1%3A\d+',                 '127.0.0.1%3A<port>'),
     (r'127\.0\.0\.1:\d+',                   '127.0.0.1:<port>'),
     # Any checkout of this repo, whichever worktree the capture ran in.
-    (r'/Users/[^"]*?/mcp-router/\.worktrees/[A-Za-z0-9]+', '<repo>'),
+    #
+    # ONE PATH SEGMENT for the worktree name, and every character a directory name may legally
+    # carry. It read [A-Za-z0-9]+ until P4: every worktree so far had been called F3, R2R, P1, so
+    # the class had never been asked for a hyphen. A worktree named `my-tree` normalises
+    # `.worktrees/my` and leaves `-tree` behind, producing `<repo>-tree` against a recorded
+    # `<repo>` — reported as a divergence in the ROUTER, caused by a directory name.
+    # It is [^"/]+ and not [^"]+ because a greedy match to the closing quote swallows the rest of
+    # the path: `.worktrees/P4/app/Sources` would collapse to one marker and take real structure
+    # with it.
+    (r'/Users/[^"]*?/mcp-router/\.worktrees/[^"/]+', '<repo>'),
     (r'/Users/[^"]*?/mcp-router',           '<repo>'),
     # The scratch home each run mints.
     (r'/var/folders/[^"]*?mcprouter-[A-Za-z0-9.]+', '<tmp>'),
     (r'/tmp/mcprouter-[A-Za-z0-9.]+',       '<tmp>'),
-    # The project a call is attributed to is the directory the capture ran in — F3 for the
-    # recording, whichever worktree re-measures it now.
-    (r'"project":"[A-Za-z0-9]+"',           '"project":"<project>"'),
-    # Each element is normalised; the ARRAY LENGTH is preserved. Collapsing the whole array to one
-    # marker made zero, one and three attributed projects identical — and how many projects called a
-    # server is a contract fact, not a fact about which directory the capture ran in.
-    (r'"projectNames":\[([^\]]*)\]',
-     lambda m: '"projectNames":[' + ','.join('"<project>"' for x in m.group(1).split(',') if x.strip()) + ']'),
-    (r'"cwd":"[^"]*"',                      '"cwd":"<cwd>"'),
+    # `+` not `*`, for the reason spelled out on `hash` above: with `*`, a body carrying
+    # "cwd":"" normalised to the same marker as a real directory.
+    (r'"cwd":"[^"]+"',                      '"cwd":"<cwd>"'),
 ]
 
-def normalise(text):
+
+# ---------------------------------------------------------------------------------------------
+# `project` is NOT in the table above, and the difference is the point.
+#
+# It used to be, as "project":"[A-Za-z0-9]+" — a class with no `-`, so a call attributed to a
+# directory called `mcp-router` did not normalise while one attributed to `F3` did. Project
+# attribution is `basename(cwd)` (src/usage.ts:305), so that made THE GATE'S VERDICT DEPEND ON THE
+# NAME OF THE DIRECTORY IT WAS RUN FROM: from the repo root the `usage` fixture read DIVERGED, and
+# from any alphanumerically-named worktree the same tree read clean. Every runner works in such a
+# worktree, which is why it survived three adversarial reviews of the harness.
+#
+# The obvious repair — widening the class to [^"]+ — is WORSE, and was rejected in review. The
+# substitutions run in order, and the repo-path rules above rewrite any checkout path to `<repo>`
+# BEFORE a project rule would run. So if the reference ever regressed to putting the whole cwd in
+# `project` instead of its basename:
+#     live "project":"/Users/…/mcp-router"  ->  "project":"<repo>"  ->  "project":"<project>"
+# and the recorded body is already "<project>". The bodies would match and a real change to what
+# the reference reports would be invisible. Today that regression is caught only by accident,
+# because `<repo>` contains characters the narrow class rejects. Fixing under-matching by
+# introducing over-matching is the wrong trade for a parity harness: a missed normalisation costs a
+# false red, a missed difference costs a false green.
+#
+# So the value is not matched by shape at all. It is checked against the contract: a project is
+# normalised exactly where it equals basename(cwd) of its own object and is non-empty. That accepts
+# every legal directory name — hyphens, underscores, dots, spaces — and accepts nothing else. A
+# whole cwd, "/", "." and "" all fail it and survive to the comparison.
+#
+# It also retires a second rule that used to sit beside the old one:
+#
+#     (r'"projectNames":\[([^\]]*)\]',
+#      lambda m: … ','.join('"<project>"' for x in m.group(1).split(',') …
+#
+# whose comment claimed it preserved the array's LENGTH. It was written for an array of strings and
+# the corpus holds an array of OBJECTS — {"cwd":…,"project":"F3","calls":1} — so it split one entry
+# on its internal commas and emitted three markers, substituting "<project>" for the `calls` count
+# along the way. A per-project call count of 1 and of 900 normalised identically. It never failed
+# because it mangled both sides the same way; it was also blind. Every `project` inside that array
+# has a sibling `cwd`, so the rule below covers it, and the array length and every `calls` value
+# now compare for the first time.
+def project_violations(node, out, path=''):
+    """Every `project` in the body must be basename(cwd) of its OWN object and non-empty.
+
+    Checked as an invariant on each side separately, rather than used to build a set of
+    "safe" values to substitute. That distinction is the whole design, and the first draft got
+    it wrong: it collected the values that passed the pair test and then substituted each one
+    GLOBALLY, which put the decision back on the string. A body with two records —
+    {cwd:.../P4, project:"P4"} and {cwd:.../elsewhere, project:"P4"} — has one object passing
+    and one lying, and a global substitution rewrites both. That is the same shape as the
+    [^"]+ widening this file rejects above: a later, blunter rule washing out a distinction an
+    earlier, stricter one already had in its hand.
+
+    So nothing is substituted on the strength of the walk. The walk decides only whether the
+    field still means what src/usage.ts:305 says it means, and a body that fails is reported
+    as a difference and never normalised at all."""
+    if isinstance(node, dict):
+        if 'project' in node:
+            proj, cwd = node.get('project'), node.get('cwd')
+            where = path or '<root>'
+            if not isinstance(proj, str) or not proj:
+                out.append(f'{where}.project is {json.dumps(proj)}, not a non-empty string')
+            elif not isinstance(cwd, str):
+                out.append(f'{where}.project is present with no sibling cwd to check it against')
+            elif proj != posixpath.basename(cwd.rstrip('/')):
+                out.append(f'{where}.project is {json.dumps(proj)}, which is not the basename of '
+                           f'{json.dumps(cwd)}')
+        for key, value in node.items():
+            project_violations(value, out, f'{path}.{key}')
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            project_violations(value, out, f'{path}[{index}]')
+
+
+def normalise(text, project_checked):
+    # `project` is normalised only once the invariant above has been VERIFIED on this body. An
+    # unparseable body never gets that verification, keeps its raw value, and mismatches — which
+    # is the safe direction. Substituting it anyway would be normalising a field nobody checked.
+    if project_checked:
+        text = re.sub(r'"project"\s*:\s*"[^"]+"', '"project":"<project>"', text)
     for pattern, replacement in SUBS:
         text = re.sub(pattern, replacement, text)
     return text
@@ -161,8 +241,27 @@ def first_difference(a, b, path=''):
     return None
 
 recorded, recaptured = sys.argv[1], sys.argv[2]
-a = normalise(open(recorded).read().strip())
-b = normalise(open(recaptured).read().strip())
+raw = {'the recording': open(recorded).read().strip(),
+       'the live body': open(recaptured).read().strip()}
+
+# The invariant is asserted on each side INDEPENDENTLY, before anything is normalised. A body
+# that breaks it is reported as the difference — which is stronger than making the two agree,
+# because both sides breaking it the same way is still a change to what the reference reports.
+checked = {}
+for label, text in raw.items():
+    try:
+        problems = []
+        project_violations(json.loads(text), problems)
+    except Exception:
+        checked[label] = False       # unparseable: project is left alone and will mismatch
+        continue
+    if problems:
+        print(f'{label}: {problems[0]}')
+        sys.exit(1)
+    checked[label] = True
+
+a = normalise(raw['the recording'], checked['the recording'])
+b = normalise(raw['the live body'], checked['the live body'])
 if a == b:
     sys.exit(0)
 try:

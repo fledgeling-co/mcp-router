@@ -83,7 +83,7 @@ echo
 # was made in .worktrees/F3, which no longer exists, so the hash cannot match and its difference
 # carries no information about the port. It is normalised, and this comment is the record of that.
 cat > "$WORK/normalise.py" <<'PY'
-import json, re, sys
+import json, posixpath, re, sys
 
 SUBS = [
     # Any ISO-8601 value, whatever its key. Written as one rule rather than a list of member
@@ -111,23 +111,92 @@ SUBS = [
     (r'127\.0\.0\.1%3A\d+',                 '127.0.0.1%3A<port>'),
     (r'127\.0\.0\.1:\d+',                   '127.0.0.1:<port>'),
     # Any checkout of this repo, whichever worktree the capture ran in.
-    (r'/Users/[^"]*?/mcp-router/\.worktrees/[A-Za-z0-9]+', '<repo>'),
+    #
+    # ONE PATH SEGMENT for the worktree name, and every character a directory name may legally
+    # carry. It read [A-Za-z0-9]+ until P4: every worktree so far had been called F3, R2R, P1, so
+    # the class had never been asked for a hyphen. A worktree named `my-tree` normalises
+    # `.worktrees/my` and leaves `-tree` behind, producing `<repo>-tree` against a recorded
+    # `<repo>` — reported as a divergence in the ROUTER, caused by a directory name.
+    # It is [^"/]+ and not [^"]+ because a greedy match to the closing quote swallows the rest of
+    # the path: `.worktrees/P4/app/Sources` would collapse to one marker and take real structure
+    # with it.
+    (r'/Users/[^"]*?/mcp-router/\.worktrees/[^"/]+', '<repo>'),
     (r'/Users/[^"]*?/mcp-router',           '<repo>'),
     # The scratch home each run mints.
     (r'/var/folders/[^"]*?mcprouter-[A-Za-z0-9.]+', '<tmp>'),
     (r'/tmp/mcprouter-[A-Za-z0-9.]+',       '<tmp>'),
-    # The project a call is attributed to is the directory the capture ran in — F3 for the
-    # recording, whichever worktree re-measures it now.
-    (r'"project":"[A-Za-z0-9]+"',           '"project":"<project>"'),
-    # Each element is normalised; the ARRAY LENGTH is preserved. Collapsing the whole array to one
-    # marker made zero, one and three attributed projects identical — and how many projects called a
-    # server is a contract fact, not a fact about which directory the capture ran in.
-    (r'"projectNames":\[([^\]]*)\]',
-     lambda m: '"projectNames":[' + ','.join('"<project>"' for x in m.group(1).split(',') if x.strip()) + ']'),
-    (r'"cwd":"[^"]*"',                      '"cwd":"<cwd>"'),
+    # `+` not `*`, for the reason spelled out on `hash` above: with `*`, a body carrying
+    # "cwd":"" normalised to the same marker as a real directory.
+    (r'"cwd":"[^"]+"',                      '"cwd":"<cwd>"'),
 ]
 
+
+# ---------------------------------------------------------------------------------------------
+# `project` is NOT in the table above, and the difference is the point.
+#
+# It used to be, as "project":"[A-Za-z0-9]+" — a class with no `-`, so a call attributed to a
+# directory called `mcp-router` did not normalise while one attributed to `F3` did. Project
+# attribution is `basename(cwd)` (src/usage.ts:305), so that made THE GATE'S VERDICT DEPEND ON THE
+# NAME OF THE DIRECTORY IT WAS RUN FROM: from the repo root the `usage` fixture read DIVERGED, and
+# from any alphanumerically-named worktree the same tree read clean. Every runner works in such a
+# worktree, which is why it survived three adversarial reviews of the harness.
+#
+# The obvious repair — widening the class to [^"]+ — is WORSE, and was rejected in review. The
+# substitutions run in order, and the repo-path rules above rewrite any checkout path to `<repo>`
+# BEFORE a project rule would run. So if the reference ever regressed to putting the whole cwd in
+# `project` instead of its basename:
+#     live "project":"/Users/…/mcp-router"  ->  "project":"<repo>"  ->  "project":"<project>"
+# and the recorded body is already "<project>". The bodies would match and a real change to what
+# the reference reports would be invisible. Today that regression is caught only by accident,
+# because `<repo>` contains characters the narrow class rejects. Fixing under-matching by
+# introducing over-matching is the wrong trade for a parity harness: a missed normalisation costs a
+# false red, a missed difference costs a false green.
+#
+# So the value is not matched by shape at all. It is checked against the contract: a project is
+# normalised exactly where it equals basename(cwd) of its own object and is non-empty. That accepts
+# every legal directory name — hyphens, underscores, dots, spaces — and accepts nothing else. A
+# whole cwd, "/", "." and "" all fail it and survive to the comparison.
+#
+# It also retires a second rule that used to sit beside the old one:
+#
+#     (r'"projectNames":\[([^\]]*)\]',
+#      lambda m: … ','.join('"<project>"' for x in m.group(1).split(',') …
+#
+# whose comment claimed it preserved the array's LENGTH. It was written for an array of strings and
+# the corpus holds an array of OBJECTS — {"cwd":…,"project":"F3","calls":1} — so it split one entry
+# on its internal commas and emitted three markers, substituting "<project>" for the `calls` count
+# along the way. A per-project call count of 1 and of 900 normalised identically. It never failed
+# because it mangled both sides the same way; it was also blind. Every `project` inside that array
+# has a sibling `cwd`, so the rule below covers it, and the array length and every `calls` value
+# now compare for the first time.
+def legitimate_projects(node, out):
+    if isinstance(node, dict):
+        cwd, proj = node.get('cwd'), node.get('project')
+        if isinstance(cwd, str) and isinstance(proj, str) and proj \
+           and proj == posixpath.basename(cwd.rstrip('/')):
+            out.add(proj)
+        for value in node.values():
+            legitimate_projects(value, out)
+    elif isinstance(node, list):
+        for value in node:
+            legitimate_projects(value, out)
+
+
 def normalise(text):
+    # Structural first, and by literal substitution rather than by re-serialising the parsed
+    # document: the comparison downstream is byte-level, so dumping JSON back out would also
+    # normalise away whitespace and member order, which ARE compared today.
+    #
+    # A body that will not parse skips this pass, keeps its raw project value, and mismatches.
+    # That is the safe direction.
+    try:
+        projects = set()
+        legitimate_projects(json.loads(text), projects)
+    except Exception:
+        projects = set()
+    for value in projects:
+        text = re.sub(r'"project"\s*:\s*"' + re.escape(value) + '"',
+                      '"project":"<project>"', text)
     for pattern, replacement in SUBS:
         text = re.sub(pattern, replacement, text)
     return text

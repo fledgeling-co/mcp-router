@@ -50,7 +50,8 @@ bash "$REPO_ROOT/scripts/acceptance/parity-manifest-check.sh"
 manifest_status=$?
 if [ "$manifest_status" = 2 ]; then
   echo
-  echo "the manifest could not be read, so there is no surface to report against."
+  echo "the manifest could not be checked — the reason is printed above. There is no surface to"
+  echo "report against, so no coverage is computed."
   exit 2
 fi
 if [ "$manifest_status" != 0 ]; then

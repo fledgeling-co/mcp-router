@@ -72,6 +72,22 @@ open(path, 'w').write(text.replace(old, new, 1))
 PY
 }
 
+# delete_row <tsv> <row id> — read fully, then write. `open(p,'w').writelines([... open(p) ...])`
+# truncates before the comprehension runs, which empties the file and reddens every check at once;
+# the assertion below makes that impossible to ship unnoticed.
+delete_row() {
+  python3 - "$1" "$2" <<'PY'
+import sys
+path, rid = sys.argv[1], sys.argv[2]
+lines = open(path).readlines()
+kept = [l for l in lines if l.split('\t')[1:2] != [rid]]
+if len(kept) != len(lines) - 1:
+    sys.exit(f'expected to drop exactly one row, dropped {len(lines) - len(kept)}')
+with open(path, 'w') as handle:
+    handle.writelines(kept)
+PY
+}
+
 # check <dir> — run the copy of the check inside a scratch repo, capture status unpiped.
 check() {
   bash "$1/scripts/acceptance/parity-manifest-check.sh" > "$WORK/out.txt" 2>&1
@@ -210,7 +226,7 @@ dir="$(scratch)"
 edit "$dir/src/index.ts" "const run = async ()" "if (cmd === 'doctor') { void cmdIndex(); }
 const run = async ()" || true
 expect_red "a verb dispatched OUTSIDE the switch, switch intact" "$dir" \
-  'compares `cmd` outside the switch'
+  'reads the command outside the switch'
 
 echo
 
@@ -316,6 +332,100 @@ open(path, 'w').writelines(lines)
 PY
 expect_red "a cited divergence row deleted (div-r1-d3-control)" "$dir" \
   'a note cites "div-r1-d3-control", which is not a row id in this manifest'
+
+echo
+
+# ------------------------------------------------------------------------------ the pinned census
+# The four groups above are derived from a source file, and parity-gate.sh notices any row a LANE
+# speaks for. Neither reaches a BLOCKED row in `divergence`, `install`, `pool`, `state` or `log`:
+# no lane speaks for it, and no file exposes it. Four rows were in exactly that position, and
+# deleting one moved 74/83 to 74/82 with every other check green — the coverage figure going UP,
+# which is the whole of D-n.
+echo "the pinned census — the deletion neither derivation nor the lanes can see"
+
+for row in div-r1-d3 install-claude-json install-import-servers install-rollback; do
+  dir="$(scratch)"
+  delete_row "$dir/planning/parity/surface.tsv" "$row" || true
+  expect_red "a blocked row deleted: $row" "$dir" \
+    'holds 82 rows and pins itself at 83'
+done
+
+# Addition is gated by the same number, and needs to be: a duplicate blocked twin sharing an
+# existing subject satisfies every derivation above, because those reconcile SUBJECTS.
+dir="$(scratch)"
+printf 'cli\tcli-auth-2\tauth\tblocked\tD-x\ta twin sharing an existing subject\n' \
+  >> "$dir/planning/parity/surface.tsv"
+expect_red "a duplicate blocked twin ADDED" "$dir" \
+  'holds 84 rows and pins itself at 83'
+
+# And the pin itself has to be there.
+dir="$(scratch)"
+python3 - "$dir/planning/parity/surface.tsv" <<'PY'
+import sys
+path = sys.argv[1]
+lines = [l for l in open(path).readlines() if not l.startswith('# rows: ')]
+with open(path, 'w') as handle:
+    handle.writelines(lines)
+PY
+expect_red "the pin removed from the manifest" "$dir" \
+  'carries no `# rows: N` pin'
+
+echo
+
+# --------------------------------------------------------------------- dispatch shapes, revisited
+# Every one of these left the check green while adding CLI or HTTP surface the gate never counts.
+# They are here because an extractor that returns the WRONG list is invisible to a zero-guard: the
+# switch still yields ten labels, so nothing looks broken.
+echo "dispatch shapes that used to be silent"
+
+dir="$(scratch)"
+edit "$dir/src/index.ts" "const run = async ()" "if (cmd==='doctor') { void cmdIndex(); }
+const run = async ()" || true
+expect_red "cmd==='doctor', no spaces around ===" "$dir" \
+  'reads the command outside the switch'
+
+dir="$(scratch)"
+edit "$dir/src/index.ts" "const run = async ()" "if (process.argv[2] === 'doctor') { void cmdIndex(); }
+const run = async ()" || true
+expect_red "dispatch on process.argv[2], never naming cmd" "$dir" \
+  'reads the command outside the switch'
+
+dir="$(scratch)"
+edit "$dir/src/index.ts" "const run = async ()" "if (['doctor'].includes(cmd)) { void cmdIndex(); }
+const run = async ()" || true
+expect_red "dispatch through Array.includes(cmd)" "$dir" \
+  'reads the command outside the switch'
+
+dir="$(scratch)"
+edit "$dir/src/index.ts" "const run = async ()" "if (cmd !== 'help') { void cmdIndex(); }
+const run = async ()" || true
+expect_red "dispatch on cmd !== , not ===" "$dir" \
+  'reads the command outside the switch'
+
+# A second path on the same line as a recognised one. A substring test waves the whole line
+# through; only removing the shapes it understands and looking at the RESIDUE catches it.
+dir="$(scratch)"
+edit "$dir/src/router.ts" "if (url.pathname === '/health') {" \
+  "if (url.pathname === '/health' || url.pathname.startsWith('/admin')) {" || true
+expect_red "a second path beside a recognised one, same line" "$dir" \
+  'uses url.pathname in a shape this check cannot read'
+
+# The real compare commented out. The literal extractor read the comment and kept demanding the
+# row, so the row stayed satisfied by a route the router no longer answered.
+dir="$(scratch)"
+edit "$dir/src/router.ts" "      if (url.pathname === '/health') {" \
+  "      // if (url.pathname === '/health')
+      if (false) {" || true
+expect_red "the /health compare COMMENTED OUT" "$dir" \
+  'the manifest carries mcp row "/health", which src/router.ts does not answer'
+
+# Two registrations on one line. `grep -c` counts the line once, so the handler count matched the
+# symbol count and the second method demanded no row.
+dir="$(scratch)"
+edit "$dir/src/router.ts" "  server.setRequestHandler(ListToolsRequestSchema" \
+  "  server.setRequestHandler( PingRequestSchema, async () => ({})); server.setRequestHandler(ListToolsRequestSchema" || true
+expect_red "a registration whose symbol the regex cannot read" "$dir" \
+  'schema symbol(s)'
 
 echo
 echo "───────────────────────────────────────────────────────────────────────"

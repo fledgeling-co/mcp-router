@@ -133,7 +133,11 @@ done <<< "$routes_from_manifest"
 CLI_ALIASES='--help
 -h'
 
-cli_switch="$(awk '/switch \(cmd\) \{/,/^  \}$/' "$INDEX_TS")"
+# Comment lines are dropped before anything is extracted. Otherwise a commented-out arm keeps
+# demanding its row, and a real one deleted alongside its comment reads as still present.
+strip_comments() { sed -e 's://.*::' -e '/^[[:space:]]*\*/d' -e '/^[[:space:]]*\/\*/d' "$1"; }
+
+cli_switch="$(strip_comments "$INDEX_TS" | awk '/switch \(cmd\) \{/,/^  \}$/')"
 if [ -z "$cli_switch" ]; then
   echo "environment: no \`switch (cmd) {\` block in $INDEX_TS. The CLI dispatch shape has changed"
   echo "             and this check would otherwise report a clean manifest against nothing."
@@ -219,16 +223,28 @@ done <<< "$usage_verbs"
 # idiom — the switch. A verb dispatched in a SECOND shape, `if (cmd === 'doctor')` above an intact
 # switch, extracts nothing, demands no row, and leaves both directions of the comparison agreeing.
 # The zero-guard cannot see it, because the switch still yields ten labels.
-cmd_outside="$(grep -cE "cmd ===|cmd ==" "$INDEX_TS" || true)"
-if [ "$cmd_outside" != 0 ]; then
-  note "src/index.ts compares \`cmd\` outside the switch on $cmd_outside line(s)."
+# Written as "account for every mention", not as one spelling. The first version grepped
+# `cmd ===` with spaces, and stayed silent on `cmd==='doctor'`, `cmd !== 'help'`,
+# `['doctor'].includes(cmd)` and `process.argv[2] === 'doctor'` — four ways to dispatch a verb
+# that demands no row. Anything that reads `cmd` or argv[2] outside the two lines that legitimately
+# do is named, because the extractor can only read the switch.
+while IFS= read -r cmd_use; do
+  [ -z "$cmd_use" ] && continue
+  case "$cmd_use" in
+    *"const cmd = process.argv[2]"*) continue ;;
+    *"switch (cmd)"*)                continue ;;
+    *"//"*)                          continue ;;
+  esac
+  note "src/index.ts reads the command outside the switch:"
+  note "  ${cmd_use}"
   note "  A verb dispatched in a shape this check cannot read is absent from BOTH the source list"
   note "  and the manifest, which reads as agreement and raises the coverage figure."
-fi
+done <<< "$(grep -nE '(^|[^A-Za-z])cmd([^A-Za-z]|$)|argv\[2\]' "$INDEX_TS" || true)"
 
 # ------------------------------------------------------------------ mcp surface
 # The five `mcp` rows, reconciled against src/router.ts the same way, for the same reason.
-mcp_literals="$(sed -n "s/.*url\.pathname === '\([^']*\)'.*/\1/p" "$ROUTER_TS" | sort -u)"
+mcp_literals="$(strip_comments "$ROUTER_TS" \
+  | sed -n "s/.*url\.pathname === '\([^']*\)'.*/\1/p" | sort -u)"
 mcp_path="$(sed -n "s/^const MCP_PATH = '\([^']*\)';.*/\1/p" "$ROUTER_TS" | head -1)"
 
 if [ -z "$mcp_path" ]; then
@@ -244,8 +260,10 @@ grep -q 'url.pathname !== MCP_PATH' "$ROUTER_TS" \
 # only literal comparisons. The delegation is asserted rather than extracted: without this line it
 # could be deleted while the mcp reconciliation stayed green and sixteen control rows described a
 # surface the router had stopped routing to.
-# Anchored to a dispatch line, not merely to the string: `grep -q` of the bare call was kept
-# green by any COMMENT that mentioned it, so the delegation could be deleted and described.
+#
+# Anchored to a dispatch line rather than to the bare string, because `grep -q` of the call was
+# kept green by any COMMENT that mentioned it — so the delegation could be deleted and described
+# in the same edit.
 grep -qE '^[[:space:]]*if \(isControlPath\(url\.pathname\)\)' "$ROUTER_TS" \
   || note "src/router.ts no longer dispatches on isControlPath — the 16 control rows describe a surface it does not reach"
 
@@ -256,10 +274,18 @@ grep -qE '^[[:space:]]*if \(isControlPath\(url\.pathname\)\)' "$ROUTER_TS" \
 # of the three shapes this check understands, and anything else is named.
 while IFS= read -r pathname_use; do
   [ -z "$pathname_use" ] && continue
-  case "$pathname_use" in
-    *"url.pathname === '"*)          continue ;;
-    *'url.pathname !== MCP_PATH'*)   continue ;;
-    *'isControlPath(url.pathname)'*) continue ;;
+  # The recognised shapes are REMOVED and the residue is inspected, rather than the line being
+  # waved through because it contains one of them. A line reading
+  #     if (url.pathname === '/health' || url.pathname.startsWith('/admin')) {
+  # contains an allowed substring and dispatches a second path the extractor cannot read; a
+  # substring test lets it past, and both sides of the comparison then miss it.
+  pathname_rest="$(printf '%s' "$pathname_use" \
+    | sed -e "s/url\.pathname === '[^']*'//g" \
+          -e 's/url\.pathname !== MCP_PATH//g' \
+          -e 's/isControlPath(url\.pathname)//g')"
+  case "$pathname_rest" in
+    *url.pathname*) ;;
+    *) continue ;;
   esac
   note "src/router.ts uses url.pathname in a shape this check cannot read:"
   note "  ${pathname_use}"
@@ -286,7 +312,9 @@ fi
 # — yields no symbol, so a THIRD JSON-RPC method would be absent from both the source list and the
 # manifest and the comparison would agree. The zero-guard above cannot see it, because the other
 # two handlers still extract.
-handler_calls="$(grep -c 'setRequestHandler(' "$ROUTER_TS" || true)"
+# Occurrences, not lines: `grep -c` counts a line once however many calls it carries, so two
+# registrations on one line reported a count of 1 and matched a symbol count of 1.
+handler_calls="$(grep -o 'setRequestHandler(' "$ROUTER_TS" | grep -c . || true)"
 symbol_count="$(printf '%s\n' "$mcp_symbols" | grep -c . || true)"
 if [ "$handler_calls" != "$symbol_count" ]; then
   note "src/router.ts registers $handler_calls request handler(s) but $symbol_count schema symbol(s)"
@@ -414,10 +442,37 @@ fi
 
 total="$(awk -F'\t' '!/^#/ && NF == 6' "$MANIFEST" | wc -l | tr -d ' ')"
 
+# ------------------------------------------------------------------ the census is pinned
+# The reconciliations above derive four groups from source. `divergence`, `install`, `pool`,
+# `state` and `log` name declarations and scenarios rather than a surface some file exposes, so
+# they cannot be derived — and a BLOCKED row in one of them can be deleted with every check here
+# still green. That deletion leaves the numerator untouched and shrinks the denominator, so the
+# reported coverage GOES UP. Four rows were in that position: div-r1-d3 and the three install
+# rows.
+#
+# `parity-gate.sh` catches any row a LANE speaks for, by noticing a result with no row. It cannot
+# reach a blocked row, because no lane speaks for one.
+#
+# So the size of the census is pinned, here, next to the census. This is a hand-maintained number
+# and that is the point: the denominator IS the cutover target, so moving it should be a deliberate
+# line in a diff rather than a side effect. Adding a row is as gated as deleting one — a duplicate
+# blocked twin sharing an existing subject satisfies every derivation above and would otherwise
+# inflate the total unnoticed.
+pinned="$(sed -n 's/^# rows: \([0-9][0-9]*\).*/\1/p' "$MANIFEST" | head -1)"
+if [ -z "$pinned" ]; then
+  note "the manifest carries no \`# rows: N\` pin, so its size is unconstrained and a row can"
+  note "  leave it without anything noticing."
+elif [ "$pinned" != "$total" ]; then
+  note "the manifest holds $total rows and pins itself at $pinned."
+  note "  A row was added or removed. If that was deliberate, move the pin in the same change and"
+  note "  say so — the denominator is the cutover target, and R4-C is expressed as a number."
+fi
+
 if [ "$problems" -gt 0 ]; then
   echo
   echo "manifest-check: $problems problem(s). The coverage fraction is computed from this file,"
   echo "                so a stale manifest reports a higher pass rate than the port has earned."
   exit 1
 fi
-echo "manifest-check: $total rows, consistent with control.ts and the fixture directory."
+echo "manifest-check: $total rows, consistent with control.ts, index.ts, router.ts and the fixture"
+echo "                directory; every cited test, script and row id resolves."

@@ -16,10 +16,10 @@ UNSIGNED   := CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 IOS_DEST   ?= generic/platform=iOS Simulator
 MAC_DEST   ?= platform=macOS
 
-.PHONY: all tools generate build build-mac build-mac-release build-ios test test-ios parity parity-regen mutation acceptance lint format clean
+.PHONY: all tools generate build build-mac build-mac-release build-ios test test-ios parity parity-regen parity-selftest mutation acceptance lint format clean
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
-all: tools lint build test test-ios parity
+all: tools lint build test test-ios parity parity-selftest
 
 ## Fail loudly and specifically when a required tool is missing, rather than skipping the gate.
 ## A silently-skipped lint step is worse than no lint step: it reports success.
@@ -212,6 +212,22 @@ parity-regen:
 ## Kept out of `all` because each mutation is a rebuild plus a test run. Run it before a merge.
 mutation:
 	./scripts/parity/mutation-gate.sh
+
+## Can the parity harness itself go red? — P4.
+##
+## The gate reports a coverage fraction over the census in planning/parity/surface.tsv, so the two
+## files that decide that fraction are the two that can move it without anything noticing: the
+## manifest check, and the fixture lane's normaliser. Both are mutated here and both must fail.
+##
+## The case that matters most is a DELETED row. It leaves the numerator alone and shrinks the
+## denominator, so the reported coverage goes UP — measured against the pre-P4 check, four separate
+## row deletions each exited 0 while quietly reporting 82 rows instead of 83.
+##
+## Fast, hermetic and offline: it copies the tree into scratch directories and runs no lane, no
+## router and no build. In `all` for that reason, unlike `mutation` and `acceptance`.
+parity-selftest:
+	./scripts/acceptance/parity-manifest-selftest.sh
+	./scripts/acceptance/parity-normalise-selftest.sh
 
 ## Launches both shells and asserts each renders a value that came from MCPRouterKit.
 ##

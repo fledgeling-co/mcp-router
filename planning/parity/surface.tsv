@@ -1,5 +1,16 @@
 # planning/parity/surface.tsv — the cutover surface, enumerated.
 #
+# rows: 83
+#
+# The size of this census is pinned, and checked by parity-manifest-check.sh. Four groups are
+# reconciled against a source file and every row a lane speaks for is reconciled against the
+# results, but a BLOCKED row in `divergence`, `install`, `pool`, `state` or `log` is spoken for by
+# nothing — and deleting one leaves the numerator alone while shrinking the denominator, so the
+# reported coverage goes UP. This number is what makes that a red rather than an improvement.
+#
+# Moving it is a deliberate line in a diff, which is the point: the denominator is R4-C's cutover
+# target. Add or remove a row and move the pin in the same change.
+#
 # One row per capability the cutover requires the Swift router to answer for. The gate reports
 # coverage as a fraction of THIS file, so a row that is missing here does not make the gate red —
 # it shrinks the denominator and the coverage number goes UP. scripts/acceptance/parity-manifest-check.sh

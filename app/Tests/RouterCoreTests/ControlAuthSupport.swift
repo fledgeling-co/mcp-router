@@ -147,7 +147,10 @@ enum ControlAuthSupport {
     }
 
     static func makeDeps(
-        fileSystem: any FileSystem = AuthTestFileSystem(),
+        // `FileSystem & FileModeWriting`, not bare `FileSystem`: V1 tightened `ControlDeps`'s
+        // member to the composition, and this parameter was the merge-only break — both
+        // branches compiled alone and the merged tree did not.
+        fileSystem: any FileSystem & FileModeWriting = AuthTestFileSystem(),
         manifestPath: String = "/router/manifest.json",
         calls: AuthDispatchCalls = AuthDispatchCalls(),
         starter: (any AuthFlowStarting)? = nil,

@@ -224,6 +224,7 @@ mutation:
 acceptance: build-mac build-mac-release
 	./scripts/acceptance/shells.sh
 	./scripts/acceptance/control-client.sh
+	./scripts/acceptance/p1-auth-routes.sh
 	./scripts/acceptance/mac-shell.sh
 
 lint: tools

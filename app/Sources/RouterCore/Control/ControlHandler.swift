@@ -185,6 +185,18 @@ public struct ControlHandler: Sendable {
         request: ControlAPIRequest,
         deps: inout ControlDeps
     ) async -> ControlAPIResponse? {
+        // The auth family — `/approve`, `/auth` POST and `/auth` DELETE — lives in
+        // `ControlAuthDispatch.swift`. Split out on a real seam rather than by raising a limit:
+        // adding P1's two arms here took this function to cyclomatic complexity 12 against a cap of
+        // 10, and those three routes are the ones the reference answers through `AuthRoutes` rather
+        // than inline. `nil` from it means "not an auth route, or an auth route this router cannot
+        // serve", and both fall through to the switch below and then to the 405.
+        if let response = await dispatchAuth(
+            route: route, upstream: upstream, name: name, request: request, deps: deps
+        ) {
+            return response
+        }
+
         switch (route.sub, request.method) {
         case (nil, "GET"):
             return .json(200, Describe.row(upstream, deps))
@@ -228,14 +240,6 @@ public struct ControlHandler: Sendable {
                 key: "changes", value: .array(changes.map(\.value))
             ))
             return .json(200, .object(members))
-
-        case ("/auth", "DELETE"):
-            let had = deps.auth.clear(name)
-            deps.pool.clearPending(name)
-            return .json(200, .object([
-                JSONMember(key: "server", value: .string(name)),
-                JSONMember(key: "signedOut", value: .bool(had))
-            ]))
 
         default:
             return nil

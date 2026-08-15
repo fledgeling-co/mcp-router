@@ -13,10 +13,14 @@ import RouterCore
 /// write goes through the same `ConfigMutationLock` the control API takes, and it issues the router
 /// restart the reference loses (divergence W-D1).
 ///
-/// `auth` exists so the verb is not missing, but it is **not claimed as parity**: the Swift router
-/// answers 405 on `POST /servers/:name/auth` where the reference answers 400, because `AuthRoutes`
-/// is not wired into `ControlHandler`'s dispatch. That is defect `D-j`, and fixing it here would
-/// make `control-differential.sh` record a stale-defect failure — see spec-R2R §8 A1.
+/// `auth` exists so the verb is not missing, and it is **still not claimed as parity** — but
+/// `D-j` is no longer the reason. P1 wired both auth routes into `ControlHandler`'s dispatch, and
+/// the control lane now compares them against the running reference (409 and 400, agreeing).
+///
+/// What blocks the *verb* is this lane's harness: `auth` POSTs to a **running** router and then
+/// polls the auth dir, and `parity-cli.sh`'s `run_both` starts no router, so comparing it today
+/// would compare two connection failures agreeing with each other. Tracked as `D-p1-d`; the lane
+/// already has `serve_side` to build the row on. The http half additionally needs `D-p1-a`.
 @main
 struct MCPRouterCLI {
     static func main() async {

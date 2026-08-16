@@ -81,13 +81,13 @@
         /// Called from `load()` on every successful read, which is what makes both halves
         /// unforgettable: neither is a step a call site has to remember.
         ///
-        /// **The withdrawal is derived rather than commanded**, and that is the design rather than a
-        /// shortcut. A `withdraw()` call placed beside each disposition is a rule a later edit can
-        /// drop silently — and the failure would be a banner offering `Decline` for an item that is
-        /// already gone. Reconciling against the rows on every read cannot be forgotten, because it
-        /// is not a step anybody performs. The cost is that a banner can linger for up to one poll
-        /// interval after the window acted on its item, which is why the route for a missing id is a
-        /// designed state rather than an error.
+        /// **The reconcile here is the backstop, not the mechanism.** A disposition withdraws its own
+        /// banner the moment it happens (`InboxBoardModel.withdrawBanner(for:)`), because the spec
+        /// says the moment and a reconcile that runs on the next read cannot deliver one — it left a
+        /// banner offering `Decline` for a gone item for up to a poll interval. What this catches is
+        /// the case that call cannot: an item that left the queue without passing through a
+        /// disposition on this Mac, because another surface or the router itself removed it. So the
+        /// pair is deliberate rather than redundant, and neither is the other's duplicate.
         internal func announceArrivals(in snapshot: InboxSnapshot) async {
             await requestAuthorizationIfNewlyPaired(snapshot)
 
@@ -96,6 +96,14 @@
                 arrivals: arrived,
                 device: snapshot.pairedDeviceName
             ) {
+                if announcement.id != InboxAnnouncement.manyIdentifier {
+                    // A single-item banner does not replace a delivered "N items are waiting" — the
+                    // identifiers differ, so both sit in Notification Center and the many banner's
+                    // count is now short by the new one. Two arrived, then one more, and the older
+                    // banner reads "2 items are waiting" while three do. Withdrawing it is cheaper
+                    // and quieter than re-announcing a count nobody asked to be told again.
+                    await notifier.withdraw(itemIDs: [InboxAnnouncement.manyIdentifier])
+                }
                 await notifier.announce(announcement)
             }
 

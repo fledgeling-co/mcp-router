@@ -49,6 +49,88 @@ public enum InboxNotificationAction: String, Sendable, Equatable, CaseIterable {
     }
 }
 
+/// Where a notification press lands, as a value.
+///
+/// **Extracted from the delegate because a clause about the delegate was not reaching it.** The
+/// mapping used to live in a `private static func` on an `NSObject` that can only be installed on a
+/// real notification centre, so the clause asserting *no path from outside the window installs
+/// anything* drove the board's own methods and never the mapping that chooses them — a delegate that
+/// called `accept` would have left it green. As a value it is walked over every action and both
+/// identifier shapes.
+///
+/// **There is no install case, and that is the same enforcement `InboxNotificationAction` makes.**
+/// The delegate switches over this exhaustively and so does the clause, so a route that installed
+/// would have to be added here and then let through a test that enumerates every case.
+public enum InboxNotificationRoute: Sendable, Equatable {
+    /// Open the Inbox board with nothing selected. No sheet: there is no single item to review.
+    case openInbox
+    /// Select the item and open its review. Opens no install — the sheet is what accepts.
+    case review(itemID: String)
+    /// Decline in place, with no window and no activation.
+    case decline(itemID: String)
+
+    /// Resolve a press into what it does.
+    ///
+    /// - Parameters:
+    ///   - action: what was pressed, already resolved from the response.
+    ///   - identifier: the request's identifier — an item id, or ``InboxAnnouncement/manyIdentifier``.
+    public static func route(
+        _ action: InboxNotificationAction,
+        identifier: String
+    ) -> InboxNotificationRoute {
+        // A multi-item banner names no single item, so every press on it lands on the board rather
+        // than on a row. Its category registers only `review` for the same reason — this is the
+        // second half of that rule, and it is kept because a banner delivered under an older build's
+        // category can still arrive with a `decline` identifier on it.
+        guard identifier != InboxAnnouncement.manyIdentifier else { return .openInbox }
+        switch action {
+        case .review: return .review(itemID: identifier)
+        case .decline: return .decline(itemID: identifier)
+        }
+    }
+}
+
+/// Which registered category a banner is posted under, and therefore which buttons macOS actually
+/// draws on it.
+///
+/// **A second category exists because one was a lie.** The buttons on a banner come from its
+/// `UNNotificationCategory`, not from `InboxAnnouncement.actions` — so a single category registering
+/// Review and Decline put a Decline button on the many-item banner while the value said `[.review]`,
+/// and the assertion over the value was green against it. The spec forbids that button
+/// (`spec-I6.md` §"What it says": *no `Decline` on the many-item notification*), and a value nobody
+/// draws from is not enforcement.
+///
+/// So the mapping from an action set to a category lives here, in the Kit, where a test can walk
+/// every announcement the app can build and check that what it says and what macOS is handed are
+/// the same list.
+public enum InboxNotificationCategory: String, Sendable, Equatable, CaseIterable {
+    /// One item: `Review` and `Decline`, because there is a single item for a decline to act on.
+    case single = "inbox.arrival"
+    /// Two or more: `Review` only. There is no single item for a decline to name, and "decline all"
+    /// is a bulk destructive action nobody asked for.
+    case many = "inbox.arrival.many"
+
+    /// The buttons this category registers, in the order macOS draws them.
+    ///
+    /// **This is the only statement of a category's buttons.** The notifier builds its
+    /// `UNNotificationCategory` from this list rather than restating it, so the two cannot disagree.
+    public var actions: [InboxNotificationAction] {
+        switch self {
+        case .single: [.review, .decline]
+        case .many: [.review]
+        }
+    }
+
+    /// The category whose registered buttons are exactly this action set.
+    ///
+    /// - Returns: `nil` for an action set no category draws. That is the honest answer rather than a
+    ///   nearest match: posting a banner under a category that draws a button its value never
+    ///   offered is the exact failure this type exists to close.
+    public static func drawing(_ actions: [InboxNotificationAction]) -> InboxNotificationCategory? {
+        allCases.first { $0.actions == actions }
+    }
+}
+
 /// One banner, built as a value so what it says is assertable without a notification centre.
 public struct InboxAnnouncement: Sendable, Equatable {
     /// The notification's own identifier. For a single item this is its envelope id, so the delivered
@@ -81,6 +163,16 @@ public struct InboxAnnouncement: Sendable, Equatable {
     /// The identifier a multi-item banner uses. One at a time: a second delta replaces the first
     /// rather than stacking, because two "N items are waiting" banners disagree about N.
     public static let manyIdentifier = "inbox.many"
+
+    /// The category this banner must be posted under, so the buttons macOS draws are the buttons
+    /// ``actions`` names.
+    ///
+    /// `nil` would be an action set no category registers. `make` builds none, and the walk over
+    /// everything it can build asserts that — so the notifier's fallback for `nil` is a banner with
+    /// no buttons rather than a guess, which degrades to the default press, which is `Review`.
+    public var category: InboxNotificationCategory? {
+        InboxNotificationCategory.drawing(actions)
+    }
 
     /// Build the announcement for one delta.
     ///

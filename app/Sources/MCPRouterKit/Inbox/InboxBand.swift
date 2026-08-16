@@ -54,6 +54,19 @@ public struct InboxBand: Equatable, Sendable {
         /// reviewed into an install — `AcceptableInboxItem` cannot be constructed for it.
         public let isPartial: Bool
 
+        /// Whether the row carries a review affordance at all.
+        ///
+        /// **The band read this off nothing and drew the affordance anyway.** A partial row was a
+        /// full-width Review button that opened a sheet which could never install, because the
+        /// entry it would install was the thing that could not be read. `DESIGN.md`'s Disabled state
+        /// and `spec-I6.md` §"The states" both say a row that could not be read *carries no review
+        /// affordance and says why* — a control that cannot do what it offers is worse than an
+        /// absent one, because the absent one is not a promise.
+        ///
+        /// Its own property rather than `!isPartial` read at the call site, so the view states which
+        /// rule it is obeying and a clause has a subject.
+        public var isReviewable: Bool { !isPartial }
+
         public init(
             id: String,
             title: String,

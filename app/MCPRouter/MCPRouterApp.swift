@@ -12,30 +12,21 @@ import SwiftUI
 /// `MCPRouterKit` and `MCPRouterUI` for that reason, and what is left here is a `Scene` and six menu
 /// builders whose *contents* come from the model.
 @main
+@MainActor
 struct MCPRouterApp: App {
     @NSApplicationDelegateAdaptor(ShellAppDelegate.self) private var appDelegate
-    /// A Release build gets the live loopback client and can never be talked into a fixture; a Debug
-    /// build takes a scenario from the environment so the acceptance gate can drive the app into any
-    /// of `DESIGN.md` §5's states. `ShellClientFactory` holds that rule, where a test reaches it.
-    /// The notifier needs the process's own bundle identifier, and this is the only file that may
-    /// read it: A36's one-channel gate forbids the name `Bundle` in `MCPRouterUI`'s shell files, and
-    /// that gate is satisfied rather than amended. Assembly, like everything else here.
-    @State private var model = ShellModel(
-        client: ShellClientFactory.makeClient(),
-        notifier: ArrivalNotifierFactory.make(bundleIdentifier: Bundle.main.bundleIdentifier)
-    )
+    /// The one shell, owned by the app delegate rather than by this scene.
+    ///
+    /// It moved there so the notification delegate could be attached at launch: a response that
+    /// *launches* the app is delivered once, before launching finishes, and is discarded outright if
+    /// nothing is listening yet. Installed from a `WindowGroup.onAppear` — where this was — the
+    /// press that woke the app is lost, and `Decline` is the bad half of that: the user presses it,
+    /// the app opens, and nothing is declined.
+    @State private var model = ShellAppDelegate.shell
 
     var body: some Scene {
         WindowGroup("MCP Router") {
             ShellWindow(model: model)
-                // Assembly, like everything else here: the guard, the mapping from a press to an
-                // operation, and both operations live in `MCPRouterUI` where a test reaches them.
-                .onAppear {
-                    InboxNotificationDelegate.install(
-                        on: model,
-                        bundleIdentifier: Bundle.main.bundleIdentifier
-                    )
-                }
                 .frame(
                     minWidth: MetricToken.sidebar.leadingScalar * 2,
                     minHeight: MetricToken.sidebar.leadingScalar
@@ -154,7 +145,32 @@ struct ShellCommands: Commands {
 ///
 /// The walker itself is in `MCPRouterUI` where a test can reach it; this is only where it is armed.
 final class ShellAppDelegate: NSObject, NSApplicationDelegate {
+    /// The one shell for this process.
+    ///
+    /// A Release build gets the live loopback client and can never be talked into a fixture; a Debug
+    /// build takes a scenario from the environment so the acceptance gate can drive the app into any
+    /// of `DESIGN.md` §5's states. `ShellClientFactory` holds that rule, where a test reaches it.
+    /// The notifier needs the process's own bundle identifier, and this file is the only one that
+    /// may read it: A36's one-channel gate forbids the name `Bundle` in `MCPRouterUI`'s shell files,
+    /// and that gate is satisfied rather than amended.
+    ///
+    /// Here rather than as the scene's `@State` because the notification delegate has to be attached
+    /// before launching finishes, which is earlier than any scene exists.
+    @MainActor static let shell = ShellModel(
+        client: ShellClientFactory.makeClient(),
+        notifier: ArrivalNotifierFactory.make(bundleIdentifier: Bundle.main.bundleIdentifier)
+    )
+
     func applicationDidFinishLaunching(_: Notification) {
         ShellMenuReasons.install()
+        // **At launch, not on a view's appearance.** `UNUserNotificationCenter.delegate` must be set
+        // before the app finishes launching, or the response that launched the app is delivered to
+        // nobody and thrown away. Assembly, like everything else here: the guard, the mapping from a
+        // press to a route, and every operation a route names live in `MCPRouterUI` and
+        // `MCPRouterKit` where a test reaches them.
+        InboxNotificationDelegate.install(
+            on: Self.shell,
+            bundleIdentifier: Bundle.main.bundleIdentifier
+        )
     }
 }

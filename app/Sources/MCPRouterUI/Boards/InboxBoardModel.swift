@@ -74,6 +74,13 @@
         /// a launch-time prompt asks permission to send notifications the app cannot generate.
         @ObservationIgnored private var askedForAuthorization = false
 
+        /// The withdrawal started by the last disposition.
+        ///
+        /// Held so a clause can await the hop rather than sleep through it: withdrawing is `async`
+        /// and `decline` is not, because a `Button` action is not, so the call has to cross a task
+        /// boundary and a test that did not wait for it would be asserting on a race.
+        @ObservationIgnored private(set) var pendingWithdrawal: Task<Void, Never>?
+
         /// Whether the user granted notifications, or `nil` before anyone asked.
         ///
         /// Rendered in exactly one place — the pairing sheet's paired state — because that is the
@@ -247,6 +254,29 @@
             // a press that found nothing, and this press found something.
             routeReport = nil
             if selection == disposition.item.id { selection = nil }
+            withdrawBanner(for: disposition.item.id)
+        }
+
+        /// Withdraw the banner for an item **the moment it is dispositioned**, from whichever
+        /// surface did it.
+        ///
+        /// The spec says the moment (`spec-I6.md` §"Withdrawal") and the derived reconcile in
+        /// `announceArrivals` could not deliver it: that runs on the next successful read, so a
+        /// banner went on offering `Decline` for a gone item for up to one poll interval — two
+        /// seconds. The sentence and the mechanism disagreed, and the sentence was the one worth
+        /// keeping.
+        ///
+        /// **The reconcile stays, as the backstop rather than as the mechanism.** It catches the
+        /// case this cannot: an item that left the queue without passing through here, because
+        /// another surface or the router itself removed it. So neither is redundant — one closes the
+        /// race on a press, the other on a change nobody here made.
+        ///
+        /// The multi-item banner goes with it for its own reason: it says "N items are waiting", and
+        /// the moment one is handled that sentence is false.
+        private func withdrawBanner(for itemID: String) {
+            pendingWithdrawal = Task { [notifier] in
+                await notifier.withdraw(itemIDs: [itemID, InboxAnnouncement.manyIdentifier])
+            }
         }
 
         /// Put the last **decline** back.

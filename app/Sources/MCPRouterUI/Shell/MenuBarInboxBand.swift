@@ -65,33 +65,29 @@
         /// `AXPress` answered `.success` and did nothing — a VoiceOver user could reach every row and
         /// act on none of them. So this row declares its default action and its decline action by
         /// name, and the two named actions are what the acceptance path exercises.
+        ///
+        /// **A row whose entry could not be read carries no review affordance**, per the Disabled
+        /// state. It is drawn as content rather than as a control, and its capability line says why.
+        /// The earlier version drew the same full-width Review button on it and opened a sheet that
+        /// could never install — an affordance that is a lie rather than a hole.
+        @ViewBuilder
         private func row(for row: InboxBand.Row) -> some View {
             HStack(spacing: PopoverMetrics.gap) {
-                Button { MenuBarRouter.revealInbox(itemID: row.id, on: shell) } label: {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text(row.title)
-                            .typeRole(.callout)
-                            .foregroundStyle(ColorToken.t1.color)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                        Text(row.capability ?? InboxCopy.Band.partialCapability)
-                            .typeRole(.subheadline)
-                            .foregroundStyle(ColorToken.t2.color)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                        Text(row.provenance)
-                            .typeRole(.caption, monospaced: true)
-                            .foregroundStyle(ColorToken.t3.color)
-                            .lineLimit(1)
+                if row.isReviewable {
+                    Button { MenuBarRouter.revealInbox(itemID: row.id, on: shell) } label: {
+                        rowDetail(row)
+                            .contentShape(Rectangle())
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .contentShape(Rectangle())
+                    .buttonStyle(.plain)
+                    // The full name for a truncated one, to pointer and to VoiceOver alike —
+                    // `DESIGN.md` §5's overflow rule met in place, since a popover has no inspector.
+                    .help(row.title)
+                    .accessibilityValue(row.title)
+                } else {
+                    rowDetail(row)
+                        .help(row.title)
+                        .accessibilityValue(row.title)
                 }
-                .buttonStyle(.plain)
-                // The full name for a truncated one, to pointer and to VoiceOver alike — `DESIGN.md`
-                // §5's overflow rule met in place, since a popover has no inspector.
-                .help(row.title)
-                .accessibilityValue(row.title)
 
                 Button(InboxCopy.declineAction) { shell.declineFromOutside(itemID: row.id) }
                     .buttonStyle(StandardButtonStyle())
@@ -100,12 +96,39 @@
             .frame(minHeight: PopoverMetrics.inboxRow)
             .accessibilityElement(children: .contain)
             .accessibilityLabel("\(row.title), \(row.provenance)")
-            .accessibilityAction(named: Text(InboxCopy.reviewAction)) {
-                MenuBarRouter.revealInbox(itemID: row.id, on: shell)
+            .accessibilityActions {
+                // Named only where it does something. A VoiceOver action that opens a review which
+                // cannot install is the same lie as the button, said to a user who cannot see that
+                // the button is gone.
+                if row.isReviewable {
+                    Button(InboxCopy.reviewAction) {
+                        MenuBarRouter.revealInbox(itemID: row.id, on: shell)
+                    }
+                }
+                Button(InboxCopy.declineAction) { shell.declineFromOutside(itemID: row.id) }
             }
-            .accessibilityAction(named: Text(InboxCopy.declineAction)) {
-                shell.declineFromOutside(itemID: row.id)
+        }
+
+        /// The three lines of a row. Shared so the reviewable and unreviewable shapes cannot say
+        /// different things about the same item.
+        private func rowDetail(_ row: InboxBand.Row) -> some View {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(row.title)
+                    .typeRole(.callout)
+                    .foregroundStyle(ColorToken.t1.color)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Text(row.capability ?? InboxCopy.Band.partialCapability)
+                    .typeRole(.subheadline)
+                    .foregroundStyle(ColorToken.t2.color)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Text(row.provenance)
+                    .typeRole(.caption, monospaced: true)
+                    .foregroundStyle(ColorToken.t3.color)
+                    .lineLimit(1)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
 
         /// Everything past the cap. It names the remainder and where the rest of them are; the

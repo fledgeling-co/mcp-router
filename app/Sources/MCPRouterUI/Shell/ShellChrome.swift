@@ -149,6 +149,16 @@
                 element: "Settings' keychain-unavailable banner",
                 token: .attention,
                 justification: "wants a human decision"
+            ),
+            // I6's band. Registered here for the reason every entry above is: A6 fails on an
+            // indicator colour the shell renders and this list does not name, and the band's edge
+            // was an unnamed one — `noUndeclaredIndicatorUse` only checks that a token appears
+            // somewhere in the list, so a second use of an already-listed token cannot fail it. The
+            // entry is what makes the justification checkable.
+            IndicatorUse(
+                element: "the menu-bar popover's inbox band, its edge stroke",
+                token: .attention,
+                justification: "wants a human decision"
             )
         ]
 

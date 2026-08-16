@@ -358,8 +358,12 @@
         /// The cost is a two-second poll against loopback for as long as the app runs, which for an
         /// app whose entire subject is live status is the feature rather than a leak.
         ///
-        /// Idempotent, and that matters: the window and the menu bar both call it, and two loops
-        /// would overlap their requests so an older response could land after a newer one.
+        /// Idempotent, and that matters: `ShellWindow` is its only caller today, but the guard is
+        /// what makes a second surface calling it safe — two loops would overlap their requests, so
+        /// an older response could land after a newer one. (An earlier version of this comment said
+        /// the menu bar called it too. It does not: `MenuBarExtra` renders from the model rather than
+        /// driving it, and `LSUIElement` is false, so a window scene exists at launch and starts the
+        /// poll.)
         public func startPolling() {
             guard pollTask == nil else { return }
             pollTask = Task { [weak self] in

@@ -57,29 +57,41 @@
         ///
         /// The default is to suppress it, which would mean the one moment you are *most* likely to
         /// be at the Mac is the one moment nothing tells you something arrived.
+        ///
+        /// **`.list` as well as `.banner`, and it is load-bearing rather than tidy.** Without it a
+        /// frontmost delivery shows a banner and is never filed in Notification Center, so the
+        /// withdrawal that runs when the item is dispositioned has nothing to withdraw — and the
+        /// banner the user is looking at is the one that goes on offering `Decline` for an item that
+        /// is gone.
+        ///
+        /// A static so it is assertable: this method's parameters can only be supplied by a real
+        /// notification centre, and `UNUserNotificationCenter.current()` traps in a test process.
+        public static let presentationOptions: UNNotificationPresentationOptions = [
+            .banner, .list, .sound
+        ]
+
         public func userNotificationCenter(
             _: UNUserNotificationCenter,
             willPresent _: UNNotification
         ) async -> UNNotificationPresentationOptions {
-            [.banner, .sound]
+            Self.presentationOptions
         }
 
         @MainActor
         private static func perform(_ action: InboxNotificationAction, identifier: String) {
             guard let model = target else { return }
-            // The multi-item banner names no single item, so both of its presses land on the board
-            // rather than on a row. Its action set carries only `review` for the same reason.
-            guard identifier != InboxAnnouncement.manyIdentifier else {
+            // The mapping is `InboxNotificationRoute`'s, in the Kit, where a clause walks every
+            // action against both identifier shapes. What is left here is which shell operation each
+            // route names — and none of the three declares anything on this Mac.
+            switch InboxNotificationRoute.route(action, identifier: identifier) {
+            case .openInbox:
                 MenuBarRouter.openInbox(on: model)
-                return
-            }
-            switch action {
-            case .review:
-                MenuBarRouter.revealInbox(itemID: identifier, on: model)
-            case .decline:
+            case let .review(itemID):
+                MenuBarRouter.revealInbox(itemID: itemID, on: model)
+            case let .decline(itemID):
                 // No activation and no window: declining from the couch is the whole point of it
                 // being available here.
-                model.declineFromOutside(itemID: identifier)
+                model.declineFromOutside(itemID: itemID)
             }
         }
     }

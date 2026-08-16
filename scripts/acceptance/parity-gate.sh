@@ -164,6 +164,11 @@ while IFS=$'\t' read -r group id subject verdict owner note; do
        printf '%s\t%s\n' "$group" "blocked" >> "$WORK/bygroup.txt"
        printf '%s\t%s\t%s\t%s\n' "(unscoreable)" "$group" "$subject" \
          "verdict \"$verdict\" is not one this gate recognises" >> "$WORK/blocked.txt"
+       # An unscoreable row is WORK — somebody has to fix that verdict — so it belongs in the
+       # remaining list. Without this line it went into neither file, and `excluded` + `remaining`
+       # came to less than `blocked`, which would make the word "partition" below untrue on
+       # exactly the path nobody looks at. The out-of-family review caught this.
+       printf '%s\t%s\t%s\n' "$group" "$id" "(unscoreable verdict)" >> "$WORK/remaining.txt"
        continue ;;
   esac
   total=$((total + 1))
@@ -388,8 +393,17 @@ remaining=$((PARITY_CUTOVER_TARGET - proven))
 report_cutover_target() {
   local measured="$1"
   echo "cutover target: $PARITY_CUTOVER_TARGET of $total, decided by $PARITY_CUTOVER_DECIDED."
-  echo "This gate REPORTS that target; it does not enact it. Every blocked row still exits 1 below,"
-  echo "and the cutover itself is the owner's call on R4-C's evidence, not this script's."
+  # This used to say "Every blocked row still exits 1 below" on BOTH paths. On the withheld path
+  # the run exits 2, so the sentence was false exactly where the reader is already being told the
+  # run did not measure anything — a report asserting an exit code it is not about to take. The
+  # out-of-family review caught it. Each path now states its own.
+  if [ "$measured" = 1 ]; then
+    echo "This gate REPORTS that target; it does not enact it. Every blocked row still exits 1"
+    echo "below, and the cutover itself is the owner's call on R4-C's evidence, not this script's."
+  else
+    echo "This gate REPORTS that target; it does not enact it. This particular run exits 2 — it"
+    echo "could not measure the surface — and the cutover is the owner's call on R4-C's evidence."
+  fi
   echo
 
   if [ "$target_drifted" = 1 ]; then
@@ -435,7 +449,16 @@ report_cutover_target() {
     return 0
   fi
 
-  if [ "$remaining" -gt 1 ]; then
+  # The distance is withheld when the pin and the census disagree, for the same reason it is
+  # withheld when the fraction is: it is arithmetic on a number this report has just said cannot
+  # be trusted. Printing "3 rows stand between you and 82" one paragraph after "take it back to
+  # the owner before any number here is read as a finish line" hands the reader the finish line
+  # that sentence just withdrew. The out-of-family review caught the contradiction.
+  if [ "$target_drifted" = 1 ]; then
+    echo "  The distance to that target is NOT stated, because the target and this census disagree"
+    echo "  and the distance is arithmetic on the target. The blocked rows are listed below and in"
+    echo "  full further down; what the finish line is, is the owner's to settle."
+  elif [ "$remaining" -gt 1 ]; then
     echo "  $remaining rows stand between $proven proven and the target of $PARITY_CUTOVER_TARGET."
   elif [ "$remaining" = 1 ]; then
     echo "  1 row stands between $proven proven and the target of $PARITY_CUTOVER_TARGET."
@@ -444,7 +467,11 @@ report_cutover_target() {
     echo "  a licence: this gate still exits 1 while any row is blocked."
   fi
   if [ -s "$WORK/remaining.txt" ]; then
-    echo "  The blocked rows that are real work, and the item that would unblock each:"
+    # Scoped honestly: these are the BLOCKED rows that are work. A row that DIVERGED is counted in
+    # `mismatched`, is not blocked, and is not here — it is in the mismatch section of its own. The
+    # sentence used to imply this was every open item, which it is not.
+    echo "  The blocked rows that are real work, and the item that would unblock each (a row that"
+    echo "  DIVERGED is not blocked and is reported separately):"
     while IFS=$'\t' read -r g i o; do
       printf '    %-11s %-24s %s\n' "$g" "$i" "$o"
     done < "$WORK/remaining.txt"

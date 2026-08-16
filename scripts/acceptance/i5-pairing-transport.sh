@@ -95,9 +95,38 @@ trap cleanup EXIT
 tap_connections() { grep -c '^CONNECT ' "$TAP_LOG" 2>/dev/null || echo 0; }
 # Whether a token arrived on any connection.
 tap_saw() { grep -q "^DATA .*$1" "$TAP_LOG" 2>/dev/null; }
-# Listening TCP sockets held by one process. The single place the count is derived, so the
-# calibration below and the verdict measure with the same instrument rather than two similar ones.
-listening_sockets() { lsof -nP -p "$1" -a -iTCP -sTCP:LISTEN 2>/dev/null | grep -c LISTEN || true; }
+# Listening TCP sockets held by one process, or the string "unreadable".
+#
+# **The failure and the zero are kept apart, and the first version of this did not do that.** It was
+#
+#     lsof … 2>/dev/null | grep -c LISTEN || true
+#
+# under which an lsof that timed out, lacked permission or lost the race with a process still
+# settling produced an empty pipe, `grep -c` printed 0, and `|| true` swallowed the status. "lsof
+# failed" and "this process listens on nothing" were then the same answer — and the second one is
+# this experiment's headline finding. The out-of-family review found this and it is the P5 lesson
+# exactly: the calibration proved the counter could read 1 for the TAP's pid, which says nothing
+# about whether it succeeded against the APP's.
+#
+# So the exit status is consulted, and an unreadable process is BLOCKED rather than counted as zero.
+listening_sockets() {
+    local out status
+    out="$(lsof -nP -p "$1" -a -iTCP -sTCP:LISTEN 2>/dev/null)"
+    status=$?
+    # lsof exits 1 both for "no matching files" and for real errors, so emptiness alone cannot
+    # separate them. A process that exists and can be inspected always answers 0 or 1 here; a
+    # higher status means lsof itself could not run.
+    if [ "$status" -gt 1 ]; then
+        echo "unreadable"
+        return
+    fi
+    # The process must still be alive, or "no sockets" is a statement about a corpse.
+    if ! kill -0 "$1" 2>/dev/null; then
+        echo "unreadable"
+        return
+    fi
+    printf '%s' "$out" | grep -c LISTEN || true
+}
 
 echo
 echo "=== 1. the instrument ==========================================================="
@@ -155,21 +184,87 @@ swiftc -O -o "$AXKIT" "$ROOT/scripts/acceptance/axkit.swift" 2>"$WORK/axkit.log"
 mac_app_launch "$MAC_APP" "$AXKIT" "MCPROUTER_SCENARIO=populated" "MCPROUTER_PAIRING=paired"
 echo "MCPRouter: pid $PID under MCPROUTER_PAIRING=paired"
 
-# Give anything that intends to bind a chance to do so. This is a settle, not a poll for a result:
-# there is no observable to wait on when the expected answer is "nothing happened", so the wait is
-# fixed, generous, and stated.
+# --- the sheet is actually OPENED, and that was a real hole -------------------------------------
+#
+# The first version measured the app three seconds after launch, with the pairing sheet closed, and
+# then reported "0 listening sockets while showing a pairing code". The out-of-family review caught
+# it: nothing was showing a pairing code. `PairingSessionModel.open()` is the only place this design
+# would ever construct an endpoint, and it is reached from the Inbox header, not from launch — so a
+# listener bound lazily on sheet-open is precisely what that measurement would have missed.
+#
+# Opening the sheet also **calibrates the scenario**. The environment reaching this process was
+# never checked either, and this fleet has already lost one run to an environment variable that did
+# not arrive. A live code on screen can only come from `FixtureInboxService`'s advertised endpoint,
+# so the countdown below is the proof that `MCPROUTER_PAIRING=paired` took effect. One observable,
+# two preconditions.
+dump() { "$AXKIT" dump "$PID" window > "$WORK/window.tsv"; }
+spoken() { cut -f4,5,6,7 "$WORK/window.tsv" | tr '\t' ' '; }
+
+# Retried against a freshly walked tree: an `AXUIElementRef` can be replaced between the walk and
+# the press, which returns an error rather than pressing anything. `m6-inbox-pairing.sh` records the
+# same behaviour and the same remedy.
+press_retry() {
+    local needle="$1" attempt result
+    for ((attempt = 1; attempt <= 6; attempt++)); do
+        result="$("$AXKIT" press "$PID" "$needle" 2>&1 || true)"
+        case "$result" in *"not found"* | *error* | *Error*) sleep 1; dump; continue ;; esac
+        return 0
+    done
+    return 1
+}
+
+"$AXKIT" select "$PID" Inbox >/dev/null \
+    || blocked "could not select the Inbox board through the accessibility API, so the pairing
+      sheet was never reached and the socket count below would be a measurement of an idle window."
+sleep 2
+dump
+press_retry "Pairing" \
+    || blocked "could not open the pairing sheet through the accessibility API. Without it this
+      measures startup rather than pairing, which is the hole this step exists to close."
+sleep 2
+dump
+
+# A live code with a running countdown. Under `paired` the window is five minutes, so the countdown
+# reads m:ss. This is the calibration described above: no endpoint, no code, no countdown.
+spoken | grep -qE "expires in [0-9]:[0-9][0-9]" \
+    || blocked "the pairing sheet is open but shows no live code, so MCPROUTER_PAIRING=paired did
+      not take effect in this process. Nothing below would be about a Mac that is offering to pair."
+pass "precondition: the pairing sheet is open, showing a live code with a running countdown"
+
+# Now that a code is genuinely on screen, give anything that intends to bind a chance to do so.
+# A settle rather than a poll: there is no observable to wait on when the expected answer is
+# "nothing happened", so the wait is fixed, generous, and stated.
 sleep 3
 
 app_listeners="$(listening_sockets "$PID")"
 echo "MCPRouter listening TCP sockets: $app_listeners"
 lsof -nP -p "$PID" -a -iTCP 2>/dev/null | sed 's/^/    /' || true
 
+if [ "$app_listeners" = "unreadable" ]; then
+    blocked "lsof could not be run against the app process, so its listening sockets are unknown.
+      That is not zero, and reporting it as zero is how this check would have lied."
+fi
 if [ "${app_listeners:-0}" -gt 0 ]; then
-    fail "the Mac app IS listening on $app_listeners socket(s) while showing a pairing code.
+    fail "the Mac app IS listening on $app_listeners socket(s) while a pairing code is on screen.
       That contradicts spec-M6's finding and means I5 must be re-read as a working transport
       rather than an absent one. This is a finding, not a defect — investigate before believing."
 fi
-pass "the Mac app, while advertising a pairing endpoint, holds 0 listening sockets"
+pass "the Mac app, with a live pairing code on screen, holds 0 listening TCP sockets"
+
+# --- the fact that outranks the socket count ------------------------------------------------------
+#
+# Raised by the out-of-family review and verified here: even if a phone's bytes did arrive, no
+# shipped surface would act on them. `MacPairing.decide` is the Mac's only decision function, and
+# outside its own model and the test suites nothing calls it. A transport is not merely unbound; it
+# has no consumer. This is source rather than runtime, and it is labelled as such.
+decide_callers="$(grep -rln "MacPairing.decide(\|\.markPaired(" "$APP_DIR/Sources" --include="*.swift" || true)"
+unexpected="$(printf '%s\n' "$decide_callers" | grep -v "PairingSessionModel.swift" | grep -c . || true)"
+if [ "${unexpected:-0}" -gt 0 ]; then
+    fail "something outside PairingSessionModel now calls the Mac's pairing decision:
+$decide_callers
+      I5 recorded that nothing did. If a real caller has appeared, this finding is stale."
+fi
+pass "source: nothing outside PairingSessionModel calls the Mac's pairing decision"
 
 echo
 echo "=== 3. the phone, as a real process ============================================="
@@ -258,7 +353,19 @@ pass "the pairing attempt contributed 0 connections to an endpoint it was pointe
 
 echo
 echo "PASS: I5 transport probe — $PASSED assertions."
-echo "FINDING: the phone-to-Mac pairing round trip does not happen."
-echo "  · the Mac app, displaying a pairing code under the richest fixture, listens on nothing"
-echo "  · the phone reports a successful pairing having sent nothing to anyone"
-echo "  · both halves of the instrument were calibrated in this run, so the silence is the product's"
+echo
+echo "FINDING: the phone-to-Mac pairing round trip does not happen, because neither side"
+echo "implements it. Measured here:"
+echo "  · the Mac app, with a live pairing code on screen, holds 0 listening TCP sockets"
+echo "  · nothing outside PairingSessionModel calls the Mac's pairing decision, so an arriving"
+echo "    code would have no consumer even if it arrived"
+echo "  · the phone reports .paired for a Mac it never contacted, at an address it could reach"
+echo "  · every leg of the instrument was calibrated in this run, so the silence is the product's"
+echo
+echo "SCOPE — what this run does NOT establish, stated so nobody reads it wider:"
+echo "  · the phone half drives the production pairing SEAM (FixturePairingService, which is what"
+echo "    the shipping @main composes and is guarded here), not the shipping UI end to end"
+echo "  · only TCP to this tap's port was watched. UDP, unix sockets, mDNS, XPC and IPv6 ::1 were"
+echo "    not, and are ruled out by source inspection rather than by this instrument"
+echo "  · the iOS binary measured is Debug; no Release iOS build was run"
+echo "  · the wave 6 gate also covered inbox DELIVERY, which this experiment does not exercise"

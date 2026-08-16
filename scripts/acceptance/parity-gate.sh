@@ -173,11 +173,17 @@ while IFS=$'\t' read -r group id subject verdict owner note; do
     printf '%s\t%s\n' "$group" "blocked" >> "$WORK/bygroup.txt"
     printf '%s\t%s\t%s\t%s\n' "$owner" "$group" "$subject" "$note" >> "$WORK/blocked.txt"
 
-    # `accepted-uncomparable` is the manifest's OWN marker, already valid in the owner column and
-    # already checked there by parity-manifest-check.sh, for a row that is enumerated, unprovable
+    # `accepted-uncomparable` is the manifest's OWN marker for a row that is enumerated, unprovable
     # and DECIDED — nobody is assigned to it and nobody is waiting on it. Splitting the blocked
     # rows on it costs nothing and buys the one distinction this report could not previously make:
     # a reader shown four blocked rows cannot tell which of them is somebody's outstanding work.
+    #
+    # It is matched on the exact string, and NOTHING VALIDATES THAT STRING. parity-manifest-check.sh
+    # checks only that a blocked row HAS an owner and that a non-blocked row does not; the owner
+    # column is otherwise free text. So a typo here — `accepted_uncomparable` — silently moves this
+    # row out of the exclusion and into the work list. What catches that is the census/pin
+    # comparison further down, which then reports 83 - 0 against a decided 82 and says so loudly.
+    # That is the guard; this line is not.
     #
     # Nothing here moves `blocked`, `proven` or `total`.
     if [ "$owner" = "accepted-uncomparable" ]; then
@@ -396,15 +402,29 @@ report_cutover_target() {
   fi
 
   if [ "$excluded" -gt 0 ]; then
-    echo "  $excluded of the $blocked blocked row(s) is a STANDING EXCLUSION, not work — nobody is"
-    echo "  assigned to it and nobody is waiting on it:"
+    # Agreement matters here because this sentence is the one a reader uses to tell a standing
+    # decision from a regression, and "2 of the 83 blocked rows is a standing exclusion" reads as
+    # a typo in a report whose whole subject is that its numbers are trustworthy.
+    if [ "$excluded" = 1 ]; then
+      echo "  1 of the $blocked blocked rows is a STANDING EXCLUSION, not work — nobody is"
+      echo "  assigned to it and nobody is waiting on it:"
+    else
+      echo "  $excluded of the $blocked blocked rows are STANDING EXCLUSIONS, not work — nobody is"
+      echo "  assigned to them and nobody is waiting on them:"
+    fi
     while IFS=$'\t' read -r g i s; do
       printf '    %-11s %-24s %s\n' "$g" "$i" "$s"
     done < "$WORK/excluded.txt"
     echo
-    echo "  It stays in the denominator deliberately: deleting it would leave the numerator alone"
-    echo "  and shrink the denominator, so the coverage figure would RISE. Its reason is in that"
-    echo "  row's own note in ${MANIFEST#"$REPO_ROOT/"}, and it is a decision, not an open task."
+    if [ "$excluded" = 1 ]; then
+      echo "  It stays in the denominator deliberately: deleting it would leave the numerator alone"
+      echo "  and shrink the denominator, so the coverage figure would RISE. Its reason is in that"
+      echo "  row's own note in ${MANIFEST#"$REPO_ROOT/"}, and it is a decision, not an open task."
+    else
+      echo "  They stay in the denominator deliberately: deleting them would leave the numerator"
+      echo "  alone and shrink the denominator, so the coverage figure would RISE. Each reason is in"
+      echo "  that row's own note in ${MANIFEST#"$REPO_ROOT/"}, and is a decision, not an open task."
+    fi
     echo
   fi
 
@@ -415,8 +435,10 @@ report_cutover_target() {
     return 0
   fi
 
-  if [ "$remaining" -gt 0 ]; then
-    echo "  $remaining row(s) stand between $proven proven and the target of $PARITY_CUTOVER_TARGET."
+  if [ "$remaining" -gt 1 ]; then
+    echo "  $remaining rows stand between $proven proven and the target of $PARITY_CUTOVER_TARGET."
+  elif [ "$remaining" = 1 ]; then
+    echo "  1 row stands between $proven proven and the target of $PARITY_CUTOVER_TARGET."
   else
     echo "  $proven proven is at or past the target of $PARITY_CUTOVER_TARGET. That is a count, not"
     echo "  a licence: this gate still exits 1 while any row is blocked."
@@ -505,8 +527,20 @@ if [ "$blocked" -gt 0 ]; then
   # that is unreachable while a row is enumerated and unprovable. $proven and $total are the same
   # two numbers it always printed; only the target it names has changed, to the decided one.
   echo "The cutover target is $PARITY_CUTOVER_TARGET of $total, decided by $PARITY_CUTOVER_DECIDED."
-  echo "It has $proven. $excluded row(s) are excluded by that decision and named above, so a"
-  echo "reader can tell an exclusion apart from a regression."
+  # "named above" has to be TRUE. When nothing was excluded, the block that names exclusions did
+  # not print, and claiming otherwise would be this report asserting evidence it did not give —
+  # which is the exact habit this gate exists to break. That case is also a census that disagrees
+  # with the decision, so it is reported as the open question it is.
+  if [ "$excluded" = 0 ]; then
+    echo "It has $proven. NO row carries the standing exclusion that target was decided with, so"
+    echo "the target and this census disagree — see the census note above, and take it to the owner."
+  elif [ "$excluded" = 1 ]; then
+    echo "It has $proven. 1 row is excluded by that decision and named above, so a reader can tell"
+    echo "an exclusion apart from a regression."
+  else
+    echo "It has $proven. $excluded rows are excluded by that decision and named above, so a reader"
+    echo "can tell an exclusion apart from a regression."
+  fi
   echo "Flipping the installer on this evidence is the one outcome this gate exists to prevent."
   exit 1
 fi

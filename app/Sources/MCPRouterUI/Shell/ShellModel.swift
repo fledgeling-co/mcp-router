@@ -211,11 +211,7 @@
         ) {
             self.client = client
             self.eventSource = eventSource
-            inboxBoard = InboxBoardModel(
-                client: client,
-                service: ShellPairingFactory.makeService(),
-                notifier: notifier
-            )
+            inboxBoard = Self.makeInboxBoard(client: client, notifier: notifier)
             // Poll-only, and at the shell's own stated cadence rather than the tracker's default —
             // A16 requires the refresh rate the surface actually runs at to be the one named.
             tracker = ServerStateTracker(
@@ -377,8 +373,7 @@
         public func stopPolling() {
             pollTask?.cancel()
             pollTask = nil
-            inboxTask?.cancel()
-            inboxTask = nil
+            stopInboxPolling()
         }
 
         /// What the menu bar needs to know to enable or dim its items.

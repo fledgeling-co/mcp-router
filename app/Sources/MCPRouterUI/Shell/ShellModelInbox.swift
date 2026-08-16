@@ -10,6 +10,24 @@
     /// rather than an arbitrary one, following `ShellModelBadges.swift`'s precedent: everything here
     /// is about the inbox being reached from outside the window.
     public extension ShellModel {
+        /// The board the shell hands every inbox surface.
+        ///
+        /// A static on this extension rather than three lines in `init`, and the seam is the same
+        /// one the rest of this file sits on: which inbox the shell talks to is an inbox decision,
+        /// and `ShellModel.swift` is at its length budget. `ShellPairingFactory` is what decides a
+        /// Release build gets `NoTransportInboxService`, and keeping that call here means the rule
+        /// and its one caller are read together.
+        static func makeInboxBoard(
+            client: any ControlAPIClient,
+            notifier: any ArrivalNotifier
+        ) -> InboxBoardModel {
+            InboxBoardModel(
+                client: client,
+                service: ShellPairingFactory.makeService(),
+                notifier: notifier
+            )
+        }
+
         /// The inbox's loop, and the reason it exists at all.
         ///
         /// M8 moved the *server* poll off the window's `.task` because the menu bar outlives the
@@ -33,6 +51,14 @@
                     try? await Task.sleep(for: Self.pollInterval)
                 }
             }
+        }
+
+        /// Ends it. Paired with ``startInboxPolling()`` and called from `stopPolling()`, so the two
+        /// loops the shell owns are started and stopped together rather than one of them being a
+        /// line somebody has to remember.
+        func stopInboxPolling() {
+            inboxTask?.cancel()
+            inboxTask = nil
         }
 
         /// Put a queued item in front of the user, from the popover or from a notification.

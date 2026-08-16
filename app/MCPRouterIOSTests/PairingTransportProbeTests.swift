@@ -36,12 +36,46 @@ import XCTest
 /// socket opened here belongs to the probe, never to the product: it proves reachability and is
 /// then closed. Nothing in this file is reachable from the app.
 final class PairingTransportProbeTests: XCTestCase {
-    /// The tap's port, handed in by the harness. Absent means "not running under the I5 lane", and
-    /// every test here then skips rather than inventing a port — a probe that silently connects
-    /// somewhere else is worse than a probe that does not run.
+    /// The repository root, found by walking up until `DESIGN.md` is beside us.
+    ///
+    /// The simulator runs as a process on this Mac with this user's permissions, so a host path
+    /// resolved at compile time through `#filePath` is readable from inside it. That is measured
+    /// rather than assumed: `testShippingAppComposesTheFixtureService` reads a host file this way,
+    /// and a failure to reach the filesystem would fail there too rather than silently here.
+    static func repoRoot() throws -> URL {
+        var directory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+        for _ in 0 ..< 8 {
+            if FileManager.default.fileExists(
+                atPath: directory.appendingPathComponent("DESIGN.md").path
+            ) {
+                return directory
+            }
+            directory = directory.deletingLastPathComponent()
+        }
+        throw ProbeError.rootNotFound
+    }
+
+    enum ProbeError: Error { case rootNotFound }
+
+    /// Where the harness leaves the tap's port.
+    ///
+    /// **A file rather than an environment variable, and that was measured.** The first run of this
+    /// experiment passed `I5_TAP_PORT` on the `xcodebuild` command line; xcodebuild does not forward
+    /// its own environment into the test process running on the simulator, so both probes skipped
+    /// and the harness reported BLOCKED. It reported BLOCKED rather than PASS because it counts the
+    /// assertions that ran — which is the only reason that failure was visible at all, since two
+    /// silently-skipped tests and two passing ones both exit 0.
+    ///
+    /// `app/.derived` is the derived-data directory and is gitignored, so the handoff leaves nothing
+    /// in the tree.
     static var tapPort: UInt16? {
-        guard let raw = ProcessInfo.processInfo.environment["I5_TAP_PORT"],
-              let port = UInt16(raw), port > 0
+        guard let root = try? repoRoot() else { return nil }
+        let path = root
+            .appendingPathComponent("app")
+            .appendingPathComponent(".derived")
+            .appendingPathComponent("i5-tap-port")
+        guard let raw = try? String(contentsOf: path, encoding: .utf8),
+              let port = UInt16(raw.trimmingCharacters(in: .whitespacesAndNewlines)), port > 0
         else { return nil }
         return port
     }
@@ -88,7 +122,7 @@ final class PairingTransportProbeTests: XCTestCase {
     /// about the transport, because the instrument could not be shown to work from here.
     func testProbesReachTheTap() throws {
         guard let port = Self.tapPort else {
-            throw XCTSkip("no I5_TAP_PORT — this suite only runs under scripts/acceptance/i5-pairing-transport.sh")
+            throw XCTSkip("no tap port file — this suite only runs under scripts/acceptance/i5-pairing-transport.sh")
         }
         XCTAssertTrue(
             Self.send("PHONE-REACHABILITY\n", toPort: port),
@@ -115,7 +149,7 @@ final class PairingTransportProbeTests: XCTestCase {
     /// the thing under test and the witness to it.
     func testPairingAttemptAgainstALiveEndpoint() async throws {
         guard let port = Self.tapPort else {
-            throw XCTSkip("no I5_TAP_PORT — this suite only runs under scripts/acceptance/i5-pairing-transport.sh")
+            throw XCTSkip("no tap port file — this suite only runs under scripts/acceptance/i5-pairing-transport.sh")
         }
         let endpoint = try XCTUnwrap(
             PairingEndpoint(host: "127.0.0.1", port: Int(port), fingerprint: "SHA256:i5-probe"),
@@ -177,19 +211,10 @@ final class PairingTransportProbeTests: XCTestCase {
 
     /// The `@main` app's source, comments and string literals removed.
     static func strippedAppSource() throws -> String {
-        var directory = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
-        var found: URL?
-        for _ in 0 ..< 8 {
-            let candidate = directory
-                .appendingPathComponent("MCPRouterIOS")
-                .appendingPathComponent("MCPRouterIOSApp.swift")
-            if FileManager.default.fileExists(atPath: candidate.path) {
-                found = candidate
-                break
-            }
-            directory = directory.deletingLastPathComponent()
-        }
-        let url = try XCTUnwrap(found, "could not locate MCPRouterIOSApp.swift to read")
+        let url = try repoRoot()
+            .appendingPathComponent("app")
+            .appendingPathComponent("MCPRouterIOS")
+            .appendingPathComponent("MCPRouterIOSApp.swift")
         let raw = try String(contentsOf: url, encoding: .utf8)
 
         var out = ""

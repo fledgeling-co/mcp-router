@@ -59,6 +59,8 @@ TAP_LOG="$WORK/tap.log"
 # Built here rather than expected in the products directory, matching `m6-inbox-pairing.sh`: it is
 # this harness's own instrument, not part of the app.
 AXKIT="$WORK/axkit"
+# Where the phone probe reads the tap port from. Inside the gitignored derived-data directory.
+PORT_FILE="$DERIVED/i5-tap-port"
 
 PASSED=0
 fail() { echo "FAIL: $*" >&2; exit 1; }
@@ -84,6 +86,7 @@ TAP_PID=""
 cleanup() {
     [ -n "$PID" ] && kill "$PID" 2>/dev/null || true
     [ -n "$TAP_PID" ] && kill "$TAP_PID" 2>/dev/null || true
+    rm -f "$PORT_FILE"
     rm -rf "$WORK"
 }
 trap cleanup EXIT
@@ -113,6 +116,13 @@ done
 [ -n "$TAP_PORT" ] || blocked "the wire tap never reported a port, so there was nothing to measure
       against. $(cat "$WORK/tap.err" 2>/dev/null)"
 echo "wire tap: 127.0.0.1:$TAP_PORT (pid $TAP_PID)"
+
+# Handed to the phone probe through a file rather than an environment variable, because xcodebuild
+# does NOT forward its own environment into the test process running on the simulator. The first run
+# of this experiment set `I5_TAP_PORT` on the command line, both probes skipped for want of it, and
+# this script reported BLOCKED on its assertion count. `app/.derived` is gitignored.
+mkdir -p "$DERIVED"
+printf '%s' "$TAP_PORT" > "$PORT_FILE"
 
 # --- calibration 1: the tap records a real connection from a separate process ---------------------
 printf 'HOST-CALIBRATION\n' | nc -w 2 127.0.0.1 "$TAP_PORT" >/dev/null 2>&1 || true
@@ -185,7 +195,7 @@ xcodebuild -project "$PROJECT" -scheme MCPRouterIOS -configuration Debug \
 
 bundle="$WORK/result.xcresult"
 set +e
-I5_TAP_PORT="$TAP_PORT" xcodebuild -project "$PROJECT" -scheme MCPRouterIOS -configuration Debug \
+xcodebuild -project "$PROJECT" -scheme MCPRouterIOS -configuration Debug \
     -destination "id=$udid" -derivedDataPath "$DERIVED" \
     CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
     -resultBundlePath "$bundle" \

@@ -547,10 +547,17 @@ total="$(awk -F'\t' '!/^#/ && NF == 6' "$MANIFEST" | wc -l | tr -d ' ')"
 # reach a blocked row, because no lane speaks for one.
 #
 # So the size of the census is pinned, here, next to the census. This is a hand-maintained number
-# and that is the point: the denominator IS the cutover target, so moving it should be a deliberate
-# line in a diff rather than a side effect. Adding a row is as gated as deleting one — a duplicate
-# blocked twin sharing an existing subject satisfies every derivation above and would otherwise
-# inflate the total unnoticed.
+# and that is the point: the denominator is what the cutover target is DERIVED from, so moving it
+# should be a deliberate line in a diff rather than a side effect. Adding a row is as gated as
+# deleting one — a duplicate blocked twin sharing an existing subject satisfies every derivation
+# above and would otherwise inflate the total unnoticed.
+#
+# The denominator is no longer the target ITSELF. It was, while the gate's footer read "requires
+# $total of $total". The owner set the target to 82 of 83 on 2026-08-16 (bec9d18) because
+# `fixture-registry-search` is a standing exclusion, so the target is now the census MINUS the
+# standing exclusions, pinned separately in `parity-gate.sh` as PARITY_CUTOVER_TARGET. Moving this
+# pin without moving that one makes the two disagree, and the gate prints that disagreement rather
+# than re-deriving a target for itself.
 pinned="$(sed -n 's/^# rows: \([0-9][0-9]*\).*/\1/p' "$MANIFEST" | head -1)"
 if [ -z "$pinned" ]; then
   note "the manifest carries no \`# rows: N\` pin, so its size is unconstrained and a row can"
@@ -558,7 +565,8 @@ if [ -z "$pinned" ]; then
 elif [ "$pinned" != "$total" ]; then
   note "the manifest holds $total rows and pins itself at $pinned."
   detail "  A row was added or removed. If that was deliberate, move the pin in the same change and"
-  detail "  say so — the denominator is the cutover target, and R4-C is expressed as a number."
+  detail "  say so — and check PARITY_CUTOVER_TARGET in parity-gate.sh in the SAME change, because"
+  detail "  the cutover target is derived from this denominator and is pinned separately."
 fi
 
 if [ "$problems" -gt 0 ]; then

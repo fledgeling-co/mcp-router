@@ -389,14 +389,23 @@ spoken | grep -q "not shown here" \
 pass "A4: best match draws no exclusion note, because it excludes nothing"
 
 # The other half of A4 — that choosing a scoped ordering filters to its universe and states the
-# count it set aside — is NOT claimed here. `axkit press` matches AXButton only, and a segment is an
-# AXRadioButton, so this run has no background-safe way to switch it; the alternative is bringing
-# the window to the front, which outranks the extra coverage. Its evidence is
+# count it set aside — is NOT claimed here. The reason has changed and is recorded rather than
+# quietly dropped: the tooling gap that blocked it was deferred child **M5-d**, and D3 closed it —
+# `axkit pick` switches a segment in the background and verifies it by re-walking the tree and
+# requiring that exactly one segment in the target's own radio group reads `AXValue == 1` and that
+# it is the one named. **Whoever wires it in must respect its exit codes rather than only `|| fail`
+# on nonzero: 0 means this call switched the segment, 3 means it was already chosen and the call
+# drove nothing, 1 means it is not chosen or the substring was ambiguous.** Under the house
+# `>/dev/null || fail` pattern, 3 fails — which is correct, because an assertion that cannot tell a
+# switch from a no-op proves nothing. Wiring it in is a change to M5's acceptance surface and
+# re-runs M5's gate, so it is registered as follow-on work rather than taken inside D3. Evidence
+# today is
 # RegistryPresentationTests: 'a scoped ordering filters to the universe it can speak about', 'the
 # exclusion note names the count and appears only when something was excluded', and 'an ordering
 # whose universe is empty says why, and best match never does'.
-echo "  not claimed here — switching a segment needs an AXRadioButton press verb this toolkit"
-echo "                     does not have. Covered by RegistryPresentationTests (three tests)."
+echo "  not claimed here — the blocking tooling gap (M5-d) is closed: 'axkit pick' can switch a"
+echo "                     segment in the background. Wiring it in is registered follow-on work."
+echo "                     Covered today by RegistryPresentationTests (three tests)."
 check_invisible "the A4 assertions"
 
 echo

@@ -53,10 +53,12 @@ APP_DIR="$ROOT/app"
 PROJECT="$APP_DIR/MCPRouter.xcodeproj"
 DERIVED="$APP_DIR/.derived"
 MAC_APP="$DERIVED/Build/Products/Debug/MCPRouter.app"
-AXKIT="$DERIVED/Build/Products/Debug/axkit"
 SUITE="MCPRouterIOSTests/PairingTransportProbeTests"
 WORK="$(mktemp -d)"
 TAP_LOG="$WORK/tap.log"
+# Built here rather than expected in the products directory, matching `m6-inbox-pairing.sh`: it is
+# this harness's own instrument, not part of the app.
+AXKIT="$WORK/axkit"
 
 PASSED=0
 fail() { echo "FAIL: $*" >&2; exit 1; }
@@ -133,6 +135,10 @@ pass "calibration: the socket enumerator reads $tap_listeners listening socket(s
 
 echo
 echo "=== 2. the Mac, as a real process ==============================================="
+
+swiftc -O -o "$AXKIT" "$ROOT/scripts/acceptance/axkit.swift" 2>"$WORK/axkit.log" \
+    || { cat "$WORK/axkit.log" >&2; blocked "could not build the accessibility toolkit, which
+      mac_app_launch requires to establish that the app drew a window."; }
 
 # The richest pairing fixture: an endpoint advertised, codes minted, inbox populated. If this
 # product binds a port anywhere, it binds one here.

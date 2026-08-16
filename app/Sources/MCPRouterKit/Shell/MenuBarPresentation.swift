@@ -120,9 +120,21 @@ public enum MenuBarPresentation {
     /// Whether the status item shows its dot at all.
     ///
     /// Sourced from `MCPServer.needsAttention`, which is also the Servers sidebar badge's source, so
-    /// the menu bar and the sidebar cannot disagree about whether something is wrong.
-    public static func statusItemNeedsAttention(_ servers: [MCPServer]) -> Bool {
-        servers.contains(where: \.needsAttention)
+    /// the menu bar and the sidebar cannot disagree about whether something is wrong — **and** from
+    /// the number of items a paired phone has queued, which is the second thing in this app that
+    /// ends in a human deciding something.
+    ///
+    /// The queued half is an addition rather than an exception to the three rules the bar obeys.
+    /// There is still no count in the bar, still one dot colour, and `--live` still never appears; a
+    /// queued item is a second reason for the same dot with the same meaning, so there is nothing
+    /// new to learn. The alternative — a queue filling while the menu bar says nothing — is the
+    /// failure the poller section of `spec-M8.md` names: a glanceable instrument that silently stops
+    /// being true.
+    ///
+    /// `waiting` defaults to zero so every call site and assertion written before the inbox reached
+    /// this surface still says what it said.
+    public static func statusItemNeedsAttention(_ servers: [MCPServer], waiting: Int = 0) -> Bool {
+        waiting > 0 || servers.contains(where: \.needsAttention)
     }
 
     /// What VoiceOver reads.
@@ -131,9 +143,11 @@ public enum MenuBarPresentation {
     /// visually has to be carried here too — the same requirement
     /// `accessibilityDifferentiateWithoutColor` states for the dot itself.
     ///
-    /// The count is of **servers**, not causes: a server with two problems is one item to look at.
-    public static func statusItemLabel(_ servers: [MCPServer]) -> String {
-        let wanting = servers.filter(\.needsAttention).count
+    /// The count is of **things to look at**, not of causes: a server with two problems is one item,
+    /// and a queued item is one item. The existing vocabulary already generalises, so one queued
+    /// item alone reads `MCP Router, 1 item needs a decision` with no new wording.
+    public static func statusItemLabel(_ servers: [MCPServer], waiting: Int = 0) -> String {
+        let wanting = servers.filter(\.needsAttention).count + waiting
         guard wanting > 0 else { return "MCP Router" }
         return "MCP Router, \(wanting) \(wanting == 1 ? "item needs" : "items need") a decision"
     }
@@ -176,6 +190,14 @@ public enum MenuBarPresentation {
     /// A glanceable instrument, not a log viewer: the whole log is Activity's surface. Named here
     /// so the request limit and the render cap cannot drift apart.
     public static let recentCallLimit = 6
+
+    /// How many queued items the popover's inbox band draws before it defers to the board.
+    ///
+    /// Half the call log's cap, and the reason is that the rows are not comparable: a call row is
+    /// read-only and an inbox row carries a decision and two controls. Past three the popover has
+    /// stopped being a glance and started being the board, which is what `⌘5` is for. The band's
+    /// header line states the true total, so the cap never hides a count.
+    public static let inboxBandLimit = 3
 
     /// The relative age of a call, in the popover's compact form.
     ///

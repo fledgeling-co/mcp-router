@@ -115,6 +115,72 @@ public enum InboxCopy {
 
     public static let undoAction = "Undo"
 
+    /// A route arrived for an item that is no longer waiting.
+    ///
+    /// Reachable only in the microseconds between a disposition and its banner being withdrawn, and
+    /// it renders in the report slot `declined` and `accepted` already use rather than in a banner
+    /// of its own — a new surface for a state measured in microseconds would be furniture. It does
+    /// not blame and does not ask anything: the item was handled, which is the outcome the user
+    /// wanted anyway.
+    public static let alreadyHandled = "That item was already handled."
+
+    // MARK: - The menu-bar band
+
+    public enum Band {
+        /// The row that stands for everything past the popover's cap.
+        ///
+        /// The band's header line already states the true total, so this states the remainder and
+        /// names where the rest of them are. `DESIGN.md` §6: verb-first, and it names the
+        /// destination rather than saying "more".
+        public static func overflow(_ remaining: Int) -> String {
+            "\(remaining) more waiting · open Inbox"
+        }
+
+        /// What a row whose entry could not be read says in place of a capability line.
+        ///
+        /// Shorter than the pane's `partialDetail` because the popover has no room for the
+        /// paragraph, and it says the same thing: nothing about what it runs can be shown, so
+        /// nothing can be accepted.
+        public static let partialCapability = "This entry could not be read"
+    }
+
+    // MARK: - The arrival notification
+
+    public enum Arrival {
+        /// Names the sender. The device name is the **one** phone-supplied string that reaches a
+        /// notification, and it is a label rather than a claim about what anything does — everything
+        /// this app says about capability comes from the registry entry the Mac resolved itself.
+        public static func subtitle(device: String) -> String {
+            "Queued from \(device)"
+        }
+
+        /// An item whose registry entry could not be read. The banner says so rather than saying
+        /// nothing, because a banner with no body reads as a thing with no consequences.
+        public static let partialBody = """
+        This entry could not be read, so what it would run cannot be shown.
+        """
+
+        public static func manyTitle(_ count: Int) -> String {
+            "\(count) items are waiting"
+        }
+
+        /// The tense is the same guarantee the review sheet's provenance note makes.
+        public static let manyBody = "Nothing has run. Open the inbox to review them."
+
+        public static let reviewAction = "Review"
+        public static let declineAction = "Decline"
+
+        /// What being denied notifications costs, said once, adjacent to the thing, at the moment it
+        /// becomes relevant — the paired state of the pairing sheet.
+        ///
+        /// Nothing nags and nothing retries. It names what still works, because the menu-bar dot is
+        /// a real fallback rather than a consolation.
+        public static let notificationsOff = """
+        Notifications are off, so nothing will announce an arrival. The menu-bar item still takes \
+        its dot. Turn them on in System Settings › Notifications.
+        """
+    }
+
     // MARK: - Pairing
 
     public enum Pairing {

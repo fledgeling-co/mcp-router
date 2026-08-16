@@ -458,92 +458,75 @@ case "$ts_watch$swift_watch" in
     exit 2 ;;
 esac
 
-# `install-launchd-watch` — RECORDED as of P5. The history is kept because it is the reason the bar
-# for this one row was higher than for any other in the manifest.
+# `install-launchd-watch` — MEASURED HERE AND STILL BLOCKED. The lane records nothing for it.
 #
-# It was `proven` once, and a proven row whose lane disagrees reports DIVERGED — which reads as "the
-# two routers behave differently" when what actually happened is that a racy lane lost a coin toss.
-# P1 measured six consecutive runs: agreed 1 in 6, both terms unstable on BOTH binaries, the losing
-# side alternating. Two orchestrator runs since had the REFERENCE as the losing side. G1 then fixed
-# two real mechanisms — judging one-shot while the writing process was still alive, and staging into
-# a job launchd still considered running — and DELIBERATELY DID NOT CLAIM THE ROW, because P1's own
-# table showed the two terms varying independently, so one explanation had already been refuted by
-# the data and a green run after a partial fix would have been re-running until green with extra
-# steps: the `D-p` mistake this fleet has made once.
+# The history is kept because it is the reason the bar for this one row is higher than for any other
+# in the manifest. It was `proven` once, and a proven row whose lane disagrees reports DIVERGED —
+# which reads as "the two routers behave differently" when what actually happened is that a racy
+# lane lost a coin toss. P1 measured six consecutive runs: agreed 1 in 6, both terms unstable on
+# BOTH binaries, the losing side alternating. G1 then fixed two real mechanisms — judging one-shot
+# while the writing process was still alive, and staging into a job launchd still considered running
+# — and DELIBERATELY DID NOT CLAIM THE ROW. The rule the row then stated was: name a fix for each
+# term SEPARATELY, fix a bound IN ADVANCE, then measure.
 #
-# What that history bought is the rule the row then stated, and which P5 met: name a fix for each
-# term SEPARATELY, fix a bound IN ADVANCE, then measure. Both fixes are argued in full above the
-# `watch_settled` block, both were shown able to go red before the row was recorded, and the bound
-# and its one disclosed correction are written out below.
+# THE FIXES ABOVE ARE REAL AND ARE KEPT. Reading launchd's own `runs` counter instead of a file the
+# job writes, requiring `not running` AND an unmoved counter for a settling window, re-delivering a
+# lossy stimulus, and printing the counter as evidence are all strictly better than what preceded
+# them. Nothing here argues otherwise. What follows is only about whether they are enough to CLAIM
+# the row, and one of the two terms is not.
 #
-# THE PROMOTION CRITERION, WRITTEN DOWN BEFORE IT WAS RUN.
+# A PROMOTION WAS ATTEMPTED AND IS WITHDRAWN. An eight-pair series was run and it passed: eight
+# consecutive pairs, sixteen observations, every one `yes,yes,yes,--`, all four terms agreeing in
+# all eight, `stages=1` on every side of every pair. That series was then INDEPENDENTLY REPRODUCED —
+# eight more consecutive pairs, sixteen more observations, identical in every term, at one-minute
+# loads 5.5 to 10.3. The agreement rate is genuinely a change of regime from P1's 1-in-6.
 #
-# The row demands a named fix for each term, a bound fixed in advance, and only then a measurement —
-# because a green streak that follows a change is otherwise indistinguishable from re-running until
-# green, which this fleet has done once and named `D-p`. The two fixes are named above the
-# `watch_settled` block. The bound is:
+# IT WAS WITHDRAWN ON THE MUTATION, NOT ON THE SERIES. Each term was then aimed at separately:
 #
-#   EIGHT consecutive observation pairs (reference and Swift, so sixteen observations). Promotion
-#   requires every one of the sixteen to read `yes,yes,yes`, and all eight pairs to agree on all
-#   four terms including the log term. ONE disagreement, or one `no`, and the row stays blocked — no
-#   second series, no discarding an outlier, no widening a bound afterwards to admit it.
+#   · `oneshot` DISCRIMINATES. Give the Swift side a program that writes its state and then stays
+#     resident (`sh -c '<router> watch; sleep 300'`) and it reads `yes,no,no` with
+#     `runs=1->1:stages=6`. The settled check refuses to settle and the bound expires, where the old
+#     pid probe would have seen no `pid` line between runs and called it settled. Row recorded fail,
+#     lane exit 1. This term is sound.
 #
-#   ONE CORRECTION WAS MADE TO THIS CRITERION, BEFORE THE SERIES RAN, AND IT IS RECORDED RATHER THAN
-#   QUIETLY APPLIED. As first written it also required a NON-EMPTY log term. That is wrong for this
-#   agent and would have failed every run forever rather than discriminating between them: the watch
-#   agent legitimately writes neither stream when nothing is adoptable, and reads `--` on both sides.
-#   The lane's own verdict has always stripped the log term for exactly that reason
-#   (`${swift_watch%,*}`). The corrected criterion requires the two sides to AGREE on it instead,
-#   which is the claim that has content.
+#   · `reran` DOES NOT DISCRIMINATE RELIABLY. Point the Swift agent's `WatchPaths` at a decoy .json
+#     in a freshly created `mktemp -d` directory that this lane never touches, so a genuine delivery
+#     is IMPOSSIBLE, and the correct answer is unambiguously `no`. The generated plist was dumped
+#     and confirmed to carry the decoy path. Six trials:
+#         4 of 6  reran=no,  `runs=N->N:stages=6`  — correct, row recorded fail
+#         2 of 6  reran=yes, `runs=1->2:stages=1`  — SPURIOUS: the counter moved with no stimulus
+#     A seventh trial with the decoy in a sibling directory under the same $WORK also read `yes`
+#     (`stages=2`). So a spurious `runs` increment happens roughly one run in three, and in the
+#     report it is BYTE-IDENTICAL to a genuine first-delivery re-run — `stages=1` either way.
 #
-# The result of that series is recorded in this row's manifest note, including the `stages` counts,
-# so a later reader can see whether agreement needed one delivery or several rather than only that
-# it was reached.
-# THE SERIES WAS RUN AND IT PASSED: eight consecutive pairs, sixteen observations, every one
-# `yes,yes,yes,--`, all four terms agreeing in all eight, `stages=1` on every side of every pair, at
-# one-minute loads between 13 and 44. Under the pre-fix lane P1 measured agreement 1 run in 6, so
-# this is a change of regime rather than a lucky streak — eight agreements at the old rate is a
-# ~1-in-600,000 event.
+# WHY THAT IS DISQUALIFYING, STATED AS THE ARITHMETIC IT IS. The gate runs this lane ONCE. A Swift
+# watcher that never re-ran on a file change at all would still read `yes` on this term about one
+# gate run in three, and paired with the reference's genuine `yes` would record the row GREEN. That
+# is a false green on the row's actual parity claim, and it is the exact failure this census exists
+# to refuse — an absent vector must not be read as parity. The eight-pair series does not rescue it:
+# a series bounds the AGREEMENT rate, and what is broken here is what the term MEASURES.
 #
-# THE ROW IS THEREFORE RECORDED, and both terms were shown able to go red before it was:
-#   · `oneshot` — give the Swift side a program that stays resident (`sleep 300`) and it reads
-#     `yes,no,no`: the settled check refuses to settle and the 60s bound expires, where the old pid
-#     probe would have seen no `pid` line between runs and called it settled.
-#   · `reran` — point the Swift side's agent at a file in a directory the lane never touches and it
-#     reads `no,no,yes` with `runs=2->2:stages=6`: the counter did not move across all six
-#     deliveries.
+# The earlier note claimed the decoy mutation went red and read the limit as "WatchPaths fires on
+# churn in the file's DIRECTORY". Six trials do not support that: a decoy in its own private
+# directory still went green twice. The limit is wider and less well characterised than stated, and
+# recording the number is more useful than recording the theory.
 #
-# ONE THING THAT MUTATION FOUND, RECORDED BECAUSE IT LIMITS WHAT THIS ROW MEANS. Pointing the agent
-# at a decoy file in the SAME directory did NOT go red. launchd's `WatchPaths` on a file fires on
-# churn in that file's DIRECTORY, and `stage` writes `<file>.staging` and renames it — two directory
-# operations. So the honest reading of `reran` is "a change in the watched directory re-runs the
-# agent", not "touching the watched file re-runs it". That granularity is launchd's, it is identical
-# on both sides, and B2 shows the term can still tell a re-run from no re-run — so the comparison
-# stands and the claim is stated at the width it actually has.
-#
-# BOTH SIDES SILENT IS AN ENVIRONMENT OUTCOME, NOT A DIVERGENCE. If neither binary re-ran, launchd
-# delivered to nobody, and recording that as a mismatch would put a launchd behaviour on the Swift
-# router's account — which is how this row earned its reputation in the first place. It is reported
-# and nothing is recorded, so the row falls back to blocked for that run rather than reading red.
-ts_reran="$(printf '%s' "$ts_watch" | cut -d, -f2)"
-sw_reran="$(printf '%s' "$swift_watch" | cut -d, -f2)"
-if [ "$ts_reran" = no ] && [ "$sw_reran" = no ]; then
-  echo "environment: launchd delivered no WatchPaths event to EITHER agent inside the bound"
-  echo "             ($WATCH_RESTAGE_ATTEMPTS staged changes over ~90s). Delivery is lossy — measured"
-  echo "             4 of 5 on this machine with a plain bash agent — so this is launchd, not a"
-  echo "             router. Nothing is recorded for install-launchd-watch, which leaves it blocked"
-  echo "             for this run rather than reporting a divergence neither binary caused."
-elif [ "$ts_watch" = "$swift_watch" ] && [ "${swift_watch%,*}" = "yes,yes,yes" ]; then
-  echo "  ok   install-launchd-watch  both binaries answered the watch agent's supervision"
-  echo "       identically ($ts_watch), and launchd's own counter is the witness."
-  record install install-launchd-watch ok \
-    "both: ran at load, re-ran when the watched directory changed, did not stay resident, wrote the same streams ($ts_watch)"
+# TO PROMOTE, from here: make `reran` ATTRIBUTABLE rather than merely counted — tie the observed
+# re-run to the specific staged change that should have caused it, so a spurious launchd spawn
+# cannot satisfy it — then re-measure with the decoy mutation required to go red every trial. Until
+# then this lane measures the row, prints everything it saw, and records NOTHING, so the row stays
+# blocked under its note rather than reporting a divergence neither binary caused.
+if [ "$ts_watch" = "$swift_watch" ] && [ "${swift_watch%,*}" = "yes,yes,yes" ]; then
+  echo "  note both binaries answered the watch agent's supervision identically this run"
+  echo "       ($ts_watch), and launchd's own counter is the witness for the one-shot term."
+  echo "       The row stays BLOCKED and NOTHING is recorded: the \`reran\` term reads yes about"
+  echo "       one run in three even when no stimulus can reach the watched path (4 of 6 decoy"
+  echo "       trials correct, 2 of 6 spurious), so agreement on it is not evidence of parity."
 else
-  echo "  FAIL install-launchd-watch  the two binaries did not answer the same watch supervision"
-  echo "       (reference=$ts_watch swift=$swift_watch; ran,reran,one-shot,logged)"
-  record install install-launchd-watch fail \
-    "reference=$ts_watch swift=$swift_watch (ran,reran,one-shot,logged)"
-  failures=$((failures + 1))
+  echo "  note the two binaries did not answer the same watch supervision this run"
+  echo "       (reference=$ts_watch swift=$swift_watch; ran,reran,one-shot,logged). The row is"
+  echo "       BLOCKED, so this is an observation rather than a divergence — which is the point:"
+  echo "       a lane with a known false-positive term must not be able to report DIVERGED."
 fi
 
 echo

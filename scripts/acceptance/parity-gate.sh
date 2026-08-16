@@ -140,10 +140,16 @@ echo
 # Reconciliation. Driven by the manifest, one row at a time. A manifest row that no lane spoke
 # for is blocked with a reason that names the silence — the alternative is a row that disappears
 # from both the numerator and the denominator, which is the failure this gate exists to prevent.
-proven=0; blocked=0; mismatched=0; total=0
+#
+# `excluded` is counted alongside the others and scores nothing. It is a PARTITION of the blocked
+# rows, never a subtraction from them: a row it counts is still blocked, still in the denominator,
+# and still exits this gate 1. It exists so the report can tell a standing decision from work.
+proven=0; blocked=0; mismatched=0; total=0; excluded=0
 : > "$WORK/blocked.txt"
 : > "$WORK/mismatch.txt"
 : > "$WORK/bygroup.txt"
+: > "$WORK/excluded.txt"
+: > "$WORK/remaining.txt"
 
 while IFS=$'\t' read -r group id subject verdict owner note; do
   case "$group" in ''|'#'*) continue ;; esac
@@ -166,6 +172,20 @@ while IFS=$'\t' read -r group id subject verdict owner note; do
     blocked=$((blocked + 1))
     printf '%s\t%s\n' "$group" "blocked" >> "$WORK/bygroup.txt"
     printf '%s\t%s\t%s\t%s\n' "$owner" "$group" "$subject" "$note" >> "$WORK/blocked.txt"
+
+    # `accepted-uncomparable` is the manifest's OWN marker, already valid in the owner column and
+    # already checked there by parity-manifest-check.sh, for a row that is enumerated, unprovable
+    # and DECIDED — nobody is assigned to it and nobody is waiting on it. Splitting the blocked
+    # rows on it costs nothing and buys the one distinction this report could not previously make:
+    # a reader shown four blocked rows cannot tell which of them is somebody's outstanding work.
+    #
+    # Nothing here moves `blocked`, `proven` or `total`.
+    if [ "$owner" = "accepted-uncomparable" ]; then
+      excluded=$((excluded + 1))
+      printf '%s\t%s\t%s\n' "$group" "$id" "$subject" >> "$WORK/excluded.txt"
+    else
+      printf '%s\t%s\t%s\n' "$group" "$id" "$owner" >> "$WORK/remaining.txt"
+    fi
 
     # A blocked row still gets its results read, for one reason: a row blocked because of a KNOWN
     # DEFECT carries an assertion that the defect is still exactly what was recorded. If that
@@ -197,6 +217,7 @@ while IFS=$'\t' read -r group id subject verdict owner note; do
     printf '%s\t%s\n' "$group" "blocked" >> "$WORK/bygroup.txt"
     printf '%s\t%s\t%s\t%s\n' "(no lane reported)" "$group" "$subject" \
       "the manifest claims this is proven and no lane spoke for it" >> "$WORK/blocked.txt"
+    printf '%s\t%s\t%s\n' "$group" "$id" "(no lane reported)" >> "$WORK/remaining.txt"
     continue
   fi
   # The token set is CLOSED. Only `ok` proves a row. Anything else — `fail`, `blocked` from a lane
@@ -216,6 +237,7 @@ while IFS=$'\t' read -r group id subject verdict owner note; do
     printf '%s\t%s\t%s\t%s\n' "(lane claimed less)" "$group" "$subject" \
       "the lane reported \"$(printf '%s' "$results" | tr '\n' ' ')\", which is not a pass" \
       >> "$WORK/blocked.txt"
+    printf '%s\t%s\t%s\n' "$group" "$id" "(lane claimed less)" >> "$WORK/remaining.txt"
     continue
   fi
   proven=$((proven + 1))
@@ -309,6 +331,105 @@ by_suite="$(awk -F'\t' '$2 == "by-suite"' "$WORK/bygroup.txt" | wc -l | tr -d ' 
 suite_note=""
 [ "$by_suite" -gt 0 ] && suite_note=" ($by_suite of them by suite only, not by wire comparison)"
 
+# ---------------------------------------------------------------------------------------------
+# The cutover target, which is a DECISION and not a measurement.
+#
+# THIS BLOCK REPORTS; IT SCORES NOTHING. It reads `proven`, `total`, `blocked` and `excluded` and
+# writes none of them, and no exit code in this file depends on any value it computes. That is
+# said plainly because the one edit this file must never take is one that moves a coverage number,
+# and "the target was wrong" is the most reasonable-sounding reason anyone will ever have for
+# moving one. The target moved here; 79 and 83 did not.
+#
+# What was wrong: the gate printed "the cutover requires 83 of 83", which is a target nobody chose
+# and one that cannot be reached. P3 established that `fixture-registry-search` is enumerated and
+# unprovable and wrote the reason into the row itself; the owner then decided the target WITH that
+# exclusion named, on 2026-08-16. The gate had never been told, so every run since has reported a
+# finish line one row further away than the real one.
+#
+# Why the excluded row is NAMED rather than subtracted out of the denominator — the row's own note
+# says it, and it is the whole reason the row was kept in the census:
+#
+#     "deleting the row would leave the numerator alone and shrink the denominator,
+#      and the coverage figure would RISE"
+#
+# So the denominator stays 83 and the exclusion is stated instead. A reader shown only "79 of 83,
+# requires 82" cannot tell an excluded row from a regression, which is why the report below names
+# the excluded row, names the ones that are real work, and says how far apart they are.
+PARITY_CUTOVER_TARGET=82
+PARITY_CUTOVER_DECIDED="the owner on 2026-08-16 (ORCHESTRATOR.md \"CUTOVER TARGET\", bec9d18)"
+
+# The pin and the census, checked against each other, because neither is trustworthy alone.
+#
+# A pinned target drifts silently the moment a row is added or removed. A target DERIVED from the
+# census can be lowered by marking one more row `accepted-uncomparable` — which is deleting a row
+# to make the number look better, wearing different clothes. So the decision is pinned, the census
+# is derived, and a disagreement is reported rather than resolved: this gate prints the target that
+# was DECIDED and never silently re-derives one. That is the manifest's own idiom, where `# rows:
+# 83` is pinned and checked for exactly this reason.
+#
+# It alters no exit code. A drift here is a claim that needs an owner, not a measurement this run
+# is entitled to overturn — and in every case where it can occur alongside blocked rows, the run is
+# already exiting 1 below.
+target_derived=$((total - excluded))
+target_drifted=0
+[ "$target_derived" != "$PARITY_CUTOVER_TARGET" ] && target_drifted=1
+remaining=$((PARITY_CUTOVER_TARGET - proven))
+
+# `measured` is 0 when the coverage fraction was withheld. The target is a decision and is safe to
+# print either way; the DISTANCE to it is arithmetic on `proven`, and `proven` is precisely what a
+# run that lost a lane may not report. So the distance is withheld with the fraction rather than
+# quietly computed from a number the report has just refused to state.
+report_cutover_target() {
+  local measured="$1"
+  echo "cutover target: $PARITY_CUTOVER_TARGET of $total, decided by $PARITY_CUTOVER_DECIDED."
+  echo "This gate REPORTS that target; it does not enact it. Every blocked row still exits 1 below,"
+  echo "and the cutover itself is the owner's call on R4-C's evidence, not this script's."
+  echo
+
+  if [ "$target_drifted" = 1 ]; then
+    echo "  THE DECIDED TARGET AND THIS CENSUS DISAGREE. $total enumerated rows less $excluded"
+    echo "  standing exclusion(s) is $target_derived, and the decided target is $PARITY_CUTOVER_TARGET."
+    echo "  A row has been added, removed or newly excluded since that decision was made. The"
+    echo "  target printed above is the DECIDED one and this gate will not re-derive it silently."
+    echo "  Take it back to the owner before any number here is read as a finish line."
+    echo
+  fi
+
+  if [ "$excluded" -gt 0 ]; then
+    echo "  $excluded of the $blocked blocked row(s) is a STANDING EXCLUSION, not work — nobody is"
+    echo "  assigned to it and nobody is waiting on it:"
+    while IFS=$'\t' read -r g i s; do
+      printf '    %-11s %-24s %s\n' "$g" "$i" "$s"
+    done < "$WORK/excluded.txt"
+    echo
+    echo "  It stays in the denominator deliberately: deleting it would leave the numerator alone"
+    echo "  and shrink the denominator, so the coverage figure would RISE. Its reason is in that"
+    echo "  row's own note in ${MANIFEST#"$REPO_ROOT/"}, and it is a decision, not an open task."
+    echo
+  fi
+
+  if [ "$measured" != 1 ]; then
+    echo "  How far this run is from that target is NOT stated, because the coverage fraction was"
+    echo "  withheld above and the distance is arithmetic on it."
+    echo
+    return 0
+  fi
+
+  if [ "$remaining" -gt 0 ]; then
+    echo "  $remaining row(s) stand between $proven proven and the target of $PARITY_CUTOVER_TARGET."
+  else
+    echo "  $proven proven is at or past the target of $PARITY_CUTOVER_TARGET. That is a count, not"
+    echo "  a licence: this gate still exits 1 while any row is blocked."
+  fi
+  if [ -s "$WORK/remaining.txt" ]; then
+    echo "  The blocked rows that are real work, and the item that would unblock each:"
+    while IFS=$'\t' read -r g i o; do
+      printf '    %-11s %-24s %s\n' "$g" "$i" "$o"
+    done < "$WORK/remaining.txt"
+  fi
+  echo
+}
+
 # D-g1-g. A run that could not run a lane does not get to print a coverage fraction.
 #
 # The arithmetic below is unchanged and nothing here can raise a number: this branch only ever
@@ -323,6 +444,8 @@ if [ "$env_failed" = 1 ]; then
   echo "A lane could not run, so the enumerated surface was not measured. A fraction computed now"
   echo "would count what happened to report and would read as a low score rather than as a run that"
   echo "did not take place. The lane that failed, and why, is at the bottom of this report."
+  echo
+  report_cutover_target 0
   if [ "$blocked" -gt 0 ]; then
     echo
     echo "rows with no result, grouped by the item that would unblock them:"
@@ -334,6 +457,7 @@ if [ "$env_failed" = 1 ]; then
 elif [ "$blocked" -gt 0 ]; then
   echo "parity: $proven of $total rows proven$suite_note, $blocked blocked. This is NOT a pass."
   echo
+  report_cutover_target 1
   echo "blocked, grouped by the item that would unblock them:"
   sort "$WORK/blocked.txt" | awk -F'\t' '
     $1 != last { printf "\n  %s\n", $1; last = $1 }
@@ -341,6 +465,8 @@ elif [ "$blocked" -gt 0 ]; then
   echo
 else
   echo "parity: $proven of $total rows proven$suite_note, 0 blocked."
+  echo
+  report_cutover_target 1
 fi
 
 if [ "$env_failed" = 1 ]; then
@@ -375,7 +501,12 @@ if [ "$env_failed" = 1 ]; then
 fi
 
 if [ "$blocked" -gt 0 ]; then
-  echo "The cutover requires $total of $total. It has $proven."
+  # This line read "The cutover requires $total of $total" — a finish line nobody chose, and one
+  # that is unreachable while a row is enumerated and unprovable. $proven and $total are the same
+  # two numbers it always printed; only the target it names has changed, to the decided one.
+  echo "The cutover target is $PARITY_CUTOVER_TARGET of $total, decided by $PARITY_CUTOVER_DECIDED."
+  echo "It has $proven. $excluded row(s) are excluded by that decision and named above, so a"
+  echo "reader can tell an exclusion apart from a regression."
   echo "Flipping the installer on this evidence is the one outcome this gate exists to prevent."
   exit 1
 fi

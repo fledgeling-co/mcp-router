@@ -61,9 +61,50 @@
 
         @ObservationIgnored public let client: any ControlAPIClient
         @ObservationIgnored private let service: any InboxService
+        /// Where an arrival is announced. Defaults to silence, which is the correct implementation
+        /// for a process with no notification centre — every `swift test` run is one, and
+        /// `UNUserNotificationCenter.current()` traps in a process with no bundle identifier rather
+        /// than failing politely.
+        @ObservationIgnored let notifier: any ArrivalNotifier
+
+        /// Which ids have been announced, and the two rules about what counts as an arrival.
+        @ObservationIgnored private var arrivals = ArrivalTracker()
+        /// Whether authorization has been asked for in this session. Asked once, at the first
+        /// snapshot reporting a paired device — before a phone is paired nothing can ever arrive, so
+        /// a launch-time prompt asks permission to send notifications the app cannot generate.
+        @ObservationIgnored private var askedForAuthorization = false
+
+        /// Whether the user granted notifications, or `nil` before anyone asked.
+        ///
+        /// Rendered in exactly one place — the pairing sheet's paired state — because that is the
+        /// moment being denied starts costing something. Nothing nags and nothing retries.
+        public internal(set) var notificationsAuthorized: Bool?
 
         public private(set) var state: LoadState = .loading
         public private(set) var acceptState: AcceptState = .idle
+
+        /// A route arrived for an item that is no longer waiting.
+        ///
+        /// Reachable only in the microseconds between a disposition and its banner being withdrawn.
+        /// It reports in the same slot the dispositions do rather than in a banner of its own —
+        /// inventing a surface for a state that lives for microseconds would be furniture.
+        public private(set) var routeReport: String?
+
+        // MARK: - Seams the arrivals extension reaches
+
+        /// Every id that has been announced. Read by the reconcile that withdraws banners for items
+        /// that are no longer waiting.
+        var announcedIDs: Set<String> { arrivals.announcedIDs }
+
+        /// Feed a snapshot's items in and take back what genuinely arrived. Mutating, so it lives
+        /// here with the storage rather than in the extension.
+        func takeArrivals(in items: [InboxItem]) -> [InboxItem] {
+            arrivals.arrivals(in: items)
+        }
+
+        var hasAskedForAuthorization: Bool { askedForAuthorization }
+
+        func markAskedForAuthorization() { askedForAuthorization = true }
 
         /// The item the review sheet is open for, held **by id** rather than as a captured value —
         /// M5's lesson: a copy taken when the sheet opened goes stale the moment the row does, and
@@ -88,9 +129,14 @@
         /// or not the inbox is on screen, and the sheet opens from the File menu too.
         public let pairing: PairingSessionModel
 
-        public init(client: any ControlAPIClient, service: any InboxService) {
+        public init(
+            client: any ControlAPIClient,
+            service: any InboxService,
+            notifier: any ArrivalNotifier = SilentArrivalNotifier()
+        ) {
             self.client = client
             self.service = service
+            self.notifier = notifier
             pairing = PairingSessionModel(service: service)
         }
 
@@ -101,11 +147,15 @@
                 let snapshot = try await service.snapshot()
                 guard !Task.isCancelled else { return }
                 state = .loaded(snapshot)
+                await announceArrivals(in: snapshot)
             } catch {
                 guard !Task.isCancelled else { return }
                 // A previous good reading is kept and labelled rather than discarded: an empty board
                 // is a stronger claim than a stale one, and "nothing is waiting" is exactly the
                 // claim this surface must not make wrongly.
+                //
+                // **Nothing is announced from here**, and that is deliberate: a read that failed is
+                // not evidence that anything arrived.
                 if let previous = state.snapshot {
                     state = .stale(previous, error)
                 } else {
@@ -191,6 +241,9 @@
         private func record(_ disposition: InboxDisposition) {
             dispositioned[disposition.item.id] = disposition
             lastDisposition = disposition
+            // A fresh disposition supersedes an already-handled report: that report exists to answer
+            // a press that found nothing, and this press found something.
+            routeReport = nil
             if selection == disposition.item.id { selection = nil }
         }
 
@@ -230,6 +283,48 @@
 
         public func clearAcceptFailure() {
             acceptState = .idle
+        }
+
+        // MARK: - Arriving from another surface
+
+        /// Open the review for one item, addressed by id, from the popover or a notification.
+        ///
+        /// **Opening a review is the whole of what an outside surface may do toward an install.**
+        /// The sheet is what accepts, and it is where what the thing runs is on screen — so the one
+        /// press that declares code on this Mac is always made with the capability statement in
+        /// front of it. This method calls the router nothing.
+        ///
+        /// - Returns: `false` when the id is no longer waiting, in which case nothing is opened and
+        ///   the already-handled report is set. That is a designed state rather than an error: a
+        ///   banner can be pressed in the window between a disposition and its withdrawal, and the
+        ///   outcome the user wanted — the item handled — already happened.
+        @discardableResult
+        public func review(itemID: String) -> Bool {
+            guard rows.contains(where: { $0.id == itemID }) else {
+                routeReport = InboxCopy.alreadyHandled
+                sheetItemID = nil
+                return false
+            }
+            routeReport = nil
+            selection = itemID
+            sheetItemID = itemID
+            acceptState = .idle
+            requirementsRevealed = false
+            return true
+        }
+
+        /// Decline one item addressed by id, from the popover or a notification.
+        ///
+        /// Silent and harmless for an id that is no longer waiting: `record` is keyed by id, so this
+        /// cannot double-dispose, and reporting "already handled" for a decline would announce a
+        /// non-event. The review route reports because it was going to open something and did not.
+        public func decline(itemID: String) {
+            guard let item = rows.first(where: { $0.id == itemID }) else { return }
+            decline(item)
+        }
+
+        public func clearRouteReport() {
+            routeReport = nil
         }
 
         // MARK: - Keyboard

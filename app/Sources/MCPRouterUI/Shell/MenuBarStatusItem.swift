@@ -12,15 +12,23 @@
     /// carry it.
     public struct MenuBarStatusItem: View {
         let servers: [MCPServer]?
+        /// How many items a paired phone has queued.
+        ///
+        /// A second reason for the same dot rather than a second dot: both conditions end in a human
+        /// deciding something, so the bar still carries no count and still one colour. The
+        /// alternative is a queue filling while the menu bar says nothing, which is the failure M8's
+        /// own poller section names — a glanceable instrument that silently stops being true.
+        let waiting: Int
 
-        public init(servers: [MCPServer]?) {
+        public init(servers: [MCPServer]?, waiting: Int = 0) {
             self.servers = servers
+            self.waiting = waiting
         }
 
         @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
 
         private var wantsAttention: Bool {
-            MenuBarPresentation.statusItemNeedsAttention(servers ?? [])
+            MenuBarPresentation.statusItemNeedsAttention(servers ?? [], waiting: waiting)
         }
 
         public var body: some View {
@@ -31,7 +39,7 @@
                     .renderingMode(.template)
                 if wantsAttention { dot }
             }
-            .accessibilityLabel(MenuBarPresentation.statusItemLabel(servers ?? []))
+            .accessibilityLabel(MenuBarPresentation.statusItemLabel(servers ?? [], waiting: waiting))
         }
 
         private var dot: some View {

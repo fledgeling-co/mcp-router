@@ -17,6 +17,12 @@
         /// A call row. Slightly taller than a dense table row because it carries two type sizes.
         static var callRow: Double { unit + inset / 2 }
         static var bandRow: Double { unit + inset * 2 }
+        /// An inbox row carries three type sizes and two controls, so it is taller than a band row.
+        static var inboxRow: Double { unit + inset * 5 }
+        /// The alpha of the band's own hairline edge. Named here rather than written inline, because
+        /// M6's Phase D critic found a hand-rolled `0.16` on the inbox row and the fix was a name,
+        /// not a constant in a second place.
+        static var bandEdgeAlpha: Double { 0.28 }
         static var gap: Double { inset }
         static var rowPadding: Double { inset * 2.5 }
         static var hairline: Double { MetricToken.focusRing.leadingScalar / 2 }
@@ -47,6 +53,7 @@
             PopoverContent.make(
                 trackerState: shell.trackerState,
                 records: records,
+                inbox: shell.inboxBoard.bandZone(),
                 now: Date()
             )
         }
@@ -55,6 +62,11 @@
             VStack(alignment: .leading, spacing: PopoverMetrics.gap) {
                 header
                 if let stale = content.stale { staleRow(stale) }
+                // Above the attention band, and structurally rather than by taste: the attention
+                // band's length is unbounded — one row per server wanting a decision — so an inbox
+                // band placed after it can be pushed below the fold on a Mac with several held
+                // changes. `PopoverContent.zones` states this order as a value so it is a unit test.
+                if let inbox = content.inbox { MenuBarInboxBand(zone: inbox, shell: shell) }
                 if let band = content.band { bandView(band) }
                 if let message = content.message {
                     messageView(message)
@@ -176,7 +188,7 @@
             .overlay(
                 RoundedRectangle(cornerRadius: PopoverMetrics.childRadius, style: .continuous)
                     .strokeBorder(
-                        ColorToken.attention.color.opacity(0.28),
+                        ColorToken.attention.color.opacity(PopoverMetrics.bandEdgeAlpha),
                         lineWidth: PopoverMetrics.hairline
                     )
             )

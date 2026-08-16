@@ -32,6 +32,31 @@
             bringWindowForward()
         }
 
+        /// Put a queued item's **review** in front of the user, activating the app first.
+        ///
+        /// The second legitimate activation in the app, and it is legitimate for exactly M8's
+        /// reason: the destination is a window. The review sheet is where what an item runs is on
+        /// screen, and a sheet behind an unactivated menu-bar popover is a sheet nobody can reach.
+        ///
+        /// **This opens a review and installs nothing.** Every path from a surface outside the
+        /// window stops here, so the press that declares code on this Mac is always made with the
+        /// capability statement in front of it.
+        @MainActor
+        public static func revealInbox(itemID: String, on model: ShellModel) {
+            NSApp.activate(ignoringOtherApps: true)
+            bringWindowForward()
+            model.revealInbox(itemID: itemID)
+        }
+
+        /// Open the Inbox board itself, with nothing selected — the overflow row's destination, and
+        /// where a multi-item notification lands. No sheet: there is no single item to review.
+        @MainActor
+        public static func openInbox(on model: ShellModel) {
+            NSApp.activate(ignoringOtherApps: true)
+            bringWindowForward()
+            model.select(.inbox)
+        }
+
         /// Quit the app. **Not the router** — the daemon keeps running, which is what the button's
         /// help tag promises and what makes quitting safe for someone mid-session.
         @MainActor

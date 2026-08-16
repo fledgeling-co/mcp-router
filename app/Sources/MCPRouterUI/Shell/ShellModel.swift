@@ -48,6 +48,8 @@
         @ObservationIgnored public let client: any ControlAPIClient
         /// The retained poll loop. See ``startPolling()`` for why it is not owned by a scene.
         @ObservationIgnored private var pollTask: Task<Void, Never>?
+        /// The inbox's own loop, retained for the same reason and started from the same place.
+        @ObservationIgnored var inboxTask: Task<Void, Never>?
         /// The one reader of the control API, and the authority on what is running.
         ///
         /// Constructed **poll-only** — `stream` is nil, so the tracker reports `.notConfigured`
@@ -205,7 +207,11 @@
         ) {
             self.client = client
             self.eventSource = eventSource
-            inboxBoard = InboxBoardModel(client: client, service: ShellPairingFactory.makeService())
+            inboxBoard = InboxBoardModel(
+                client: client,
+                service: ShellPairingFactory.makeService(),
+                notifier: ArrivalNotifierFactory.make()
+            )
             // Poll-only, and at the shell's own stated cadence rather than the tracker's default —
             // A16 requires the refresh rate the surface actually runs at to be the one named.
             tracker = ServerStateTracker(
@@ -359,6 +365,7 @@
             pollTask = Task { [weak self] in
                 await self?.run()
             }
+            startInboxPolling()
         }
 
         /// Stops it. Not called by any scene — it exists so a test can end the loop it started, and
@@ -366,6 +373,8 @@
         public func stopPolling() {
             pollTask?.cancel()
             pollTask = nil
+            inboxTask?.cancel()
+            inboxTask = nil
         }
 
         /// What the menu bar needs to know to enable or dim its items.

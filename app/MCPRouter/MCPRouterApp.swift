@@ -42,7 +42,7 @@ struct MCPRouterApp: App {
         MenuBarExtra(isInserted: $model.isMenuBarVisible) {
             MenuBarPopover(shell: model)
         } label: {
-            MenuBarStatusItem(servers: model.servers)
+            MenuBarStatusItem(servers: model.servers, waiting: model.inboxBoard.waitingForStatusItem)
         }
         .menuBarExtraStyle(.window)
 

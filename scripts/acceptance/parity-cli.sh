@@ -2,12 +2,14 @@
 #
 # R2-R — the cli lane.
 #
-# The ten verbs `src/index.ts` dispatches. Eight are compared here; two are not, and saying which is
-# the point of this header:
-#   · `cli-auth` is NOT blocked on D-j any more — P1 wired the dispatch and the control lane
-#     compares both routes green. It is blocked on this lane having no running router for the verb:
-#     `auth` POSTs to a live daemon and then polls the auth dir, and `run_both` starts none, so a
-#     comparison today would be two connection failures agreeing with each other. Tracked as D-p1-d.
+# The ten verbs `src/index.ts` dispatches. Nine are compared here, and saying which is the point of
+# this header:
+#   · `cli-auth` was blocked on this lane having no running router for the verb: `auth` POSTs to a
+#     live daemon and then polls the auth dir, so with `run_both` starting none, a comparison was
+#     two connection failures agreeing with each other. P5 closed that (D-p1-d) with the
+#     serve-backed `auth_case` below, which starts a router per side and refuses to pass a run in
+#     which either router failed to answer. Its non-stdio path stays uncompared and is carried by
+#     the `control-auth-post-http` row, not duplicated here — see that block's own header.
 #
 # **stdout, stderr and the exit code are captured separately and compared separately.** They differ
 # per verb and a combined capture hides it: `status` writes "no router answering" to stdout and sets
@@ -21,7 +23,8 @@
 # Nothing else is normalised.
 #
 # ROWS THIS LANE OWNS — asserted before any write, because the gate binds no script to a group:
-#   cli: cli-serve cli-import cli-index cli-refresh cli-status cli-tools cli-usage cli-help cli-watch
+#   cli: cli-serve cli-import cli-index cli-refresh cli-status cli-tools cli-usage cli-help
+#        cli-watch cli-auth
 #
 # CAVEAT, printed into the gate's report: every row here is a simultaneous comparison of two
 # binaries run over identical inputs, which is as strong as this gate's control lane.
@@ -46,7 +49,7 @@ cleanup() {
 trap cleanup EXIT
 
 OWNED="cli/cli-serve cli/cli-import cli/cli-index cli/cli-refresh cli/cli-status cli/cli-tools
-cli/cli-usage cli/cli-help cli/cli-watch"
+cli/cli-usage cli/cli-help cli/cli-watch cli/cli-auth"
 
 record() {
   [ -n "$RESULTS" ] || return 0
@@ -238,6 +241,109 @@ else
   verdict cli-serve 0 "reference=$ts_serve lines=[$ts_lines]; swift=$sw_serve lines=[$sw_lines]"
 fi
 
+# ---------------------------------------------------------------------------------------------
+# `auth` — D-p1-d, closed here.
+#
+# This is the one verb in the lane that is meaningless without a router already listening. It POSTs
+# to `/servers/:name/auth` on a LIVE daemon, reads the reply, and only then either opens a browser
+# or reports the router's own `error` member. `run_both` starts no router, so running `auth` through
+# it compared two *connection failures* — both binaries printing
+# `no router answering on 127.0.0.1:<port> (fetch failed) — start it first` and agreeing about it.
+# That is the canonical false green: the sentence agrees precisely because neither side reached any
+# of the code the row is meant to cover.
+#
+# So the router is started first, per side, and the verb is run against it. Two guards make the old
+# false green unreachable rather than merely unlikely, because the failure mode is *silent*:
+#
+#   1. `/health` must have answered on that side. A router that never bound sends the verb straight
+#      back down the connection-failure path, where the two binaries agree for the wrong reason.
+#      A missing health answer is therefore an environment failure, never a pass.
+#   2. The captured stderr must NOT carry `no router answering`. That is the same failure caught a
+#      second way, independent of the health probe — a router that bound and then died between the
+#      probe and the verb would clear guard 1 and be caught here.
+#
+# WHAT IS COMPARED, AND WHAT IS NOT. Two invocations, both of which reach the router and come back
+# with a status and a JSON body the verb has to interpret:
+#
+#   · a STDIO upstream — the reference answers 400 `stdio servers do not authorize; their
+#     credentials are env vars`, and the verb has to lift `error` out of the body and fail with it;
+#   · an UNKNOWN server — a different status and a different body, so the same extraction is
+#     exercised on a second shape rather than on one.
+#
+# The NON-STDIO path is not compared here and its absence is not agreement: the reference answers
+# 200 with an `authorizationUrl` and this router answers 405, because nothing conforms to
+# `AuthTransport`. That is `D-p1-a`, and it is already enumerated as its own manifest row,
+# `control-auth-post-http`. It is deliberately NOT duplicated as a second blocked cli row: one
+# missing capability counted twice would understate coverage exactly as double-counting a proven
+# row would overstate it, and the row that carries it already names the same owner.
+#
+# It is also not something this lane could run even once D-p1-a lands. A successful start binds the
+# fixed callback port :8880 for the flow's lifetime and shells out to `/usr/bin/open`, which on this
+# machine would put a real browser window in front of whoever is running the gate.
+auth_side() { # home side -- args...  -> prints "health|exit"
+  local home="$1" side="$2"; shift 3
+  if [ "$side" = node ]; then
+    MCP_ROUTER_HOME="$home" node "$REPO_ROOT/dist/index.js" serve --port "$PORT" \
+      >"$home/authserve.out" 2>&1 &
+  else
+    MCP_ROUTER_HOME="$home" "$SWIFT_BIN" serve --port "$PORT" >"$home/authserve.out" 2>&1 &
+  fi
+  SERVE_PID=$!
+  local health=missing
+  for _ in $(seq 1 80); do
+    if curl -fsS -m 2 "http://127.0.0.1:$PORT/health" >/dev/null 2>&1; then health=ok; break; fi
+    kill -0 "$SERVE_PID" 2>/dev/null || break
+    sleep 0.25
+  done
+  local code=0
+  if [ "$side" = node ]; then
+    MCP_ROUTER_HOME="$home" node "$REPO_ROOT/dist/index.js" "$@" --port "$PORT" \
+      >"$home/auth.out" 2>"$home/auth.err"; code=$?
+  else
+    MCP_ROUTER_HOME="$home" "$SWIFT_BIN" "$@" --port "$PORT" \
+      >"$home/auth.out" 2>"$home/auth.err"; code=$?
+  fi
+  kill -TERM "$SERVE_PID" 2>/dev/null
+  wait "$SERVE_PID" 2>/dev/null
+  SERVE_PID=""
+  printf '%s|%s' "$health" "$code"
+}
+
+auth_case() { # label -- verb args...
+  local label="$1"; shift 2
+  rm -rf "$WORK/ts" "$WORK/swift"; seed "$WORK/ts"; seed "$WORK/swift"
+  local ts sw
+  ts="$(auth_side "$WORK/ts" node -- "$@")"
+  sleep 1
+  sw="$(auth_side "$WORK/swift" swift -- "$@")"
+
+  local problems=""
+  # Guard 1 — both routers answered. Checked BEFORE the diff, because a diff of two
+  # connection-failure messages is the pass this row exists to stop being possible.
+  [ "${ts%%|*}" = ok ] || problems="$problems reference-router:[did not answer /health]"
+  [ "${sw%%|*}" = ok ] || problems="$problems swift-router:[did not answer /health]"
+  # Guard 2 — and the verb reached it.
+  grep -q "no router answering" "$WORK/ts/auth.err" 2>/dev/null &&
+    problems="$problems reference:[fell back to the no-router path]"
+  grep -q "no router answering" "$WORK/swift/auth.err" 2>/dev/null &&
+    problems="$problems swift:[fell back to the no-router path]"
+
+  diff <(normalise <"$WORK/ts/auth.out") <(normalise <"$WORK/swift/auth.out") >"$WORK/d.out" 2>&1 \
+    || problems="$problems stdout:[$(head -4 "$WORK/d.out" | tr '\n' ' ' | cut -c1-110)]"
+  diff <(normalise <"$WORK/ts/auth.err") <(normalise <"$WORK/swift/auth.err") >"$WORK/d.err" 2>&1 \
+    || problems="$problems stderr:[$(head -4 "$WORK/d.err" | tr '\n' ' ' | cut -c1-110)]"
+  [ "${ts##*|}" = "${sw##*|}" ] || problems="$problems exit:[ts=${ts##*|} swift=${sw##*|}]"
+
+  if [ -z "$problems" ]; then
+    verdict cli-auth 1 "$label (both routers answered; exit ${ts##*|}, stdout and stderr identical)"
+  else
+    verdict cli-auth 0 "$label —$problems"
+  fi
+}
+
+auth_case "auth against a stdio upstream, router listening" -- auth probe
+auth_case "auth against an unknown server, router listening" -- auth nope
+
 # `watch` — the config watcher. Each side gets its OWN scratch $HOME as well as its own
 # MCP_ROUTER_HOME, because `~/.claude.json` is the input and it is NOT under the router home. node's
 # `os.homedir()` honours $HOME and the Swift watcher reads the same variable (spec-R2W X10); a
@@ -339,9 +445,12 @@ echo
 echo "cli: $pass verbs agreed, $fail did not"
 echo "     Every row is a simultaneous comparison of two binaries over identical inputs, with"
 echo "     stdout, stderr and the exit code compared separately."
-echo "     cli-auth is NOT claimed here, and D-j is no longer why: P1 dispatched the route and"
-echo "     the control lane now compares it green. What blocks it is this lane — \`auth\` POSTs to a"
-echo "     RUNNING router and then polls the auth dir, and run_both starts none, so comparing it"
-echo "     today would compare two connection failures agreeing. Needs a serve_side-backed row."
+echo "     cli-auth IS claimed here now (D-p1-d, closed by P5): the verb is run against a router"
+echo "     this lane started, and a run in which either router failed to answer /health is a"
+echo "     failure rather than a pass — without that guard the two binaries agree on the"
+echo "     no-router sentence and the row passes having reached none of its own code."
+echo "     Its non-stdio path is NOT compared here and is not counted twice: the reference"
+echo "     answers 200 with an authorizationUrl where this router answers 405, which is D-p1-a"
+echo "     and is carried by the control-auth-post-http row."
 [ "$fail" -gt 0 ] && exit 1
 exit 0

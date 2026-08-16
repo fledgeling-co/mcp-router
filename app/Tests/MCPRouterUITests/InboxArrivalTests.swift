@@ -120,18 +120,27 @@
         ///
         /// It is counted rather than watched, for `RecordingControlAPIClient`'s own reason: a row
         /// disappearing looks identical to an install from the outside.
+        ///
+        /// **The second snapshot carries a genuine arrival, and that is not decoration.** The first
+        /// version of this test read the same two items twice, so `arrivals` was empty on every
+        /// load and the arrival path was never entered — a mutation that installed every arrival
+        /// left it green. The clause was sound and the fixture was not exercising the branch the
+        /// clause is about, which is the only thing a mutation can tell you and a passing series
+        /// cannot.
         @Test("no path from outside the window installs anything")
         func nothingOutsideTheWindowInstalls() async throws {
             let notifier = RecordingArrivalNotifier()
-            let items = try [Self.item(id: "q-1", secondsAgo: 300, resolved: true),
-                             Self.item(id: "q-2", secondsAgo: 60, resolved: true)]
+            let first = try [Self.item(id: "q-1", secondsAgo: 300, resolved: true)]
+            let both = try first + [Self.item(id: "q-2", secondsAgo: 60, resolved: true)]
             let (board, client) = Self.board(
-                [.success(Self.snapshot(items)), .success(Self.snapshot(items))],
+                [.success(Self.snapshot(first)), .success(Self.snapshot(both))],
                 notifier: notifier
             )
 
             await board.load()
+            // The arrival path runs with something in it, so an install placed there is reachable.
             await board.load()
+            #expect(notifier.announcements.count == 1, "the arrival branch was never entered")
             _ = board.bandZone()
 
             // Every action the closed set contains, on a real waiting item.

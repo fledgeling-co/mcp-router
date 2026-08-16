@@ -146,8 +146,13 @@ mutate "A10 the undo leaves the declined item declined" \
   "$UI/Boards/InboxBoardModel.swift" InboxArrivalTests \
   "s = s.replace('dispositioned[item.id] = nil\n            lastDisposition = nil', 'lastDisposition = nil')"
 
+# Filtered to InboxBoardTests, not InboxArrivalTests, and the first aim was wrong rather than the
+# clause being blind. `isUndoable` is asserted for an accept by M6's own
+# "accepting is reported, offers no undo, and removes nothing" — which lives in InboxBoardTests, so
+# a run filtered to I6's suite never executed it and reported GREEN. The band's report line is built
+# straight from `isUndoable`, so that assertion is the load-bearing one for both surfaces.
 mutate "report an accept offers an undo that cannot undo it" \
-  "$UI/Boards/InboxBoardModel.swift" InboxArrivalTests \
+  "$UI/Boards/InboxBoardModel.swift" InboxBoardTests \
   "s = s.replace('if case .declined = lastDisposition { return true }', 'if case .declined = lastDisposition { return true }\n            if case .accepted = lastDisposition { return true }')"
 
 mutate "failed-read a read that failed reaches the announce path anyway" \

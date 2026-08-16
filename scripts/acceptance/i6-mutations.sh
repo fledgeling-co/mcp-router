@@ -6,8 +6,10 @@
 # stays green under its own mutation is a clause that measures nothing, and this script reports that
 # as a failure rather than as a pass.
 #
-# Every mutation is applied, tested, then reverted with `git checkout` on the one file it touched,
-# so an interrupted run leaves the tree recoverable.
+# Every mutation is applied, tested, then reverted with `git checkout -- app`, so an interrupted run
+# leaves the tree recoverable. Commit this script before running it: the revert is scoped to `app`
+# precisely so it cannot take an uncommitted edit to this file with it, but a mutation left applied
+# by a kill -9 is still recovered by hand.
 set -uo pipefail
 cd "$(dirname "$0")/../.." || exit 2
 
@@ -28,7 +30,15 @@ mutate() {
   local out status
   out=$(cd app && swift test --filter "$filter" 2>&1)
   status=$?
-  git checkout -- "$file"
+  # Reverts `app` rather than the named file, because one mutation below has to touch two files at
+  # once: a case added to a closed enum does not compile until the switch over it is handled, and a
+  # per-file revert would leave the second file mutated for every run after it.
+  #
+  # Scoped to `app` rather than `.` deliberately, and the narrower scope was bought with a real
+  # failure: `git checkout -- .` reverts THIS SCRIPT too whenever it is uncommitted, so a run
+  # executes a half-reverted version of itself and the edit you just made vanishes mid-run.
+  # Everything any mutation here touches lives under `app`.
+  git checkout -- app
 
   if [ $status -ne 0 ] && printf '%s' "$out" | grep -q "recorded an issue"; then
     echo "RED   $name"
@@ -170,6 +180,18 @@ mutate "floor  the band applies an uppercasing transform and no gate sees it" \
 mutate "enrol  the band leaves the scanned file list" \
   "$TESTS/MCPRouterUITests/ShellTestSupport.swift" ShellIntegrationTests \
   's = s.replace("\"app/Sources/MCPRouterUI/Shell/MenuBarInboxBand.swift\"", "\"app/Sources/MCPRouterUI/Shell/ShellModel.swift\"")'
+
+# The item's central claim, and the only mutation here that has to edit two files. Adding a third
+# case to `InboxNotificationAction` is what "someone adds an Install button" actually looks like in
+# this codebase, and it does not compile until the delegate's switch handles it — so the delegate is
+# patched in the same breath. Without that second edit the run fails to BUILD, and a build failure
+# scores GREEN here, which would have read as "the clause noticed nothing".
+mutate "A8d the action enum gains an install case, and the delegate learns to obey it" \
+  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  "s = s.replace('    case decline\n', '    case decline\n    case install\n')
+d = 'app/Sources/MCPRouterUI/Shell/InboxNotificationDelegate.swift'
+t = open(d).read().replace('case .decline:', 'case .install: return\n            case .decline:')
+open(d, 'w').write(t)"
 
 echo
 echo "i6 mutations: $pass red, $fail that should have been red and were not"

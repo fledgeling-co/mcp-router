@@ -99,6 +99,73 @@ mutate "A19 a route for an already-handled item reports nothing" \
   "$UI/Boards/InboxBoardModel.swift" InboxArrivalTests \
   "s = s.replace('routeReport = InboxCopy.alreadyHandled', 'routeReport = nil')"
 
+# ---------------------------------------------------------------------------
+# The second block, added on the relaunch.
+#
+# The fourteen above were aimed at fourteen of the thirty-two clauses. The rest were green and
+# unproven, which is a series bounding an agreement rate rather than a measurement of what any term
+# reads. These aim at the ones carrying the item's actual guarantees: the boundary, the announcement
+# rules, and the claim that the new files are scanned by the floor gates at all.
+# ---------------------------------------------------------------------------
+
+TESTS=app/Tests
+
+mutate "A18 the notifier is chosen without a bundle identifier, so the trap is reachable" \
+  "$UI/Shell/ArrivalNotifierFactory.swift" ArrivalNotifierFactoryTests \
+  "s = s.replace('bundleIdentifier != nil', 'true')"
+
+mutate "A8b macOS is handed a button the delegate has no case for" \
+  "$UI/Shell/ArrivalNotifierFactory.swift" ArrivalNotifierFactoryTests \
+  "s = s.replace('identifier: InboxNotificationAction.decline.rawValue,', 'identifier: \"install\",')"
+
+mutate "A8c the decline button drags the whole app forward" \
+  "$UI/Shell/ArrivalNotifierFactory.swift" ArrivalNotifierFactoryTests \
+  "s = s.replace('// through the same single-slot undo the pane uses.\n                        options: []', '// through the same single-slot undo the pane uses.\n                        options: [.foreground]')"
+
+mutate "A14 several arrivals each get their own banner" \
+  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  "s = s.replace('guard arrivals.count == 1 else {', 'guard arrivals.count >= 1 else {')"
+
+mutate "A15 nothing arriving is announced as an event" \
+  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  "s = s.replace('guard let first = arrivals.first else { return nil }', 'guard let first = arrivals.first else { return InboxAnnouncement(id: manyIdentifier, title: InboxCopy.Arrival.manyTitle(0), subtitle: InboxCopy.Arrival.subtitle(device: device ?? \"\"), body: InboxCopy.Arrival.manyBody, actions: [.review], itemIDs: []) }')"
+
+mutate "A9b the banner body repeats a string the envelope carried" \
+  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  "s = s.replace('first.resolved.map { RegistryCapability.statement(for: \$0).headline }', 'first.resolved.map { _ in first.envelope.displayName }')"
+
+mutate "Partial an unreadable entry says nothing rather than saying so" \
+  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  's = s.replace("?? InboxCopy.Arrival.partialBody", "?? \"\"")'
+
+mutate "A12 every snapshot re-announces its whole queue" \
+  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  "s = s.replace('let new = items.filter { !announced.contains(\$0.id) }', 'let new = items')"
+
+mutate "A10 the undo leaves the declined item declined" \
+  "$UI/Boards/InboxBoardModel.swift" InboxArrivalTests \
+  "s = s.replace('dispositioned[item.id] = nil\n            lastDisposition = nil', 'lastDisposition = nil')"
+
+mutate "report an accept offers an undo that cannot undo it" \
+  "$UI/Boards/InboxBoardModel.swift" InboxArrivalTests \
+  "s = s.replace('if case .declined = lastDisposition { return true }', 'if case .declined = lastDisposition { return true }\n            if case .accepted = lastDisposition { return true }')"
+
+mutate "failed-read a read that failed reaches the announce path anyway" \
+  "$UI/Boards/InboxBoardModel.swift" InboxArrivalTests \
+  "s = s.replace('} else {\n                    state = .failed(error)\n                }', '} else {\n                    state = .failed(error)\n                    await announceArrivals(in: InboxSnapshot(items: [], pairedDeviceName: \"Luke\\'s iPhone\"))\n                }')"
+
+# The two below prove the *enrolment* rather than the code: that I6's files are actually read by the
+# floor gates, and that the list naming them is itself checked against the directory. A file added to
+# the tree but not to the list would pass every gate in this script while being scanned by none.
+
+mutate "floor  the band applies an uppercasing transform and no gate sees it" \
+  "$UI/Shell/MenuBarInboxBand.swift" ShellAppearanceTests \
+  "s = s.replace('import SwiftUI', 'import SwiftUI\n// .textCase(.uppercase)')"
+
+mutate "enrol  the band leaves the scanned file list" \
+  "$TESTS/MCPRouterUITests/ShellTestSupport.swift" ShellIntegrationTests \
+  's = s.replace("\"app/Sources/MCPRouterUI/Shell/MenuBarInboxBand.swift\"", "\"app/Sources/MCPRouterUI/Shell/ShellModel.swift\"")'
+
 echo
 echo "i6 mutations: $pass red, $fail that should have been red and were not"
 [ "$fail" -eq 0 ]

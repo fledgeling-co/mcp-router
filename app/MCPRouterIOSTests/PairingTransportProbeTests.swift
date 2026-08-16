@@ -80,6 +80,13 @@ final class PairingTransportProbeTests: XCTestCase {
         return port
     }
 
+    /// Why a probe skips when there is no tap. Skipping is correct here and a pass would not be:
+    /// the harness asserts on how many assertions actually ran, so a skipped probe is caught there
+    /// rather than being read as evidence that nothing was sent.
+    static let skipReason = """
+    no tap port file — this suite only runs under scripts/acceptance/i5-pairing-transport.sh
+    """
+
     /// Open a TCP connection to the tap and send one line. Returns whether the write succeeded.
     ///
     /// Deliberately raw POSIX rather than `URLSession` or `Network.framework`: this must be the
@@ -122,7 +129,7 @@ final class PairingTransportProbeTests: XCTestCase {
     /// about the transport, because the instrument could not be shown to work from here.
     func testProbesReachTheTap() throws {
         guard let port = Self.tapPort else {
-            throw XCTSkip("no tap port file — this suite only runs under scripts/acceptance/i5-pairing-transport.sh")
+            throw XCTSkip(Self.skipReason)
         }
         XCTAssertTrue(
             Self.send("PHONE-REACHABILITY\n", toPort: port),
@@ -149,7 +156,7 @@ final class PairingTransportProbeTests: XCTestCase {
     /// the thing under test and the witness to it.
     func testPairingAttemptAgainstALiveEndpoint() async throws {
         guard let port = Self.tapPort else {
-            throw XCTSkip("no tap port file — this suite only runs under scripts/acceptance/i5-pairing-transport.sh")
+            throw XCTSkip(Self.skipReason)
         }
         let endpoint = try XCTUnwrap(
             PairingEndpoint(host: "127.0.0.1", port: Int(port), fingerprint: "SHA256:i5-probe"),

@@ -50,6 +50,40 @@ mutate() {
   fi
 }
 
+# A mutation whose correct outcome is that the tree DOES NOT COMPILE.
+#
+# Some guarantees are held by the type system rather than by an assertion, and for those a passing
+# build is the failure. `mutate` cannot score them: it requires "recorded an issue" in the output,
+# which a build error never produces, so it reports GREEN for a mutation the compiler rejected
+# outright — reading a type-system guarantee as a blind clause.
+#
+# The expected diagnostic and the file it must appear in are both named, so this cannot be satisfied
+# by any build error that happens to occur. A build that SUCCEEDS is the red flag here.
+mutate_uncompilable() {
+  local name="$1" file="$2" diagnostic="$3" where="$4" snippet="$5"
+  local src
+  src=$(printf 'import sys\np = sys.argv[1]\ns = open(p).read()\nbefore = s\n%s\nif s == before:\n    sys.exit("the mutation matched nothing — it is not testing what it claims")\nopen(p, "w").write(s)\n' "$snippet")
+
+  if ! python3 -c "$src" "$file"; then
+    echo "SKIP  $name  <- the mutation could not be applied"
+    fail=$((fail + 1))
+    return
+  fi
+
+  local out
+  out=$(cd app && swift build --build-tests 2>&1)
+  git checkout -- app
+
+  if printf '%s' "$out" | grep -q "$diagnostic" && printf '%s' "$out" | grep -q "$where"; then
+    echo "RED   $name"
+    echo "        rejected at compile time: $diagnostic in $where"
+    pass=$((pass + 1))
+  else
+    echo "GREEN $name  <- IT COMPILED, so nothing forbids the third action"
+    fail=$((fail + 1))
+  fi
+}
+
 KIT=app/Sources/MCPRouterKit
 UI=app/Sources/MCPRouterUI
 
@@ -181,13 +215,20 @@ mutate "enrol  the band leaves the scanned file list" \
   "$TESTS/MCPRouterUITests/ShellTestSupport.swift" ShellIntegrationTests \
   's = s.replace("\"app/Sources/MCPRouterUI/Shell/MenuBarInboxBand.swift\"", "\"app/Sources/MCPRouterUI/Shell/ShellModel.swift\"")'
 
-# The item's central claim, and the only mutation here that has to edit two files. Adding a third
-# case to `InboxNotificationAction` is what "someone adds an Install button" actually looks like in
-# this codebase, and it does not compile until the delegate's switch handles it — so the delegate is
-# patched in the same breath. Without that second edit the run fails to BUILD, and a build failure
-# scores GREEN here, which would have read as "the clause noticed nothing".
-mutate "A8d the action enum gains an install case, and the delegate learns to obey it" \
-  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+# The item's central claim, and the one guarantee here the type system holds rather than a test.
+#
+# "Someone adds an Install button" looks, in this codebase, like a third case on
+# `InboxNotificationAction`. It cannot be done: the delegate switches over the enum exhaustively, and
+# so does the clause that asserts no path from outside the window installs anything. Patching the
+# delegate to obey the new case is not enough — the TEST stops compiling, which is the boundary
+# refusing the change rather than a test failing to notice it.
+#
+# Scored by `mutate_uncompilable` for that reason. Under plain `mutate` this reported GREEN, because
+# a build error produces no "recorded an issue" and the scorer read the compiler's refusal as
+# silence.
+mutate_uncompilable "A8d a third action case cannot be added at all, delegate patched and all" \
+  "$KIT/Inbox/InboxArrival.swift" \
+  "switch must be exhaustive" "InboxArrivalTests.swift" \
   "s = s.replace('    case decline\n', '    case decline\n    case install\n')
 d = 'app/Sources/MCPRouterUI/Shell/InboxNotificationDelegate.swift'
 t = open(d).read().replace('case .decline:', 'case .install: return\n            case .decline:')

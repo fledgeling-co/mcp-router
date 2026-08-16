@@ -16,9 +16,31 @@ cd "$(dirname "$0")/../.." || exit 2
 pass=0
 fail=0
 
+# A filter that names no suite at all.
+#
+# Bought with a real failure. `InboxAnnouncementTests` was split out of `InboxBandTests` after these
+# mutations were written, and nine of them went on naming the suite the clauses had left. The gate's
+# own scoring does catch that — a mutated clause its filter never runs reports GREEN, which this
+# script counts as a failure — but only when somebody runs it, and the split landed in a commit
+# nobody re-ran the gate after. This check is the cheaper half: a filter naming a suite that does not
+# exist is caught in a grep, before a mutation is applied at all.
+#
+# It is not the whole guard, and saying so matters. A filter aimed at a suite that exists but no
+# longer asserts the clause still passes this and still reports GREEN below. Running the script is
+# what measures that; this only stops a rename from looking like a run.
+names_a_real_suite() {
+  grep -rqE "(struct|final class|extension) $1\b" app/Tests
+}
+
 mutate() {
   local name="$1" file="$2" filter="$3" snippet="$4"
   local src
+
+  if ! names_a_real_suite "$filter"; then
+    echo "SKIP  $name  <- --filter $filter names no suite in app/Tests"
+    fail=$((fail + 1))
+    return
+  fi
   src=$(printf 'import sys\np = sys.argv[1]\ns = open(p).read()\nbefore = s\n%s\nif s == before:\n    sys.exit("the mutation matched nothing — it is not testing what it claims")\nopen(p, "w").write(s)\n' "$snippet")
 
   if ! python3 -c "$src" "$file"; then
@@ -108,19 +130,19 @@ mutate "A6  the inbox zone falls below the unbounded attention band" \
   "s = s.replace('if band != nil { order.append(.attention) }', 'if band != nil { order.insert(.attention, at: 1) }')"
 
 mutate "A9  the banner repeats the name the phone sent" \
-  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  "$KIT/Inbox/InboxArrival.swift" InboxAnnouncementTests \
   "s = s.replace('title: first.title,', 'title: first.envelope.displayName,')"
 
 mutate "A8  an unrecognised action identifier is treated as a review" \
-  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  "$KIT/Inbox/InboxArrival.swift" InboxAnnouncementTests \
   "s = s.replace('return InboxNotificationAction(rawValue: identifier)', 'return InboxNotificationAction(rawValue: identifier) ?? .review')"
 
 mutate "A11 the first snapshot of a session announces its whole queue" \
-  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  "$KIT/Inbox/InboxArrival.swift" InboxAnnouncementTests \
   "s = s.replace('guard seeded else {', 'if false {')"
 
 mutate "A13 the announced set is pruned, so an undone decline re-announces" \
-  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  "$KIT/Inbox/InboxArrival.swift" InboxAnnouncementTests \
   "s = s.replace('announced.formUnion(new.map(\\\\.id))', 'announced = Set(items.map(\\\\.id))')"
 
 mutate "status  the menu-bar dot ignores the queue" \
@@ -167,23 +189,23 @@ mutate "A8c the decline button drags the whole app forward" \
   "s = s.replace('// through the same single-slot undo the pane uses.\n                        options: []', '// through the same single-slot undo the pane uses.\n                        options: [.foreground]')"
 
 mutate "A14 several arrivals each get their own banner" \
-  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  "$KIT/Inbox/InboxArrival.swift" InboxAnnouncementTests \
   "s = s.replace('guard arrivals.count == 1 else {', 'guard arrivals.count >= 1 else {')"
 
 mutate "A15 nothing arriving is announced as an event" \
-  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  "$KIT/Inbox/InboxArrival.swift" InboxAnnouncementTests \
   "s = s.replace('guard let first = arrivals.first else { return nil }', 'guard let first = arrivals.first else { return InboxAnnouncement(id: manyIdentifier, title: InboxCopy.Arrival.manyTitle(0), subtitle: InboxCopy.Arrival.subtitle(device: device ?? \"\"), body: InboxCopy.Arrival.manyBody, actions: [.review], itemIDs: []) }')"
 
 mutate "A9b the banner body repeats a string the envelope carried" \
-  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  "$KIT/Inbox/InboxArrival.swift" InboxAnnouncementTests \
   "s = s.replace('first.resolved.map { RegistryCapability.statement(for: \$0).headline }', 'first.resolved.map { _ in first.envelope.displayName }')"
 
 mutate "Partial an unreadable entry says nothing rather than saying so" \
-  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  "$KIT/Inbox/InboxArrival.swift" InboxAnnouncementTests \
   's = s.replace("?? InboxCopy.Arrival.partialBody", "?? \"\"")'
 
 mutate "A12 every snapshot re-announces its whole queue" \
-  "$KIT/Inbox/InboxArrival.swift" InboxBandTests \
+  "$KIT/Inbox/InboxArrival.swift" InboxAnnouncementTests \
   "s = s.replace('let new = items.filter { !announced.contains(\$0.id) }', 'let new = items')"
 
 mutate "A10 the undo leaves the declined item declined" \

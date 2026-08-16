@@ -282,6 +282,45 @@ final class PhoneSurfaceTests: XCTestCase {
             .max()
     }
 
+    /// **The helper's content-size override really does reach the SwiftUI environment.**
+    ///
+    /// D3 registered a claim that it "measurably never reaches the SwiftUI view", which would make
+    /// the three-category loop below three identical runs of one assertion. Measured on 2026-08-16
+    /// against this suite: the view sees `dynamicTypeSize == .large` under `.large` and
+    /// `.accessibility5` under `.accessibilityExtraExtraExtraLarge`, so the override arrives and the
+    /// loop varies what it renders. The claim was false and this test is what keeps it false — if a
+    /// future UIKit stops honouring `setOverrideTraitCollection`, A7 below would quietly stop
+    /// measuring anything and this fails instead.
+    ///
+    /// What it deliberately does not assert is that glyphs *grow*. They do not: `TypeToken.font` is
+    /// a fixed `Font.system(size:weight:)` by `DESIGN.md` §2, which is a shared design decision
+    /// rather than a defect. This separates the plumbing from that decision.
+    func testHostPropagatesContentSizeIntoTheSwiftUIEnvironment() {
+        final class Box: @unchecked Sendable { var seen: [DynamicTypeSize] = [] }
+        let box = Box()
+
+        struct Reporter: View {
+            @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+            let record: (DynamicTypeSize) -> Void
+            var body: some View {
+                Color.clear.onAppear { record(dynamicTypeSize) }
+            }
+        }
+
+        for (category, expected) in [
+            (UIContentSizeCategory.large, DynamicTypeSize.large),
+            (.accessibilityExtraExtraExtraLarge, .accessibility5)
+        ] {
+            box.seen.removeAll()
+            _ = host(Reporter { box.seen.append($0) }, contentSize: category)
+            XCTAssertEqual(
+                box.seen.first,
+                expected,
+                "content size \(category.rawValue) did not reach the SwiftUI environment"
+            )
+        }
+    }
+
     // MARK: A7 — Dynamic Type does not clip
 
     /// The shared type ladder is fixed-size by design (`DESIGN.md` §2 specifies eight exact sizes),

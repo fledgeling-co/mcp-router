@@ -19,7 +19,10 @@ import Foundation
 // - `CGEvent.postToPid` delivers a bare key to a background app's focused responder;
 // - setting `AXSelectedRows` on the sidebar outline moves the selection;
 // - setting the content scroll area's vertical scroll bar `AXValue` scrolls it;
-// - `AXPosition` / `AXSize` on the window are settable, so a move and resize needs no mouse.
+// - `AXPosition` / `AXSize` on the window are settable, so a move and resize needs no mouse;
+// - and, measured on 2026-08-16, `AXPress` on a segmented control's `AXRadioButton` **does** switch
+//   the segment in the background, with the segment's `AXValue` flipping 1/0 to prove it did. That
+//   is what `pick` below is built on, and the flip is what it asserts.
 //
 // One route does **not** work in the background, and it is recorded rather than worked around:
 // `AXPress` on a menu item returns `.success` and does nothing, because the item's action reaches
@@ -277,6 +280,132 @@ case "press":
     pressMatching(pressWindow)
     print(pressed ? "OK" : "ERR")
     if !pressed { exit(1) }
+
+case "pick":
+    // Choose one segment of a segmented control, and **prove the choice took** rather than
+    // trusting the return code.
+    //
+    // This is deferred child M5-d. `press` above matches `AXRole == "AXButton"` only, so no
+    // rendered pass could drive a segmented filter — M5 hit it on Discover's ordering picker and
+    // predicted it would hit M7's two boards, and it did. The obvious fix is to widen `press` to
+    // any role; that is wrong, because the AXButton restriction is what stops a caller pressing a
+    // **menu item**, whose action reaches the window through `@FocusedValue` and therefore returns
+    // `.success` while doing nothing to a background app. Widening the existing verb would reopen
+    // exactly that silent false green. So this is a second, narrower verb instead.
+    //
+    // Measured against this build on 2026-08-16 at load 18, with Ghostty frontmost throughout:
+    // a SwiftUI `.segmented` `Picker` vends `AXRole == "AXRadioButton"`, `AXSubrole == "AXSegment"`,
+    // inside an `AXRadioGroup`; the segment's label lands in `AXDescription` (its title is empty,
+    // as with every other control in this app); and its `AXValue` reads `1` while it is the chosen
+    // segment and `0` while it is not.
+    //
+    // **The exit codes are the contract, because the house call pattern discards stdout.** Every
+    // existing actuation site in these scripts is `"$AXKIT" verb … >/dev/null || fail …`, so a
+    // distinction that lives only in a printed word is a distinction the caller cannot see. Hence:
+    //
+    //   0  the named segment was NOT chosen before and IS chosen now — this verb switched it
+    //   3  it was already chosen, so this call drove nothing
+    //   1  it is not chosen now, or the match was ambiguous, or nothing matched
+    //
+    // `3` rather than `0` for "already chosen" is deliberate and is the point of the code: a gate
+    // that cannot tell "I switched the filter" from "the filter was already there" can drive
+    // nothing at all and still pass. Under `|| fail` that now fails by default, and a caller that
+    // genuinely tolerates either state has to say so.
+    //
+    // **The match must be unambiguous.** `contains` on the first hit is a false-green generator on
+    // this app's own labels: Discover offers `Most used on Smithery` and `Recently added to
+    // Smithery`, so `Smithery` names both, and segments carry live counts (`All 16`, `Held 1`), so
+    // `1` matches several. Taking the first would press a segment the caller did not name and then
+    // truthfully report that a segment is selected. So more than one match is an error that names
+    // them, and an empty needle — which `contains` makes true of everything — is refused.
+    //
+    // **The tree is re-walked after the press**, because the press is what changes SwiftUI state
+    // and that is when SwiftUI rebuilds this subtree. Re-reading `AXValue` through the element held
+    // across the press reads a possibly-dead identifier: empty reads as a red for a press that
+    // worked, and a cached value reads as a green for one that did not.
+    //
+    // **And the check is exclusivity, not truthiness.** Within the segment's own radio group,
+    // exactly one segment must read `1` and it must be the named one. A group reporting two
+    // selections is a broken read, not a successful switch, and is refused rather than rounded up.
+    guard args.count >= 4 else { die("usage: axkit pick <pid> <segment description substring>") }
+    let pickNeedle = args[3]
+    guard !pickNeedle.isEmpty else { die("an empty substring matches every segment") }
+    let (_, pickApp) = application(args[2])
+    guard let pickWindow = standardWindow(pickApp) else { die("no window") }
+
+    func segments(_ element: AXUIElement, depth: Int = 0) -> [AXUIElement] {
+        // Depth-capped like `dump` and `firstElement`. An unbounded walk over this tree is what
+        // crashed an earlier accessibility walker in this repo, and a cap costs nothing here.
+        guard depth < 24 else { return [] }
+        var found: [AXUIElement] = []
+        if string(element, kAXRoleAttribute as String) == "AXRadioButton",
+           string(element, kAXSubroleAttribute as String) == "AXSegment"
+        {
+            found.append(element)
+        }
+        for child in children(element) {
+            found.append(contentsOf: segments(child, depth: depth + 1))
+        }
+        return found
+    }
+
+    func label(_ element: AXUIElement) -> String {
+        string(element, kAXDescriptionAttribute as String)
+    }
+
+    /// The one segment matching the needle, or a refusal naming why there isn't exactly one.
+    func soleMatch(_ pool: [AXUIElement], _ what: String) -> AXUIElement {
+        let matches = pool.filter { label($0).contains(pickNeedle) }
+        let offered = pool.map { label($0) }.joined(separator: " | ")
+        let named = matches.map { label($0) }.joined(separator: " | ")
+        if matches.isEmpty {
+            die("no segment matching '\(pickNeedle)' \(what) — offered: \(offered)", 1)
+        }
+        if matches.count > 1 {
+            die("'\(pickNeedle)' is ambiguous \(what) — it names \(named)", 1)
+        }
+        return matches[0]
+    }
+
+    let allSegments = segments(pickWindow)
+    guard !allSegments.isEmpty else { die("no segmented control in this window", 1) }
+    let target = soleMatch(allSegments, "in this window")
+    let wasChosen = string(target, kAXValueAttribute as String) == "1"
+
+    let accepted = AXUIElementPerformAction(target, kAXPressAction as CFString) == .success
+
+    // Re-walk. The element above may not survive the state change the press causes.
+    let afterSegments = segments(pickWindow)
+    let afterTarget = soleMatch(afterSegments, "after the press")
+    // Exclusivity is checked among the target's own siblings rather than across a window that may
+    // draw more than one segmented control.
+    let afterGroup: [AXUIElement] = {
+        guard let parentRef = attr(afterTarget, kAXParentAttribute as String),
+              CFGetTypeID(parentRef) == AXUIElementGetTypeID() else { return afterSegments }
+        // swiftlint:disable:next force_cast
+        return segments(parentRef as! AXUIElement)
+    }()
+    let chosen = afterGroup.filter { string($0, kAXValueAttribute as String) == "1" }
+    let nowChosen = chosen.count == 1 && label(chosen[0]) == label(afterTarget)
+
+    if !accepted {
+        // A press this verb did not perform cannot be the reason the state is right, so a refused
+        // action is a failure even when the value happens to read as chosen.
+        let reported = chosen.map(label).joined(separator: ",")
+        print("ERR the press was refused (chosen=\(reported))")
+        exit(1)
+    }
+    if !nowChosen {
+        let reported = chosen.isEmpty ? "none" : chosen.map(label).joined(separator: ",")
+        let group = "group of \(afterGroup.count) reports chosen: \(reported)"
+        print("ERR '\(label(afterTarget))' is not the chosen segment — \(group)")
+        exit(1)
+    }
+    if wasChosen {
+        print("ALREADY \(label(afterTarget))")
+        exit(3)
+    }
+    print("OK \(label(afterTarget))")
 
 case "key":
     // A key event delivered to one process. Unlike a System Events keystroke this does not require

@@ -14,14 +14,21 @@
 # pid, and MCP Router is asserted never to have become frontmost. If this gate steals the screen, it
 # fails itself.
 #
-# **What this gate cannot do, stated rather than worked around.** Both panes carry a segmented
-# filter, which SwiftUI renders as an `AXRadioGroup` of `AXRadioButton`s. `axkit press` matches
-# `AXRole == "AXButton"` only, by deliberate design — see its comment on why a menu item must not be
-# pressed that way — so there is no verb here that can operate a segment. This was raised by M5 as
-# deferred child M5-d and predicted to hit M7's two boards, and it does. The filter's *behaviour* is
-# proven exhaustively in the unit suite (`CheckPresentation.Filter`, `CleanupBoardModel.rows`); what
-# is unproven by any rendered pass is that pressing the drawn segment reaches that logic. That is a
-# tooling gap, it is recorded as one, and nothing here fakes a press to paper over it.
+# **What this gate does not do, and why that reason has changed.** Both panes carry a segmented
+# filter, which SwiftUI renders as an `AXRadioGroup` of `AXRadioButton`s (subrole `AXSegment`).
+# `axkit press` matches `AXRole == "AXButton"` only, by deliberate design — see its comment on why a
+# menu item must not be pressed that way — so for a long time there was no verb here that could
+# operate a segment. That was deferred child M5-d, raised by M5 and predicted to hit these two
+# boards, and it did. **D3 closed it**: `axkit pick` presses a segment, re-walks the tree, and
+# requires that exactly one segment in the target's own radio group reads `AXValue == 1` and that it
+# is the one named — rather than trusting `AXPress`'s return code, which proves only that the action
+# was accepted. **Its exit codes are the contract and a consumer must read them: 0 switched, 3 was
+# already chosen so the call drove nothing, 1 not chosen or the substring named more than one
+# segment.** These panes are exactly where 3 matters, because both filters open on a default
+# segment. Wiring the verb into these assertions is a change to M7's acceptance surface that re-runs
+# M7's gate, so it is registered as follow-on work. The filter's *behaviour* remains proven in the unit
+# suite (`CheckPresentation.Filter`, `CleanupBoardModel.rows`); what stays unproven by a rendered
+# pass is that pressing the drawn segment reaches that logic. Nothing here fakes a press.
 #
 # Exit codes match the house rule: 2 means the harness could not run (no Accessibility grant, a
 # locked screen, no built app), 1 means an assertion failed.

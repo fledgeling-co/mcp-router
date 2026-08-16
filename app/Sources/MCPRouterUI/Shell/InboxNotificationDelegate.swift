@@ -21,7 +21,7 @@
         /// boundary. A `@MainActor` static is reached *inside* the hop instead, so only the action
         /// and the identifier — both `Sendable` — cross it.
         private nonisolated(unsafe) static var installed: InboxNotificationDelegate?
-        @MainActor private static weak var target: ShellModel?
+        @MainActor private weak static var target: ShellModel?
 
         /// Attach to the notification centre, once.
         ///

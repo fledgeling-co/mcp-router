@@ -21,13 +21,13 @@
         func bandZone(now: Date = Date()) -> PopoverContent.InboxZone? {
             switch state {
             case .loading:
-                return nil
+                nil
             case let .failed(error):
-                return .unreadable(unreadableMessage(error))
+                .unreadable(unreadableMessage(error))
             case .loaded, .stale:
                 // `.stale` keeps its rows: the last good reading is real, and a refresh that did not
                 // complete is not evidence the queue emptied.
-                return InboxBand.make(
+                InboxBand.make(
                     waiting: rows,
                     device: pairedDeviceName,
                     report: bandReport(),

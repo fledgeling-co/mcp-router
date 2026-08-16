@@ -63,7 +63,9 @@
             }
         }
 
-        func availability() -> PairingAvailability { .noEndpoint }
+        func availability() -> PairingAvailability {
+            .noEndpoint
+        }
     }
 
     /// The half of I6 that lives on the board: what is announced, what is withdrawn, and what a
@@ -241,7 +243,7 @@
 
         /// A read that failed is not evidence that anything arrived.
         @Test("a failed read announces nothing")
-        func failedReadIsSilent() async throws {
+        func failedReadIsSilent() async {
             let notifier = RecordingArrivalNotifier()
             let (board, _) = Self.board(
                 [.failure(.unreadable(detail: "the queue file could not be read"))],
@@ -271,7 +273,7 @@
         /// Before a phone is paired nothing can ever arrive, so asking then is asking permission to
         /// send notifications the app has no way to generate.
         @Test("an unpaired Mac is never asked for notification permission")
-        func unpairedIsNeverAsked() async throws {
+        func unpairedIsNeverAsked() async {
             let notifier = RecordingArrivalNotifier()
             let (board, _) = Self.board(
                 [.success(Self.snapshot([], paired: false)),
@@ -285,7 +287,7 @@
         }
 
         @Test("a denied grant is recorded and nothing retries")
-        func deniedIsRecordedAndNotRetried() async throws {
+        func deniedIsRecordedAndNotRetried() async {
             let notifier = RecordingArrivalNotifier()
             notifier.grant = false
             let (board, _) = Self.board(
@@ -353,7 +355,7 @@
         }
 
         @Test("an empty queue draws no band at all")
-        func emptyQueueDrawsNothing() async throws {
+        func emptyQueueDrawsNothing() async {
             let notifier = RecordingArrivalNotifier()
             let (board, _) = Self.board([.success(Self.snapshot([]))], notifier: notifier)
             await board.load()

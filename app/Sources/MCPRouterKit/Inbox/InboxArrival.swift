@@ -146,7 +146,10 @@ public protocol ArrivalNotifier: Sendable {
 /// run and any host without a bundle identifier.
 public struct SilentArrivalNotifier: ArrivalNotifier {
     public init() {}
-    public func requestAuthorization() async -> Bool { false }
+    public func requestAuthorization() async -> Bool {
+        false
+    }
+
     public func announce(_: InboxAnnouncement) async {}
     public func withdraw(itemIDs _: [String]) async {}
 }

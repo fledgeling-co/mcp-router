@@ -104,7 +104,9 @@
 
         var hasAskedForAuthorization: Bool { askedForAuthorization }
 
-        func markAskedForAuthorization() { askedForAuthorization = true }
+        func markAskedForAuthorization() {
+            askedForAuthorization = true
+        }
 
         /// The item the review sheet is open for, held **by id** rather than as a captured value —
         /// M5's lesson: a copy taken when the sheet opened goes stale the moment the row does, and

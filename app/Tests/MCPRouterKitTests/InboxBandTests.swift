@@ -194,7 +194,12 @@ struct InboxBandTests {
         let entry = try Self.entry(id: "e-1")
         let band = try #require(
             InboxBand.make(
-                waiting: [Self.item(id: "q-1", queuedSecondsAgo: 60, resolved: entry, name: "PHONE SAID THIS")],
+                waiting: [Self.item(
+                    id: "q-1",
+                    queuedSecondsAgo: 60,
+                    resolved: entry,
+                    name: "PHONE SAID THIS"
+                )],
                 device: Self.device,
                 now: Self.now
             )

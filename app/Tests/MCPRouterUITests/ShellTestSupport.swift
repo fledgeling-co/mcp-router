@@ -141,7 +141,9 @@
             // whether a notification centre is talked to at all — `UNUserNotificationCenter.current()`
             // traps in a process with no bundle identifier, which is every `swift test` run.
             "app/Sources/MCPRouterUI/Shell/ShellModelInbox.swift",
-            "app/Sources/MCPRouterUI/Shell/ArrivalNotifierFactory.swift"
+            "app/Sources/MCPRouterUI/Shell/ArrivalNotifierFactory.swift",
+            "app/Sources/MCPRouterUI/Shell/InboxNotificationDelegate.swift",
+            "app/Sources/MCPRouterUI/Shell/MenuBarInboxBand.swift"
         ]
 
         /// The board files, held separately because a completeness test pins `shellFiles` to the

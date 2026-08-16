@@ -108,6 +108,15 @@ public struct FixtureInboxService: InboxService {
         case failed
         /// An item whose name is wider than its column.
         case overflow
+        /// One item now and a second one shortly, so **an arrival while the popover is open** is a
+        /// state the running app can actually reach.
+        ///
+        /// A seam for the same reason `pairingLifetime()` is one: M6's Phase D critic found
+        /// `.expiring` producing a snapshot byte-identical to `.paired`, which made the near-expiry
+        /// state a case in an enum and nowhere else. An arrival is a *change between two snapshots*,
+        /// so no static fixture can express it — and the whole point of the band's oldest-first
+        /// ordering is what happens to the rows already on screen when one lands.
+        case arriving
     }
 
     public let scenario: Scenario
@@ -136,7 +145,7 @@ public struct FixtureInboxService: InboxService {
         switch scenario {
         case .none:
             .noEndpoint
-        case .paired, .pairedEmpty, .loading, .expiring, .partial, .failed, .overflow:
+        case .paired, .pairedEmpty, .loading, .expiring, .partial, .failed, .overflow, .arriving:
             Self.fixtureEndpoint.map(PairingAvailability.available) ?? .noEndpoint
         }
     }
@@ -169,6 +178,8 @@ public struct FixtureInboxService: InboxService {
             )
         case .overflow:
             return try InboxSnapshot(items: Self.withLongName(at: now), pairedDeviceName: Self.fixtureDevice)
+        case .arriving:
+            return try InboxSnapshot(items: Self.arriving(at: now), pairedDeviceName: Self.fixtureDevice)
         }
     }
 
@@ -222,6 +233,23 @@ public struct FixtureInboxService: InboxService {
                 at: now
             )
         ]
+    }
+
+    /// How long after this service is constructed the second item appears.
+    ///
+    /// Short enough for an acceptance script to wait through and long enough that the first read
+    /// reliably sees one item. Measured against the service's own construction rather than against a
+    /// stored flag, so repeated reads are a pure function of the clock and a second `snapshot()`
+    /// inside the window still reports one item.
+    public static let arrivalDelay: TimeInterval = 6
+
+    /// One item now, two after ``arrivalDelay``.
+    static func arriving(at start: Date) throws(InboxServiceError) -> [InboxItem] {
+        let first = try item(id: "q-1", entry: authoredStdioID, name: "Local notes", ago: 300, at: start)
+        guard Date().timeIntervalSince(start) >= arrivalDelay else { return [first] }
+        // Queued *after* the first, so oldest-first puts it second — which is the property the state
+        // exists to demonstrate: nothing already on screen moves.
+        return try [first, item(id: "q-2", entry: "smithery:deepwiki", name: "DeepWiki", ago: 1, at: Date())]
     }
 
     static func withLongName(at now: Date) throws(InboxServiceError) -> [InboxItem] {

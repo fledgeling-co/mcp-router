@@ -203,6 +203,10 @@
             eventSource: @escaping @MainActor () -> (any ActivityEventSource)? = {
                 ShellClientFactory.makeEventSource()
             },
+            // Silence by default, and the app passes the real one. The choice needs the process's
+            // own bundle identifier, which A36 forbids these files from reading — see
+            // `ArrivalNotifierFactory` for why that gate is satisfied rather than amended.
+            notifier: any ArrivalNotifier = SilentArrivalNotifier(),
             clock: @escaping @MainActor () -> Date = { Date() }
         ) {
             self.client = client
@@ -210,7 +214,7 @@
             inboxBoard = InboxBoardModel(
                 client: client,
                 service: ShellPairingFactory.makeService(),
-                notifier: ArrivalNotifierFactory.make()
+                notifier: notifier
             )
             // Poll-only, and at the shell's own stated cadence rather than the tracker's default —
             // A16 requires the refresh rate the surface actually runs at to be the one named.

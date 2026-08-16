@@ -17,11 +17,25 @@ struct MCPRouterApp: App {
     /// A Release build gets the live loopback client and can never be talked into a fixture; a Debug
     /// build takes a scenario from the environment so the acceptance gate can drive the app into any
     /// of `DESIGN.md` §5's states. `ShellClientFactory` holds that rule, where a test reaches it.
-    @State private var model = ShellModel(client: ShellClientFactory.makeClient())
+    /// The notifier needs the process's own bundle identifier, and this is the only file that may
+    /// read it: A36's one-channel gate forbids the name `Bundle` in `MCPRouterUI`'s shell files, and
+    /// that gate is satisfied rather than amended. Assembly, like everything else here.
+    @State private var model = ShellModel(
+        client: ShellClientFactory.makeClient(),
+        notifier: ArrivalNotifierFactory.make(bundleIdentifier: Bundle.main.bundleIdentifier)
+    )
 
     var body: some Scene {
         WindowGroup("MCP Router") {
             ShellWindow(model: model)
+                // Assembly, like everything else here: the guard, the mapping from a press to an
+                // operation, and both operations live in `MCPRouterUI` where a test reaches them.
+                .onAppear {
+                    InboxNotificationDelegate.install(
+                        on: model,
+                        bundleIdentifier: Bundle.main.bundleIdentifier
+                    )
+                }
                 .frame(
                     minWidth: MetricToken.sidebar.leadingScalar * 2,
                     minHeight: MetricToken.sidebar.leadingScalar

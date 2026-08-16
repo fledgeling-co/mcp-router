@@ -1,5 +1,4 @@
 #if os(macOS)
-    import Foundation
     import MCPRouterKit
     import UserNotifications
 
@@ -13,15 +12,21 @@
     /// The same shape `ShellClientFactory` and `ShellPairingFactory` use, for the same reason: a
     /// decision that lives in an app target is a decision `swift test` cannot reach.
     public enum ArrivalNotifierFactory {
-        /// - Parameter bundleIdentifier: `Bundle.main.bundleIdentifier` in the app, and whatever a
-        ///   test wants to prove. `nil` means there is no notification centre to talk to.
+        /// - Parameter bundleIdentifier: the process's own identifier, supplied by the app target
+        ///   and by nothing else. `nil` means there is no notification centre to talk to.
+        ///
+        /// **It is a parameter with no default, and A36 is why.** The shell's one-channel gate
+        /// forbids naming the resource-reading framework in these files, because reading a bundled
+        /// resource is how a surface comes to render something no router observed. Reading the
+        /// process's own identifier is not that — but the honest response to a blunt gate whose
+        /// reason is good is to satisfy it rather than to carve an exception into it, so the
+        /// identity is passed in from the assembly file that already knows it. The gate is a source
+        /// grep, which is why this comment does not spell the name either.
         public static func choose(bundleIdentifier: String?) -> Bool {
             bundleIdentifier != nil
         }
 
-        public static func make(
-            bundleIdentifier: String? = Bundle.main.bundleIdentifier
-        ) -> any ArrivalNotifier {
+        public static func make(bundleIdentifier: String?) -> any ArrivalNotifier {
             choose(bundleIdentifier: bundleIdentifier)
                 ? UserNotificationArrivalNotifier()
                 : SilentArrivalNotifier()

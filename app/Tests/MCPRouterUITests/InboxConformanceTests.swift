@@ -165,7 +165,11 @@
                 "Inbox", "Nothing", "Things", "Sent", "It", "The", "This", "A", "That",
                 "Treat", "Scan", "Update", "Each", "Removing", "Installed", "Declined",
                 "On", "Paired", "Preparing", "Reading", "Can't", "What", "Local", "Runs",
-                "Starting", "Re-pair", "Check", "You", "Your", "SHA256", "Update"
+                "Starting", "Re-pair", "Check", "You", "Your", "SHA256", "Update",
+                // Interpolated device names are proper nouns the copy never chose. Listed rather
+                // than skipped, so a Title Case word in the *fixed* half of the same sentence
+                // still fails.
+                "Luke's"
             ]
             for line in [
                 InboxCopy.emptyDetail,
@@ -178,7 +182,17 @@
                 InboxCopy.Pairing.warning,
                 InboxCopy.Pairing.noEndpointDetail,
                 InboxCopy.accepted("Local notes"),
-                InboxCopy.declined("Local notes")
+                InboxCopy.declined("Local notes"),
+                // I6's copy. Absent until now, which meant Title Case in every string this item
+                // added could not fail this clause — the walk named the rule and covered none of
+                // the surfaces the rule had just been extended to.
+                InboxCopy.alreadyHandled,
+                InboxCopy.Band.overflow(3),
+                InboxCopy.Band.partialCapability,
+                InboxCopy.Arrival.subtitle(device: "Luke's iPhone"),
+                InboxCopy.Arrival.manyTitle(2),
+                InboxCopy.Arrival.manyBody,
+                InboxCopy.Arrival.partialBody
             ] {
                 // Skip the first word of each sentence; the rest must not be capitalised unless it
                 // is a name.

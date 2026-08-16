@@ -178,4 +178,76 @@ struct InboxAnnouncementTests {
         ])
         #expect(restored.isEmpty)
     }
+
+    // MARK: - Where a press lands
+
+    /// **The walk two doc comments already claimed existed.**
+    ///
+    /// `InboxNotificationRoute` was extracted from the delegate for exactly one reason, stated in
+    /// its own comment: as a value it can be *"walked over every action and both identifier
+    /// shapes"*, where the delegate's `perform` can only be reached from a real notification centre.
+    /// The extraction happened and the walk did not — `InboxNotificationRoute` had no reference in
+    /// `app/Tests` at all, so the type that exists to make the boundary checkable was checked by
+    /// nothing, and the comment saying otherwise was the only evidence anyone had.
+    ///
+    /// This is the boundary clause at the mapping layer: `InboxArrivalTests` counts `add` on a
+    /// recording client while driving the board's own methods, which catches a route that installs
+    /// *by calling accept*. It cannot catch a route that installs by naming a case that installs,
+    /// because it never evaluates the mapping. Both halves are needed and neither is the other.
+    @Test("every action on either identifier shape routes somewhere that installs nothing")
+    func noRouteInstalls() {
+        for action in InboxNotificationAction.allCases {
+            for identifier in ["q-1", InboxAnnouncement.manyIdentifier] {
+                let route = InboxNotificationRoute.route(action, identifier: identifier)
+                // Exhaustive on purpose: a case added here has to be decided in this switch before
+                // the suite compiles, which is the same enforcement the delegate's switch makes.
+                switch route {
+                case .openInbox, .review, .decline:
+                    continue
+                }
+            }
+        }
+        // Said in its own terms as well, so the clause fails on the rule rather than only on a
+        // compile error: a multi-item banner names no single item, so every press on it lands on
+        // the board — including a `decline` identifier delivered under an older build's category.
+        for action in InboxNotificationAction.allCases {
+            #expect(
+                InboxNotificationRoute.route(
+                    action,
+                    identifier: InboxAnnouncement.manyIdentifier
+                ) == .openInbox,
+                "a press on the many-item banner acted on an item it does not name"
+            )
+        }
+        #expect(InboxNotificationRoute.route(.review, identifier: "q-1") == .review(itemID: "q-1"))
+        #expect(InboxNotificationRoute.route(.decline, identifier: "q-1") == .decline(itemID: "q-1"))
+    }
+
+    /// A dismissal is not a decision. Closing a banner has to resolve to no action at all, or
+    /// ignoring a notification would come to mean something about the item.
+    @Test("a dismissal resolves to nothing, and the default press is a review")
+    func dismissalDecidesNothing() {
+        #expect(
+            InboxNotificationAction.resolve(
+                identifier: "com.apple.UNNotificationDismissActionIdentifier",
+                isDefaultAction: false,
+                isDismissAction: true
+            ) == nil
+        )
+        #expect(
+            InboxNotificationAction.resolve(
+                identifier: "com.apple.UNNotificationDefaultActionIdentifier",
+                isDefaultAction: true,
+                isDismissAction: false
+            ) == .review
+        )
+        // An identifier no case names resolves to nothing rather than to the nearest branch.
+        #expect(
+            InboxNotificationAction.resolve(
+                identifier: "install",
+                isDefaultAction: false,
+                isDismissAction: false
+            ) == nil
+        )
+    }
 }

@@ -256,6 +256,30 @@ d = 'app/Sources/MCPRouterUI/Shell/InboxNotificationDelegate.swift'
 t = open(d).read().replace('case .decline:', 'case .install: return\n            case .decline:')
 open(d, 'w').write(t)"
 
+# ---------------------------------------------------------------------------
+# The third block, added on the close-out relaunch.
+#
+# Two of these aim at clauses that did not exist until the out-of-family review named the gap, and
+# one aims at a fix a rescue commit made whose evidence was a comment. The middle one is the
+# instructive case: `withdrawBanner` was added to `record` so a disposition withdraws its banner at
+# the press rather than at the next poll, and the clause that names withdrawal
+# (`withdrawalIsSweptOnTheNextRead`) is green with the call deleted — the reconcile produces the same
+# withdrawal two seconds later. A fix whose only evidence is a clause that cannot see it is not a
+# proven fix, which is what this mutation now measures.
+# ---------------------------------------------------------------------------
+
+mutate "withdraw-now a disposition leaves its banner up until the next poll" \
+  "$UI/Boards/InboxBoardModel.swift" InboxArrivalTests \
+  "s = s.replace('            withdrawBanner(for: disposition.item.id)\n', '')"
+
+mutate "route a press on the many-item banner acts on an item it does not name" \
+  "$KIT/Inbox/InboxArrival.swift" InboxAnnouncementTests \
+  "s = s.replace('guard identifier != InboxAnnouncement.manyIdentifier else { return .openInbox }', '')"
+
+mutate "A22b Title Case reaches the I6 copy the sentence-case walk now covers" \
+  "$KIT/Inbox/InboxCopy.swift" InboxConformanceTests \
+  's = s.replace("\"\\(remaining) more waiting · open Inbox\"", "\"\\(remaining) more waiting · Open Inbox\"")'
+
 echo
 echo "i6 mutations: $pass red, $fail that should have been red and were not"
 [ "$fail" -eq 0 ]

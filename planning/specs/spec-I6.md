@@ -199,12 +199,20 @@ notifications the app has no way to generate — the kind of prompt that gets de
 poisons the grant for when it matters. macOS prompts only once, so re-requesting on every launch of
 an already-paired Mac is a no-op.
 
-**Denied is a designed state, not a failure.** Nothing nags and nothing retries. The pairing sheet's
-paired state carries one quiet secondary line saying what that costs, adjacent to the thing and at the
-moment it becomes relevant:
+**Denied is a designed state, not a failure.** Nothing nags and nothing retries. The design calls for
+the pairing sheet's paired state to carry one quiet secondary line saying what that costs, adjacent to
+the thing and at the moment it becomes relevant:
 
 > Notifications are off, so nothing will announce an arrival. The menu-bar item still takes its dot.
 > Turn them on in System Settings › Notifications.
+
+**Not shipped, and the copy for it is deleted rather than left unrendered.** `PairingSessionModel.Phase`
+has no `paired` case; its own comment records that `.noEndpoint` is the only phase a Release build
+reaches, and I5 measured that no pairing transport exists at all. Adding a `paired` phase would not
+ship this line, it would move the lie one layer down — a state nothing can enter, rendering a sentence
+nobody can see. `notificationsAuthorized` is still recorded on the board, because it is the observable
+that makes the ask-once rule above fail when it is broken; it is not a render source and no view reads
+it. When a `paired` phase exists because something can reach it, this line is three lines of work.
 
 ### What it says
 
@@ -311,11 +319,17 @@ The label's vocabulary already generalises: one queued item alone reads
 
 | Key | Where | Behaviour |
 |---|---|---|
-| `↑` `↓` | popover | moves through band rows — **inbox rows first, then attention rows**, in render order. Call rows are skipped, as M8 specified |
-| `Return` | popover | opens the focused row's destination. M8's contract, extended to the new rows |
-| `Esc` | popover | dismisses. `MenuBarExtra(.window)`'s own |
+| `↑` `↓` | popover | **Not implemented, here or in M8.** The intent is: moves through band rows — inbox rows first, then attention rows, in render order, call rows skipped. `MenuBarPopover` has no `onKeyPress` at all, so nothing in this build moves a focus ring through popover rows. M8's spec table described the same handlers and M8 did not implement them either; repeating the claim for the new rows would have made a second surface's table false rather than made the first one true |
+| `Return` | popover | **Not implemented**, for the same reason and in the same place. The intent is: opens the focused row's destination |
+| `Esc` | popover | dismisses. `MenuBarExtra(.window)`'s own, so this one is real |
 | `⌘5` | anywhere | Inbox. Unchanged |
 | `⌘Z` | window | undo the last disposition. Unchanged — **including one made from the popover or a notification**, because there is one model and one slot |
+
+Every row the popover draws is reachable without the keyboard: each declares its default action and
+its decline action by name to VoiceOver, which is the accessibility guarantee the rows actually carry
+and the one the acceptance path exercises. Arrow-key traversal is a separate piece of work against
+`MenuBarPopover`, owed by M8 rather than by I6, and it is named here as owed rather than described as
+present.
 
 **I6 adds no shortcut and no menu item.** Every command it exposes is reachable from the menu bar
 already (`⌘5` reaches the board, `⌘Z` reverses a decline), which is what §3.9 requires.

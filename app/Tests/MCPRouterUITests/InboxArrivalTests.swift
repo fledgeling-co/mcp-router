@@ -302,11 +302,19 @@
 
         // MARK: - A17 · withdrawal
 
-        /// Derived from the rows on every read rather than commanded at each disposition site: a
-        /// call a later edit can drop silently would leave a banner offering `Decline` for an item
-        /// that is already gone.
-        @Test("a dispositioned item's banner is withdrawn on the next read, by id")
-        func withdrawalIsDerived() async throws {
+        /// **The backstop, and it is only the backstop.** An earlier version of this comment said
+        /// the withdrawal was "derived from the rows on every read rather than commanded at each
+        /// disposition site". That stopped being true when `record` began calling
+        /// `withdrawBanner(for:)`, and the sentence mattered: because the reconcile produces the
+        /// same withdrawal one poll later, this clause is green with or without that call, so it
+        /// cannot be the evidence for the spec's *"the moment"*.
+        /// `withdrawalIsCommandedAtTheDisposition` is, and it runs no `load()` at all.
+        ///
+        /// What is real here is the case the commanded call cannot reach: an item that left the
+        /// queue without passing through a disposition on this Mac, because another surface or the
+        /// router itself removed it. That is why both exist and neither is the other's duplicate.
+        @Test("an item gone from the queue has its banner swept on the next read, by id")
+        func withdrawalIsSweptOnTheNextRead() async throws {
             let notifier = RecordingArrivalNotifier()
             let both = try [Self.item(id: "q-1", secondsAgo: 300, resolved: true),
                             Self.item(id: "q-2", secondsAgo: 60, resolved: true)]

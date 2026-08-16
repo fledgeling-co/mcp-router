@@ -170,15 +170,22 @@ public enum InboxCopy {
         public static let reviewAction = "Review"
         public static let declineAction = "Decline"
 
-        /// What being denied notifications costs, said once, adjacent to the thing, at the moment it
-        /// becomes relevant — the paired state of the pairing sheet.
-        ///
-        /// Nothing nags and nothing retries. It names what still works, because the menu-bar dot is
-        /// a real fallback rather than a consolation.
-        public static let notificationsOff = """
-        Notifications are off, so nothing will announce an arrival. The menu-bar item still takes \
-        its dot. Turn them on in System Settings › Notifications.
-        """
+        // **The denied-notifications line is deliberately absent, and this note is its record.**
+        //
+        // `spec-I6.md` designed one quiet secondary line for the pairing sheet's *paired* state,
+        // saying what being denied costs. It was written and never rendered, because
+        // `PairingSessionModel.Phase` has no `paired` case — and adding one would not ship the
+        // sentence, it would move the lie. That enum's own comment states that `.noEndpoint` is the
+        // only phase a Release build reaches, and I5 measured that no pairing transport exists at
+        // all, so a `paired` phase would be a state nothing can enter rendering a line nobody can
+        // see. That is the same failure as the partial row's full-width `Review` button, one layer
+        // down.
+        //
+        // So the string is deleted rather than kept unrendered. An unused constant is the shape a
+        // shipped feature and an unbuilt one share, and this item's whole argument is that those two
+        // must not look alike. The spec says the same thing in the same words; when a `paired` phase
+        // exists because something can reach it, the line is three lines of work and the copy comes
+        // back with it.
     }
 
     // MARK: - Pairing

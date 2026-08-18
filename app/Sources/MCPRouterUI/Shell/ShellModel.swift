@@ -379,24 +379,6 @@
             pollTask = nil
             stopInboxPolling()
         }
-
-        /// What the menu bar needs to know to enable or dim its items.
-        ///
-        /// Computed rather than stored, so it cannot disagree with the board it describes. The
-        /// tripped question is asked of the selected server's own placard, which is the same fact
-        /// the row's Reset action branches on — one source, two readers.
-        public var menuContext: MenuCommand.CommandContext {
-            let selected: Bool? = serversBoard.selection.flatMap { name in
-                guard let state = trackerState,
-                      let server = state.servers.first(where: { $0.name == name })
-                else { return nil }
-                return server.placard != nil
-            }
-            return MenuCommand.CommandContext(
-                installedDestinations: BoardRegistry.installed,
-                selectedServerIsTripped: selected
-            )
-        }
     }
 
 #endif

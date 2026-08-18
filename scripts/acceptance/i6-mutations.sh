@@ -186,7 +186,7 @@ mutate "A8b macOS is handed a button the delegate has no case for" \
 
 mutate "A8c the decline button drags the whole app forward" \
   "$UI/Shell/ArrivalNotifierFactory.swift" ArrivalNotifierFactoryTests \
-  "s = s.replace('// through the same single-slot undo the pane uses.\n                        options: []', '// through the same single-slot undo the pane uses.\n                        options: [.foreground]')"
+  "s = s.replace('// through the same single-slot undo the pane uses.\n                    options: []', '// through the same single-slot undo the pane uses.\n                    options: [.foreground]')"
 
 mutate "A14 several arrivals each get their own banner" \
   "$KIT/Inbox/InboxArrival.swift" InboxAnnouncementTests \
@@ -250,7 +250,7 @@ mutate "enrol  the band leaves the scanned file list" \
 # silence.
 mutate_uncompilable "A8d a third action case cannot be added at all, delegate patched and all" \
   "$KIT/Inbox/InboxArrival.swift" \
-  "switch must be exhaustive" "InboxArrivalTests.swift" \
+  "switch must be exhaustive" "InboxArrival.swift" \
   "s = s.replace('    case decline\n', '    case decline\n    case install\n')
 d = 'app/Sources/MCPRouterUI/Shell/InboxNotificationDelegate.swift'
 t = open(d).read().replace('case .decline:', 'case .install: return\n            case .decline:')

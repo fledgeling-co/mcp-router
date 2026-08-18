@@ -70,7 +70,6 @@
         /// state. It is drawn as content rather than as a control, and its capability line says why.
         /// The earlier version drew the same full-width Review button on it and opened a sheet that
         /// could never install — an affordance that is a lie rather than a hole.
-        @ViewBuilder
         private func row(for row: InboxBand.Row) -> some View {
             HStack(spacing: PopoverMetrics.gap) {
                 if row.isReviewable {

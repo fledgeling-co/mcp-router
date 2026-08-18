@@ -223,6 +223,7 @@ struct InboxBandTests {
         )
         #expect(band.rows[0].capability == nil)
         #expect(band.rows[0].isPartial)
+        #expect(!band.rows[0].isReviewable, "a partial row must carry no review affordance")
         #expect(band.rows[0].title == "Withdrawn entry")
     }
 

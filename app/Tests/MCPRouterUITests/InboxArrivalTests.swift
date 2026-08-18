@@ -145,8 +145,10 @@
             #expect(notifier.announcements.count == 1, "the arrival branch was never entered")
             _ = board.bandZone()
 
-            // Every action the closed set contains, on a real waiting item.
+            // Every action the closed set contains, directly through the delegate as well as the board.
+            let shell = ShellModel(client: client, notifier: notifier)
             for action in InboxNotificationAction.allCases {
+                InboxNotificationDelegate.handle(action, identifier: "q-1", on: shell)
                 switch action {
                 case .review: board.review(itemID: "q-1")
                 case .decline: board.decline(itemID: "q-2")

@@ -83,8 +83,8 @@
 
         /// Whether the user granted notifications, or `nil` before anyone asked.
         ///
-        /// Rendered in exactly one place — the pairing sheet's paired state — because that is the
-        /// moment being denied starts costing something. Nothing nags and nothing retries.
+        /// Stored as the observable that makes the ask-once rule fail when broken. No view reads
+        /// this directly today (PairingSheet has no paired phase in Release, per `spec-I6.md`).
         public internal(set) var notificationsAuthorized: Bool?
 
         public private(set) var state: LoadState = .loading

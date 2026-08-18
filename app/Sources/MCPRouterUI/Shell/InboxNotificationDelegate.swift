@@ -50,7 +50,7 @@
             )
             guard let action else { return }
             let identifier = response.notification.request.identifier
-            await MainActor.run { Self.perform(action, identifier: identifier) }
+            await MainActor.run { Self.handle(action, identifier: identifier) }
         }
 
         /// Deliver while the app is frontmost too.
@@ -78,8 +78,11 @@
         }
 
         @MainActor
-        private static func perform(_ action: InboxNotificationAction, identifier: String) {
-            guard let model = target else { return }
+        public static func handle(
+            _ action: InboxNotificationAction,
+            identifier: String,
+            on model: ShellModel
+        ) {
             // The mapping is `InboxNotificationRoute`'s, in the Kit, where a clause walks every
             // action against both identifier shapes. What is left here is which shell operation each
             // route names — and none of the three declares anything on this Mac.
@@ -93,6 +96,12 @@
                 // being available here.
                 model.declineFromOutside(itemID: itemID)
             }
+        }
+
+        @MainActor
+        private static func handle(_ action: InboxNotificationAction, identifier: String) {
+            guard let model = target else { return }
+            handle(action, identifier: identifier, on: model)
         }
     }
 #endif

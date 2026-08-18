@@ -20,7 +20,7 @@
         /// itself is `ShellModel.reveal`, where a test asserts it.
         @MainActor
         public static func reveal(_ row: MenuBarPresentation.AttentionRow, on model: ShellModel) {
-            NSApp.activate(ignoringOtherApps: true)
+            NSApp?.activate(ignoringOtherApps: true)
             bringWindowForward()
             Task { await model.reveal(server: row.server, openingHeldChange: row.opensHeldChangeSheet) }
         }
@@ -28,7 +28,7 @@
         /// Open the main window from the popover's one action.
         @MainActor
         public static func openWindow() {
-            NSApp.activate(ignoringOtherApps: true)
+            NSApp?.activate(ignoringOtherApps: true)
             bringWindowForward()
         }
 
@@ -43,7 +43,7 @@
         /// capability statement in front of it.
         @MainActor
         public static func revealInbox(itemID: String, on model: ShellModel) {
-            NSApp.activate(ignoringOtherApps: true)
+            NSApp?.activate(ignoringOtherApps: true)
             bringWindowForward()
             model.revealInbox(itemID: itemID)
         }
@@ -52,7 +52,7 @@
         /// where a multi-item notification lands. No sheet: there is no single item to review.
         @MainActor
         public static func openInbox(on model: ShellModel) {
-            NSApp.activate(ignoringOtherApps: true)
+            NSApp?.activate(ignoringOtherApps: true)
             bringWindowForward()
             model.select(.inbox)
         }
@@ -61,7 +61,7 @@
         /// help tag promises and what makes quitting safe for someone mid-session.
         @MainActor
         public static func quit() {
-            NSApp.terminate(nil)
+            NSApp?.terminate(nil)
         }
 
         /// The app's own window, rather than whatever happens to be first.
@@ -71,7 +71,7 @@
         /// so the panel classes are skipped.
         @MainActor
         private static func bringWindowForward() {
-            let target = NSApp.windows.first { window in
+            let target = NSApp?.windows.first { window in
                 window.canBecomeMain && !(window is NSPanel)
             }
             target?.makeKeyAndOrderFront(nil)

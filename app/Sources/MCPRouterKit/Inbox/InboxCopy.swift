@@ -115,6 +115,79 @@ public enum InboxCopy {
 
     public static let undoAction = "Undo"
 
+    /// A route arrived for an item that is no longer waiting.
+    ///
+    /// Reachable only in the microseconds between a disposition and its banner being withdrawn, and
+    /// it renders in the report slot `declined` and `accepted` already use rather than in a banner
+    /// of its own — a new surface for a state measured in microseconds would be furniture. It does
+    /// not blame and does not ask anything: the item was handled, which is the outcome the user
+    /// wanted anyway.
+    public static let alreadyHandled = "That item was already handled."
+
+    // MARK: - The menu-bar band
+
+    public enum Band {
+        /// The row that stands for everything past the popover's cap.
+        ///
+        /// The band's header line already states the true total, so this states the remainder and
+        /// names where the rest of them are. `DESIGN.md` §6: verb-first, and it names the
+        /// destination rather than saying "more".
+        public static func overflow(_ remaining: Int) -> String {
+            "\(remaining) more waiting · open Inbox"
+        }
+
+        /// What a row whose entry could not be read says in place of a capability line.
+        ///
+        /// Shorter than the pane's `partialDetail` because the popover has no room for the
+        /// paragraph, and it says the same thing: nothing about what it runs can be shown, so
+        /// nothing can be accepted.
+        public static let partialCapability = "This entry could not be read"
+    }
+
+    // MARK: - The arrival notification
+
+    public enum Arrival {
+        /// Names the sender. The device name is the **one** phone-supplied string that reaches a
+        /// notification, and it is a label rather than a claim about what anything does — everything
+        /// this app says about capability comes from the registry entry the Mac resolved itself.
+        public static func subtitle(device: String) -> String {
+            "Queued from \(device)"
+        }
+
+        /// An item whose registry entry could not be read. The banner says so rather than saying
+        /// nothing, because a banner with no body reads as a thing with no consequences.
+        public static let partialBody = """
+        This entry could not be read, so what it would run cannot be shown.
+        """
+
+        public static func manyTitle(_ count: Int) -> String {
+            "\(count) items are waiting"
+        }
+
+        /// The tense is the same guarantee the review sheet's provenance note makes.
+        public static let manyBody = "Nothing has run. Open the inbox to review them."
+
+        public static let reviewAction = "Review"
+        public static let declineAction = "Decline"
+
+        // **The denied-notifications line is deliberately absent, and this note is its record.**
+        //
+        // `spec-I6.md` designed one quiet secondary line for the pairing sheet's *paired* state,
+        // saying what being denied costs. It was written and never rendered, because
+        // `PairingSessionModel.Phase` has no `paired` case — and adding one would not ship the
+        // sentence, it would move the lie. That enum's own comment states that `.noEndpoint` is the
+        // only phase a Release build reaches, and I5 measured that no pairing transport exists at
+        // all, so a `paired` phase would be a state nothing can enter rendering a line nobody can
+        // see. That is the same failure as the partial row's full-width `Review` button, one layer
+        // down.
+        //
+        // So the string is deleted rather than kept unrendered. An unused constant is the shape a
+        // shipped feature and an unbuilt one share, and this item's whole argument is that those two
+        // must not look alike. The spec says the same thing in the same words; when a `paired` phase
+        // exists because something can reach it, the line is three lines of work and the copy comes
+        // back with it.
+    }
+
     // MARK: - Pairing
 
     public enum Pairing {

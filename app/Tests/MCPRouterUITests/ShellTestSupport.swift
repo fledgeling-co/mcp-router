@@ -135,7 +135,15 @@
             // M6's factory. Enrolled here rather than merely added to the directory, because it is
             // the file that decides whether a build may render a fixture — and a fixture reaching a
             // Release build of *this* seam draws a QR code for an endpoint nothing is listening on.
-            "app/Sources/MCPRouterUI/Shell/ShellPairingFactory.swift"
+            "app/Sources/MCPRouterUI/Shell/ShellPairingFactory.swift",
+            // I6's inbox reach. Enrolled for the same reason M8's menu-bar files are: the band is
+            // drawn on the app's most visible surface, and the factory is the file that decides
+            // whether a notification centre is talked to at all — `UNUserNotificationCenter.current()`
+            // traps in a process with no bundle identifier, which is every `swift test` run.
+            "app/Sources/MCPRouterUI/Shell/ShellModelInbox.swift",
+            "app/Sources/MCPRouterUI/Shell/ArrivalNotifierFactory.swift",
+            "app/Sources/MCPRouterUI/Shell/InboxNotificationDelegate.swift",
+            "app/Sources/MCPRouterUI/Shell/MenuBarInboxBand.swift"
         ]
 
         /// The board files, held separately because a completeness test pins `shellFiles` to the
@@ -152,6 +160,8 @@
             "app/Sources/MCPRouterUI/Boards/InboxBoard.swift",
             "app/Sources/MCPRouterUI/Boards/InboxBoardRow.swift",
             "app/Sources/MCPRouterUI/Boards/InboxBoardModel.swift",
+            // I6's arrival half, on the same board.
+            "app/Sources/MCPRouterUI/Boards/InboxBoardModel+Arrivals.swift",
             "app/Sources/MCPRouterUI/Boards/InboxBoardMetrics.swift",
             "app/Sources/MCPRouterUI/Boards/InboxReviewSheet.swift",
             "app/Sources/MCPRouterUI/Boards/PairingSheet.swift",

@@ -48,6 +48,8 @@
         @ObservationIgnored public let client: any ControlAPIClient
         /// The retained poll loop. See ``startPolling()`` for why it is not owned by a scene.
         @ObservationIgnored private var pollTask: Task<Void, Never>?
+        /// The inbox's own loop, retained for the same reason and started from the same place.
+        @ObservationIgnored var inboxTask: Task<Void, Never>?
         /// The one reader of the control API, and the authority on what is running.
         ///
         /// Constructed **poll-only** — `stream` is nil, so the tracker reports `.notConfigured`
@@ -201,11 +203,15 @@
             eventSource: @escaping @MainActor () -> (any ActivityEventSource)? = {
                 ShellClientFactory.makeEventSource()
             },
+            // Silence by default, and the app passes the real one. The choice needs the process's
+            // own bundle identifier, which A36 forbids these files from reading — see
+            // `ArrivalNotifierFactory` for why that gate is satisfied rather than amended.
+            notifier: any ArrivalNotifier = SilentArrivalNotifier(),
             clock: @escaping @MainActor () -> Date = { Date() }
         ) {
             self.client = client
             self.eventSource = eventSource
-            inboxBoard = InboxBoardModel(client: client, service: ShellPairingFactory.makeService())
+            inboxBoard = Self.makeInboxBoard(client: client, notifier: notifier)
             // Poll-only, and at the shell's own stated cadence rather than the tracker's default —
             // A16 requires the refresh rate the surface actually runs at to be the one named.
             tracker = ServerStateTracker(
@@ -352,13 +358,18 @@
         /// The cost is a two-second poll against loopback for as long as the app runs, which for an
         /// app whose entire subject is live status is the feature rather than a leak.
         ///
-        /// Idempotent, and that matters: the window and the menu bar both call it, and two loops
-        /// would overlap their requests so an older response could land after a newer one.
+        /// Idempotent, and that matters: `ShellWindow` is its only caller today, but the guard is
+        /// what makes a second surface calling it safe — two loops would overlap their requests, so
+        /// an older response could land after a newer one. (An earlier version of this comment said
+        /// the menu bar called it too. It does not: `MenuBarExtra` renders from the model rather than
+        /// driving it, and `LSUIElement` is false, so a window scene exists at launch and starts the
+        /// poll.)
         public func startPolling() {
             guard pollTask == nil else { return }
             pollTask = Task { [weak self] in
                 await self?.run()
             }
+            startInboxPolling()
         }
 
         /// Stops it. Not called by any scene — it exists so a test can end the loop it started, and
@@ -366,24 +377,7 @@
         public func stopPolling() {
             pollTask?.cancel()
             pollTask = nil
-        }
-
-        /// What the menu bar needs to know to enable or dim its items.
-        ///
-        /// Computed rather than stored, so it cannot disagree with the board it describes. The
-        /// tripped question is asked of the selected server's own placard, which is the same fact
-        /// the row's Reset action branches on — one source, two readers.
-        public var menuContext: MenuCommand.CommandContext {
-            let selected: Bool? = serversBoard.selection.flatMap { name in
-                guard let state = trackerState,
-                      let server = state.servers.first(where: { $0.name == name })
-                else { return nil }
-                return server.placard != nil
-            }
-            return MenuCommand.CommandContext(
-                installedDestinations: BoardRegistry.installed,
-                selectedServerIsTripped: selected
-            )
+            stopInboxPolling()
         }
     }
 

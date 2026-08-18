@@ -29,6 +29,51 @@ public struct PopoverContent: Equatable, Sendable {
     /// `nil` when no server wants a decision. Never an empty array.
     public let band: [MenuBarPresentation.AttentionRow]?
 
+    /// The inbox's presence, or `nil` when it has nothing to say.
+    ///
+    /// **It renders above `band`**, and the reason is structural rather than a matter of taste. The
+    /// attention band's length is unbounded — one row per server wanting a decision — so an inbox
+    /// band placed after it can be pushed below the fold on a Mac with several held changes. The
+    /// inbox band is the one thing `D-m6-d` exists to make reachable in a glance, and it cannot sit
+    /// behind a list whose length the user does not control.
+    ///
+    /// `zones` is where that order is stated as a value, so a clause about it is a unit test rather
+    /// than a screenshot.
+    public let inbox: InboxZone?
+
+    /// What the popover's inbox area is showing.
+    ///
+    /// Two shapes rather than a band plus a flag, because they are different conditions with
+    /// different content: a queue with things in it, and a queue this Mac could not read. Collapsing
+    /// them would either hide the failure or claim an empty queue for a queue nobody read — and
+    /// "nothing is waiting" is exactly the claim this surface must not make wrongly.
+    public enum InboxZone: Equatable, Sendable {
+        case band(InboxBand)
+        /// The queue itself could not be read. This Mac's storage, not the router's.
+        case unreadable(Message)
+    }
+
+    /// The popover's zones, top to bottom, as a value.
+    ///
+    /// Named `Zone` cases rather than a `[String]` so an ordering assertion cannot pass on a
+    /// coincidence of copy, and so a zone added later has to be placed rather than appended by
+    /// whichever view happened to draw it last.
+    public enum Zone: String, Equatable, Sendable {
+        case header, stale, inbox, attention, calls, message, footer
+    }
+
+    /// The order the view draws in. `header` and `footer` are always present; the rest appear when
+    /// they have something to say.
+    public var zones: [Zone] {
+        var order: [Zone] = [.header]
+        if stale != nil { order.append(.stale) }
+        if inbox != nil { order.append(.inbox) }
+        if band != nil { order.append(.attention) }
+        order.append(message != nil ? .message : .calls)
+        order.append(.footer)
+        return order
+    }
+
     /// The most recent calls, newest first, capped at `MenuBarPresentation.recentCallLimit`.
     public let calls: [CallRow]
 
@@ -39,12 +84,14 @@ public struct PopoverContent: Equatable, Sendable {
         counts: MenuBarPresentation.Counts?,
         stale: StaleNotice? = nil,
         band: [MenuBarPresentation.AttentionRow]?,
+        inbox: InboxZone? = nil,
         calls: [CallRow] = [],
         message: Message? = nil
     ) {
         self.counts = counts
         self.stale = stale
         self.band = band
+        self.inbox = inbox
         self.calls = calls
         self.message = message
     }
@@ -114,28 +161,35 @@ public struct PopoverContent: Equatable, Sendable {
     ///
     /// One function so the popover cannot be assembled two different ways by two different views,
     /// and so every state clause is a call to it with constructed inputs rather than a live router.
+    ///
+    /// **The inbox zone is threaded through every branch, including the offline one**, and that is a
+    /// decision rather than a convenience. The queue is held by this Mac; the router being
+    /// unreachable does not unarrive anything, and hiding what is waiting because a *different*
+    /// subsystem is down would be the surface lying about the one thing it is for. Declining works
+    /// offline too — it calls the router nothing.
     public static func make(
         trackerState: ServerStateTracker.TrackerState?,
         records: [CallRecord],
+        inbox: InboxZone? = nil,
         now: Date
     ) -> PopoverContent {
         guard let trackerState else {
-            return PopoverContent(counts: nil, band: nil)
+            return PopoverContent(counts: nil, band: nil, inbox: inbox)
         }
 
         switch trackerState.load {
         case .loading:
             // Nothing has answered yet. No counts, and no message either — the view draws its
             // skeleton, which is not the same as telling the user something.
-            return PopoverContent(counts: nil, band: nil)
+            return PopoverContent(counts: nil, band: nil, inbox: inbox)
 
         case .failed:
             // Nothing has ever loaded and the router did not answer. The counts are absent rather
             // than zero, and the offline message replaces the log.
-            return PopoverContent(counts: nil, band: nil, message: .offline)
+            return PopoverContent(counts: nil, band: nil, inbox: inbox, message: .offline)
 
         case let .loaded(servers):
-            return populated(servers: servers, stale: nil, records: records, now: now)
+            return populated(servers: servers, stale: nil, records: records, inbox: inbox, now: now)
 
         case let .stale(servers, _):
             // The servers are real and keep their rows; the counts are a claim about *now*, so the
@@ -145,6 +199,7 @@ public struct PopoverContent: Equatable, Sendable {
                 servers: servers,
                 stale: StaleNotice(secondsAgo: age),
                 records: records,
+                inbox: inbox,
                 now: now
             )
         }
@@ -154,6 +209,7 @@ public struct PopoverContent: Equatable, Sendable {
         servers: [MCPServer],
         stale: StaleNotice?,
         records: [CallRecord],
+        inbox: InboxZone?,
         now: Date
     ) -> PopoverContent {
         let rows = MenuBarPresentation.attentionRows(from: servers)
@@ -166,6 +222,7 @@ public struct PopoverContent: Equatable, Sendable {
             stale: stale,
             // The nil-versus-empty distinction, in the one place it is decided.
             band: rows.isEmpty ? nil : rows,
+            inbox: inbox,
             calls: Array(calls),
             message: calls.isEmpty ? .emptyLog : nil
         )

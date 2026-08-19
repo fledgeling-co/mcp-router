@@ -128,11 +128,75 @@ shape of the defect that withdrew `install-launchd-watch` under `D-p1-e`.
 The gate runs the **unmutated** lane first and refuses to proceed unless it is green, so a mutation
 cannot be credited to a lane that was broken all along.
 
-MUTATION_TABLE_PLACEHOLDER
+| # | What it breaks | Trials red | What went red |
+|---|---|---|---|
+| 1 | `code_challenge` and `code_challenge_method` are not sent | **5 of 5** | the URL differs, and the fixture's authorization endpoint refuses a request with no challenge, so no code is ever issued |
+| 2 | a `state` parameter is emitted — exactly what the vendored Swift SDK does unconditionally, and the recorded reason it cannot serve this route | **5 of 5** | one extra parameter in the URL |
+| 3 | the authorization endpoint is guessed at `/authorize` instead of read from the metadata document | **5 of 5** | the provider's endpoints are behind an unguessable prefix, so the guess hits the catch-all 401 |
+| 4 | dynamic client registration is skipped and a `client_id` is invented | **5 of 5** | the registration request disappears from the provider's log, and the `client_id` differs in the URL and the token request |
+| 5 | the token request carries no `code_verifier` | **5 of 5** | the provider's PKCE check refuses the exchange, so no credential file is written |
+| 6 | the callback listener binds a port the redirect URI does not name | **5 of 5** | everything up to the browser hop is correct; only a lane that follows the redirect through to the router's own socket sees this |
+
+**examined=6 mutations × 5 trials = 30 lane runs, 30 red, 0 not red.**
+
+Two things about that run rather than only its number.
+
+**Mutation 5 did not apply on the first pass, and the gate called that a failure rather than
+crediting it.** Its snippet had been written before the token request took a `CodeExchange` value,
+so the exact-string edit matched nothing. The assertion inside `mutate` caught it
+(*"the mutation matched nothing, so it is not breaking what it names"*), the gate reported
+`FAIL … (unapplied)` and exited 1. The snippet was then **re-aimed at what the code says now**
+rather than swapped for an easier one, and `P7_MUTATION_ONLY` was added so it could be re-proved
+without re-running the five that held. Its re-run observed its own green baseline first.
+
+**The five earlier mutations were run against a 19-check lane and the sixth against a 21-check
+one**, because the `describe` guard was added between them. That does not weaken them: a guard is
+an additional failure condition, so it can turn a green lane red and can never turn a red lane
+green. The trials that were red stay red.
+
 
 ## 7. Gates
 
-GATES_PLACEHOLDER
+All run in this worktree, with `node_modules` and `dist` symlinked to the main checkout (the
+repo's `.gitignore` already anticipates the first; the second was added in the same shape).
+
+| Gate | Result |
+|---|---|
+| `make lint` | **0 violations / 471 files**; `no-raw-design-values` clean; `no-wire-codable` clean over Control, Registry, Usage and Auth, 2 exemptions recorded |
+| `make test` | **1490 tests / 184 suites**, 0 failures. `main` is 1467/178, so this adds 23 |
+| `make parity` | 358 vector cases compared, floor 358 |
+| `make build-mac` | `** BUILD SUCCEEDED **` |
+| `scripts/acceptance/parity-oauth.sh` | **21 checks passed, 0 failed** — `examined=21 failures=0` |
+| `scripts/acceptance/p7-mutations.sh` | **6 mutations × 5 trials = 30 lane runs, 30 red** |
+| `scripts/acceptance/p1-auth-routes.sh` | 13 passed, 0 failed |
+| `scripts/acceptance/parity-manifest-check.sh` | 83 rows, consistent with source, exit 0 |
+| `scripts/acceptance/parity-manifest-selftest.sh` | 36 behaved, 0 did not |
+| `scripts/acceptance/parity-lock-selftest.sh` | 12 held, 0 did not |
+| `scripts/acceptance/parity-normalise-selftest.sh` | 14 behaved, 0 did not |
+| `scripts/acceptance/parity-lane-selftest.sh` | exit 0, every seeded lane went red, failability **16 of 19** — unchanged, and the roll-up now names where this row's failability is proved instead |
+| `scripts/acceptance/parity-gate.sh` | **80 of 83 proven, 3 blocked, 0 DIVERGED.** Exits 1 by design while any row is blocked |
+
+### The gate's own count moved with the row
+
+**79 → 80 of 83.** The `oauth` lane appears as lane 13 of 13 and records one row; the `fixture`
+lane still reports **23 match the live reference, 0 drifted**, which is the check that would have
+caught the fixture-server change moving a captured byte.
+
+Two rows now stand between 80 and the owner's target of 82, and neither is this item's:
+
+    install     install-launchd-watch    D-p1-e   (P8)
+    install     install-rollback         R4-C
+
+The third blocked row is `fixture-registry-search`, the standing exclusion.
+
+### One false notice fixed on the way
+
+The gate printed *"the TypeScript reference is not built, so every lane that compares against it
+will report an environment failure"* — and then all thirteen lanes ran and every one reached the
+reference. `MCP_ROUTER_DIST` names the **directory** everywhere else in the harness, and the notice
+tested it as a file, so it fired on every run that set the variable. The branch it lives in
+contains nothing but `echo`, so the fix cannot reach any coverage arithmetic.
+
 
 ## 8. What could not be measured here, and why
 

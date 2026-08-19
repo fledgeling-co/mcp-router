@@ -85,6 +85,10 @@ grid-unit             8px       direction
   --fail-ink:#C8102E;
 
   /* --- signature: the signal path ---------------------------------------- */
+  /* --- storefront: the accent as a wash, for a mark rather than a control ---- */
+  --accent-wash:rgba(0,113,227,0.10);
+  --accent-wash-line:rgba(0,113,227,0.22);
+
   --jack-off:#D6D6DC;
   --jack-ring:rgba(0,0,0,0.14);
 
@@ -635,7 +639,10 @@ body{
 .trow[aria-selected="true"]{background:var(--accent-ink);color:var(--on-accent);}
 .trow[aria-selected="true"] .c-sub,.trow[aria-selected="true"] .mono,
 .trow[aria-selected="true"] .state-cell,.trow[aria-selected="true"] .small,
-.trow[aria-selected="true"] .tert,.trow[aria-selected="true"] .muted{color:var(--on-accent);}
+.trow[aria-selected="true"] .tert,.trow[aria-selected="true"] .muted,
+.trow[aria-selected="true"] .pub{color:var(--on-accent);}
+/* The verified glyph too: on the accent fill its own accent ink is nearly the ground it sits on. */
+.trow[aria-selected="true"] .pub .vf{color:var(--on-accent);}
 .trow[aria-selected="true"] .pill,.trow[aria-selected="true"] .btn{background:var(--raised);color:var(--t1);}
 .trow.disabled{color:var(--t4);}
 .c{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -796,6 +803,104 @@ textarea.field{height:auto;padding:6px 8px;line-height:16px;resize:none;}
 .form-row .fl b{display:block;font-size:13px;font-weight:500;color:var(--t1);line-height:16px;}
 .form-row .fl span{display:block;font-size:11px;color:var(--t2);line-height:15px;margin-top:1px;}
 .form-row .fc{display:flex;align-items:center;gap:8px;flex:0 0 auto;}
+
+/* ---- storefront ------------------------------------------------------------- */
+/*
+   Discover is a browse surface, so it is built like one: a featured band over collection rails
+   over category tiles, and the dense results table only appears once a query narrows the set.
+   That split is not decoration — a table is the right instrument for "these four matched" and the
+   wrong one for "what is worth having", and the Mac App Store, Vercel's marketplace and Cal.com's
+   app store all make the same cut.
+
+   Nothing here invents a number. A card shows the figure its index publishes and says which index
+   that was; where an index publishes nothing, the card carries no figure rather than a zero.
+*/
+.railhead{display:flex;align-items:baseline;gap:10px;margin:22px 0 10px;}
+.railhead h2{font-size:15px;line-height:20px;font-weight:600;color:var(--t1);
+  flex:0 0 auto;white-space:nowrap;}
+.railhead .rh-sub{font-size:11px;line-height:14px;color:var(--t3);flex:1 1 auto;min-width:0;}
+.railhead .rh-act{margin-left:auto;flex:0 0 auto;}
+
+/* A rail scrolls sideways and lets the next card peek, which is how a row says it continues
+   without a scrollbar the user has to find. `grid-auto-columns` fixes the card width so the peek
+   is a property of the layout rather than of how many cards happen to be in the row. */
+.rail{
+  display:grid;grid-auto-flow:column;grid-auto-columns:242px;gap:12px;
+  overflow-x:auto;overflow-y:hidden;padding:2px 2px 8px;
+  scroll-snap-type:x proximity;background:var(--ground);
+}
+.rail > *{scroll-snap-align:start;}
+
+.sf-mark{
+  width:38px;height:38px;flex:0 0 38px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--f2);border:1px solid var(--line);color:var(--t2);
+}
+.sf-mark.lg{width:56px;height:56px;flex:0 0 56px;border-radius:13px;}
+.sf-mark.on-accent{background:var(--accent-wash);border-color:var(--accent-wash-line);color:var(--accent-text);}
+
+/* The publisher line. The verified glyph is never shown without the word beside it — a mark alone
+   is a claim the reader has to already know how to decode. */
+.pub{display:flex;align-items:center;gap:5px;font-size:11px;line-height:14px;color:var(--t2);
+  white-space:nowrap;min-width:0;}
+.pub > span{overflow:hidden;text-overflow:ellipsis;}
+.trow .pub,.prodfacts .pub{display:inline-flex;}
+.pub .vf{width:12px;height:12px;flex:0 0 12px;color:var(--accent-ink);}
+.pub.community .vf{display:none;}
+
+.sf-card{
+  display:flex;flex-direction:column;gap:8px;align-items:stretch;text-align:left;
+  padding:12px;border:1px solid var(--line);border-radius:10px;
+  background:var(--ground);box-shadow:var(--shadow-card);min-width:0;
+}
+.sf-card:hover{background:var(--f3);}
+.sf-card .sf-top{display:flex;align-items:flex-start;gap:10px;min-width:0;}
+.sf-card .sf-id{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.sf-card .sf-name{display:block;font-size:13px;line-height:16px;font-weight:600;color:var(--t1);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sf-card .sf-sub{font-size:11px;line-height:15px;color:var(--t2);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.sf-card .sf-foot{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:2px;}
+.sf-card .sf-fig{font-size:11px;line-height:14px;color:var(--t3);white-space:nowrap;}
+
+/* The featured band. Two, never three: a third column takes each hero below the width where its
+   sentence still reads as a pitch rather than as a caption. */
+.sf-hero{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.hero{
+  display:flex;flex-direction:column;text-align:left;min-width:0;
+  border:1px solid var(--line);border-radius:12px;background:var(--ground);
+  box-shadow:var(--shadow-card);overflow:hidden;
+}
+.hero:hover{background:var(--f3);}
+.hero .plate{
+  height:118px;flex:0 0 118px;display:flex;align-items:center;gap:12px;
+  padding:0 18px;background:var(--panel);border-bottom:1px solid var(--line);
+}
+.hero .plate .pt{min-width:0;display:flex;flex-direction:column;gap:2px;}
+.hero .plate .peyebrow{display:block;font-size:11px;line-height:14px;font-weight:600;color:var(--accent-text);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hero .plate .ptitle{display:block;font-size:17px;line-height:22px;font-weight:700;color:var(--t1);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hero .hbody{padding:12px 16px 14px;display:flex;flex-direction:column;gap:8px;flex:1;min-width:0;}
+.hero .hbody p{font-size:12px;line-height:17px;color:var(--t2);}
+.hero .hfoot{display:flex;align-items:center;gap:8px;margin-top:auto;}
+
+/* Category tiles. A count is the whole reason a tile beats a link: it says how much is behind it
+   before the click, and every count here is the number of rows the merged catalogue holds. */
+.sf-tile{
+  display:flex;align-items:center;gap:10px;min-height:54px;padding:10px 12px;
+  border:1px solid var(--line);border-radius:10px;background:var(--ground);
+  text-align:left;min-width:0;box-shadow:var(--shadow-card);
+}
+.sf-tile:hover{background:var(--f3);}
+.sf-tile .tt{min-width:0;display:flex;flex-direction:column;gap:1px;}
+.sf-tile .tn{display:block;font-size:13px;line-height:16px;font-weight:500;color:var(--t1);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sf-tile .tc{display:block;font-size:11px;line-height:14px;color:var(--t3);white-space:nowrap;}
+/* `--t3`, not `--t4`. Every other use of `--t4` in this file is a disabled control, and a
+   disclosure chevron on a live tile is not disabled — design-lint measured the borrowed tier at
+   2.79:1, under the 3:1 floor a non-text affordance owes. */
+.sf-tile .tchev{margin-left:auto;flex:0 0 auto;color:var(--t3);}
 
 /* ---- attention band --------------------------------------------------------- */
 .band{
@@ -994,6 +1099,27 @@ textarea.field{height:auto;padding:6px 8px;line-height:16px;resize:none;}
 .sheet-titlebar .st{font-size:13px;font-weight:600;color:var(--t1);}
 /* The sheet declares its own ground; each band carries it too, so the panel is
    opaque even where a renderer skips the container box. */
+/* The storefront product header. It sits between the titlebar and the panes because the identity
+   and the one action must not scroll away underneath a long README — the reader's question while
+   they are eight paragraphs into "what it does" is still "and do I install it". */
+.prodhead{
+  display:flex;align-items:center;gap:14px;padding:14px 18px;
+  background:var(--panel);border-bottom:1px solid var(--line);
+}
+.prodhead .ph-t{min-width:0;display:flex;flex-direction:column;gap:3px;}
+.prodhead .ph-name{font-size:19px;line-height:24px;font-weight:700;color:var(--t1);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.prodhead .ph-sub{font-size:12px;line-height:16px;color:var(--t2);}
+.prodhead .ph-acts{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto;}
+.prodfacts{
+  display:flex;gap:0;border-top:1px solid var(--line);background:var(--ground);
+}
+.prodfacts .pf{flex:1;min-width:0;padding:9px 14px;border-right:1px solid var(--line);}
+.prodfacts .pf:last-child{border-right:0;}
+.prodfacts .pf-k{font-size:11px;line-height:14px;color:var(--t3);}
+.prodfacts .pf-v{font-size:12px;line-height:16px;color:var(--t1);font-weight:500;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
 .sheet-body{padding:16px 18px;max-height:56vh;overflow:auto;background:var(--ground);}
 .sheet-foot{
   display:flex;align-items:center;gap:8px;
@@ -1116,6 +1242,9 @@ textarea.field{height:auto;padding:6px 8px;line-height:16px;resize:none;}
   <symbol id="i-download" viewBox="0 0 16 16"><path d="M8 2.4v7.2M4.8 6.8 8 10l3.2-3.2M2.6 13h10.8"/></symbol>
   <symbol id="i-undo" viewBox="0 0 16 16"><path d="M3 6.4h6.6a3.6 3.6 0 0 1 0 7.2H6.2"/><path d="M5.6 3.4 2.6 6.4l3 3"/></symbol>
   <symbol id="i-star" viewBox="0 0 16 16"><path d="m8 2 1.85 3.75 4.15.6-3 2.93.71 4.12L8 11.45 4.29 13.4 5 9.28 2 6.35l4.15-.6z"/></symbol>
+  <symbol id="i-verified" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.1" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="m5.2 8.2 2 2 3.6-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 16 16"><path d="M2.6 2.6h4.2v4.2H2.6zM9.2 2.6h4.2v4.2H9.2zM2.6 9.2h4.2v4.2H2.6zM9.2 9.2h4.2v4.2H9.2z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 16 16"><path d="M5.6 1.9v3.4M10.4 1.9v3.4M3.6 5.3h8.8v2.2a4.4 4.4 0 0 1-4.4 4.4 4.4 4.4 0 0 1-4.4-4.4zM8 11.9v2.2" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </svg>
 
 <div class="stage">
@@ -1187,15 +1316,15 @@ textarea.field{height:auto;padding:6px 8px;line-height:16px;resize:none;}
 
   <div class="menu" id="m-view" hidden style="left:218px" role="menu" aria-label="View">
     <div class="menu-group-label">Go to board</div>
-    <button class="menu-item" role="menuitem" data-act="board:servers"><span class="tick">✓</span>Servers<span class="key">⌘1</span></button>
-    <button class="menu-item" role="menuitem" data-act="board:activity"><span class="tick"></span>Activity<span class="key">⌘2</span></button>
-    <button class="menu-item" role="menuitem" data-act="board:harnesses"><span class="tick"></span>Harnesses<span class="key">⌘3</span></button>
-    <button class="menu-item" role="menuitem" data-act="board:skills"><span class="tick"></span>Skills<span class="key">⌘4</span></button>
-    <button class="menu-item" role="menuitem" data-act="board:discover"><span class="tick"></span>Discover<span class="key">⌘5</span></button>
-    <button class="menu-item" role="menuitem" data-act="board:inbox"><span class="tick"></span>Inbox<span class="key">⌘6</span></button>
-    <button class="menu-item" role="menuitem" data-act="board:insights"><span class="tick"></span>Insights<span class="key">⌘7</span></button>
-    <button class="menu-item" role="menuitem" data-act="board:checks"><span class="tick"></span>Checks<span class="key">⌘8</span></button>
-    <button class="menu-item" role="menuitem" data-act="board:cleanup"><span class="tick"></span>Cleanup<span class="key">⌘9</span></button>
+    <button class="menu-item" role="menuitem" data-act="board:discover"><span class="tick">✓</span>Discover<span class="key">⌘1</span></button>
+    <button class="menu-item" role="menuitem" data-act="board:skills"><span class="tick"></span>Skills<span class="key">⌘2</span></button>
+    <button class="menu-item" role="menuitem" data-act="board:servers"><span class="tick"></span>Servers<span class="key">⌘3</span></button>
+    <button class="menu-item" role="menuitem" data-act="board:activity"><span class="tick"></span>Activity<span class="key">⌘4</span></button>
+    <button class="menu-item" role="menuitem" data-act="board:harnesses"><span class="tick"></span>Harnesses<span class="key">⌘5</span></button>
+    <button class="menu-item" role="menuitem" data-act="board:checks"><span class="tick"></span>Checks<span class="key">⌘6</span></button>
+    <button class="menu-item" role="menuitem" data-act="board:cleanup"><span class="tick"></span>Cleanup<span class="key">⌘7</span></button>
+    <button class="menu-item" role="menuitem" data-act="board:inbox"><span class="tick"></span>Inbox<span class="key">⌘8</span></button>
+    <button class="menu-item" role="menuitem" data-act="board:insights"><span class="tick"></span>Insights<span class="key">⌘9</span></button>
     <div class="menu-sep"></div>
     <button class="menu-item" role="menuitem" data-act="act:toggle-inspector">Hide Inspector<span class="key">⌥⌘I</span></button>
     <button class="menu-item" role="menuitem" data-act="act:toggle-sidebar">Hide Sidebar<span class="key">⌃⌘S</span></button>
@@ -1221,7 +1350,7 @@ textarea.field{height:auto;padding:6px 8px;line-height:16px;resize:none;}
     <button class="menu-item" role="menuitem" data-act="act:update-all">Update All Skills<span class="key">⌥⌘U</span></button>
     <button class="menu-item" role="menuitem" data-act="act:doctor">Run Doctor<span class="key">⌥⌘D</span></button>
     <div class="menu-sep"></div>
-    <button class="menu-item" role="menuitem" data-act="board:discover">Browse Registry…<span class="key">⌘5</span></button>
+    <button class="menu-item" role="menuitem" data-act="board:discover">Browse the store…<span class="key">⌘1</span></button>
     <button class="menu-item" role="menuitem" data-act="sheet:add-marketplace">Add Marketplace…</button>
     <div class="menu-sep"></div>
     <button class="menu-item" role="menuitem" data-act="act:run-checks">Run All Checks<span class="key">⌥⌘K</span></button>
@@ -1627,8 +1756,18 @@ app expects schema 3, router served schema 5</div>
     <div class="split">
       <!-- ===================== sidebar ===================== -->
       <nav class="sidebar" id="sidebar" role="tablist" aria-label="Boards">
+        <div class="side-section">Store</div>
+        <button class="side-row" role="tab" aria-selected="true" data-board="discover">
+          <span class="ico"><svg class="icon" aria-hidden="true"><use href="#i-discover"></use></svg></span>
+          <span class="lbl">Discover</span><span class="count mono">2,940</span>
+        </button>
+        <button class="side-row" role="tab" aria-selected="false" data-board="skills">
+          <span class="ico"><svg class="icon" aria-hidden="true"><use href="#i-skills"></use></svg></span>
+          <span class="lbl">Skills</span><span class="count mono">38</span>
+        </button>
+
         <div class="side-section">Routing</div>
-        <button class="side-row" role="tab" aria-selected="true" data-board="servers">
+        <button class="side-row" role="tab" aria-selected="false" data-board="servers">
           <span class="ico"><svg class="icon" aria-hidden="true"><use href="#i-servers"></use></svg></span>
           <span class="lbl">Servers</span><span class="count mono">11</span>
         </button>
@@ -1641,15 +1780,7 @@ app expects schema 3, router served schema 5</div>
           <span class="lbl">Harnesses</span><span class="pip" aria-label="wants a decision"></span>
         </button>
 
-        <div class="side-section">Library</div>
-        <button class="side-row" role="tab" aria-selected="false" data-board="skills">
-          <span class="ico"><svg class="icon" aria-hidden="true"><use href="#i-skills"></use></svg></span>
-          <span class="lbl">Skills</span><span class="count mono">38</span>
-        </button>
-        <button class="side-row" role="tab" aria-selected="false" data-board="discover">
-          <span class="ico"><svg class="icon" aria-hidden="true"><use href="#i-discover"></use></svg></span>
-          <span class="lbl">Discover</span>
-        </button>
+        <div class="side-section">Maintenance</div>
         <button class="side-row" role="tab" aria-selected="false" data-board="checks">
           <span class="ico"><svg class="icon" aria-hidden="true"><use href="#i-checks"></use></svg></span>
           <span class="lbl">Checks</span><span class="count mono">6</span>
@@ -1682,7 +1813,7 @@ app expects schema 3, router served schema 5</div>
       <div class="content" id="content">
 
 <!-- ============================================================= SERVERS -->
-<section class="board active" id="b-servers" data-state="ideal" role="tabpanel" aria-label="Servers">
+<section class="board" id="b-servers" data-state="ideal" role="tabpanel" aria-label="Servers">
 
   <div class="v v-ideal">
     <div class="board-head">
@@ -2464,6 +2595,7 @@ browser_markdown
               <div class="row">
                 <div style="min-width:0">
                   <h3>fledgeling-plugins</h3>
+                  <span class="pub">Fledgeling<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
                   <div class="small tert mono">github.com/fledgeling-co/fledgeling-plugins · main @ 4c1e08a</div>
                 </div>
                 <span class="pill good push"><span class="dot on"></span>Fresh · 12 min ago</span>
@@ -2472,7 +2604,7 @@ browser_markdown
                 <span class="pill">24 skills</span><span class="pill">18 installed</span><span class="pill">Sparse checkout · 3.1 MB</span>
               </div>
               <div class="row gap8 mt12">
-                <button class="btn sm">Browse…</button>
+                <button class="btn sm" data-act="act:browse-marketplace">Browse in the store…</button>
                 <button class="btn sm" data-act="act:update-market">Update now</button>
                 <button class="btn sm destructive push">Remove…</button>
               </div>
@@ -2481,6 +2613,7 @@ browser_markdown
               <div class="row">
                 <div style="min-width:0">
                   <h3>diolog-plugins</h3>
+                  <span class="pub community">Diolog<span>Community</span></span>
                   <div class="small tert mono">github.com/DiologIR/diolog-plugins · main @ 91f7d20</div>
                 </div>
                 <span class="pill warn push"><span class="dot warn"></span>Owner changed since install</span>
@@ -2629,71 +2762,365 @@ browser_markdown
 </section>
 
 <!-- ============================================================= DISCOVER -->
-<section class="board" id="b-discover" data-state="ideal" role="tabpanel" aria-label="Discover">
+<section class="board active" id="b-discover" data-state="ideal" role="tabpanel" aria-label="Discover">
   <div class="v v-ideal">
     <div class="board-head">
       <div style="min-width:0">
         <h1>Discover</h1>
-        <p>The merged official and community catalogue. This is the one board whose numbers are not the router’s own — each row says which index supplied it, because a star count and a download count are not the same claim.</p>
+        <p>Servers, skills and plugins from the official MCP registry, Smithery and every marketplace you have added. Nothing here is ranked by us — each card carries the figure its own index publishes and says which index that was.</p>
       </div>
-      <div class="acts"><button class="btn" data-act="act:refresh-catalogue">Refresh catalogue</button></div>
+      <div class="acts">
+        <button class="btn" data-act="sheet:add-marketplace">Add a marketplace…</button>
+        <button class="btn" data-act="act:refresh-catalogue">Refresh</button>
+      </div>
     </div>
     <div class="board-scroll">
       <div class="row gap8" style="flex-wrap:wrap">
-        <label class="searchfield" for="discoverSearch" style="width:280px">
+        <label class="searchfield" for="discoverSearch" style="width:300px">
           <svg class="icon sm" aria-hidden="true"><use href="#i-search"></use></svg>
-          <input id="discoverSearch" type="search" placeholder="Search 2,940 servers" aria-label="Search the registry" value="postgres">
+          <input id="discoverSearch" type="search" placeholder="Search 2,940 servers, skills and plugins" aria-label="Search the store" value="">
         </label>
-        <div class="segmented" role="group" aria-label="Catalogue source">
+        <div class="segmented" role="group" aria-label="Kind">
+          <button class="seg" aria-pressed="true">All</button>
+          <button class="seg" aria-pressed="false">Servers</button>
+          <button class="seg" aria-pressed="false">Skills</button>
+          <button class="seg" aria-pressed="false">Plugins</button>
+        </div>
+        <div class="segmented" role="group" aria-label="Publisher">
           <button class="seg" aria-pressed="true">All</button>
           <button class="seg" aria-pressed="false">Official</button>
-          <button class="seg" aria-pressed="false">Smithery</button>
+          <button class="seg" aria-pressed="false">Community</button>
         </div>
-        <button class="popup">Sort: Recently added<span class="chev"><svg class="icon sm" aria-hidden="true"><use href="#i-chev-ud"></use></svg></span></button>
+        <button class="btn quiet" data-act="sheet:official" aria-label="What official means">
+          <svg class="icon sm" aria-hidden="true"><use href="#i-info"></use></svg>What is official?
+        </button>
+        <button class="popup push">Sort: Recently changed<span class="chev"><svg class="icon sm" aria-hidden="true"><use href="#i-chev-ud"></use></svg></span></button>
       </div>
 
-      <div class="section-h">4 results for “postgres”</div>
-      <div class="tablecard">
-        <div class="thead">
-          <span class="c c-name">Server</span>
-          <span class="c c-flex">What it does</span>
-          <span class="c c-100">Source</span>
-          <span class="c c-72 c-right">Stars</span>
-          <span class="c c-120"></span>
+      <!-- ---------- the storefront: shown while no query narrows the set ---------- -->
+      <div id="storefront">
+        <div class="railhead">
+          <h2>Featured</h2>
+          <span class="rh-sub">Chosen by what the indexes and this Mac can actually observe — never by a ranking we invented.</span>
         </div>
-        <button class="trow" aria-selected="true">
-          <span class="c c-name">postgres-mcp</span>
-          <span class="c c-flex c-sub">Query and inspect a PostgreSQL database</span>
-          <span class="c c-100"><span class="pill accent">Official</span></span>
-          <span class="c c-72 c-right mono">4.1k</span>
-          <span class="c c-120"><span class="btn sm primary" role="none">Install…</span></span>
+        <div class="sf-hero">
+          <button class="hero" data-act="sheet:readme">
+            <span class="plate">
+              <span class="sf-mark lg on-accent"><svg class="icon lg" aria-hidden="true"><use href="#i-plug"></use></svg></span>
+              <span class="pt">
+                <span class="peyebrow">New in the official registry</span>
+                <span class="ptitle">vercel-mcp</span>
+                <span class="pub">Vercel<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
+              </span>
+            </span>
+            <span class="hbody">
+              <p>Projects, deployments and logs for a Vercel account, over the account's own OAuth. Added to the official registry on 14 Nov, which is the only thing “new” means here.</p>
+              <span class="hfoot">
+                <span class="sf-fig">2.2k stars · official index</span>
+                <span class="btn sm primary push" role="none">Install…</span>
+              </span>
+            </span>
+          </button>
+          <button class="hero" data-act="sheet:readme">
+            <span class="plate">
+              <span class="sf-mark lg"><svg class="icon lg" aria-hidden="true"><use href="#i-skills"></use></svg></span>
+              <span class="pt">
+                <span class="peyebrow">2 of its 41 plugins have updates</span>
+                <span class="ptitle">fledgeling-plugins</span>
+                <span class="pub">Fledgeling<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
+              </span>
+            </span>
+            <span class="hbody">
+              <p>A marketplace of 41 skills and commands, already added here. Two have a newer version than the one your harnesses are reading; both are held until you look at what changed.</p>
+              <span class="hfoot">
+                <span class="sf-fig">Added 4 Aug · last checked 41 min ago</span>
+                <span class="btn sm push" role="none">Review updates…</span>
+              </span>
+            </span>
+          </button>
+        </div>
+
+        <div class="railhead">
+          <h2>From the makers of your harnesses</h2>
+          <span class="rh-sub">Published under the vendor's own namespace in the official index.</span>
+          <button class="btn sm rh-act" data-act="act:browse-category">See all 34</button>
+        </div>
+        <div class="rail">
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-servers"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">filesystem</span>
+              <span class="pub">Anthropic<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">Scoped file reads and writes — the paths you allow, and nothing outside them.</span>
+          <span class="sf-foot"><span class="sf-fig">4.1k stars · official index</span><span class="push"><span class="pill good">Installed</span></span></span>
         </button>
-        <button class="trow">
-          <span class="c c-name">pg-schema-tools</span>
-          <span class="c c-flex c-sub">Migrations, schema diffs and index advice</span>
-          <span class="c c-100"><span class="pill">Smithery</span></span>
-          <span class="c c-72 c-right mono">612</span>
-          <span class="c c-120"><span class="btn sm" role="none">Install…</span></span>
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-servers"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">chatgpt-apps-mcp</span>
+              <span class="pub">OpenAI<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">Read and write the apps and files in a ChatGPT workspace.</span>
+          <span class="sf-foot"><span class="sf-fig">1.9k stars · official index</span><span class="push"><span class="btn sm" role="none">Install…</span></span></span>
         </button>
-        <button class="trow">
-          <span class="c c-name">supabase-mcp</span>
-          <span class="c c-flex c-sub">Supabase project, auth and storage access</span>
-          <span class="c c-100"><span class="pill">Smithery</span></span>
-          <span class="c c-72 c-right mono">2.3k</span>
-          <span class="c c-120"><span class="pill good">Installed</span></span>
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-servers"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">google-drive</span>
+              <span class="pub">Google<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">Search a Drive, open a document, and write a reply back into it.</span>
+          <span class="sf-foot"><span class="sf-fig">3.4k stars · official index</span><span class="push"><span class="btn sm" role="none">Install…</span></span></span>
         </button>
-        <button class="trow">
-          <span class="c c-name">timescale-mcp</span>
-          <span class="c c-flex c-sub">Time-series queries over TimescaleDB</span>
-          <span class="c c-100"><span class="pill">Smithery</span></span>
-          <span class="c c-72 c-right mono">184</span>
-          <span class="c c-120"><span class="btn sm" role="none">Install…</span></span>
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-servers"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">vercel-mcp</span>
+              <span class="pub">Vercel<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">Projects, deployments and logs for a Vercel account.</span>
+          <span class="sf-foot"><span class="sf-fig">2.2k stars · official index</span><span class="push"><span class="btn sm" role="none">Install…</span></span></span>
         </button>
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-servers"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">github-mcp</span>
+              <span class="pub">GitHub<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">Issues, pull requests and code search across your repositories.</span>
+          <span class="sf-foot"><span class="sf-fig">6.8k stars · official index</span><span class="push"><span class="btn sm" role="none">Install…</span></span></span>
+        </button>
+        </div>
+
+        <div class="railhead">
+          <h2>Skills that work in every harness</h2>
+          <span class="rh-sub">A skill is a folder of instructions, so it runs wherever a harness reads one — no server, no child process, no consent prompt.</span>
+          <button class="btn sm rh-act" data-act="act:browse-category">See all 96</button>
+        </div>
+        <div class="rail">
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-skills"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">design-craft</span>
+              <span class="pub">Fledgeling<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">Design authoring with an anti-slop pass and a deterministic lint gate.</span>
+          <span class="sf-foot"><span class="sf-fig">41 in this marketplace</span><span class="push"><span class="pill good">Installed</span></span></span>
+        </button>
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-skills"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">ux-craft</span>
+              <span class="pub">Fledgeling<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">The UX canon as working judgment: flows, forms, states, copy.</span>
+          <span class="sf-foot"><span class="sf-fig">41 in this marketplace</span><span class="push"><span class="pill good">Installed</span></span></span>
+        </button>
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-skills"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">clarify</span>
+              <span class="pub">Fledgeling<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">Decides which questions are worth your attention, and refers the rest.</span>
+          <span class="sf-foot"><span class="sf-fig">41 in this marketplace</span><span class="push"><span class="btn sm" role="none">Install…</span></span></span>
+        </button>
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-skills"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">create-mac-icon</span>
+              <span class="pub">Fledgeling<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">Three generation engines and a fidelity loop for one app icon.</span>
+          <span class="sf-foot"><span class="sf-fig">41 in this marketplace</span><span class="push"><span class="btn sm" role="none">Install…</span></span></span>
+        </button>
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-skills"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">obsidian-vault-skill</span>
+              <span class="pub community">hint-services<span>Community</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">Read and write notes in an Obsidian vault from any harness.</span>
+          <span class="sf-foot"><span class="sf-fig">no figure published</span><span class="push"><span class="btn sm" role="none">Install…</span></span></span>
+        </button>
+        </div>
+
+        <div class="railhead">
+          <h2>Recently changed</h2>
+          <span class="rh-sub">The official registry reports when an entry was last edited; Smithery reports when it was created. Two different stamps under one field, so this orders them without claiming they mean the same thing.</span>
+        </div>
+        <div class="rail">
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-servers"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">postgres-mcp</span>
+              <span class="pub">Anthropic<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">Query and inspect a PostgreSQL database.</span>
+          <span class="sf-foot"><span class="sf-fig">edited 19 Nov 2025</span><span class="push"><span class="btn sm" role="none">Install…</span></span></span>
+        </button>
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-servers"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">pg-schema-tools</span>
+              <span class="pub community">stefanoamorelli<span>Community</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">Migrations, schema diffs and index advice.</span>
+          <span class="sf-foot"><span class="sf-fig">created 12 Nov 2025 · Smithery</span><span class="push"><span class="btn sm" role="none">Install…</span></span></span>
+        </button>
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-servers"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">playwright-mcp</span>
+              <span class="pub">Microsoft<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">Drive a real browser: navigate, fill, assert, screenshot.</span>
+          <span class="sf-foot"><span class="sf-fig">edited 9 Nov 2025</span><span class="push"><span class="btn sm" role="none">Install…</span></span></span>
+        </button>
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-servers"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">supabase-mcp</span>
+              <span class="pub community">supabase<span>Community</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">Supabase project, auth and storage access.</span>
+          <span class="sf-foot"><span class="sf-fig">created 2 Nov 2025 · Smithery</span><span class="push"><span class="pill good">Installed</span></span></span>
+        </button>
+        <button class="sf-card" data-act="sheet:readme">
+          <span class="sf-top">
+            <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-servers"></use></svg></span>
+            <span class="sf-id">
+              <span class="sf-name">timescale-mcp</span>
+              <span class="pub community">timescale<span>Community</span></span>
+            </span>
+          </span>
+          <span class="sf-sub">Time-series queries over TimescaleDB.</span>
+          <span class="sf-foot"><span class="sf-fig">created 28 Oct 2025 · Smithery</span><span class="push"><span class="btn sm" role="none">Install…</span></span></span>
+        </button>
+        </div>
+
+        <div class="railhead">
+          <h2>Browse by category</h2>
+          <span class="rh-sub">Counts are rows in the merged catalogue, so an entry both indexes carry is counted once.</span>
+        </div>
+        <div class="grid4">
+        <button class="sf-tile" data-act="act:browse-category">
+          <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-servers"></use></svg></span>
+          <span class="tt"><span class="tn">Databases</span><span class="tc">214 servers</span></span>
+          <span class="tchev"><svg class="icon sm" aria-hidden="true"><use href="#i-chev-r"></use></svg></span>
+        </button>
+        <button class="sf-tile" data-act="act:browse-category">
+          <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-open"></use></svg></span>
+          <span class="tt"><span class="tn">Version control</span><span class="tc">168 servers</span></span>
+          <span class="tchev"><svg class="icon sm" aria-hidden="true"><use href="#i-chev-r"></use></svg></span>
+        </button>
+        <button class="sf-tile" data-act="act:browse-category">
+          <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-bolt"></use></svg></span>
+          <span class="tt"><span class="tn">Cloud and deploys</span><span class="tc">143 servers</span></span>
+          <span class="tchev"><svg class="icon sm" aria-hidden="true"><use href="#i-chev-r"></use></svg></span>
+        </button>
+        <button class="sf-tile" data-act="act:browse-category">
+          <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-discover"></use></svg></span>
+          <span class="tt"><span class="tn">Browsers</span><span class="tc">121 servers</span></span>
+          <span class="tchev"><svg class="icon sm" aria-hidden="true"><use href="#i-chev-r"></use></svg></span>
+        </button>
+        <button class="sf-tile" data-act="act:browse-category">
+          <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-skills"></use></svg></span>
+          <span class="tt"><span class="tn">Design and docs</span><span class="tc">96 skills</span></span>
+          <span class="tchev"><svg class="icon sm" aria-hidden="true"><use href="#i-chev-r"></use></svg></span>
+        </button>
+        <button class="sf-tile" data-act="act:browse-category">
+          <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-inbox"></use></svg></span>
+          <span class="tt"><span class="tn">Messaging</span><span class="tc">88 servers</span></span>
+          <span class="tchev"><svg class="icon sm" aria-hidden="true"><use href="#i-chev-r"></use></svg></span>
+        </button>
+        <button class="sf-tile" data-act="act:browse-category">
+          <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-activity"></use></svg></span>
+          <span class="tt"><span class="tn">Observability</span><span class="tc">74 servers</span></span>
+          <span class="tchev"><svg class="icon sm" aria-hidden="true"><use href="#i-chev-r"></use></svg></span>
+        </button>
+        <button class="sf-tile" data-act="act:browse-category">
+          <span class="sf-mark"><svg class="icon" aria-hidden="true"><use href="#i-book"></use></svg></span>
+          <span class="tt"><span class="tn">Local files</span><span class="tc">61 servers</span></span>
+          <span class="tchev"><svg class="icon sm" aria-hidden="true"><use href="#i-chev-r"></use></svg></span>
+        </button>
+        </div>
+
+        <div class="card mt16">
+          <h3>Why there is no “trending” band</h3>
+          <p class="mt8">Trending needs a signed change over a window somebody chose. Neither index publishes one, and a number derived from two snapshots this Mac happened to take would look like a measurement of the world. Recently changed and stars are what the sources actually say, so they are what is shown.</p>
+        </div>
       </div>
 
-      <div class="card mt16">
-        <h3>Why there is no “trending” band</h3>
-        <p class="mt8">Trending needs a signed change over a window somebody chose. Neither index publishes one, and a number derived from two snapshots this Mac happened to take would look like a measurement of the world. Recently added and stars are what the sources actually say, so they are what is shown.</p>
+      <!-- ---------- results: what a query narrows the store to ---------- -->
+      <div id="storeResults" class="mt16" hidden>
+        <div class="section-h" id="resultCount" style="margin-top:0">4 results for “postgres”</div>
+        <div class="tablecard">
+          <div class="thead">
+            <span class="c c-name">Name</span>
+            <span class="c c-flex">What it does</span>
+            <span class="c c-100">Publisher</span>
+            <span class="c c-72 c-right">Stars</span>
+            <span class="c c-120"></span>
+          </div>
+          <button class="trow" aria-selected="true">
+            <span class="c c-name">postgres-mcp</span>
+            <span class="c c-flex c-sub">Query and inspect a PostgreSQL database</span>
+            <span class="c c-100"><span class="pub">Anthropic<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg></span></span>
+            <span class="c c-72 c-right mono">4.1k</span>
+            <span class="c c-120"><span class="btn sm primary" role="none">Install…</span></span>
+          </button>
+          <button class="trow">
+            <span class="c c-name">pg-schema-tools</span>
+            <span class="c c-flex c-sub">Migrations, schema diffs and index advice</span>
+            <span class="c c-100"><span class="pub community">stefanoamorelli</span></span>
+            <span class="c c-72 c-right mono">612</span>
+            <span class="c c-120"><span class="btn sm" role="none">Install…</span></span>
+          </button>
+          <button class="trow">
+            <span class="c c-name">supabase-mcp</span>
+            <span class="c c-flex c-sub">Supabase project, auth and storage access</span>
+            <span class="c c-100"><span class="pub community">supabase</span></span>
+            <span class="c c-72 c-right mono">2.3k</span>
+            <span class="c c-120"><span class="pill good">Installed</span></span>
+          </button>
+          <button class="trow">
+            <span class="c c-name">timescale-mcp</span>
+            <span class="c c-flex c-sub">Time-series queries over TimescaleDB</span>
+            <span class="c c-100"><span class="pub community">timescale</span></span>
+            <span class="c c-72 c-right mono">184</span>
+            <span class="c c-120"><span class="btn sm" role="none">Install…</span></span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -3473,6 +3900,25 @@ exit 1 after 4.2 s</div>
           <button class="tab" role="tab" aria-selected="false" data-mdtab="md-changelog">Changelog</button>
           <button class="tab" role="tab" aria-selected="false" data-mdtab="md-caps">Capabilities</button>
         </div>
+        <div class="prodhead">
+          <span class="sf-mark lg"><svg class="icon lg" aria-hidden="true"><use href="#i-skills"></use></svg></span>
+          <span class="ph-t">
+            <span class="ph-name">trawl</span>
+            <span class="pub">Fledgeling<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg><span>Official</span></span>
+            <span class="ph-sub">Mine your own past agent sessions for evidence about what happened.</span>
+          </span>
+          <span class="ph-acts">
+            <button class="btn" data-act="sheet:capability-delta">What changed…</button>
+            <button class="btn primary lg" data-act="act:install-capability">Install…</button>
+          </span>
+        </div>
+        <div class="prodfacts">
+          <div class="pf"><div class="pf-k">Kind</div><div class="pf-v">Skill · no server</div></div>
+          <div class="pf"><div class="pf-k">Version</div><div class="pf-v">1.4.2 · 1.5.0 held</div></div>
+          <div class="pf"><div class="pf-k">Licence</div><div class="pf-v">MIT</div></div>
+          <div class="pf"><div class="pf-k">Runs in</div><div class="pf-v">All 4 harnesses</div></div>
+          <div class="pf"><div class="pf-k">Reads</div><div class="pf-v">4 session stores, locally</div></div>
+        </div>
         <div class="sheet-body">
           <div class="md sub" id="s-md-readme">
             <div>
@@ -3785,6 +4231,44 @@ agent-voice · improve-skill · skill-creator · whats-left
       </div>
 
       <!-- destructive confirm -->
+      <!-- The one surface that says what the Official filter is asserting. A verified mark with no
+           definition behind it is a trust signal the product has not earned; this is the definition. -->
+      <div class="sheet wide" id="sh-official" hidden role="dialog" aria-modal="true" aria-label="What official means">
+        <div class="sheet-titlebar"><span class="st">What “official” means here</span></div>
+        <div class="sheet-body">
+          <p class="callout">It is a statement about <b>who published an entry</b>, and nothing else. It is not a quality mark, not a review, and not a security assessment — a community server can be better written than an official one, and installing either still shows you the same consent sheet.</p>
+
+          <div class="section-h">An entry is Official when both hold</div>
+          <div class="card plain">
+            <ol class="md" style="padding-left:18px">
+              <li>The index that supplied it lists the publisher as the owner of the namespace the entry sits in — <code>anthropic/*</code>, <code>vercel/*</code>, <code>openai/*</code>. That is the index's assertion, read from its response, not ours.</li>
+              <li>The publisher is the vendor whose product the entry talks to. A GitHub server published by GitHub is official; an excellent GitHub server published by someone else is community.</li>
+            </ol>
+          </div>
+
+          <div class="section-h">Publishers currently matching, in this catalogue</div>
+          <div class="grid4">
+            <div class="card plain"><div class="pub">Anthropic<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg></div><p class="small tert mt8">12 servers · 4 skills</p></div>
+            <div class="card plain"><div class="pub">OpenAI<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg></div><p class="small tert mt8">6 servers</p></div>
+            <div class="card plain"><div class="pub">Google<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg></div><p class="small tert mt8">5 servers</p></div>
+            <div class="card plain"><div class="pub">Vercel<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg></div><p class="small tert mt8">3 servers</p></div>
+            <div class="card plain"><div class="pub">GitHub<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg></div><p class="small tert mt8">2 servers</p></div>
+            <div class="card plain"><div class="pub">Microsoft<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg></div><p class="small tert mt8">4 servers</p></div>
+            <div class="card plain"><div class="pub">Stripe<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg></div><p class="small tert mt8">1 server</p></div>
+            <div class="card plain"><div class="pub">Fledgeling<svg class="vf" aria-hidden="true"><use href="#i-verified"></use></svg></div><p class="small tert mt8">41 plugins · you added this one</p></div>
+          </div>
+          <p class="small tert mt12">Fledgeling appears because you added its marketplace, and it owns the namespace its plugins sit in. Any marketplace you add is treated the same way — the mark follows the namespace, not a list we curate.</p>
+
+          <div class="section-h">What the filter does not tell you</div>
+          <div class="card">
+            <p>Whether it is maintained. Whether its checks pass — that is the Checks board, and it is measured here rather than claimed by a publisher. Whether it is safe to give this particular server this particular access; that decision is the consent sheet's, every time, official or not.</p>
+          </div>
+        </div>
+        <div class="sheet-foot">
+          <button class="btn push" data-act="act:close-sheet">Close</button>
+        </div>
+      </div>
+
       <div class="sheet" id="sh-confirm-remove" hidden role="dialog" aria-modal="true" aria-label="Remove ai-elements">
         <div class="sheet-titlebar"><span class="st">Remove ai-elements?</span></div>
         <div class="sheet-body">
@@ -3829,8 +4313,8 @@ agent-voice · improve-skill · skill-creator · whats-left
     checks:    { title: 'Checks',    sub: '4 suites · 1 stale · 1 could not run' },
     cleanup:   { title: 'Cleanup',   sub: '3 never called · 2 quiet for 30 days' }
   };
-  var ORDER = ['servers','activity','harnesses','skills','discover','inbox','insights','checks','cleanup'];
-  var current = 'servers';
+  var ORDER = ['discover','skills','servers','activity','harnesses','checks','cleanup','inbox','insights'];
+  var current = 'discover';
 
   function showBoard(name) {
     if (!BOARDS[name]) { return; }
@@ -3851,6 +4335,27 @@ agent-voice · improve-skill · skill-creator · whats-left
 
   /* --------------------------------------------------------------- states */
   function activeBoardEl() { return $('.board.active'); }
+
+  /* The store shows a storefront while nothing narrows it and a table once something does.
+     Both instruments are right for one job and wrong for the other: rails and hero cards answer
+     "what is worth having" and cannot be scanned for a match, while a table is scannable and says
+     nothing about what to want. Switching between them on the query is what the Mac App Store,
+     Vercel's marketplace and Cal.com's app store all do, and it is why neither view has to
+     compromise. */
+  function setStoreQuery(q) {
+    var field = $('#discoverSearch');
+    if (field && field.value !== q) { field.value = q; }
+    var narrowed = q.trim().length > 0;
+    var front = $('#storefront');
+    var results = $('#storeResults');
+    if (!front || !results) { return; }
+    front.hidden = narrowed;
+    results.hidden = !narrowed;
+    if (narrowed) {
+      $('#resultCount').textContent = '4 results for \u201C' + q.trim() + '\u201D';
+    }
+  }
+
 
   /* Settings is a window, so it owns the state the preview control drives while
      it is frontmost. */
@@ -3978,6 +4483,17 @@ agent-voice · improve-skill · skill-creator · whats-left
   var ACTIONS = {
     'act:appearance':        flipAppearance,
     'act:close-sheet':       closeSheet,
+    'act:refresh-catalogue': function () {
+      // The honest shape of a refresh in a mock: say what is being asked and of whom.
+      showNotification('Discover', 'Asking the official registry and Smithery for what changed.');
+    },
+    'act:browse-marketplace': function () { showBoard('discover'); setStoreQuery('fledgeling'); },
+    'act:browse-category':   function () {
+      // A category is a saved query, so browsing one lands in the same results view a search does.
+      setStoreQuery('databases');
+    },
+    'act:clear-search':      function () { setStoreQuery(''); },
+    'act:install-capability': function () { closeSheet(); openSheet('install-server'); },
     'act:hide-notif':        function () { $('#notif').hidden = true; },
     'act:open-console':      function () { togglePopover(false); showBoard('servers'); },
     'act:focus-search':      function () { $('#globalSearch').focus(); },
@@ -4216,7 +4732,13 @@ agent-voice · improve-skill · skill-creator · whats-left
       '6 tools · reads your database · nothing installed yet. Approve from here or open the Inbox.');
   }, 2600);
 
-  showBoard('servers');
+  var storeField = $('#discoverSearch');
+  if (storeField) {
+    storeField.addEventListener('input', function () { setStoreQuery(storeField.value); });
+  }
+  setStoreQuery('');
+
+  showBoard('discover');
 }());
 </script>
 </body>

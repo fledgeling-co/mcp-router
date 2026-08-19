@@ -1,0 +1,26 @@
+{
+ "source": "app/Sources/MCPRouterKit/Checks/CheckCopy.swift",
+ "expectRed": [
+  "CASE-0014",
+  "CASE-0106"
+ ],
+ "mutatedCapture": {
+  "exit": 0,
+  "focusHeld": true,
+  "tail": "tes=364726 sha=6177fa7df0c36db9\nselect Checks -> SURF-006\nOK\nChecks\n  captured SURF-006.build bytes=492545 sha=827b8a1e1f8dc63b\nselect Cleanup -> SURF-007\nOK\nCleanup\n  captured SURF-007.build bytes=462389 sha=0321f68e57960bb0\nselect Settings -> SURF-011\nOK\nSettings\n  captured SURF-011.build bytes=478011 sha=79b359cf5e085b10\ntry pairing sheet\n  pairing control not pressable in background \u2014 SURF-010 uncaptured\ntry status item / popover\n  status item not pressable in background \u2014 SURF-009 uncaptured\nOK\nOK\n  captured SURF-002.empty bytes=270318 sha=698cedd0cd055f67\nOK\nOK\n  captured SURF-002.offline bytes=266658 sha=24e6f3c136bae63a\nOK\nfrontmost after: Ghostty\nglass capture done, focus unchanged\n"
+ },
+ "mutated": {
+  "exit": 1,
+  "red": [
+   "CASE-0014",
+   "CASE-0106"
+  ],
+  "tally": "checked=137 failures=4 cases=18"
+ },
+ "restored": {
+  "exit": 0,
+  "red": [],
+  "tally": "checked=137 failures=0 cases=18"
+ },
+ "armed": true
+}

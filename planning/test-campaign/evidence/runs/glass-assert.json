@@ -1,0 +1,720 @@
+{
+ "checked": 137,
+ "failures": [],
+ "cases": {
+  "CASE-0001": {
+   "checks": [
+    {
+     "label": "window carries: Activity",
+     "pass": true
+    },
+    {
+     "label": "window carries: Servers",
+     "pass": true
+    },
+    {
+     "label": "window carries: Skills",
+     "pass": true
+    },
+    {
+     "label": "window carries: Discover",
+     "pass": true
+    },
+    {
+     "label": "window carries: Inbox",
+     "pass": true
+    },
+    {
+     "label": "window carries: Checks",
+     "pass": true
+    },
+    {
+     "label": "window carries: Cleanup",
+     "pass": true
+    },
+    {
+     "label": "window carries: Settings",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "shell chrome present in all 9 window dumps",
+     "pass": true
+    },
+    {
+     "label": "shell capture is not a board capture under a second id",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0003": {
+   "checks": [
+    {
+     "label": "window title is Servers",
+     "pass": true
+    },
+    {
+     "label": "window carries: 2 tools from 4 servers \u00b7 1 running",
+     "pass": true
+    },
+    {
+     "label": "window carries: fixture-tools",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0005": {
+   "checks": [
+    {
+     "label": "window title is Inbox",
+     "pass": true
+    },
+    {
+     "label": "window carries: Nothing waiting \u00b7 no phone paired",
+     "pass": true
+    },
+    {
+     "label": "window carries: The phone can queue and nothing else",
+     "pass": true
+    },
+    {
+     "label": "window carries: still cannot install code on this Mac",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0011": {
+   "checks": [
+    {
+     "label": "window title is Activity",
+     "pass": true
+    },
+    {
+     "label": "window carries: browser_evaluate",
+     "pass": true
+    },
+    {
+     "label": "window carries: no page open \u2014 call browser_navigate first",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0012": {
+   "checks": [
+    {
+     "label": "window title is Skills",
+     "pass": true
+    },
+    {
+     "label": "window carries: 6 skills from 4 marketplaces \u00b7 1 held for review",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0013": {
+   "checks": [
+    {
+     "label": "window title is Discover",
+     "pass": true
+    },
+    {
+     "label": "window carries: Most used on Smithery",
+     "pass": true
+    },
+    {
+     "label": "window carries: No trend or velocity figure is shown",
+     "pass": true
+    },
+    {
+     "label": "window carries: Only Smithery publishes a session count",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0014": {
+   "checks": [
+    {
+     "label": "window title is Checks",
+     "pass": true
+    },
+    {
+     "label": "window carries: It is not a graded test of whether a capability does its",
+     "pass": true
+    },
+    {
+     "label": "window carries: Skills are never executed by the router",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0015": {
+   "checks": [
+    {
+     "label": "window title is Cleanup",
+     "pass": true
+    },
+    {
+     "label": "window carries: Capabilities MCP Router has never seen used",
+     "pass": true
+    },
+    {
+     "label": "window carries: Observation window: 5d recorded",
+     "pass": true
+    },
+    {
+     "label": "window carries: It proposes; you decide",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0016": {
+   "checks": [
+    {
+     "label": "window title is Settings",
+     "pass": true
+    },
+    {
+     "label": "window carries: Read from the router, not set here",
+     "pass": true
+    },
+    {
+     "label": "window carries: no endpoint that rewrites the router's own configuration",
+     "pass": true
+    },
+    {
+     "label": "window carries: Forget the stored token",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0101": {
+   "checks": [
+    {
+     "label": "window carries: Activity",
+     "pass": true
+    },
+    {
+     "label": "window carries: Servers",
+     "pass": true
+    },
+    {
+     "label": "window carries: Skills",
+     "pass": true
+    },
+    {
+     "label": "window carries: Discover",
+     "pass": true
+    },
+    {
+     "label": "window carries: Inbox",
+     "pass": true
+    },
+    {
+     "label": "window carries: Checks",
+     "pass": true
+    },
+    {
+     "label": "window carries: Cleanup",
+     "pass": true
+    },
+    {
+     "label": "window carries: Settings",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "shell chrome present in all 9 window dumps",
+     "pass": true
+    },
+    {
+     "label": "shell capture is not a board capture under a second id",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0102": {
+   "checks": [
+    {
+     "label": "window title is Servers",
+     "pass": true
+    },
+    {
+     "label": "window carries: 2 tools from 4 servers \u00b7 1 running",
+     "pass": true
+    },
+    {
+     "label": "window carries: fixture-tools",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0103": {
+   "checks": [
+    {
+     "label": "window title is Activity",
+     "pass": true
+    },
+    {
+     "label": "window carries: browser_evaluate",
+     "pass": true
+    },
+    {
+     "label": "window carries: no page open \u2014 call browser_navigate first",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0104": {
+   "checks": [
+    {
+     "label": "window title is Skills",
+     "pass": true
+    },
+    {
+     "label": "window carries: 6 skills from 4 marketplaces \u00b7 1 held for review",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0105": {
+   "checks": [
+    {
+     "label": "window title is Discover",
+     "pass": true
+    },
+    {
+     "label": "window carries: Most used on Smithery",
+     "pass": true
+    },
+    {
+     "label": "window carries: No trend or velocity figure is shown",
+     "pass": true
+    },
+    {
+     "label": "window carries: Only Smithery publishes a session count",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0106": {
+   "checks": [
+    {
+     "label": "window title is Checks",
+     "pass": true
+    },
+    {
+     "label": "window carries: It is not a graded test of whether a capability does its",
+     "pass": true
+    },
+    {
+     "label": "window carries: Skills are never executed by the router",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0107": {
+   "checks": [
+    {
+     "label": "window title is Cleanup",
+     "pass": true
+    },
+    {
+     "label": "window carries: Capabilities MCP Router has never seen used",
+     "pass": true
+    },
+    {
+     "label": "window carries: Observation window: 5d recorded",
+     "pass": true
+    },
+    {
+     "label": "window carries: It proposes; you decide",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0108": {
+   "checks": [
+    {
+     "label": "window title is Inbox",
+     "pass": true
+    },
+    {
+     "label": "window carries: Nothing waiting \u00b7 no phone paired",
+     "pass": true
+    },
+    {
+     "label": "window carries: The phone can queue and nothing else",
+     "pass": true
+    },
+    {
+     "label": "window carries: still cannot install code on this Mac",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0111": {
+   "checks": [
+    {
+     "label": "window title is Settings",
+     "pass": true
+    },
+    {
+     "label": "window carries: Read from the router, not set here",
+     "pass": true
+    },
+    {
+     "label": "window carries: no endpoint that rewrites the router's own configuration",
+     "pass": true
+    },
+    {
+     "label": "window carries: Forget the stored token",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  }
+ },
+ "shots": {
+  "CASE-0101": {
+   "path": "SURF-001.restored.png",
+   "exists": true,
+   "bytes": 152001,
+   "sha": "71e5fdbaea70f66c",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0102": {
+   "path": "SURF-002.build.png",
+   "exists": true,
+   "bytes": 412539,
+   "sha": "3850aa33922e7aa2",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0103": {
+   "path": "SURF-003.build.png",
+   "exists": true,
+   "bytes": 450931,
+   "sha": "442eea376ec66963",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0104": {
+   "path": "SURF-004.build.png",
+   "exists": true,
+   "bytes": 452004,
+   "sha": "408c816f2fb85767",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0105": {
+   "path": "SURF-005.build.png",
+   "exists": true,
+   "bytes": 407402,
+   "sha": "357e9583dc9fb7d7",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0106": {
+   "path": "SURF-006.build.png",
+   "exists": true,
+   "bytes": 492972,
+   "sha": "967759fcca7c00b3",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0107": {
+   "path": "SURF-007.build.png",
+   "exists": true,
+   "bytes": 459695,
+   "sha": "bded39d8f4ef88f2",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0108": {
+   "path": "SURF-008.build.png",
+   "exists": true,
+   "bytes": 359399,
+   "sha": "c8feb3f7645b716f",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0111": {
+   "path": "SURF-011.build.png",
+   "exists": true,
+   "bytes": 475660,
+   "sha": "2bef83cfb4753dee",
+   "isPNG": true,
+   "sharedWith": null
+  }
+ },
+ "decoy": null,
+ "pass": true
+}

@@ -1,0 +1,4 @@
+install	install-launchd-serve	ok	both: started at load, relaunched after SIGKILL, stayed down after bootout, wrote both log paths
+install	install-import-servers	ok	fresh (created 0600) and pre-existing (kept 0644); stdout, exit, servers.json and mode agree
+install	install-claude-json	ok	three scenarios vs the node -e body extracted from install.sh; body, mode and backup agree
+install	install-rollback	ok	extracted uninstall restore; Swift-cutover fixture; probe back, router keys gone, hand name kept, mode 0600

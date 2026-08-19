@@ -1,0 +1,206 @@
+[
+ {
+  "surface": "SURF-001",
+  "name": "Mac shell \u2014 sidebar, title, menus",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-001.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-001.png",
+  "reason": null
+ },
+ {
+  "surface": "SURF-002",
+  "name": "Mac Servers board",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-002.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-002.png",
+  "reason": null
+ },
+ {
+  "surface": "SURF-003",
+  "name": "Mac Activity board",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-003.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-003.png",
+  "reason": null
+ },
+ {
+  "surface": "SURF-004",
+  "name": "Mac Skills board",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-004.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-004.png",
+  "reason": null
+ },
+ {
+  "surface": "SURF-005",
+  "name": "Mac Discover board",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-005.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-005.png",
+  "reason": null
+ },
+ {
+  "surface": "SURF-006",
+  "name": "Mac Checks board",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-006.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-006.png",
+  "reason": null
+ },
+ {
+  "surface": "SURF-007",
+  "name": "Mac Cleanup board",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-007.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-007.png",
+  "reason": null
+ },
+ {
+  "surface": "SURF-008",
+  "name": "Mac Inbox board and review sheet",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-008.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-008.png",
+  "reason": null
+ },
+ {
+  "surface": "SURF-009",
+  "name": "Mac menu-bar popover and inbox band",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": null,
+  "reference": null,
+  "reason": "mock captured at SURF-009.png (60575 bytes) but build half is uncaptured or is a different surface; not paired"
+ },
+ {
+  "surface": "SURF-010",
+  "name": "Mac Pairing sheet",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-010.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-010.png",
+  "reason": null
+ },
+ {
+  "surface": "SURF-011",
+  "name": "Mac Settings board",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-011.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-011.png",
+  "reason": null
+ },
+ {
+  "surface": "SURF-012",
+  "name": "iOS Discover",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": null,
+  "reference": null,
+  "reason": "mock captured at SURF-012.png (43395 bytes) but build half is uncaptured or is a different surface; not paired"
+ },
+ {
+  "surface": "SURF-013",
+  "name": "iOS Triage, Queue, Library",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": null,
+  "reference": null,
+  "reason": "mock captured at SURF-013.png (47557 bytes) but build half is uncaptured or is a different surface; not paired"
+ },
+ {
+  "surface": "SURF-014",
+  "name": "iOS Pairing scanner and code entry",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": null,
+  "reference": null,
+  "reason": "mock captured at SURF-014.png (37886 bytes) but build half is uncaptured or is a different surface; not paired"
+ },
+ {
+  "surface": "SURF-015",
+  "name": "Router daemon and upstream pool",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": null,
+  "reference": null,
+  "reason": "no visual design of record (daemon / IPC)"
+ },
+ {
+  "surface": "SURF-016",
+  "name": "Loopback control API and auth routes",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": null,
+  "reference": null,
+  "reason": "no visual design of record (HTTP control API)"
+ },
+ {
+  "surface": "SURF-017",
+  "name": "Parity harness vs TypeScript reference",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "settleMs": 1200,
+  "shot": null,
+  "reference": null,
+  "reason": "no visual design of record (parity harness)"
+ }
+]

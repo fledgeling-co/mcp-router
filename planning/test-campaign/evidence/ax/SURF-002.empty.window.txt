@@ -1,0 +1,62 @@
+0	AXWindow	AXStandardWindow	Servers								SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1	180.0	184.0	980.0	620.0	0
+1	AXGroup	AXHostingView										180.0	184.0	980.0	620.0	0
+2	AXSplitGroup										SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1, SidebarNavigationSplitView	180.0	-140.5	980.0	1321.5	0
+3	AXGroup	AXHostingView										188.0	-132.5	256.0	1305.5	0
+4	AXScrollArea											188.0	-88.5	256.0	1206.5	0
+5	AXOutline				Sidebar		1				sidebar	188.0	-88.5	256.0	1206.5	0
+6	AXRow	AXOutlineRow						0				188.0	-88.5	256.0	19.0	
+7	AXCell						1	0				198.0	-88.5	236.0	19.0	1
+8	AXGroup	AXHostingView										202.0	-88.5	240.0	19.0	0
+9	AXHeading				Running		1					202.0	-86.0	45.0	14.0	
+6	AXRow	AXOutlineRow						0				188.0	-69.5	256.0	32.0	
+7	AXCell						1	0				198.0	-69.5	236.0	32.0	1
+8	AXButton				Activity		1					205.5	-61.5	71.0	16.0	
+6	AXRow	AXOutlineRow						1				188.0	-37.5	256.0	32.0	
+7	AXCell						1	1				198.0	-37.5	236.0	32.0	1
+8	AXButton				Servers		1	1				204.0	-29.5	72.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-5.5	256.0	32.0	
+7	AXCell						1	0				198.0	-5.5	236.0	32.0	1
+8	AXButton				Skills		1					207.0	2.5	55.0	16.0	
+6	AXRow	AXOutlineRow						0				188.0	39.5	256.0	19.0	
+7	AXCell						1	0				198.0	39.5	236.0	19.0	1
+8	AXGroup	AXHostingView										202.0	39.5	240.0	19.0	0
+9	AXHeading				Library		1					202.0	42.0	39.0	14.0	
+6	AXRow	AXOutlineRow						0				188.0	58.5	256.0	32.0	
+7	AXCell						1	0				198.0	58.5	236.0	32.0	1
+8	AXButton				Discover		1					206.0	66.5	77.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	90.5	256.0	32.0	
+7	AXCell						1	0				198.0	90.5	236.0	32.0	1
+8	AXButton				Inbox		1					204.5	98.5	58.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	122.5	256.0	32.0	
+7	AXCell						1	0				198.0	122.5	236.0	32.0	1
+8	AXButton				Checks		1	1				204.5	130.5	70.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	154.5	256.0	32.0	
+7	AXCell						1	0				198.0	154.5	236.0	32.0	1
+8	AXButton				Cleanup		1					205.5	162.5	74.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	199.5	256.0	0.0	
+7	AXCell						1	0				198.0	199.5	236.0	0.0	1
+8	AXGroup	AXHostingView										202.0	199.5	240.0	0.0	0
+6	AXRow	AXOutlineRow						0				188.0	199.5	256.0	32.0	
+7	AXCell						1	0				198.0	199.5	236.0	32.0	1
+8	AXButton				Settings		1					205.0	207.5	76.0	16.0	
+6	AXColumn							0			ListColumn	198.0	-88.5	236.0	1206.5	
+4	AXStaticText			No servers declared yet, Point MCP Router at a config and the servers your agents already use appear here.			1				sidebar	196.0	1123.0	227.5	46.0	
+3	AXSplitter			264			0	0				444.0	613.0	0.0	568.0	0
+3	AXGroup	AXHostingView										180.0	-140.5	980.0	1321.5	0
+4	AXStaticText			none	mcprouter-key-probe						content	1084.0	1153.0	72.0	24.0	1
+4	AXScrollArea										content	444.0	-88.5	716.0	1269.5	0
+5	AXStaticText			Servers			1					460.0	-72.5	79.5	26.0	
+5	AXButton				Add server…		1					1048.5	-68.5	95.5	24.0	0
+5	AXStaticText			0 tools from 0 servers · 0 running			1					460.0	-42.5	210.5	16.0	
+5	AXUnknown				conduit		1					790.2	9.3	23.5	18.3	
+5	AXStaticText			No servers declared yet			1					717.2	43.5	169.5	19.0	
+5	AXStaticText			MCP Router reads the servers your agents already have configured. Point it at a config, or declare one by hand.			1					661.2	66.5	281.5	49.0	
+5	AXButton				Add server…		1					754.5	127.5	95.5	24.0	0
+1	AXToolbar											180.0	184.0	980.0	52.0	0
+2	AXButton				Hide Sidebar		1	0				397.0	184.0	47.0	52.0	0
+1	AXButton	AXCloseButton					1					198.0	202.0	16.0	16.0	0
+1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					244.0	202.0	16.0	16.0	0
+2	AXGroup											245.0	203.0	14.0	14.0	0
+3	AXGroup											245.0	203.0	14.0	14.0	0
+1	AXButton	AXMinimizeButton					1					221.0	202.0	16.0	16.0	0
+1	AXStaticText			Servers			1					448.0	184.0	708.0	52.0	0

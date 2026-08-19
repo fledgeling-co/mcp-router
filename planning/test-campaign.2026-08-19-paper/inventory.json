@@ -1,0 +1,419 @@
+{
+ "requirement": [
+  {
+   "id": "REQ-001",
+   "kind": "affordance",
+   "title": "Mac Shell 8-Destination Navigation",
+   "statement": "Shell navigates across Settings, Servers, Activity, Skills, Discover, Evals, Cleanup, Inbox via sidebar and Cmd+1..8 keyboard shortcuts.",
+   "source": "DESIGN.md:45",
+   "status": "observed"
+  },
+  {
+   "id": "REQ-002",
+   "kind": "behaviour",
+   "title": "Servers Board Live Inspection & Placards",
+   "statement": "Servers board reflects live server states (running, tripped, never used, held change) from ServerStateTracker without polling duplicates.",
+   "source": "DESIGN.md:120",
+   "status": "observed"
+  },
+  {
+   "id": "REQ-003",
+   "kind": "honesty guardrail",
+   "title": "Stale Readout Withholds Live Figures",
+   "statement": "When tracker enters stale state, readout numbers go absent rather than displaying last-known counts as current.",
+   "source": "DESIGN.md:145",
+   "status": "observed"
+  },
+  {
+   "id": "REQ-004",
+   "kind": "honesty guardrail",
+   "title": "Remote Device Queues, Never Installs",
+   "statement": "Phone actions only enqueue items to Mac Inbox; no path from phone or notifications can trigger server install without explicit human review on Mac.",
+   "source": "DESIGN.md:210",
+   "status": "observed"
+  },
+  {
+   "id": "REQ-005",
+   "kind": "affordance",
+   "title": "Menu Bar Popover & Attention Rows",
+   "statement": "Menu bar popover renders attention rows, readout, and inbox band with oldest-first arrivals and no review affordance for partial items.",
+   "source": "DESIGN.md:280",
+   "status": "observed"
+  },
+  {
+   "id": "REQ-006",
+   "kind": "behaviour",
+   "title": "Immediate Banner Withdrawal on Disposition",
+   "statement": "Disposing an inbox item immediately withdraws its notification banner and updates the popover band before the next poll.",
+   "source": "planning/specs/spec-I6.md:238",
+   "status": "observed"
+  },
+  {
+   "id": "REQ-007",
+   "kind": "behaviour",
+   "title": "Multi-item Notification Banner Carries Review Only",
+   "statement": "When multiple items arrive, notification category presents Review only and suppresses Decline button.",
+   "source": "planning/specs/spec-I6.md:234",
+   "status": "observed"
+  },
+  {
+   "id": "REQ-008",
+   "kind": "behaviour",
+   "title": "Phone Triage, Queue, and Library",
+   "statement": "Phone UI allows triaging discovered capabilities, queueing selections with single-batch undo, and browsing local library.",
+   "source": "planning/specs/spec-I3.md:50",
+   "status": "observed"
+  },
+  {
+   "id": "REQ-009",
+   "kind": "behaviour",
+   "title": "Router Core Stdio & HTTP Upstream Pool",
+   "statement": "RouterCore manages live child stdio processes and HTTP connections with lifecycle cleanup and SIGTERM/SIGKILL reaping.",
+   "source": "planning/specs/spec-R2.md:40",
+   "status": "observed"
+  },
+  {
+   "id": "REQ-010",
+   "kind": "behaviour",
+   "title": "Loopback Control API & Auth Routes",
+   "statement": "Control API provides authenticated endpoints on 127.0.0.1 for server management, config mutation, and OAuth callback listening on 8880.",
+   "source": "planning/specs/spec-R5.md:35",
+   "status": "observed"
+  },
+  {
+   "id": "REQ-011",
+   "kind": "honesty guardrail",
+   "title": "Atomic Config Mutations with Staging Locks",
+   "statement": "Mutations to servers.json use atomic staging files and directory locks to prevent concurrent write clobbering.",
+   "source": "planning/specs/spec-R2W.md:60",
+   "status": "observed"
+  },
+  {
+   "id": "REQ-012",
+   "kind": "behaviour",
+   "title": "Wire Parity with TypeScript Router Reference",
+   "statement": "Swift RouterCore reproduces JSON serialization, error structures, manifest digests, and CLI behaviors against TypeScript reference across 83 manifest rows.",
+   "source": "planning/parity/surface.tsv:1",
+   "status": "observed"
+  }
+ ],
+ "surface": [
+  {
+   "id": "SURF-001",
+   "title": "Mac Shell & Navigation",
+   "route": "app://mac/shell",
+   "lane": "macos-glass",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-001.png"
+  },
+  {
+   "id": "SURF-002",
+   "title": "Mac Servers Board",
+   "route": "app://mac/servers",
+   "lane": "macos-glass",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-002.png"
+  },
+  {
+   "id": "SURF-003",
+   "title": "Mac Activity Board",
+   "route": "app://mac/activity",
+   "lane": "macos-glass",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-003.png"
+  },
+  {
+   "id": "SURF-004",
+   "title": "Mac Skills Board",
+   "route": "app://mac/skills",
+   "lane": "macos-glass",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-004.png"
+  },
+  {
+   "id": "SURF-005",
+   "title": "Mac Discover Board",
+   "route": "app://mac/discover",
+   "lane": "macos-glass",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-005.png"
+  },
+  {
+   "id": "SURF-006",
+   "title": "Mac Evals Board",
+   "route": "app://mac/evals",
+   "lane": "macos-glass",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-006.png"
+  },
+  {
+   "id": "SURF-007",
+   "title": "Mac Cleanup Board",
+   "route": "app://mac/cleanup",
+   "lane": "macos-glass",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-007.png"
+  },
+  {
+   "id": "SURF-008",
+   "title": "Mac Inbox Board & Review Sheet",
+   "route": "app://mac/inbox",
+   "lane": "macos-glass",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-008.png"
+  },
+  {
+   "id": "SURF-009",
+   "title": "Mac Menu Bar Popover & Inbox Band",
+   "route": "app://mac/menubar-popover",
+   "lane": "macos-glass",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-009.png"
+  },
+  {
+   "id": "SURF-010",
+   "title": "Mac Pairing Sheet",
+   "route": "app://mac/pairing",
+   "lane": "macos-glass",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-010.png"
+  },
+  {
+   "id": "SURF-011",
+   "title": "Mac Settings Board",
+   "route": "app://mac/settings",
+   "lane": "macos-glass",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-011.png"
+  },
+  {
+   "id": "SURF-012",
+   "title": "iOS App Shell & Discover",
+   "route": "app://ios/discover",
+   "lane": "ios-glass",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-012.png"
+  },
+  {
+   "id": "SURF-013",
+   "title": "iOS Triage & Queue",
+   "route": "app://ios/triage",
+   "lane": "ios-glass",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-013.png"
+  },
+  {
+   "id": "SURF-014",
+   "title": "iOS Pairing Scanner & Code Entry",
+   "route": "app://ios/pairing",
+   "lane": "ios-glass",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-014.png"
+  },
+  {
+   "id": "SURF-015",
+   "title": "Router Core Daemon & Upstream Pool",
+   "route": "ipc://router/core",
+   "lane": "router-daemon",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-015.png"
+  },
+  {
+   "id": "SURF-016",
+   "title": "Router Loopback Control API & Auth Routes",
+   "route": "http://127.0.0.1:8879/control",
+   "lane": "router-daemon",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-016.png"
+  },
+  {
+   "id": "SURF-017",
+   "title": "Parity Harness Verification Suite",
+   "route": "test://parity/surface",
+   "lane": "parity-wire",
+   "status": "ready",
+   "shot": "evidence/shots/SURF-017.png"
+  }
+ ],
+ "flow": [
+  {
+   "id": "FLOW-001",
+   "title": "phone-triage-to-mac-inbox",
+   "critical": true,
+   "steps": [
+    {
+     "id": "FLOW-001.01",
+     "surface": "SURF-013",
+     "title": "Select items in Phone Triage and commit to Queue",
+     "atoms": [
+      "triage.card",
+      "queue.commitBar",
+      "badge.count"
+     ]
+    },
+    {
+     "id": "FLOW-001.02",
+     "surface": "SURF-009",
+     "title": "Mac Popover displays arrival in Inbox band",
+     "atoms": [
+      "popover.inboxBand",
+      "band.oldestFirst",
+      "statusItem.dot"
+     ]
+    },
+    {
+     "id": "FLOW-001.03",
+     "surface": "SURF-008",
+     "title": "Open Review sheet and accept or decline",
+     "atoms": [
+      "review.sheet",
+      "capability.statement",
+      "button.install",
+      "button.decline"
+     ]
+    },
+    {
+     "id": "FLOW-001.04",
+     "surface": "SURF-008",
+     "title": "Disposition withdraws notification banner and updates queue",
+     "atoms": [
+      "notifier.withdraw",
+      "undo.bar",
+      "queue.updated"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "FLOW-002",
+   "title": "mac-pairing-to-phone-pairing",
+   "critical": true,
+   "steps": [
+    {
+     "id": "FLOW-002.01",
+     "surface": "SURF-010",
+     "title": "Open Mac Pairing sheet and display 8-character Crockford code",
+     "atoms": [
+      "pairing.sheet",
+      "code.8char",
+      "pairing.countdown"
+     ]
+    },
+    {
+     "id": "FLOW-002.02",
+     "surface": "SURF-014",
+     "title": "Phone scans QR or enters pairing code",
+     "atoms": [
+      "qr.scanner",
+      "input.codeField",
+      "paired.confirmation"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "FLOW-003",
+   "title": "router-oauth-flow",
+   "critical": true,
+   "steps": [
+    {
+     "id": "FLOW-003.01",
+     "surface": "SURF-016",
+     "title": "Start auth flow on Control API and listen on port 8880",
+     "atoms": [
+      "auth.start",
+      "port.8880",
+      "callback.listener"
+     ]
+    },
+    {
+     "id": "FLOW-003.02",
+     "surface": "SURF-016",
+     "title": "Receive callback and save auth record",
+     "atoms": [
+      "callback.response",
+      "token.store",
+      "server.updated"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "FLOW-004",
+   "title": "servers-add-and-cleanup",
+   "critical": false,
+   "steps": [
+    {
+     "id": "FLOW-004.01",
+     "surface": "SURF-002",
+     "title": "Add server via sheet and observe live pooling",
+     "atoms": [
+      "sheet.addServer",
+      "tracker.running",
+      "server.placard"
+     ]
+    },
+    {
+     "id": "FLOW-004.02",
+     "surface": "SURF-007",
+     "title": "Inspect Cleanup candidates and confirm removal",
+     "atoms": [
+      "cleanup.row",
+      "confirm.sheet",
+      "server.removed"
+     ]
+    }
+   ]
+  }
+ ],
+ "component": [
+  {
+   "id": "COMP-001",
+   "name": "Breaker",
+   "surface": "SURF-002",
+   "description": "Switch breaker component with geometric tokens, travel recess, and state binding."
+  },
+  {
+   "id": "COMP-002",
+   "name": "MenuBarInboxBand",
+   "surface": "SURF-009",
+   "description": "Menu bar popover inbox band, rendering capped arrivals oldest-first."
+  },
+  {
+   "id": "COMP-003",
+   "name": "PopoverContent",
+   "surface": "SURF-009",
+   "description": "Popover content container with attention rows and status readout."
+  },
+  {
+   "id": "COMP-004",
+   "name": "InboxReviewSheet",
+   "surface": "SURF-008",
+   "description": "Modal review sheet with capability statements and requirement inputs."
+  },
+  {
+   "id": "COMP-005",
+   "name": "Sidebar",
+   "surface": "SURF-001",
+   "description": "8-destination sidebar with focus rings, badge counts, and selection restoration."
+  },
+  {
+   "id": "COMP-006",
+   "name": "CapabilityPlate",
+   "surface": "SURF-012",
+   "description": "Phone capability card showing name, source, and installation summary."
+  },
+  {
+   "id": "COMP-007",
+   "name": "Readout",
+   "surface": "SURF-009",
+   "description": "Real-time readout component for active server counts."
+  },
+  {
+   "id": "COMP-008",
+   "name": "QRScannerView",
+   "surface": "SURF-014",
+   "description": "Camera viewfinder for QR pairing code scanning."
+  }
+ ]
+}

@@ -55,6 +55,48 @@ struct InboxAnnouncementTests {
         #expect(many.actions == [.review])
     }
 
+    /// **The category enum states the same button sets a second time, and nothing held the two
+    /// together.** `make` writes `actions:` literally; `InboxNotificationCategory.actions` writes
+    /// them again, and that second copy is what the notifier registers with macOS.
+    ///
+    /// Measured 2026-08-19 by this campaign's arming gate: mutating `.many` to offer a decline left
+    /// this suite green over all ten clauses, so the buttons macOS draws could drift from the
+    /// buttons the value carries — which is the one failure `InboxNotificationCategory` exists to
+    /// close, and `noInstallAction` above cannot see it because it only reads `make`.
+    ///
+    /// `drawing` resolves an action set no category registers to `nil` rather than to a nearest
+    /// match, so asserting the round trip is what ties the two statements together.
+    @Test("every action set `make` builds is one a category actually draws")
+    func actionSetsRoundTripThroughACategory() throws {
+        let resolved = try Self.entry(id: "e-1")
+        let one = try #require(
+            InboxAnnouncement.make(
+                arrivals: [InboxBandTests.item(id: "q-1", queuedSecondsAgo: 5, resolved: resolved)],
+                device: Self.device
+            )
+        )
+        let many = try #require(
+            InboxAnnouncement.make(
+                arrivals: [
+                    InboxBandTests.item(id: "q-1", queuedSecondsAgo: 5),
+                    InboxBandTests.item(id: "q-2", queuedSecondsAgo: 3)
+                ],
+                device: Self.device
+            )
+        )
+
+        for announcement in [one, many] {
+            let category = try #require(
+                announcement.category,
+                """
+                no category draws \(announcement.actions) — `make` and \
+                `InboxNotificationCategory.actions` have drifted apart
+                """
+            )
+            #expect(category.actions == announcement.actions)
+        }
+    }
+
     @Test("a dismissal is not a decision, and an unknown identifier resolves to nothing")
     func dismissalIsNotADecision() {
         #expect(

@@ -1,0 +1,30 @@
+{
+  "project": "mcp-router",
+  "startedAt": "2026-08-19T01:43:08+00:00",
+  "lanes": [
+    "macos-glass",
+    "ios-glass",
+    "swiftui",
+    "router-daemon",
+    "parity-wire"
+  ],
+  "axes": [
+    "surface",
+    "state",
+    "viewport",
+    "theme",
+    "role",
+    "data-shape",
+    "execution-plane"
+  ],
+  "sample": "pairwise floor; 3-way on theme\u00d7viewport\u00d7surface (Mac boards) and role\u00d7state\u00d7network (honesty); oversample honesty-guardrails; drop high-contrast (no authored tokens); drop RTL (no localisation); pairing-transport cells blocked (I5: unimplemented)",
+  "designOfRecord": "design/mocks/prototype.html",
+  "run": {
+    "scope": "full",
+    "basis": "",
+    "lastFullRun": "2026-08-19T01:43:08+00:00",
+    "decidedBy": "user asked to invoke /test-campaign:test-campaign to its fullest",
+    "maxFullRunAgeDays": 14.0,
+    "declaredAt": "2026-08-19T01:43:08+00:00"
+  }
+}

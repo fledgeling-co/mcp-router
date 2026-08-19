@@ -1,0 +1,206 @@
+[
+ {
+  "surface": "SURF-001",
+  "shot": "planning/test-campaign/evidence/shots/SURF-001.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-001.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-002",
+  "shot": "planning/test-campaign/evidence/shots/SURF-002.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-002.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-003",
+  "shot": "planning/test-campaign/evidence/shots/SURF-003.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-003.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-004",
+  "shot": "planning/test-campaign/evidence/shots/SURF-004.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-004.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-005",
+  "shot": "planning/test-campaign/evidence/shots/SURF-005.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-005.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-006",
+  "shot": "planning/test-campaign/evidence/shots/SURF-006.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-006.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-007",
+  "shot": "planning/test-campaign/evidence/shots/SURF-007.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-007.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-008",
+  "shot": "planning/test-campaign/evidence/shots/SURF-008.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-008.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-009",
+  "shot": "planning/test-campaign/evidence/shots/SURF-009.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-009.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-010",
+  "shot": "planning/test-campaign/evidence/shots/SURF-010.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-010.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-011",
+  "shot": "planning/test-campaign/evidence/shots/SURF-011.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-011.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-012",
+  "shot": "planning/test-campaign/evidence/shots/SURF-012.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-012.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-013",
+  "shot": "planning/test-campaign/evidence/shots/SURF-013.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-013.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-014",
+  "shot": "planning/test-campaign/evidence/shots/SURF-014.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-014.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-015",
+  "shot": "planning/test-campaign/evidence/shots/SURF-015.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-015.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-016",
+  "shot": "planning/test-campaign/evidence/shots/SURF-016.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-016.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ },
+ {
+  "surface": "SURF-017",
+  "shot": "planning/test-campaign/evidence/shots/SURF-017.build.png",
+  "reference": "planning/test-campaign/evidence/shots/SURF-017.mock.png",
+  "viewport": {
+   "width": 1440,
+   "height": 900
+  },
+  "dpr": 2,
+  "theme": "dark",
+  "judgeable": true
+ }
+]

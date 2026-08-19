@@ -1,0 +1,50 @@
+[
+  {
+    "id": "COMP-001",
+    "name": "Breaker",
+    "surface": "SURF-002",
+    "description": "Switch breaker component with geometric tokens, travel recess, and state binding."
+  },
+  {
+    "id": "COMP-002",
+    "name": "MenuBarInboxBand",
+    "surface": "SURF-009",
+    "description": "Menu bar popover inbox band, rendering capped arrivals oldest-first."
+  },
+  {
+    "id": "COMP-003",
+    "name": "PopoverContent",
+    "surface": "SURF-009",
+    "description": "Popover content container with attention rows and status readout."
+  },
+  {
+    "id": "COMP-004",
+    "name": "InboxReviewSheet",
+    "surface": "SURF-008",
+    "description": "Modal review sheet with capability statements and requirement inputs."
+  },
+  {
+    "id": "COMP-005",
+    "name": "Sidebar",
+    "surface": "SURF-001",
+    "description": "8-destination sidebar with focus rings, badge counts, and selection restoration."
+  },
+  {
+    "id": "COMP-006",
+    "name": "CapabilityPlate",
+    "surface": "SURF-012",
+    "description": "Phone capability card showing name, source, and installation summary."
+  },
+  {
+    "id": "COMP-007",
+    "name": "Readout",
+    "surface": "SURF-009",
+    "description": "Real-time readout component for active server counts."
+  },
+  {
+    "id": "COMP-008",
+    "name": "QRScannerView",
+    "surface": "SURF-014",
+    "description": "Camera viewfinder for QR pairing code scanning."
+  }
+]

@@ -1,0 +1,50 @@
+{
+  "project": "mcp-router",
+  "startedAt": "2026-08-19T01:43:08+00:00",
+  "lanes": [
+    "macos-glass",
+    "ios-glass",
+    "swiftui",
+    "router-daemon",
+    "parity-wire"
+  ],
+  "axes": [
+    "surface",
+    "state",
+    "viewport",
+    "theme",
+    "role",
+    "data-shape",
+    "execution-plane"
+  ],
+  "sample": "pairwise floor; 3-way on theme\u00d7viewport\u00d7surface (Mac boards) and role\u00d7state\u00d7network (honesty); oversample honesty-guardrails; drop high-contrast (no authored tokens); drop RTL (no localisation); pairing-transport cells blocked (I5: unimplemented)",
+  "designOfRecord": "design/mocks/prototype.html",
+  "run": {
+    "scope": "full",
+    "basis": "",
+    "lastFullRun": "2026-08-19T01:49:45+00:00",
+    "decidedBy": "user asked to invoke /test-campaign:test-campaign to its fullest",
+    "maxFullRunAgeDays": 14.0,
+    "declaredAt": "2026-08-19T01:49:45+00:00"
+  },
+  "laneProof": {
+    "macos-glass": {
+      "attached": true,
+      "artifact": "/Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+      "artifactBytes": null,
+      "builtBy": "xcodebuild -project app/MCPRouter.xcodeproj -scheme MCPRouter -configuration Debug -derivedDataPath app/.derived CODE_SIGNING_ALLOWED=NO",
+      "attachedBy": "axkit attached pid=72421 owns CGWindowID 191539 title Activity; frontmost before/after = Relay",
+      "captureChannel": "screencapture -x -l<CGWindowID> window-scoped; PNG magic verified; no SCFrameStatus (screencapture, not ScreenCaptureKit)",
+      "declaredAt": "2026-08-19T04:28:40+00:00"
+    },
+    "ios-glass": {
+      "attached": true,
+      "artifact": "/Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug-iphonesimulator/MCPRouterIOS.app",
+      "artifactBytes": null,
+      "builtBy": "xcodebuild -project app/MCPRouter.xcodeproj -scheme MCPRouterIOS -destination id=29FEA02E-8677-4996-AC2D-904A97FB3643 -derivedDataPath app/.derived CODE_SIGNING_ALLOWED=NO test",
+      "attachedBy": "simctl launch --terminate-running-process 29FEA02E-8677-4996-AC2D-904A97FB3643 app.fledgeling.mcprouter.ios \u2192 pid 79581; Simulator.app none; frontmost Ghostty before/after",
+      "captureChannel": "simctl io screenshot; PNG 1206x2622 sha 16385e6f\u2026; no SCFrameStatus \u2014 untrustworthy by construction",
+      "declaredAt": "2026-08-19T04:36:30+00:00"
+    }
+  }
+}

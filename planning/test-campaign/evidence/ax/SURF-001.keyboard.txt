@@ -1,0 +1,3 @@
+start Inbox: Inbox
+Cmd+2 -> Inbox
+Cmd+6? -> Inbox

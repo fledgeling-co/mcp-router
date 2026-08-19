@@ -1,0 +1,49 @@
+{
+  "project": "mcp-router",
+  "startedAt": "2026-08-19T00:06:10+00:00",
+  "lanes": [
+    "macos-glass",
+    "ios-glass",
+    "swiftui",
+    "router-daemon",
+    "parity-wire"
+  ],
+  "axes": [
+    "surface",
+    "state",
+    "viewport",
+    "theme",
+    "role",
+    "data-shape",
+    "execution-plane"
+  ],
+  "sample": "one cell per axis + dark\u00d7mobile, error\u00d7modal, viewer\u00d7write",
+  "designOfRecord": "design/mocks/prototype.html",
+  "run": {
+    "scope": "full",
+    "basis": "",
+    "lastFullRun": "2026-08-19T00:06:10+00:00",
+    "decidedBy": "user asked to invoke /test-campaign:test-campaign to its fullest",
+    "declaredAt": "2026-08-19T00:06:10+00:00"
+  },
+  "laneProof": {
+    "macos-glass": {
+      "attached": true,
+      "artifact": "app/.derived/Build/Products/Debug/MCPRouter.app",
+      "artifactBytes": null,
+      "builtBy": "make build-mac",
+      "attachedBy": "MCPRouter process attached via AXKit and XCTest runner",
+      "captureChannel": "ScreenCaptureKit window-scoped, SCFrameStatus per frame",
+      "declaredAt": "2026-08-19T00:07:56+00:00"
+    },
+    "ios-glass": {
+      "attached": true,
+      "artifact": "app/.derived/Build/Products/Debug-iphonesimulator/MCPRouterIOS.app",
+      "artifactBytes": null,
+      "builtBy": "make build-ios",
+      "attachedBy": "MCPRouterIOS attached via simctl on booted iOS Simulator",
+      "captureChannel": "simctl io screenshot display frame",
+      "declaredAt": "2026-08-19T00:07:56+00:00"
+    }
+  }
+}

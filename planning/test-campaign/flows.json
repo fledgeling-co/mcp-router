@@ -1,0 +1,48 @@
+[
+  {
+    "id": "FLOW-001",
+    "title": "phone-triage-to-mac-inbox",
+    "critical": true,
+    "steps": [
+      {"id": "FLOW-001.01", "surface": "SURF-016", "title": "Select items in Phone Triage and commit to Queue", "atoms": ["triage.card", "queue.commitBar", "badge.count"]},
+      {"id": "FLOW-001.02", "surface": "SURF-009", "title": "Mac popover shows the arrival in the inbox band", "atoms": ["popover.inboxBand", "band.oldestFirst"]},
+      {"id": "FLOW-001.03", "surface": "SURF-012", "title": "Open Review sheet and accept or decline", "atoms": ["review.sheet", "button.install", "button.decline"]},
+      {"id": "FLOW-001.04", "surface": "SURF-008", "title": "Disposition withdraws the banner", "atoms": ["notifier.withdraw", "undo.bar"]}
+    ]
+  },
+  {
+    "id": "FLOW-002",
+    "title": "mac-pairing-to-phone-pairing",
+    "critical": true,
+    "steps": [
+      {"id": "FLOW-002.01", "surface": "SURF-010", "title": "Mac pairing sheet shows an 8-character Crockford code", "atoms": ["pairing.sheet", "code.8char"]},
+      {"id": "FLOW-002.02", "surface": "SURF-020", "title": "Phone scans QR or enters the code and a session exists on both sides", "atoms": ["qr.scanner", "input.codeField", "paired.confirmation"]}
+    ]
+  },
+  {
+    "id": "FLOW-003",
+    "title": "router-oauth-callback",
+    "critical": true,
+    "steps": [
+      {"id": "FLOW-003.01", "surface": "SURF-022", "title": "Start auth and listen on 8880", "atoms": ["auth.start", "port.8880"]},
+      {"id": "FLOW-003.02", "surface": "SURF-022", "title": "Callback saves an auth record", "atoms": ["callback.response", "token.store"]}
+    ]
+  },
+  {
+    "id": "FLOW-004",
+    "title": "servers-add-and-cleanup",
+    "critical": false,
+    "steps": [
+      {"id": "FLOW-004.01", "surface": "SURF-013", "title": "Add-server sheet opens from the Servers board", "atoms": ["sheet.addServer"]},
+      {"id": "FLOW-004.02", "surface": "SURF-007", "title": "Cleanup lists never-used servers", "atoms": ["cleanup.row"]}
+    ]
+  },
+  {
+    "id": "FLOW-005",
+    "title": "shell-destination-navigation",
+    "critical": true,
+    "steps": [
+      {"id": "FLOW-005.01", "surface": "SURF-001", "title": "Selecting a sidebar row changes the window title to that destination", "atoms": ["sidebar.row", "window.title"]}
+    ]
+  }
+]

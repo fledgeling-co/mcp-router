@@ -39,3 +39,33 @@ first.
 | D3 | Deferred register: phone copy and the harness limit (4) | `D3-deferred-phone-harness.md` | — | — | Untriaged |
 | — | **BLOCKED: the Apple developer identity** | `BLOCKED-apple-identity.md` | — | — | **Needs input — `as-found`, not confirmed** |
 | M14 | A shipped menu tells the user the app is not built | `M14-menu-says-not-built.md` | — | — | Untriaged |
+| R6 | Children inherit launchd's minimal PATH | `R6-child-process-path.md` | — | — | Untriaged |
+| R7 | The router's thesis is unmet for every harness but Claude Code | `R7-harness-reconciliation.md` | — | — | Untriaged |
+| M15 | Settings becomes its own window | `M15-settings-window.md` | — | — | Untriaged |
+| M16 | The Signal Path replaces the Breaker Column | `M16-signal-path.md` | — | — | Untriaged |
+| M17 | Four states on every surface, and chrome that follows | `M17-surface-states.md` | — | — | Untriaged |
+| M18 | Twelve sheets, and the gate each decision gets | `M18-sheets-and-gates.md` | — | — | Untriaged |
+| M19 | The in-app GitHub-flavoured Markdown viewer | `M19-gfm-viewer.md` | — | — | Untriaged |
+| M20 | Menu bar, status item, and the notification banner | `M20-menubar-status-notification.md` | — | — | Untriaged |
+| M21 | The token layer, the split accent, and `DESIGN.md` | `M21-token-layer-and-design-md.md` | — | — | Untriaged |
+| M22 | The Harnesses and Insights boards | `M22-harnesses-and-insights-boards.md` | — | — | Untriaged |
+| M23 | The mock-to-SwiftUI conversion contract | `M23-mock-to-swiftui-contract.md` | — | — | Untriaged |
+| P7 | `control-auth-post-http` needs a real OAuth client | `P7-auth-post-oauth-client.md` | — | — | Untriaged |
+| P8 | Make `install-launchd-watch`'s `reran` term attributable | `P8-launchd-watch-attributable.md` | — | — | Untriaged |
+| X1 | The iOS accessibility-tree harness, and two surfaces still empty | `X1-ios-a11y-harness.md` | — | — | Untriaged |
+
+## Allocation notes
+
+- **M9–M12 are unused.** They were never allocated; the M series jumps from M8 to M13. New Mac
+  work continues at M24 rather than filling the gap, so an ID never means two things.
+- **M23 blocks M15–M22.** It specifies how a mock-to-SwiftUI conversion is proved. Converting a
+  board before the measurement layers exist produces a build that looks right and cannot be shown
+  to be, which is the failure the brief's sources were written from. New Mac work continues at M24.
+- **The skills the pipeline depends on are vendored.** `.claude/plugins/fledgeling-plugins` is a git
+  submodule tracking `main`, so a runner reads `mockup-fidelity`, `mac-craft`, `design-craft` and
+  `ux-craft` at a repo-relative path rather than depending on the machine. After a fresh clone:
+  `git submodule update --init --recursive`.
+- **M15–M22 were allocated together on 2026-08-19** from the interactive mock at
+  `design/mcp-router-console.html`. They are UI specification, not defects: each names something
+  the mock draws that no earlier brief covers. `design/mcp-router-console-spec.md` carries the
+  audit numbers and the list of what the mock specifies rather than measures.

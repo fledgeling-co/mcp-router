@@ -16,7 +16,7 @@ UNSIGNED   := CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 IOS_DEST   ?= generic/platform=iOS Simulator
 MAC_DEST   ?= platform=macOS
 
-.PHONY: all tools generate build build-mac build-mac-release build-ios test test-ios parity parity-regen parity-selftest parity-lane-selftest mutation acceptance lint format clean
+.PHONY: all tools generate build build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest mutation acceptance lint format clean
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
 all: tools lint build test test-ios parity parity-selftest
@@ -155,6 +155,62 @@ print((d.get('passedTests') or 0) + (d.get('failedTests') or 0))"); \
 	    echo "error: zero iOS tests executed — a bundle that fails to install reports no tests"; \
 	    exit 1; \
 	  fi
+
+## The `ios-glass` lane — the app installed and driven on a booted simulator.
+##
+## Separate from `test-ios` because the two answer different questions. `test-ios` constructs views
+## in the app's process and reads them back through our own walk of `UIView.accessibilityLabel`; it
+## never taps a tab, so it cannot tell "each tab renders its own surface" from "all five render
+## Settings". This target runs XCUITest out of process against iOS's own accessibility tree, which
+## is what caught the tab bar announcing ["discover", "inbox", "tray", "book", "settings"].
+##
+## Attachments are exported into the campaign's evidence tree and renamed to the name the test gave
+## them, so a PNG in `planning/test-campaign/evidence/shots/ios/` is attributable to the assertion
+## that passed immediately before it was taken. `manifest.json` is kept beside them as the record of
+## which test produced which file.
+##
+## Never opens Simulator.app: `xcodebuild test` against an already-booted device drives the runtime
+## directly, which is `planning/practices/UI_VERIFICATION.md` rule 1.
+##
+## **Deliberately not in `all` yet.** Two of its five cases are red, and both reds are findings
+## about the product rather than about this target — DEF-X2-a and DEF-X2-b in
+## `planning/features-to-triage/X2-ios-on-glass.md`. Wiring a known-red lane into the whole-repo
+## gate would either block every unrelated commit or invite someone to soften the two assertions,
+## and the assertions are the only reason the findings are visible. It joins `all` when they close.
+IOS_GLASS_SHOTS := planning/test-campaign/evidence/shots/ios
+
+test-ios-glass: generate
+	@set -eu -o pipefail; \
+	  udid=$$(xcrun simctl list devices available -j \
+	          | python3 -c "import json,sys; ds=json.load(sys.stdin)['devices']; \
+c=[d for v in ds.values() for d in v if d.get('isAvailable') and 'iPhone' in d['name']]; \
+c.sort(key=lambda d: d['state'] != 'Booted'); \
+print(c[0]['udid'] if c else '')"); \
+	  if [ -z "$$udid" ]; then \
+	    echo "error: no available iPhone simulator, so the ios-glass lane did not run."; \
+	    echo "       This is an environment failure, not a pass — every capture and every"; \
+	    echo "       per-tab surface claim went unmeasured."; \
+	    exit 2; \
+	  fi; \
+	  xcrun simctl bootstatus "$$udid" -b >/dev/null 2>&1 || xcrun simctl boot "$$udid" || true; \
+	  echo "test-ios-glass: simulator $$udid"; \
+	  bundle="$$(mktemp -d -t mcprouter-glass)/result.xcresult"; \
+	  perl -e 'alarm shift @ARGV; exec @ARGV' 1800 \
+	  xcodebuild -project $(PROJECT) -scheme MCPRouterIOSGlass -configuration Debug \
+	    -destination "id=$$udid" -derivedDataPath $(DERIVED) $(UNSIGNED) \
+	    -resultBundlePath "$$bundle" test; \
+	  ran=$$(xcrun xcresulttool get test-results summary --path "$$bundle" --format json \
+	         | python3 -c "import json,sys; d=json.load(sys.stdin); \
+print((d.get('passedTests') or 0) + (d.get('failedTests') or 0))"); \
+	  echo "executed $$ran on-glass tests"; \
+	  if [ "$$ran" -eq 0 ]; then \
+	    echo "error: zero on-glass tests executed — a runner that fails to install reports none"; \
+	    exit 1; \
+	  fi; \
+	  rm -rf "$(IOS_GLASS_SHOTS)"; mkdir -p "$(IOS_GLASS_SHOTS)"; \
+	  xcrun xcresulttool export attachments --path "$$bundle" \
+	    --output-path "$(IOS_GLASS_SHOTS)" >/dev/null; \
+	  python3 scripts/acceptance/name-glass-attachments.py "$(IOS_GLASS_SHOTS)"
 
 ## The parity corpus specifically — A41.
 ##

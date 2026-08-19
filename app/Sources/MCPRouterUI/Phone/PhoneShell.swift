@@ -102,6 +102,21 @@ public struct PhoneShell<Preview: View>: View {
                         } icon: {
                             IconView(tab.icon)
                         }
+                        // The tab's name, stated, because without it the icon's name is what
+                        // ships. `IconView` labels itself with `Icon`'s raw value so an icon
+                        // standing alone as a control still announces something — and inside a
+                        // `Label` that label **wins**, dropping the title. Measured on glass
+                        // (iOS 26.5, iPhone 16 Pro), the five tab buttons read back as
+                        // ["discover", "inbox", "tray", "book", "settings"], so VoiceOver called
+                        // Triage "inbox", Queue "tray" and Library "book" — three of five
+                        // announcing a word that appears nowhere in the interface.
+                        //
+                        // `.accessibilityHidden(true)` on the icon was tried first and measured
+                        // **inert**: the labels came back byte-identical. Stating the label is
+                        // what moved them to ["Discover", "Triage", "Queue", "Library",
+                        // "Settings"]. The in-process suite could not see any of this, because it
+                        // never selects a tab; `MCPRouterIOSUITests` does.
+                        .accessibilityLabel(tab.title)
                     }
                     .tag(tab)
             }

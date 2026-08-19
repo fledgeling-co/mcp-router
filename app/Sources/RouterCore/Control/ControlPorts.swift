@@ -126,11 +126,14 @@ public struct AuthFlowSummary: Sendable, Hashable {
 
 /// Beginning a browser authorization — the reference's `beginAuth(name, authTransportFor(u))`.
 ///
-/// **Optional on ``ControlDeps``**, because the collaborator behind it does not exist yet: no type
-/// conforms to ``AuthTransport``, so nothing can drive an OAuth exchange (`D-p1-a`). A handler that
-/// constructed the coordinator itself could not be told that, and would have to invent an answer
-/// for a flow it cannot drive. With this absent, a non-stdio `POST /servers/:name/auth` falls
-/// through to the 405 it has always answered rather than claiming a failure that never happened.
+/// **Optional on ``ControlDeps``**, and it stayed nil until P7 because no type conformed to
+/// ``AuthTransport`` outside the test target, so nothing could drive an OAuth exchange (`D-p1-a`).
+/// ``OAuthFlowStarter`` conforms now and the daemon supplies it, so a non-stdio
+/// `POST /servers/:name/auth` begins a real flow. It stays OPTIONAL because `ControlDiff` — the
+/// in-process differential oracle — deliberately supplies none: giving that harness a live starter
+/// would put a real OAuth cascade and a bound callback port inside every control-lane run. With
+/// this absent the route still falls through to its 405 rather than claiming a failure that never
+/// happened.
 public protocol AuthFlowStarting: Sendable {
     /// Returns once the authorization URL is known. Throws on either pre-flow failure (B84), which
     /// the route turns into a 502.
@@ -147,10 +150,9 @@ public protocol AuthFlowStarting: Sendable {
     /// which turned a *successful* authorization into an `onIncomplete` warn with no `clearPending`
     /// and no re-index — the tokens landed on disk and the tools never appeared.
     ///
-    /// Note that `AuthFlowCoordinator` does not *conform* to this protocol: nothing does yet, which
-    /// is `D-p1-a` and why `control-auth-post-http` is a blocked parity row. The requirement stays
-    /// stated here because whatever conforms will have to meet it in its own right, and the
-    /// coordinator's behaviour is the worked example rather than the inherited implementation.
+    /// `AuthFlowCoordinator` still does not *conform* to this protocol — ``OAuthFlowStarter`` does,
+    /// and it holds one coordinator for the life of the process, which is what makes "a second flow
+    /// supersedes the first" true across requests rather than within one.
     func awaitCompletion(server: JSString) async throws
 }
 
@@ -185,8 +187,8 @@ public struct ControlDeps: Sendable {
     /// changes no status and no byte on the wire. `POST /servers/:name/approve` is the one route
     /// that logs (B94).
     public var log: RouterLog?
-    /// Starting a browser authorization. Nil until something conforms to ``AuthTransport``
-    /// (`D-p1-a`); see ``AuthFlowStarting`` for what its absence means on the wire.
+    /// Starting a browser authorization. The daemon supplies ``OAuthFlowStarter``; `ControlDiff`
+    /// supplies none. See ``AuthFlowStarting`` for what an absence means on the wire.
     public var authFlow: (any AuthFlowStarting)?
 
     public init(

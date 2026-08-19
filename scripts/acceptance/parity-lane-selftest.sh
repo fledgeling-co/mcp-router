@@ -333,6 +333,13 @@ for row in $ALL_ROWS; do
   fi
 done
 echo "  demonstrated: $shown of $((shown + unshown))"
+# The `oauth` lane is deliberately absent from ALL_ROWS. It has no lever through this shim — its
+# row turns on the bytes of an OAuth cascade the shim cannot reach — and its failability is
+# demonstrated by a stronger instrument instead: `scripts/acceptance/p7-mutations.sh` breaks the
+# OAuth client six ways in the PRODUCT and requires the lane to go red on every trial. Named here
+# so a reader of this roll-up does not read the lane's absence as an unproven row.
+echo "  (control/control-auth-post-http is proved failable by scripts/acceptance/p7-mutations.sh,"
+echo "   which mutates the product rather than the shim; it has no lever here.)"
 if [ "$blocked" != 0 ]; then
   echo "  ($blocked lane(s) could not run, so some rows below are unmeasured, not inert.)"
 fi

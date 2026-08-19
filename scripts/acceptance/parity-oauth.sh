@@ -292,15 +292,39 @@ echo
 run_side reference node "$DIST/index.js"
 run_side swift "$SWIFT_BIN"
 
+# A side that never reached the token endpoint completed no authorization, and WHICH side it was
+# decides what that means. The distinction is not pedantry — it was bought by the mutation gate,
+# which broke the Swift client on purpose and watched the lane report `environment: could not run`.
+# That is the wrong answer twice over: it says the harness is broken when the router is, and it
+# reports a lane that DID measure something as a lane that measured nothing.
+#
+#   * the REFERENCE side is the oracle. If it cannot complete a flow, the fixture or `dist/` is
+#     broken and there is nothing to compare against — exit 2, and the row stays blocked.
+#   * the SWIFT side is the subject. If it cannot complete a flow the reference completed, that is
+#     the finding — exit 1, with the row recorded `fail`.
+incomplete() { # label
+  echo "the $label side made no token request, so no authorization completed."
+  echo "  POST /auth:  $(cat "$WORK/$1.authstatus") $(cat "$WORK/$1.auth")"
+  echo "  browser hop: $(cat "$WORK/$1.pagestatus")"
+  echo "  router log:  $(tail -5 "$WORK/$1-serve.out" | tr '\n' ' ')"
+  echo "  the provider saw:"
+  sed -n '1,20p' "$WORK/$1.log.full" | sed 's/^/    /'
+}
+
 for label in reference swift; do
   truncate_log "$WORK/$label.log.full" > "$WORK/$label.log" 2> "$WORK/$label.logerr" || {
-    echo "environment: the $label side made no token request, so no authorization completed."
-    echo "             POST /auth: $(cat "$WORK/$label.authstatus") $(cat "$WORK/$label.auth")"
-    echo "             browser hop: $(cat "$WORK/$label.pagestatus")"
-    echo "             router log tail: $(tail -5 "$WORK/$label-serve.out" | tr '\n' ' ')"
-    sed -n '1,20p' "$WORK/$label.log.full"
-    record control-auth-post-http blocked "the $label side never reached the token endpoint"
-    exit 2
+    if [ "$label" = reference ]; then
+      echo "environment: the ORACLE could not complete an authorization, so there is nothing to"
+      echo "             compare against. This row stays blocked; it is not a pass and not a"
+      echo "             failure of the router under test."
+      incomplete "$label"
+      record control-auth-post-http blocked "the reference side never reached the token endpoint"
+      exit 2
+    fi
+    echo "FAIL — the reference completed an authorization and this router did not."
+    incomplete "$label"
+    record control-auth-post-http fail "the Swift router never reached the token endpoint"
+    exit 1
   }
 done
 

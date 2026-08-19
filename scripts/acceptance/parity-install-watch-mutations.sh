@@ -30,10 +30,21 @@
 #
 #   stamp-only  the decoy plist again, with half 2 of the fix REVERTED — the stimulus pinned back
 #             to the agent's own `$HOME/.claude.json` rather than following the plist. This is P5's
-#             lane with P8's stamp bolted on and nothing else, and it measures whether the stamp
-#             alone would have been enough. It is reported as a RATE and gated on nothing: the
-#             expected shape is a spurious green roughly one run in three, and gating on "at least
-#             one green" would fail this harness about one run in eleven while proving nothing.
+#             lane with P8's stamp bolted on and nothing else, and it asks whether the stamp alone
+#             would have been enough. Gated on nothing, because the answer is a rate and not a
+#             verdict.
+#
+#             MEASURED 2026-08-20, and it did not answer the question: all six trials read
+#             `runs=1->1`, so not one spurious increment occurred, where D-p1-e measured two in six
+#             on the same configuration. The mechanism this arm needs in order to say anything did
+#             not fire, so what it establishes is only that the spurious-spawn RATE is not stable
+#             between sessions — which is itself the reason this row must not rest on "the decoy
+#             usually goes red". Half 2's justification stays what the header calls it: structural,
+#             not contingent on that rate.
+#
+#             It also reports `watched=self`, because the override moves the stimulus target and
+#             `watched` names the target rather than the plist. Under this arm alone, that field
+#             does not show the mutation.
 #
 #   resident  the Swift program replaced by `sh -c '<bin> watch; sleep 300'` — it writes its state
 #             and then stays up. Aimed at `oneshot`, which P5 showed discriminates; re-run here so
@@ -220,15 +231,15 @@ run_arm blind "$TRIALS" no yes
 summary="$summary
   blind     reran red $ARM_NEW/$ARM_TRIALS (must be all) — runs-only would have been red $ARM_OLD/$ARM_TRIALS"
 
-# NOT GATED, and deliberately. This arm reverts half 2 of the fix and measures how often the stamp
-# alone still reads green under P5's exact decoy — a rate around one in three is the expected shape,
-# and gating on "at least one green" would make this harness fail roughly one run in eleven while
-# proving nothing it does not already print. The number is the finding; the pass/fail is not.
+# NOT GATED, and deliberately. This arm reverts half 2 of the fix and counts how often the stamp
+# alone still reads green under P5's exact decoy. The number is the finding; the pass/fail is not,
+# because a red here can mean either "the stamp was enough" or "no spurious spawn happened to occur"
+# — and on 2026-08-20 it meant the second, with `runs=1->1` in all six.
 run_arm stamp-only "$TRIALS" no yes
 summary="$summary
-  stamp-only  half 2 of the fix reverted: reran red $ARM_NEW/$ARM_TRIALS, NOT GATED — this is the
-              measured rate at which the stamp alone would still have gone spuriously green, and it
-              is why the stimulus follows the plist"
+  stamp-only  half 2 reverted: reran red $ARM_NEW/$ARM_TRIALS, NOT GATED. Read it with the runs
+              column: a red here with the counter unmoved means no spurious spawn occurred to test
+              the stamp with, not that the stamp alone would do"
 
 run_arm resident "$RESIDENT_TRIALS" no no
 [ "$ARM_ONESHOT" = "$ARM_TRIALS" ] || failures=$((failures + 1))

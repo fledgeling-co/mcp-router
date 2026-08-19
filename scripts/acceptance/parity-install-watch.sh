@@ -135,10 +135,11 @@ JSON
 #
 # THE DEFECT, NAMED. `runs` moving proves launchd SPAWNED the job. The row's claim is that a change
 # to the watched path is PICKED UP. Those differ by exactly one thing — whether the run that
-# happened has anything to do with the change that was staged — and launchd spawns a WatchPaths job
-# for reasons of its own often enough to make the difference decidable one run in three.
+# happened has anything to do with the change that was staged — and launchd spawned a WatchPaths job
+# for reasons of its own often enough to flip the answer in two trials out of six.
 #
-# THE FIX, IN TWO HALVES. Neither is sufficient alone.
+# THE FIX, IN TWO HALVES. Half 1 is what the term claims; half 2 is what makes the claim decidable
+# without depending on how often launchd happens to spawn the job for reasons of its own.
 #
 #   1. THE STIMULUS IS STAMPED, AND THE STAMP MUST COME BACK. Each staged change carries a token
 #      unique to this side and this run, in the name of a server neither binary can adopt. Both
@@ -155,8 +156,13 @@ JSON
 #      the watcher reads, so any spawn — spurious or not — observes the staged change and reports
 #      the stamp. Following the plist means a decoy agent is stimulated at its decoy, the file it
 #      reads never changes after load, and every spawn takes the hash fast path and writes nothing.
-#      That is not left as an argument: the mutation harness carries a `stamp-only` arm which
-#      reverts half 2 and reports the rate at which the stamp alone still goes green.
+#      The harness carries a `stamp-only` arm which reverts half 2 to measure that, and it is worth
+#      knowing what it returned: on 2026-08-20 all six of its trials read `runs=1->1` — not one
+#      spurious increment, where D-p1-e measured two in six on the same configuration. So the arm
+#      could not answer its question, and the argument for half 2 stays an argument. What the arm
+#      DID measure is that the spurious-spawn rate varies between sessions, which is the reason this
+#      row must not rest on a decoy that "usually" goes red: with half 2 the decoy is red because
+#      the file the watcher reads never changes, and that does not depend on a rate at all.
 #
 #      The plist's path is REPORTED (`watched=self` or the path) and never ASSERTED. Asserting it
 #      would redden the mutation by having the lane notice its own configuration, which measures the

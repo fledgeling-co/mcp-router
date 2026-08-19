@@ -30,6 +30,9 @@ set -uo pipefail
 cd "$(dirname "$0")/../.." || exit 2
 
 TRIALS="${P7_MUTATION_TRIALS:-5}"
+# A substring filter, so one mutation can be re-run on its own after its snippet went stale. Empty
+# runs all of them, which is what a gate run means; a filtered run says so in its own summary.
+ONLY="${P7_MUTATION_ONLY:-}"
 CLIENT="app/Sources/RouterCore/Auth/OAuthClient.swift"
 STARTER="app/Sources/RouterCore/Auth/OAuthFlowStarter.swift"
 TOKENS="app/Sources/RouterCore/Auth/OAuthTokenRequest.swift"
@@ -52,6 +55,7 @@ build() {
 }
 
 echo "P7 mutation gate — $TRIALS trials per mutation, and every trial must be red"
+[ -n "$ONLY" ] && echo "FILTERED to mutations matching \"$ONLY\" — this is not a full gate run"
 echo
 
 # The unmutated tree first. A gate that never observes the lane green cannot tell a mutation that
@@ -73,6 +77,10 @@ declare -a failures=()
 mutate() { # name file python-snippet
   local name="$1" file="$2" snippet="$3"
   local src red green trial status
+
+  if [ -n "$ONLY" ] && [ "${name#*"$ONLY"}" = "$name" ]; then
+    return
+  fi
 
   src=$(printf 'import sys\np = sys.argv[1]\ns = open(p).read()\nbefore = s\n%s\nif s == before:\n    sys.exit("the mutation matched nothing, so it is not breaking what it names")\nopen(p, "w").write(s)\n' "$snippet")
   if ! python3 -c "$src" "$file"; then
@@ -147,7 +155,7 @@ s = s.replace("""        let registered = try await OAuthTokenRequest.register("
 # 5 — the token request carries no code verifier, so the provider'"'"'s PKCE check refuses the exchange
 #     and no credential file is ever written.
 mutate "the code verifier is dropped from the token request" "$TOKENS" '
-s = s.replace("""            (name: "code_verifier", value: verifier),
+s = s.replace("""            (name: "code_verifier", value: exchange.verifier),
 """, "")'
 
 # 6 — the callback listener binds a port the redirect URI does not name. Everything up to the
@@ -161,7 +169,7 @@ echo
 restore
 build || { echo "environment: the restored tree does not build"; exit 2; }
 if [ "$fail" -eq 0 ]; then
-  echo "examined=$((pass)) mutations x $TRIALS trials = $((pass * TRIALS)) lane runs, failures=0"
+  echo "examined=$pass mutations x $TRIALS trials = $((pass * TRIALS)) lane runs, failures=0"
   echo "every mutation reddened the lane on every trial."
   exit 0
 fi

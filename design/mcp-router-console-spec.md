@@ -83,6 +83,41 @@ name, verified publisher, one-line pitch, and the install action — plus a five
 (kind, version, licence, which harnesses it runs in, what it reads). The header does not scroll,
 because the reader's question eight paragraphs into "what it does" is still "and do I install it".
 
+### The artwork, and why it depicts capabilities rather than publishers
+
+Fourteen generated WebP assets are embedded as data URIs on `:root` — twelve 128px squircle app
+tiles and two 1000×236 banner bands — 60 KB in total, which is what makes embedding them
+affordable and keeps the mock one file.
+
+Every card in this store names a real publisher: Anthropic, OpenAI, Google, Vercel, GitHub,
+Microsoft, Stripe, Fledgeling. Drawing an icon that resembled any of their marks would be
+manufacturing a logo they never made, and a mock that ships a fabricated Anthropic glyph is worse
+than a mock with no art at all. So **every tile depicts what the entry does** — a database, a file
+tree, a browser window, a cloud, a branching graph, a pen and rule, a chat bubble, a chart, a flow
+of three linked nodes, a compass, an icon canvas, a clock over a rising series — and the publisher
+is stated in words beside it. Both banners are abstract for the same reason.
+
+Icons are assigned by capability, not by slot, and no two cards in the same rail share a tile
+except where the shared tile is the honest read: `filesystem` and `google-drive` are both file
+trees. `postgres-mcp` keeps the database tile and `pg-schema-tools` takes the branching graph,
+because migrations and schema diffs are a diff, not a store.
+
+The generator prompts, so a replacement can match the family:
+
+| Asset | Prompt |
+|---|---|
+| Tiles 1–4 (database, file tree, browser, cloud) | *A 2x2 grid of four macOS application icons on a plain near-white ground, Big Sur squircle shape, smooth top-lit single-hue gradient per tile, a white thin-stroke line-art glyph centred in each, soft drop shadow. Hues: azure, graphite, slate, green. Flat and exact, not glossy, no 3D, no bevel. No text, no letters, no numerals, no wordmarks, nothing resembling a real company logo.* |
+| Tiles 5–8 (version control, design, messaging, observability) | As above, hues violet / amber / teal / magenta, with tiles 1–4 passed as reference images so the family holds. |
+| Tiles 9–12 (flow, compass, icon canvas, time series) | As above, hues indigo `#4051B5` / cyan `#0891B2` / coral `#E2564A` / olive `#6B7A2E`, with both earlier sheets as reference images. |
+| `banner-deploy` | *Thin routing lines converging through nodes, azure to indigo, abstract, no text.* 1536×512, cropped to 1000×236. |
+| `banner-market` | *A row of rounded-square modules, graphite to amber, abstract, no text.* Same crop. |
+
+Each 1024×1024 sheet is sliced by detecting the tile within its quadrant — `(luminance < 600) |
+(saturation > 40)`, so the drop shadow does not drag the bounding square off-centre — inset 3.5%,
+then masked with a 4× supersampled rounded rectangle at radius 0.235 and downsampled to 128px.
+WebP at q90 with `-sharp_yuv`; the banners at q93, inspected for banding in the gradient.
+
+
 ## Destructive actions and their gates
 
 | Action | Blast radius | Gate built |

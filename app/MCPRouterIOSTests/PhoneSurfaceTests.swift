@@ -26,6 +26,13 @@ final class PhoneSurfaceTests: XCTestCase {
     /// actually happen.
     static let phoneSize = CGSize(width: 393, height: 852)
 
+    /// The window `host` creates. `UIWindow` retains its root controller, not the other way
+    /// around, so a local window dies when `host` returns and SwiftUI's hosting view is left
+    /// without a window — layout numbers already computed stay, but the accessibility tree
+    /// is empty. The first two iOS runs of this suite failed every copy assertion with
+    /// `in: ` while `sizeThatFits` still returned a real height.
+    private var hostedWindows: [UIWindow] = []
+
     /// Render a view into a real window so layout, safe areas and traits are the live ones.
     func host(
         _ view: some View,
@@ -37,6 +44,7 @@ final class PhoneSurfaceTests: XCTestCase {
         window.overrideUserInterfaceStyle = .unspecified
         window.rootViewController = controller
         window.makeKeyAndVisible()
+        hostedWindows.append(window)
         controller.overrideUserInterfaceStyle = .unspecified
         controller.setOverrideTraitCollection(
             UITraitCollection(preferredContentSizeCategory: contentSize),
@@ -45,7 +53,58 @@ final class PhoneSurfaceTests: XCTestCase {
         controller.view.frame = CGRect(origin: .zero, size: size)
         controller.view.setNeedsLayout()
         controller.view.layoutIfNeeded()
+        // SwiftUI fills `accessibilityElements` on the next turn, after the hosting view has a
+        // window — but *when* is not fixed: it moves with the simulator's OS and with load, and a
+        // fixed 50ms pass was enough on one runner and not on the next. A deadline poll settles
+        // when the tree is actually populated, and reports what it needed rather than assuming.
+        settleAccessibilityTree(of: controller)
         return controller
+    }
+
+    /// Spin the run loop until the accessibility tree carries text, or the deadline expires.
+    ///
+    /// A fixed pass was the wrong instrument: SwiftUI publishes the tree on a later turn, and
+    /// *when* moves with the simulator's OS and with load — 50ms was enough on one runner and not
+    /// on the next, which reads downstream as "the copy is no longer rendered".
+    ///
+    /// This does **not** assert. An empty tree is not always a defect: a surface under test for its
+    /// frames, or a tab bar deliberately carrying no badge text, legitimately has none. Asserting
+    /// here failed four such tests while fixing four others. The tests that need a non-empty tree
+    /// already carry their own vacuity guards, which is where that judgement belongs.
+    @discardableResult
+    func settleAccessibilityTree(
+        of controller: UIViewController,
+        deadline: TimeInterval = 1.0
+    ) -> TimeInterval {
+        let started = Date()
+        while Date().timeIntervalSince(started) < deadline {
+            RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.02))
+            if !accessibilityTexts(of: controller.view).isEmpty {
+                return Date().timeIntervalSince(started)
+            }
+        }
+        // The deadline expired with an empty tree. That is legitimate on a frames-only surface, so
+        // it is not asserted — but it is the signature of a harness defect too, and the two are
+        // told apart by whether the view laid out at all. Printing both costs nothing and turns
+        // "rendered nothing" into a diagnosis.
+        let v = controller.view!
+        let kids = descendants(of: v)
+        let classes = Dictionary(grouping: kids, by: { String(describing: type(of: $0)) })
+            .map { "\($0.key)x\($0.value.count)" }.sorted().joined(separator: ",")
+        let containers = kids.filter { $0.accessibilityElements != nil }.count
+        let counts = kids.map { $0.accessibilityElementCount() }
+            .filter { $0 > 0 && $0 != NSNotFound }
+        FileHandle.standardError.write(Data(
+            ("SETTLE-EMPTY frame=\(v.frame) descendants=\(kids.count) "
+                + "containers=\(containers) elemCounts=\(counts) classes=[\(classes)]\n")
+                .utf8
+        ))
+        return deadline
+    }
+
+    override func tearDown() {
+        hostedWindows.removeAll()
+        super.tearDown()
     }
 
     /// Walk the rendered hierarchy.
@@ -62,8 +121,9 @@ final class PhoneSurfaceTests: XCTestCase {
     /// it either fails for the wrong reason or, worse, compares two empty sets and passes.
     func accessibilityTexts(of element: NSObject) -> [String] {
         var seen = Set<ObjectIdentifier>()
+        var retained: [NSObject] = []
         var budget = 3000
-        return walk(element, seen: &seen, depth: 0, budget: &budget) { object in
+        return walk(element, seen: &seen, retained: &retained, depth: 0, budget: &budget) { object in
             [object.accessibilityLabel, object.accessibilityValue]
                 .compactMap(\.self)
                 .filter { !$0.isEmpty }
@@ -95,6 +155,7 @@ final class PhoneSurfaceTests: XCTestCase {
     private func walk<T>(
         _ element: NSObject,
         seen: inout Set<ObjectIdentifier>,
+        retained: inout [NSObject],
         depth: Int,
         budget: inout Int,
         collect: (NSObject) -> [T]
@@ -102,21 +163,65 @@ final class PhoneSurfaceTests: XCTestCase {
         guard depth < 25, budget > 0 else { return [] }
         // Checked, not discarded: for real `UIView`s the identity is stable, so this is what stops
         // the subview/accessibility-element overlap from being walked twice.
+        //
+        // `retained` is what makes that identity trustworthy. `ObjectIdentifier` is an address, and
+        // an address is unique only among **live** objects — SwiftUI's bridge vends a freshly
+        // allocated element from `accessibilityElement(at:)`, nothing holds it, and the next
+        // allocation can reuse the address. A different element then collides with an id already in
+        // `seen` and this guard silently returns `[]` for a branch that was never visited. The
+        // symptom is a surface reporting no copy at all, moving between runs and between files with
+        // load — which is exactly how nine Discover assertions read as "rendered nothing" while the
+        // view had laid out at 393×852 with a window and eight descendants.
         guard seen.insert(ObjectIdentifier(element)).inserted else { return [] }
+        retained.append(element)
         budget -= 1
 
         var found = collect(element)
 
+        // SwiftUI's hosting view publishes its tree through `accessibilityElements`,
+        // not through `accessibilityElement(at:)`. The first iOS run of this suite
+        // collected nothing — every "is this copy on screen" assertion failed with
+        // an empty `in:` — while `sizeThatFits` still returned a real height. The
+        // product drew; the walker did not look at the array SwiftUI actually fills.
+        if let elements = element.accessibilityElements {
+            for child in elements {
+                if budget <= 0 { break }
+                if let child = child as? NSObject {
+                    found += walk(
+                        child,
+                        seen: &seen,
+                        retained: &retained,
+                        depth: depth + 1,
+                        budget: &budget,
+                        collect: collect
+                    )
+                }
+            }
+        }
         for index in 0 ..< Self.childCount(of: element) {
             if budget <= 0 { break }
             if let child = element.accessibilityElement(at: index) as? NSObject {
-                found += walk(child, seen: &seen, depth: depth + 1, budget: &budget, collect: collect)
+                found += walk(
+                    child,
+                    seen: &seen,
+                    retained: &retained,
+                    depth: depth + 1,
+                    budget: &budget,
+                    collect: collect
+                )
             }
         }
         if let view = element as? UIView {
             for subview in view.subviews {
                 if budget <= 0 { break }
-                found += walk(subview, seen: &seen, depth: depth + 1, budget: &budget, collect: collect)
+                found += walk(
+                    subview,
+                    seen: &seen,
+                    retained: &retained,
+                    depth: depth + 1,
+                    budget: &budget,
+                    collect: collect
+                )
             }
         }
         return found
@@ -137,14 +242,35 @@ final class PhoneSurfaceTests: XCTestCase {
         accessibilityTexts(of: controller.view)
     }
 
+    /// Every labelled accessibility element, with the frame it was actually laid out at.
+    ///
+    /// Same reason as `accessibilityTexts`: on iOS a SwiftUI row is not a `UIView`, so its geometry
+    /// has to be read from the element SwiftUI publishes rather than from the view hierarchy.
+    func labelledFrames(in controller: UIViewController) -> [(label: String, frame: CGRect)] {
+        var seen = Set<ObjectIdentifier>()
+        var retained: [NSObject] = []
+        var budget = 3000
+        return walk(controller.view, seen: &seen, retained: &retained, depth: 0, budget: &budget) { object in
+            guard let label = object.accessibilityLabel, !label.isEmpty else { return [] }
+            return [(label: label, frame: object.accessibilityFrame)]
+        }
+    }
+
     /// Elements the user can actually hit, with the frames they were laid out at.
     ///
     /// Same reason as above: a SwiftUI `Button` is not a `UIControl`, so the obvious version of this
     /// finds zero controls and then passes because it measured nothing.
     func tappableFrames(of element: NSObject, in _: UIView) -> [CGRect] {
         var seen = Set<ObjectIdentifier>()
+        var retained: [NSObject] = []
         var budget = 3000
-        return walk(element, seen: &seen, depth: 0, budget: &budget) { object -> [CGRect] in
+        return walk(
+            element,
+            seen: &seen,
+            retained: &retained,
+            depth: 0,
+            budget: &budget
+        ) { object -> [CGRect] in
             guard object.accessibilityTraits.contains(.button),
                   object.accessibilityFrame.height > 0 else { return [] }
             return [object.accessibilityFrame]
@@ -234,52 +360,101 @@ final class PhoneSurfaceTests: XCTestCase {
 
     /// The Overflow state. A long name truncates; the row stays the height every other row is, so a
     /// list does not become a ragged column.
+    ///
+    /// The row is found by its own accessibility label — the Mac's name, which appears on exactly
+    /// one element in this surface — so the two renders are compared on the same row rather than on
+    /// whatever happened to be about the right height.
     func testRowHeightIsIndependentOfNameLength() {
-        let short =
-            host(ScrollView { PairedMacSettingsView(state: .reachable(FixturePairingService.specimenMac)) })
-        let long =
-            host(ScrollView { PairedMacSettingsView(state: .reachable(FixturePairingService.longNameMac)) })
+        let shortMac = FixturePairingService.specimenMac
+        let longMac = FixturePairingService.longNameMac
+        let short = host(ScrollView { PairedMacSettingsView(state: .reachable(shortMac)) })
+        let long = host(ScrollView { PairedMacSettingsView(state: .reachable(longMac)) })
 
-        guard let shortHeight = rowHeight(in: short), let longHeight = rowHeight(in: long) else {
+        guard let shortHeight = rowHeight(in: short, labelled: shortMac.name),
+              let longHeight = rowHeight(in: long, labelled: longMac.name)
+        else {
             return XCTFail("no row was found in either render, so nothing was compared")
         }
         XCTAssertEqual(shortHeight, longHeight, accuracy: 0.5, "a longer Mac name changed the row height")
+        // Both being wrong by the same amount would satisfy the comparison above, so the height is
+        // also checked against the documented number this file restates rather than imports.
+        XCTAssertEqual(
+            shortHeight, PhoneRowHeight, accuracy: 0.5,
+            "the row rendered at \(shortHeight)pt, not the documented \(PhoneRowHeight)pt"
+        )
 
         // And the long name really is long enough to force truncation, or this proves nothing.
         let rendered = labels(in: long).joined()
         XCTAssertTrue(
-            rendered.contains(FixturePairingService.longNameMac.name),
+            rendered.contains(longMac.name),
             "the overflow case did not render the long name at all"
         )
     }
 
     /// The Loading skeleton has to be the height of the row it stands in for, or the surface jumps
     /// the moment data lands.
+    ///
+    /// The two are hosted **on their own** rather than inside `PairedMacSettingsView`, because in
+    /// the Loading state the skeleton and the caption beneath it carry the *same* accessibility
+    /// label — `PairedMacSkeleton` labels itself with `settingsLoading`'s body and the `Text` under
+    /// it renders that same sentence. A label probe against the whole surface therefore matches two
+    /// elements and cannot say which one is the row, so `rowHeight` refuses it. Hosted alone, each
+    /// label names exactly one element and both go through the same window, width and settle.
     func testSkeletonMatchesTheRowItReplaces() {
-        let populated =
-            host(ScrollView { PairedMacSettingsView(state: .reachable(FixturePairingService.specimenMac)) })
-        let loading = host(ScrollView { PairedMacSettingsView(state: .loading) })
+        let mac = FixturePairingService.specimenMac
+        let populated = host(ScrollView { PairedMacRow(mac: mac) })
+        let loading = host(ScrollView { PairedMacSkeleton() })
 
-        guard let populatedHeight = rowHeight(in: populated),
-              let loadingHeight = rowHeight(in: loading)
+        guard let populatedHeight = rowHeight(in: populated, labelled: mac.name),
+              let loadingHeight = rowHeight(
+                  in: loading,
+                  labelled: PairingCopy.entry(.settingsLoading).body
+              )
         else {
             return XCTFail("no row was found in either render, so nothing was compared")
         }
         XCTAssertEqual(
             populatedHeight, loadingHeight, accuracy: 0.5,
-            "the loading skeleton is a different height from the populated row"
+            "the loading skeleton is \(loadingHeight)pt and the populated row \(populatedHeight)pt"
         )
     }
 
-    /// The tallest view whose height matches the design's row constant — the row itself.
+    /// **The instrument, not the product.** Does this process publish an accessibility tree at all?
     ///
-    /// Returns nil when nothing matched, so a comparison of two absent rows fails instead of
-    /// quietly comparing zero with zero.
-    private func rowHeight(in controller: UIViewController) -> CGFloat? {
-        descendants(of: controller.view)
-            .map(\.bounds.height)
-            .filter { abs($0 - PhoneRowHeight) < 6 }
-            .max()
+    /// Measured 2026-08-20: one run in four produced a process where nothing carried an
+    /// accessibility label — not SwiftUI's nodes and not UIKit's own — and all nineteen copy
+    /// assertions in this target failed saying the product rendered nothing, while `sizeThatFits`
+    /// and the view hierarchy showed it had rendered perfectly well. That is an instrument failure
+    /// wearing a product failure's clothes, and it is unreproduced rather than fixed. This test is
+    /// the one place it is named: **when this is red, every copy assertion in this target is
+    /// inconclusive rather than failed**, and the run measured nothing about the product.
+    func testTheAccessibilityInstrumentIsLive() {
+        let canary = "MCPRouter accessibility canary"
+        let controller = host(ScrollView { Text(verbatim: canary) })
+        XCTAssertTrue(
+            accessibilityTexts(of: controller.view).contains(canary),
+            "a plain Text published no accessibility label, so this process reads every surface as "
+                + "empty: the copy assertions in this target are inconclusive, not failed"
+        )
+    }
+
+    /// The rendered height of the one element whose label carries `probe`.
+    ///
+    /// **Measured from the accessibility frame, because the earlier form could not work.** It took
+    /// the tallest `UIView` within 6pt of `PhoneRowHeight`, and SwiftUI publishes no `UIView` per
+    /// row: measured on iOS 26.5 on 2026-08-20, a hosted `PairedMacSettingsView` has exactly five
+    /// descendants — 852.0, 852.0, 239.7, 233.7, 233.7 — and none of them is the row. So it
+    /// returned nil whatever the row's real height was, and the two tests below failed reporting
+    /// *"no row was found in either render"* about a row that was on screen at exactly 44.00pt.
+    /// The height it named was also a **filter**, so it could only ever agree with the constant it
+    /// was supposed to be checking.
+    ///
+    /// Returns nil when the probe matches no element **or more than one**: an ambiguous match would
+    /// let the assertion compare something other than the row it names.
+    private func rowHeight(in controller: UIViewController, labelled probe: String) -> CGFloat? {
+        let matches = labelledFrames(in: controller).filter { $0.label.contains(probe) }
+        guard matches.count == 1 else { return nil }
+        return matches[0].frame.height
     }
 
     /// **The helper's content-size override really does reach the SwiftUI environment.**

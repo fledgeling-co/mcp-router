@@ -21,7 +21,10 @@
 #      reference SDK's schema rather than by the provider — the fixture answers in a deliberately
 #      different order and carries an unknown member, so a port that wrote the provider's bytes
 #      straight through diverges here;
-#   7. `GET /servers/:name`'s `auth` sub-object, which is how the app learns any of this happened;
+#   7. `GET /servers/:name`'s `auth` sub-object, which is how the app learns any of this happened.
+#      Guarded as well as compared: `d.get("auth")` is `null` on both sides if the route stopped
+#      publishing it, and `null == null`, so each side has to NAME itself authorized before the
+#      comparison is allowed to mean anything;
 #   8. a SECOND authorization against the now-authorized server, which the reference does not
 #      answer with a new URL at all — it refreshes instead. That is a whole branch a first-flow
 #      comparison never reaches.
@@ -367,6 +370,9 @@ for label in reference swift; do
   [ "$(cat "$WORK/$label.pagestatus")" = "final=200" ] \
     && guard "$label's callback answered the browser 200" ok \
     || guard "$label's callback answered the browser 200" fail "$(cat "$WORK/$label.pagestatus")"
+  grep -q '"authorized":true' "$WORK/$label.describe" \
+    && guard "$label reports the server as authorized" ok \
+    || guard "$label reports the server as authorized" fail "$(cat "$WORK/$label.describe")"
   lines="$(wc -l < "$WORK/$label.log" | tr -d ' ')"
   [ "$lines" -ge 6 ] \
     && guard "$label's provider saw the whole cascade" ok "$lines requests" \

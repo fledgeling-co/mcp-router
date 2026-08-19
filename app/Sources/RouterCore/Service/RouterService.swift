@@ -91,10 +91,10 @@ public actor RouterService {
             logPath: config.usagePath, statsPath: config.statsPath, fileSystem: fileSystem
         )
         auth = FileAuthStore(authDir: config.authDir, log: log)
+        // `auth` rather than a second store built from the same arguments: two of them is two
+        // places for a later change to the credential store to be applied once.
         authFlow = OAuthFlowStarter(
-            coordinator: AuthFlowCoordinator(log: log),
-            store: FileAuthStore(authDir: config.authDir, log: log),
-            clock: clock
+            coordinator: AuthFlowCoordinator(log: log), store: auth, clock: clock
         )
         pool = UpstreamPool(
             upstreams: config.upstreams,

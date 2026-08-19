@@ -202,6 +202,14 @@ struct OAuthDiscoveryURLTests {
     }
 }
 
+/// One bit, set from inside a task and read from outside it.
+actor FinishedFlag {
+    private(set) var value = false
+    func set() {
+        value = true
+    }
+}
+
 struct AuthorizationURLBoxTests {
     @Test("a URL delivered before anybody waits is still readable")
     func deliveredFirst() async throws {
@@ -227,12 +235,18 @@ struct AuthorizationURLBoxTests {
     /// remaining child and then **awaits** it. The first version of the box could not be resumed by
     /// cancellation, so the group never returned — measured at 91 seconds against a 20-second
     /// budget, on every path where the provider produces no URL.
+    ///
+    /// It is written as "did the group finish inside a budget", not as "how long did it take",
+    /// because against the defect it does not finish at all: an elapsed-time assertion after the
+    /// group would never be reached, and the test would HANG rather than fail. Seen both ways —
+    /// with the pre-fix box this reports a failed expectation in about three seconds, and with the
+    /// fix it passes in about one tenth of one.
     @Test("a waiter that is cancelled is resumed rather than stranded")
     func cancellationResumesTheWaiter() async throws {
+        let finished = FinishedFlag()
         let box = AuthorizationURLBox()
-        let started = Date()
-        await #expect(throws: Error.self) {
-            try await withThrowingTaskGroup(of: String.self) { group in
+        let work = Task {
+            _ = try? await withThrowingTaskGroup(of: String.self) { group in
                 group.addTask { try await box.value() }
                 group.addTask {
                     try await Task.sleep(nanoseconds: 50_000_000)
@@ -242,7 +256,13 @@ struct AuthorizationURLBoxTests {
                 group.cancelAll()
                 return first
             }
+            await finished.set()
         }
-        #expect(Date().timeIntervalSince(started) < 5, "the group must not wait on a stranded child")
+        try await Task.sleep(nanoseconds: 3_000_000_000)
+        work.cancel()
+        #expect(
+            await finished.value,
+            "the group's 50ms budget expired and it had still not returned: the cancelled child"
+        )
     }
 }

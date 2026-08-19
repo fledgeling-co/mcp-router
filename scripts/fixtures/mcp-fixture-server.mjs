@@ -121,8 +121,13 @@ async function runStdio() {
  *
  * The client's path is fixed: a 401 pointing at protected-resource metadata, that metadata naming
  * an authorization server, that server's metadata naming a registration endpoint, a dynamic
- * registration, and finally an authorization URL. It never gets a token — reaching the redirect is
- * the whole point, because that is the moment the router records the flow as pending.
+ * registration, and finally an authorization URL.
+ *
+ * It also completes: `/authorize` issues a code and redirects to the router's own callback, and
+ * `/token` verifies the PKCE challenge that code was issued under before it returns a token. That
+ * is what lets `parity-oauth.sh` compare a whole authorization rather than only its first half —
+ * and it is what makes "the callback listens on a port nothing redirects to" a mutation the lane
+ * can notice at all.
  */
 function runOAuth() {
   const port = Number(process.env.FIXTURE_OAUTH_PORT ?? 8972);

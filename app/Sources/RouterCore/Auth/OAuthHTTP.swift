@@ -55,10 +55,13 @@ public protocol OAuthHTTPPerforming: Sendable {
 ///
 /// Ephemeral for the reason ``RegistryHTTPClient`` is: `URLSession.shared` carries a process-wide
 /// `URLCache` and cookie store, where node's `fetch` has neither. A cached metadata document would
-/// make the two routers answer differently from the same provider, and redirects are **not**
-/// followed — the reference's `fetch` follows them, but the authorization endpoint's 302 is never
-/// requested by the router at all; every request this client makes is one the reference expects a
-/// direct answer to, and following a redirect silently would hide a provider that moved.
+/// make the two routers answer differently from the same provider — and a metadata document read
+/// twice from a disk cache is exactly the shape of divergence a lane pointed at a pinned fixture
+/// would never show.
+///
+/// Redirects follow `URLSession`'s default, which is to follow them, and that matches node's
+/// `fetch`. The authorization endpoint's own 302 never reaches this client: it is the browser that
+/// requests it, and the router only ever sees what lands on its callback listener.
 public struct URLSessionOAuthHTTP: OAuthHTTPPerforming {
     private static let session = URLSession(configuration: .ephemeral)
 

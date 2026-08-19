@@ -53,11 +53,11 @@ settled, and all three are in the shipped client:
 
 `scripts/acceptance/parity-oauth.sh` starts a fixture provider, runs the **reference** router
 through one whole authorization, stops it, waits for the ports to become bindable again, and runs
-the **Swift** router through the same one. 19 checks, `examined=19 failures=0`:
+the **Swift** router through the same one. 21 checks, `examined=21 failures=0`:
 
-- six guards per side that the comparison has something to compare (a 200, a 43-character challenge,
-  a well-formed verifier on disk, a token in the credential file, a 200 from the callback, and at
-  least six provider requests);
+- seven guards per side that the comparison has something to compare (a 200, a 43-character
+  challenge, a well-formed verifier on disk, a token in the credential file, a 200 from the
+  callback, `"authorized":true` in the describe output, and at least six provider requests);
 - the 200 and its `authorizationUrl`, PKCE challenge normalised;
 - **every request the provider was sent**, in order, with headers and bodies;
 - the credential file on disk;

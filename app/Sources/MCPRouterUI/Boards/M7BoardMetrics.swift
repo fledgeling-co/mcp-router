@@ -34,6 +34,14 @@
         static var tallyColumn: Double { unit * 7 }
         static var stampColumn: Double { unit * 6 }
         static var reasonColumn: Double { unit * 9 }
+
+        /// The trailing action column on a Cleanup row.
+        ///
+        /// `prototype.html:950` gives it `width:150px` and right-justifies two small buttons into
+        /// it. Expressed in the same `unit` as every other column here rather than as 150, so the
+        /// row scales with the table metric instead of pinning one column to a pixel count the rest
+        /// of the board does not use. DEF-011.
+        static var actionColumn: Double { unit * 6.5 }
         static var searchWidth: Double { unit * 9 }
 
         /// Fixed, and identical in the skeleton, so neither board jumps when data lands (A27).

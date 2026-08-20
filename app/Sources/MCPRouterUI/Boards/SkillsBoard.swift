@@ -72,7 +72,7 @@
                         StateMessage(
                             title: SkillPresentation.emptyTitle,
                             detail: SkillPresentation.emptyDetail,
-                            actionLabel: "Manage marketplaces…"
+                            actionLabel: SkillPresentation.marketplacesAction
                         ),
                         icon: .layers
                     ) {
@@ -165,7 +165,7 @@
                         .foregroundStyle(ColorToken.t2.color)
                 }
                 Spacer(minLength: 0)
-                Button("Manage marketplaces…") { board.sheet = .marketplaces }
+                Button(SkillPresentation.marketplacesAction) { board.sheet = .marketplaces }
                     .buttonStyle(StandardButtonStyle())
             }
             .padding(.bottom, SkillsBoardMetrics.gap)

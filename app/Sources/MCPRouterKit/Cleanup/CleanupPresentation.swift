@@ -191,7 +191,14 @@ public enum CleanupPresentation {
 
     // MARK: - Reset
 
-    public static let resetLabel = "Reset call history…"
+    /// The header action, on both boards that carry one.
+    ///
+    /// `Reset history…` rather than `Reset call history…`, because that is what the design of record
+    /// puts in a board header: `prototype.html:716` on Activity and `:930` on Cleanup. The longer
+    /// wording belongs to a different slot — the Danger section of Settings at `:999`, which this
+    /// app does not draw — and shipping it in the header was DEF-012, a rename in one direction with
+    /// the design not followed.
+    public static let resetLabel = "Reset history…"
 
     /// Why a removal dialog can offer nothing, said rather than shown as a gap.
     ///

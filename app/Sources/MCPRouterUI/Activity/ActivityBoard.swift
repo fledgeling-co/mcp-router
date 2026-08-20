@@ -56,6 +56,11 @@
                 await model.start()
             }
             .onDisappear { model.endSession(session) }
+            // DEF-016's dialog. `item:` rather than `isPresented:` so the enum is the single source
+            // of truth for what is open, which is the shape `CleanupBoard` already uses.
+            .sheet(item: $model.sheet) { _ in
+                ActivityResetHistorySheet(model: model)
+            }
         }
 
         // MARK: - The board's own column
@@ -70,16 +75,33 @@
         }
 
         private var header: some View {
-            VStack(alignment: .leading, spacing: MetricToken.selectionInset.leadingScalar - 1) {
-                Text(Destination.activity.title)
-                    .typeRole(.title1)
-                    .foregroundStyle(ColorToken.t1.color)
-                if let subtitle = model.subtitle() {
-                    Text(subtitle)
-                        .typeRole(.subheadline, monospaced: true)
-                        .foregroundStyle(ColorToken.t2.color)
-                        .accessibilityIdentifier(Self.subtitleIdentifier)
+            HStack(alignment: .top, spacing: MetricToken.selectionInset.leadingScalar) {
+                VStack(alignment: .leading, spacing: MetricToken.selectionInset.leadingScalar - 1) {
+                    Text(Destination.activity.title)
+                        .typeRole(.title1)
+                        .foregroundStyle(ColorToken.t1.color)
+                    if let subtitle = model.subtitle() {
+                        Text(subtitle)
+                            .typeRole(.subheadline, monospaced: true)
+                            .foregroundStyle(ColorToken.t2.color)
+                            .accessibilityIdentifier(Self.subtitleIdentifier)
+                    }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                // **In the header's right slot, and outside the rows conditional.**
+                // `prototype.html:716` draws it there, which means the design specifies it in the
+                // empty state as much as the populated one — a board with no calls yet is exactly
+                // where someone reaches for this. The build drew no control there at all: DEF-016,
+                // found by the witness pass and independently by the control differential, which
+                // reported designControls=1 buildControls=0 for this board.
+                //
+                // Standard, never accent-filled, and disabled until the router has answered. §3.4
+                // allows one prominent action per view and forbids a destructive one as the
+                // default; nothing on this board is prominent, so this is not either. Offering it
+                // before `records` exists would let a click discard a history nobody has seen.
+                Button(CleanupPresentation.resetLabel) { model.sheet = .resetHistory }
+                    .buttonStyle(StandardButtonStyle())
+                    .disabled(model.records == nil)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, ActivityColumn.inset)

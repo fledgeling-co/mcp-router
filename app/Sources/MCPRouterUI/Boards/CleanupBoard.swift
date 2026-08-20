@@ -136,7 +136,11 @@
                     ForEach(rows) { candidate in
                         CleanupBoardRow(
                             candidate: candidate,
-                            isSelected: board.selection == candidate.id
+                            isSelected: board.selection == candidate.id,
+                            inspect: { board.selection = candidate.id },
+                            // Opens the dialog rather than removing. The one destructive act on
+                            // this board is never a single click, here or anywhere else on it.
+                            remove: { board.sheet = .removeServer(name: candidate.key.id) }
                         )
                         .contentShape(Rectangle())
                         .onTapGesture { board.selection = candidate.id }

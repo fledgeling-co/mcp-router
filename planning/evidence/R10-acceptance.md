@@ -151,9 +151,11 @@ across the CLI and the new end-to-end test file. Cleared by moving the per-upstr
 of `MCPRouterCLI.index` into a file-scope `IndexReport` and the test fixture, home builder and runner
 out of the suite into a file-scope `IndexCLIHarness`. No assertion changed.
 
-The suite stood at 1539 before this item (an earlier sitting's figure) and reports 1546 now: seventeen
-cases across the two files, with `ManifestIndexerWriteFailureTests` rewritten in place rather than
-added.
+The suite reports **1546**, and the arithmetic reconciles in both directions: this branch's two files
+carry seventeen cases (six end-to-end, eleven unit), so the tree without them is 1529. An earlier
+sitting recorded 1539 before starting, which is that 1529 plus the ten cases
+`ManifestIndexerWriteFailureTests` already had as an untracked file in the main checkout — the
+characterisation this branch rewrote in place rather than added alongside.
 
 `make build-mac`, `make build-ios` and the two simulator lanes were **not run**. Nothing in this diff
 reaches `MCPRouterUI`, `MCPRouterIOS` or any rendered surface — the changed files are `RouterCore`,

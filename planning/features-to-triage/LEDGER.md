@@ -42,6 +42,7 @@ first.
 | — | **BLOCKED: the Apple developer identity** | `BLOCKED-apple-identity.md` | — | — | **Needs input — `as-found`, not confirmed** |
 | M14 | A shipped menu tells the user the app is not built | `M14-menu-says-not-built.md` | — | — | Untriaged |
 | R6 | Children inherit launchd's minimal PATH | `R6-child-process-path.md` | — | — | Untriaged |
+| R8 | An upstream that refuses our credentials must say so | `R8-auth-rejection-visible.md` | — | — | **Needs input** — built on `ai/r8`, reference half proven (8/8); changes `src/`, which StandingConstraints A38 refuses. Swift half blocked on swift-sdk 0.12.1 Error.swift:240 |
 | R7 | The router's thesis is unmet for every harness but Claude Code | `R7-harness-reconciliation.md` | — | — | Untriaged |
 | M15 | Settings becomes its own window | `M15-settings-window.md` | — | — | Untriaged |
 | M16 | The Signal Path replaces the Breaker Column | `M16-signal-path.md` | — | — | Untriaged |
@@ -54,7 +55,7 @@ first.
 | M23 | The mock-to-SwiftUI conversion contract | `M23-mock-to-swiftui-contract.md` | — | — | Untriaged |
 | M24 | The storefront's own artwork — banners and app-style icons | — | — | — | **Done** (ai/m24 → main; design-only, 23 files, all under `design/`) |
 | M25 | The controls row, not the columns, set the boards' width | `M25-board-columns-do-not-flex.md` | — | — | **Done** (ai/x4 broke the min-width chain, ai/x5 flexed the two controls rows) |
-| M26 | The Checks board and the design's eval board are two surfaces | `M26-checks-board-framing.md` | — | — | Untriaged |
+| M26 | The Checks board and the design's eval board are two surfaces | `M26-checks-board-framing.md` | — | — | **Done** (ai/m26 → main; owner kept the reachability board, mock amended, DEF-031 closed) |
 | P7 | `control-auth-post-http` needs a real OAuth client | `P7-auth-post-oauth-client.md` | — | — | **Done** (ai/p7 → main; parity reached 82 of 83) |
 | P8 | Make `install-launchd-watch`'s `reran` term attributable | `P8-launchd-watch-attributable.md` | — | — | **Done** (ai/p8 → main; the lane was shown able to go red) |
 | X1 | The iOS accessibility-tree harness, and two surfaces still empty | `X1-ios-a11y-harness.md` | — | — | Done (closed by X3's engine fix + the accessibility-frame row oracle; `make test-ios` 36/0) |

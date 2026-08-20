@@ -178,7 +178,10 @@ public enum Describe {
     }
 
     private static func authValue(
-        needsAuth: Bool, name: JSString, deps: ControlDeps, pending: PendingAuthRow?,
+        needsAuth: Bool,
+        name: JSString,
+        deps: ControlDeps,
+        pending: PendingAuthRow?,
         entry: CachedServer?
     ) -> JSONValue {
         guard needsAuth else {
@@ -204,6 +207,15 @@ public enum Describe {
         let rejection: String? = {
             guard case let .string(text)? = entry?.member("error"),
                   AuthRefusal.isRefusal(text.string) else { return nil }
+            // A refusal the manifest recorded BEFORE the credential was last authorized is stale,
+            // and reporting it tells the user the credential they have just fixed is still being
+            // refused. `control.ts` carries the measurement this mirrors: completing an
+            // authorization re-indexes, that re-index is fire-and-forget on both routers, and a
+            // `GET /servers/:name` immediately afterwards may read a manifest written before the
+            // browser hop. Whichever side loses that race is a property of the machine that day.
+            if let authorizedAt = deps.auth.authorizedAt(name),
+               case let .string(builtAt)? = entry?.member("builtAt"),
+               AuthStamp.isAfter(authorizedAt, builtAt.string) { return nil }
             return text.string
         }()
         var members = [

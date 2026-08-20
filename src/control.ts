@@ -172,8 +172,33 @@ function describe(u: UpstreamConfig, deps: ControlDeps) {
    * restarted after a rejection would otherwise report `authorized: true` again until
    * something happened to re-index.
    */
-  const authRejection =
-    pending?.reason ?? (entry?.error && isAuthFailure(entry.error) ? entry.error : undefined);
+  const recordedRefusal =
+    entry?.error && isAuthFailure(entry.error) ? entry.error : undefined;
+  /*
+   * A refusal the manifest recorded BEFORE the credential was last authorized is stale, and
+   * reporting it tells the user the credential they have just fixed is still being refused.
+   *
+   * Without this the field is decided by a race. Completing an authorization re-indexes, and
+   * that re-index is fire-and-forget on both routers (`void flow.completed.then(...)` here), so
+   * `GET /servers/:name` immediately afterwards may read a manifest written before the browser
+   * hop. Measured 20 Aug 2026: the oauth lane run inside the full gate had this router reporting
+   * `authorized: true` and the Swift router reporting `authorized: false` with
+   * `rejected: "[-32603] Internal error: Authentication required"` and an `authorizedAt` newer
+   * than the error beside it; the same lane run on its own, under no load, had both at `true`
+   * over 21 checks. Whichever side loses the race is a property of the machine that day.
+   *
+   * `Date.parse` returns NaN on anything it cannot read, and every comparison against NaN is
+   * false, so an unparseable stamp on either side reports the refusal rather than hiding it.
+   * That is the safe direction: a refusal shown once too often costs the user a re-authorization
+   * they did not need, and one hidden costs them an upstream that silently serves no tools.
+   */
+  const authorizedAtIso = authorizedAt(u.name);
+  const refusalIsStale =
+    recordedRefusal !== undefined &&
+    entry?.builtAt !== undefined &&
+    authorizedAtIso !== undefined &&
+    Date.parse(authorizedAtIso) > Date.parse(entry.builtAt);
+  const authRejection = pending?.reason ?? (refusalIsStale ? undefined : recordedRefusal);
 
   return {
     name: u.name,

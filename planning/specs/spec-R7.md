@@ -188,7 +188,11 @@ number means "what adopting this harness would consolidate".
 
 ## 5 · The verb
 
-`mcp-router harnesses [--port N] [--home DIR] [--config PATH] [--json]`
+`mcp-router harnesses [--port N] [--host H] [--config PATH] [--json]`
+
+The flags are the ones every other verb takes, resolved by the same `Flags` and
+`ConfigLoader`; the router home comes from `MCP_ROUTER_HOME` as it does everywhere else,
+rather than from a flag this verb alone would carry.
 
 Reports every harness in `MCPClient.allCases`, in fixed order. Human output is one block per
 harness naming the state, the path, the counts, and the overlapping names in the order the

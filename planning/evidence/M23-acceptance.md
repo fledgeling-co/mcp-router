@@ -23,8 +23,11 @@ that rather than a sweep.
 | Full suite | `cd app && swift test` | **1549 tests in 193 suites passed** |
 | Token parity | `cd app && swift test --filter MockToken` | **20 tests in 2 suites passed** |
 | Lint | `make lint` | exit 0 — **red on arrival; see §1.1** |
-| Gate selftest | `./scripts/acceptance/mock-fidelity-selftest.sh` | **21 cases, all three exits observed**, exit 0 |
+| Gate selftest | `./scripts/acceptance/mock-fidelity-selftest.sh` | **22 cases, all three exits observed**, exit 0 |
 | Conversion gate | `./scripts/acceptance/mock-fidelity-gate.sh servers` | **exit 1 — 124 findings** |
+
+Run as four separate commands with `$?` captured immediately after each, for the reason §1.1
+records. Final run: `LINT=0 TEST=0 SELFTEST=0 GATE=1`.
 
 ### 1.1 · `make lint` was red on arrival, and the first check here said it passed
 
@@ -55,7 +58,7 @@ item exists to prevent.
 ```
 mock-fidelity: surface 'servers' across 4 states
   tokens             ran · 25 matched, 64 pending, of 89 rows · clean
-  literals           ran · scanning 116 files · clean
+  literals           ran · scanning 117 files · clean
   structure          ran · 73 nodes across 4 states · clean
   geometry           ran · 73 frames · clean
   type-metrics       ran · 24 text nodes · 4 roles · Caption=13pt Body=16pt Title3=19pt Title1=26pt
@@ -118,7 +121,12 @@ exit it produced.
 | the token suite prints no marker | tokens | exit **3**, "cannot be told from one that did not run" |
 | the token census shrinks below its floor | tokens | exit **3**, "below the floor" |
 | an unknown surface | gate script | exit **3** |
-| seven colour-constructor spellings, against the real lint | literals | all **caught**; clean-tree control still clean |
+| seven colour-constructor spellings and a bare hex, against the real lint | literals | all **caught**; clean-tree control still clean |
+
+All fourteen run in about a second and join `make all`. The lint cases drive the *real*
+`scripts/lint/no-raw-design-values.sh` through a scratch root rather than the stub, because that
+layer's whole value is that it executes the script; the probe never touches `app/Sources`, so a run
+killed mid-loop cannot leave a file behind that breaks the build.
 
 Three more were run by hand against the real artifacts rather than the scratch tree, because they
 mutate files the selftest must not touch. The mock was restored from a byte copy afterwards and

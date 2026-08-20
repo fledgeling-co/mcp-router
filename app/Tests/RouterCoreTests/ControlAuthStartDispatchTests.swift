@@ -146,15 +146,19 @@ struct ControlAuthStartDispatchTests {
 
     // MARK: - A10 — the declared gap
 
-    @Test("A10 — http auth with NO starter stays 405, the status it answered before D-j was fixed")
+    @Test("A10 — http auth with NO starter stays 405, which is now ControlDiff's case alone")
     func httpAuthWithNoStarterIs405() async throws {
         var deps = try Support.makeDeps(starter: nil)
         let (status, body) = await Support.answer("/servers/p1-http/auth", &deps)
 
         // Deliberately not 502. The reference's 502 means `beginAuth` RAN and threw; reusing it for
         // "no starter was ever constructed" makes two different failures indistinguishable, and
-        // puts the caller in the retryable class for something that can never succeed until
-        // `D-p1-a` lands. Carried on the manifest as `control-auth-post-http`, blocked.
+        // puts the caller in the retryable class for something that can never succeed.
+        //
+        // P7 closed `D-p1-a`, so the DAEMON always has a starter and this branch is no longer what
+        // the wire answers — `parity-oauth.sh` compares the 200 and the whole flow behind it.
+        // `ControlDiff` still supplies no starter, so this case is still reachable and still has to
+        // answer this way.
         #expect(status == 405)
         #expect(body == #"{"error":"POST not allowed on /servers/p1-http/auth"}"#)
     }

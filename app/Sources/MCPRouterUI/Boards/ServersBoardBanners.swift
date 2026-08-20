@@ -106,8 +106,13 @@
                 )
                 if let label = error.actionLabel {
                     DisabledAction(label: label, reason: ServersBoardModel.cannotStartRouterReason)
+                        .measured(
+                            "failure-action", role: "state-action-disabled", kind: .leaf,
+                            type: .body, text: label
+                        )
                 }
             }
+            .measured("failure-pane", role: "state-container", kind: .vstack)
         }
     }
 

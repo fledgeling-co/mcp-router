@@ -40,8 +40,11 @@ print(out)"
 
 IOS_DEST   ?= generic/platform=iOS Simulator
 MAC_DEST   ?= platform=macOS
+## Which surface `make mock-fidelity` audits. One surface has a filled ledger today (Servers);
+## M15-M22 add theirs by writing planning/fidelity/<surface>.layers.json beside this one.
+SURFACE    ?= servers
 
-.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance lint format clean install-default
+.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance mock-fidelity mock-fidelity-selftest lint format clean install-default
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
 ## `test-ios-glass` is in this list because `X2-ios-on-glass.md` said it would be: "The target
@@ -50,7 +53,7 @@ MAC_DEST   ?= platform=macOS
 ## runs since. It costs roughly two minutes and adds no new requirement — `test-ios` already needs
 ## a booted simulator — and it is the only stage here that proves the app runs rather than that its
 ## views construct.
-all: tools lint build test test-ios test-ios-glass parity parity-selftest install-default
+all: tools lint build test test-ios test-ios-glass parity parity-selftest mock-fidelity-selftest install-default
 
 ## Fail loudly and specifically when a required tool is missing, rather than skipping the gate.
 ## A silently-skipped lint step is worse than no lint step: it reports success.
@@ -472,6 +475,36 @@ acceptance: build-mac build-mac-release
 	./scripts/acceptance/control-client.sh
 	./scripts/acceptance/p1-auth-routes.sh
 	./scripts/acceptance/mac-shell.sh
+
+## M23's mock-to-SwiftUI conversion gate. Renders a surface through the measurement harness and
+## diffs it against `design/mcp-router-console.html` on eight layers.
+##
+## Out of `all` because it needs a second compilation of the UI target — `MCP_ROUTER_MEASURE=1`
+## defines MEASURE, which is what compiles the in-view harness in at all — for the same reason
+## `mutation` and `acceptance` are out. Its exits are 0 clean, 1 findings, **3 inconclusive**: a
+## layer the verdict depended on could not run.
+##
+## **make cannot carry that third state.** GNU make exits 2 for any failed recipe, whatever the
+## recipe returned, so a caller that needs to tell 1 from 3 runs the script directly. This target
+## prints which one happened before it fails, so the distinction survives in the log even though it
+## cannot survive in the exit code — collapsing 3 into 1 is exactly the confusion the third state
+## exists to prevent.
+mock-fidelity:
+	@./scripts/acceptance/mock-fidelity-gate.sh $(SURFACE); status=$$?; \
+	if [ $$status = 3 ]; then \
+	  echo "make: mock-fidelity INCONCLUSIVE (the gate exited 3) — a layer the verdict depended on could not run."; \
+	elif [ $$status = 1 ]; then \
+	  echo "make: mock-fidelity found differences (the gate exited 1)."; \
+	fi; \
+	echo "make: it reports its own exit as 2 for any of these; run scripts/acceptance/mock-fidelity-gate.sh for 0/1/3."; \
+	exit $$status
+
+## Proves that gate can reach all three exits, including 0 — against scratch trees, in about a
+## second, with no MEASURE build. In `all` because a gate never observed failing is a gate nobody
+## has written, and because this is the cheap half: it drives the real layer engine and stubs only
+## the two external tools the layers shell out to.
+mock-fidelity-selftest:
+	./scripts/acceptance/mock-fidelity-selftest.sh
 
 lint: tools
 	@fail=0; \

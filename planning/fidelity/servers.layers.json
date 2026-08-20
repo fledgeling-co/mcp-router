@@ -1,0 +1,35 @@
+{
+  "surface": "servers",
+  "mock": "design/mcp-router-console.html",
+  "section": "b-servers",
+  "pairing": "planning/fidelity/servers.pairing.tsv",
+  "states": ["ideal", "empty", "loading", "error"],
+
+  "note": [
+    "The floors are the census sizes measured on the run that wrote them, and they are a ratchet",
+    "rather than a guess. A layer that reads fewer rows than its floor exits 3, not 0: a shrunken",
+    "denominator raises reported coverage while measuring less, which is the failure",
+    "planning/evidence/P4-acceptance.md records four separate times. Lowering one is a deliberate",
+    "edit with a reason in the commit, never a side effect of deleting rows."
+  ],
+  "floors": {
+    "tokenRows": 89,
+    "dumpNodes": 73,
+    "affordances": 107
+  },
+
+  "layers": [
+    { "name": "tokens", "required": true },
+    { "name": "literals", "required": true },
+    { "name": "structure", "required": true },
+    { "name": "geometry", "required": true },
+    { "name": "type-metrics", "required": true },
+    { "name": "copy", "required": true },
+    { "name": "breadth", "required": true },
+    {
+      "name": "font-weight-face",
+      "required": false,
+      "substitute": "A SwiftUI Font is opaque — String(describing: Font.system(size: 13, weight: .semibold)) returns \"Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)\", with no size, weight or face in it. Confirmed instead by: the TypeToken each text node names is recorded in tokens[\"type\"] at apply time and checked against the measured line box by the type-metrics layer; DesignTokenParityTests pins the eight-role ladder against DESIGN.md; scripts/lint/no-raw-design-values.sh fails any font size that does not come off it. None of the three can see an ancestor .font() winning the cascade, and that residue is what this row is."
+    }
+  ]
+}

@@ -44,6 +44,7 @@
                         canWrite: board.canWrite(to: state),
                         pendingAuth: state.pendingAuth
                     )
+                    .measured("inspector", role: "inspector", kind: .vstack, alignment: "leading")
                 }
             }
             .sheet(item: $board.sheet) { sheet in
@@ -97,6 +98,7 @@
             }
             .padding(ServersBoardMetrics.panePadding)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .measured("board-column", role: "board-column", kind: .vstack, alignment: "leading")
         }
 
         // MARK: - The populated board, current or stale
@@ -139,17 +141,34 @@
                     Text(Destination.servers.title)
                         .typeRole(.title1)
                         .foregroundStyle(ColorToken.t1.color)
+                        .measured(
+                            "title", role: "board-title", kind: .text,
+                            tokens: ["foreground": .t1], type: .title1,
+                            text: Destination.servers.title
+                        )
                     Text(board.header(from: state).subtitle())
                         .typeRole(.body)
                         .foregroundStyle(ColorToken.t2.color)
+                        .measured(
+                            "subtitle", role: "board-subtitle", kind: .text,
+                            tokens: ["foreground": .t2], type: .body,
+                            text: board.header(from: state).subtitle()
+                        )
                 }
+                .measured("title-block", role: "title-block", kind: .vstack, alignment: "leading")
                 Spacer(minLength: 0)
                 // §3.4: exactly one prominent accent-filled action per view, trailing. This is it —
                 // every other control on this board is a standard one.
                 Button(MenuCommand.addServer.title) { board.sheet = .addServer }
                     .buttonStyle(ProminentButtonStyle())
+                    .measured(
+                        "primary-action", role: "primary-action", kind: .leaf,
+                        tokens: ["background": .accent, "foreground": .onAccent],
+                        type: .body, text: MenuCommand.addServer.title
+                    )
             }
             .padding(.bottom, ServersBoardMetrics.gap)
+            .measured("board-header", role: "board-header", kind: .hstack, alignment: "firstTextBaseline")
         }
 
         // How long ago the stale reading was taken is **not** shown, because nothing observes it.
@@ -163,11 +182,14 @@
                     filter: $board.filter,
                     counts: board.counts(from: state)
                 )
+                .measured("filter-bar", role: "segmented-filter", kind: .hstack)
                 Spacer(minLength: 0)
                 ServerSearchField(query: $board.searchQuery)
                     .focused($isSearchFocused)
+                    .measured("search-field", role: "search-field", kind: .leaf)
             }
             .padding(.bottom, ServersBoardMetrics.gap)
+            .measured("controls", role: "controls-row", kind: .hstack)
         }
 
         // MARK: - The table
@@ -187,6 +209,7 @@
             .padding(.horizontal, ServersBoardMetrics.rowPadding)
             .padding(.bottom, ServersBoardMetrics.tightGap)
             .accessibilityHidden(true)
+            .measured("column-headers", role: "column-headers", kind: .hstack)
         }
 
         private func columnLabel(
@@ -198,6 +221,10 @@
                 .typeRole(.caption)
                 .foregroundStyle(ColorToken.t3.color)
                 .frame(width: width, alignment: alignment)
+                .measured(
+                    "column-\(text)", role: "column-header", kind: .text,
+                    tokens: ["foreground": .t3], type: .caption, text: text
+                )
         }
 
         private func table(_ rows: [ServerRowModel]) -> some View {
@@ -218,6 +245,10 @@
                 }
             }
             .background(ColorToken.panel.color)
+            .measured(
+                "table", role: "table", kind: .vstack,
+                tokens: ["background": .panel]
+            )
         }
 
         /// The empty result, worded for the state that actually produced it.
@@ -285,6 +316,11 @@
                 Text("\(shown) of \(header.servers) servers · \(tools) tools indexed")
                     .typeRole(.caption, monospaced: true)
                     .foregroundStyle(ColorToken.t3.color)
+                    .measured(
+                        "footer-counts", role: "footer-counts", kind: .text,
+                        tokens: ["foreground": .t3], type: .caption,
+                        text: "\(shown) of \(header.servers) servers · \(tools) tools indexed"
+                    )
                 if scoped > 0 {
                     Text(
                         scoped == 1
@@ -296,6 +332,7 @@
                 }
             }
             .padding(.top, ServersBoardMetrics.gap)
+            .measured("footer", role: "footer", kind: .vstack, alignment: "leading")
         }
     }
 

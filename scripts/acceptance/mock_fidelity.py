@@ -1,0 +1,699 @@
+#!/usr/bin/env python3
+"""The layer engine behind `mock-fidelity-gate.sh` — M23's conversion gate.
+
+Three exit states, from the M23 brief:
+
+    0   clean and complete — every required layer ran and found nothing
+    1   findings — at least one difference
+    3   inconclusive — a layer the verdict depended on could not run
+
+The third one is the reason this is not two nested `diff`s. A property the measurement cannot
+compute reads as agreement on both sides and a differ emits nothing, so every layer here declares a
+**preflight**: what artifact it needs, and the floor below which that artifact is evidence of
+nothing. A missing file, an empty file, a parse failure and a below-floor artifact are all exit 3,
+with the tool's own words quoted rather than paraphrased.
+
+Reading order for anyone extending this: `LAYERS` is the whole contract, one function per layer.
+"""
+from __future__ import annotations
+
+import json
+import os
+import subprocess
+import sys
+from dataclasses import dataclass, field
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+# The one layer this gate may ship with `required: false`, and the only one.
+#
+# `required: false` is otherwise a silence switch: a runner who needs a green gate marks `structure`
+# optional, cites the manifest, and the verdict becomes "the layers that were left on". So the
+# allowlist lives in the gate rather than in the manifest the gate reads, and a manifest that marks
+# anything else optional is itself inconclusive.
+ALLOWED_OPTIONAL = {"font-weight-face"}
+
+
+@dataclass
+class Layer:
+    name: str
+    findings: list[str] = field(default_factory=list)
+    #: Reported on every run, and not a finding. A pending token row is the case this exists for:
+    #: the row is a recorded, cited difference that another item owns, so making it a finding would
+    #: pin the gate at exit 1 for a reason the surface under audit cannot fix — and dropping it
+    #: would hide it. Printed either way, so the substitution stays visible rather than forgotten.
+    carried: list[str] = field(default_factory=list)
+    inconclusive: str | None = None
+    ran: bool = False
+    observations: int = 0
+    note: str = ""
+
+
+class Inconclusive(Exception):
+    """Raised by a layer that could not run. The message is quoted into the report verbatim."""
+
+
+def run(cmd: list[str], cwd: str = ROOT, timeout: int = 900) -> subprocess.CompletedProcess:
+    return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout)
+
+
+# --------------------------------------------------------------------------- artifacts
+
+def load_json(path: str, what: str) -> dict:
+    if not os.path.exists(path):
+        raise Inconclusive(f"{what}: no artifact at {path} — the layer read nothing")
+    if os.path.getsize(path) == 0:
+        raise Inconclusive(f"{what}: {path} is zero bytes — an empty artifact is not a clean one")
+    try:
+        with open(path, encoding="utf-8") as handle:
+            return json.load(handle)
+    except json.JSONDecodeError as error:
+        raise Inconclusive(f"{what}: {path} did not parse: {error}") from error
+
+
+def flatten(node: dict, path: list[str] | None = None) -> list[tuple[str, dict]]:
+    path = (path or []) + [node["id"]]
+    out = [("/".join(path), node)]
+    for child in node.get("children", []):
+        out.extend(flatten(child, path))
+    return out
+
+
+# --------------------------------------------------------------------------- layers
+
+def layer_tokens(ctx) -> Layer:
+    """The mock's two token blocks against the shipped Swift palette."""
+    layer = Layer("tokens")
+    result = run(["swift", "test", "--filter", "MockToken"], cwd=os.path.join(ROOT, "app"))
+    output = result.stdout + result.stderr
+
+    marker = next((l for l in output.splitlines() if l.startswith("MOCK-FIDELITY-TOKENS:")), None)
+    if marker is None:
+        raise Inconclusive(
+            "tokens: the suite printed no MOCK-FIDELITY-TOKENS marker, so the register was never "
+            "compared. A check that prints nothing cannot be told from one that did not run.\n"
+            + "\n".join(output.splitlines()[-15:])
+        )
+    fields = dict(part.split("=", 1) for part in marker.split(":", 1)[1].split())
+    layer.observations = int(fields["rows"])
+    layer.ran = True
+    if layer.observations < ctx.floors["tokenRows"]:
+        raise Inconclusive(
+            f"tokens: the register carries {layer.observations} rows, below the floor of "
+            f"{ctx.floors['tokenRows']}. A shrunken census raises coverage while measuring less — "
+            "the failure `planning/evidence/P4-acceptance.md` records four times."
+        )
+
+    if result.returncode != 0:
+        for line in output.splitlines():
+            if "Expectation failed" in line or "recorded an issue" in line:
+                layer.findings.append(f"token parity: {line.strip()[:200]}")
+        if not layer.findings:
+            layer.findings.append(f"token parity suite exited {result.returncode}")
+
+    pending = int(fields["pending"])
+    if int(fields["uncited"]):
+        layer.findings.append(f"{fields['uncited']} pending token rows carry no citation")
+    for line in output.splitlines():
+        if line.startswith("MOCK-FIDELITY-PENDING:"):
+            layer.carried.append("token " + line.split(":", 1)[1].strip())
+    layer.note = f"{fields['matched']} matched, {pending} pending, of {layer.observations} rows"
+
+    stray = next((l for l in output.splitlines() if l.startswith("MOCK-FIDELITY-MOCK-LITERALS:")), None)
+    if stray is None:
+        raise Inconclusive("tokens: the mock's own zero-literals property was never measured")
+    count = int(stray.split("=", 1)[1])
+    if count:
+        layer.findings.append(f"the mock writes {count} colour literals outside its token blocks")
+    return layer
+
+
+def layer_literals(ctx) -> Layer:
+    """No Swift file outside the palette type writes a colour literal."""
+    layer = Layer("literals")
+    script = os.path.join(ROOT, "scripts/lint/no-raw-design-values.sh")
+    if not os.access(script, os.X_OK):
+        raise Inconclusive(f"literals: {script} is missing or not executable")
+    result = run(["/bin/bash", script])
+    output = result.stdout + result.stderr
+    scan = next((l for l in output.splitlines() if l.startswith("no-raw-design-values: scanning")), None)
+    if scan is None:
+        raise Inconclusive(
+            "literals: the lint printed no scan line, so the number of files it read is unknown:\n"
+            + output.strip()[-800:]
+        )
+    layer.ran = True
+    try:
+        # "no-raw-design-values: scanning 116 files". The count is read rather than assumed,
+        # because a lint that scanned nothing and a lint that found nothing print the same exit
+        # code — and a scan line this cannot parse is a lint whose population is unknown, which
+        # is inconclusive rather than clean. The selftest found this crashing where it should
+        # have reported, which is what a scratch stub with a different word order is for.
+        layer.observations = int(scan.split("scanning", 1)[1].split()[0])
+    except (IndexError, ValueError) as error:
+        raise Inconclusive(
+            f"literals: could not read the file count out of the lint's scan line, so the number "
+            f"of files it read is unknown ({error}): {scan.strip()!r}"
+        ) from error
+    layer.note = scan.split(": ", 1)[1]
+    if result.returncode != 0:
+        for line in output.splitlines():
+            if "—" in line and ".swift:" in line:
+                layer.findings.append("raw design value: " + line.strip())
+        if not layer.findings:
+            layer.findings.append(f"no-raw-design-values.sh exited {result.returncode}")
+    return layer
+
+
+def layer_structure(ctx) -> Layer:
+    """Containment and axis, corroborated against the geometry rather than taken on trust.
+
+    A `.measured(kind: .hstack)` annotation is metadata the view supplies about itself, and the M23
+    brief's whole subject is that self-description is not measurement. So every declared axis is
+    checked against where the children actually landed: a node calling itself horizontal whose
+    children are stacked vertically is a finding, not a label.
+    """
+    layer = Layer("structure")
+    for state, dump in ctx.dumps.items():
+        nodes = flatten(dump["root"])
+        layer.observations += len(nodes)
+        for path, node in nodes:
+            children = node.get("children", [])
+            if len(children) < 2 or node.get("axis") not in ("horizontal", "vertical"):
+                continue
+
+            # The axis is read from whether the children SEPARATE along it, not from how far their
+            # origins spread. The spread reading — which this replaced — called a centred VStack
+            # horizontal whenever its two labels differed in width by more than they differed in
+            # height, and reported it on a board where nothing was wrong. A detector whose false
+            # positives outnumber its true ones is one people learn to scroll past.
+            def disjoint(a, b, axis):
+                lo, size = ("x", "width") if axis == "horizontal" else ("y", "height")
+                first, second = sorted((a["frame"], b["frame"]), key=lambda f: f[lo])
+                return first[lo] + first[size] <= second[lo] + 0.5
+
+            pairs = [
+                (children[i], children[j])
+                for i in range(len(children)) for j in range(i + 1, len(children))
+            ]
+            across = sum(disjoint(a, b, "horizontal") for a, b in pairs)
+            down = sum(disjoint(a, b, "vertical") for a, b in pairs)
+            if across == down:
+                continue  # overlapping or single-point children carry no axis evidence either way
+            observed = "horizontal" if across > down else "vertical"
+            if observed != node["axis"]:
+                layer.findings.append(
+                    f"{state}: {path} declares axis {node['axis']} but of its "
+                    f"{len(pairs)} child pairs, {across} separate horizontally and {down} vertically"
+                )
+    layer.ran = True
+    if layer.observations < ctx.floors["dumpNodes"]:
+        raise Inconclusive(
+            f"structure: the four dumps carry {layer.observations} nodes, below the floor of "
+            f"{ctx.floors['dumpNodes']} — a surface with nothing instrumented diffs clean"
+        )
+    layer.note = f"{layer.observations} nodes across {len(ctx.dumps)} states"
+    return layer
+
+
+def layer_geometry(ctx) -> Layer:
+    """Frames: present, non-degenerate, and inside the surface that was asked for."""
+    layer = Layer("geometry")
+    for state, dump in ctx.dumps.items():
+        want = dump["size"]
+        root = dump["root"]["frame"]
+        if (root["width"], root["height"]) != (want["width"], want["height"]):
+            layer.findings.append(
+                f"{state}: the surface root measured {root['width']}x{root['height']} but was hosted "
+                f"at {want['width']}x{want['height']}"
+            )
+        for path, node in flatten(dump["root"]):
+            layer.observations += 1
+            frame = node["frame"]
+            if frame["width"] <= 0 or frame["height"] <= 0:
+                layer.findings.append(f"{state}: {path} has a zero-area frame {frame}")
+    layer.ran = True
+    layer.note = f"{layer.observations} frames"
+    return layer
+
+
+def layer_type_metrics(ctx) -> Layer:
+    """What a text node's measured line box says about the type role it names.
+
+    This is the part of the font layer that CAN be measured, and it is deliberately narrower than
+    the check it replaced. That one asserted a text node's height was a whole multiple of the line
+    height its `TypeToken` declares, and reported nine findings on a board with no type defect in
+    it: `DESIGN.md`'s line heights are the design's leading, not the box AppKit lays a single line
+    of SF Pro out in, and a button's frame is a control height rather than a line box at all. Every
+    one of those nine was the instrument, and a layer that cries wolf is a layer nobody reads.
+
+    What survives is two properties that hold whatever the renderer's leading turns out to be:
+
+    1. **Every single-line node naming one role measures the same height.** This is what a lost
+       cascade looks like — an ancestor `.font()` winning on some of a role's nodes and not others
+       — which is the exact residue the `font-weight-face` layer cannot see.
+    2. **The measured heights rise with the ladder.** A node whose role was substituted for a
+       neighbouring one on the ladder shows up as an inversion.
+
+    Multi-line nodes are excluded from (1), because their height is a wrap count rather than a line
+    box, and the count of them is reported rather than dropped.
+    """
+    layer = Layer("type-metrics")
+    ladder = None
+    heights: dict[str, list[tuple[str, float]]] = {}
+    multiline = 0
+
+    for state, dump in ctx.dumps.items():
+        ladder = dump.get("typeLadder") or ladder
+        if not ladder:
+            raise Inconclusive(f"type-metrics: {state} carries no type ladder, so nothing to check against")
+        for path, node in flatten(dump["root"]):
+            role = node.get("tokens", {}).get("type")
+            if not role:
+                continue
+            if role not in ladder:
+                layer.findings.append(f"{state}: {path} names type role '{role}', which is not on the ladder")
+                continue
+            if node["kind"] != "text":
+                continue  # a control's frame is a control height, not a line box
+            layer.observations += 1
+            heights.setdefault(role, []).append((f"{state}: {path}", node["frame"]["height"]))
+
+    if layer.observations == 0:
+        raise Inconclusive("type-metrics: no instrumented text node named a type role, so nothing was measured")
+
+    single: dict[str, float] = {}
+    for role, seen in heights.items():
+        floor = min(height for _, height in seen)
+        single[role] = floor
+        for where, height in seen:
+            if height > floor + 0.5:
+                if height > floor * 1.5:
+                    multiline += 1
+                    continue
+                layer.findings.append(
+                    f"{where} names {role} and measured {height}pt, where every other single-line "
+                    f"{role} node measured {floor}pt — one of the two lost the cascade"
+                )
+
+    ordered = sorted(single, key=lambda role: (ladder[role]["size"], role))
+    for smaller, larger in zip(ordered, ordered[1:]):
+        if ladder[smaller]["size"] == ladder[larger]["size"]:
+            continue
+        if single[smaller] > single[larger]:
+            layer.findings.append(
+                f"{smaller} ({ladder[smaller]['size']}pt on the ladder) measured {single[smaller]}pt "
+                f"but {larger} ({ladder[larger]['size']}pt) measured {single[larger]}pt — the "
+                "measured heights invert the ladder, which is what a substituted role looks like"
+            )
+
+    if len(single) < 2:
+        raise Inconclusive(
+            f"type-metrics: only {len(single)} type role(s) appear across the instrumented nodes, "
+            "so neither the per-role agreement nor the ladder ordering has anything to compare"
+        )
+
+    layer.ran = True
+    layer.note = (
+        f"{layer.observations} text nodes · {len(single)} roles · "
+        + " ".join(f"{role}={single[role]}pt" for role in ordered)
+        + (f" · {multiline} multi-line node(s) excluded from the per-role check" if multiline else "")
+    )
+    return layer
+
+
+def layer_copy(ctx) -> Layer:
+    """The mock's text nodes against the strings the running views reported.
+
+    Against the **dump**, not the copy enums. Reading an enum tells you what a view declares, which
+    is the first self-deception the brief names: it cannot see a string that never rendered, a state
+    the data left empty, or a view that was never reached.
+    """
+    layer = Layer("copy")
+    for state, pairs in ctx.pairs.items():
+        nodes = dict(flatten(ctx.dumps[state]["root"]))
+        by_id = {a["id"]: a for a in ctx.inventory[state]["affordances"]}
+        for affordance_id, node_path in pairs.items():
+            affordance = by_id.get(affordance_id)
+            node = nodes.get(node_path)
+            if affordance is None or node is None:
+                continue  # reported by the breadth layer, which owns pairing integrity
+            mock_text = " ".join((affordance.get("label") or "").split())
+            app_text = " ".join((node.get("text") or "").split())
+            if not mock_text or not app_text:
+                continue
+            layer.observations += 1
+            if mock_text != app_text:
+                layer.findings.append(
+                    f"{state}: {affordance_id} reads \"{mock_text[:70]}\" in the mock and "
+                    f"\"{app_text[:70]}\" in the build"
+                )
+    layer.ran = True
+    layer.note = f"{layer.observations} paired strings"
+    return layer
+
+
+def layer_breadth(ctx) -> Layer:
+    """Present / divergent / absent for every affordance the mock draws, both directions.
+
+    The inventory is derived from the mock on every run, so a row cannot be deleted to make a
+    finding disappear — the P4 failure. The pairing file declares only *which* node answers which
+    affordance; the status is computed here, which is what makes `present` earned by measuring
+    rather than asserted.
+    """
+    layer = Layer("breadth")
+    rows = []
+    for state in ctx.states:
+        inventory = ctx.inventory[state]["affordances"]
+        nodes = dict(flatten(ctx.dumps[state]["root"]))
+        pairs = ctx.pairs.get(state, {})
+        paired_nodes = set()
+
+        for affordance in inventory:
+            layer.observations += 1
+            node_path = pairs.get(affordance["id"])
+            if node_path is None:
+                rows.append((state, affordance["id"], affordance["kind"], "absent",
+                             f'mock="{affordance["label"][:60]}"', "build=no paired node",
+                             ctx.citations.get(affordance["id"], "")))
+                layer.findings.append(f"{state}: {affordance['id']} is absent from the build")
+                continue
+            node = nodes.get(node_path)
+            if node is None:
+                rows.append((state, affordance["id"], affordance["kind"], "unclassified",
+                             f'mock="{affordance["label"][:60]}"',
+                             f"build=pairing names {node_path}, which is not in the dump", ""))
+                layer.findings.append(
+                    f"{state}: {affordance['id']} is paired to {node_path}, which no dump node matches"
+                )
+                continue
+            paired_nodes.add(node_path)
+            mock_text = " ".join((affordance.get("label") or "").split())
+            app_text = " ".join((node.get("text") or "").split())
+
+            # Four outcomes, not two. The version this replaced read `present` whenever either side
+            # carried no text, which handed a free pass to exactly the pairing the brief warns
+            # about: a labelled mock affordance paired to a build container that reports no string
+            # of its own compared nothing and said the two agreed. `PRESENT` is earned by
+            # measuring, so a comparison the instrument could not make is `unclassified` — a
+            # finding that names what it could not read — rather than agreement.
+            if mock_text == app_text:
+                status = "present"
+            elif mock_text and app_text:
+                status = "divergent"
+            else:
+                status = "unclassified"
+
+            rows.append((state, affordance["id"], affordance["kind"], status,
+                         f'mock="{mock_text[:60]}"', f'build={node_path} text="{app_text[:60]}"',
+                         ctx.citations.get(affordance["id"], "")))
+            if status == "divergent":
+                layer.findings.append(
+                    f"{state}: {affordance['id']} label differs — mock \"{mock_text[:50]}\" vs "
+                    f"build \"{app_text[:50]}\""
+                )
+            elif status == "unclassified":
+                side = "the build node reports no text" if mock_text else "the mock affordance carries no label"
+                layer.findings.append(
+                    f"{state}: {affordance['id']} is paired to {node_path} but {side}, so the label "
+                    "was never compared"
+                )
+
+        # The reverse direction. Matching the mock means removing what it does not have, not only
+        # adding what it lacks, so an instrumented node nothing in the mock accounts for is a
+        # finding of its own.
+        #
+        # With one mechanical exemption, and it is stated here rather than spent as a per-row
+        # citation: **a node with a paired node somewhere in its subtree is containment, not an
+        # extra element.** The mock's census covers the declared affordance kinds — heading,
+        # button, card, row, field and the rest — and never a bare wrapper, so a build container
+        # whose whole job is to carry an axis and a frame for children the mock does account for
+        # has nothing on the mock side to pair with. Those are counted and listed as
+        # `structure-unpaired` so the number is visible. A subtree with nothing paired anywhere
+        # inside it is not exempt: it goes red at its root and at every leaf, which is what an
+        # invented section looks like.
+        def subtree_has_pair(path: str) -> bool:
+            prefix = path + "/"
+            return any(p.startswith(prefix) for p in paired_nodes)
+
+        def inside_a_pair(path: str) -> bool:
+            return any(path.startswith(p + "/") for p in paired_nodes)
+
+        for path, node in nodes.items():
+            if path in paired_nodes or node["role"] == "surface":
+                continue
+            # A descendant of a paired node is accounted for by that pair: the mock's census names
+            # the row, and the row's label IS its subtree's text, so reporting the row's own name
+            # and state lines as "in the build and not in the mock" states something false about the
+            # mock. Pairing happens at the granularity the mock's census offers; what is inside a
+            # pair is compared by the copy, geometry and type-metrics layers instead.
+            if inside_a_pair(path):
+                rows.append((state, path, node["role"], "covered-by-pair", "mock=inside a paired affordance",
+                             f"build={path}", ""))
+                continue
+            if node.get("children") and subtree_has_pair(path):
+                rows.append((state, path, node["role"], "structure-unpaired", "mock=no affordance of a declared kind",
+                             f"build={path} ({len(node['children'])} children, at least one paired)", ""))
+                continue
+            if path in ctx.extra_allowed.get(state, {}):
+                rows.append((state, path, node["role"], "extra-cited", "mock=nothing",
+                             f"build={path}", ctx.extra_allowed[state][path]))
+                layer.findings.append(
+                    f"{state}: {path} is in the build and not in the mock "
+                    f"({ctx.extra_allowed[state][path]})"
+                )
+                continue
+            rows.append((state, path, node["role"], "extra", "mock=nothing", f"build={path}", ""))
+            layer.findings.append(f"{state}: {path} is in the build and not in the mock")
+
+    layer.ran = True
+    if layer.observations < ctx.floors["affordances"]:
+        raise Inconclusive(
+            f"breadth: the derived inventory carries {layer.observations} affordances, below the "
+            f"floor of {ctx.floors['affordances']}. A shrunken denominator is how coverage goes up "
+            "while measurement goes down (planning/evidence/P4-acceptance.md)."
+        )
+    ctx.breadth_rows = rows
+    counts = {}
+    for row in rows:
+        counts[row[3]] = counts.get(row[3], 0) + 1
+    layer.note = " · ".join(f"{k} {v}" for k, v in sorted(counts.items()))
+    return layer
+
+
+def layer_font_weight_face(ctx) -> Layer:
+    """The residue the instrument genuinely cannot read: weight and face."""
+    layer = Layer("font-weight-face")
+    evidence = None
+    for dump in ctx.dumps.values():
+        for entry in dump.get("inconclusive", []):
+            if entry["layer"] == "resolved-font":
+                evidence = entry
+    if evidence is None:
+        raise Inconclusive(
+            "font-weight-face: the dump carries no capability record for the font layer, so whether "
+            "it ran is unknown"
+        )
+    raise Inconclusive(
+        "font-weight-face: " + evidence["evidence"]
+        + "\n            confirmed instead by: " + (evidence.get("confirmedInsteadBy") or "nothing")
+    )
+
+
+LAYERS = {
+    "tokens": layer_tokens,
+    "literals": layer_literals,
+    "structure": layer_structure,
+    "geometry": layer_geometry,
+    "type-metrics": layer_type_metrics,
+    "copy": layer_copy,
+    "breadth": layer_breadth,
+    "font-weight-face": layer_font_weight_face,
+}
+
+
+# --------------------------------------------------------------------------- driver
+
+class Context:
+    def __init__(self, manifest: dict, dump_dir: str):
+        self.manifest = manifest
+        self.surface = manifest["surface"]
+        self.states = manifest["states"]
+        self.floors = manifest["floors"]
+        self.section = manifest["section"]
+        self.dump_dir = dump_dir
+        self.dumps: dict[str, dict] = {}
+        self.inventory: dict[str, dict] = {}
+        self.pairs: dict[str, dict[str, str]] = {}
+        self.citations: dict[str, str] = {}
+        self.extra_allowed: dict[str, dict[str, str]] = {}
+        self.breadth_rows: list[tuple] = []
+
+    def load(self) -> None:
+        for state in self.states:
+            path = os.path.join(self.dump_dir, f"{self.surface}.{state}.json")
+            self.dumps[state] = load_json(path, f"dump[{state}]")
+            if not self.dumps[state].get("root"):
+                raise Inconclusive(f"dump[{state}]: {path} carries no root node")
+
+            result = run([
+                sys.executable, os.path.join(ROOT, "scripts/acceptance/mock-affordances.py"),
+                os.path.join(ROOT, self.manifest["mock"]), self.section, f"v-{state}",
+            ])
+            if result.returncode != 0:
+                raise Inconclusive(f"inventory[{state}]: {result.stderr.strip() or result.stdout.strip()}")
+            self.inventory[state] = json.loads(result.stdout)
+
+        pairing = os.path.join(ROOT, self.manifest["pairing"])
+        if not os.path.exists(pairing):
+            raise Inconclusive(f"pairing: no file at {pairing}")
+        seen = 0
+        with open(pairing, encoding="utf-8") as handle:
+            for raw in handle:
+                line = raw.rstrip("\n")
+                if not line.strip() or line.lstrip().startswith("#"):
+                    continue
+                parts = line.split("\t")
+                if len(parts) < 3:
+                    raise Inconclusive(f"pairing: '{line[:60]}' is not state<TAB>affordance<TAB>node")
+                state, affordance, node = parts[0], parts[1], parts[2]
+                citation = parts[3] if len(parts) > 3 else ""
+                seen += 1
+                if state not in self.states:
+                    raise Inconclusive(f"pairing: unknown state '{state}'")
+                if affordance.startswith("+"):
+                    self.extra_allowed.setdefault(state, {})[affordance[1:]] = citation
+                    continue
+                if node == "-":
+                    if citation:
+                        self.citations[affordance] = citation
+                    continue
+                self.pairs.setdefault(state, {})[affordance] = node
+                if citation:
+                    self.citations[affordance] = citation
+        if seen == 0:
+            raise Inconclusive(f"pairing: {pairing} declares nothing, so every affordance reads absent")
+
+
+def main() -> int:
+    if len(sys.argv) < 3:
+        sys.stderr.write("usage: mock_fidelity.py <layers.json> <dump-dir> [--report <path>]\n")
+        return 2
+    manifest_path, dump_dir = sys.argv[1], sys.argv[2]
+    report_path = None
+    if "--report" in sys.argv:
+        report_path = sys.argv[sys.argv.index("--report") + 1]
+
+    try:
+        manifest = load_json(manifest_path, "manifest")
+    except Inconclusive as error:
+        print(f"INCONCLUSIVE {error}")
+        return 3
+
+    declared = {entry["name"]: entry for entry in manifest["layers"]}
+    unknown = set(declared) - set(LAYERS)
+    if unknown:
+        print(f"INCONCLUSIVE manifest: declares layers this gate cannot run: {sorted(unknown)}")
+        return 3
+    missing = set(LAYERS) - set(declared)
+    if missing:
+        print(f"INCONCLUSIVE manifest: does not declare {sorted(missing)}, so those layers are silent")
+        return 3
+    for name, entry in declared.items():
+        if not entry.get("required", True) and name not in ALLOWED_OPTIONAL:
+            print(
+                f"INCONCLUSIVE manifest: '{name}' is marked required:false. Only "
+                f"{sorted(ALLOWED_OPTIONAL)} may be, and that allowlist lives in the gate rather "
+                "than in the manifest the gate reads."
+            )
+            return 3
+        if not entry.get("required", True) and not entry.get("substitute"):
+            print(f"INCONCLUSIVE manifest: '{name}' is optional with no substitute recorded")
+            return 3
+
+    ctx = Context(manifest, dump_dir)
+    try:
+        ctx.load()
+    except Inconclusive as error:
+        print(f"INCONCLUSIVE {error}")
+        return 3
+
+    results: list[Layer] = []
+    blocked: list[tuple[str, str]] = []
+    for name in ["tokens", "literals", "structure", "geometry", "type-metrics", "copy", "breadth",
+                 "font-weight-face"]:
+        entry = declared[name]
+        try:
+            results.append(LAYERS[name](ctx))
+        except Inconclusive as error:
+            layer = Layer(name, inconclusive=str(error))
+            results.append(layer)
+            if entry.get("required", True):
+                blocked.append((name, str(error)))
+
+    print(f"mock-fidelity: surface '{ctx.surface}' across {len(ctx.states)} states")
+    findings = 0
+    for layer in results:
+        if layer.inconclusive:
+            required = declared[layer.name].get("required", True)
+            tag = "INCONCLUSIVE" if required else "inconclusive (substituted)"
+            print(f"  {layer.name:18s} {tag}")
+            for line in layer.inconclusive.splitlines():
+                print(f"      {line}")
+            if not required:
+                print(f"      substitute: {declared[layer.name]['substitute']}")
+            continue
+        findings += len(layer.findings)
+        status = "clean" if not layer.findings else f"{len(layer.findings)} finding(s)"
+        print(f"  {layer.name:18s} ran · {layer.note} · {status}")
+        for line in layer.findings[:400]:
+            print(f"      - {line}")
+        for line in layer.carried[:400]:
+            # Truncated on purpose: an asset token's value is a base64 data URI several hundred
+            # kilobytes long, and a report nobody can scroll is a report nobody reads. The full
+            # value is in planning/fidelity/token-register.json, which the suite diffs against.
+            print(f"      carried: {line[:200]}{'…' if len(line) > 200 else ''}")
+
+    if report_path:
+        write_report(report_path, ctx, results, declared)
+
+    if blocked:
+        print(f"mock-fidelity: EXIT 3 — {len(blocked)} required layer(s) could not run")
+        return 3
+    if findings:
+        print(f"mock-fidelity: EXIT 1 — {findings} finding(s)")
+        return 1
+    print("mock-fidelity: EXIT 0 — every required layer ran and found nothing")
+    return 0
+
+
+def write_report(path: str, ctx: Context, results: list[Layer], declared: dict) -> None:
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    with open(path, "w", encoding="utf-8") as out:
+        out.write("# Breadth ledger — {} (generated by scripts/acceptance/mock-fidelity-gate.sh)\n\n".format(ctx.surface))
+        out.write(
+            "Every row is derived on the run that wrote this file: the mock side from\n"
+            "`scripts/acceptance/mock-affordances.py`, the build side from the measurement harness's\n"
+            "dump. Nothing here is hand-maintained, which is what stops a row being deleted to make a\n"
+            "finding disappear.\n\n"
+        )
+        out.write("## Layers\n\n| Layer | Result | Detail |\n|---|---|---|\n")
+        for layer in results:
+            if layer.inconclusive:
+                required = declared[layer.name].get("required", True)
+                out.write("| `{}` | {} | {} |\n".format(
+                    layer.name, "**INCONCLUSIVE**" if required else "inconclusive (substituted)",
+                    layer.inconclusive.splitlines()[0].replace("|", "\\|")[:200]))
+            else:
+                out.write("| `{}` | {} | {} |\n".format(
+                    layer.name, "clean" if not layer.findings else f"{len(layer.findings)} finding(s)",
+                    layer.note.replace("|", "\\|")))
+        out.write("\n## Present / divergent / absent\n\n")
+        out.write("| State | Affordance | Kind | Status | Mock value | Build value | Citation |\n")
+        out.write("|---|---|---|---|---|---|---|\n")
+        for row in ctx.breadth_rows:
+            out.write("| " + " | ".join(str(cell).replace("|", "\\|") for cell in row) + " |\n")
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -67,6 +67,27 @@ if [ ! -x "$TOOL" ]; then
 fi
 
 mkdir -p "$DUMPS"
+
+# The instrument's own preflight, before it is trusted to measure anything.
+#
+# `MeasureDump` used to default an unreadable `--state` back to `ideal`, so a typo wrote the ideal
+# frame into `servers.<typo>.json` and exited 0 — a measurement of a surface nobody asked for,
+# reported as a success. It now refuses. Asserted here on every run rather than recorded once,
+# because a tool that quietly resumed defaulting would make every dump below suspect and nothing
+# would say so. Costs one process launch against a build that has already happened.
+PREFLIGHT_OUT=$(mktemp)
+"$TOOL" --state definitely-not-a-state --out "$DUMPS/.preflight.json" > "$PREFLIGHT_OUT" 2>&1
+preflight=$?
+if [ $preflight != 3 ] || [ -f "$DUMPS/.preflight.json" ]; then
+  echo "INCONCLUSIVE mock-fidelity: MeasureDump was handed an unreadable --state and exited"
+  echo "              $preflight rather than 3. It is defaulting instead of refusing, so a dump"
+  echo "              named for one state may hold another and nothing downstream can tell. It said:"
+  sed 's/^/              /' "$PREFLIGHT_OUT"
+  rm -f "$PREFLIGHT_OUT" "$DUMPS/.preflight.json"
+  exit 3
+fi
+rm -f "$PREFLIGHT_OUT"
+
 for state in $STATES; do
   out="$DUMPS/${SURFACE}.${state}.json"
   rm -f "$out"

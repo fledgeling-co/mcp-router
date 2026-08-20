@@ -63,6 +63,15 @@ import Foundation
         var output = "planning/fidelity/servers.dump.json"
         /// How long the run loop is spun for the layout to settle, in seconds.
         var settle = 1.5
+        /// Every argument this could not honour, in the words it would report them in.
+        ///
+        /// Collected rather than defaulted away. An unreadable `--surface` used to fall back to the
+        /// only surface there is and an unreadable `--state` to `ideal`, so `--state loadng` wrote a
+        /// dump of the ideal frame into `servers.loadng.json` and the tool exited 0 — a measurement
+        /// of a surface nobody asked for, reported as a success. That is the same shape as a layer
+        /// that could not run reading as agreement, one level below the gate, and the fix is the
+        /// same: say what could not be honoured and exit 3.
+        var rejected: [String] = []
 
         static func parse(_ argv: [String]) -> Arguments {
             var out = Arguments()
@@ -70,32 +79,51 @@ import Foundation
             while i < argv.count {
                 let key = argv[i]
                 let value = i + 1 < argv.count ? argv[i + 1] : nil
+
+                /// Reads `value` through `convert`, or records why it could not be.
+                func take<T>(_ label: String, _ convert: (String) -> T?, into assign: (T) -> Void) {
+                    guard let value else {
+                        out.rejected.append("\(key) was given no value")
+                        return
+                    }
+                    guard let converted = convert(value) else {
+                        out.rejected.append("\(key) '\(value)' is not one of the values \(label)")
+                        return
+                    }
+                    assign(converted)
+                }
+
                 switch key {
                 case "--surface":
-                    if let value, let s = Surface(rawValue: value) { out.surface = s }
+                    take(Surface.allCases.map(\.rawValue).joined(separator: ", "), Surface.init(rawValue:)) {
+                        out.surface = $0
+                    }
                     i += 2
                 case "--state":
-                    if let value, let st = State(rawValue: value) { out.state = st }
+                    take(State.allCases.map(\.rawValue).joined(separator: ", "), State.init(rawValue:)) {
+                        out.state = $0
+                    }
                     i += 2
                 case "--appearance":
-                    if let value {
-                        out.appearance = value == "light" ? .light : .dark
-                        out.appearanceName = value == "light" ? "light" : "dark"
+                    take("light, dark", { $0 == "light" || $0 == "dark" ? $0 : nil }) {
+                        out.appearance = $0 == "light" ? .light : .dark
+                        out.appearanceName = $0
                     }
                     i += 2
                 case "--width":
-                    if let value, let w = Double(value) { out.width = w }
+                    take("a positive number", { Double($0).flatMap { $0 > 0 ? $0 : nil } }) { out.width = $0 }
                     i += 2
                 case "--height":
-                    if let value, let h = Double(value) { out.height = h }
+                    take("a positive number", { Double($0).flatMap { $0 > 0 ? $0 : nil } }) { out.height = $0 }
                     i += 2
                 case "--out":
-                    if let value { out.output = value }
+                    take("a path", { $0.isEmpty ? nil : $0 }) { out.output = $0 }
                     i += 2
                 case "--settle":
-                    if let value, let seconds = Double(value) { out.settle = seconds }
+                    take("a non-negative number", { Double($0).flatMap { $0 >= 0 ? $0 : nil } }) { out.settle = $0 }
                     i += 2
                 default:
+                    out.rejected.append("'\(key)' is not an argument this tool takes")
                     i += 1
                 }
             }
@@ -129,6 +157,15 @@ import Foundation
     @MainActor
     func run() async -> Int32 {
         let args = Arguments.parse(Array(CommandLine.arguments.dropFirst()))
+        guard args.rejected.isEmpty else {
+            FileHandle.standardError.write(Data(("""
+            measure-dump: refusing to render, because these arguments could not be honoured:
+            \(args.rejected.map { "              - " + $0 }.joined(separator: "\n"))
+                          Exiting 3 (inconclusive). Rendering the defaults instead would write a
+                          dump of a surface nobody asked for under the name that was asked for.\n
+            """).utf8))
+            return 3
+        }
 
         // `.prohibited` rather than `.accessory`: this process must never appear, never activate and
         // never take the key window from whatever the person at the machine is actually doing.

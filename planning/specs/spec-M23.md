@@ -304,4 +304,43 @@ own their own frames; M23 owns the row shape they fill).
 
 ## 8 · Review record
 
-Recorded during the run — see `planning/evidence/M23-acceptance.md` for the gate outputs.
+`codex exec -m gpt-5.6-sol -c model_reasoning_effort=high -s read-only`, adversarially briefed —
+told to refute, and told that finding nothing is a failed review. Verbatim in
+`planning/evidence/M23-review-codex.md`; verdict REJECT, 8 findings.
+
+`ORCHESTRATOR.md` records this lane as down until 2026-08-20 and it is back, so this is a genuine
+out-of-family gate rather than the logged in-family downgrade that note anticipated. The `-o` file
+came back non-empty with a substantive review, which is the only honest tell — `codex exec` exits 0
+on a usage limit. A second lane, `grok-4.6` at xhigh, was started in parallel and produced no report
+before this was written; it is recorded as a lane that did not land, not as a lane that passed.
+
+Two findings were accepted and fixed, one was partly accepted, one partly closed, three were
+refuted by running the mutation the reviewer predicted would pass, and one is a recorded
+disagreement. `planning/evidence/M23-acceptance.md` §5 carries the disposition of each, and §4
+carries the mutation that settled it.
+
+The two that were real:
+
+- **The reused lint was described as more complete than it is.** Measured on 21 Aug 2026:
+  `Color(white:)`, `Color(hue:saturation:brightness:)` and `Color(.displayP3, red:green:blue:)` all
+  passed `scripts/lint/no-raw-design-values.sh` clean while §3.2 above claimed component-constructed
+  colours were caught. The rule now covers every `Color` initializer that takes raw components or a
+  foreign colour value, and all seven spellings are armed against the real script in the selftest,
+  with a clean-tree control so a lint that is red whatever you feed it cannot pass them all.
+- **The selftest armed outcomes rather than layers.** One route to 1 and one to 3 left `structure`,
+  `geometry`, `type-metrics` and both directions of `breadth` free to be constant-green. Five
+  mutations were added; 21 cases, from 8.
+
+One finding pointed at something real one level up from where it aimed: `MeasureDump` defaulted an
+unreadable `--surface` or `--state` back to the first case, so `--state loadng` wrote the ideal
+frame into `servers.loadng.json` and exited 0. It now refuses and exits 3, and the gate asserts that
+refusal on every run rather than trusting it.
+
+**A7 stands, and here is what was argued against it.** The reviewer's position is that an authored
+fidelity layer which cannot run must force exit 3 whatever else is true. Taken literally that makes
+0 unreachable for every surface for as long as `Font` stays opaque, which is a two-state gate
+wearing a three-state gate's clothes — the failure A7 was written to avoid. What the argument did
+change is the shape of the answer: the measurable half of the font question is now its own required
+layer, `type-metrics`, and it arms the exact residue the reviewer named. A text node rendering at
+the wrong size for the role it declares is a finding today. What remains genuinely unread is weight
+and face, and that is what the substitute citation prints on every run.

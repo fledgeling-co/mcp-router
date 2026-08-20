@@ -60,30 +60,41 @@ struct PoolReapingTests {
     @Test("P6 — a per-server idle window overrides the default")
     func perServerIdleWins() async throws {
         let transport = FakeTransport()
-        // Default is effectively never; the server asks for a short window and must get it.
-        let pool = makePool([stdioUpstream("a", idleMs: 25)], transport: transport, idleMs: 600_000)
+        // One pool, one default that is effectively never, and two servers: `own` asks for its own
+        // short window, `inherits` takes the default. The second is what makes the claim testable
+        // as a comparison instead of as a duration.
+        let pool = makePool(
+            [stdioUpstream("own", idleMs: 25), stdioUpstream("inherits")],
+            transport: transport,
+            idleMs: 600_000
+        )
 
-        let lease = try await pool.lease("a")
-        await pool.release(lease)
+        let inherited = try await pool.lease("inherits")
+        await pool.release(inherited)
+        let owned = try await pool.lease("own")
+        await pool.release(owned)
 
-        // Two observations, neither of them a wall-clock window.
+        // The claim is a RELATIONSHIP between two armings, so it is asserted as one: no window is
+        // chosen here and none can be widened later. Both deadlines come off the same clock inside
+        // the same millisecond, so whatever the machine is doing moves both terms together and
+        // drops out of the comparison — which is the difference between an assertion that holds on
+        // an idle box and one that holds anywhere.
         //
-        // The first reads the deadline the arming actually chose, which is what "overrides the
-        // default" means and what a mutation moves. It is a `require` rather than an `expect` so a
-        // pool that armed the 600-second default fails HERE, in a millisecond, instead of hanging
-        // on the await below — a mutation gate that hangs proves nothing.
-        //
-        // The second awaits the timer's own task, so the reap is observed when it happens rather
-        // than at a moment picked in advance. `Task.sleep` is at-least, and the deadline was taken
-        // before the task was created, so the woken timer's own deadline check cannot fail: the
-        // reap is complete when the task returns. The 150ms sleep this replaces passed in
-        // isolation four times running and failed under whole-suite load.
-        let armed = try #require(await pool.armedReap("a"), "release must arm a timer")
-        let window = ContinuousClock.now.duration(to: armed.deadline)
-        try #require(window < .seconds(1), "the server's 25ms window, not the pool's 600s default")
+        // A `require` rather than an `expect` because the await below is only safe once this has
+        // held: a pool that armed the 600-second default would stall the suite for ten minutes and
+        // then agree, and a mutation gate that hangs proves nothing.
+        let armed = try #require(await pool.armedReap("own"), "release must arm a timer")
+        let other = try #require(await pool.armedReap("inherits"), "on both servers")
+        try #require(armed.deadline < other.deadline, "the server's own window, not the default")
 
+        // Then the reap itself, awaited through the timer's own task so it is observed when it
+        // happens rather than sampled at a moment picked in advance. `Task.sleep` is at-least and
+        // the deadline was taken before the task existed, so the woken timer's own deadline check
+        // cannot fail: the reap is complete when the task returns. The 150ms sleep this replaces
+        // passed in isolation four times running and failed under whole-suite load.
         await armed.task.value
-        #expect(await !pool.isLive("a"))
+        #expect(await !pool.isLive("own"))
+        #expect(await pool.isLive("inherits"), "and the default window has not come round")
     }
 
     @Test("P6a — a woken timer from a previous arming cannot reap")

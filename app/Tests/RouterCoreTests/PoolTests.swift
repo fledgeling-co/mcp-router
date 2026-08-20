@@ -123,7 +123,10 @@ struct PoolTests {
     @Test("P4 — an upstream with a call outstanding is never reaped")
     func noReapWhileInFlight() async throws {
         let transport = FakeTransport()
-        let pool = makePool([stdioUpstream("a", idleMs: 30)], transport: transport)
+        // Both windows are short, deliberately. Which of the two the pool picks is P6's claim, not
+        // this one, and setting them equal is what makes the await at the end bounded under any
+        // mutation instead of needing a guard number to protect it.
+        let pool = makePool([stdioUpstream("a", idleMs: 30)], transport: transport, idleMs: 30)
 
         let lease = try await pool.lease("a")
         // A call outstanding arms no timer at all, which is stronger than finding the upstream
@@ -136,10 +139,6 @@ struct PoolTests {
         // second bet on 120ms being longer than whatever the machine is doing.
         await pool.release(lease)
         let armed = try #require(await pool.armedReap("a"), "release must arm the timer")
-        // The window is this server's own 30ms. Checked before awaiting, so a mutation that armed
-        // the pool's 60-second default fails here instead of stalling the suite for a minute and
-        // then passing — a gate that takes a minute to agree has stopped being a gate.
-        try #require(ContinuousClock.now.duration(to: armed.deadline) < .seconds(1))
         await armed.task.value
         #expect(await !pool.isLive("a"), "and it must close once the call has finished")
     }

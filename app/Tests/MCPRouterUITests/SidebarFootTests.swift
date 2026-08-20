@@ -152,21 +152,34 @@
             //
             // So neither modifier, and this test is what keeps `.ignore` from coming back — which
             // it would, because merging a label into its value is the obvious tidy-up.
+            //
+            // Scoped to the counts row, and the first version of this test was red for the right
+            // reason: read across the whole file it caught `ReadoutMessage`'s `.combine`, which is
+            // correct there — a title and its sentence ARE one element. A guard against a modifier
+            // has to name the view it governs, or it convicts every other use of it in the file.
             let source = try ShellTestSupport.repoFile("app/Sources/MCPRouterUI/Shell/Readout.swift")
+            let afterDeclaration = try #require(
+                source.components(separatedBy: "private func counts(").last,
+                "the readout has no counts row at all"
+            )
+            let row = try #require(
+                afterDeclaration.components(separatedBy: "\n        }").first,
+                "the counts row is never closed"
+            )
             #expect(
-                !source.contains("children: .ignore"),
+                !row.contains(".accessibilityElement(children: .ignore)"),
                 "the count row merges again, which hides its label from every AX instrument"
             )
             #expect(
-                !source.contains("children: .combine"),
+                !row.contains(".accessibilityElement(children: .combine)"),
                 "the count row combines again, which breaks A35's anchored on-glass assertion"
             )
-            // The numeral still carries the sentence, which is the element A35 reads. Two
-            // independent facts rather than one multi-line literal, which reformatting moves.
-            #expect(source.contains(".accessibilityLabel("))
-            #expect(
-                source.contains("ReadoutCopy.accessibilityLabel(running: running, declared: declared)")
-            )
+            // The scoping has to actually scope, or both assertions above pass on the wrong text.
+            #expect(row.contains("ReadoutCopy.childProcessesLabel"))
+            #expect(!row.contains("struct ReadoutMessage"))
+            // The numeral still carries the sentence, which is the element A35 reads.
+            #expect(row.contains(".accessibilityLabel("))
+            #expect(row.contains("ReadoutCopy.accessibilityLabel(running: running, declared: declared)"))
             #expect(
                 ReadoutCopy.accessibilityLabel(running: 3, declared: 8)
                     == "3 of 8 declared servers running"

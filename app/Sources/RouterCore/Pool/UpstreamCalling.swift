@@ -148,6 +148,39 @@ actor TappingTransport: Transport {
     }
 }
 
+/// The JSON-RPC error an upstream actually sent.
+///
+/// Read from the response's own bytes rather than from the SDK's decoded `MCPError`, because the
+/// pinned SDK discards the `message` member for code -32603 (DEF-047). Everything here comes off
+/// the wire: no code is inferred, no message is supplied, and a response carrying no `error` member
+/// produces nothing rather than a fabricated one — the SDK's error stands in that case, which is
+/// the honest outcome when there is nothing better to say.
+struct UpstreamRPCError: Swift.Error, CustomStringConvertible, Equatable {
+    let code: Int
+    let message: String
+
+    /// `[code] message`, which is the shape this router already emitted — with the half the SDK
+    /// dropped put back. The server's `message` is used verbatim and never prefixed with the
+    /// canonical name for its code: a server answering -32603 typically sends a message that
+    /// already begins "Internal error", and composing one would render it twice.
+    var description: String { "[\(code)] \(message)" }
+
+    /// The `error` member of a JSON-RPC response, or nil when there is not one to read.
+    ///
+    /// Both `code` and `message` are required. A frame carrying one without the other is not a
+    /// JSON-RPC error object, and treating it as one would put a guess where a reading belongs.
+    static func read(from data: Data) -> UpstreamRPCError? {
+        guard case let .object(members)? = try? JSONParser.parse(data),
+              case let .object(fields)? = members.first(where: { $0.key == JSString("error") })?.value
+        else { return nil }
+        guard case let .number(code)? = fields.first(where: { $0.key == JSString("code") })?.value,
+              case let .string(message)? = fields
+              .first(where: { $0.key == JSString("message") })?.value
+        else { return nil }
+        return UpstreamRPCError(code: Int(code), message: message.string)
+    }
+}
+
 /// Issuing one raw request and reading its answer out of the tap.
 enum RawRequest {
     /// The `result` member of the response, with member order intact.
@@ -164,7 +197,32 @@ enum RawRequest {
         let id = ID.random
         let request = RawMethod<Name>.request(id: id, Self.value(parameters))
         let context = try await client.send(request)
-        _ = try await context.value
+        do {
+            _ = try await context.value
+        } catch {
+            // The pinned SDK loses an upstream's own words on exactly the code that carries them
+            // most often, so the error is re-read off the tap before it is allowed to propagate.
+            // DEF-047, measured against swift-sdk 0.12.1 `Sources/MCP/Base/Error.swift:217-240`:
+            // -32700, -32600, -32601 and -32602 each pass the server's `message` through
+            // `unwrapDetail(message)`, and -32603 alone passes `unwrapDetail(nil)`. A server that
+            // answers -32603 with a message and no `data.detail` therefore has that message
+            // discarded, and `Error.swift:91` renders the bare canonical name. Measured against a
+            // fixture returning `Authentication required`, the reference recorded the sentence and
+            // this router recorded `[-32603] Internal error`.
+            //
+            // The bytes are already here. `TappingTransport.receive` records every frame before it
+            // yields it, so the response the SDK is currently failing to describe was captured
+            // strictly before this throw — the same seam this file already opens for member order,
+            // used for the other thing the SDK discards.
+            //
+            // Read rather than forked: the alternative was pinning a patched swift-sdk, which
+            // takes on a dependency fork for a defect one local read closes. The SDK is still
+            // wrong and that is still worth reporting upstream; this stops the router repeating it.
+            guard let bytes = tap.claim(ResponseTap.key(for: id)),
+                  let reported = UpstreamRPCError.read(from: bytes)
+            else { throw error }
+            throw reported
+        }
 
         guard let bytes = tap.claim(ResponseTap.key(for: id)) else {
             throw PoolError.spawnFailed(

@@ -5,105 +5,135 @@
       "class": "behaviour",
       "text": "One shared HTTP MCP endpoint lists tools from a disk cache and starts an upstream only when a tool on it is called; at rest there are zero child processes.",
       "source": "README.md:7-49",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "subprocess",
+      "provider": "RouterCore/Pool/StdioUpstreamTransport.swift:117 Process() -> /usr/bin/env; RouterCore/Pool/ProcessResident.swift:54 Process() -> the server's own executable. The 'zero child processes at rest' half is a claim about this provider NOT running."
     },
     {
       "id": "REQ-002",
       "class": "behaviour",
       "text": "The tool cache is keyed on each server's command/args/env identity and tools are namespaced <server>__<tool>.",
       "source": "README.md:110-111",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "none",
+      "providerNote": "cache identity and namespacing are computed in memory; the disk cache it is written to is REQ-013's filesystem-write, not a second effect."
     },
     {
       "id": "REQ-003",
       "class": "affordance",
       "text": "The Mac shell navigates eight destinations \u2014 Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Settings \u2014 via the sidebar and \u23181\u20137 / \u2318,.",
       "source": "DESIGN.md:322-334; Destination.swift:43-113",
-      "evidence": "observed"
+      "evidence": "observed",
+      "effect": "none",
+      "providerNote": "sidebar navigation is in-process SwiftUI state."
     },
     {
       "id": "REQ-004",
       "class": "behaviour",
       "text": "The Servers board reflects live server states from ServerStateTracker (running, tripped, never used, held) without inventing a figure the tracker did not observe.",
       "source": "DESIGN.md:29; spec-M3.md; spec-F4.md",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "none",
+      "providerNote": "ServerStateTracker reads state the router already holds; the socket that delivered it is REQ-012's."
     },
     {
       "id": "REQ-005",
       "class": "honesty-guardrail",
       "text": "When the tracker is stale or the router is not running, live counts go absent rather than displaying last-known figures as current.",
       "source": "DESIGN.md:263; spec-F4.md",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "none",
+      "providerNote": "an honesty guardrail about what is displayed."
     },
     {
       "id": "REQ-006",
       "class": "honesty-guardrail",
       "text": "The phone queues; it never installs. No path from the phone or a notification can put a server on the Mac without explicit human review on the Mac.",
       "source": "DESIGN.md:348-351; spec-I3.md; spec-I6.md",
-      "evidence": "observed"
+      "evidence": "observed",
+      "effect": "none",
+      "providerNote": "the guarantee is that NO install path exists from the phone -- a requirement that nothing is performed. Its provider census is deliberately empty, and that emptiness is the requirement holding rather than a vacuity."
     },
     {
       "id": "REQ-007",
       "class": "honesty-guardrail",
       "text": "Numbers the router does not observe are never displayed. There is no fabricated memory saving.",
       "source": "DESIGN.md:292-294",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "none",
+      "providerNote": "an honesty guardrail about what is displayed."
     },
     {
       "id": "REQ-008",
       "class": "affordance",
       "text": "The menu-bar popover shows a readout, attention rows, and an inbox band of oldest-first arrivals; a partial row carries no review affordance.",
       "source": "DESIGN.md; spec-I6.md; spec-M8.md",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "none",
+      "providerNote": "popover rendering is in-process."
     },
     {
       "id": "REQ-009",
       "class": "behaviour",
       "text": "Disposing an inbox item immediately withdraws its notification banner; a multi-item banner carries Review only.",
       "source": "spec-I6.md",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "none",
+      "providerNote": "notification withdrawal is a UNUserNotificationCenter call inside the app."
     },
     {
       "id": "REQ-010",
       "class": "behaviour",
       "text": "The phone exposes Discover, Triage, Queue, Library and Settings; Triage commit is a single-batch undoable enqueue.",
       "source": "spec-I3.md; prototype.html phone nav",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "none",
+      "providerNote": "phone navigation and batch enqueue are in-process."
     },
     {
       "id": "REQ-011",
       "class": "behaviour",
       "text": "RouterCore manages live stdio children and HTTP upstreams with single-flight spawn and idle reaping.",
       "source": "spec-R2.md; README.md:113",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "subprocess",
+      "provider": "RouterCore/Pool/StdioUpstreamTransport.swift:117 and RouterCore/Pool/ProcessResident.swift:54 spawn the stdio children; HTTP upstreams go out through MCPRouterKit/Control/LiveControlAPIClient.swift URLSession. Single-flight and idle reaping are properties OF that spawning, so this requirement is vacuous exactly if the spawn is."
     },
     {
       "id": "REQ-012",
       "class": "behaviour",
       "text": "The control API is loopback-only, authenticated, and refuses to write command/args/env through PATCH.",
       "source": "ORCHESTRATOR.md standing constraints; spec-R3.md; spec-M8.md",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "inbound-socket",
+      "provider": "RouterCore/HTTP/LoopbackHTTPServer.swift NWListener pinned by requiredLocalEndpoint; RouterCore/Auth/CallbackListener.swift NWListener on the fixed OAuth callback port. The client half is MCPRouterCLI/Loopback.swift NWConnection to .ipv4(.loopback)."
     },
     {
       "id": "REQ-013",
       "class": "honesty-guardrail",
       "text": "Mutations to servers.json use atomic staging and a lock so concurrent writers cannot clobber.",
       "source": "spec-R2W.md",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "filesystem-write",
+      "provider": "RouterCore/Config/ConfigMutationLock.swift:132 flock(descriptor, LOCK_EX|LOCK_NB) and :146 LOCK_UN; RouterCore/IO/FileSystem.swift:56 data.write(to:). The atomic-staging half is the write-then-rename in the same file."
     },
     {
       "id": "REQ-014",
       "class": "behaviour",
       "text": "Swift RouterCore matches the TypeScript reference on the parity corpus; the cutover target is 82 of 83 with fixture-registry-search a standing exclusion.",
       "source": "spec-R4.md; ORCHESTRATOR.md CUTOVER TARGET",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "none",
+      "providerNote": "the parity corpus is compared in process against recorded fixtures."
     },
     {
       "id": "REQ-015",
       "class": "affordance",
       "text": "Mac Pairing sheet shows an 8-character Crockford code and QR; the phone can scan or type it.",
       "source": "spec-M6.md; spec-I1.md; prototype.html ?sheet=pair",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "none",
+      "providerNote": "the code and QR are rendered; contacting the other device is REQ-016, which is separately contradicted."
     },
     {
       "id": "REQ-016",
@@ -111,35 +141,45 @@
       "text": "A pairing exchange actually contacts the other device and stores a record only after that contact succeeds.",
       "source": "spec-I5.md; ORCHESTRATOR.md I5 row",
       "evidence": "contradicted",
-      "note": "I5 measured neither side implements a transport; the phone stores a paired-Mac record for a Mac it never contacted."
+      "note": "I5 measured neither side implements a transport; the phone stores a paired-Mac record for a Mac it never contacted.",
+      "effect": "outbound-socket",
+      "providerNote": "NO PROVIDER IN PRODUCTION SOURCE. No symbol under app/Sources opens a connection to a paired device: the pairing exchange is unimplemented (DEF-001). This requirement is already recorded `contradicted` on other grounds, and the empty census is the same finding reached from the effect side -- the guarantee 'stores a record only after contact succeeds' cannot be violated by a build that never contacts anything."
     },
     {
       "id": "REQ-017",
       "class": "affordance",
       "text": "Every data surface ships the nine DESIGN.md \u00a75 states with real copy on the unhappy paths.",
       "source": "DESIGN.md:250-271",
-      "evidence": "unknown"
+      "evidence": "unknown",
+      "effect": "none",
+      "providerNote": "the nine states are a rendering claim."
     },
     {
       "id": "REQ-018",
       "class": "behaviour",
       "text": "Undo is the Mac contract for reversible acts; a named-consequence dialog is reserved for genuinely destructive ones and is never the default button.",
       "source": "DESIGN.md:339-344",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "none",
+      "providerNote": "undo and the dialog are in-process; the write they wrap is REQ-013's."
     },
     {
       "id": "REQ-019",
       "class": "honesty-guardrail",
       "text": "A refused write is shown as the server's refusal. Success affordances are not shown for work that did not happen.",
       "source": "DESIGN.md:290; sweeps H; I1 Keychain 'Paired.' defect",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "none",
+      "providerNote": "an honesty guardrail about what is displayed after a refusal."
     },
     {
       "id": "REQ-020",
       "class": "deferred",
       "text": "install.sh flips to the Swift binary and retires src/*.ts once parity is 82 of 83 and the owner decides.",
       "source": "ORCHESTRATOR.md R4-C",
-      "evidence": "reported"
+      "evidence": "reported",
+      "effect": "none",
+      "providerNote": "deferred; install.sh is not built."
     }
   ],
   "surface": [
@@ -222,7 +262,8 @@
       "route": "app://mac/pairing",
       "lane": "macos-glass",
       "status": "ready",
-      "shotNote": "no picture is filed under this surface. The previous run filed a photograph of the Inbox board here; the pairing control is not pressable from a background process, so the sheet was never opened and never photographed."
+      "shotNote": "CORRECTED 20 Aug 2026. This note used to read 'no picture is filed under this surface ... the sheet was never opened and never photographed', which was true when written and false by the time it was read: DEF-036 closed and the sheet was opened and photographed at 2026-08-20T11:33:01Z. The capture's windowTitleReadback is 'Inbox' because the sheet is a modal over the Inbox window, so the window keeps its title while the sheet is up - a readback that looks like the mis-file DEF-006 records and is not one. Judged 20 Aug 2026: fail, DEF-001 on glass.",
+      "shot": "evidence/shots/SURF-010.build.png"
     },
     {
       "id": "SURF-011",
@@ -550,7 +591,7 @@
       "req": "REQ-014",
       "surface": "SURF-017",
       "title": "Parity gate exits 1 at 80/83, two real-work rows short of the cutover",
-      "text": "The gate exits 1 at 80 of 83 rows proven, 3 blocked, 0 DIVERGED (run 2026-08-19T05:40:27Z, evidence/runs/parity-gate-2026-08-19-rollback.log). install-rollback R4-C was cleared this session and is now ok. The 3 that remain: fixture-registry-search is a STANDING EXCLUSION nobody is working on; control-auth-post-http needs D-p1-a; install-launchd-watch is held blocked deliberately, because its `reran` term reads yes on 2 of 6 decoy trials where no stimulus can reach the watched path, so agreement on it is not evidence of parity. Two real-work rows therefore stood between 80 and the owner's 82/83 cutover target. Not a product UI defect. **CLOSED 20 Aug 2026.** Both closed the same day and both were merged into main: `install-launchd-watch` by ai/p8, which replaced the `reran` term with one a lane was shown able to fail on, and `control-auth-post-http` by ai/p7, which built a real OAuth client and agrees with the reference across the discovery cascade, the registration bytes, the PKCE parameters, the token exchange, the callback page, the credential file and the re-authorization branch — 21 checks, examined=21 failures=0. `parity-gate.sh` on main at e5755d0 then read 82 of 83 proven, 0 DIVERGED, 1 blocked, and that one is `fixture-registry-search`, the standing exclusion REQ-014 names. The gate still exits 1, because it exits 1 while any row is blocked and it says so: `82 proven is at or past the target of 82. That is a count, not a licence.` Flipping the installer is the owner's call on R4-C's evidence and is not this defect. Measured in CASE-0036; an unexplained one-off failure of the OAuth lane in an earlier run the same day is recorded separately as DEF-033.",
+      "text": "The gate exits 1 at 80 of 83 rows proven, 3 blocked, 0 DIVERGED (run 2026-08-19T05:40:27Z, evidence/runs/parity-gate-2026-08-19-rollback.log). install-rollback R4-C was cleared this session and is now ok. The 3 that remain: fixture-registry-search is a STANDING EXCLUSION nobody is working on; control-auth-post-http needs D-p1-a; install-launchd-watch is held blocked deliberately, because its `reran` term reads yes on 2 of 6 decoy trials where no stimulus can reach the watched path, so agreement on it is not evidence of parity. Two real-work rows therefore stood between 80 and the owner's 82/83 cutover target. Not a product UI defect. **CLOSED 20 Aug 2026.** Both closed the same day and both were merged into main: `install-launchd-watch` by ai/p8, which replaced the `reran` term with one a lane was shown able to fail on, and `control-auth-post-http` by ai/p7, which built a real OAuth client and agrees with the reference across the discovery cascade, the registration bytes, the PKCE parameters, the token exchange, the callback page, the credential file and the re-authorization branch \u2014 21 checks, examined=21 failures=0. `parity-gate.sh` on main at e5755d0 then read 82 of 83 proven, 0 DIVERGED, 1 blocked, and that one is `fixture-registry-search`, the standing exclusion REQ-014 names. The gate still exits 1, because it exits 1 while any row is blocked and it says so: `82 proven is at or past the target of 82. That is a count, not a licence.` Flipping the installer is the owner's call on R4-C's evidence and is not this defect. Measured in CASE-0036; an unexplained one-off failure of the OAuth lane in an earlier run the same day is recorded separately as DEF-033.",
       "source": "ORCHESTRATOR.md CUTOVER TARGET (bec9d18); evidence/runs/parity-gate-2026-08-19-rollback.log",
       "status": "closed"
     },
@@ -705,7 +746,7 @@
     {
       "id": "DEF-025",
       "title": "the paired-Mac settings action sits inside its notice card where the design draws it below",
-      "status": "open",
+      "status": "fixed-in-campaign",
       "detail": "`i1-phone-pairing.html` \u00a7L draws the recovery action as a `<button class=\"cta\">` sibling *after* the `wants` card, on all five Settings states that carry one. `PairedMacSettingsView` renders it as the last child inside `PhoneMessageBlock`'s own `VStack`, so the control shares the card's fill and inset. Width is corrected under DEF-024; placement is not, because moving it out changes the block's contract for all nine states in DESIGN.md \u00a75 and is a design decision rather than a defect fix. Recorded against SURF-018."
     },
     {
@@ -723,7 +764,7 @@
     {
       "id": "DEF-028",
       "title": "the never-paired settings empty state drops the design's illustration and centring",
-      "status": "open",
+      "status": "fixed-in-campaign",
       "detail": "i1-phone-pairing.html \u00a7B draws the never-paired state as `.pempty` \u2014 centred, with a 34px Mac glyph above the headline. `PairedMacSettingsView` renders it through `PhoneMessageBlock`, which is left-aligned and draws no glyph. The copy and the action are both correct and the narrowing is now stated once (DEF-026); what is missing is the illustration and the centring that make it read as an empty state rather than as a notice. Recorded against SURF-018 rather than fixed, because the same block draws eight other Settings states that the design does not centre."
     },
     {
@@ -746,7 +787,7 @@
       "title": "the Checks board is cross-subject where the design's is per-subject, so two of its actions have nowhere to go",
       "surface": "SURF-006",
       "severity": "medium",
-      "status": "open",
+      "status": "fixed-in-campaign",
       "text": "Found 20 Aug 2026 by the vocabulary differential, which reported `Edit cases\u2026` and `Run again` in-design-not-build on this board, and recorded here rather than fixed because bolting those two buttons on would be the wrong repair. The design's pane at `prototype.html:885-891` is **one subject's** eval suite: it heads `pr-summariser \u00b7 8 cases`, subtitles `Ran 2 minutes ago against 0.4.1 in a scratch checkout`, and lists eight named cases with a verdict each. The built board is **cross-subject**: every server and skill, one row apiece, a reachability verdict per row, a filter, and `CheckCopy.runAllLabel` = `Re-check all\u2026`. Those are two different surfaces wearing one route id, and the actions follow the framing \u2014 `Run again` re-runs the one suite on screen, which is what `Re-check all\u2026` already does across all of them, so drawing both would be two names for one act (the failure DEF-012 records). `Edit cases\u2026` opens an editor for a collection the app does not model: there is no eval case anywhere in `EvalsBoardModel`, so the button would offer a reading of something that does not exist \u2014 the same reason `Read first\u2026` is a stated gap in DEF-011 rather than a drawn control. The divergence itself is the finding, and it is a scope question rather than a defect fix: the design specifies a per-subject eval board with named cases and an editor, and the app ships a cross-subject reachability board. Which one this product wants is the owner's call, and it is written up as a brief rather than decided here. Not guarded by an assertion, deliberately: there is nothing to assert until that call is made, and a test pinning today's cross-subject board would make the divergence harder to close rather than easier."
     },
     {
@@ -762,7 +803,151 @@
       "title": "the OAuth parity lane failed once inside a full gate and has not reproduced",
       "status": "open",
       "detail": "parity-gate.sh, 20 Aug 2026 on main at e5755d0. The suite lane's citation run of scripts/acceptance/parity-oauth.sh exited non-zero and recorded `control-auth-post-http fail \u2014 the Swift router never reached the token endpoint`. The dedicated oauth lane, later in the same gate, ran the same script and recorded ok over 21 checks. The gate reported the row DIVERGED and printed 81 of 83.",
-      "text": "Observed once, in one of two whole-gate runs, and not reproduced by: a standalone run of `parity-oauth.sh`, a second standalone run of it immediately afterwards (which exercised the same port-reuse wait, 9s and 12s), a standalone run of `parity-suite.sh`, or a second whole `parity-gate.sh` on the same tree. The second gate reported 82 of 83, 0 DIVERGED, and its suite lane reported the citation clean.\n\n**What it is not.** The lane distinguishes an environment failure from a finding on purpose, and this was the finding branch: `record control-auth-post-http fail` at `parity-oauth.sh:329`, reached only when the reference side completed an authorization and the Swift side did not. An unbindable port exits 2 through `wait_for_ports_bindable` and records `blocked`, not `fail`, so the port-reuse race is ruled out by the code path that fired.\n\n**Why it went undiagnosed, and what changed.** `parity-suite.sh`'s `run_script` sent both streams to `/dev/null` and printed `the gate reported findings` \u2014 a verdict with no evidence under it. The bytes naming which guard failed had already been thrown away by the time anyone read the gate's summary. `run_script` now keeps the log, prints its last 20 lines inline and names the file it kept, armed 20 Aug 2026 against a deliberately failing citation. A recurrence will say which of the 21 checks went red.\n\n**Why the duplicate run stays.** `control-auth-post-http` is proven on the wire by its own lane and also cites the script, so the gate runs it twice. That is now documented in `parity-suite.sh` rather than deduplicated, because the duplicate is what caught this: a single run would have reported a clean 82 of 83 and nobody would have known. Both record under the same row id and a `fail` wins.\n\n**Burn-in, 20 Aug 2026: 8 standalone runs of the lane, all green, 21 checks each.** Three immediately after the failure and five consecutively afterwards, plus one clean whole gate. One failure in roughly ten whole-lane executions, cause unrecoverable because that invocation's stdout was discarded. A green burn-in does not close this: the original failure is uninspectable, so the runs measure only that the lane is not reliably broken. What would close it is a captured reproduction, or a stated gate met — several consecutive whole gates including the cold port-reuse path — decided as its own question rather than inferred from a streak, which is the `install-launchd-watch` mistake this repository already paid for once (G1: name a fix per term and fix a bound IN ADVANCE, never a green streak). Not a UI defect and not a blocker on the cutover count \u2014 CASE-0036's measurement is the second run \u2014 but it is an unexplained non-determinism in the router or the lane, and it is recorded rather than absorbed."
+      "text": "Observed once, in one of two whole-gate runs, and not reproduced by: a standalone run of `parity-oauth.sh`, a second standalone run of it immediately afterwards (which exercised the same port-reuse wait, 9s and 12s), a standalone run of `parity-suite.sh`, or a second whole `parity-gate.sh` on the same tree. The second gate reported 82 of 83, 0 DIVERGED, and its suite lane reported the citation clean.\n\n**What it is not.** The lane distinguishes an environment failure from a finding on purpose, and this was the finding branch: `record control-auth-post-http fail` at `parity-oauth.sh:329`, reached only when the reference side completed an authorization and the Swift side did not. An unbindable port exits 2 through `wait_for_ports_bindable` and records `blocked`, not `fail`, so the port-reuse race is ruled out by the code path that fired.\n\n**Why it went undiagnosed, and what changed.** `parity-suite.sh`'s `run_script` sent both streams to `/dev/null` and printed `the gate reported findings` \u2014 a verdict with no evidence under it. The bytes naming which guard failed had already been thrown away by the time anyone read the gate's summary. `run_script` now keeps the log, prints its last 20 lines inline and names the file it kept, armed 20 Aug 2026 against a deliberately failing citation. A recurrence will say which of the 21 checks went red.\n\n**Why the duplicate run stays.** `control-auth-post-http` is proven on the wire by its own lane and also cites the script, so the gate runs it twice. That is now documented in `parity-suite.sh` rather than deduplicated, because the duplicate is what caught this: a single run would have reported a clean 82 of 83 and nobody would have known. Both record under the same row id and a `fail` wins.\n\n**Burn-in, 20 Aug 2026: 8 standalone runs of the lane, all green, 21 checks each.** Three immediately after the failure and five consecutively afterwards, plus one clean whole gate. One failure in roughly ten whole-lane executions, cause unrecoverable because that invocation's stdout was discarded. A green burn-in does not close this: the original failure is uninspectable, so the runs measure only that the lane is not reliably broken. What would close it is a captured reproduction, or a stated gate met \u2014 several consecutive whole gates including the cold port-reuse path \u2014 decided as its own question rather than inferred from a streak, which is the `install-launchd-watch` mistake this repository already paid for once (G1: name a fix per term and fix a bound IN ADVANCE, never a green streak). Not a UI defect and not a blocker on the cutover count \u2014 CASE-0036's measurement is the second run \u2014 but it is an unexplained non-determinism in the router or the lane, and it is recorded rather than absorbed."
+    },
+    {
+      "id": "DEF-034",
+      "req": "REQ-019",
+      "surface": "SURF-007",
+      "title": "the Cleanup board's skill half could not be drawn by any build",
+      "text": "CleanupBoardRow carries three treatments for a skill row \u2014 the `Read first\u2026` substitution when SkillChecks.originUnchanged fails, the skill-kind `Remove\u2026` drawn disabled because the router removes servers and never files on disk, and the candidacy reason \u2014 and none of them had a rendered path in any configuration of the product. A skill is proposed for cleanup only when every readable client lacks it, and all six skills in SkillFixtures.populated are installed somewhere, so the Debug Cleanup board drew three servers and zero skills. Release reaches the branch only if a real user happens to hold an orphaned skill. CASE-0136 asserted the branch exists by reading CleanupBoardRow and said in its own note why it stopped there; what nobody could say was that a build had ever drawn it. Fixed in-campaign by adding a Debug-only `cleanupSkills` scenario and two SkillFixtures.uninstalled rows, kept separate from `populated` because SURF-004's on-glass predicate asserts the count populated publishes. No view code was touched and no assertion was weakened. Now photographed by CASE-0138/CASE-0139 and guarded in the harness by CASE-0144.",
+      "source": "app/Sources/MCPRouterUI/Boards/CleanupBoardModel.swift:279-283; app/Sources/MCPRouterKit/Control/SkillFixtures.swift; evidence/shots/SURF-007.cleanup-skills.png sha 94dd9d06f87d",
+      "status": "fixed-in-campaign",
+      "stagedAs": "Carried the local id DEF-007 in defects.in.json from the sitting that found it until 20 Aug 2026, when that file was found to be numbering from its own length while inventory.json held the registry. Renumbered, not re-found. See DEF-046."
+    },
+    {
+      "id": "DEF-035",
+      "req": "REQ-014",
+      "surface": "SURF-001",
+      "title": "an incremental Swift build after adding an enum case reports impossible test failures",
+      "text": "Adding a 14th case to `Scenario` made `make test` fail with 31 issues, two of which cannot be true of the source: `Expectation failed: (\u2026 \u2192 .live) == (.live \u2192 .fixture(\u2026cleanupSkills))` in ShellClientFactoryTests and TriageSourceGuardTests, both asserting a Release-posture guard that returns .live unconditionally. `git stash` of the two changed source files \u2192 19 tests pass; unstash \u2192 the same failures return, which reads as a real regression. It is not. `Choice.live` is encoded in the spare inhabitants of `Scenario`'s tag, so a new Scenario case shifts that encoding, and stale MCPRouterUI object files compiled against the old layout compare a value that no longer means what they think. `rm -rf app/.build` then rebuild: 5/5 pass, then 1512/1512. The hazard for this campaign is the mirror case \u2014 a stale build can as easily produce a green \u2014 so any test evidence taken across an enum change is taken from a clean build. MITIGATED 2026-08-20: `app/Scripts/enum-layout-stamp.py` hashes the ordered case list of every enum in the package (212 of them) and removes `app/.build` when that hash moves; `make test` now depends on it. The stamp is the case lists rather than the source, so it holds still for an ordinary edit and for a `switch` over the enum \u2014 the false positive a naive grep for `^\\s*case` would hit \u2014 and moves for an added or renamed case. Armed on all four: comment SAME, switch statement SAME, added Scenario case MOVED, renamed Scenario case MOVED, restore back to baseline. The SwiftPM behaviour itself is unchanged and still upstream; what is fixed is this repo's exposure to it.",
+      "source": "app/Sources/MCPRouterKit/Control/Scenario.swift; evidence/runs/make-test-3.log (clean build, 1512 tests in 188 suites); app/Scripts/enum-layout-stamp.py; Makefile target enum-layout-stamp; evidence/runs/make-test-4.log",
+      "status": "mitigated-in-campaign",
+      "stagedAs": "Carried the local id DEF-008 in defects.in.json from the sitting that found it until 20 Aug 2026, when that file was found to be numbering from its own length while inventory.json held the registry. Renumbered, not re-found. See DEF-046."
+    },
+    {
+      "id": "DEF-036",
+      "req": "REQ-015",
+      "surface": "SURF-010",
+      "title": "the capture script recorded the pairing sheet unreachable for its own reason",
+      "text": "capture-mac-glass.sh pressed `Pairing\u2026` while the app sat on whatever destination it had launched into \u2014 Servers \u2014 and the pairing control lives on Inbox and Settings. Three consecutive runs therefore logged `no pairing control was pressable in the background` and left SURF-010 with no capture, which reads exactly like the app refusing to open the sheet while backgrounded. It was the script looking on the wrong board. Fixed by selecting a board that carries the control before pressing \u2014 Inbox first, falling back to Settings. Inbox took it on the first attempt, which is why evidence/ax/SURF-010.title.txt reads `Inbox` rather than `Settings`. The general shape is the one DEF-006 also has: an instrument failure that is indistinguishable, in the log, from the product failing.",
+      "source": "planning/test-campaign/bin/capture-mac-glass.sh; evidence/shots/SURF-010.build.png; evidence/ax/SURF-010.title.txt reads `Inbox`",
+      "status": "fixed-in-campaign",
+      "stagedAs": "Carried the local id DEF-009 in defects.in.json from the sitting that found it until 20 Aug 2026, when that file was found to be numbering from its own length while inventory.json held the registry. Renumbered, not re-found. See DEF-046."
+    },
+    {
+      "id": "DEF-037",
+      "req": "REQ-017",
+      "surface": "SURF-012",
+      "title": "the witness pair map under-reported what had been photographed",
+      "text": "`evidence/shots/pairs.json` is what `witness-worklist.py` reads, and it had drifted from `inventory.json`. It listed 17 pairs against a 20-surface registry, so SURF-018, SURF-019 and SURF-020 were never offered for judging at all despite having both a mock reference and an attributed build capture. Four more pairs named a build half that was absent or wrong: SURF-010's capture existed and was cited by two cases while the pair said none, SURF-012/013/014 pointed at nothing while the iOS lane's captures sat in `evidence/shots/ios/`, and SURF-001 pointed at `SURF-001.build.png`, which is byte-identical to `SURF-002.build.png` (sha f221cce5) because the shell is photographed from the Servers board \u2014 the case had already been moved to the distinct sidebar crop `SURF-001.shell.png` and the pair map had not. Four iOS pairs also carried a `conditionsNote` describing a macOS `screencapture`, and a `reason` of `build half uncaptured` beside a build half that existed. Repointed by hand from `inventory.json` rather than by `attach-shots.py --apply`, which stem-matches and would re-create the DEF-006 mis-attributions. The comparable count is now 16 of 20 pairs with both halves, 3 with no design of record by construction, and SURF-009 with no build half for the reason its cases already carry.",
+      "source": "planning/test-campaign/evidence/shots/pairs.json; planning/test-campaign/inventory.json; witness-worklist.py output before and after",
+      "status": "fixed-in-campaign",
+      "stagedAs": "Carried the local id DEF-010 in defects.in.json from the sitting that found it until 20 Aug 2026, when that file was found to be numbering from its own length while inventory.json held the registry. Renumbered, not re-found. See DEF-046."
+    },
+    {
+      "id": "DEF-038",
+      "req": "REQ-017",
+      "surface": "SURF-007",
+      "title": "the rendered-quality gate has never been able to run, and nothing said why",
+      "text": "The campaign names design-review and be-my-witness as gates and has never run either, and the reason was never measured \u2014 it read as a skip. It is not. be-my-witness 0.2.0's deterministic prescan over all 16 pairs that hold both halves reports isEvidence 16/16, settled 16/16, framingComparable 0/16, proceed 0/16. Not a dead predicate: the scale ratios differ per lane (0.466x on the SURF-001 sidebar crop, 1.64x on the Mac boards, 0.942x on the phone) rather than returning a constant. Every reference was rasterised at a 1280x720 dpr-1 viewport, inside which prototype.html draws a fixed artboard rather than filling the frame, so rendering larger pads rather than enlarges. Re-rendering the reference does not fix it either: the design's Mac window is #win at 1156x680, aspect 1.700, and the build's is 980x620, aspect 1.581. The build half crops exactly \u2014 scale=(2096-1376)/(980-620)=2.0, margin=(2096-980*2)/2=68, content rect (68,68,1960,1240), precisely 2x the AX frame \u2014 but no crop reconciles two different window shapes. What would make them comparable is re-capturing the app at the design's window size, which means driving the app again and photographing a window shape the product does not use. Left unresolved deliberately: the structural and lexical differential in evidence/differential.md is the comparison that is valid here, and it ran.",
+      "source": "planning/test-campaign/evidence/runs/prescan.json; be-my-witness 0.2.0 scripts/prescan.py; evidence/differential.md",
+      "status": "fixed-in-campaign",
+      "detail": "\n\nCLOSED 2026-08-20. The cause was two independent framing errors, both invisible because the gate could not run to report them. The design references came from `obscura fetch --screenshot`, which captures at a fixed 1280x720 dpr1 viewport with no viewport flag, so every reference was clipped rather than merely small - the bottom row of one carried 578 non-background pixels of 640 sampled. And the build captures were 980x620 against the design's 1156x680 window, aspect 1.581 against 1.700, which no crop reconciles. Fixed by rasterising the design through CDP with `Emulation.setDeviceMetricsOverride` at 1280x900 dpr2 (readback asserted `[1280, 900, 2]` before any capture), re-photographing the eight Mac boards at the design's own 1156x680 with a setframe readback guard, and cropping both halves to the window's own content box. prescan goes from framingComparable 0/16 to 8/8, aspectRatioOfRatios 1.0 and scaleRatio 1.0 on every pair (evidence/runs/prescan-fidelity.json). Eight verdicts written: 2 pass, 5 fail, 1 unoracled.",
+      "stagedAs": "Carried the local id DEF-011 in defects.in.json from the sitting that found it until 20 Aug 2026, when that file was found to be numbering from its own length while inventory.json held the registry. Renumbered, not re-found. See DEF-046."
+    },
+    {
+      "id": "DEF-039",
+      "status": "fixed-in-campaign",
+      "title": "two capture lanes wrote one manifest and the last one deleted the other's provenance",
+      "detail": "`evidence/shots/captures.json` is the only manifest `capture-lineage.py --gate` reads, and two lanes write it: `capture-mac-glass.sh`, and `scripts/acceptance/name-glass-attachments.py`, which merges the iOS lane's rows up from `evidence/shots/ios/captures.json`. The Mac script wrote `json.dumps(rows)` \u2014 its own rows, whole file \u2014 so whichever lane captured last erased the other's lineage without saying anything. Measured 2026-08-20 on v0.9.1's new lineage plane: the parent held 16 Mac rows and none of the 9 iOS ones, and the gate reported 6 iOS captures UNSOURCED \u2014 'the only thing binding this picture to SURF-012 is its filename', which is the correct verdict on a manifest that had been overwritten. The pictures were always right and their provenance was always recorded; it was recorded into a file that was then replaced. Fixed by merging on `path` in both writers, and the 9 rows were restored from the lane's own capture-time record rather than reconstructed.",
+      "found-by": "test-campaign 0.9.1 capture-lineage.py --gate",
+      "stagedAs": "Carried the local id DEF-012 in defects.in.json from the sitting that found it until 20 Aug 2026, when that file was found to be numbering from its own length while inventory.json held the registry. Renumbered, not re-found. See DEF-046."
+    },
+    {
+      "id": "DEF-040",
+      "status": "open-instrument",
+      "title": "the blind-test pass flags three tests that do read after mutating, because the mutator's name is the observable's name",
+      "detail": "`vacuity-check.py`'s blind pass reports `examined=1820 mutating=3 re-read-after=0 blind=3` over this test tree. All three read after the mutation: `restartIsIssuedBeforeTheStagingWrite` reads `WatchWorld.serverNames`, the log, `kicks.issued` and `WatchState.load`; `restartIsOwedBeforeTheWriteLands` reads `WatchState.load` inside the lock and `WatchWorld.serverNames` on both sides of the rename; `restartRechecksTheCamera` reads `model.entry.characters`. The heuristic looks for a read AFTER the last occurrence of a mutating verb, and in this product the verb `restart` is also the name of the thing being observed \u2014 `restartPending`, `restarted scratch-label` \u2014 so the last `restart` in the file sits inside the final assertion and nothing is textually after it. Recorded rather than acted on: the tests are correct as written, and rewording an assertion to satisfy a text heuristic would make the suite worse. The pass is still worth running; 3 of 1820 is a reviewable rate, and it is the check that would have caught 26 of 32 on the campaign it was built from.",
+      "found-by": "test-campaign 0.9.1 vacuity-check.py blind pass",
+      "stagedAs": "Carried the local id DEF-013 in defects.in.json from the sitting that found it until 20 Aug 2026, when that file was found to be numbering from its own length while inventory.json held the registry. Renumbered, not re-found. See DEF-046."
+    },
+    {
+      "id": "DEF-041",
+      "status": "open-measured",
+      "title": "REQ-016's declared outbound-socket effect has no provider in production source",
+      "detail": "The effect census over `app/Sources` with the test targets excluded finds no symbol that opens a connection to a paired device. REQ-016 \u2014 'a pairing exchange actually contacts the other device and stores a record only after that contact succeeds' \u2014 therefore holds vacuously: the guarantee cannot be violated by a build that never contacts anything. This is DEF-001 (pairing transport unimplemented) reached from the effect side rather than from a failing assertion, and the two agree. Kept as its own row because the remedies differ: DEF-001 wants the transport built, and this row is the record that until it is, no test result about REQ-016 means what it appears to mean.",
+      "found-by": "test-campaign 0.9.1 vacuity-check.py uncensused pass",
+      "stagedAs": "Carried the local id DEF-014 in defects.in.json from the sitting that found it until 20 Aug 2026, when that file was found to be numbering from its own length while inventory.json held the registry. Renumbered, not re-found. See DEF-046."
+    },
+    {
+      "id": "DEF-042",
+      "status": "open-owner",
+      "title": "the design of record still draws a model-graded evaluation feature the product deliberately does not have",
+      "detail": "Four boards diverge from `design/mocks/prototype.html` in one direction and for one reason. Skills: the design has `runs`, `last run` and `eval` columns with graded pills; the build drops all three and prints 'A skill is loaded into an agent's context by the client and never reaches the router, so the router does not see it run.' Discover: the design has install velocity and eval pills; the build prints 'No trend or velocity figure is shown. Measuring one needs a history of these indexes over time, which the router does not keep yet.' Checks: the design shows a graded eval run with per-case verdicts and a failed exchange; the build shows checks the router performed itself and states 'No model-graded evaluation exists in this product.' Servers: every design row carries a trailing evaluation pill; no build row does.\n\nThe build is the correct half. ORCHESTRATOR.md's rule is that no number is displayed that the router does not observe, and the build obeys it on all four boards while explaining itself on three. The design of record predates the rule. Filed against the design rather than the build, and left open because which artifact gets changed - re-cut the mock, or annotate it as superseded - is the owner's call, not the campaign's.",
+      "found-by": "design-size fidelity witness pass, 8 framing-comparable pairs",
+      "stagedAs": "Carried the local id DEF-015 in defects.in.json from the sitting that found it until 20 Aug 2026, when that file was found to be numbering from its own length while inventory.json held the registry. Renumbered, not re-found. See DEF-046."
+    },
+    {
+      "id": "DEF-043",
+      "status": "open-measured",
+      "title": "the sidebar foot's loopback readout is absent from the build on every board, and the child-process card lost its label",
+      "detail": "`design/mocks/prototype.html:681` emits `<div class=\"sfoot\"><span class=\"dot live\"></span>127.0.0.1:8879</div>` from inside the shared sidebar wrapper, so the design paints a live-dot loopback readout at the foot of the sidebar on every board. The build paints none: across 9 accessibility dumps taken at 1156x680, the only two `127.0.0.1` hits are the Settings board's own Endpoint row, at window-relative x=942 in the content area rather than the sidebar.\n\nSeparately, `prototype.html:699-700` labels the sidebar-foot card 'Child processes' over a large numeral and 'of N declared'. The build draws the count - as an unlabelled, uncarded row reading 'Running   1 of 4' - and the string 'Child processes' appears in 0 of 9 dumps. The number survives; the card and its label do not.\n\nRecorded as measured rather than as a build defect, because the loopback address is exactly the kind of number the honesty rule governs and its removal may be deliberate. What is not deliberate either way is that nothing in the campaign had checked.",
+      "found-by": "design-size fidelity witness pass + 9 accessibility dumps",
+      "stagedAs": "Carried the local id DEF-016 in defects.in.json from the sitting that found it until 20 Aug 2026, when that file was found to be numbering from its own length while inventory.json held the registry. Renumbered, not re-found. See DEF-046."
+    },
+    {
+      "id": "DEF-044",
+      "status": "fixed-in-campaign",
+      "title": "a capture width narrower than the design's made real controls invisible, and a witness verdict recorded them as missing",
+      "detail": "The SURF-007 verdict of this campaign read 'the built board's rows carry no trailing controls at all' and 'the build also truncates the column that exists to explain'. Photographed at the design's own 1156pt, every Cleanup row carries `Inspect` and `Remove...`. The controls were outside the 980pt capture the verdict was written against.\n\nThis is the failure mode the campaign already knows in a different costume: a picture that claims a subject it cannot support. The subject here was right and the frame was wrong, which is harder to see, because nothing about a correctly-named capture of a too-narrow window looks incorrect. The old verdict is kept and marked superseded rather than deleted. Fixed by photographing at the design's window size with a setframe readback guard that refuses to write a capture the window clamped.",
+      "found-by": "design-size fidelity witness pass, overturning this campaign's own earlier verdict",
+      "stagedAs": "Carried the local id DEF-017 in defects.in.json from the sitting that found it until 20 Aug 2026, when that file was found to be numbering from its own length while inventory.json held the registry. Renumbered, not re-found. See DEF-046."
+    },
+    {
+      "id": "DEF-045",
+      "status": "fixed-in-campaign",
+      "title": "the capture script dumped the accessibility tree before the step that changed the board, so every dump was labelled with the next board's name",
+      "detail": "`bin/capture-mac-design-size.sh` ran `axkit dump` in the caller's loop, and the loop called `capture()` - which performs the sidebar select - afterwards. Every dump therefore described the board that was up before the one it was named for: nine files, each carrying the previous board's tree under the next board's filename. Both the capture and the dump were real; only the pairing was wrong.\n\nInvisible until a `127.0.0.1` hit appeared in a dump filed as SURF-001 and could not be attributed to the board the filename named. Fixed by moving the dump inside `capture()`, after the select, and proved by a readback printing each dump's own `AXWindow` title against its filename - nine of nine now agree.",
+      "found-by": "attribution check while reading the dumps for the fidelity verdicts",
+      "stagedAs": "Carried the local id DEF-018 in defects.in.json from the sitting that found it until 20 Aug 2026, when that file was found to be numbering from its own length while inventory.json held the registry. Renumbered, not re-found. See DEF-046."
+    },
+    {
+      "id": "DEF-046",
+      "status": "fixed-in-campaign",
+      "title": "the campaign's own defect ids named two different defects each, because the staging file numbered from its own length",
+      "detail": "`campaign.py` keeps defects in `inventory.json` under a `defect` list, and `add` assigns the next id from that list. `defects.in.json` is an input file. Twelve defects found in the sittings of 19 and 20 Aug were written straight into the input file with hand-written ids taken from that file's own length, which had stopped tracking the registry at DEF-006. The result: DEF-007 through DEF-018 each named one defect in the registry and a different one in the staging file, and neither file said so.\n\nVisible symptom, and the only reason it was caught: `RUN-2026-08-20.md` contains 'DEF-011 is the finding worth acting on ... Cleanup's' at line 96 and 'DEF-011 - the rendered-quality gate has never been able to run' at line 481, in one document, meaning two unrelated things. This is `capture-lineage`'s failure mode moved from pictures to identifiers: a name binding to two subjects with nothing checking the binding.\n\nFixed by renumbering the twelve staged defects to DEF-034..DEF-045, merging them into the registry, and rewriting the fifteen references that meant the staged numbering. Every renumbered record carries `stagedAs` naming its old local id, so a reader meeting the old number in an untouched artifact can resolve it. The remaining 74 references were checked one at a time and meant the registry defect they already named.",
+      "found-by": "id-collision check while filing the design-size fidelity findings"
+    },
+    {
+      "id": "DEF-047",
+      "status": "open",
+      "severity": "high",
+      "title": "the Swift MCP SDK discards an upstream's error message for code -32603, so the router reports less than the reference does",
+      "detail": "Found 20 Aug 2026 while building R8's gate against both routers. Against a fixture returning `-32603` with the message `Internal error: Authentication required`, the reference records `MCP error -32603: Internal error: Authentication required` and the Swift router records `[-32603] Internal error`. The upstream's own message is gone. CAUSE, cited exactly: modelcontextprotocol/swift-sdk 0.12.1, `Sources/MCP/Base/Error.swift:217-240`. The decoder reads the server's `message`, then maps the code \u2014 `-32700`, `-32600`, `-32601` and `-32602` each pass `unwrapDetail(message)`, and `-32603` alone passes `unwrapDetail(nil)`. `unwrapDetail(fallback)` returns `data.detail` when present and the fallback otherwise, so a server that answers -32603 with a message and no `data.detail` has its message discarded, and `Error.swift:91` renders `\"Internal error\" + (detail.map { \": \\($0)\" } ?? \"\")` as the bare canonical name. -32603 is the code servers use for an arbitrary application error, so it is the one that loses the most. TWO consequences: for the whole class of -32603 upstream errors the Swift router tells the user strictly less than the reference does; and R8's Swift half cannot detect a credential refusal at all, because there is no text left to match. This is a coverage gap in the parity suite as much as a defect in the SDK \u2014 no parity scenario had ever exercised a JSON-RPC error carrying a detailed message, which is why 82 proven rows never saw it. Remedies, none taken: report upstream and take a fixed release; pin a patched fork; or read the JSON-RPC error before the SDK types it, which needs a seam below the client."
+    },
+    {
+      "id": "DEF-048",
+      "status": "open",
+      "severity": "low",
+      "title": "test-campaign 0.9.1's blind-mutation pass is dominated by its own verb configuration on this codebase, in both directions",
+      "detail": "DETECTOR DEFECT, recorded so its numbers are not published as product findings. `vacuity-check.py`'s `blind` pass asks whether any READER appears after the last MUTATING call in a test body, both matched by name prefix. Run with the shipped defaults it reports `examined=1820 mutating=3 blind=3` \u2014 and all three are false: DEFAULT_READERS is snake_case (`load_`, `get_`, `read_`, `list_`) while this is a camelCase Swift codebase, so NO Swift reader can ever match, and the three `mutating` hits matched the token `restart` in their own function names. Both flagged WatchRestartTests cases read extensively after the mutation. Run with a hand-derived camelCase verb list it reports `examined=1834 mutating=258 re-read-after=158 blind=100`. Two of the flagged real tests were read in full and BOTH re-read: `undoRestoresTheItem` calls `queue.all()` three times after `model.remove(...)`, and `resetReindexesAnIndexFailure` reads `client.calls` after `board.reset(...)`. Neither `all` nor `calls` was in the list. Of the 20 findings the script prints, only 6 are `@Test` functions at all; the other 14 are test doubles and helpers, because the population is every `func` in any file with `test` in its path. CONCLUSION: on this codebase the pass measures the verb list rather than the suite, and no verb list derived by hand is evidence of anything. It is recorded, not published, and the campaign claims no blind-mutation number. The pass's other two arms \u2014 `unclassed` and `uncensused` \u2014 are exact and are kept."
+    },
+    {
+      "id": "DEF-047",
+      "severity": "major",
+      "status": "open-owner",
+      "req": "REQ-019",
+      "text": "`MCPRouterCLI index` reports a clean index and exits 0 when the manifest write does not land, and prints two counts that disagree with each other in the same output.",
+      "note": "Found by a denial control in the effect-witness pass rather than by reading code: `bin/witness-arm-denial.sh` points the CLI at a router home with mode dr-x------, which the process may read and traverse but not write. `index --force` then prints `ok    witness-fixture (1 tools)`, prints `0 tools cached -> /tmp/.../manifest.json` eight lines later, and exits 0 over a manifest.json that does not exist.\n\nCause: ManifestIndexer.record at RouterCore/Service/ServicePorts.swift:341 calls `try? ManifestIO.save(...)`. ManifestIO.save throws correctly and its own doc comment is careful about the disk-full case -- it deliberately leaves the temp file behind as evidence -- but all three call sites discard the error (AuthRoutes.swift:120, WatchIndexing.swift:150, ServicePorts.swift:341). The verb's closing count is honest, because MCPRouterCLI.swift:167-173 re-reads the manifest from disk to compute it; nothing compares that count against the per-server line above it.\n\nThe same `try?` on the control-API path is already characterised and deliberate -- ControlApproveDispatchTests.approveWithARefusingFileSystem pins the 200, registered in spec-P1 section 8, as R5's shipped behaviour that P1 does not move. This is the second call site, and until CASE-0149..0151 no test in the repo named ManifestIndexer at all, which is why the swallow survived here after being characterised there. The iOS side of the same requirement was found and fixed -- PhoneStorageFailureTests covers `try? await store.save(mac)` letting a success surface render over a refused write.\n\nLeft open-owner rather than fixed in campaign: propagating the error changes the CLI's exit code, which is a shipped-contract decision, and the project has already taken the opposite decision once on a sibling path. CASE-0149..0151 characterise today's behaviour so the day someone changes it, the change is deliberate."
+    },
+    {
+      "id": "DEF-048",
+      "severity": "minor",
+      "status": "fixed-in-campaign",
+      "req": "REQ-019",
+      "text": "A ShellTests assertion on the `.success` reindex scenario compared a non-optional Int to nil, so it was always true and read nothing.",
+      "note": "`#expect(result.tools != nil, ...)` at ShellTests.swift:133. `ReindexResult.tools` is a non-optional `Int` (MCPRouterKit/Control/Models.swift:263), so the comparison could not fail. The Swift compiler emitted `comparing non-optional value of type 'Int' to 'nil' always returns true` on every build of the test target; it was the only such warning in the suite.\n\nThe intent was stated in the comment directly above it -- `.success` is distinguished from `.populated` by `a reindex that comes back with no error and a tool count` -- so the assertion was one character from doing its job. Repaired to `result.tools == 14`, the value FixtureControlAPIClient+Writes.swift:33 overrides for `.success`, which discriminates against the base `reindex-failure.json` fixture it starts from (`{\"tools\":0,\"error\":\"fetch failed\"}`).\n\nArmed in evidence/arming/CASE-0152.arming.log: with the override changed to 0 the assertion goes red (`(result.tools -> 0) == 14`), and the log records that the pre-repair form would have stayed green under the same mutation."
     }
   ]
 }

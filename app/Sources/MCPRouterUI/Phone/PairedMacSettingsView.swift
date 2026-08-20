@@ -96,8 +96,6 @@ struct PhoneMessageBlock: View {
     let entry: PairingCopy.Entry
     var tone: Tone = .neutral
     var glyph: Icon?
-    var action: (() -> Void)?
-    var secondaryAction: (() -> Void)?
 
     enum Tone {
         case neutral
@@ -142,10 +140,36 @@ struct PhoneMessageBlock: View {
                     .foregroundStyle(ColorToken.t3.color)
                     .fixedSize(horizontal: false, vertical: true)
             }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
 
-            // `<button class="cta">` in i1-phone-pairing.html §L — full content width, the same as
-            // every other pairing action. The design draws it below the notice card rather than
-            // inside it; that placement is recorded as a finding rather than changed here.
+/// The recovery action for a message block, drawn BELOW it rather than inside it.
+///
+/// `i1-phone-pairing.html` §L draws it as a `<button class="cta">` sibling *after* the `wants`
+/// card, on all five Settings states that carry one, and this used to be the block's own last
+/// child — so the control sat inside the card's inset instead of under it. DEF-025.
+///
+/// Its own view rather than a flag on the block, because the two are genuinely separate things:
+/// the block is prose about a state and this is what you can do about it. A `placesActionBelow`
+/// boolean would have left the block owning a control it does not draw.
+///
+/// Full content width, the same as every other pairing action.
+struct PhoneBlockActions: View {
+    let entry: PairingCopy.Entry
+    var action: (() -> Void)?
+    var secondaryAction: (() -> Void)?
+
+    /// Whether this entry and these handlers produce any control at all, so a caller can leave the
+    /// spacing out rather than emitting an empty view with a gap above it.
+    var isEmpty: Bool {
+        (entry.actionLabel == nil || action == nil)
+            && (entry.secondaryActionLabel == nil || secondaryAction == nil)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: PhoneMetric.snug) {
             if let label = entry.actionLabel, let action {
                 Button(label, action: action)
                     .buttonStyle(PhoneProminentButtonStyle(fillsWidth: true))
@@ -156,6 +180,64 @@ struct PhoneMessageBlock: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// The never-paired empty state — centred, with an illustration above the headline.
+///
+/// `i1-phone-pairing.html` §B draws this as `.pempty`: a 34pt glyph, then the headline, then the
+/// prose, then the action, all centred. Rendering it through `PhoneMessageBlock` made it read as a
+/// notice about a problem rather than as a surface with nothing on it yet, which is the wrong
+/// first impression on the screen a new user meets first. DEF-028.
+///
+/// Deliberately NOT a mode on `PhoneMessageBlock`. That block draws eight other Settings states
+/// and the design centres none of them, so a `isCentred` flag would put one state's treatment
+/// within one boolean of all nine.
+struct PhoneEmptyState: View {
+    let entry: PairingCopy.Entry
+    var glyph: Icon?
+    var action: (() -> Void)?
+
+    var body: some View {
+        VStack(spacing: PhoneMetric.snug) {
+            if let glyph {
+                IconView(glyph, size: PhoneMetric.emptyGlyph, weight: .light)
+                    .foregroundStyle(ColorToken.t3.color)
+                    .accessibilityHidden(true)
+                    .padding(.bottom, PhoneMetric.tight)
+            }
+
+            if let headline = entry.headline {
+                Text(headline)
+                    .typeRole(.title3)
+                    .foregroundStyle(ColorToken.t1.color)
+                    .multilineTextAlignment(.center)
+            }
+
+            Text(entry.body)
+                .typeRole(.body)
+                .foregroundStyle(ColorToken.t2.color)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if entry.carriesNarrowing {
+                Text(PairingCopy.neverInstalls)
+                    .typeRole(.callout)
+                    .foregroundStyle(ColorToken.t3.color)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            // Below the prose and full width, as §B draws it — the same placement DEF-025 gives
+            // the notice states, reached from the other direction.
+            if let label = entry.actionLabel, let action {
+                Button(label, action: action)
+                    .buttonStyle(PhoneProminentButtonStyle(fillsWidth: true))
+                    .padding(.top, PhoneMetric.tight)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, PhoneMetric.loose)
     }
 }
 
@@ -205,9 +287,15 @@ public struct PairedMacSettingsView: View {
                 unpairButton
 
             case .neverPaired:
-                PhoneMessageBlock(
+                // Centred, with a glyph above the headline — `i1-phone-pairing.html` §B draws
+                // this one as `.pempty` rather than as a notice, and it is the only Settings
+                // state the design centres. That is why the treatment lives here at the call
+                // site instead of inside `PhoneMessageBlock`: the same block draws eight other
+                // states, and centring them all would be applying one state's design to nine.
+                // DEF-028.
+                PhoneEmptyState(
                     entry: PairingCopy.entry(.settingsNeverPaired),
-                    glyph: nil,
+                    glyph: .conduit,
                     action: onPair
                 )
 
@@ -229,7 +317,10 @@ public struct PairedMacSettingsView: View {
                 PhoneMessageBlock(
                     entry: PairingCopy.entry(.settingsUnreadable),
                     tone: .failure,
-                    glyph: .warn,
+                    glyph: .warn
+                )
+                PhoneBlockActions(
+                    entry: PairingCopy.entry(.settingsUnreadable),
                     action: onPair
                 )
 

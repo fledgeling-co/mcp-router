@@ -1,0 +1,305 @@
+{
+  "window": {
+    "points": [
+      1156,
+      680
+    ],
+    "devicePixels": [
+      2312,
+      1360
+    ],
+    "deviceScaleFactor": 2
+  },
+  "designChannel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
+  "buildChannel": "screencapture -x -l<CGWindowID> at an AX-set 1156x680 frame, cropped by the shadow-margin solve",
+  "pairs": [
+    {
+      "surface": "SURF-002",
+      "design": "evidence/shots/fidelity/SURF-002.design.png",
+      "build": "evidence/shots/fidelity/SURF-002.build.png",
+      "size": [
+        2312,
+        1360
+      ],
+      "designCropFrom": {
+        "image": "evidence/shots/mock-hidpi/SURF-002.full.png",
+        "box": [
+          60,
+          330,
+          2372,
+          1690
+        ]
+      },
+      "buildCropFrom": {
+        "image": "evidence/shots/design-size/SURF-002.png",
+        "box": [
+          68,
+          68,
+          2380,
+          1428
+        ]
+      },
+      "designBorderHit": {
+        "left": true,
+        "right": true,
+        "bottom": true,
+        "menubarAbove": true,
+        "clearBelow": true
+      },
+      "designSha256": "60b172e6807d452a45e6d34b6bc7029d675d978245f45bea9903ca6bb4a377e6",
+      "buildSha256": "354b927e86f5bd38f892034a4072664f2acb254851c05a30d5580e62a9a11eff"
+    },
+    {
+      "surface": "SURF-003",
+      "design": "evidence/shots/fidelity/SURF-003.design.png",
+      "build": "evidence/shots/fidelity/SURF-003.build.png",
+      "size": [
+        2312,
+        1360
+      ],
+      "designCropFrom": {
+        "image": "evidence/shots/mock-hidpi/SURF-003.full.png",
+        "box": [
+          60,
+          330,
+          2372,
+          1690
+        ]
+      },
+      "buildCropFrom": {
+        "image": "evidence/shots/design-size/SURF-003.png",
+        "box": [
+          68,
+          68,
+          2380,
+          1428
+        ]
+      },
+      "designBorderHit": {
+        "left": true,
+        "right": true,
+        "bottom": true,
+        "menubarAbove": true,
+        "clearBelow": true
+      },
+      "designSha256": "3c8367012a510bb4fc9686bb9a25f5802b75b8621968c7efd4f78c0f7f5aec1e",
+      "buildSha256": "287a743b2551fb4f281aaced6a513967371b36791ed7d2145a6c404bd23f55a8"
+    },
+    {
+      "surface": "SURF-004",
+      "design": "evidence/shots/fidelity/SURF-004.design.png",
+      "build": "evidence/shots/fidelity/SURF-004.build.png",
+      "size": [
+        2312,
+        1360
+      ],
+      "designCropFrom": {
+        "image": "evidence/shots/mock-hidpi/SURF-004.full.png",
+        "box": [
+          60,
+          330,
+          2372,
+          1690
+        ]
+      },
+      "buildCropFrom": {
+        "image": "evidence/shots/design-size/SURF-004.png",
+        "box": [
+          68,
+          68,
+          2380,
+          1428
+        ]
+      },
+      "designBorderHit": {
+        "left": true,
+        "right": true,
+        "bottom": true,
+        "menubarAbove": true,
+        "clearBelow": true
+      },
+      "designSha256": "45b3eff9595db062beff5cb6f415747235ab49e3634a907ad3d22bbf32f8a99f",
+      "buildSha256": "1a1ba4c3b64ef2d442d8ec00971552a9570b94e3cab594381efe8c7b598871c0"
+    },
+    {
+      "surface": "SURF-005",
+      "design": "evidence/shots/fidelity/SURF-005.design.png",
+      "build": "evidence/shots/fidelity/SURF-005.build.png",
+      "size": [
+        2312,
+        1360
+      ],
+      "designCropFrom": {
+        "image": "evidence/shots/mock-hidpi/SURF-005.full.png",
+        "box": [
+          60,
+          330,
+          2372,
+          1690
+        ]
+      },
+      "buildCropFrom": {
+        "image": "evidence/shots/design-size/SURF-005.png",
+        "box": [
+          68,
+          68,
+          2380,
+          1428
+        ]
+      },
+      "designBorderHit": {
+        "left": true,
+        "right": true,
+        "bottom": true,
+        "menubarAbove": true,
+        "clearBelow": true
+      },
+      "designSha256": "98a8d1be98aa055a671ee97558567221df8b70c3225e54a921ad9f2767cfb6f4",
+      "buildSha256": "4bdc9b90c518af41e1a8343798336d7c90b99db0ef4959ac899a0d606c488e03"
+    },
+    {
+      "surface": "SURF-006",
+      "design": "evidence/shots/fidelity/SURF-006.design.png",
+      "build": "evidence/shots/fidelity/SURF-006.build.png",
+      "size": [
+        2312,
+        1360
+      ],
+      "designCropFrom": {
+        "image": "evidence/shots/mock-hidpi/SURF-006.full.png",
+        "box": [
+          60,
+          330,
+          2372,
+          1690
+        ]
+      },
+      "buildCropFrom": {
+        "image": "evidence/shots/design-size/SURF-006.png",
+        "box": [
+          68,
+          68,
+          2380,
+          1428
+        ]
+      },
+      "designBorderHit": {
+        "left": true,
+        "right": true,
+        "bottom": true,
+        "menubarAbove": true,
+        "clearBelow": true
+      },
+      "designSha256": "99e7167d842dbd5775029a40b3d4395fc88ecf1e04a7f2aa8a2e68dd07e8cdb9",
+      "buildSha256": "c077e657adad6a2266d7b4dae2f4f460efa01fa7c75bbc5d3fb756c324ede4f1"
+    },
+    {
+      "surface": "SURF-007",
+      "design": "evidence/shots/fidelity/SURF-007.design.png",
+      "build": "evidence/shots/fidelity/SURF-007.build.png",
+      "size": [
+        2312,
+        1360
+      ],
+      "designCropFrom": {
+        "image": "evidence/shots/mock-hidpi/SURF-007.full.png",
+        "box": [
+          60,
+          330,
+          2372,
+          1690
+        ]
+      },
+      "buildCropFrom": {
+        "image": "evidence/shots/design-size/SURF-007.png",
+        "box": [
+          68,
+          68,
+          2380,
+          1428
+        ]
+      },
+      "designBorderHit": {
+        "left": true,
+        "right": true,
+        "bottom": true,
+        "menubarAbove": true,
+        "clearBelow": true
+      },
+      "designSha256": "292f10367c2ca331e51ccb6a4f5fd6325c22872fc9745203e9cf29b5b4599ac6",
+      "buildSha256": "82084768b6cc29af641d55ce1413909b387be8d51b7f43fb5fd6a74e13854ed0"
+    },
+    {
+      "surface": "SURF-008",
+      "design": "evidence/shots/fidelity/SURF-008.design.png",
+      "build": "evidence/shots/fidelity/SURF-008.build.png",
+      "size": [
+        2312,
+        1360
+      ],
+      "designCropFrom": {
+        "image": "evidence/shots/mock-hidpi/SURF-008.full.png",
+        "box": [
+          60,
+          330,
+          2372,
+          1690
+        ]
+      },
+      "buildCropFrom": {
+        "image": "evidence/shots/design-size/SURF-008.png",
+        "box": [
+          68,
+          68,
+          2380,
+          1428
+        ]
+      },
+      "designBorderHit": {
+        "left": true,
+        "right": true,
+        "bottom": true,
+        "menubarAbove": true,
+        "clearBelow": true
+      },
+      "designSha256": "fff96a9e4d63614407ca6faa030fb7048f7f731fd4a561593808ffdf0c49d1e8",
+      "buildSha256": "d6d9482b7012b909d334e5d436ffa3f88dc70a2690c4fab5ba926c0b66271090"
+    },
+    {
+      "surface": "SURF-011",
+      "design": "evidence/shots/fidelity/SURF-011.design.png",
+      "build": "evidence/shots/fidelity/SURF-011.build.png",
+      "size": [
+        2312,
+        1360
+      ],
+      "designCropFrom": {
+        "image": "evidence/shots/mock-hidpi/SURF-011.full.png",
+        "box": [
+          60,
+          330,
+          2372,
+          1690
+        ]
+      },
+      "buildCropFrom": {
+        "image": "evidence/shots/design-size/SURF-011.png",
+        "box": [
+          68,
+          68,
+          2380,
+          1428
+        ]
+      },
+      "designBorderHit": {
+        "left": true,
+        "right": true,
+        "bottom": true,
+        "menubarAbove": true,
+        "clearBelow": true
+      },
+      "designSha256": "9ca082b47d220cc903dceb83eb912f4603d37bbb373e2fa06b4287de5f8a0c74",
+      "buildSha256": "e1449a1596041e6e81f05f8ec35d9491e70c6937618c8ae0d7a97db08e791bc2"
+    }
+  ]
+}

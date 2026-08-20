@@ -340,12 +340,32 @@ fi
 "$AXKIT" terminate "$PID" || true
 mac_app_wait_gone "$MAC_APP"
 
+# Merge by path rather than replace.
+#
+# Two lanes write this one file: this script, and `name-glass-attachments.py`, which merges the
+# iOS lane's rows up from `evidence/shots/ios/captures.json` because the lineage gate reads only
+# the parent. This block used to write `json.dumps(rows)` — its own eight Mac rows, whole file —
+# so whichever lane captured last deleted the other's provenance, silently. Measured on
+# 2026-08-20: the parent held 16 Mac rows and none of the nine iOS ones, and
+# `capture-lineage.py --gate` reported six iOS captures UNSOURCED, which is the correct verdict on
+# a manifest that had been overwritten. That is DEF-039.
+#
+# Replacing by path keeps this run's rows authoritative for the pictures this run took, and leaves
+# every other lane's alone. A row for a capture no longer taken stays rather than vanishing: the
+# gate's unsourced pass is where a stale row should surface, not here.
 python3 - <<PY
 import json, pathlib
 src = pathlib.Path("$SHOTS/.captures.ndjson")
 rows = [json.loads(l) for l in src.read_text().splitlines() if l.strip()]
-pathlib.Path("$MANIFEST").write_text(json.dumps(rows, indent=2) + "\n")
-print(f"manifest: {len(rows)} capture(s) -> $MANIFEST")
+dest = pathlib.Path("$MANIFEST")
+prior = json.loads(dest.read_text()) if dest.exists() else []
+if isinstance(prior, dict):
+    prior = prior.get("captures", [])
+fresh = {r["path"]: r for r in rows}
+merged = [fresh.pop(r["path"], r) for r in prior]
+merged.extend(fresh.values())
+dest.write_text(json.dumps(merged, indent=2) + "\n")
+print(f"manifest: {len(rows)} capture(s) from this run, {len(merged)} total -> $MANIFEST")
 src.unlink()
 PY
 

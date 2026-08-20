@@ -51,7 +51,7 @@ it never tested.
 | D3 | Deferred register: phone copy and the harness limit (4) | `D3-deferred-phone-harness.md` | — | — | **Merged** `67ae4f5` |
 | — | **BLOCKED: the Apple developer identity** | `BLOCKED-apple-identity.md` | — | — | **Needs input — `as-found`, not confirmed** |
 | M14 | A shipped menu tells the user the app is not built | `M14-menu-says-not-built.md` | — | — | **Merged** `7e7ed70` |
-| R6 | Children inherit launchd's minimal PATH | `R6-child-process-path.md` | — | — | Untriaged |
+| R6 | Children inherit launchd's minimal PATH | `R6-child-process-path.md` | `spec-R6.md` | `plan-R6.md` | **Ready to verify** (`ai/r6`, not merged) — both routers append the user's own `bin` directories to a child's PATH; `r6-child-path.sh` examined=6 failures=0; parity census untouched at 83 rows, cli 17/17, pool 5/5 |
 | R8 | An upstream that refuses our credentials must say so | `R8-auth-rejection-visible.md` | — | — | **Done** (ai/r8 → main; owner unfroze `src/`, A38 rewritten to guard the reference's existence; Swift half unblocked by R9; parity 82/83 control 16/16 0 diverged; auth gate examined=8 failures=0) |
 | R7 | The router's thesis is unmet for every harness but Claude Code | `R7-harness-reconciliation.md` | — | — | Untriaged |
 | M15 | Settings becomes its own window | `M15-settings-window.md` | — | — | Untriaged |

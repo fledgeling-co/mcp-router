@@ -155,6 +155,12 @@ public enum PoolError: Error, Sendable, Equatable, CustomStringConvertible {
     case startupTimeout(name: String, milliseconds: Int)
     case legacySSEUnsupported(String)
     case spawnFailed(name: String, reason: String)
+    /// The command could not be resolved on the PATH the child would have been given.
+    ///
+    /// Its own case rather than a `spawnFailed` with a particular reason string, because it is the
+    /// one spawn failure with a specific cause and a specific remedy, and a caller that wants to
+    /// treat it differently should not have to match on prose. R6.
+    case commandNotFound(name: String, command: String, searchedPath: String)
 
     /// What the **wire** carries for this failure, which is not always `description`.
     ///
@@ -163,9 +169,16 @@ public enum PoolError: Error, Sendable, Equatable, CustomStringConvertible {
     /// with no wrapper of its own. Reporting `description` there would prefix it with
     /// `upstream "x" could not be started: `, which the reference never writes — so `mcp-router
     /// import` would disagree on every failing server.
+    ///
+    /// `commandNotFound` carries that same text for the same reason: it replaced a `spawnFailed`
+    /// whose reason was already `spawn <cmd> ENOENT`, and the `cli-import` parity lane diffs it.
+    /// The richer wording lives in `description`, which is not on the wire.
     public var message: String {
-        if case let .spawnFailed(_, reason) = self { return reason }
-        return description
+        switch self {
+        case let .spawnFailed(_, reason): reason
+        case let .commandNotFound(_, command, _): "spawn \(command) ENOENT"
+        default: description
+        }
     }
 
     public var description: String {
@@ -184,6 +197,15 @@ public enum PoolError: Error, Sendable, Equatable, CustomStringConvertible {
                 + "to streamable HTTP."
         case let .spawnFailed(name, reason):
             "upstream \"\(name)\" could not be started: \(reason)"
+        case let .commandNotFound(name, command, searchedPath):
+            // The directory count is the length of the PATH actually searched, not an assertion
+            // about the machine: DESIGN.md §6 forbids displaying a number the router did not
+            // observe, and this one is observed at the moment the lookup fails.
+            "upstream \"\(name)\" could not be started: spawn \(command) ENOENT — "
+                + "\"\(command)\" is not in any of the "
+                + "\(searchedPath.split(separator: ":", omittingEmptySubsequences: true).count) "
+                + "directories on the router's PATH. Install it, or give this server an "
+                + "absolute command."
         }
     }
 }

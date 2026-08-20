@@ -21,8 +21,10 @@
 #
 # `install-launchd-watch`: the SECOND agent, whose contract is different and whose difference is the
 # point. It is `RunAtLoad` plus `WatchPaths` and **no** `KeepAlive`, because it is a one-shot: it
-# runs, adopts what it can, and exits. Four observations per binary: it ran at load, touching the
-# watched file ran it again, it did not stay resident, and which streams carry bytes.
+# runs, adopts what it can, and exits. Four observations per binary: it ran at load, a stamped
+# change written to the path its own plist watches was OBSERVED by the run that followed, it did
+# not stay resident, and which streams carry bytes. The second of those lives in
+# `parity-install-watch.sh`, which is also what the mutation harness runs — see its header.
 #
 # Nothing in this lane restarts a real router. The staged `mcpServers` holds nothing adoptable, so
 # neither binary reaches its `restartRouter()`, and the Swift side additionally runs under a scratch
@@ -72,6 +74,13 @@ cleanup() {
   for label in $LABELS; do
     launchctl bootout "gui/$(id -u)/$label" >/dev/null 2>&1
   done
+  # The watch half's labels come from a file, not from `$LABELS`. Both `observe` and `observe_watch`
+  # are called through command substitution, so the accumulator they append to belongs to a subshell
+  # and is empty here — which means this loop has never had anything to boot out, and a run killed
+  # part-way through would leave a scratch agent loaded in the user's session.
+  while read -r watch_label; do
+    [ -n "$watch_label" ] && launchctl bootout "gui/$(id -u)/$watch_label" >/dev/null 2>&1
+  done < "${WATCH_LABELS:-/dev/null}"
   rm -rf "$WORK"
 }
 trap cleanup EXIT
@@ -215,197 +224,17 @@ observe() { # side program args...
   printf '%s,%s,%s,%s' "$up" "$relaunched" "$stayed_down" "$logged"
 }
 
-# The watch agent's plist. The same supervision skeleton as `plist`, minus KeepAlive and plus
-# WatchPaths — exactly the difference `docs/install.sh:147-151` writes between the two agents.
-watch_plist() { # label home claudejson label-override program args...
-  local label="$1" home="$2" claude="$3" override="$4"; shift 4
-  local program_args=""
-  for arg in "$@"; do program_args="$program_args    <string>$arg</string>
-"; done
-  cat <<XML
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>Label</key><string>$label</string>
-  <key>ProgramArguments</key>
-  <array>
-$program_args  </array>
-  <key>EnvironmentVariables</key>
-  <dict>
-    <key>MCP_ROUTER_HOME</key><string>$home</string>
-    <key>HOME</key><string>$(dirname "$claude")</string>
-    <key>MCPR_LAUNCHD_LABEL</key><string>$override</string>
-    <key>PATH</key><string>$LAUNCHD_PATH</string>
-  </dict>
-  <key>RunAtLoad</key><true/>
-  <key>ThrottleInterval</key><integer>10</integer>
-  <key>WatchPaths</key><array><string>$claude</string></array>
-  <key>StandardOutPath</key><string>$home/agent.out</string>
-  <key>StandardErrorPath</key><string>$home/agent.err</string>
-</dict>
-</plist>
-XML
-}
-
-# Nothing adoptable, deliberately: the watcher still runs, still hashes and still writes its state,
-# and never reaches a config write — so no router is restarted (X12b).
-stage() { # claude-json-path marker
-  mkdir -p "$(dirname "$1")"
-  # Written temp-then-rename. `cat >` truncates and then fills, so a watcher can observe the file
-  # twice (empty, then complete) or parse it mid-write — either of which presents as a spurious or
-  # a malformed event rather than as the single change this is meant to be.
-  cat > "$1.staging" <<JSON
-{
-  "numStartups": 41,
-  "mcpServers": { "notadoptable-$2": { "note": "no command and no url" } }
-}
-JSON
-  mv "$1.staging" "$1"
-}
-
 # ---------------------------------------------------------------------------------------------
-# P5 — the two watch terms, each given its OWN named fix, with the bound written down here rather
-# than discovered by re-running until the answer was nice.
+# `install-launchd-watch` — the watch agent's observation, sourced rather than written here.
 #
-# What was measured first, on this machine, with a scratch launchd agent whose program was a plain
-# bash script — NEITHER node NOR Swift, so neither router could be the cause:
+# It moved into its own file (P8) so the mutation harness that proves its terms can go red runs THE
+# SAME CODE this lane runs. The alternative — a harness with its own copy of the observation — is
+# how a term stays green under a mutation aimed at the copy; and a term of this row's is on record
+# as having agreed sixteen times while measuring the wrong thing.
 #
-#   · `launchctl print` carries `runs = N` and `state = not running`. That is launchd's OWN
-#     accounting of how many times it has spawned the job, and it is the observable both terms were
-#     missing. Everything before this inferred them from a file the job writes and from whether a
-#     `pid` line happened to be present at the instant it was sampled.
-#   · one `mv` onto the watched path incremented `runs` in FOUR of five trials, 9-14s later
-#     (ThrottleInterval is 10, so the floor is the throttle). In the fifth it never incremented at
-#     all inside 60s. The event was dropped.
-#
-# That fifth trial is the whole story: WatchPaths delivery is lossy, the loss is launchd's, and it
-# happens with no router involved. A lane that treats one `mv` as a reliable stimulus is therefore
-# nondeterministic BY CONSTRUCTION, and no amount of waiting on the observer side fixes a stimulus
-# that was never delivered.
-#
-# TERM `oneshot` — FIX: stop inferring residency from the absence of a `pid` sample.
-#   The old predicate was "`agent_pid` printed nothing", which is equally true when the job has
-#   finished and when it is BETWEEN two runs. A second run — a spurious WatchPaths delivery, or the
-#   throttled re-run of a stimulus staged earlier — makes the second case real, and the two are
-#   indistinguishable to a pid probe. `runs` distinguishes them exactly, because it changes when a
-#   new run STARTS. So settled now means: launchd says `not running` AND the run counter has not
-#   moved for a whole settling window.
-#
-# TERM `reran` — FIX: stop deciding it from the CONTENT OF A FILE THE JOB WRITES, and stop treating
-#   one `mv` as a reliable stimulus.
-#   Deciding it from `watch-state.json` asks the wrong question twice over: it is written by the
-#   process rather than by launchd, so it cannot see a run that started and it cannot see a run that
-#   wrote nothing. `runs` answers the actual question — did launchd spawn it again. And because
-#   delivery is lossy, the stimulus is RE-DELIVERED on a schedule until the counter moves or the
-#   bound expires.
-#
-#   RE-DELIVERING THE STIMULUS IS NOT RE-RUNNING UNTIL GREEN, and the difference is worth stating
-#   because this fleet has made that mistake once. Re-running until green repeats the MEASUREMENT
-#   and keeps the answer it likes. This repeats the INPUT — a change to the watched file, which is
-#   the thing a user's ~/.claude.json does many times a day — and keeps whatever the first delivered
-#   event produces. The claim it supports is correspondingly weaker and is stated as such: the
-#   watcher re-runs when a change is DELIVERED, not that launchd delivers every change. The stronger
-#   claim is false of launchd, which is precisely why asserting it produced a coin toss.
-#
-# THE BOUNDS, fixed here in advance:
-WATCH_SETTLE_TICKS=240        # 60s at 0.25s — how long a first run may take before it is resident
-WATCH_SETTLE_STABLE=12        # 3s of `not running` with an unmoved counter is "settled"
-WATCH_RESTAGE_ATTEMPTS=6      # re-deliver the change up to six times
-WATCH_RESTAGE_TICKS=30        # 15s at 0.5s per attempt, so 90s total against a 10s throttle
-# Per-side evidence for the report: what launchd's counter did, and how many deliveries it took.
-# A FILE rather than a variable, because `observe_watch` is invoked through command substitution and
-# anything it assigns dies with that subshell. Printed rather than merely kept, because "it agreed"
-# and "it agreed on the first delivery" are different facts, and a future reader deciding whether to
-# promote this row needs the second one.
-WATCH_EVIDENCE="$WORK/watch-evidence"
-: > "$WATCH_EVIDENCE"
-
-agent_state() { launchctl print "gui/$(id -u)/$1" 2>/dev/null | awk -F'= ' '/^\tstate = /{print $2; exit}'; }
-agent_runs() { launchctl print "gui/$(id -u)/$1" 2>/dev/null | awk '/^\truns = /{print $3; exit}'; }
-
-# Settled: launchd reports the job not running, and its run counter has stopped moving.
-#
-# Both halves are load-bearing. `not running` alone is momentarily true in the gap between two runs;
-# an unmoved counter alone is true while a long single run is still going. Requiring both, for a
-# whole window, is what separates "this is a one-shot that has finished" from "this is a one-shot
-# that is about to be started again" — the two the old pid probe could not tell apart.
-watch_settled() { # label ticks
-  local label="$1" bound="$2" tick stable=0 last="" state runs
-  for ((tick = 0; tick < bound; tick++)); do
-    state="$(agent_state "$label")"
-    runs="$(agent_runs "$label")"
-    if [ "$state" = "not running" ] && [ -n "$runs" ] && [ "$runs" = "$last" ]; then
-      stable=$((stable + 1))
-      [ "$stable" -ge "$WATCH_SETTLE_STABLE" ] && return 0
-    else
-      stable=0
-    fi
-    last="$runs"
-    sleep 0.25
-  done
-  return 1
-}
-
-observe_watch() { # side program args...
-  local side="$1"; shift
-  local label="app.fledgeling.mcp-router.parity-watch-$side-$STAMP"
-  local home="$WORK/watch-$side" claudehome="$WORK/watch-$side-home"
-  mkdir -p "$home" "$claudehome"
-  stage "$claudehome/.claude.json" one
-  watch_plist "$label" "$home" "$claudehome/.claude.json" \
-    "gg.rhodes.mcp-router-parity-$STAMP" "$@" > "$WORK/watch-$side.plist"
-  LABELS="$LABELS $label"
-
-  launchctl bootout "gui/$(id -u)/$label" >/dev/null 2>&1
-  if ! launchctl bootstrap "gui/$(id -u)" "$WORK/watch-$side.plist" \
-       >"$WORK/watch-$side.bootstrap" 2>&1; then
-    printf 'bootstrap-refused'
-    return 0
-  fi
-
-  local ran=no reran=no oneshot=no logged=none
-  local state="$home/watch-state.json"
-  # `ran` stays on the state file deliberately. `runs` proves LAUNCHD spawned something; the state
-  # file proves the BINARY got as far as doing its job, and that second one is the parity claim.
-  for _ in $(seq 1 80); do [ -s "$state" ] && { ran=yes; break; }; sleep 0.25; done
-
-  # TERM `oneshot`, decided from launchd's own state and run counter — see the block above
-  # `watch_settled` for why the pid probe this replaces could not tell a finished one-shot from a
-  # one-shot between two runs.
-  local settled=yes
-  watch_settled "$label" "$WATCH_SETTLE_TICKS" || settled=no
-  [ "$settled" = yes ] && oneshot=yes
-
-  # TERM `reran`, decided from `runs` rather than from the file the job writes, and with the
-  # stimulus RE-DELIVERED because launchd's WatchPaths delivery is lossy — measured 4 of 5 with a
-  # bash agent, so neither router is implicated. The distinction between re-delivering an input and
-  # re-running a measurement is argued in full in that same block.
-  local before_runs attempt tick now
-  before_runs="$(agent_runs "$label")"
-  for ((attempt = 0; attempt < WATCH_RESTAGE_ATTEMPTS; attempt++)); do
-    stage "$claudehome/.claude.json" "two-$attempt"
-    for ((tick = 0; tick < WATCH_RESTAGE_TICKS; tick++)); do
-      now="$(agent_runs "$label")"
-      if [ -n "$now" ] && [ -n "$before_runs" ] && [ "$now" -gt "$before_runs" ]; then
-        reran=yes
-        break 2
-      fi
-      sleep 0.5
-    done
-  done
-  local delivered=$((attempt + 1))
-  [ "$delivered" -gt "$WATCH_RESTAGE_ATTEMPTS" ] && delivered="$WATCH_RESTAGE_ATTEMPTS"
-  # Appended to a FILE, not to a variable. `observe_watch` is called through `$( … )`, which runs it
-  # in a subshell, so an assignment here would be discarded the moment it returned — the same trap
-  # the harness lock documents for its own release guard.
-  printf '%s:runs=%s->%s:stages=%s ' \
-    "$side" "${before_runs:-?}" "$(agent_runs "$label")" "$delivered" >> "$WATCH_EVIDENCE"
-
-  logged="$([ -s "$home/agent.out" ] && printf o || printf -)$([ -s "$home/agent.err" ] && printf e || printf -)"
-  launchctl bootout "gui/$(id -u)/$label" >/dev/null 2>&1
-  printf '%s,%s,%s,%s' "$ran" "$reran" "$oneshot" "$logged"
-}
+# It needs `WORK`, `STAMP`, `LAUNCHD_PATH` and `LABELS`, all set above, and it appends to `LABELS`
+# so this lane's `cleanup` boots out what it bootstrapped.
+. "$REPO_ROOT/scripts/acceptance/parity-install-watch.sh"
 
 echo "supervising each binary under its own scratch launchd agent on :$PORT"
 echo
@@ -454,10 +283,13 @@ sleep 1
 swift_watch="$(observe_watch swift "$SWIFT_BIN" watch)"
 echo "  reference: $ts_watch"
 echo "  swift:     $swift_watch"
-echo "  (ran-at-load, re-ran-on-file-change, one-shot-not-resident, log-streams-written)"
+echo "  (ran-at-load, observed-the-staged-change, one-shot-not-resident, log-streams-written)"
 echo "  launchd's own accounting: $(cat "$WATCH_EVIDENCE" 2>/dev/null)"
-echo "  \`stages\` is how many times the watched file had to be changed before launchd delivered an"
-echo "  event. More than 1 is launchd coalescing or dropping a delivery, not a router misbehaving."
+echo "  \`stages\` is deliveries used over deliveries allowed: how many times the watched file had to"
+echo "  be changed before a run observed one. More than 1 is launchd coalescing or dropping a"
+echo "  delivery, not a router misbehaving. \`stamp\` is WHICH staged change came back, named by the"
+echo "  run that saw it, and it is what makes the second term an observation rather than a spawn"
+echo "  count. \`watched=self\` means the agent watches the file it reads."
 echo
 
 case "$ts_watch$swift_watch" in
@@ -465,77 +297,41 @@ case "$ts_watch$swift_watch" in
     echo "environment: launchd refused to bootstrap a scratch watch agent in this session, so the"
     echo "             watch supervision contract could not be exercised on either side."
     exit 2 ;;
+  *no-watchpaths-in-plist*)
+    echo "environment: the generated watch plist carried no readable WatchPaths entry, so the lane"
+    echo "             could not tell where to deliver the stimulus. Recording agreement without"
+    echo "             knowing that would be the false green this row exists to refuse."
+    exit 2 ;;
 esac
 
-# `install-launchd-watch` — MEASURED HERE AND STILL BLOCKED. The lane records nothing for it.
+# `install-launchd-watch` — MEASURED AND RECORDED (P8). The term, its defect and its fix are
+# argued in `parity-install-watch.sh`; the rates behind this claim are measured by
+# `parity-install-watch-mutations.sh`, which runs that same file.
 #
-# The history is kept because it is the reason the bar for this one row is higher than for any other
-# in the manifest. It was `proven` once, and a proven row whose lane disagrees reports DIVERGED —
-# which reads as "the two routers behave differently" when what actually happened is that a racy
-# lane lost a coin toss. P1 measured six consecutive runs: agreed 1 in 6, both terms unstable on
-# BOTH binaries, the losing side alternating. G1 then fixed two real mechanisms — judging one-shot
-# while the writing process was still alive, and staging into a job launchd still considered running
-# — and DELIBERATELY DID NOT CLAIM THE ROW. The rule the row then stated was: name a fix for each
-# term SEPARATELY, fix a bound IN ADVANCE, then measure.
+# The bar for this one row is higher than for any other in the manifest, and it was earned. It was
+# `proven` once on a term that counted launchd spawns, and a proven row whose lane disagrees reports
+# DIVERGED — which reads as "the two routers behave differently" when what happened was a lane
+# losing a coin toss. P1 measured six consecutive runs agreeing 1 in 6. G1 fixed two real mechanisms
+# and DELIBERATELY DID NOT CLAIM THE ROW. P5 fixed both terms, ran an eight-pair series that passed
+# on all sixteen observations, and withdrew the claim anyway — on a mutation the series could not
+# see, because a series bounds the AGREEMENT rate and what was broken was what the term MEASURED.
 #
-# THE FIXES ABOVE ARE REAL AND ARE KEPT. Reading launchd's own `runs` counter instead of a file the
-# job writes, requiring `not running` AND an unmoved counter for a settling window, re-delivering a
-# lossy stimulus, and printing the counter as evidence are all strictly better than what preceded
-# them. Nothing here argues otherwise. What follows is only about whether they are enough to CLAIM
-# the row, and one of the two terms is not.
-#
-# A PROMOTION WAS ATTEMPTED AND IS WITHDRAWN. An eight-pair series was run and it passed: eight
-# consecutive pairs, sixteen observations, every one `yes,yes,yes,--`, all four terms agreeing in
-# all eight, `stages=1` on every side of every pair. That series was then INDEPENDENTLY REPRODUCED —
-# eight more consecutive pairs, sixteen more observations, identical in every term, at one-minute
-# loads 5.5 to 10.3. The agreement rate is genuinely a change of regime from P1's 1-in-6.
-#
-# IT WAS WITHDRAWN ON THE MUTATION, NOT ON THE SERIES. Each term was then aimed at separately:
-#
-#   · `oneshot` DISCRIMINATES. Give the Swift side a program that writes its state and then stays
-#     resident (`sh -c '<router> watch; sleep 300'`) and it reads `yes,no,no` with
-#     `runs=1->1:stages=6`. The settled check refuses to settle and the bound expires, where the old
-#     pid probe would have seen no `pid` line between runs and called it settled. Row recorded fail,
-#     lane exit 1. This term is sound.
-#
-#   · `reran` DOES NOT DISCRIMINATE RELIABLY. Point the Swift agent's `WatchPaths` at a decoy .json
-#     in a freshly created `mktemp -d` directory that this lane never touches, so a genuine delivery
-#     is IMPOSSIBLE, and the correct answer is unambiguously `no`. The generated plist was dumped
-#     and confirmed to carry the decoy path. Six trials:
-#         4 of 6  reran=no,  `runs=N->N:stages=6`  — correct, row recorded fail
-#         2 of 6  reran=yes, `runs=1->2:stages=1`  — SPURIOUS: the counter moved with no stimulus
-#     A seventh trial with the decoy in a sibling directory under the same $WORK also read `yes`
-#     (`stages=2`). So a spurious `runs` increment happens roughly one run in three, and in the
-#     report it is BYTE-IDENTICAL to a genuine first-delivery re-run — `stages=1` either way.
-#
-# WHY THAT IS DISQUALIFYING, STATED AS THE ARITHMETIC IT IS. The gate runs this lane ONCE. A Swift
-# watcher that never re-ran on a file change at all would still read `yes` on this term about one
-# gate run in three, and paired with the reference's genuine `yes` would record the row GREEN. That
-# is a false green on the row's actual parity claim, and it is the exact failure this census exists
-# to refuse — an absent vector must not be read as parity. The eight-pair series does not rescue it:
-# a series bounds the AGREEMENT rate, and what is broken here is what the term MEASURES.
-#
-# The earlier note claimed the decoy mutation went red and read the limit as "WatchPaths fires on
-# churn in the file's DIRECTORY". Six trials do not support that: a decoy in its own private
-# directory still went green twice. The limit is wider and less well characterised than stated, and
-# recording the number is more useful than recording the theory.
-#
-# TO PROMOTE, from here: make `reran` ATTRIBUTABLE rather than merely counted — tie the observed
-# re-run to the specific staged change that should have caused it, so a spurious launchd spawn
-# cannot satisfy it — then re-measure with the decoy mutation required to go red every trial. Until
-# then this lane measures the row, prints everything it saw, and records NOTHING, so the row stays
-# blocked under its note rather than reporting a divergence neither binary caused.
+# So the claim is made here on the mutation, not on a series. `reran` now requires the run to name
+# the change it observed, and the stimulus goes to the path the agent's own plist declares, so an
+# agent watching something nothing it reads will ever see cannot satisfy it. The harness scores the
+# `runs`-only term it replaces on the SAME trials, which makes the improvement a measured delta
+# rather than an argument.
 if [ "$ts_watch" = "$swift_watch" ] && [ "${swift_watch%,*}" = "yes,yes,yes" ]; then
-  echo "  note both binaries answered the watch agent's supervision identically this run"
-  echo "       ($ts_watch), and launchd's own counter is the witness for the one-shot term."
-  echo "       The row stays BLOCKED and NOTHING is recorded: the \`reran\` term reads yes about"
-  echo "       one run in three even when no stimulus can reach the watched path (4 of 6 decoy"
-  echo "       trials correct, 2 of 6 spurious), so agreement on it is not evidence of parity."
+  echo "  ok   both binaries ran at load, observed the stamped change staged into the path their own"
+  echo "       plist watches, and stayed one-shot ($ts_watch)"
+  record install install-launchd-watch ok \
+    "both: ran at load; re-ran on the watched change and named the stamp that run observed; stayed one-shot; $(tr -s ' ' <"$WATCH_EVIDENCE")"
 else
-  echo "  note the two binaries did not answer the same watch supervision this run"
-  echo "       (reference=$ts_watch swift=$swift_watch; ran,reran,one-shot,logged). The row is"
-  echo "       BLOCKED, so this is an observation rather than a divergence — which is the point:"
-  echo "       a lane with a known false-positive term must not be able to report DIVERGED."
+  echo "  FAIL the two binaries did not answer the same watch supervision"
+  echo "       (reference=$ts_watch swift=$swift_watch; ran,reran,one-shot,logged)"
+  record install install-launchd-watch fail \
+    "reference=$ts_watch swift=$swift_watch (ran,reran,one-shot,logged); $(tr -s ' ' <"$WATCH_EVIDENCE")"
+  failures=$((failures + 1))
 fi
 
 echo

@@ -67,7 +67,7 @@ it never tested.
 | M20 | Menu bar, status item, and the notification banner | `M20-menubar-status-notification.md` | — | — | Untriaged |
 | M21 | The token layer, the split accent, and `DESIGN.md` | `M21-token-layer-and-design-md.md` | — | — | Untriaged |
 | M22 | The Harnesses and Insights boards | `M22-harnesses-and-insights-boards.md` | — | — | Untriaged |
-| M23 | The mock-to-SwiftUI conversion contract | `M23-mock-to-swiftui-contract.md` | — | — | **Needs More Work** — gap-fix re-queued (`ai/m23` `5d388fb`; `metamorphic`; 3 blocking, see `M23-gapfix.md`) |
+| M23 | The mock-to-SwiftUI conversion contract | `M23-mock-to-swiftui-contract.md` | — | — | **In progress** — gap-fix dispatched 2026-08-21 (`ai/m23` `5d388fb`; `metamorphic`; 3 blocking, see `M23-gapfix.md`) |
 | M24 | The storefront's own artwork — banners and app-style icons | — | — | — | **Done** (ai/m24 → main; design-only, 23 files, all under `design/`) |
 | M25 | The controls row, not the columns, set the boards' width | `M25-board-columns-do-not-flex.md` | — | — | **Done** (ai/x4 broke the min-width chain, ai/x5 flexed the two controls rows) |
 | M26 | The Checks board and the design's eval board are two surfaces | `M26-checks-board-framing.md` | — | — | **Done** (ai/m26 → main; owner kept the reachability board, mock amended, DEF-031 closed) |
@@ -79,7 +79,7 @@ it never tested.
 | X2 | The iOS on-glass instrument, and the six cases it takes off `n/a` | `X2-ios-on-glass.md` | — | — | **Done** (ai/x2 → main; lane-owned device, six green runs) |
 | X3 | The iOS unit lane read an empty accessibility tree because the engine was off | `X3-ios-unit-lane-empty-tree.md` | — | — | Done (DEF-029 closed, armed three ways) |
 | X6 | Cleanup's `Read first…`, the half DEF-011 was held open for | — | — | — | **Done** (ai/x6 → main; CASE-0135/0136/0137, nine mutation arms) |
-| M27 | The sidebar foot's loopback readout and the child-process label | `M27-sidebar-foot-readout.md` | — | — | **Verified — ready to merge** (`ai/m27` `26337b8`; rung `raster-visual`; 6 follow-ups `D-m27-a`…`D-m27-f`, none blocking) — both restored, on glass 8 of 8 boards. The count card announces as ONE element — `Child processes, 1 of 4 declared servers running` — after a reversal: the branch first shipped it as two stops because A35's readout line was anchored whole, and three model families independently found that anchor was written before the label existed. A35 widened to its own stated prefix tolerance. The mock's `--live` foot dot deliberately not, and the same argument convicted the count numeral, which was painting `--live` on `0 of 4`. `mac-shell.sh` exit 0, 1552 tests, evidence in `planning/evidence/M27-acceptance.md` and `planning/evidence/M27/` |
+| M27 | The sidebar foot's loopback readout and the child-process label | `M27-sidebar-foot-readout.md` | — | — | **Done** — merged to `main` at `cbe5cc3` (`ai/m27` `26337b8`; rung `raster-visual`; 6 follow-ups `D-m27-a`…`D-m27-f`, none blocking) — both restored, on glass 8 of 8 boards. The count card announces as ONE element — `Child processes, 1 of 4 declared servers running` — after a reversal: the branch first shipped it as two stops because A35's readout line was anchored whole, and three model families independently found that anchor was written before the label existed. A35 widened to its own stated prefix tolerance. The mock's `--live` foot dot deliberately not, and the same argument convicted the count numeral, which was painting `--live` on `0 of 4`. `mac-shell.sh` exit 0, 1552 tests, evidence in `planning/evidence/M27-acceptance.md` and `planning/evidence/M27/` |
 | M28 | Five findings that need a decision rather than a runner | `M28-decision-docket.md` | — | — | Needs input (owner) |
 | X7 | The campaign's published artifacts under-report what it knows | `X7-campaign-artifacts-underreport.md` | — | — | Untriaged (**upstream**: fledgeling-plugins, not this repo) |
 | X8 | Two campaign detectors report findings they cannot support | `X8-detectors-misattribute.md` | — | — | Untriaged (**upstream**: fledgeling-plugins, not this repo) |
@@ -94,7 +94,7 @@ it never tested.
 | P6 | State the owner's cutover target in the gate | — | — | — | **Merged** `05296ea` (ORCHESTRATOR.md) |
 | R2-R | Router: the process that actually serves | — | — | — | **Merged** `62678aa` (ORCHESTRATOR.md) |
 | R2-W | Router: the `~/.claude.json` watcher and its adoption protocol | — | — | — | **Merged** `8e48a80` (ORCHESTRATOR.md) |
-| R4-C | The installer cutover | — | — | — | Blocked — the owner's target is 82 of 83; R4-C1 shipped, R4-C2 held |
+| R4-C | The installer cutover | — | — | — | **Superseded** — split into R4-C1 (Done, `ai/r4c` merged) and R4-C2 (Held). Not blocked: each half has its own state and its own row. The owner's target is 82 of 83 |
 | X4 | Mac boards: six defects the design of record names | — | — | — | **Merged** `2ff0941` (`ai/x4`) — its work is written up under M25 |
 | X5 | Discover and Skills: the controls row set the board's width | — | — | — | **Merged** `dee20da` (`ai/x5`) — its work is written up under M25 |
 

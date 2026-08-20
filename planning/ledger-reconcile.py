@@ -139,6 +139,52 @@ def status_rows(
         out.setdefault(idc, []).append((n, cells[header.index("status")]))
     return out, skipped
 
+# The lifecycle states a status cell can name, most specific first. Check I compares STATE,
+# never wording: the two files legitimately phrase one status differently — ORCHESTRATOR
+# writes "**Merged** `cbe5cc3`" where LEDGER writes "**Done** — merged to `main` at `cbe5cc3`" —
+# and a check that compared strings would flood on that difference while a check that compared
+# nothing would miss the one that matters. What must never differ is whether the item shipped.
+STATES = [
+    (r"needs more work", "needs-more-work"),
+    (r"needs input", "needs-input"),
+    (r"superseded", "superseded"),
+    (r"retired", "retired"),
+    (r"\bheld\b", "held"),
+    (r"\bmerged\b|\bdone\b", "shipped"),
+    (r"ready to merge|\bverified\b", "verified"),
+    (r"in progress|dispatched", "in-progress"),
+    (r"ready for ai", "ready-for-ai"),
+    (r"\bto do\b", "to-do"),
+    (r"untriaged", "untriaged"),
+    (r"deferred", "deferred"),
+    (r"\bblocked\b", "blocked"),
+]
+
+
+def lifecycle(cell: str) -> str | None:
+    """The coarse state a status cell names, or None when nothing matches.
+
+    Only the cell's HEAD is read — everything up to the first em-dash, bracket, semicolon or
+    comma. A status cell routinely goes on to describe the state of OTHER ids, and matching
+    anywhere in it makes those descriptions the row's own status. Measured on this repository
+    the first time this check ran: R4-C's `**Superseded — split into R4-C1 (Done) and R4-C2
+    (Held)**` classified as `shipped` on its child's `(Done)`, and LEDGER's `Blocked — … R4-C1
+    shipped, R4-C2 held` classified as `blocked`, so the check reported a disagreement between
+    two rows that say the same thing. A predicate that fires on a correct use is a detector
+    defect whatever it is aimed at, and three of that run's four flags were this one bug.
+
+    None is returned rather than guessed, and the caller counts and names every None. An
+    unclassifiable cell is a cell this check did not read, and a check that treats what it
+    could not read as agreement reports clean over a subset — the same denominator failure
+    check H's skip list exists to prevent one file lower down.
+    """
+    head = re.split(r"[—(;,]", cell.replace("**", "").strip(), maxsplit=1)[0].lower()
+    for pat, state in STATES:
+        if re.search(pat, head):
+            return state
+    return None
+
+
 def content_words(text: str) -> set[str]:
     text = QUOTED.sub(" ", text).replace("~~", " ").replace("**", " ")
     words = re.findall(r"[A-Za-z][A-Za-z'-]+", text.lower())
@@ -375,14 +421,56 @@ def main() -> int:
         return 2
     print()
 
+    # I — LEDGER and ORCHESTRATOR disagree about whether an item has shipped. H is this check
+    # inside one file; nothing was comparing ACROSS the two. dev-09's framing is that a row is
+    # only as bound as the weakest key any check uses, and currency was bound in neither
+    # direction here: A and B test membership, F identity, G resumability, H intra-file
+    # currency. Found on P7 and P8, which LEDGER recorded Done and merged — d7f41f7 and
+    # 1e36144, both on main, the OAuth client and the stamped-stimulus lane both present in
+    # the tree — while ORCHESTRATOR still read **Ready for AI**. That is the expensive
+    # direction: a fleet fills its slots from ORCHESTRATOR, so a stale row there dispatches a
+    # runner to rebuild work that shipped days ago, and the runner has no way to find out.
+    l_status, l_skipped = status_rows(ledger)
+    i_findings, i_unread, i_examined = [], [], 0
+    for ident in sorted(set(o_status) & set(l_status)):
+        o_cells = {st for _, st in o_status[ident]}
+        l_cells = {st for _, st in l_status[ident]}
+        o_states = {lifecycle(c) for c in o_cells}
+        l_states = {lifecycle(c) for c in l_cells}
+        if None in o_states or None in l_states:
+            i_unread.append(ident)
+            continue
+        i_examined += 1
+        if o_states != l_states:
+            i_findings.append(
+                f"{ident} (ORCHESTRATOR {'/'.join(sorted(o_states))}, "
+                f"LEDGER {'/'.join(sorted(l_states))})"
+            )
+    if i_findings:
+        findings.append(("I", "LEDGER and ORCHESTRATOR disagree about an item's lifecycle "
+                              "state — the fleet schedules from ORCHESTRATOR, so a row stale "
+                              "there dispatches a runner to rebuild shipped work", i_findings))
+
+    # I's denominator, on the same rule as H's: an id whose status cell no pattern matched is
+    # named rather than counted as agreement.
+    print(f"I examined {i_examined} ids present in both files"
+          + (f"; {len(i_unread)} unread ({', '.join(i_unread)})" if i_unread else "")
+          + f"; LEDGER skipped {len(l_skipped)} rows with fewer cells than their header")
+    if i_examined == 0:
+        print("usage error: check I examined 0 ids — either the tables stopped overlapping or "
+              "the status vocabulary moved past STATES. A gate that never ran is not a gate "
+              "that passed.", file=sys.stderr)
+        return 2
+    print()
+
     if not findings:
-        print("reconciled — no findings across A, B, B-range, C, D, E, F, G, H")
+        print("reconciled — no findings across A, B, B-range, C, D, E, F, G, H, I")
         return 0
     for code, why, ids in findings:
         print(f"{code}. {why}")
         print(f"   {' '.join(ids)}")
         print()
-    print(f"{len(findings)} of 9 checks found something. "
+    print(f"{len(findings)} of 10 checks found something. "
           "Which file is right is a judgement about what shipped; fix it by hand.")
     return 1
 

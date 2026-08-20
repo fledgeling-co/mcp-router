@@ -194,7 +194,14 @@
                 // Deliberately "Search the registries", not "Filter" — this is a query to two
                 // third-party indexes, and the copy says so because the behaviour differs.
                 SearchField(text: $board.search, placeholder: "Search the registries")
-                    .frame(width: DiscoverBoardMetrics.searchWidth)
+                    // Ideal, not fixed: the picker beside it is `.fixedSize()` and
+                    // cannot give anything back, so this field is the one control in
+                    // the row that can. DEF-015.
+                    .frame(
+                        minWidth: DiscoverBoardMetrics.searchMinWidth,
+                        idealWidth: DiscoverBoardMetrics.searchWidth,
+                        maxWidth: DiscoverBoardMetrics.searchWidth
+                    )
                     .focused($isSearchFocused)
                     .onChange(of: board.search) { _, _ in board.queryChanged() }
                     .onSubmit { board.submitSearch() }

@@ -136,7 +136,15 @@
                     ForEach(rows) { candidate in
                         CleanupBoardRow(
                             candidate: candidate,
-                            isSelected: board.selection == candidate.id
+                            isSelected: board.selection == candidate.id,
+                            inspect: { board.selection = candidate.id },
+                            // Opens the dialog rather than removing. The one destructive act on
+                            // this board is never a single click, here or anywhere else on it.
+                            remove: { board.sheet = .removeServer(name: candidate.key.id) },
+                            // `key.id` is the skill's resolved path, which is what the sheet looks
+                            // the skill up by. The row only draws this when it has a provenance
+                            // note, and only a skill can carry one.
+                            readFirst: { board.sheet = .provenance(skillPath: candidate.key.id) }
                         )
                         .contentShape(Rectangle())
                         .onTapGesture { board.selection = candidate.id }

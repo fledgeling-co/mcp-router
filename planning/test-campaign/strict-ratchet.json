@@ -1,7 +1,6 @@
 {
- "checked": 33,
- "total": 47,
- "at": "2026-08-19T07:57:33+00:00",
- "reason": "33 of 47 earned: 13 suite cases armed by source mutation + filtered red, 18 on-glass cases armed by decoy with a 56-pair discrimination control, 2 REQ-017 cases re-rung structural->metamorphic on a 3-state relation, and CASE-0014/0106 armed end-to-end on a rebuilt app",
- "previous": 0
+ "checked": 51,
+ "total": 63,
+ "at": "2026-08-20T10:41:03+00:00",
+ "previous": 50
 }

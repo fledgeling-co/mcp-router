@@ -135,6 +135,22 @@ public enum CheckCopy {
         "The router first saw it at \(firstSeen) and it now resolves to \(current), first observed \(at)."
     }
 
+    /// The narrative both the Skills inspector and Cleanup's `Read first…` sheet say about a
+    /// marketplace that moved.
+    ///
+    /// **One wording per state, §6.** Two boards are looking at the same observation, and two
+    /// sentences for it would be the app disagreeing with itself about what the router saw. It sits
+    /// beside `originMoved` rather than replacing it: that one is the check's own terse reason, in
+    /// the vocabulary the Checks board publishes, and this one is the sentence a person reads when
+    /// they are deciding what to do about it.
+    ///
+    /// It states what is still true before what is worrying, because the failure mode of a
+    /// supply-chain banner is panic and the code on disk genuinely has not moved.
+    public static func ownerChanged(firstSeen: String, current: String) -> String {
+        "When this Mac first saw this marketplace it resolved to \(firstSeen). It now resolves to "
+            + "\(current). The code you have has not changed."
+    }
+
     public static func heldVersionWantsMore(version: String, capabilities: [String]) -> String {
         let list = capabilities.sorted().joined(separator: ", ")
         return "Version \(version) is held and asks for \(list)."

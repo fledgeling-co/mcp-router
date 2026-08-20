@@ -181,7 +181,7 @@ public enum MenuCommand: Hashable, Sendable {
         case .showAll: "Show All"
         case .quit: "Quit MCP Router"
         case .addServer: "Add server…"
-        case .addMarketplace: "Add marketplace…"
+        case .addMarketplace: SkillPresentation.marketplacesAction
         case .pairPhone: "Pair iPhone…"
         case .exportLibrary: "Export library…"
         case .closeWindow: "Close"

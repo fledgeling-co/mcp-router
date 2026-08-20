@@ -50,9 +50,15 @@ first.
 | M21 | The token layer, the split accent, and `DESIGN.md` | `M21-token-layer-and-design-md.md` | — | — | Untriaged |
 | M22 | The Harnesses and Insights boards | `M22-harnesses-and-insights-boards.md` | — | — | Untriaged |
 | M23 | The mock-to-SwiftUI conversion contract | `M23-mock-to-swiftui-contract.md` | — | — | Untriaged |
-| P7 | `control-auth-post-http` needs a real OAuth client | `P7-auth-post-oauth-client.md` | — | — | Untriaged |
-| P8 | Make `install-launchd-watch`'s `reran` term attributable | `P8-launchd-watch-attributable.md` | — | — | Untriaged |
-| X1 | The iOS accessibility-tree harness, and two surfaces still empty | `X1-ios-a11y-harness.md` | — | — | Untriaged |
+| M24 | The storefront's own artwork — banners and app-style icons | — | — | — | In Progress `ai/m24` |
+| M25 | The controls row, not the columns, set the boards' width | `M25-board-columns-do-not-flex.md` | — | — | **Done** (ai/x4 broke the min-width chain, ai/x5 flexed the two controls rows) |
+| M26 | The Checks board and the design's eval board are two surfaces | `M26-checks-board-framing.md` | — | — | Untriaged |
+| P7 | `control-auth-post-http` needs a real OAuth client | `P7-auth-post-oauth-client.md` | — | — | **Done** (ai/p7 → main; parity reached 82 of 83) |
+| P8 | Make `install-launchd-watch`'s `reran` term attributable | `P8-launchd-watch-attributable.md` | — | — | **Done** (ai/p8 → main; the lane was shown able to go red) |
+| X1 | The iOS accessibility-tree harness, and two surfaces still empty | `X1-ios-a11y-harness.md` | — | — | Done (closed by X3's engine fix + the accessibility-frame row oracle; `make test-ios` 36/0) |
+| X2 | The iOS on-glass instrument, and the six cases it takes off `n/a` | `X2-ios-on-glass.md` | — | — | **Done** (ai/x2 → main; lane-owned device, six green runs) |
+| X3 | The iOS unit lane read an empty accessibility tree because the engine was off | `X3-ios-unit-lane-empty-tree.md` | — | — | Done (DEF-029 closed, armed three ways) |
+| X6 | Cleanup's `Read first…`, the half DEF-011 was held open for | — | — | — | **Done** (ai/x6 → main; CASE-0135/0136/0137, nine mutation arms) |
 
 ## Allocation notes
 

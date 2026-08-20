@@ -33,6 +33,21 @@
         static var slotWidth: Double { unit + inset }
         static var searchWidth: Double { unit * 9 }
 
+        /// The narrowest this board's search field may become before the row stops fitting.
+        ///
+        /// **Four units, and it is a floor rather than a size.** The field renders at
+        /// `searchWidth` whenever there is room; this is what it gives back when there is not.
+        /// Measured on glass at a 980pt window, which is an ordinary size and not a stress case:
+        /// this board's controls row is a `.fixedSize()` segmented picker that cannot compress at
+        /// all, plus this field, and the two together wanted more than the detail pane had. The
+        /// board then laid out wider than the pane and its trailing chrome was cut — DEF-015.
+        ///
+        /// A field this narrow shows about eight characters, which is less than anyone wants and
+        /// more than nothing: it still takes focus, still accepts a query, and still submits.
+        /// Losing eight characters of a search field at the narrowest window this app is used at
+        /// is a better trade than losing whichever control happened to sit at the right edge.
+        static var searchMinWidth: Double { unit * 4 }
+
         /// Fixed, and identical in the skeleton. A row whose height depends on its content makes the
         /// board jump when data lands, and §5's Overflow rule is that rows never change height.
         static var rowHeight: Double { unit * 2 }

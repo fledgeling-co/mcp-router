@@ -32,6 +32,10 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SWIFT_BIN="${SWIFT_BIN:-$REPO_ROOT/app/.build/debug/MCPRouterCLI}"
 HOME_DIR="$(mktemp -d -t mcprouter-p1)"
 PORT="${PORT:-8983}"
+# The auth callback port is pinned to a scratch one. Without this the daemon binds the REAL 8880
+# the moment a non-stdio `/auth` reaches it — the developer's own router may hold it, and a check
+# whose result depends on that is not a check.
+AUTH_PORT="${AUTH_PORT:-8982}"
 ROUTER_PID=""
 
 pass=0
@@ -83,7 +87,8 @@ cat >"$HOME_DIR/manifest.json" <<'JSON'
 }
 JSON
 
-MCP_ROUTER_HOME="$HOME_DIR" "$SWIFT_BIN" serve --port "$PORT" >"$HOME_DIR/serve.out" 2>&1 &
+MCP_ROUTER_HOME="$HOME_DIR" MCP_ROUTER_AUTH_PORT="$AUTH_PORT" \
+  "$SWIFT_BIN" serve --port "$PORT" >"$HOME_DIR/serve.out" 2>&1 &
 ROUTER_PID=$!
 
 health=""
@@ -103,6 +108,10 @@ TOKEN="$(cat "$HOME_DIR/control.token" 2>/dev/null || echo '')"
 
 # One request. Asserts the status AND the body, because a route that returns the right number with
 # the wrong bytes is still a divergence — and on these two routes the body carries the whole reason.
+# Seconds a single request may take. Raised around the one check that begins a real OAuth flow:
+# that route races the provider for 20 seconds before it gives up, by design and in both routers.
+TIMEOUT=5
+
 check() { # label method target want-status want-body(or "-") [--no-token]
   local label="$1" method="$2" target="$3" want_status="$4" want_body="$5" no_token="${6:-}"
 
@@ -112,7 +121,7 @@ check() { # label method target want-status want-body(or "-") [--no-token]
     exit 2
   fi
 
-  local -a args=(-sS -m 5 -o "$HOME_DIR/body" -w '%{http_code}' -X "$method"
+  local -a args=(-sS -m "$TIMEOUT" -o "$HOME_DIR/body" -w '%{http_code}' -X "$method"
                  "http://127.0.0.1:$PORT$target" -H 'content-type: application/json'
                  --data-binary '{}')
   [ -z "$no_token" ] && args+=(-H "x-mcpr-token: $TOKEN")
@@ -196,17 +205,20 @@ else
 fi
 
 echo
-echo "the half this router does NOT serve — asserted on the daemon, not just in the unit suite"
-# D-p1-a: nothing conforms to `AuthTransport`, so a non-stdio /auth has no flow to begin and
-# `authorize` returns nil, leaving the 405 this route has always answered.
+echo "the half this router did NOT serve until P7 — asserted on the daemon, not just in the suite"
+# D-p1-a, closed. `OAuthFlowStarter` is now wired into `RouterServiceDispatch`, so a non-stdio
+# `/auth` begins a real flow instead of falling through to the 405 this route used to answer.
 #
-# This is asserted HERE and not only in the unit suite because the two can disagree: the suite
-# injects `starter: nil` into a `ControlDeps` it built itself, while the daemon builds its own in
-# `RouterServiceDispatch`. A starter wired by accident there, or the guard in `authorize`
-# inverted, would be invisible to a test that never runs the daemon — and that is exactly the
-# class of gap this whole script exists for (D-r2r-b).
-check "http auth has no flow to begin, so it stays 405" POST "/servers/p1-http/auth" \
-  405 '{"error":"POST not allowed on /servers/p1-http/auth"}'
+# The upstream is `https://example.invalid/mcp`, a name RFC 2606 guarantees will never resolve, so
+# the flow binds its callback port, fails to reach the provider, and loses the 20-second race for an
+# authorization URL — which is exactly what the reference does with the same config, byte for byte.
+# `scripts/acceptance/parity-oauth.sh` is what proves the SUCCESS path against the running
+# reference; this asserts the route is dispatched at all in the daemon, which is what D-r2r-b is
+# about and what a unit suite injecting its own `ControlDeps` cannot see.
+TIMEOUT=40
+check "http auth begins a flow and races the provider" POST "/servers/p1-http/auth" \
+  502 '{"error":"the server never produced an authorization URL"}'
+TIMEOUT=5
 check "and approve on that same http server still works" POST "/servers/p1-http/approve" \
   409 '{"error":"no pending change for \"p1-http\""}'
 

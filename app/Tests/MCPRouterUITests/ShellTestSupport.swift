@@ -31,9 +31,18 @@
         /// Use it only where the assertion is that something BECOMES true. Where the assertion is
         /// that a state *stays* put — `ShellTests.loadingIsTheAbsenceOfAnAnswer` races a
         /// never-returning refresh — there is no condition to wait for and a fixed delay is correct.
+        ///
+        /// **30 seconds, not 5.** The ceiling is not a guess at how long the work takes — it is the
+        /// point past which a stuck condition is worth reporting, and a bound that generous costs a
+        /// passing test nothing because it returns the moment the condition holds. Five seconds was
+        /// measured to be inside the noise: on 20 Aug 2026 `make test` reported four failures at a
+        /// one-minute load average of ~700 and passed all 1473 tests on the same source at load 46,
+        /// minutes apart (DEF-030). A suite that reports a defect the product does not have is the
+        /// failure this campaign has already paid for once, in DEF-029, where a dead instrument
+        /// read as a dead product for ten consecutive runs.
         @MainActor
         static func waitUntil(
-            within timeout: Duration = .seconds(5),
+            within timeout: Duration = .seconds(30),
             polling interval: Duration = .milliseconds(5),
             _ isSatisfied: () -> Bool
         ) async throws {
@@ -227,7 +236,8 @@
             "app/Sources/MCPRouterUI/Activity/ActivityInspector.swift",
             "app/Sources/MCPRouterUI/Activity/ActivityModel.swift",
             "app/Sources/MCPRouterUI/Activity/ActivityModel+Merge.swift",
-            "app/Sources/MCPRouterUI/Activity/ActivityModel+Presentation.swift"
+            "app/Sources/MCPRouterUI/Activity/ActivityModel+Presentation.swift",
+            "app/Sources/MCPRouterUI/Activity/ActivityResetHistorySheet.swift"
         ]
 
         /// Everything the boundary gates scan.

@@ -34,6 +34,14 @@
         static var tallyColumn: Double { unit * 7 }
         static var stampColumn: Double { unit * 6 }
         static var reasonColumn: Double { unit * 9 }
+
+        /// The trailing action column on a Cleanup row.
+        ///
+        /// `prototype.html:950` gives it `width:150px` and right-justifies two small buttons into
+        /// it. Expressed in the same `unit` as every other column here rather than as 150, so the
+        /// row scales with the table metric instead of pinning one column to a pixel count the rest
+        /// of the board does not use. DEF-011.
+        static var actionColumn: Double { unit * 6.5 }
         static var searchWidth: Double { unit * 9 }
 
         /// Fixed, and identical in the skeleton, so neither board jumps when data lands (A27).
@@ -41,6 +49,15 @@
 
         static var inspectorWidth: Double { MetricToken.sidebar.leadingScalar + unit * 2 }
         static var sheetWidth: Double { MetricToken.sidebar.leadingScalar * 2 }
+
+        /// How strongly a flagged Cleanup row is tinted.
+        ///
+        /// `prototype.html:954` sets `rgba(255,66,69,.06)` — the fail colour at 6%, which is a wash
+        /// rather than a highlight. It stays a literal fraction because it is an alpha, not a
+        /// length: there is no spacing token it could be a multiple of, and rounding it to a
+        /// heavier value would make the row read as an error rather than as one worth reading
+        /// before acting on. DEF-011.
+        static var flaggedRowTint: Double { 0.06 }
 
         /// The observation track: as tall as a hairline is thick times six, and as wide as the tally.
         static var trackHeight: Double { inset * 1.5 }

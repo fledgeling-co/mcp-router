@@ -191,7 +191,14 @@ public enum CleanupPresentation {
 
     // MARK: - Reset
 
-    public static let resetLabel = "Reset call history…"
+    /// The header action, on both boards that carry one.
+    ///
+    /// `Reset history…` rather than `Reset call history…`, because that is what the design of record
+    /// puts in a board header: `prototype.html:716` on Activity and `:930` on Cleanup. The longer
+    /// wording belongs to a different slot — the Danger section of Settings at `:999`, which this
+    /// app does not draw — and shipping it in the header was DEF-012, a rename in one direction with
+    /// the design not followed.
+    public static let resetLabel = "Reset history…"
 
     /// Why a removal dialog can offer nothing, said rather than shown as a gap.
     ///
@@ -248,4 +255,41 @@ public enum CleanupPresentation {
     }
 
     public static let resetConfirm = "Reset history"
+
+    // MARK: - Read first…
+
+    /// The sheet behind `Read first…`, which replaces both of a flagged skill's other actions.
+    ///
+    /// **Every line here is an observation, and the four the prototype invents are absent.**
+    /// `prototype.html:1249` lists an owner at install, a force-pushed default branch, an installed
+    /// hash "no longer in history", and an eval score of 5 of 8. The router reports none of them,
+    /// and one — the install date — is not computable at all: the client's files record a commit
+    /// and never an owner, which `SkillProvenance` says in its own doc comment. What is left is the
+    /// three fields that type actually carries, plus the sentence `CheckCopy.ownerChanged` already
+    /// says about them on the Skills board.
+    public static func provenanceTitle(name: String) -> String {
+        "\(name) changed hands"
+    }
+
+    /// Why this sheet exists on *this* pane rather than only in the Skills inspector.
+    public static let provenanceLede =
+        "Nothing on this Mac re-reads a capability that is never invoked — which is exactly why "
+            + "this one is on the list. What its marketplace did in the meantime belongs on screen "
+            + "beside the proposal, not in a log."
+
+    public static let provenanceFirstSeenLabel = "Where the router first saw it"
+    public static let provenanceCurrentLabel = "Where it resolves now"
+    public static let provenanceObservedLabel = "The router first saw it"
+
+    /// What the router cannot say, said rather than left as a gap for the reader to fill.
+    ///
+    /// A sheet that shows two sources and a date invites the reading that it also knows who owns
+    /// them and what changed inside. It knows neither, and the date is its own first sighting
+    /// rather than the day anything was installed.
+    public static let provenanceLimit =
+        "The router records where a marketplace resolves, never who owns it and never what changed "
+            + "inside it. It has no record of the day this was installed, so the date above is its "
+            + "own first sighting."
+
+    public static let provenanceDismiss = "Leave it"
 }

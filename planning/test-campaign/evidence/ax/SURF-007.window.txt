@@ -41,18 +41,18 @@
 8	AXButton				Settings		1					205.0	532.0	76.0	16.0	
 6	AXColumn							0			ListColumn	198.0	236.0	236.0	475.0	
 4	AXUnknown				1 of 4 declared servers running		1				sidebar	196.0	720.0	240.0	16.0	
-4	AXStaticText			last 7s · peak 1			1				sidebar	196.0	773.5	99.0	13.0	
+4	AXStaticText			last 9s · peak 1			1				sidebar	196.0	773.5	99.0	13.0	
 3	AXSplitter			264			0	0				444.0	236.0	0.0	568.0	0
 3	AXGroup	AXHostingView										180.0	184.0	980.0	620.0	0
 4	AXStaticText			none	mcprouter-key-probe						content	1084.0	776.0	72.0	24.0	1
 4	AXScrollArea										content	444.0	236.0	716.0	568.0	0
 5	AXStaticText			Cleanup			1					460.0	252.0	85.5	26.0	
 5	AXButton				Reset call history…		1					1008.5	256.0	135.5	24.0	0
-5	AXStaticText			Capabilities MCP Router has never seen used, judged over the calls it has recorded across the past 5d. It proposes; you decide.			1					460.0	280.0	542.0	29.0	
+5	AXStaticText			Capabilities MCP Router has never seen used, judged over the calls it has recorded across the past 6d. It proposes; you decide.			1					460.0	280.0	542.0	29.0	
 5	AXStaticText			The sidebar badge counts the 3 servers nobody has called. This list also includes servers that failed to index or declared no tools.			1					460.0	311.0	650.5	13.0	
-5	AXStaticText			warn, Call history covers only the past 5d. Everything below reads as never-used because there is almost nothing recorded yet, not because it is unused. Give it a few days before acting on this.			1					460.0	332.0	684.0	48.5	
+5	AXStaticText			warn, Call history covers only the past 6d. Everything below reads as never-used because there is almost nothing recorded yet, not because it is unused. Give it a few days before acting on this.			1					460.0	332.0	684.0	48.5	
 5	AXStaticText			Observed over			1					460.0	388.5	73.5	13.0	
-5	AXStaticText			Observation window: 5d recorded			1					541.5	388.5	220.0	13.0	
+5	AXStaticText			Observation window: 6d recorded			1					541.5	388.5	220.0	13.0	
 5	AXRadioGroup						1					460.0	409.5	237.0	24.0	0
 6	AXRadioButton	AXSegment		1	All 3		1					460.0	409.5	79.0	24.0	0
 6	AXRadioButton	AXSegment		0	Servers 3		1					540.0	409.5	78.0	24.0	0

@@ -14,9 +14,10 @@ import Testing
 /// The ordering is not exotic. The browser redirect races the route: the callback can land while
 /// the route is still between `begin` and `awaitCompletion`, and on a loaded machine it often does.
 ///
-/// **Where this is proven.** At the unit boundary, and deliberately not at the wire: nothing
-/// conforms to ``AuthTransport`` yet (`D-p1-a`), which is why `control-auth-post-http` is a blocked
-/// parity row. These tests do not claim a wire proof.
+/// **Where this is proven.** At the unit boundary. Nothing conformed to ``AuthTransport`` outside
+/// the test target before P7 (`D-p1-a`), so there was no wire to prove it on; `parity-oauth.sh` now
+/// drives the whole flow against the running reference, and these tests keep the ordering itself
+/// under a microscope rather than restating that lane.
 @Suite("D-p1-c — a settled flow is reported as it settled, not as absent")
 struct AuthSettledFlowTests {
     private let server = JSString("linear")

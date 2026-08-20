@@ -48,6 +48,12 @@ public actor RouterService {
     let pool: UpstreamPool
     let usage: UsageStore
     let auth: FileAuthStore
+    /// The one browser authorization that can be in flight, and the thing that begins it.
+    ///
+    /// Held by the service rather than built per request, because "a second flow supersedes the
+    /// first" is a property of the process: a coordinator constructed inside `controlResponse`
+    /// would be a fresh one every request and two authorizations would fight over :8880 instead.
+    let authFlow: OAuthFlowStarter
     let token: String
     let tokenPath: String
     let configPath: String
@@ -85,6 +91,11 @@ public actor RouterService {
             logPath: config.usagePath, statsPath: config.statsPath, fileSystem: fileSystem
         )
         auth = FileAuthStore(authDir: config.authDir, log: log)
+        // `auth` rather than a second store built from the same arguments: two of them is two
+        // places for a later change to the credential store to be applied once.
+        authFlow = OAuthFlowStarter(
+            coordinator: AuthFlowCoordinator(log: log), store: auth, clock: clock
+        )
         pool = UpstreamPool(
             upstreams: config.upstreams,
             defaultIdleMilliseconds: config.idleMs,

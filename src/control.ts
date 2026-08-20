@@ -27,7 +27,15 @@ import {
 } from './manifest.js';
 import { searchRegistries } from './registry.js';
 import { UsageStore, projectOf } from './usage.js';
-import { beginAuth, clearAuth, hasTokens, authorizedAt, currentFlow, FileOAuthProvider } from './auth.js';
+import {
+  beginAuth,
+  clearAuth,
+  hasTokens,
+  authorizedAt,
+  currentFlow,
+  isAuthFailure,
+  FileOAuthProvider,
+} from './auth.js';
 import { log } from './log.js';
 
 export const TOKEN_PATH = join(ROUTER_HOME, 'control.token');
@@ -150,6 +158,48 @@ function describe(u: UpstreamConfig, deps: ControlDeps) {
   const pending = deps.pool.pending().find((p) => p.server === u.name);
   const needsAuth = !isStdio(u) && u.oauth !== false;
 
+  /*
+   * `authorized` used to be `hasTokens(name)` alone, which reports that a FILE exists.
+   * Measured on 2026-08-20 against a live upstream: this object carried
+   * `indexError: "[-32603] Internal error: Authentication required"` and
+   * `auth.authorized: true` at the same time, three lines apart, because the token
+   * file was on disk and the server had stopped honouring the refresh inside it.
+   * REQ-007 says the router never displays what it does not observe, and a field named
+   * `authorized` reporting a fact about the filesystem is exactly that.
+   *
+   * Read from the manifest as well as the live pool, deliberately: `pendingAuth` is
+   * in-memory and empty on a fresh start, while `entry.error` persists, so a router
+   * restarted after a rejection would otherwise report `authorized: true` again until
+   * something happened to re-index.
+   */
+  const recordedRefusal =
+    entry?.error && isAuthFailure(entry.error) ? entry.error : undefined;
+  /*
+   * A refusal the manifest recorded BEFORE the credential was last authorized is stale, and
+   * reporting it tells the user the credential they have just fixed is still being refused.
+   *
+   * Without this the field is decided by a race. Completing an authorization re-indexes, and
+   * that re-index is fire-and-forget on both routers (`void flow.completed.then(...)` here), so
+   * `GET /servers/:name` immediately afterwards may read a manifest written before the browser
+   * hop. Measured 20 Aug 2026: the oauth lane run inside the full gate had this router reporting
+   * `authorized: true` and the Swift router reporting `authorized: false` with
+   * `rejected: "[-32603] Internal error: Authentication required"` and an `authorizedAt` newer
+   * than the error beside it; the same lane run on its own, under no load, had both at `true`
+   * over 21 checks. Whichever side loses the race is a property of the machine that day.
+   *
+   * `Date.parse` returns NaN on anything it cannot read, and every comparison against NaN is
+   * false, so an unparseable stamp on either side reports the refusal rather than hiding it.
+   * That is the safe direction: a refusal shown once too often costs the user a re-authorization
+   * they did not need, and one hidden costs them an upstream that silently serves no tools.
+   */
+  const authorizedAtIso = authorizedAt(u.name);
+  const refusalIsStale =
+    recordedRefusal !== undefined &&
+    entry?.builtAt !== undefined &&
+    authorizedAtIso !== undefined &&
+    Date.parse(authorizedAtIso) > Date.parse(entry.builtAt);
+  const authRejection = pending?.reason ?? (refusalIsStale ? undefined : recordedRefusal);
+
   return {
     name: u.name,
     transport: u.transport,
@@ -174,8 +224,13 @@ function describe(u: UpstreamConfig, deps: ControlDeps) {
     auth: needsAuth
       ? {
           supported: true,
-          authorized: hasTokens(u.name),
+          authorized: hasTokens(u.name) && !authRejection,
           authorizedAt: authorizedAt(u.name),
+          // Present only when we hold a credential the upstream has refused, which is
+          // the state that has a remedy: `mcp-router auth <name>`. Absent means either
+          // working, or never authorized at all — and those two are told apart by
+          // `authorizedAt`, which a server that has never authorized does not carry.
+          rejected: authRejection,
           pendingUrl: pending?.url,
         }
       : { supported: false, authorized: true },
@@ -186,7 +241,19 @@ function describe(u: UpstreamConfig, deps: ControlDeps) {
 /** Spawn one candidate server in a throwaway pool and record its tools. */
 async function indexOne(
   u: UpstreamConfig,
-  cfg: RouterConfig
+  cfg: RouterConfig,
+  /*
+   * The live pool, so a credential rejection outlives this call.
+   *
+   * The scratch pool below is deliberate — a re-index must not disturb the serving pool's
+   * connections, so it gets its own with `idleMs: 0`. The consequence nobody had noticed is
+   * that everything the re-index LEARNS dies with it: `noteAuthFailure` landed on an object
+   * shut down four lines later, so `/status` and `mcp-router status` never saw it and an
+   * upstream whose token had been revoked kept reporting `idle`. The manifest keeps the
+   * error, which is why `describe` can still tell; the pool is what the operator surfaces
+   * read, and it was being told nothing.
+   */
+  live?: UpstreamPool
 ): Promise<{ tools: number; error?: string }> {
   const pool = new UpstreamPool(new Map([[u.name, u]]), 0, cfg.startupTimeoutMs);
   try {
@@ -194,7 +261,11 @@ async function indexOne(
     const { failed } = await buildManifest([u], pool, manifest, { force: true });
     saveManifest(cfg.manifestPath, manifest);
     const entry = manifest.servers[u.name];
-    return { tools: entry?.tools.length ?? 0, error: failed.length ? entry?.error : undefined };
+    const error = failed.length ? entry?.error : undefined;
+    // Whatever the scratch pool learned, hand over. `buildManifest` is what noticed the
+    // refusal and it wrote the warning already, so this transfers rather than re-announces.
+    if (live) for (const entryPending of pool.pending()) live.adoptPending(entryPending);
+    return { tools: entry?.tools.length ?? 0, error };
   } finally {
     await pool.shutdown();
   }
@@ -277,7 +348,7 @@ export async function handleControl(
      * impossible to add one at all. That case is adopted with its error recorded,
      * and the app's next move is the authorize button.
      */
-    const { tools, error } = await indexOne(parsed.upstream, deps.cfg);
+    const { tools, error } = await indexOne(parsed.upstream, deps.cfg, deps.pool);
     const authPending = !!error && /not authorized|unauthorized|401/i.test(error);
     if (error && !authPending && url.searchParams.get('force') !== '1') {
       json(res, 422, { error, hint: 'retry with ?force=1 to add it anyway' });
@@ -322,7 +393,7 @@ export async function handleControl(
     }
 
     if (sub === '/reindex' && req.method === 'POST') {
-      const { tools, error } = await indexOne(u, deps.cfg);
+      const { tools, error } = await indexOne(u, deps.cfg, deps.pool);
       json(res, error ? 422 : 200, { name, tools, error });
       return true;
     }
@@ -399,7 +470,7 @@ export async function handleControl(
         void flow.completed
           .then(async () => {
             deps.pool.clearPending(name);
-            await indexOne(u, deps.cfg);
+            await indexOne(u, deps.cfg, deps.pool);
           })
           .catch((err: Error) => log.warn(`authorization for "${name}" did not complete: ${err.message}`));
         json(res, 200, { server: name, authorizationUrl: flow.url });

@@ -31,24 +31,51 @@ struct StandingConstraintsTests {
         return (process.terminationStatus, String(bytes: data, encoding: .utf8) ?? "")
     }
 
-    /// A38. The TypeScript router stays the installed default until R4's parity gate passes, so
-    /// this branch must not have touched it. Asserted against `main` rather than against a memory
-    /// of having been careful.
-    @Test("this branch changes nothing under src/, install.sh or package.json")
-    func theReferenceIsUntouched() throws {
-        guard let result = try Self.run(
-            ["git", "diff", "--stat", "main", "--", "src/", "install.sh", "package.json"]
-        ) else {
+    /// A38. The TypeScript reference stays a reference — present, buildable, and the thing the
+    /// parity gate compares against.
+    ///
+    /// This used to assert that a branch changed nothing under `src/`, `install.sh` or
+    /// `package.json`, and its stated reason was that "the TypeScript router stays the installed
+    /// default until R4's parity gate passes". That condition is discharged: R4-C1 merged and
+    /// `install.sh` now points both agents at the Swift router, so the reference is no longer the
+    /// installed default and freezing it protects nothing that is still true.
+    ///
+    /// What R4-C1 actually decided to keep is the reference as a **live differential** — the
+    /// out-of-family verdict on that cutover was "do not delete the TypeScript sources … keep the
+    /// 83-row harness", because a recurrence of the unexplained OAuth divergence needs something
+    /// to diff against. It earned that on 20 Aug 2026, when the oauth lane inside a full gate
+    /// disagreed with the Swift router about `auth.authorized` and the disagreement turned out to
+    /// be a race both routers shared. A frozen reference would not have found it; a deleted one
+    /// could not have.
+    ///
+    /// So the assertion moved from "unchanged" to "still there and still built". Deleting the
+    /// sources, or dropping the script that builds them, removes the oracle; editing them in step
+    /// with the Swift side is what keeping it means. The parity gate is what proves the two still
+    /// agree, and it is a gate rather than a memory.
+    @Test("the TypeScript reference is present and still built")
+    func theReferenceIsStillAReference() throws {
+        guard let result = try Self.run(["git", "ls-files", "src/", "package.json"]) else {
             Issue.record("git could not be run, so the reference is UNVERIFIED, not verified")
             return
         }
-        guard result.status == 0 else {
-            Issue.record("git diff against main failed (\(result.status)): \(result.output)")
+        let tracked = result.output.split(separator: "\n").map(String.init)
+        // Named files rather than a count: a count passes while the one file that matters is gone,
+        // and `control.ts` is where every row the gate compares is answered.
+        for required in ["package.json", "src/control.ts", "src/router.ts", "src/index.ts"] {
+            #expect(
+                tracked.contains(required),
+                "\(required) is not tracked — the differential reference has lost a part of itself"
+            )
+        }
+        guard let manifest = try Self.run(["git", "show", "HEAD:package.json"]),
+              manifest.status == 0
+        else {
+            Issue.record("package.json could not be read at HEAD, so the build script is UNVERIFIED")
             return
         }
         #expect(
-            result.output.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-            "the TypeScript reference changed on this branch:\n\(result.output)"
+            manifest.output.contains("\"build\""),
+            "package.json declares no build script, so the reference cannot be produced to compare against"
         )
     }
 

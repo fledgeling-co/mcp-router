@@ -5,7 +5,7 @@ import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { UnauthorizedError } from '@modelcontextprotocol/sdk/client/auth.js';
 import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { isStdio, type UpstreamConfig, type HttpUpstream, type StdioUpstream } from './config.js';
-import { FileOAuthProvider } from './auth.js';
+import { FileOAuthProvider, isAuthFailure } from './auth.js';
 import { log } from './log.js';
 
 export interface UpstreamHandle {
@@ -28,8 +28,18 @@ interface PoolEntry {
 /** An HTTP upstream that answered 401 and wants the user to authorize in a browser. */
 export interface PendingAuth {
   server: string;
-  url: string;
+  /**
+   * The browser URL to complete the flow, when there is one.
+   *
+   * Optional since 2026-08-20: an upstream that rejects a REFRESH never reaches the
+   * redirect callback, so there is no URL to offer and the server still needs
+   * authorizing. Making this required is what forced the index path to record
+   * nothing at all, which is how a dead credential came to read as `idle`.
+   */
+  url?: string;
   at: string;
+  /** The failure text, when the pending state came from a rejection rather than a redirect. */
+  reason?: string;
 }
 
 /**
@@ -70,6 +80,45 @@ export class UpstreamPool {
 
   clearPending(server: string): void {
     this.pendingAuth.delete(server);
+  }
+
+  /**
+   * Record that an upstream refused our credentials, from a path with no browser URL.
+   *
+   * The redirect callback in `makeTransport` is the only thing that used to populate
+   * this map, and it fires only when the SDK decides to START an authorization flow.
+   * A server that rejects a refresh token answers the NEXT call with an error and no
+   * redirect, so the map stayed empty while the upstream served nothing. `status`
+   * already knows how to print `! <name> needs authorizing`, the app already badges
+   * it, and `/servers` already reports it — none of them fired, because nothing put
+   * the server in here.
+   *
+   * A redirect that arrives later overwrites this with the real URL; this never
+   * overwrites one, so a usable URL is not lost to a subsequent failure.
+   */
+  /**
+   * Take on a pending state another pool observed, without logging it again.
+   *
+   * `indexOne` re-indexes on a scratch pool so a re-index cannot disturb the serving
+   * pool's connections. That pool is the one that SEES the rejection and it is shut down
+   * moments later, so what it learned has to be handed over. Silent, because the pool that
+   * observed it has already written the line — two identical warnings for one refusal is
+   * the same defect as none, read from the other side.
+   */
+  adoptPending(entry: PendingAuth): void {
+    const existing = this.pendingAuth.get(entry.server);
+    if (existing?.url) return;
+    this.pendingAuth.set(entry.server, entry);
+  }
+
+  noteAuthFailure(server: string, reason: string): void {
+    const existing = this.pendingAuth.get(server);
+    if (existing?.url) return;
+    this.pendingAuth.set(server, { server, at: new Date().toISOString(), reason });
+    log.warn(
+      `upstream "${server}" refused our credentials (${reason.slice(0, 120)}) — ` +
+        `run \`mcp-router auth ${server}\``
+    );
   }
 
   async acquire(serverName: string): Promise<UpstreamHandle> {
@@ -186,6 +235,13 @@ export class UpstreamPool {
         await transport.close();
       } catch {
         /* already dead */
+      }
+      const message = (err as Error).message ?? String(err);
+      if (err instanceof UnauthorizedError || isAuthFailure(message)) {
+        // Recorded, not just rethrown: the thrown message reaches whoever called, and
+        // the caller here is usually the indexer, which writes it into the manifest and
+        // moves on. Nothing downstream of that reads it as "needs authorizing".
+        this.noteAuthFailure(u.name, err instanceof UnauthorizedError ? 'unauthorized' : message);
       }
       if (err instanceof UnauthorizedError) {
         throw new Error(

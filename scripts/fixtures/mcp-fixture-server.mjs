@@ -309,5 +309,93 @@ function runOAuth() {
   });
 }
 
+/* -------------------------------------------------------------- staletoken -- */
+
+/*
+ * An upstream that accepts the connection and then refuses the first real call.
+ *
+ * This is the shape a REVOKED or EXPIRED credential actually arrives in, and it is
+ * not the shape `oauth` mode above produces. `oauth` refuses at the transport with a
+ * 401, so the SDK raises `UnauthorizedError` and starts a browser flow. A server that
+ * has stopped honouring a refresh token does something else: the POST succeeds, the
+ * MCP handshake completes, and the FIRST method call comes back as a JSON-RPC error
+ * in a 200 response.
+ *
+ * Measured against a live upstream on 2026-08-20, which is where the string below
+ * comes from verbatim: `[-32603] Internal error: Authentication required`, 373ms
+ * after a reconnect. Neither the redirect callback nor the `UnauthorizedError` branch
+ * fired, so nothing was recorded as needing authorization and the server read `idle`
+ * on every surface for six hours while contributing zero tools.
+ */
+function runStaleToken() {
+  const port = Number(process.env.FIXTURE_STALE_PORT ?? 8974);
+
+  const send = (res, status, body) => {
+    const payload = JSON.stringify(body);
+    res.writeHead(status, {
+      'content-type': 'application/json',
+      'content-length': Buffer.byteLength(payload),
+    });
+    res.end(payload);
+  };
+
+  const readBody = (req) =>
+    new Promise((resolve) => {
+      let body = '';
+      req.on('data', (chunk) => {
+        body += chunk;
+      });
+      req.on('end', () => resolve(body));
+    });
+
+  const server = createServer((req, res) => {
+    void (async () => {
+      if (req.method !== 'POST') {
+        res.writeHead(405).end();
+        return;
+      }
+      const raw = await readBody(req);
+      let msg;
+      try {
+        msg = JSON.parse(raw);
+      } catch {
+        send(res, 400, { error: 'bad json' });
+        return;
+      }
+
+      /* The handshake succeeds. That is the whole point: a 401 here would produce the
+         other failure mode, which the router already handled. */
+      if (msg.method === 'initialize') {
+        send(res, 200, {
+          jsonrpc: '2.0',
+          id: msg.id,
+          result: {
+            protocolVersion: '2024-11-05',
+            capabilities: { tools: {} },
+            serverInfo: { name: 'staletoken-fixture', version: '0.1.0' },
+          },
+        });
+        return;
+      }
+      if (typeof msg.id === 'undefined') {
+        res.writeHead(202).end();
+        return;
+      }
+
+      /* Every real method refused, in a 200, exactly as the live upstream did. */
+      send(res, 200, {
+        jsonrpc: '2.0',
+        id: msg.id,
+        error: { code: -32603, message: 'Internal error: Authentication required' },
+      });
+    })();
+  });
+
+  server.listen(port, '127.0.0.1', () => {
+    process.stdout.write(`fixture staletoken upstream on http://127.0.0.1:${port}/mcp\n`);
+  });
+}
+
 if (mode === 'oauth') runOAuth();
+else if (mode === 'staletoken') runStaleToken();
 else await runStdio();

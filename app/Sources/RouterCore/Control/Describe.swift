@@ -56,7 +56,7 @@ public enum Describe {
             members.append(JSONMember(key: "pendingChange", value: pendingChange(entry)))
         }
         members.append(JSONMember(key: "auth", value: authValue(
-            needsAuth: needsAuth, name: key, deps: deps, pending: pending
+            needsAuth: needsAuth, name: key, deps: deps, pending: pending, entry: entry
         )))
         // The stat is passed through unchanged, including members this item does not model (B9).
         members.append(JSONMember(key: "usage", value: (stat ?? .zero).value))
@@ -178,7 +178,11 @@ public enum Describe {
     }
 
     private static func authValue(
-        needsAuth: Bool, name: JSString, deps: ControlDeps, pending: PendingAuthRow?
+        needsAuth: Bool,
+        name: JSString,
+        deps: ControlDeps,
+        pending: PendingAuthRow?,
+        entry: CachedServer?
     ) -> JSONValue {
         guard needsAuth else {
             return .object([
@@ -186,10 +190,48 @@ public enum Describe {
                 JSONMember(key: "authorized", value: .bool(true))
             ])
         }
+        /*
+         * `authorized` used to be `hasTokens(name)` alone, which reports that a FILE exists.
+         * Measured on a live router on 2026-08-20: this object carried
+         * `indexError: "[-32603] Internal error: Authentication required"` and
+         * `auth.authorized: true` at the same time, three lines apart, because the token file
+         * was on disk and the server had stopped honouring the refresh inside it. REQ-007 says
+         * the router never displays what it does not observe, and a field named `authorized`
+         * reporting a fact about the filesystem is exactly that.
+         *
+         * Read from the MANIFEST rather than from the pool's pending map, deliberately: the
+         * pending map is in-memory and empty on a fresh start, while the recorded index error
+         * persists, so a restarted router would otherwise report `authorized: true` again until
+         * something happened to re-index.
+         */
+        let rejection: String? = {
+            guard case let .string(text)? = entry?.member("error"),
+                  AuthRefusal.isRefusal(text.string) else { return nil }
+            // A refusal the manifest recorded BEFORE the credential was last authorized is stale,
+            // and reporting it tells the user the credential they have just fixed is still being
+            // refused. `control.ts` carries the measurement this mirrors: completing an
+            // authorization re-indexes, that re-index is fire-and-forget on both routers, and a
+            // `GET /servers/:name` immediately afterwards may read a manifest written before the
+            // browser hop. Whichever side loses that race is a property of the machine that day.
+            if let authorizedAt = deps.auth.authorizedAt(name),
+               case let .string(builtAt)? = entry?.member("builtAt"),
+               AuthStamp.isAfter(authorizedAt, builtAt.string) { return nil }
+            return text.string
+        }()
         var members = [
             JSONMember(key: "supported", value: .bool(true)),
-            JSONMember(key: "authorized", value: .bool(deps.auth.hasTokens(name)))
+            JSONMember(
+                key: "authorized",
+                value: .bool(deps.auth.hasTokens(name) && rejection == nil)
+            )
         ]
+        // Present only when we hold a credential the upstream has refused, which is the state
+        // that has a remedy: `mcp-router auth <name>`. Absent means either working, or never
+        // authorized at all — and those two are told apart by `authorizedAt`, which a server
+        // that has never authorized does not carry.
+        if let rejection {
+            members.append(JSONMember(key: "rejected", value: .string(JSString(rejection))))
+        }
         // Both are omitted when undefined, which is what the recorded pending-auth fixture shows:
         // a supported, unauthorized server carrying neither key.
         if let at = deps.auth.authorizedAt(name) {

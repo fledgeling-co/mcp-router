@@ -31,8 +31,14 @@ public struct PoolSnapshotPort: UpstreamPoolPort {
                 idleSec: $0.idleSec
             )
         }
-        pendingRows = await pool.pending().map {
-            PendingAuthRow(server: JSString($0.server), url: $0.url)
+        // `PendingAuthRow.url` is what `/servers` reports as `pendingUrl`, and the reference
+        // only ever carries it for a flow that has a URL. A refusal has none — there is nothing
+        // to link to until somebody starts the flow — so those rows are dropped here rather than
+        // given an empty string, which would render as a link to nowhere. The refusal still
+        // reaches `/status` and `auth.authorized`, which are the surfaces that report it.
+        pendingRows = await pool.pending().compactMap {
+            guard let url = $0.url else { return nil }
+            return PendingAuthRow(server: JSString($0.server), url: url)
         }
         livenames = Set(status.filter { $0.state == "running" }.map(\.name))
     }

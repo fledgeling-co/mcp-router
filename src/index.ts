@@ -25,7 +25,7 @@ import {
 import { startRouter } from './router.js';
 import { UsageStore } from './usage.js';
 import { controlToken, TOKEN_PATH } from './control.js';
-import { hasTokens } from './auth.js';
+import { hasTokens, isAuthFailure } from './auth.js';
 import { cmdWatch } from './watch.js';
 import { configureLogging, log } from './log.js';
 
@@ -111,7 +111,10 @@ async function cmdImport(): Promise<void> {
     for (const { raw, upstream } of candidates) {
       const { failed: bad } = await buildManifest([upstream], pool, manifest, { force: true });
       const entry = manifest.servers[upstream.name];
-      const authProblem = !!entry?.error && /not authorized|unauthorized|401/i.test(entry.error);
+      // Was `/not authorized|unauthorized|401/i` inline here. That missed the string a
+      // live server actually rejects a stale refresh with — `Authentication required` —
+      // so `import` reported SKIP for a server that only needed authorizing.
+      const authProblem = !!entry?.error && isAuthFailure(entry.error);
       if (!bad.length || authProblem) {
         const { name: _drop, ...rest } = raw as RawServer & { name?: string };
         adopt[upstream.name] = rest;

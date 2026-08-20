@@ -132,6 +132,34 @@ public extension UpstreamPool {
         pendingAuth[auth.server] = auth
     }
 
+    /// Record that an upstream refused our credentials, from a path that has no browser URL.
+    ///
+    /// The redirect callback used to be the only thing that populated this map, and it fires
+    /// only when the client decides to START an authorization flow. A server that rejects a
+    /// refresh token answers the NEXT call with an error and no redirect, so the map stayed
+    /// empty while the upstream served nothing. `status` already knows how to print
+    /// `! <name> needs authorizing`, the app already badges it, and `/status` already reports
+    /// it — none of them fired, because nothing put the server in here.
+    ///
+    /// A redirect arriving later overwrites this with the real URL; this never overwrites one,
+    /// so a usable URL is not lost to a subsequent failure.
+    func noteAuthFailure(server: String, reason: String, at: String) async {
+        if pendingAuth[server]?.url != nil { return }
+        pendingAuth[server] = PendingAuth(server: server, at: at, reason: reason)
+        await log?.record(PoolLogEvent.authRefused(server: server, reason: reason))
+    }
+
+    /// Take on a pending state another pool observed, without announcing it again.
+    ///
+    /// A re-index runs on a scratch pool so it cannot disturb the serving pool's connections,
+    /// and that pool is the one that SEES the rejection before being shut down moments later.
+    /// Silent, because the pool that observed it has already written the line — two identical
+    /// warnings for one refusal is the same defect as none, read from the other side.
+    func adoptPending(_ auth: PendingAuth) {
+        if pendingAuth[auth.server]?.url != nil { return }
+        pendingAuth[auth.server] = auth
+    }
+
     func clearPending(_ server: String) {
         pendingAuth.removeValue(forKey: server)
     }

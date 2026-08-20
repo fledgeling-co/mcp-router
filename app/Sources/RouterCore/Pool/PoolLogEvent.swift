@@ -16,6 +16,9 @@ public enum PoolLogEvent: Sendable, Hashable, LoggableEvent {
     case closingIdle(server: String, kind: Kind, calls: Int, aliveSeconds: Int)
     case closedItself(server: String)
     case needsAuthorization(server: String)
+    /// The upstream refused a credential we hold. Distinct from `needsAuthorization`, which
+    /// says a browser flow is waiting to be started; this says one already failed.
+    case authRefused(server: String, reason: String)
     case childStderr(server: String, text: String)
 
     /// A stdio upstream has a child; an HTTP one has only a connection. The reference says
@@ -28,7 +31,7 @@ public enum PoolLogEvent: Sendable, Hashable, LoggableEvent {
     public var level: RouterLog.Level {
         switch self {
         case .spawning, .connecting, .ready, .preOpeningWarm, .closingIdle: .info
-        case .warmFailed, .closedItself, .needsAuthorization: .warn
+        case .warmFailed, .closedItself, .needsAuthorization, .authRefused: .warn
         case .childStderr: .debug
         }
     }
@@ -53,6 +56,11 @@ public enum PoolLogEvent: Sendable, Hashable, LoggableEvent {
             "upstream \"\(server)\" closed on its own; evicting so the next call reopens it"
         case let .needsAuthorization(server):
             "upstream \"\(server)\" needs authorization — run `mcp-router auth \(server)`"
+        // The reason is truncated at 120 for the same reason `childStderr` is truncated at 400:
+        // the text comes from the upstream and must not be able to write unbounded lines here.
+        case let .authRefused(server, reason):
+            "upstream \"\(server)\" refused our credentials (\(String(reason.prefix(120)))) — "
+                + "run `mcp-router auth \(server)`"
         case let .childStderr(server, text):
             // Truncated at 400, as the reference does: a chatty server must not be able to write
             // unbounded lines into the router's own log.

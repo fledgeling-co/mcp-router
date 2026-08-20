@@ -100,13 +100,22 @@ struct PoolEntry {
 /// An upstream that answered 401 and wants the user to authorize in a browser.
 public struct PendingAuth: Sendable, Hashable {
     public let server: String
-    public let url: String
+    /// The browser URL to finish the flow, when there is one.
+    ///
+    /// Optional since 2026-08-20: an upstream that rejects a REFRESH never reaches the
+    /// redirect callback, so there is no URL to offer and the server still needs
+    /// authorizing. Requiring it is what forced the index path to record nothing at all,
+    /// which is how a dead credential came to read as `idle` on every surface.
+    public let url: String?
     public let at: String
+    /// The failure text, when this came from a rejection rather than a redirect.
+    public let reason: String?
 
-    public init(server: String, url: String, at: String) {
+    public init(server: String, url: String? = nil, at: String, reason: String? = nil) {
         self.server = server
         self.url = url
         self.at = at
+        self.reason = reason
     }
 }
 

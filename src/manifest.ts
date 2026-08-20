@@ -5,6 +5,7 @@ import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import type { UpstreamConfig } from './config.js';
 import { upstreamHash } from './config.js';
 import { UpstreamPool } from './pool.js';
+import { isAuthFailure } from './auth.js';
 import { log } from './log.js';
 
 /** Separator between the server namespace and the upstream's own tool name. */
@@ -264,6 +265,17 @@ export async function buildManifest(
       };
       failed.push(`${u.name}: ${message}`);
       log.error(`failed to index "${u.name}": ${message}`);
+      /*
+       * An index that fails because the upstream refused our credentials is the one
+       * failure the user can DO something about, and it was the one that said nothing.
+       * `pool.acquire` records it when the failure happens at connect; this catches the
+       * other half, where the transport connects and the server rejects the first call
+       * — measured against a live upstream on 2026-08-20, where `listTools` came back
+       * `[-32603] Internal error: Authentication required` 373ms after a reconnect.
+       * Without this the error lands in the manifest, `tools` reads 0, and every
+       * surface reports the server `idle`.
+       */
+      if (isAuthFailure(message)) pool.noteAuthFailure(u.name, message);
     }
   }
 

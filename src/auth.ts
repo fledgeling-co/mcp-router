@@ -57,6 +57,36 @@ export function authorizedAt(server: string): string | undefined {
   return readRecord(server).authorizedAt;
 }
 
+/**
+ * Did this failure mean the upstream refused our credentials?
+ *
+ * There is one predicate rather than three because the router had three, they
+ * disagreed, and the disagreement was invisible. `pool.open` caught the SDK's typed
+ * `UnauthorizedError`; `index.ts` matched /not authorized|unauthorized|401/i against
+ * the recorded index error; and the indexer matched nothing at all. Measured on
+ * 2026-08-20 against a live upstream whose refresh token had been revoked, the
+ * server answered `[-32603] Internal error: Authentication required` — a JSON-RPC
+ * error raised AFTER the transport connected, so it is not an `UnauthorizedError`,
+ * and it contains none of "not authorized", "unauthorized" or "401". All three
+ * detectors missed it, the upstream contributed 0 tools for six hours, and every
+ * surface reported it `idle`.
+ *
+ * Matched case-insensitively against the message text, because the transport hands
+ * back a string and the SDK does not type this failure on the read paths that
+ * matter. `invalid_grant` and `invalid_token` are RFC 6749 §5.2 and RFC 6750 §3.1
+ * error codes and arrive verbatim in the body a server rejects a refresh with.
+ *
+ * 403 is deliberately NOT here. Forbidden means the credential was understood and
+ * the account is not allowed to do this; re-authorizing does not fix it, and
+ * offering `mcp-router auth` for it would send the user round a loop that cannot
+ * succeed. That case wants its own reporting, and does not have it yet.
+ */
+export function isAuthFailure(message: string): boolean {
+  return /authentication required|unauthorized|not authorized|invalid_grant|invalid_token|\b401\b/i.test(
+    message
+  );
+}
+
 /** Forget one server's tokens and client registration. Used by `logout` and on removal. */
 export function clearAuth(server: string): boolean {
   const p = recordPath(server);

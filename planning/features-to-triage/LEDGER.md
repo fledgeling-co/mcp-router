@@ -57,6 +57,7 @@ it never tested.
 | R11 | Skills write endpoint (remove/disable) with preconditions and undo | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R7, renumbered 2026-08-21) |
 | R12 | Server soft-delete with a restore endpoint | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R8, renumbered 2026-08-21) |
 | R13 | Router-side behavioural eval runner — servers only | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R6, renumbered 2026-08-21) |
+| G2 | The ledger table holds two row shapes, and every reader silently drops one | `G2-orchestrator-table-is-heterogeneous.md` | — | — | Ready for AI — deferred from 2026-08-21 while agents were mid-read |
 | M15 | Settings becomes its own window | `M15-settings-window.md` | — | — | Untriaged |
 | M16 | The Signal Path replaces the Breaker Column | `M16-signal-path.md` | — | — | Untriaged |
 | M17 | Four states on every surface, and chrome that follows | `M17-surface-states.md` | — | — | Untriaged |

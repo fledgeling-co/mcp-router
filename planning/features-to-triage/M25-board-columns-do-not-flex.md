@@ -1,59 +1,66 @@
-# M25 — three boards are wider than the pane they sit in, so their trailing chrome is cut
+# M25 — closed: the width came from the controls row, not the columns
 
-**Category:** mac · **Found:** 2026-08-20, by measurement through the accessibility API
-**Defect:** DEF-015 (half closed) · **Surfaces:** SURF-004 Skills, SURF-005 Discover, SURF-006 Checks
+**Category:** mac · **Found:** 2026-08-20 · **Closed:** 2026-08-20
+**Defect:** DEF-015 (closed) · **Surfaces:** SURF-004 Skills, SURF-005 Discover, SURF-006 Checks
 
-## What was measured, and what the first half of the fix already did
+This brief was written from one measurement and closed by a second one that contradicted it. Both
+are recorded, because the first was wrong in a way worth being able to recognise again.
 
-Every board draws fixed-width columns declared in `M7BoardMetrics` and its siblings — `nameColumn
-= unit * 7.5`, `reasonColumn = unit * 9`, and so on, with `unit = 24`. A fixed `.frame(width:)`
-reports a hard minimum, so each row's minimum propagated up through the detail pane to
-`NavigationSplitView`, which reported the widest board's sum as its own minimum. Nothing read it
-back: this app opts into no minimum window size and `windowResizability` defaults to `.automatic`.
-The window proposed 980pt regardless, and SwiftUI placed the oversized child **centred**.
+## What the first measurement said
 
-| board | window | AXSplitGroup, before | after |
+Comparing each board's `AXSplitGroup` width against its `AXWindow` width found three boards laying
+out past the window at a 980pt size — Checks 988, Skills 1044, Discover 1119 — each with its origin
+moved left by exactly half its excess, so the clipping was symmetrical and the sidebar's own section
+headers were being cut to pay for the detail pane. `ContentZone` gained
+`.frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)`, which broke the minimum-width chain
+and put every board back at 980 of 980, with the leading alignment deciding that the trailing chrome
+loses rather than the navigation.
+
+That left content still cut at the pane's right edge, and this brief said the fix was to flex three
+boards' table columns.
+
+## What the second measurement said
+
+A pane-level probe — every leaf's right edge against the window's, from the same dumps — says the
+columns are not the driver.
+
+| board | content wants | pane has | driver |
 |---|---|---|---|
-| Servers, Activity, Cleanup, Inbox, Settings | 980pt | 980pt | 980pt |
-| Checks | 980pt | 988pt | 980pt |
-| Skills | 980pt | 1044pt | 980pt |
-| Discover | 980pt | 1119pt | 980pt |
+| Discover | 823pt | 684pt | controls row: a `.fixedSize()` segmented picker at 567pt beside a search field pinned at 240pt |
+| Skills | 748pt | 684pt | the same shape — a 516pt picker and a 216pt pinned field |
+| Checks | 1152pt of content inside a 1160pt pane | — | **not a content defect.** The only thing past the edge is `KeyClaimProbe`, the `#if DEBUG` test surface, overhanging by 4pt |
 
-`ContentZone` now carries `.frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)`, which
-breaks the chain. The sidebar is whole again — its section headers rendered as `unning` and `brary`
-before, while the nav rows beside them were untouched — and `capture-mac-glass.sh` fails on any
-board whose split group exceeds its window.
+Cutting Discover's `nameColumn` from 216pt to 96pt — a 120pt reduction — moved its content width by
+**zero**. That is what ruled the columns out, and it took one build to find out.
 
-## What is left
+## The probe was wrong first, and the pixels caught it
 
-The boards still want more room than the detail pane gives them; they are simply no longer allowed
-to take it from the window. The leading alignment decides who loses, and it is the trailing chrome:
-Discover's search field reads `Search the regis`, and a body sentence loses its last word. One edge
-instead of two, and the navigation is safe — but content still goes missing without saying so.
+Its first version read the frame's **y** where it meant **x**: a dump row's last five fields are x,
+y, w, h and a flag, and it took `r[-4]`. It reported clipped elements on seven of eight boards,
+including Settings, whose capture is whole from edge to edge. Seven of eight is close to uniform,
+which is the signature of a dead predicate rather than a broken product — and opening one screenshot
+settled it in under a minute. The split-group gate was unaffected because it only ever compared
+widths.
 
-Discover is the one that decides the cost. At 1119pt it wanted 139pt more than the window, roughly
-150pt more than the pane, which is a whole column's worth. Its columns are the ones to read first.
+## What was done
 
-## The decision this needs
+Each board gained a `searchMinWidth` of four units, and its field is declared
+`minWidth:idealWidth:maxWidth:` rather than `width:`. The picker cannot give a point back — that is
+what `.fixedSize()` means, and it is right, because a segmented control has nowhere to put a
+truncated label — so the field is the only control in the row that can. It renders at full width
+wherever there is room, and shows about eight characters at the narrowest window this app is used
+at: less than anyone wants, and more than nothing, since it still takes focus, accepts a query and
+submits.
 
-**Flex the columns.** Replace `.frame(width:)` with `.frame(minWidth:idealWidth:maxWidth:)` on the
-columns that can give, so a narrow pane takes space from the widest column rather than from the
-right edge. Keeps every control reachable at any window size. Cost: three boards' column work, and
-a judgement per column about which one yields — the reason column on Cleanup is already the one
-DEF-011 records as truncating where the design shows the whole sentence, so "which column gives" is
-a question this codebase has met before.
+Measured after: every board reads `split=980` in a `window=980`, and no leaf on any of the eight
+sits past the pane edge except a 1pt scrollbar, plus the Debug key probe's 4pt on Checks.
 
-**Or scroll the table body horizontally.** The AppKit-native answer for a table too wide for its
-pane: the columns keep their widths and the body scrolls. Nothing is ever cut, and nothing has to be
-re-judged. Cost: a horizontal scroller inside a board that already owns a vertical one, and a header
-that has to scroll with it or it stops labelling the right columns.
+Guarded by `ShellDetailWidthTests`, four assertions across two tests, all armed. `capture-mac-glass.sh`
+fails on any split-group overflow and refuses to pass on `examined=0`.
 
-**Or declare a minimum window width.** One line, and nothing ever needs to fit. Cost: users on a
-1280pt-wide screen get a window they cannot shrink below ~87% of it. Referred to the xAI lane
-(grok-4.6, xhigh), which rejected this one by name: Discover's +139pt is evidence the metrics are
-wrong rather than the window, and Finder, Mail and Xcode all compress or scroll instead.
+## What is deliberately left
 
-Guarded today by `ShellDetailWidthTests` and by the capture gate, neither of which can see this half
-— both compare the split group against the window, and pane-level overflow stays inside the window.
-An assertion for it needs a per-board content-width readback, which is work this brief should carry
-rather than a gap to leave unnamed.
+`KeyClaimProbe`'s 4pt overhang on Checks. It is a `#if DEBUG` surface that exists so A21 has
+something to prove the shell does not swallow three bare keys, it is absent from any build a user
+runs, and moving it risks the thing it exists to measure. Recorded so the next reader of a Debug
+capture knows what the 4pt is.

@@ -4,8 +4,8 @@ Lanes: macos-glass, ios-glass, swiftui, router-daemon, parity-wire
 
 **Sample:** pairwise floor; 3-way on theme×viewport×surface (Mac boards) and role×state×network (honesty); oversample honesty-guardrails; drop high-contrast (no authored tokens); drop RTL (no localisation); pairing-transport cells blocked (I5: unimplemented)
 
-20 surfaces · 5 flows · 8 components · 59 cases
-51 pass · 4 fail · 0 skip · 4 n/a · 0 open · armed 51/51
+20 surfaces · 5 flows · 8 components · 60 cases
+52 pass · 4 fail · 0 skip · 4 n/a · 0 open · armed 52/52
 
 | Case | Surface | State | Lane | Status | Armed | Evidence |
 |---|---|---|---|---|---|---|
@@ -28,6 +28,7 @@ Lanes: macos-glass, ios-glass, swiftui, router-daemon, parity-wire
 | CASE-0129 | SURF-004  |  | swiftui | pass | yes | 1 |
 | CASE-0013 | SURF-005  |  | macos-glass | pass | yes | 3 |
 | CASE-0105 | SURF-005  |  | macos-glass | pass | yes | 1 |
+| CASE-0134 | SURF-005  |  | macos-glass | pass | yes | 1 |
 | CASE-0014 | SURF-006  |  | macos-glass | pass | yes | 5 |
 | CASE-0106 | SURF-006  |  | macos-glass | pass | yes | 2 |
 | CASE-0015 | SURF-007  |  | macos-glass | pass | yes | 3 |

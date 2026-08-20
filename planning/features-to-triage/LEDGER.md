@@ -51,7 +51,7 @@ first.
 | M22 | The Harnesses and Insights boards | `M22-harnesses-and-insights-boards.md` | — | — | Untriaged |
 | M23 | The mock-to-SwiftUI conversion contract | `M23-mock-to-swiftui-contract.md` | — | — | Untriaged |
 | M24 | The Checks board and the design's eval board are two surfaces | `M24-checks-board-framing.md` | — | — | Untriaged |
-| M25 | Board columns do not flex, so trailing chrome is cut | `M25-board-columns-do-not-flex.md` | — | — | Untriaged |
+| M25 | The controls row, not the columns, set the boards' width | `M25-board-columns-do-not-flex.md` | — | — | **Done** (ai/x5) |
 | P7 | `control-auth-post-http` needs a real OAuth client | `P7-auth-post-oauth-client.md` | — | — | Untriaged |
 | P8 | Make `install-launchd-watch`'s `reran` term attributable | `P8-launchd-watch-attributable.md` | — | — | Untriaged |
 | X1 | The iOS accessibility-tree harness, and two surfaces still empty | `X1-ios-a11y-harness.md` | — | — | Done (closed by X3's engine fix + the accessibility-frame row oracle; `make test-ios` 36/0) |

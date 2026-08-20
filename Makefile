@@ -54,11 +54,24 @@ all: tools lint build test test-ios test-ios-glass parity parity-selftest
 
 ## Fail loudly and specifically when a required tool is missing, rather than skipping the gate.
 ## A silently-skipped lint step is worse than no lint step: it reports success.
+##
+## The node half is checked here rather than where it is used, and that is the whole point: a
+## fresh `git worktree` has no `node_modules` and no `dist`, `parity-selftest` is the LAST target
+## `all` runs, and its own environment check therefore fires forty minutes in — after lint, both
+## builds, 1483 package tests, the iOS lane and the on-glass lane have all passed. That happened
+## twice on 20 Aug 2026, on two different worktrees, and cost two full gate runs. Checking here
+## costs a millisecond and fails in the first second.
 tools:
 	@for t in xcodegen swiftlint swiftformat; do \
 	  command -v $$t >/dev/null 2>&1 || { \
 	    echo "error: $$t is not installed. brew install $$t"; exit 1; }; \
 	done
+	@[ -d node_modules ] || { \
+	  echo "error: node_modules is missing — a fresh worktree needs it before the parity lanes."; \
+	  echo "       run: npm install && npm run build"; exit 1; }
+	@[ -f dist/index.js ] || { \
+	  echo "error: dist/index.js is missing, so parity-lane-selftest would SKIP rather than run."; \
+	  echo "       A skip is not a pass. Run: npm run build"; exit 1; }
 	@echo "tools: $$(xcodegen --version | tr -d '\n') · swiftlint $$(swiftlint version) · swiftformat $$(swiftformat --version)"
 
 ## The Xcode project is generated, never committed — that is what keeps parallel branches from

@@ -180,6 +180,28 @@ it never tested.
   Fixing it also turned up `M13`: a complete nine-column row pasted into the four-column register,
   where its cells read as *Absorbed by: mac* and its outcome as a dependency list.
 
+  **H then had the same defect it was written to catch, one level down.** `dev-09` asked what the
+  parser does with a row whose field count does not match its header — and the answer was that it
+  skipped it, silently. Measured: **70 rows examined, 23 skipped**, all of them four-cell
+  deferred-child rows interleaved in the nine-column table with no header of their own. None of
+  the 23 can disagree about a status it has no cell for, so the finding survives — but a check
+  that quietly discards what it cannot parse reports clean over a subset, which is the same
+  denominator failure as a campaign publishing a pass rate over the surfaces it happened to reach.
+
+  The script now prints `H examined N rows; skipped K` on **every** run, names the skipped ids,
+  and returns **2** rather than 0 when `examined == 0`. A gate that never ran is not a gate that
+  passed, and the one way to reach a false clean here was for the table shape to change under it.
+
+  A row with *more* cells than its header is placed rather than skipped, and correctly: a stray
+  `|` shifts only the cells after it, so every column before the offending pipe keeps its index.
+  `D3` is the live case — 11 cells against a nine-column header, `Status` still landing on
+  `**Merged** \`67ae4f5\``.
+
+  H is armed three ways: the unmutated file is clean at exit 0; a stale duplicate row injected for
+  `M27` makes it name both line numbers at exit 1; and renaming the `Status` header to `State`
+  makes it exit 2 saying it measured nothing, rather than reporting a clean file it could not
+  read.
+
 - **M9, M10 and M12 were triaged on 2026-08-21 by measuring the tree, not by reading their
   rows.** Two of the three had already shipped. `M10`'s amendment is in `DESIGN.md` §6, which now
   carries the correction *and* the reason — the old illustration "a skill with no evaluation reads

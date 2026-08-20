@@ -94,7 +94,9 @@ def describes(text: str, source: str) -> dict[str, list[tuple[str, str]]]:
         out.setdefault(cell, []).append((source, cells[2].strip()))
     return out
 
-def status_rows(text: str) -> dict[str, list[tuple[int, str]]]:
+def status_rows(
+    text: str,
+) -> tuple[dict[str, list[tuple[int, str]]], list[tuple[int, str]]]:
     """Every table row's Status cell, keyed by id, indexed by the column's HEADER name.
 
     Positional indexing would be wrong here. This file has one 9-column table carrying a
@@ -103,24 +105,39 @@ def status_rows(text: str) -> dict[str, list[tuple[int, str]]]:
     matched against its nearest preceding header, and an id whose only second row lives in a
     table with no Status column is left alone rather than compared against a cell that means
     something else — which is what keeps M11 out of this check and R4-C in it.
+
+    A row with MORE cells than the header is still placed, and correctly: a stray `|` inside a
+    cell shifts only the cells after it, so every column before the offending pipe keeps its
+    index. `D3` is the live case — 11 cells against a 9-column header, `Status` still landing on
+    `**Merged**`.
+
+    A row with FEWER cells is skipped, and the skip is **counted and named** rather than
+    dropped. That is the whole reason this returns a second value. A check that quietly discards
+    the rows it cannot parse reports clean over a subset, which is the same denominator failure
+    as a campaign publishing a pass rate over the surfaces it happened to reach. This file has 23
+    four-cell deferred-child rows interleaved in the nine-column table with no header of their
+    own; none can disagree about a status it has no cell for, but an instrument that says nothing
+    about half its input has not earned the word clean.
     """
     out: dict[str, list[tuple[int, str]]] = {}
+    skipped: list[tuple[int, str]] = []
     header: list[str] = []
     lines = text.split("\n")
     for n, line in enumerate(lines, 1):
         if re.match(r"^\|[\s:\-]+\|", line) and n >= 2:
             header = [c.strip().lower() for c in lines[n - 2].split("|")][1:-1]
             continue
-        if not line.startswith("| "):
+        if not line.startswith("| ") or "status" not in header:
             continue
         cells = [c.strip() for c in line.split("|")][1:-1]
-        if "status" not in header or len(cells) < len(header):
+        if len(cells) < len(header):
+            skipped.append((n, cells[0].replace("**", "").replace("~~", "").strip() if cells else ""))
             continue
         idc = cells[0].replace("**", "").replace("~~", "").strip()
         if not re.fullmatch(rf"{SERIES}\d+(?:-[A-Z]\d*)?", idc) or idc in NOT_ALLOCATIONS:
             continue
         out.setdefault(idc, []).append((n, cells[header.index("status")]))
-    return out
+    return out, skipped
 
 def content_words(text: str) -> set[str]:
     text = QUOTED.sub(" ", text).replace("~~", " ").replace("**", " ")
@@ -335,8 +352,9 @@ def main() -> int:
     # one of them — and it is worse than a missing row, because a missing row fails membership
     # while a stale duplicate fails nothing and gets scheduled. Found by dev-09 over a file
     # this script cleared at exit 0 with five such pairs in it.
+    o_status, o_skipped = status_rows(orch)
     h = []
-    for i, rs in sorted(status_rows(orch).items()):
+    for i, rs in sorted(o_status.items()):
         seen = {st.replace("**", "").strip(): n for n, st in rs}
         if len(seen) > 1:
             h.append(f"{i} (" + " / ".join(f"line {n}: {st[:44]!r}" for st, n in seen.items()) + ")")
@@ -344,6 +362,18 @@ def main() -> int:
         findings.append(("H", "two ORCHESTRATOR rows for one id disagreeing on status — a "
                               "fleet slot filled from the stale one re-plans work that is "
                               "already built", h))
+
+    # The denominator H stands on. Printed on every run, pass or fail: "no findings" over an
+    # unstated subset is the failure this line exists to make impossible to report by accident.
+    examined = sum(len(v) for v in o_status.values())
+    print(f"H examined {examined} rows with a status cell; "
+          f"skipped {len(o_skipped)} with fewer cells than their header"
+          + (f" ({', '.join(sorted({i for _, i in o_skipped if i}))})" if o_skipped else ""))
+    if examined == 0:
+        print("usage error: check H examined 0 rows — the table shape changed and H measured "
+              "nothing. A gate that never ran is not a gate that passed.", file=sys.stderr)
+        return 2
+    print()
 
     if not findings:
         print("reconciled — no findings across A, B, B-range, C, D, E, F, G, H")

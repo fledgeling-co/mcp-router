@@ -247,19 +247,61 @@ expect "deleting a pairing row returns 1, not 0" 1 "$root" "is absent from the b
 # 13 — the real colour-literal lint, against every colour-constructor spelling the `literals` layer
 # claims to catch. Not the stub: this layer's whole value is that it EXECUTES that script, and on
 # 21 Aug 2026 three of these spellings passed it clean while the M23 spec claimed otherwise.
-LINT="$REPO/scripts/lint/no-raw-design-values.sh"
-PROBE="$REPO/app/Sources/MCPRouterUI/MockFidelitySelftestProbe.swift"
-trap 'rm -rf "$SCRATCH"; rm -f "$PROBE"' EXIT
+#
+# Driven through a scratch root, the same symlink trick the engine cases use: the script derives its
+# root from its own `BASH_SOURCE`, and bash does not resolve a symlink there, so a link inside a temp
+# directory makes every path it scans resolve inside that directory. The probe therefore never
+# touches `app/Sources`, which matters because a run killed mid-loop would otherwise leave a file
+# there that breaks the build and the board census — and a selftest that can damage the tree it is
+# testing is worse than no selftest.
+LINT_REAL="$REPO/scripts/lint/no-raw-design-values.sh"
+LINT_ROOT="$SCRATCH/lintprobe"
+# Every directory the script insists on finding. It exits 1 on a missing one by design — a `find`
+# that matched nothing must not read as a clean pass — so the scratch root has to carry the whole
+# shape, and a directory added to the real script's list makes the control below go red here rather
+# than making these cases quietly meaningless.
+mkdir -p "$LINT_ROOT/scripts/lint" "$LINT_ROOT/app/Sources/MCPRouterUI" \
+         "$LINT_ROOT/app/Sources/MCPRouterUI/Shell" "$LINT_ROOT/app/Sources/MCPRouterUI/Activity" \
+         "$LINT_ROOT/app/Sources/MCPRouterUI/Boards" \
+         "$LINT_ROOT/app/Sources/MCPRouterKit" \
+         "$LINT_ROOT/app/MCPRouter" "$LINT_ROOT/app/MCPRouterIOS"
+ln -sf "$LINT_REAL" "$LINT_ROOT/scripts/lint/no-raw-design-values.sh"
+# One file that must stay clean, so a lint that is red whatever you feed it cannot pass the cases
+# below by accident.
+cat > "$LINT_ROOT/app/Sources/MCPRouterUI/Boards/Control.swift" <<'CLEAN'
+import SwiftUI
+enum ControlProbe {
+    static let tint = ColorToken.accent.color
+    static var body: some View {
+        Text("clean").typeRole(.body).frame(width: ServersBoardMetrics.nameColumn)
+    }
+}
+CLEAN
+: > "$LINT_ROOT/app/MCPRouter/Empty.swift"
+: > "$LINT_ROOT/app/MCPRouterIOS/Empty.swift"
+# The probe sits under Boards/ so it is read by the geometry rules as well as the colour ones,
+# which is the directory a real violation would be written in.
+PROBE="$LINT_ROOT/app/Sources/MCPRouterUI/Boards/Probe.swift"
+
+cases=$((cases + 1))
+if "$LINT_ROOT/scripts/lint/no-raw-design-values.sh" > /dev/null 2>&1; then
+  echo "ok    the colour-literal lint is clean on a tree with no raw value in it"
+else
+  echo "FAIL  the colour-literal lint is red on a clean tree, so the spelling cases prove nothing"
+  fail=1
+fi
+
 while IFS= read -r spelling; do
   [ -z "$spelling" ] && continue
   cases=$((cases + 1))
-  printf 'import SwiftUI\nenum MockFidelitySelftestProbe { static let probe = %s }\n' "$spelling" > "$PROBE"
-  if "$LINT" > /dev/null 2>&1; then
+  printf 'import SwiftUI\nenum Probe { static let probe = %s }\n' "$spelling" > "$PROBE"
+  if "$LINT_ROOT/scripts/lint/no-raw-design-values.sh" > /dev/null 2>&1; then
     echo "FAIL  the colour-literal lint let '$spelling' through"
     fail=1
   else
     echo "ok    the colour-literal lint catches $spelling"
   fi
+  rm -f "$PROBE"
 done <<'SPELLINGS'
 Color(white: 0.5)
 Color(hue: 0.5, saturation: 0.5, brightness: 0.5)
@@ -268,17 +310,8 @@ Color(.sRGB, red: 0.1, green: 0.2, blue: 0.3)
 Color(.sRGBLinear, red: 0.1, green: 0.2, blue: 0.3)
 Color(.displayP3, red: 0.1, green: 0.2, blue: 0.3)
 Color(cgColor: someCGColor)
+"#FF00FF"
 SPELLINGS
-rm -f "$PROBE"
-# And the tree with no probe in it must still be clean, or every case above passed for the wrong
-# reason — a lint that is red whatever you feed it proves nothing about the spellings.
-cases=$((cases + 1))
-if "$LINT" > /dev/null 2>&1; then
-  echo "ok    the lint is clean once the probe is removed"
-else
-  echo "FAIL  the lint is red on an unmodified tree, so the spelling cases above proved nothing"
-  fail=1
-fi
 
 # 14 — the gate script's own preflight, driven for real
 cases=$((cases + 1))

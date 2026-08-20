@@ -42,7 +42,7 @@ first.
 | — | **BLOCKED: the Apple developer identity** | `BLOCKED-apple-identity.md` | — | — | **Needs input — `as-found`, not confirmed** |
 | M14 | A shipped menu tells the user the app is not built | `M14-menu-says-not-built.md` | — | — | Untriaged |
 | R6 | Children inherit launchd's minimal PATH | `R6-child-process-path.md` | — | — | Untriaged |
-| R8 | An upstream that refuses our credentials must say so | `R8-auth-rejection-visible.md` | — | — | **Needs input** — built on `ai/r8`, reference half proven (8/8); changes `src/`, which StandingConstraints A38 refuses. Swift half blocked on swift-sdk 0.12.1 Error.swift:240 |
+| R8 | An upstream that refuses our credentials must say so | `R8-auth-rejection-visible.md` | — | — | **Done** (ai/r8 → main; owner unfroze `src/`, A38 rewritten to guard the reference's existence; Swift half unblocked by R9; parity 82/83 control 16/16 0 diverged; auth gate examined=8 failures=0) |
 | R7 | The router's thesis is unmet for every harness but Claude Code | `R7-harness-reconciliation.md` | — | — | Untriaged |
 | M15 | Settings becomes its own window | `M15-settings-window.md` | — | — | Untriaged |
 | M16 | The Signal Path replaces the Breaker Column | `M16-signal-path.md` | — | — | Untriaged |

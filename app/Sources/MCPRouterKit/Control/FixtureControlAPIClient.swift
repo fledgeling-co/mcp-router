@@ -46,6 +46,18 @@ public struct FixtureControlAPIClient: ControlAPIClient {
         case streamReconnecting
         /// The stream gave up.
         case streamDisconnected
+        /// A cleanup proposal whose skill half is not empty.
+        ///
+        /// Every skill in `populated` is installed on at least one client, and a skill is only
+        /// proposed for cleanup when every readable client lacks it — so the Cleanup board in
+        /// Debug has always drawn three servers and no skills. Its skill row treatments were
+        /// therefore unrenderable in a running build: the `Read first…` substitution a moved
+        /// marketplace triggers, the skill-kind `Remove…` the row disables, and the candidacy
+        /// reason itself. Unit tests reach them by building a reading directly; nothing could
+        /// photograph them. This scenario is the fixture that can, and it is separate from
+        /// `populated` rather than added to it because the Skills board publishes a count of
+        /// what `populated` holds, and two surfaces should not have to move together.
+        case cleanupSkills
     }
 
     public let scenario: Scenario
@@ -131,6 +143,11 @@ public struct FixtureControlAPIClient: ControlAPIClient {
             return SkillFixtures.partial()
         case .overflow:
             return SkillsResponse(skills: SkillFixtures.overflow, clients: SkillFixtures.clients)
+        case .cleanupSkills:
+            return SkillsResponse(
+                skills: SkillFixtures.populated + SkillFixtures.uninstalled,
+                clients: SkillFixtures.clients
+            )
         default:
             return SkillsResponse(skills: SkillFixtures.populated, clients: SkillFixtures.clients)
         }
@@ -229,7 +246,7 @@ public struct FixtureControlAPIClient: ControlAPIClient {
     /// otherwise be driven into.
     static func usageFixtureName(for scenario: Scenario) -> String {
         switch scenario {
-        case .populated, .overflow, .streamLive, .streamReconnecting, .streamDisconnected:
+        case .populated, .cleanupSkills, .overflow, .streamLive, .streamReconnecting, .streamDisconnected:
             "usage-call-log"
         case .empty, .loading, .partial, .error, .success, .offline, .unauthorized, .disabled:
             "usage"
@@ -347,7 +364,7 @@ public struct FixtureControlAPIClient: ControlAPIClient {
             // which is a fabricated status in the one path a Release build can never take but every
             // acceptance run does.
             return [.phase(.disconnected)]
-        case .populated, .empty, .loading, .partial, .success, .overflow, .disabled:
+        case .populated, .cleanupSkills, .empty, .loading, .partial, .success, .overflow, .disabled:
             return [.phase(.live)]
         }
     }

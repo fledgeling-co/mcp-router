@@ -4,13 +4,13 @@ Lanes: macos-glass, ios-glass, swiftui, router-daemon, parity-wire
 
 **Sample:** pairwise floor; 3-way on theme×viewport×surface (Mac boards) and role×state×network (honesty); oversample honesty-guardrails; drop high-contrast (no authored tokens); drop RTL (no localisation); pairing-transport cells blocked (I5: unimplemented)
 
-20 surfaces · 5 flows · 8 components · 63 cases
-56 pass · 3 fail · 0 skip · 4 n/a · 0 open · armed 56/56
+20 surfaces · 5 flows · 8 components · 70 cases
+63 pass · 3 fail · 0 skip · 4 n/a · 0 open · armed 63/63
 
 | Case | Surface | State | Lane | Status | Armed | Evidence |
 |---|---|---|---|---|---|---|
 | CASE-0001 | SURF-001  |  | macos-glass | pass | yes | 5 |
-| CASE-0002 | SURF-001  |  | macos-glass | n/a: posting Cmd+1–7 to a background pid does not change SwiftUI's focused scene (measured: title stayed Inbox then Activity); proving the shortcuts requires the window frontmost, which this campaign refuses |  | 1 |
+| CASE-0002 | SURF-001  |  | macos-glass | n/a: posting Cmd+1–7 to a background pid does not change SwiftUI's focused scene (measured: title stayed Inbox then Activity); proving the shortcuts requires the window frontmost, which this campaign refuses |  | 3 |
 | CASE-0008 | SURF-001  |  | swiftui | pass | yes | 3 |
 | CASE-0101 | SURF-001  |  | macos-glass | pass | yes | 1 |
 | CASE-0132 | SURF-001  |  | swiftui | pass | yes | 3 |
@@ -38,6 +38,11 @@ Lanes: macos-glass, ios-glass, swiftui, router-daemon, parity-wire
 | CASE-0135 | SURF-007  |  | swiftui | pass | yes | 1 |
 | CASE-0136 | SURF-007  |  | swiftui | pass | yes | 1 |
 | CASE-0137 | SURF-007  |  | swiftui | pass | yes | 1 |
+| CASE-0138 | SURF-007  |  | macos-glass | pass | yes | 2 |
+| CASE-0139 | SURF-007  |  | macos-glass | pass | yes | 1 |
+| CASE-0140 | SURF-007  |  | macos-glass | pass | yes | 2 |
+| CASE-0141 | SURF-007  |  | macos-glass | pass | yes | 1 |
+| CASE-0144 | SURF-007  |  | swiftui | pass | yes | 2 |
 | CASE-0005 | SURF-008  |  | macos-glass | pass | yes | 4 |
 | CASE-0007 | SURF-008  |  | macos-glass | pass | yes | 3 |
 | CASE-0017 | SURF-008  |  | swiftui | pass | yes | 3 |
@@ -46,8 +51,10 @@ Lanes: macos-glass, ios-glass, swiftui, router-daemon, parity-wire
 | CASE-0004 | SURF-009  |  | macos-glass | n/a: NSStatusItem is not an AXPress target while MCPRouter is backgrounded; this campaign never activates, so the popover cannot be opened or photographed |  | 1 |
 | CASE-0006 | SURF-009  |  | macos-glass | n/a: NSStatusItem is not an AXPress target while MCPRouter is backgrounded; inbox band never opened |  | 1 |
 | CASE-0109 | SURF-009  |  | macos-glass | n/a: status item not pressable in background; SURF-009 popover uncaptured. Raster-visual of the popover is unreachable under the no-activate constraint |  | 1 |
-| CASE-0010 | SURF-010  |  | macos-glass | fail |  | 1 |
-| CASE-0110 | SURF-010  |  | macos-glass | fail |  | 0 |
+| CASE-0010 | SURF-010  |  | macos-glass | fail |  | 2 |
+| CASE-0110 | SURF-010  |  | macos-glass | fail |  | 1 |
+| CASE-0142 | SURF-010  |  | macos-glass | pass | yes | 2 |
+| CASE-0143 | SURF-010  |  | macos-glass | pass | yes | 1 |
 | CASE-0009 | SURF-011  |  | swiftui | pass | yes | 3 |
 | CASE-0016 | SURF-011  |  | macos-glass | pass | yes | 3 |
 | CASE-0111 | SURF-011  |  | macos-glass | pass | yes | 1 |

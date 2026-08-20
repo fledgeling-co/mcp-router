@@ -153,6 +153,42 @@ struct FixtureClientTests {
         #expect(name.count > 40, "an overflow fixture that fits its column tests nothing")
     }
 
+    /// The scenario exists so the Cleanup board can draw a skill row at all.
+    ///
+    /// A skill is proposed for cleanup only when every readable client lacks it, and every skill
+    /// in `populated` is installed somewhere — so that scenario's Cleanup board is three servers
+    /// and nothing else, and the row treatments keyed on a skill candidate had no rendered path
+    /// in any build. The two assertions below are the two halves that have to hold for this
+    /// scenario to be worth having: the skills are candidates (nobody has them), and exactly one
+    /// of them is flagged as moved, so the row draws `Read first…` on one and `Inspect` plus a
+    /// disabled `Remove…` on the other. A fixture where both were flagged would light one branch
+    /// and leave the other exactly as dark as before.
+    @Test("the cleanupSkills scenario puts one moved and one unmoved skill on the Cleanup board")
+    func cleanupSkillsProposesSkills() async throws {
+        let response = try await FixtureControlAPIClient(.cleanupSkills).skills()
+        let capable = response.clients.filter(\.supportsSkills)
+        #expect(capable.allSatisfy { $0.status == .read },
+                "a client that cannot be read holds the whole proposal back, so no row would draw")
+
+        let proposed = response.skills.filter { skill in
+            if case .candidate = CleanupPresentation.candidacy(for: skill, clients: response.clients) {
+                return true
+            }
+            return false
+        }
+        #expect(proposed.count == 2,
+                "expected two cleanup-eligible skills, got \(proposed.map(\.name))")
+
+        let moved = proposed.filter { SkillChecks.originUnchanged($0).verdict == .failed }
+        #expect(moved.map(\.name) == ["pr-summariser"],
+                "exactly one row should substitute Read first…, got \(moved.map(\.name))")
+
+        // The other half of the board is unchanged: this scenario adds skills, it does not take
+        // servers away, so the two treatments are photographed side by side rather than alone.
+        let servers = try await FixtureControlAPIClient(.cleanupSkills).servers()
+        #expect(!servers.servers.isEmpty, "the scenario dropped the servers half of the board")
+    }
+
     @Test("the success scenario reports a write that worked")
     func successReportsSuccess() async throws {
         let result = try await FixtureControlAPIClient(.success).reindex("alpha")
@@ -240,7 +276,7 @@ struct FixtureClientTests {
     func everyScenarioIsCovered() {
         let covered: Set<FixtureControlAPIClient.Scenario> = [
             .populated, .empty, .loading, .partial, .error, .success,
-            .offline, .unauthorized, .overflow, .disabled,
+            .offline, .unauthorized, .overflow, .disabled, .cleanupSkills,
             .streamLive, .streamReconnecting, .streamDisconnected
         ]
         let all = Set(FixtureControlAPIClient.Scenario.allCases)
@@ -250,7 +286,11 @@ struct FixtureClientTests {
         )
         // The arithmetic is spelled out because it is what caught the gap: the count used to be 12
         // and read as "the nine states plus three phases", which balanced only because
-        // `unauthorized` was silently standing in for the missing `disabled`.
-        #expect(all.count == 13, "DESIGN.md §5's nine states, plus unauthorized, plus three stream phases")
+        // `unauthorized` was silently standing in for the missing `disabled`. It caught the next
+        // one too — `cleanupSkills` was added for a capture and this test named it the same day.
+        #expect(
+            all.count == 14,
+            "DESIGN.md §5's nine states, plus unauthorized, three stream phases, and cleanupSkills"
+        )
     }
 }

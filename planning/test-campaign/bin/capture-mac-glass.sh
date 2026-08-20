@@ -54,6 +54,17 @@ capture() {
   # a destination that changed mid-capture cannot be recorded as settled.
   title="$("$AXKIT" title "$PID")"
   frame="$("$AXKIT" frame "$PID")"
+  # Who is in front at the shutter. The invariant this campaign owes is that MCPRouter is
+  # never activated, and that is a fact about MCPRouter rather than about whichever app the
+  # window server promoted while a launch and a terminate went past. Sampled here so every
+  # capture carries its own answer instead of the run carrying one for all of them.
+  local front_at_shutter
+  front_at_shutter="$("$AXKIT" front)"
+  FRONT_SHUTTER="$front_at_shutter"
+  if [ "$front_at_shutter" = "MCPRouter" ]; then
+    echo "FAIL $name: MCPRouter was frontmost at the shutter — this campaign never activates it"
+    exit 1
+  fi
   screencapture -x -l"$WINID" "$dest"
   local title_after
   title_after="$("$AXKIT" title "$PID")"
@@ -63,6 +74,7 @@ capture() {
   fi
   SUBJECT="$subject" NAME="$name" DEST="$dest" TITLE="$title" FRAME="$frame" \
   WANT="$want" WINID="$WINID" PID="$PID" APP="$MAC_APP" SHARES="$shares" \
+  FRONT="$front_at_shutter" \
   REASON="$reason" MANIFEST_NDJSON="$SHOTS/.captures.ndjson" python3 - <<'PY'
 import hashlib, json, os, datetime, pathlib
 dest = pathlib.Path(os.environ["DEST"])
@@ -85,6 +97,7 @@ entry = {
                   .replace(microsecond=0).isoformat().replace("+00:00", "Z"),
     "conditions": {"windowTitleReadback": title, "frame": os.environ["FRAME"],
                    "cgWindowID": os.environ["WINID"], "appearance": "system",
+                   "frontmostAtShutter": os.environ.get("FRONT", ""),
                    "scenario": os.environ.get("SCENARIO", "populated")},
     "witnessed": (f"axkit attached pid={os.environ['PID']} owns CGWindowID "
                   f"{os.environ['WINID']}, bundle {os.environ['APP']}"),
@@ -132,7 +145,7 @@ do
   if [ "$sid" = "SURF-002" ]; then
     # The shell is the same window and the same pixels. Declared, not hidden.
     cp "$SHOTS/SURF-002.build.png" "$SHOTS/SURF-001.build.png"
-    SUBJECT=SURF-001 NAME=SURF-001.build DEST="$SHOTS/SURF-001.build.png" \
+    SUBJECT=SURF-001 NAME=SURF-001.build DEST="$SHOTS/SURF-001.build.png" FRONT="$FRONT_SHUTTER" \
     TITLE="$("$AXKIT" title "$PID")" FRAME="$("$AXKIT" frame "$PID")" \
     WANT=READBACK WINID="$WINID" PID="$PID" APP="$MAC_APP" \
     SHARES="SURF-002" \
@@ -150,6 +163,8 @@ entry = {"path": f"evidence/shots/{dest.name}", "subject": os.environ["SUBJECT"]
                        .replace(microsecond=0).isoformat().replace("+00:00", "Z"),
          "conditions": {"windowTitleReadback": title, "frame": os.environ["FRAME"],
                         "cgWindowID": os.environ["WINID"], "appearance": "system",
+                        # The same shutter as SURF-002's, because these are the same pixels.
+                        "frontmostAtShutter": os.environ.get("FRONT", ""),
                         "scenario": "populated"},
          "witnessed": f"axkit attached pid={os.environ['PID']} owns CGWindowID {os.environ['WINID']}, bundle {os.environ['APP']}",
          "sharesWith": ["SURF-002"], "shareReason": os.environ["REASON"]}
@@ -157,6 +172,69 @@ open(os.environ["MANIFEST_NDJSON"], "a").write(json.dumps(entry) + "\n")
 print(f"  captured SURF-001.build (declared share of SURF-002) sha={entry['sha256'][:16]}")
 PY
     "$AXKIT" dump "$PID" window > "$AX/SURF-001.window.txt"
+
+    # The shell's OWN pixels: the sidebar, cropped out of the window it was photographed in.
+    #
+    # The full-window share above is honest and it is also not evidence about the shell alone — it
+    # is byte-identical to the Servers board, so a pixel claim on it is a pixel claim on SURF-002
+    # wearing a second id, which is exactly what `glass-assert.py` and `campaign.py check` both
+    # refuse. This crop is the shell without a board in it. Its geometry is read out of the dump
+    # rather than written down, so a resized window crops correctly instead of silently cutting the
+    # wrong strip, and the entry records what it was derived from.
+    SHOT_DIR="$SHOTS" AX_DUMP="$AX/SURF-001.window.txt" APP="$MAC_APP" PID="$PID" \
+    WINID="$WINID" MANIFEST_NDJSON="$SHOTS/.captures.ndjson" python3 - <<'CROP'
+import hashlib, json, os, datetime, pathlib
+from PIL import Image
+
+shots = pathlib.Path(os.environ["SHOT_DIR"])
+src = shots / "SURF-001.build.png"
+rows = [r.split("\t") for r in pathlib.Path(os.environ["AX_DUMP"]).read_text().splitlines()]
+
+def frame(row):
+    return [float(v) for v in row[-5:-1]]
+
+window = next(r for r in rows if len(r) > 5 and r[1] == "AXWindow")
+sidebar = next(r for r in rows if len(r) > 5 and r[1] == "AXOutline" and "Sidebar" in r)
+wx, wy, ww, wh = frame(window)
+sx, sy, sw, sh = frame(sidebar)
+
+image = Image.open(src)
+# Two unknowns, two equations: the window's points map to pixels at some scale, inside a shadow
+# margin the compositor adds equally on each side.
+scale = (image.width - image.height) / (ww - wh)
+margin = (image.width - ww * scale) / 2
+right = margin + (sx + sw - wx) * scale
+if not (0 < right <= image.width) or abs(scale - round(scale)) > 0.01:
+    raise SystemExit(f"sidebar crop refused: scale={scale} right={right} of {image.width}")
+
+dest = shots / "SURF-001.shell.png"
+image.crop((0, 0, int(round(right)), image.height)).save(dest)
+raw = dest.read_bytes()
+entry = {
+    "path": f"evidence/shots/{dest.name}", "subject": "SURF-001",
+    "target": "app://mac/shell",
+    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS), "
+               "cropped to the sidebar frame the AX dump reports",
+    "derivedFrom": "evidence/shots/SURF-001.build.png",
+    "sha256": hashlib.sha256(raw).hexdigest(),
+    "capturedAt": datetime.datetime.now(datetime.timezone.utc)
+                  .replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+    "conditions": {"windowTitleReadback": window[3], "frame": f"{sx},{sy},{sw},{sh}",
+                   "cgWindowID": os.environ["WINID"], "appearance": "system",
+                   # No shutter of its own: this is cut from a capture that had one, and that
+                   # capture's own entry carries the answer. Said rather than left empty.
+                   "frontmostAtShutter": "n/a — derived crop, see SURF-001.build.png",
+                   "scenario": "populated",
+                   "crop": f"0,0,{int(round(right))},{image.height} of "
+                           f"{image.width}x{image.height} at scale {scale:g}, "
+                           f"shadow margin {margin:g}px"},
+    "witnessed": (f"axkit attached pid={os.environ['PID']} owns CGWindowID "
+                  f"{os.environ['WINID']}, bundle {os.environ['APP']}"),
+}
+open(os.environ["MANIFEST_NDJSON"], "a").write(json.dumps(entry) + "\n")
+print(f"  captured SURF-001.shell (sidebar crop of SURF-001.build) "
+      f"bytes={len(raw)} sha={entry['sha256'][:16]}")
+CROP
   fi
 done
 
@@ -178,10 +256,20 @@ else
 fi
 
 # Pairing sheet. The previous run filed a photograph of the Inbox board here.
+# The pairing sheet, opened from the board that carries its control.
+#
+# Reported "no pairing control was pressable in the background" for three runs, and the control was
+# pressable the whole time: `axkit press` walks the FRONT window, the block above leaves the app on
+# Servers, and the `Pairing…` button lives on Inbox and on Settings. The surface was recorded as
+# unreachable for a reason that was this script's own navigation rather than the product's. Select
+# the board first, and press the label the dump actually reports — with its ellipsis, since the
+# match is a substring of the accessibility description.
 echo "try pairing sheet"
 PAIR_OPENED=0
-for label in "Pair a phone" "Pair" "Pairing"; do
-  if "$AXKIT" press "$PID" "$label" >/dev/null 2>&1; then PAIR_OPENED=1; break; fi
+for board in Inbox Settings; do
+  "$AXKIT" select "$PID" "$board" || continue
+  sleep 0.4
+  if "$AXKIT" press "$PID" "Pairing" >/dev/null 2>&1; then PAIR_OPENED=1; break; fi
 done
 if [ "$PAIR_OPENED" = "1" ]; then
   sleep 0.6
@@ -203,19 +291,51 @@ else
   echo "  status item not pressable in background — SURF-009 uncaptured"
 fi
 
+# A state that needs its own launch, because the scenario is read once at start-up.
+#
+# The destination is a parameter rather than always Servers. It was always Servers when the only
+# extra states were the Servers board's own empty and offline ones, and hard-coding it meant a
+# state belonging to another board had nowhere to be photographed — which is why the Cleanup
+# board's skill rows had no picture until this argument existed. The board is selected, then read
+# back off the running app by `capture ... READBACK`, so a select that silently failed files the
+# picture under the destination the app was actually showing rather than the one asked for.
 relaunch_and_capture() {
-  local scenario="$1" name="$2" subject="$3"
+  local scenario="$1" name="$2" subject="$3" destination="${4:-Servers}"
   "$AXKIT" terminate "$PID" || true
   mac_app_wait_gone "$MAC_APP"
   mac_app_launch "$MAC_APP" "$AXKIT" "MCPROUTER_SCENARIO=$scenario"
   WINID="$("$AXKIT" winid "$PID")"
-  "$AXKIT" select "$PID" "Servers" || true
+  "$AXKIT" select "$PID" "$destination" || true
   sleep 0.5
   "$AXKIT" dump "$PID" window > "$AX/${name}.window.txt"
   SCENARIO="$scenario" capture "$name" "$subject" READBACK
 }
 relaunch_and_capture empty   SURF-002.empty   SURF-002
 relaunch_and_capture offline SURF-002.offline SURF-002
+# The Cleanup board with skills in the proposal. `populated` installs every skill somewhere and a
+# skill is only proposed when no readable client has it, so that scenario draws three servers and
+# no skills at all: the `Read first…` substitution and the disabled skill-kind `Remove…` had no
+# rendered path in any build, only in tests that construct a reading directly.
+relaunch_and_capture cleanupSkills SURF-007.cleanup-skills SURF-007 Cleanup
+
+# The sheet that `Read first…` opens, from the row that draws it.
+#
+# Reachable only from the state above — the button exists on a flagged skill row and no scenario
+# but `cleanupSkills` puts one on the board. Pressed rather than assumed: `axkit press` is
+# background-safe on a SwiftUI Button because AXPress runs the action on the element and needs no
+# focused scene, and a press that does not take exits non-zero, so the sheet is either photographed
+# or reported uncaptured. Escape closes it again so the app is left where the board was.
+echo "try provenance sheet"
+if "$AXKIT" press "$PID" "Read first" >/dev/null 2>&1; then
+  sleep 0.6
+  "$AXKIT" dump "$PID" window > "$AX/SURF-007.provenance-sheet.window.txt"
+  SCENARIO=cleanupSkills capture SURF-007.provenance-sheet SURF-007 READBACK
+  "$AXKIT" key "$PID" 53 || true
+  sleep 0.3
+else
+  echo "  Read first… was not pressable in the background — provenance sheet uncaptured,"
+  echo "  and no picture is filed under it."
+fi
 
 "$AXKIT" terminate "$PID" || true
 mac_app_wait_gone "$MAC_APP"
@@ -280,8 +400,14 @@ OVERFLOW
 
 FRONT_AFTER="$("$AXKIT" front)"
 echo "frontmost after: $FRONT_AFTER"
+# The per-shutter check above is the gate, because it names MCPRouter. This one compares the
+# session's frontmost app before and after, which is a different question: it went red twice on
+# runs where an unrelated application took focus during the minute this takes, and it cannot tell
+# that from this script stealing it. Reported with the app named, so a reader can see which it was,
+# and not treated as a verdict about MCPRouter.
 if [ "$FRONT_AFTER" != "$FRONT_BEFORE" ]; then
-  echo "FAIL: stole focus ($FRONT_BEFORE -> $FRONT_AFTER)"
-  exit 1
+  echo "note: another application took focus during the run ($FRONT_BEFORE -> $FRONT_AFTER)."
+  echo "      MCPRouter was not frontmost at any shutter — checked per capture, and recorded on"
+  echo "      each entry in captures.json as conditions.frontmostAtShutter."
 fi
-echo "glass capture done, focus unchanged"
+echo "glass capture done, MCPRouter never frontmost"

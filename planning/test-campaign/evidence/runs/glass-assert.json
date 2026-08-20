@@ -1,5 +1,5 @@
 {
- "checked": 137,
+ "checked": 224,
  "failures": [],
  "cases": {
   "CASE-0001": {
@@ -46,6 +46,38 @@
     },
     {
      "label": "shell capture is not a board capture under a second id",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u23181 to Activity",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u23182 to Servers",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u23183 to Skills",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u23184 to Discover",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u23185 to Inbox",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u23186 to Checks",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u23187 to Cleanup",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u2318, to Settings",
      "pass": true
     }
    ],
@@ -112,6 +144,10 @@
      "pass": true
     },
     {
+     "label": "window carries: Reset history\u2026",
+     "pass": true
+    },
+    {
      "label": "dump is an AXWindow tree",
      "pass": true
     }
@@ -126,6 +162,10 @@
     },
     {
      "label": "window carries: 6 skills from 4 marketplaces \u00b7 1 held for review",
+     "pass": true
+    },
+    {
+     "label": "window carries: Add marketplace\u2026",
      "pass": true
     },
     {
@@ -192,7 +232,7 @@
      "pass": true
     },
     {
-     "label": "window carries: Observation window: 5d recorded",
+     "label": "window carries: Observation window: \\d+d recorded",
      "pass": true
     },
     {
@@ -278,6 +318,38 @@
      "pass": true
     },
     {
+     "label": "menu bar binds \u23181 to Activity",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u23182 to Servers",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u23183 to Skills",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u23184 to Discover",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u23185 to Inbox",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u23186 to Checks",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u23187 to Cleanup",
+     "pass": true
+    },
+    {
+     "label": "menu bar binds \u2318, to Settings",
+     "pass": true
+    },
+    {
      "label": "capture exists on disk",
      "pass": true
     },
@@ -356,6 +428,10 @@
      "pass": true
     },
     {
+     "label": "window carries: Reset history\u2026",
+     "pass": true
+    },
+    {
      "label": "dump is an AXWindow tree",
      "pass": true
     },
@@ -390,6 +466,10 @@
     },
     {
      "label": "window carries: 6 skills from 4 marketplaces \u00b7 1 held for review",
+     "pass": true
+    },
+    {
+     "label": "window carries: Add marketplace\u2026",
      "pass": true
     },
     {
@@ -516,7 +596,7 @@
      "pass": true
     },
     {
-     "label": "window carries: Observation window: 5d recorded",
+     "label": "window carries: Observation window: \\d+d recorded",
      "pass": true
     },
     {
@@ -639,78 +719,400 @@
     }
    ],
    "pass": true
+  },
+  "CASE-0138": {
+   "checks": [
+    {
+     "label": "window title is Cleanup",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Read first\u2026",
+     "pass": true
+    },
+    {
+     "label": "state window carries: The router first saw it at github:acme-tools/skills and ",
+     "pass": true
+    },
+    {
+     "label": "state window carries: The control API is read-only for skills: removing one me",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "state copy is absent from SURF-007.window.txt",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0139": {
+   "checks": [
+    {
+     "label": "window title is Cleanup",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Read first\u2026",
+     "pass": true
+    },
+    {
+     "label": "state window carries: The router first saw it at github:acme-tools/skills and ",
+     "pass": true
+    },
+    {
+     "label": "state window carries: The control API is read-only for skills: removing one me",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "state copy is absent from SURF-007.window.txt",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0140": {
+   "checks": [
+    {
+     "label": "window title is Cleanup",
+     "pass": true
+    },
+    {
+     "label": "state window carries: AXSheet",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Where the router first saw it, github:acme-tools/skills",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Where it resolves now, github:unknown-user/skills",
+     "pass": true
+    },
+    {
+     "label": "state window carries: The router first saw it, 2026-01-09T09:20:00.000Z",
+     "pass": true
+    },
+    {
+     "label": "state window carries: The router records where a marketplace resolves, never w",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "state copy is absent from SURF-007.cleanup-skills.window.txt",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: @jbailey",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: force-pushed",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: no longer in history",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: evals fail",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0141": {
+   "checks": [
+    {
+     "label": "window title is Cleanup",
+     "pass": true
+    },
+    {
+     "label": "state window carries: AXSheet",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Where the router first saw it, github:acme-tools/skills",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Where it resolves now, github:unknown-user/skills",
+     "pass": true
+    },
+    {
+     "label": "state window carries: The router first saw it, 2026-01-09T09:20:00.000Z",
+     "pass": true
+    },
+    {
+     "label": "state window carries: The router records where a marketplace resolves, never w",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "state copy is absent from SURF-007.cleanup-skills.window.txt",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: @jbailey",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: force-pushed",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: no longer in history",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: evals fail",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0142": {
+   "checks": [
+    {
+     "label": "window title is Inbox",
+     "pass": true
+    },
+    {
+     "label": "state window carries: AXSheet",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Pair iPhone",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Pairing is not available in this build",
+     "pass": true
+    },
+    {
+     "label": "state window carries: this build ships no way to listen for one. Nothing is wr",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "state copy is absent from SURF-008.window.txt",
+     "pass": true
+    },
+    {
+     "label": "state window matches nothing like \\b[0-9ABCDEFGHJKMNPQRSTVWXYZ]{8}\\b",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0143": {
+   "checks": [
+    {
+     "label": "window title is Inbox",
+     "pass": true
+    },
+    {
+     "label": "state window carries: AXSheet",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Pair iPhone",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Pairing is not available in this build",
+     "pass": true
+    },
+    {
+     "label": "state window carries: this build ships no way to listen for one. Nothing is wr",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "state copy is absent from SURF-008.window.txt",
+     "pass": true
+    },
+    {
+     "label": "state window matches nothing like \\b[0-9ABCDEFGHJKMNPQRSTVWXYZ]{8}\\b",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
   }
  },
  "shots": {
   "CASE-0101": {
-   "path": "SURF-001.restored.png",
+   "path": "SURF-001.shell.png",
    "exists": true,
-   "bytes": 152001,
-   "sha": "71e5fdbaea70f66c",
+   "bytes": 94067,
+   "sha": "c45c098af28d9fd0",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0102": {
    "path": "SURF-002.build.png",
    "exists": true,
-   "bytes": 412539,
-   "sha": "3850aa33922e7aa2",
+   "bytes": 410665,
+   "sha": "f221cce575ed34a8",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0103": {
    "path": "SURF-003.build.png",
    "exists": true,
-   "bytes": 450931,
-   "sha": "442eea376ec66963",
+   "bytes": 454012,
+   "sha": "67ec5b003a42ff81",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0104": {
    "path": "SURF-004.build.png",
    "exists": true,
-   "bytes": 452004,
-   "sha": "408c816f2fb85767",
+   "bytes": 458432,
+   "sha": "5d9c92bd76dc87dd",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0105": {
    "path": "SURF-005.build.png",
    "exists": true,
-   "bytes": 407402,
-   "sha": "357e9583dc9fb7d7",
+   "bytes": 428612,
+   "sha": "b12da3f0eb96c4e9",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0106": {
    "path": "SURF-006.build.png",
    "exists": true,
-   "bytes": 492972,
-   "sha": "967759fcca7c00b3",
+   "bytes": 492393,
+   "sha": "baaf6220b51c1052",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0107": {
    "path": "SURF-007.build.png",
    "exists": true,
-   "bytes": 459695,
-   "sha": "bded39d8f4ef88f2",
+   "bytes": 484387,
+   "sha": "89465dc1c0bf407d",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0108": {
    "path": "SURF-008.build.png",
    "exists": true,
-   "bytes": 359399,
-   "sha": "c8feb3f7645b716f",
+   "bytes": 359081,
+   "sha": "ac60c33fec6697fd",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0111": {
    "path": "SURF-011.build.png",
    "exists": true,
-   "bytes": 475660,
-   "sha": "2bef83cfb4753dee",
+   "bytes": 475178,
+   "sha": "3b5a26ef6016a38c",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0139": {
+   "path": "SURF-007.cleanup-skills.png",
+   "exists": true,
+   "bytes": 519568,
+   "sha": "94dd9d06f87dc3d1",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0141": {
+   "path": "SURF-007.provenance-sheet.png",
+   "exists": true,
+   "bytes": 632806,
+   "sha": "778ceb5ee227dc18",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0143": {
+   "path": "SURF-010.build.png",
+   "exists": true,
+   "bytes": 415782,
+   "sha": "705e19b7c853443c",
    "isPNG": true,
    "sharedWith": null
   }

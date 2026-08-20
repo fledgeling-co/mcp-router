@@ -67,22 +67,33 @@ SURFACES = {
     # Its claim is the opposite one — persistence — and it is asserted across all nine
     # dumps rather than within one, which is the stronger reading.
     #
-    # Measured while writing this: SURF-001.window.txt and SURF-003.window.txt are
-    # byte-identical (sha 85c2213f…), as are SURF-001.build.png and SURF-003.build.png
-    # (442eea37…, 450931 bytes) and both mocks (599f08b8…). The capture script takes
-    # SURF-001 from "whatever destination is restored", and that was Activity. So the
-    # shell has no distinct board capture of its own; its pixel case uses
-    # SURF-001.restored.png (71e5fdba…, a different image) and that is recorded on the
-    # case rather than left for a reader to discover.
+    # The shell has no board of its own, so the capture script photographs it on the
+    # Servers board and declares the share: SURF-001.build.png is byte-identical to
+    # SURF-002.build.png, recorded as such in captures.json with the reason. That is
+    # honest and it is not a pixel claim about the shell — it is a pixel claim about
+    # Servers under a second id, which the check below refuses. So the pixel case cites
+    # SURF-001.shell.png, the sidebar cropped out of that window at the frame the AX
+    # dump reports, with `derivedFrom` recording where it came from.
     "SURF-001": {
         "dump": "SURF-001.window.txt", "title": None,
-        "shot": "SURF-001.restored.png", "kind": "shell",
+        "shot": "SURF-001.shell.png", "kind": "shell",
         "copy": [
             "Activity", "Servers", "Skills", "Discover",
             "Inbox", "Checks", "Cleanup", "Settings",
         ],
+        # REQ-003's other half. CASE-0002 is n/a because posting ⌘1–7 to a background pid does
+        # not change SwiftUI's focused scene — measured, and a fact about the platform rather
+        # than the product — so no run of this campaign can prove the keystroke NAVIGATES. What
+        # it can prove is that the running app registered the bindings with the system, read
+        # off the live menu bar rather than out of MenuCommand.swift. That is short of the
+        # requirement and it is not nothing: a binding silently lost would be invisible today.
+        # Scoped to `menuAction:` rows, because the Window menu lists the same board names with
+        # `makeKeyAndOrderFront:` and no key of their own.
+        "menu": {"Activity": "1", "Servers": "2", "Skills": "3", "Discover": "4",
+                 "Inbox": "5", "Checks": "6", "Cleanup": "7", "Settings": ","},
         "asserts": "the shell offers all eight sidebar destinations in every window it "
-                   "draws, which is a claim about persistence rather than identity",
+                   "draws, which is a claim about persistence rather than identity, and its "
+                   "live menu bar declares ⌘1–7 and ⌘, against those eight destinations",
     },
     "SURF-002": {
         "dump": "SURF-002.window.txt", "title": "Servers",
@@ -94,14 +105,19 @@ SURFACES = {
     "SURF-003": {
         "dump": "SURF-003.window.txt", "title": "Activity",
         "shot": "SURF-003.build.png",
-        "copy": ["browser_evaluate", "no page open — call browser_navigate first"],
+        "copy": ["browser_evaluate", "no page open — call browser_navigate first",
+                 # DEF-016's affordance and DEF-012's first rename, drawn rather than declared.
+                 "Reset history…"],
         "asserts": "the activity log renders a real failed call with the upstream's own "
                    "error text, not a summarised one",
     },
     "SURF-004": {
         "dump": "SURF-004.window.txt", "title": "Skills",
         "shot": "SURF-004.build.png",
-        "copy": ["6 skills from 4 marketplaces · 1 held for review"],
+        "copy": ["6 skills from 4 marketplaces · 1 held for review",
+                 # DEF-012's second rename. The board shipped "Manage marketplaces…" while the
+                 # menu item opening the same sheet said this.
+                 "Add marketplace…"],
         "asserts": "the skills board publishes its counts including what is held for review",
     },
     "SURF-005": {
@@ -130,7 +146,13 @@ SURFACES = {
         "shot": "SURF-007.build.png",
         "copy": [
             "Capabilities MCP Router has never seen used",
-            "Observation window: 5d recorded",
+            # The number is computed from the fixture's `since` against the clock, so it
+            # was "5d recorded" yesterday and "6d recorded" today. Asserting the literal
+            # asserted the calendar: it went red on a day nothing in the product moved.
+            # The claim REQ-017 makes is that the board bounds itself to a window it
+            # actually recorded, and a digit-and-unit proves that without also proving
+            # what day it is. The clause disappearing still fails.
+            re.compile(r"Observation window: \d+d recorded"),
             "It proposes; you decide",
         ],
         "asserts": "Cleanup bounds its claim to the window it actually recorded and leaves "
@@ -160,6 +182,88 @@ SURFACES = {
     },
 }
 
+# A STATE is one surface under a fixture scenario that makes it draw something the
+# default scenario cannot. It is not a new surface — the same board, the same window —
+# so it is not in the discrimination matrix above, which asks whether a predicate can
+# tell two BOARDS apart. It carries the stronger local control instead: `absentFrom`
+# names the same board's default dump, and the predicate must REJECT it. A state
+# predicate that also accepts the default is not describing the state.
+STATES = {
+    "SURF-007/provenance-sheet": {
+        "surface": "SURF-007",
+        "dump": "SURF-007.provenance-sheet.window.txt", "title": "Cleanup",
+        "shot": "SURF-007.provenance-sheet.png",
+        "absentFrom": "SURF-007.cleanup-skills.window.txt",
+        "copy": [
+            "AXSheet",
+            "Where the router first saw it, github:acme-tools/skills",
+            "Where it resolves now, github:unknown-user/skills",
+            "The router first saw it, 2026-01-09T09:20:00.000Z",
+            # The sentence that bounds the claim, on screen rather than left to be inferred.
+            "The router records where a marketplace resolves, never who owns it and never "
+            "what changed inside it",
+        ],
+        # `prototype.html:1249` states four things the router does not observe: an owner at
+        # install, a force-push on the default branch, an installed hash no longer in history,
+        # and a failing eval count. One of them is not computable at all — `SkillProvenance`
+        # records that the client's files carry a commit and never an owner. Enumerated by
+        # name rather than as a blanket not-that predicate, so this fires on the specific
+        # regression rather than on any rewording.
+        "absent": ["@jbailey", "force-pushed", "no longer in history", "evals fail"],
+        "asserts": "the sheet REQ-007 was most at risk on renders the three observations "
+                   "SkillProvenance actually carries, says on screen what it cannot know, "
+                   "and states none of the four figures the design invented",
+    },
+    # The pairing sheet, which is a REFUSAL rather than the surface REQ-015 describes.
+    #
+    # CASE-0010 and CASE-0110 fail against REQ-015 and stay failing: there is no 8-character
+    # Crockford code and no QR, because DEF-001 is that this build ships no pairing transport.
+    # What this state asserts is the different and separately-owed thing — that the build says
+    # so, in the shape REQ-019 requires, instead of drawing a code it cannot honour. A passing
+    # predicate here does not launder that failure; the two are about different requirements
+    # and both are counted.
+    "SURF-010/unavailable": {
+        "surface": "SURF-010",
+        "dump": "SURF-010.window.txt", "title": "Inbox",
+        "shot": "SURF-010.build.png",
+        "absentFrom": "SURF-008.window.txt",
+        "copy": [
+            "AXSheet",
+            "Pair iPhone",
+            "Pairing is not available in this build",
+            "this build ships no way to listen for one. Nothing is wrong with your phone or "
+            "your network",
+        ],
+        # A code the build cannot honour would be the defect REQ-019 names. The pattern is
+        # Crockford base-32 at the length REQ-015 specifies, so a code appearing at all trips
+        # it — including one this predicate's author never saw.
+        "absentPattern": r"\b[0-9ABCDEFGHJKMNPQRSTVWXYZ]{8}\b",
+        "asserts": "the pairing sheet states that this build has no pairing transport and "
+                   "offers no code, rather than drawing an 8-character Crockford code it "
+                   "cannot complete a pairing with (REQ-019)",
+    },
+    "SURF-007/cleanup-skills": {
+        "surface": "SURF-007",
+        "dump": "SURF-007.cleanup-skills.window.txt", "title": "Cleanup",
+        "shot": "SURF-007.cleanup-skills.png",
+        "absentFrom": "SURF-007.window.txt",
+        "copy": [
+            # The substitution: a moved marketplace replaces the row's actions.
+            "Read first…",
+            # The router's own sentence for why it moved, on the row rather than in a sheet.
+            "The router first saw it at github:acme-tools/skills and it now resolves to "
+            "github:unknown-user/skills",
+            # The skill-kind Remove…, disabled, with the reason it gives for refusing.
+            "The control API is read-only for skills: removing one means writing files the "
+            "client applications hold open",
+        ],
+        "asserts": "a cleanup candidate whose marketplace moved substitutes `Read first…` for "
+                   "its actions, and a skill candidate that has not moved keeps Inspect while "
+                   "its Remove… is disabled with the router's own reason — both rendered by a "
+                   "running build rather than asserted against source",
+    },
+}
+
 # case -> (surface, kind). A raster case additionally owes a real, unique image.
 CASES = {
     "CASE-0001": ("SURF-001", "ax"),
@@ -182,12 +286,31 @@ CASES = {
     "CASE-0111": ("SURF-011", "raster"),
 }
 
+# case -> state key. Same two kinds, read off the state's own dump and capture.
+STATE_CASES = {
+    "CASE-0138": ("SURF-007/cleanup-skills", "ax"),
+    "CASE-0139": ("SURF-007/cleanup-skills", "raster"),
+    "CASE-0140": ("SURF-007/provenance-sheet", "ax"),
+    "CASE-0141": ("SURF-007/provenance-sheet", "raster"),
+    "CASE-0142": ("SURF-010/unavailable", "ax"),
+    "CASE-0143": ("SURF-010/unavailable", "raster"),
+}
 
-def dump_text(surface: str, decoy: str | None) -> str:
-    text = (AX / SURFACES[surface]["dump"]).read_text()
-    if decoy == surface:
-        for phrase in SURFACES[surface]["copy"]:
-            text = text.replace(phrase, "")
+
+def carries(phrase, text: str) -> bool:
+    """A predicate is a literal or a pattern; both answer the same question."""
+    return bool(phrase.search(text)) if isinstance(phrase, re.Pattern) else phrase in text
+
+def label_of(phrase) -> str:
+    return phrase.pattern if isinstance(phrase, re.Pattern) else phrase
+
+def dump_text(key: str, decoy: str | None) -> str:
+    spec = SURFACES[key] if key in SURFACES else STATES[key]
+    text = (AX / spec["dump"]).read_text()
+    if decoy == key:
+        for phrase in spec["copy"]:
+            text = (phrase.sub("", text) if isinstance(phrase, re.Pattern)
+                    else text.replace(phrase, ""))
     return text
 
 
@@ -199,16 +322,19 @@ def title_of(surface: str) -> str | None:
 def shot_facts() -> dict:
     """Every case's capture, with its SHA, so a duplicate can be named."""
     facts, by_sha = {}, {}
-    for case, (surface, kind) in CASES.items():
+    everything = {c: (k, "surface") for c, k in CASES.items()}
+    everything.update({c: (k, "state") for c, k in STATE_CASES.items()})
+    for case, ((key, kind), _) in everything.items():
         if kind != "raster":
             continue
-        p = SHOTS / SURFACES[surface]["shot"]
+        p = SHOTS / (SURFACES[key] if key in SURFACES else STATES[key])["shot"]
         if not p.exists():
             facts[case] = {"path": str(p), "exists": False}
             continue
         raw = p.read_bytes()
         sha = hashlib.sha256(raw).hexdigest()
-        facts[case] = {"path": SURFACES[surface]["shot"], "exists": True,
+        facts[case] = {"path": (SURFACES[key] if key in SURFACES
+                                else STATES[key])["shot"], "exists": True,
                        "bytes": len(raw), "sha": sha[:16],
                        "isPNG": raw[:8] == PNG_MAGIC,
                        "sharedWith": by_sha.get(sha)}
@@ -227,7 +353,7 @@ def main() -> int:
             if spec.get("kind") == "shell":
                 # Asserted across every dump instead — see the note on SURF-001.
                 everywhere = [o for o in SURFACES
-                              if all(p in dump_text(o, None) for p in spec["copy"])]
+                              if all(carries(p, dump_text(o, None)) for p in spec["copy"])]
                 exempt.append((surface, len(everywhere), len(SURFACES)))
                 continue
             accepted = []
@@ -236,7 +362,7 @@ def main() -> int:
                     continue
                 pairs += 1
                 text = dump_text(other, None)
-                if all(p in text for p in spec["copy"]):
+                if all(carries(p, text) for p in spec["copy"]):
                     accepted.append(other)
             mark = "ok  " if not accepted else "LEAK"
             print(f"  {mark} {surface}  wrongly accepted {len(accepted)} of "
@@ -257,6 +383,16 @@ def main() -> int:
     shots = shot_facts()
     results, checks, failures = {}, 0, []
 
+    def raster_checks(case: str) -> None:
+        f = shots[case]
+        check(case, "capture exists on disk", f.get("exists", False))
+        check(case, "capture is a real PNG", f.get("isPNG", False))
+        check(case, "capture is not a stub", f.get("bytes", 0) > 20000)
+        check(case, "capture is unique to this case", f.get("sharedWith") is None)
+        check(case, "capture channel is window-scoped and recorded",
+              CAPTURE_LOG.exists() and "screencapture -x -l" in
+              Path(__file__).read_text() and "attached pid=" in CAPTURE_LOG.read_text())
+
     def check(case: str, label: str, ok: bool) -> None:
         nonlocal checks
         checks += 1
@@ -275,7 +411,7 @@ def main() -> int:
             check(case, f"window title is {spec['title']}", title_of(surface) == spec["title"])
         # every phrase this board is identified by is present in its own window
         for phrase in spec["copy"]:
-            check(case, f"window carries: {phrase[:56]}", phrase in text)
+            check(case, f"window carries: {label_of(phrase)[:56]}", carries(phrase, text))
         # the dump is a real AX tree of a real window, not an empty file
         check(case, "dump is an AXWindow tree", "AXWindow" in text and len(text) > 500)
 
@@ -283,7 +419,7 @@ def main() -> int:
         # its own capture is not one of the board captures wearing a second id.
         if spec.get("kind") == "shell":
             missing = [o for o in SURFACES
-                       if not all(p in dump_text(o, decoy) for p in spec["copy"])]
+                       if not all(carries(p, dump_text(o, decoy)) for p in spec["copy"])]
             check(case, f"shell chrome present in all {len(SURFACES)} window dumps",
                   not missing)
             twins = [o for o in SURFACES if o != surface
@@ -292,29 +428,73 @@ def main() -> int:
                      == hashlib.sha256((SHOTS / spec["shot"]).read_bytes()).hexdigest()]
             check(case, "shell capture is not a board capture under a second id", not twins)
 
+            # The command-key bindings, off the running app's own menu bar.
+            bound = {}
+            for line in (AX / "SURF-001.menu.txt").read_text().splitlines():
+                f = line.split("\t")
+                if len(f) > 11 and f[1] == "AXMenuItem" and f[11] == "menuAction:" and f[9]:
+                    bound.setdefault(f[3], (f[9], f[10]))
+            if decoy == surface:
+                bound = {}
+            for destination, key in spec["menu"].items():
+                check(case, f"menu bar binds ⌘{key} to {destination}",
+                      bound.get(destination) == (key, "0"))
+
         if kind == "raster":
-            f = shots[case]
-            check(case, "capture exists on disk", f.get("exists", False))
-            check(case, "capture is a real PNG", f.get("isPNG", False))
-            check(case, "capture is not a stub", f.get("bytes", 0) > 20000)
-            check(case, "capture is unique to this case", f.get("sharedWith") is None)
-            check(case, "capture channel is window-scoped and recorded",
-                  CAPTURE_LOG.exists() and "screencapture -x -l" in
-                  Path(__file__).read_text() and "attached pid=" in CAPTURE_LOG.read_text())
+            raster_checks(case)
+
+    for case, (key, kind) in STATE_CASES.items():
+        spec = STATES[key]
+        text = dump_text(key, decoy)
+
+        check(case, f"window title is {spec['title']}",
+              title_of(spec["surface"]) == spec["title"])
+        for phrase in spec["copy"]:
+            check(case, f"state window carries: {label_of(phrase)[:56]}",
+                  carries(phrase, text))
+        check(case, "dump is an AXWindow tree", "AXWindow" in text and len(text) > 500)
+
+        # The local control. The default scenario draws this board too, so a predicate that
+        # passes on BOTH dumps is describing the board rather than the state, and the state
+        # would be adding nothing the plain capture had not already shown.
+        base = (AX / spec["absentFrom"]).read_text()
+        leaked = [phrase for phrase in spec["copy"] if carries(phrase, base)]
+        check(case, f"state copy is absent from {spec['absentFrom']}", not leaked)
+
+        for phrase in spec.get("absent", []):
+            stated = phrase in text or (decoy == key)
+            check(case, f"state window does NOT state: {phrase[:48]}", not stated)
+
+        if spec.get("absentPattern"):
+            found = re.findall(spec["absentPattern"], text)
+            if decoy == key:
+                found = found or ["DECOYCD1"]
+            check(case, f"state window matches nothing like {spec['absentPattern'][:40]}",
+                  not found)
+
+        if kind == "raster":
+            raster_checks(case)
 
     ok = not failures
-    print(f"on-glass assertions over {len(CASES)} cases / {len(SURFACES)} surfaces"
+    print(f"on-glass assertions over {len(CASES) + len(STATE_CASES)} cases / "
+          f"{len(SURFACES)} surfaces / {len(STATES)} states"
           + (f"   DECOY={decoy}" if decoy else ""))
     for case in sorted(results):
         r = results[case]
         n = len(r["checks"])
         bad = [c["label"] for c in r["checks"] if not c["pass"]]
-        print(f"  {'ok  ' if r['pass'] else 'FAIL'} {case} {CASES[case][0]} "
-              f"{CASES[case][1]:<7} {n - len(bad)}/{n} checks"
+        key, kind = CASES.get(case) or STATE_CASES[case]
+        print(f"  {'ok  ' if r['pass'] else 'FAIL'} {case} {key:<24} "
+              f"{kind:<7} {n - len(bad)}/{n} checks"
               + (f"  <- {bad[0][:70]}" if bad else ""))
-    print(f"\nchecked={checks} failures={len(failures)} cases={len(CASES)}")
+    print(f"\nchecked={checks} failures={len(failures)} "
+          f"cases={len(CASES) + len(STATE_CASES)} "
+          f"(surfaces {len(SURFACES)}, states {len(STATES)})")
     for f in failures[:12]:
         print(f"  FAILED  {f}")
+    if len(failures) > 12:
+        print(f"  … and {len(failures) - 12} more, all of them in "
+              f"evidence/runs/glass-assert.json")
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({"checked": checks, "failures": failures,

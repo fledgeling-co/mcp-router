@@ -119,6 +119,51 @@ public enum SkillFixtures {
         )
     ]
 
+    /// Skills no readable client has installed — the only shape the Cleanup board proposes.
+    ///
+    /// Held apart from `populated` and reachable only through the `cleanupSkills` scenario. Every
+    /// skill in `populated` is present somewhere, which is what a healthy install looks like and is
+    /// why that set is the default; the consequence is that it can never put a skill row on the
+    /// Cleanup board. These two are the two treatments that row has:
+    ///
+    /// - `pr-summariser` was first seen under one marketplace and is now served by another, so
+    ///   `SkillChecks.originUnchanged` fails and the row substitutes `Read first…` for its actions.
+    /// - `stale-linter` has moved nowhere, so the row keeps `Inspect` and draws `Remove…`
+    ///   disabled, because the router removes servers and never files on disk.
+    ///
+    /// Presence is written out per client rather than left empty. An absent key and an `.absent`
+    /// one are the same answer to candidacy and different answers to reachability, and a fixture
+    /// that says "read, and not there" is the one being described.
+    public static let uninstalled: [Skill] = [
+        Skill(
+            name: "pr-summariser",
+            description: "Summarise a pull request from its diff and discussion.",
+            path: "/Users/you/.claude/plugins/cache/community/pr-summariser/1.2.0/skills/pr-summariser",
+            source: .plugin(PluginOrigin(
+                plugin: "pr-summariser", marketplace: "community", pluginVersion: "1.2.0",
+                installedAt: "2026-01-09T09:20:00.000Z", lastUpdated: "2026-07-30T22:04:00.000Z",
+                commit: "5c7e91da3b06", siblingSkillCount: 2
+            )),
+            presence: presence(.absent, .absent, .absent, .absent),
+            provenance: SkillProvenance(
+                firstSeenSource: "github:acme-tools/skills",
+                currentSource: "github:unknown-user/skills",
+                firstSeenAt: "2026-01-09T09:20:00.000Z"
+            )
+        ),
+        Skill(
+            name: "stale-linter",
+            description: "Flag lint rules nothing in the repository still triggers.",
+            path: "/Users/you/.claude/plugins/cache/diolog-plugins/stale-linter/0.9.3/skills/stale-linter",
+            source: .plugin(PluginOrigin(
+                plugin: "stale-linter", marketplace: "diolog-plugins", pluginVersion: "0.9.3",
+                installedAt: "2026-04-22T14:41:00.000Z", lastUpdated: "2026-04-22T14:41:00.000Z",
+                commit: "b81f0e6c24aa", siblingSkillCount: 1
+            )),
+            presence: presence(.absent, .absent, .absent, .absent)
+        )
+    ]
+
     private static let overflowPath = "/Users/you/.claude/plugins/cache/"
         + "a-very-long-marketplace-name-that-keeps-going-plugins/"
         + "create-disclosure-consistency-page-generator-extended/10.14.2-rc.1/skills/"

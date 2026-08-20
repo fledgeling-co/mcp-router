@@ -41,10 +41,10 @@
 8	AXButton				Settings		1					205.0	532.0	76.0	16.0	
 6	AXColumn							0			ListColumn	198.0	236.0	236.0	475.0	
 4	AXUnknown				1 of 4 declared servers running		1				sidebar	196.0	720.0	240.0	16.0	
-4	AXStaticText			last 8s · peak 1			1				sidebar	196.0	773.5	99.0	13.0	
+4	AXStaticText			last 0s · peak 1			1				sidebar	196.0	773.5	99.0	13.0	
 3	AXSplitter			264			0	0				444.0	236.0	0.0	568.0	0
 3	AXGroup	AXHostingView										180.0	184.0	980.0	620.0	0
-4	AXStaticText			none	mcprouter-key-probe						content	1084.0	776.0	72.0	24.0	1
+4	AXStaticText			none	mcprouter-key-probe						content	1084.0	776.0	72.0	24.0	0
 4	AXScrollArea										content	444.0	236.0	716.0	568.0	0
 5	AXStaticText			Cleanup			1					460.0	252.0	85.5	26.0	
 5	AXButton				Reset history…		1					1033.5	256.0	110.5	24.0	0
@@ -54,15 +54,15 @@
 5	AXStaticText			Observed over			1					460.0	388.5	73.5	13.0	
 5	AXStaticText			Observation window: 6d recorded			1					541.5	388.5	220.0	13.0	
 5	AXRadioGroup						1					460.0	409.5	237.0	24.0	0
-6	AXRadioButton	AXSegment		1	All 3		1					460.0	409.5	79.0	24.0	0
+6	AXRadioButton	AXSegment		1	All 5		1					460.0	409.5	79.0	24.0	0
 6	AXRadioButton	AXSegment		0	Servers 3		1					540.0	409.5	78.0	24.0	0
-6	AXRadioButton	AXSegment		0	Skills		1					619.0	409.5	78.0	24.0	0
+6	AXRadioButton	AXSegment		0	Skills 2		1					619.0	409.5	78.0	24.0	0
 5	AXImage				search		1				magnifyingglass	714.5	415.5	12.0	12.0	
 5	AXTextField						1					732.0	413.5	181.0	16.0	0
 5	AXStaticText			capability			1					506.0	441.5	49.5	13.0	
 5	AXStaticText			kind			1					694.0	441.5	21.5	13.0	
 5	AXStaticText			why it is here			1					762.0	441.5	66.5	13.0	
-5	AXOpaqueProviderGroup	AXOpaqueProviderList					1					453.0	458.5	698.0	146.0	
+5	AXOpaqueProviderGroup	AXOpaqueProviderList					1					453.0	458.5	698.0	244.0	
 6	AXGroup				fixture-stdio, Server. The router has recorded no calls to it over the window below.		1					453.0	458.5	698.0	48.0	
 7	AXImage				servers		1				square.stack.3d.up	469.0	475.5	14.5	14.5	
 7	AXStaticText			fixture-stdio			1					499.0	467.0	79.5	16.0	
@@ -87,7 +87,23 @@
 7	AXStaticText			The router has recorded no calls to it over the window below.			1					755.0	574.0	215.0	13.0	
 7	AXButton				Inspect		1					999.5	568.5	63.5	24.0	0
 7	AXButton				Remove…		1					1065.0	568.5	78.0	24.0	0
-5	AXStaticText			These sit in every session's tool list, where a model reads them. Nothing here claims a memory saving: MCP Router never runs the world in which every server is resident, so it has no figure to subtract from. Nothing is removed unless you remove it, and what you remove is not counted.			1					460.0	612.5	684.0	41.0	
+6	AXGroup				pr-summariser, Skill. Every skills-capable client was read, and none of them has it installed. The router first saw it at github:acme-tools/skills and it now resolves to github:unknown-user/skills, first observed 2026-01-09T09:20:00.000Z.		1					453.0	605.5	698.0	48.0	
+7	AXImage				skills		1				rhombus	471.5	623.5	9.5	12.5	
+7	AXStaticText			pr-summariser			1					499.0	614.0	94.0	16.0	
+7	AXStaticText			pr-summariser			1					499.0	632.0	74.5	13.0	
+7	AXStaticText			Skill			1					687.0	623.0	21.5	13.0	
+7	AXImage				warn		1				exclamationmark.triangle	756.0	625.0	10.5	9.5	
+7	AXStaticText			The router first saw it at github:acme-tools/skills and it now resolves to github:unknown-user/skills, first observed 2026-01-09T09:20:00.000Z.			1					769.5	623.0	200.5	13.0	
+7	AXButton				Read first…		1					1054.0	617.5	89.0	24.0	0
+6	AXGroup				stale-linter, Skill. Every skills-capable client was read, and none of them has it installed.		1					453.0	654.5	698.0	48.0	
+7	AXImage				skills		1				rhombus	471.5	672.5	9.5	12.5	
+7	AXStaticText			stale-linter			1					499.0	663.0	70.0	16.0	
+7	AXStaticText			stale-linter			1					499.0	681.0	56.0	13.0	
+7	AXStaticText			Skill			1					687.0	672.0	21.5	13.0	
+7	AXStaticText			Every skills-capable client was read, and none of them has it installed.			1					755.0	672.0	214.0	13.0	
+7	AXButton				Inspect		1					999.5	666.5	63.5	24.0	0
+7	AXButton				Remove…	The control API is read-only for skills: removing one means writing files the client applications hold open, which wants preconditions and an undo this surface does not have.	0					1065.0	666.5	78.0	24.0	
+5	AXStaticText			These sit in every session's tool list, where a model reads them. Nothing here claims a memory saving: MCP Router never runs the world in which every server is resident, so it has no figure to subtract from. Nothing is removed unless you remove it, and what you remove is not counted.			1					460.0	710.5	684.0	41.0	
 5	AXScrollBar			0			1					1142.0	235.0	19.0	552.5	0
 6	AXValueIndicator			0								1151.0	239.0	6.0	411.5	
 6	AXButton	AXIncrementArrow										1143.0	236.0	0.0	0.0	
@@ -96,9 +112,22 @@
 6	AXButton	AXDecrementPage										1151.0	239.0	6.0	0.0	
 1	AXToolbar											180.0	184.0	980.0	52.0	0
 2	AXButton				Hide Sidebar		1	0				397.0	184.0	47.0	52.0	0
-1	AXButton	AXCloseButton					1					198.0	202.0	16.0	16.0	0
-1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					244.0	202.0	16.0	16.0	0
+1	AXButton	AXCloseButton					0					198.0	202.0	16.0	16.0	0
+1	AXButton	AXZoomButton					1					244.0	202.0	16.0	16.0	0
 2	AXGroup											245.0	203.0	14.0	14.0	0
 3	AXGroup											245.0	203.0	14.0	14.0	0
 1	AXButton	AXMinimizeButton					1					221.0	202.0	16.0	16.0	0
 1	AXStaticText			Cleanup			1					448.0	184.0	708.0	52.0	0
+1	AXSheet											414.0	286.0	512.0	416.0	1
+2	AXGroup	AXHostingView										414.0	286.0	512.0	416.0	0
+3	AXStaticText			pr-summariser changed hands			1					430.0	302.2	220.0	19.0	
+3	AXStaticText			Nothing on this Mac re-reads a capability that is never invoked — which is exactly why this one is on the list. What its marketplace did in the meantime belongs on screen beside the proposal, not in a log.			1					430.0	337.2	480.0	49.0	
+3	AXStaticText			Where the router first saw it, github:acme-tools/skills			1					430.0	402.2	480.0	13.0	
+3	AXStaticText			Where it resolves now, github:unknown-user/skills			1					430.0	419.2	480.0	13.0	
+3	AXStaticText			The router first saw it, 2026-01-09T09:20:00.000Z			1					430.0	436.2	480.0	13.0	
+3	AXStaticText			When this Mac first saw this marketplace it resolved to github:acme-tools/skills. It now resolves to github:unknown-user/skills. The code you have has not changed.			1					430.0	457.2	480.0	49.0	
+3	AXStaticText			The router records where a marketplace resolves, never who owns it and never what changed inside it. It has no record of the day this was installed, so the date above is its own first sighting.			1					430.0	514.2	471.0	41.0	
+3	AXButton				Remove	The control API is read-only for skills: removing one means writing files the client applications hold open, which wants preconditions and an undo this surface does not have.	0					430.0	571.5	66.5	24.0	
+3	AXStaticText			The control API is read-only for skills: removing one means writing files the client applications hold open, which wants preconditions and an undo this surface does not have.		The control API is read-only for skills: removing one means writing files the client applications hold open, which wants preconditions and an undo this surface does not have.	1					430.0	599.2	480.0	46.5	
+3	AXButton				Reveal in Finder		1					721.0	662.0	116.0	24.0	0
+3	AXButton				Leave it		1					845.0	662.0	65.0	24.0	0

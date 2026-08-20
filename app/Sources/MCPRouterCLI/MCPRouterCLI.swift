@@ -148,12 +148,31 @@ struct MCPRouterCLI {
 
         var built: [String] = []
         var failed: [String] = []
+        var lost: [String] = []
         for upstream in loaded.config.upstreams where force || ToolUnion.isStale(manifest, upstream) {
             let outcome = await indexer.index(upstream)
-            if let error = outcome.error, !error.isEmpty {
+            // `error ? … : …` — an empty string is not a failure, which is the ported truthiness
+            // test rather than a nil check.
+            let upstreamFailure = outcome.error.flatMap { $0.isEmpty ? nil : $0 }
+            if let error = upstreamFailure {
                 failed.append("\(upstream.name): \(error)")
-            } else {
-                built.append("\(upstream.name) (\(outcome.tools) tools)")
+            } else if outcome.cached {
+                // A held surface reports its CHANGE count, not its tool count. The tools it just
+                // listed are pending; the manifest still serves the approved set, which is what the
+                // closing line counts — so printing `(2 tools)` here against `1 tools cached` was
+                // the same two-numbers-disagree defect on a home with nothing wrong with it.
+                // Both strings are the reference's, and their twin is `ManifestBookkeeping.build`.
+                built.append(outcome.heldChanges.map { "\(upstream.name) (\($0) change(s) held for approval)" }
+                    ?? "\(upstream.name) (\(outcome.tools) tools)")
+            }
+            // Independent of the pass/fail pair rather than a third arm of it. A server can fail to
+            // start AND fail to have that failure recorded, and the second is exactly as invisible
+            // as the first was: the unwritten error row leaves the entry non-stale, so the next
+            // unforced `index` skips it.
+            if let reason = outcome.cacheFailure {
+                lost.append(upstreamFailure == nil
+                    ? "\(upstream.name) (\(outcome.tools) tools indexed): \(reason)"
+                    : "\(upstream.name) (the failure was not recorded either): \(reason)")
             }
         }
 
@@ -163,16 +182,38 @@ struct MCPRouterCLI {
         for line in failed {
             Out.print("  FAIL  \(line)\n")
         }
+        // Deliberately not folded into `FAIL`, and deliberately not aligned with the other two.
+        // These servers started, answered, and produced a row that never reached the manifest —
+        // reporting that as either half of the ordinary pass/fail pair is what let DEF-049 print
+        // `ok` over a file that does not exist.
+        for line in lost {
+            Out.print("  not cached  \(line)\n")
+        }
         let after = ManifestIO.load(
             path: loaded.config.manifestPath, fileSystem: RealFileSystem()
         ).manifest
         let count = ToolUnion.unionTools(
             manifest: after, upstreams: loaded.config.upstreams
         ).count
-        Out.print(
-            "\n\(count) tools cached -> \(loaded.config.manifestPath)\n"
-                + "All upstreams closed; none will open again until a tool is called.\n"
-        )
+        Out.print("\n\(count) tools cached -> \(loaded.config.manifestPath)\n")
+        // The count above is re-read from disk. Without this line a run whose writes were all
+        // refused prints the same `0 tools cached` as a run with nothing to cache, and the reader
+        // cannot tell which they are looking at.
+        //
+        // The claim is about PROVENANCE and is scoped to the lost servers, because every wider
+        // reading is false in some shape this verb reaches. "These are missing from that count" is
+        // false when a server's previous row is still on disk and being counted. "The count is as
+        // it stood before this run" is false when a SIBLING server's write landed and moved it.
+        // And "nothing this run read from them is in that count" — the wording before this one —
+        // is false when the refused update carried the SAME tools the older row already holds:
+        // `echo` is then both what this run read and what the count includes.
+        if !lost.isEmpty {
+            Out.print(
+                "\(lost.count) server(s) above did not reach the manifest, so that count is "
+                    + "unchanged by them; whatever they contribute to it is from an earlier run.\n"
+            )
+        }
+        Out.print("All upstreams closed; none will open again until a tool is called.\n")
         _ = home
     }
 

@@ -303,6 +303,10 @@ public struct ManifestIndexer: UpstreamIndexerPort {
             guard case let .object(members) = listed,
                   case let .array(items)? = members.first(where: { $0.key == JSString("tools") })?.value
             else {
+                // No `cacheFailure`: nothing was written here, but nothing was ATTEMPTED either,
+                // and `cacheFailure` means "the save was refused". Reporting an upstream's
+                // unusable answer as a caching failure puts a filesystem line in front of a reader
+                // whose filesystem is fine. `error` already carries this one.
                 return IndexOutcome(tools: 0, error: "the upstream returned no tools array")
             }
             tools = items.compactMap(CachedTool.init)
@@ -311,30 +315,69 @@ public struct ManifestIndexer: UpstreamIndexerPort {
             await log?.record(LogEvent.serverIndexFailed(server: upstream.name, reason: reason))
             // The entry is still written, carrying the error — the reference records a failure
             // rather than leaving the previous tools looking current.
-            record(upstream, tools: [], error: reason)
-            return IndexOutcome(tools: 0, error: reason)
+            let recorded = record(upstream, tools: [], error: reason)
+            await reportIfLost(upstream, recorded)
+            return IndexOutcome(tools: 0, error: reason, cacheFailure: recorded.cacheFailure)
         }
 
-        let outcome = record(upstream, tools: tools, error: nil)
-        if case let .heldForApproval(changeCount) = outcome {
+        let recorded = record(upstream, tools: tools, error: nil)
+        var heldChanges: Int?
+        if case let .heldForApproval(changeCount) = recorded.outcome {
+            heldChanges = changeCount
             await log?.record(LogEvent.serverSurfaceChanged(
                 server: upstream.name, changeCount: changeCount
             ))
         } else {
             await log?.record(LogEvent.serverIndexed(server: upstream.name, toolCount: tools.count))
         }
-        return IndexOutcome(tools: tools.count)
+        // After the outcome's own line rather than before it: the reader wants "this is what the
+        // index found" and then "and here is what happened to it", not the correction first.
+        //
+        // The control API's reindex route has no field to carry this, so without the log line that
+        // path stays exactly as silent as the CLI's used to be.
+        await reportIfLost(upstream, recorded)
+        // `heldChanges` travels with `tools` rather than replacing it. Both numbers are true and
+        // they answer different questions — how many tools the upstream listed, and how many of
+        // them are being withheld — and the caller that prints one of them needs to know which.
+        return IndexOutcome(
+            tools: tools.count, cacheFailure: recorded.cacheFailure, heldChanges: heldChanges
+        )
+    }
+
+    private func reportIfLost(_ upstream: UpstreamConfig, _ recorded: Recorded) async {
+        guard let reason = recorded.cacheFailure else { return }
+        await log?.record(IndexLogEvent.manifestNotWritten(
+            server: upstream.name, path: manifestPath, reason: reason
+        ))
+    }
+
+    /// What ``record(_:tools:error:)`` did: the bookkeeping's own verdict, and why the entry it
+    /// produced is not on disk — `nil` when it is.
+    private struct Recorded {
+        let outcome: ManifestBookkeeping.Outcome
+        let cacheFailure: String?
     }
 
     /// Write the entry through R1's bookkeeping, which owns the pending/approved rules — a second
     /// implementation here would be a second place for the surface-change semantics to drift.
     ///
     /// Returns the change count when the surface moved, so the caller can log the reference's
-    /// "changed its tool surface" warning rather than reporting a silent success.
-    @discardableResult
+    /// "changed its tool surface" warning rather than reporting a silent success — and whether the
+    /// entry reached disk.
+    ///
+    /// The save used to be `try?`, which is DEF-049: the one call that makes an index durable was
+    /// the one call whose failure nothing downstream could observe. `index --force` against a home
+    /// the process may read and traverse but not write printed `ok <server> (N tools)` and then, at
+    /// the foot of the same run, `0 tools cached` — the second line re-reads the manifest and is
+    /// right by accident of how it was written, the first reports what this function intended.
+    ///
+    /// The error is reported, not thrown. Propagating it would change the CLI's exit code and the
+    /// control API's status for a manifest that failed to write, and both are contracts this repo
+    /// has taken a decision on elsewhere (`ControlApproveDispatchTests.swift:114-118`); moving
+    /// either is its own item.
     private func record(
         _ upstream: UpstreamConfig, tools: [CachedTool], error: String?
-    ) -> ManifestBookkeeping.Outcome {
+    ) -> Recorded {
         var manifest = ManifestIO.load(path: manifestPath, fileSystem: fileSystem).manifest
         let step = ManifestBookkeeping.apply(
             previous: manifest.entry(named: upstream.name),
@@ -344,7 +387,11 @@ public struct ManifestIndexer: UpstreamIndexerPort {
             nowMilliseconds: clock.nowMilliseconds
         )
         manifest.setEntry(upstream.name, step.entry)
-        try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)
-        return step.outcome
+        do {
+            try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)
+        } catch {
+            return Recorded(outcome: step.outcome, cacheFailure: error.localizedDescription)
+        }
+        return Recorded(outcome: step.outcome, cacheFailure: nil)
     }
 }

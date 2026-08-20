@@ -253,20 +253,34 @@ fixed upstream fails the gate as stale rather than passing quietly.
 ## Cutover — specified, and deliberately not performed
 
 The cutover remains a **single commit at the tip of the branch**, so it can be held while the
-harness merges. Its content, when a Swift daemon exists:
+harness merges. Its content, when a Swift daemon exists — **and step 1 shipped without step 2 on
+2026-08-20, which is `R4-C1`; step 2 is `R4-C2` and is held.** The reason is in that brief and it
+is one instrument: the harness runs the TypeScript router as its reference, so deleting
+`package.json` and `dist/` ends the 83-row comparison at the moment the Swift router starts
+serving live sessions. What step 2 waits on is a captured reproduction of `DEF-033` or a bound
+stated in advance and met — never a green streak, which is the `install-launchd-watch` mistake:
 
-1. `docs/install.sh` — replace the `npm install && npm run build` step with a `swift build -c release`,
-   point both launchd `ProgramArguments` at the built binary, drop the Node 20 prerequisite check,
-   and keep the `/health` + `/status` verification exactly as it is.
-2. Delete `src/*.ts`, `tsconfig.json`, `package.json`, `package-lock.json`, `dist/`.
-3. `README.md` and `docs/` install copy.
+1. `docs/install.sh` — **shipped as R4-C1, and two clauses of this line did not survive contact.**
+   It ADDS a `swift build -c release` rather than replacing `npm install && npm run build`, and it
+   KEEPS the Node 20 prerequisite check. Both follow from step 2 being held: a fallback that is not
+   built is not a fallback, and a reference the harness cannot run is not a reference. Both launchd
+   `ProgramArguments` point at the built Swift binary by default, `MCPR_ROUTER=node` points them
+   back, and the `/health` + `/status` verification is exactly as it was.
+2. Delete `src/*.ts`, `tsconfig.json`, `package.json`, `package-lock.json`, `dist/`. **Held —
+   `R4-C2`.**
+3. `README.md` and `docs/` install copy. **Shipped with step 1**, including how to go back.
 
-**Preconditions, none of which hold today:**
+**Preconditions — all four now hold; the first three held before 2026-08-20 and the fourth was met
+that day:**
 
 - `R2-R` delivered — the relay, the HTTP listener, HTTP upstream clients, the composition root.
 - `R2-W` delivered — the config watcher, for the `watch` launchd agent.
 - The ten CLI verbs implemented in Swift.
-- **`parity-gate.sh` exits 0** — 81 of 81.
+- **`parity-gate.sh` reports the owner's cutover target** — **82 of 83**, decided 2026-08-16.
+  This line used to read "exits 0 — 81 of 81" and that was unmeetable by construction: the gate
+  exits 1 while any row is blocked, and `fixture-registry-search` is a standing exclusion that is
+  permanently blocked. The owner's decision superseded the number and nobody rewrote the
+  precondition until R4-C1. Met on 2026-08-20: 82 of 83 proven, 0 DIVERGED.
 
 Step 2 deletes the router the user's own live Claude Code sessions depend on. Performing it
 while step 1 has nothing to point at would leave the machine with no router at all.

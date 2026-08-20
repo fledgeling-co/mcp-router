@@ -41,7 +41,7 @@ print(out)"
 IOS_DEST   ?= generic/platform=iOS Simulator
 MAC_DEST   ?= platform=macOS
 
-.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance lint format clean
+.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance lint format clean install-default
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
 ## `test-ios-glass` is in this list because `X2-ios-on-glass.md` said it would be: "The target
@@ -50,7 +50,7 @@ MAC_DEST   ?= platform=macOS
 ## runs since. It costs roughly two minutes and adds no new requirement — `test-ios` already needs
 ## a booted simulator — and it is the only stage here that proves the app runs rather than that its
 ## views construct.
-all: tools lint build test test-ios test-ios-glass parity parity-selftest
+all: tools lint build test test-ios test-ios-glass parity parity-selftest install-default
 
 ## Fail loudly and specifically when a required tool is missing, rather than skipping the gate.
 ## A silently-skipped lint step is worse than no lint step: it reports success.
@@ -401,6 +401,17 @@ mutation:
 ##
 ## Fast, hermetic and offline: it copies the tree into scratch directories and runs no lane, no
 ## router and no build. In `all` for that reason, unlike `mutation` and `acceptance`.
+## Which router `docs/install.sh` points the two launchd agents at.
+##
+## In `all` because that file decides what serves the user's own live Claude Code sessions, and
+## because nothing else in this repository asserts anything about it: the install parity lanes
+## deliberately do not run the installer — doing so would rewrite `~/.claude.json` and bootstrap
+## agents into the caller's session — so they prove a Swift binary SURVIVES the supervision
+## install.sh writes without proving install.sh chooses it. This lane extracts the choice and
+## drives it. Exit 2 means an anchor went stale, which is a locator failure and not a pass.
+install-default:
+	./scripts/acceptance/install-router-default.sh
+
 parity-selftest:
 	./scripts/acceptance/parity-manifest-selftest.sh
 	./scripts/acceptance/parity-lock-selftest.sh

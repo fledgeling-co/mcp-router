@@ -62,6 +62,14 @@ Start a new Claude Code session afterwards; a running session fetches its tool l
 
 Already have a clone? `./docs/install.sh` from inside it works the same way and skips the fetch, so the agents point at your working copy.
 
+**The two launchd agents run the Swift router.** Both routers are built and both stay on disk — the TypeScript one is the reference the differential parity harness compares against, and it is the way back:
+
+```bash
+MCPR_ROUTER=node /bin/bash -c "$(curl -fsSL https://mcp-router.fledgeling.app/install.sh)"
+```
+
+That reinstall puts `serve` and `watch` back on `node dist/index.js`. Swift needs a toolchain on `PATH`; Node 20+ is still required either way, because a fallback you cannot build is not a fallback.
+
 **Note:** the installer is macOS-only because it uses launchd. On Linux, `npm run build` then run `node dist/index.js serve` under systemd; everything else in the router is platform-neutral.
 
 ### Uninstall

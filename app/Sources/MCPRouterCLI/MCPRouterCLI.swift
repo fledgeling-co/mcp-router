@@ -146,22 +146,24 @@ struct MCPRouterCLI {
                 + (force ? " (forced: all)" : "") + "\n"
         )
 
-        var built: [String] = []
-        var failed: [String] = []
+        var report = IndexReport()
         for upstream in loaded.config.upstreams where force || ToolUnion.isStale(manifest, upstream) {
             let outcome = await indexer.index(upstream)
-            if let error = outcome.error, !error.isEmpty {
-                failed.append("\(upstream.name): \(error)")
-            } else {
-                built.append("\(upstream.name) (\(outcome.tools) tools)")
-            }
+            report.add(upstream, outcome)
         }
 
-        for line in built {
+        for line in report.built {
             Out.print("  ok    \(line)\n")
         }
-        for line in failed {
+        for line in report.failed {
             Out.print("  FAIL  \(line)\n")
+        }
+        // Deliberately not folded into `FAIL`, and deliberately not aligned with the other two.
+        // These servers started, answered, and produced a row that never reached the manifest —
+        // reporting that as either half of the ordinary pass/fail pair is what let DEF-049 print
+        // `ok` over a file that does not exist.
+        for line in report.lost {
+            Out.print("  not cached  \(line)\n")
         }
         let after = ManifestIO.load(
             path: loaded.config.manifestPath, fileSystem: RealFileSystem()
@@ -169,10 +171,35 @@ struct MCPRouterCLI {
         let count = ToolUnion.unionTools(
             manifest: after, upstreams: loaded.config.upstreams
         ).count
-        Out.print(
-            "\n\(count) tools cached -> \(loaded.config.manifestPath)\n"
-                + "All upstreams closed; none will open again until a tool is called.\n"
-        )
+        Out.print("\n\(count) tools cached -> \(loaded.config.manifestPath)\n")
+        // The count above is re-read from disk. Without this line a run whose writes were all
+        // refused prints the same `0 tools cached` as a run with nothing to cache, and the reader
+        // cannot tell which they are looking at.
+        //
+        // The claim is about what was RECORDED, not about what the count contains, and it is scoped
+        // to the lost servers. Four wordings died on four different shapes this verb reaches:
+        //
+        // - "these are missing from that count" — false when a server's previous row is still on
+        //   disk and being counted.
+        // - "the count is as it stood before this run" — false when a SIBLING server's write landed
+        //   and moved it.
+        // - "nothing this run read from them is in that count" — false when the refused update
+        //   carried the SAME tools the older row already holds: `echo` is then both what this run
+        //   read and what the count includes.
+        // - "whatever they contribute to it is from an earlier run" — vacuous, and misleading, on
+        //   the shape the defect was FOUND in: a home that has never been written has no earlier
+        //   run and no file, and a reader is told to go looking for one.
+        //
+        // A statement about the write survives all four, because the write is the thing that did
+        // not happen. Nothing from this run was recorded for these servers, whatever the count
+        // happens to hold and wherever it came from.
+        if !report.lost.isEmpty {
+            Out.print(
+                "\(report.lost.count) server(s) above did not reach the manifest, so nothing this "
+                    + "run indexed for them was recorded in that count.\n"
+            )
+        }
+        Out.print("All upstreams closed; none will open again until a tool is called.\n")
         _ = home
     }
 
@@ -326,5 +353,41 @@ struct CLIError: Error {
 
     init(_ message: String) {
         self.message = message
+    }
+}
+
+/// What one `index` run has to say about its upstreams, accumulated as it walks them.
+///
+/// A type of its own rather than three arrays and a branch inside the verb, because the three lines
+/// are not exclusive. `lost` is independent of the pass/fail pair rather than a third arm of it: a
+/// server can fail to start AND fail to have that failure recorded, and the second is exactly as
+/// invisible as the first was — the unwritten error row leaves the entry non-stale, so the next
+/// unforced `index` skips a server that never indexed.
+private struct IndexReport {
+    private(set) var built: [String] = []
+    private(set) var failed: [String] = []
+    private(set) var lost: [String] = []
+
+    mutating func add(_ upstream: UpstreamConfig, _ outcome: IndexOutcome) {
+        // `error ? … : …` — an empty string is not a failure, which is the ported truthiness test
+        // rather than a nil check.
+        let upstreamFailure = outcome.error.flatMap { $0.isEmpty ? nil : $0 }
+        if let error = upstreamFailure {
+            failed.append("\(upstream.name): \(error)")
+        } else if outcome.cached {
+            // A held surface reports its CHANGE count, not its tool count. The tools it just listed
+            // are pending; the manifest still serves the approved set, which is what the closing
+            // line counts — so printing `(2 tools)` here against `1 tools cached` was the same
+            // two-numbers-disagree defect on a home with nothing wrong with it. Both strings are
+            // the reference's, and their twin is `ManifestBookkeeping.build`.
+            let held = outcome.heldChanges.map {
+                "\(upstream.name) (\($0) change(s) held for approval)"
+            }
+            built.append(held ?? "\(upstream.name) (\(outcome.tools) tools)")
+        }
+        guard let reason = outcome.cacheFailure else { return }
+        lost.append(upstreamFailure == nil
+            ? "\(upstream.name) (\(outcome.tools) tools indexed): \(reason)"
+            : "\(upstream.name) (the failure was not recorded either): \(reason)")
     }
 }

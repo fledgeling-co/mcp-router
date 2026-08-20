@@ -7,6 +7,94 @@ import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { isStdio, type UpstreamConfig, type HttpUpstream, type StdioUpstream } from './config.js';
 import { FileOAuthProvider, isAuthFailure } from './auth.js';
 import { log } from './log.js';
+import { readdirSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+
+/**
+ * The most directories PATH discovery will add. A home with thousands of dot-directories would
+ * otherwise build an environment long enough to matter to execve.
+ */
+const CHILD_PATH_DISCOVERY_LIMIT = 64;
+
+/**
+ * Every `bin` directory under $HOME or one of its dot-directories, sorted and capped.
+ *
+ * Launchd hands the router a fixed PATH and every child inherits it, so a routed server that
+ * shells out to a CLI installed under the user's home cannot find it and reports the capability
+ * unavailable instead of failing. R6, and `planning/specs/spec-R6.md` §2 carries why this is a
+ * directory scan rather than `$SHELL -l -c 'echo $PATH'`.
+ *
+ * Sorted so this router and the Swift one produce one string from one home.
+ */
+function userBinDirectories(home: string): string[] {
+  const candidates = [join(home, 'bin')];
+  let entries: string[] = [];
+  try {
+    entries = readdirSync(home);
+  } catch {
+    // An unreadable $HOME yields a PATH, not an error.
+  }
+  for (const entry of entries) {
+    if (!entry.startsWith('.') || entry === '.' || entry === '..') continue;
+    candidates.push(join(home, entry, 'bin'));
+  }
+  const found = new Set<string>();
+  for (const candidate of candidates) {
+    try {
+      if (statSync(candidate).isDirectory()) found.add(candidate);
+    } catch {
+      // Absent or unreadable: not a directory, so not a PATH entry.
+    }
+  }
+  // Sorted by UTF-8 bytes rather than by the default `Array.sort`, which compares UTF-16 code
+  // units. Swift compares Strings by Unicode canonical equivalence and the two orderings disagree
+  // above the BMP, so a home holding an emoji-named directory and one named U+E000 would order
+  // differently in the two routers — and at the cap boundary they would select different
+  // directories. Byte order is the one comparison both can express.
+  return [...found]
+    .sort((a, b) => Buffer.compare(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8')))
+    .slice(0, CHILD_PATH_DISCOVERY_LIMIT);
+}
+
+/**
+ * Discovery, once per process per home.
+ *
+ * `buildEnv` runs on every spawn and every filesystem call here is synchronous, so an uncached
+ * scan blocks the event loop that is also serving every other upstream. Once per router start is
+ * also what `spec-R6.md` claims: a tool installed afterwards is found at the next restart, and the
+ * watcher restarts this process on every adoption.
+ */
+const discoveryCache = new Map<string, string[]>();
+
+function cachedUserBinDirectories(home: string): string[] {
+  const cached = discoveryCache.get(home);
+  if (cached !== undefined) return cached;
+  const found = userBinDirectories(home);
+  discoveryCache.set(home, found);
+  return found;
+}
+
+/**
+ * The inherited PATH with the user's own tool directories appended.
+ *
+ * Append, never prepend: the inherited entries keep their order and their place at the front, so
+ * no command that resolved before can resolve to a different binary after. Prepending would let a
+ * version manager under $HOME capture `node` and `npx` for every child, and the measured defect is
+ * a missing binary rather than a wrong one.
+ */
+export function augmentPath(inherited: string, home: string): string {
+  // Empty components are KEPT. execvp reads an empty entry as the current directory, so dropping
+  // one from an inherited `:/usr/bin` would change where a child looks — and this function's whole
+  // contract is that the inherited PATH survives unaltered.
+  const merged = inherited === '' ? [] : inherited.split(':');
+  const seen = new Set(merged);
+  for (const directory of cachedUserBinDirectories(home)) {
+    if (seen.has(directory)) continue;
+    seen.add(directory);
+    merged.push(directory);
+  }
+  return merged.join(':');
+}
 
 export interface UpstreamHandle {
   client: Client;
@@ -64,11 +152,20 @@ export class UpstreamPool {
     private startupTimeoutMs: number
   ) {}
 
-  /** Environment for a child: the router's own env, then the server's overrides. */
+  /**
+   * Environment for a child: the router's own env with PATH augmented, then the server's
+   * overrides.
+   *
+   * The server's own `env` still merges last, so a server that sets PATH wins outright — that
+   * override is R6's escape hatch for a prefix the discovery below does not find.
+   */
   private buildEnv(u: StdioUpstream): Record<string, string> {
     const env: Record<string, string> = {};
     for (const [k, v] of Object.entries(process.env)) {
       if (typeof v === 'string') env[k] = v;
+    }
+    if (typeof env.HOME === 'string' && env.HOME !== '') {
+      env.PATH = augmentPath(env.PATH ?? '', env.HOME);
     }
     return { ...env, ...u.env };
   }

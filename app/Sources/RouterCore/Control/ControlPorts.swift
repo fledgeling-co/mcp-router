@@ -76,10 +76,44 @@ public struct IndexOutcome: Sendable, Hashable {
     /// reference's `error ? 422 : 200` is a truthiness test, so `""` yields 200 while
     /// `JSON.stringify` still emits `"error":""` (B33, S1, S3).
     public let error: String?
+    /// Why the manifest save for this run **refused**, or `nil` when it landed or was never
+    /// attempted.
+    ///
+    /// Separate from ``error`` on purpose. ``error`` is the **upstream's** failure and the control
+    /// API branches on it — `error ? 422 : 200` — so a local write failure reported there would
+    /// change that route's status contract. This is the other half of the same question: the index
+    /// ran, and the record of it may still have been lost.
+    ///
+    /// It is about the **save**, not about whether a row happens to exist. An arm that returns
+    /// before writing anything leaves this `nil`, because a reader whose filesystem is fine should
+    /// not be handed a filesystem line: `error` already carries that case. Defaults to `nil`
+    /// because every stub and double in the suite stands for an indexer whose writes land.
+    ///
+    /// It carries the reason rather than a flag because the one surface that reports it is a
+    /// terminal, where "not cached" without "Permission denied" leaves the reader nothing to act
+    /// on.
+    public let cacheFailure: String?
 
-    public init(tools: Int, error: String? = nil) {
+    /// How many changes are being **held** rather than served, or `nil` when nothing was held.
+    ///
+    /// The bookkeeping's `heldForApproval` disposition, carried out to the caller. Without it
+    /// ``tools`` is the only number a reporter has, and it is the wrong one on this arm: the
+    /// surface that just changed is *pending*, so the approved tools — the ones the manifest still
+    /// serves and the ones the CLI's closing line counts — are the previous set. `index` printed
+    /// `ok fixture (2 tools)` over `1 tools cached` on a perfectly writable home because of it,
+    /// which is DEF-049's disagreement again with no filesystem involved.
+    public let heldChanges: Int?
+
+    /// No save was refused for this run — the row landed, or none was attempted.
+    public var cached: Bool { cacheFailure == nil }
+
+    public init(
+        tools: Int, error: String? = nil, cacheFailure: String? = nil, heldChanges: Int? = nil
+    ) {
         self.tools = tools
         self.error = error
+        self.cacheFailure = cacheFailure
+        self.heldChanges = heldChanges
     }
 
     /// The reference's test for "expected to refuse a first connection". An OAuth server is

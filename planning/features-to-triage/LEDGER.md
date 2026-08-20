@@ -51,7 +51,7 @@ it never tested.
 | D3 | Deferred register: phone copy and the harness limit (4) | `D3-deferred-phone-harness.md` | — | — | **Merged** `67ae4f5` |
 | — | **BLOCKED: the Apple developer identity** | `BLOCKED-apple-identity.md` | — | — | **Needs input — `as-found`, not confirmed** |
 | M14 | A shipped menu tells the user the app is not built | `M14-menu-says-not-built.md` | — | — | **Merged** `7e7ed70` |
-| R6 | Children inherit launchd's minimal PATH | `R6-child-process-path.md` | `spec-R6.md` | `plan-R6.md` | **Verified — ready to merge** (`ai/r6` `7a4f15a`; rung `effect-witness`; 9 follow-ups `D-r6-d`…`D-r6-k`) — both routers append the user's own `bin` directories to a child's PATH; `r6-child-path.sh` examined=6 failures=0; parity census untouched at 83 rows, cli 17/17, pool 5/5 |
+| R6 | Children inherit launchd's minimal PATH | `R6-child-process-path.md` | `spec-R6.md` | `plan-R6.md` | **Done** — merged to `main` at `1d958b4` (`ai/r6` `7a4f15a`; rung `effect-witness`; 9 follow-ups `D-r6-d`…`D-r6-k`) — both routers append the user's own `bin` directories to a child's PATH; `r6-child-path.sh` examined=6 failures=0; parity census untouched at 83 rows, cli 17/17, pool 5/5 |
 | R8 | An upstream that refuses our credentials must say so | `R8-auth-rejection-visible.md` | — | — | **Done** (ai/r8 → main; owner unfroze `src/`, A38 rewritten to guard the reference's existence; Swift half unblocked by R9; parity 82/83 control 16/16 0 diverged; auth gate examined=8 failures=0) |
 | R7 | The router's thesis is unmet for every harness but Claude Code | `R7-harness-reconciliation.md` | — | — | **In progress** (`ai/r7`, dispatched 2026-08-21) |
 | R11 | Skills write endpoint (remove/disable) with preconditions and undo | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R7, renumbered 2026-08-21) |
@@ -74,7 +74,7 @@ it never tested.
 | P7 | `control-auth-post-http` needs a real OAuth client | `P7-auth-post-oauth-client.md` | — | — | **Done** (ai/p7 → main; parity reached 82 of 83) |
 | P8 | Make `install-launchd-watch`'s `reran` term attributable | `P8-launchd-watch-attributable.md` | — | — | **Done** (ai/p8 → main; the lane was shown able to go red) |
 | R9 | The SDK drops an upstream's message on -32603; the router reads it off the wire | `R9-sdk-drops-upstream-message.md` | — | — | **Done** (ai/r9 → main; DEF-047 closed, 7 tests armed 5-of-7 red, parity 82/83 0 diverged) |
-| R10 | `index` prints two counts that disagree, and neither is checked | `R10-index-reports-a-write-that-did-not-land.md` | — | — | **Verified — ready to merge** (`ai/r10` `f810870`; `effect-witness`; 3 follow-ups) |
+| R10 | `index` prints two counts that disagree, and neither is checked | `R10-index-reports-a-write-that-did-not-land.md` | — | — | **Done** — merged to `main` at `8241e0f` (`ai/r10` `f810870`; `effect-witness`; 3 follow-ups) |
 | X1 | The iOS accessibility-tree harness, and two surfaces still empty | `X1-ios-a11y-harness.md` | — | — | Done (closed by X3's engine fix + the accessibility-frame row oracle; `make test-ios` 36/0) |
 | X2 | The iOS on-glass instrument, and the six cases it takes off `n/a` | `X2-ios-on-glass.md` | — | — | **Done** (ai/x2 → main; lane-owned device, six green runs) |
 | X3 | The iOS unit lane read an empty accessibility tree because the engine was off | `X3-ios-unit-lane-empty-tree.md` | — | — | Done (DEF-029 closed, armed three ways) |

@@ -18,17 +18,28 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
     /// How long a child gets to exit on SIGTERM before it is killed. A daemon under launchd cannot
     /// wait indefinitely for a wedged server, and a child that outlives the router is an orphan.
     private let terminationGraceNanoseconds: UInt64
+    /// The environment children inherit, with `PATH` already augmented by ``ChildPath``, before the
+    /// server's own `env` is merged over the top.
+    ///
+    /// Resolved **once, here**, rather than per spawn. One transport is built per router start, so
+    /// the scan costs one directory listing for the life of the process — and a tool installed
+    /// afterwards is found at the next restart, which is what `spec-R6.md` §2 claims and what the
+    /// watcher's `launchctl kickstart -k` delivers on every adoption.
+    private let childEnvironment: [String: String]
 
     public init(
         log: RouterLog? = nil,
         clientName: String = "mcp-router",
         clientVersion: String = "0.1.0",
-        terminationGraceNanoseconds: UInt64 = 2_000_000_000
+        terminationGraceNanoseconds: UInt64 = 2_000_000_000,
+        environment: [String: String] = ProcessInfo.processInfo.environment,
+        probe: any DirectoryProbing = RealDirectoryProbe()
     ) {
         self.log = log
         self.clientName = clientName
         self.clientVersion = clientVersion
         self.terminationGraceNanoseconds = terminationGraceNanoseconds
+        childEnvironment = ChildPath.augmentedEnvironment(environment, probe: probe)
     }
 
     /// A running child and the two handles that outlive this call: the pipes it owns and the signal
@@ -109,8 +120,17 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
         // child then exits immediately, and the handshake sits there until the startup budget runs
         // out. Measured: `mcp-router import` reported `upstream "broken" did not initialize within
         // 60000ms` where the reference reported `spawn /nonexistent/... ENOENT` in milliseconds.
-        guard Self.resolve(command) != nil else {
-            throw PoolError.spawnFailed(name: upstream.name, reason: "spawn \(command) ENOENT")
+        //
+        // It resolves against the environment the CHILD is about to get, not the router's own. A
+        // pre-check searching a narrower PATH than the child would reject a command `/usr/bin/env`
+        // would have found — R6's defect rebuilt inside the fix for it.
+        let spawnEnvironment = mergedEnvironment(upstream)
+        guard Self.resolve(command, environment: spawnEnvironment) != nil else {
+            throw PoolError.commandNotFound(
+                name: upstream.name,
+                command: command,
+                searchedPath: spawnEnvironment["PATH"] ?? ""
+            )
         }
 
         let pipes = ChildPipes()
@@ -120,7 +140,7 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
         // bare name instead would fail for every upstream that is not an absolute path.
         process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
         process.arguments = [command] + upstream.args
-        process.environment = mergedEnvironment(upstream)
+        process.environment = spawnEnvironment
         if let cwd = upstream.cwd, !cwd.isEmpty {
             process.currentDirectoryURL = URL(fileURLWithPath: cwd)
         }
@@ -158,14 +178,16 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
         return nil
     }
 
-    /// The router's own environment first, then the server's overrides — the reference's order, and
-    /// it matters: a server that sets `PATH` must win over ours, not be silently ignored.
+    /// The router's own environment with `PATH` augmented, then the server's overrides — the
+    /// reference's order, and it matters: a server that sets `PATH` must win over ours, not be
+    /// silently ignored. That override is R6's escape hatch for a prefix ``ChildPath`` does not
+    /// find, so it stays last.
     private func mergedEnvironment(_ upstream: UpstreamConfig) -> [String: String] {
-        var environment = ProcessInfo.processInfo.environment
+        var merged = childEnvironment
         for pair in upstream.env {
-            environment[pair.key.string] = pair.value.string
+            merged[pair.key.string] = pair.value.string
         }
-        return environment
+        return merged
     }
 
     /// Read the child's stderr continuously.

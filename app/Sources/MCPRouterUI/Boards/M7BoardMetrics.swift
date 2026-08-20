@@ -50,6 +50,15 @@
         static var inspectorWidth: Double { MetricToken.sidebar.leadingScalar + unit * 2 }
         static var sheetWidth: Double { MetricToken.sidebar.leadingScalar * 2 }
 
+        /// How strongly a flagged Cleanup row is tinted.
+        ///
+        /// `prototype.html:954` sets `rgba(255,66,69,.06)` — the fail colour at 6%, which is a wash
+        /// rather than a highlight. It stays a literal fraction because it is an alpha, not a
+        /// length: there is no spacing token it could be a multiple of, and rounding it to a
+        /// heavier value would make the row read as an error rather than as one worth reading
+        /// before acting on. DEF-011.
+        static var flaggedRowTint: Double { 0.06 }
+
         /// The observation track: as tall as a hairline is thick times six, and as wide as the tally.
         static var trackHeight: Double { inset * 1.5 }
         static var trackWidth: Double { unit * 6 }

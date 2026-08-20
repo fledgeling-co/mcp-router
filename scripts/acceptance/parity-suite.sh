@@ -71,19 +71,41 @@ run_test() { # group id citation
   record "$group" "$id" ok "$citation ran and passed ($count test(s))"
 }
 
+# A cited script's output is kept, not discarded, and printed when it fails.
+#
+# The first version sent both streams to /dev/null and printed "the gate reported findings" — a
+# verdict with no evidence under it, which cost a whole gate run to diagnose: `parity-oauth.sh`
+# failed here inside a full `parity-gate.sh` and passed every way it was run afterwards, and the
+# reason it failed was in bytes this function had already thrown away. A gate that hides why it
+# failed is the failure this repository keeps arguing against, so the log survives the run and its
+# tail is printed inline.
 run_script() { # group id script
   local group="$1" id="$2" script="$3"
-  if bash "$REPO_ROOT/$script" >/dev/null 2>&1; then
+  local log
+  log="$(mktemp -t parity-suite-script)"
+  if bash "$REPO_ROOT/$script" > "$log" 2>&1; then
     pass=$((pass + 1))
     printf '  ok   %-58s %s\n' "$script" "the gate ran and is clean"
     record "$group" "$id" ok "$script ran and passed"
+    rm -f "$log"
   else
     fail=$((fail + 1))
     printf '  FAIL %-58s %s\n' "$script" "the gate reported findings"
-    record "$group" "$id" fail "$script reported findings"
+    printf '       its last 20 lines, kept in full at %s:\n' "$log"
+    sed -e 's/^/       | /' < <(tail -20 "$log")
+    record "$group" "$id" fail "$script reported findings; output kept at $log"
   fi
 }
 
+# A row proven on the wire by its own lane can still cite a script, and that script then runs
+# twice in one gate — once here and once as that lane. `control-auth-post-http` is the case: it
+# cites `parity-oauth.sh`, which is also lane 13 of 13. That is kept rather than deduplicated, and
+# it earned its keep on 20 Aug 2026: the citation run recorded `fail — the Swift router never
+# reached the token endpoint` while the dedicated lane, twenty minutes later in the same gate,
+# recorded ok over 21 checks. Neither a standalone run of the script, a standalone run of this
+# lane, nor a second whole gate reproduced it. A single run would have reported a clean 82 of 83
+# and nobody would have known. Both runs record under the same row id and a `fail` wins, which is
+# the right precedence for a finding nobody can explain yet — DEF-033.
 echo "running every citation the manifest rests on"
 echo
 

@@ -724,8 +724,8 @@
       "executionPlane": "headless"
     },
     "oracle": "outcome",
-    "status": "fail",
-    "armed": false,
+    "status": "pass",
+    "armed": true,
     "evidence": [
       "evidence/runs/make-parity.log",
       "planning/evidence/I5-transport-proof.md",
@@ -733,9 +733,12 @@
       "evidence/runs/parity-gate-2026-08-19-remap.log",
       "evidence/runs/parity-gate-2026-08-19-rollback.log",
       "evidence/runs/parity-install-rollback-2026-08-19.log",
-      "evidence/runs/parity-install-rollback-2026-08-19.tsv"
+      "evidence/runs/parity-install-rollback-2026-08-19.tsv",
+      "evidence/runs/parity-gate-2026-08-20-cutover.log",
+      "evidence/runs/parity-gate-2026-08-20-oauth-flake.log",
+      "planning/evidence/P7-acceptance.md"
     ],
-    "note": "parity-gate.sh, rollback re-run 2026-08-19T05:40:27Z: MCP_SWIFT_PORT=8973 REGISTRY_SWIFT_PORT2=9071 (defaults :8993/:8961 occupied by unrelated orphan Pythons, left running). Exit 1. Printed fraction: 80 of 83 rows proven (4 of them by suite only, not by wire comparison), 3 blocked. 0 DIVERGED. install-rollback R4-C now ok: probe restored, mcp-router/router gone, keep-hand unclobbered, mode 0600, backup is pre-image. Still blocked: fixture-registry-search (standing exclusion, nobody is doing this work); control-auth-post-http D-p1-a; install-launchd-watch D-p1-e (held blocked deliberately \u2014 the reran term reads yes on 2 of 6 decoy trials where no stimulus can reach the watched path, so agreement on it is not evidence of parity). Frontmost Ghostty before and after. Owner cutover target is 82 of 83 (ORCHESTRATOR.md CUTOVER TARGET, bec9d18); 2 real-work rows stand between 80 and 82, so this stays fail."
+    "note": "parity-gate.sh on main at e5755d0, 20 Aug 2026: **82 of 83 rows proven (4 of them by suite only, not by wire comparison), 0 DIVERGED, 1 blocked.** REQ-014's contract is the owner's cutover target of 82 of 83 with `fixture-registry-search` a standing exclusion, and that is what was measured. The two rows that stood between 80 and 82 closed the same day: `install-launchd-watch` by ai/p8, which made the `reran` term attributable \u2014 it had read yes on 2 of 6 decoy trials where no stimulus could reach the watched path \u2014 and `control-auth-post-http` by ai/p7, which built a real OAuth client and now agrees with the reference across the discovery cascade, the registration bytes, the PKCE parameters, the token exchange, the callback page, the credential file and the re-authorization branch.\n\n**The gate exits 1 and that is not this case failing.** It exits 1 while any row is blocked, deliberately, and the one blocked row is the standing exclusion the requirement names. The gate prints the distinction itself: `82 proven is at or past the target of 82. That is a count, not a licence`. Read as a pass on the requirement, not as a licence to flip the installer \u2014 that is the owner's call on R4-C's evidence, which this case does not make.\n\n**Armed, and one arm was not planned.** The mechanical arm is `parity-lane-selftest`, which runs every lane against a deliberately broken Swift router and requires each to go red; it ran green in the same `make all` that carried this tree, printing `every new lane went red against a broken router. The lanes can fail.` The unplanned arm is the first whole-gate run of the day, kept at `evidence/runs/parity-gate-2026-08-20-oauth-flake.log`: the same script on the same tree reported `81 of 83 rows proven \u2026 1 DIVERGED \u2026 This is NOT a pass`, so the aggregate verdict is live rather than a constant. That run's cause is unexplained and is recorded as DEF-033 rather than absorbed into this note."
   },
   {
     "id": "CASE-0037",

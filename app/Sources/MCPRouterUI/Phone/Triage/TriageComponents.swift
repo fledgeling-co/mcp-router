@@ -36,10 +36,12 @@ struct PhoneMessageState: View {
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
 
+            // `.cta.sec` inside `.pempty` in i3-phone-triage.html — `width:100%` inside a 12px
+            // gutter. Every use of this component is a whole-pane empty or error state, so the
+            // action is the pane's action and takes the pane's width. DEF-024.
             if let actionLabel, let action {
                 Button(actionLabel, action: action)
-                    .buttonStyle(PhoneStandardButtonStyle())
-                    .frame(minHeight: PhoneMetric.minimumTarget)
+                    .buttonStyle(PhoneStandardButtonStyle(fillsWidth: true))
             }
         }
         .padding(.horizontal, PhoneMetric.section)
@@ -151,8 +153,8 @@ struct TriageCommitBar: View {
                         .disabled(isDisabled)
 
                     Button(entry.actionLabel ?? "", action: onCommit)
-                        .buttonStyle(PhoneProminentButtonStyle())
-                        .frame(maxWidth: .infinity, minHeight: PhoneMetric.minimumTarget)
+                        .buttonStyle(PhoneProminentButtonStyle(fillsWidth: true))
+                        .frame(minHeight: PhoneMetric.minimumTarget)
                         .disabled(isDisabled)
                 }
 

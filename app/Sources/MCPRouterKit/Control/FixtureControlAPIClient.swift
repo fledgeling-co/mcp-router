@@ -85,7 +85,12 @@ public struct FixtureControlAPIClient: ControlAPIClient {
         try JSONDecoder().decode(type, from: fixtureData(name))
     }
 
-    private func decode<T: Decodable>(_ name: String, as type: T.Type) throws(ControlAPIError) -> T {
+    /// Decode one recording.
+    ///
+    /// Module-internal rather than `private` so the writes extension in
+    /// `FixtureControlAPIClient+Writes.swift` can reach it. Still not `public`: the fixture's
+    /// decoding is its own business, and nothing outside this module constructs a recording.
+    func decode<T: Decodable>(_ name: String, as type: T.Type) throws(ControlAPIError) -> T {
         do {
             return try Self.decodeFixture(name, as: type)
         } catch let error as ControlAPIError {
@@ -110,7 +115,7 @@ public struct FixtureControlAPIClient: ControlAPIClient {
         }
     }
 
-    private func guardFailure() throws(ControlAPIError) {
+    func guardFailure() throws(ControlAPIError) {
         if let failure { throw failure }
     }
 
@@ -231,9 +236,23 @@ public struct FixtureControlAPIClient: ControlAPIClient {
         }
     }
 
+    /// The per-server call summary, per scenario.
+    ///
+    /// `.empty` returns no servers, keeping `since` from the recording — the router has been
+    /// counting since that moment and has nothing to report, which is a different statement from
+    /// having no window at all. Cleanup is the surface that reads this, and it proposes servers to
+    /// remove on the strength of their call counts; without this branch an empty router offered
+    /// four never-used servers to cull, which is the same defect `searchRegistry` carried as
+    /// DEF-009. Found by auditing the other reads once that one was fixed, not by a failing test —
+    /// so it is recorded as DEF-014 and is not evidence of a case that watched it fail.
     public func usageSummary() async throws(ControlAPIError) -> UsageSummary {
         try guardFailure()
-        return try decode("usage-summary", as: UsageSummary.self)
+        if scenario == .loading { try await Self.forever() }
+        let recorded = try decode("usage-summary", as: UsageSummary.self)
+        if scenario == .empty {
+            return UsageSummary(since: recorded.since, servers: [])
+        }
+        return recorded
     }
 
     public func heldChanges(for name: String) async throws(ControlAPIError) -> HeldChanges {
@@ -247,72 +266,38 @@ public struct FixtureControlAPIClient: ControlAPIClient {
         return changes
     }
 
+    /// The registry search, per scenario.
+    ///
+    /// **`.empty` is built here rather than recorded**, for the reason the `fixtureData` comment
+    /// above gives: `registry-search.json` lives in `Control/Fixtures`, so it is a recording that
+    /// `parity-fixture.sh` replays against the TypeScript reference and that owes a row in
+    /// `planning/parity/surface.tsv`. A second hand-written file beside it would be replayed too,
+    /// and the reference would not reproduce it. `skills()` and `marketplaces()` answer `.empty`
+    /// the same way, in code.
+    ///
+    /// Until this branch existed the method ignored the scenario altogether and returned the
+    /// three recorded results for every one of the fourteen. That is what made Discover's empty
+    /// state unreachable on the phone — `MCPROUTER_SCENARIO=empty` reached the client, the client
+    /// answered with a populated catalogue, and the on-glass test read a surface that was
+    /// rendering its data correctly from the wrong answer. Registered as DEF-009.
+    ///
+    /// `sources` is zeroed alongside `results`, because a count of what each index contributed is
+    /// a statement about this response: three official entries beside an empty result list would
+    /// be the surface's own honesty guardrail reporting a number nothing in view supports.
     public func searchRegistry(
         query _: String,
         limit _: Int
     ) async throws(ControlAPIError) -> RegistrySearchResponse {
         try guardFailure()
         if scenario == .loading { try await Self.forever() }
+        if scenario == .empty {
+            return RegistrySearchResponse(
+                results: [],
+                sources: RegistrySources(official: 0, smithery: 0, merged: 0),
+                warnings: []
+            )
+        }
         return try decode("registry-search", as: RegistrySearchResponse.self)
-    }
-
-    // MARK: - Writing
-
-    public func add(_ server: NewServer, force _: Bool) async throws(ControlAPIError) -> AddedServer {
-        try guardFailure()
-        var added = try decode("added", as: AddedServer.self)
-        added.added = server.name
-        return added
-    }
-
-    public func remove(_ name: String, keepHistory _: Bool) async throws(ControlAPIError) -> RemovedServer {
-        try guardFailure()
-        var removed = try decode("removed", as: RemovedServer.self)
-        removed.removed = name
-        return removed
-    }
-
-    public func reindex(_ name: String) async throws(ControlAPIError) -> ReindexResult {
-        try guardFailure()
-        var result = try decode("reindex-failure", as: ReindexResult.self)
-        result.name = name
-        if scenario == .success { result.error = nil; result.tools = 14 }
-        return result
-    }
-
-    public func patch(server name: String, _ patch: ServerPatch) async throws(ControlAPIError) -> MCPServer {
-        try guardFailure()
-        var server = try decode("patch-response", as: MCPServer.self)
-        server.name = name
-        if let warm = patch.warm { server.warm = warm }
-        if let projects = patch.projects { server.projects = projects }
-        return server
-    }
-
-    public func approvePendingChange(server name: String) async throws(ControlAPIError) -> ApprovalResult {
-        try guardFailure()
-        var approval = try decode("approve", as: ApprovalResult.self)
-        approval.server = name
-        return approval
-    }
-
-    public func beginAuthorization(for name: String) async throws(ControlAPIError) -> AuthorizationStart {
-        try guardFailure()
-        var start = try decode("auth-start", as: AuthorizationStart.self)
-        start.server = name
-        return start
-    }
-
-    public func signOut(_ name: String) async throws(ControlAPIError) -> SignedOut {
-        try guardFailure()
-        var out = try decode("signout", as: SignedOut.self)
-        out.server = name
-        return out
-    }
-
-    public func resetUsage() async throws(ControlAPIError) -> UsageReset {
-        try guardFailure()
-        return try decode("usage-reset", as: UsageReset.self)
     }
 
     // MARK: - The stream

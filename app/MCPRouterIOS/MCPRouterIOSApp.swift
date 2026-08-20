@@ -33,6 +33,19 @@ struct MCPRouterIOSApp: App {
         try FileCapabilityQueueWriter.defaultDirectory()
     }
 
+    /// The camera adapter this build uses. `PhoneCameraFactory` holds the decision, and the
+    /// measurement that makes it necessary.
+    ///
+    /// **Stored once rather than built in `body`.** `LiveCameraAuthorization` is a fieldless struct,
+    /// so constructing it per render cost nothing and hid this: `FixtureCameraAuthorization` is an
+    /// actor, and a fresh one on every body pass gave `PairingFlowModel` a dependency whose identity
+    /// changed underneath it. Measured 20 Aug 2026 — tapping 'Pair Mac' pushed the flow and landed
+    /// back on Settings, and the on-glass test read that as the pre-prompt never opening.
+    private let camera: any CameraAuthorizing = switch PhoneCameraFactory.currentChoice() {
+    case .live: LiveCameraAuthorization()
+    case let .fixture(state): FixtureCameraAuthorization(state)
+    }
+
     var body: some Scene {
         WindowGroup {
             switch storage {
@@ -40,7 +53,7 @@ struct MCPRouterIOSApp: App {
                 PhoneShell(
                     pairing: FixturePairingService(),
                     store: KeychainPairingStore(),
-                    camera: LiveCameraAuthorization(),
+                    camera: camera,
                     client: PhoneClientFactory.makeClient(),
                     queue: FileCapabilityQueueWriter(directory: directory),
                     dismissals: FileDismissalStore(directory: directory),

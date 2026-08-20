@@ -13,13 +13,44 @@ PROJECT    := $(APP_DIR)/MCPRouter.xcodeproj
 DERIVED    := $(APP_DIR)/.derived
 UNSIGNED   := CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO
 
+# The ios-glass lane signs, and the rest do not. Measured 20 Aug 2026: built with
+# CODE_SIGNING_ALLOWED=NO the app has no keychain access group, so SecItemCopyMatching
+# returns -34018 errSecMissingEntitlement rather than errSecItemNotFound. The phone's
+# Settings surface reads that as "Can't read this phone's pairing" and renders the
+# unreadable state on a device that has simply never been paired — a lane artefact that
+# reads exactly like a product defect. Ad-hoc signing ("-") costs one codesign step and
+# makes the keychain behave as it does on a real install.
+SIGNED     := CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=YES CODE_SIGNING_ALLOWED=YES
+
+## Look up a simulator by exact name; prints its udid, or nothing.
+SIMCTL_NAMED_DEVICE = python3 -c "import json,subprocess,sys; \
+ds=json.loads(subprocess.run(['xcrun','simctl','list','devices','-j'],capture_output=True,text=True).stdout)['devices']; \
+c=[d for v in ds.values() for d in v if d.get('name')==sys.argv[1]]; \
+print(c[0]['udid'] if c else '')"
+
+## Print '<runtime-id> <device-type-id>' for the newest iOS runtime that offers an iPhone.
+SIMCTL_NEWEST_IPHONE = python3 -c "import json,subprocess; \
+r=[x for x in json.loads(subprocess.run(['xcrun','simctl','list','runtimes','-j'],capture_output=True,text=True).stdout)['runtimes'] if x.get('isAvailable') and 'iOS' in x.get('name','')]; \
+r.sort(key=lambda x: [int(n) for n in x.get('version','0').split('.')], reverse=True); \
+out=''; \
+[out := out or (x['identifier'] + ' ' + t['identifier']) \
+ for x in r for t in x.get('supportedDeviceTypes', []) if 'iPhone' in t.get('name','')]; \
+print(out)"
+
+
 IOS_DEST   ?= generic/platform=iOS Simulator
 MAC_DEST   ?= platform=macOS
 
-.PHONY: all tools generate build build-mac build-mac-release build-ios test test-ios parity parity-regen parity-selftest parity-lane-selftest mutation acceptance lint format clean
+.PHONY: all tools generate build build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest mutation acceptance lint format clean
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
-all: tools lint build test test-ios parity parity-selftest
+## `test-ios-glass` is in this list because `X2-ios-on-glass.md` said it would be: "The target
+## exists, is documented, and joins `all` when DEF-X2-b and DEF-X2-c close." Both closed on
+## 20 Aug 2026 (they became DEF-013 and DEF-017), and the lane has run 5 of 5 on eight separate
+## runs since. It costs roughly two minutes and adds no new requirement — `test-ios` already needs
+## a booted simulator — and it is the only stage here that proves the app runs rather than that its
+## views construct.
+all: tools lint build test test-ios test-ios-glass parity parity-selftest
 
 ## Fail loudly and specifically when a required tool is missing, rather than skipping the gate.
 ## A silently-skipped lint step is worse than no lint step: it reports success.
@@ -128,20 +159,55 @@ test:
 ## A concrete simulator is required — `generic/platform=iOS Simulator` builds but cannot run — so
 ## this resolves a booted or available device rather than assuming a name that may not exist on
 ## another machine.
+## The device this lane owns.
+##
+## Named, and created if absent, for the reason DEF-020 records: the picker this replaces sorted
+## booted devices first, so the lane ran on whichever simulator some other project happened to have
+## up. That is how a lane comes to measure another product. Measured 20 Aug 2026: with another
+## project holding three booted simulators, every one of these 35 tests read an empty accessibility
+## tree — 51 failures across six consecutive runs, deterministic, with no change to this repo.
+IOS_UNIT_DEVICE ?= MCPRouter-Unit
+
+## The engine is warmed by a throwaway run before the graded one, and that run's result is ignored
+## on purpose.
+##
+## `_AXSSetAutomationEnabled(true)` takes effect for the NEXT process on the device rather than for
+## the one that calls it. Measured 20 Aug 2026 on `MCPRouter-Unit`: a run taken on a device left
+## disabled fails 39 assertions across the same 15 test cases every time — deterministic, not a
+## race, and exactly the cases that host a `ScrollView` — while the run after it, with no change to
+## anything, is clean. `make all` went red on precisely that, on a suite that had just been proved
+## green.
+##
+## So the enabling process runs first and its exit code is discarded, because a device that is
+## already warm makes it a no-op and a device that is cold makes it fail for the reason the graded
+## run exists to report. Nothing is inferred from it: the graded run asserts the engine for itself
+## through `testTheAccessibilityEngineCanBeSwitchedOn`, which blocks on a probe of the same shape
+## the failures take and goes red rather than quietly empty.
+
 test-ios: generate
 	@set -eu -o pipefail; \
-	  udid=$$(xcrun simctl list devices available -j \
-	          | python3 -c "import json,sys; ds=json.load(sys.stdin)['devices']; \
-c=[d for v in ds.values() for d in v if d.get('isAvailable') and 'iPhone' in d['name']]; \
-c.sort(key=lambda d: d['state'] != 'Booted'); \
-print(c[0]['udid'] if c else '')"); \
+	  udid=$$($(SIMCTL_NAMED_DEVICE) "$(IOS_UNIT_DEVICE)"); \
 	  if [ -z "$$udid" ]; then \
-	    echo "error: no available iPhone simulator, so the iOS suite did not run."; \
-	    echo "       This is an environment failure, not a pass — the claims it carries"; \
-	    echo "       (44pt targets, safe area, the generated Info.plist) went unmeasured."; \
-	    exit 2; \
+	    pair=$$($(SIMCTL_NEWEST_IPHONE)); \
+	    runtime=$${pair%% *}; devtype=$${pair##* }; \
+	    if [ -z "$$pair" ] || [ -z "$$runtime" ] || [ -z "$$devtype" ]; then \
+	      echo "error: no available iPhone simulator, so the iOS suite did not run."; \
+	      echo "       This is an environment failure, not a pass — the claims it carries"; \
+	      echo "       (44pt targets, safe area, the generated Info.plist) went unmeasured."; \
+	      exit 2; \
+	    fi; \
+	    echo "test-ios: creating $(IOS_UNIT_DEVICE)"; \
+	    udid=$$(xcrun simctl create "$(IOS_UNIT_DEVICE)" "$$devtype" "$$runtime"); \
 	  fi; \
-	  echo "test-ios: simulator $$udid"; \
+	  xcrun simctl bootstatus "$$udid" -b >/dev/null 2>&1 || xcrun simctl boot "$$udid" || true; \
+	  xcrun simctl bootstatus "$$udid" -b >/dev/null 2>&1 || true; \
+	  echo "test-ios: simulator $$udid ($(IOS_UNIT_DEVICE))"; \
+	  echo "test-ios: warming the accessibility engine on $$udid"; \
+	  perl -e 'alarm shift @ARGV; exec @ARGV' 900 \
+	  xcodebuild -project $(PROJECT) -scheme MCPRouterIOS -configuration Debug \
+	    -destination "id=$$udid" -derivedDataPath $(DERIVED) $(UNSIGNED) \
+	    -only-testing:MCPRouterIOSTests/PhoneSurfaceTests/testTheAccessibilityEngineCanBeSwitchedOn \
+	    test >/dev/null 2>&1 || true; \
 	  bundle="$$(mktemp -d -t mcprouter-xcresult)/result.xcresult"; \
 	  perl -e 'alarm shift @ARGV; exec @ARGV' 1200 \
 	  xcodebuild -project $(PROJECT) -scheme MCPRouterIOS -configuration Debug \
@@ -155,6 +221,92 @@ print((d.get('passedTests') or 0) + (d.get('failedTests') or 0))"); \
 	    echo "error: zero iOS tests executed — a bundle that fails to install reports no tests"; \
 	    exit 1; \
 	  fi
+
+## The `ios-glass` lane — the app installed and driven on a booted simulator.
+##
+## Separate from `test-ios` because the two answer different questions. `test-ios` constructs views
+## in the app's process and reads them back through our own walk of `UIView.accessibilityLabel`; it
+## never taps a tab, so it cannot tell "each tab renders its own surface" from "all five render
+## Settings". This target runs XCUITest out of process against iOS's own accessibility tree, which
+## is what caught the tab bar announcing ["discover", "inbox", "tray", "book", "settings"].
+##
+## Attachments are exported into the campaign's evidence tree and renamed to the name the test gave
+## them, so a PNG in `planning/test-campaign/evidence/shots/ios/` is attributable to the assertion
+## that passed immediately before it was taken. `manifest.json` is kept beside them as the record of
+## which test produced which file.
+##
+## Never opens Simulator.app: `xcodebuild test` against an already-booted device drives the runtime
+## directly, which is `planning/practices/UI_VERIFICATION.md` rule 1.
+##
+## **The export runs on a red run too, and the target's exit status is carried past it.** Until
+## 20 Aug 2026 `set -e` killed the recipe at the failing `xcodebuild`, so a red run exported no
+## attachments at all — the run whose pictures are worth most produced none, and diagnosing a
+## failure meant re-running by hand against a bundle path scraped out of the log. The signing fix
+## below was found that way. `status` holds the result while the export completes, and the target
+## still fails.
+##
+## **The lane signs ad-hoc where the rest of the repo does not** — see `SIGNED` at the top of this
+## file for the measurement. An unsigned build has no keychain access group, and the phone's
+## pairing read fails with `-34018` in a way that reads exactly like a product defect.
+##
+## **Deliberately not in `all` yet.** Two of its five cases are red, and both reds are findings
+## about the product rather than about this target — DEF-X2-a and DEF-X2-b in
+## `planning/features-to-triage/X2-ios-on-glass.md`. Wiring a known-red lane into the whole-repo
+## gate would either block every unrelated commit or invite someone to soften the two assertions,
+## and the assertions are the only reason the findings are visible. It joins `all` when they close.
+IOS_GLASS_SHOTS := planning/test-campaign/evidence/shots/ios
+
+## The device this lane owns, by name.
+##
+## **It must not share a simulator, and the previous picker deliberately did.** It listed every
+## available iPhone and sorted `state != 'Booted'` first — that is, it *preferred* a device
+## somebody else had already booted. On a machine where more than one project drives simulators,
+## that means XCUITest taps arrive at whichever app is frontmost. Measured 20 Aug 2026: a run
+## whose five tests failed on a different tab each time turned out to be sharing its device with
+## another project's app, which was in the foreground; a screenshot of the "simulator" showed that
+## app's onboarding rather than MCP Router. Every one of those failures read as a product defect.
+##
+## Named rather than pinned by udid so a fresh checkout creates its own, and so a person can find
+## it in Simulator's device list and know what it is for.
+IOS_GLASS_DEVICE ?= MCPRouter-Glass
+
+test-ios-glass: generate
+	@set -eu -o pipefail; \
+	  udid=$$($(SIMCTL_NAMED_DEVICE) "$(IOS_GLASS_DEVICE)"); \
+	  if [ -z "$$udid" ]; then \
+	    pair=$$($(SIMCTL_NEWEST_IPHONE)); \
+	    runtime=$${pair%% *}; devtype=$${pair##* }; \
+	    if [ -z "$$pair" ] || [ -z "$$runtime" ] || [ -z "$$devtype" ]; then \
+	      echo "error: no iOS runtime or iPhone device type is available, so the ios-glass lane"; \
+	      echo "       did not run. This is an environment failure, not a pass — every capture"; \
+	      echo "       and every per-tab surface claim went unmeasured."; \
+	      exit 2; \
+	    fi; \
+	    echo "test-ios-glass: creating $(IOS_GLASS_DEVICE)"; \
+	    udid=$$(xcrun simctl create "$(IOS_GLASS_DEVICE)" "$$devtype" "$$runtime"); \
+	  fi; \
+	  xcrun simctl bootstatus "$$udid" -b >/dev/null 2>&1 || xcrun simctl boot "$$udid" || true; \
+	  xcrun simctl bootstatus "$$udid" -b >/dev/null 2>&1 || true; \
+	  echo "test-ios-glass: simulator $$udid ($(IOS_GLASS_DEVICE))"; \
+	  bundle="$$(mktemp -d -t mcprouter-glass)/result.xcresult"; \
+	  status=0; \
+	  perl -e 'alarm shift @ARGV; exec @ARGV' 1800 \
+	  xcodebuild -project $(PROJECT) -scheme MCPRouterIOSGlass -configuration Debug \
+	    -destination "id=$$udid" -derivedDataPath $(DERIVED) $(SIGNED) \
+	    -resultBundlePath "$$bundle" test || status=$$?; \
+	  ran=$$(xcrun xcresulttool get test-results summary --path "$$bundle" --format json \
+	         | python3 -c "import json,sys; d=json.load(sys.stdin); \
+print((d.get('passedTests') or 0) + (d.get('failedTests') or 0))"); \
+	  echo "executed $$ran on-glass tests"; \
+	  if [ "$$ran" -eq 0 ]; then \
+	    echo "error: zero on-glass tests executed — a runner that fails to install reports none"; \
+	    exit 1; \
+	  fi; \
+	  rm -rf "$(IOS_GLASS_SHOTS)"; mkdir -p "$(IOS_GLASS_SHOTS)"; \
+	  xcrun xcresulttool export attachments --path "$$bundle" \
+	    --output-path "$(IOS_GLASS_SHOTS)" >/dev/null; \
+	  python3 scripts/acceptance/name-glass-attachments.py "$(IOS_GLASS_SHOTS)"; \
+	  exit $$status
 
 ## The parity corpus specifically — A41.
 ##

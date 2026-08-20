@@ -163,3 +163,19 @@ through a documented modifier. And A35's line needed the widening on its own mer
 lanes called it stale independently of which product form replaced it — so the edit is a wrong gate
 corrected rather than a right gate bent to fit, which is the distinction `SWIFT_PRACTICES.md` §7
 draws. If a later item measures the AXValue mapping on glass, this is the form to revisit.
+
+### The unit lane flaked once at HEAD, and it is recorded rather than re-run into silence
+
+The first full run at `289b71b` reported **2 failures of 1552** — `PoolReapingTests.swift:61`
+(`P6 — a per-server idle window overrides the default`) and `CallbackLifecycleTests.swift:238`
+(*the callback listener was cancelled before it bound*). The second run on the same source passed
+**1552 of 1552**, and both suites pass in isolation. Load average was **478** across all three.
+
+Not attributed to this branch, and the reason is checkable rather than asserted: both files are
+under `RouterCoreTests` and belong to P6 and R5, and `git diff --stat main..HEAD -- app/Sources/RouterCore app/Tests/RouterCoreTests`
+is **empty** — M27 touches ten files, all of them under `MCPRouterKit/Shell`, `MCPRouterUI/Shell`
+and their own tests. This is the failure class `DEF-030` already names: four failures at load ~700
+and a clean 1473 on identical source minutes later at load 46.
+
+Said plainly because "re-run until green" is how a real defect gets laundered into a flake. What
+justifies the reading here is the empty diff against those files, not the second run's colour.

@@ -209,14 +209,15 @@
             // for one metric, the first of them — `Child processes` — carrying no value at all,
             // and the second naming the quantity differently (`declared servers`). This branch
             // shipped that form for one commit, on the ground that `.combine` failed A35's own
-            // assertion in `mac-shell.sh`. **That ground was wrong, and three out-of-family
-            // reviews across two model families said so.** A35 matches the destination rows as a
-            // PREFIX, and its own comment says why: "a row that carries a badge announces it as
-            // part of one sentence … that is the point of the label, so the assertion has to allow
-            // for it". The readout's line was anchored `^…$` instead — written when this row had
-            // no label to combine with, because the missing label is the defect M27 exists to fix.
-            // So the anchor never encoded a decision about a combined form; it encoded the absence
-            // of one, and it was widened to the tolerance A35 already applies thirty lines above.
+            // assertion in `mac-shell.sh`. **That ground was wrong, and three out-of-family lanes
+            // from three model families said so independently.** A35 matches the destination rows
+            // as a PREFIX, and its own comment says why: "a row that carries a badge announces it
+            // as part of one sentence … that is the point of the label, so the assertion has to
+            // allow for it". The readout's line was anchored `^…$` instead — written when this row
+            // had no label to combine with, because the missing label is the defect M27 exists to
+            // fix. So the anchor never encoded a decision about a combined form; it encoded the
+            // absence of one, and it was widened to the tolerance A35 already applies thirty lines
+            // above.
             //
             // A gate written before the element existed does not get to pick the element's shape.
             .accessibilityElement(children: .combine)

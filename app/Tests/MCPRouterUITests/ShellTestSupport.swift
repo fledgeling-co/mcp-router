@@ -37,6 +37,14 @@
         /// `marker` must appear exactly once: a second occurrence — an overload, or a comment
         /// quoting the signature — makes "which declaration" ambiguous, and picking either end of
         /// that ambiguity is how a scoped gate reads the wrong function.
+        ///
+        /// **What comes back is code with its line comments removed**, and that is the third hole a
+        /// reviewer found rather than a tidiness point. Every gate built on this asks whether some
+        /// string is in a view's body; the bodies in this repo carry long comments that *discuss the
+        /// modifiers being asserted about*, so `body.contains(".accessibilityLabel(")` was satisfied
+        /// by a paragraph explaining `.accessibilityLabel`, and a negative assertion is one careless
+        /// sentence away from going vacuous the same way. Comments are prose about the code, not the
+        /// code, so they are not what a source gate should be reading.
         static func declarationBody(of marker: String, in source: String) throws -> String {
             let occurrences = source.components(separatedBy: marker).count - 1
             guard occurrences == 1 else {
@@ -52,29 +60,67 @@
 
             var depth = 0
             var index = open
-            // Braces inside a line comment or a string literal are text, not structure. Nothing
-            // else here needs a parser: this walks one declaration in this repo's own Swift.
-            var inComment = false
-            var inString = false
-            var previous: Character?
+            var code = ""
             while index < source.endIndex {
-                let character = source[index]
-                if character == "\n" { inComment = false }
-                if !inComment, !inString, character == "/", previous == "/" { inComment = true }
-                if !inComment, character == "\"", previous != "\\" { inString.toggle() }
-                if !inComment, !inString {
-                    if character == "{" { depth += 1 }
-                    if character == "}" {
-                        depth -= 1
-                        if depth == 0 {
-                            return String(source[source.index(after: open) ..< index])
-                        }
-                    }
+                if let span = nonCodeSpan(source, from: index) {
+                    // A string literal is code and stays; a comment is prose about the code and goes.
+                    if span.isString, depth > 0 { code += source[index ..< span.end] }
+                    index = span.end
+                    continue
                 }
-                previous = character
+                let character = source[index]
+                if character == "{" { depth += 1 }
+                if character == "}" {
+                    depth -= 1
+                    if depth == 0 { return code }
+                }
+                if depth > 0 { code.append(character) }
                 index = source.index(after: index)
             }
             throw OracleError.sectionNotFound("'\(marker)' is never closed")
+        }
+
+        /// The span of the comment or string literal starting at `index`, or `nil` when code starts
+        /// there.
+        ///
+        /// Both are stepped over **whole**, by looking ahead rather than by remembering the previous
+        /// character, and that is what makes the walk above safe on this repo's own source: a `}` or
+        /// a `//` inside a string literal is text. `LoopbackAddress.controlEndpoint` returns
+        /// `"http://\(hostPort(port))/mcp"`, so a scanner that treated `//` as a comment opener
+        /// wherever it found one would swallow the rest of that line — which is the class of silent
+        /// truncation this whole reader exists to remove, reintroduced one layer down.
+        private static func nonCodeSpan(
+            _ source: String,
+            from index: String.Index
+        ) -> (end: String.Index, isString: Bool)? {
+            let rest = source[index...]
+            if rest.hasPrefix("//") {
+                return (rest.firstIndex(of: "\n") ?? source.endIndex, false)
+            }
+            if rest.hasPrefix("/*") {
+                let after = source.index(index, offsetBy: 2)
+                let close = source[after...].range(of: "*/")
+                return (close?.upperBound ?? source.endIndex, false)
+            }
+            guard source[index] == "\"" else { return nil }
+            return (endOfStringLiteral(source, openedAt: index), true)
+        }
+
+        /// Where the string literal opened at `index` closes, honouring backslash escapes.
+        private static func endOfStringLiteral(
+            _ source: String,
+            openedAt index: String.Index
+        ) -> String.Index {
+            var cursor = source.index(after: index)
+            while cursor < source.endIndex {
+                if source[cursor] == "\\" {
+                    cursor = source.index(cursor, offsetBy: 2, limitedBy: source.endIndex) ?? source.endIndex
+                    continue
+                }
+                if source[cursor] == "\"" { return source.index(after: cursor) }
+                cursor = source.index(after: cursor)
+            }
+            return source.endIndex
         }
 
         /// Waits for a condition to hold rather than for a duration to elapse.

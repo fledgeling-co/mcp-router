@@ -125,3 +125,22 @@ on an unclosed one, with `theDeclarationReaderCannotPassVacuously` exercising al
 
 | Screen | How verified | Commit | Result |
 |---|---|---|---|
+
+### A fourth form, considered and not taken
+
+`grok-4.6` — the lane that returned last, after the change above was already made — reached the
+same verdict on A35 independently, which makes it **three families of three** agreeing that the
+anchored line was the stale half. It then proposed a form none of the other lanes named: one
+element carrying `.accessibilityLabel("Child processes")` and
+`.accessibilityValue("N of M declared servers running")`. That is arguably the better AX modelling
+of a label-and-number pair, and its stated advantage is real — the gate's column map puts AXTitle,
+AXValue and AXDescription on separate fields, so A35 would match the value field with **no widening
+at all**, and the whole question of editing another item's assertion would not arise.
+
+Not taken, and the reason is recorded rather than assumed away: its advantage rests on SwiftUI
+mapping `.accessibilityValue` to AXValue, which that lane flagged as the one speculative part of its
+own finding. The shipped `.combine` reaches the same single stop with the same spoken sentence
+through a documented modifier. And A35's line needed the widening on its own merits — all three
+lanes called it stale independently of which product form replaced it — so the edit is a wrong gate
+corrected rather than a right gate bent to fit, which is the distinction `SWIFT_PRACTICES.md` §7
+draws. If a later item measures the AXValue mapping on glass, this is the form to revisit.

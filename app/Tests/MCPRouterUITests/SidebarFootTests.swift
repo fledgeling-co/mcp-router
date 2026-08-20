@@ -209,6 +209,29 @@
             let card = try ShellTestSupport.declarationBody(of: "private var card: some View", in: source)
             #expect(card.contains("ColorToken.line"))
             #expect(!card.contains("private func counts("))
+            // Comments are stripped, which is what keeps every gate above from being satisfied by a
+            // paragraph *about* the modifier it is asserting on. The counts row's body carries a
+            // long comment naming `.ignore` and `.combine` by name; if comments survived the
+            // extraction, `!row.contains(".accessibilityElement(children: .ignore)")` would be one
+            // rephrasing away from passing on prose.
+            let row = try ShellTestSupport.declarationBody(
+                of: "private func counts(running: Int, declared: Int, note: String?) -> some View",
+                in: source
+            )
+            #expect(!row.contains("//"), "line comments survived the extraction")
+            #expect(!row.contains("A gate written before the element existed"))
+            #expect(row.contains(".accessibilityElement(children: .combine)"))
+            // A string literal is code and survives — and this repo has the literal that makes the
+            // distinction load-bearing rather than theoretical. `controlEndpoint` returns
+            // `"http://\(hostPort(port))/mcp"`; a reader that treated `//` as a comment opener
+            // wherever it saw one would swallow the rest of that line, never find the closing brace,
+            // and throw. Two-way: the body has to come back, and it has to still hold the scheme.
+            let kit = try ShellTestSupport.repoFile("app/Sources/MCPRouterKit/Shell/LoopbackReadout.swift")
+            let endpoint = try ShellTestSupport.declarationBody(
+                of: "public static func controlEndpoint(_ port: Int) -> String",
+                in: kit
+            )
+            #expect(endpoint.contains("http://"), "a URL literal was read as a comment")
         }
 
         // MARK: - The count spends --live only where --live is true

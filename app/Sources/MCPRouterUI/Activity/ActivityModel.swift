@@ -45,6 +45,25 @@
         /// The typed failure of the last history load, where there was one.
         public private(set) var failure: ControlAPIError?
 
+        /// The open dialog, or none. One case today; an enum rather than a `Bool` because the next
+        /// one is a different dialog and not a second flag.
+        public var sheet: Sheet?
+
+        /// The typed failure of the last **write**, kept apart from `failure` above, which is the
+        /// last read's. A dialog that reported a load error would be answering a question the user
+        /// did not ask, and a board that folded the two would lose which one is stale.
+        public private(set) var writeError: ControlAPIError?
+
+        public enum Sheet: Equatable, Sendable, Identifiable {
+            case resetHistory
+
+            public var id: String {
+                switch self {
+                case .resetHistory: "reset"
+                }
+            }
+        }
+
         /// What the live feed is doing. `nil` until the subscription reports anything.
         public private(set) var phase: StreamPhase?
 
@@ -105,6 +124,28 @@
         /// A record that arrived on the stream before this returned is **kept**: the response is
         /// merged into the existing window rather than replacing it, and `ActivityRecords`
         /// de-duplicates by id. Replacing would silently drop every call made during the request.
+        /// Discard the router's recorded call history.
+        ///
+        /// The same act `CleanupBoardModel.resetHistory()` performs, against the same endpoint, and
+        /// deliberately not a second implementation of it — but it is reachable from here because
+        /// `prototype.html:716` puts the entry point in **this** board's header, outside the rows
+        /// conditional, so the design specifies it in the empty state as well as the populated one.
+        /// The build drew no control there at all: DEF-016.
+        ///
+        /// Reloads rather than emptying the local records, because the router is what decides what
+        /// the history now is — `usage.reset()` also moves the observation window, and a board that
+        /// zeroed its own list would show the new count against the old window.
+        public func resetHistory() async {
+            writeError = nil
+            do {
+                _ = try await client.resetUsage()
+                sheet = nil
+                await load()
+            } catch {
+                writeError = error
+            }
+        }
+
         public func load() async {
             requestCount += 1
             // **Only the newest request may write.** `isReconnecting` serialises reconnects against

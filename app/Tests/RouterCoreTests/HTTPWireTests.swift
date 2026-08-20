@@ -221,7 +221,19 @@ struct ListenerFailureTests {
         // `requiredLocalEndpoint` is the documented way to pin the bind address. Without it
         // `NWListener` binds every interface, which would put an endpoint that runs every MCP server
         // the user owns — with the user's environment — on the LAN.
-        #expect(parameters.requiredLocalEndpoint != nil)
+        //
+        // Which host, not merely that a host was pinned. Measured 2026-08-19 by the campaign's
+        // arming gate: with `host: .ipv4(.any)` in `loopbackParameters` — the LAN bind this clause
+        // exists to stop — `requiredLocalEndpoint != nil` stayed true and this suite stayed green.
+        // An assertion that cannot fail on the defect it names is a decoration, so the endpoint is
+        // now read rather than counted.
+        let endpoint = try #require(parameters.requiredLocalEndpoint)
+        guard case let .hostPort(host, port) = endpoint else {
+            Issue.record("the pin is not a host/port endpoint, so no address was asserted: \(endpoint)")
+            return
+        }
+        #expect(host == .ipv4(.loopback), "bound \(host) rather than IPv4 loopback")
+        #expect(port.rawValue == 8999)
         #expect(parameters.allowLocalEndpointReuse == false)
     }
 

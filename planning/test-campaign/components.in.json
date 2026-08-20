@@ -1,0 +1,10 @@
+[
+  {"id": "CMP-001", "name": "Breaker", "surfaces": ["SURF-002"], "note": "Signature element; geometry from DESIGN.md §2"},
+  {"id": "CMP-002", "name": "Sidebar", "surfaces": ["SURF-001"], "note": "Eight destinations, sentence-case groups"},
+  {"id": "CMP-003", "name": "MenuBarInboxBand", "surfaces": ["SURF-009"], "note": "Oldest-first, no review on partial rows"},
+  {"id": "CMP-004", "name": "InboxReviewSheet", "surfaces": ["SURF-008"], "note": "The only install path"},
+  {"id": "CMP-005", "name": "Readout", "surfaces": ["SURF-009", "SURF-001"], "note": "Withholds figures when stale"},
+  {"id": "CMP-006", "name": "CapabilityPlate", "surfaces": ["SURF-012", "SURF-013"], "note": "Phone card; attention colour must not fire on every Smithery row"},
+  {"id": "CMP-007", "name": "QRScannerView", "surfaces": ["SURF-014"], "note": "Camera purpose string lives in generated Info.plist"},
+  {"id": "CMP-008", "name": "PopoverContent", "surfaces": ["SURF-009"], "note": "Liquid Glass on floating chrome only"}
+]

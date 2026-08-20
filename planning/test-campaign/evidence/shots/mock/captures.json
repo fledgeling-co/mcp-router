@@ -1,0 +1,457 @@
+[
+  {
+    "path": "evidence/shots/mock/SURF-001.png",
+    "subject": "SURF-001",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=servers&only=mac",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1)",
+    "derivedFrom": null,
+    "sha256": "1b1f3c84d0de5eacccc789ff7e6debe5ef5656c9581a15812623e64f3a0740f6",
+    "capturedAt": "2026-08-20T00:05:02Z",
+    "conditions": {
+      "stateReadback": {
+        "pane": "servers",
+        "sheet": null,
+        "popover": false,
+        "tab": "discover",
+        "pairing": null
+      },
+      "expected": "servers",
+      "identityField": "pane",
+      "role": "design-of-record",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "obscura fetch --screenshot captures the viewport only; the mock window is 915px tall, so roughly 200px below the fold is absent from every reference"
+    },
+    "witnessed": "prototype deep-link; S read out of the page after load",
+    "sharesWith": [
+      "SURF-002"
+    ]
+  },
+  {
+    "path": "evidence/shots/mock/SURF-002.png",
+    "subject": "SURF-002",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=servers&only=mac",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1)",
+    "derivedFrom": null,
+    "sha256": "1b1f3c84d0de5eacccc789ff7e6debe5ef5656c9581a15812623e64f3a0740f6",
+    "capturedAt": "2026-08-20T00:05:03Z",
+    "conditions": {
+      "stateReadback": {
+        "pane": "servers",
+        "sheet": null,
+        "popover": false,
+        "tab": "discover",
+        "pairing": null
+      },
+      "expected": "servers",
+      "identityField": "pane",
+      "role": "design-of-record",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "obscura fetch --screenshot captures the viewport only; the mock window is 915px tall, so roughly 200px below the fold is absent from every reference"
+    },
+    "witnessed": "prototype deep-link; S read out of the page after load",
+    "sharesWith": [
+      "SURF-001"
+    ]
+  },
+  {
+    "path": "evidence/shots/mock/SURF-003.png",
+    "subject": "SURF-003",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=activity&only=mac",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1)",
+    "derivedFrom": null,
+    "sha256": "520de63d84ca34fe73a82ca1fb41a845c2777e7a8046db009e548e64645e3fdf",
+    "capturedAt": "2026-08-20T00:05:03Z",
+    "conditions": {
+      "stateReadback": {
+        "pane": "activity",
+        "sheet": null,
+        "popover": false,
+        "tab": "discover",
+        "pairing": null
+      },
+      "expected": "activity",
+      "identityField": "pane",
+      "role": "design-of-record",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "obscura fetch --screenshot captures the viewport only; the mock window is 915px tall, so roughly 200px below the fold is absent from every reference"
+    },
+    "witnessed": "prototype deep-link; S read out of the page after load"
+  },
+  {
+    "path": "evidence/shots/mock/SURF-004.png",
+    "subject": "SURF-004",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=skills&only=mac",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1)",
+    "derivedFrom": null,
+    "sha256": "32a781e30a4f3ea735010c8895ea14befe6ca8b4cd8b0ed214ffb1c27b16a802",
+    "capturedAt": "2026-08-20T00:05:04Z",
+    "conditions": {
+      "stateReadback": {
+        "pane": "skills",
+        "sheet": null,
+        "popover": false,
+        "tab": "discover",
+        "pairing": null
+      },
+      "expected": "skills",
+      "identityField": "pane",
+      "role": "design-of-record",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "obscura fetch --screenshot captures the viewport only; the mock window is 915px tall, so roughly 200px below the fold is absent from every reference"
+    },
+    "witnessed": "prototype deep-link; S read out of the page after load"
+  },
+  {
+    "path": "evidence/shots/mock/SURF-005.png",
+    "subject": "SURF-005",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=discover&only=mac",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1)",
+    "derivedFrom": null,
+    "sha256": "5c8b2a278cf863de63dbe864bdb015146066258e6e8d7fc02173176989d74c35",
+    "capturedAt": "2026-08-20T00:05:04Z",
+    "conditions": {
+      "stateReadback": {
+        "pane": "discover",
+        "sheet": null,
+        "popover": false,
+        "tab": "discover",
+        "pairing": null
+      },
+      "expected": "discover",
+      "identityField": "pane",
+      "role": "design-of-record",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "obscura fetch --screenshot captures the viewport only; the mock window is 915px tall, so roughly 200px below the fold is absent from every reference"
+    },
+    "witnessed": "prototype deep-link; S read out of the page after load"
+  },
+  {
+    "path": "evidence/shots/mock/SURF-006.png",
+    "subject": "SURF-006",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=evals&only=mac",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1)",
+    "derivedFrom": null,
+    "sha256": "c05e46454e3ba79a3b5294cd356973a82ded8ae7fdd3e36fa5af1974e4a63086",
+    "capturedAt": "2026-08-20T00:05:05Z",
+    "conditions": {
+      "stateReadback": {
+        "pane": "evals",
+        "sheet": null,
+        "popover": false,
+        "tab": "discover",
+        "pairing": null
+      },
+      "expected": "evals",
+      "identityField": "pane",
+      "role": "design-of-record",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "obscura fetch --screenshot captures the viewport only; the mock window is 915px tall, so roughly 200px below the fold is absent from every reference"
+    },
+    "witnessed": "prototype deep-link; S read out of the page after load"
+  },
+  {
+    "path": "evidence/shots/mock/SURF-007.png",
+    "subject": "SURF-007",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=cleanup&only=mac",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1)",
+    "derivedFrom": null,
+    "sha256": "12484c0e0e0d27335243af7810522a3e5e4267d7b08410fe1d04410a8128a452",
+    "capturedAt": "2026-08-20T00:05:05Z",
+    "conditions": {
+      "stateReadback": {
+        "pane": "cleanup",
+        "sheet": null,
+        "popover": false,
+        "tab": "discover",
+        "pairing": null
+      },
+      "expected": "cleanup",
+      "identityField": "pane",
+      "role": "design-of-record",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "obscura fetch --screenshot captures the viewport only; the mock window is 915px tall, so roughly 200px below the fold is absent from every reference"
+    },
+    "witnessed": "prototype deep-link; S read out of the page after load"
+  },
+  {
+    "path": "evidence/shots/mock/SURF-008.png",
+    "subject": "SURF-008",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=inbox&only=mac",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1)",
+    "derivedFrom": null,
+    "sha256": "ddcbe7fea4b4dc524acc5cdad33f92a340afd49ed3124e0d5c82b9cd83d5d3a1",
+    "capturedAt": "2026-08-20T00:05:06Z",
+    "conditions": {
+      "stateReadback": {
+        "pane": "inbox",
+        "sheet": null,
+        "popover": false,
+        "tab": "discover",
+        "pairing": null
+      },
+      "expected": "inbox",
+      "identityField": "pane",
+      "role": "design-of-record",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "obscura fetch --screenshot captures the viewport only; the mock window is 915px tall, so roughly 200px below the fold is absent from every reference"
+    },
+    "witnessed": "prototype deep-link; S read out of the page after load"
+  },
+  {
+    "path": "evidence/shots/mock/SURF-009.png",
+    "subject": "SURF-009",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=inbox&popover=1&only=mac",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1)",
+    "derivedFrom": null,
+    "sha256": "0dd6763252b304bbdcf3147ff0510a006439a33d16cf0e05a4712171ec68426c",
+    "capturedAt": "2026-08-20T00:05:06Z",
+    "conditions": {
+      "stateReadback": {
+        "pane": "inbox",
+        "sheet": null,
+        "popover": true,
+        "tab": "discover",
+        "pairing": null
+      },
+      "expected": "popover",
+      "identityField": "popover",
+      "role": "design-of-record",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "obscura fetch --screenshot captures the viewport only; the mock window is 915px tall, so roughly 200px below the fold is absent from every reference"
+    },
+    "witnessed": "prototype deep-link; S read out of the page after load"
+  },
+  {
+    "path": "evidence/shots/mock/SURF-010.png",
+    "subject": "SURF-010",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=inbox&sheet=pair&only=mac",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1)",
+    "derivedFrom": null,
+    "sha256": "76e2fb7c25485dd47c19cdbeb92e0902fb2df990a8615b9f64d2a9b1e007b1ac",
+    "capturedAt": "2026-08-20T00:05:07Z",
+    "conditions": {
+      "stateReadback": {
+        "pane": "inbox",
+        "sheet": "pair",
+        "popover": false,
+        "tab": "discover",
+        "pairing": null
+      },
+      "expected": "pair",
+      "identityField": "sheet",
+      "role": "design-of-record",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "obscura fetch --screenshot captures the viewport only; the mock window is 915px tall, so roughly 200px below the fold is absent from every reference"
+    },
+    "witnessed": "prototype deep-link; S read out of the page after load"
+  },
+  {
+    "path": "evidence/shots/mock/SURF-011.png",
+    "subject": "SURF-011",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=settings&only=mac",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1)",
+    "derivedFrom": null,
+    "sha256": "8df0755c91564885c7d7e0bc91cee7a471b05781009721eab7b18906317f9852",
+    "capturedAt": "2026-08-20T00:05:07Z",
+    "conditions": {
+      "stateReadback": {
+        "pane": "settings",
+        "sheet": null,
+        "popover": false,
+        "tab": "discover",
+        "pairing": null
+      },
+      "expected": "settings",
+      "identityField": "pane",
+      "role": "design-of-record",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "obscura fetch --screenshot captures the viewport only; the mock window is 915px tall, so roughly 200px below the fold is absent from every reference"
+    },
+    "witnessed": "prototype deep-link; S read out of the page after load"
+  },
+  {
+    "path": "evidence/shots/mock/SURF-012.png",
+    "subject": "SURF-012",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i2-phone-discover.html",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1)",
+    "derivedFrom": null,
+    "sha256": "2c4d8528e33c1964b7670fabe60212da5f4fa2c795c4e9a8bbbd7fea8db740ae",
+    "capturedAt": "2026-08-20T00:05:08Z",
+    "conditions": {
+      "titleReadback": "I2 \u2014 iPhone: Discover and detail",
+      "expected": "Discover",
+      "identityField": "document.title",
+      "role": "design-of-record",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1
+    },
+    "witnessed": "dedicated mock file; document.title read out of the page after load"
+  },
+  {
+    "path": "evidence/shots/mock/SURF-013.png",
+    "subject": "SURF-013",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i3-phone-triage.html#unit=Default \u2014 nothing selected",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1), after an --eval that removed every unit but the named one and moved it to the document top",
+    "derivedFrom": null,
+    "sha256": "18d5ed44676504c12e53c65e1833576c619207c26aa9f9cb8e9ae99b4fe0bb38",
+    "capturedAt": "2026-08-20T02:43:51Z",
+    "conditions": {
+      "unitReadback": "Default \u2014 nothing selected",
+      "section": "A",
+      "expected": "Default \u2014 nothing selected",
+      "identityField": "the unit's own .cap b text, read back out of the page after isolation",
+      "role": "design-of-record",
+      "shows": "Triage, populated, nothing selected",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "The whole-page reference this replaces was the top 720px of the mock. Queue lives 4205px down i3 and Library 5912px, so a top-of-page shot for either named a subject it did not show. Isolation is `planning/test-campaign/bin/capture-phone-mock.sh`, which fails rather than capturing the whole page when the named unit is not found."
+    },
+    "witnessed": "unit isolated by section key and caption; the caption is read back after isolation"
+  },
+  {
+    "path": "evidence/shots/mock/SURF-014.png",
+    "subject": "SURF-014",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i1-phone-pairing.html#unit=Permission not yet granted",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1), after an --eval that removed every unit but the named one and moved it to the document top",
+    "derivedFrom": null,
+    "sha256": "90a8922cbaf30f28a4d250fb9dc078a1379d74eabb91d0d71a0f9a39d881ecc8",
+    "capturedAt": "2026-08-20T02:43:51Z",
+    "conditions": {
+      "unitReadback": "Permission not yet granted",
+      "section": "D",
+      "expected": "Permission not yet granted",
+      "identityField": "the unit's own .cap b text, read back out of the page after isolation",
+      "role": "design-of-record",
+      "shows": "the camera pre-prompt, before the iOS alert",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "The whole-page reference this replaces was the top 720px of the mock. Queue lives 4205px down i3 and Library 5912px, so a top-of-page shot for either named a subject it did not show. Isolation is `planning/test-campaign/bin/capture-phone-mock.sh`, which fails rather than capturing the whole page when the named unit is not found."
+    },
+    "witnessed": "unit isolated by section key and caption; the caption is read back after isolation"
+  },
+  {
+    "path": "evidence/shots/mock/SURF-018.png",
+    "subject": "SURF-018",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i1-phone-pairing.html#unit=Never paired",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1), after an --eval that removed every unit but the named one and moved it to the document top",
+    "derivedFrom": null,
+    "sha256": "f0eea28465c60c7815d2dcd4647a441a26da60b24079d2fdba681c48a2333174",
+    "capturedAt": "2026-08-20T02:43:51Z",
+    "conditions": {
+      "unitReadback": "Never paired",
+      "section": "B",
+      "expected": "Never paired",
+      "identityField": "the unit's own .cap b text, read back out of the page after isolation",
+      "role": "design-of-record",
+      "shows": "Settings before any Mac is paired",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "The whole-page reference this replaces was the top 720px of the mock. Queue lives 4205px down i3 and Library 5912px, so a top-of-page shot for either named a subject it did not show. Isolation is `planning/test-campaign/bin/capture-phone-mock.sh`, which fails rather than capturing the whole page when the named unit is not found."
+    },
+    "witnessed": "unit isolated by section key and caption; the caption is read back after isolation"
+  },
+  {
+    "path": "evidence/shots/mock/SURF-019.png",
+    "subject": "SURF-019",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i3-phone-triage.html#unit=Empty",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1), after an --eval that removed every unit but the named one and moved it to the document top",
+    "derivedFrom": null,
+    "sha256": "1bf098c6a06879fa434e934fa43aa34ea3fa12ef16736c98867fc4f5dac1c8de",
+    "capturedAt": "2026-08-20T02:43:51Z",
+    "conditions": {
+      "unitReadback": "Empty",
+      "section": "D",
+      "expected": "Empty",
+      "identityField": "the unit's own .cap b text, read back out of the page after isolation",
+      "role": "design-of-record",
+      "shows": "Queue with nothing waiting",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "The whole-page reference this replaces was the top 720px of the mock. Queue lives 4205px down i3 and Library 5912px, so a top-of-page shot for either named a subject it did not show. Isolation is `planning/test-campaign/bin/capture-phone-mock.sh`, which fails rather than capturing the whole page when the named unit is not found."
+    },
+    "witnessed": "unit isolated by section key and caption; the caption is read back after isolation"
+  },
+  {
+    "path": "evidence/shots/mock/SURF-020.png",
+    "subject": "SURF-020",
+    "target": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i3-phone-triage.html#unit=Default",
+    "channel": "obscura-0.2.0 fetch --screenshot (file://, 1280x720 viewport, dpr 1), after an --eval that removed every unit but the named one and moved it to the document top",
+    "derivedFrom": null,
+    "sha256": "0c21546b9e2b9439786c28575decd869a9eee84fc8e9165720ee5d8be4d92c9e",
+    "capturedAt": "2026-08-20T02:43:51Z",
+    "conditions": {
+      "unitReadback": "Default",
+      "section": "E",
+      "expected": "Default",
+      "identityField": "the unit's own .cap b text, read back out of the page after isolation",
+      "role": "design-of-record",
+      "shows": "Library, four declared servers, read-only",
+      "viewport": [
+        1280,
+        720
+      ],
+      "dpr": 1,
+      "note": "The whole-page reference this replaces was the top 720px of the mock. Queue lives 4205px down i3 and Library 5912px, so a top-of-page shot for either named a subject it did not show. Isolation is `planning/test-campaign/bin/capture-phone-mock.sh`, which fails rather than capturing the whole page when the named unit is not found."
+    },
+    "witnessed": "unit isolated by section key and caption; the caption is read back after isolation"
+  }
+]

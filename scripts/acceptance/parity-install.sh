@@ -30,6 +30,7 @@
 #
 # ROWS THIS LANE OWNS:  install: install-launchd-serve install-launchd-watch
 #                               install-import-servers install-claude-json
+#                               install-rollback
 #
 # CAVEAT, printed into the gate's report: two real agents under real launchd supervision, one per
 # binary, compared observation by observation. It does NOT run `docs/install.sh` itself — that would
@@ -45,6 +46,13 @@
 # What that does NOT establish, and the manifest note says so too: `docs/install.sh` still invokes
 # `node` for both steps. Flipping the caller is `D-p2-b` / R4-C's, and this lane going green is not
 # evidence that it happened.
+#
+# `install-rollback` extracts the restore `node -e` from `docs/uninstall.sh` the same way
+# `install-claude-json` extracts install.sh. It never runs uninstall.sh: that script bootouts
+# `gg.rhodes.mcp-router*` and deletes `$HOME/Library/LaunchAgents` plists regardless of a scratch
+# HOME. The fixture is Swift-cutover shaped — adopted servers live only in servers.json; claude.json
+# holds the mcp-router HTTP entry plus a hand-defined name — because import does not strip stdio
+# keys, and a restore against leftovers is a no-op (`if (claude.mcpServers[name]) continue`).
 #
 # Exit codes: 0 both survived identically, 1 they did not, 2 the environment could not run.
 
@@ -73,6 +81,7 @@ record() {
   case "$1/$2" in
     install/install-launchd-serve|install/install-launchd-watch) ;;
     install/install-import-servers|install/install-claude-json) ;;
+    install/install-rollback) ;;
     *) echo "  LANE BUG: refusing to record $1/$2, which this lane does not own" >&2; return 1 ;;
   esac
   printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" >> "$RESULTS"
@@ -710,6 +719,129 @@ if [ -z "$cj_problems" ]; then
 else
   echo "  FAIL$cj_problems"
   record install install-claude-json fail "claude.json —$cj_problems"
+  failures=$((failures + 1))
+fi
+echo
+
+# ---------------------------------------------------------------------------------------------
+# install-rollback — the restore half of docs/uninstall.sh, extracted, never the script.
+#
+# The script itself is not scratch-safe: it bootouts gg.rhodes.mcp-router and
+# gg.rhodes.mcp-router-watch and deletes $HOME/Library/LaunchAgents plists, and those labels
+# are hardcoded. Running it under a scratch HOME would still take the live agents down.
+# The restore node -e is the half the row names ("putting a cut-over machine back on
+# TypeScript") and the half that can run without touching launchd.
+#
+# The fixture is the POST-CUTOVER shape, not the post-import shape. Import copies adoptable
+# stdio servers into servers.json and leaves the same names in ~/.claude.json. Restore skips
+# any name already present, so seeding leftover stdio keys makes the merge a no-op and would
+# green a row that never put a server back. After watch has adopted, those names live only in
+# servers.json; claude.json holds mcp-router (HTTP) plus anything the user defined by hand.
+# That is the shape this measures.
+
+RESTORE_BODY="$(awk "/node -e '\$/{f=1;next} f&&/^  ' /{f=0} f" "$REPO_ROOT/docs/uninstall.sh")"
+restore_extract_ok=1
+[ -n "$RESTORE_BODY" ] || restore_extract_ok=0
+# Order in uninstall.sh: mcpServers, then the clobber skip, then renameSync.
+case "$RESTORE_BODY" in *mcpServers*Never\ clobber*renameSync*) ;; *) restore_extract_ok=0 ;; esac
+case "$RESTORE_BODY" in *curl*|*launchctl*|*bootout*|*PURGE*) restore_extract_ok=0 ;; esac
+
+echo "install-rollback — restore extracted from uninstall.sh, against a Swift-cutover fixture"
+if [ "$restore_extract_ok" = 0 ]; then
+  echo "environment: the restore node -e block could not be extracted from docs/uninstall.sh."
+  echo "             Comparing against an empty oracle would pass for the wrong reason."
+  exit 2
+fi
+
+rollback_home="$WORK/rollback"
+rm -rf "$rollback_home"
+mkdir -p "$rollback_home/.claude/mcp-router"
+# Hand-defined name must survive; leftover stdio names must NOT be seeded here.
+cat > "$rollback_home/.claude.json" <<JSON
+{
+  "mcpServers": {
+    "mcp-router": {
+      "type": "http",
+      "url": "http://127.0.0.1:8879/mcp"
+    },
+    "router": {
+      "type": "http",
+      "url": "http://127.0.0.1:8879/mcp"
+    },
+    "keep-hand": {
+      "command": "echo",
+      "args": ["user-defined"]
+    }
+  }
+}
+JSON
+chmod 600 "$rollback_home/.claude.json"
+pre_image="$(cat "$rollback_home/.claude.json")"
+cat > "$rollback_home/.claude/mcp-router/servers.json" <<JSON
+{
+  "port": 8879,
+  "host": "127.0.0.1",
+  "idleMs": 300000,
+  "mcpServers": {
+    "probe": {
+      "command": "node",
+      "args": ["$REPO_ROOT/scripts/fixtures/mcp-fixture-server.mjs", "stdio"],
+      "env": { "FIXTURE_TOOLSET_FILE": "$rollback_home/toolset" }
+    },
+    "keep-hand": {
+      "command": "echo",
+      "args": ["stale-from-router"]
+    }
+  }
+}
+JSON
+
+# Same backup naming uninstall.sh:47 uses, written by the harness the way install-claude-json
+# writes install.sh:162's cp — the extracted body does not copy.
+rb_backup="$rollback_home/.claude.json.bak-mcp-router-uninstall-$(date +%Y%m%d-%H%M%S)"
+cp "$rollback_home/.claude.json" "$rb_backup"
+
+restored_n="$(node -e "$RESTORE_BODY" "$rollback_home/.claude.json" \
+  "$rollback_home/.claude/mcp-router/servers.json" 2>"$rollback_home/restore.err")"
+rb_code=$?
+
+rb_problems=""
+[ "$rb_code" = 0 ] || rb_problems="$rb_problems exit:[$rb_code]"
+# uninstall.sh prints the count the node -e wrote; one name (probe) should come back.
+[ "$restored_n" = 1 ] || rb_problems="$rb_problems restored-count:[$restored_n want=1]"
+[ "$(cat "$rollback_home/.claude.json")" != "$pre_image" ] || rb_problems="$rb_problems unchanged"
+[ -f "$rb_backup" ] || rb_problems="$rb_problems no-backup"
+if [ -f "$rb_backup" ] && [ "$(cat "$rb_backup")" != "$pre_image" ]; then
+  rb_problems="$rb_problems backup-not-the-pre-image"
+fi
+[ "$(mode_of "$rollback_home/.claude.json")" = 600 ] \
+  || rb_problems="$rb_problems mode:[$(mode_of "$rollback_home/.claude.json") want=600]"
+
+# The four claims the row is about. Parsed, not grepped: a leftover "probe" inside a comment
+# or a keep-hand value must not satisfy the adopted-name assertion.
+rb_check="$(node -e '
+  const fs = require("fs");
+  const d = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  const s = d.mcpServers || {};
+  const problems = [];
+  if (!s.probe) problems.push("probe-not-restored");
+  else if (s.probe.command !== "node") problems.push("probe-wrong-command");
+  if (s["mcp-router"]) problems.push("mcp-router-still-present");
+  if (s.router) problems.push("router-still-present");
+  if (!s["keep-hand"]) problems.push("keep-hand-missing");
+  else if (JSON.stringify(s["keep-hand"].args) !== JSON.stringify(["user-defined"]))
+    problems.push("keep-hand-clobbered");
+  process.stdout.write(problems.join(" "));
+' "$rollback_home/.claude.json")"
+[ -z "$rb_check" ] || rb_problems="$rb_problems $rb_check"
+
+if [ -z "$rb_problems" ]; then
+  echo "  ok   probe restored, mcp-router/router gone, keep-hand unclobbered, mode 0600, backup is pre-image"
+  record install install-rollback ok \
+    "extracted uninstall restore; Swift-cutover fixture; probe back, router keys gone, hand name kept, mode 0600"
+else
+  echo "  FAIL$rb_problems"
+  record install install-rollback fail "rollback —$rb_problems"
   failures=$((failures + 1))
 fi
 echo

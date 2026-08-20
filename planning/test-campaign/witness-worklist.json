@@ -1,0 +1,212 @@
+[
+ {
+  "surface": "SURF-001",
+  "name": "Mac shell \u2014 sidebar, title, menus",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-001.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-001.png",
+  "shotTarget": "app://mac/servers",
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=servers&only=mac",
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
+  "reason": null
+ },
+ {
+  "surface": "SURF-002",
+  "name": "Mac Servers board",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-002.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-002.png",
+  "shotTarget": "app://mac/servers",
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=servers&only=mac",
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
+  "reason": null
+ },
+ {
+  "surface": "SURF-003",
+  "name": "Mac Activity board",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-003.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-003.png",
+  "shotTarget": "app://mac/activity",
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=activity&only=mac",
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
+  "reason": null
+ },
+ {
+  "surface": "SURF-004",
+  "name": "Mac Skills board",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-004.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-004.png",
+  "shotTarget": "app://mac/skills",
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=skills&only=mac",
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
+  "reason": null
+ },
+ {
+  "surface": "SURF-005",
+  "name": "Mac Discover board",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-005.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-005.png",
+  "shotTarget": "app://mac/discover",
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=discover&only=mac",
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
+  "reason": null
+ },
+ {
+  "surface": "SURF-006",
+  "name": "Mac Checks board",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-006.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-006.png",
+  "shotTarget": "app://mac/checks",
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=evals&only=mac",
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
+  "reason": null
+ },
+ {
+  "surface": "SURF-007",
+  "name": "Mac Cleanup board",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-007.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-007.png",
+  "shotTarget": "app://mac/cleanup",
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=cleanup&only=mac",
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
+  "reason": null
+ },
+ {
+  "surface": "SURF-008",
+  "name": "Mac Inbox board and review sheet",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-008.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-008.png",
+  "shotTarget": "app://mac/inbox",
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=inbox&only=mac",
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
+  "reason": null
+ },
+ {
+  "surface": "SURF-009",
+  "name": "Mac menu-bar popover and inbox band",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": null,
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-009.png",
+  "shotTarget": null,
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=inbox&popover=1&only=mac",
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
+  "reason": "build half uncaptured \u2014 see the surface's shotNote"
+ },
+ {
+  "surface": "SURF-010",
+  "name": "Mac Pairing sheet",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": null,
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-010.png",
+  "shotTarget": null,
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=inbox&sheet=pair&only=mac",
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
+  "reason": "build half uncaptured \u2014 see the surface's shotNote"
+ },
+ {
+  "surface": "SURF-011",
+  "name": "Mac Settings board",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-011.build.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-011.png",
+  "shotTarget": "app://mac/settings",
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=settings&only=mac",
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
+  "reason": null
+ },
+ {
+  "surface": "SURF-012",
+  "name": "iOS Discover",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": null,
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-012.png",
+  "shotTarget": null,
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i2-phone-discover.html",
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
+  "reason": "build half uncaptured \u2014 see the surface's shotNote"
+ },
+ {
+  "surface": "SURF-013",
+  "name": "iOS Triage, Queue, Library",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": null,
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-013.png",
+  "shotTarget": null,
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i3-phone-triage.html",
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
+  "reason": "build half uncaptured \u2014 see the surface's shotNote"
+ },
+ {
+  "surface": "SURF-014",
+  "name": "iOS Pairing scanner and code entry",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": null,
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-014.png",
+  "shotTarget": null,
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i1-phone-pairing.html",
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
+  "reason": "build half uncaptured \u2014 see the surface's shotNote"
+ }
+]

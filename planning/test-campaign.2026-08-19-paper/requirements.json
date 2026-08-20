@@ -1,0 +1,98 @@
+[
+  {
+    "id": "REQ-001",
+    "kind": "affordance",
+    "title": "Mac Shell 8-Destination Navigation",
+    "statement": "Shell navigates across Settings, Servers, Activity, Skills, Discover, Evals, Cleanup, Inbox via sidebar and Cmd+1..8 keyboard shortcuts.",
+    "source": "DESIGN.md:45",
+    "status": "observed"
+  },
+  {
+    "id": "REQ-002",
+    "kind": "behaviour",
+    "title": "Servers Board Live Inspection & Placards",
+    "statement": "Servers board reflects live server states (running, tripped, never used, held change) from ServerStateTracker without polling duplicates.",
+    "source": "DESIGN.md:120",
+    "status": "observed"
+  },
+  {
+    "id": "REQ-003",
+    "kind": "honesty guardrail",
+    "title": "Stale Readout Withholds Live Figures",
+    "statement": "When tracker enters stale state, readout numbers go absent rather than displaying last-known counts as current.",
+    "source": "DESIGN.md:145",
+    "status": "observed"
+  },
+  {
+    "id": "REQ-004",
+    "kind": "honesty guardrail",
+    "title": "Remote Device Queues, Never Installs",
+    "statement": "Phone actions only enqueue items to Mac Inbox; no path from phone or notifications can trigger server install without explicit human review on Mac.",
+    "source": "DESIGN.md:210",
+    "status": "observed"
+  },
+  {
+    "id": "REQ-005",
+    "kind": "affordance",
+    "title": "Menu Bar Popover & Attention Rows",
+    "statement": "Menu bar popover renders attention rows, readout, and inbox band with oldest-first arrivals and no review affordance for partial items.",
+    "source": "DESIGN.md:280",
+    "status": "observed"
+  },
+  {
+    "id": "REQ-006",
+    "kind": "behaviour",
+    "title": "Immediate Banner Withdrawal on Disposition",
+    "statement": "Disposing an inbox item immediately withdraws its notification banner and updates the popover band before the next poll.",
+    "source": "planning/specs/spec-I6.md:238",
+    "status": "observed"
+  },
+  {
+    "id": "REQ-007",
+    "kind": "behaviour",
+    "title": "Multi-item Notification Banner Carries Review Only",
+    "statement": "When multiple items arrive, notification category presents Review only and suppresses Decline button.",
+    "source": "planning/specs/spec-I6.md:234",
+    "status": "observed"
+  },
+  {
+    "id": "REQ-008",
+    "kind": "behaviour",
+    "title": "Phone Triage, Queue, and Library",
+    "statement": "Phone UI allows triaging discovered capabilities, queueing selections with single-batch undo, and browsing local library.",
+    "source": "planning/specs/spec-I3.md:50",
+    "status": "observed"
+  },
+  {
+    "id": "REQ-009",
+    "kind": "behaviour",
+    "title": "Router Core Stdio & HTTP Upstream Pool",
+    "statement": "RouterCore manages live child stdio processes and HTTP connections with lifecycle cleanup and SIGTERM/SIGKILL reaping.",
+    "source": "planning/specs/spec-R2.md:40",
+    "status": "observed"
+  },
+  {
+    "id": "REQ-010",
+    "kind": "behaviour",
+    "title": "Loopback Control API & Auth Routes",
+    "statement": "Control API provides authenticated endpoints on 127.0.0.1 for server management, config mutation, and OAuth callback listening on 8880.",
+    "source": "planning/specs/spec-R5.md:35",
+    "status": "observed"
+  },
+  {
+    "id": "REQ-011",
+    "kind": "honesty guardrail",
+    "title": "Atomic Config Mutations with Staging Locks",
+    "statement": "Mutations to servers.json use atomic staging files and directory locks to prevent concurrent write clobbering.",
+    "source": "planning/specs/spec-R2W.md:60",
+    "status": "observed"
+  },
+  {
+    "id": "REQ-012",
+    "kind": "behaviour",
+    "title": "Wire Parity with TypeScript Router Reference",
+    "statement": "Swift RouterCore reproduces JSON serialization, error structures, manifest digests, and CLI behaviors against TypeScript reference across 83 manifest rows.",
+    "source": "planning/parity/surface.tsv:1",
+    "status": "observed"
+  }
+]

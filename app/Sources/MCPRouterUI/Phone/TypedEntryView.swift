@@ -15,7 +15,77 @@ struct TypedCodeField: View {
     @Binding var entry: PairingCodeEntry
     var isInvalid: Bool = false
 
+    /// The text the system keyboard is editing. `entry` stays the source of truth for what is
+    /// *drawn*; this is only what the field currently holds, pushed through
+    /// `PairingCodeEntry.append(contentsOf:)` so Crockford normalisation and the length cap live in
+    /// one place rather than being reimplemented here.
+    @State private var typed: String = ""
+    @FocusState private var isFocused: Bool
+
     var body: some View {
+        ZStack {
+            // The real control. It is invisible and it is the thing being typed into: the boxes
+            // below draw the glyphs and the caret, and this supplies the system keyboard, hardware
+            // keys on iPad, paste, dictation, and an element `app.textFields` can find.
+            //
+            // **Deliberately not `.textContentType(.oneTimeCode)`.** Apple's one-time-code AutoFill
+            // reads codes out of Messages and Mail. This code is read off the Mac's own screen, so
+            // that content type would put unrelated SMS codes in the QuickType bar — an AutoFill
+            // suggestion that is always wrong is worse than none.
+            keyboardConfigured(TextField("", text: $typed))
+                .focused($isFocused)
+                .autocorrectionDisabled()
+                .foregroundStyle(Color.clear)
+                .tint(Color.clear)
+                .accessibilityLabel("Pairing code")
+                .accessibilityValue(spokenValue)
+                .onChange(of: typed) { _, next in
+                    var rebuilt = PairingCodeEntry()
+                    rebuilt.append(contentsOf: next)
+                    entry = rebuilt
+                    // Reflect back what the model accepted, so a rejected character does not sit
+                    // in the field invisibly and shift every later keystroke.
+                    if rebuilt.characters != next { typed = rebuilt.characters }
+                }
+
+            boxes
+                .allowsHitTesting(false)
+                // The boxes are decoration now. Leaving them as an accessibility element would
+                // publish a second "Pairing code" beside the field, and the one VoiceOver landed
+                // on first would be the one that cannot be typed into.
+                .accessibilityHidden(true)
+        }
+        .frame(maxWidth: .infinity)
+        .contentShape(Rectangle())
+        .onTapGesture { isFocused = true }
+        .onAppear { isFocused = true }
+    }
+
+    /// The keyboard hints, which exist only on iOS.
+    ///
+    /// `MCPRouterUI` compiles for macOS as well — that is what lets every phone surface be
+    /// exercised on the host test target — so `keyboardType` and `textInputAutocapitalization`
+    /// have to be gated rather than applied inline. The code is Crockford base-32 and alphanumeric,
+    /// so `.asciiCapable` rather than a number pad, and uppercase because that is how the Mac draws
+    /// it.
+    @ViewBuilder
+    private func keyboardConfigured(_ field: some View) -> some View {
+        #if os(iOS)
+            field
+                .keyboardType(.asciiCapable)
+                .textInputAutocapitalization(.characters)
+        #else
+            field
+        #endif
+    }
+
+    private var spokenValue: String {
+        entry.characters.isEmpty
+            ? "empty"
+            : entry.characters.map(String.init).joined(separator: " ")
+    }
+
+    private var boxes: some View {
         HStack(spacing: PhoneMetric.snug) {
             ForEach(0 ..< PairingCode.length, id: \.self) { index in
                 box(at: index)
@@ -27,12 +97,6 @@ struct TypedCodeField: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity)
-        // One element: eight separate boxes would be read out one character at a time.
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Pairing code")
-        .accessibilityValue(entry.characters.isEmpty ? "empty" : entry.characters.map(String.init)
-            .joined(separator: " "))
     }
 
     @ViewBuilder
@@ -112,6 +176,18 @@ struct TypedEntryView: View {
         let ready = PairingCopy.entry(.typedEntryReady)
 
         VStack(alignment: .leading, spacing: PhoneMetric.loose) {
+            // `PairingCopy.entry(.typedEntryReady)` has carried a headline since it was written and
+            // this view drew only the body, so the one surface a user reaches by *choosing* it —
+            // "Enter the code instead" — was the one that never confirmed where they had arrived.
+            // Every other pairing surface renders its headline; this follows the same shape as
+            // `PairingResultSurfaces`.
+            if let headline = ready.headline {
+                Text(headline)
+                    .typeRole(.title2)
+                    .foregroundStyle(ColorToken.t1.color)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             Text(ready.body)
                 .typeRole(.body)
                 .foregroundStyle(ColorToken.t2.color)
@@ -135,15 +211,13 @@ struct TypedEntryView: View {
 
             if inlineKey == .typedEntryExpired {
                 Button(PairingCopy.entry(.typedEntryExpired).actionLabel ?? "", action: onScanInstead)
-                    .buttonStyle(PhoneStandardButtonStyle())
-                    .frame(maxWidth: .infinity)
+                    .buttonStyle(PhoneStandardButtonStyle(fillsWidth: true))
             } else {
                 // Disabled until all eight are present, and disabled **dims in place** rather than
                 // disappearing — §3.4. A button that vanishes takes its own explanation with it.
                 Button(ready.actionLabel ?? "Pair Mac", action: onSubmit)
-                    .buttonStyle(PhoneProminentButtonStyle())
+                    .buttonStyle(PhoneProminentButtonStyle(fillsWidth: true))
                     .disabled(!entry.isComplete)
-                    .frame(maxWidth: .infinity)
             }
         }
     }

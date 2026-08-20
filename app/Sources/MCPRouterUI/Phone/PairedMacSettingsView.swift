@@ -143,13 +143,16 @@ struct PhoneMessageBlock: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
 
+            // `<button class="cta">` in i1-phone-pairing.html §L — full content width, the same as
+            // every other pairing action. The design draws it below the notice card rather than
+            // inside it; that placement is recorded as a finding rather than changed here.
             if let label = entry.actionLabel, let action {
                 Button(label, action: action)
-                    .buttonStyle(PhoneProminentButtonStyle())
+                    .buttonStyle(PhoneProminentButtonStyle(fillsWidth: true))
             }
             if let label = entry.secondaryActionLabel, let secondaryAction {
                 Button(label, action: secondaryAction)
-                    .buttonStyle(PhoneStandardButtonStyle())
+                    .buttonStyle(PhoneStandardButtonStyle(fillsWidth: true))
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -246,11 +249,29 @@ public struct PairedMacSettingsView: View {
                 unpairButton
             }
 
-            PhoneSectionLabel(text: PairingCopy.entry(.settingsSectionAbout).body)
-            Text(PairingCopy.neverInstalls)
-                .typeRole(.callout)
-                .foregroundStyle(ColorToken.t3.color)
-                .fixedSize(horizontal: false, vertical: true)
+            // The narrowing appears exactly once. `settingsNeverPaired` carries it inside its own
+            // block — i1-phone-pairing.html §B states it there, under the button, with no About
+            // header — while every other Settings state states it under About, as §I draws it.
+            // Rendering both put the same sentence on screen twice on the surface a first-time user
+            // meets first, which reads as the app repeating itself rather than as emphasis. DEF-026.
+            if !stateStatesTheNarrowingItself {
+                PhoneSectionLabel(text: PairingCopy.entry(.settingsSectionAbout).body)
+                Text(PairingCopy.neverInstalls)
+                    .typeRole(.callout)
+                    .foregroundStyle(ColorToken.t3.color)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    /// Whether this state's own block already states the narrowing.
+    ///
+    /// Read off the copy rather than off a list of cases, so an entry that gains `carriesNarrowing`
+    /// later does not silently reintroduce the duplicate.
+    private var stateStatesTheNarrowingItself: Bool {
+        switch state {
+        case .neverPaired: PairingCopy.entry(.settingsNeverPaired).carriesNarrowing
+        default: false
         }
     }
 

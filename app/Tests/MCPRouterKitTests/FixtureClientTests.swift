@@ -84,6 +84,42 @@ struct FixtureClientTests {
         }
     }
 
+    /// Every read the `.empty` scenario answers, asserted empty — not a sample of them.
+    ///
+    /// This suite's opening claim is that a named scenario asserts a specific observable, because
+    /// "the double can produce all nine states" is a claim with nothing to check. That held for
+    /// `servers()` and left the other reads unexamined, and two of them ignored the scenario
+    /// entirely for as long as they existed: `searchRegistry` returned the same three recorded
+    /// results for all fourteen scenarios, which made Discover's empty state unreachable on the
+    /// phone (DEF-009); `usageSummary` returned the recorded four-server summary, so Cleanup
+    /// offered four never-used servers to cull on a router with nothing declared (DEF-014).
+    ///
+    /// Enumerated here rather than spot-checked, because the defect was never in the reads anyone
+    /// thought to check.
+    @Test("every read the empty scenario answers comes back empty")
+    func emptyIsEmptyEverywhere() async throws {
+        let subject = FixtureControlAPIClient(.empty)
+
+        #expect(try await subject.servers().servers.isEmpty)
+        #expect(try await subject.skills().skills.isEmpty)
+        #expect(try await subject.marketplaces().marketplaces.isEmpty)
+        #expect(try await subject.usageSummary().servers.isEmpty)
+        #expect(try await subject.searchRegistry(query: "github", limit: 3).results.isEmpty)
+        #expect(try await subject.heldChanges(for: "alpha").pending == false)
+
+        // A count of what each index contributed is a statement about *this* response. Three
+        // official entries beside an empty result list would be the surface's own honesty
+        // guardrail reporting a number nothing in view supports.
+        let sources = try await subject.searchRegistry(query: "github", limit: 3).sources
+        #expect(sources.official == 0)
+        #expect(sources.smithery == 0)
+        #expect(sources.merged == 0)
+
+        // `since` survives: a router that has been counting since a moment and has nothing to
+        // report is a different statement from one with no window at all.
+        #expect(try await subject.usageSummary().since.isEmpty == false)
+    }
+
     @Test("the empty scenario is genuinely empty rather than merely small")
     func emptyIsEmpty() async throws {
         let response = try await FixtureControlAPIClient(.empty).servers()

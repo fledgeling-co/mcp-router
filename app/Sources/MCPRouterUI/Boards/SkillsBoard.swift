@@ -72,7 +72,7 @@
                         StateMessage(
                             title: SkillPresentation.emptyTitle,
                             detail: SkillPresentation.emptyDetail,
-                            actionLabel: "Manage marketplaces…"
+                            actionLabel: SkillPresentation.marketplacesAction
                         ),
                         icon: .layers
                     ) {
@@ -165,7 +165,7 @@
                         .foregroundStyle(ColorToken.t2.color)
                 }
                 Spacer(minLength: 0)
-                Button("Manage marketplaces…") { board.sheet = .marketplaces }
+                Button(SkillPresentation.marketplacesAction) { board.sheet = .marketplaces }
                     .buttonStyle(StandardButtonStyle())
             }
             .padding(.bottom, SkillsBoardMetrics.gap)
@@ -185,7 +185,14 @@
                 .fixedSize()
 
                 SearchField(text: $board.search, placeholder: "Filter skills")
-                    .frame(width: SkillsBoardMetrics.searchWidth)
+                    // Ideal, not fixed: the picker beside it is `.fixedSize()` and
+                    // cannot give anything back, so this field is the one control in
+                    // the row that can. DEF-015.
+                    .frame(
+                        minWidth: SkillsBoardMetrics.searchMinWidth,
+                        idealWidth: SkillsBoardMetrics.searchWidth,
+                        maxWidth: SkillsBoardMetrics.searchWidth
+                    )
                     .focused($isSearchFocused)
 
                 Spacer(minLength: 0)

@@ -141,9 +141,8 @@ public struct SendCommitBar: View {
             }
 
             Button(commitLabel, action: action)
-                .buttonStyle(PhoneProminentButtonStyle())
+                .buttonStyle(PhoneProminentButtonStyle(fillsWidth: true))
                 .disabled(!state.canSend)
-                .frame(maxWidth: .infinity)
 
             if !state.canSend {
                 // Said after the button as well, because the disabled control is the thing that

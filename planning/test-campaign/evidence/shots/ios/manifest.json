@@ -1,0 +1,188 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "58BE7EBE-4384-40F0-9CAA-DAFB25BDADFD.json",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-LINEAGE-SURF-012.ios_0_AE6979D3-40AA-4090-AE13-E1C7F41F04DA.discover-populated",
+        "timestamp" : 1787216414.889
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "330D91B2-6131-4DB2-AF46-C9E1D70FC9D2.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-CAPTURE-SURF-012.ios_0_F9BFBE45-EEBE-4DD3-8334-98D320C081C3.discover-populated",
+        "timestamp" : 1787216414.83
+      }
+    ],
+    "testIdentifier" : "PhoneGlassTests/testDiscoverRendersTheRoutersCatalogue()",
+    "testIdentifierURL" : "test://com.apple.xcode/MCPRouter/MCPRouterIOSUITests/PhoneGlassTests/testDiscoverRendersTheRoutersCatalogue"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "A5EFE754-BBC6-44E7-A698-9A073A165FFE.json",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-LINEAGE-SURF-012.ios_0_1634C87D-EA16-4AF8-BD30-B43C5A6790EF.discover-empty",
+        "timestamp" : 1787216438.957
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "3474856F-6255-41DD-983B-3C12AB1D78F0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-CAPTURE-SURF-012.ios_0_EB29D9A0-AB85-4542-A787-D64DB2E74B47.discover-empty",
+        "timestamp" : 1787216438.809
+      }
+    ],
+    "testIdentifier" : "PhoneGlassTests/testDiscoverTracksWhatTheRouterReturned()",
+    "testIdentifierURL" : "test://com.apple.xcode/MCPRouter/MCPRouterIOSUITests/PhoneGlassTests/testDiscoverTracksWhatTheRouterReturned"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "DE6A49FE-C2E5-46BB-B4FB-E0111DAA8E08.json",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-LINEAGE-SURF-014.ios_0_D927EE43-19A4-4F64-A6B9-632FF686806F.pairing-typed-entry",
+        "timestamp" : 1787216482.528
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "A67066D4-6437-4FE3-9100-71DFCA3C8759.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-CAPTURE-SURF-014.ios_0_901F67F1-9BAB-4C65-B5DF-CE9A5B24E6B4.pairing-typed-entry",
+        "timestamp" : 1787216482.459
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "F3361578-B84F-4D33-A326-CE5AA65BC322.json",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-LINEAGE-SURF-014.ios_0_3F180D40-DB99-491C-9E74-08099855CE3D.camera-preflight",
+        "timestamp" : 1787216480.856
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "71B6838A-6A69-40B8-97AE-C02497221D74.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-CAPTURE-SURF-014.ios_0_C4550981-D04A-4D19-854F-03F3DFCBF4DA.camera-preflight",
+        "timestamp" : 1787216480.827
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "2278068A-5B6C-46FC-95FF-C8C6E90E6688.json",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-LINEAGE-UNASSERTED.ios_0_00EE0B39-C6DD-489D-8761-DAB5BD954E65.after-tapping-pair-mac",
+        "timestamp" : 1787216479.68
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "73125FF1-29AA-4B6F-A9DF-8943CF0B2DB0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-CAPTURE-UNASSERTED.ios_0_65AD957D-35D7-485B-89C7-50490EB1CA41.after-tapping-pair-mac",
+        "timestamp" : 1787216479.646
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "220B5468-71F3-46E8-A0B1-61C423293EB1.json",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-LINEAGE-SURF-018.ios_0_873D1B5E-E0B2-4C8F-9D13-86C231D8F182.settings-never-paired",
+        "timestamp" : 1787216476.31
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "F6F59621-4C03-493A-8227-46B67B39545F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-CAPTURE-SURF-018.ios_0_6A2D95B2-42B3-44D4-9ABF-1B015D3486AB.settings-never-paired",
+        "timestamp" : 1787216476.28
+      }
+    ],
+    "testIdentifier" : "PhoneGlassTests/testPairingIsReachedFromSettingsAndRendersItsPreflight()",
+    "testIdentifierURL" : "test://com.apple.xcode/MCPRouter/MCPRouterIOSUITests/PhoneGlassTests/testPairingIsReachedFromSettingsAndRendersItsPreflight"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "E81B4031-6A60-4F0A-91E9-F8E8133E0D37.json",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-LINEAGE-SURF-020.ios_0_FAD59FD8-5459-4F93-9A79-4D69CBD605D9.library",
+        "timestamp" : 1787216505.469
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "A9E78996-413B-470D-9AC7-F015FD9BB6BE.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-CAPTURE-SURF-020.ios_0_000422AD-EB00-423F-8AED-BC06A5D9D6BF.library",
+        "timestamp" : 1787216505.44
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "58AD7BDF-B4FD-4DF8-BB31-D5C4E4D46110.json",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-LINEAGE-SURF-019.ios_0_07177E87-DE94-4100-A8DF-B33C998DB7C7.queue",
+        "timestamp" : 1787216499.282
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "01016A35-1084-4158-A343-D68AF5F80BB5.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-CAPTURE-SURF-019.ios_0_28FFC615-0E33-42F3-90B8-0B7CAFB4E2BA.queue",
+        "timestamp" : 1787216499.25
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "8C76417D-E3ED-4644-A9C8-8074096BC99B.json",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-LINEAGE-SURF-013.ios_0_AC9A799F-03DD-4166-B775-1D85441A0815.triage",
+        "timestamp" : 1787216493.158
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "995BEF6F-101F-4D8A-ACE5-38724A13689A",
+        "deviceName" : "MCPRouter-Glass",
+        "exportedFileName" : "93C4CD0D-3741-42F4-8ED3-49F85A218CA7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "GLASS-CAPTURE-SURF-013.ios_0_6241D8CA-95B4-4525-B64F-5B8EA202D541.triage",
+        "timestamp" : 1787216493.128
+      }
+    ],
+    "testIdentifier" : "PhoneGlassTests/testTriageQueueAndLibraryEachRenderTheirOwnSurface()",
+    "testIdentifierURL" : "test://com.apple.xcode/MCPRouter/MCPRouterIOSUITests/PhoneGlassTests/testTriageQueueAndLibraryEachRenderTheirOwnSurface"
+  }
+]

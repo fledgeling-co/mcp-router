@@ -1,0 +1,112 @@
+{
+  "accepted": {
+    "evals": "the mock's board is named Evals and the app's is named Checks \u2014 DEF-007, raised by the capture tie pass; the rename went one way only",
+    "conduit": "the prototype carries the product's former name; the app ships as MCP Router"
+  },
+  "boards": {
+    "SURF-002": {
+      "pane": "servers",
+      "buildControls": 5,
+      "designControls": 10,
+      "inDesignNotBuild": [
+        "dossierdormant stdio m passed",
+        "lifelinedormant stdio m passed",
+        "mobbindormant stdio m passed",
+        "reset",
+        "review"
+      ],
+      "inBuildNotDesign": []
+    },
+    "SURF-003": {
+      "pane": "activity",
+      "buildControls": 0,
+      "designControls": 1,
+      "inDesignNotBuild": [
+        "reset history"
+      ],
+      "inBuildNotDesign": []
+    },
+    "SURF-004": {
+      "pane": "skills",
+      "buildControls": 5,
+      "designControls": 5,
+      "inDesignNotBuild": [
+        "add marketplace",
+        "never run",
+        "review"
+      ],
+      "inBuildNotDesign": [
+        "local",
+        "manage marketplaces",
+        "needs attention"
+      ]
+    },
+    "SURF-005": {
+      "pane": "discover",
+      "buildControls": 3,
+      "designControls": 2,
+      "inDesignNotBuild": [
+        "discipline fledgeling co mit",
+        "sql explain planetscale apache"
+      ],
+      "inBuildNotDesign": [
+        "best match",
+        "most used on smithery",
+        "recently added to smithery"
+      ]
+    },
+    "SURF-006": {
+      "pane": "evals",
+      "buildControls": 5,
+      "designControls": 2,
+      "inDesignNotBuild": [
+        "edit cases",
+        "run again"
+      ],
+      "inBuildNotDesign": [
+        "all",
+        "not met",
+        "not observed",
+        "re check all",
+        "unstamped"
+      ]
+    },
+    "SURF-007": {
+      "pane": "cleanup",
+      "buildControls": 3,
+      "designControls": 4,
+      "inDesignNotBuild": [
+        "inspect",
+        "read first",
+        "remove",
+        "reset history"
+      ],
+      "inBuildNotDesign": [
+        "all",
+        "reset call history",
+        "servers"
+      ]
+    },
+    "SURF-008": {
+      "pane": "inbox",
+      "buildControls": 1,
+      "designControls": 1,
+      "inDesignNotBuild": [],
+      "inBuildNotDesign": []
+    },
+    "SURF-011": {
+      "pane": "settings",
+      "buildControls": 2,
+      "designControls": 3,
+      "inDesignNotBuild": [
+        "pair another device",
+        "reset call history",
+        "unpair"
+      ],
+      "inBuildNotDesign": [
+        "forget the stored token",
+        "show in servers"
+      ]
+    }
+  }
+}

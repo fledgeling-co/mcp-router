@@ -21,17 +21,27 @@ import SwiftUI
 /// to schedule rather than made here. Everything else is the shared treatment unchanged: the same
 /// tokens, the same concentric-radius rule, transform-only press feedback, and `--t4` for disabled
 /// so a dimmed control keeps its size and its place (`DESIGN.md` §3.4).
+/// **Width follows the same rule as height, for the same reason.** `DESIGN.md` and the phone mocks
+/// draw the pairing flow's primary and secondary actions at the full content width. Declaring that
+/// with `.frame(maxWidth: .infinity)` *outside* the style stretches the button's layout frame while
+/// the style's own background still hugs the label, so the control reads as a centred pill with a
+/// full-width tap region — measured on the on-glass camera pre-prompt and typed-entry captures,
+/// where three such buttons drew at label width. `fillsWidth` puts the declaration inside the
+/// style, beside the height, where the background can see it.
 public struct PhoneProminentButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
+    private let fillsWidth: Bool
 
-    public init() {}
+    public init(fillsWidth: Bool = false) {
+        self.fillsWidth = fillsWidth
+    }
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .typeRole(.body)
             .foregroundStyle(isEnabled ? ColorToken.onAccent.color : ColorToken.t4.color)
             .padding(.horizontal, PhoneMetric.controlPadding)
-            .frame(minHeight: PhoneMetric.minimumTarget)
+            .frame(maxWidth: fillsWidth ? .infinity : nil, minHeight: PhoneMetric.minimumTarget)
             .background(
                 RoundedRectangle(cornerRadius: PhoneMetric.controlRadius, style: .continuous)
                     .fill(isEnabled ? ColorToken.accent.color : ColorToken.raised.color)
@@ -44,15 +54,18 @@ public struct PhoneProminentButtonStyle: ButtonStyle {
 /// The ordinary phone control surface: a resting `--raised` fill with a bezel, at touch height.
 public struct PhoneStandardButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
+    private let fillsWidth: Bool
 
-    public init() {}
+    public init(fillsWidth: Bool = false) {
+        self.fillsWidth = fillsWidth
+    }
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .typeRole(.body)
             .foregroundStyle(isEnabled ? ColorToken.t1.color : ColorToken.t4.color)
             .padding(.horizontal, PhoneMetric.controlPadding)
-            .frame(minHeight: PhoneMetric.minimumTarget)
+            .frame(maxWidth: fillsWidth ? .infinity : nil, minHeight: PhoneMetric.minimumTarget)
             .background(
                 RoundedRectangle(cornerRadius: PhoneMetric.controlRadius, style: .continuous)
                     .fill(configuration.isPressed ? ColorToken.raised2.color : ColorToken.raised.color)

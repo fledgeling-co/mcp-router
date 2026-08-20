@@ -1,0 +1,56 @@
+[
+ {
+  "id": "DEF-001",
+  "req": "REQ-016",
+  "surface": "SURF-014",
+  "title": "Pairing transport is unimplemented",
+  "text": "Neither the phone nor the Mac implements a pairing transport. The phone stores a paired-Mac record for a Mac it never contacted. Measured by I5.",
+  "source": "planning/evidence/I5-transport-proof.md",
+  "status": "open"
+ },
+ {
+  "id": "DEF-002",
+  "req": "REQ-014",
+  "surface": "SURF-017",
+  "title": "Parity gate exits 1 at 80/83, two real-work rows short of the cutover",
+  "text": "The gate exits 1 at 80 of 83 rows proven, 3 blocked, 0 DIVERGED (run 2026-08-19T05:40:27Z, evidence/runs/parity-gate-2026-08-19-rollback.log). install-rollback R4-C was cleared this session and is now ok. The 3 that remain: fixture-registry-search is a STANDING EXCLUSION nobody is working on; control-auth-post-http needs D-p1-a; install-launchd-watch is held blocked deliberately, because its `reran` term reads yes on 2 of 6 decoy trials where no stimulus can reach the watched path, so agreement on it is not evidence of parity. Two real-work rows therefore stand between 80 and the owner's 82/83 cutover target. Not a product UI defect.",
+  "source": "ORCHESTRATOR.md CUTOVER TARGET (bec9d18); evidence/runs/parity-gate-2026-08-19-rollback.log",
+  "status": "open"
+ },
+ {
+  "id": "DEF-003",
+  "req": "REQ-012",
+  "surface": "SURF-016",
+  "title": "loopbackPinned counted the pin instead of reading it",
+  "text": "`#expect(parameters.requiredLocalEndpoint != nil)` stayed TRUE \u2014 and the suite stayed green \u2014 with `host: .ipv4(.any)` in `loopbackParameters`, which is the LAN bind the clause exists to stop. An assertion that cannot fail on the defect it names is a decoration. Now reads the host and port off the endpoint. Found by arming, in app/Tests/RouterCoreTests/HTTPWireTests.swift.",
+  "source": "app/Tests/RouterCoreTests/HTTPWireTests.swift",
+  "status": "fixed-in-test"
+ },
+ {
+  "id": "DEF-004",
+  "req": "REQ-006",
+  "surface": "SURF-008",
+  "title": "the no-install guarantee read only half of where the buttons are stated",
+  "text": "`InboxNotificationCategory.actions` states the button sets a second time and that copy is what the notifier registers with macOS. Mutating `.many` to offer a decline left all ten clauses green, because `noInstallAction` only reads `make`. The buttons macOS draws could drift from the buttons the value carries \u2014 the one failure that type exists to close. Now asserts the round trip through `drawing`.",
+  "source": "app/Tests/MCPRouterKitTests/InboxAnnouncementTests.swift",
+  "status": "fixed-in-test"
+ },
+ {
+  "id": "DEF-005",
+  "req": "REQ-006",
+  "surface": "SURF-013",
+  "title": "iOS copy assertions ran against an empty accessibility tree",
+  "text": "A local `UIWindow` dies when the host function returns, leaving SwiftUI's hosting view without a window: layout numbers already computed survive, so `sizeThatFits` returns a real height while the accessibility tree is EMPTY. The first two iOS runs failed every copy assertion with `in: `. The window is now retained for the test's lifetime. This is the lane's version of a check that could not run reading as a check that ran.",
+  "source": "app/MCPRouterIOSTests/PhoneSurfaceTests.swift",
+  "status": "fixed-in-test"
+ },
+ {
+  "id": "DEF-006",
+  "req": "REQ-010",
+  "surface": "SURF-012",
+  "title": "inventory pointed Discover and Triage at someone else's pixels",
+  "text": "inventory.json had shot=evidence/shots/SURF-012.ios-boot.png on SURF-012 (iOS Discover) and shot=evidence/shots/SURF-013.add.png on SURF-013 (iOS Triage). The boot PNG is Phone Settings (CASE-0020/0120). The add PNG is the Mac Add a server sheet (2096\u00d71376). Both inventory shot fields removed and the files renamed UNATTRIBUTED.ios-settings-boot.png / UNATTRIBUTED.mac-add-server.png so attach-shots.py cannot stem-match them back.",
+  "source": "planning/test-campaign/inventory.json; evidence/shots/UNATTRIBUTED.ios-settings-boot.png sha 16385e6f; evidence/shots/UNATTRIBUTED.mac-add-server.png sha 43e30338",
+  "status": "fixed-in-campaign"
+ }
+]

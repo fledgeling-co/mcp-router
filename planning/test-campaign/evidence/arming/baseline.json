@@ -1,0 +1,114 @@
+[
+ {
+  "case": "CASE-0005",
+  "executed": 11,
+  "exit": 0,
+  "filter": "InboxAnnouncementTests",
+  "phase": "baseline",
+  "verdict": "GREEN"
+ },
+ {
+  "case": "CASE-0007",
+  "executed": 15,
+  "exit": 0,
+  "filter": "InboxArrivalTests",
+  "phase": "baseline",
+  "verdict": "GREEN"
+ },
+ {
+  "case": "CASE-0008",
+  "executed": 13,
+  "exit": 0,
+  "filter": "CleanupPresentationTests",
+  "phase": "baseline",
+  "verdict": "GREEN"
+ },
+ {
+  "case": "CASE-0009",
+  "executed": 18,
+  "exit": 0,
+  "filter": "ControlContractTests",
+  "phase": "baseline",
+  "verdict": "GREEN"
+ },
+ {
+  "case": "CASE-0017",
+  "executed": 16,
+  "exit": 0,
+  "filter": "InboxBoardTests",
+  "phase": "baseline",
+  "verdict": "GREEN"
+ },
+ {
+  "case": "CASE-0018",
+  "executed": 13,
+  "exit": 0,
+  "filter": "DiscoverCommitTests",
+  "phase": "baseline",
+  "verdict": "GREEN"
+ },
+ {
+  "case": "CASE-0023",
+  "executed": 13,
+  "exit": 0,
+  "filter": "DiscoverCopyTests",
+  "phase": "baseline",
+  "verdict": "GREEN"
+ },
+ {
+  "case": "CASE-0030",
+  "executed": 10,
+  "exit": 0,
+  "filter": "RealProcessTests",
+  "phase": "baseline",
+  "verdict": "GREEN"
+ },
+ {
+  "case": "CASE-0031",
+  "executed": 5,
+  "exit": 0,
+  "filter": "ToolUnionParityTests",
+  "phase": "baseline",
+  "verdict": "GREEN"
+ },
+ {
+  "case": "CASE-0032",
+  "executed": 6,
+  "exit": 0,
+  "filter": "PoolTests",
+  "phase": "baseline",
+  "verdict": "GREEN"
+ },
+ {
+  "case": "CASE-0033",
+  "executed": 3,
+  "exit": 0,
+  "filter": "ListenerFailureTests",
+  "phase": "baseline",
+  "verdict": "GREEN"
+ },
+ {
+  "case": "CASE-0034",
+  "executed": 2,
+  "exit": 0,
+  "filter": "ImportConfigWriterLockTests",
+  "phase": "baseline",
+  "verdict": "GREEN"
+ },
+ {
+  "case": "CASE-0035",
+  "executed": 11,
+  "exit": 0,
+  "filter": "ControlAuthStartDispatchTests",
+  "phase": "baseline",
+  "verdict": "GREEN"
+ },
+ {
+  "case": "CASE-0037",
+  "executed": 6,
+  "exit": 0,
+  "filter": "CallbackListenerTests",
+  "phase": "baseline",
+  "verdict": "GREEN"
+ }
+]

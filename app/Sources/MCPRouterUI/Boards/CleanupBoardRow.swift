@@ -71,6 +71,11 @@
     struct CleanupBoardRow: View {
         let candidate: CleanupBoardModel.Candidate
         let isSelected: Bool
+        /// What the row's own actions do. Optional because the skeleton and the previews render a
+        /// row with nothing behind it, and a row that had to invent a closure to be drawn would be
+        /// drawing a control that does nothing — the thing §3.4 forbids.
+        var inspect: (() -> Void)?
+        var remove: (() -> Void)?
 
         var body: some View {
             HStack(spacing: M7BoardMetrics.rowPadding) {
@@ -110,12 +115,56 @@
                     .frame(width: M7BoardMetrics.reasonColumn, alignment: .leading)
 
                 Spacer(minLength: 0)
+
+                actions
             }
             .padding(.horizontal, M7BoardMetrics.rowPadding)
             .frame(height: M7BoardMetrics.rowHeight)
             .selectionFill(isSelected)
-            .accessibilityElement(children: .combine)
+            // **`.contain`, not `.combine`.** Combining flattens the row's buttons into the label
+            // and leaves nothing for VoiceOver or a UI test to press — the same trap the campaign
+            // already recorded for a time-limited undo inside an `aria-live` region, where the only
+            // people who could reach the control were mouse users.
+            .accessibilityElement(children: .contain)
             .accessibilityLabel("\(candidate.name), \(candidate.kind.label). \(candidate.reason)")
+        }
+
+        /// The row's own actions, which the design draws on every row and the build drew on none.
+        ///
+        /// `prototype.html:950` puts `Inspect` and `Remove` in a 150px trailing column, and a
+        /// flagged skill gets `Read first…` in their place. Two of those three are here. **The
+        /// third is not, and that is a gap rather than an omission**: the design's third button
+        /// keys on `k.provenance`, and `CleanupBoardModel.Candidate` carries no provenance field,
+        /// so there is nothing to key on. Drawing it unconditionally would offer a reading of
+        /// something the model cannot say exists.
+        ///
+        /// Removal is server-only, dimmed in place for a skill with its reason, exactly as
+        /// `CleanupInspector.actions` already does it: there is no code path from this board to a
+        /// skill write because the control API has none. The reason travels as an accessibility
+        /// hint as well as a tooltip, because a reason only a mouse can reach is not a reason.
+        ///
+        /// No `@ViewBuilder`: the body is one `HStack` expression, and `swiftformat`'s
+        /// `redundantViewBuilder` rule rejects the attribute where the builder does nothing —
+        /// the two `if`s are inside the stack, not at the top level.
+        private var actions: some View {
+            HStack(spacing: M7BoardMetrics.labelGap) {
+                if let inspect {
+                    Button("Inspect", action: inspect)
+                        .buttonStyle(StandardButtonStyle())
+                        .controlSize(.small)
+                }
+                if let remove {
+                    Button("Remove…", action: remove)
+                        .buttonStyle(StandardButtonStyle())
+                        .controlSize(.small)
+                        .disabled(candidate.kind == .skill)
+                        .help(candidate.kind == .skill ? CheckCopy.skillRemoveDisabled : "")
+                        .accessibilityHint(
+                            candidate.kind == .skill ? CheckCopy.skillRemoveDisabled : ""
+                        )
+                }
+            }
+            .frame(width: M7BoardMetrics.actionColumn, alignment: .trailing)
         }
     }
 #endif

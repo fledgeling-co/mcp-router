@@ -1,0 +1,761 @@
+{
+  "requirement": [
+    {
+      "id": "REQ-001",
+      "class": "behaviour",
+      "text": "One shared HTTP MCP endpoint lists tools from a disk cache and starts an upstream only when a tool on it is called; at rest there are zero child processes.",
+      "source": "README.md:7-49",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-002",
+      "class": "behaviour",
+      "text": "The tool cache is keyed on each server's command/args/env identity and tools are namespaced <server>__<tool>.",
+      "source": "README.md:110-111",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-003",
+      "class": "affordance",
+      "text": "The Mac shell navigates eight destinations — Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Settings — via the sidebar and ⌘1–7 / ⌘,.",
+      "source": "DESIGN.md:322-334; Destination.swift:43-113",
+      "evidence": "observed"
+    },
+    {
+      "id": "REQ-004",
+      "class": "behaviour",
+      "text": "The Servers board reflects live server states from ServerStateTracker (running, tripped, never used, held) without inventing a figure the tracker did not observe.",
+      "source": "DESIGN.md:29; spec-M3.md; spec-F4.md",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-005",
+      "class": "honesty-guardrail",
+      "text": "When the tracker is stale or the router is not running, live counts go absent rather than displaying last-known figures as current.",
+      "source": "DESIGN.md:263; spec-F4.md",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-006",
+      "class": "honesty-guardrail",
+      "text": "The phone queues; it never installs. No path from the phone or a notification can put a server on the Mac without explicit human review on the Mac.",
+      "source": "DESIGN.md:348-351; spec-I3.md; spec-I6.md",
+      "evidence": "observed"
+    },
+    {
+      "id": "REQ-007",
+      "class": "honesty-guardrail",
+      "text": "Numbers the router does not observe are never displayed. There is no fabricated memory saving.",
+      "source": "DESIGN.md:292-294",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-008",
+      "class": "affordance",
+      "text": "The menu-bar popover shows a readout, attention rows, and an inbox band of oldest-first arrivals; a partial row carries no review affordance.",
+      "source": "DESIGN.md; spec-I6.md; spec-M8.md",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-009",
+      "class": "behaviour",
+      "text": "Disposing an inbox item immediately withdraws its notification banner; a multi-item banner carries Review only.",
+      "source": "spec-I6.md",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-010",
+      "class": "behaviour",
+      "text": "The phone exposes Discover, Triage, Queue, Library and Settings; Triage commit is a single-batch undoable enqueue.",
+      "source": "spec-I3.md; prototype.html phone nav",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-011",
+      "class": "behaviour",
+      "text": "RouterCore manages live stdio children and HTTP upstreams with single-flight spawn and idle reaping.",
+      "source": "spec-R2.md; README.md:113",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-012",
+      "class": "behaviour",
+      "text": "The control API is loopback-only, authenticated, and refuses to write command/args/env through PATCH.",
+      "source": "ORCHESTRATOR.md standing constraints; spec-R3.md; spec-M8.md",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-013",
+      "class": "honesty-guardrail",
+      "text": "Mutations to servers.json use atomic staging and a lock so concurrent writers cannot clobber.",
+      "source": "spec-R2W.md",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-014",
+      "class": "behaviour",
+      "text": "Swift RouterCore matches the TypeScript reference on the parity corpus; the cutover target is 82 of 83 with fixture-registry-search a standing exclusion.",
+      "source": "spec-R4.md; ORCHESTRATOR.md CUTOVER TARGET",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-015",
+      "class": "affordance",
+      "text": "Mac Pairing sheet shows an 8-character Crockford code and QR; the phone can scan or type it.",
+      "source": "spec-M6.md; spec-I1.md; prototype.html ?sheet=pair",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-016",
+      "class": "behaviour",
+      "text": "A pairing exchange actually contacts the other device and stores a record only after that contact succeeds.",
+      "source": "spec-I5.md; ORCHESTRATOR.md I5 row",
+      "evidence": "contradicted",
+      "note": "I5 measured neither side implements a transport; the phone stores a paired-Mac record for a Mac it never contacted."
+    },
+    {
+      "id": "REQ-017",
+      "class": "affordance",
+      "text": "Every data surface ships the nine DESIGN.md §5 states with real copy on the unhappy paths.",
+      "source": "DESIGN.md:250-271",
+      "evidence": "unknown"
+    },
+    {
+      "id": "REQ-018",
+      "class": "behaviour",
+      "text": "Undo is the Mac contract for reversible acts; a named-consequence dialog is reserved for genuinely destructive ones and is never the default button.",
+      "source": "DESIGN.md:339-344",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-019",
+      "class": "honesty-guardrail",
+      "text": "A refused write is shown as the server's refusal. Success affordances are not shown for work that did not happen.",
+      "source": "DESIGN.md:290; sweeps H; I1 Keychain 'Paired.' defect",
+      "evidence": "reported"
+    },
+    {
+      "id": "REQ-020",
+      "class": "deferred",
+      "text": "install.sh flips to the Swift binary and retires src/*.ts once parity is 82 of 83 and the owner decides.",
+      "source": "ORCHESTRATOR.md R4-C",
+      "evidence": "reported"
+    }
+  ],
+  "surface": [
+    {
+      "id": "SURF-001",
+      "title": "Mac shell — sidebar, title, menus",
+      "route": "app://mac/servers",
+      "lane": "macos-glass",
+      "status": "ready",
+      "shot": "evidence/shots/SURF-001.shell.png",
+      "routeNote": "the shell is window chrome and the source list — it has no board of its own and no address, so it is photographed on the Servers board and cropped to the chrome. The crop names its parent capture in derivedFrom, which is what keeps it a distinct artifact rather than the same picture filed twice."
+    },
+    {
+      "id": "SURF-002",
+      "title": "Mac Servers board",
+      "route": "app://mac/servers",
+      "lane": "macos-glass",
+      "status": "ready",
+      "shot": "evidence/shots/SURF-002.build.png"
+    },
+    {
+      "id": "SURF-003",
+      "title": "Mac Activity board",
+      "route": "app://mac/activity",
+      "lane": "macos-glass",
+      "status": "ready",
+      "shot": "evidence/shots/SURF-003.build.png"
+    },
+    {
+      "id": "SURF-004",
+      "title": "Mac Skills board",
+      "route": "app://mac/skills",
+      "lane": "macos-glass",
+      "status": "ready",
+      "shot": "evidence/shots/SURF-004.build.png"
+    },
+    {
+      "id": "SURF-005",
+      "title": "Mac Discover board",
+      "route": "app://mac/discover",
+      "lane": "macos-glass",
+      "status": "ready",
+      "shot": "evidence/shots/SURF-005.build.png"
+    },
+    {
+      "id": "SURF-006",
+      "title": "Mac Checks board",
+      "route": "app://mac/checks",
+      "lane": "macos-glass",
+      "status": "ready",
+      "shot": "evidence/shots/SURF-006.build.png",
+      "routeNote": "the registry addressed this board as /evals; the running app's window title reads back 'Checks'. The tie pass caught the drift — the board was renamed and the campaign's address was not."
+    },
+    {
+      "id": "SURF-007",
+      "title": "Mac Cleanup board",
+      "route": "app://mac/cleanup",
+      "lane": "macos-glass",
+      "status": "ready",
+      "shot": "evidence/shots/SURF-007.build.png"
+    },
+    {
+      "id": "SURF-008",
+      "title": "Mac Inbox board and review sheet",
+      "route": "app://mac/inbox",
+      "lane": "macos-glass",
+      "status": "ready",
+      "shot": "evidence/shots/SURF-008.build.png"
+    },
+    {
+      "id": "SURF-009",
+      "title": "Mac menu-bar popover and inbox band",
+      "route": "app://mac/menubar-popover",
+      "lane": "macos-glass",
+      "status": "ready"
+    },
+    {
+      "id": "SURF-010",
+      "title": "Mac Pairing sheet",
+      "route": "app://mac/pairing",
+      "lane": "macos-glass",
+      "status": "ready",
+      "shotNote": "no picture is filed under this surface. The previous run filed a photograph of the Inbox board here; the pairing control is not pressable from a background process, so the sheet was never opened and never photographed."
+    },
+    {
+      "id": "SURF-011",
+      "title": "Mac Settings board",
+      "route": "app://mac/settings",
+      "lane": "macos-glass",
+      "status": "ready",
+      "shot": "evidence/shots/SURF-011.build.png"
+    },
+    {
+      "id": "SURF-012",
+      "title": "iOS Discover",
+      "route": "app://ios/discover",
+      "lane": "ios-glass",
+      "status": "ready",
+      "shot": "evidence/shots/ios/SURF-012.ios.discover-populated.png"
+    },
+    {
+      "id": "SURF-013",
+      "title": "iOS Triage, Queue, Library",
+      "route": "app://ios/triage",
+      "lane": "ios-glass",
+      "status": "ready",
+      "shot": "evidence/shots/ios/SURF-013.ios.triage.png",
+      "name": "iOS Triage",
+      "splitNote": "Was 'iOS Triage, Queue, Library' — one id over three routes. Found 20 Aug 2026 by the capture tie pass, which reported that two of this subject's three captures named targets (app://ios/queue, app://ios/library) that do not resolve to its route. Three screens deduped onto one surface understate the denominator, which is this campaign's first failure mode. Split into SURF-019 (Queue) and SURF-020 (Library); the tab test asserts all three differ from each other, so all three were being exercised and only one was being counted."
+    },
+    {
+      "id": "SURF-014",
+      "title": "iOS Pairing scanner and code entry",
+      "route": "app://ios/pair-mac",
+      "lane": "ios-glass",
+      "status": "ready",
+      "shotNote": "the pairing preflight was reached on glass and rendered, but the assertion failed before the screenshot step, so no picture exists. The surface's state at that moment is recorded in the failure's own on-screen string list, not in a raster.",
+      "routeNote": "Was app://ios/pairing. The app's navigation bar publishes 'Pair Mac', and the route is the campaign's record of where a surface lives rather than a name it gets to choose — same class as DEF-007's evals/Checks. Corrected to what the running app says; registered as DEF-023.",
+      "shot": "evidence/shots/ios/SURF-014.ios.camera-preflight.png"
+    },
+    {
+      "id": "SURF-015",
+      "title": "Router daemon and upstream pool",
+      "route": "ipc://router/core",
+      "lane": "router-daemon",
+      "status": "ready"
+    },
+    {
+      "id": "SURF-016",
+      "title": "Loopback control API and auth routes",
+      "route": "http://127.0.0.1:8879/control",
+      "lane": "router-daemon",
+      "status": "ready"
+    },
+    {
+      "id": "SURF-017",
+      "title": "Parity harness vs TypeScript reference",
+      "route": "test://parity/surface",
+      "lane": "parity-wire",
+      "status": "ready"
+    },
+    {
+      "id": "SURF-018",
+      "name": "iOS Settings and paired-Mac state",
+      "route": "app://ios/settings",
+      "lane": "ios-glass",
+      "status": "ready",
+      "shot": "evidence/shots/ios/SURF-018.ios.settings-never-paired.png",
+      "note": "the phone ships five tabs and the campaign enumerated three. The on-glass lane photographed Settings while proving each tab renders its own surface, which is how the missing surface surfaced — a tab nobody enumerated has no denominator and no case could have failed on it."
+    },
+    {
+      "title": "iOS Triage, Queue, Library",
+      "lane": "ios-glass",
+      "status": "ready",
+      "id": "SURF-019",
+      "name": "iOS Queue",
+      "route": "app://ios/queue",
+      "splitNote": "Split out of SURF-013 on 20 Aug 2026 — see that surface's splitNote.",
+      "shot": "evidence/shots/ios/SURF-019.ios.queue.png"
+    },
+    {
+      "title": "iOS Triage, Queue, Library",
+      "lane": "ios-glass",
+      "status": "ready",
+      "id": "SURF-020",
+      "name": "iOS Library",
+      "route": "app://ios/library",
+      "splitNote": "Split out of SURF-013 on 20 Aug 2026 — see that surface's splitNote.",
+      "shot": "evidence/shots/ios/SURF-020.ios.library.png"
+    }
+  ],
+  "flow": [
+    {
+      "id": "FLOW-001",
+      "title": "phone-triage-to-mac-inbox",
+      "critical": true,
+      "steps": [
+        {
+          "id": "FLOW-001.01",
+          "surface": "SURF-013",
+          "title": "Select items in Phone Triage and commit to Queue",
+          "atoms": [
+            "triage.card",
+            "queue.commitBar",
+            "badge.count"
+          ]
+        },
+        {
+          "id": "FLOW-001.02",
+          "surface": "SURF-009",
+          "title": "Mac popover shows the arrival in the inbox band",
+          "atoms": [
+            "popover.inboxBand",
+            "band.oldestFirst",
+            "statusItem.dot"
+          ]
+        },
+        {
+          "id": "FLOW-001.03",
+          "surface": "SURF-008",
+          "title": "Open the Review sheet and accept or decline",
+          "atoms": [
+            "review.sheet",
+            "capability.statement",
+            "button.install",
+            "button.decline"
+          ]
+        },
+        {
+          "id": "FLOW-001.04",
+          "surface": "SURF-008",
+          "title": "Disposition withdraws the banner and updates the queue",
+          "atoms": [
+            "notifier.withdraw",
+            "undo.bar",
+            "queue.updated"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FLOW-002",
+      "title": "mac-pairing-to-phone-pairing",
+      "critical": true,
+      "steps": [
+        {
+          "id": "FLOW-002.01",
+          "surface": "SURF-010",
+          "title": "Open the Mac Pairing sheet and show an 8-character Crockford code",
+          "atoms": [
+            "pairing.sheet",
+            "code.8char",
+            "pairing.countdown"
+          ]
+        },
+        {
+          "id": "FLOW-002.02",
+          "surface": "SURF-014",
+          "title": "Phone scans the QR or types the code",
+          "atoms": [
+            "qr.scanner",
+            "input.codeField",
+            "paired.confirmation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FLOW-003",
+      "title": "router-oauth-flow",
+      "critical": true,
+      "steps": [
+        {
+          "id": "FLOW-003.01",
+          "surface": "SURF-016",
+          "title": "Start an auth flow on the control API and listen on :8880",
+          "atoms": [
+            "auth.start",
+            "port.8880",
+            "callback.listener"
+          ]
+        },
+        {
+          "id": "FLOW-003.02",
+          "surface": "SURF-016",
+          "title": "Receive the callback and persist the auth record",
+          "atoms": [
+            "callback.response",
+            "token.store",
+            "server.updated"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FLOW-004",
+      "title": "servers-add-and-cleanup",
+      "critical": false,
+      "steps": [
+        {
+          "id": "FLOW-004.01",
+          "surface": "SURF-002",
+          "title": "Add a server and see the breaker rise on first call",
+          "atoms": [
+            "sheet.addServer",
+            "tracker.running",
+            "server.placard"
+          ]
+        },
+        {
+          "id": "FLOW-004.02",
+          "surface": "SURF-007",
+          "title": "Inspect Cleanup candidates and confirm removal",
+          "atoms": [
+            "cleanup.row",
+            "confirm.sheet",
+            "server.removed"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FLOW-005",
+      "title": "lazy-spawn-and-idle-reap",
+      "critical": true,
+      "steps": [
+        {
+          "id": "FLOW-005.01",
+          "surface": "SURF-015",
+          "title": "tools/list is served from cache with no child running",
+          "atoms": [
+            "manifest.cache",
+            "child.count.zero"
+          ]
+        },
+        {
+          "id": "FLOW-005.02",
+          "surface": "SURF-015",
+          "title": "tools/call spawns only that upstream; idle reaps it",
+          "atoms": [
+            "child.spawned",
+            "child.reaped"
+          ]
+        }
+      ]
+    }
+  ],
+  "component": [
+    {
+      "id": "CMP-001",
+      "name": "Breaker",
+      "surfaces": [
+        "SURF-002"
+      ],
+      "note": "Signature element; geometry from DESIGN.md §2"
+    },
+    {
+      "id": "CMP-002",
+      "name": "Sidebar",
+      "surfaces": [
+        "SURF-001"
+      ],
+      "note": "Eight destinations, sentence-case groups"
+    },
+    {
+      "id": "CMP-003",
+      "name": "MenuBarInboxBand",
+      "surfaces": [
+        "SURF-009"
+      ],
+      "note": "Oldest-first, no review on partial rows"
+    },
+    {
+      "id": "CMP-004",
+      "name": "InboxReviewSheet",
+      "surfaces": [
+        "SURF-008"
+      ],
+      "note": "The only install path"
+    },
+    {
+      "id": "CMP-005",
+      "name": "Readout",
+      "surfaces": [
+        "SURF-009",
+        "SURF-001"
+      ],
+      "note": "Withholds figures when stale"
+    },
+    {
+      "id": "CMP-006",
+      "name": "CapabilityPlate",
+      "surfaces": [
+        "SURF-012",
+        "SURF-013"
+      ],
+      "note": "Phone card; attention colour must not fire on every Smithery row"
+    },
+    {
+      "id": "CMP-007",
+      "name": "QRScannerView",
+      "surfaces": [
+        "SURF-014"
+      ],
+      "note": "Camera purpose string lives in generated Info.plist"
+    },
+    {
+      "id": "CMP-008",
+      "name": "PopoverContent",
+      "surfaces": [
+        "SURF-009"
+      ],
+      "note": "Liquid Glass on floating chrome only"
+    }
+  ],
+  "defect": [
+    {
+      "id": "DEF-001",
+      "req": "REQ-016",
+      "surface": "SURF-014",
+      "title": "Pairing transport is unimplemented",
+      "text": "Neither the phone nor the Mac implements a pairing transport. The phone stores a paired-Mac record for a Mac it never contacted. Measured by I5.",
+      "source": "planning/evidence/I5-transport-proof.md",
+      "status": "open"
+    },
+    {
+      "id": "DEF-002",
+      "req": "REQ-014",
+      "surface": "SURF-017",
+      "title": "Parity gate exits 1 at 80/83, two real-work rows short of the cutover",
+      "text": "The gate exits 1 at 80 of 83 rows proven, 3 blocked, 0 DIVERGED (run 2026-08-19T05:40:27Z, evidence/runs/parity-gate-2026-08-19-rollback.log). install-rollback R4-C was cleared this session and is now ok. The 3 that remain: fixture-registry-search is a STANDING EXCLUSION nobody is working on; control-auth-post-http needs D-p1-a; install-launchd-watch is held blocked deliberately, because its `reran` term reads yes on 2 of 6 decoy trials where no stimulus can reach the watched path, so agreement on it is not evidence of parity. Two real-work rows therefore stand between 80 and the owner's 82/83 cutover target. Not a product UI defect.",
+      "source": "ORCHESTRATOR.md CUTOVER TARGET (bec9d18); evidence/runs/parity-gate-2026-08-19-rollback.log",
+      "status": "open"
+    },
+    {
+      "id": "DEF-003",
+      "req": "REQ-012",
+      "surface": "SURF-016",
+      "title": "loopbackPinned counted the pin instead of reading it",
+      "text": "`#expect(parameters.requiredLocalEndpoint != nil)` stayed TRUE — and the suite stayed green — with `host: .ipv4(.any)` in `loopbackParameters`, which is the LAN bind the clause exists to stop. An assertion that cannot fail on the defect it names is a decoration. Now reads the host and port off the endpoint. Found by arming, in app/Tests/RouterCoreTests/HTTPWireTests.swift.",
+      "source": "app/Tests/RouterCoreTests/HTTPWireTests.swift",
+      "status": "fixed-in-test"
+    },
+    {
+      "id": "DEF-004",
+      "req": "REQ-006",
+      "surface": "SURF-008",
+      "title": "the no-install guarantee read only half of where the buttons are stated",
+      "text": "`InboxNotificationCategory.actions` states the button sets a second time and that copy is what the notifier registers with macOS. Mutating `.many` to offer a decline left all ten clauses green, because `noInstallAction` only reads `make`. The buttons macOS draws could drift from the buttons the value carries — the one failure that type exists to close. Now asserts the round trip through `drawing`.",
+      "source": "app/Tests/MCPRouterKitTests/InboxAnnouncementTests.swift",
+      "status": "fixed-in-test"
+    },
+    {
+      "id": "DEF-005",
+      "req": "REQ-006",
+      "surface": "SURF-013",
+      "title": "iOS copy assertions ran against an empty accessibility tree",
+      "text": "A local `UIWindow` dies when the host function returns, leaving SwiftUI's hosting view without a window: layout numbers already computed survive, so `sizeThatFits` returns a real height while the accessibility tree is EMPTY. The first two iOS runs failed every copy assertion with `in: `. The window is now retained for the test's lifetime. This is the lane's version of a check that could not run reading as a check that ran.",
+      "source": "app/MCPRouterIOSTests/PhoneSurfaceTests.swift",
+      "status": "fixed-in-test"
+    },
+    {
+      "id": "DEF-006",
+      "req": "REQ-010",
+      "surface": "SURF-012",
+      "title": "inventory pointed Discover and Triage at someone else's pixels",
+      "text": "inventory.json had shot=evidence/shots/SURF-012.ios-boot.png on SURF-012 (iOS Discover) and shot=evidence/shots/SURF-013.add.png on SURF-013 (iOS Triage). The boot PNG is Phone Settings (CASE-0020/0120). The add PNG is the Mac Add a server sheet (2096×1376). Both inventory shot fields removed and the files renamed UNATTRIBUTED.ios-settings-boot.png / UNATTRIBUTED.mac-add-server.png so attach-shots.py cannot stem-match them back.",
+      "source": "planning/test-campaign/inventory.json; evidence/shots/UNATTRIBUTED.ios-settings-boot.png sha 16385e6f; evidence/shots/UNATTRIBUTED.mac-add-server.png sha 43e30338",
+      "status": "fixed-in-campaign"
+    },
+    {
+      "id": "DEF-007",
+      "title": "a route id was compared against a board title, and they differ in the design itself",
+      "status": "closed",
+      "detail": "prototype.html routes ?pane=evals and titles the board Evals; the running app's window title reads back Checks. Found by capture-lineage's tie pass, which refused a capture whose recorded target did not resolve to the surface's route. The rename went one way and the design of record was not followed.",
+      "text": "WITHDRAWN 20 Aug 2026 — this was not a product defect. It was recorded as \"prototype.html routes ?pane=evals and titles the board Evals; the running app's window title reads back Checks\". The second half is false. `prototype.html:600` declares the sidebar entry as `{id:'evals',t:'Checks',ic:'evals'}` — the route **id** is `evals` and the **title** is `Checks` — and the board's own header draws the selected suite (`pr-summariser · 8 cases`) rather than a board name at all. So the design of record titles this board Checks, the app titles it Checks, and there was never a rename to follow. WHAT ACTUALLY HAPPENED is a detector artefact, and it is worth keeping for that: capture-lineage's tie pass refused a capture whose recorded target did not resolve to the surface's title, and the target it held was the route id. An id and a title are different fields that the design is entitled to disagree on, so a tie pass that compares one to the other reports a rename wherever a route is not named after its board. Checked against the other seven boards: no second instance, because every other route id matches its title. Closed rather than deleted, so the next reader meets the artefact rather than rediscovering it."
+    },
+    {
+      "id": "DEF-008",
+      "title": "iOS tab buttons carry the icon name as their accessibility identifier, and it cannot be replaced",
+      "status": "open",
+      "text": "The on-glass hierarchy reads `identifier: 'sparkles', label: 'Discover'` for the Discover tab. X2 set the label so VoiceOver announces the tab's name; the identifier still ships the SF Symbol's name, so any query written against identifiers addresses the icon rather than the destination — and three of the five icons are named for a word that appears nowhere in the interface (`inbox`, `tray`, `book`). MEASURED 20 Aug 2026 AND LEFT OPEN, because the obvious fix does not work. `.accessibilityIdentifier(\"tab-<raw>\")` was applied in both places SwiftUI offers — inside the `.tabItem` closure on the `Label`, and on the view that carries `.tabItem` — and each was run on glass. Both CLEAR the tab button's identifier rather than set it: `app.tabBars.buttons` came back `[\"\", \"\", \"\", \"\", \"\"]` on both attempts, against an expectation of `tab-discover, tab-triage, tab-queue, tab-library, tab-settings`. That is the same class of surprise as `.accessibilityHidden(true)` on the icon, which PhoneShell.swift already records as measured inert. Both attempts were reverted rather than shipped: an empty identifier is arguably less misleading than a wrong one, but it is a change with no passing assertion behind it, and this campaign does not ship those. The finding is recorded in `PhoneShell.swift` beside the label, so the next person does not spend the two glass runs again. Until a third route is found, query this tab bar by label — which is correct, and which is what `PhoneGlassTests.selectTab` already does."
+    },
+    {
+      "id": "DEF-009",
+      "title": "the empty scenario does not reach Discover on the phone",
+      "status": "closed",
+      "detail": "MCPROUTER_SCENARIO=empty launched the app and Discover still rendered the populated catalogue — GitHub 2,984 sessions, DeepWiki 2,332 — so the surface is not reading the router's answer. Measured on glass by PhoneGlassTests.testDiscoverTracksWhatTheRouterReturned, iPhone 16 Pro, iOS 26.5.\n\nCLOSED 20 Aug 2026. Mechanism: `FixtureControlAPIClient.searchRegistry` ignored the scenario entirely and decoded the same `registry-search` recording for all fourteen, so MCPROUTER_SCENARIO=empty reached the client and the client answered with a populated catalogue. Discover was reading its data correctly from the wrong answer. `.empty` is now built in code beside `skills()` and `marketplaces()` rather than added as a second file under Control/Fixtures, which parity-fixture.sh would replay against a reference that cannot reproduce it. `sources` is zeroed with `results`. testDiscoverTracksWhatTheRouterReturned passes."
+    },
+    {
+      "id": "DEF-010",
+      "title": "the campaign's own capture step filed two pictures under the wrong surface",
+      "status": "fixed-in-campaign",
+      "detail": "capture-mac-glass.sh photographed 'whatever destination is restored' as SURF-001, and the restored destination was Activity, so the shell's picture was byte-identical to SURF-003's; and it filed a photograph of the Inbox board as SURF-010, the pairing sheet. Neither was visible because the filename was the only thing binding a picture to a surface. The capture step now writes a manifest as the shutter opens, with the target read back from the running app."
+    },
+    {
+      "id": "DEF-011",
+      "title": "Cleanup's per-row actions are specified by the design and drawn by nothing",
+      "status": "fixed-in-part",
+      "detail": "the vocabulary differential compared actionable elements — accessible names of AXButton/AXCheckBox/AXPopUpButton/AXTextField and their DOM counterparts — board by board, with the shell and the fixture rows subtracted. Cleanup's design of record specifies Inspect, Read first and Remove on each row; the running board publishes three controls and none of them is any of those. Settings is the same shape from the other direction: the design specifies 'Pair another device' and 'Unpair' and the build draws neither, which is DEF-001 arriving through a different instrument. Checks is missing 'Edit cases' and 'Run again'. examined=8 boards, in-design-not-build=20, in-build-not-design=16.",
+      "text": "PARTLY CLOSED 20 Aug 2026, and the part that is not closed is named rather than left as a silent gap. The vocabulary differential compared accessible names of AXButton/AXCheckBox/AXPopUpButton/AXTextField against their DOM counterparts board by board, with the shell and the fixture rows subtracted, and reported examined=8 boards, in-design-not-build=20, in-build-not-design=16. Cleanup's design specifies Inspect, Read first… and Remove on each row and the running board published none of them. FIXED: `CleanupBoardRow` now draws a trailing action column — `prototype.html:950` gives it `width:150px` — carrying `Inspect` and `Remove…`, wired by `CleanupBoard` to the selection and to the removal dialog. Removal opens the dialog rather than removing, because the one destructive act on this board is never one click. It is dimmed in place for a skill with `CheckCopy.skillRemoveDisabled` as both tooltip and accessibility hint, exactly as `CleanupInspector.actions` already does it — a reason only a mouse can reach is not a reason. The row's accessibility element moved from `children: .combine` to `.contain`, because combining flattens the buttons into the label and leaves nothing to press: the same failure this campaign already recorded for a time-limited undo inside a live region. NOT FIXED, and this is why the row is not closed: (a) `Read first…`, because the design keys it on `k.provenance` and `CleanupBoardModel.Candidate` carries no provenance field — drawing it unconditionally would offer a reading of something the model cannot say exists; (b) the reason column still truncates where the design shows the whole sentence; (c) Checks' `Edit cases` and `Run again`, a different board; (d) Settings' `Pair another device` and `Unpair`, which is DEF-001 reaching this instrument through the design rather than through a failing assertion. Guarded by `CleanupRowActionsTests`, four assertions, all armed 20 Aug 2026: blanking the Inspect label, switching `.contain` back to `.combine`, dropping the board's `inspect:` wiring, and performing a real removal to prove the write-guard predicate is live rather than vacuously true. Measured on the fixed build before it was reported: adding a 156pt action column to every row does **not** push this board into DEF-015's overflow. `AXSplitGroup` reads 980pt inside a 980pt window on Cleanup, unchanged, while Checks, Skills and Discover still read 988, 1044 and 1119 — the same three as before. Worth measuring rather than reasoning about: the row's fixed widths sum close enough to the pane that arithmetic predicted a 7pt overflow and the running app disagreed."
+    },
+    {
+      "id": "DEF-012",
+      "title": "three boards renamed a control and the design of record was not followed",
+      "status": "closed",
+      "detail": "Activity's 'Reset history' ships as 'Reset call history'; Skills' 'Add marketplace' ships as 'Manage marketplaces'. Neither is an absence, and both are recorded here rather than fixed, because which name is correct is the design's call and not the campaign's. Same class as DEF-007, where the board itself was renamed Evals to Checks in one direction only.",
+      "text": "Closed 20 Aug 2026, same decision as DEF-016. Two renames, both one-way, both now following the design of record. (1) Activity's and Cleanup's header action. `prototype.html:716` and `:930` both call it `Reset history…`; the build shipped `Reset call history…`, which is a DIFFERENT SLOT's wording — the Danger section of Settings at `:999`, which this app does not draw. `CleanupPresentation.resetLabel` is now `Reset history…` and both headers call it. (2) Skills' header action. `prototype.html:786` calls it `Add marketplace…`; the board shipped `Manage marketplaces…` while `MenuCommand.addMarketplace` had always said `Add marketplace…`, so the menu item and the button that open the SAME SHEET named it two different things. Stated once as `SkillPresentation.marketplacesAction` and read by all three call sites, so they cannot drift again — and the test asserts the literal is absent from both files rather than that the strings happen to match today. Armed: reverting the label reads `the header action is called Reset call history…`, and restoring either literal trips the drift assertion."
+    },
+    {
+      "id": "DEF-013",
+      "title": "the ios-glass lane's tab-navigation assertion does not reproduce",
+      "status": "closed",
+      "detail": "Three consecutive runs, same build, same booted iPhone 16 Pro, no product change between them: run 1 failed 3 of 5, runs 2 and 3 failed 4 of 5. The case that moved is `tapping 'X' did not produce a navigation bar titled 'X'` — green for all five tabs in run 1, red on the first tab in runs 2 and 3. The only edit between run 1 and run 2 was adding XCTAttachment captures to a different test, so the code under assertion did not change. A plausible mechanism is DEF-008: the tab button's accessibility identifier is the SF Symbol name while its label is the tab title, so `buttons[\"Discover\"]` resolves on one attribute or the other depending on which the tree publishes first. Not diagnosed further here — this campaign records the instrument's reliability rather than repairing another branch's test. Consequence: the lane's outcome-rung claims are recorded inconclusive, because green twice is the campaign's own bar and this lane did not clear it.\n\nCLOSED 20 Aug 2026. Diagnosed from run 3's exported App UI hierarchy: at the failure the navigation bar's identifier was 'Settings' and the Settings tab carried Selected, so the opening tap had never landed. Run 1 passed because a freshly installed app launches on Discover, making its first selectTab a no-op; runs 2 and 3 restored to Settings and tapped a tab bar that existed but was not yet hittable. Existence is not hittability. `selectTab` now waits on a `hittable == true` predicate and retries the tap up to three times against the tab button's own `isSelected`, which is the tab bar's answer to 'which tab am I on'. Green twice since, across all three affected tests. DEF-008 was not the mechanism."
+    },
+    {
+      "id": "DEF-014",
+      "title": "the fixture client's usageSummary ignored the scenario, so Cleanup had no empty state",
+      "status": "closed",
+      "detail": "Found by auditing the other reads once DEF-009 was fixed, not by a failing test — so no case watched it fail and it earns no arming credit. `usageSummary()` returned the recorded four-server summary for every scenario, and it is the only call CleanupBoardModel makes. Under `.empty` the Cleanup board therefore offered four never-used servers to cull on a router with nothing declared. Fixed the same way as DEF-009: `.empty` returns no servers and keeps `since` from the recording, because a router that has been counting since a moment and has nothing to report is a different statement from one with no window at all. Audit result for the record: of the seventeen methods, seven do not branch on the scenario and six of those are writes, where a read-scenario legitimately does not apply and guardFailure() already covers offline/unauthorized/error. The seventh is `server(named:)`, which answers about a server the caller has already named and has no meaningful empty form; no surface calls it."
+    },
+    {
+      "id": "DEF-015",
+      "title": "three Mac boards lay out wider than their window, so both edges clip in silence",
+      "status": "closed",
+      "detail": "**The recorded cause was wrong, and this replaces it.** It said the shutter fired during a board transition and named the fix as a settle in `capture-mac-glass.sh`. Measured 20 Aug 2026 from the accessibility dumps the same script already writes, one per board, beside the pictures:\n\n| board | window | AXSplitGroup | clipped |\n|---|---|---|---|\n| Servers, Activity, Cleanup, Inbox, Settings | 980pt | 980pt | — |\n| Checks | 980pt | 988pt | 8pt |\n| Skills | 980pt | 1044pt | 64pt |\n| Discover | 980pt | 1119pt | 139pt |\n\nEvery window in the run is the same 980x620 and every capture is the same 2096x1376, so no capture rect is wrong and no shutter is early. What differs is the shell **inside** the window: on three boards `NavigationSplitView` lays out wider than the window and centres the excess — the split group's origin moves left by exactly half the overflow in all three cases (180→148 for 64pt, 180→110.5 for 139pt, 180→176 for 8pt), which is what makes the clipping symmetrical. That is why the sidebar's section headers read `unning` and `brary` while the nav rows beside them are whole: the headers sit at a smaller leading inset and fall off first, and the header's trailing controls — `Manage marketplaces.`, `Review 2.3.0…` — fall off the right by the same amount.\n\nSo this is a product defect on three boards rather than a lane defect on two captures, and it is worse than recorded: Checks overflows too, by 8pt, which is small enough that nobody reading the picture saw it. The app declares no minimum window width anywhere, so nothing stops a user reaching this state — the campaign's 980pt window is an ordinary size, not a stress case.\n\nThe consequence that made it a defect stands unchanged and is now better founded: a clipped capture is admissible for what it shows and silent about what it cut, so a reader cannot tell an absent control from a cropped one. Both witness verdicts that depend on these captures say in their method field that the right-hand controls were read from the accessibility dump instead.\n\n`capture-mac-glass.sh` now prints `board width: examined=14 overflowing=3` every run, with a line naming each board and its excess. Reported rather than enforced, because three boards overflow today and a known red in `make all` either blocks unrelated work or gets its assertion softened.\n\nNOT FIXED, and the fix is a decision rather than a repair. Either the shell declares a minimum window width at least as wide as its widest board — one line, guarantees nothing ever clips, and costs users on small screens a window they cannot shrink — or the three boards compress, which keeps small screens usable and is per-board column work across all three. Discover at 1119pt is the one that decides how much that costs.\n\nPARTLY CLOSED 20 Aug 2026, on `ai/x4`, and the part that is not closed is named rather than left to look finished.\n\nThe mechanism turned out to be a chain rather than a board: each row's fixed columns report a hard minimum width, the detail pane sums them, `NavigationSplitView` reports that as its own minimum, and nothing ever reads it back — this app opts into no minimum window size and `windowResizability` defaults to `.automatic` — so the window proposes 980pt and SwiftUI **places** the oversized child with default centre alignment. The symmetry was the tell. Referred to the xAI lane (grok-4.6, xhigh) with the measured table; it named the propagation as the bug, called both listed fixes second-best, and its Q3 answer — placement plus `.automatic` resizability rather than any documented split-view overflow mode — is what the one-line fix then confirmed.\n\nFIXED: `ContentZone` carries `.frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)`. Measured on the rebuilt app through the same accessibility channel: all eight boards read `split=980` inside a `window=980`, overflowing 0 of 8, where the same probe on the previous build read 3 of 8. The sidebar is whole again — `Running`, `Library` and the footer readout all render in full where they were `unning` and `brary`. The leading alignment is the deliberate half: it decides who loses when the content still does not fit, and the answer is never the navigation.\n\nSTILL OPEN: the boards' content is still wider than the detail pane on those three, so the trailing chrome is cut at the pane's right edge — Discover's search field reads `Search the regis` and a body sentence loses its last word. That is one-edge clipping where it was two, and it is the conventional behaviour of a too-narrow window rather than a split view eating its own sidebar, but it is still content going missing without saying so. Closing it needs the three boards' columns to flex, which is a design decision about what Discover looks like compressed and is the owner's rather than mine.\n\nGUARDED two ways, and the two see different things. `capture-mac-glass.sh` now **fails** on any board whose split group exceeds its window, and refuses to pass on `examined=0`; all three arms were exercised on 20 Aug 2026 — red at 3 of 14, green at 0 of 14, and exit 1 with no dumps at all. `ShellDetailWidthTests` asserts the modifier in `ShellWindow`'s detail column so a revert is red in `make test` rather than on the next glass run. That test's own first version was a detector defect found by arming: it searched the raw source slice, and the modifier it looks for is named in the doc comment three lines above it, so deleting the modifier left the assertion green. Comments are stripped before matching now, and both halves were re-armed separately.\n\nCLOSED 20 Aug 2026, and the second half corrected the first half's diagnosis of *which* content was too wide.\n\nThe brief written from the split-group numbers said three boards' table columns needed to flex. A pane-level probe — every leaf's right edge against the window's, read from the same dumps — says otherwise, and it says so only after the probe itself was fixed: the first version read the frame's **y** where it meant **x** and reported clipping on seven of eight boards, which the pixels flatly denied. The Settings capture is whole, and looking at it is what caught the field offset. A frame's last five fields are x, y, w, h and a flag; the split-group gate only ever compared widths, which is why it was right while the leaf probe was wrong.\n\nCorrected, the drivers are:\n\n- **Discover**: content wants 823pt against a 684pt pane. Not the table — cutting `nameColumn` from 216pt to 96pt moved the number by **zero**. It is the controls row: a `.fixedSize()` segmented picker measuring 567pt beside a search field pinned at 240pt.\n- **Skills**: 748pt against 684pt, same shape — a 516pt fixed picker and a 216pt pinned field.\n- **Checks**: not a content defect at all. Its real content ends at 1152pt inside a 1160pt pane; the only thing past the edge is `KeyClaimProbe`, the `#if DEBUG` test surface A21 names, overhanging by 4pt. It is absent from any build a user runs, and it is what the whole 8pt split-group excess on this board was.\n\nFIXED by giving each board a `searchMinWidth` of four units and declaring the field `minWidth:idealWidth:maxWidth:` rather than `width:`. The picker cannot give a point back — that is what `.fixedSize()` means, and it is right, because a segmented control has nowhere to put a truncated label — so the field is the only control in the row that can. It renders at its full width wherever there is room and shows about eight characters at the narrowest window this app is used at, which is less than anyone wants and more than nothing: it still takes focus, accepts a query and submits.\n\nMeasured after: every board reads `split=980` in a `window=980`, and the only leaf past the pane edge on any of the eight is a 1pt scrollbar — plus the Debug key probe's 4pt on Checks. Before, Discover's rows and footnote sat at 1283pt against an edge of 1160.\n\nGUARDED by a second test in `ShellDetailWidthTests`, armed 20 Aug 2026: restoring `.frame(width: DiscoverBoardMetrics.searchWidth)` reddens all three of its assertions. It names the two boards rather than looping over every file, because those are the two the measurement covers — a third board growing this problem is a new measurement, not a case this test silently already made."
+    },
+    {
+      "id": "DEF-016",
+      "title": "Activity's 'Reset history…' is specified and never drawn",
+      "status": "closed",
+      "detail": "prototype.html:716 puts 'Reset history…' in the Activity header's right slot, outside the rows conditional, so the design specifies it in both the empty and the populated state. The built board draws no control there at all. Not an honesty guardrail: the router can reset its call history, and the Cleanup board carries 'Reset call history', so the capability exists and only this entry point is missing. Found by the witness pass on SURF-003 and independently by the control differential, which reports designControls=1 buildControls=0 for this board. Distinct from DEF-012, which records the rename of the same action on the board that does carry it.",
+      "text": "Closed 20 Aug 2026, on the owner's decision that `design/mocks/prototype.html` remains the design of record for the Mac console. `prototype.html:716` puts `Reset history…` in the Activity header's right slot, OUTSIDE the rows conditional, so the design specifies it in the empty state as much as the populated one — which is where somebody actually reaches for it. The built board drew no control there at all, and no honesty guardrail explained the absence: the router can reset its call history and the Cleanup board already carries the same act, so the capability existed and only this entry point was missing. Found by the witness pass on SURF-003 and independently by the control differential (designControls=1 buildControls=0 for this board). FIXED by giving `ActivityModel` a `sheet` and a `resetHistory()` against the same `POST /usage/reset` the Cleanup board uses, and `ActivityBoard.header` a trailing `Button(CleanupPresentation.resetLabel)` disabled until `records` exists — offering it before the router has answered would let a click discard a history nobody has seen. The dialog is `ActivityResetHistorySheet`, whose every string is `CleanupPresentation`'s by call and never by copy, because two boards offering one irreversible act must not describe it two ways (DESIGN.md §6). It passes `window: nil`, which is a fact rather than a gap: Cleanup judges over a span and Activity holds a rolling feed, so the sentence reads \"recorded so far\". GUARDED by `ActivityResetEntryPointTests`, four assertions, all armed 20 Aug 2026. The header assertion was watched to fail for real before the fix landed — an earlier script aborted before writing the header change, and the test reported `the header draws no reset action` against the tree that had it missing. Removing `_ = try await client.resetUsage()` was rejected as an arm because it fails to compile (typed throws), which is a red for the wrong reason; duplicating the call instead reads `confirming the dialog sent 2 resets`."
+    },
+    {
+      "id": "DEF-017",
+      "title": "the ios-glass lane built unsigned, and an unsigned build cannot read the keychain",
+      "status": "closed",
+      "detail": "The lane built with CODE_SIGNING_ALLOWED=NO, so the app carried no keychain access group and SecItemCopyMatching returned -34018 errSecMissingEntitlement rather than errSecItemNotFound. PairingRecordStore maps the two apart correctly, so the phone's Settings surface rendered \"Can't read this phone's pairing\" on a device that had simply never been paired. That was recorded as DEF-X2-b, a suspected product defect. It is a lane defect: built with CODE_SIGN_IDENTITY=- the same assertion passes and the test proceeds 54 lines further. The Makefile now carries a SIGNED variable used by test-ios-glass alone, with the measurement in a comment beside it. The general lesson is the one the campaign keeps relearning — a harness flag can manufacture a finding that reads exactly like the product's own."
+    },
+    {
+      "id": "DEF-018",
+      "title": "a red glass run exported no captures, and the naming script policed the wrong population",
+      "status": "closed",
+      "detail": "Two faults in the same step, both found by running the lane red. First, `set -e` killed the recipe at the failing xcodebuild, so the export never ran — the run whose pictures are worth most produced none, and diagnosing a failure meant re-running by hand against a bundle path scraped out of the log. The target now holds the status while the export completes and exits with it afterwards. Second, once the export did run, name-glass-attachments.py treated XCTest's own diagnostics as evidence: a red run attaches a Debug description per failed query, two of those were byte-identical because they describe the same query twice, and its shared-image check stopped the run half-renamed. The check is right and its population was wrong. PhoneGlassTests now prefixes every attachment it takes with GLASS-CAPTURE:, so the split is declared by the producer rather than inferred from filename shape, diagnostics are kept under diagnostics/, and nothing is renamed until every check has passed."
+    },
+    {
+      "id": "DEF-019",
+      "title": "the phone rebuilt two owned objects inside body, resetting the pairing flow",
+      "status": "closed",
+      "detail": "Two instances of one mistake, found together. **The camera adapter** was constructed in `MCPRouterIOSApp.body`; `LiveCameraAuthorization` is a fieldless struct so a fresh one per render cost nothing and hid it, and the moment the lane asked for `FixtureCameraAuthorization` — an actor — the identity changed under the flow on every body pass. Stored once as a `let` beside `storage`, which was already stored for the same reason.\n\n**The pairing model** was the real defect. `PhoneSettingsScreen` built `PairingFlowModel(pairing:camera:store:)` inline inside its `navigationDestination` closure, and `PairingFlowView` takes it as `@Bindable` — which observes an object someone else owns rather than owning one. So every re-render of the Settings screen replaced the model, and `step`'s initial value is `.scan`, so each replacement discarded whatever `start()` had decided and put the scanner back. Now held in `@State` on the screen and created in `onPair`, before `isPairing` is set.\n\nThis is a product defect and not a harness artefact: on a phone whose camera has not been asked for yet, the pre-prompt that explains what the camera is for can be replaced by the scanner it was meant to precede, and that scanner has no permission to show anything. It was invisible for as long as it existed because the simulator reports camera access as `.authorized`, which makes `start()` set `.scan` — the same value the reset produced. Two wrongs agreeing is why no host test could see it: the fault is in view composition, and only the on-glass lane exercises that. Left open as a standing note: `Step`'s default of `.scan` is a second hazard of the same shape, since a slow `current()` shows the scanner and then swaps. Fixing that needs an undecided case and is a design call rather than a repair."
+    },
+    {
+      "id": "DEF-020",
+      "title": "the ios-glass lane shared a simulator, so another project's app received its taps",
+      "status": "closed",
+      "detail": "The device picker listed every available iPhone and sorted `state != 'Booted'` first — it *preferred* a device somebody else had already booted. On a machine driving simulators for more than one project, XCUITest's taps then arrive at whichever app is frontmost. Measured 20 Aug 2026: five runs failed on a different tab each time, and a screenshot of the 'simulator' showed another project's VPN app mid-onboarding rather than MCP Router. Every one of those failures read as a product defect, and one of them was chased through three hypotheses — hittability, `isSelected` publish timing, machine load — before anyone photographed the device itself. The rule that would have caught it in one step is the campaign's own: prove it ran before reading what it shows, and a screenshot is how you prove it. The lane now creates and owns `MCPRouter-Glass`, and the tab assertion names the app's own XCUIApplication.state in its failure message so a stolen foreground says so.\n\nTwo runs were also lost to a device that reported Booted while still doing its post-erase first boot; the target now waits on bootstatus a second time after any boot it issues."
+    },
+    {
+      "id": "DEF-021",
+      "title": "the typed pairing path had no way to type",
+      "status": "closed",
+      "detail": "`TypedEntryView` rendered eight styled boxes, a helper line and a submit button, and no input affordance of any kind — no TextField, no keypad, no focus state. `PairingCodeEntry` had carried `append(contentsOf:)` and `deleteBackward()` since it was written and nothing in the UI called either, so `.disabled(!entry.isComplete)` on the submit button could never become false. The typed path is the documented fallback for every camera state — the source cites A16 — and for `.restricted`, where iOS Settings is a dead end the user may not be able to clear, it is the *primary* recovery. So the one surface a user reaches by deliberately choosing it was the one that could not be completed.\n\nFixed with a real `TextField` behind the boxes: it carries the system keyboard, hardware keys on iPad, paste and dictation, and it is what `app.textFields` resolves to on glass. Deliberately NOT `.textContentType(.oneTimeCode)` — that AutoFill reads codes out of Messages and Mail, and this code is read off the Mac's own screen, so it would offer suggestions that are always wrong. The boxes became decoration (`accessibilityHidden`) and the field is the single element labelled 'Pairing code', because `children: .ignore` on a display is right and on an editor strips the trait VoiceOver and XCUITest need. Approach checked against an out-of-family lane (grok-4.6, xhigh) before implementing; it named the same shape and the same reason for avoiding `.oneTimeCode`.\n\nGuarded by `PhoneSurfaceTests.testTypedEntryPublishesAFieldToTypeInto`, armed 20 Aug 2026."
+    },
+    {
+      "id": "DEF-022",
+      "title": "the typed-entry surface never drew its own headline",
+      "status": "closed",
+      "detail": "`PairingCopy.entry(.typedEntryReady)` has carried `headline: \"Enter the code\"` since it was written, and `TypedEntryView` drew only `.body`. Every other pairing surface renders its headline. Nothing failed: a headline defined and not drawn leaves no selector, no assertion and no crash — it is the class of defect only a rendered hierarchy can see, which is why the guard is `PhoneSurfaceTests.testEveryPairingPrePromptRendersItsHeadline` over the four pre-prompt states rather than a check on the one view. Armed 20 Aug 2026."
+    },
+    {
+      "id": "DEF-023",
+      "title": "the iOS pairing surface's route did not match the title the app publishes",
+      "status": "closed",
+      "detail": "The registry recorded app://ios/pairing; the running app's navigation bar identifier is 'Pair Mac'. Found by the capture tie pass once the ios-glass lane began recording each capture's target as a readback rather than as a label — which is the whole point of recording a readback. Route corrected to app://ios/pair-mac. Same class as DEF-007, where the Mac's Evals board shipped as Checks and only the registry still said Evals."
+    },
+    {
+      "id": "DEF-024",
+      "title": "every pairing action drew at label width where the design draws it at content width",
+      "status": "closed",
+      "detail": "`i1-phone-pairing.html` styles every pairing action `.cta`, which is `width:100%`. The build declared that with `.frame(maxWidth: .infinity)` on the `Button` — outside the style — so the layout frame stretched to full width while `PhoneProminentButtonStyle`/`PhoneStandardButtonStyle` still drew their background around a hugging label. Eleven call sites across the pairing flow, the connection banner and the triage commit bar. This is the same mistake `PhoneButtonStyle.swift`'s own doc comment already records for height, arriving through width: a geometry declaration outside the style grows the container and not the drawn control. No assertion could see it — the button's frame was already full width — so it was found by looking at the on-glass camera pre-prompt and typed-entry captures, where three centred pills sit in a full-width column. Fixed by moving the declaration inside both styles as `fillsWidth`. Guarded by `PhoneSurfaceTests.testAFullWidthPhoneButtonPaintsAFullWidthBand`, whose oracle is the painted band rather than any frame; armed 20 Aug 2026, where the pre-fix style painted 148pt inside a 393pt container."
+    },
+    {
+      "id": "DEF-025",
+      "title": "the paired-Mac settings action sits inside its notice card where the design draws it below",
+      "status": "open",
+      "detail": "`i1-phone-pairing.html` §L draws the recovery action as a `<button class=\"cta\">` sibling *after* the `wants` card, on all five Settings states that carry one. `PairedMacSettingsView` renders it as the last child inside `PhoneMessageBlock`'s own `VStack`, so the control shares the card's fill and inset. Width is corrected under DEF-024; placement is not, because moving it out changes the block's contract for all nine states in DESIGN.md §5 and is a design decision rather than a defect fix. Recorded against SURF-018."
+    },
+    {
+      "id": "DEF-026",
+      "title": "the never-paired settings surface stated the narrowing twice",
+      "status": "closed",
+      "detail": "`PairingCopy.settingsNeverPaired` carries `carriesNarrowing: true`, so `PhoneMessageBlock` rendered \"This app queues items for review on your Mac. It cannot install, update or remove anything…\" inside its block — and `PairedMacSettingsView` then rendered an About section that states the same sentence unconditionally. Both appear on the one surface a first-time user meets first, which reads as the app repeating itself rather than as emphasis. i1-phone-pairing.html states it once: §B puts it under the button with no About header, §I puts it under About. Fixed by suppressing the About section for a state whose own block carries it, read off the copy rather than off a case list. `PhoneSurfaceTests.testNarrowingIsRenderedWherePermissionIsDecided` now counts rather than existence-checks; armed 20 Aug 2026 against the pre-fix form, which read 2."
+    },
+    {
+      "id": "DEF-027",
+      "title": "the camera pre-prompt was toned neutral where the design tones it attention",
+      "status": "closed",
+      "detail": "i1-phone-pairing.html draws the pre-prompt in `.wants`, whose fill, border and headline are `--attnWash`/`--attnLine`/`--attn`, and §C annotates the reason: a caution before an irreversible grant is neither a failure nor decoration. `CameraPermissionView` passed `tone: .neutral` for `.notDetermined`, so the card rendered in the neutral grey the build uses for informational blocks. `PhoneMessageBlock.Tone.caution` already carried that exact rationale in its own doc comment and this surface was the one place it was earned and unused. Found by comparing the on-glass camera pre-prompt capture against a unit-scoped mock reference; the whole-page reference it replaced did not show this unit at all."
+    },
+    {
+      "id": "DEF-028",
+      "title": "the never-paired settings empty state drops the design's illustration and centring",
+      "status": "open",
+      "detail": "i1-phone-pairing.html §B draws the never-paired state as `.pempty` — centred, with a 34px Mac glyph above the headline. `PairedMacSettingsView` renders it through `PhoneMessageBlock`, which is left-aligned and draws no glyph. The copy and the action are both correct and the narrowing is now stated once (DEF-026); what is missing is the illustration and the centring that make it read as an empty state rather than as a notice. Recorded against SURF-018 rather than fixed, because the same block draws eight other Settings states that the design does not centre."
+    },
+    {
+      "id": "DEF-029",
+      "title": "the iOS unit lane read an empty accessibility tree because the engine was off",
+      "status": "closed",
+      "text": "CAUSE FOUND AND FIXED 20 Aug 2026; this record replaces one that said the cause was unknown and named machine saturation as a candidate. The candidate was wrong. The process-wide accessibility engine was OFF, so SwiftUI's `_UIHostingView` built its accessibility container and vended an EMPTY element array — `accessibilityElements == []`, not nil — and every label assertion in the target read empty and reported its own honest verdict, `nothing was measured, so this proved nothing`. That is indistinguishable, from inside the suite, from a product that renders no copy. A probe settled it: calling `_AXSSetAutomationEnabled(true)` took the same hosted view's published element count from 0 to 1. THE ENGINE HAD BEEN ON BY ACCIDENT — something else on this machine had switched it on — which is why this suite was green for months while depending on ambient host state no file in this repo controls, and why it went red with no change to the branch. THREE CHANGES ARE THE FIX, and the third was found only because the first two were not enough. (1) `PhoneSurfaceTests` resolves `_AXSSetAutomationEnabled` out of `/usr/lib/libAccessibility.dylib` (falling back to `AccessibilityUtilities.framework`) via dlopen/dlsym and calls it once per process, before the first `host()`. (2) The walker reads `accessibilityElements` first, because SwiftUI publishes through the array and leaves `accessibilityElementCount()` at 0 — measured on iOS 26.5, where one hosted `Text` reported `accessibilityElements.count == 1` and `accessibilityElementCount() == 0` in the same breath, so reading only the indexed API walked past every element SwiftUI had. Those two took `make test-ios` from 52 failures to 0 — and then `make all`, run immediately afterwards on the same device, came back with 39. (3) THE STATE IS DEVICE-SCOPED AND THE CALL LANDS ON THE NEXT PROCESS, NOT THIS ONE. On a device left in the disabled state, the run that re-enables it fails a DETERMINISTIC set of 15 test cases — identical set, measured three times, verified with `comm` in both directions — and the run after it, with no change to anything, is clean. The 15 are exactly the cases that host a `ScrollView`; the tests that pass alongside them are geometry, counts and negative assertions, all of which an empty tree satisfies, so the green half of that run was vacuous too. `test-ios` therefore runs a throwaway single-test process before the graded one and discards its exit code. MEASURED END TO END: three consecutive runs with the call mutated to `(false)` drive `MCPRouter-Unit` into the disabled state (54 failures each, the whole suite red, which is correct for a dead engine); the very next `make test-ios`, with the warm-up in the recipe, is 36 tests and 0 failures in 1.4s. THE INSTRUMENT CHECK IS ITSELF INSTRUMENTED. `testTheAccessibilityEngineCanBeSwitchedOn` blocks on a probe that hosts `ScrollView { Text }` and reads it back through the same walk every other assertion uses, with a 20s deadline. Two narrower probes were built first and both were wrong in opposite directions, which is why the shape is stated rather than assumed: a bare `Text` read either way reports the engine live at t=0 of a run in which 15 cases went on to read empty, and a `ScrollView` read through the accessibility-container path alone reports the engine dead on a device where all 35 other tests pass. A probe that answers differently from the thing it stands for answers a different question. On a dead engine the deadline fires and the case fails with `no hosted Text published a label within 20s`, measured. ARMED THREE WAYS. (a) Renaming the symbol to `_AXSSetAutomationEnabledXXX` on a device whose engine is already live fails exactly one test — the instrument check — and leaves the other 35 green, which is correct for that arm and proves only the resolution assertion. (b) With the call mutated to `(false)`, the first run on `MCPRouter-Arm`, a device created for the arm, recorded 53 failures across 36 tests: that is what proves the other 35 depend on the engine. (c) The first run ever taken on `MCPRouter-Arm2`, a device whose engine had never been live, is 36 tests and 0 failures, so a fresh device needs no warm-up and only an explicitly disabled one does. Both arm devices were deleted afterwards; `make test-ios IOS_UNIT_DEVICE=<name>` recreates either. TWO HARDENING CHANGES from the investigation are kept and neither is the fix: `test-ios` creates and owns `MCPRouter-Unit` instead of sorting booted devices first — the exact picker DEF-020 condemned, still live in this recipe — and the walk retains every element it visits so `ObjectIdentifier` is unique among live objects as its use assumes. A third, waiting on a product surface's tree over a two-second deadline, was written, measured to change nothing, and removed: it cost 130 seconds a run and bought no measurement. The wait that IS kept differs from it in the one way that matters — it waits on a probe whose answer is known, so a timeout is a fact about the instrument rather than about the view. THE DEPENDENCY IS ON A PRIVATE SYMBOL, in the test target only, never linked into the app; the instrument check fails loudly if a future runtime renames it, so this target goes red rather than quietly empty. Carried as CASE-0126."
+    },
+    {
+      "id": "DEF-030",
+      "req": "REQ-014",
+      "surface": "SURF-017",
+      "title": "four async package tests asserted on a deadline the machine could miss",
+      "status": "closed",
+      "source": "make test, 20 Aug 2026",
+      "text": "Measured 20 Aug 2026. `make test` failed with 4 issues at a one-minute load average of ~700 and passed all 1473 tests in 179 suites at load 46, on the same source, minutes apart. The four were `ActivityReconnectTests` (`a reconnect over a feed that stays live releases its guard`), `DiscoverBoardTests` (`client.searchQueries.count` reading 1 where the baseline said 2), and `SettingsAndMenuBarTests` twice (`model.trackerState` still nil). An earlier run at the same load failed only the first, so the set was not stable either — which is what separated this from a product defect. A suite that reports a defect the product does not have is the failure this campaign has already paid for once, in DEF-029, where a dead instrument read as a dead product for ten consecutive runs.\n\nCLOSED by making each wait a condition rather than a deadline, at three sites:\n\n1. `ShellTestSupport.waitUntil` — ceiling 5s → 30s. It returns the moment the condition holds, so a passing test pays nothing for the larger bound; the bound exists only so a condition that never arrives fails instead of hanging. Five seconds was inside the scheduling noise of a contended host, which is the whole finding.\n2. `ActivityReconnectTests.completes` — 2s → 30s, same argument. The defect it bounds is a call that *never* returns, so it exhausts any budget and a generous one costs only the time a genuine hang takes to report.\n3. `DiscoverBoardTests.searchIsDebounced` — a fixed sleep replaced by two waits, because the claim has two halves and one sleep proved neither on a slow host. First a bounded wait for the debounce to fire at all; then a full debounce window of quiet with the count still at one, which is what rules out one request per keystroke. The second is a real quiet period rather than a deadline, so load cannot shorten it into a false pass — the wait on its own is satisfied by the *first* request and would pass against exactly the defect this test exists to catch.\n\nArmed 20 Aug 2026, all three, each watched to fail with its own message: `waitUntil` at `.seconds(0)` reads `no poll ran at all`, `the poll died with the scene that started it` and `five keystrokes issued 0 requests`; `completes` at `.milliseconds(1)` reads `reconnect did not return while the feed stayed live`; and a `queryChanged()` inserted inside the quiet period reads `a later request arrived: five keystrokes issued 2 requests in total`.\n\nThe original trigger is not reproducible on demand from here — the load came from another project's Rust test binary, two node processes and `lsdiagnose` — so the fix is proven by the arms rather than by reproducing the contention."
+    },
+    {
+      "id": "DEF-031",
+      "title": "the Checks board is cross-subject where the design's is per-subject, so two of its actions have nowhere to go",
+      "surface": "SURF-006",
+      "severity": "medium",
+      "status": "open",
+      "text": "Found 20 Aug 2026 by the vocabulary differential, which reported `Edit cases…` and `Run again` in-design-not-build on this board, and recorded here rather than fixed because bolting those two buttons on would be the wrong repair. The design's pane at `prototype.html:885-891` is **one subject's** eval suite: it heads `pr-summariser · 8 cases`, subtitles `Ran 2 minutes ago against 0.4.1 in a scratch checkout`, and lists eight named cases with a verdict each. The built board is **cross-subject**: every server and skill, one row apiece, a reachability verdict per row, a filter, and `CheckCopy.runAllLabel` = `Re-check all…`. Those are two different surfaces wearing one route id, and the actions follow the framing — `Run again` re-runs the one suite on screen, which is what `Re-check all…` already does across all of them, so drawing both would be two names for one act (the failure DEF-012 records). `Edit cases…` opens an editor for a collection the app does not model: there is no eval case anywhere in `EvalsBoardModel`, so the button would offer a reading of something that does not exist — the same reason `Read first…` is a stated gap in DEF-011 rather than a drawn control. The divergence itself is the finding, and it is a scope question rather than a defect fix: the design specifies a per-subject eval board with named cases and an editor, and the app ships a cross-subject reachability board. Which one this product wants is the owner's call, and it is written up as a brief rather than decided here. Not guarded by an assertion, deliberately: there is nothing to assert until that call is made, and a test pinning today's cross-subject board would make the divergence harder to close rather than easier."
+    },
+    {
+      "id": "DEF-032",
+      "title": "the whole-repo gate discovered a missing environment forty minutes in, twice",
+      "surface": "SURF-017",
+      "severity": "low",
+      "status": "closed",
+      "text": "Measured 20 Aug 2026 on two different worktrees the same afternoon. A fresh `git worktree` has no `node_modules` and no `dist`; `parity-selftest` is the last target `make all` runs, and its own environment check therefore fires only after lint, both builds, 1483 package tests, the iOS lane and the on-glass lane have all passed. Both runs came back `exit=2` on a tree where nothing was wrong with the code — roughly forty minutes each, twice.\n\nIt is a lane defect rather than a product one, and the shape is familiar: the gate was honest (it said `the MCP SDK is not installed. Run npm install.` rather than skipping) and it was honest at the wrong moment. A check that can only fail on the environment belongs where the environment is checked.\n\nCLOSED by moving both checks into the `tools` target, which `all` runs first: `node_modules` must exist, and `dist/index.js` must exist because without it `parity-lane-selftest` SKIPS, and a skip is not a pass. Each names the command that fixes it.\n\nArmed 20 Aug 2026 in a bare directory holding nothing but the Makefile: with no `node_modules` it exits 1 naming `npm install && npm run build`, and with `node_modules` present but no `dist` it exits 1 naming `npm run build` and saying why a skip is not a pass. Costs a millisecond on a tree that has both."
+    }
+  ]
+}

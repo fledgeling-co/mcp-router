@@ -1,0 +1,177 @@
+[
+  {
+    "subject": "SURF-001",
+    "verdict": "pass",
+    "reference": "evidence/shots/mock/SURF-001.png",
+    "capture": "evidence/shots/SURF-001.shell.png",
+    "method": "structural \u2014 the two halves are not framing-comparable (prescan: 1.637x, not a DPR step), so this compares chrome and source-list structure, not pixels",
+    "reason": "Both draw the same source list in the same order under the same two sentence-case headers, Running and Library, with an inset-rounded accent selection and right-aligned count badges. The build additionally paints a health readout at the foot of the sidebar that the design does not specify; it states observed numbers and is not a defect."
+  },
+  {
+    "subject": "SURF-007",
+    "verdict": "fail",
+    "reference": "evidence/shots/mock/SURF-007.png",
+    "capture": "evidence/shots/SURF-007.build.png",
+    "method": "structural",
+    "reason": "DEF-011, confirmed by looking rather than by the accessibility tree alone. Every row in the design carries trailing Inspect and Remove controls, and the flagged row carries Read first\u2026; the built board's rows carry no trailing controls at all. The build also truncates the column that exists to explain \u2014 'The router has recorded no calls to it ove\u2026' \u2014 where the design shows the whole reason. Two differences run the other way and are not defects: the build adds a staleness banner and an observed-window bar saying history covers only 6d, and it adds filter chips and a filter field. Both are the build being more honest than its design, which is this product's stated posture."
+  },
+  {
+    "subject": "SURF-011",
+    "verdict": "fail",
+    "reference": "evidence/shots/mock/SURF-011.png",
+    "capture": "evidence/shots/SURF-011.build.png",
+    "method": "structural",
+    "reason": "The design specifies 'Pair another device' and 'Unpair' on this surface and the build draws neither \u2014 DEF-001 reaching the campaign through the design rather than through a failing assertion, which is the one thing this phase can see that no other phase can. Settings is a board in the sidebar on both sides, so the separate-window direction in PRD \u00a79 is not yet built and is correctly absent here."
+  },
+  {
+    "subject": "SURF-012",
+    "verdict": "pass",
+    "reference": "evidence/shots/mock/SURF-012.png",
+    "capture": "evidence/shots/ios/SURF-012.ios.discover-populated.png",
+    "method": "structural \u2014 the reference is i2-phone-discover.html's own top-of-page board, which does show this surface, so it is left as it was",
+    "reason": "The built Discover renders the search field, the chosen-window control, and the Most used and Recently changed bands with the provenance sentence under each \u2014 including the sentence saying the official registry publishes no popularity figure, which is the honesty guardrail this surface exists to carry. Five tabs, labelled with their names."
+  },
+  {
+    "subject": "SURF-013",
+    "verdict": "pass",
+    "reference": "evidence/shots/mock/SURF-013.png",
+    "capture": "evidence/shots/ios/SURF-013.ios.triage.png",
+    "method": "structural, against a unit-scoped reference \u2014 i3-phone-triage.html \u00a7A 'Default \u2014 nothing selected', isolated at capture time. The reference this replaces was the top 720px of the page, which showed the board's prose and not this unit.",
+    "reason": "Triage is a checklist with tickboxes and an Undecided / Queued / Not for me segmented control, not a swipe deck \u2014 the shape the design specifies and the one the PRD records as deliberately chosen over a deck. The hint line above the list is the design's own, verbatim. Each row states what will not happen on the Mac, which is the no-install guarantee rendered rather than asserted, and the Undecided segment carries a count of a set the user's own decisions produced.",
+    "mockFindings": [
+      "The design puts no 'Select all' control on this surface; the build draws one in the navigation bar. It acts on the visible bucket and is not a fabricated affordance, but it is the build ahead of its design."
+    ],
+    "buildFindings": []
+  },
+  {
+    "subject": "SURF-002",
+    "verdict": "pass",
+    "reference": "evidence/shots/mock/SURF-002.png",
+    "capture": "evidence/shots/SURF-002.build.png",
+    "method": "structural and lexical only \u2014 prescan reports the two halves are not framing-comparable (scaleRatio 1.637, not a DPR step: 2096x1376 window capture against a 1280x720 dpr-1 browser viewport), so no pixel comparison between them is valid",
+    "reason": "Everything the design specifies as chrome is drawn and in the same order: the title, the count subtitle, the four-segment filter with per-segment counts, 'Add server\u2026' in the header's right slot, the five columns server/transport/tools/calls/last used, the per-row health tile, and the secondary state line under each name. The build additionally draws a search field and a table footer the design does not.",
+    "mockFindings": [
+      "The design draws a per-row evaluation pill ('\u2713 passed' / 'not evaluated', prototype.html:770) on every server row. The build draws none, and it is right not to: no model-graded evaluation exists in this product, and DESIGN.md:292 forbids displaying a number the router does not observe. What the router does observe moved to the Checks board. The design of record is stale here, not the build.",
+      "The design's per-row 'Reset' and 'Review\u2026' actions are absent from the build because no fixture server is in the tripped or held state that produces them \u2014 a data-shape difference between the two halves, not a missing control. The build's 'Reopen the page' is the same slot for the state its fixture is in."
+    ],
+    "buildFindings": []
+  },
+  {
+    "subject": "SURF-003",
+    "verdict": "fail",
+    "reference": "evidence/shots/mock/SURF-003.png",
+    "capture": "evidence/shots/SURF-003.build.png",
+    "method": "structural and lexical only \u2014 prescan reports the two halves are not framing-comparable (scaleRatio 1.637, not a DPR step: 2096x1376 window capture against a 1280x720 dpr-1 browser viewport), so no pixel comparison between them is valid; the reference landed on Activity's empty state while the build is populated, so the row-level comparison is against prototype.html:713-731 rather than against the reference picture",
+    "reason": "The design specifies a 'Reset history\u2026' button in the header's right slot (prototype.html:716), outside the rows conditional and so present in both the empty and populated states. The build draws no such control anywhere on the board, and no honesty guardrail explains its absence \u2014 resetting the call history is an action the router can perform, and the Cleanup board carries a 'Reset call history' control, so the capability exists and only this entry point is missing. Independently confirmed by the control differential, which reports designControls=1 buildControls=0 for this board with 'reset history' as the single unmatched term.",
+    "mockFindings": [],
+    "buildFindings": [
+      "'Reset history\u2026' specified in the Activity header and never drawn. Registered as DEF-016.",
+      "The build adds a 'session' column and Session/Project filter menus the design does not specify, and states its subtitle as 'Showing N calls \u00b7 since T \u00b7 live' where the design says 'N calls recorded \u00b7 M servers running now'. Additions and a wording drift, not omissions."
+    ]
+  },
+  {
+    "subject": "SURF-004",
+    "verdict": "pass",
+    "reference": "evidence/shots/mock/SURF-004.png",
+    "capture": "evidence/shots/SURF-004.build.png",
+    "method": "structural and lexical only \u2014 prescan reports the two halves are not framing-comparable (scaleRatio 1.637, not a DPR step: 2096x1376 window capture against a 1280x720 dpr-1 browser viewport), so no pixel comparison between them is valid; the build capture is clipped at both edges (DEF-015), so the right-hand controls were read from evidence/ax/SURF-004.window.txt rather than from the picture",
+    "reason": "The skill list, its per-row identity (name, source marketplace, the four client badges) and the held-review affordance are all present, and the 'Review 2.3.0\u2026' row action appears in both halves.",
+    "mockFindings": [
+      "The design specifies 'runs', 'last run' and 'eval' columns carrying concrete figures \u2014 14 runs, 2d, 12/12. The build draws none of the three and says why on the surface: 'A skill is loaded into an agent's context by the client and never reaches the router, so the router does not see it run' (SkillPresentation.swift:63). That is DESIGN.md:292 applied correctly. The design's 'Never run' filter segment goes with them, since it counted a number nothing observes."
+    ],
+    "buildFindings": [
+      "'Add marketplace\u2026' in the design is 'Manage marketplaces\u2026' in the build. A rename that widens the control's job from adding to managing; recorded under DEF-012 with the other renames rather than treated as a missing control."
+    ]
+  },
+  {
+    "subject": "SURF-005",
+    "verdict": "pass",
+    "reference": "evidence/shots/mock/SURF-005.png",
+    "capture": "evidence/shots/SURF-005.build.png",
+    "method": "structural and lexical only \u2014 prescan reports the two halves are not framing-comparable (scaleRatio 1.637, not a DPR step: 2096x1376 window capture against a 1280x720 dpr-1 browser viewport), so no pixel comparison between them is valid; the build capture is clipped at both edges (DEF-015), so the right-hand controls were read from evidence/ax/SURF-005.window.txt rather than from the picture",
+    "reason": "Discover's job \u2014 search two registries and show what came back, with each entry's source marked \u2014 is drawn, with a per-entry source pair, a measured figure, a date, and a truncation note stating that unshown results are past the search's limit rather than ranked lower.",
+    "mockFindings": [
+      "The design specifies a 'Trending \u2014 by install velocity over 7d' band with signed deltas (+218%, +64%, -8%) and a 24h/7d/30d window control. The build draws neither and states why: 'No trend or velocity figure is shown. Measuring one needs a history of these indexes over time, which the router does not keep yet.' Neither index publishes a signed delta, so a derived one would look like a measurement of the world. The window control has nothing left to scope once the trend is gone.",
+      "The design's 'eval' column and its 6/6, 8/8, 11/11 figures fall to the same rule as SURF-004: no model-graded evaluation exists in this product."
+    ],
+    "buildFindings": []
+  },
+  {
+    "subject": "SURF-006",
+    "verdict": "inconclusive",
+    "reference": "evidence/shots/mock/SURF-006.png",
+    "capture": "evidence/shots/SURF-006.build.png",
+    "method": "structural and lexical only \u2014 prescan reports the two halves are not framing-comparable (scaleRatio 1.637, not a DPR step: 2096x1376 window capture against a 1280x720 dpr-1 browser viewport), so no pixel comparison between them is valid",
+    "reason": "There is no comparable expectation to gate on: the two halves depict different concepts under one name. The design's board is a single skill's model-graded eval run \u2014 'pr-summariser \u00b7 8 cases', a pass bar, per-case verdicts, and an expanded failing LLM exchange. The build's board is a list of every subject the router checked itself, with confirmed / not met / not observed / not applicable counts and the version each was stamped against. The rename evals\u2192Checks is already registered as DEF-007; this pair shows the rename understated it, because the concept changed and not only the label. 'Edit cases\u2026' and 'Run again' are absent because the concept they belong to does not exist here, and the build's subtitle says so: 'No model-graded evaluation exists in this product.'",
+    "mockFindings": [
+      "The design of record specifies a model-graded evaluation surface the product does not have and has decided not to have. Until it is redrawn, this surface has no usable design of record and the campaign should not report it as one."
+    ],
+    "buildFindings": []
+  },
+  {
+    "subject": "SURF-008",
+    "verdict": "pass",
+    "reference": "evidence/shots/mock/SURF-008.png",
+    "capture": "evidence/shots/SURF-008.build.png",
+    "method": "structural and lexical only \u2014 prescan reports the two halves are not framing-comparable (scaleRatio 1.637, not a DPR step: 2096x1376 window capture against a 1280x720 dpr-1 browser viewport), so no pixel comparison between them is valid",
+    "reason": "Both halves are the empty state and everything the design specifies is drawn: the title, the 'Nothing waiting \u00b7 <pairing state>' subtitle, the 'Pairing\u2026' control in the header's right slot, the centred inbox glyph, the 'Nothing waiting' headline, and the body copy verbatim including the clause about a lost phone still being unable to install code. The pairing state differs between halves ('no phone paired' against 'paired with Luke's iPhone') because the fixtures differ. The ellipsis is U+2026 in the build, checked by hexdump on evidence/ax/SURF-008.window.txt rather than read off the pixels, where it looked like three periods.",
+    "mockFindings": [],
+    "buildFindings": [
+      "The build repeats 'Pairing\u2026' as a prominent button inside the empty state, which the design does not draw. An addition, and the right one for an empty state whose only useful action is that: the header control is small and easy to miss."
+    ]
+  },
+  {
+    "subject": "SURF-018",
+    "verdict": "fail",
+    "reference": "evidence/shots/mock/SURF-018.png",
+    "capture": "evidence/shots/ios/SURF-018.ios.settings-never-paired.png",
+    "method": "structural, against a unit-scoped reference \u2014 i1-phone-pairing.html \u00a7B 'Never paired', isolated at capture time.",
+    "reason": "This verdict replaces an inconclusive one whose stated reason was false. It said iOS Settings has no design of record; it has one, in i1-phone-pairing.html \u00a7B, \u00a7I, \u00a7J and \u00a7L. The earlier pass compared this surface against prototype.html \u2014 the Mac console \u2014 found nothing, and recorded the absence as the design's rather than as its own. DEF-028 is what the real comparison finds: \u00a7B draws the never-paired state as a centred empty state with a Mac glyph above the headline, and the build renders it left-aligned through the notice block with no illustration. The copy, the action and the section label are all correct, and two differences found in the same pass are now closed \u2014 the narrowing was stated twice (DEF-026) and 'Pair Mac' drew at label width (DEF-024).",
+    "mockFindings": [
+      "DEF-028: the design's empty-state illustration and centring are absent; the build draws the state as a left-aligned notice.",
+      "DEF-025: the design draws the recovery action as a sibling below the notice card; the build renders it as the card's last child."
+    ],
+    "buildFindings": [
+      "The capture was filed as SURF-018.ios.settings-paired-state and shows the never-paired state. Renamed at the shutter, not in the manifest."
+    ]
+  },
+  {
+    "subject": "SURF-014",
+    "verdict": "pass",
+    "reference": "evidence/shots/mock/SURF-014.png",
+    "capture": "evidence/shots/ios/SURF-014.ios.camera-preflight.png",
+    "method": "structural, against a unit-scoped reference \u2014 i1-phone-pairing.html \u00a7D 'Permission not yet granted', isolated at capture time. The second published capture of this subject, SURF-014.ios.pairing-typed-entry.png, was read against \u00a7E 'Empty' in the same pass and is reported in the findings below rather than given a verdict of its own, because the registry carries one subject for the pairing route.",
+    "reason": "Every element the design specifies is present and its copy is verbatim: the viewfinder frame with 'Camera not started', the 'Why the camera' block with both reasons, 'Allow camera access' as the primary action and 'Enter the code instead' as the secondary \u2014 so a refusal is not a dead end, which is the point \u00a7D makes. Both actions now draw at content width (DEF-024) and the block is toned --attn rather than neutral (DEF-027), which is what \u00a7C's annotation asks for: a caution before an irreversible grant is not a failure and not decoration. The typed-entry capture shows the eight boxes in two groups of four with the first focused, the expiry helper verbatim, and 'Pair Mac' disabled and dimmed in place rather than hidden \u2014 \u00a7E's four rules, and the keyboard is up, which is DEF-021 closed.",
+    "mockFindings": [
+      "The design lists the two camera reasons as separate lines with '\u203a' markers; PairingCopy carries them as one body string, so the build renders one paragraph. Same two sentences, one run.",
+      "The design's back control is labelled 'Settings'; the build draws the system's bare chevron.",
+      "The design gives the typed-entry screen its own navigation title, 'Enter the code', with the instruction as the navigation subtitle. The build keeps 'Pair Mac' in the bar and renders both strings in the content, so both are on screen in the same order."
+    ],
+    "buildFindings": []
+  },
+  {
+    "subject": "SURF-019",
+    "verdict": "pass",
+    "reference": "evidence/shots/mock/SURF-019.png",
+    "capture": "evidence/shots/ios/SURF-019.ios.queue.png",
+    "method": "structural, against a unit-scoped reference \u2014 i3-phone-triage.html \u00a7D 'Empty'. This surface had no reference at all before this pass: it was split out of SURF-013 when the capture tie pass found three routes under one id, and \u00a7D sits 4205px down a page whose only reference was its top 720px.",
+    "reason": "The empty state is the design's, word for word: the tray glyph, 'Nothing waiting', 'Things you send from Triage or Discover collect here until you are back at your Mac.', and 'Go to Triage' \u2014 one sentence and one action, which is what \u00a7D and DESIGN.md \u00a75 specify. The action now draws at the pane's width (DEF-024). There is no send control and no Mac-side status anywhere on the surface, which is \u00a7D's central claim: draining the queue is transport behaviour, and a 'Send N to Mac' button would be bound to a reachability value nothing observes.",
+    "mockFindings": [
+      "The design anchors the empty state near the top of the pane (.pempty has 44px of top padding and no vertical centring); the build centres it in the pane, which is the native iOS placement."
+    ],
+    "buildFindings": []
+  },
+  {
+    "subject": "SURF-020",
+    "verdict": "pass",
+    "reference": "evidence/shots/mock/SURF-020.png",
+    "capture": "evidence/shots/ios/SURF-020.ios.library.png",
+    "method": "structural, against a unit-scoped reference \u2014 i3-phone-triage.html \u00a7E 'Default'. Read with the mock's source open beside it for two parts the reference does not settle: Obscura lays the row's inline fact spans out as separate lines, and the skills-absent and read-only notes fall below the drawn phone frame. Both are read from the mock's own markup, and neither is a claim about the reference's pixels.",
+    "reason": "Four rows, each carrying exactly the MCPServer fields \u00a7E allows \u2014 transport, tool count, running state \u2014 with 'running now' the only row in --live and every other row stating its idle or never-started fact instead. No row carries a trailing control, because the phone cannot change any of this. The skills-absent block states the absence as a fact rather than drawing an empty list, and the closing note says adding, changing and removing all happen at the Mac. The count line reads '4 servers \u00b7 read-only from here', which is the design's subtitle verbatim.",
+    "mockFindings": [
+      "The design puts the count line above the filter field, as the navigation subtitle; the build puts the filter field under the large title and the count line below it, which is where SwiftUI's own searchable modifier places a search field.",
+      "The design distinguishes transports with a plug and a cloud glyph; the build uses a bolt and a connector. Both distinguish stdio from http and neither is ambiguous."
+    ],
+    "buildFindings": []
+  }
+]

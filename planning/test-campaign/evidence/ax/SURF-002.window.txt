@@ -41,7 +41,7 @@
 8	AXButton				Settings		1					205.0	532.0	76.0	16.0	
 6	AXColumn							0			ListColumn	198.0	236.0	236.0	475.0	
 4	AXUnknown				1 of 4 declared servers running		1				sidebar	196.0	720.0	240.0	16.0	
-4	AXStaticText			last 2s · peak 1			1				sidebar	196.0	773.5	99.0	13.0	
+4	AXStaticText			last 0s · peak 1			1				sidebar	196.0	773.5	99.0	13.0	
 3	AXSplitter			264			0	0				444.0	236.0	0.0	568.0	0
 3	AXGroup	AXHostingView										180.0	184.0	980.0	620.0	0
 4	AXStaticText			none	mcprouter-key-probe						content	1084.0	776.0	72.0	24.0	1
@@ -62,7 +62,7 @@
 6	AXGroup				fixture-http		1					460.0	412.0	684.0	56.0	
 7	AXButton			Dormant	Breaker, fixture-http, dormant, http, 0, 0 calls, Never		1					460.0	412.0	684.0	56.0	0
 6	AXGroup				fixture-tools		1					460.0	469.0	684.0	56.0	
-7	AXButton			Running	Breaker, fixture-tools, reaps in 300s, stdio, 2, 1 calls, 5d		1					460.0	469.0	684.0	56.0	0
+7	AXButton			Running	Breaker, fixture-tools, reaps in 300s, stdio, 2, 1 calls, 6d		1					460.0	469.0	684.0	56.0	0
 6	AXGroup				fixture-oauth		1					460.0	526.0	684.0	56.0	
 7	AXButton			Wants your decision	Breaker, fixture-oauth, needs authorising, http, 0, 0 calls, Never		1					460.0	526.0	684.0	56.0	0
 5	AXStaticText			4 of 4 servers · 2 tools indexed			1					460.0	590.0	198.0	13.0	

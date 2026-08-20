@@ -1,6 +1,7 @@
-# X1 — the iOS accessibility-tree harness, and the two surfaces still empty
+# X1 — the iOS accessibility-tree harness, and the two surfaces that were still empty
 
 **Category:** mac/ios · test instrument **Found:** 2026-08-20, by running `make all` on a clean tree.
+**Closed:** 2026-08-20. `make test-ios` runs 36 tests, 2 skipped, 0 failures.
 
 `make all` exited 2 at `test-ios` with **19 failing iOS test cases** while macOS was green at
 1468 tests / 178 suites. Every failure had the same shape — *rendered nothing*, `is not on screen: `
@@ -67,3 +68,36 @@ If it is the harness, the fix belongs beside the two above.
 
 **Do not close this by weakening either assertion.** Both tests carry vacuity guards that are
 working correctly, and those guards are the reason this was visible at all.
+
+
+## How the two closed
+
+`make test-ios` is green: **36 tests, 2 skipped, 0 failures**, and all four tests this brief names
+pass — `testEveryCommitStateRendersTheNarrowing`, `testDiscoverStaysInsideTheSafeArea`,
+`testRowHeightIsIndependentOfNameLength` and `testSkeletonMatchesTheRowItReplaces`. Neither
+assertion was weakened; both vacuity guards are still in place and still fire on an empty subtree.
+
+Two things closed them, in this order.
+
+**DEF-029 — the accessibility engine was off** (`X3-ios-unit-lane-empty-tree.md`). SwiftUI's
+`_UIHostingView` vends an **empty element array** when the engine is not running, so the whole
+target read empty. Switching it on with `_AXSSetAutomationEnabled` and reading
+`accessibilityElements` rather than `accessibilityElementCount()` took the suite from 52 failures to
+2. The `SETTLE-EMPTY … containers=0 elemCounts=[]` diagnostic quoted above is that signature: a
+hierarchy that lays out and publishes nothing. So the hypothesis in **What to do** — that
+`QueueCommitBar` has a zero intrinsic height under `ScrollView` — was measured and refuted directly
+(`QueueCommitBar` alone reports `sizeThatFits = (393.0, 199.33)`), and the emptiness was the
+instrument rather than the view.
+
+**The row-height oracle walked the wrong tree.** The last two failures were the row-geometry pair,
+and `rowHeight` walked `descendants(of:).bounds.height` looking for a row. The `UIView` tree has no
+row in it — SwiftUI draws `PairedMacRow` into the hosting view's layers and creates no per-row
+`UIView` — so both callers failed with *no row was found in either render*. That is the same mistake
+this file already records for `UILabel`, arriving through geometry instead of through text. Reading
+the row's **accessibility frame** instead closes both; a probe confirms rows at `h=44.0 w=393.0` in
+the reachable, long-name and loading states.
+
+One correction to this brief's own record, kept rather than edited away: the deadline poll and the
+`ObjectIdentifier` retention described above were both re-derived from scratch during the DEF-029
+investigation, which means neither had landed on the branch that was being measured. Whatever
+happened to them between this brief and that run, the working versions are in the tree now.

@@ -156,6 +156,30 @@ it never tested.
   defect the previous fix had just introduced. A reconciliation is not a state you reach; it is a
   claim that only holds for the predicates you have written down.
 
+  **Then eight checks reported clean over five stale duplicate rows**, found by `dev-09` rather
+  than by this script. `ORCHESTRATOR.md` carried two rows for `M23`, `M27` and `R10` — each pair
+  agreeing on the title and disagreeing on the status, with the stale one reading *earlier* than
+  the truth: `Untriaged` beside `Ready to verify` for two branches sitting at 6 and 12 commits.
+  A fleet slot filled from the stale row dispatches a triage run on work that is already built.
+
+  None of A, B, F or G could see it. Their diagnosis is worth keeping verbatim: **each check
+  tests a different key, and a row is only as bound as the weakest key any check uses.** A and B
+  test membership, F identity, G resumability — and none tests currency, so a present, plausible,
+  wrong row satisfies every one of them. That is worse than a missing row, because a missing row
+  fails membership and a stale duplicate fails nothing.
+
+  Check `H` groups rows by id and compares status cells. It indexes the column by its **header
+  name** rather than its position, which is what keeps it honest: this file has one nine-column
+  table carrying `Status` and a four-column deferred register carrying none, so a positional
+  predicate would have compared `M11`'s register row against whatever sat at that offset. H found
+  the three plus `R4-C`, whose two rows read `Blocked — needs 82 of 83` and `Wave 4 — last` — a
+  wave label written into a status cell, both stale, both quoting a parity figure since
+  superseded. R4-C is now one row: superseded by `R4-C1` (Done, `docs/install.sh` defaults to
+  `MCPR_ROUTER=swift`) and `R4-C2` (Held).
+
+  Fixing it also turned up `M13`: a complete nine-column row pasted into the four-column register,
+  where its cells read as *Absorbed by: mac* and its outcome as a dependency list.
+
 - **M9, M10 and M12 were triaged on 2026-08-21 by measuring the tree, not by reading their
   rows.** Two of the three had already shipped. `M10`'s amendment is in `DESIGN.md` §6, which now
   carries the correction *and* the reason — the old illustration "a skill with no evaluation reads

@@ -94,6 +94,34 @@ def describes(text: str, source: str) -> dict[str, list[tuple[str, str]]]:
         out.setdefault(cell, []).append((source, cells[2].strip()))
     return out
 
+def status_rows(text: str) -> dict[str, list[tuple[int, str]]]:
+    """Every table row's Status cell, keyed by id, indexed by the column's HEADER name.
+
+    Positional indexing would be wrong here. This file has one 9-column table carrying a
+    `Status` column and a 4-column deferred register that carries none, and a row from the
+    second read positionally yields whatever happens to sit at that offset. So each row is
+    matched against its nearest preceding header, and an id whose only second row lives in a
+    table with no Status column is left alone rather than compared against a cell that means
+    something else — which is what keeps M11 out of this check and R4-C in it.
+    """
+    out: dict[str, list[tuple[int, str]]] = {}
+    header: list[str] = []
+    lines = text.split("\n")
+    for n, line in enumerate(lines, 1):
+        if re.match(r"^\|[\s:\-]+\|", line) and n >= 2:
+            header = [c.strip().lower() for c in lines[n - 2].split("|")][1:-1]
+            continue
+        if not line.startswith("| "):
+            continue
+        cells = [c.strip() for c in line.split("|")][1:-1]
+        if "status" not in header or len(cells) < len(header):
+            continue
+        idc = cells[0].replace("**", "").replace("~~", "").strip()
+        if not re.fullmatch(rf"{SERIES}\d+(?:-[A-Z]\d*)?", idc) or idc in NOT_ALLOCATIONS:
+            continue
+        out.setdefault(idc, []).append((n, cells[header.index("status")]))
+    return out
+
 def content_words(text: str) -> set[str]:
     text = QUOTED.sub(" ", text).replace("~~", " ").replace("**", " ")
     words = re.findall(r"[A-Za-z][A-Za-z'-]+", text.lower())
@@ -301,14 +329,30 @@ def main() -> int:
                               "mention, which check B accepts. A fleet resumes from the "
                               "ORCHESTRATOR table, so an id with no row there is unscheduled", g))
 
+    # H — two rows for one id, disagreeing about its status. Checks A and B test membership,
+    # F tests identity, G tests resumability; none tests CURRENCY. A row is only as bound as
+    # the weakest key any check uses, so a present, plausible, stale duplicate satisfies every
+    # one of them — and it is worse than a missing row, because a missing row fails membership
+    # while a stale duplicate fails nothing and gets scheduled. Found by dev-09 over a file
+    # this script cleared at exit 0 with five such pairs in it.
+    h = []
+    for i, rs in sorted(status_rows(orch).items()):
+        seen = {st.replace("**", "").strip(): n for n, st in rs}
+        if len(seen) > 1:
+            h.append(f"{i} (" + " / ".join(f"line {n}: {st[:44]!r}" for st, n in seen.items()) + ")")
+    if h:
+        findings.append(("H", "two ORCHESTRATOR rows for one id disagreeing on status — a "
+                              "fleet slot filled from the stale one re-plans work that is "
+                              "already built", h))
+
     if not findings:
-        print("reconciled — no findings across A, B, B-range, C, D, E, F, G")
+        print("reconciled — no findings across A, B, B-range, C, D, E, F, G, H")
         return 0
     for code, why, ids in findings:
         print(f"{code}. {why}")
         print(f"   {' '.join(ids)}")
         print()
-    print(f"{len(findings)} of 8 checks found something. "
+    print(f"{len(findings)} of 9 checks found something. "
           "Which file is right is a judgement about what shipped; fix it by hand.")
     return 1
 

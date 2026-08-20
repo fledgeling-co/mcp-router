@@ -263,11 +263,22 @@ exit 0**, `make parity` 358/358 at floor, `make acceptance-r6` `examined=6 failu
 
 Worth stating plainly because the instinct is backwards: contamination made those greens
 **stronger**, not weaker. A suite that passes while 32 processes fight it for CPU has been tested
-harder than one that passes on an idle box. It is the single red that needed re-examining — the
-session's first `make test`, one issue whose name was discarded by a `tail` — and under that load
-G3's wall-clock assumption is a better explanation than a spontaneous flake. Nothing else in these
+harder than one that passes on an idle box. Nothing else in these
 gates reads a clock: lint counts, parity vector counts, the child-PATH lane's assertion on PATH
 content and the ledger reconciler are all deterministic, so saturation cannot move them.
+
+**The one result that cannot be re-derived, recorded as unattributed.** The session's first
+`make test`, at 08:23 on R6's merged tree, exited 1 with *"Test run with 1543 tests in 193 suites
+failed after 4.480 seconds with 1 issue"*. **Which test failed is not known and is not
+recoverable** — the command piped through `tail -6`, which kept four passing lines and the summary,
+and no fuller log exists. G3's `PoolReapingTests.swift:61` is the strongest candidate: it is the
+only wall-clock assumption in the suite and the machine was saturated. A strongest candidate is not
+a name, and this row does not claim one. Two runs on the same tree minutes later and three on
+merged `main` an hour later all exited 0.
+
+The forward fix is one line: **a gate's output goes to a full log and `tail` reads the log**, never
+the other way round. Piping the gate through `tail` discards precisely the evidence a red run
+exists to produce, and it costs nothing until the one run that fails.
 
 **2026-08-21, and the detector is now 600s rather than 180s.** Two runners (M23 gap-fix, G3)
 were killed by it inside the same ten minutes without either doing anything wrong. The cause was

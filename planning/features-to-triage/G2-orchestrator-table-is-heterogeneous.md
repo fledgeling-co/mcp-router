@@ -47,20 +47,58 @@ dangerous half. It does not make the rows readable.
 
 ## What done looks like
 
-The 23 short rows live under a header that matches their shape — either moved into the
-existing four-column deferred register below, or given their own headed table in place.
-Either way, one table, one row shape, and a reader that does not have to invent an exclusion.
+The 23 short rows live in the four-column deferred register, whose header already exists and
+already holds 96 rows. One table, one row shape.
 
-Re-run `python3 planning/ledger-reconcile.py` afterwards: `H examined` should rise to the
-full row count and `skipped` should read 0, which is the acceptance test.
+### The acceptance test, and the one it replaces
 
-## Why it was not done on 2026-08-21
+The first version of this brief asked for **"`H examined` rises to the full row count, and
+`skipped` reads 0"**. That is self-contradicting, and `dev-09` caught it before anyone
+implemented against it.
 
-The runs are scattered across seven positions rather than contiguous, so the fix moves rows
-rather than inserting a header. `ORCHESTRATOR.md` was being read by four live verify agents
-and one runner at the time. Moving ~23 rows in a file agents are mid-read on buys nothing the
-denominator line has not already bought, and risks a runner acting on a half-restructured
-table. Deferred deliberately, not overlooked.
+Trace the numbers. H reads the nine-column table: today 93 rows, 23 skipped, 70 examined. Move
+the strays out and that table holds 70 rows and H skips none — so **`examined` stays at 70 and
+cannot rise.** `examined` only rises if the rows are parsed *in place*, which is the fix this
+brief rules out.
+
+Worse, the half that does pass is the half that means least. **`skipped: 0` is satisfiable by
+moving rows out of the reader's scope rather than by making them readable.** The number goes
+right and the coverage is unchanged — the same move as marking a case `n/a` to lift a pass rate,
+landing in the one file whose purpose is catching that.
+
+So the test is a **conservation check**, which deletion cannot satisfy:
+
+- the register table holds **96 + 23 = 119** rows, re-measured at implementation time rather than
+  taken from this brief;
+- each of the 23 ids is findable there by name;
+- the nine-column table's row count falls by exactly 23, and no row's *content* differs from what
+  `git show` has today.
+
+### Which checks read the register table — measured, not assumed
+
+`dev-09` asked the question this brief could not answer from outside the script. Measured on
+`d8dca4d`:
+
+| Reader | Reads the register table? |
+|---|---|
+| A, B, C, G (`table_ids` / `named_ids`) | **Yes** — `R11`, `R12`, `R13` and `M5-a` all live there and are checked |
+| F (`describes`) | **Yes**, same rows |
+| H (`status_rows`) | **No** — it requires a `status` column and the register has none |
+
+And for the 23 strays specifically, every one returns **False** from `table_ids`, `named_ids`
+*and* `describes`. They are outside all nine checks **today, before any move**.
+
+That is deliberate rather than a gap. The id pattern excludes `D-<parent>-<letter>` children
+because they are deferred *notes*, not allocations — the thing A, B, C and G exist to protect is
+id allocation, and a note that never claims an id cannot collide with one. `ledger-reconcile.py`
+says so at its `SERIES` definition.
+
+**Which makes the honest statement of this item:** moving the rows does not change their
+coverage, and must not be described as though it does. What it fixes is a table whose header
+lies about the shape of a quarter of its rows — the condition that made two unrelated readers
+invent the same silent exclusion. If a later item wants those 23 rows *checked* rather than
+merely well-shaped, that is a separate predicate over the register table, and it should be filed
+as its own item rather than smuggled into this one's acceptance.
 
 ## Not in scope
 

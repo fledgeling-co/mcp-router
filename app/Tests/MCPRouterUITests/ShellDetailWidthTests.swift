@@ -59,5 +59,55 @@
                 """
             )
         }
+
+        /// The other half: something in the controls row has to be able to give.
+        ///
+        /// Both boards put a `.fixedSize()` segmented picker next to a search field. The picker
+        /// cannot compress by a point — that is what `.fixedSize()` means, and it is right, because
+        /// a segmented control has nowhere to put a truncated label. So the field is the only
+        /// control in the row that can give anything back, and a fixed width on it made the row's
+        /// minimum larger than the detail pane at a 980pt window.
+        ///
+        /// Measured before and after on glass: Discover's content wanted 823pt against a 684pt
+        /// pane and Skills' wanted 748pt; with the field flexing, every board's split group reads
+        /// 980 of 980 and nothing but a scrollbar sits past the pane edge.
+        ///
+        /// Named per board rather than looped over every file, because these two are the boards the
+        /// measurement covers. A third board growing this problem is a new measurement, not a case
+        /// this test silently already made.
+        @Test("the boards whose controls row overflowed let their search field give way")
+        func theCrowdedControlsRowsCanCompress() throws {
+            for (board, metrics) in [
+                ("app/Sources/MCPRouterUI/Boards/DiscoverBoard.swift", "DiscoverBoardMetrics"),
+                ("app/Sources/MCPRouterUI/Boards/SkillsBoard.swift", "SkillsBoardMetrics")
+            ] {
+                let source = try String(
+                    contentsOf: ShellTestSupport.repoRoot().appending(path: board),
+                    encoding: .utf8
+                )
+                let code = source
+                    .split(separator: "\n", omittingEmptySubsequences: false)
+                    .filter { !$0.trimmingCharacters(in: .whitespaces).hasPrefix("//") }
+                    .joined(separator: "\n")
+                #expect(
+                    !code.contains(".frame(width: \(metrics).searchWidth)"),
+                    """
+                    \(board) pins its search field to one width, so the controls row cannot give \
+                    anything back and the board lays out wider than its pane. DEF-015.
+                    """
+                )
+                #expect(
+                    code.contains("minWidth: \(metrics).searchMinWidth"),
+                    "\(board) declares no floor for its search field, so it can compress to nothing"
+                )
+                #expect(
+                    code.contains("idealWidth: \(metrics).searchWidth"),
+                    """
+                    \(board) does not say what width its search field wants, so it renders at its \
+                    floor even where the pane has room for the full field
+                    """
+                )
+            }
+        }
     }
 #endif

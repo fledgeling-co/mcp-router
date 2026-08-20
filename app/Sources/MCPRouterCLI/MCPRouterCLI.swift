@@ -176,17 +176,27 @@ struct MCPRouterCLI {
         // refused prints the same `0 tools cached` as a run with nothing to cache, and the reader
         // cannot tell which they are looking at.
         //
-        // The claim is about PROVENANCE and is scoped to the lost servers, because every wider
-        // reading is false in some shape this verb reaches. "These are missing from that count" is
-        // false when a server's previous row is still on disk and being counted. "The count is as
-        // it stood before this run" is false when a SIBLING server's write landed and moved it.
-        // And "nothing this run read from them is in that count" — the wording before this one —
-        // is false when the refused update carried the SAME tools the older row already holds:
-        // `echo` is then both what this run read and what the count includes.
+        // The claim is about what was RECORDED, not about what the count contains, and it is scoped
+        // to the lost servers. Four wordings died on four different shapes this verb reaches:
+        //
+        // - "these are missing from that count" — false when a server's previous row is still on
+        //   disk and being counted.
+        // - "the count is as it stood before this run" — false when a SIBLING server's write landed
+        //   and moved it.
+        // - "nothing this run read from them is in that count" — false when the refused update
+        //   carried the SAME tools the older row already holds: `echo` is then both what this run
+        //   read and what the count includes.
+        // - "whatever they contribute to it is from an earlier run" — vacuous, and misleading, on
+        //   the shape the defect was FOUND in: a home that has never been written has no earlier
+        //   run and no file, and a reader is told to go looking for one.
+        //
+        // A statement about the write survives all four, because the write is the thing that did
+        // not happen. Nothing from this run was recorded for these servers, whatever the count
+        // happens to hold and wherever it came from.
         if !report.lost.isEmpty {
             Out.print(
-                "\(report.lost.count) server(s) above did not reach the manifest, so that count is "
-                    + "unchanged by them; whatever they contribute to it is from an earlier run.\n"
+                "\(report.lost.count) server(s) above did not reach the manifest, so nothing this "
+                    + "run indexed for them was recorded in that count.\n"
             )
         }
         Out.print("All upstreams closed; none will open again until a tool is called.\n")

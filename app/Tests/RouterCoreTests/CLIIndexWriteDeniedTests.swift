@@ -65,8 +65,18 @@ struct CLIIndexWriteDeniedTests {
             "the closing count is unchanged — it always read the truth off disk"
         )
         #expect(
-            run.stdout.contains("did not reach the manifest, so that count is unchanged by them"),
+            run.stdout.contains(
+                "did not reach the manifest, so nothing this run indexed for them was recorded"
+            ),
             "and the run now reconciles the two, so `0 tools cached` cannot be read as `nothing to do`"
+        )
+        #expect(
+            !run.stdout.contains("from an earlier run"),
+            """
+            This home has never been written and holds no manifest at all, which is the shape the \
+            defect was FOUND in. A sentence pointing the reader at an earlier run points them at \
+            nothing. stdout: \(run.stdout)
+            """
         )
         #expect(
             !FileManager.default.fileExists(atPath: home.appendingPathComponent("manifest.json").path),
@@ -97,6 +107,18 @@ struct CLIIndexWriteDeniedTests {
             stdout: \(run.stdout)
             """
         )
+        // The home holds a WORKING server as well, and the denial takes both of them down. Asserted
+        // rather than tolerated: a reviewer read this case as claiming to isolate one broken server,
+        // and an unasserted second line is exactly how a case comes to be read as something it is
+        // not. The mixed shape is the point — one server that never started, one that did.
+        #expect(
+            run.stdout.contains("not cached  fixture (1 tools indexed)"),
+            "the working sibling lost its row too, and says so in its own words. stdout: \(run.stdout)"
+        )
+        #expect(
+            run.stdout.contains("2 server(s) above did not reach the manifest"),
+            "and the closing line counts both. stdout: \(run.stdout)"
+        )
         #expect(run.status == 0, "still pinned. stderr: \(run.stderr)")
     }
 
@@ -123,23 +145,20 @@ struct CLIIndexWriteDeniedTests {
             "and the count is 1, not 0 — the older row is still served. stdout: \(run.stdout)"
         )
         #expect(
-            run.stdout.contains("that count is unchanged by them"),
+            run.stdout.contains("nothing this run indexed for them was recorded in that count"),
             """
             The sentence has to be true in EVERY shape this verb reaches, and this one is where \
-            two earlier wordings died. "These are not in that count" is false here — the server \
-            IS in the count, from a row this run did not write. And "nothing this run read from \
-            them is in that count" is false too: the refused update re-read `echo`, which the \
-            older row already holds, so what this run read is exactly what the count includes. \
-            Only a claim about PROVENANCE survives both. stdout: \(run.stdout)
+            two of the four earlier wordings died. "These are not in that count" is false here — \
+            the server IS in the count, from a row this run did not write. And "nothing this run \
+            read from them is in that count" is false too: the refused update re-read `echo`, \
+            which the older row already holds, so what this run read is exactly what the count \
+            includes. Only a claim about the WRITE survives. stdout: \(run.stdout)
             """
-        )
-        #expect(
-            run.stdout.contains("whatever they contribute to it is from an earlier run"),
-            "and it says where the count's contents came from instead. stdout: \(run.stdout)"
         )
         let deadWordings = [
             "reflects the manifest as it stood before this run",
-            "nothing this run read from them is in that count"
+            "nothing this run read from them is in that count",
+            "from an earlier run"
         ]
         for dead in deadWordings {
             #expect(!run.stdout.contains(dead), "an earlier wording this case is what caught: \(dead)")
@@ -324,15 +343,24 @@ private enum IndexCLIHarness {
         // environment — the same route `MCP_ROUTER_HOME` above travels.
         environment["FIXTURE_TOOLS"] = String(tools)
         process.environment = environment
-        let out = Pipe()
-        let err = Pipe()
-        process.standardOutput = out
-        process.standardError = err
+        // Files rather than two `Pipe`s. Draining one pipe to EOF and only then the other is a
+        // deadlock whenever the child fills the second one's buffer first — 64 KB on macOS, and
+        // stderr here carries the router's whole log. A file has no buffer to fill.
+        let outURL = home.appendingPathComponent("../run.out").standardizedFileURL
+        let errURL = home.appendingPathComponent("../run.err").standardizedFileURL
+        for url in [outURL, errURL] {
+            FileManager.default.createFile(atPath: url.path, contents: nil)
+        }
+        let outHandle = try FileHandle(forWritingTo: outURL)
+        let errHandle = try FileHandle(forWritingTo: errURL)
+        process.standardOutput = outHandle
+        process.standardError = errHandle
         try process.run()
-        // Read before waiting: a verb that fills a pipe buffer would otherwise block forever.
-        let outData = out.fileHandleForReading.readDataToEndOfFile()
-        let errData = err.fileHandleForReading.readDataToEndOfFile()
         process.waitUntilExit()
+        try outHandle.close()
+        try errHandle.close()
+        let outData = try Data(contentsOf: outURL)
+        let errData = try Data(contentsOf: errURL)
         // A marker rather than "" on invalid UTF-8, following `RecordingSink.text`: an empty string
         // would satisfy every `!contains(...)` below without anything having been read.
         func text(_ data: Data) -> String {

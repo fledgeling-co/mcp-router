@@ -17,11 +17,13 @@ public enum IndexLogEvent: Sendable, Hashable, LoggableEvent {
     /// writes for an upstream that would not start. The wording therefore says what was lost rather
     /// than what produced it — "indexed X but could not write" would be false of the second.
     ///
-    /// It claims **provenance** rather than absence, for the same reason the CLI's closing sentence
-    /// does. "Nothing this run read from it is cached" — the wording before this one — is false
-    /// whenever the refused update carried the same tools an older row already holds: `echo` is
-    /// then both what this run read and what the manifest serves. What is true in every shape is
-    /// that the row on disk, if there is one, predates this run.
+    /// It claims what was **recorded**, not what the manifest contains, for the same reason the
+    /// CLI's closing sentence does. "Nothing this run read from it is cached" is false whenever the
+    /// refused update carried the same tools an older row already holds — `echo` is then both what
+    /// this run read and what the manifest serves. "Whatever that file holds for it is from an
+    /// earlier run" is worse: on the shape the defect was found in there is no file and no earlier
+    /// run, and the line sends a reader looking for one. The write is the thing that did not
+    /// happen, so that is what the line says.
     case manifestNotWritten(server: String, path: String, reason: String)
 
     public var level: RouterLog.Level {
@@ -34,8 +36,8 @@ public enum IndexLogEvent: Sendable, Hashable, LoggableEvent {
         switch self {
         case let .manifestNotWritten(server, path, reason):
             "the manifest row for \"\(server)\" did not reach \(path) (\(reason)); "
-                + "whatever that file holds for it is from an earlier run — check that "
-                + "directory's permissions and run `mcp-router index --force` again"
+                + "nothing from this run was recorded for it — check that directory's "
+                + "permissions and run `mcp-router index --force` again"
         }
     }
 }

@@ -189,14 +189,16 @@ struct ManifestIndexerWriteFailureTests {
         #expect(text.contains("did not reach /router/manifest.json"), "the path is named")
         #expect(text.contains("the manifest row for \"fixture\""), "and so is the server")
         #expect(
-            text.contains("whatever that file holds for it is from an earlier run"),
+            text.contains("nothing from this run was recorded for it"),
             """
-            A claim about PROVENANCE, not about absence. The line said "nothing this run read \
-            from it is cached", which is false whenever the refused update carried tools an older \
-            row already holds — the same falsehood the CLI's closing sentence was rewritten to \
-            drop, and it survived here after that rewrite.
+            A claim about the WRITE, which is the thing that did not happen. Two earlier wordings \
+            were not: "nothing this run read from it is cached" is false whenever the refused \
+            update carried tools an older row already holds, and "whatever that file holds for it \
+            is from an earlier run" points a reader at an earlier run on a home that has never \
+            been written — which is the shape the defect was found in.
             """
         )
+        #expect(!text.contains("from an earlier run"), "the wording that assumed one")
         #expect(text.contains("permissions"), "and what to do about it")
     }
 
@@ -303,6 +305,26 @@ struct ManifestIndexerWriteFailureTests {
             second.tools != cached,
             "which is why `heldChanges` exists: without it the verb has only the wrong number"
         )
+    }
+
+    @Test("a held surface whose row is ALSO lost carries both facts, and neither hides the other")
+    func aHeldSurfaceWithARefusedWriteReportsBoth() async {
+        let fileSystem = MemoryFileSystem()
+
+        let first = await indexer(fileSystem).index(stdioUpstream("fixture"))
+        #expect(first.cached, "the control: the first surface landed and was approved")
+
+        // The surface moves AND the write is refused — the two halves of DEF-049's disagreement
+        // arriving together. Pinned because the CLI reports them on different lines and a future
+        // reader has to be able to tell which number belongs to which.
+        refuseBothWriteArms(fileSystem)
+        let second = await indexer(fileSystem, transport: ListingTransport(toolNames: ["echo", "reverse"]))
+            .index(stdioUpstream("fixture"))
+
+        #expect(second.heldChanges == 1, "the bookkeeping still held the change it would have written")
+        #expect(second.tools == 2, "and the upstream still listed two tools")
+        #expect(!second.cached, "while the entry carrying both never reached disk")
+        #expect(second.error == nil, "the upstream was fine")
     }
 
     @Test("an unusable answer from an upstream is not reported as a filesystem refusal")

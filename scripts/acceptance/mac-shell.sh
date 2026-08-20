@@ -933,6 +933,26 @@ sidebar_anything_endpoint_shaped() {
         }' "$1"
 }
 
+# What the count card announces as ONE element, or nothing.
+#
+# The label check below is a substring test and the A35 check is window-wide, so between them they
+# pass just as happily on a row that publishes `Child processes` and `N of M declared servers
+# running` as two separate stops — which is the form this branch shipped for one commit and then
+# withdrew. Neither of them measures the thing the withdrawal was about. This does: a single field
+# whose whole text is the label joined to the reading it heads is `.combine` having actually reached
+# the accessibility tree, per board, rather than a modifier read out of the source by a unit test.
+sidebar_count_announcement() {
+    awk -F'\t' -v l="$2" -v r="$3" '
+        $13 >= l && $13 < r {
+            for (i = 4; i <= 6; i++) {
+                if ($i ~ /^Child processes, [0-9]+ of [0-9]+ declared servers running$/) {
+                    print $i
+                    exit
+                }
+            }
+        }' "$1"
+}
+
 # The sidebar's own left edge, trailing edge, and the y below which the foot must sit. Read from the
 # outline and from the readout card rather than assumed, in one place, so the presence and absence
 # checks cannot come to disagree about where the sidebar is.
@@ -974,17 +994,18 @@ if [ -n "$EVIDENCE_DIR" ]; then
     mkdir -p "$EVIDENCE_DIR"
     EVIDENCE_WIN="$("$AXKIT" winid "$PID" || true)"
     [ -n "$EVIDENCE_WIN" ] || blocked "could not resolve the window id for the evidence capture"
-    printf 'destination\twindow_id\tbundle\tfoot_read\tcapture\ttaken_at\n' \
+    printf 'destination\twindow_id\tbundle\tfoot_read\tcount_announcement\tcapture\ttaken_at\n' \
       > "$EVIDENCE_DIR/captures.tsv"
 fi
 
 capture_evidence() {
     [ -n "$EVIDENCE_DIR" ] || return 0
-    local dest="$1" foot="$2" out="$EVIDENCE_DIR/sidebar-foot-$1.png"
+    local dest="$1" foot="$2" announce="$3" out="$EVIDENCE_DIR/sidebar-foot-$1.png"
     screencapture -o -x -l"$EVIDENCE_WIN" "$out"
     [ -s "$out" ] || blocked "the evidence capture produced no image — grant Screen Recording"
-    printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
-      "$dest" "$EVIDENCE_WIN" "$MAC_APP" "$foot" "$(basename "$out")" "$(date -u +%FT%TZ)" \
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+      "$dest" "$EVIDENCE_WIN" "$MAC_APP" "$foot" "$announce" "$(basename "$out")" \
+      "$(date -u +%FT%TZ)" \
       >> "$EVIDENCE_DIR/captures.tsv"
 }
 
@@ -1055,6 +1076,11 @@ for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
     [ -n "$LABEL_Y" ] \
       || fail "$dest: the sidebar's count is unlabelled — the design of record names it 'Child processes' (M27)"
 
+    # And the label and its reading are ONE element, which the substring test above cannot see.
+    ANNOUNCE="$(sidebar_count_announcement "$WORK/window.tsv" "$SIDE_L" "$SIDE_R")"
+    [ -n "$ANNOUNCE" ] \
+      || fail "$dest: the count card announces its label and its reading as two stops — a screen reader reaches the number by a second swipe, and the label alone carries no value (M27)"
+
     # Held BELOW the card it is the foot of, so "last in the sidebar" is measured rather than
     # assumed. Without a y bound the foot could be moved above the destination list, keep its x, and
     # pass on all eight boards.
@@ -1067,9 +1093,9 @@ for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
     [ "$FOOT" = "127.0.0.1:$WANT_PORT" ] \
       || fail "$dest: the foot reads '$FOOT', but the router this app is talking to answered on port $WANT_PORT"
 
-    capture_evidence "$dest" "$FOOT"
+    capture_evidence "$dest" "$FOOT" "$ANNOUNCE"
 
-    echo "  ok — $dest: 1 content scroll area, first element ${DROP}pt below the content top, foot reads $FOOT"
+    echo "  ok — $dest: 1 content scroll area, first element ${DROP}pt below the content top, foot reads $FOOT, count announces as one element: \"$ANNOUNCE\""
 done
 
 # D3 — the rename is complete rather than half-applied. `Evals` was the one label in this app

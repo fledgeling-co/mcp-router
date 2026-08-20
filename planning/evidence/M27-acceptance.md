@@ -125,6 +125,25 @@ on an unclosed one, with `theDeclarationReaderCannotPassVacuously` exercising al
 
 | Screen | How verified | Commit | Result |
 |---|---|---|---|
+| SURF-001, the count card's announcement, all eight destinations | `scripts/acceptance/mac-shell.sh` — `sidebar_count_announcement` over the AX dump, inside the sidebar's own bounds, whole-field match on `^Child processes, [0-9]+ of [0-9]+ declared servers running$` | `be81f06` | **8 of 8** read `Child processes, 1 of 4 declared servers running` as **one element**. This is the assertion the branch did not have: the label check is a substring test and A35's is window-wide, so between them they passed equally on the two-stop form. Nothing measured the merge until now |
+| A35's readout label, widened | `mac-shell.sh:316`, now `^(Child processes, )?[0-9]+ of [0-9]+ declared servers running$` | `be81f06` | **Pass.** The sentence is still matched whole; a row announcing a bare number still fails |
+| SURF-001, the foot address, all eight destinations | Unchanged reader — `sidebar_address`, bounded left by the sidebar outline's x, right by its trailing edge, below by the count card's y | `be81f06` | **8 of 8** read `127.0.0.1:8971` |
+| The foot's fourth states — offline and unauthorized | Two further launches, both readers plus the label's absence | `be81f06` | **Nothing endpoint-shaped in the sidebar, and no label**, in both. Error copy verbatim in both |
+| Invisibility | `frontmost` recorded at start (`Sidetone`) and asserted unchanged; `check_invisible` after each block | `be81f06` | The app never came to the front |
+
+Whole run: **exit 0**, 35 `ok` lines, 0 failures — `planning/evidence/M27/mac-shell-run.txt`, re-captured
+over the stale one. `planning/evidence/M27/captures.tsv` gains a `count_announcement` column, so each
+row now binds its picture to the window id, the executing bundle, the foot string AND the combined
+announcement read in the same iteration.
+
+`sidebar-foot-Settings.png` came back **byte-identical** to the capture taken before this reversal,
+which is the expected result and worth stating: `.combine` changes what the accessibility plane
+carries and nothing about what is painted. `sidebar-foot-Activity.png` differs only in the board's
+own live call list.
+
+Unit lane at the same commit: **1552 tests pass**, lint clean. The `.combine` guard was
+mutation-tested rather than asserted — flipping the shipped modifier to `.ignore` turns both its
+positive and its negative assertion red, and restoring it turns them green.
 
 ### A fourth form, considered and not taken
 

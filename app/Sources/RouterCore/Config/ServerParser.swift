@@ -124,7 +124,9 @@ public enum ServerParser {
 /// every `tools/list` recurses until something gives up. Checked by URL as well as by name,
 /// because renaming the entry must not defeat it.
 public enum SelfReference {
-    private static let loopbackHosts: Set<String> = ["127.0.0.1", "localhost", "::1", "[::1]"]
+    /// Shared with ``RouterEndpoint`` rather than copied: R7 asks a different question of the same
+    /// host set, and two definitions of "loopback" are free to drift apart.
+    static let loopbackHosts: Set<String> = ["127.0.0.1", "localhost", "::1", "[::1]"]
 
     public static func isSelfReference(name: String, raw: JSONValue, port: Int) -> Bool {
         if name == "mcp-router" || name == "router" { return true }

@@ -56,6 +56,14 @@ struct MCPRouterCLI {
             try InstallEntryVerb.run(arguments)
             return
         }
+        // `harnesses` (**R7**) joins `install-entry` on this side of the split for the same
+        // reason and by the same rule: it is a capability this binary adds, the reference has no
+        // arm for it, and it stays out of `Copy.usage` so the `cli-help` parity row keeps
+        // comparing four identical help arms.
+        if arguments.first == "harnesses" {
+            try HarnessesVerb.run(arguments)
+            return
+        }
         try await dispatchReferenceVerb(arguments)
     }
 

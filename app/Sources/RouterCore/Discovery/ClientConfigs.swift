@@ -7,6 +7,8 @@ public enum MCPClient: String, Sendable, Hashable, CaseIterable {
     case codexCLI
     case chatGPTCLI
     case cursor
+    case geminiCLI
+    case grokCLI
     case opencode
 
     public var displayName: String {
@@ -16,6 +18,8 @@ public enum MCPClient: String, Sendable, Hashable, CaseIterable {
         case .codexCLI: "Codex CLI"
         case .chatGPTCLI: "ChatGPT CLI"
         case .cursor: "Cursor"
+        case .geminiCLI: "Gemini CLI"
+        case .grokCLI: "grok"
         case .opencode: "opencode"
         }
     }
@@ -89,7 +93,17 @@ public enum ClientConfigs {
             guard let projectDirectory else { return nil }
             return (projectDirectory as NSString).appendingPathComponent(".chatgpt/config.toml")
         case .cursor:
+            // cursor-agent reads this file too — measured 2026-08-21 in the shipped 2026.08.11
+            // bundle, which joins `.cursor/mcp.json` under both the home and the project. One
+            // entry covers the IDE and the CLI because they share the file.
             return home.appendingPathComponent(".cursor/mcp.json")
+        case .geminiCLI:
+            // The Gemini / Antigravity CLI (`agy` on this machine). It was absent from this enum
+            // and it is R7's entire subject: it is the harness carrying a stdio shim to the router
+            // alongside twelve servers the router already fronts.
+            return home.appendingPathComponent(".gemini/settings.json")
+        case .grokCLI:
+            return home.appendingPathComponent(".grok/config.toml")
         case .opencode:
             return home.appendingPathComponent(".config/opencode/opencode.json")
         }
@@ -99,7 +113,8 @@ public enum ClientConfigs {
         client: MCPClient,
         path: String,
         routerPort: Int,
-        fileSystem: FileSystem
+        fileSystem: FileSystem,
+        retainingRouterEntry: Bool = false
     ) -> ClientConfigResult {
         guard fileSystem.fileExists(atPath: path) else { return .absent }
         let data: Data
@@ -110,16 +125,24 @@ public enum ClientConfigs {
         }
 
         switch client {
-        case .codexCLI, .chatGPTCLI:
-            return readTOML(data, routerPort: routerPort)
-        case .claudeCode, .claudeDesktop, .cursor:
-            return readJSON(data, key: "mcpServers", routerPort: routerPort)
+        case .codexCLI, .chatGPTCLI, .grokCLI:
+            // grok spells its table `[mcp_servers.*]`, which is already one of the two names
+            // ``MiniTOML/serverTableNames`` carries. Measured on ~/.grok/config.toml, 2026-08-21.
+            return readTOML(data, routerPort: routerPort, retainingRouterEntry: retainingRouterEntry)
+        case .claudeCode, .claudeDesktop, .cursor, .geminiCLI:
+            return readJSON(
+                data, key: "mcpServers", routerPort: routerPort, retainingRouterEntry: retainingRouterEntry
+            )
         case .opencode:
-            return readJSON(data, key: "mcp", routerPort: routerPort)
+            return readJSON(
+                data, key: "mcp", routerPort: routerPort, retainingRouterEntry: retainingRouterEntry
+            )
         }
     }
 
-    private static func readJSON(_ data: Data, key: String, routerPort: Int) -> ClientConfigResult {
+    private static func readJSON(
+        _ data: Data, key: String, routerPort: Int, retainingRouterEntry: Bool
+    ) -> ClientConfigResult {
         let root: JSONValue
         do {
             root = try JSONParser.parse(data)
@@ -132,7 +155,8 @@ public enum ClientConfigs {
         }
         return finish(
             members.map { DiscoveredServer(name: $0.key.string, raw: $0.value) },
-            routerPort: routerPort
+            routerPort: routerPort,
+            retainingRouterEntry: retainingRouterEntry
         )
     }
 
@@ -142,7 +166,9 @@ public enum ClientConfigs {
     /// picking one. The two tables mean the same thing, so disagreeing about one server is a config
     /// the user needs to fix — and quietly preferring whichever the parser reached first is how a
     /// tool ends up running a command the user thought they had replaced.
-    private static func readTOML(_ data: Data, routerPort: Int) -> ClientConfigResult {
+    private static func readTOML(
+        _ data: Data, routerPort: Int, retainingRouterEntry: Bool
+    ) -> ClientConfigResult {
         let document: MiniTOML.Document
         do {
             document = try MiniTOML.parse(String(bytes: data, encoding: .utf8) ?? "")
@@ -168,7 +194,7 @@ public enum ClientConfigs {
                 found.append(DiscoveredServer(name: name, raw: server))
             }
         }
-        return finish(found, routerPort: routerPort)
+        return finish(found, routerPort: routerPort, retainingRouterEntry: retainingRouterEntry)
     }
 
     private static func serverValue(document: MiniTOML.Document, table: String, name: String) -> JSONValue? {
@@ -188,10 +214,45 @@ public enum ClientConfigs {
 
     /// Drops the router's own entry, which every client gains at install time. Anything that adopts
     /// it would make the router proxy to itself, and every `tools/list` would recurse.
-    private static func finish(_ servers: [DiscoveredServer], routerPort: Int) -> ClientConfigResult {
-        let kept = servers.filter {
+    private static func finish(
+        _ servers: [DiscoveredServer], routerPort: Int, retainingRouterEntry: Bool
+    ) -> ClientConfigResult {
+        // R7 asks the opposite question of the same file, so it keeps what adoption drops. The
+        // router's own entry is the ONLY evidence that a harness is wired at all, and dropping it
+        // here is why ``discover`` cannot tell "not wired" from "wired": the two are identical
+        // once the entry is gone. The default is unchanged, so `import` and `watch` see exactly
+        // what they saw before.
+        let kept = retainingRouterEntry ? servers : servers.filter {
             !SelfReference.isSelfReference(name: $0.name, raw: $0.raw, port: routerPort)
         }
         return kept.isEmpty ? .declaresNone : .servers(kept)
+    }
+
+    /// Discovery for **R7**: every entry, including the one that points at this router.
+    ///
+    /// Separate from ``discover(homeDirectory:projectDirectory:routerPort:fileSystem:)`` rather
+    /// than replacing it, because the two want opposite things from the same bytes. Adoption must
+    /// never see the router's own entry or it proxies to itself; reconciliation must see it or it
+    /// cannot answer the only question it was built for.
+    public static func inventory(
+        homeDirectory: String = NSHomeDirectory(),
+        projectDirectory: String? = nil,
+        routerPort: Int = RouterHome.defaultPort,
+        fileSystem: FileSystem = RealFileSystem()
+    ) -> [ClientConfigReport] {
+        MCPClient.allCases.compactMap { client in
+            guard let path = path(
+                for: client, homeDirectory: homeDirectory, projectDirectory: projectDirectory
+            )
+            else { return nil }
+            return ClientConfigReport(
+                client: client,
+                path: path,
+                result: read(
+                    client: client, path: path, routerPort: routerPort,
+                    fileSystem: fileSystem, retainingRouterEntry: true
+                )
+            )
+        }
     }
 }

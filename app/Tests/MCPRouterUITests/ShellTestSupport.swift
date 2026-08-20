@@ -121,6 +121,10 @@
             "app/Sources/MCPRouterUI/Shell/ShellWindow.swift",
             "app/Sources/MCPRouterUI/Shell/Sidebar.swift",
             "app/Sources/MCPRouterUI/Shell/Readout.swift",
+            // M27's foot line, enrolled here rather than merely added to the directory: it is the
+            // one element in the shell drawn on every board, so a token or indicator-colour gate
+            // that could not see it would be blind on all nine surfaces at once.
+            "app/Sources/MCPRouterUI/Shell/SidebarFoot.swift",
             "app/Sources/MCPRouterUI/Shell/ScaffoldPane.swift",
             "app/Sources/MCPRouterUI/Shell/ScrollEdge.swift",
             "app/Sources/MCPRouterUI/Shell/ShellChrome.swift",

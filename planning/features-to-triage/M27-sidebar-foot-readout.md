@@ -60,3 +60,69 @@ working, record it and leave it.
 
 **Do not activate MCPRouter to take a capture by hand.** The campaign's standing constraint
 is that this lane never activates the app; the capture script is the supported route.
+
+---
+
+## What was delivered — 2026-08-21, branch `ai/m27`
+
+Both elements settled independently, both restored, and one further divergence recorded and left.
+
+### 1 · The loopback readout — restored, without its dot
+
+`SidebarFoot` draws `127.0.0.1:<port>` at the foot of the shared sidebar wrapper, so it is on every
+board rather than one. Two things about it are decisions rather than transcription:
+
+**The port is the observed one.** `LoopbackFoot.reading(for:)` takes it from
+`ServerStateTracker.TrackerState.port` — the port the router answered on — which is the same value
+`SettingsPresentation.RouterFacts.endpoint` reads. Both now compose through one `LoopbackAddress`,
+so the two surfaces cannot drift, and `addressIsSpelledInOnePlace` fails the build if a third
+surface writes its own. The mock's literal `:8879` is what the honesty rule looks like pointed
+outward: the fixture router answers on **8971**, so a build carrying the literal would tell a user
+who moved the port to reach for the wrong one. `theObservedPortIsTheOneShown` drives that: the line
+reads the fixture's port and is asserted not to end in `:8879`.
+
+**There is no dot, and that is the deviation.** The brief asked for "a dot reflecting observed
+reachability". Two out-of-family reviews — `gemini-3.7-flash-high` and `grok-4.6` — independently
+refused the mock's `--live` one, and on the same ground: `DESIGN.md` §2 gives `--live` exactly one
+meaning, *a child process is running*, and it is already spent correctly on the count in the card
+directly above. A green dot beside a card reading `0 of 4` paints that meaning where nothing is
+running. A neutral dot was the remaining option and fails §6 instead — a signal meaning "answering"
+needs a word for that state, `ControlAPIError` already owns that word, and "not answering" would be
+**false for `.unauthorized`**, where the router answers 401 and the poll still fails. So the foot
+says where the app is pointed and the card above says how the router is. Recorded in `DESIGN.md` §2
+under *The sidebar foot*, and the mock is amended to match.
+
+Its four states are in `DESIGN.md` and driven by tests: skeleton before the first answer, the
+address once the router has answered, the address unchanged through a failed refresh (the port is
+documented as surviving a failure), and **nothing at all — no line, no divider — when nothing has
+ever answered**, because there is no address to show and the card above is already carrying that
+state verbatim.
+
+### 2 · The child-process label — the design wins, as the brief expected
+
+`ReadoutCopy.runningLabel` → `childProcessesLabel = "Child processes"`, and the readout now sits in
+the card `prototype.html` draws: `--f3` plate, `--line` hairline, §2's card radius, its own margins.
+The full-bleed divider above it is gone — a rule above a bordered plate is two separations doing one
+job — and the divider now sits where the mock puts it, above the foot line. The old label was also
+colliding with the sidebar's own `Running` group header two rows above, which is a different thing.
+
+### 3 · The third divergence, recorded and left
+
+The mock draws the count as a 26px display numeral over `of N declared`; the build draws a
+label-left / value-right row and still does. That is a type and density decision rather than a
+missing element, so it converts under **M23**'s mock-to-SwiftUI contract with the rest of the board.
+`grok-4.6` argued the card should land with the numeral or not at all; the brief scopes this item to
+the label and the card, and to recording rather than fixing a third divergence, so the objection is
+logged here rather than acted on.
+
+### Coverage
+
+- `app/Tests/MCPRouterKitTests/LoopbackReadoutTests.swift` — one composition for both surfaces, the
+  observed port, the four states, and no status wording.
+- `app/Tests/MCPRouterUITests/SidebarFootTests.swift` — the running model's foot, the offline
+  model's absence, no indicator colour in the file, the card, the label, the single divider.
+- `scripts/acceptance/mac-shell.sh` — on glass, inside the existing single-launch walk: the foot's
+  address and the `Child processes` label are asserted **on all eight destinations**, bound to the
+  sidebar by geometry so Settings' own Endpoint row at x≈942 cannot satisfy it, with the expected
+  port read out of the fixture recording rather than typed. The offline lane asserts the line's
+  absence.

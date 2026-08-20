@@ -900,7 +900,37 @@ for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
     DROP="$(awk -v a="$TY" -v b="$CY" 'BEGIN { printf "%.1f", a - b }')"
     awk -v d="$DROP" 'BEGIN { exit !(d <= 40 && d >= -1) }' \
       || fail "$dest starts ${DROP}pt below the content top — the board is centred in the shell's over-tall frame rather than aligned to it"
-    echo "  ok — $dest: 1 content scroll area, first element ${DROP}pt below the content top"
+    # M27 — SURF-001's two foot elements, on this destination.
+    #
+    # Both live in the *shared sidebar wrapper*, so the claim is "on every board" rather than "on
+    # one", and a single-board check would have passed against the build this closes: the campaign's
+    # differential found the loopback line on **0 of 9** destinations and the string `Child
+    # processes` on 0 of 9, while every existing gate was green.
+    #
+    # Bound to the sidebar by geometry, not by presence. The Settings board draws `127.0.0.1` in its
+    # own Endpoint row at x≈942, which is the content zone — a naive window-wide grep would have
+    # reported the foot line present on the one board that never had it.
+    FOOT="$(awk -F'\t' -v b="$SIDE_R" '
+        $13 < b && $13 > 0 {
+            for (i = 4; i <= 6; i++) if ($i ~ /^Router endpoint, 127\.0\.0\.1:[0-9]+$/) { print $i; exit }
+        }' "$WORK/window.tsv")"
+    [ -n "$FOOT" ] \
+      || fail "$dest: the sidebar foot carries no loopback readout — it is in the shared wrapper, so it belongs on every board (M27)"
+
+    # The port is the one the running router answered on, never the mock's constant. The Debug
+    # fixture answers on 8971; a line reading 8879 is a line composed from a literal.
+    WANT_PORT="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['port'])" \
+      "$APP_DIR/Sources/MCPRouterKit/Control/Fixtures/servers.json")"
+    [ "$FOOT" = "Router endpoint, 127.0.0.1:$WANT_PORT" ] \
+      || fail "$dest: the foot reads '$FOOT', but the router this app is talking to answered on $WANT_PORT"
+
+    awk -F'\t' -v b="$SIDE_R" '
+        $13 < b && $13 > 0 {
+            for (i = 4; i <= 6; i++) if ($i == "Child processes") { found = 1 }
+        } END { exit !found }' "$WORK/window.tsv" \
+      || fail "$dest: the sidebar's count is unlabelled — the design of record names it 'Child processes' (M27)"
+
+    echo "  ok — $dest: 1 content scroll area, first element ${DROP}pt below the content top, foot reads $FOOT"
 done
 
 # D3 — the rename is complete rather than half-applied. `Evals` was the one label in this app
@@ -1172,6 +1202,17 @@ for state in offline unauthorized; do
     if printf '%s\n' "$STATE_TEXT" | grep -qE '^[0-9]+ of [0-9]+ declared servers running$'; then
         fail "the $state state still renders running counts — a count is a claim about a router that did not answer (A18)"
     fi
+    # M27 — the foot's fourth state, on glass. Nothing ever answered, so no address was ever
+    # observed and the line is not drawn. An address rendered here would be a location the app
+    # cannot claim to have reached; the readout above is already carrying this state in
+    # `ControlAPIError`'s own words, which the assertion above just checked.
+    if [ "$state" = "offline" ]; then
+        if printf '%s\n' "$STATE_TEXT" | grep -qE '^Router endpoint, '; then
+            fail "the offline app draws a loopback address for a router that never answered (M27)"
+        fi
+        pass "offline: the sidebar foot draws no address, because none was ever observed"
+    fi
+
     pass "$state: the app carries \"$want\" verbatim, and renders no counts"
     check_invisible "the $state state"
 done

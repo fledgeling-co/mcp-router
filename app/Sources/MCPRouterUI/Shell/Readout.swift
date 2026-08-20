@@ -13,7 +13,13 @@
     /// Sentence case throughout, per `DESIGN.md` §6, and no uppercasing transform anywhere.
     public enum ReadoutCopy {
         /// The at-rest readout's own label. Prose, so it is never monospaced (§2).
-        public static let runningLabel = "Running"
+        ///
+        /// **`Child processes`, not `Running`, since M27.** The design of record labels this card
+        /// `Child processes` and the build drew the count unlabelled; the string appeared in 0 of 9
+        /// accessibility dumps of the running app. The label carries no honesty question — it names
+        /// what the number already is — so the design wins. `Running` also collided with the
+        /// sidebar's own `Running` group header, which is a different thing two rows above it.
+        public static let childProcessesLabel = "Child processes"
 
         /// "3 of 8" — child processes running against servers declared. Both numbers come from one
         /// `/servers` response and nothing is derived from them.
@@ -55,11 +61,38 @@
         /// The gap between the readout's three rows, and its inner padding.
         public static let spacing = MetricToken.selectionInset.leadingScalar
 
-        /// The whole readout: a counts row, the trace, a footer row, and padding above and below.
+        /// The whole readout: a counts row, the trace, a footer row, and the card's own padding
+        /// above and below.
+        ///
+        /// The padding term is `cardPadding`, not `spacing`, since M27 put the readout inside the
+        /// card the design of record draws. The composition is what A29 turns on rather than the
+        /// total: skeleton and populated form are held to one constant, whatever that constant is.
         public static let height =
             MetricToken.tableRows.leadingScalar * 2
                 + traceHeight
-                + spacing * 4
+                + spacing * 2
+                + cardPadding * 2
+
+        // MARK: - The card the readout sits in (M27)
+
+        /// The gap between the card and the sidebar's three edges.
+        ///
+        /// The card is what `design/mocks/prototype.html` draws and the build had lost: the count
+        /// was an uncarded row against the nav list, so nothing said where the list ended and the
+        /// instrument began. Derived from the selection inset rather than picked, like every other
+        /// number in this file.
+        public static let cardMargin = MetricToken.selectionInset.leadingScalar * 2
+
+        /// The card's own inner padding, which is what the readout's horizontal padding already was.
+        public static let cardPadding = MetricToken.selectionRadius.leadingScalar
+
+        /// `DESIGN.md` §2's "card radius 10–14", reached the way `SettingsMetrics.cardRadius`
+        /// reaches it, so the two cards in this app are one radius rather than two.
+        public static let cardRadius =
+            MetricToken.selectionRadius.leadingScalar + MetricToken.selectionInset.leadingScalar / 2
+
+        /// A hairline, at the focus ring's half — the width every other line in this app is drawn at.
+        public static let hairline = MetricToken.focusRing.leadingScalar / 2
     }
 
     /// The at-rest readout in the sidebar's footer.
@@ -96,14 +129,27 @@
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, MetricToken.selectionRadius.leadingScalar)
-            .padding(.vertical, ReadoutGeometry.spacing)
+            .padding(ReadoutGeometry.cardPadding)
+            .background(card)
+        }
+
+        /// The card itself — the element `prototype.html` draws around this readout and the build
+        /// had lost. A quiet raised plate: the tertiary fill, a hairline bezel, and §2's card
+        /// radius. Nothing here is an indicator colour; the instrument inside it is what carries
+        /// meaning.
+        private var card: some View {
+            RoundedRectangle(cornerRadius: ReadoutGeometry.cardRadius, style: .continuous)
+                .fill(ColorToken.f3.color)
+                .overlay(
+                    RoundedRectangle(cornerRadius: ReadoutGeometry.cardRadius, style: .continuous)
+                        .strokeBorder(ColorToken.line.color, lineWidth: ReadoutGeometry.hairline)
+                )
         }
 
         @ViewBuilder
         private func counts(running: Int, declared: Int, note: String?) -> some View {
             HStack(alignment: .firstTextBaseline, spacing: ReadoutGeometry.spacing) {
-                Text(ReadoutCopy.runningLabel)
+                Text(ReadoutCopy.childProcessesLabel)
                     .typeRole(.subheadline)
                     .foregroundStyle(ColorToken.t3.color)
                 Spacer(minLength: 0)

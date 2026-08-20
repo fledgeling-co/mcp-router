@@ -37,12 +37,20 @@
         let reading: LoopbackFoot
 
         var body: some View {
-            HStack(spacing: 0) {
-                content
-                Spacer(minLength: 0)
+            // The presence decision is applied HERE as well as at the call site, rather than only
+            // there. The frame is fixed, so an `.absent` reading rendered through this view without
+            // the caller's guard draws a blank band the height of a dense row — a component that
+            // leaks space when it has nothing to say, which is the trap `EmptyView` inside a fixed
+            // frame always sets. The caller still guards, because it owns the divider that travels
+            // with the line.
+            if SidebarFootPresence.isDrawn(reading) {
+                HStack(spacing: 0) {
+                    content
+                    Spacer(minLength: 0)
+                }
+                .frame(height: SidebarFootGeometry.height)
+                .padding(.horizontal, SidebarFootGeometry.leading)
             }
-            .frame(height: SidebarFootGeometry.height)
-            .padding(.horizontal, SidebarFootGeometry.leading)
         }
 
         @ViewBuilder

@@ -137,8 +137,11 @@
                     traceLabel: model.traceLabel()
                 )
                 .frame(height: readoutHeight)
-                .padding(.horizontal, ReadoutGeometry.cardMargin)
-                .padding(.bottom, ReadoutGeometry.cardMargin)
+                // All four edges. The top one was missing and the card sat flush against the last
+                // nav row — the divider that used to separate them went with the card, so nothing
+                // was left holding them apart. `DESIGN.md` §2 says the card's margins are its own,
+                // which means the same margin on every side.
+                .padding(ReadoutGeometry.cardMargin)
 
                 if SidebarFootPresence.isDrawn(foot) {
                     Divider()

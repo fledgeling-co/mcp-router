@@ -48,6 +48,18 @@
         }
     }
 
+    /// Which tier the counts numeral is painted in, held here so the rule is a value rather than a
+    /// condition buried in a view body.
+    ///
+    /// `--live` means *a child process is running* and §2 makes that meaning exclusive. The numeral
+    /// earns it while the count is above zero and does not while it is zero, which is the same test
+    /// this branch applied to the mock's foot dot and then failed to apply to the number beside it.
+    public enum ReadoutTint {
+        public static func counts(running: Int) -> ColorToken {
+            running > 0 ? .live : .t1
+        }
+    }
+
     /// The readout's geometry, so the skeleton can be exactly the populated form's size.
     ///
     /// A29 turns on this being one number rather than two: a skeleton at a different height makes
@@ -164,27 +176,44 @@
                 Spacer(minLength: 0)
                 // Instrument data, so monospaced — and `--live` because this number *is* the count
                 // of child processes running, which is that token's one documented meaning.
+                //
+                // **Only while it is above zero**, which is the half M27 got wrong in the same
+                // change that made it checkable. §2 gives `--live` exactly one meaning and this
+                // branch's own design text refuses a green dot beside a card reading `0 of 4` on
+                // that ground — while the numeral was painting `--live` on that very reading. Both
+                // out-of-family reviews landed on it. `.populated(running: 0, declared: m)` is
+                // reachable whenever servers are declared and all of them are idle, which is the
+                // ordinary morning state of this app, so it is not a corner.
+                //
+                // Zero falls to `--t1` rather than to a dimmer tier: nothing is running, but the
+                // reading is still the loudest thing the card has to say.
                 Text(ReadoutCopy.counts(running: running, declared: declared))
                     .typeRole(.body, monospaced: true)
-                    .foregroundStyle(ColorToken.live.color)
-                    // A35's sentence, unchanged, and now carried by the numeral itself rather than
-                    // by the row.
-                    //
-                    // **The row used to merge with `children: .ignore`, and that hid the label from
-                    // every instrument that reads the accessibility plane.** M27's own on-glass
-                    // gate caught it: the label was on screen and `Child processes` was still
-                    // absent from the tree, which is the same reading the campaign's differential
-                    // took when it found the label missing altogether. A fix the measuring
-                    // instrument cannot see is a fix that gets re-reported.
-                    //
-                    // Two elements rather than one is right here in any case: both are
-                    // self-describing, so this is not the loose-number failure A35 was written
-                    // about — a reader hears what the number counts, then the number as a sentence.
+                    .foregroundStyle(ReadoutTint.counts(running: running).color)
+                    // A35's sentence, on the numeral, so `.combine` below has something to join
+                    // the label to.
                     .accessibilityLabel(
                         ReadoutCopy.accessibilityLabel(running: running, declared: declared)
                     )
             }
             .frame(height: MetricToken.tableRows.leadingScalar)
+            // **`.combine`, not `.ignore` and not neither** — and the difference between those three
+            // is the whole of what M27 found here.
+            //
+            // `.ignore` was what shipped, and it discarded the label: the row published one element
+            // whose text was the counts sentence, so `Child processes` was on screen and absent
+            // from every instrument that reads the accessibility plane. That is the same reading
+            // the campaign's differential took when it reported the label missing altogether, and a
+            // fix the measuring instrument cannot see is a fix that gets re-reported.
+            //
+            // Leaving the row unmerged fixed the visibility and broke A35 and §6 instead: two stops
+            // for one metric, and the row saying `Child processes` while the sentence says
+            // `declared servers running` — one fact under two wordings, from two places.
+            //
+            // `.combine` is the one that satisfies all three. One element, one stop, one sentence
+            // that names what the number is and then says it, and the label is a substring of what
+            // the tree publishes rather than absent from it.
+            .accessibilityElement(children: .combine)
 
             TraceStrip(points: tracePoints)
                 .frame(height: ReadoutGeometry.traceHeight)

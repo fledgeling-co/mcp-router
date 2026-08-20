@@ -103,6 +103,15 @@
             #expect(card.contains("ReadoutGeometry.cardRadius"), "the card is not at §2's card radius")
             #expect(card.contains("ColorToken.f3"), "the card has no plate")
             #expect(card.contains("ColorToken.line"), "the card has no bezel")
+            // **That the card is DECLARED is not that it is drawn**, and both reviewing families
+            // named the same surviving mutation: delete `.background(card)` from the body and the
+            // readout renders uncarded again — M27's original defect, restored — while this test,
+            // every source scan and the accessibility gate all stay green. A card nothing attaches
+            // is a private property Swift does not even warn about.
+            #expect(
+                source.contains(".background(card)"),
+                "the card is declared and never attached to the readout"
+            )
             // §2's "card radius 10–14", reached from tokens rather than typed.
             #expect(ReadoutGeometry.cardRadius >= 10)
             #expect(ReadoutGeometry.cardRadius <= 14)
@@ -111,11 +120,50 @@
         @Test("the sidebar gives the card its margins and drops the rule that stood in for it")
         func theCardHasMarginsAndNoDividerAboveIt() throws {
             let source = try ShellTestSupport.repoFile("app/Sources/MCPRouterUI/Shell/Sidebar.swift")
-            #expect(source.contains("ReadoutGeometry.cardMargin"))
+            // All four edges rather than three. The first form padded horizontally and at the
+            // bottom, so the card sat flush against the last nav row — the divider that used to
+            // hold them apart went with the card that replaced it, and nothing took its place.
+            #expect(source.contains(".padding(ReadoutGeometry.cardMargin)"))
+            #expect(
+                !source.contains(".padding(.bottom, ReadoutGeometry.cardMargin)"),
+                "the card is padded on three edges, so its top margin is missing"
+            )
             // One `Divider()` remains in the sidebar — the one above the foot line. Two would mean
             // the rule above the readout survived the card that replaced it.
             #expect(source.components(separatedBy: "Divider()").count - 1 == 1)
             #expect(ReadoutGeometry.cardMargin > 0)
+        }
+
+        // MARK: - The count spends --live only where --live is true
+
+        @Test("a count of zero is not painted in the running colour")
+        func zeroIsNotPaintedLive() throws {
+            // The contradiction this closes was created by M27 itself, which is why it belongs to
+            // M27: the design text written in 418357b refuses the mock's `--live` foot dot on the
+            // ground that a green mark beside a card reading `0 of 4` paints "a child process is
+            // running" where none is — while the numeral in that very card was painted `--live`
+            // unconditionally. Both out-of-family reviews found it.
+            //
+            // `.populated(running: 0, declared: m)` is reachable whenever servers are declared and
+            // all of them are idle, which is this app's ordinary morning state rather than a corner.
+            #expect(ReadoutTint.counts(running: 0) == .t1)
+            #expect(ReadoutTint.counts(running: 1) == .live)
+            #expect(ReadoutTint.counts(running: 4) == .live)
+            // Structural, because the arithmetic above passes against a view that ignores the rule.
+            let source = try ShellTestSupport.repoFile("app/Sources/MCPRouterUI/Shell/Readout.swift")
+            #expect(source.contains("ReadoutTint.counts(running: running)"))
+            #expect(
+                !source.contains(".foregroundStyle(ColorToken.live.color)"),
+                "the counts numeral paints --live unconditionally again"
+            )
+            // And the registry says what the render now does. §2's exclusivity is only checkable
+            // because this list is the one place an indicator use is declared.
+            #expect(
+                ShellChrome.indicatorUses.contains {
+                    $0.token == .live && $0.element.contains("above zero")
+                },
+                "the indicator registry still claims the count is --live unconditionally"
+            )
         }
 
         // MARK: - The card's interior, which the skeleton has to fill exactly
@@ -154,7 +202,7 @@
         }
 
         @Test("the foot's left edge is the card's label edge")
-        func theFootAlignsWithTheCardsContent() {
+        func theFootAlignsWithTheCardsContent() throws {
             // One left edge down the whole sidebar foot. `prototype.html` sets the card's margin and
             // the foot's padding independently and they do not line up; this is the better reading
             // of the same design rather than a new number.
@@ -162,6 +210,12 @@
                 SidebarFootGeometry.leading == ReadoutGeometry.cardMargin + ReadoutGeometry.cardPadding
             )
             #expect(SidebarFootGeometry.height > 0)
+            // The line above restates `leading`'s own definition and would hold against a view that
+            // never applies it — an out-of-family review named exactly that. So: the view applies
+            // it, and the height with it.
+            let source = try ShellTestSupport.repoFile("app/Sources/MCPRouterUI/Shell/SidebarFoot.swift")
+            #expect(source.contains(".padding(.horizontal, SidebarFootGeometry.leading)"))
+            #expect(source.contains(".frame(height: SidebarFootGeometry.height)"))
         }
     }
 #endif

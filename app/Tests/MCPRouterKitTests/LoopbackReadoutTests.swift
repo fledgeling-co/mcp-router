@@ -18,6 +18,24 @@ struct LoopbackReadoutTests {
         case fileNotFound(String)
     }
 
+    /// The repository root, found by walking up until a known path resolves. The same search
+    /// `repoFile` does, hoisted so a caller that needs to enumerate rather than read one file can
+    /// use it.
+    private func repoRoot(from filePath: String = #filePath) throws -> URL {
+        var dir = URL(fileURLWithPath: filePath).deletingLastPathComponent()
+        for _ in 0 ..< 8 {
+            let marker = dir.appendingPathComponent("app/Sources/MCPRouterKit")
+            var isDirectory: ObjCBool = false
+            if FileManager.default.fileExists(atPath: marker.path, isDirectory: &isDirectory),
+               isDirectory.boolValue
+            {
+                return dir
+            }
+            dir = dir.deletingLastPathComponent()
+        }
+        throw OracleError.fileNotFound("app/Sources/MCPRouterKit")
+    }
+
     private func repoFile(_ relativePath: String, from filePath: String = #filePath) throws -> String {
         var dir = URL(fileURLWithPath: filePath).deletingLastPathComponent()
         for _ in 0 ..< 8 {
@@ -54,18 +72,76 @@ struct LoopbackReadoutTests {
         // writes its own "127.0.0.1:\(port)" is a second place for the host to be wrong and a
         // second place a hard-coded port can be reintroduced, which is precisely how the mock's
         // `:8879` got there.
-        for file in [
-            "app/Sources/MCPRouterKit/Shell/SettingsPresentation.swift",
-            "app/Sources/MCPRouterUI/Shell/SidebarFoot.swift",
-            "app/Sources/MCPRouterUI/Shell/Sidebar.swift",
-            "app/Sources/MCPRouterUI/Boards/SettingsBoard.swift"
-        ] {
-            let source = try repoFile(file)
-            #expect(
-                !source.contains("\"127.0.0.1"),
-                "\(file) spells the loopback host itself instead of naming LoopbackAddress"
-            )
+        //
+        // **It walks the presentation trees rather than a list of four files, and it forbids a
+        // composed address rather than the bare host.** Both narrowings were found by out-of-family
+        // review and both are the same mistake: a guard against a literal appearing *somewhere*
+        // that only looks where it has already appeared, and only in one spelling. A new board was
+        // outside it, and so was `"http://127.0.0.1:8879"` inside it, because the opening quote
+        // there precedes the scheme.
+        //
+        // Scope is the two trees that RENDER an address to a person. `RouterCore` and
+        // `MCPRouterCLI` bind and dial the socket and are supposed to name the host; so is
+        // `Control/LiveControlAPIClient`, whose default base URL is a dial target rather than a
+        // reading. What is forbidden is `host:` — the composed form — so
+        // `StateContainer`'s honest prose sentence "Nothing is listening on 127.0.0.1." stays
+        // legal, which it should: it is a sentence about the loopback interface, not an endpoint
+        // the user is being told to reach for.
+        let root = try repoRoot()
+        let composed = LoopbackAddress.host + ":"
+        var offenders: [String] = []
+        var scanned = 0
+        for tree in ["app/Sources/MCPRouterUI", "app/Sources/MCPRouterKit/Shell"] {
+            let base = root.appendingPathComponent(tree)
+            let paths = try FileManager.default.subpathsOfDirectory(atPath: base.path)
+                .filter { $0.hasSuffix(".swift") }
+            #expect(!paths.isEmpty, "\(tree) enumerated no Swift files — the guard would be vacuous")
+            for relative in paths where relative != "LoopbackReadout.swift" {
+                scanned += 1
+                let source = try String(
+                    contentsOf: base.appendingPathComponent(relative),
+                    encoding: .utf8
+                )
+                // Comments are stripped rather than exempted by name: several of these files
+                // discuss the mock's `127.0.0.1:8879` in prose, and a guard carrying a list of them
+                // would go stale the same way the four-file list did.
+                let code = source
+                    .split(separator: "\n", omittingEmptySubsequences: false)
+                    .map { line -> Substring in
+                        guard let comment = line.range(of: "//") else { return line }
+                        return line[line.startIndex ..< comment.lowerBound]
+                    }
+                    .joined(separator: "\n")
+                if code.contains(composed) { offenders.append("\(tree)/\(relative)") }
+            }
         }
+        // The one file allowed to compose it is outside both trees' exclusion by name; assert the
+        // scan actually reached files, so a moved directory reports as a broken guard rather than
+        // as a clean one.
+        #expect(scanned > 10, "only \(scanned) files scanned — the presentation trees moved")
+        #expect(LoopbackAddress.hostPort(8971).contains(composed))
+        #expect(
+            offenders.isEmpty,
+            "these compose the loopback address themselves instead of naming LoopbackAddress: \(offenders)"
+        )
+    }
+
+    @Test("a successful poll shows the port it observed, whatever that port is")
+    func loadedShowsAnArbitraryObservedPort() async {
+        // Every other `.loaded` case in this suite runs on the recording's own 8971, and an
+        // out-of-family review was right that this leaves the one mutation that matters alive: a
+        // view that hard-codes 8971 for a successful poll while honouring `state.port` on a stale
+        // one passes every unit, UI and on-glass gate in this branch, and tells a user who moved
+        // the port to reach for the wrong one. 51234 is neither the recording's port nor the mock's.
+        let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated), stream: nil)
+        let observed = try? await FixtureControlAPIClient(.populated).servers()
+        guard var response = observed else {
+            Issue.record("the populated recording did not decode")
+            return
+        }
+        response.port = 51234
+        await tracker.apply(poll: response)
+        #expect(await LoopbackFoot.reading(for: tracker.state()) == .address("127.0.0.1:51234"))
     }
 
     @Test("the fixture router's own port reaches the line, not the mock's constant")
@@ -133,6 +209,43 @@ struct LoopbackReadoutTests {
                 #expect(
                     !string.lowercased().contains(forbidden),
                     "'\(string)' names a state ControlAPIError already words"
+                )
+            }
+        }
+    }
+
+    @Test("the foot's view puts no status word on screen either")
+    func theViewCarriesNoStatusWording() throws {
+        // The suite above reads `LoopbackFootCopy` and `LoopbackAddress`, which an out-of-family
+        // review pointed out is the wrong population for the claim: a literal `Text("connected")`
+        // added to `SidebarFoot` is a status word on screen and invisible to a check that only
+        // looks at the copy enum. This reads the view's own string literals instead.
+        let source = try repoFile("app/Sources/MCPRouterUI/Shell/SidebarFoot.swift")
+        // Comments carry the reasoning for this very rule and are full of these words, so the
+        // population is string literals in code rather than the file.
+        let code = source
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map { line -> Substring in
+                guard let comment = line.range(of: "//") else { return line }
+                return line[line.startIndex ..< comment.lowerBound]
+            }
+            .joined(separator: "\n")
+        var literals: [String] = []
+        var rest = Substring(code)
+        while let open = rest.firstIndex(of: "\"") {
+            let after = rest.index(after: open)
+            guard let close = rest[after...].firstIndex(of: "\"") else { break }
+            literals.append(String(rest[after ..< close]))
+            rest = rest[rest.index(after: close)...]
+        }
+        for forbidden in [
+            "answering", "connected", "disconnected", "online", "offline",
+            "reachable", "unreachable", "live", "down"
+        ] {
+            for literal in literals {
+                #expect(
+                    !literal.lowercased().contains(forbidden),
+                    "SidebarFoot draws '\(literal)', which names a state ControlAPIError already words"
                 )
             }
         }

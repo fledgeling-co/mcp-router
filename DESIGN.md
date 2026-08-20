@@ -170,7 +170,7 @@ entirely and half of the other, and neither absence was visible to any check.
 
 | Element | What it draws |
 |---|---|
-| The readout card | A plate — `--f3` fill, `--line` hairline — holding the label `Child processes`, the counts `n of m`, the 60-second trace and its footer. Its margins are the card's own; there is no divider above it, because a rule above a bordered plate is two separations doing one job |
+| The readout card | A plate — `--f3` fill, `--line` hairline — holding the label `Child processes`, the counts `n of m`, the 60-second trace and its footer. Its margin is the same on **all four** edges; there is no divider above it, because a rule above a bordered plate is two separations doing one job — which means nothing but that margin holds it off the last destination row |
 | The foot line | The loopback address the app is talking to — `127.0.0.1:<port>` — in monospace at `--t3`, over a divider |
 
 Its geometry is **derived from the table above rather than added to it**, the way the boards'
@@ -180,16 +180,24 @@ of 10 — and the foot line is one dense row plus that inset above and below. Th
 table is the token table, and a value composed from tokens does not earn a token of its own.
 
 **The port is the observed one, never a constant.** Both this line and Settings' `Endpoint` row
-compose from `LoopbackAddress`, which takes the port the router answered on. `prototype.html:681`
-draws the literal `127.0.0.1:8879`; the fixture router answers on 8971, so the literal is the
-honesty rule broken outward — a user who moved the port would be told to reach for the wrong one.
-The prototype is stale in that one character range and is annotated as such.
+compose from `LoopbackAddress`, which takes the port the router answered on. The prototype *drew*
+the literal `127.0.0.1:8879` while the fixture router answered on 8971 — the honesty rule broken
+outward, since a user who moved the port would be told to reach for the wrong one. It was amended
+on this branch and now draws `127.0.0.1:${S.port}` from a `port` value, with the annotation saying
+why; this paragraph is the record of what it used to say, not a live description of it.
 
 **The foot says where the app is pointed. It does not say how the router is.** The prototype paints
 a `--live` dot on this line and the shipped build does not, deliberately. `--live` means *a child
 process is running* and it is already spent, correctly, on the count in the card directly above; a
 green dot beside a card reading `0 of 4` paints that meaning where nothing is running, which is the
-decorative use §2 forbids. A dot in a neutral tier was the remaining option and it fails §6 instead:
+decorative use §2 forbids.
+
+That argument convicted the numeral too, and it took three out-of-family reviews to notice: the
+count itself was painted `--live` unconditionally, so `0 of 4` was already the green mark this
+paragraph refuses. **The count spends `--live` only above zero** and falls to `--t1` at zero, where
+nothing is running but the reading is still the loudest thing the card has to say. The trace keeps
+`--live` at every value: its stroke identifies which quantity is plotted, and a flat line at zero
+is a reading of the count rather than a claim that something is up. A dot in a neutral tier was the remaining option and it fails §6 instead:
 a signal meaning "answering" needs a word for that state, `ControlAPIError` already owns that word,
 and "not answering" would be false for `.unauthorized`, where the router answers 401 and the poll
 still fails. The router's condition is the card's job.

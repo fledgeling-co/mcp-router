@@ -895,6 +895,36 @@ WANT_PORT="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['por
   "$APP_DIR/Sources/MCPRouterKit/Control/Fixtures/servers.json")"
 [ -n "$WANT_PORT" ] || blocked "could not read the fixture router's port out of servers.json"
 
+# An optional evidence capture, off unless `MCPR_EVIDENCE_DIR` is set, so an ordinary gate run still
+# writes nothing outside its scratch directory.
+#
+# It exists because the campaign's rule about published captures is the one this item was reported
+# under: a picture is only evidence when something binds it to the surface it claims to show. A wall
+# of captures on this project once showed three unrelated documents while every gate stayed green,
+# and only the filename tied a picture to a screen. So each capture is taken by **CGWindowID** — the
+# only route that photographs THIS window rather than whatever is on top of a screen rectangle — and
+# a row is written naming the destination, that window id, the bundle the pid is executing, and the
+# exact string the assertion above read out of the accessibility tree in the same iteration. A
+# capture whose row disagrees with its neighbours is visibly not of the surface it says.
+EVIDENCE_DIR="${MCPR_EVIDENCE_DIR:-}"
+if [ -n "$EVIDENCE_DIR" ]; then
+    mkdir -p "$EVIDENCE_DIR"
+    EVIDENCE_WIN="$("$AXKIT" winid "$PID" || true)"
+    [ -n "$EVIDENCE_WIN" ] || blocked "could not resolve the window id for the evidence capture"
+    printf 'destination\twindow_id\tbundle\tfoot_read\tcapture\ttaken_at\n' \
+      > "$EVIDENCE_DIR/captures.tsv"
+fi
+
+capture_evidence() {
+    [ -n "$EVIDENCE_DIR" ] || return 0
+    local dest="$1" foot="$2" out="$EVIDENCE_DIR/sidebar-foot-$1.png"
+    screencapture -o -x -l"$EVIDENCE_WIN" "$out"
+    [ -s "$out" ] || blocked "the evidence capture produced no image — grant Screen Recording"
+    printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+      "$dest" "$EVIDENCE_WIN" "$MAC_APP" "$foot" "$(basename "$out")" "$(date -u +%FT%TZ)" \
+      >> "$EVIDENCE_DIR/captures.tsv"
+}
+
 : > "$WORK/all-panes.tsv"
 for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
     "$AXKIT" select "$PID" "$dest" >/dev/null || fail "could not select $dest"
@@ -963,6 +993,8 @@ for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
             for (i = 4; i <= 6; i++) if (index($i, "Child processes") > 0) { found = 1 }
         } END { exit !found }' "$WORK/window.tsv" \
       || fail "$dest: the sidebar's count is unlabelled — the design of record names it 'Child processes' (M27)"
+
+    capture_evidence "$dest" "$FOOT"
 
     echo "  ok — $dest: 1 content scroll area, first element ${DROP}pt below the content top, foot reads $FOOT"
 done

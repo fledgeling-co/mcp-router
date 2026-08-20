@@ -1,0 +1,1098 @@
+{
+ "_method": "be-my-witness 0.2.0 prescan.py, run over every pair in witness-worklist.json that holds both halves",
+ "_denominator": "16 pairs prescanned; SURF-009 has no build half; SURF-015/016/017 have no design of record",
+ "_result": "isEvidence true 16/16 \u00b7 settled true 16/16 \u00b7 framingComparable 0/16 \u00b7 proceed 0/16",
+ "_why": "Not a dead predicate: the scale ratios differ per lane (0.466x on the SURF-001 sidebar crop, 1.64x on the Mac boards, 0.942x on the phone) rather than returning one constant. Every mock reference was rasterised at a 1280x720 dpr-1 viewport, inside which the prototype draws a fixed artboard rather than filling the frame, so a larger render pads instead of enlarging.",
+ "_measured": "The Mac artboard is #win at 1156x680, aspect 1.700. The build window is 980x620 points, aspect 1.581, captured at 2096x1376 \u2014 solving scale=(2096-1376)/(980-620)=2.0 and margin=(2096-980*2)/2=68 puts the content rect at (68,68,1960,1240), exactly 2x the AX frame. So the build half can be cropped precisely; the two are still different window SHAPES, and no crop reconciles 1.700 with 1.581. Framing comparability is not reachable by re-rendering the reference.",
+ "_conclusion": "The rendered-quality gate (design-review / be-my-witness) is unavailable on these pairs, for a measured reason rather than an unexamined one. The structural and lexical differential in evidence/differential.md is the comparison that IS valid here, and it is the one that ran.",
+ "pairs": {
+  "SURF-001": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-001.shell.png",
+    "width": 596,
+    "height": 1376,
+    "aspect": 0.4331,
+    "meanLuminance": 0.1369,
+    "contentfulCells": 0.2125,
+    "faintCells": 0.3187,
+    "blankCells": 0.3937
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-001.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.244,
+    "scaleRatio": 0.466,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs: 596x1376 vs reference 1280x720 (aspect ratio 0.24). This is a FRAMING difference, not visual drift \u2014 re-crop to the same region before drawing any conclusion about how it looks."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 260,
+     "y": 1238,
+     "w": 74,
+     "h": 274
+    },
+    {
+     "x": 223,
+     "y": 1238,
+     "w": 74,
+     "h": 274
+    },
+    {
+     "x": 149,
+     "y": 1238,
+     "w": 74,
+     "h": 274
+    },
+    {
+     "x": 111,
+     "y": 1238,
+     "w": 74,
+     "h": 274
+    },
+    {
+     "x": 74,
+     "y": 1238,
+     "w": 74,
+     "h": 274
+    },
+    {
+     "x": 558,
+     "y": 1100,
+     "w": 74,
+     "h": 274
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-002": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-002.build.png",
+    "width": 2096,
+    "height": 1376,
+    "aspect": 1.5233,
+    "meanLuminance": 0.1263,
+    "contentfulCells": 0.35,
+    "faintCells": 0.2562,
+    "blankCells": 0.2938
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-002.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.857,
+    "scaleRatio": 1.637,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs by SCALE: 2096x1376 vs reference 1280x720 is 1.637x, which is not a device-pixel-ratio step. The aspect ratios match, so this reads as the same frame and is not \u2014 it is a crop or a zoom. Re-crop to the same region before drawing any conclusion about how it looks. Dimensions alone cannot separate a crop that happens to land exactly on a DPR ratio from a real DPR render: for that, check whether the landmark separations scale with the frame (references/difference-classes.md)."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 1834,
+     "y": 137,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1703,
+     "y": 137,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 655,
+     "y": 137,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 524,
+     "y": 137,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1834,
+     "y": 688,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1703,
+     "y": 688,
+     "w": 262,
+     "h": 274
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-003": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-003.build.png",
+    "width": 2096,
+    "height": 1376,
+    "aspect": 1.5233,
+    "meanLuminance": 0.1224,
+    "contentfulCells": 0.35,
+    "faintCells": 0.2125,
+    "blankCells": 0.25
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-003.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.857,
+    "scaleRatio": 1.637,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs by SCALE: 2096x1376 vs reference 1280x720 is 1.637x, which is not a device-pixel-ratio step. The aspect ratios match, so this reads as the same frame and is not \u2014 it is a crop or a zoom. Re-crop to the same region before drawing any conclusion about how it looks. Dimensions alone cannot separate a crop that happens to land exactly on a DPR ratio from a real DPR render: for that, check whether the landmark separations scale with the frame (references/difference-classes.md)."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 1834,
+     "y": 137,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1703,
+     "y": 137,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 917,
+     "y": 688,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 786,
+     "y": 825,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 786,
+     "y": 688,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 786,
+     "y": 550,
+     "w": 262,
+     "h": 274
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-004": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-004.build.png",
+    "width": 2096,
+    "height": 1376,
+    "aspect": 1.5233,
+    "meanLuminance": 0.1259,
+    "contentfulCells": 0.375,
+    "faintCells": 0.2687,
+    "blankCells": 0.2125
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-004.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.857,
+    "scaleRatio": 1.637,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs by SCALE: 2096x1376 vs reference 1280x720 is 1.637x, which is not a device-pixel-ratio step. The aspect ratios match, so this reads as the same frame and is not \u2014 it is a crop or a zoom. Re-crop to the same region before drawing any conclusion about how it looks. Dimensions alone cannot separate a crop that happens to land exactly on a DPR ratio from a real DPR render: for that, check whether the landmark separations scale with the frame (references/difference-classes.md)."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 1834,
+     "y": 412,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1834,
+     "y": 137,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1703,
+     "y": 412,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1703,
+     "y": 137,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1310,
+     "y": 688,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1310,
+     "y": 412,
+     "w": 262,
+     "h": 274
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-005": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-005.build.png",
+    "width": 2096,
+    "height": 1376,
+    "aspect": 1.5233,
+    "meanLuminance": 0.1243,
+    "contentfulCells": 0.2812,
+    "faintCells": 0.2375,
+    "blankCells": 0.3312
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-005.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.857,
+    "scaleRatio": 1.637,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs by SCALE: 2096x1376 vs reference 1280x720 is 1.637x, which is not a device-pixel-ratio step. The aspect ratios match, so this reads as the same frame and is not \u2014 it is a crop or a zoom. Re-crop to the same region before drawing any conclusion about how it looks. Dimensions alone cannot separate a crop that happens to land exactly on a DPR ratio from a real DPR render: for that, check whether the landmark separations scale with the frame (references/difference-classes.md)."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 1048,
+     "y": 550,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 917,
+     "y": 550,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 786,
+     "y": 550,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 786,
+     "y": 412,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 786,
+     "y": 275,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 786,
+     "y": 137,
+     "w": 262,
+     "h": 274
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-006": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-006.build.png",
+    "width": 2096,
+    "height": 1376,
+    "aspect": 1.5233,
+    "meanLuminance": 0.1277,
+    "contentfulCells": 0.475,
+    "faintCells": 0.2125,
+    "blankCells": 0.15
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-006.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.857,
+    "scaleRatio": 1.637,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs by SCALE: 2096x1376 vs reference 1280x720 is 1.637x, which is not a device-pixel-ratio step. The aspect ratios match, so this reads as the same frame and is not \u2014 it is a crop or a zoom. Re-crop to the same region before drawing any conclusion about how it looks. Dimensions alone cannot separate a crop that happens to land exactly on a DPR ratio from a real DPR render: for that, check whether the landmark separations scale with the frame (references/difference-classes.md)."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 1310,
+     "y": 1238,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1179,
+     "y": 1238,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 786,
+     "y": 1238,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 655,
+     "y": 1238,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1834,
+     "y": 137,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1703,
+     "y": 137,
+     "w": 262,
+     "h": 274
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-007": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-007.build.png",
+    "width": 2096,
+    "height": 1376,
+    "aspect": 1.5233,
+    "meanLuminance": 0.1329,
+    "contentfulCells": 0.4875,
+    "faintCells": 0.225,
+    "blankCells": 0.1938
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-007.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.857,
+    "scaleRatio": 1.637,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs by SCALE: 2096x1376 vs reference 1280x720 is 1.637x, which is not a device-pixel-ratio step. The aspect ratios match, so this reads as the same frame and is not \u2014 it is a crop or a zoom. Re-crop to the same region before drawing any conclusion about how it looks. Dimensions alone cannot separate a crop that happens to land exactly on a DPR ratio from a real DPR render: for that, check whether the landmark separations scale with the frame (references/difference-classes.md)."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 1834,
+     "y": 825,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1834,
+     "y": 688,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1834,
+     "y": 550,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1834,
+     "y": 137,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1703,
+     "y": 825,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1703,
+     "y": 688,
+     "w": 262,
+     "h": 274
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-008": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-008.build.png",
+    "width": 2096,
+    "height": 1376,
+    "aspect": 1.5233,
+    "meanLuminance": 0.1174,
+    "contentfulCells": 0.2,
+    "faintCells": 0.2625,
+    "blankCells": 0.4688
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-008.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.857,
+    "scaleRatio": 1.637,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs by SCALE: 2096x1376 vs reference 1280x720 is 1.637x, which is not a device-pixel-ratio step. The aspect ratios match, so this reads as the same frame and is not \u2014 it is a crop or a zoom. Re-crop to the same region before drawing any conclusion about how it looks. Dimensions alone cannot separate a crop that happens to land exactly on a DPR ratio from a real DPR render: for that, check whether the landmark separations scale with the frame (references/difference-classes.md)."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 1834,
+     "y": 137,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1310,
+     "y": 550,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1310,
+     "y": 412,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1179,
+     "y": 550,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1179,
+     "y": 412,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 655,
+     "y": 137,
+     "w": 262,
+     "h": 274
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-010": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-010.build.png",
+    "width": 2096,
+    "height": 1376,
+    "aspect": 1.5233,
+    "meanLuminance": 0.1015,
+    "contentfulCells": 0.1062,
+    "faintCells": 0.4437,
+    "blankCells": 0.3563
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-010.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.857,
+    "scaleRatio": 1.637,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs by SCALE: 2096x1376 vs reference 1280x720 is 1.637x, which is not a device-pixel-ratio step. The aspect ratios match, so this reads as the same frame and is not \u2014 it is a crop or a zoom. Re-crop to the same region before drawing any conclusion about how it looks. Dimensions alone cannot separate a crop that happens to land exactly on a DPR ratio from a real DPR render: for that, check whether the landmark separations scale with the frame (references/difference-classes.md)."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 524,
+     "y": 412,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1441,
+     "y": 688,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 524,
+     "y": 550,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 655,
+     "y": 412,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1048,
+     "y": 550,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 917,
+     "y": 550,
+     "w": 262,
+     "h": 274
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-011": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-011.build.png",
+    "width": 2096,
+    "height": 1376,
+    "aspect": 1.5233,
+    "meanLuminance": 0.1302,
+    "contentfulCells": 0.3375,
+    "faintCells": 0.25,
+    "blankCells": 0.1437
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-011.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.857,
+    "scaleRatio": 1.637,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs by SCALE: 2096x1376 vs reference 1280x720 is 1.637x, which is not a device-pixel-ratio step. The aspect ratios match, so this reads as the same frame and is not \u2014 it is a crop or a zoom. Re-crop to the same region before drawing any conclusion about how it looks. Dimensions alone cannot separate a crop that happens to land exactly on a DPR ratio from a real DPR render: for that, check whether the landmark separations scale with the frame (references/difference-classes.md)."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 1965,
+     "y": 1100,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1965,
+     "y": 550,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1965,
+     "y": 412,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1965,
+     "y": 963,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1834,
+     "y": 1100,
+     "w": 262,
+     "h": 274
+    },
+    {
+     "x": 1834,
+     "y": 963,
+     "w": 262,
+     "h": 274
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-012": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/ios/SURF-012.ios.discover-populated.png",
+    "width": 1206,
+    "height": 2622,
+    "aspect": 0.46,
+    "meanLuminance": 0.9269,
+    "contentfulCells": 0.7125,
+    "faintCells": 0.1688,
+    "blankCells": 0.1187
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-012.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.259,
+    "scaleRatio": 0.942,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs: 1206x2622 vs reference 1280x720 (aspect ratio 0.26). This is a FRAMING difference, not visual drift \u2014 re-crop to the same region before drawing any conclusion about how it looks."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 75,
+     "y": 524,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 301,
+     "y": 1573,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 301,
+     "y": 1311,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 226,
+     "y": 1573,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 226,
+     "y": 1311,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 150,
+     "y": 1573,
+     "w": 150,
+     "h": 524
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-013": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/ios/SURF-013.ios.triage.png",
+    "width": 1206,
+    "height": 2622,
+    "aspect": 0.46,
+    "meanLuminance": 0.9333,
+    "contentfulCells": 0.5813,
+    "faintCells": 0.1313,
+    "blankCells": 0.2875
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-013.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.259,
+    "scaleRatio": 0.942,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs: 1206x2622 vs reference 1280x720 (aspect ratio 0.26). This is a FRAMING difference, not visual drift \u2014 re-crop to the same region before drawing any conclusion about how it looks."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 301,
+     "y": 262,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 226,
+     "y": 262,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 150,
+     "y": 262,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 75,
+     "y": 262,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 0,
+     "y": 262,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 1055,
+     "y": 0,
+     "w": 150,
+     "h": 524
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-014": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/ios/SURF-014.ios.camera-preflight.png",
+    "width": 1206,
+    "height": 2622,
+    "aspect": 0.46,
+    "meanLuminance": 0.8942,
+    "contentfulCells": 0.425,
+    "faintCells": 0.1625,
+    "blankCells": 0.4125
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-014.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.259,
+    "scaleRatio": 0.942,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs: 1206x2622 vs reference 1280x720 (aspect ratio 0.26). This is a FRAMING difference, not visual drift \u2014 re-crop to the same region before drawing any conclusion about how it looks."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 150,
+     "y": 0,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 678,
+     "y": 262,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 603,
+     "y": 262,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 527,
+     "y": 262,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 452,
+     "y": 262,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 753,
+     "y": 1573,
+     "w": 150,
+     "h": 524
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-018": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/ios/SURF-018.ios.settings-never-paired.png",
+    "width": 1206,
+    "height": 2622,
+    "aspect": 0.46,
+    "meanLuminance": 0.8828,
+    "contentfulCells": 0.425,
+    "faintCells": 0.0312,
+    "blankCells": 0.5437
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-018.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.259,
+    "scaleRatio": 0.942,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs: 1206x2622 vs reference 1280x720 (aspect ratio 0.26). This is a FRAMING difference, not visual drift \u2014 re-crop to the same region before drawing any conclusion about how it looks."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 1055,
+     "y": 0,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 979,
+     "y": 0,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 904,
+     "y": 0,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 376,
+     "y": 262,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 301,
+     "y": 262,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 226,
+     "y": 262,
+     "w": 150,
+     "h": 524
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-019": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/ios/SURF-019.ios.queue.png",
+    "width": 1206,
+    "height": 2622,
+    "aspect": 0.46,
+    "meanLuminance": 0.9148,
+    "contentfulCells": 0.2625,
+    "faintCells": 0.1062,
+    "blankCells": 0.6312
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-019.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.259,
+    "scaleRatio": 0.942,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs: 1206x2622 vs reference 1280x720 (aspect ratio 0.26). This is a FRAMING difference, not visual drift \u2014 re-crop to the same region before drawing any conclusion about how it looks."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 753,
+     "y": 1311,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 678,
+     "y": 1311,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 603,
+     "y": 1311,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 527,
+     "y": 1311,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 452,
+     "y": 1311,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 376,
+     "y": 1311,
+     "w": 150,
+     "h": 524
+    }
+   ],
+   "proceed": false
+  },
+  "SURF-020": {
+   "image": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/ios/SURF-020.ios.library.png",
+    "width": 1206,
+    "height": 2622,
+    "aspect": 0.46,
+    "meanLuminance": 0.9474,
+    "contentfulCells": 0.5938,
+    "faintCells": 0.15,
+    "blankCells": 0.2437
+   },
+   "reference": {
+    "path": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-020.png",
+    "width": 1280,
+    "height": 720,
+    "aspect": 1.7778
+   },
+   "checks": {
+    "isEvidence": true,
+    "settled": true,
+    "framingComparable": false,
+    "aspectRatioOfRatios": 0.259,
+    "scaleRatio": 0.942,
+    "scaleExplainedByDpr": null
+   },
+   "notes": [
+    "Framing differs: 1206x2622 vs reference 1280x720 (aspect ratio 0.26). This is a FRAMING difference, not visual drift \u2014 re-crop to the same region before drawing any conclusion about how it looks."
+   ],
+   "inspectionTiles": [
+    {
+     "x": 75,
+     "y": 524,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 452,
+     "y": 1835,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 376,
+     "y": 1835,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 301,
+     "y": 1835,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 226,
+     "y": 1835,
+     "w": 150,
+     "h": 524
+    },
+    {
+     "x": 150,
+     "y": 1835,
+     "w": 150,
+     "h": 524
+    }
+   ],
+   "proceed": false
+  }
+ }
+}

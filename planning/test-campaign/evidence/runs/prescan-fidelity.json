@@ -1,0 +1,248 @@
+{
+  "tool": "be-my-witness 0.2.0 prescan.py",
+  "subject": "Mac boards photographed at the design's own 1156x680 window, both halves cropped to the window content box (2312x1360)",
+  "priorState": "DEF-038: 0 of 16 pairs framing-comparable; design references came from a fixed 1280x720 dpr1 viewport and were clipped",
+  "proceed": "8/8",
+  "results": [
+    {
+      "surface": "SURF-002",
+      "exit": 0,
+      "proceed": true,
+      "checks": {
+        "isEvidence": true,
+        "settled": true,
+        "framingComparable": true,
+        "aspectRatioOfRatios": 1.0,
+        "scaleRatio": 1.0,
+        "scaleExplainedByDpr": 1.0
+      },
+      "image": {
+        "path": "evidence/shots/fidelity/SURF-002.build.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7,
+        "meanLuminance": 0.1442,
+        "contentfulCells": 0.3125,
+        "faintCells": 0.2125,
+        "blankCells": 0.4188
+      },
+      "reference": {
+        "path": "evidence/shots/fidelity/SURF-002.design.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7
+      },
+      "notes": []
+    },
+    {
+      "surface": "SURF-003",
+      "exit": 0,
+      "proceed": true,
+      "checks": {
+        "isEvidence": true,
+        "settled": true,
+        "framingComparable": true,
+        "aspectRatioOfRatios": 1.0,
+        "scaleRatio": 1.0,
+        "scaleExplainedByDpr": 1.0
+      },
+      "image": {
+        "path": "evidence/shots/fidelity/SURF-003.build.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7,
+        "meanLuminance": 0.1446,
+        "contentfulCells": 0.3312,
+        "faintCells": 0.1688,
+        "blankCells": 0.3688
+      },
+      "reference": {
+        "path": "evidence/shots/fidelity/SURF-003.design.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7
+      },
+      "notes": []
+    },
+    {
+      "surface": "SURF-004",
+      "exit": 0,
+      "proceed": true,
+      "checks": {
+        "isEvidence": true,
+        "settled": true,
+        "framingComparable": true,
+        "aspectRatioOfRatios": 1.0,
+        "scaleRatio": 1.0,
+        "scaleExplainedByDpr": 1.0
+      },
+      "image": {
+        "path": "evidence/shots/fidelity/SURF-004.build.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7,
+        "meanLuminance": 0.1436,
+        "contentfulCells": 0.3375,
+        "faintCells": 0.1938,
+        "blankCells": 0.3063
+      },
+      "reference": {
+        "path": "evidence/shots/fidelity/SURF-004.design.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7
+      },
+      "notes": []
+    },
+    {
+      "surface": "SURF-005",
+      "exit": 0,
+      "proceed": true,
+      "checks": {
+        "isEvidence": true,
+        "settled": true,
+        "framingComparable": true,
+        "aspectRatioOfRatios": 1.0,
+        "scaleRatio": 1.0,
+        "scaleExplainedByDpr": 1.0
+      },
+      "image": {
+        "path": "evidence/shots/fidelity/SURF-005.build.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7,
+        "meanLuminance": 0.1411,
+        "contentfulCells": 0.2625,
+        "faintCells": 0.1812,
+        "blankCells": 0.3812
+      },
+      "reference": {
+        "path": "evidence/shots/fidelity/SURF-005.design.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7
+      },
+      "notes": []
+    },
+    {
+      "surface": "SURF-006",
+      "exit": 0,
+      "proceed": true,
+      "checks": {
+        "isEvidence": true,
+        "settled": true,
+        "framingComparable": true,
+        "aspectRatioOfRatios": 1.0,
+        "scaleRatio": 1.0,
+        "scaleExplainedByDpr": 1.0
+      },
+      "image": {
+        "path": "evidence/shots/fidelity/SURF-006.build.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7,
+        "meanLuminance": 0.1483,
+        "contentfulCells": 0.4437,
+        "faintCells": 0.125,
+        "blankCells": 0.2938
+      },
+      "reference": {
+        "path": "evidence/shots/fidelity/SURF-006.design.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7
+      },
+      "notes": []
+    },
+    {
+      "surface": "SURF-007",
+      "exit": 0,
+      "proceed": true,
+      "checks": {
+        "isEvidence": true,
+        "settled": true,
+        "framingComparable": true,
+        "aspectRatioOfRatios": 1.0,
+        "scaleRatio": 1.0,
+        "scaleExplainedByDpr": 1.0
+      },
+      "image": {
+        "path": "evidence/shots/fidelity/SURF-007.build.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7,
+        "meanLuminance": 0.149,
+        "contentfulCells": 0.4062,
+        "faintCells": 0.1812,
+        "blankCells": 0.3
+      },
+      "reference": {
+        "path": "evidence/shots/fidelity/SURF-007.design.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7
+      },
+      "notes": []
+    },
+    {
+      "surface": "SURF-008",
+      "exit": 0,
+      "proceed": true,
+      "checks": {
+        "isEvidence": true,
+        "settled": true,
+        "framingComparable": true,
+        "aspectRatioOfRatios": 1.0,
+        "scaleRatio": 1.0,
+        "scaleExplainedByDpr": 1.0
+      },
+      "image": {
+        "path": "evidence/shots/fidelity/SURF-008.build.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7,
+        "meanLuminance": 0.135,
+        "contentfulCells": 0.1875,
+        "faintCells": 0.2,
+        "blankCells": 0.5813
+      },
+      "reference": {
+        "path": "evidence/shots/fidelity/SURF-008.design.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7
+      },
+      "notes": []
+    },
+    {
+      "surface": "SURF-011",
+      "exit": 0,
+      "proceed": true,
+      "checks": {
+        "isEvidence": true,
+        "settled": true,
+        "framingComparable": true,
+        "aspectRatioOfRatios": 1.0,
+        "scaleRatio": 1.0,
+        "scaleExplainedByDpr": 1.0
+      },
+      "image": {
+        "path": "evidence/shots/fidelity/SURF-011.build.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7,
+        "meanLuminance": 0.1499,
+        "contentfulCells": 0.275,
+        "faintCells": 0.1187,
+        "blankCells": 0.3
+      },
+      "reference": {
+        "path": "evidence/shots/fidelity/SURF-011.design.png",
+        "width": 2312,
+        "height": 1360,
+        "aspect": 1.7
+      },
+      "notes": []
+    }
+  ]
+}

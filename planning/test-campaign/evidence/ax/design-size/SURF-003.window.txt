@@ -1,0 +1,74 @@
+0	AXWindow	AXStandardWindow	Activity								SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1	120.0	120.0	1156.0	680.0	0
+1	AXGroup	AXHostingView										120.0	120.0	1156.0	680.0	0
+2	AXSplitGroup										SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1, SidebarNavigationSplitView	120.0	120.0	1156.0	680.0	0
+3	AXGroup	AXHostingView										128.0	128.0	256.0	664.0	0
+4	AXScrollArea											128.0	172.0	256.0	535.0	0
+5	AXOutline				Sidebar		1				sidebar	128.0	172.0	256.0	535.0	0
+6	AXRow	AXOutlineRow						0				128.0	172.0	256.0	19.0	
+7	AXCell						1	0				138.0	172.0	236.0	19.0	1
+8	AXGroup	AXHostingView										142.0	172.0	240.0	19.0	0
+9	AXHeading				Running		1					142.0	174.5	45.0	14.0	
+6	AXRow	AXOutlineRow						1				128.0	191.0	256.0	32.0	
+7	AXCell						1	1				138.0	191.0	236.0	32.0	1
+8	AXButton				Activity		1	1				145.5	199.0	71.0	16.0	
+6	AXRow	AXOutlineRow						0				128.0	223.0	256.0	32.0	
+7	AXCell						1	0				138.0	223.0	236.0	32.0	1
+8	AXButton				Servers, 1 need attention		1					144.0	231.0	224.0	16.0	
+6	AXRow	AXOutlineRow						0				128.0	255.0	256.0	32.0	
+7	AXCell						1	0				138.0	255.0	236.0	32.0	1
+8	AXButton				Skills		1					147.0	263.0	55.0	16.0	
+6	AXRow	AXOutlineRow						0				128.0	300.0	256.0	19.0	
+7	AXCell						1	0				138.0	300.0	236.0	19.0	1
+8	AXGroup	AXHostingView										142.0	300.0	240.0	19.0	0
+9	AXHeading				Library		1					142.0	302.5	39.0	14.0	
+6	AXRow	AXOutlineRow						0				128.0	319.0	256.0	32.0	
+7	AXCell						1	0				138.0	319.0	236.0	32.0	1
+8	AXButton				Discover		1					146.0	327.0	77.5	16.0	
+6	AXRow	AXOutlineRow						0				128.0	351.0	256.0	32.0	
+7	AXCell						1	0				138.0	351.0	236.0	32.0	1
+8	AXButton				Inbox		1					144.5	359.0	58.5	16.0	
+6	AXRow	AXOutlineRow						0				128.0	383.0	256.0	32.0	
+7	AXCell						1	0				138.0	383.0	236.0	32.0	1
+8	AXButton				Checks		1	1				144.5	391.0	70.5	16.0	
+6	AXRow	AXOutlineRow						0				128.0	415.0	256.0	32.0	
+7	AXCell						1	0				138.0	415.0	236.0	32.0	1
+8	AXButton				Cleanup, 3 never used		1					145.5	423.0	222.5	16.0	
+6	AXRow	AXOutlineRow						0				128.0	460.0	256.0	0.0	
+7	AXCell						1	0				138.0	460.0	236.0	0.0	1
+8	AXGroup	AXHostingView										142.0	460.0	240.0	0.0	0
+6	AXRow	AXOutlineRow						0				128.0	460.0	256.0	32.0	
+7	AXCell						1	0				138.0	460.0	236.0	32.0	1
+8	AXButton				Settings		1					145.0	468.0	76.0	16.0	
+6	AXColumn							0			ListColumn	138.0	172.0	236.0	535.0	
+4	AXUnknown				1 of 4 declared servers running		1				sidebar	136.0	716.0	240.0	16.0	
+4	AXStaticText			last 10s · peak 1			1				sidebar	136.0	769.5	105.5	13.0	
+3	AXSplitter			264			0	0				384.0	172.0	0.0	628.0	0
+3	AXGroup	AXHostingView										120.0	120.0	1156.0	680.0	0
+4	AXStaticText			Activity			1				content	400.0	180.0	79.0	26.0	
+4	AXButton				Reset history…		1				content	1149.5	180.0	110.5	24.0	0
+4	AXStaticText			Showing 12 calls · since 7:12 pm · live			1				content	400.0	209.0	265.5	14.0	
+4	AXMenuButton		Session	All sessions	Session		1				content	400.0	231.0	69.5	16.0	0
+4	AXMenuButton		Project	All projects	Project		1				content	476.5	231.0	64.5	16.0	0
+4	AXStaticText			none	mcprouter-key-probe						content	1200.0	772.0	72.0	24.0	1
+4	AXScrollArea										content	384.0	277.0	892.0	523.0	0
+5	AXOpaqueProviderGroup	AXOpaqueProviderList					1					384.0	277.0	892.0	288.0	
+6	AXButton				succeeded, browser_navigate, on obscura, in mcp-router, claude · pid 51310, 612ms, cold — this call is what started the server, 6d		1					384.0	277.0	892.0	24.0	0
+6	AXButton				succeeded, browser_markdown, on obscura, in mcp-router, claude · pid 51310, 38ms, warm — the server was already running, 6d		1					384.0	301.0	892.0	24.0	0
+6	AXButton				failed, get_thread, on sift, in dAIolog, claude · pid 48822, 91ms, warm — the server was already running, 6d, no index published; run sift index first		1					384.0	325.0	892.0	24.0	0
+6	AXButton				succeeded, research_status, on dossier, in loupe, claude · pid 48822, 14ms, warm — the server was already running, 6d		1					384.0	349.0	892.0	24.0	0
+6	AXButton				succeeded, research_start, on dossier, in loupe, claude · pid 48822, 1840ms, cold — this call is what started the server, 6d		1					384.0	373.0	892.0	24.0	0
+6	AXButton				succeeded, search, on sift, in dAIolog, claude · pid 48822, 27ms, warm — the server was already running, 6d		1					384.0	397.0	892.0	24.0	0
+6	AXButton				succeeded, search_screens, on mobbin, in mcp-router, claude · pid 51310, 402ms, warm — the server was already running, 6d		1					384.0	421.0	892.0	24.0	0
+6	AXButton				succeeded, browser_screenshot, on obscura, in —, Unattributed, 734ms, warm — the server was already running, 6d		1					384.0	445.0	892.0	24.0	0
+6	AXButton				succeeded, search_messages_across_every_configured_mailbox_with_attachments_and_inline_images, on anthropic-internal-documentation-and-knowledge-base-retrieval-server, in a-very-deeply-nested-project-directory, claude · pid 51310, 118ms, warm — the server was already running, 6d		1					384.0	469.0	892.0	24.0	0
+6	AXButton				succeeded, get_emails, on sift, in mcp-router, claude · pid 51310, 63ms, warm — the server was already running, 6d		1					384.0	493.0	892.0	24.0	0
+6	AXButton				succeeded, research_read, on dossier, in loupe, claude · pid 48822, 22ms, warm — the server was already running, 6d		1					384.0	517.0	892.0	24.0	0
+6	AXButton				failed, browser_evaluate, on obscura, in mcp-router, claude · pid 51310, 9ms, warm — the server was already running, 6d, no page open — call browser_navigate first		1					384.0	541.0	892.0	24.0	0
+1	AXToolbar											120.0	120.0	1156.0	52.0	0
+2	AXButton				Hide Sidebar		1	0				337.0	120.0	47.0	52.0	0
+1	AXButton	AXCloseButton					1					138.0	138.0	16.0	16.0	0
+1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					184.0	138.0	16.0	16.0	0
+2	AXGroup											185.0	139.0	14.0	14.0	0
+3	AXGroup											185.0	139.0	14.0	14.0	0
+1	AXButton	AXMinimizeButton					1					161.0	138.0	16.0	16.0	0
+1	AXStaticText			Activity			1					388.0	120.0	884.0	52.0	0

@@ -1,0 +1,94 @@
+0	AXWindow	AXStandardWindow	Settings								SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1	120.0	120.0	1156.0	680.0	0
+1	AXGroup	AXHostingView										120.0	120.0	1156.0	680.0	0
+2	AXSplitGroup										SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1, SidebarNavigationSplitView	120.0	120.0	1156.0	680.0	0
+3	AXGroup	AXHostingView										128.0	128.0	256.0	664.0	0
+4	AXScrollArea											128.0	172.0	256.0	535.0	0
+5	AXOutline				Sidebar		1				sidebar	128.0	172.0	256.0	535.0	0
+6	AXRow	AXOutlineRow						0				128.0	172.0	256.0	19.0	
+7	AXCell						1	0				138.0	172.0	236.0	19.0	1
+8	AXGroup	AXHostingView										142.0	172.0	240.0	19.0	0
+9	AXHeading				Running		1					142.0	174.5	45.0	14.0	
+6	AXRow	AXOutlineRow						0				128.0	191.0	256.0	32.0	
+7	AXCell						1	0				138.0	191.0	236.0	32.0	1
+8	AXButton				Activity		1					145.5	199.0	71.0	16.0	
+6	AXRow	AXOutlineRow						0				128.0	223.0	256.0	32.0	
+7	AXCell						1	0				138.0	223.0	236.0	32.0	1
+8	AXButton				Servers, 1 need attention		1					144.0	231.0	224.0	16.0	
+6	AXRow	AXOutlineRow						0				128.0	255.0	256.0	32.0	
+7	AXCell						1	0				138.0	255.0	236.0	32.0	1
+8	AXButton				Skills		1					147.0	263.0	55.0	16.0	
+6	AXRow	AXOutlineRow						0				128.0	300.0	256.0	19.0	
+7	AXCell						1	0				138.0	300.0	236.0	19.0	1
+8	AXGroup	AXHostingView										142.0	300.0	240.0	19.0	0
+9	AXHeading				Library		1					142.0	302.5	39.0	14.0	
+6	AXRow	AXOutlineRow						0				128.0	319.0	256.0	32.0	
+7	AXCell						1	0				138.0	319.0	236.0	32.0	1
+8	AXButton				Discover		1					146.0	327.0	77.5	16.0	
+6	AXRow	AXOutlineRow						0				128.0	351.0	256.0	32.0	
+7	AXCell						1	0				138.0	351.0	236.0	32.0	1
+8	AXButton				Inbox		1					144.5	359.0	58.5	16.0	
+6	AXRow	AXOutlineRow						0				128.0	383.0	256.0	32.0	
+7	AXCell						1	0				138.0	383.0	236.0	32.0	1
+8	AXButton				Checks		1	1				144.5	391.0	70.5	16.0	
+6	AXRow	AXOutlineRow						0				128.0	415.0	256.0	32.0	
+7	AXCell						1	0				138.0	415.0	236.0	32.0	1
+8	AXButton				Cleanup, 3 never used		1					145.5	423.0	222.5	16.0	
+6	AXRow	AXOutlineRow						0				128.0	460.0	256.0	0.0	
+7	AXCell						1	0				138.0	460.0	236.0	0.0	1
+8	AXGroup	AXHostingView										142.0	460.0	240.0	0.0	0
+6	AXRow	AXOutlineRow						1				128.0	460.0	256.0	32.0	
+7	AXCell						1	1				138.0	460.0	236.0	32.0	1
+8	AXButton				Settings		1	1				145.0	468.0	76.0	16.0	
+6	AXColumn							0			ListColumn	138.0	172.0	236.0	535.0	
+4	AXUnknown				1 of 4 declared servers running		1				sidebar	136.0	716.0	240.0	16.0	
+4	AXStaticText			last 17s · peak 1			1				sidebar	136.0	769.5	105.5	13.0	
+3	AXSplitter			264			0	0				384.0	172.0	0.0	628.0	0
+3	AXGroup	AXHostingView										120.0	120.0	1156.0	680.0	0
+4	AXStaticText			none	mcprouter-key-probe						content	1200.0	772.0	72.0	24.0	1
+4	AXScrollArea										content	384.0	172.0	892.0	628.0	0
+5	AXStaticText			Settings			1					400.0	188.0	86.5	26.0	
+5	AXStaticText			What the router is, and what this Mac remembers about it			1					400.0	218.0	338.5	15.0	
+5	AXGroup				Router		1					400.0	241.0	860.0	202.0	
+6	AXStaticText			Router			1					400.0	241.0	36.5	14.0	
+6	AXStaticText			Endpoint			1					412.0	271.0	56.5	16.0	
+6	AXStaticText			http://127.0.0.1:8971/mcp	http://127.0.0.1:8971/mcp	http://127.0.0.1:8971/mcp	1					1062.5	271.5	185.5	15.0	
+6	AXStaticText			Home			1					412.0	303.0	37.5	16.0	
+6	AXStaticText			~/.claude/mcp-router	~/.claude/mcp-router	~/.claude/mcp-router	1					1099.5	303.5	148.5	15.0	
+6	AXStaticText			Idle reaper			1					412.0	335.0	68.0	16.0	
+6	AXStaticText			300s	300s	300s	1					1218.0	335.5	30.0	15.0	
+6	AXStaticText			Counting since			1					412.0	367.0	94.5	16.0	
+6	AXStaticText			14 Aug, 02:31	14 Aug, 02:31	14 Aug, 02:31	1					1151.5	367.5	96.5	15.0	
+6	AXStaticText			Read from the router, not set here. The app reaches the router over one loopback channel and that channel has no endpoint that rewrites the router's own configuration — deliberately, because an API that can rewrite a command line can run anything. Change these in ~/.claude/mcp-router/servers.json and restart the router.			1					400.0	399.0	841.5	44.0	
+5	AXGroup				Menu bar		1					400.0	463.0	860.0	91.0	
+6	AXStaticText			Menu bar			1					400.0	463.0	51.5	14.0	
+6	AXStaticText			Status item			1					400.0	493.0	72.5	16.0	
+6	AXCheckBox			1	Show MCP Router in the menu bar		1					1024.0	493.0	236.0	16.0	0
+6	AXStaticText			The item is a plain symbol and stays one. It takes a dot only while something wants a decision — a held tool description, a server that needs authorising, one that failed to index. An icon that changes constantly is one the eye learns to skip, and then it skips the change that mattered.			1					400.0	525.0	854.0	29.0	
+5	AXGroup				Warm set		1					400.0	574.0	860.0	123.0	
+6	AXStaticText			Warm set			1					400.0	574.0	52.0	14.0	
+6	AXStaticText			Kept resident			1					412.0	604.0	85.0	16.0	
+6	AXStaticText			None of 4 servers	None of 4 servers	None of 4 servers	1					1121.5	604.5	126.5	15.0	
+6	AXButton				Show in Servers		1					1142.5	636.0	117.5	24.0	0
+6	AXStaticText			Every server is started when something first calls it and closed when the reaper reaches it. Keep one warm from its row in Servers when its cold start is the thing you keep waiting on.			1					400.0	668.0	847.5	29.0	
+5	AXGroup				Control token		1					400.0	717.0	860.0	155.0	
+6	AXStaticText			Control token			1					400.0	717.0	74.5	14.0	
+6	AXStaticText			Token			1					412.0	747.0	38.0	16.0	
+6	AXStaticText			Stored in this Mac's keychain	Stored in this Mac's keychain	Stored in this Mac's keychain	1					1032.5	747.5	215.5	15.0	
+6	AXStaticText			Read from			1					412.0	779.0	65.0	16.0	
+6	AXStaticText			~/.claude/mcp-router/control.token	~/.claude/mcp-router/control.token	~/.claude/mcp-router/control.token	1					995.5	779.5	252.5	15.0	
+6	AXButton				Forget the stored token		1					1095.5	811.0	164.5	24.0	0
+6	AXStaticText			The token is never shown, here or in a log. Forgetting it makes the app re-read the router's file on its next request, which is the fix when the router has been reset and this app is still sending the token it had before.			1					400.0	843.0	852.0	29.0	
+5	AXScrollBar			0			1					1258.0	171.0	19.0	612.5	0
+6	AXValueIndicator			0								1267.0	175.0	6.0	501.0	
+6	AXButton	AXIncrementArrow										1259.0	172.0	0.0	0.0	
+6	AXButton	AXDecrementArrow										1259.0	172.0	0.0	0.0	
+6	AXButton	AXIncrementPage										1267.0	676.5	6.0	103.0	
+6	AXButton	AXDecrementPage										1267.0	175.0	6.0	0.0	
+1	AXToolbar											120.0	120.0	1156.0	52.0	0
+2	AXButton				Hide Sidebar		1	0				337.0	120.0	47.0	52.0	0
+1	AXButton	AXCloseButton					1					138.0	138.0	16.0	16.0	0
+1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					184.0	138.0	16.0	16.0	0
+2	AXGroup											185.0	139.0	14.0	14.0	0
+3	AXGroup											185.0	139.0	14.0	14.0	0
+1	AXButton	AXMinimizeButton					1					161.0	138.0	16.0	16.0	0
+1	AXStaticText			Settings			1					388.0	120.0	884.0	52.0	0

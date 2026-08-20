@@ -46,7 +46,7 @@
   {
     "path": "evidence/shots/SURF-001.shell.png",
     "subject": "SURF-001",
-    "target": "app://mac/shell",
+    "target": "app://mac/servers",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS), cropped to the sidebar frame the AX dump reports",
     "derivedFrom": "evidence/shots/SURF-001.build.png",
     "sha256": "c45c098af28d9fd03e246153d5dcaadc2a30ab1492fc830629f7cd42d3a6caf2",
@@ -60,7 +60,8 @@
       "scenario": "populated",
       "crop": "0,0,596,1376 of 2096x1376 at scale 2, shadow margin 68px"
     },
-    "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+    "targetNote": "the shutter was aimed at the Servers board; this file is the sidebar crop of that frame, recorded in channel and conditions.crop. The earlier value app://mac/shell named the crop's subject rather than what the channel was pointed at, and no channel can be pointed at it."
   },
   {
     "path": "evidence/shots/SURF-003.build.png",
@@ -295,5 +296,114 @@
       "scenario": "cleanupSkills"
     },
     "witnessed": "axkit attached pid=44643 owns CGWindowID 105247, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+  },
+  {
+    "path": "evidence/shots/ios/SURF-012.ios.discover-populated.png",
+    "subject": "SURF-012",
+    "target": "app://ios/discover",
+    "targetReadback": "Discover",
+    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testDiscoverRendersTheRoutersCatalogue]",
+    "sha256": "fb59515de8832c3c530d36fb67df212056378b3ab38e820ebe8bd29a6299c280",
+    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "witnessed": false
+  },
+  {
+    "path": "evidence/shots/ios/SURF-012.ios.discover-empty.png",
+    "subject": "SURF-012",
+    "target": "app://ios/discover",
+    "targetReadback": "Discover",
+    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testDiscoverTracksWhatTheRouterReturned]",
+    "sha256": "efacc8e553e3084390fea6e18e446c553d8b1e58372739c8c9ae24e9d045e124",
+    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "witnessed": false
+  },
+  {
+    "path": "evidence/shots/ios/SURF-014.ios.pairing-typed-entry.png",
+    "subject": "SURF-014",
+    "target": "app://ios/pair-mac",
+    "targetReadback": "Pair Mac",
+    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
+    "sha256": "e84897f27a63079643cb3a317ed495dfeefe0b2b89e894668117c8f0e6c590a9",
+    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "witnessed": false
+  },
+  {
+    "path": "evidence/shots/ios/SURF-014.ios.camera-preflight.png",
+    "subject": "SURF-014",
+    "target": "app://ios/pair-mac",
+    "targetReadback": "Pair Mac",
+    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
+    "sha256": "49be996cecefc81f8ce03bacca9b742ac134246cc188695d745038348a048f51",
+    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "witnessed": false
+  },
+  {
+    "path": "evidence/shots/ios/UNASSERTED.ios.after-tapping-pair-mac.png",
+    "subject": "UNASSERTED",
+    "target": "app://ios/pair-mac",
+    "targetReadback": "Pair Mac",
+    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
+    "sha256": "6c58ee19619fe773968e86acfcd60559f752645b75a2128d161250ac8cef266d",
+    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "witnessed": false,
+    "unassertedReason": "A third capture of app://ios/pair-mac, kept for lineage and asserted by nothing. It shows the same camera-preflight state as SURF-014.ios.camera-preflight.png (sha 49be996c) \u2014 Camera not started, the Why the camera rationale, Allow camera access, Enter the code instead \u2014 so writing a case over it would count one check twice rather than check anything new. It is named UNASSERTED rather than SURF-014 so attach-shots.py cannot stem-match it onto that surface and make it look like a second, independent proof. Note what the two files establish together: they are visually identical and their sha256s differ (6c58ee19 vs 49be996c), so byte-identity across runs is not an oracle on the iOS lane the way it is on the Mac one."
+  },
+  {
+    "path": "evidence/shots/ios/SURF-018.ios.settings-never-paired.png",
+    "subject": "SURF-018",
+    "target": "app://ios/settings",
+    "targetReadback": "Settings",
+    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
+    "sha256": "cb15aa3016a9a5589e9ac6fb2eb0f27d89f040440dac435ed564bc5d246aacf7",
+    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "witnessed": false
+  },
+  {
+    "path": "evidence/shots/ios/SURF-020.ios.library.png",
+    "subject": "SURF-020",
+    "target": "app://ios/library",
+    "targetReadback": "Library",
+    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
+    "sha256": "5305bbc36e148891b553a4fcba1edd9c938a38c4869df1167d830357052e3639",
+    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "witnessed": false
+  },
+  {
+    "path": "evidence/shots/ios/SURF-019.ios.queue.png",
+    "subject": "SURF-019",
+    "target": "app://ios/queue",
+    "targetReadback": "Queue",
+    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
+    "sha256": "d013a14efe1b52712f4994d250b79b4b74dfd44022ef183f117c376007c3fba8",
+    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "witnessed": false
+  },
+  {
+    "path": "evidence/shots/ios/SURF-013.ios.triage.png",
+    "subject": "SURF-013",
+    "target": "app://ios/triage",
+    "targetReadback": "Triage",
+    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
+    "sha256": "651e672f5333326fecf0256700a02ec08657c96b6316a60ef625e522d3b4c918",
+    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "witnessed": false
   }
 ]

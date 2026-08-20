@@ -1,0 +1,14 @@
+{
+  "recordedAt": "2026-08-20T13:23:33Z",
+  "binary": "/Users/lukerhodes/Dev/mcp-router/app/.build/debug/MCPRouterCLI",
+  "binarySha256": "a2ac09c9e4c395fd26e89e9e8d59cd4343efcfd539a7ff044e751be2309d30c9",
+  "routerHome": "/tmp/mcp-witness-home",
+  "port": 8973,
+  "witnesses": [
+    {"req":"REQ-013","effect":"filesystem-write","recorder":"stat(2) filesystem metadata","count":1,"before":"absent","after":"inode=889987547 bytes=548 mtime=2026-08-20T23:23:24Z"},
+    {"req":"REQ-012","effect":"inbound-socket","recorder":"kernel socket table via lsof(8)","count":1,"before":"no LISTEN on 127.0.0.1:8973","after":"MCPRouter 27901 lukerhodes 4u IPv4 0x6d74072c4acbc449 0t0 TCP 127.0.0.1:8973 (LISTEN)","ownerPid":27901,"establishedOwnedByRouter":1,"clientHttpStatus":"200"},
+    {"req":"REQ-001","effect":"subprocess","recorder":"the shell's $! for the router invocation and the child's own getppid(); ps(1) sampled alongside","count":1,"parentPid":30913,"childPid":30920,"childReportedParent":30913,"agree":true,"psRow":"missed","artifact":"evidence/witness/pstree.txt"},
+    {"req":"REQ-011","effect":"subprocess","recorder":"the shell's $! for the router invocation and the child's own getppid(); ps(1) sampled alongside","count":1,"parentPid":30913,"childPid":30920,"childReportedParent":30913,"agree":true,"psRow":"missed","artifact":"evidence/witness/pstree.txt"},
+    {"req":"REQ-016","effect":"outbound-socket","recorder":null,"count":0,"status":"vacuous","why":"no provider in production source; DEF-041"}
+  ]
+}

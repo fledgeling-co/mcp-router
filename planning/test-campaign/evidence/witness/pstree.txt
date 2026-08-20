@@ -1,0 +1,4 @@
+recorded at 2026-08-20T13:23:33Z
+shell $! for the router invocation : 30913
+child's own "getpid getppid"       : 30920 30913
+ps(1) rows with that ppid           : none caught; the spawn was shorter than one sample

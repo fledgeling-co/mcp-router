@@ -8,14 +8,6 @@
     "reason": "Both draw the same source list in the same order under the same two sentence-case headers, Running and Library, with an inset-rounded accent selection and right-aligned count badges. The build additionally paints a health readout at the foot of the sidebar that the design does not specify; it states observed numbers and is not a defect."
   },
   {
-    "subject": "SURF-007",
-    "verdict": "fail",
-    "reference": "evidence/shots/mock/SURF-007.png",
-    "capture": "evidence/shots/SURF-007.build.png",
-    "method": "structural",
-    "reason": "DEF-011, confirmed by looking rather than by the accessibility tree alone. Every row in the design carries trailing Inspect and Remove controls, and the flagged row carries Read first\u2026; the built board's rows carry no trailing controls at all. The build also truncates the column that exists to explain \u2014 'The router has recorded no calls to it ove\u2026' \u2014 where the design shows the whole reason. Two differences run the other way and are not defects: the build adds a staleness banner and an observed-window bar saying history covers only 6d, and it adds filter chips and a filter field. Both are the build being more honest than its design, which is this product's stated posture."
-  },
-  {
     "subject": "SURF-011",
     "verdict": "fail",
     "reference": "evidence/shots/mock/SURF-011.png",
@@ -173,5 +165,120 @@
       "The design distinguishes transports with a plug and a cloud glyph; the build uses a bolt and a connector. Both distinguish stdio from http and neither is ambiguous."
     ],
     "buildFindings": []
+  },
+  {
+    "subject": "SURF-002",
+    "surface": "Servers",
+    "verdict": "fail",
+    "reason": "Row structure, column order and the segmented filter group all match. Two differences. The design carries a trailing evaluation pill on every row - a green 'passed', a grey 'not evaluated', a 'Reset', a 'Review...'; the build's rows carry none, and only fixture-oauth shows a trailing control ('Reopen the page'). The divergence is the honesty guardrail, and the build is the correct half. ORCHESTRATOR.md requires that no number is displayed that the router does not observe; the design of record still draws a model-graded evaluation feature the product deliberately does not have. Recorded as DEF-042 against the design rather than the build. The build additionally adds a 'Search servers and tools' field the design does not specify, which is an addition rather than a defect.",
+    "reference": "evidence/shots/fidelity/SURF-002.design.png",
+    "capture": "evidence/shots/fidelity/SURF-002.build.png",
+    "method": "raster-visual - both halves cropped to the window's own content box at 2312x1360; be-my-witness 0.2.0 prescan reports isEvidence true, settled true, framingComparable true, aspectRatioOfRatios 1.0, scaleRatio 1.0 for all eight pairs (evidence/runs/prescan-fidelity.json). This is the first run in this campaign where a design-versus-build comparison was framing-comparable at all; see DEF-038.",
+    "captureMethod": "axkit window-scoped CGWindowListCreateImage, MCPRouter never activated (frontmost Google Chrome before and after)",
+    "windowSize": "1156x680 - the design of record's own window size",
+    "systematicFindings": "Three differences are systematic and appear on all eight boards, so they are stated once here and not repeated per board. (1) The board title is drawn twice - once in the window titlebar and again as the H1 below it; the design draws it once. (2) The design's sidebar foot carries a bordered, labelled card, 'Child processes' over a large numeral and 'of N declared'; the build draws an unlabelled, uncarded row, 'Running   1 of 4'. The string 'Child processes' appears in 0 of 9 accessibility dumps. (3) The design paints a loopback readout, a live dot and '127.0.0.1:8879', in the sidebar foot of every board (design/mocks/prototype.html:681, inside the shared sidebar wrapper); the build paints none. The only two '127.0.0.1' hits across 9 dumps are the Settings board's own Endpoint row, at window-relative x=942 in the content area, not the sidebar.",
+    "run": "design-size fidelity pass, 2026-08-20"
+  },
+  {
+    "subject": "SURF-003",
+    "surface": "Activity",
+    "verdict": "unoracled",
+    "reason": "Not judgeable as drawn. The design of record documents Activity's EMPTY state - a centred 'Nothing yet' with '0 calls recorded' - and the build was photographed with 12 recorded calls. Those are two different states of the same surface, so a difference between them is not evidence about either. What can be said: the build's populated table carries a 'session' column the design's header row does not, and adds Session / Project grouping toggles the design does not specify. Closing this needs the mock's empty state photographed against a build with no recorded calls, which needs a fixture the campaign does not currently have.",
+    "reference": "evidence/shots/fidelity/SURF-003.design.png",
+    "capture": "evidence/shots/fidelity/SURF-003.build.png",
+    "method": "raster-visual - both halves cropped to the window's own content box at 2312x1360; be-my-witness 0.2.0 prescan reports isEvidence true, settled true, framingComparable true, aspectRatioOfRatios 1.0, scaleRatio 1.0 for all eight pairs (evidence/runs/prescan-fidelity.json). This is the first run in this campaign where a design-versus-build comparison was framing-comparable at all; see DEF-038.",
+    "captureMethod": "axkit window-scoped CGWindowListCreateImage, MCPRouter never activated (frontmost Google Chrome before and after)",
+    "windowSize": "1156x680 - the design of record's own window size",
+    "systematicFindings": "Three differences are systematic and appear on all eight boards, so they are stated once here and not repeated per board. (1) The board title is drawn twice - once in the window titlebar and again as the H1 below it; the design draws it once. (2) The design's sidebar foot carries a bordered, labelled card, 'Child processes' over a large numeral and 'of N declared'; the build draws an unlabelled, uncarded row, 'Running   1 of 4'. The string 'Child processes' appears in 0 of 9 accessibility dumps. (3) The design paints a loopback readout, a live dot and '127.0.0.1:8879', in the sidebar foot of every board (design/mocks/prototype.html:681, inside the shared sidebar wrapper); the build paints none. The only two '127.0.0.1' hits across 9 dumps are the Settings board's own Endpoint row, at window-relative x=942 in the content area, not the sidebar.",
+    "run": "design-size fidelity pass, 2026-08-20"
+  },
+  {
+    "subject": "SURF-004",
+    "surface": "Skills",
+    "verdict": "fail",
+    "reason": "The design's table carries 'runs', 'last run' and 'eval' columns with graded pills (12/12, 9/9, 3/8, 'not evaluated'). The build drops all three columns and prints why, in the board: 'Run counts and evaluation results are not shown. A skill is loaded into an agent's context by the client and never reaches the router, so the router does not see it run.' Its filter row changes with them, 'All 6 / Held 1 / Local 2 / Needs attention 2' against the design's 'All 6 / Held 1 / Never run 2'. The divergence is the honesty guardrail, and the build is the correct half. ORCHESTRATOR.md requires that no number is displayed that the router does not observe; the design of record still draws a model-graded evaluation feature the product deliberately does not have. Recorded as DEF-042 against the design rather than the build.",
+    "reference": "evidence/shots/fidelity/SURF-004.design.png",
+    "capture": "evidence/shots/fidelity/SURF-004.build.png",
+    "method": "raster-visual - both halves cropped to the window's own content box at 2312x1360; be-my-witness 0.2.0 prescan reports isEvidence true, settled true, framingComparable true, aspectRatioOfRatios 1.0, scaleRatio 1.0 for all eight pairs (evidence/runs/prescan-fidelity.json). This is the first run in this campaign where a design-versus-build comparison was framing-comparable at all; see DEF-038.",
+    "captureMethod": "axkit window-scoped CGWindowListCreateImage, MCPRouter never activated (frontmost Google Chrome before and after)",
+    "windowSize": "1156x680 - the design of record's own window size",
+    "systematicFindings": "Three differences are systematic and appear on all eight boards, so they are stated once here and not repeated per board. (1) The board title is drawn twice - once in the window titlebar and again as the H1 below it; the design draws it once. (2) The design's sidebar foot carries a bordered, labelled card, 'Child processes' over a large numeral and 'of N declared'; the build draws an unlabelled, uncarded row, 'Running   1 of 4'. The string 'Child processes' appears in 0 of 9 accessibility dumps. (3) The design paints a loopback readout, a live dot and '127.0.0.1:8879', in the sidebar foot of every board (design/mocks/prototype.html:681, inside the shared sidebar wrapper); the build paints none. The only two '127.0.0.1' hits across 9 dumps are the Settings board's own Endpoint row, at window-relative x=942 in the content area, not the sidebar.",
+    "run": "design-size fidelity pass, 2026-08-20"
+  },
+  {
+    "subject": "SURF-005",
+    "surface": "Discover",
+    "verdict": "fail",
+    "reason": "The design draws a 'Trending by install velocity over 7d' table with install counts, 7-day deltas (+218%, -8%) and eval pills, plus a 24h/7d/30d window control and a Servers/Skills toggle. The build draws a 'measured' column of raw observed values ('2,984 sessions', '9 stars') and prints 'No trend or velocity figure is shown. Measuring one needs a history of these indexes over time, which the router does not keep yet.' The window control and the eval column are absent with the numbers they would have described. The divergence is the honesty guardrail, and the build is the correct half. ORCHESTRATOR.md requires that no number is displayed that the router does not observe; the design of record still draws a model-graded evaluation feature the product deliberately does not have. Recorded as DEF-042 against the design rather than the build.",
+    "reference": "evidence/shots/fidelity/SURF-005.design.png",
+    "capture": "evidence/shots/fidelity/SURF-005.build.png",
+    "method": "raster-visual - both halves cropped to the window's own content box at 2312x1360; be-my-witness 0.2.0 prescan reports isEvidence true, settled true, framingComparable true, aspectRatioOfRatios 1.0, scaleRatio 1.0 for all eight pairs (evidence/runs/prescan-fidelity.json). This is the first run in this campaign where a design-versus-build comparison was framing-comparable at all; see DEF-038.",
+    "captureMethod": "axkit window-scoped CGWindowListCreateImage, MCPRouter never activated (frontmost Google Chrome before and after)",
+    "windowSize": "1156x680 - the design of record's own window size",
+    "systematicFindings": "Three differences are systematic and appear on all eight boards, so they are stated once here and not repeated per board. (1) The board title is drawn twice - once in the window titlebar and again as the H1 below it; the design draws it once. (2) The design's sidebar foot carries a bordered, labelled card, 'Child processes' over a large numeral and 'of N declared'; the build draws an unlabelled, uncarded row, 'Running   1 of 4'. The string 'Child processes' appears in 0 of 9 accessibility dumps. (3) The design paints a loopback readout, a live dot and '127.0.0.1:8879', in the sidebar foot of every board (design/mocks/prototype.html:681, inside the shared sidebar wrapper); the build paints none. The only two '127.0.0.1' hits across 9 dumps are the Settings board's own Endpoint row, at window-relative x=942 in the content area, not the sidebar.",
+    "run": "design-size fidelity pass, 2026-08-20"
+  },
+  {
+    "subject": "SURF-006",
+    "surface": "Checks",
+    "verdict": "fail",
+    "reason": "The two boards describe different features. The design shows a model-graded evaluation run - 'pr-summariser - 8 cases', per-case pass/fail verdicts, a '3 of 8 passed' bar and an expanded 'the exchange that failed' panel. The build shows a table of checks the router performed itself, per subject, stamped to a version, and states 'No model-graded evaluation exists in this product.' The divergence is the honesty guardrail, and the build is the correct half. ORCHESTRATOR.md requires that no number is displayed that the router does not observe; the design of record still draws a model-graded evaluation feature the product deliberately does not have. Recorded as DEF-042 against the design rather than the build. Separately: the build's closing explanatory paragraph is cut off at the window's bottom edge at 680pt ('...Skills are never executed by the'). The board scrolls, so this is framing rather than clipping, but the design fits its board in the same window.",
+    "reference": "evidence/shots/fidelity/SURF-006.design.png",
+    "capture": "evidence/shots/fidelity/SURF-006.build.png",
+    "method": "raster-visual - both halves cropped to the window's own content box at 2312x1360; be-my-witness 0.2.0 prescan reports isEvidence true, settled true, framingComparable true, aspectRatioOfRatios 1.0, scaleRatio 1.0 for all eight pairs (evidence/runs/prescan-fidelity.json). This is the first run in this campaign where a design-versus-build comparison was framing-comparable at all; see DEF-038.",
+    "captureMethod": "axkit window-scoped CGWindowListCreateImage, MCPRouter never activated (frontmost Google Chrome before and after)",
+    "windowSize": "1156x680 - the design of record's own window size",
+    "systematicFindings": "Three differences are systematic and appear on all eight boards, so they are stated once here and not repeated per board. (1) The board title is drawn twice - once in the window titlebar and again as the H1 below it; the design draws it once. (2) The design's sidebar foot carries a bordered, labelled card, 'Child processes' over a large numeral and 'of N declared'; the build draws an unlabelled, uncarded row, 'Running   1 of 4'. The string 'Child processes' appears in 0 of 9 accessibility dumps. (3) The design paints a loopback readout, a live dot and '127.0.0.1:8879', in the sidebar foot of every board (design/mocks/prototype.html:681, inside the shared sidebar wrapper); the build paints none. The only two '127.0.0.1' hits across 9 dumps are the Settings board's own Endpoint row, at window-relative x=942 in the content area, not the sidebar.",
+    "run": "design-size fidelity pass, 2026-08-20"
+  },
+  {
+    "subject": "SURF-007",
+    "surface": "Cleanup",
+    "verdict": "pass",
+    "reason": "Overturns this campaign's earlier SURF-007 fail. That verdict read 'the built board's rows carry no trailing controls at all' and 'the build also truncates the column that exists to explain'; photographed at the design's own 1156pt the rows carry 'Inspect' and 'Remove...' on every one, and the reason column still elides but the controls are present. The earlier capture was 980pt wide and the controls were outside it - the difference was the capture, not the build. The old entry is kept and marked superseded. Remaining differences run in the build's favour: it adds a staleness banner ('Call history covers only the past 6d... Give it a few days before acting on this'), an 'Observed over' progress readout, and a closing paragraph refusing a memory-saving claim. The design's header numbers ('4 months of history, 18402 calls seen') are fixture values, not structure.",
+    "reference": "evidence/shots/fidelity/SURF-007.design.png",
+    "capture": "evidence/shots/fidelity/SURF-007.build.png",
+    "method": "raster-visual - both halves cropped to the window's own content box at 2312x1360; be-my-witness 0.2.0 prescan reports isEvidence true, settled true, framingComparable true, aspectRatioOfRatios 1.0, scaleRatio 1.0 for all eight pairs (evidence/runs/prescan-fidelity.json). This is the first run in this campaign where a design-versus-build comparison was framing-comparable at all; see DEF-038.",
+    "captureMethod": "axkit window-scoped CGWindowListCreateImage, MCPRouter never activated (frontmost Google Chrome before and after)",
+    "windowSize": "1156x680 - the design of record's own window size",
+    "systematicFindings": "Three differences are systematic and appear on all eight boards, so they are stated once here and not repeated per board. (1) The board title is drawn twice - once in the window titlebar and again as the H1 below it; the design draws it once. (2) The design's sidebar foot carries a bordered, labelled card, 'Child processes' over a large numeral and 'of N declared'; the build draws an unlabelled, uncarded row, 'Running   1 of 4'. The string 'Child processes' appears in 0 of 9 accessibility dumps. (3) The design paints a loopback readout, a live dot and '127.0.0.1:8879', in the sidebar foot of every board (design/mocks/prototype.html:681, inside the shared sidebar wrapper); the build paints none. The only two '127.0.0.1' hits across 9 dumps are the Settings board's own Endpoint row, at window-relative x=942 in the content area, not the sidebar.",
+    "run": "design-size fidelity pass, 2026-08-20"
+  },
+  {
+    "subject": "SURF-008",
+    "surface": "Inbox",
+    "verdict": "pass",
+    "reason": "Same empty state, same icon, same heading and the same body sentence verbatim, including the honesty clause 'a lost or unlocked phone still cannot install code on this Mac.' Two differences, neither a defect: the build repeats the 'Pairing...' control as a filled button inside the empty state as well as in the board header, and its subtitle reads 'no phone paired' where the design's fixture reads 'paired with Luke's iPhone' - a fixture difference, and the build's state is the one the campaign's fixture declares.",
+    "reference": "evidence/shots/fidelity/SURF-008.design.png",
+    "capture": "evidence/shots/fidelity/SURF-008.build.png",
+    "method": "raster-visual - both halves cropped to the window's own content box at 2312x1360; be-my-witness 0.2.0 prescan reports isEvidence true, settled true, framingComparable true, aspectRatioOfRatios 1.0, scaleRatio 1.0 for all eight pairs (evidence/runs/prescan-fidelity.json). This is the first run in this campaign where a design-versus-build comparison was framing-comparable at all; see DEF-038.",
+    "captureMethod": "axkit window-scoped CGWindowListCreateImage, MCPRouter never activated (frontmost Google Chrome before and after)",
+    "windowSize": "1156x680 - the design of record's own window size",
+    "systematicFindings": "Three differences are systematic and appear on all eight boards, so they are stated once here and not repeated per board. (1) The board title is drawn twice - once in the window titlebar and again as the H1 below it; the design draws it once. (2) The design's sidebar foot carries a bordered, labelled card, 'Child processes' over a large numeral and 'of N declared'; the build draws an unlabelled, uncarded row, 'Running   1 of 4'. The string 'Child processes' appears in 0 of 9 accessibility dumps. (3) The design paints a loopback readout, a live dot and '127.0.0.1:8879', in the sidebar foot of every board (design/mocks/prototype.html:681, inside the shared sidebar wrapper); the build paints none. The only two '127.0.0.1' hits across 9 dumps are the Settings board's own Endpoint row, at window-relative x=942 in the content area, not the sidebar.",
+    "run": "design-size fidelity pass, 2026-08-20"
+  },
+  {
+    "subject": "SURF-011",
+    "surface": "Settings",
+    "verdict": "fail",
+    "reason": "The two Settings boards do not carry the same sections. Both open with a Router card, and the build's carries an extra explanatory paragraph plus 'Counting since' where the design has 'Started'. Past that they diverge completely: the design has Updates (three switches), Paired devices and a Danger section with 'Reset call history...'; the build has Menu bar, Warm set and Control token, and none of the design's three appear above the window fold. The build's board is taller than 680pt and scrolls, so whether the design's sections exist below the fold is not settled by this capture - what is settled is that the board's first screen is a different board. This is a content divergence needing an owner decision, not a styling defect.",
+    "reference": "evidence/shots/fidelity/SURF-011.design.png",
+    "capture": "evidence/shots/fidelity/SURF-011.build.png",
+    "method": "raster-visual - both halves cropped to the window's own content box at 2312x1360; be-my-witness 0.2.0 prescan reports isEvidence true, settled true, framingComparable true, aspectRatioOfRatios 1.0, scaleRatio 1.0 for all eight pairs (evidence/runs/prescan-fidelity.json). This is the first run in this campaign where a design-versus-build comparison was framing-comparable at all; see DEF-038.",
+    "captureMethod": "axkit window-scoped CGWindowListCreateImage, MCPRouter never activated (frontmost Google Chrome before and after)",
+    "windowSize": "1156x680 - the design of record's own window size",
+    "systematicFindings": "Three differences are systematic and appear on all eight boards, so they are stated once here and not repeated per board. (1) The board title is drawn twice - once in the window titlebar and again as the H1 below it; the design draws it once. (2) The design's sidebar foot carries a bordered, labelled card, 'Child processes' over a large numeral and 'of N declared'; the build draws an unlabelled, uncarded row, 'Running   1 of 4'. The string 'Child processes' appears in 0 of 9 accessibility dumps. (3) The design paints a loopback readout, a live dot and '127.0.0.1:8879', in the sidebar foot of every board (design/mocks/prototype.html:681, inside the shared sidebar wrapper); the build paints none. The only two '127.0.0.1' hits across 9 dumps are the Settings board's own Endpoint row, at window-relative x=942 in the content area, not the sidebar.",
+    "run": "design-size fidelity pass, 2026-08-20"
+  },
+  {
+    "subject": "SURF-010",
+    "surface": "Mac Pairing sheet",
+    "verdict": "fail",
+    "reference": "design/mocks/prototype.html:1270-1281 (the Pair iPhone sheet)",
+    "capture": "evidence/shots/SURF-010.build.png",
+    "method": "structural and lexical - the reference is a live sheet in the prototype rather than a rasterised reference, so this compares what each sheet contains and says, not pixels. The capture's own record carries windowTitleReadback 'Inbox', which is correct and not a mis-file: the sheet is a modal over the Inbox window, so the window keeps its title while the sheet is up.",
+    "reason": "The design's sheet is a working pairing exchange: the lede 'On your phone: Conduit -> Settings -> Pair Mac, then scan this', a QR code, the code K7QN-4FMD in mono at 22px, a red warning that anyone who scans it can put items in your inbox until it expires, an expiry countdown with a progress ring, and a 'Can't scan? Type a code' fallback. The build's sheet carries the same title, 'Pair iPhone', the same Done action, and nothing else from that list. Its whole body is a refusal: 'Pairing is not available in this build. Pairing needs the Mac to be reachable from your phone, and this build ships no way to listen for one. Nothing is wrong with your phone or your network.'\n\nThis is DEF-001 reaching the campaign through the design rather than through a failing assertion, and it is the surface where that defect is most visible to a user. Judged fail because the sheet does not do what the design specifies. Worth recording alongside it: the refusal copy names the cause and explicitly clears the user's phone and network of blame, which is the honesty posture this product states, and it is the correct behaviour for a build with no transport - a sheet drawing a QR code no phone could act on would be the worse failure.",
+    "captureMethod": "screencapture -x -l<CGWindowID> window-scoped, background; frontmost at shutter Finder",
+    "run": "unjudged-capture sweep, 2026-08-20"
   }
 ]

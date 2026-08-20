@@ -1,0 +1,11 @@
+[
+  {
+    "subject": "SURF-007",
+    "verdict": "fail",
+    "reference": "evidence/shots/mock/SURF-007.png",
+    "capture": "evidence/shots/SURF-007.build.png",
+    "method": "structural",
+    "reason": "DEF-011, confirmed by looking rather than by the accessibility tree alone. Every row in the design carries trailing Inspect and Remove controls, and the flagged row carries Read first\u2026; the built board's rows carry no trailing controls at all. The build also truncates the column that exists to explain \u2014 'The router has recorded no calls to it ove\u2026' \u2014 where the design shows the whole reason. Two differences run the other way and are not defects: the build adds a staleness banner and an observed-window bar saying history covers only 6d, and it adds filter chips and a filter field. Both are the build being more honest than its design, which is this product's stated posture.",
+    "superseded": "Overturned by the design-size fidelity pass of 2026-08-20. The controls this entry reported missing are present at 1156pt; they were outside the 980pt capture. Kept because a record that loses its own false claims is not a record."
+  }
+]

@@ -1,0 +1,59 @@
+{
+  "artifact": "def-025-028-arms",
+  "produced": "2026-08-20",
+  "what": "The six assertions guarding DEF-025 and DEF-028, and the six mutation arms each was watched to fail against. Source-level and comment-stripped: PhoneEmptyState explains itself by naming PhoneMessageBlock, so a raw-text match would stay green after the code was deleted.",
+  "command": "swift test --filter PhoneSettingsPlacementTests",
+  "green_run": [
+    "􁁛  Test \"centring did not leak into the block the other eight states use\" passed after 0.001 seconds.",
+    "􁁛  Test \"the never-paired state is centred and carries its illustration\" passed after 0.001 seconds.",
+    "􁁛  Test \"the action moved to a sibling rather than being deleted\" passed after 0.001 seconds.",
+    "􁁛  Test \"the message block draws no action of its own\" passed after 0.001 seconds.",
+    "􁁛  Test \"the never-paired case renders the empty state, not the notice block\" passed after 0.001 seconds.",
+    "􁁛  Test \"the unreadable state places the action below its block\" passed after 0.001 seconds.",
+    "􁁛  Suite \"Phone settings — where the action sits and how the empty state reads\" passed after 0.001 seconds.",
+    "􁁛  Test run with 6 tests in 1 suite passed after 0.001 seconds."
+  ],
+  "arms": [
+    {
+      "arm": "A1",
+      "mutation": "PhoneMessageBlock regains an `action` field and draws `entry.actionLabel` again",
+      "targets": "the message block draws no action of its own",
+      "verdict": "RED"
+    },
+    {
+      "arm": "A2",
+      "mutation": "PhoneBlockActions' primary Button is deleted rather than moved",
+      "targets": "the action moved to a sibling rather than being deleted",
+      "verdict": "RED",
+      "why_it_matters": "Without this arm DEF-025 could be closed by removing the recovery control entirely — the block would draw no action and the first assertion would pass."
+    },
+    {
+      "arm": "A3",
+      "mutation": "the never-paired case renders PhoneMessageBlock again",
+      "targets": "the never-paired case renders the empty state, not the notice block",
+      "verdict": "RED"
+    },
+    {
+      "arm": "A4",
+      "mutation": "both multilineTextAlignment(.center) calls removed from PhoneEmptyState",
+      "targets": "the never-paired state is centred and carries its illustration",
+      "verdict": "RED"
+    },
+    {
+      "arm": "A5",
+      "mutation": "multilineTextAlignment(.center) added to PhoneMessageBlock's body text",
+      "targets": "centring did not leak into the block the other eight states use",
+      "verdict": "RED",
+      "why_it_matters": "Without this arm DEF-028 could be closed by centring all nine states, which is one state's design applied to the eight the design left-aligns.",
+      "note": "The first attempt at this arm reported ARM INVALID — its anchor matched 0 times because the trailing comment differed. Recorded rather than silently re-run: an arm whose anchor misses is not an arm that passed."
+    },
+    {
+      "arm": "A6",
+      "mutation": "PhoneBlockActions removed from the unreadable case",
+      "targets": "the unreadable state places the action below its block",
+      "verdict": "RED"
+    }
+  ],
+  "restore": "Every arm restored with `cp` from a baseline taken before the first mutation, never `git checkout` — a prior session destroyed uncommitted work in this repository that way. All six assertions green again after restore, and the full suite reads 1518 tests in 189 suites passing.",
+  "not_proved": "That the rendered control sits below the card in pixels, or that the glyph rasterises and the column reads as centred on a device. The committed SURF-018 captures predate this change and are not evidence for it. A fresh on-glass capture is named outstanding work rather than claimed."
+}

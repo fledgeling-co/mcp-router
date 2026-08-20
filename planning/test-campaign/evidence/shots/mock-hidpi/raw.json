@@ -1,0 +1,103 @@
+{
+  "viewport": {
+    "width": 1280,
+    "height": 900,
+    "deviceScaleFactor": 2
+  },
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
+  "viewportReadback": [
+    1280,
+    900,
+    2
+  ],
+  "captures": [
+    {
+      "surface": "SURF-001",
+      "query": "pane=servers&only=mac",
+      "full": "evidence/shots/mock-hidpi/SURF-001.full.png",
+      "title": "Conduit \u2014 interactive prototype",
+      "text": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n      Conduit \u2014 interactiv",
+      "sha256": "6790530654cdd5e97a7f3d3d840b1c3bea64e5697274bb28ba34f9dd470d98fd"
+    },
+    {
+      "surface": "SURF-002",
+      "query": "pane=servers&only=mac",
+      "full": "evidence/shots/mock-hidpi/SURF-002.full.png",
+      "title": "Conduit \u2014 interactive prototype",
+      "text": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n      Conduit \u2014 interactiv",
+      "sha256": "6790530654cdd5e97a7f3d3d840b1c3bea64e5697274bb28ba34f9dd470d98fd"
+    },
+    {
+      "surface": "SURF-003",
+      "query": "pane=activity&only=mac",
+      "full": "evidence/shots/mock-hidpi/SURF-003.full.png",
+      "title": "Conduit \u2014 interactive prototype",
+      "text": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n      Conduit \u2014 interactiv",
+      "sha256": "e3dc0713201b6da092426d2652d6c5402719a18425ed79997d241cf25eab348c"
+    },
+    {
+      "surface": "SURF-004",
+      "query": "pane=skills&only=mac",
+      "full": "evidence/shots/mock-hidpi/SURF-004.full.png",
+      "title": "Conduit \u2014 interactive prototype",
+      "text": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n      Conduit \u2014 interactiv",
+      "sha256": "903f5e721485cb1ac7b6ed9fa85898e86d3e3113dcdac63219ec61f769cebfc5"
+    },
+    {
+      "surface": "SURF-005",
+      "query": "pane=discover&only=mac",
+      "full": "evidence/shots/mock-hidpi/SURF-005.full.png",
+      "title": "Conduit \u2014 interactive prototype",
+      "text": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n      Conduit \u2014 interactiv",
+      "sha256": "57b72a3b3c90b05eb6a1c86e1ec971955da948c75301a40049f2941f07f757f8"
+    },
+    {
+      "surface": "SURF-006",
+      "query": "pane=evals&only=mac",
+      "full": "evidence/shots/mock-hidpi/SURF-006.full.png",
+      "title": "Conduit \u2014 interactive prototype",
+      "text": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n      Conduit \u2014 interactiv",
+      "sha256": "0d67d57461eca4789971d2fd030eaa23fb5bf1d6b115450df85137d61f5a08de"
+    },
+    {
+      "surface": "SURF-007",
+      "query": "pane=cleanup&only=mac",
+      "full": "evidence/shots/mock-hidpi/SURF-007.full.png",
+      "title": "Conduit \u2014 interactive prototype",
+      "text": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n      Conduit \u2014 interactiv",
+      "sha256": "e30084130c8a0e105d40943e6e3d0359c1ae4f7f37a46b4b7ff0bb2e0cee8fe0"
+    },
+    {
+      "surface": "SURF-008",
+      "query": "pane=inbox&only=mac",
+      "full": "evidence/shots/mock-hidpi/SURF-008.full.png",
+      "title": "Conduit \u2014 interactive prototype",
+      "text": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n      Conduit \u2014 interactiv",
+      "sha256": "114fee3d612bbb891a1dd9cc058580a95af8afdd268c478d47f2ced26a9512be"
+    },
+    {
+      "surface": "SURF-009",
+      "query": "pane=inbox&popover=1&only=mac",
+      "full": "evidence/shots/mock-hidpi/SURF-009.full.png",
+      "title": "Conduit \u2014 interactive prototype",
+      "text": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n      Conduit \u2014 interactiv",
+      "sha256": "2f41ac363edba43b92c44ee424cf917379cb839e9c4ccdbf8b30ef7326a541b3"
+    },
+    {
+      "surface": "SURF-010",
+      "query": "pane=inbox&sheet=pair&only=mac",
+      "full": "evidence/shots/mock-hidpi/SURF-010.full.png",
+      "title": "Conduit \u2014 interactive prototype",
+      "text": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n      Conduit \u2014 interactiv",
+      "sha256": "43b4813a85fd6fee0e8e9d649354e3ff0370cd44eca78b493ed0f4d381f4396d"
+    },
+    {
+      "surface": "SURF-011",
+      "query": "pane=settings&only=mac",
+      "full": "evidence/shots/mock-hidpi/SURF-011.full.png",
+      "title": "Conduit \u2014 interactive prototype",
+      "text": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n  \n    \n      Conduit \u2014 interactiv",
+      "sha256": "8667ec75e42cd005a90cdaec2c8389d9865c32a564d6f67b3e308ee04c2e9c4b"
+    }
+  ]
+}

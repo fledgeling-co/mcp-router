@@ -7,7 +7,7 @@
    "height": 720
   },
   "settleMs": 1200,
-  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-001.build.png",
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-001.shell.png",
   "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-001.png",
   "shotTarget": "app://mac/servers",
   "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=servers&only=mac",
@@ -142,12 +142,11 @@
    "height": 720
   },
   "settleMs": 1200,
-  "shot": null,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/SURF-010.build.png",
   "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-010.png",
-  "shotTarget": null,
+  "shotTarget": "app://mac/pairing",
   "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html?pane=inbox&sheet=pair&only=mac",
-  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
-  "reason": "build half uncaptured \u2014 see the surface's shotNote"
+  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical."
  },
  {
   "surface": "SURF-011",
@@ -172,12 +171,11 @@
    "height": 720
   },
   "settleMs": 1200,
-  "shot": null,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/ios/SURF-012.ios.discover-populated.png",
   "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-012.png",
-  "shotTarget": null,
+  "shotTarget": "app://ios/discover",
   "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i2-phone-discover.html",
-  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
-  "reason": "build half uncaptured \u2014 see the surface's shotNote"
+  "conditionsNote": "build half is an XCUIScreenshot of a 1206x2622 iPhone 17 Pro simulator, taken in-test after the surface's own assertion; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical. Two captures of the same iOS state differ byte-for-byte, so byte-identity is not an oracle on this lane the way it is on the Mac one."
  },
  {
   "surface": "SURF-013",
@@ -187,12 +185,11 @@
    "height": 720
   },
   "settleMs": 1200,
-  "shot": null,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/ios/SURF-013.ios.triage.png",
   "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-013.png",
-  "shotTarget": null,
+  "shotTarget": "app://ios/triage",
   "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i3-phone-triage.html",
-  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
-  "reason": "build half uncaptured \u2014 see the surface's shotNote"
+  "conditionsNote": "build half is an XCUIScreenshot of a 1206x2622 iPhone 17 Pro simulator, taken in-test after the surface's own assertion; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical. Two captures of the same iOS state differ byte-for-byte, so byte-identity is not an oracle on this lane the way it is on the Mac one."
  },
  {
   "surface": "SURF-014",
@@ -202,11 +199,52 @@
    "height": 720
   },
   "settleMs": 1200,
-  "shot": null,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/ios/SURF-014.ios.camera-preflight.png",
   "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-014.png",
-  "shotTarget": null,
+  "shotTarget": "app://ios/pair-mac",
   "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i1-phone-pairing.html",
-  "conditionsNote": "build half is a macOS window captured by screencapture at the window's own retina frame; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical.",
-  "reason": "build half uncaptured \u2014 see the surface's shotNote"
+  "conditionsNote": "build half is an XCUIScreenshot of a 1206x2622 iPhone 17 Pro simulator, taken in-test after the surface's own assertion; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical. Two captures of the same iOS state differ byte-for-byte, so byte-identity is not an oracle on this lane the way it is on the Mac one."
+ },
+ {
+  "surface": "SURF-018",
+  "name": "iOS Settings and paired-Mac state",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/ios/SURF-018.ios.settings-never-paired.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-018.png",
+  "shotTarget": "app://ios/settings",
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i1-phone-pairing.html#unit=Never paired",
+  "conditionsNote": "build half is an XCUIScreenshot of a 1206x2622 iPhone 17 Pro simulator, taken in-test after the surface's own assertion; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical. Two captures of the same iOS state differ byte-for-byte, so byte-identity is not an oracle on this lane the way it is on the Mac one."
+ },
+ {
+  "surface": "SURF-019",
+  "name": "iOS Queue",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/ios/SURF-019.ios.queue.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-019.png",
+  "shotTarget": "app://ios/queue",
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i3-phone-triage.html#unit=Empty",
+  "conditionsNote": "build half is an XCUIScreenshot of a 1206x2622 iPhone 17 Pro simulator, taken in-test after the surface's own assertion; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical. Two captures of the same iOS state differ byte-for-byte, so byte-identity is not an oracle on this lane the way it is on the Mac one."
+ },
+ {
+  "surface": "SURF-020",
+  "name": "iOS Library",
+  "viewport": {
+   "width": 1280,
+   "height": 720
+  },
+  "settleMs": 1200,
+  "shot": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/ios/SURF-020.ios.library.png",
+  "reference": "/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/mock/SURF-020.png",
+  "shotTarget": "app://ios/library",
+  "referenceTarget": "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/i3-phone-triage.html#unit=Default",
+  "conditionsNote": "build half is an XCUIScreenshot of a 1206x2622 iPhone 17 Pro simulator, taken in-test after the surface's own assertion; reference half is a 1280x720 dpr-1 browser viewport of an HTML prototype. The two halves are NOT geometrically comparable and no pixel diff between them is valid \u2014 the comparison is structural and lexical. Two captures of the same iOS state differ byte-for-byte, so byte-identity is not an oracle on this lane the way it is on the Mac one."
  }
 ]

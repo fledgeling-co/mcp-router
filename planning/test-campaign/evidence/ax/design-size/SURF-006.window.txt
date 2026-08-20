@@ -1,0 +1,88 @@
+0	AXWindow	AXStandardWindow	Checks								SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1	120.0	120.0	1156.0	680.0	0
+1	AXGroup	AXHostingView										120.0	120.0	1156.0	680.0	0
+2	AXSplitGroup										SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1, SidebarNavigationSplitView	120.0	120.0	1156.0	680.0	0
+3	AXGroup	AXHostingView										128.0	128.0	256.0	664.0	0
+4	AXScrollArea											128.0	172.0	256.0	535.0	0
+5	AXOutline				Sidebar		1				sidebar	128.0	172.0	256.0	535.0	0
+6	AXRow	AXOutlineRow						0				128.0	172.0	256.0	19.0	
+7	AXCell						1	0				138.0	172.0	236.0	19.0	1
+8	AXGroup	AXHostingView										142.0	172.0	240.0	19.0	0
+9	AXHeading				Running		1					142.0	174.5	45.0	14.0	
+6	AXRow	AXOutlineRow						0				128.0	191.0	256.0	32.0	
+7	AXCell						1	0				138.0	191.0	236.0	32.0	1
+8	AXButton				Activity		1					145.5	199.0	71.0	16.0	
+6	AXRow	AXOutlineRow						0				128.0	223.0	256.0	32.0	
+7	AXCell						1	0				138.0	223.0	236.0	32.0	1
+8	AXButton				Servers, 1 need attention		1					144.0	231.0	224.0	16.0	
+6	AXRow	AXOutlineRow						0				128.0	255.0	256.0	32.0	
+7	AXCell						1	0				138.0	255.0	236.0	32.0	1
+8	AXButton				Skills		1					147.0	263.0	55.0	16.0	
+6	AXRow	AXOutlineRow						0				128.0	300.0	256.0	19.0	
+7	AXCell						1	0				138.0	300.0	236.0	19.0	1
+8	AXGroup	AXHostingView										142.0	300.0	240.0	19.0	0
+9	AXHeading				Library		1					142.0	302.5	39.0	14.0	
+6	AXRow	AXOutlineRow						0				128.0	319.0	256.0	32.0	
+7	AXCell						1	0				138.0	319.0	236.0	32.0	1
+8	AXButton				Discover		1					146.0	327.0	77.5	16.0	
+6	AXRow	AXOutlineRow						0				128.0	351.0	256.0	32.0	
+7	AXCell						1	0				138.0	351.0	236.0	32.0	1
+8	AXButton				Inbox		1					144.5	359.0	58.5	16.0	
+6	AXRow	AXOutlineRow						1				128.0	383.0	256.0	32.0	
+7	AXCell						1	1				138.0	383.0	236.0	32.0	1
+8	AXButton				Checks		1	1				144.5	391.0	70.5	16.0	
+6	AXRow	AXOutlineRow						0				128.0	415.0	256.0	32.0	
+7	AXCell						1	0				138.0	415.0	236.0	32.0	1
+8	AXButton				Cleanup, 3 never used		1					145.5	423.0	222.5	16.0	
+6	AXRow	AXOutlineRow						0				128.0	460.0	256.0	0.0	
+7	AXCell						1	0				138.0	460.0	236.0	0.0	1
+8	AXGroup	AXHostingView										142.0	460.0	240.0	0.0	0
+6	AXRow	AXOutlineRow						0				128.0	460.0	256.0	32.0	
+7	AXCell						1	0				138.0	460.0	236.0	32.0	1
+8	AXButton				Settings		1					145.0	468.0	76.0	16.0	
+6	AXColumn							0			ListColumn	138.0	172.0	236.0	535.0	
+4	AXUnknown				1 of 4 declared servers running		1				sidebar	136.0	716.0	240.0	16.0	
+4	AXStaticText			last 15s · peak 1			1				sidebar	136.0	769.5	105.5	13.0	
+3	AXSplitter			264			0	0				384.0	172.0	0.0	628.0	0
+3	AXGroup	AXHostingView										120.0	120.0	1156.0	680.0	0
+4	AXStaticText			none	mcprouter-key-probe						content	1200.0	772.0	72.0	24.0	1
+4	AXScrollArea										content	384.0	172.0	892.0	628.0	0
+5	AXStaticText			Checks			1					400.0	188.0	77.0	26.0	
+5	AXButton				Re-check all…		1					1154.0	192.0	106.0	24.0	0
+5	AXStaticText			The checks MCP Router runs itself, stamped to the version each was run against. No model-graded evaluation exists in this product.			1					400.0	216.0	720.5	14.0	
+5	AXRadioGroup						1					400.0	238.0	460.0	24.0	0
+6	AXRadioButton	AXSegment		1	All 10		1					400.0	238.0	115.0	24.0	0
+6	AXRadioButton	AXSegment		0	Not met 5		1					516.0	238.0	114.0	24.0	0
+6	AXRadioButton	AXSegment		0	Not observed 3		1					631.0	238.0	114.0	24.0	0
+6	AXRadioButton	AXSegment		0	Unstamped 2		1					746.0	238.0	114.0	24.0	0
+5	AXImage				search		1				magnifyingglass	877.5	244.0	12.0	12.0	
+5	AXTextField						1					895.0	242.0	181.0	16.0	0
+5	AXStaticText			subject			1					446.0	270.0	37.5	13.0	
+5	AXStaticText			kind			1					634.0	270.0	21.5	13.0	
+5	AXStaticText			checks			1					702.0	270.0	35.5	13.0	
+5	AXStaticText			checked against			1					878.0	270.0	82.0	13.0	
+5	AXOpaqueProviderGroup	AXOpaqueProviderList					1					400.0	287.0	860.0	489.0	
+6	AXStaticText			fixture-stdio, Server. 2 confirmed, 3 not observed, 1 not applicable.			1					400.0	287.0	860.0	48.0	
+6	AXStaticText			fixture-http, Server. 2 confirmed, 3 not observed, 1 not applicable.			1					400.0	336.0	860.0	48.0	
+6	AXStaticText			fixture-tools, Server. 5 confirmed, 1 not applicable.			1					400.0	385.0	860.0	48.0	
+6	AXStaticText			fixture-oauth, Server. 2 confirmed, 1 not met, 3 not observed.			1					400.0	434.0	860.0	48.0	
+6	AXStaticText			design-craft, Skill. 4 confirmed, 1 not applicable.			1					400.0	483.0	860.0	48.0	
+6	AXStaticText			trawl, Skill. 4 confirmed, 1 not met.			1					400.0	532.0	860.0	48.0	
+6	AXStaticText			changelog-writer, Skill. 3 confirmed, 1 not met, 1 not applicable.			1					400.0	581.0	860.0	48.0	
+6	AXStaticText			intent-layer, Skill. 2 confirmed, 1 not met, 2 not applicable.			1					400.0	630.0	860.0	48.0	
+6	AXStaticText			ai-gateway, Skill. 4 confirmed, 1 not applicable.			1					400.0	679.0	860.0	48.0	
+6	AXStaticText			graphify, Skill. 2 confirmed, 1 not met, 2 not applicable.			1					400.0	728.0	860.0	48.0	
+5	AXStaticText			A check is something MCP Router performed and can show you the input to. It is not a graded test of whether a capability does its job well. Skills are never executed by the router, so nothing here reports how one behaved when an agent used it.			1					400.0	784.0	860.0	27.0	
+5	AXScrollBar			0			1					1258.0	171.0	19.0	612.5	0
+6	AXValueIndicator			0								1267.0	175.0	6.0	501.0	
+6	AXButton	AXIncrementArrow										1259.0	172.0	0.0	0.0	
+6	AXButton	AXDecrementArrow										1259.0	172.0	0.0	0.0	
+6	AXButton	AXIncrementPage										1267.0	676.5	6.0	103.0	
+6	AXButton	AXDecrementPage										1267.0	175.0	6.0	0.0	
+1	AXToolbar											120.0	120.0	1156.0	52.0	0
+2	AXButton				Hide Sidebar		1	0				337.0	120.0	47.0	52.0	0
+1	AXButton	AXCloseButton					1					138.0	138.0	16.0	16.0	0
+1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					184.0	138.0	16.0	16.0	0
+2	AXGroup											185.0	139.0	14.0	14.0	0
+3	AXGroup											185.0	139.0	14.0	14.0	0
+1	AXButton	AXMinimizeButton					1					161.0	138.0	16.0	16.0	0
+1	AXStaticText			Checks			1					388.0	120.0	884.0	52.0	0

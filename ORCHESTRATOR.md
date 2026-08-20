@@ -230,6 +230,27 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 | X7 | The campaign's published artifacts under-report what it knows | harness | — | — | Opus | Untriaged (**upstream**: fledgeling-plugins, not this repo) | — | **Cannot be closed from this repository.** test-campaign 0.9.2 lives in the plugin cache; the vendored submodule carries 0.5.0 and does not contain the scripts (DEF-057). Closing it means a change pushed to fledgeling-plugins and a submodule bump. |
 | X8 | Two campaign detectors report findings they cannot support | harness | — | — | Opus | Untriaged (**upstream**: fledgeling-plugins, not this repo) | — | **Cannot be closed from this repository** — same reason as X7. |
 
+| R6 | Children inherit launchd's minimal PATH | router | R2 ✓ | — | Opus | **Ready to verify** | `ai/r6` `7a4f15a` | Both routers append every `bin` under `$HOME` or a `$HOME` dot-dir; append-only so nothing that resolved before resolves differently. Login-shell probe rejected on measurement — `zsh -l -c` missed `~/.grok/bin` at 1.69s, `-i` found it at 14.43s on a daemon the watcher kickstarts per adoption. 1543 tests, lint 0/486, parity 358, `cli-import` unmoved. codex-sol review: 6 findings, 4 changed code. grok lane killed at a 10-min wall clock and recorded incomplete, not passed. |
+| M23 | The mock-to-SwiftUI conversion contract | mac | — | `design/mcp-router-console.html` | Opus | **Resumable** — 18 paths, 0 commits | `ai/m23` | Killed by the harness's 180s no-progress detector, six attempts. Work survives in `.worktrees/M23`: `spec-M23.md`, `app/Sources/MCPRouterUI/Measure/`, `MeasureDump/`, three `MockToken*` test files, four `scripts/acceptance/mock*` gates, `planning/fidelity/`. |
+| R10 | `index` prints two counts that disagree | router | R9 ✓ | — | Opus | **Resumable** — 7 paths, 0 commits | `ai/r10` | Same cause. Work survives in `.worktrees/R10`: `IndexLogEvent.swift` (new), `CLIIndexWriteDeniedTests.swift` (new), edits to `MCPRouterCLI.swift`, `ControlPorts.swift`, `ServicePorts.swift`, and `planning/evidence/R10-acceptance.md`. `ControlPorts.swift` currently does not compile — an initializer returns without initializing all stored properties. |
+| M27 | The sidebar foot's loopback readout and the child-process label | mac | M1 ✓ | `design/mocks/prototype.html` | Opus | **Resumable** — 1 commit + 4 paths | `ai/m27` `418357b` | Same cause. `418357b` is committed; `DESIGN.md`, `Readout.swift`, `LoopbackReadoutTests.swift` and `mac-shell.sh` are still dirty on top of it. |
+
+**Wave A, 2026-08-21 04:18 — one of four landed, and the cause is not capacity.** Nineteen
+agents ran for four items: the harness retried each stalled runner six times. Every abort
+reads `[Request interrupted by user]`, and every stalled transcript ends inside a foreground
+polling loop — `until grep -q "^exit=" …; do sleep 15; done`, `for i in $(seq 1 40)`,
+`until [ "$(wc -c < …)" -gt 1500 ]; do sleep 20; done`. A loop like that emits no tool output,
+the 180-second no-progress detector fires, and the agent is killed mid-build. R6 survived
+because its last call was a fast `git rev-parse`.
+
+`workflow-resume`'s scanner reports all nineteen as `session/usage limit`. That is a false
+positive and its own documentation predicts it: the detector substring-matches transcripts, and
+both the runner prompt and this file discuss usage limits at length. The transcripts settle it.
+
+**Runners must not poll in the foreground.** Long builds go to a backgrounded command the
+harness owns, or get bounded hard. That instruction is in the relaunch prompt, and it is the
+only change from the brief that produced this.
+
 **Reconciled 2026-08-21.** The twenty-two rows below existed in
 `planning/features-to-triage/LEDGER.md` and in no row of this file, which is the memory a
 resuming fleet plans from. Fifteen of them had already merged. They are added here rather

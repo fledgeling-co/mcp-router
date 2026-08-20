@@ -59,6 +59,7 @@ it never tested.
 | R13 | Router-side behavioural eval runner — servers only | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R6, renumbered 2026-08-21) |
 | G2 | The ledger table holds two row shapes, and every reader silently drops one | `G2-orchestrator-table-is-heterogeneous.md` | — | — | Ready for AI — deferred from 2026-08-21 while agents were mid-read |
 | G3 | `make test` is not deterministically green | — | — | — | Ready for AI — found independently by two verifiers, 2026-08-21 |
+| G4 | Assertions that do not read the quantity they are named for | `G4-assertions-that-do-not-read-their-own-quantity.md` | — | — | Untriaged — filed 2026-08-21 from a cross-session exchange with `egress`; three instances already found in this repo and each treated as unrelated. Triage decides whether it is its own item or the policy half of `G1` |
 | M15 | Settings becomes its own window | `M15-settings-window.md` | — | — | Untriaged |
 | M16 | The Signal Path replaces the Breaker Column | `M16-signal-path.md` | — | — | Untriaged |
 | M17 | Four states on every surface, and chrome that follows | `M17-surface-states.md` | — | — | Untriaged |

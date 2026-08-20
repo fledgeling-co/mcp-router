@@ -31,6 +31,30 @@
             } detail: {
                 ContentZone(model: model)
                     .accessibilityIdentifier(Self.focusOrder[1])
+                    // **`minWidth: 0` breaks a chain, and the chain is DEF-015.**
+                    //
+                    // Every board draws fixed-width columns, so each row reports a hard minimum
+                    // width; the detail pane sums them and reports that as its own; and
+                    // `NavigationSplitView` sums the columns and reports that as *its* minimum.
+                    // The window proposes 980pt regardless — this app opts into no minimum size,
+                    // and `windowResizability` defaults to `.automatic`, so nothing ever reads the
+                    // split view's minimum back. SwiftUI then **places** the oversized child with
+                    // default centre alignment.
+                    //
+                    // Measured on glass, window 980pt: AXSplitGroup read 988pt on Checks, 1044pt
+                    // on Skills and 1119pt on Discover, and its origin moved left by exactly half
+                    // the excess in all three. So the clipping was symmetrical, and the sidebar
+                    // paid for the detail pane's columns — section headers rendered as `unning`
+                    // and `brary` while the nav rows beside them were whole. With this line all
+                    // eight boards read 980 of 980.
+                    //
+                    // `alignment: .leading` decides who loses when the content still does not fit,
+                    // and the answer is never the sidebar: the board's trailing chrome goes off the
+                    // right edge, the way a too-narrow window behaves everywhere else on this
+                    // platform. That trailing overflow is the part of DEF-015 still open — it needs
+                    // the three boards' columns to flex, which is a design decision about what
+                    // Discover looks like compressed.
+                    .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
             }
             // §3.7: the window title says what you are looking at, not the app's name.
             .navigationTitle(model.selection.title)

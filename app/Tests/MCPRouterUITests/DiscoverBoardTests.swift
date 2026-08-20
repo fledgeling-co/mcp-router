@@ -163,13 +163,31 @@
                 board.search = text
                 board.queryChanged()
             }
-            try await Task.sleep(nanoseconds: DiscoverBoardModel.debounceNanoseconds * 3)
-
+            // Two waits, because the claim has two halves and a single sleep proves neither on a
+            // slow host. First: the debounce fired at all — bounded, so a debounce that never fires
+            // fails here rather than hanging. A fixed sleep read `0 requests` at a load average of
+            // ~700 on 20 Aug 2026 and `1` at load 46 on the same source (DEF-030), which is a
+            // finding about the machine wearing a finding's clothes.
+            try await ShellTestSupport.waitUntil { client.searchQueries.count > baseline }
             #expect(
                 client.searchQueries.count == baseline + 1,
                 "five keystrokes issued \(client.searchQueries.count - baseline) requests"
             )
             #expect(client.searchQueries.last == "postg", "and the request carries the latest text")
+
+            // Second: nothing is queued behind it. The wait above is satisfied by the *first*
+            // request, so on its own it would pass against a board that issues one per keystroke —
+            // the exact defect this test exists to catch. A full debounce window with the count
+            // still at one is what rules that out, and this sleep is a real quiet period rather
+            // than a deadline, so load cannot shorten it into a false pass.
+            try await Task.sleep(nanoseconds: DiscoverBoardModel.debounceNanoseconds * 3)
+            #expect(
+                client.searchQueries.count == baseline + 1,
+                """
+                a later request arrived: five keystrokes issued \
+                \(client.searchQueries.count - baseline) requests in total
+                """
+            )
         }
 
         /// Bypassing the debounce without cancelling it issues this request *and* lets the debounce

@@ -29,7 +29,7 @@ it never tested.
 | R4-C2 | Retire `src/*.ts` — held, and what it waits on | `R4-C1-installer-points-at-swift.md` | — | — | Held (owner: not on a green streak) |
 | M1 | Mac window shell, menu bar, keyboard | `M1-mac-shell.md` | — | — | **Merged** `10cad44` |
 | M2 | Activity: the live call log | `M2-activity.md` | — | — | **Merged** `c39c891` |
-| M3 | Servers: the breaker board | `M3-servers-board.md` | — | — | Untriaged |
+| M3 | Servers: the breaker board | `M3-servers-board.md` | — | — | Done (`589ab2e`, `3b11f33`, `af77200` on main) |
 | M4 | Skills and marketplaces | `M4-skills.md` | — | — | **Merged** `7a28de8` |
 | M5 | Discover: the registry | `M5-discover.md` | — | — | **Merged** `2a81c87` |
 | M6 | Inbox and phone pairing (Mac side) | `M6-inbox-pairing.md` | — | — | **Merged** `6b3e940` |
@@ -53,7 +53,10 @@ it never tested.
 | M14 | A shipped menu tells the user the app is not built | `M14-menu-says-not-built.md` | — | — | **Merged** `7e7ed70` |
 | R6 | Children inherit launchd's minimal PATH | `R6-child-process-path.md` | — | — | Ready to verify (`ai/r6` `7a4f15a`) |
 | R8 | An upstream that refuses our credentials must say so | `R8-auth-rejection-visible.md` | — | — | **Done** (ai/r8 → main; owner unfroze `src/`, A38 rewritten to guard the reference's existence; Swift half unblocked by R9; parity 82/83 control 16/16 0 diverged; auth gate examined=8 failures=0) |
-| R7 | The router's thesis is unmet for every harness but Claude Code | `R7-harness-reconciliation.md` | — | — | Untriaged |
+| R7 | The router's thesis is unmet for every harness but Claude Code | `R7-harness-reconciliation.md` | — | — | **In progress** (`ai/r7`, dispatched 2026-08-21) |
+| R11 | Skills write endpoint (remove/disable) with preconditions and undo | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R7, renumbered 2026-08-21) |
+| R12 | Server soft-delete with a restore endpoint | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R8, renumbered 2026-08-21) |
+| R13 | Router-side behavioural eval runner — servers only | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R6, renumbered 2026-08-21) |
 | M15 | Settings becomes its own window | `M15-settings-window.md` | — | — | Untriaged |
 | M16 | The Signal Path replaces the Breaker Column | `M16-signal-path.md` | — | — | Untriaged |
 | M17 | Four states on every surface, and chrome that follows | `M17-surface-states.md` | — | — | Untriaged |
@@ -81,10 +84,10 @@ it never tested.
 
 | I5 | Prove the phone↔Mac pairing round trip, and stop there | — | — | — | **Merged** `4157bc4` (ORCHESTRATOR.md) |
 | I6 | Make Mac approval fast, without moving the boundary | — | — | — | **Merged** `ef4f615` (ORCHESTRATOR.md) |
-| M9 | Rename the `Evals` destination to `Checks` | — | — | — | Registered, no branch (ORCHESTRATOR.md deferred register) |
-| M10 | Amend `DESIGN.md` §6:279–280 | — | — | — | Registered, no branch (ORCHESTRATOR.md deferred register) |
+| M9 | Rename the `Evals` destination to `Checks` | — | — | — | Done inside D2 (`9e8a754`) — triaged 2026-08-21 |
+| M10 | Amend `DESIGN.md` §6:279–280 | — | — | — | Done inside D2 (`9e8a754`) — triaged 2026-08-21 |
 | M11 | Regenerate the M1 command inventory | — | — | — | **Merged (partial)** `2a434b9` — promoted out of the deferred register |
-| M12 | Staleness and an as-of time inside a destructive dialog | — | — | — | Registered, no branch (ORCHESTRATOR.md deferred register) |
+| M12 | Staleness and an as-of time inside a destructive dialog | — | — | — | Ready for AI — triaged 2026-08-21, measured still open |
 | P5 | Close the last three closeable parity rows | — | — | — | **Merged** `e752305` (ORCHESTRATOR.md) |
 | P6 | State the owner's cutover target in the gate | — | — | — | **Merged** `05296ea` (ORCHESTRATOR.md) |
 | R2-R | Router: the process that actually serves | — | — | — | **Merged** `62678aa` (ORCHESTRATOR.md) |
@@ -102,10 +105,71 @@ it never tested.
   cannot see the second, because both files having a row for an id says nothing about the two
   rows agreeing. When you change a status, change it in both files or the next fleet re-plans
   the work.
-- **M3 is unresolved rather than open.** Its own row in both files says `Untriaged` with no
-  branch, while M7's dependency cell reads `M3 ✓ M4 ✓` and M4–M8 have all merged. Either the
-  board shipped inside another item and neither row was updated, or the tick is wrong. Triage
-  it before scheduling it; do not assume either reading.
+- **M3 was triaged on 2026-08-21 and it had shipped.** The earlier note here recorded it as
+  unresolved rather than open — its row said `Untriaged` with no branch while M7's dependency
+  cell read `M3 ✓ M4 ✓` — and refused to guess which reading was right. The answer is the first
+  one: `589ab2e` ("the breaker board — Servers is the first pane that is actually built"),
+  `3b11f33` and `af77200` are all ancestors of `main`, six `ServersBoard*.swift` sources are in
+  the tree and seven test files name the board. M7's tick was correct and both rows were simply
+  never updated. Scheduling it would have rebuilt a shipped board — which is the cost this note
+  existed to prevent, and the reason a status a fleet cannot explain gets triaged rather than
+  assumed in either direction.
+
+- **`R7` was two different items, and both ledgers reconciled clean the whole time.** This file
+  carried `R7 — the router's thesis is unmet for every harness but Claude Code`, with a brief on
+  disk named for it. `ORCHESTRATOR.md`'s deferred register carried a different `R7` — the skills
+  write endpoint, a child of R3 filed by M7. Two items, one id.
+
+  `ledger-reconcile.py` could not see it, and the reason is worth keeping: checks A and B ask
+  whether an id appears in *both* files, and it did. **Membership and identity drift separately,
+  the same way membership and status do.** Check `F` was added for this — it compares the two
+  description cells for an id present in both files and reports a pair sharing no content word at
+  all. That bar is deliberately low: a legitimately reworded row nearly always keeps its subject
+  noun, so requiring *zero* overlap is what stops the check firing on a correct use.
+
+  Resolution: the top-level ledger item keeps `R7`, because a brief file carrying the id in its
+  filename is the stronger claim. The deferred child became `R11` and now has a row here of its
+  own. It is still open — `CleanupSheets.swift:204` draws `DisabledAction(label: "Remove", …)`.
+
+  **Check F then found two more on its first run, and the second one exposed a defect in the
+  check itself.** `R8` was the merged auth-rejection item here and *server soft-delete with a
+  restore endpoint* in the deferred register; it became `R12`. `R6` was the child-PATH item here
+  and *a router-side behavioural eval runner* in the deferred register; it became `R13`.
+
+  `R6` is the one worth keeping. The first version of check F read **one row per file**, and
+  `ORCHESTRATOR.md` carries two `R6` rows — the child-PATH item in the wave table, and the eval
+  runner in the deferred register. The row that agreed with this file was simply the earlier one,
+  so the check reported clean. A collision inside a single file is the same defect as one across
+  two, and a predicate that reads one row per file cannot see it. F now compares every row for an
+  id against every other, whichever file each came from.
+
+  **Fixing the collisions created a fourth defect, and check `G` was added for it.** Renumbering
+  the deferred `R8` to `R12` left the *merged* `R8` — the auth-rejection item on `ai/r8` — with
+  no ORCHESTRATOR row at all, because that had been its only one. Check B did not fire: B clears
+  on an id being **named** anywhere, which is the right bar for "does the other file know this
+  exists" and the wrong one for "can a fleet resume from that file". G asks the narrower
+  question, and found `R8` plus `X4` and `X5`, two merged branches this reconciliation had given
+  rows here but never there. All three now have rows. Both tables stand at 77.
+
+  The sequence is the point: six checks reported clean over a file with three id collisions and
+  three missing rows. Each new check found something on its first run, and one of them found a
+  defect the previous fix had just introduced. A reconciliation is not a state you reach; it is a
+  claim that only holds for the predicates you have written down.
+
+- **M9, M10 and M12 were triaged on 2026-08-21 by measuring the tree, not by reading their
+  rows.** Two of the three had already shipped. `M10`'s amendment is in `DESIGN.md` §6, which now
+  carries the correction *and* the reason — the old illustration "a skill with no evaluation reads
+  'not evaluated'" named a state the product cannot be in, because there is no eval runner
+  anywhere in it. `M9` is closed in `Destination.swift`: `.evals` reads `Checks`, and the
+  `rawValue`, `iconName` and `?pane=evals` slug stay `evals` **on purpose**, documented in source
+  — they are identifiers held in frame restoration and in every mock link, and `DESIGN.md` §6
+  governs words a user reads rather than keys a machine matches. `M12` is the one still open:
+  `CleanupSheets.swift` draws its destructive "Remove <name>?" dialog with a consequence figure
+  carrying no staleness marker and no as-of time.
+
+  Three items, two of them already done — the same shape as the M3 note above. A deferred
+  register records what was *filed*, and a later item closing it does not write back. So a row in
+  this table is a claim about the past; check it against the tree before scheduling from it.
 
 - **Thirteen rows were added on 2026-08-21 that this file had never carried.** Eleven were
   named only in this file's prose or only in ORCHESTRATOR.md; two — X4 and X5 — were merged

@@ -58,6 +58,47 @@ def table_ids(text: str) -> set[str]:
     return found - NOT_ALLOCATIONS
 
 
+# Stopwords for check F. The bar is deliberately low — see the comment on `describes`.
+FILLER = {
+    "the", "a", "an", "and", "or", "but", "of", "to", "for", "in", "on", "at", "by", "with",
+    "is", "it", "its", "that", "this", "not", "no", "every", "all", "any", "one", "two",
+    "from", "into", "than", "then", "when", "which", "who", "what", "does", "do", "did",
+    "be", "been", "was", "were", "are", "as", "has", "have", "had", "can", "cannot", "s",
+}
+
+def describes(text: str, source: str) -> dict[str, list[tuple[str, str]]]:
+    """Every table row's description cell, keyed by the id in the first cell.
+
+    This is what an allocator reads to decide whether an id is the item it means. Checks A
+    and B ask only whether an id APPEARS in both files; they cannot see two different items
+    wearing one id, because both files having a row satisfies membership. Identity drifts
+    separately from membership, the same way status does.
+
+    A **list** per id, not one entry, and that is the whole correctness of check F. The first
+    version of this returned one row per file via `setdefault` and missed a live collision on
+    its first run: `ORCHESTRATOR.md` carries two `R6` rows — the child-PATH item in the wave
+    table and a router-side eval runner in the deferred register — and the row that agreed
+    with LEDGER was simply the earlier one. A collision inside a single file is the same
+    defect as one across two, and a check that reads one row per file cannot see it.
+    """
+    out: dict[str, list[tuple[str, str]]] = {}
+    for line in text.split("\n"):
+        if not line.startswith("| "):
+            continue
+        cells = line.split("|")
+        if len(cells) < 3:
+            continue
+        cell = cells[1].strip().replace("**", "").replace("~~", "").strip()
+        if not re.fullmatch(rf"{SERIES}\d+(?:-[A-Z]\d*)?", cell) or cell in NOT_ALLOCATIONS:
+            continue
+        out.setdefault(cell, []).append((source, cells[2].strip()))
+    return out
+
+def content_words(text: str) -> set[str]:
+    text = QUOTED.sub(" ", text).replace("~~", " ").replace("**", " ")
+    words = re.findall(r"[A-Za-z][A-Za-z'-]+", text.lower())
+    return {w for w in words if w not in FILLER and len(w) > 2}
+
 def named_ids(text: str) -> set[str]:
     """Every id the file names anywhere — table, prose, changelog."""
     return {m.group(1) for m in ID.finditer(text)} - NOT_ALLOCATIONS
@@ -221,14 +262,53 @@ def main() -> int:
     for problem in quote_balance(ledger):
         print(f"  warning: LEDGER.md {problem}")
     print()
+    # F — one id, two different items. Reported only when the two description cells share
+    # NO content word at all. A legitimately reworded row almost always keeps its subject
+    # noun, so demanding zero overlap is what stops this firing on a correct use; the cost
+    # is that it misses a collision between two items that happen to share a word, which
+    # is the safe direction for a check whose remedy is renumbering someone's id.
+    rows: dict[str, list[tuple[str, str]]] = describes(ledger, "LEDGER")
+    for i, rs in describes(orch, "ORCHESTRATOR").items():
+        rows.setdefault(i, []).extend(rs)
+    f = []
+    for i in sorted(rows):
+        seen = [(src, d, content_words(d)) for src, d in rows[i] if content_words(d)]
+        clash = next(
+            (
+                (a, b)
+                for x, a in enumerate(seen)
+                for b in seen[x + 1:]
+                if not (a[2] & b[2])
+            ),
+            None,
+        )
+        if clash:
+            (s1, d1, _), (s2, d2, _) = clash
+            f.append(f"{i} ({s1}: {d1[:58]!r} / {s2}: {d2[:58]!r})")
+    if f:
+        findings.append(("F", "one id carrying two different items — both files have a row, "
+                              "so checks A and B reconcile clean while an allocator reads "
+                              "whichever file it opened", f))
+
+    # G — LEDGER carries a row, ORCHESTRATOR only a passing mention. Check B clears on any
+    # mention anywhere, which is the right bar for "does the other file know this id exists"
+    # and the wrong one for "can a fleet resume from that file". This found R7: its only
+    # appearance in ORCHESTRATOR was inside another row's prose, explaining that a colliding
+    # deferred child had been renumbered off it.
+    g = sorted(l_table - o_table)
+    if g:
+        findings.append(("G", "in LEDGER's table but ORCHESTRATOR has no row for it — only a "
+                              "mention, which check B accepts. A fleet resumes from the "
+                              "ORCHESTRATOR table, so an id with no row there is unscheduled", g))
+
     if not findings:
-        print("reconciled — no findings across A, B, B-range, C, D, E")
+        print("reconciled — no findings across A, B, B-range, C, D, E, F, G")
         return 0
     for code, why, ids in findings:
         print(f"{code}. {why}")
         print(f"   {' '.join(ids)}")
         print()
-    print(f"{len(findings)} of 6 checks found something. "
+    print(f"{len(findings)} of 8 checks found something. "
           "Which file is right is a judgement about what shipped; fix it by hand.")
     return 1
 

@@ -303,7 +303,17 @@ pass "Skills and Inbox carry no badge — the router serves no count for either"
 
 # The readout. Its label is generated from two observed counts, so this matches the shape rather
 # than a fixed string — a fixed one would pin the fixture rather than the derivation.
-printf '%s\n' "$WINDOW_TEXT" | grep -qE '^[0-9]+ of [0-9]+ declared servers running$' \
+#
+# **The `Child processes, ` head is tolerated for the same reason the destination rows above are
+# matched as a prefix**, and this line is the one place A35 was inconsistent with its own stated
+# principle. The comment at the top of this section says a row carrying a badge announces it as one
+# sentence and "the assertion has to allow for it"; this line anchored `^…$` instead. It could
+# afford to, because the readout row had no label — that missing label IS the defect M27 exists to
+# fix — so the anchor recorded the absence of a combined form rather than a decision against one.
+# It stayed anchored long enough to reject the correct fix once: M27 shipped an unmerged row for one
+# commit because `.combine` went red here. Widened, not weakened — the sentence itself is still
+# matched whole, and a row that announced a bare number would still fail.
+printf '%s\n' "$WINDOW_TEXT" | grep -qE '^(Child processes, )?[0-9]+ of [0-9]+ declared servers running$' \
   || fail "the readout's accessibility label is not in the tree"
 pass "the readout announces its counts as a sentence"
 

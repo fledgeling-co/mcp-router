@@ -202,6 +202,16 @@ a signal meaning "answering" needs a word for that state, `ControlAPIError` alre
 and "not answering" would be false for `.unauthorized`, where the router answers 401 and the poll
 still fails. The router's condition is the card's job.
 
+**The card announces as one element, not two.** The label and the reading it heads are one stop for
+a screen reader — `Child processes, 3 of 8 declared servers running` — for the reason A35 already
+matches the destination rows as a prefix rather than whole: a row carrying a value announces as one
+sentence, and splitting it costs a reader a swipe to reach a label that carries no value on its own.
+This is written down because the build has now held all three available forms and two of them were
+green on some gate: the shipped defect discarded the label from the accessibility plane entirely,
+and the fix for that briefly published two stops because A35's readout line — anchored whole, in the
+era when this row had no label to combine with — rejected the combined form. The gate recorded the
+absence rather than a decision, and was widened to its own stated tolerance rather than obeyed.
+
 Its states, since a foot with one state is the same third of a design as a board with one:
 
 | Condition | The foot |

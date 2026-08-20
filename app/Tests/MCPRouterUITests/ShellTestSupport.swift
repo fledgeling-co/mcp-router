@@ -16,6 +16,67 @@
             case sectionNotFound(String)
         }
 
+        /// The body of one declaration, extracted by balancing braces rather than by splitting on an
+        /// indented `}`.
+        ///
+        /// The split form it replaces was **vacuous in two ways at once**, and two out-of-family
+        /// reviews from different model families found both:
+        ///
+        /// 1. `components(separatedBy:)` never returns an empty array, so `.first` and `.last` are
+        ///    non-`nil` even when the delimiter is absent entirely. Every `#require` guarding one of
+        ///    those was unfailable, and its diagnostic string could never print.
+        /// 2. Splitting on the FIRST `"\n        }"` ends the body at the first member-indented
+        ///    brace. Today that is the declaration's own end, so the gates using it were correct by
+        ///    layout; a nested `if`/closure closing at that indent — which `swiftformat` is free to
+        ///    produce — would silently truncate the body, and every `!body.contains(…)` assertion
+        ///    downstream would pass on text that no longer includes the region it is denying.
+        ///
+        /// Both failures are silent and both are green, which is the pair worth removing rather than
+        /// patching. This throws where the old form returned something plausible.
+        ///
+        /// `marker` must appear exactly once: a second occurrence — an overload, or a comment
+        /// quoting the signature — makes "which declaration" ambiguous, and picking either end of
+        /// that ambiguity is how a scoped gate reads the wrong function.
+        static func declarationBody(of marker: String, in source: String) throws -> String {
+            let occurrences = source.components(separatedBy: marker).count - 1
+            guard occurrences == 1 else {
+                throw OracleError.sectionNotFound(
+                    "'\(marker)' appears \(occurrences) times, so which declaration is meant is ambiguous"
+                )
+            }
+            guard let markerRange = source.range(of: marker),
+                  let open = source[markerRange.upperBound...].firstIndex(of: "{")
+            else {
+                throw OracleError.sectionNotFound("'\(marker)' opens no brace")
+            }
+
+            var depth = 0
+            var index = open
+            // Braces inside a line comment or a string literal are text, not structure. Nothing
+            // else here needs a parser: this walks one declaration in this repo's own Swift.
+            var inComment = false
+            var inString = false
+            var previous: Character?
+            while index < source.endIndex {
+                let character = source[index]
+                if character == "\n" { inComment = false }
+                if !inComment, !inString, character == "/", previous == "/" { inComment = true }
+                if !inComment, character == "\"", previous != "\\" { inString.toggle() }
+                if !inComment, !inString {
+                    if character == "{" { depth += 1 }
+                    if character == "}" {
+                        depth -= 1
+                        if depth == 0 {
+                            return String(source[source.index(after: open) ..< index])
+                        }
+                    }
+                }
+                previous = character
+                index = source.index(after: index)
+            }
+            throw OracleError.sectionNotFound("'\(marker)' is never closed")
+        }
+
         /// Waits for a condition to hold rather than for a duration to elapse.
         ///
         /// A fixed `Task.sleep` reads like a wait but is really a bet on scheduler latency, and the

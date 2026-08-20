@@ -89,16 +89,12 @@
             // `ColorToken.f3`, so a card whose plate had been swapped for another fill still
             // contained the string and the check stayed green. Measured — that mutation survived
             // the file-wide form and is red against this one.
-            let afterDeclaration = try #require(
-                source.components(separatedBy: "private var card: some View {").last,
-                "the readout has no card declaration at all"
-            )
-            // The declaration's own body, which ends at the property's closing brace. Taking
-            // everything after the marker would sweep `ReadoutSkeleton` back in and reopen the
-            // hole this scoping closes.
-            let card = try #require(
-                afterDeclaration.components(separatedBy: "\n        }").first,
-                "the card declaration is never closed"
+            //
+            // Brace-balanced rather than split on an indented `}`: see `declarationBody`, whose two
+            // silent-green failure modes an out-of-family pair found in the split form this used.
+            let card = try ShellTestSupport.declarationBody(
+                of: "private var card: some View",
+                in: source
             )
             #expect(card.contains("ReadoutGeometry.cardRadius"), "the card is not at §2's card radius")
             #expect(card.contains("ColorToken.f3"), "the card has no plate")
@@ -136,46 +132,44 @@
 
         // MARK: - What the accessibility tree publishes for the count row
 
-        @Test("the count row merges into neither one element nor none")
-        func theCountRowPublishesLabelAndReadingSeparately() throws {
-            // Settled on glass rather than by argument, and worth the words because all three
-            // forms are defensible and two of them are measurably wrong here.
+        @Test("the count row publishes its label and its reading as one element")
+        func theCountRowPublishesOneCombinedElement() throws {
+            // Three forms, and this branch shipped two of the three before landing here. The
+            // history is the point, because each wrong one was green on some gate.
             //
-            // `.ignore` shipped, and it discarded the label: one element carrying the counts
-            // sentence, `Child processes` on screen and absent from the accessibility plane.
+            // `.ignore` shipped originally and discarded the label: one element carrying the counts
+            // sentence, `Child processes` on screen and absent from the accessibility plane — the
+            // very reading the campaign's differential took when it reported the label missing.
             //
-            // `.combine` is what two out-of-family reviews asked for — one element, one VoiceOver
-            // stop. It fails A35's own on-glass assertion in `mac-shell.sh`, which requires an
-            // element whose WHOLE text is `N of M declared servers running`; a combined row
-            // publishes `Child processes, N of M …` and that gate went red on it. Measured, not
-            // predicted.
+            // No merge at all fixed the visibility and cost a reader a swipe: two stops for one
+            // metric, the first carrying no value and the second naming the quantity differently.
+            // It was taken because `.combine` went red on A35's assertion in `mac-shell.sh`.
             //
-            // So neither modifier, and this test is what keeps `.ignore` from coming back — which
-            // it would, because merging a label into its value is the obvious tidy-up.
-            //
-            // Scoped to the counts row, and the first version of this test was red for the right
-            // reason: read across the whole file it caught `ReadoutMessage`'s `.combine`, which is
-            // correct there — a title and its sentence ARE one element. A guard against a modifier
-            // has to name the view it governs, or it convicts every other use of it in the file.
+            // `.combine` is correct and A35 was the thing that was wrong. That gate matches the
+            // destination rows as a prefix and says why in its own comment — a row carrying a badge
+            // announces as one sentence, so the assertion has to allow for it — while the readout's
+            // line was anchored whole. It could be, because this row had no label to combine with;
+            // the anchor recorded the absence M27 exists to fix rather than a decision against a
+            // combined form. Widened to that same tolerance, and `.combine` is what ships.
             let source = try ShellTestSupport.repoFile("app/Sources/MCPRouterUI/Shell/Readout.swift")
-            let afterDeclaration = try #require(
-                source.components(separatedBy: "private func counts(").last,
-                "the readout has no counts row at all"
+            let row = try ShellTestSupport.declarationBody(
+                of: "private func counts(running: Int, declared: Int, note: String?) -> some View",
+                in: source
             )
-            let row = try #require(
-                afterDeclaration.components(separatedBy: "\n        }").first,
-                "the counts row is never closed"
+            #expect(
+                row.contains(".accessibilityElement(children: .combine)"),
+                "the count row publishes two stops for one metric again"
             )
             #expect(
                 !row.contains(".accessibilityElement(children: .ignore)"),
                 "the count row merges again, which hides its label from every AX instrument"
             )
-            #expect(
-                !row.contains(".accessibilityElement(children: .combine)"),
-                "the count row combines again, which breaks A35's anchored on-glass assertion"
-            )
             // The scoping has to actually scope, or both assertions above pass on the wrong text.
+            // Anchored at BOTH ends: `childProcessesLabel` is the row's first line and would still
+            // be present in a body truncated before the modifier this test is really about, so on
+            // its own it proves nothing the assertions above need.
             #expect(row.contains("ReadoutCopy.childProcessesLabel"))
+            #expect(row.contains("TraceStrip(points: tracePoints)"), "the extracted body stops short")
             #expect(!row.contains("struct ReadoutMessage"))
             // The numeral still carries the sentence, which is the element A35 reads.
             #expect(row.contains(".accessibilityLabel("))
@@ -184,6 +178,37 @@
                 ReadoutCopy.accessibilityLabel(running: 3, declared: 8)
                     == "3 of 8 declared servers running"
             )
+            // A35's own line, widened rather than weakened — and pinned here, because the product
+            // change above is only correct if the gate tolerates the head it now produces. A gate
+            // and the render that has to satisfy it drifting apart is what cost this branch a
+            // commit already.
+            let gate = try ShellTestSupport.repoFile("scripts/acceptance/mac-shell.sh")
+            #expect(
+                gate.contains("'^(Child processes, )?[0-9]+ of [0-9]+ declared servers running$'"),
+                "A35 anchors the readout label whole again, which rejects the combined row"
+            )
+        }
+
+        @Test("the scoped source readers fail loudly rather than returning plausible text")
+        func theDeclarationReaderCannotPassVacuously() throws {
+            // The guard above is only worth its assertions if the extractor underneath it throws
+            // where it used to shrug. The split form it replaced returned a non-nil string for a
+            // marker that was not in the file at all, so every `#require` diagnostic written
+            // against it was unreachable — an out-of-family pair found that independently.
+            let source = try ShellTestSupport.repoFile("app/Sources/MCPRouterUI/Shell/Readout.swift")
+            #expect(throws: ShellTestSupport.OracleError.self) {
+                _ = try ShellTestSupport.declarationBody(of: "private func noSuchThing(", in: source)
+            }
+            // Ambiguity is a failure too: two matches means the reader picks a declaration by
+            // accident, which is how a scoped gate ends up measuring the wrong function.
+            #expect(throws: ShellTestSupport.OracleError.self) {
+                _ = try ShellTestSupport.declarationBody(of: "func ", in: source)
+            }
+            // And it balances rather than stopping at the first member-indented brace: the card's
+            // body contains a nested `.overlay(…)` and must still reach its own bezel.
+            let card = try ShellTestSupport.declarationBody(of: "private var card: some View", in: source)
+            #expect(card.contains("ColorToken.line"))
+            #expect(!card.contains("private func counts("))
         }
 
         // MARK: - The count spends --live only where --live is true

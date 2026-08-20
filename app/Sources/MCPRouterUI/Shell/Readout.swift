@@ -196,8 +196,8 @@
                     )
             }
             .frame(height: MetricToken.tableRows.leadingScalar)
-            // **The row publishes two elements, and that was settled on glass rather than by
-            // argument.** Three forms were tried against the running app:
+            // **One element: the label joined to the reading it heads.** Three forms were tried
+            // against the running app, and this one was reached last, by way of the wrong answer.
             //
             // `.ignore` is what shipped, and it discarded the label: the row published one element
             // whose text was the counts sentence, so `Child processes` was on screen and absent
@@ -205,17 +205,21 @@
             // the campaign's differential took when it reported the label missing, and a fix the
             // measuring instrument cannot see is a fix that gets re-reported.
             //
-            // `.combine` looked better on paper and two out-of-family reviews asked for it — one
-            // element, one VoiceOver stop, the label joined to the reading it heads. **It fails
-            // A35's own on-glass assertion**, measured: that gate requires an element whose whole
-            // text is `N of M declared servers running`, and a combined row publishes
-            // `Child processes, N of M …` instead, so `mac-shell.sh` went red on the readout's
-            // accessibility label. A35 is the older contract and it is anchored deliberately.
+            // Leaving the row unmerged fixed that and cost a VoiceOver reader a swipe: two stops
+            // for one metric, the first of them — `Child processes` — carrying no value at all,
+            // and the second naming the quantity differently (`declared servers`). This branch
+            // shipped that form for one commit, on the ground that `.combine` failed A35's own
+            // assertion in `mac-shell.sh`. **That ground was wrong, and three out-of-family
+            // reviews across two model families said so.** A35 matches the destination rows as a
+            // PREFIX, and its own comment says why: "a row that carries a badge announces it as
+            // part of one sentence … that is the point of the label, so the assertion has to allow
+            // for it". The readout's line was anchored `^…$` instead — written when this row had
+            // no label to combine with, because the missing label is the defect M27 exists to fix.
+            // So the anchor never encoded a decision about a combined form; it encoded the absence
+            // of one, and it was widened to the tolerance A35 already applies thirty lines above.
             //
-            // So: no merge. The label is its own element and the numeral carries the sentence. That
-            // is two stops for one card, which is the cost, and both stops are self-describing —
-            // this is not the loose-number failure A35 was written about. A reader hears what the
-            // number counts, then the number as a sentence.
+            // A gate written before the element existed does not get to pick the element's shape.
+            .accessibilityElement(children: .combine)
 
             TraceStrip(points: tracePoints)
                 .frame(height: ReadoutGeometry.traceHeight)

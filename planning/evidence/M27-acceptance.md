@@ -52,7 +52,7 @@ Two things about the assertion are worth the next runner's attention:
 
 Whole run: **exit 0**, `planning/evidence/M27/mac-shell-run.txt`.
 
-## What the run refused, which is the part worth reading
+## What the run refused, which is the part worth reading — **SUPERSEDED, see the section below**
 
 **`.accessibilityElement(children: .combine)` on the count row failed A35's assertion, measured.**
 Two out-of-family reviews asked for it and the reasoning was good — one element, one VoiceOver
@@ -87,3 +87,41 @@ found the same build launching and drawing a window fine. The passing run raised
 `MAC_APP_WAIT_{GONE,START,WINDOW}_TICKS` to 400 (100s). That changes no assertion — those bounds
 only decide whether an environment stall is reported as a product failure, which is what the
 script's own failure text says it is claiming.
+
+---
+
+## Correction, 2026-08-21 — the row combines after all, and A35 was the thing that was wrong
+
+The section above records `.combine` as refused by the on-glass gate, and shipped the unmerged row
+on that basis. **That reasoning was wrong and the shipped form was worse for a VoiceOver reader.**
+Two out-of-family lanes read the delta — `gpt-5.6-sol` (OpenAI) and `gemini-3.7-flash-high`
+(Google) — and reached the same finding independently, both at their top severity: the unmerged row
+makes every screen-reader user traverse two stops for one metric, the first of which —
+`Child processes` — carries no value at all, and the second of which names the quantity differently
+(`declared servers`). A third lane, `grok-4.6` (xAI), stalled after reading the wrong tree and
+returned no findings; it is recorded as **inconclusive**, not as a pass.
+
+The refutation is in A35's own text, thirty lines above the assertion that refused the merge.
+`mac-shell.sh:273-278` matches the destination rows as a **prefix**, and says why: *"a row that
+carries a badge announces it as part of one sentence — 'Servers, 1 need attention' rather than
+'Servers' and a loose number. That is the point of the label, so the assertion has to allow for
+it."* The readout's line at `:306` was anchored `^…$` instead. It could afford to be, because this
+row **had no label to combine with** — that missing label is the defect M27 exists to fix. So the
+anchor recorded the absence of a combined form rather than a decision against one, and treating it
+as a contract let a gate written before the element existed pick the element's shape.
+
+Widened to A35's own stated tolerance rather than obeyed:
+`^(Child processes, )?[0-9]+ of [0-9]+ declared servers running$`. The sentence is still matched
+whole, so a row announcing a bare number still fails — this is wider, not weaker.
+
+**And the guard that was supposed to pin all three forms could not fail.** Both reviewing families
+found it: `components(separatedBy:)` never returns an empty array, so the `.first` / `.last` reads
+under every `#require` were non-`nil` even when the delimiter was absent entirely, and each
+diagnostic string was unreachable. Splitting on the first member-indented `}` was the second half:
+correct today by layout, silently truncating the body to something a `!contains(…)` assertion passes
+against the moment a nested closure closes at that indent. Replaced with a brace-balanced
+`ShellTestSupport.declarationBody(of:in:)` that throws on a missing marker, on an ambiguous one, and
+on an unclosed one, with `theDeclarationReaderCannotPassVacuously` exercising all three.
+
+| Screen | How verified | Commit | Result |
+|---|---|---|---|

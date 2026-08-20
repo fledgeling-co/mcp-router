@@ -231,9 +231,9 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 | X8 | Two campaign detectors report findings they cannot support | harness | — | — | Opus | Untriaged (**upstream**: fledgeling-plugins, not this repo) | — | **Cannot be closed from this repository** — same reason as X7. |
 
 | R6 | Children inherit launchd's minimal PATH | router | R2 ✓ | — | Opus | **Ready to verify** | `ai/r6` `7a4f15a` | Both routers append every `bin` under `$HOME` or a `$HOME` dot-dir; append-only so nothing that resolved before resolves differently. Login-shell probe rejected on measurement — `zsh -l -c` missed `~/.grok/bin` at 1.69s, `-i` found it at 14.43s on a daemon the watcher kickstarts per adoption. 1543 tests, lint 0/486, parity 358, `cli-import` unmoved. codex-sol review: 6 findings, 4 changed code. grok lane killed at a 10-min wall clock and recorded incomplete, not passed. |
-| M23 | The mock-to-SwiftUI conversion contract | mac | — | `design/mcp-router-console.html` | Opus | **Resumable** — 18 paths, 0 commits | `ai/m23` | Killed by the harness's 180s no-progress detector, six attempts. Work survives in `.worktrees/M23`: `spec-M23.md`, `app/Sources/MCPRouterUI/Measure/`, `MeasureDump/`, three `MockToken*` test files, four `scripts/acceptance/mock*` gates, `planning/fidelity/`. |
-| R10 | `index` prints two counts that disagree | router | R9 ✓ | — | Opus | **Resumable** — 7 paths, 0 commits | `ai/r10` | Same cause. Work survives in `.worktrees/R10`: `IndexLogEvent.swift` (new), `CLIIndexWriteDeniedTests.swift` (new), edits to `MCPRouterCLI.swift`, `ControlPorts.swift`, `ServicePorts.swift`, and `planning/evidence/R10-acceptance.md`. `ControlPorts.swift` currently does not compile — an initializer returns without initializing all stored properties. |
-| M27 | The sidebar foot's loopback readout and the child-process label | mac | M1 ✓ | `design/mocks/prototype.html` | Opus | **Resumable** — 1 commit + 4 paths | `ai/m27` `418357b` | Same cause. `418357b` is committed; `DESIGN.md`, `Readout.swift`, `LoopbackReadoutTests.swift` and `mac-shell.sh` are still dirty on top of it. |
+| M23 | The mock-to-SwiftUI conversion contract | mac | — | `design/mcp-router-console.html` | Opus | **Ready to verify** | `ai/m23` `5d388fb` | Resumed in place after the wave-A stall; 6 commits. An instrument, not a board — nothing that ships renders differently. `MockTokenParser` reads the mock's five `:root` blocks and its `mac-craft:metrics` comment; `MockTokenRegister` classifies all 89 rows as `matched` or `pending`-with-citation. Gate has three exits and fails to 3 (inconclusive), never to 0, when a layer could not run. Declared residue: 64 of 89 token rows `pending` against M21's open DESIGN.md-versus-mock decision; iOS lanes not run; a pre-existing `PoolReapingTests` P6 timing flake not chased. |
+| R10 | `index` prints two counts that disagree | router | R9 ✓ | — | Opus | **Ready to verify** | `ai/r10` `f810870` | Resumed in place; 6 commits. `IndexOutcome.cacheFailure`, `heldChanges`, `IndexLogEvent.manifestNotWritten`, a third CLI status `not cached <server> …`, and a closing sentence that reconciles the two figures instead of quoting both. **Exit code deliberately unchanged and pinned by a test** — that contract is M28's decision, not this item's. 11 unit cases + 6 end-to-end against a `0o500` home. Fenced out and correctly not fixed: `ImportVerb.swift:109`, and the `ManifestIO.save` temp-file race. |
+| M27 | The sidebar foot's loopback readout and the child-process label | mac | M1 ✓ | `design/mocks/prototype.html` | Opus | **Ready to verify** | `ai/m27` `26337b8` | Resumed in place; 12 commits. `.combine` ships on the child-process count row — the predecessor's refusal was overturned by three out-of-family lanes plus A35's own text, whose `^…$` anchor recorded the missing label rather than a decision about it. A35 widened to its documented prefix tolerance. `declarationBody(of:in:)` replaces a source reader that was vacuous three ways. New assertion `sidebar_count_announcement` reads one AX field whose whole text is `Child processes, 1 of 4 declared servers running`, 8 of 8 destinations. |
 
 **Wave A, 2026-08-21 04:18 — one of four landed, and the cause is not capacity.** Nineteen
 agents ran for four items: the harness retried each stalled runner six times. Every abort
@@ -250,6 +250,37 @@ both the runner prompt and this file discuss usage limits at length. The transcr
 **Runners must not poll in the foreground.** Long builds go to a backgrounded command the
 harness owns, or get bounded hard. That instruction is in the relaunch prompt, and it is the
 only change from the brief that produced this.
+
+**Wave A resumed, 2026-08-21 07:5x — four of four ready to verify.** All three stalled items
+were resumed in their own worktrees rather than cold-started, so roughly 1.6M tokens of runner
+work was recovered rather than re-paid for. `Workflow({resumeFromRunId})` was **not** used: the
+journal held `results=1` of `started=19`, and replay stops at the first miss, so a resume would
+have paid nearly full price for the tail while re-asserting one cached result that was itself
+empty (`workflow-resume` §4).
+
+Every branch merges cleanly against `main` at `425b360`: R6 +1 commit, R10 +6, M23 +6, M27 +12.
+Each carries a committed evidence bundle at `planning/evidence/<ID>-acceptance.md`, so none
+bounces back to its runner for an empty bundle.
+
+**Verify dispatched 2026-08-21, run `wf_ca77347d-292`.** Four fresh-context agents, none of
+them the builder — that stage's rule is structural. Two phases rather than four concurrent
+agents, because M23's `MeasureDump` opens an `NSWindow` and M27's lane drives the real app
+through the accessibility API: R6, R10 and M27 run together, M23 runs alone afterwards. Each
+verdict must name the oracle rung of the assertions the verifier re-ran — not the rung the
+runner claimed — and must run its own out-of-family review lane, because the work was written
+by Claude and a verifier inside the writer's family is not an oracle.
+
+**Merge blocker, open with its owner.** `app/Tests/MCPRouterUITests/ShellTests.swift` carries an
+uncommitted change in main's working tree (20 Aug 23:37:58) that `ai/m27` also edits. Different
+hunks, no content conflict, but git refuses a merge that touches a locally-modified file. The
+author is session `7cba6593` (cwd `~/Dev`), identified by phrase-grep on two strings from the
+comment body, matching that transcript alone at `2026-08-20T13:37:58.252Z` — the file's mtime to
+the second. Asked rather than moved. M27 does not merge until its owner commits, stashes, or
+says explicitly where they want it put.
+
+`app/Tests/RouterCoreTests/ManifestIndexerWriteFailureTests.swift` was the other blocker and is
+cleared: an untracked 133-line draft in main, superseded by the 373-line version `ai/r10` carries.
+Copied to `/tmp/mcp-router-setaside/` before removal rather than deleted outright.
 
 **Reconciled 2026-08-21.** The twenty-two rows below existed in
 `planning/features-to-triage/LEDGER.md` and in no row of this file, which is the memory a

@@ -472,6 +472,7 @@ acceptance: build-mac build-mac-release
 	./scripts/acceptance/control-client.sh
 	./scripts/acceptance/p1-auth-routes.sh
 	./scripts/acceptance/mac-shell.sh
+	./scripts/acceptance/r7-harness-reconciliation.sh
 
 lint: tools
 	@fail=0; \
@@ -479,6 +480,7 @@ lint: tools
 	swiftlint lint --strict --config .swiftlint.yml || fail=1; \
 	./scripts/lint/no-raw-design-values.sh || fail=1; \
 	./scripts/lint/no-wire-codable.sh || fail=1; \
+	./scripts/lint/no-harness-config-writes.sh || fail=1; \
 	exit $$fail
 
 ## Writes formatting changes in place. Not part of `all` — a gate that edits your files is a gate

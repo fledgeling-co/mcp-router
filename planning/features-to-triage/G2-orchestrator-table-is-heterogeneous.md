@@ -93,6 +93,35 @@ because they are deferred *notes*, not allocations — the thing A, B, C and G e
 id allocation, and a note that never claims an id cannot collide with one. `ledger-reconcile.py`
 says so at its `SERIES` definition.
 
+### The rule was true, load-bearing, and invisible
+
+The `D-<parent>-<letter>` exclusion is correct and it lived **only** in `ledger-reconcile.py`'s
+`SERIES` definition. The author of that line forgot it was a stated exclusion rather than an
+accident, and had to re-derive it by measurement — which is the whole test for whether a rule is
+written somewhere a reader meets it. Someone opening `ORCHESTRATOR.md` sees 23 rows that look
+like every other row and no indication that none of them is checked.
+
+Same defect as `LEDGER.md`'s old header claiming ids were "allocated here and nowhere else" while
+three branches existed that it had never heard of: true, load-bearing, and stated where nobody
+reads it. Fixed by putting it in both places in the file itself — above the ledger table and
+above the register — rather than only in this brief, which is also a place people do not read
+until they are already implementing.
+
+### Three mechanisms, not three instances
+
+Worth separating, because the third is the one that ships. All three of tonight's findings were
+about a denominator, but they failed differently:
+
+1. **Dropped** — a reader silently discarding rows it could not parse, and reporting over the
+   remainder.
+2. **Corroborated** — two independent readers agreeing *because* of that same drop, so the
+   agreement measured the file's shape rather than its content.
+3. **Gamed** — an acceptance test satisfiable by shrinking the denominator rather than filling
+   it.
+
+The first two produce a wrong number, which someone eventually notices. The third produces a
+**green**, which nobody does.
+
 **Which makes the honest statement of this item:** moving the rows does not change their
 coverage, and must not be described as though it does. What it fixes is a table whose header
 lies about the shape of a quarter of its rows — the condition that made two unrelated readers

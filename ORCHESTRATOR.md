@@ -255,6 +255,22 @@ agents ran for four items: the harness retried each stalled runner six times. Ev
 reads `[Request interrupted by user]`, and every stalled transcript ends inside a foreground
 polling loop — `until grep -q "^exit=" …; do sleep 15; done`, `for i in $(seq 1 40)`,
 `until [ "$(wc -c < …)" -gt 1500 ]; do sleep 20; done`. A loop like that emits no tool output,
+**2026-08-21, and the detector is now 600s rather than 180s.** Two runners (M23 gap-fix, G3)
+were killed by it inside the same ten minutes without either doing anything wrong. The cause was
+off this repository: another project left 32 orphaned busy-loop processes — a load generator whose
+parent was SIGKILLed before its `kill $LOADPIDS` ran — pinning the machine at load average 548
+across 3001 processes for 2h48m. A starved agent emits no tool output, which is indistinguishable
+to the watchdog from a stuck one. Cleared by the owning session; CPU came back to 27% idle and both
+runners resumed in place from their own transcripts rather than cold-starting.
+
+Two things this repository should carry from it. **A red `make test` is uninterpretable without
+knowing the machine's load** — under that saturation `PoolReapingTests.swift:61` would have failed
+every run, which is G3's whole argument for removing the wall-clock assumption rather than widening
+it. And **a shell-snapshot id names a session, not a command**: `pkill -f <snapshot-id>` looks like
+a precise selector and matches every Bash call that session ever makes, including its own. Find
+candidates by pattern; select victims by explicit pid, after asserting the count and asserting the
+known-live pids are absent.
+
 the 180-second no-progress detector fires, and the agent is killed mid-build. R6 survived
 because its last call was a fast `git rev-parse`.
 
@@ -274,6 +290,26 @@ have paid nearly full price for the tail while re-asserting one cached result th
 empty (`workflow-resume` §4).
 
 Every branch merges cleanly against `main` at `425b360`: R6 +1 commit, R10 +6, M23 +6, M27 +12.
+
+**Merged 2026-08-21, serialised one at a time, each gated on its own MERGED tree rather than on
+its branch.** R6 `1d958b4`, R10 `8241e0f`, M27 `cbe5cc3`. The distinction matters: R10's tree ran
+R6's `acceptance-r6` lane and reported `examined=6 failures=0`, so the two are known to compose
+rather than merely to pass alone. Every merge was preceded by a `comm` of the branch's changed
+paths against the main checkout's dirty paths, because three other sessions hold uncommitted work
+here and this fleet has swept some of it into a commit twice.
+
+R6's and M27's merges each conflicted in `LEDGER.md`, and in both cases **each side knew something
+the other did not** — `main` carried the verify verdict, the rung and the follow-up ids, the branch
+carried the spec/plan pointers or the build narrative. Both were resolved by combining, never by
+taking a side wholesale.
+
+`.worktrees/R6` and `.worktrees/R10` removed after proving `git rev-list --count main..<branch>`
+is 0 and the tree clean. **`.worktrees/M27` is deliberately left in place**: it carries 12
+uncommitted modified files under `planning/test-campaign/evidence/shots/` (a whole-file
+re-serialisation of `captures.json` plus ten iOS PNGs) whose provenance is not established. It is
+merged and could be force-removed; it is not, because campaign evidence in this repository belongs
+to another session and a forced removal is unrecoverable. Whoever owns those changes should commit
+or discard them, and then the worktree goes.
 Each carries a committed evidence bundle at `planning/evidence/<ID>-acceptance.md`, so none
 bounces back to its runner for an empty bundle.
 

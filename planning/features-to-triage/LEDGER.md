@@ -19,38 +19,38 @@ it never tested.
 | F1 | Swift workspace, shared kit, three targets | `F1-swift-workspace.md` | `spec-F1.md` | `plan-F1.md` | **Merged** `0924040` |
 | F2 | The design system in SwiftUI | `F2-design-system.md` | `spec-F2.md` | `plan-F2.md` | **Merged** `22d1802` |
 | F3 | Typed control-API client and models | `F3-control-client.md` | `spec-F3.md` | `plan-F3.md` | **Merged** `13825c9` |
-| F4 | ServerStateTracker cannot report failure | `F4-tracker-failure-states.md` | — | — | Untriaged |
+| F4 | ServerStateTracker cannot report failure | `F4-tracker-failure-states.md` | — | — | **Merged** `aba30bd` |
 | R1 | Swift router: core, config, manifest | `R1-router-core.md` | `spec-R1.md` | `plan-R1.md` | **Merged** `c30eac9` |
-| R2 | Swift router: lazy pool, relay, passthrough | `R2-router-pool-relay.md` | — | — | Untriaged |
-| R3 | Swift router: control, usage, registry | `R3-router-control-registry.md` | — | — | Untriaged |
-| R5 | Swift router: OAuth and the auth routes | `R5-router-auth.md` | — | — | Untriaged |
-| R4 | Differential parity harness and cutover | `R4-router-parity-cutover.md` | — | — | Untriaged |
+| R2 | Swift router: lazy pool, relay, passthrough | `R2-router-pool-relay.md` | — | — | **Merged** `a8091bb` |
+| R3 | Swift router: control, usage, registry | `R3-router-control-registry.md` | — | — | **Merged** `e154bae` |
+| R5 | Swift router: OAuth and the auth routes | `R5-router-auth.md` | — | — | **Merged** `b7c527c` |
+| R4 | Differential parity harness and cutover | `R4-router-parity-cutover.md` | — | — | **Merged (harness only)** `e129779` |
 | R4-C1 | The installer points at Swift; the TypeScript tree stays | `R4-C1-installer-points-at-swift.md` | — | — | **Done** (ai/r4c) |
 | R4-C2 | Retire `src/*.ts` — held, and what it waits on | `R4-C1-installer-points-at-swift.md` | — | — | Held (owner: not on a green streak) |
-| M1 | Mac window shell, menu bar, keyboard | `M1-mac-shell.md` | — | — | Untriaged |
-| M2 | Activity: the live call log | `M2-activity.md` | — | — | Untriaged |
+| M1 | Mac window shell, menu bar, keyboard | `M1-mac-shell.md` | — | — | **Merged** `10cad44` |
+| M2 | Activity: the live call log | `M2-activity.md` | — | — | **Merged** `c39c891` |
 | M3 | Servers: the breaker board | `M3-servers-board.md` | — | — | Untriaged |
-| M4 | Skills and marketplaces | `M4-skills.md` | — | — | Untriaged |
-| M5 | Discover: the registry | `M5-discover.md` | — | — | Untriaged |
-| M6 | Inbox and phone pairing (Mac side) | `M6-inbox-pairing.md` | — | — | Untriaged |
-| M7 | Evals and Cleanup | `M7-evals-cleanup.md` | — | — | Untriaged |
-| M8 | Settings, menu-bar popover, quarantine | `M8-settings-quarantine.md` | — | — | Untriaged |
-| I1 | iPhone: shell and pairing | `I1-ios-shell-pairing.md` | — | — | Untriaged |
-| I2 | iPhone: Discover and detail | `I2-ios-discover.md` | — | — | Untriaged |
-| I3 | iPhone: Triage, Queue, Library, Settings | `I3-ios-triage.md` | — | — | Untriaged |
-| P1 | Make the two auth routes reachable | `P1-auth-routes-reachable.md` | — | — | Untriaged |
-| P2 | The `import` verb and the config rewrite | `P2-import-verb.md` | — | — | Untriaged |
-| P3 | Oracles for the usage stream and registry search | `P3-stream-and-registry-oracles.md` | — | — | Untriaged |
-| P4 | Derive the manifest rows; fix the directory-dependent normaliser | `P4-derive-manifest-rows.md` | — | — | Untriaged |
-| M13 | The scroll-edge separator, A34 | `M13-scroll-edge.md` | — | — | Untriaged |
-| G1 | Stop the checks blaming the app for being out of date | `G1-gate-hygiene.md` | — | — | Untriaged |
-| V1 | Re-run the out-of-family review on the router items (grok) | `V1-outside-review-router.md` | — | — | Untriaged |
-| I4 | Let the phone install directly | `I4-phone-direct-install.md` | — | — | Untriaged |
-| D1 | Deferred register: router side (12 children) | `D1-deferred-router.md` | — | — | Untriaged |
-| D2 | Deferred register: Mac surfaces and design authority (14) | `D2-deferred-mac.md` | — | — | Untriaged |
-| D3 | Deferred register: phone copy and the harness limit (4) | `D3-deferred-phone-harness.md` | — | — | Untriaged |
+| M4 | Skills and marketplaces | `M4-skills.md` | — | — | **Merged** `7a28de8` |
+| M5 | Discover: the registry | `M5-discover.md` | — | — | **Merged** `2a81c87` |
+| M6 | Inbox and phone pairing (Mac side) | `M6-inbox-pairing.md` | — | — | **Merged** `6b3e940` |
+| M7 | Evals and Cleanup | `M7-evals-cleanup.md` | — | — | **Merged** `85d8331` |
+| M8 | Settings, menu-bar popover, quarantine | `M8-settings-quarantine.md` | — | — | **Merged** `affaed6` |
+| I1 | iPhone: shell and pairing | `I1-ios-shell-pairing.md` | — | — | **Merged** `d582d43` |
+| I2 | iPhone: Discover and detail | `I2-ios-discover.md` | — | — | **Merged** `ba139d4` |
+| I3 | iPhone: Triage, Queue, Library, Settings | `I3-ios-triage.md` | — | — | **Merged** `b50aa8d` |
+| P1 | Make the two auth routes reachable | `P1-auth-routes-reachable.md` | — | — | **Merged** `496f88c` |
+| P2 | The `import` verb and the config rewrite | `P2-import-verb.md` | — | — | **Merged** `95d16f9` |
+| P3 | Oracles for the usage stream and registry search | `P3-stream-and-registry-oracles.md` | — | — | **Merged** `f466020` |
+| P4 | Derive the manifest rows; fix the directory-dependent normaliser | `P4-derive-manifest-rows.md` | — | — | **Merged** `8686fd6` |
+| M13 | The scroll-edge separator, A34 | `M13-scroll-edge.md` | — | — | **Merged** `08b9bdf` |
+| G1 | Stop the checks blaming the app for being out of date | `G1-gate-hygiene.md` | — | — | **Merged** `8cfb9e3` |
+| V1 | Re-run the out-of-family review on the router items (grok) | `V1-outside-review-router.md` | — | — | **Merged** `29af3eb` |
+| I4 | Let the phone install directly | `I4-phone-direct-install.md` | — | — | **Retired** — replaced by I5 (`4157bc4`) and I6 (`ef4f615`) |
+| D1 | Deferred register: router side (12 children) | `D1-deferred-router.md` | — | — | **Merged** `997f7af` |
+| D2 | Deferred register: Mac surfaces and design authority (14) | `D2-deferred-mac.md` | — | — | **Merged** `9e8a754` |
+| D3 | Deferred register: phone copy and the harness limit (4) | `D3-deferred-phone-harness.md` | — | — | **Merged** `67ae4f5` |
 | — | **BLOCKED: the Apple developer identity** | `BLOCKED-apple-identity.md` | — | — | **Needs input — `as-found`, not confirmed** |
-| M14 | A shipped menu tells the user the app is not built | `M14-menu-says-not-built.md` | — | — | Untriaged |
+| M14 | A shipped menu tells the user the app is not built | `M14-menu-says-not-built.md` | — | — | **Merged** `7e7ed70` |
 | R6 | Children inherit launchd's minimal PATH | `R6-child-process-path.md` | — | — | Untriaged |
 | R8 | An upstream that refuses our credentials must say so | `R8-auth-rejection-visible.md` | — | — | **Done** (ai/r8 → main; owner unfroze `src/`, A38 rewritten to guard the reference's existence; Swift half unblocked by R9; parity 82/83 control 16/16 0 diverged; auth gate examined=8 failures=0) |
 | R7 | The router's thesis is unmet for every harness but Claude Code | `R7-harness-reconciliation.md` | — | — | Untriaged |
@@ -69,6 +69,7 @@ it never tested.
 | P7 | `control-auth-post-http` needs a real OAuth client | `P7-auth-post-oauth-client.md` | — | — | **Done** (ai/p7 → main; parity reached 82 of 83) |
 | P8 | Make `install-launchd-watch`'s `reran` term attributable | `P8-launchd-watch-attributable.md` | — | — | **Done** (ai/p8 → main; the lane was shown able to go red) |
 | R9 | The SDK drops an upstream's message on -32603; the router reads it off the wire | `R9-sdk-drops-upstream-message.md` | — | — | **Done** (ai/r9 → main; DEF-047 closed, 7 tests armed 5-of-7 red, parity 82/83 0 diverged) |
+| R10 | `index` prints two counts that disagree, and neither is checked | `R10-index-reports-a-write-that-did-not-land.md` | — | — | Ready for AI |
 | X1 | The iOS accessibility-tree harness, and two surfaces still empty | `X1-ios-a11y-harness.md` | — | — | Done (closed by X3's engine fix + the accessibility-frame row oracle; `make test-ios` 36/0) |
 | X2 | The iOS on-glass instrument, and the six cases it takes off `n/a` | `X2-ios-on-glass.md` | — | — | **Done** (ai/x2 → main; lane-owned device, six green runs) |
 | X3 | The iOS unit lane read an empty accessibility tree because the engine was off | `X3-ios-unit-lane-empty-tree.md` | — | — | Done (DEF-029 closed, armed three ways) |
@@ -93,6 +94,18 @@ it never tested.
 | X5 | Discover and Skills: the controls row set the board's width | — | — | — | **Merged** `dee20da` (`ai/x5`) — its work is written up under M25 |
 
 ## Allocation notes
+
+- **Statuses were synced from ORCHESTRATOR.md on 2026-08-21.** Twenty-six rows here read
+  `Untriaged` for work that had already merged — R2, R3, R5, M1–M8, I1–I3, P1–P4, D1–D3, F4,
+  G1, M13, M14, V1 and R4. A fleet reading this column would have dispatched twenty-six shipped
+  items. Membership and status drift separately: `ledger-reconcile.py` catches the first and
+  cannot see the second, because both files having a row for an id says nothing about the two
+  rows agreeing. When you change a status, change it in both files or the next fleet re-plans
+  the work.
+- **M3 is unresolved rather than open.** Its own row in both files says `Untriaged` with no
+  branch, while M7's dependency cell reads `M3 ✓ M4 ✓` and M4–M8 have all merged. Either the
+  board shipped inside another item and neither row was updated, or the tick is wrong. Triage
+  it before scheduling it; do not assume either reading.
 
 - **Thirteen rows were added on 2026-08-21 that this file had never carried.** Eleven were
   named only in this file's prose or only in ORCHESTRATOR.md; two — X4 and X5 — were merged

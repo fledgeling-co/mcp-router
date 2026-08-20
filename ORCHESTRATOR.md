@@ -282,6 +282,24 @@ comment body, matching that transcript alone at `2026-08-20T13:37:58.252Z` — t
 the second. Asked rather than moved. M27 does not merge until its owner commits, stashes, or
 says explicitly where they want it put.
 
+**The ShellTests.swift blocker is cleared** — its owner (session `7cba6593`) set the change aside
+to `~/.claude/projects/-Users-lukerhodes-Dev/setaside/mcp-router/`, verified byte-identical before
+the restore, and asked that it not be reapplied until the fleet's merges are done. Worth carrying
+into any work on that suite: `ShellTests.swift:133` currently reads
+`#expect(result.tools != nil, …)` against a **non-optional `Int`**, so that assertion reads nothing
+and passes against the failure fixture. It is one assertion weaker than it looks, the fix exists
+and is not ours to land, and a runner that rewrites that line silently discards it.
+
+**A benign merge conflict is now expected on two branches.** `ai/r6` and `ai/m27` each edit
+`planning/features-to-triage/LEDGER.md`, and the fleet has since committed its own status changes
+to the same cells (`c96b20f`, `eb784e4`). `ai/r10` and `ai/m23` stay clean. Resolve toward the
+fleet's row at merge — it carries the branch and commit the branch's own row cannot know — rather
+than taking either side wholesale.
+
+**No branch touches `planning/test-campaign/`.** Checked across all five (`ai/r6`, `ai/r10`,
+`ai/m27`, `ai/m23`, `ai/r7`): zero files each. That tree belongs to another session, and a merge
+blocking there would be a surprise rather than a conflict.
+
 `app/Tests/RouterCoreTests/ManifestIndexerWriteFailureTests.swift` was the other blocker and is
 cleared: an untracked 133-line draft in main, superseded by the 373-line version `ai/r10` carries.
 Copied to `/tmp/mcp-router-setaside/` before removal rather than deleted outright.

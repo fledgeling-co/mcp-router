@@ -93,6 +93,15 @@
 
         /// A hairline, at the focus ring's half — the width every other line in this app is drawn at.
         public static let hairline = MetricToken.focusRing.leadingScalar / 2
+
+        /// What the card actually offers its contents: the whole height less the card's own padding
+        /// above and below.
+        ///
+        /// Named because two things have to agree on it and they had already stopped: the populated
+        /// form fills it by construction — two dense rows, the trace, and the two gaps between them
+        /// — and the skeleton has to be given it explicitly. `SidebarFootTests` holds
+        /// the two equal, which is A29's claim stated as arithmetic rather than as prose.
+        public static let interiorHeight = height - cardPadding * 2
     }
 
     /// The at-rest readout in the sidebar's footer.
@@ -226,6 +235,14 @@
     /// §5 — "skeleton matching the real row geometry; never a spinner over a blank pane." The height
     /// is `ReadoutGeometry.height`, the same constant the populated form is held to, so the sidebar
     /// does not move when the first poll answers.
+    ///
+    /// **The inner frame is the card's interior, and it subtracts `cardPadding` rather than
+    /// `spacing`.** Those two were the same term until M27 put the readout inside a card: the
+    /// wrapper's vertical padding was `spacing`, so `height - spacing * 2` *was* the interior. It is
+    /// `cardPadding` now, and the stale subtraction left the skeleton 8pt taller than the interior
+    /// it sits in — the one state whose whole job is to occupy the populated form's space, drawn
+    /// overflowing it by 4pt top and bottom. `ReadoutGeometry.interiorHeight` names the quantity so
+    /// the two cannot come apart again.
     struct ReadoutSkeleton: View {
         var body: some View {
             VStack(alignment: .leading, spacing: ReadoutGeometry.spacing) {
@@ -245,7 +262,7 @@
                         maxHeight: MetricToken.tableRows.leadingScalar / 3
                     )
             }
-            .frame(height: ReadoutGeometry.height - ReadoutGeometry.spacing * 2, alignment: .leading)
+            .frame(height: ReadoutGeometry.interiorHeight, alignment: .leading)
             .accessibilityLabel(ReadoutCopy.loadingLabel)
         }
     }

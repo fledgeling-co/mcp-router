@@ -118,6 +118,41 @@
             #expect(ReadoutGeometry.cardMargin > 0)
         }
 
+        // MARK: - The card's interior, which the skeleton has to fill exactly
+
+        @Test("the skeleton is given the card's interior, not the wrapper's old one")
+        func theSkeletonFillsTheCardsInterior() throws {
+            // The regression this catches, found by reading rather than by a failing check: the
+            // readout's vertical padding was `spacing` until M27 put it inside a card, so
+            // `height - spacing * 2` WAS the interior and the skeleton subtracted that. The card
+            // pads by `cardPadding`, and the stale subtraction left the skeleton 8pt taller than
+            // the space it sits in — visible as the one state whose only job is to occupy the
+            // populated form's footprint, drawn overflowing it.
+            //
+            // Stated as arithmetic first: the populated form is two dense rows, the trace, and the
+            // two gaps between them, and the interior is exactly that. If either side moves without
+            // the other, this is red.
+            #expect(
+                ReadoutGeometry.interiorHeight
+                    == MetricToken.tableRows.leadingScalar * 2
+                    + ReadoutGeometry.traceHeight
+                    + ReadoutGeometry.spacing * 2
+            )
+            #expect(
+                ReadoutGeometry.interiorHeight
+                    == ReadoutGeometry.height - ReadoutGeometry.cardPadding * 2
+            )
+            // And structurally, because the arithmetic above passes against a skeleton that ignores
+            // the constant entirely. `spacing` and `cardPadding` are 4 and 8, so a skeleton that
+            // went back to subtracting `spacing` is a different number and this is red on it.
+            let source = try ShellTestSupport.repoFile("app/Sources/MCPRouterUI/Shell/Readout.swift")
+            #expect(source.contains(".frame(height: ReadoutGeometry.interiorHeight"))
+            #expect(
+                !source.contains("ReadoutGeometry.height - ReadoutGeometry.spacing"),
+                "the skeleton subtracts the wrapper's old padding instead of the card's"
+            )
+        }
+
         @Test("the foot's left edge is the card's label edge")
         func theFootAlignsWithTheCardsContent() {
             // One left edge down the whole sidebar foot. `prototype.html` sets the card's margin and

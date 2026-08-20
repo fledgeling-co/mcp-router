@@ -16,6 +16,12 @@ public enum IndexLogEvent: Sendable, Hashable, LoggableEvent {
     /// It covers both arms: the row a successful index produced, and the failure row the catch arm
     /// writes for an upstream that would not start. The wording therefore says what was lost rather
     /// than what produced it — "indexed X but could not write" would be false of the second.
+    ///
+    /// It claims **provenance** rather than absence, for the same reason the CLI's closing sentence
+    /// does. "Nothing this run read from it is cached" — the wording before this one — is false
+    /// whenever the refused update carried the same tools an older row already holds: `echo` is
+    /// then both what this run read and what the manifest serves. What is true in every shape is
+    /// that the row on disk, if there is one, predates this run.
     case manifestNotWritten(server: String, path: String, reason: String)
 
     public var level: RouterLog.Level {
@@ -28,8 +34,8 @@ public enum IndexLogEvent: Sendable, Hashable, LoggableEvent {
         switch self {
         case let .manifestNotWritten(server, path, reason):
             "the manifest row for \"\(server)\" did not reach \(path) (\(reason)); "
-                + "nothing this run read from it is cached — check that directory's permissions "
-                + "and run `mcp-router index --force` again"
+                + "whatever that file holds for it is from an earlier run — check that "
+                + "directory's permissions and run `mcp-router index --force` again"
         }
     }
 }

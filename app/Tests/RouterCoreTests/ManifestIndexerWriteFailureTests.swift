@@ -188,7 +188,15 @@ struct ManifestIndexerWriteFailureTests {
         let text = sink.text
         #expect(text.contains("did not reach /router/manifest.json"), "the path is named")
         #expect(text.contains("the manifest row for \"fixture\""), "and so is the server")
-        #expect(text.contains("nothing this run read from it is cached"), "and what it cost")
+        #expect(
+            text.contains("whatever that file holds for it is from an earlier run"),
+            """
+            A claim about PROVENANCE, not about absence. The line said "nothing this run read \
+            from it is cached", which is false whenever the refused update carried tools an older \
+            row already holds — the same falsehood the CLI's closing sentence was rewritten to \
+            drop, and it survived here after that rewrite.
+            """
+        )
         #expect(text.contains("permissions"), "and what to do about it")
     }
 

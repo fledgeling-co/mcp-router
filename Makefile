@@ -41,7 +41,7 @@ print(out)"
 IOS_DEST   ?= generic/platform=iOS Simulator
 MAC_DEST   ?= platform=macOS
 
-.PHONY: all tools generate build build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest mutation acceptance lint format clean
+.PHONY: all tools generate build build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance lint format clean
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
 ## `test-ios-glass` is in this list because `X2-ios-on-glass.md` said it would be: "The target
@@ -427,6 +427,23 @@ parity-lane-selftest:
 	  echo "  run 'npm install && npm run build' and re-run 'make parity-lane-selftest' to prove"; \
 	  echo "  the lanes can still go red."; \
 	fi
+
+## Proves `install-launchd-watch`'s two terms can go red, by mutating the launchd agent this lane
+## generates — a decoy WatchPaths, a blinded HOME, a resident program — and requiring each term to
+## fail under the mutation aimed at it. It runs the install lane's own watch observation — the file
+## `parity-install.sh` sources — rather than a copy of it, so the demonstration cannot drift from
+## the thing demonstrated.
+##
+## Out of `all`, and out of `parity-selftest`, for a reason that is not squeamishness about cost:
+## every trial waits out a 10s ThrottleInterval, a 60s settling bound and a 90s restaging bound, so
+## the default 27 trials take roughly 40 minutes of mostly-sleeping wall clock. It is run when this
+## row's terms change, and its numbers are recorded in the row note in planning/parity/surface.tsv.
+##
+## This row does not get to be proven on a series. It was `proven` once on a term that agreed
+## sixteen consecutive times and measured the wrong thing (D-p1-e), so the claim now rests on the
+## mutations here and the rate each one is caught at.
+parity-watch-mutations:
+	./scripts/acceptance/parity-install-watch-mutations.sh
 
 ## Launches both shells and asserts each renders a value that came from MCPRouterKit.
 ##

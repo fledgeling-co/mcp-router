@@ -480,7 +480,9 @@ parity-manifest-selftest:proves this file can fail; run by 'make parity-selftest
 parity-lane-selftest:proves a lane can fail; run by 'make parity-selftest'
 parity-normalise-selftest:proves the normaliser can fail; run by 'make parity-selftest'
 parity-lock:the harness lock (D-g1-g); sourced by parity-gate.sh and four other entry points
-parity-lock-selftest:proves the lock can refuse; run by 'make parity-selftest'"
+parity-lock-selftest:proves the lock can refuse; run by 'make parity-selftest'
+parity-install-watch:the watch half of the install lane; sourced by parity-install.sh and by parity-install-watch-mutations.sh, so one copy of the observation serves both
+parity-install-watch-mutations:proves the watch agent's two terms can go red; run by 'make parity-watch-mutations'"
 
 for script in "$REPO_ROOT"/scripts/acceptance/parity-*.sh; do
   [ -f "$script" ] || continue
@@ -517,11 +519,28 @@ while IFS= read -r entry; do
   # Where there is no Makefile there is no wiring to have an opinion about, so this sub-check is
   # skipped rather than failed. The LANES membership check above still runs in that tree.
   [ -f "$REPO_ROOT/Makefile" ] || continue
-  if ! grep -q "$name" "$REPO_ROOT/Makefile" && ! grep -q "$name" "$GATE_SH"; then
+  # A third way to be run: SOURCED BY A DISPATCHED LANE. `parity-install-watch.sh` holds the watch
+  # half of the install lane so that the lane and its mutation harness share one copy of the
+  # observation, and a file the install lane sources runs every time the install lane runs.
+  #
+  # The reference has to be the `. "$REPO_ROOT/scripts/acceptance/<name>.sh"` path, and it is only
+  # looked for in scripts the gate actually DISPATCHES — never in another exempt script, which is
+  # what would let two unrun files vouch for each other. A mention in prose does not match.
+  sourced_by_lane=""
+  for dispatched in $lanes_dispatched; do
+    lane_script="$REPO_ROOT/scripts/acceptance/parity-$dispatched.sh"
+    [ -f "$lane_script" ] || continue
+    grep -q "scripts/acceptance/$name\.sh" "$lane_script" && { sourced_by_lane="$dispatched"; break; }
+  done
+  [ -n "$sourced_by_lane" ] && continue
+  # `$name.sh`, not `$name`. Unanchored, one script's name is a PREFIX of another's, so
+  # `parity-install-watch-mutations.sh` in the Makefile silently vouched for `parity-install-watch`
+  # — an exemption satisfied by a script that is not the exempted one.
+  if ! grep -q "$name\.sh" "$REPO_ROOT/Makefile" && ! grep -q "$name\.sh" "$GATE_SH"; then
     note "NOT_LANES exempts \"$name\" as not-a-lane, and nothing runs it: it appears in neither the"
     detail "  Makefile nor parity-gate.sh. An exemption has to mean \"run another way\", not \"not"
     detail "  run\" — otherwise this list is just a waiver for the invisible-script defect it exists"
-    detail "  to catch."
+    detail "  to catch. Being sourced by a dispatched lane counts; being mentioned does not."
   fi
 done <<< "$NOT_LANES"
 

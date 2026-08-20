@@ -34,7 +34,13 @@ struct PoolReapingTests {
 
         let lease = try await pool.lease("a")
         await pool.release(lease)
-        try? await Task.sleep(nanoseconds: 150_000_000)
+
+        // Read on the arming rather than on a wall-clock window. Finding the upstream still live
+        // 150ms later samples one instant, and the sample passes just as well when a reap is
+        // merely late; an upstream with no timer armed cannot be reaped by the idle path at all,
+        // which is the claim. The mutation still bites: drop the warm guard and a timer appears.
+        let armed = await pool.armedReap("a")
+        #expect(armed == nil, "a warm upstream is never armed, so its 20ms window never applies")
         #expect(await pool.isLive("a"), "warm implies running; reaping it undoes what it bought")
     }
 
@@ -45,7 +51,9 @@ struct PoolReapingTests {
 
         let lease = try await pool.lease("a")
         await pool.release(lease)
-        try? await Task.sleep(nanoseconds: 120_000_000)
+
+        let armed = await pool.armedReap("a")
+        #expect(armed == nil, "zero disables reaping here; the pool's 20ms default must not apply")
         #expect(await pool.isLive("a"))
     }
 
@@ -57,7 +65,24 @@ struct PoolReapingTests {
 
         let lease = try await pool.lease("a")
         await pool.release(lease)
-        try? await Task.sleep(nanoseconds: 150_000_000)
+
+        // Two observations, neither of them a wall-clock window.
+        //
+        // The first reads the deadline the arming actually chose, which is what "overrides the
+        // default" means and what a mutation moves. It is a `require` rather than an `expect` so a
+        // pool that armed the 600-second default fails HERE, in a millisecond, instead of hanging
+        // on the await below — a mutation gate that hangs proves nothing.
+        //
+        // The second awaits the timer's own task, so the reap is observed when it happens rather
+        // than at a moment picked in advance. `Task.sleep` is at-least, and the deadline was taken
+        // before the task was created, so the woken timer's own deadline check cannot fail: the
+        // reap is complete when the task returns. The 150ms sleep this replaces passed in
+        // isolation four times running and failed under whole-suite load.
+        let armed = try #require(await pool.armedReap("a"), "release must arm a timer")
+        let window = ContinuousClock.now.duration(to: armed.deadline)
+        try #require(window < .seconds(1), "the server's 25ms window, not the pool's 600s default")
+
+        await armed.task.value
         #expect(await !pool.isLive("a"))
     }
 
@@ -103,8 +128,12 @@ struct PoolReapingTests {
 
         let lease = try await pool.lease("a")
         await pool.release(lease)
+
+        // Eviction happens inside the watcher task, so the watcher is the thing to await. Taken
+        // before the session ends, because evicting is what removes the handle it hangs off.
+        let watcher = try #require(await pool.endWatcher("a"))
         transport.sessions[0].endOnItsOwn()
-        try? await Task.sleep(nanoseconds: 60_000_000)
+        await watcher.value
 
         #expect(await !pool.isLive("a"), "a dead upstream must not be handed out again")
         let next = try await pool.lease("a")
@@ -121,9 +150,10 @@ struct PoolReapingTests {
         await pool.release(first)
         let firstHandle = try #require(await pool.currentIdentities("a").handle)
 
-        // The first dies and is replaced.
+        // The first dies and is replaced. Awaited through its own watcher for the same reason.
+        let watcher = try #require(await pool.endWatcher("a"))
         transport.sessions[0].endOnItsOwn()
-        try? await Task.sleep(nanoseconds: 60_000_000)
+        await watcher.value
         #expect(await !pool.isLive("a"))
         let second = try await pool.lease("a")
         await pool.release(second)
@@ -175,7 +205,10 @@ struct PoolReapingTests {
         async let first = pool.lease("a")
         await transport.waitForGatedOpen()
         async let second = pool.lease("a")
-        try? await Task.sleep(nanoseconds: 20_000_000)
+        // The gate opens once the second caller has actually joined the cohort. Sleeping 20ms and
+        // hoping is the same bet as the one above: lose it and the second caller takes a HOT
+        // acquire instead, and the test reports that as a counting defect in the pool.
+        await waitUntil("both callers to join the cohort") { await pool.waitingCallers("a") >= 2 }
         transport.openGate()
         let cohort = try await [first, second]
         for lease in cohort {

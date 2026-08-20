@@ -165,6 +165,35 @@ public actor UpstreamPool {
         (entries[name]?.handle?.id, entries[name]?.reap?.epoch)
     }
 
+    /// The idle timer armed right now, so a test can read the window the pool **chose** and await
+    /// the reap itself rather than sleep past a guess at when it will land.
+    ///
+    /// A fixed sleep in a concurrency test is a bet on scheduler latency, and the bet is placed on
+    /// a quiet machine. Measured here on 2026-08-21: a 150ms wait for a 25ms window passed four
+    /// times running in isolation and failed under whole-suite load, and while this repository was
+    /// pinned at load average 400 it would have failed every time. Awaiting `task` takes exactly
+    /// as long as the reap takes, so a busy machine makes the test slower instead of wrong.
+    func armedReap(_ name: String) -> ReapTimer? {
+        entries[name]?.reap
+    }
+
+    /// The task watching this upstream for an end it did not ask for. Eviction happens inside that
+    /// task, so awaiting it **is** the eviction completing — the same reason as above, one event
+    /// along. Read it before ending the session: evicting is what removes the handle it hangs off.
+    func endWatcher(_ name: String) -> Task<Void, Never>? {
+        entries[name]?.handle?.endWatcher
+    }
+
+    /// Callers that have committed to a start and do not yet hold a lease.
+    ///
+    /// A cohort test has to arrange its second and third callers before releasing the start they
+    /// are meant to join, and this is the observable that says they arrived. The count is written
+    /// before `acquire` is entered and the actor is not released again until the joiner is parked
+    /// on the shared flight, so observing it from outside cannot be early.
+    func waitingCallers(_ name: String) -> Int {
+        entries[name]?.pendingWaiters ?? 0
+    }
+
     // MARK: - Acquisition
 
     private func acquire(name: String, config: UpstreamConfig) async throws -> PoolHandle {

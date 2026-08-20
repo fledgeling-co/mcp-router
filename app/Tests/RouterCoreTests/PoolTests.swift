@@ -62,8 +62,12 @@ struct PoolTests {
         await transport.waitForGatedOpen()
         async let second = pool.lease("a")
         async let third = pool.lease("a")
-        // Give the two joiners a chance to reach the cohort before the gate opens.
-        try? await Task.sleep(nanoseconds: 20_000_000)
+        // Open the gate once the two joiners have actually reached the cohort, rather than after a
+        // window long enough that they probably have. Losing that bet makes the pool look as
+        // though it spawned three children, which is the defect this test exists to catch.
+        await waitUntil("all three callers to join the cohort") {
+            await pool.waitingCallers("a") >= 3
+        }
         transport.openGate()
 
         let leases = try await [first, second, third]
@@ -122,12 +126,21 @@ struct PoolTests {
         let pool = makePool([stdioUpstream("a", idleMs: 30)], transport: transport)
 
         let lease = try await pool.lease("a")
-        // Well past the idle window, but the call has not finished.
-        try? await Task.sleep(nanoseconds: 120_000_000)
+        // A call outstanding arms no timer at all, which is stronger than finding the upstream
+        // still live 120ms into a 30ms window — that only says a reap had not happened *yet*.
+        let duringCall = await pool.armedReap("a")
+        #expect(duringCall == nil, "a call in flight leaves no idle timer armed")
         #expect(await pool.isLive("a"), "the reaper must not close an upstream mid-call")
 
+        // And the close is awaited through the timer the release arms, so the second half is not a
+        // second bet on 120ms being longer than whatever the machine is doing.
         await pool.release(lease)
-        try? await Task.sleep(nanoseconds: 120_000_000)
+        let armed = try #require(await pool.armedReap("a"), "release must arm the timer")
+        // The window is this server's own 30ms. Checked before awaiting, so a mutation that armed
+        // the pool's 60-second default fails here instead of stalling the suite for a minute and
+        // then passing — a gate that takes a minute to agree has stopped being a gate.
+        try #require(ContinuousClock.now.duration(to: armed.deadline) < .seconds(1))
+        await armed.task.value
         #expect(await !pool.isLive("a"), "and it must close once the call has finished")
     }
 

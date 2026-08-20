@@ -37,8 +37,11 @@ struct PoolLifecycleTests {
         await pool.release(lease)
         let session = transport.sessions[0]
 
+        // Awaited through the watcher that performs the eviction rather than through a window
+        // chosen in advance; see `waitUntil` in `PoolTestSupport` for why the difference matters.
+        let watcher = try #require(await pool.endWatcher("a"))
         session.endOnItsOwn()
-        try? await Task.sleep(nanoseconds: 80_000_000)
+        await watcher.value
 
         #expect(session.shutdownCount == 1, "the evicted session must be shut down exactly once")
         #expect(await !pool.isLive("a"))
@@ -58,7 +61,10 @@ struct PoolLifecycleTests {
         let handleA = await pool.currentIdentities("a").handle
 
         transport.sessions[0].endOnItsOwn()
-        try? await Task.sleep(nanoseconds: 60_000_000)
+        // Not the watcher task here: awaiting it would wait out the blocked log too, and acting
+        // *during* that log is the whole point. Eviction precedes the log and is what `isLive`
+        // reports, so waiting on the eviction lands inside the window instead of guessing at it.
+        await waitUntil("the dead handle to be evicted") { await !pool.isLive("a") }
 
         // Taken while the close is still being logged.
         let second = try await pool.lease("a")

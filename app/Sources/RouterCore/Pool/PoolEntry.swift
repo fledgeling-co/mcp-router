@@ -71,7 +71,7 @@ struct PoolHandle: Sendable {
 /// system time is corrected, and a test that freezes it would freeze the deadline while the timer's
 /// own `Task.sleep` kept running in real time. Elapsed time is measured monotonically; the wall
 /// clock stays for the values that are reported.
-struct ReapTimer {
+struct ReapTimer: Sendable {
     let epoch: ReapEpoch
     let deadline: ContinuousClock.Instant
     let task: Task<Void, Never>

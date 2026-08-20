@@ -168,6 +168,34 @@ final class FakeTransport: UpstreamTransporting, Sendable {
     }
 }
 
+/// Wait until the pool reports a condition, rather than until a chosen number of milliseconds
+/// have passed.
+///
+/// That distinction is the whole of G3. A fixed sleep encodes a guess about scheduler latency made
+/// on a quiet machine: `PoolReapingTests`' 150ms wait for a 25ms idle window passed four times
+/// running in isolation and failed under whole-suite load, and this repository has since been
+/// observed at a load average where it would have failed every time. Widening the sleep only moves
+/// the threshold onto the next machine. Waiting on the condition removes it — a busy machine makes
+/// this slower and never wrong.
+///
+/// `within` is a deadlock breaker rather than the observation. It is three orders of magnitude
+/// above the events these tests wait on, and its expiry is **reported as a failure naming the
+/// condition**, so a mutation that stops the event happening at all fails with a reason instead of
+/// hanging the suite.
+func waitUntil(
+    _ what: Comment,
+    within seconds: Double = 30,
+    sourceLocation: SourceLocation = #_sourceLocation,
+    _ condition: @Sendable () async -> Bool
+) async {
+    let deadline = ContinuousClock.now.advanced(by: .seconds(seconds))
+    while ContinuousClock.now < deadline {
+        if await condition() { return }
+        try? await Task.sleep(nanoseconds: 2_000_000)
+    }
+    Issue.record("timed out after \(seconds)s waiting for: \(what)", sourceLocation: sourceLocation)
+}
+
 /// A clock the test drives, so an idle window can be asserted rather than slept through.
 final class TestClock: RouterClock, Sendable {
     private let now: Mutex<Double>

@@ -146,47 +146,23 @@ struct MCPRouterCLI {
                 + (force ? " (forced: all)" : "") + "\n"
         )
 
-        var built: [String] = []
-        var failed: [String] = []
-        var lost: [String] = []
+        var report = IndexReport()
         for upstream in loaded.config.upstreams where force || ToolUnion.isStale(manifest, upstream) {
             let outcome = await indexer.index(upstream)
-            // `error ? … : …` — an empty string is not a failure, which is the ported truthiness
-            // test rather than a nil check.
-            let upstreamFailure = outcome.error.flatMap { $0.isEmpty ? nil : $0 }
-            if let error = upstreamFailure {
-                failed.append("\(upstream.name): \(error)")
-            } else if outcome.cached {
-                // A held surface reports its CHANGE count, not its tool count. The tools it just
-                // listed are pending; the manifest still serves the approved set, which is what the
-                // closing line counts — so printing `(2 tools)` here against `1 tools cached` was
-                // the same two-numbers-disagree defect on a home with nothing wrong with it.
-                // Both strings are the reference's, and their twin is `ManifestBookkeeping.build`.
-                built.append(outcome.heldChanges.map { "\(upstream.name) (\($0) change(s) held for approval)" }
-                    ?? "\(upstream.name) (\(outcome.tools) tools)")
-            }
-            // Independent of the pass/fail pair rather than a third arm of it. A server can fail to
-            // start AND fail to have that failure recorded, and the second is exactly as invisible
-            // as the first was: the unwritten error row leaves the entry non-stale, so the next
-            // unforced `index` skips it.
-            if let reason = outcome.cacheFailure {
-                lost.append(upstreamFailure == nil
-                    ? "\(upstream.name) (\(outcome.tools) tools indexed): \(reason)"
-                    : "\(upstream.name) (the failure was not recorded either): \(reason)")
-            }
+            report.add(upstream, outcome)
         }
 
-        for line in built {
+        for line in report.built {
             Out.print("  ok    \(line)\n")
         }
-        for line in failed {
+        for line in report.failed {
             Out.print("  FAIL  \(line)\n")
         }
         // Deliberately not folded into `FAIL`, and deliberately not aligned with the other two.
         // These servers started, answered, and produced a row that never reached the manifest —
         // reporting that as either half of the ordinary pass/fail pair is what let DEF-049 print
         // `ok` over a file that does not exist.
-        for line in lost {
+        for line in report.lost {
             Out.print("  not cached  \(line)\n")
         }
         let after = ManifestIO.load(
@@ -207,9 +183,9 @@ struct MCPRouterCLI {
         // And "nothing this run read from them is in that count" — the wording before this one —
         // is false when the refused update carried the SAME tools the older row already holds:
         // `echo` is then both what this run read and what the count includes.
-        if !lost.isEmpty {
+        if !report.lost.isEmpty {
             Out.print(
-                "\(lost.count) server(s) above did not reach the manifest, so that count is "
+                "\(report.lost.count) server(s) above did not reach the manifest, so that count is "
                     + "unchanged by them; whatever they contribute to it is from an earlier run.\n"
             )
         }
@@ -367,5 +343,41 @@ struct CLIError: Error {
 
     init(_ message: String) {
         self.message = message
+    }
+}
+
+/// What one `index` run has to say about its upstreams, accumulated as it walks them.
+///
+/// A type of its own rather than three arrays and a branch inside the verb, because the three lines
+/// are not exclusive. `lost` is independent of the pass/fail pair rather than a third arm of it: a
+/// server can fail to start AND fail to have that failure recorded, and the second is exactly as
+/// invisible as the first was — the unwritten error row leaves the entry non-stale, so the next
+/// unforced `index` skips a server that never indexed.
+private struct IndexReport {
+    private(set) var built: [String] = []
+    private(set) var failed: [String] = []
+    private(set) var lost: [String] = []
+
+    mutating func add(_ upstream: UpstreamConfig, _ outcome: IndexOutcome) {
+        // `error ? … : …` — an empty string is not a failure, which is the ported truthiness test
+        // rather than a nil check.
+        let upstreamFailure = outcome.error.flatMap { $0.isEmpty ? nil : $0 }
+        if let error = upstreamFailure {
+            failed.append("\(upstream.name): \(error)")
+        } else if outcome.cached {
+            // A held surface reports its CHANGE count, not its tool count. The tools it just listed
+            // are pending; the manifest still serves the approved set, which is what the closing
+            // line counts — so printing `(2 tools)` here against `1 tools cached` was the same
+            // two-numbers-disagree defect on a home with nothing wrong with it. Both strings are
+            // the reference's, and their twin is `ManifestBookkeeping.build`.
+            let held = outcome.heldChanges.map {
+                "\(upstream.name) (\($0) change(s) held for approval)"
+            }
+            built.append(held ?? "\(upstream.name) (\(outcome.tools) tools)")
+        }
+        guard let reason = outcome.cacheFailure else { return }
+        lost.append(upstreamFailure == nil
+            ? "\(upstream.name) (\(outcome.tools) tools indexed): \(reason)"
+            : "\(upstream.name) (the failure was not recorded either): \(reason)")
     }
 }

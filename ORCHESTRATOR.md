@@ -255,6 +255,20 @@ agents ran for four items: the harness retried each stalled runner six times. Ev
 reads `[Request interrupted by user]`, and every stalled transcript ends inside a foreground
 polling loop — `until grep -q "^exit=" …; do sleep 15; done`, `for i in $(seq 1 40)`,
 `until [ "$(wc -c < …)" -gt 1500 ]; do sleep 20; done`. A loop like that emits no tool output,
+**The baseline this fleet's greens now rest on, re-measured quiet.** Every gate run this session
+landed at 08:23, 08:30, 08:44 and 08:49 — all four inside the load window above, so all four were
+obtained on a machine running 32 competing busy-loops. Re-run on merged `main` at 09:47–09:49 with
+the CPU 46–61% idle: `make lint` 0, **`make test` three times, 1583 tests in 197 suites, all three
+exit 0**, `make parity` 358/358 at floor, `make acceptance-r6` `examined=6 failures=0`.
+
+Worth stating plainly because the instinct is backwards: contamination made those greens
+**stronger**, not weaker. A suite that passes while 32 processes fight it for CPU has been tested
+harder than one that passes on an idle box. It is the single red that needed re-examining — the
+session's first `make test`, one issue whose name was discarded by a `tail` — and under that load
+G3's wall-clock assumption is a better explanation than a spontaneous flake. Nothing else in these
+gates reads a clock: lint counts, parity vector counts, the child-PATH lane's assertion on PATH
+content and the ledger reconciler are all deterministic, so saturation cannot move them.
+
 **2026-08-21, and the detector is now 600s rather than 180s.** Two runners (M23 gap-fix, G3)
 were killed by it inside the same ten minutes without either doing anything wrong. The cause was
 off this repository: another project left 32 orphaned busy-loop processes — a load generator whose

@@ -42,34 +42,6 @@ enum MockTokenRegister {
         let quote: String
     }
 
-    static let citations: [Citation] = [
-        Citation(
-            key: "M21-direction-split",
-            file: "planning/features-to-triage/M21-token-layer-and-design-md.md",
-            quote: "This needs a decision rather than a merge"
-        ),
-        Citation(
-            key: "M21-owns-the-mock-token-block",
-            file: "planning/features-to-triage/M21-token-layer-and-design-md.md",
-            quote: "Every colour lives in a token. The mock carries 89 in its token block"
-        ),
-        Citation(
-            key: "M21-metric-rows",
-            file: "planning/features-to-triage/M21-token-layer-and-design-md.md",
-            quote: "`MetricToken` gains the mock's metric rows."
-        ),
-        Citation(
-            key: "DESIGN-assets-live-in-the-catalogue",
-            file: "DESIGN.md",
-            quote: "an authored asset in the catalogue."
-        ),
-        Citation(
-            key: "M21-ink-twins",
-            file: "planning/features-to-triage/M21-token-layer-and-design-md.md",
-            quote: "Every indicator hue needs the same twin"
-        )
-    ]
-
     // MARK: - The name mapping
 
     /// Mock custom property → `ColorToken` raw value, for the tokens that name the same thing.
@@ -164,84 +136,6 @@ enum MockTokenRegister {
         let rows: [Row]
     }
 
-    /// The citation each pending row carries, keyed by token name.
-    ///
-    /// A pending row with no entry here is a **finding**, not a default — that is what stops
-    /// "pending" from being reachable without saying why.
-    static let pendingCitations: [String: String] = [
-        // Colours: the two documents are two directions, and M21 owns the choice.
-        "--ground": "M21-direction-split",
-        "--panel": "M21-direction-split",
-        "--raised2": "M21-direction-split",
-        "--line": "M21-direction-split",
-        "--line-strong": "M21-direction-split",
-        "--f1": "M21-direction-split",
-        "--f2": "M21-direction-split",
-        "--f3": "M21-direction-split",
-        "--t1": "M21-direction-split",
-        "--t2": "M21-direction-split",
-        "--t3": "M21-direction-split",
-        "--t4": "M21-direction-split",
-        "--accent": "M21-direction-split",
-        "--live": "M21-direction-split",
-        "--attn": "M21-direction-split",
-        "--fail": "M21-direction-split",
-        // The ink family: hues solved for the contrast floor, which Swift has no twin for yet.
-        "--accent-ink": "M21-ink-twins",
-        "--accent-text": "M21-ink-twins",
-        "--live-ink": "M21-ink-twins",
-        "--attn-ink": "M21-ink-twins",
-        "--fail-ink": "M21-ink-twins",
-        "--shield-good": "M21-ink-twins",
-        "--badge-bg": "M21-ink-twins",
-        // Everything else the mock's token block carries and Swift does not.
-        "--desktop": "M21-owns-the-mock-token-block",
-        "--chrome": "M21-owns-the-mock-token-block",
-        "--sunken": "M21-owns-the-mock-token-block",
-        "--menubar": "M21-owns-the-mock-token-block",
-        "--scrim": "M21-owns-the-mock-token-block",
-        "--accent-wash": "M21-owns-the-mock-token-block",
-        "--accent-wash-line": "M21-owns-the-mock-token-block",
-        "--jack-off": "M21-owns-the-mock-token-block",
-        "--jack-ring": "M21-owns-the-mock-token-block",
-        "--shadow-window": "M21-owns-the-mock-token-block",
-        "--shadow-pop": "M21-owns-the-mock-token-block",
-        "--shadow-sheet": "M21-owns-the-mock-token-block",
-        "--shadow-card": "M21-owns-the-mock-token-block",
-        "--shadow-tile": "M21-owns-the-mock-token-block",
-        "--focus": "M21-owns-the-mock-token-block",
-        "--focus-halo": "M21-owns-the-mock-token-block",
-        "--tl-close": "M21-owns-the-mock-token-block",
-        "--tl-min": "M21-owns-the-mock-token-block",
-        "--tl-zoom": "M21-owns-the-mock-token-block",
-        "--tl-off": "M21-owns-the-mock-token-block",
-        // The mock's second top-level `:root` block: fourteen embedded WebP marketplace tiles.
-        // There is no colour token to compare them against and there should not be — DESIGN.md §4
-        // puts an authored asset in the catalogue, not in the palette.
-        "--ic-bn-deploy": "DESIGN-assets-live-in-the-catalogue",
-        "--ic-bn-market": "DESIGN-assets-live-in-the-catalogue",
-        "--ic-browser": "DESIGN-assets-live-in-the-catalogue",
-        "--ic-canvas": "DESIGN-assets-live-in-the-catalogue",
-        "--ic-cloud": "DESIGN-assets-live-in-the-catalogue",
-        "--ic-compass": "DESIGN-assets-live-in-the-catalogue",
-        "--ic-db": "DESIGN-assets-live-in-the-catalogue",
-        "--ic-design": "DESIGN-assets-live-in-the-catalogue",
-        "--ic-files": "DESIGN-assets-live-in-the-catalogue",
-        "--ic-flow": "DESIGN-assets-live-in-the-catalogue",
-        "--ic-msg": "DESIGN-assets-live-in-the-catalogue",
-        "--ic-obs": "DESIGN-assets-live-in-the-catalogue",
-        "--ic-ts": "DESIGN-assets-live-in-the-catalogue",
-        "--ic-vcs": "DESIGN-assets-live-in-the-catalogue",
-        // Metric rows with no Swift case. M21 says in as many words that it takes them.
-        "toolbar-compact": "M21-metric-rows",
-        "sidebar-row-medium": "M21-metric-rows",
-        "sidebar-row-large": "M21-metric-rows",
-        "scrollbar": "M21-metric-rows",
-        "card-radius": "M21-metric-rows",
-        "jack-lane": "M21-metric-rows",
-        "grid-unit": "M21-metric-rows"
-    ]
-
     // MARK: - Building the live register
 
     /// Classifies every mock token against the shipped Swift palette.
@@ -250,11 +144,26 @@ enum MockTokenRegister {
     /// each carries, and marks a row `matched` only when every appearance the mock authors agrees
     /// with the Swift value for that appearance.
     static func live(from text: String) throws -> Register {
-        var rows: [Row] = []
-        let byNameCache: [String: [MockTokenParser.Appearance: MockTokenParser.Declaration]]? =
-            try MockTokenParser.declarationsByName(in: text)
+        let byName = try MockTokenParser.declarationsByName(in: text)
+        let rows = try metricRows(in: text, against: byName) + colorRows(from: byName)
+        return Register(
+            mock: "design/mcp-router-console.html",
+            note: "Regenerate with MCP_ROUTER_WRITE_TOKEN_REGISTER=1 swift test --filter MockToken",
+            rows: rows.sorted { ($0.kind, $0.name) < ($1.kind, $1.name) }
+        )
+    }
 
-        // ---- metric rows -------------------------------------------------------------
+    /// The `<!-- mac-craft:metrics -->` half, one row per metric the mock declares.
+    ///
+    /// `against` is the parsed stylesheet, needed because a colour row inside the metrics comment is
+    /// checked against the `:root` block rather than against Swift — the comment and the block are
+    /// two spellings of one palette, and a summary that has drifted from what it summarises is a
+    /// document that lies to whoever reads the summary first.
+    private static func metricRows(
+        in text: String,
+        against byName: [String: [MockTokenParser.Appearance: MockTokenParser.Declaration]]
+    ) throws -> [Row] {
+        var rows: [Row] = []
         for row in try MockTokenParser.metricRows(in: text) {
             if let points = row.points {
                 if let target = metricNameMap[row.name] {
@@ -283,7 +192,7 @@ enum MockTokenRegister {
                 // check on the mock rather than a comparison against Swift: the metrics comment is
                 // what a converter reads first, and a comment that has drifted from the stylesheet
                 // it summarises is a document that lies to whoever trusts the summary.
-                let declared = byNameCache?["--" + row.name]?[.light]?.color
+                let declared = byName["--" + row.name]?[.light]?.color
                 let agrees = row.color != nil && declared != nil && row.color == declared
                 rows.append(Row(
                     name: row.name,
@@ -299,9 +208,14 @@ enum MockTokenRegister {
                 ))
             }
         }
+        return rows
+    }
 
-        // ---- colour declarations ------------------------------------------------------
-        let byName = byNameCache ?? [:]
+    /// The stylesheet half, one row per custom property across every appearance it is authored in.
+    private static func colorRows(
+        from byName: [String: [MockTokenParser.Appearance: MockTokenParser.Declaration]]
+    ) -> [Row] {
+        var rows: [Row] = []
         for name in byName.keys.sorted() {
             let perAppearance = byName[name] ?? [:]
             var observed: [String: String] = [:]
@@ -345,12 +259,7 @@ enum MockTokenRegister {
                 citation: agrees ? nil : pendingCitations[name]
             ))
         }
-
-        return Register(
-            mock: "design/mcp-router-console.html",
-            note: "Regenerate with MCP_ROUTER_WRITE_TOKEN_REGISTER=1 swift test --filter MockToken",
-            rows: rows.sorted { ($0.kind, $0.name) < ($1.kind, $1.name) }
-        )
+        return rows
     }
 
     /// What a custom property carries, so a shadow list and an embedded asset are not reported as
@@ -368,24 +277,4 @@ enum MockTokenRegister {
     }
 
     // MARK: - On disk
-
-    static func registerURL(from filePath: String = #filePath) throws -> URL {
-        var dir = URL(fileURLWithPath: filePath).deletingLastPathComponent()
-        for _ in 0 ..< 8 {
-            let candidate = dir.appendingPathComponent("planning/fidelity/token-register.json")
-            if FileManager.default.fileExists(atPath: candidate.path) { return candidate }
-            let fidelity = dir.appendingPathComponent("planning/fidelity")
-            if FileManager.default.fileExists(atPath: fidelity.path) {
-                return fidelity.appendingPathComponent("token-register.json")
-            }
-            dir = dir.deletingLastPathComponent()
-        }
-        throw MockTokenParser.ParseError.mockNotFound(startingFrom: filePath)
-    }
-
-    static func encode(_ register: Register) throws -> Data {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
-        return try encoder.encode(register)
-    }
 }

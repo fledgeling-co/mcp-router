@@ -192,41 +192,6 @@
             .measured("controls", role: "controls-row", kind: .hstack)
         }
 
-        // MARK: - The table
-
-        private var columnHeaders: some View {
-            HStack(spacing: ServersBoardMetrics.gap) {
-                // The breaker's own gutter carries no label; the lever is not a column of data.
-                Color.clear.frame(width: BreakerGeometry.standard.housingWidth, height: 0)
-                // §3.2: sentence case, secondary colour. Tracked uppercase is the loudest web tell.
-                columnLabel("server", width: ServersBoardMetrics.nameColumn, alignment: .leading)
-                columnLabel("transport", width: ServersBoardMetrics.transportColumn)
-                columnLabel("tools", width: ServersBoardMetrics.toolsColumn)
-                columnLabel("calls", width: ServersBoardMetrics.callsColumn)
-                columnLabel("last used", width: ServersBoardMetrics.lastUsedColumn)
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, ServersBoardMetrics.rowPadding)
-            .padding(.bottom, ServersBoardMetrics.tightGap)
-            .accessibilityHidden(true)
-            .measured("column-headers", role: "column-headers", kind: .hstack)
-        }
-
-        private func columnLabel(
-            _ text: String,
-            width: Double,
-            alignment: Alignment = .trailing
-        ) -> some View {
-            Text(text)
-                .typeRole(.caption)
-                .foregroundStyle(ColorToken.t3.color)
-                .frame(width: width, alignment: alignment)
-                .measured(
-                    "column-\(text)", role: "column-header", kind: .text,
-                    tokens: ["foreground": .t3], type: .caption, text: text
-                )
-        }
-
         private func table(_ rows: [ServerRowModel]) -> some View {
             LazyVStack(spacing: ServersBoardMetrics.hairline) {
                 ForEach(rows) { row in

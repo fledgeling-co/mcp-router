@@ -177,6 +177,7 @@
             "app/Sources/MCPRouterUI/Boards/PairingSessionModel.swift",
             "app/Sources/MCPRouterUI/Boards/ServersBoard.swift",
             "app/Sources/MCPRouterUI/Boards/ServersBoardRow.swift",
+            "app/Sources/MCPRouterUI/Boards/ServersBoardTable.swift",
             "app/Sources/MCPRouterUI/Boards/ServersBoardBanners.swift",
             "app/Sources/MCPRouterUI/Boards/ServersBoardMetrics.swift",
             "app/Sources/MCPRouterUI/Boards/ServersBoardModel.swift",

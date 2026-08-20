@@ -73,62 +73,86 @@ import Foundation
         /// same: say what could not be honoured and exit 3.
         var rejected: [String] = []
 
+        /// A number a frame can actually be laid out at.
+        private static func positive(_ text: String) -> Double? {
+            guard let value = Double(text), value > 0 else { return nil }
+            return value
+        }
+
+        /// A duration. Zero is allowed: it means "read whatever one layout pass produced".
+        private static func nonNegative(_ text: String) -> Double? {
+            guard let value = Double(text), value >= 0 else { return nil }
+            return value
+        }
+
         static func parse(_ argv: [String]) -> Arguments {
             var out = Arguments()
             var i = 0
             while i < argv.count {
                 let key = argv[i]
                 let value = i + 1 < argv.count ? argv[i + 1] : nil
-
-                /// Reads `value` through `convert`, or records why it could not be.
-                func take<T>(_ label: String, _ convert: (String) -> T?, into assign: (T) -> Void) {
-                    guard let value else {
-                        out.rejected.append("\(key) was given no value")
-                        return
-                    }
-                    guard let converted = convert(value) else {
-                        out.rejected.append("\(key) '\(value)' is not one of the values \(label)")
-                        return
-                    }
-                    assign(converted)
-                }
-
-                switch key {
-                case "--surface":
-                    take(Surface.allCases.map(\.rawValue).joined(separator: ", "), Surface.init(rawValue:)) {
-                        out.surface = $0
-                    }
-                    i += 2
-                case "--state":
-                    take(State.allCases.map(\.rawValue).joined(separator: ", "), State.init(rawValue:)) {
-                        out.state = $0
-                    }
-                    i += 2
-                case "--appearance":
-                    take("light, dark", { $0 == "light" || $0 == "dark" ? $0 : nil }) {
-                        out.appearance = $0 == "light" ? .light : .dark
-                        out.appearanceName = $0
-                    }
-                    i += 2
-                case "--width":
-                    take("a positive number", { Double($0).flatMap { $0 > 0 ? $0 : nil } }) { out.width = $0 }
-                    i += 2
-                case "--height":
-                    take("a positive number", { Double($0).flatMap { $0 > 0 ? $0 : nil } }) { out.height = $0 }
-                    i += 2
-                case "--out":
-                    take("a path", { $0.isEmpty ? nil : $0 }) { out.output = $0 }
-                    i += 2
-                case "--settle":
-                    take("a non-negative number", { Double($0).flatMap { $0 >= 0 ? $0 : nil } }) { out.settle = $0 }
-                    i += 2
-                default:
-                    out.rejected.append("'\(key)' is not an argument this tool takes")
-                    i += 1
-                }
+                i += out.apply(key, value) ? 2 : 1
             }
             return out
         }
+
+        /// Applies one argument, or records why it could not be.
+        ///
+        /// - Returns: whether `value` was consumed, so the caller knows how far to step.
+        private mutating func apply(_ key: String, _ value: String?) -> Bool {
+            /// Reads `value` through `convert`, or records why it could not be and returns nil.
+            func take<T>(_ expected: String, _ convert: (String) -> T?) -> T? {
+                guard let value else {
+                    rejected.append("\(key) was given no value")
+                    return nil
+                }
+                guard let converted = convert(value) else {
+                    rejected.append("\(key) '\(value)' is not \(expected)")
+                    return nil
+                }
+                return converted
+            }
+
+            switch key {
+            case "--surface":
+                surface = take(Self.oneOf(Surface.allCases), Surface.init(rawValue:)) ?? surface
+            case "--state":
+                state = take(Self.oneOf(State.allCases), State.init(rawValue:)) ?? state
+            case "--appearance":
+                let parsed = take(Self.oneOf(Appearance.allCases), Appearance.init(rawValue:))
+                appearance = parsed.map { $0 == .light ? .light : .dark } ?? appearance
+                appearanceName = parsed?.rawValue ?? appearanceName
+            case "--width":
+                width = take("a positive number", Self.positive) ?? width
+            case "--height":
+                height = take("a positive number", Self.positive) ?? height
+            case "--out":
+                output = take("a path", Self.nonEmpty) ?? output
+            case "--settle":
+                settle = take("a non-negative number", Self.nonNegative) ?? settle
+            default:
+                rejected.append("'\(key)' is not an argument this tool takes")
+                return false
+            }
+            return true
+        }
+
+        /// A path. The empty string is refused rather than treated as "wherever the default was".
+        private static func nonEmpty(_ text: String) -> String? {
+            text.isEmpty ? nil : text
+        }
+
+        /// The values an enum-backed argument accepts, in the words the refusal prints them in.
+        private static func oneOf(_ cases: some Collection<some RawRepresentable<String>>) -> String {
+            "one of " + cases.map(\.rawValue).joined(separator: ", ")
+        }
+    }
+
+    /// The appearance to resolve every dynamic colour in. Named rather than compared as a string so
+    /// an unreadable value is refused by the same path every other argument is.
+    enum Appearance: String, CaseIterable {
+        case light
+        case dark
     }
 
     /// The rendered surface, wrapped in the harness's coordinate space.
@@ -158,12 +182,14 @@ import Foundation
     func run() async -> Int32 {
         let args = Arguments.parse(Array(CommandLine.arguments.dropFirst()))
         guard args.rejected.isEmpty else {
-            FileHandle.standardError.write(Data(("""
+            let reasons = args.rejected.map { "              - " + $0 }.joined(separator: "\n")
+            let refusal = """
             measure-dump: refusing to render, because these arguments could not be honoured:
-            \(args.rejected.map { "              - " + $0 }.joined(separator: "\n"))
+            \(reasons)
                           Exiting 3 (inconclusive). Rendering the defaults instead would write a
                           dump of a surface nobody asked for under the name that was asked for.\n
-            """).utf8))
+            """
+            FileHandle.standardError.write(Data(refusal.utf8))
             return 3
         }
 

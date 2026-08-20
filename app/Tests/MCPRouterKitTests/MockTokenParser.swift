@@ -49,17 +49,6 @@ enum MockTokenParser {
 
     // MARK: - Parsed shapes
 
-    /// A row of the `mac-craft:metrics` comment: `name value tier`.
-    struct MetricRow: Equatable, Sendable {
-        let name: String
-        let rawValue: String
-        let tier: String
-        /// The value read as a length in points, when it is one.
-        let points: Double?
-        /// The value read as a colour, when it is one.
-        let color: ColorValue?
-    }
-
     /// A colour, canonicalised so `#FFF`, `#ffffff` and `rgba(255,255,255,1)` compare equal.
     struct ColorValue: Equatable, Sendable, CustomStringConvertible {
         /// Six upper-case hex digits, `#`-prefixed.
@@ -99,13 +88,6 @@ enum MockTokenParser {
         var isComposite: Bool { color == nil && points == nil && !isAsset }
     }
 
-    /// A colour literal found outside every token block.
-    struct StrayLiteral: Equatable, Sendable {
-        let line: Int
-        let text: String
-        let context: String
-    }
-
     // MARK: - Errors
 
     enum ParseError: Error, CustomStringConvertible {
@@ -121,7 +103,8 @@ enum MockTokenParser {
             case let .mockNotFound(from):
                 "design/mcp-router-console.html not found walking up from \(from)"
             case .metricsCommentMissing:
-                "the mock has no <!-- mac-craft:metrics --> comment — the metric half of the token layer has no source"
+                "the mock has no <!-- mac-craft:metrics --> comment — the metric half of the "
+                    + "token layer has no source"
             case .metricsCommentUnterminated:
                 "the mac-craft:metrics comment is never closed"
             case let .appearanceBlockMissing(a):
@@ -168,28 +151,31 @@ enum MockTokenParser {
         let s = raw.trimmingCharacters(in: .whitespaces)
             .trimmingCharacters(in: CharacterSet(charactersIn: ";"))
             .trimmingCharacters(in: .whitespaces)
+        return s.hasPrefix("#") ? hexColor(String(s.dropFirst())) : functionalColor(s.lowercased())
+    }
 
-        if s.hasPrefix("#") {
-            let digits = String(s.dropFirst())
-            guard digits.allSatisfy(\.isHexDigit) else { return nil }
-            switch digits.count {
-            case 3:
-                return ColorValue(hex: "#" + digits.uppercased().map { "\($0)\($0)" }.joined(), alpha: 1.0)
-            case 6:
-                return ColorValue(hex: "#" + digits.uppercased(), alpha: 1.0)
-            case 8:
-                let hex = String(digits.prefix(6)).uppercased()
-                let a = Int(String(digits.suffix(2)), radix: 16).map { Double($0) / 255.0 } ?? 1.0
-                return ColorValue(hex: "#" + hex, alpha: a)
-            default:
-                return nil
-            }
+    /// `#RGB`, `#RRGGBB` or `#RRGGBBAA`, with the digits already stripped of their `#`.
+    private static func hexColor(_ digits: String) -> ColorValue? {
+        guard digits.allSatisfy(\.isHexDigit) else { return nil }
+        switch digits.count {
+        case 3:
+            let doubled = digits.uppercased().map { "\($0)\($0)" }.joined()
+            return ColorValue(hex: "#" + doubled, alpha: 1.0)
+        case 6:
+            return ColorValue(hex: "#" + digits.uppercased(), alpha: 1.0)
+        case 8:
+            let hex = String(digits.prefix(6)).uppercased()
+            let a = Int(String(digits.suffix(2)), radix: 16).map { Double($0) / 255.0 } ?? 1.0
+            return ColorValue(hex: "#" + hex, alpha: a)
+        default:
+            return nil
         }
+    }
 
-        let lower = s.lowercased()
+    /// `rgb(r, g, b)` or `rgba(r, g, b, a)`, lowercased.
+    private static func functionalColor(_ lower: String) -> ColorValue? {
         guard lower.hasPrefix("rgb(") || lower.hasPrefix("rgba(") else { return nil }
-        guard lower.hasSuffix(")") else { return nil }
-        let open = lower.firstIndex(of: "(")!
+        guard lower.hasSuffix(")"), let open = lower.firstIndex(of: "(") else { return nil }
         let inner = lower[lower.index(after: open) ..< lower.index(before: lower.endIndex)]
         let parts = inner.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         guard parts.count == 3 || parts.count == 4 else { return nil }
@@ -207,48 +193,7 @@ enum MockTokenParser {
         return ColorValue(hex: hex, alpha: alpha)
     }
 
-    /// A value that is entirely a length in `px`, as points. Nil for anything else.
-    ///
-    /// `px` in the mock and `pt` in SwiftUI are the same number here: the mock is authored at
-    /// 1× against macOS point geometry, which is why `titlebar 33px` and `Titlebar | 33pt` are the
-    /// same row. That equivalence is an assumption of the conversion, stated here rather than
-    /// buried in a comparison.
-    static func points(of raw: String) -> Double? {
-        let s = raw.trimmingCharacters(in: .whitespaces)
-            .trimmingCharacters(in: CharacterSet(charactersIn: ";"))
-            .trimmingCharacters(in: .whitespaces)
-        guard s.hasSuffix("px") else { return nil }
-        return Double(s.dropLast(2))
-    }
-
     // MARK: - The metrics comment
-
-    /// The `name value tier` rows of the `mac-craft:metrics` comment, in document order.
-    static func metricRows(in text: String) throws -> [MetricRow] {
-        let lines = text.components(separatedBy: .newlines)
-        guard let start = lines.firstIndex(where: {
-            $0.contains("<!-- mac-craft:metrics")
-        }) else { throw ParseError.metricsCommentMissing }
-
-        var rows: [MetricRow] = []
-        var closed = false
-        for line in lines[(start + 1)...] {
-            let t = line.trimmingCharacters(in: .whitespaces)
-            if t.hasPrefix("-->") { closed = true; break }
-            if t.isEmpty { continue }
-            let fields = t.split(whereSeparator: \.isWhitespace).map(String.init)
-            guard fields.count == 3 else { throw ParseError.malformedMetricRow(t) }
-            rows.append(MetricRow(
-                name: fields[0],
-                rawValue: fields[1],
-                tier: fields[2],
-                points: points(of: fields[1]),
-                color: color(of: fields[1])
-            ))
-        }
-        guard closed else { throw ParseError.metricsCommentUnterminated }
-        return rows
-    }
 
     // MARK: - The custom-property blocks
 
@@ -287,12 +232,24 @@ enum MockTokenParser {
     /// Returns them all, including a repeat of the same context: two top-level `:root` rules are
     /// two blocks that both declare into `light`, and merging them at this level would hide the
     /// second from any check that counts blocks.
+    /// A `{` that has been seen and not yet closed, with what it opened and where.
+    ///
+    /// A named type rather than a four-member tuple: SwiftLint caps a tuple at two, and the cap is
+    /// right here — `(Appearance, String, Int, Int)` reads as two integers whose meanings you have
+    /// to go and look up.
+    private struct OpenBlock {
+        var appearance: Appearance
+        var selector: String
+        var start: Int
+        var depth: Int
+    }
+
     static func blocks(in text: String) throws -> [Block] {
         let lines = text.components(separatedBy: .newlines)
         var out: [Block] = []
         var depth = 0
         // The context a `{` at depth 0 or 1 opened, and the depth it opened at.
-        var open: (appearance: Appearance, selector: String, start: Int, depth: Int)?
+        var open: OpenBlock?
         var mediaContext: (appearance: Appearance, depth: Int)?
 
         for (index, line) in lines.enumerated() {
@@ -306,7 +263,12 @@ enum MockTokenParser {
                     // Inside one of the two increased-contrast media queries, `:root` declares into
                     // that context; at the top level it declares into light.
                     let appearance = mediaContext?.appearance ?? .light
-                    open = (appearance, selector, index + 1, depth)
+                    open = OpenBlock(
+                        appearance: appearance,
+                        selector: selector,
+                        start: index + 1,
+                        depth: depth
+                    )
                 } else if let match = contextSelectors.first(where: { $0.selector == selector }) {
                     // A media query is a wrapper: the `:root` inside it is the block that declares.
                     // A class selector is the block itself. Matched on equality rather than prefix,
@@ -315,7 +277,10 @@ enum MockTokenParser {
                     if selector.hasPrefix("@media") {
                         mediaContext = (match.appearance, depth)
                     } else {
-                        open = (match.appearance, selector, index + 1, depth)
+                        open = OpenBlock(
+                            appearance: match.appearance, selector: selector,
+                            start: index + 1, depth: depth
+                        )
                     }
                 }
             }
@@ -386,92 +351,4 @@ enum MockTokenParser {
     }
 
     // MARK: - The mock's own zero-literals property
-
-    /// The line ranges the token blocks occupy, so a scan can exclude them by position.
-    ///
-    /// Computed from the same walk `declarations(in:)` uses rather than hardcoded, because a
-    /// hardcoded range silently stops covering the block it names the moment the file is edited.
-    static func tokenBlockRanges(in text: String) throws -> [ClosedRange<Int>] {
-        let lines = text.components(separatedBy: .newlines)
-        guard let metricsStart = lines.firstIndex(where: { $0.contains("<!-- mac-craft:metrics") })
-        else { throw ParseError.metricsCommentMissing }
-        guard let metricsEnd = lines[metricsStart...].firstIndex(where: {
-            $0.trimmingCharacters(in: .whitespaces).hasPrefix("-->")
-        }) else { throw ParseError.metricsCommentUnterminated }
-
-        return try [(metricsStart + 1) ... (metricsEnd + 1)] + (blocks(in: text).map(\.lines))
-    }
-
-    /// Colour literals outside every token block — the mock's own `literals_outside=0` claim,
-    /// measured rather than quoted.
-    ///
-    /// This is the mock side of the token layer's trustworthiness. If a colour can be written
-    /// straight into a rule, then the `:root` family is not the whole palette and comparing
-    /// against it compares against a subset while reporting a whole.
-    static func strayColorLiterals(in text: String) throws -> [StrayLiteral] {
-        let ranges = try tokenBlockRanges(in: text)
-        let lines = text.components(separatedBy: .newlines)
-        var out: [StrayLiteral] = []
-
-        for (index, line) in lines.enumerated() {
-            let number = index + 1
-            if ranges.contains(where: { $0.contains(number) }) { continue }
-            for match in hexRuns(in: line) {
-                out.append(StrayLiteral(
-                    line: number, text: match,
-                    context: line.trimmingCharacters(in: .whitespaces)
-                ))
-            }
-            for match in functionalColorRuns(in: line) {
-                out.append(StrayLiteral(
-                    line: number, text: match,
-                    context: line.trimmingCharacters(in: .whitespaces)
-                ))
-            }
-        }
-        return out
-    }
-
-    /// `#RGB`, `#RRGGBB` and `#RRGGBBAA` runs — and nothing else beginning with `#`.
-    ///
-    /// An SVG sprite reference is `href="#i-arrow-r"`, and a fragment id is not a colour. Requiring
-    /// the whole run after the hash to be 3, 6 or 8 hex digits and to end at a non-word character
-    /// separates the two without an allowlist of ids that would go stale.
-    private static func hexRuns(in line: String) -> [String] {
-        var out: [String] = []
-        let chars = Array(line)
-        var i = 0
-        while i < chars.count {
-            guard chars[i] == "#" else { i += 1; continue }
-            var j = i + 1
-            var digits = ""
-            while j < chars.count, chars[j].isHexDigit {
-                digits.append(chars[j]); j += 1
-            }
-            let boundedByWord = j < chars
-                .count && (chars[j].isLetter || chars[j].isNumber || chars[j] == "-" || chars[j] == "_")
-            if !boundedByWord, [3, 6, 8].contains(digits.count) { out.append("#" + digits) }
-            i = max(j, i + 1)
-        }
-        return out
-    }
-
-    /// `rgb(...)` / `rgba(...)` runs whose first argument is numeric.
-    ///
-    /// `rgba(var(--x))` is not a literal; a literal has numbers in it.
-    private static func functionalColorRuns(in line: String) -> [String] {
-        var out: [String] = []
-        var search = line[...]
-        while let open = search.range(of: "rgba(") ?? search.range(of: "rgb(") {
-            let after = search[open.upperBound...]
-            if let close = after.firstIndex(of: ")") {
-                let args = after[after.startIndex ..< close]
-                if args.first?.isNumber == true { out.append(String(search[open.lowerBound ... close])) }
-                search = after[after.index(after: close)...]
-            } else {
-                break
-            }
-        }
-        return out
-    }
 }

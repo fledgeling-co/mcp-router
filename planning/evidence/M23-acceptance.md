@@ -22,9 +22,28 @@ that rather than a sweep.
 | Build | `cd app && swift build` | exit 0 |
 | Full suite | `cd app && swift test` | **1549 tests in 193 suites passed** |
 | Token parity | `cd app && swift test --filter MockToken` | **20 tests in 2 suites passed** |
-| Lint | `make lint` | exit 0 |
+| Lint | `make lint` | exit 0 — **red on arrival; see §1.1** |
 | Gate selftest | `./scripts/acceptance/mock-fidelity-selftest.sh` | **21 cases, all three exits observed**, exit 0 |
 | Conversion gate | `./scripts/acceptance/mock-fidelity-gate.sh servers` | **exit 1 — 124 findings** |
+
+### 1.1 · `make lint` was red on arrival, and the first check here said it passed
+
+Worth recording in full, because it is the failure this whole item is about, committed by the
+instrument's own author.
+
+`make lint` was run first thing on the inherited tree as
+`make lint 2>&1 | tail -30; echo "exit=${PIPESTATUS[0]}"`. It printed `no-raw-design-values: clean`,
+`no-wire-codable: clean`, and `exit=`. It was read as a pass. It was not one: `PIPESTATUS[0]` after
+the pipeline had already been consumed reports nothing, the `echo` succeeded, and the harness
+recorded the whole command as exit 0. Fifteen `error:` lines were sitting in the same output, above
+the `tail -30` window, and `make: *** [lint] Error 1` was on the line before the one that was read.
+
+The gate that caught it was running the same command again with its exit code taken directly. The
+lesson is the one the `tokens` layer already encodes and that this check did not: **a command whose
+success and whose silence look identical has not been checked.** Twenty-nine violations were open —
+type and file lengths past their caps, a force unwrap, a four-member tuple, a cyclomatic complexity
+of 13, six formatting errors. They are closed in the commit that follows, by splitting five
+oversized files along real seams rather than by raising a cap.
 
 The conversion gate exiting 1 is the correct result and not a failure of this item. Servers has not
 been converted to the mock — that is M16's work — so the instrument reports the real distance
@@ -121,9 +140,11 @@ mutate files the selftest must not touch. The mock was restored from a byte copy
 `codex exec -m gpt-5.6-sol -c model_reasoning_effort=high -s read-only`, adversarially briefed,
 verbatim in `planning/evidence/M23-review-codex.md`. Verdict: REJECT, 8 findings. The lane was
 recorded down in `ORCHESTRATOR.md` until 2026-08-20 and is back; the `-o` file came back non-empty,
-which is the only honest tell since `codex exec` exits 0 on a usage limit. A second lane
-(`grok-4.6` at xhigh) was started in parallel and had not produced a report by the time this was
-written — recorded as a lane not landed, not as a lane that passed.
+which is the only honest tell since `codex exec` exits 0 on a usage limit. Two further lanes were started and neither landed. `grok-4.6` at xhigh streamed four lines
+of preamble over fifteen minutes and was killed by its own `alarm` at 900s (exit 144).
+`gemini-3.7-flash-high` refused at its permission gate — *"user denied permission to run command:
+git -C … log -n 5 --oneline"* — and wrote a zero-byte output file. Both are recorded as lanes that
+did not land, not as lanes that passed; one out-of-family review informed this work, not three.
 
 The reviewer worked mostly from `spec-M23.md`. Four findings describe the spec's prose accurately
 and the implementation not at all, and each was settled by running the mutation the reviewer
@@ -157,4 +178,8 @@ predicted would pass.
 - **`DESIGN.md` versus the mock is still open.** 64 of 89 token rows are `pending` against a
   citation in `M21-token-layer-and-design-md.md`. M21 decides which document is authoritative; until
   it does, the register keeps the gap measured rather than merged.
-- **The `grok-4.6` review lane did not land.** One out-of-family review informed this work, not two.
+- **Two of the three review lanes did not land.** `grok-4.6` timed out at 900s and
+  `gemini-3.7-flash-high` was refused by its own permission gate. One out-of-family review informed
+  this work, not three.
+- **`make lint` had twenty-nine open violations when this item started**, and nothing in the
+  pipeline had reported them. The gates in §1 are now each run with their exit code read directly.

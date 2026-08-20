@@ -170,7 +170,8 @@ public enum MeasureTree {
             // trips the very check this file exists to keep honest.
             evidence: "String(describing:) of a Font built through Font.system(size:weight:) returns "
                 +
-                "\"Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)\" — no size, no weight, no face",
+                "\"Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)\" — "
+                + "no size, no weight, no face",
             confirmedInsteadBy: "the TypeToken each text node names is recorded in `tokens[\"type\"]` at "
                 + "apply time, DesignTokenParityTests pins the eight-role ladder against DESIGN.md, and "
                 + "scripts/lint/no-raw-design-values.sh fails any size that does not come off it. None of "

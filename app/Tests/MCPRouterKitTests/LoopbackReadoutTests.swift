@@ -10,6 +10,14 @@ import Testing
 /// place, so the two surfaces that render it cannot come to disagree.
 @Suite("Sidebar foot — the loopback address")
 struct LoopbackReadoutTests {
+    /// The harness's own failure, not the product's. `ControlAPIError` stood here for one revision
+    /// and an out-of-family review was right to object: that type means "the control API said
+    /// something we could not use", and a test that cannot find a file on disk has not been told
+    /// anything by a router.
+    private enum OracleError: Error {
+        case fileNotFound(String)
+    }
+
     private func repoFile(_ relativePath: String, from filePath: String = #filePath) throws -> String {
         var dir = URL(fileURLWithPath: filePath).deletingLastPathComponent()
         for _ in 0 ..< 8 {
@@ -19,7 +27,7 @@ struct LoopbackReadoutTests {
             }
             dir = dir.deletingLastPathComponent()
         }
-        throw ControlAPIError.malformedResponse(detail: "missing \(relativePath)")
+        throw OracleError.fileNotFound(relativePath)
     }
 
     // MARK: - The address is composed once, from the observed port
@@ -93,12 +101,15 @@ struct LoopbackReadoutTests {
         // `TrackerState.port` is documented as surviving a failure, for the reason the servers do:
         // a refresh that did not complete is not evidence that the router moved. The line follows
         // that rather than re-deciding it.
+        // A port that is **neither** the recording's 8971 nor the mock's 8879, deliberately: with
+        // either of those the assertion would also pass against a composition that had quietly
+        // gone back to a constant, which is the one defect this whole element is about.
         let state = ServerStateTracker.TrackerState(
             load: .stale([], .transport(detail: "connection reset")),
             stream: .notConfigured,
-            port: 8971
+            port: 51234
         )
-        #expect(LoopbackFoot.reading(for: state) == .address("127.0.0.1:8971"))
+        #expect(LoopbackFoot.reading(for: state) == .address("127.0.0.1:51234"))
     }
 
     // MARK: - What the line may say

@@ -203,6 +203,13 @@ Its states, since a foot with one state is the same third of a design as a board
 | The last poll failed, an earlier one answered | The address, unchanged — a refresh that did not complete is not evidence the router moved |
 | Nothing has ever answered | Nothing, and no divider either. The card above is already carrying this state in `ControlAPIError`'s own words |
 
+The skeleton's job is the **loading → answered** transition, where the foot is the same height
+either way and nothing moves. Loading → *never answered* does move, and that is accepted rather
+than overlooked: the card above changes height on that same transition by design — the failure form
+carries wrapped prose and is allowed to be taller than the counts form — so the whole foot region is
+re-laid out for a different state, and reserving a wordless band under a rule would be dead chrome
+in the one state that already has the most to say.
+
 **Still owed here, recorded rather than fixed:** the prototype draws the count as a 26px display
 numeral over `of N declared`, and the build draws a label-left / value-right row. That is a third
 divergence in the same element; it is a type and density decision rather than a missing element, so

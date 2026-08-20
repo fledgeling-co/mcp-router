@@ -158,10 +158,24 @@
                 Text(ReadoutCopy.counts(running: running, declared: declared))
                     .typeRole(.body, monospaced: true)
                     .foregroundStyle(ColorToken.live.color)
+                    // A35's sentence, unchanged, and now carried by the numeral itself rather than
+                    // by the row.
+                    //
+                    // **The row used to merge with `children: .ignore`, and that hid the label from
+                    // every instrument that reads the accessibility plane.** M27's own on-glass
+                    // gate caught it: the label was on screen and `Child processes` was still
+                    // absent from the tree, which is the same reading the campaign's differential
+                    // took when it found the label missing altogether. A fix the measuring
+                    // instrument cannot see is a fix that gets re-reported.
+                    //
+                    // Two elements rather than one is right here in any case: both are
+                    // self-describing, so this is not the loose-number failure A35 was written
+                    // about — a reader hears what the number counts, then the number as a sentence.
+                    .accessibilityLabel(
+                        ReadoutCopy.accessibilityLabel(running: running, declared: declared)
+                    )
             }
             .frame(height: MetricToken.tableRows.leadingScalar)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(ReadoutCopy.accessibilityLabel(running: running, declared: declared))
 
             TraceStrip(points: tracePoints)
                 .frame(height: ReadoutGeometry.traceHeight)

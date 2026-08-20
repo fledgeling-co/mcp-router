@@ -595,9 +595,18 @@ SWIFT
 # produced a FAIL naming the product. The content digest covers every input the app is built from
 # and is blind to mtimes, so it is both stricter and rebase-proof.
 
+# **Two files were added here on 2026-08-21, and the breakage they fix predates M27's change.**
+# `MenuCommand.title` began reading `SkillPresentation.marketplacesAction` at `2ff0941`, and this
+# hand-picked list did not follow, so every run of this script since has stopped at
+# `BLOCKED: could not build the availability oracle` — before reaching anything downstream of it.
+# A file list that has to be maintained by hand alongside a module is the shape of the defect; it is
+# left as a list rather than replaced with the built module here, because swapping the oracle's
+# build strategy is a change to M1's evidence lane rather than to this one.
 swiftc -O -o "$WORK/menu-oracle" \
   "$APP_DIR/Sources/MCPRouterKit/Shell/MenuCommand.swift" \
   "$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift" \
+  "$APP_DIR/Sources/MCPRouterKit/Skills/SkillPresentation.swift" \
+  "$APP_DIR/Sources/MCPRouterKit/Control/SkillModels.swift" \
   "$WORK/main.swift" 2>"$WORK/oracle.log" \
   || { cat "$WORK/oracle.log" >&2; blocked "could not build the availability oracle"; }
 
@@ -863,6 +872,29 @@ check_invisible "the focus-ring assertion"
 echo
 echo "every board: top-aligned, single-scrolled"
 
+# M27's two readers, defined once so the presence and the absence checks below cannot be asking
+# different questions — which is how an absence check goes vacuously green.
+#
+# `sidebar_address` prints the loopback address drawn INSIDE the sidebar, or nothing. Bound to the
+# sidebar by geometry rather than by presence anywhere in the window: Settings draws `127.0.0.1` in
+# its own Endpoint row at x≈942, which is the content zone, and a window-wide grep would report the
+# foot line present on the one board that never had it.
+sidebar_address() {
+    awk -F'\t' -v b="$2" '
+        $13 < b && $13 > 0 {
+            for (i = 4; i <= 6; i++) {
+                if (match($i, /127\.0\.0\.1:[0-9]+/)) { print substr($i, RSTART, RLENGTH); exit }
+            }
+        }' "$1"
+}
+
+# The expected port is read out of the recording the Debug fixture serves, never typed. The line
+# under test is the one whose whole defect class is a hard-coded port, so a hard-coded port in its
+# oracle would be the same mistake one layer out.
+WANT_PORT="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['port'])" \
+  "$APP_DIR/Sources/MCPRouterKit/Control/Fixtures/servers.json")"
+[ -n "$WANT_PORT" ] || blocked "could not read the fixture router's port out of servers.json"
+
 : > "$WORK/all-panes.tsv"
 for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
     "$AXKIT" select "$PID" "$dest" >/dev/null || fail "could not select $dest"
@@ -910,23 +942,25 @@ for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
     # Bound to the sidebar by geometry, not by presence. The Settings board draws `127.0.0.1` in its
     # own Endpoint row at x≈942, which is the content zone — a naive window-wide grep would have
     # reported the foot line present on the one board that never had it.
-    FOOT="$(awk -F'\t' -v b="$SIDE_R" '
-        $13 < b && $13 > 0 {
-            for (i = 4; i <= 6; i++) if ($i ~ /^Router endpoint, 127\.0\.0\.1:[0-9]+$/) { print $i; exit }
-        }' "$WORK/window.tsv")"
+    # Matched on the ADDRESS rather than on the accessibility label, and as a substring rather than
+    # an anchored whole. Which of `AXValue`, `AXTitle` or `AXDescription` SwiftUI puts an explicit
+    # `accessibilityLabel` into is not this gate's to assume, and an assertion keyed on the wrapper
+    # text can pass its absence check while the element is on screen — the exact vacuity this
+    # campaign has already paid for.
+    FOOT="$(sidebar_address "$WORK/window.tsv" "$SIDE_R")"
     [ -n "$FOOT" ] \
       || fail "$dest: the sidebar foot carries no loopback readout — it is in the shared wrapper, so it belongs on every board (M27)"
 
     # The port is the one the running router answered on, never the mock's constant. The Debug
     # fixture answers on 8971; a line reading 8879 is a line composed from a literal.
-    WANT_PORT="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['port'])" \
-      "$APP_DIR/Sources/MCPRouterKit/Control/Fixtures/servers.json")"
-    [ "$FOOT" = "Router endpoint, 127.0.0.1:$WANT_PORT" ] \
-      || fail "$dest: the foot reads '$FOOT', but the router this app is talking to answered on $WANT_PORT"
+    [ "$FOOT" = "127.0.0.1:$WANT_PORT" ] \
+      || fail "$dest: the foot reads '$FOOT', but the router this app is talking to answered on port $WANT_PORT"
 
+    # Substring, for the same reason: a screen reader may be given the label joined to the value it
+    # heads, and an equality test would then report a present label as missing.
     awk -F'\t' -v b="$SIDE_R" '
         $13 < b && $13 > 0 {
-            for (i = 4; i <= 6; i++) if ($i == "Child processes") { found = 1 }
+            for (i = 4; i <= 6; i++) if (index($i, "Child processes") > 0) { found = 1 }
         } END { exit !found }' "$WORK/window.tsv" \
       || fail "$dest: the sidebar's count is unlabelled — the design of record names it 'Child processes' (M27)"
 
@@ -1202,16 +1236,19 @@ for state in offline unauthorized; do
     if printf '%s\n' "$STATE_TEXT" | grep -qE '^[0-9]+ of [0-9]+ declared servers running$'; then
         fail "the $state state still renders running counts — a count is a claim about a router that did not answer (A18)"
     fi
-    # M27 — the foot's fourth state, on glass. Nothing ever answered, so no address was ever
-    # observed and the line is not drawn. An address rendered here would be a location the app
-    # cannot claim to have reached; the readout above is already carrying this state in
-    # `ControlAPIError`'s own words, which the assertion above just checked.
-    if [ "$state" = "offline" ]; then
-        if printf '%s\n' "$STATE_TEXT" | grep -qE '^Router endpoint, '; then
-            fail "the offline app draws a loopback address for a router that never answered (M27)"
-        fi
-        pass "offline: the sidebar foot draws no address, because none was ever observed"
-    fi
+    # M27 — the foot's fourth state, on glass, and it applies to BOTH of these states rather than
+    # to the offline one alone. `unauthorized` means the router answered 401: the poll still failed,
+    # so no port was ever observed, so there is no address the app can claim to have reached.
+    #
+    # Asked with the same reader the presence check uses. An absence check phrased differently from
+    # its presence twin is an absence check that can go green because it was looking for the wrong
+    # string.
+    STATE_SIDE_R="$(awk -F'\t' '$2 == "AXOutline" { print $13 + $15; exit }' "$WORK/window.tsv")"
+    [ -n "$STATE_SIDE_R" ] || fail "$state: could not find the sidebar outline"
+    STATE_FOOT="$(sidebar_address "$WORK/window.tsv" "$STATE_SIDE_R")"
+    [ -z "$STATE_FOOT" ] \
+      || fail "the $state app draws '$STATE_FOOT' in the sidebar for a router that never answered (M27)"
+    pass "$state: the sidebar foot draws no address, because none was ever observed"
 
     pass "$state: the app carries \"$want\" verbatim, and renders no counts"
     check_invisible "the $state state"

@@ -41,7 +41,7 @@ print(out)"
 IOS_DEST   ?= generic/platform=iOS Simulator
 MAC_DEST   ?= platform=macOS
 
-.PHONY: all tools generate build build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance lint format clean
+.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance lint format clean
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
 ## `test-ios-glass` is in this list because `X2-ios-on-glass.md` said it would be: "The target
@@ -120,7 +120,10 @@ build-ios: generate
 ## enumerate thirty tests and run none of them, whether disabled or skipped. The gating number is
 ## therefore read from the xUnit report — an artifact of what actually ran — with skipped
 ## subtracted, rather than inferred from human-readable output whose format is free to change.
-test:
+enum-layout-stamp:
+	@python3 $(APP_DIR)/Scripts/enum-layout-stamp.py $(APP_DIR)
+
+test: enum-layout-stamp
 	@set -eu -o pipefail; cd $(APP_DIR); \
 	  if ! listing=$$(swift test list 2>&1); then \
 	    echo "error: could not enumerate tests — this is a build or toolchain failure, not an empty suite:"; \

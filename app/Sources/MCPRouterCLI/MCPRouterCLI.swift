@@ -20,7 +20,11 @@ import RouterCore
 /// What blocks the *verb* is this lane's harness: `auth` POSTs to a **running** router and then
 /// polls the auth dir, and `parity-cli.sh`'s `run_both` starts no router, so comparing it today
 /// would compare two connection failures agreeing with each other. Tracked as `D-p1-d`; the lane
-/// already has `serve_side` to build the row on. The http half additionally needs `D-p1-a`.
+/// already has `serve_side` to build the row on. `D-p1-a` is closed — the router serves the http
+/// half now — but this VERB still cannot be compared here for a reason of its own: a successful
+/// start binds the fixed callback port for the flow's lifetime and shells out to `/usr/bin/open`,
+/// putting a browser window in front of whoever runs the gate. `parity-oauth.sh` compares the route
+/// instead, which is the same flow without the browser.
 @main
 struct MCPRouterCLI {
     static func main() async {

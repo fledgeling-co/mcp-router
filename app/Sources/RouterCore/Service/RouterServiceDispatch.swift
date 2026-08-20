@@ -152,10 +152,12 @@ extension RouterService {
             // `AuthRoutes.approve`, which takes the log as a parameter. Without this the daemon
             // passed nil and the line was unemittable in the one process that ships — the route
             // would answer correctly and log nothing, which no response assertion can see.
-            log: log
-            // `authFlow:` is deliberately left at nil. Nothing conforms to `AuthTransport` yet
-            // (`D-p1-a`), so there is no flow to begin; supplying a starter that could only fail
-            // would be worse than the honest 405 the absence produces. See `AuthFlowStarting`.
+            log: log,
+            // P7. This was nil until an `AuthTransport` existed outside the test target, and the
+            // route answered 405 to the half of `POST /servers/:name/auth` the reference answers
+            // 200 to (`D-p1-a`, the `control-auth-post-http` row). `OAuthFlowStarter` is the
+            // service's own, built once, so the single-flow rule holds across requests.
+            authFlow: authFlow
         )
         let handler = ControlHandler(token: token)
         let response = await handler.handle(

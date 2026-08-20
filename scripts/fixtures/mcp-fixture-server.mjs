@@ -14,11 +14,14 @@
  *   oauth  — an HTTP server that refuses without a token and serves enough OAuth metadata for the
  *            MCP client to get as far as producing an authorization URL.
  */
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
+/* The MCP SDK is imported INSIDE runStdio rather than at the top of the file, and that is
+   load-bearing rather than tidy: `oauth` mode needs nothing but node's own http, crypto and fs,
+   so a static import would make it unrunnable in a git worktree that has no node_modules of its
+   own — which every runner's worktree is. The stdio half still needs the SDK and still fails
+   loudly without it. */
 import { createServer } from 'node:http';
-import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { appendFileSync, readFileSync } from 'node:fs';
 
 const mode = process.argv[2] ?? 'stdio';
 
@@ -69,6 +72,12 @@ const TOOLSETS = {
 };
 
 async function runStdio() {
+  const { Server } = await import('@modelcontextprotocol/sdk/server/index.js');
+  const { StdioServerTransport } = await import('@modelcontextprotocol/sdk/server/stdio.js');
+  const { CallToolRequestSchema, ListToolsRequestSchema } = await import(
+    '@modelcontextprotocol/sdk/types.js'
+  );
+
   /* The surface is re-read from a file on every `tools/list` rather than fixed at spawn. A server
      whose tools are chosen by an environment variable can only change by restarting, and a restart
      is not what a held change is — the router holds a change when a server it is already talking to
@@ -112,12 +121,30 @@ async function runStdio() {
  *
  * The client's path is fixed: a 401 pointing at protected-resource metadata, that metadata naming
  * an authorization server, that server's metadata naming a registration endpoint, a dynamic
- * registration, and finally an authorization URL. It never gets a token — reaching the redirect is
- * the whole point, because that is the moment the router records the flow as pending.
+ * registration, and finally an authorization URL.
+ *
+ * It also completes: `/authorize` issues a code and redirects to the router's own callback, and
+ * `/token` verifies the PKCE challenge that code was issued under before it returns a token. That
+ * is what lets `parity-oauth.sh` compare a whole authorization rather than only its first half —
+ * and it is what makes "the callback listens on a port nothing redirects to" a mutation the lane
+ * can notice at all.
  */
 function runOAuth() {
   const port = Number(process.env.FIXTURE_OAUTH_PORT ?? 8972);
   const base = `http://127.0.0.1:${port}`;
+  /* The authorization server's own endpoints move when FIXTURE_OAUTH_PREFIX is set, and they are
+     advertised ONLY through the metadata document. That is what makes a comparison against this
+     fixture able to tell a real discovery cascade from a client that hardcodes `/authorize` — the
+     objection recorded against `control-auth-post-http` was that a fixture answering every
+     conventional path cannot distinguish the two. Default is empty, so every byte the committed
+     control fixtures were captured with is unchanged. */
+  const prefix = process.env.FIXTURE_OAUTH_PREFIX ?? '';
+  const authorizePath = `${prefix}/authorize`;
+  const tokenPath = `${prefix}/token`;
+  const registerPath = `${prefix}/register`;
+  /* One JSON line per request, so a parity lane can compare what each router ASKED for rather than
+     only what it returned. Off unless a path is given. */
+  const logPath = process.env.FIXTURE_OAUTH_LOG;
 
   const send = (res, status, body) => {
     const payload = JSON.stringify(body);
@@ -128,55 +155,153 @@ function runOAuth() {
     res.end(payload);
   };
 
-  const server = createServer((req, res) => {
-    const url = new URL(req.url, base);
-
-    if (url.pathname === '/.well-known/oauth-protected-resource') {
-      return send(res, 200, { resource: `${base}/mcp`, authorization_servers: [base] });
+  const record = (entry) => {
+    if (!logPath) return;
+    try {
+      appendFileSync(logPath, `${JSON.stringify(entry)}\n`);
+    } catch {
+      /* the log is evidence, not a dependency */
     }
+  };
 
-    if (
-      url.pathname === '/.well-known/oauth-authorization-server' ||
-      url.pathname === '/.well-known/openid-configuration'
-    ) {
-      return send(res, 200, {
-        issuer: base,
-        authorization_endpoint: `${base}/authorize`,
-        token_endpoint: `${base}/token`,
-        registration_endpoint: `${base}/register`,
-        response_types_supported: ['code'],
-        grant_types_supported: ['authorization_code', 'refresh_token'],
-        code_challenge_methods_supported: ['S256'],
-      });
-    }
+  /* code -> { challenge, method, redirect_uri }. An authorization code is single-use and PKCE is
+     verified against what THIS code was issued under, so a token request carrying the wrong
+     verifier is refused rather than quietly accepted. */
+  const issued = new Map();
+  let codeSeq = 0;
 
-    if (url.pathname === '/register' && req.method === 'POST') {
+  const readBody = (req) =>
+    new Promise((resolve) => {
       let body = '';
       req.on('data', (chunk) => {
         body += chunk;
       });
-      return req.on('end', () => {
+      req.on('end', () => resolve(body));
+    });
+
+  const server = createServer((req, res) => {
+    void (async () => {
+      const url = new URL(req.url, base);
+      const method = req.method ?? 'GET';
+      const body =
+        method === 'POST' && url.pathname !== '/mcp' ? await readBody(req) : '';
+      record({
+        method,
+        path: url.pathname,
+        search: url.search,
+        protocolVersion: req.headers['mcp-protocol-version'] ?? null,
+        accept: req.headers.accept ?? null,
+        contentType: req.headers['content-type'] ?? null,
+        authorization: req.headers.authorization ? 'bearer' : null,
+        body,
+      });
+
+      if (url.pathname === '/.well-known/oauth-protected-resource') {
+        return send(res, 200, { resource: `${base}/mcp`, authorization_servers: [base] });
+      }
+
+      if (
+        url.pathname === '/.well-known/oauth-authorization-server' ||
+        url.pathname === '/.well-known/openid-configuration'
+      ) {
+        return send(res, 200, {
+          issuer: base,
+          authorization_endpoint: `${base}${authorizePath}`,
+          token_endpoint: `${base}${tokenPath}`,
+          registration_endpoint: `${base}${registerPath}`,
+          response_types_supported: ['code'],
+          grant_types_supported: ['authorization_code', 'refresh_token'],
+          code_challenge_methods_supported: ['S256'],
+        });
+      }
+
+      if (url.pathname === registerPath && method === 'POST') {
         let redirects = [];
         try {
           redirects = JSON.parse(body).redirect_uris ?? [];
         } catch {
           redirects = [];
         }
-        send(res, 201, {
-          client_id: 'fixture-client',
-          client_id_issued_at: Math.floor(Date.now() / 1000),
-          redirect_uris: redirects,
+        /* Deliberately NOT in the order the MCP SDK's schema declares, and neither is the token
+           response below. The SDK parses both through a schema that reorders members to the
+           schema's own order and strips the ones it does not name, so a response whose order
+           already agreed with the schema could not tell a port that reproduces that from one that
+           writes the provider's bytes straight through. `fixture_unknown` is here for the second
+           half of the same reason. */
+        return send(res, 201, {
           token_endpoint_auth_method: 'none',
+          fixture_unknown: 'must not reach the credential file',
+          client_id_issued_at: 1755648000,
+          redirect_uris: redirects,
+          client_id: 'fixture-client',
         });
-      });
-    }
+      }
 
-    // Everything else, /mcp included, is refused in the way that starts the flow.
-    res.writeHead(401, {
-      'content-type': 'application/json',
-      'www-authenticate': `Bearer resource_metadata="${base}/.well-known/oauth-protected-resource"`,
-    });
-    res.end(JSON.stringify({ error: 'unauthorized' }));
+      /* The provider half of the browser hop. It never renders anything a human reads: the lane
+         follows the redirect, which is what puts a code on the router's own callback listener. */
+      if (url.pathname === authorizePath && method === 'GET') {
+        const challenge = url.searchParams.get('code_challenge');
+        const challengeMethod = url.searchParams.get('code_challenge_method');
+        const redirect = url.searchParams.get('redirect_uri');
+        if (url.searchParams.get('response_type') !== 'code' || !url.searchParams.get('client_id')) {
+          return send(res, 400, { error: 'invalid_request' });
+        }
+        if (!challenge || challengeMethod !== 'S256') {
+          /* No PKCE, no authorization. A client that stopped sending a challenge fails HERE, on the
+             provider, rather than being carried to a token endpoint that might not have checked. */
+          return send(res, 400, { error: 'invalid_request', error_description: 'PKCE is required' });
+        }
+        if (!redirect) return send(res, 400, { error: 'invalid_request' });
+        codeSeq += 1;
+        const code = `fixture-code-${codeSeq}`;
+        issued.set(code, { challenge, redirect });
+        const target = new URL(redirect);
+        target.searchParams.set('code', code);
+        res.writeHead(302, { location: target.toString(), 'content-length': '0' });
+        return res.end();
+      }
+
+      if (url.pathname === tokenPath && method === 'POST') {
+        const form = new URLSearchParams(body);
+        const code = form.get('code') ?? '';
+        const entry = issued.get(code);
+        if (form.get('grant_type') !== 'authorization_code' || !entry) {
+          return send(res, 400, { error: 'invalid_grant' });
+        }
+        issued.delete(code);
+        const verifier = form.get('code_verifier') ?? '';
+        const computed = createHash('sha256')
+          .update(verifier)
+          .digest('base64')
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=/g, '');
+        if (!verifier || computed !== entry.challenge) {
+          return send(res, 400, { error: 'invalid_grant', error_description: 'PKCE verification failed' });
+        }
+        if (form.get('redirect_uri') !== entry.redirect) {
+          return send(res, 400, { error: 'invalid_grant', error_description: 'redirect_uri mismatch' });
+        }
+        /* `fixture_extra` is in here on purpose: the MCP TypeScript SDK parses the token response
+           through a schema that STRIPS unknown members, so whether it reaches the credential file
+           on disk is a byte-level difference between a faithful port and a hopeful one. */
+        return send(res, 200, {
+          scope: 'fixture.read',
+          refresh_token: 'fixture-refresh-token',
+          fixture_extra: 'must not reach the credential file',
+          expires_in: 3600,
+          access_token: 'fixture-access-token',
+          token_type: 'Bearer',
+        });
+      }
+
+      // Everything else, /mcp included, is refused in the way that starts the flow.
+      res.writeHead(401, {
+        'content-type': 'application/json',
+        'www-authenticate': `Bearer resource_metadata="${base}/.well-known/oauth-protected-resource"`,
+      });
+      res.end(JSON.stringify({ error: 'unauthorized' }));
+    })();
   });
 
   server.listen(port, '127.0.0.1', () => {

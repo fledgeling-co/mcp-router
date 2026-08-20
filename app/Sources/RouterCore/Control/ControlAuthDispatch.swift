@@ -76,8 +76,9 @@ extension ControlHandler {
     /// `POST /servers/:name/auth`.
     ///
     /// Returns `nil` — falling through to the 405 — for exactly one case: a **non-stdio** upstream
-    /// with **no flow starter configured**. That is the truthful answer while `D-p1-a` is open, and
-    /// it is deliberately not a 502:
+    /// with **no flow starter configured**. The daemon always configures one since P7, so on the
+    /// wire this is now only `ControlDiff`, which supplies none on purpose. It is deliberately not
+    /// a 502:
     ///
     /// - the reference's 502 means `beginAuth` *ran and threw* (a bind failure, or the 20-second
     ///   URL race). Reusing it for "no starter was ever constructed" makes two different failures

@@ -34,7 +34,7 @@ MANIFEST="${PARITY_MANIFEST:-$REPO_ROOT/planning/parity/surface.tsv}"
 # listed produces no results, no environment failure and no complaint — its rows simply stay
 # blocked under whatever note they carry. `stream` sat on disk in exactly that state from R2-R
 # until P3: written, executable, passing when run by hand, and dispatched by nothing.
-LANES="${PARITY_LANES:-control fixture divergence pool suite mcp cli install state log stream registry}"
+LANES="${PARITY_LANES:-control fixture divergence pool suite mcp cli install state log stream registry oauth}"
 WORK="$(mktemp -d -t parity-gate)"
 RESULTS="$WORK/results.tsv"
 : > "$RESULTS"
@@ -87,7 +87,12 @@ echo
 # This is a notice and nothing else. No lane is skipped, no verdict is altered, and nothing that
 # computes coverage is touched: the lanes keep their own messages, their own exit 2 and their own
 # blocked rows.
-if [ ! -f "${MCP_ROUTER_DIST:-$REPO_ROOT/dist/index.js}" ]; then
+# MCP_ROUTER_DIST names the DIRECTORY, everywhere else in this harness. Testing it as a FILE made
+# this notice fire on every run that set it — including one where all thirteen lanes then ran and
+# every one of them reached the reference. A notice that says the reference is unbuilt when it is
+# built is worse than no notice: the reader is told to expect blocked rows and then handed a
+# report that does not have them.
+if [ ! -f "${MCP_ROUTER_DIST:-$REPO_ROOT/dist}/index.js" ]; then
   echo "notice: the TypeScript reference is not built, so every lane that compares against it will"
   echo "        report an environment failure below and its rows will stay blocked."
   echo "        Run 'npm install && npm run build' first. The gate still runs, and still exits 2."

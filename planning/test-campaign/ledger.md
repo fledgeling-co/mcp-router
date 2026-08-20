@@ -4,8 +4,8 @@ Lanes: macos-glass, ios-glass, swiftui, router-daemon, parity-wire
 
 **Sample:** pairwise floor; 3-way on theme×viewport×surface (Mac boards) and role×state×network (honesty); oversample honesty-guardrails; drop high-contrast (no authored tokens); drop RTL (no localisation); pairing-transport cells blocked (I5: unimplemented)
 
-20 surfaces · 5 flows · 8 components · 51 cases
-43 pass · 4 fail · 0 skip · 4 n/a · 0 open · armed 43/43
+20 surfaces · 5 flows · 8 components · 59 cases
+51 pass · 4 fail · 0 skip · 4 n/a · 0 open · armed 51/51
 
 | Case | Surface | State | Lane | Status | Armed | Evidence |
 |---|---|---|---|---|---|---|
@@ -13,20 +13,27 @@ Lanes: macos-glass, ios-glass, swiftui, router-daemon, parity-wire
 | CASE-0002 | SURF-001  |  | macos-glass | n/a: posting Cmd+1–7 to a background pid does not change SwiftUI's focused scene (measured: title stayed Inbox then Activity); proving the shortcuts requires the window frontmost, which this campaign refuses |  | 1 |
 | CASE-0008 | SURF-001  |  | swiftui | pass | yes | 3 |
 | CASE-0101 | SURF-001  |  | macos-glass | pass | yes | 1 |
+| CASE-0132 | SURF-001  |  | swiftui | pass | yes | 3 |
+| CASE-0133 | SURF-001  |  | macos-glass | pass | yes | 2 |
 | CASE-0003 | SURF-002  |  | macos-glass | pass | yes | 3 |
 | CASE-0041 | SURF-002  |  | macos-glass | pass | yes | 3 |
 | CASE-0042 | SURF-002  |  | macos-glass | pass | yes | 3 |
 | CASE-0102 | SURF-002  |  | macos-glass | pass | yes | 1 |
 | CASE-0011 | SURF-003  |  | macos-glass | pass | yes | 3 |
 | CASE-0103 | SURF-003  |  | macos-glass | pass | yes | 1 |
+| CASE-0127 | SURF-003  |  | swiftui | pass | yes | 1 |
+| CASE-0128 | SURF-003  |  | swiftui | pass | yes | 1 |
 | CASE-0012 | SURF-004  |  | macos-glass | pass | yes | 3 |
 | CASE-0104 | SURF-004  |  | macos-glass | pass | yes | 1 |
+| CASE-0129 | SURF-004  |  | swiftui | pass | yes | 1 |
 | CASE-0013 | SURF-005  |  | macos-glass | pass | yes | 3 |
 | CASE-0105 | SURF-005  |  | macos-glass | pass | yes | 1 |
 | CASE-0014 | SURF-006  |  | macos-glass | pass | yes | 5 |
 | CASE-0106 | SURF-006  |  | macos-glass | pass | yes | 2 |
 | CASE-0015 | SURF-007  |  | macos-glass | pass | yes | 3 |
 | CASE-0107 | SURF-007  |  | macos-glass | pass | yes | 1 |
+| CASE-0130 | SURF-007  |  | swiftui | pass | yes | 1 |
+| CASE-0131 | SURF-007  |  | swiftui | pass | yes | 1 |
 | CASE-0005 | SURF-008  |  | macos-glass | pass | yes | 4 |
 | CASE-0007 | SURF-008  |  | macos-glass | pass | yes | 3 |
 | CASE-0017 | SURF-008  |  | swiftui | pass | yes | 3 |
@@ -58,5 +65,6 @@ Lanes: macos-glass, ios-glass, swiftui, router-daemon, parity-wire
 | CASE-0036 | SURF-017  |  | parity-wire | fail |  | 7 |
 | CASE-0123 | SURF-018  |  | ios-glass | pass | yes | 1 |
 | CASE-0024 | SURF-018  |  | ios-glass | pass | yes | 1 |
+| CASE-0126 | SURF-018  |  | swiftui | pass | yes | 1 |
 | CASE-0124 | SURF-019  |  | ios-glass | pass | yes | 1 |
 | CASE-0125 | SURF-020  |  | ios-glass | pass | yes | 1 |

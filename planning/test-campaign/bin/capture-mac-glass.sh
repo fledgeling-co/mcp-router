@@ -229,6 +229,55 @@ print(f"manifest: {len(rows)} capture(s) -> $MANIFEST")
 src.unlink()
 PY
 
+# Does any board lay out wider than the window it is in?
+#
+# Every dump above carries an AXWindow row and, one level down, the AXSplitGroup that holds the
+# whole shell. Those two widths are the same on a board that fits. Where the split group is wider,
+# `NavigationSplitView` has laid out past the window and SwiftUI has PLACED the oversized child
+# centred, so the sidebar's section headers fall off the left and the header's trailing controls
+# fall off the right — equally, by half the excess each — and the picture is silent about what it
+# cut. That is DEF-015, which was recorded as a shutter-timing artefact until these two numbers
+# were read side by side: 988 on Checks, 1044 on Skills and 1119 on Discover, inside a 980pt
+# window, each origin moved left by exactly half its excess.
+#
+# **This fails the capture rather than reporting a number, and it is allowed to because a build
+# exists that passes it.** `ContentZone` on `ai/x4` carries `.frame(minWidth: 0, maxWidth:
+# .infinity, alignment: .leading)`, which stops the boards' fixed columns reporting a minimum up
+# the chain; measured against that build on 20 Aug 2026, all eight boards read 980 of 980. Against
+# a build without it the gate is red, and that is the point rather than a problem — a gate wired in
+# while nothing can pass it either blocks unrelated work or gets its assertion softened.
+#
+# **What it does NOT see, stated because `overflowing=0` reads like "nothing is clipped" and is
+# not that claim.** It compares the split group against the window, so it catches content escaping
+# the window. Content that overflows the detail PANE and is cut at the trailing edge stays inside
+# the window and is invisible here — and that is still happening on the same three boards, because
+# the leading alignment chooses the trailing chrome over the sidebar rather than making anything
+# fit. Closing that needs the three boards' columns to flex.
+python3 - <<'OVERFLOW' "$AX"
+import pathlib, sys
+ax = pathlib.Path(sys.argv[1])
+examined = over = 0
+for dump in sorted(ax.glob("*.window.txt")):
+    rows = [line.split("\t") for line in dump.read_text().splitlines() if line.strip()]
+    window = next((r for r in rows if len(r) > 12 and r[1] == "AXWindow"), None)
+    split = next((r for r in rows if len(r) > 12 and r[1] == "AXSplitGroup"), None)
+    if not window or not split:
+        continue
+    examined += 1
+    window_width, split_width = float(window[-3]), float(split[-3])
+    if split_width > window_width + 0.5:
+        over += 1
+        print(f"  OVERFLOW {dump.stem}: split group {split_width:.0f}pt inside a "
+              f"{window_width:.0f}pt window — {split_width - window_width:.0f}pt clipped, "
+              f"half off each edge")
+print(f"board width: examined={examined} overflowing={over} (DEF-015)")
+if examined == 0:
+    print("FAIL: no window dump carried both an AXWindow and an AXSplitGroup row — this check "
+          "did not run, and a check that did not run is never a pass")
+    sys.exit(1)
+sys.exit(1 if over else 0)
+OVERFLOW
+
 FRONT_AFTER="$("$AXKIT" front)"
 echo "frontmost after: $FRONT_AFTER"
 if [ "$FRONT_AFTER" != "$FRONT_BEFORE" ]; then

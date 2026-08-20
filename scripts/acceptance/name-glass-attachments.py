@@ -152,6 +152,25 @@ def main(directory: str) -> int:
     (root / "captures.json").write_text(json.dumps(entries, indent=1) + "\n")
     print(f"wrote provenance for {len(entries)} capture(s) to {root / 'captures.json'}")
 
+    # And into the manifest the lineage gate actually reads.
+    #
+    # `capture-lineage.py` reads `evidence/shots/captures.json`, one level up — this directory's
+    # own file is the lane's record and nothing downstream opens it. For six runs the two drifted:
+    # the parent kept the sha256 of a capture taken days earlier while the bytes beside it were
+    # fresh, and the gate reported six RECONSTRUCTED subjects, which is what it is for. Merging
+    # here rather than reconciling later is the whole point — a manifest written after the fact
+    # records what somebody believed, and these fields came out of the running app at shutter time.
+    #
+    # Entries are replaced by path, so a capture the lane no longer takes keeps its old row rather
+    # than vanishing: the gate's unsourced pass is where a stale row should surface, not here.
+    parent_path = root.parent / "captures.json"
+    parent = json.loads(parent_path.read_text()) if parent_path.exists() else []
+    fresh = {e["path"]: e for e in entries}
+    merged = [fresh.pop(e["path"], e) for e in parent]
+    merged.extend(fresh.values())
+    parent_path.write_text(json.dumps(merged, indent=1) + "\n")
+    print(f"merged {len(entries)} entry(ies) into {parent_path} ({len(merged)} total)")
+
     if diagnostics:
         diag_dir = root / "diagnostics"
         diag_dir.mkdir(exist_ok=True)

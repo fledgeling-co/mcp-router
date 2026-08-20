@@ -1,1334 +1,1491 @@
 [
-  {
-    "id": "CASE-0001",
-    "req": "REQ-003",
-    "surface": "SURF-001",
-    "flow": null,
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-001",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/runs/mac-glass-capture.log",
-      "evidence/ax/SURF-002.title.txt",
-      "evidence/ax/SURF-003.title.txt",
-      "evidence/ax/SURF-008.title.txt",
-      "evidence/runs/glass-assert.json"
-    ],
-    "note": "Sidebar AXPress selected Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Settings; window titles matched. Cmd+1–7 not part of this case. ARMED: predicate watched to fail under the SURF-001 decoy.",
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-001's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106."
+ {
+  "id": "CASE-0001",
+  "req": "REQ-003",
+  "surface": "SURF-001",
+  "flow": null,
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-001",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0002",
-    "req": "REQ-003",
-    "surface": "SURF-001",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-001",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "inputModality": "keyboard",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "n/a: posting Cmd+1–7 to a background pid does not change SwiftUI's focused scene (measured: title stayed Inbox then Activity); proving the shortcuts requires the window frontmost, which this campaign refuses",
-    "armed": false,
-    "evidence": [
-      "evidence/ax/SURF-001.keyboard.txt"
-    ],
-    "note": "Background key-post measured; AXPress on menu items is a known no-op. Do not read as proof that ⌘1–7 work or that they do not."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/mac-glass-capture.log",
+   "evidence/ax/SURF-002.title.txt",
+   "evidence/ax/SURF-003.title.txt",
+   "evidence/ax/SURF-008.title.txt",
+   "evidence/runs/glass-assert.json"
+  ],
+  "note": "Sidebar AXPress selected Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Settings; window titles matched. Cmd+1–7 not part of this case. ARMED: predicate watched to fail under the SURF-001 decoy.",
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-001's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106."
+ },
+ {
+  "id": "CASE-0002",
+  "req": "REQ-003",
+  "surface": "SURF-001",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-001",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "inputModality": "keyboard",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0003",
-    "req": "REQ-004",
-    "surface": "SURF-002",
-    "flow": "FLOW-004",
-    "step": "FLOW-004.01",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-002",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/ax/SURF-002.window.txt",
-      "evidence/shots/SURF-002.build.png",
-      "evidence/runs/glass-assert.json"
-    ],
-    "note": "AX: 2 tools from 4 servers · 1 running; fixture-stdio/http dormant, fixture-tools running, fixture-oauth wants decision. No invented figure. ARMED: predicate watched to fail under the SURF-002 decoy.",
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-002's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106."
+  "oracle": "outcome",
+  "status": "n/a: posting Cmd+1–7 to a background pid does not change SwiftUI's focused scene (measured: title stayed Inbox then Activity); proving the shortcuts requires the window frontmost, which this campaign refuses",
+  "armed": false,
+  "evidence": [
+   "evidence/ax/SURF-001.keyboard.txt"
+  ],
+  "note": "Background key-post measured; AXPress on menu items is a known no-op. Do not read as proof that ⌘1–7 work or that they do not."
+ },
+ {
+  "id": "CASE-0003",
+  "req": "REQ-004",
+  "surface": "SURF-002",
+  "flow": "FLOW-004",
+  "step": "FLOW-004.01",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-002",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0004",
-    "req": "REQ-005",
-    "surface": "SURF-009",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-009",
-      "state": "stale",
-      "viewport": "320x480",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "offline",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "n/a: NSStatusItem is not an AXPress target while MCPRouter is backgrounded; this campaign never activates, so the popover cannot be opened or photographed",
-    "armed": false,
-    "evidence": [
-      "evidence/runs/mac-glass-capture.log"
-    ],
-    "note": "SURF-009 stale/offline readout unmeasured on glass. Headless honesty of live-count absence is CASE-0008 / CASE-0042."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/ax/SURF-002.window.txt",
+   "evidence/shots/SURF-002.build.png",
+   "evidence/runs/glass-assert.json"
+  ],
+  "note": "AX: 2 tools from 4 servers · 1 running; fixture-stdio/http dormant, fixture-tools running, fixture-oauth wants decision. No invented figure. ARMED: predicate watched to fail under the SURF-002 decoy.",
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-002's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106."
+ },
+ {
+  "id": "CASE-0004",
+  "req": "REQ-005",
+  "surface": "SURF-009",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-009",
+   "state": "stale",
+   "viewport": "320x480",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "offline",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0005",
-    "req": "REQ-006",
-    "surface": "SURF-008",
-    "flow": "FLOW-001",
-    "step": "FLOW-001.03",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-008",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "queued-arrival",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/ax/SURF-008.window.txt",
-      "evidence/runs/make-test-2.log",
-      "evidence/runs/glass-assert.json",
-      "evidence/arming/CASE-0005.arming.log"
-    ],
-    "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0005.arming.log). Restored from in-memory backup; app/Sources clean after.",
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-008's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106."
+  "oracle": "outcome",
+  "status": "n/a: NSStatusItem is not an AXPress target while MCPRouter is backgrounded; this campaign never activates, so the popover cannot be opened or photographed",
+  "armed": false,
+  "evidence": [
+   "evidence/runs/mac-glass-capture.log"
+  ],
+  "note": "SURF-009 stale/offline readout unmeasured on glass. Headless honesty of live-count absence is CASE-0008 / CASE-0042."
+ },
+ {
+  "id": "CASE-0005",
+  "req": "REQ-006",
+  "surface": "SURF-008",
+  "flow": "FLOW-001",
+  "step": "FLOW-001.03",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-008",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "queued-arrival",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0006",
-    "req": "REQ-008",
-    "surface": "SURF-009",
-    "flow": "FLOW-001",
-    "step": "FLOW-001.02",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-009",
-      "state": "populated",
-      "viewport": "320x480",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "arrivals-queue",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "n/a: NSStatusItem is not an AXPress target while MCPRouter is backgrounded; inbox band never opened",
-    "armed": false,
-    "evidence": [
-      "evidence/runs/mac-glass-capture.log"
-    ],
-    "note": "FLOW-001.02 popover band unmeasured on glass. FLOW-001.03/.04 proved on the Inbox board and in make-test-2.log."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/ax/SURF-008.window.txt",
+   "evidence/runs/make-test-2.log",
+   "evidence/runs/glass-assert.json",
+   "evidence/arming/CASE-0005.arming.log"
+  ],
+  "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0005.arming.log). Restored from in-memory backup; app/Sources clean after.",
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-008's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106."
+ },
+ {
+  "id": "CASE-0006",
+  "req": "REQ-008",
+  "surface": "SURF-009",
+  "flow": "FLOW-001",
+  "step": "FLOW-001.02",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-009",
+   "state": "populated",
+   "viewport": "320x480",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "arrivals-queue",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0007",
-    "req": "REQ-009",
-    "surface": "SURF-008",
-    "flow": "FLOW-001",
-    "step": "FLOW-001.04",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-008",
-      "state": "disposition",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "single-item",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/runs/make-test-2.log",
-      "evidence/runs/arm-suites.log",
-      "evidence/arming/CASE-0007.arming.log"
-    ],
-    "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0007.arming.log). Restored from in-memory backup; app/Sources clean after.",
-    "armedBy": "Reverted a disposition withdrawing its own banner at the moment it happens. Reverting leaves the notification standing for an item the user has already dealt with, so the banner invites a second decision on a settled thing. Mutation in Sources/MCPRouterUI/Boards/InboxBoardModel+Arrivals.swift; `swift test --filter withdrawalIsCommandedAtTheDisposition` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+  "oracle": "outcome",
+  "status": "n/a: NSStatusItem is not an AXPress target while MCPRouter is backgrounded; inbox band never opened",
+  "armed": false,
+  "evidence": [
+   "evidence/runs/mac-glass-capture.log"
+  ],
+  "note": "FLOW-001.02 popover band unmeasured on glass. FLOW-001.03/.04 proved on the Inbox board and in make-test-2.log."
+ },
+ {
+  "id": "CASE-0007",
+  "req": "REQ-009",
+  "surface": "SURF-008",
+  "flow": "FLOW-001",
+  "step": "FLOW-001.04",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-008",
+   "state": "disposition",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "single-item",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0008",
-    "req": "REQ-007",
-    "surface": "SURF-001",
-    "lane": "swiftui",
-    "cell": {
-      "surface": "SURF-001",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "dark",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/runs/make-test-2.log",
-      "evidence/runs/arm-suites.log",
-      "evidence/arming/CASE-0008.arming.log"
-    ],
-    "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0008.arming.log). Restored from in-memory backup; app/Sources clean after.",
-    "armedBy": "Reverted the cleanup footer's refusal to claim a memory saving — the honesty guardrail REQ-007 names. Reverting it turns the disclaimer into the fabrication. Mutation in Sources/MCPRouterKit/Cleanup/CleanupPresentation.swift; `swift test --filter footerRefusesTheFabrication` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/make-test-2.log",
+   "evidence/runs/arm-suites.log",
+   "evidence/arming/CASE-0007.arming.log"
+  ],
+  "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0007.arming.log). Restored from in-memory backup; app/Sources clean after.",
+  "armedBy": "Reverted a disposition withdrawing its own banner at the moment it happens. Reverting leaves the notification standing for an item the user has already dealt with, so the banner invites a second decision on a settled thing. Mutation in Sources/MCPRouterUI/Boards/InboxBoardModel+Arrivals.swift; `swift test --filter withdrawalIsCommandedAtTheDisposition` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+ },
+ {
+  "id": "CASE-0008",
+  "req": "REQ-007",
+  "surface": "SURF-001",
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-001",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "dark",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0009",
-    "req": "REQ-012",
-    "surface": "SURF-011",
-    "lane": "swiftui",
-    "cell": {
-      "surface": "SURF-011",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/runs/make-test-2.log",
-      "evidence/runs/arm-suites.log",
-      "evidence/arming/CASE-0009.arming.log"
-    ],
-    "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0009.arming.log). Restored from in-memory backup; app/Sources clean after.",
-    "armedBy": "Reverted the IPv4-loopback pin on the control listener. Without it NWListener binds every interface and puts an endpoint that runs the user's MCP servers on the LAN. Mutation in Sources/RouterCore/HTTP/LoopbackHTTPServer.swift; `swift test --filter loopbackPinned` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/make-test-2.log",
+   "evidence/runs/arm-suites.log",
+   "evidence/arming/CASE-0008.arming.log"
+  ],
+  "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0008.arming.log). Restored from in-memory backup; app/Sources clean after.",
+  "armedBy": "Reverted the cleanup footer's refusal to claim a memory saving — the honesty guardrail REQ-007 names. Reverting it turns the disclaimer into the fabrication. Mutation in Sources/MCPRouterKit/Cleanup/CleanupPresentation.swift; `swift test --filter footerRefusesTheFabrication` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+ },
+ {
+  "id": "CASE-0009",
+  "req": "REQ-012",
+  "surface": "SURF-011",
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-011",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0010",
-    "req": "REQ-015",
-    "surface": "SURF-010",
-    "flow": "FLOW-002",
-    "step": "FLOW-002.01",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-010",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "fail",
-    "armed": false,
-    "evidence": [
-      "evidence/ax/SURF-010.window.txt"
-    ],
-    "note": "DEF-001 / REQ-015. Sheet title Pair iPhone; body 'Pairing is not available in this build' / 'this build ships no way to listen for one.' No 8-character Crockford, no QR. Characterised, not inventing a transport."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/make-test-2.log",
+   "evidence/runs/arm-suites.log",
+   "evidence/arming/CASE-0009.arming.log"
+  ],
+  "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0009.arming.log). Restored from in-memory backup; app/Sources clean after.",
+  "armedBy": "Reverted the IPv4-loopback pin on the control listener. Without it NWListener binds every interface and puts an endpoint that runs the user's MCP servers on the LAN. Mutation in Sources/RouterCore/HTTP/LoopbackHTTPServer.swift; `swift test --filter loopbackPinned` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+ },
+ {
+  "id": "CASE-0010",
+  "req": "REQ-015",
+  "surface": "SURF-010",
+  "flow": "FLOW-002",
+  "step": "FLOW-002.01",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-010",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0011",
-    "req": "REQ-003",
-    "surface": "SURF-003",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-003",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "call-stream",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/ax/SURF-003.title.txt",
-      "evidence/ax/SURF-003.window.txt",
-      "evidence/runs/glass-assert.json"
-    ],
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-003's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-003 decoy."
+  "oracle": "outcome",
+  "status": "fail",
+  "armed": false,
+  "evidence": [
+   "evidence/ax/SURF-010.window.txt"
+  ],
+  "note": "DEF-001 / REQ-015. Sheet title Pair iPhone; body 'Pairing is not available in this build' / 'this build ships no way to listen for one.' No 8-character Crockford, no QR. Characterised, not inventing a transport."
+ },
+ {
+  "id": "CASE-0011",
+  "req": "REQ-003",
+  "surface": "SURF-003",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-003",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "call-stream",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0012",
-    "req": "REQ-003",
-    "surface": "SURF-004",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-004",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/ax/SURF-004.title.txt",
-      "evidence/ax/SURF-004.window.txt",
-      "evidence/runs/glass-assert.json"
-    ],
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-004's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-004 decoy."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/ax/SURF-003.title.txt",
+   "evidence/ax/SURF-003.window.txt",
+   "evidence/runs/glass-assert.json"
+  ],
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-003's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
+  "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-003 decoy."
+ },
+ {
+  "id": "CASE-0012",
+  "req": "REQ-003",
+  "surface": "SURF-004",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-004",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0013",
-    "req": "REQ-003",
-    "surface": "SURF-005",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-005",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "catalog",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/ax/SURF-005.title.txt",
-      "evidence/ax/SURF-005.window.txt",
-      "evidence/runs/glass-assert.json"
-    ],
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-005's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-005 decoy."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/ax/SURF-004.title.txt",
+   "evidence/ax/SURF-004.window.txt",
+   "evidence/runs/glass-assert.json"
+  ],
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-004's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
+  "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-004 decoy."
+ },
+ {
+  "id": "CASE-0013",
+  "req": "REQ-003",
+  "surface": "SURF-005",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-005",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "catalog",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0014",
-    "req": "REQ-003",
-    "surface": "SURF-006",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-006",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/ax/SURF-006.title.txt",
-      "evidence/ax/SURF-006.window.txt",
-      "evidence/runs/glass-assert.json",
-      "evidence/runs/arm-pipeline.json",
-      "evidence/arm-pipeline/mutated.SURF-006.window.txt"
-    ],
-    "note": "Title Checks, not Evals; copy includes 'No model-graded evaluation exists'. ARMED: predicate watched to fail under the SURF-006 decoy. Pipeline-armed on a rebuilt app, not only on a recording.",
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-006's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106. PIPELINE ARM, end to end: both halves of the Checks honesty guardrail were reverted in app/Sources/MCPRouterKit/Checks/CheckCopy.swift (\"it is not a graded test\" → \"it grades how well\"; \"skills are never executed by the router\" → \"skills are executed by the router\"), the Mac app was REBUILT with `make build-mac`, relaunched backgrounded and re-photographed through the same window-scoped path the campaign uses — and the suite then went red on exactly CASE-0014, CASE-0106 (checked=137 failures=4 cases=18). Source and every recorded artifact were restored and it is green again (checked=137 failures=0 cases=18). Focus was never taken (capture reported focus unchanged: True). This is the one arm that proves the build→launch→capture→assert CHAIN bites, not merely the predicate; the mutated build's own dump and PNG are kept under evidence/arm-pipeline/ so the red is inspectable."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/ax/SURF-005.title.txt",
+   "evidence/ax/SURF-005.window.txt",
+   "evidence/runs/glass-assert.json"
+  ],
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-005's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
+  "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-005 decoy."
+ },
+ {
+  "id": "CASE-0014",
+  "req": "REQ-003",
+  "surface": "SURF-006",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-006",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0015",
-    "req": "REQ-003",
-    "surface": "SURF-007",
-    "flow": "FLOW-004",
-    "step": "FLOW-004.02",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-007",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/ax/SURF-007.title.txt",
-      "evidence/ax/SURF-007.window.txt",
-      "evidence/runs/glass-assert.json"
-    ],
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-007's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-007 decoy."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/ax/SURF-006.title.txt",
+   "evidence/ax/SURF-006.window.txt",
+   "evidence/runs/glass-assert.json",
+   "evidence/runs/arm-pipeline.json",
+   "evidence/arm-pipeline/mutated.SURF-006.window.txt"
+  ],
+  "note": "Title Checks, not Evals; copy includes 'No model-graded evaluation exists'. ARMED: predicate watched to fail under the SURF-006 decoy. Pipeline-armed on a rebuilt app, not only on a recording.",
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-006's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106. PIPELINE ARM, end to end: both halves of the Checks honesty guardrail were reverted in app/Sources/MCPRouterKit/Checks/CheckCopy.swift (\"it is not a graded test\" → \"it grades how well\"; \"skills are never executed by the router\" → \"skills are executed by the router\"), the Mac app was REBUILT with `make build-mac`, relaunched backgrounded and re-photographed through the same window-scoped path the campaign uses — and the suite then went red on exactly CASE-0014, CASE-0106 (checked=137 failures=4 cases=18). Source and every recorded artifact were restored and it is green again (checked=137 failures=0 cases=18). Focus was never taken (capture reported focus unchanged: True). This is the one arm that proves the build→launch→capture→assert CHAIN bites, not merely the predicate; the mutated build's own dump and PNG are kept under evidence/arm-pipeline/ so the red is inspectable."
+ },
+ {
+  "id": "CASE-0015",
+  "req": "REQ-003",
+  "surface": "SURF-007",
+  "flow": "FLOW-004",
+  "step": "FLOW-004.02",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-007",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0016",
-    "req": "REQ-003",
-    "surface": "SURF-011",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-011",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/ax/SURF-011.title.txt",
-      "evidence/ax/SURF-011.window.txt",
-      "evidence/runs/glass-assert.json"
-    ],
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-011's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-011 decoy."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/ax/SURF-007.title.txt",
+   "evidence/ax/SURF-007.window.txt",
+   "evidence/runs/glass-assert.json"
+  ],
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-007's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
+  "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-007 decoy."
+ },
+ {
+  "id": "CASE-0016",
+  "req": "REQ-003",
+  "surface": "SURF-011",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-011",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0017",
-    "req": "REQ-018",
-    "surface": "SURF-008",
-    "lane": "swiftui",
-    "cell": {
-      "surface": "SURF-008",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "headless"
-    },
-    "oracle": "metamorphic",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/runs/make-test-2.log",
-      "evidence/runs/arm-suites.log",
-      "evidence/arming/CASE-0017.arming.log"
-    ],
-    "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0017.arming.log). Restored from in-memory backup; app/Sources clean after.",
-    "armedBy": "Reverted undo actually restoring the declined row. Reverting leaves a control labelled Undo that reports success and restores nothing. Mutation in Sources/MCPRouterUI/Boards/InboxBoardModel.swift; `swift test --filter declineIsUndoable` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/ax/SURF-011.title.txt",
+   "evidence/ax/SURF-011.window.txt",
+   "evidence/runs/glass-assert.json"
+  ],
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-011's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
+  "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-011 decoy."
+ },
+ {
+  "id": "CASE-0017",
+  "req": "REQ-018",
+  "surface": "SURF-008",
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-008",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0018",
-    "req": "REQ-019",
-    "surface": "SURF-008",
-    "lane": "swiftui",
-    "cell": {
-      "surface": "SURF-008",
-      "state": "refused",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "storage-failure",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/runs/make-test-2.log",
-      "evidence/runs/arm-suites.log",
-      "evidence/arming/CASE-0018.arming.log"
-    ],
-    "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0018.arming.log). Restored from in-memory backup; app/Sources clean after.",
-    "armedBy": "Reverted a refused write throwing rather than reporting success. Reverting makes a failed enqueue silently succeed, which is REQ-019's guardrail exactly. Mutation in Sources/MCPRouterKit/Discover/CapabilityQueue.swift; `swift test --filter refusedWriteThrows` then ran 2 test(s) and went RED, and 2 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+  "oracle": "metamorphic",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/make-test-2.log",
+   "evidence/runs/arm-suites.log",
+   "evidence/arming/CASE-0017.arming.log"
+  ],
+  "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0017.arming.log). Restored from in-memory backup; app/Sources clean after.",
+  "armedBy": "Reverted undo actually restoring the declined row. Reverting leaves a control labelled Undo that reports success and restores nothing. Mutation in Sources/MCPRouterUI/Boards/InboxBoardModel.swift; `swift test --filter declineIsUndoable` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+ },
+ {
+  "id": "CASE-0018",
+  "req": "REQ-019",
+  "surface": "SURF-008",
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-008",
+   "state": "refused",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "storage-failure",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0020",
-    "req": "REQ-010",
-    "surface": "SURF-012",
-    "lane": "ios-glass",
-    "cell": {
-      "surface": "SURF-012",
-      "state": "populated",
-      "viewport": "393x852",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "catalog",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/ios/SURF-012.ios.discover-populated.png"
-    ],
-    "note": "DEF-013 closed: the tap was issued as soon as the button existed, and existence is not hittability. `selectTab` now waits for hittable, retries up to three times, and asserts on the destination navigation bar rather than on the tab bar's `isSelected` bookkeeping. The runs that stayed red after that were DEF-020 — the lane was sharing a simulator with another project's app, which held the foreground. three consecutive green runs of `make test-ios-glass` on the lane's own simulator (MCPRouter-Glass, iPhone 17 Pro / iOS 26.5), 5 of 5 each time."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/make-test-2.log",
+   "evidence/runs/arm-suites.log",
+   "evidence/arming/CASE-0018.arming.log"
+  ],
+  "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0018.arming.log). Restored from in-memory backup; app/Sources clean after.",
+  "armedBy": "Reverted a refused write throwing rather than reporting success. Reverting makes a failed enqueue silently succeed, which is REQ-019's guardrail exactly. Mutation in Sources/MCPRouterKit/Discover/CapabilityQueue.swift; `swift test --filter refusedWriteThrows` then ran 2 test(s) and went RED, and 2 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+ },
+ {
+  "id": "CASE-0020",
+  "req": "REQ-010",
+  "surface": "SURF-012",
+  "lane": "ios-glass",
+  "cell": {
+   "surface": "SURF-012",
+   "state": "populated",
+   "viewport": "393x852",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "catalog",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0021",
-    "req": "REQ-010",
-    "surface": "SURF-013",
-    "flow": "FLOW-001",
-    "step": "FLOW-001.01",
-    "lane": "ios-glass",
-    "cell": {
-      "surface": "SURF-013",
-      "state": "populated",
-      "viewport": "393x852",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/ios/SURF-013.ios.triage.png",
-      "evidence/shots/ios/SURF-013.ios.queue.png",
-      "evidence/shots/ios/SURF-013.ios.library.png"
-    ],
-    "note": "DEF-013 closed: the tap was issued as soon as the button existed, and existence is not hittability. `selectTab` now waits for hittable, retries up to three times, and asserts on the destination navigation bar rather than on the tab bar's `isSelected` bookkeeping. The runs that stayed red after that were DEF-020 — the lane was sharing a simulator with another project's app, which held the foreground. three consecutive green runs of `make test-ios-glass` on the lane's own simulator (MCPRouter-Glass, iPhone 17 Pro / iOS 26.5), 5 of 5 each time."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/ios/SURF-012.ios.discover-populated.png"
+  ],
+  "note": "DEF-013 closed: the tap was issued as soon as the button existed, and existence is not hittability. `selectTab` now waits for hittable, retries up to three times, and asserts on the destination navigation bar rather than on the tab bar's `isSelected` bookkeeping. The runs that stayed red after that were DEF-020 — the lane was sharing a simulator with another project's app, which held the foreground. three consecutive green runs of `make test-ios-glass` on the lane's own simulator (MCPRouter-Glass, iPhone 17 Pro / iOS 26.5), 5 of 5 each time."
+ },
+ {
+  "id": "CASE-0021",
+  "req": "REQ-010",
+  "surface": "SURF-013",
+  "flow": "FLOW-001",
+  "step": "FLOW-001.01",
+  "lane": "ios-glass",
+  "cell": {
+   "surface": "SURF-013",
+   "state": "populated",
+   "viewport": "393x852",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0022",
-    "req": "REQ-015",
-    "surface": "SURF-014",
-    "flow": "FLOW-002",
-    "step": "FLOW-002.02",
-    "lane": "ios-glass",
-    "cell": {
-      "surface": "SURF-014",
-      "state": "populated",
-      "viewport": "393x852",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/ios/SURF-014.ios.camera-preflight.png"
-    ],
-    "note": "DEF-X2-b was not a product defect. It was DEF-017: the lane built with CODE_SIGNING_ALLOWED=NO, so the app had no keychain access group and SecItemCopyMatching returned -34018 rather than errSecItemNotFound; `PairingRecordStore` maps those apart correctly and Settings rendered the unreadable state truthfully, about a condition the harness had created. Signed ad-hoc, the never-paired state renders and the flow proceeds. Two further product defects were behind it and are now closed — DEF-019 (the flow's model was rebuilt on every render, resetting it to the scanner) and DEF-022 (the typed surface drew no headline). three consecutive green runs of `make test-ios-glass` on the lane's own simulator (MCPRouter-Glass, iPhone 17 Pro / iOS 26.5), 5 of 5 each time."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/ios/SURF-013.ios.triage.png",
+   "evidence/shots/ios/SURF-013.ios.queue.png",
+   "evidence/shots/ios/SURF-013.ios.library.png"
+  ],
+  "note": "DEF-013 closed: the tap was issued as soon as the button existed, and existence is not hittability. `selectTab` now waits for hittable, retries up to three times, and asserts on the destination navigation bar rather than on the tab bar's `isSelected` bookkeeping. The runs that stayed red after that were DEF-020 — the lane was sharing a simulator with another project's app, which held the foreground. three consecutive green runs of `make test-ios-glass` on the lane's own simulator (MCPRouter-Glass, iPhone 17 Pro / iOS 26.5), 5 of 5 each time."
+ },
+ {
+  "id": "CASE-0022",
+  "req": "REQ-015",
+  "surface": "SURF-014",
+  "flow": "FLOW-002",
+  "step": "FLOW-002.02",
+  "lane": "ios-glass",
+  "cell": {
+   "surface": "SURF-014",
+   "state": "populated",
+   "viewport": "393x852",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0023",
-    "req": "REQ-006",
-    "surface": "SURF-013",
-    "lane": "ios-glass",
-    "cell": {
-      "surface": "SURF-013",
-      "state": "populated",
-      "viewport": "393x852",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/runs/make-test-2.log",
-      "evidence/runs/arm-suites.log",
-      "evidence/arming/CASE-0023.arming.log"
-    ],
-    "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0023.arming.log). Restored from in-memory backup; app/Sources clean after.",
-    "armedBy": "Reverted the popularity unit saying sessions, which is what Smithery publishes. Reverting it claims installs, a number nobody measured. Mutation in Sources/MCPRouterKit/Discover/DiscoverCopyControls.swift; `swift test --filter popularityUnitIsPinned` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/ios/SURF-014.ios.camera-preflight.png"
+  ],
+  "note": "DEF-X2-b was not a product defect. It was DEF-017: the lane built with CODE_SIGNING_ALLOWED=NO, so the app had no keychain access group and SecItemCopyMatching returned -34018 rather than errSecItemNotFound; `PairingRecordStore` maps those apart correctly and Settings rendered the unreadable state truthfully, about a condition the harness had created. Signed ad-hoc, the never-paired state renders and the flow proceeds. Two further product defects were behind it and are now closed — DEF-019 (the flow's model was rebuilt on every render, resetting it to the scanner) and DEF-022 (the typed surface drew no headline). three consecutive green runs of `make test-ios-glass` on the lane's own simulator (MCPRouter-Glass, iPhone 17 Pro / iOS 26.5), 5 of 5 each time."
+ },
+ {
+  "id": "CASE-0023",
+  "req": "REQ-006",
+  "surface": "SURF-013",
+  "lane": "ios-glass",
+  "cell": {
+   "surface": "SURF-013",
+   "state": "populated",
+   "viewport": "393x852",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0030",
-    "req": "REQ-001",
-    "surface": "SURF-015",
-    "flow": "FLOW-005",
-    "step": "FLOW-005.01",
-    "lane": "router-daemon",
-    "cell": {
-      "surface": "SURF-015",
-      "state": "empty",
-      "viewport": "n/a",
-      "theme": "n/a",
-      "role": "daemon",
-      "dataShape": "zero-children",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/runs/make-test-2.log",
-      "evidence/runs/arm-suites.log",
-      "evidence/arming/CASE-0030.arming.log"
-    ],
-    "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0030.arming.log). Restored from in-memory backup; app/Sources clean after.",
-    "armedBy": "Reverted single-flight on a cold upstream. Reverting spawns one child per concurrent caller, so three leases start three real processes. Mutation in Sources/RouterCore/Pool/UpstreamPool.swift; `swift test --filter singleFlight` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/make-test-2.log",
+   "evidence/runs/arm-suites.log",
+   "evidence/arming/CASE-0023.arming.log"
+  ],
+  "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0023.arming.log). Restored from in-memory backup; app/Sources clean after.",
+  "armedBy": "Reverted the popularity unit saying sessions, which is what Smithery publishes. Reverting it claims installs, a number nobody measured. Mutation in Sources/MCPRouterKit/Discover/DiscoverCopyControls.swift; `swift test --filter popularityUnitIsPinned` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+ },
+ {
+  "id": "CASE-0030",
+  "req": "REQ-001",
+  "surface": "SURF-015",
+  "flow": "FLOW-005",
+  "step": "FLOW-005.01",
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-015",
+   "state": "empty",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "daemon",
+   "dataShape": "zero-children",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0031",
-    "req": "REQ-002",
-    "surface": "SURF-015",
-    "lane": "router-daemon",
-    "cell": {
-      "surface": "SURF-015",
-      "state": "populated",
-      "viewport": "n/a",
-      "theme": "n/a",
-      "role": "daemon",
-      "dataShape": "typical",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/runs/make-test-2.log",
-      "evidence/runs/arm-suites.log",
-      "evidence/arming/CASE-0031.arming.log"
-    ],
-    "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0031.arming.log). Restored from in-memory backup; app/Sources clean after.",
-    "armedBy": "Reverted splitting a namespaced tool name at the FIRST separator. Reverting splits at the last, which routes a__b__c to a server that does not exist. Mutation in Sources/RouterCore/Manifest/ToolUnion.swift; `swift test --filter splitMatches` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/make-test-2.log",
+   "evidence/runs/arm-suites.log",
+   "evidence/arming/CASE-0030.arming.log"
+  ],
+  "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0030.arming.log). Restored from in-memory backup; app/Sources clean after.",
+  "armedBy": "Reverted single-flight on a cold upstream. Reverting spawns one child per concurrent caller, so three leases start three real processes. Mutation in Sources/RouterCore/Pool/UpstreamPool.swift; `swift test --filter singleFlight` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+ },
+ {
+  "id": "CASE-0031",
+  "req": "REQ-002",
+  "surface": "SURF-015",
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-015",
+   "state": "populated",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "daemon",
+   "dataShape": "typical",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0032",
-    "req": "REQ-011",
-    "surface": "SURF-015",
-    "flow": "FLOW-005",
-    "step": "FLOW-005.02",
-    "lane": "router-daemon",
-    "cell": {
-      "surface": "SURF-015",
-      "state": "populated",
-      "viewport": "n/a",
-      "theme": "n/a",
-      "role": "daemon",
-      "dataShape": "typical",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/runs/make-test-2.log",
-      "evidence/runs/arm-suites.log",
-      "evidence/arming/CASE-0032.arming.log"
-    ],
-    "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0032.arming.log). Restored from in-memory backup; app/Sources clean after.",
-    "armedBy": "Reverted a warm upstream never being reaped. Reverting reaps exactly the servers the user committed to paying to keep resident. Mutation in Sources/RouterCore/Pool/UpstreamPoolReaping.swift; `swift test --filter warmIsNeverReaped` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/make-test-2.log",
+   "evidence/runs/arm-suites.log",
+   "evidence/arming/CASE-0031.arming.log"
+  ],
+  "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0031.arming.log). Restored from in-memory backup; app/Sources clean after.",
+  "armedBy": "Reverted splitting a namespaced tool name at the FIRST separator. Reverting splits at the last, which routes a__b__c to a server that does not exist. Mutation in Sources/RouterCore/Manifest/ToolUnion.swift; `swift test --filter splitMatches` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+ },
+ {
+  "id": "CASE-0032",
+  "req": "REQ-011",
+  "surface": "SURF-015",
+  "flow": "FLOW-005",
+  "step": "FLOW-005.02",
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-015",
+   "state": "populated",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "daemon",
+   "dataShape": "typical",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0033",
-    "req": "REQ-012",
-    "surface": "SURF-016",
-    "lane": "router-daemon",
-    "cell": {
-      "surface": "SURF-016",
-      "state": "populated",
-      "viewport": "n/a",
-      "theme": "n/a",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/runs/make-test-2.log",
-      "evidence/runs/arm-suites.log",
-      "evidence/arming/CASE-0033.arming.log"
-    ],
-    "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0033.arming.log). Restored from in-memory backup; app/Sources clean after.",
-    "armedBy": "Reverted the control API being unable to put a command line on the wire. Reverting lets a PATCH rewrite what binary a server runs. Mutation in Sources/MCPRouterKit/Control/ServerPatch.swift, Sources/MCPRouterKit/Control/ServerPatch.swift; `swift test --filter patchCannotRewriteACommandLine` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/make-test-2.log",
+   "evidence/runs/arm-suites.log",
+   "evidence/arming/CASE-0032.arming.log"
+  ],
+  "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0032.arming.log). Restored from in-memory backup; app/Sources clean after.",
+  "armedBy": "Reverted a warm upstream never being reaped. Reverting reaps exactly the servers the user committed to paying to keep resident. Mutation in Sources/RouterCore/Pool/UpstreamPoolReaping.swift; `swift test --filter warmIsNeverReaped` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+ },
+ {
+  "id": "CASE-0033",
+  "req": "REQ-012",
+  "surface": "SURF-016",
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0034",
-    "req": "REQ-013",
-    "surface": "SURF-015",
-    "lane": "router-daemon",
-    "cell": {
-      "surface": "SURF-015",
-      "state": "populated",
-      "viewport": "n/a",
-      "theme": "n/a",
-      "role": "daemon",
-      "dataShape": "concurrent-write",
-      "executionPlane": "headless"
-    },
-    "oracle": "metamorphic",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/runs/make-test-2.log",
-      "evidence/runs/arm-suites.log",
-      "evidence/arming/CASE-0034.arming.log"
-    ],
-    "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0034.arming.log). Restored from in-memory backup; app/Sources clean after.",
-    "armedBy": "Reverted the exclusive flock that serialises config mutation. Reverting lets two holders overlap, so one writer's servers.json clobbers the other's. Mutation in Sources/RouterCore/Config/ConfigMutationLock.swift; `swift test --filter lockSerialises` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/make-test-2.log",
+   "evidence/runs/arm-suites.log",
+   "evidence/arming/CASE-0033.arming.log"
+  ],
+  "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0033.arming.log). Restored from in-memory backup; app/Sources clean after.",
+  "armedBy": "Reverted the control API being unable to put a command line on the wire. Reverting lets a PATCH rewrite what binary a server runs. Mutation in Sources/MCPRouterKit/Control/ServerPatch.swift, Sources/MCPRouterKit/Control/ServerPatch.swift; `swift test --filter patchCannotRewriteACommandLine` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+ },
+ {
+  "id": "CASE-0034",
+  "req": "REQ-013",
+  "surface": "SURF-015",
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-015",
+   "state": "populated",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "daemon",
+   "dataShape": "concurrent-write",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0035",
-    "req": "REQ-019",
-    "surface": "SURF-016",
-    "flow": "FLOW-003",
-    "step": "FLOW-003.01",
-    "lane": "router-daemon",
-    "cell": {
-      "surface": "SURF-016",
-      "state": "refused",
-      "viewport": "n/a",
-      "theme": "n/a",
-      "role": "unauthenticated",
-      "dataShape": "forged-write",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/runs/make-test-2.log",
-      "evidence/runs/arm-suites.log",
-      "evidence/arming/CASE-0035.arming.log"
-    ],
-    "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0035.arming.log). Restored from in-memory backup; app/Sources clean after.",
-    "armedBy": "Reverted the token gate running ahead of routing, so an untokened mutation is 401 rather than 404. Reverting makes an unauthorized call indistinguishable from a typo. Mutation in Sources/RouterCore/Control/ControlHandler.swift; `swift test --filter untokenedAuthIs401` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+  "oracle": "metamorphic",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/make-test-2.log",
+   "evidence/runs/arm-suites.log",
+   "evidence/arming/CASE-0034.arming.log"
+  ],
+  "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0034.arming.log). Restored from in-memory backup; app/Sources clean after.",
+  "armedBy": "Reverted the exclusive flock that serialises config mutation. Reverting lets two holders overlap, so one writer's servers.json clobbers the other's. Mutation in Sources/RouterCore/Config/ConfigMutationLock.swift; `swift test --filter lockSerialises` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+ },
+ {
+  "id": "CASE-0035",
+  "req": "REQ-019",
+  "surface": "SURF-016",
+  "flow": "FLOW-003",
+  "step": "FLOW-003.01",
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "refused",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "unauthenticated",
+   "dataShape": "forged-write",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0036",
-    "req": "REQ-014",
-    "surface": "SURF-017",
-    "lane": "parity-wire",
-    "cell": {
-      "surface": "SURF-017",
-      "state": "populated",
-      "viewport": "n/a",
-      "theme": "n/a",
-      "role": "harness",
-      "dataShape": "corpus-83",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "fail",
-    "armed": false,
-    "evidence": [
-      "evidence/runs/make-parity.log",
-      "planning/evidence/I5-transport-proof.md",
-      "evidence/runs/parity-gate-2026-08-19.log",
-      "evidence/runs/parity-gate-2026-08-19-remap.log",
-      "evidence/runs/parity-gate-2026-08-19-rollback.log",
-      "evidence/runs/parity-install-rollback-2026-08-19.log",
-      "evidence/runs/parity-install-rollback-2026-08-19.tsv"
-    ],
-    "note": "parity-gate.sh, rollback re-run 2026-08-19T05:40:27Z: MCP_SWIFT_PORT=8973 REGISTRY_SWIFT_PORT2=9071 (defaults :8993/:8961 occupied by unrelated orphan Pythons, left running). Exit 1. Printed fraction: 80 of 83 rows proven (4 of them by suite only, not by wire comparison), 3 blocked. 0 DIVERGED. install-rollback R4-C now ok: probe restored, mcp-router/router gone, keep-hand unclobbered, mode 0600, backup is pre-image. Still blocked: fixture-registry-search (standing exclusion, nobody is doing this work); control-auth-post-http D-p1-a; install-launchd-watch D-p1-e (held blocked deliberately — the reran term reads yes on 2 of 6 decoy trials where no stimulus can reach the watched path, so agreement on it is not evidence of parity). Frontmost Ghostty before and after. Owner cutover target is 82 of 83 (ORCHESTRATOR.md CUTOVER TARGET, bec9d18); 2 real-work rows stand between 80 and 82, so this stays fail."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/make-test-2.log",
+   "evidence/runs/arm-suites.log",
+   "evidence/arming/CASE-0035.arming.log"
+  ],
+  "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0035.arming.log). Restored from in-memory backup; app/Sources clean after.",
+  "armedBy": "Reverted the token gate running ahead of routing, so an untokened mutation is 401 rather than 404. Reverting makes an unauthorized call indistinguishable from a typo. Mutation in Sources/RouterCore/Control/ControlHandler.swift; `swift test --filter untokenedAuthIs401` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+ },
+ {
+  "id": "CASE-0036",
+  "req": "REQ-014",
+  "surface": "SURF-017",
+  "lane": "parity-wire",
+  "cell": {
+   "surface": "SURF-017",
+   "state": "populated",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "harness",
+   "dataShape": "corpus-83",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0037",
-    "req": "REQ-012",
-    "surface": "SURF-016",
-    "flow": "FLOW-003",
-    "step": "FLOW-003.02",
-    "lane": "router-daemon",
-    "cell": {
-      "surface": "SURF-016",
-      "state": "populated",
-      "viewport": "n/a",
-      "theme": "n/a",
-      "role": "operator",
-      "dataShape": "oauth-callback",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/runs/make-test-2.log",
-      "evidence/runs/arm-suites.log",
-      "evidence/arming/CASE-0037.arming.log"
-    ],
-    "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0037.arming.log). Restored from in-memory backup; app/Sources clean after.",
-    "armedBy": "Reverted the callback actually exchanging the authorization code it received. Reverting serves the success page for a code that was never redeemed. Mutation in Sources/RouterCore/Auth/CallbackResponder.swift; `swift test --filter codeIsExchangedOverTheWire` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+  "oracle": "outcome",
+  "status": "fail",
+  "armed": false,
+  "evidence": [
+   "evidence/runs/make-parity.log",
+   "planning/evidence/I5-transport-proof.md",
+   "evidence/runs/parity-gate-2026-08-19.log",
+   "evidence/runs/parity-gate-2026-08-19-remap.log",
+   "evidence/runs/parity-gate-2026-08-19-rollback.log",
+   "evidence/runs/parity-install-rollback-2026-08-19.log",
+   "evidence/runs/parity-install-rollback-2026-08-19.tsv"
+  ],
+  "note": "parity-gate.sh, rollback re-run 2026-08-19T05:40:27Z: MCP_SWIFT_PORT=8973 REGISTRY_SWIFT_PORT2=9071 (defaults :8993/:8961 occupied by unrelated orphan Pythons, left running). Exit 1. Printed fraction: 80 of 83 rows proven (4 of them by suite only, not by wire comparison), 3 blocked. 0 DIVERGED. install-rollback R4-C now ok: probe restored, mcp-router/router gone, keep-hand unclobbered, mode 0600, backup is pre-image. Still blocked: fixture-registry-search (standing exclusion, nobody is doing this work); control-auth-post-http D-p1-a; install-launchd-watch D-p1-e (held blocked deliberately — the reran term reads yes on 2 of 6 decoy trials where no stimulus can reach the watched path, so agreement on it is not evidence of parity). Frontmost Ghostty before and after. Owner cutover target is 82 of 83 (ORCHESTRATOR.md CUTOVER TARGET, bec9d18); 2 real-work rows stand between 80 and 82, so this stays fail."
+ },
+ {
+  "id": "CASE-0037",
+  "req": "REQ-012",
+  "surface": "SURF-016",
+  "flow": "FLOW-003",
+  "step": "FLOW-003.02",
+  "lane": "router-daemon",
+  "cell": {
+   "surface": "SURF-016",
+   "state": "populated",
+   "viewport": "n/a",
+   "theme": "n/a",
+   "role": "operator",
+   "dataShape": "oauth-callback",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0040",
-    "req": "REQ-016",
-    "surface": "SURF-014",
-    "flow": "FLOW-002",
-    "step": "FLOW-002.02",
-    "lane": "ios-glass",
-    "cell": {
-      "surface": "SURF-014",
-      "state": "populated",
-      "viewport": "393x852",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "headless"
-    },
-    "oracle": "outcome",
-    "status": "fail",
-    "armed": true,
-    "armedBy": "I5 tap: same process that stores the paired-Mac record made zero connections to the advertised port; a calibration connection from that process to that port succeeded. Source fact: neither side implements a pairing transport.",
-    "evidence": [
-      "planning/evidence/I5-transport-proof.md"
-    ],
-    "note": "DEF-001. Characterised, not assert-corrected. The product stores a paired-Mac record without contacting the Mac."
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/runs/make-test-2.log",
+   "evidence/runs/arm-suites.log",
+   "evidence/arming/CASE-0037.arming.log"
+  ],
+  "note": "Armed 2026-08-19: mutation went RED (see evidence/arming/CASE-0037.arming.log). Restored from in-memory backup; app/Sources clean after.",
+  "armedBy": "Reverted the callback actually exchanging the authorization code it received. Reverting serves the success page for a code that was never redeemed. Mutation in Sources/RouterCore/Auth/CallbackResponder.swift; `swift test --filter codeIsExchangedOverTheWire` then ran 1 test(s) and went RED, and 1 test(s) went green again after the source was restored. The run count is swift-testing's own, because the XCTest bundle prints 'Executed 0 tests' on every run and a red that ran nothing is not a red."
+ },
+ {
+  "id": "CASE-0040",
+  "req": "REQ-016",
+  "surface": "SURF-014",
+  "flow": "FLOW-002",
+  "step": "FLOW-002.02",
+  "lane": "ios-glass",
+  "cell": {
+   "surface": "SURF-014",
+   "state": "populated",
+   "viewport": "393x852",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "headless"
   },
-  {
-    "id": "CASE-0041",
-    "req": "REQ-017",
-    "surface": "SURF-002",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-002",
-      "state": "empty",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "zero",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "metamorphic",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/ax/SURF-002.empty.window.txt",
-      "evidence/shots/SURF-002.empty.png",
-      "evidence/runs/req017-honesty.json"
-    ],
-    "note": "Empty: 'No servers declared yet' / '0 tools from 0 servers · 0 running'. RE-RUNG structural → metamorphic: the old assertion was that this state's copy appears in the window, which a single state can satisfy while the product is dishonest. The assertion is now the relation — zero is knowable, so the empty state PUBLISHES 0 tools from 0 servers · 0 running rather than withholding. That is the control that proves the offline absence is a decision and not a dead selector. Measured over 3 real window dumps, 10 checks, 0 failures.",
-    "armedBy": "predicate arm, on a relation rather than a state. bin/req017-honesty.py runs 10 checks across three AX dumps of the SAME window under three loads (populated / empty / offline). The `--decoy absent` run makes the product behave as a readable router that withholds anyway and turns 3 of those checks red: empty publishes a counts line; empty counts are all zero; exactly the readable loads publish counts."
+  "oracle": "outcome",
+  "status": "fail",
+  "armed": true,
+  "armedBy": "I5 tap: same process that stores the paired-Mac record made zero connections to the advertised port; a calibration connection from that process to that port succeeded. Source fact: neither side implements a pairing transport.",
+  "evidence": [
+   "planning/evidence/I5-transport-proof.md"
+  ],
+  "note": "DEF-001. Characterised, not assert-corrected. The product stores a paired-Mac record without contacting the Mac."
+ },
+ {
+  "id": "CASE-0041",
+  "req": "REQ-017",
+  "surface": "SURF-002",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-002",
+   "state": "empty",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "zero",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0042",
-    "req": "REQ-017",
-    "surface": "SURF-002",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-002",
-      "state": "offline",
-      "viewport": "1024x768",
-      "theme": "dark",
-      "role": "operator",
-      "dataShape": "offline",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "metamorphic",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/ax/SURF-002.offline.window.txt",
-      "evidence/shots/SURF-002.offline.png",
-      "evidence/runs/req017-honesty.json"
-    ],
-    "note": "Offline: 'The router isn't running' / nothing listening on the control port. Live counts absent. RE-RUNG structural → metamorphic: the old assertion was that this state's copy appears in the window, which a single state can satisfy while the product is dishonest. The assertion is now the relation — an unreachable router WITHHOLDS the counts entirely and says why, rather than rendering 0 tools from 0 servers, which a reader cannot tell apart from a running-and-empty router. Measured over 3 real window dumps, 10 checks, 0 failures.",
-    "armedBy": "predicate arm, on a relation rather than a state. bin/req017-honesty.py runs 10 checks across three AX dumps of the SAME window under three loads (populated / empty / offline). The `--decoy zeroed` run makes the product behave as a router that lies with zeros and turns 3 of those checks red: offline publishes NO counts line; offline does not zero the counts; exactly the readable loads publish counts."
+  "oracle": "metamorphic",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/ax/SURF-002.empty.window.txt",
+   "evidence/shots/SURF-002.empty.png",
+   "evidence/runs/req017-honesty.json"
+  ],
+  "note": "Empty: 'No servers declared yet' / '0 tools from 0 servers · 0 running'. RE-RUNG structural → metamorphic: the old assertion was that this state's copy appears in the window, which a single state can satisfy while the product is dishonest. The assertion is now the relation — zero is knowable, so the empty state PUBLISHES 0 tools from 0 servers · 0 running rather than withholding. That is the control that proves the offline absence is a decision and not a dead selector. Measured over 3 real window dumps, 10 checks, 0 failures.",
+  "armedBy": "predicate arm, on a relation rather than a state. bin/req017-honesty.py runs 10 checks across three AX dumps of the SAME window under three loads (populated / empty / offline). The `--decoy absent` run makes the product behave as a readable router that withholds anyway and turns 3 of those checks red: empty publishes a counts line; empty counts are all zero; exactly the readable loads publish counts."
+ },
+ {
+  "id": "CASE-0042",
+  "req": "REQ-017",
+  "surface": "SURF-002",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-002",
+   "state": "offline",
+   "viewport": "1024x768",
+   "theme": "dark",
+   "role": "operator",
+   "dataShape": "offline",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0101",
-    "req": "REQ-003",
-    "surface": "SURF-001",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-001",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/SURF-001.shell.png"
-    ],
-    "capture": {
-      "method": "screencapture -x -l<CGWindowID>, cropped to the window chrome (derivedFrom SURF-002.build.png)",
-      "frameStatus": "complete"
-    },
-    "note": "The shell has no board of its own, so its raster is the titlebar and source list cropped from the Servers capture, with the parent named in derivedFrom.",
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-001's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106."
+  "oracle": "metamorphic",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/ax/SURF-002.offline.window.txt",
+   "evidence/shots/SURF-002.offline.png",
+   "evidence/runs/req017-honesty.json"
+  ],
+  "note": "Offline: 'The router isn't running' / nothing listening on the control port. Live counts absent. RE-RUNG structural → metamorphic: the old assertion was that this state's copy appears in the window, which a single state can satisfy while the product is dishonest. The assertion is now the relation — an unreachable router WITHHOLDS the counts entirely and says why, rather than rendering 0 tools from 0 servers, which a reader cannot tell apart from a running-and-empty router. Measured over 3 real window dumps, 10 checks, 0 failures.",
+  "armedBy": "predicate arm, on a relation rather than a state. bin/req017-honesty.py runs 10 checks across three AX dumps of the SAME window under three loads (populated / empty / offline). The `--decoy zeroed` run makes the product behave as a router that lies with zeros and turns 3 of those checks red: offline publishes NO counts line; offline does not zero the counts; exactly the readable loads publish counts."
+ },
+ {
+  "id": "CASE-0101",
+  "req": "REQ-003",
+  "surface": "SURF-001",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-001",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0102",
-    "req": "REQ-004",
-    "surface": "SURF-002",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-002",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/SURF-002.build.png"
-    ],
-    "capture": {
-      "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
-      "frameStatus": "unavailable: screencapture reports no per-frame status"
-    },
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-002's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-002 decoy."
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/SURF-001.shell.png"
+  ],
+  "capture": {
+   "method": "screencapture -x -l<CGWindowID>, cropped to the window chrome (derivedFrom SURF-002.build.png)",
+   "frameStatus": "complete"
   },
-  {
-    "id": "CASE-0103",
-    "req": "REQ-003",
-    "surface": "SURF-003",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-003",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/SURF-003.build.png"
-    ],
-    "capture": {
-      "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
-      "frameStatus": "unavailable: screencapture reports no per-frame status"
-    },
-    "note": "Uses SURF-003.board.png (c55161d8…), not SURF-003.build.png which shares 442eea… with SURF-001.build.png. ARMED: predicate watched to fail under the SURF-003 decoy.",
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-003's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106."
+  "note": "The shell has no board of its own, so its raster is the titlebar and source list cropped from the Servers capture, with the parent named in derivedFrom.",
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-001's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106."
+ },
+ {
+  "id": "CASE-0102",
+  "req": "REQ-004",
+  "surface": "SURF-002",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-002",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0104",
-    "req": "REQ-003",
-    "surface": "SURF-004",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-004",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/SURF-004.build.png"
-    ],
-    "capture": {
-      "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
-      "frameStatus": "unavailable: screencapture reports no per-frame status"
-    },
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-004's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-004 decoy."
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/SURF-002.build.png"
+  ],
+  "capture": {
+   "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
+   "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
-  {
-    "id": "CASE-0105",
-    "req": "REQ-003",
-    "surface": "SURF-005",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-005",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/SURF-005.build.png"
-    ],
-    "capture": {
-      "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
-      "frameStatus": "unavailable: screencapture reports no per-frame status"
-    },
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-005's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-005 decoy."
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-002's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
+  "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-002 decoy."
+ },
+ {
+  "id": "CASE-0103",
+  "req": "REQ-003",
+  "surface": "SURF-003",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-003",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0106",
-    "req": "REQ-003",
-    "surface": "SURF-006",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-006",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/SURF-006.build.png",
-      "evidence/arm-pipeline/mutated.SURF-006.build.png"
-    ],
-    "capture": {
-      "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
-      "frameStatus": "unavailable: screencapture reports no per-frame status"
-    },
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-006's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106. PIPELINE ARM, end to end: both halves of the Checks honesty guardrail were reverted in app/Sources/MCPRouterKit/Checks/CheckCopy.swift (\"it is not a graded test\" → \"it grades how well\"; \"skills are never executed by the router\" → \"skills are executed by the router\"), the Mac app was REBUILT with `make build-mac`, relaunched backgrounded and re-photographed through the same window-scoped path the campaign uses — and the suite then went red on exactly CASE-0014, CASE-0106 (checked=137 failures=4 cases=18). Source and every recorded artifact were restored and it is green again (checked=137 failures=0 cases=18). Focus was never taken (capture reported focus unchanged: True). This is the one arm that proves the build→launch→capture→assert CHAIN bites, not merely the predicate; the mutated build's own dump and PNG are kept under evidence/arm-pipeline/ so the red is inspectable.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-006 decoy. Pipeline-armed on a rebuilt app, not only on a recording."
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/SURF-003.build.png"
+  ],
+  "capture": {
+   "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
+   "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
-  {
-    "id": "CASE-0107",
-    "req": "REQ-003",
-    "surface": "SURF-007",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-007",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/SURF-007.build.png"
-    ],
-    "capture": {
-      "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
-      "frameStatus": "unavailable: screencapture reports no per-frame status"
-    },
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-007's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-007 decoy."
+  "note": "Uses SURF-003.board.png (c55161d8…), not SURF-003.build.png which shares 442eea… with SURF-001.build.png. ARMED: predicate watched to fail under the SURF-003 decoy.",
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-003's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106."
+ },
+ {
+  "id": "CASE-0104",
+  "req": "REQ-003",
+  "surface": "SURF-004",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-004",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0108",
-    "req": "REQ-006",
-    "surface": "SURF-008",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-008",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/SURF-008.build.png"
-    ],
-    "capture": {
-      "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
-      "frameStatus": "unavailable: screencapture reports no per-frame status"
-    },
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-008's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-008 decoy."
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/SURF-004.build.png"
+  ],
+  "capture": {
+   "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
+   "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
-  {
-    "id": "CASE-0109",
-    "req": "REQ-008",
-    "surface": "SURF-009",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-009",
-      "state": "populated",
-      "viewport": "320x480",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "n/a: status item not pressable in background; SURF-009 popover uncaptured. Raster-visual of the popover is unreachable under the no-activate constraint",
-    "armed": false,
-    "note": "mac-glass-capture.log: status item not pressable in background — SURF-009 uncaptured. Proctor agent.sock absent this session.",
-    "evidence": [
-      "evidence/runs/mac-glass-capture.log"
-    ]
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-004's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
+  "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-004 decoy."
+ },
+ {
+  "id": "CASE-0105",
+  "req": "REQ-003",
+  "surface": "SURF-005",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-005",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0110",
-    "req": "REQ-015",
-    "surface": "SURF-010",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-010",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "fail",
-    "armed": false,
-    "evidence": [],
-    "capture": {
-      "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
-      "frameStatus": "unavailable: screencapture reports no per-frame status"
-    },
-    "note": "Raster of pairing-unavailable sheet. Unique sha a10817e9…. No 8-char code."
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/SURF-005.build.png"
+  ],
+  "capture": {
+   "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
+   "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
-  {
-    "id": "CASE-0111",
-    "req": "REQ-003",
-    "surface": "SURF-011",
-    "lane": "macos-glass",
-    "cell": {
-      "surface": "SURF-011",
-      "state": "populated",
-      "viewport": "1024x768",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/SURF-011.build.png"
-    ],
-    "capture": {
-      "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
-      "frameStatus": "unavailable: screencapture reports no per-frame status"
-    },
-    "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-011's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-011 decoy."
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-005's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
+  "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-005 decoy."
+ },
+ {
+  "id": "CASE-0106",
+  "req": "REQ-003",
+  "surface": "SURF-006",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-006",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0120",
-    "req": "REQ-010",
-    "surface": "SURF-012",
-    "lane": "ios-glass",
-    "cell": {
-      "surface": "SURF-012",
-      "state": "populated",
-      "viewport": "393x852",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/ios/SURF-012.ios.discover-populated.png"
-    ],
-    "capture": {
-      "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
-      "frameStatus": "complete"
-    },
-    "note": "1206x2622 off the simulator's own display server, attributed to its producing test by the GLASS-CAPTURE- marker the test writes at shutter time rather than by filename. Its empty-state sibling, SURF-012.ios.discover-empty.png, is the metamorphic arm CASE-0123 reads."
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/SURF-006.build.png",
+   "evidence/arm-pipeline/mutated.SURF-006.build.png"
+  ],
+  "capture": {
+   "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
+   "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
-  {
-    "id": "CASE-0121",
-    "req": "REQ-010",
-    "surface": "SURF-013",
-    "lane": "ios-glass",
-    "cell": {
-      "surface": "SURF-013",
-      "state": "populated",
-      "viewport": "393x852",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/ios/SURF-013.ios.triage.png"
-    ],
-    "capture": {
-      "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
-      "frameStatus": "complete"
-    },
-    "note": "Triage alone. The queue and library captures this case used to speak for are CASE-0124 and CASE-0125 — three routes under one case was the same understatement the tie pass found in the registry, arriving in the case file."
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-006's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106. PIPELINE ARM, end to end: both halves of the Checks honesty guardrail were reverted in app/Sources/MCPRouterKit/Checks/CheckCopy.swift (\"it is not a graded test\" → \"it grades how well\"; \"skills are never executed by the router\" → \"skills are executed by the router\"), the Mac app was REBUILT with `make build-mac`, relaunched backgrounded and re-photographed through the same window-scoped path the campaign uses — and the suite then went red on exactly CASE-0014, CASE-0106 (checked=137 failures=4 cases=18). Source and every recorded artifact were restored and it is green again (checked=137 failures=0 cases=18). Focus was never taken (capture reported focus unchanged: True). This is the one arm that proves the build→launch→capture→assert CHAIN bites, not merely the predicate; the mutated build's own dump and PNG are kept under evidence/arm-pipeline/ so the red is inspectable.",
+  "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-006 decoy. Pipeline-armed on a rebuilt app, not only on a recording."
+ },
+ {
+  "id": "CASE-0107",
+  "req": "REQ-003",
+  "surface": "SURF-007",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-007",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0122",
-    "req": "REQ-015",
-    "surface": "SURF-014",
-    "lane": "ios-glass",
-    "cell": {
-      "surface": "SURF-014",
-      "state": "populated",
-      "viewport": "393x852",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/ios/SURF-014.ios.camera-preflight.png"
-    ],
-    "capture": {
-      "method": "XCUIScreenshot via XCTAttachment, taken inside the test after the surface's own assertion passed",
-      "frameStatus": "not reported by this instrument — XCUIScreenshot carries no per-frame status, so attribution stands in its place: the picture is taken in the same test, after 'Why the camera' was found"
-    },
-    "note": "The capture the campaign recorded as never photographed. It exists now because the surface itself was unreachable until DEF-017, DEF-019 and DEF-022 were closed — the earlier 'inconclusive' blamed the screenshot step, and the screenshot step was fine. Armed 20 Aug 2026: `PairingFlowModel.start()` reverted to ignore the camera state and always open on .scan; the pre-prompt assertion went red — 'the pairing flow did not open on the camera pre-prompt'. Armed against the surface rather than against its copy: a raster-visual case claims a picture of a surface, so the arm has to be able to take the surface away. An earlier arm reverted CameraAuthorization.copyKey's .notDetermined case to nil and the test PASSED, because CameraPermissionView reads `copyKey ?? .cameraNotDetermined` — recorded, because an arm that passes is a finding about the code rather than a formality to repeat until it goes red."
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/SURF-007.build.png"
+  ],
+  "capture": {
+   "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
+   "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
-  {
-    "id": "CASE-0123",
-    "req": "REQ-006",
-    "surface": "SURF-018",
-    "lane": "ios-glass",
-    "cell": {
-      "surface": "SURF-018",
-      "state": "fresh-install",
-      "viewport": "393x852",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "unpaired",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/ios/SURF-018.ios.settings-never-paired.png"
-    ],
-    "captureMethod": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
-    "frameStatus": "complete",
-    "note": "1206x2622 off the simulator's display server, attributed to testEachTabRendersItsOwnSurface by xcresulttool rather than by filename. Distinct sha c3f1c31a.",
-    "capture": {
-      "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
-      "frameStatus": "complete"
-    }
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-007's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
+  "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-007 decoy."
+ },
+ {
+  "id": "CASE-0108",
+  "req": "REQ-006",
+  "surface": "SURF-008",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-008",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0024",
-    "req": "REQ-006",
-    "surface": "SURF-018",
-    "lane": "ios-glass",
-    "cell": {
-      "surface": "SURF-018",
-      "state": "fresh-install",
-      "viewport": "393x852",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "unpaired",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "evidence": [
-      "evidence/shots/ios/SURF-018.ios.settings-never-paired.png"
-    ],
-    "note": "Settings is the phone's fifth tab and was never enumerated, so nothing could have failed on it; SURF-018 was added by this campaign. On glass it renders the never-paired state on a fresh install, once the lane signs — see CASE-0022 for why it did not. three consecutive green runs of `make test-ios-glass` on the lane's own simulator (MCPRouter-Glass, iPhone 17 Pro / iOS 26.5), 5 of 5 each time. Armed 20 Aug 2026: `PairingCopy.settingsNeverPaired.headline` changed to 'Not paired'; red with 'Settings did not render the never-paired state, so the pairing entry point is unproven'. The same run's on-screen dump is what confirms DEF-026 closed on glass: the narrowing appears once.",
-    "armed": true
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/SURF-008.build.png"
+  ],
+  "capture": {
+   "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
+   "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
-  {
-    "id": "CASE-0124",
-    "req": "REQ-010",
-    "surface": "SURF-019",
-    "lane": "ios-glass",
-    "cell": {
-      "surface": "SURF-019",
-      "state": "populated",
-      "viewport": "393x852",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/ios/SURF-019.ios.queue.png"
-    ],
-    "capture": {
-      "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
-      "frameStatus": "complete"
-    },
-    "note": "Split out of CASE-0121 when the tie pass found three routes under one id. The state is the empty one, which is the state the fixture queue produces and the one i3-phone-triage.html §D specifies as one sentence and one action. Armed 20 Aug 2026: `QueueCopy`'s empty headline changed to 'Nothing here'; red with \"Queue did not render 'Nothing waiting', which is its own and no other surface's\"."
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-008's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
+  "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-008 decoy."
+ },
+ {
+  "id": "CASE-0109",
+  "req": "REQ-008",
+  "surface": "SURF-009",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-009",
+   "state": "populated",
+   "viewport": "320x480",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0125",
-    "req": "REQ-010",
-    "surface": "SURF-020",
-    "lane": "ios-glass",
-    "cell": {
-      "surface": "SURF-020",
-      "state": "populated",
-      "viewport": "393x852",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "on-glass"
-    },
-    "oracle": "raster-visual",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "evidence/shots/ios/SURF-020.ios.library.png"
-    ],
-    "capture": {
-      "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
-      "frameStatus": "complete"
-    },
-    "note": "Split out of CASE-0121. Four rows, each carrying only MCPServer fields, plus the block that states the skills index does not exist rather than drawing an empty list. Armed 20 Aug 2026: `LibraryCopy`'s skills-absent headline changed to 'No skills.'; red with \"Library did not render 'Skills are not listed here.'\"."
+  "oracle": "raster-visual",
+  "status": "n/a: status item not pressable in background; SURF-009 popover uncaptured. Raster-visual of the popover is unreachable under the no-activate constraint",
+  "armed": false,
+  "note": "mac-glass-capture.log: status item not pressable in background — SURF-009 uncaptured. Proctor agent.sock absent this session.",
+  "evidence": [
+   "evidence/runs/mac-glass-capture.log"
+  ]
+ },
+ {
+  "id": "CASE-0110",
+  "req": "REQ-015",
+  "surface": "SURF-010",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-010",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
   },
-  {
-    "id": "CASE-0126",
-    "req": "REQ-010",
-    "surface": "SURF-018",
-    "lane": "swiftui",
-    "cell": {
-      "surface": "SURF-018",
-      "state": "instrument",
-      "viewport": "393x852",
-      "theme": "light",
-      "role": "operator",
-      "dataShape": "typical",
-      "executionPlane": "in-process"
-    },
-    "oracle": "outcome",
-    "status": "pass",
-    "armed": true,
-    "evidence": [
-      "planning/features-to-triage/X3-ios-unit-lane-empty-tree.md"
-    ],
-    "note": "The iOS unit lane's own instrument. `PhoneSurfaceTests.testTheAccessibilityEngineCanBeSwitchedOn` asserts that `_AXSSetAutomationEnabled` resolves and that a hosted `ScrollView { Text }` publishes its label back through the same walk every other assertion in the target uses. Without it the target's 35 surface assertions are vacuous in a way that reads exactly like a product rendering no copy — DEF-029, where they were vacuous for ten consecutive runs. Armed three ways on 20 Aug 2026: renaming the symbol fails this case alone; mutating the call to `(false)` on a device created for the arm reads 53 failures across 36 tests, which is what proves the other 35 depend on it; and the first run ever taken on a device whose engine had never been live is clean, which proves the fix needs no warm-up on a fresh device. A device left explicitly disabled does need one, and `test-ios` now runs a throwaway process before the graded one for that reason."
+  "oracle": "raster-visual",
+  "status": "fail",
+  "armed": false,
+  "evidence": [],
+  "capture": {
+   "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
+   "frameStatus": "unavailable: screencapture reports no per-frame status"
+  },
+  "note": "Raster of pairing-unavailable sheet. Unique sha a10817e9…. No 8-char code."
+ },
+ {
+  "id": "CASE-0111",
+  "req": "REQ-003",
+  "surface": "SURF-011",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-011",
+   "state": "populated",
+   "viewport": "1024x768",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/SURF-011.build.png"
+  ],
+  "capture": {
+   "method": "screencapture -x -l<CGWindowID> window-scoped; no SCFrameStatus (not ScreenCaptureKit)",
+   "frameStatus": "unavailable: screencapture reports no per-frame status"
+  },
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-011's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
+  "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-011 decoy."
+ },
+ {
+  "id": "CASE-0120",
+  "req": "REQ-010",
+  "surface": "SURF-012",
+  "lane": "ios-glass",
+  "cell": {
+   "surface": "SURF-012",
+   "state": "populated",
+   "viewport": "393x852",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/ios/SURF-012.ios.discover-populated.png"
+  ],
+  "capture": {
+   "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
+   "frameStatus": "complete"
+  },
+  "note": "1206x2622 off the simulator's own display server, attributed to its producing test by the GLASS-CAPTURE- marker the test writes at shutter time rather than by filename. Its empty-state sibling, SURF-012.ios.discover-empty.png, is the metamorphic arm CASE-0123 reads."
+ },
+ {
+  "id": "CASE-0121",
+  "req": "REQ-010",
+  "surface": "SURF-013",
+  "lane": "ios-glass",
+  "cell": {
+   "surface": "SURF-013",
+   "state": "populated",
+   "viewport": "393x852",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/ios/SURF-013.ios.triage.png"
+  ],
+  "capture": {
+   "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
+   "frameStatus": "complete"
+  },
+  "note": "Triage alone. The queue and library captures this case used to speak for are CASE-0124 and CASE-0125 — three routes under one case was the same understatement the tie pass found in the registry, arriving in the case file."
+ },
+ {
+  "id": "CASE-0122",
+  "req": "REQ-015",
+  "surface": "SURF-014",
+  "lane": "ios-glass",
+  "cell": {
+   "surface": "SURF-014",
+   "state": "populated",
+   "viewport": "393x852",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/ios/SURF-014.ios.camera-preflight.png"
+  ],
+  "capture": {
+   "method": "XCUIScreenshot via XCTAttachment, taken inside the test after the surface's own assertion passed",
+   "frameStatus": "not reported by this instrument — XCUIScreenshot carries no per-frame status, so attribution stands in its place: the picture is taken in the same test, after 'Why the camera' was found"
+  },
+  "note": "The capture the campaign recorded as never photographed. It exists now because the surface itself was unreachable until DEF-017, DEF-019 and DEF-022 were closed — the earlier 'inconclusive' blamed the screenshot step, and the screenshot step was fine. Armed 20 Aug 2026: `PairingFlowModel.start()` reverted to ignore the camera state and always open on .scan; the pre-prompt assertion went red — 'the pairing flow did not open on the camera pre-prompt'. Armed against the surface rather than against its copy: a raster-visual case claims a picture of a surface, so the arm has to be able to take the surface away. An earlier arm reverted CameraAuthorization.copyKey's .notDetermined case to nil and the test PASSED, because CameraPermissionView reads `copyKey ?? .cameraNotDetermined` — recorded, because an arm that passes is a finding about the code rather than a formality to repeat until it goes red."
+ },
+ {
+  "id": "CASE-0123",
+  "req": "REQ-006",
+  "surface": "SURF-018",
+  "lane": "ios-glass",
+  "cell": {
+   "surface": "SURF-018",
+   "state": "fresh-install",
+   "viewport": "393x852",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "unpaired",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/ios/SURF-018.ios.settings-never-paired.png"
+  ],
+  "captureMethod": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
+  "frameStatus": "complete",
+  "note": "1206x2622 off the simulator's display server, attributed to testEachTabRendersItsOwnSurface by xcresulttool rather than by filename. Distinct sha c3f1c31a.",
+  "capture": {
+   "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
+   "frameStatus": "complete"
   }
+ },
+ {
+  "id": "CASE-0024",
+  "req": "REQ-006",
+  "surface": "SURF-018",
+  "lane": "ios-glass",
+  "cell": {
+   "surface": "SURF-018",
+   "state": "fresh-install",
+   "viewport": "393x852",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "unpaired",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "evidence": [
+   "evidence/shots/ios/SURF-018.ios.settings-never-paired.png"
+  ],
+  "note": "Settings is the phone's fifth tab and was never enumerated, so nothing could have failed on it; SURF-018 was added by this campaign. On glass it renders the never-paired state on a fresh install, once the lane signs — see CASE-0022 for why it did not. three consecutive green runs of `make test-ios-glass` on the lane's own simulator (MCPRouter-Glass, iPhone 17 Pro / iOS 26.5), 5 of 5 each time. Armed 20 Aug 2026: `PairingCopy.settingsNeverPaired.headline` changed to 'Not paired'; red with 'Settings did not render the never-paired state, so the pairing entry point is unproven'. The same run's on-screen dump is what confirms DEF-026 closed on glass: the narrowing appears once.",
+  "armed": true
+ },
+ {
+  "id": "CASE-0124",
+  "req": "REQ-010",
+  "surface": "SURF-019",
+  "lane": "ios-glass",
+  "cell": {
+   "surface": "SURF-019",
+   "state": "populated",
+   "viewport": "393x852",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/ios/SURF-019.ios.queue.png"
+  ],
+  "capture": {
+   "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
+   "frameStatus": "complete"
+  },
+  "note": "Split out of CASE-0121 when the tie pass found three routes under one id. The state is the empty one, which is the state the fixture queue produces and the one i3-phone-triage.html §D specifies as one sentence and one action. Armed 20 Aug 2026: `QueueCopy`'s empty headline changed to 'Nothing here'; red with \"Queue did not render 'Nothing waiting', which is its own and no other surface's\"."
+ },
+ {
+  "id": "CASE-0125",
+  "req": "REQ-010",
+  "surface": "SURF-020",
+  "lane": "ios-glass",
+  "cell": {
+   "surface": "SURF-020",
+   "state": "populated",
+   "viewport": "393x852",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "on-glass"
+  },
+  "oracle": "raster-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "evidence/shots/ios/SURF-020.ios.library.png"
+  ],
+  "capture": {
+   "method": "XCUIScreen.main.screenshot() via XCUITest, exported by xcresulttool export attachments",
+   "frameStatus": "complete"
+  },
+  "note": "Split out of CASE-0121. Four rows, each carrying only MCPServer fields, plus the block that states the skills index does not exist rather than drawing an empty list. Armed 20 Aug 2026: `LibraryCopy`'s skills-absent headline changed to 'No skills.'; red with \"Library did not render 'Skills are not listed here.'\"."
+ },
+ {
+  "id": "CASE-0126",
+  "req": "REQ-010",
+  "surface": "SURF-018",
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-018",
+   "state": "instrument",
+   "viewport": "393x852",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/features-to-triage/X3-ios-unit-lane-empty-tree.md"
+  ],
+  "note": "The iOS unit lane's own instrument. `PhoneSurfaceTests.testTheAccessibilityEngineCanBeSwitchedOn` asserts that `_AXSSetAutomationEnabled` resolves and that a hosted `ScrollView { Text }` publishes its label back through the same walk every other assertion in the target uses. Without it the target's 35 surface assertions are vacuous in a way that reads exactly like a product rendering no copy — DEF-029, where they were vacuous for ten consecutive runs. Armed three ways on 20 Aug 2026: renaming the symbol fails this case alone; mutating the call to `(false)` on a device created for the arm reads 53 failures across 36 tests, which is what proves the other 35 depend on it; and the first run ever taken on a device whose engine had never been live is clean, which proves the fix needs no warm-up on a fresh device. A device left explicitly disabled does need one, and `test-ios` now runs a throwaway process before the graded one for that reason."
+ },
+ {
+  "id": "CASE-0127",
+  "req": "REQ-018",
+  "surface": "SURF-003",
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-003",
+   "state": "reset-dialog",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "app/Tests/MCPRouterUITests/ActivityResetEntryPointTests.swift"
+  ],
+  "note": "DEF-016's behaviour half. `ActivityResetEntryPointTests.theDialogResetsOnlyWhenConfirmed` counts `POST /usage/reset` through `RecordingUsageClient.resets` across the dialog's whole life: opening it sends 0, cancelling sends 0, confirming sends exactly 1, and the sheet closes with no `writeError`. Counted rather than flagged, because \"the dialog sent one\" and \"every keystroke sent one\" are the same Bool and different products — which is the distinction REQ-018 turns on, since this is the named-consequence dialog reserved for an act undo cannot reverse. Armed 20 Aug 2026 by duplicating `_ = try await client.resetUsage()`, which reads `confirming the dialog sent 2 resets`. Deleting the call was tried first and rejected: it fails to compile under typed throws, which is a red for the wrong reason."
+ },
+ {
+  "id": "CASE-0128",
+  "req": "REQ-003",
+  "surface": "SURF-003",
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-003",
+   "state": "header-affordance",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "structural-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "app/Tests/MCPRouterUITests/ActivityResetEntryPointTests.swift"
+  ],
+  "note": "DEF-016's affordance half and DEF-012's first rename, at the rung they honestly reach. `theResetActionIsInTheHeader` slices `ActivityBoard.header` from its declaration to `content`'s and asserts the slice carries `CleanupPresentation.resetLabel` and opens `model.sheet = .resetHistory`; `theHeaderLabelIsTheDesigns` asserts that constant is `Reset history…` per `prototype.html:716` and `:930`, not the Settings-Danger wording at `:999` the build had shipped. Recorded as `structural-visual` rather than `outcome` and counted against the strict total on purpose: both read source text, and no assertion here proves a header rendered. It is written that way because the claim is about the header in **all nine** DESIGN.md §5 states — the design puts the control outside the rows conditional precisely so the empty state has it — and a rendered assertion over one state would leave the other eight unchecked while buying effect credit. Watched to fail for real rather than by a staged arm: an earlier script aborted before writing the header change, and this assertion reported `the header draws no reset action` against the tree that was genuinely missing it. Reverting `resetLabel` reads `the header action is called Reset call history…`."
+ },
+ {
+  "id": "CASE-0129",
+  "req": "REQ-003",
+  "surface": "SURF-004",
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-004",
+   "state": "header-affordance",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "structural-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "app/Tests/MCPRouterUITests/ActivityResetEntryPointTests.swift"
+  ],
+  "note": "DEF-012's second rename. `theMarketplacesActionIsNamedOnce` asserts `SkillPresentation.marketplacesAction == \"Add marketplace…\"` per `prototype.html:786`, and then that neither `SkillsBoard.swift` nor `MenuCommand.swift` writes either label as a literal any more. The second half is the assertion that bites: the board had shipped `Manage marketplaces…` while the menu item opening the **same sheet** said `Add marketplace…`, so a match-the-strings check would have passed the day before the fix as easily as the day after. Asserting the literals are absent is what stops them drifting apart again. `structural-visual` for the same reason as CASE-0128 — it reads source. Armed 20 Aug 2026 by restoring the literal in `SkillsBoard`, which reads `still writes the marketplaces label as a literal`."
+ },
+ {
+  "id": "CASE-0130",
+  "req": "REQ-018",
+  "surface": "SURF-007",
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-007",
+   "state": "row-removal",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "app/Tests/MCPRouterUITests/CleanupRowActionsTests.swift"
+  ],
+  "note": "DEF-011's behaviour half. `theRowsRemovalOpensTheDialog` drives `CleanupBoardModel` to the state the row's Remove button sets and asserts two things: the removal dialog is open, and `M7RecordingClient.writes` is still empty. The one destructive act on this board is never one click, which is REQ-018's contract for something undo cannot reverse. Stated honestly about what it does not prove: it sets `board.sheet` rather than pressing the button, so it proves the model contract and not that the button reaches it — CASE-0131's wiring assertion is what covers that half. Armed 20 Aug 2026 by making the test perform a real removal, which reads `[\"remove(alpha, keepHistory: false)\"]` — so the empty-writes predicate is live rather than vacuously true against a client nothing ever calls."
+ },
+ {
+  "id": "CASE-0131",
+  "req": "REQ-003",
+  "surface": "SURF-007",
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-007",
+   "state": "row-actions",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "structural-visual",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "app/Tests/MCPRouterUITests/CleanupRowActionsTests.swift"
+  ],
+  "note": "DEF-011's affordance half — the column the design draws on every row and the build drew on none. Three assertions: `CleanupBoardRow` declares `Button(\"Inspect\"` and `Button(\"Remove…\"`; the `CleanupBoardRow` declaration carries `accessibilityElement(children: .contain)` and not `.combine`, because combining flattens the buttons into the row's label and leaves nothing for VoiceOver or a UI test to press; and `CleanupBoard` passes `inspect:` and `remove:` rather than leaving them nil, since a row with no closures draws an empty column. The `.combine` assertion is scoped to that one declaration, not to the file. The first version asserted `.combine` appeared nowhere in `CleanupBoardRow.swift` and went red against `CleanupObservationTrack`, where combining is correct — it draws a bar and a number and carries no control. A predicate that fires on a correct use is a detector defect. `structural-visual`, and counted against the strict total, for CASE-0128's reason. Armed 20 Aug 2026 three ways: blanking the Inspect label reads `draws no Inspect`, switching `.contain` to `.combine` reads `combines its children` twice, and deleting the board's `inspect:` argument reads `builds its rows without actions`."
+ },
+ {
+  "id": "CASE-0132",
+  "req": "REQ-017",
+  "surface": "SURF-001",
+  "lane": "swiftui",
+  "cell": {
+   "surface": "SURF-001",
+   "state": "instrument",
+   "viewport": "1280x800",
+   "theme": "light",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "in-process"
+  },
+  "oracle": "metamorphic",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "app/Tests/MCPRouterUITests/ShellTestSupport.swift",
+   "app/Tests/MCPRouterUITests/ActivityReconnectTests.swift",
+   "app/Tests/MCPRouterUITests/DiscoverBoardTests.swift"
+  ],
+  "note": "The package lane's own instrument, and a relation across runs rather than a fact about one: the same source must give the same verdict on a loaded host and an idle one. It did not — `make test` reported 4 issues at a one-minute load average of ~700 and passed 1473 tests at load 46 minutes later (DEF-030). Every one of the four asserted after a fixed sleep or a 2–5 second deadline, so what they were measuring was the machine.\n\nClosed by replacing each deadline with a condition: `ShellTestSupport.waitUntil` and `ActivityReconnectTests.completes` keep a bound so a condition that never arrives fails rather than hangs, but at 30s rather than inside the noise; and `searchIsDebounced` waits for the debounce to fire and then holds a full debounce window of quiet, because the wait alone is satisfied by the first request and would pass against the one-per-keystroke defect it exists to catch.\n\nArmed 20 Aug 2026 three ways, each watched to fail with its own message — `.seconds(0)` on the shared waiter reads `no poll ran at all` and `five keystrokes issued 0 requests`, `.milliseconds(1)` on the completion bound reads `reconnect did not return while the feed stayed live`, and a `queryChanged()` inserted into the quiet period reads `a later request arrived`. The contention that triggered the original failure came from another project and is not reproducible on demand, so the arms are the proof rather than a repeat of the load."
+ },
+ {
+  "id": "CASE-0133",
+  "req": "REQ-017",
+  "surface": "SURF-001",
+  "lane": "macos-glass",
+  "cell": {
+   "surface": "SURF-001",
+   "state": "overflow",
+   "viewport": "980x620",
+   "theme": "dark",
+   "role": "operator",
+   "dataShape": "typical",
+   "executionPlane": "windowed"
+  },
+  "oracle": "outcome",
+  "status": "pass",
+  "armed": true,
+  "evidence": [
+   "planning/test-campaign/bin/capture-mac-glass.sh",
+   "app/Tests/MCPRouterUITests/ShellDetailWidthTests.swift"
+  ],
+  "note": "DEF-015's closed half — the shell's overflow treatment, which DESIGN.md §5 names and the build got wrong in a way no assertion could see. Every board's `AXSplitGroup` width is read back out of the running app and compared against its own `AXWindow` width, board by board, through the channel that already writes those dumps beside the pictures. It read 3 of 8 overflowing — Checks 988, Skills 1044, Discover 1119 inside a 980pt window, each origin moved left by exactly half its excess — and reads 0 of 8 after `.frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)` on `ContentZone`.\n\n`outcome` rather than `raster-visual` on purpose: the claim is a measured relation between two frames the app publishes, not a comparison of pixels, and the pictures are what made the defect *visible* rather than what proves it fixed.\n\nArmed 20 Aug 2026, three ways on the gate and two on the test. The gate exits 1 against the pre-fix dumps, 0 against the post-fix ones, and 1 with no dumps at all — `examined=0` is a check that never ran and is never a pass. Removing the modifier reddens `ShellDetailWidthTests` with `passes its boards' minimum width up to the split view`, and dropping just `alignment: .leading` reddens the second half alone. That test's first version did NOT bite: it searched the raw source and matched the doc comment naming the modifier, so deleting the modifier left it green. Comments are stripped before matching now — a predicate satisfied by the prose explaining it is not a predicate.\n\nWhat this case does not cover, because `overflowing=0` reads like `nothing is clipped` and is not that claim: content that overflows the detail PANE stays inside the window and is invisible to this oracle. It is still happening on the same three boards, and it is the open half of DEF-015."
+ }
 ]

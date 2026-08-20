@@ -190,30 +190,32 @@
                 Text(ReadoutCopy.counts(running: running, declared: declared))
                     .typeRole(.body, monospaced: true)
                     .foregroundStyle(ReadoutTint.counts(running: running).color)
-                    // A35's sentence, on the numeral, so `.combine` below has something to join
-                    // the label to.
+                    // A35's sentence, carried by the numeral itself rather than by the merged row.
                     .accessibilityLabel(
                         ReadoutCopy.accessibilityLabel(running: running, declared: declared)
                     )
             }
             .frame(height: MetricToken.tableRows.leadingScalar)
-            // **`.combine`, not `.ignore` and not neither** — and the difference between those three
-            // is the whole of what M27 found here.
+            // **The row publishes two elements, and that was settled on glass rather than by
+            // argument.** Three forms were tried against the running app:
             //
-            // `.ignore` was what shipped, and it discarded the label: the row published one element
+            // `.ignore` is what shipped, and it discarded the label: the row published one element
             // whose text was the counts sentence, so `Child processes` was on screen and absent
             // from every instrument that reads the accessibility plane. That is the same reading
-            // the campaign's differential took when it reported the label missing altogether, and a
-            // fix the measuring instrument cannot see is a fix that gets re-reported.
+            // the campaign's differential took when it reported the label missing, and a fix the
+            // measuring instrument cannot see is a fix that gets re-reported.
             //
-            // Leaving the row unmerged fixed the visibility and broke A35 and §6 instead: two stops
-            // for one metric, and the row saying `Child processes` while the sentence says
-            // `declared servers running` — one fact under two wordings, from two places.
+            // `.combine` looked better on paper and two out-of-family reviews asked for it — one
+            // element, one VoiceOver stop, the label joined to the reading it heads. **It fails
+            // A35's own on-glass assertion**, measured: that gate requires an element whose whole
+            // text is `N of M declared servers running`, and a combined row publishes
+            // `Child processes, N of M …` instead, so `mac-shell.sh` went red on the readout's
+            // accessibility label. A35 is the older contract and it is anchored deliberately.
             //
-            // `.combine` is the one that satisfies all three. One element, one stop, one sentence
-            // that names what the number is and then says it, and the label is a substring of what
-            // the tree publishes rather than absent from it.
-            .accessibilityElement(children: .combine)
+            // So: no merge. The label is its own element and the numeral carries the sentence. That
+            // is two stops for one card, which is the cost, and both stops are self-describing —
+            // this is not the loose-number failure A35 was written about. A reader hears what the
+            // number counts, then the number as a sentence.
 
             TraceStrip(points: tracePoints)
                 .frame(height: ReadoutGeometry.traceHeight)

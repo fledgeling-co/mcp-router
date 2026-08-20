@@ -134,6 +134,45 @@
             #expect(ReadoutGeometry.cardMargin > 0)
         }
 
+        // MARK: - What the accessibility tree publishes for the count row
+
+        @Test("the count row merges into neither one element nor none")
+        func theCountRowPublishesLabelAndReadingSeparately() throws {
+            // Settled on glass rather than by argument, and worth the words because all three
+            // forms are defensible and two of them are measurably wrong here.
+            //
+            // `.ignore` shipped, and it discarded the label: one element carrying the counts
+            // sentence, `Child processes` on screen and absent from the accessibility plane.
+            //
+            // `.combine` is what two out-of-family reviews asked for — one element, one VoiceOver
+            // stop. It fails A35's own on-glass assertion in `mac-shell.sh`, which requires an
+            // element whose WHOLE text is `N of M declared servers running`; a combined row
+            // publishes `Child processes, N of M …` and that gate went red on it. Measured, not
+            // predicted.
+            //
+            // So neither modifier, and this test is what keeps `.ignore` from coming back — which
+            // it would, because merging a label into its value is the obvious tidy-up.
+            let source = try ShellTestSupport.repoFile("app/Sources/MCPRouterUI/Shell/Readout.swift")
+            #expect(
+                !source.contains("children: .ignore"),
+                "the count row merges again, which hides its label from every AX instrument"
+            )
+            #expect(
+                !source.contains("children: .combine"),
+                "the count row combines again, which breaks A35's anchored on-glass assertion"
+            )
+            // The numeral still carries the sentence, which is the element A35 reads. Two
+            // independent facts rather than one multi-line literal, which reformatting moves.
+            #expect(source.contains(".accessibilityLabel("))
+            #expect(
+                source.contains("ReadoutCopy.accessibilityLabel(running: running, declared: declared)")
+            )
+            #expect(
+                ReadoutCopy.accessibilityLabel(running: 3, declared: 8)
+                    == "3 of 8 declared servers running"
+            )
+        }
+
         // MARK: - The count spends --live only where --live is true
 
         @Test("a count of zero is not painted in the running colour")

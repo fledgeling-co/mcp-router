@@ -60,6 +60,8 @@ xcuserdata/
 *.xcodeproj/
 app/**/Info.plist
 app/.derived/
+# The ios-glass lane builds signed, into its own derived data — DEF-017.
+app/.derived-signed/
 
 # Private status pages. This repo is public and docs/ is the published site;
 # these name project state and are written for one reader.

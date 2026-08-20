@@ -1,0 +1,110 @@
+[
+ {
+  "path": "evidence/shots/ios/SURF-012.ios.discover-populated.png",
+  "subject": "SURF-012",
+  "target": "app://ios/discover",
+  "targetReadback": "Discover",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testDiscoverRendersTheRoutersCatalogue]",
+  "sha256": "bfba9b57552b8b827e8a3a68e00ab2989514b320fbe74cb74481d081575ab6b0",
+  "capturedAt": "2026-08-20T05:50:47.754759+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ },
+ {
+  "path": "evidence/shots/ios/SURF-012.ios.discover-empty.png",
+  "subject": "SURF-012",
+  "target": "app://ios/discover",
+  "targetReadback": "Discover",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testDiscoverTracksWhatTheRouterReturned]",
+  "sha256": "c7f5f2f9682341e778bfa2324c1780713995264a03f7d18cde408acb2b50c0ee",
+  "capturedAt": "2026-08-20T05:50:47.754759+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ },
+ {
+  "path": "evidence/shots/ios/SURF-014.ios.pairing-typed-entry.png",
+  "subject": "SURF-014",
+  "target": "app://ios/pair-mac",
+  "targetReadback": "Pair Mac",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
+  "sha256": "040cb32d8a05623db6c0d86502473b220ae02e0ef5ffd86d51a87d5b9f2b31ca",
+  "capturedAt": "2026-08-20T05:50:47.754759+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ },
+ {
+  "path": "evidence/shots/ios/SURF-014.ios.camera-preflight.png",
+  "subject": "SURF-014",
+  "target": "app://ios/pair-mac",
+  "targetReadback": "Pair Mac",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
+  "sha256": "24911312a2655d551ab64bba25aab43ee9184080dc690d868faf85a916f86189",
+  "capturedAt": "2026-08-20T05:50:47.754759+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ },
+ {
+  "path": "evidence/shots/ios/UNASSERTED.ios.after-tapping-pair-mac.png",
+  "subject": "UNASSERTED",
+  "target": "app://ios/pair-mac",
+  "targetReadback": "Pair Mac",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
+  "sha256": "423dacc1e482c847d6a3081ddde075934a06b54c5103310131fe524e207ed68a",
+  "capturedAt": "2026-08-20T05:50:47.754759+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ },
+ {
+  "path": "evidence/shots/ios/SURF-018.ios.settings-never-paired.png",
+  "subject": "SURF-018",
+  "target": "app://ios/settings",
+  "targetReadback": "Settings",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
+  "sha256": "f96d2672f270c619628d56d9a320f305e6f301cc1cb97b141d3509796d62d36b",
+  "capturedAt": "2026-08-20T05:50:47.754759+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ },
+ {
+  "path": "evidence/shots/ios/SURF-020.ios.library.png",
+  "subject": "SURF-020",
+  "target": "app://ios/library",
+  "targetReadback": "Library",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
+  "sha256": "ff9d6ec67eebd45f18899ccd4e9cb21fe9465deec8bfc407dc4931f3ca3bc3c2",
+  "capturedAt": "2026-08-20T05:50:47.754759+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ },
+ {
+  "path": "evidence/shots/ios/SURF-019.ios.queue.png",
+  "subject": "SURF-019",
+  "target": "app://ios/queue",
+  "targetReadback": "Queue",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
+  "sha256": "841944bbcbf6d7696ddeb6d10aee76841abbaff37866a6a960a94f7e5610ce19",
+  "capturedAt": "2026-08-20T05:50:47.754759+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ },
+ {
+  "path": "evidence/shots/ios/SURF-013.ios.triage.png",
+  "subject": "SURF-013",
+  "target": "app://ios/triage",
+  "targetReadback": "Triage",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
+  "sha256": "ba82b88b1b01734b7934ee270a019aa49d9ee4245f515a35c4980d4fbe004447",
+  "capturedAt": "2026-08-20T05:50:47.754759+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ }
+]

@@ -117,6 +117,16 @@ public struct PhoneShell<Preview: View>: View {
                         // "Settings"]. The in-process suite could not see any of this, because it
                         // never selects a tab; `MCPRouterIOSUITests` does.
                         .accessibilityLabel(tab.title)
+                        //
+                        // **An identifier cannot be added here.** `.accessibilityIdentifier` was
+                        // measured on glass in both available places — inside this closure and on
+                        // the view carrying `.tabItem` — and both **clear** the tab button's
+                        // identifier rather than set it: the five buttons came back
+                        // `["", "", "", "", ""]` against a design of `tab-discover` … , where
+                        // without the modifier they report the SF Symbol's name. So the identifier
+                        // that ships is the glyph's, the label is the destination's, and DEF-008
+                        // stays open as a characterised limitation rather than closing on a change
+                        // nothing could prove. Query this tab bar by label.
                     }
                     .tag(tab)
             }

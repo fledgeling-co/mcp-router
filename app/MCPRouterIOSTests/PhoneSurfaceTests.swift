@@ -26,14 +26,179 @@ final class PhoneSurfaceTests: XCTestCase {
     /// actually happen.
     static let phoneSize = CGSize(width: 393, height: 852)
 
+    /// Turn the accessibility engine on for this process, once.
+    ///
+    /// **Without this the suite measures nothing and says so.** SwiftUI's `_UIHostingView` builds an
+    /// accessibility container either way, and when the engine is off it vends an **empty** element
+    /// list — `accessibilityElements` is `[]`, not `nil`. Every label-based assertion in this target
+    /// then reads empty and reports `nothing was measured, so this proved nothing`, which is the
+    /// honest verdict for a dead instrument and looks exactly like a product that renders no copy.
+    ///
+    /// Measured 20 Aug 2026, over ten runs: 52 failures across 35 tests, on two simulators and on an
+    /// untouched HEAD checkout, with a probe reporting the window attached to a foreground-active
+    /// scene, the frame correct, and `accessibilityElements` empty. Calling `_AXSSetAutomationEnabled`
+    /// took the same probe's element count from 0 to 1.
+    ///
+    /// The engine had been on before by accident — something else on this machine had enabled it —
+    /// which is why this suite was green for months while depending on ambient host state no file in
+    /// this repo controls. Enabling it here is the fix for that, not only for the outage: a lane that
+    /// cannot switch on its own instrument is not measuring, it is being measured for.
+    ///
+    /// This is a test-target-only dependency on a private symbol. It is never linked into the app.
+    /// `testTheAccessibilityEngineCanBeSwitchedOn` fails loudly if a future runtime renames it, so
+    /// the suite goes red rather than quietly empty.
+    static let accessibilityEngineEnabled: Bool = {
+        let libraries = [
+            "/usr/lib/libAccessibility.dylib",
+            "/System/Library/PrivateFrameworks/AccessibilityUtilities.framework/AccessibilityUtilities"
+        ]
+        for library in libraries {
+            guard let handle = dlopen(library, RTLD_LAZY),
+                  let symbol = dlsym(handle, "_AXSSetAutomationEnabled")
+            else { continue }
+            typealias Setter = @convention(c) (Bool) -> Void
+            unsafeBitCast(symbol, to: Setter.self)(true)
+            return true
+        }
+        return false
+    }()
+
+    /// The label the liveness probe publishes. Nothing in the product uses this string.
+    static let engineProbeLabel = "mcprouter-engine-probe"
+
+    /// Windows the liveness probe made, held for the process. See `windows` below for why.
+    private nonisolated(unsafe) static var probeWindows: [UIWindow] = []
+
+    /// **Switching the engine on is asynchronous, so the suite waits for it rather than assuming
+    /// it.** `_AXSSetAutomationEnabled(true)` returns immediately and the engine becomes live some
+    /// time later, and the tests that run in between read an empty tree and report `nothing was
+    /// measured, so this proved nothing` — the honest verdict, arriving for a reason that has
+    /// nothing to do with the product.
+    ///
+    /// Measured 20 Aug 2026, on a device the previous run had explicitly disabled: the run that
+    /// re-enabled it failed **39 assertions across 15 test cases**, all of them early in
+    /// alphabetical order, while `testTheAccessibilityEngineCanBeSwitchedOn` — which runs late in
+    /// `PhoneSurfaceTests` — **passed**. That is the shape of an instrument coming up part-way
+    /// through a run, and it is the worst shape available: a green instrument check standing over
+    /// a suite that measured nothing. The next run on the same device, with no change, was clean.
+    ///
+    /// So the wait is here, once per process, before the first `host()`. It hosts a `Text` whose
+    /// label no product surface uses and blocks until that label is published or the deadline
+    /// passes. This is not the bounded wait that was written and removed earlier in the same
+    /// investigation: that one waited on a *product* surface's tree, where an empty tree is a
+    /// legitimate reading and the wait could only ever cost time. This one waits on a probe whose
+    /// answer is known, so a timeout is a fact about the instrument rather than about the view.
+    static let accessibilityEngineIsLive: Bool = {
+        guard accessibilityEngineEnabled else { return false }
+        let deadline = Date().addingTimeInterval(20)
+        while Date() < deadline {
+            if engineProbePublishes() { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
+        return engineProbePublishes()
+    }()
+
+    /// Host one `Text` and report whether its label reached the accessibility tree.
+    ///
+    /// Bounded by depth and by a node budget for the reason `walk` records: a view's accessibility
+    /// elements are frequently its own subviews, so an unbounded descent revisits forever.
+    private static func engineProbePublishes() -> Bool {
+        // **Inside a `ScrollView`, because that is the shape that fails.** A bare `Text` publishes
+        // its label in the half-enabled state as readily as in the enabled one, so a probe built
+        // from one reported the engine live at t=0 of a run in which 15 test cases went on to read
+        // an empty tree. Those 15 are exactly the ones hosting `ScrollView { … }`; the tests that
+        // passed alongside them are geometry, counts and negative assertions, which an empty tree
+        // satisfies. The probe therefore hosts what the failures host.
+        let controller = UIHostingController(
+            rootView: ScrollView { Text("engine probe").accessibilityLabel(engineProbeLabel) }
+        )
+        let window = UIWindow(frame: CGRect(origin: .zero, size: phoneSize))
+        probeWindows.append(window)
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        controller.view.frame = CGRect(origin: .zero, size: phoneSize)
+        controller.view.setNeedsLayout()
+        controller.view.layoutIfNeeded()
+        var budget = 2000
+        return carriesProbeLabel(controller.view, depth: 0, budget: &budget)
+    }
+
+    /// **Both paths, exactly as `walk` reads them**, because the probe stands in for assertions that
+    /// use `walk` and a probe that reads differently from the thing it stands for answers a
+    /// different question. Two narrower versions were measured and both were wrong in opposite
+    /// directions: a bare `Text` read through either path reports live in the half-enabled state
+    /// where 15 test cases read empty, and a `ScrollView` read through the container path alone
+    /// reports dead on a device where all 35 other tests pass.
+    private static func carriesProbeLabel(_ element: NSObject, depth: Int, budget: inout Int) -> Bool {
+        guard depth < 24, budget > 0 else { return false }
+        budget -= 1
+        if element.accessibilityLabel == engineProbeLabel { return true }
+        for index in 0 ..< childCount(of: element) {
+            guard let next = child(of: element, at: index) else { continue }
+            if carriesProbeLabel(next, depth: depth + 1, budget: &budget) { return true }
+        }
+        if let view = element as? UIView {
+            for subview in view.subviews {
+                if carriesProbeLabel(subview, depth: depth + 1, budget: &budget) { return true }
+            }
+        }
+        return false
+    }
+
+    /// The instrument check. A dead engine is the one failure that makes every other assertion here
+    /// vacuous, so it is asserted rather than assumed.
+    func testTheAccessibilityEngineCanBeSwitchedOn() {
+        XCTAssertTrue(
+            Self.accessibilityEngineEnabled,
+            "_AXSSetAutomationEnabled could not be resolved, so SwiftUI publishes no accessibility "
+                + "elements and every label assertion in this target is vacuous"
+        )
+        XCTAssertTrue(
+            Self.accessibilityEngineIsLive,
+            "the engine was switched on and no hosted Text published a label within 20s, so this "
+                + "target cannot measure what it claims to measure"
+        )
+        let probe = host(Text("engine-probe").accessibilityLabel("engine-probe-label"))
+        XCTAssertTrue(
+            accessibilityTexts(of: probe.view).contains("engine-probe-label"),
+            "the engine reports live and a hosted Text still published no label, so this target "
+                + "cannot measure what it claims to measure"
+        )
+    }
+
+    /// Every window `host` has made, kept alive for as long as this harness is.
+    ///
+    /// **This is what made the suite intermittent.** `host` returns the controller, and a
+    /// controller's `view.window` is a weak back-reference — a `UIWindow` with no `windowScene` is
+    /// retained by nothing else, so the window was free to deallocate the moment `host` returned.
+    /// A deallocated window tears down its hierarchy, and the accessibility tree goes with it. The
+    /// symptom is the whole suite reading empty at once: `nothing was measured, so this proved
+    /// nothing` across every assertion in a class, on a machine under load, with no code change
+    /// between a green run and a red one. Observed three times on 20 Aug 2026 before it was traced.
+    ///
+    /// Holding the windows here rather than spinning a runloop is deliberate: a wait would make the
+    /// window's lifetime a race that usually goes the right way, and the point is that it is not a
+    /// race at all.
+    private var windows: [UIWindow] = []
+
+    override func tearDown() {
+        for window in windows {
+            window.isHidden = true
+        }
+        windows.removeAll()
+        super.tearDown()
+    }
+
     /// Render a view into a real window so layout, safe areas and traits are the live ones.
     func host(
         _ view: some View,
         size: CGSize = PhoneSurfaceTests.phoneSize,
         contentSize: UIContentSizeCategory = .large
     ) -> UIViewController {
+        _ = Self.accessibilityEngineIsLive
         let controller = UIHostingController(rootView: view)
         let window = UIWindow(frame: CGRect(origin: .zero, size: size))
+        windows.append(window)
         window.overrideUserInterfaceStyle = .unspecified
         window.rootViewController = controller
         window.makeKeyAndVisible()
@@ -63,7 +228,8 @@ final class PhoneSurfaceTests: XCTestCase {
     func accessibilityTexts(of element: NSObject) -> [String] {
         var seen = Set<ObjectIdentifier>()
         var budget = 3000
-        return walk(element, seen: &seen, depth: 0, budget: &budget) { object in
+        var retained: [NSObject] = []
+        return walk(element, seen: &seen, retained: &retained, depth: 0, budget: &budget) { object in
             [object.accessibilityLabel, object.accessibilityValue]
                 .compactMap(\.self)
                 .filter { !$0.isEmpty }
@@ -95,13 +261,24 @@ final class PhoneSurfaceTests: XCTestCase {
     private func walk<T>(
         _ element: NSObject,
         seen: inout Set<ObjectIdentifier>,
+        retained: inout [NSObject],
         depth: Int,
         budget: inout Int,
         collect: (NSObject) -> [T]
     ) -> [T] {
         guard depth < 25, budget > 0 else { return [] }
-        // Checked, not discarded: for real `UIView`s the identity is stable, so this is what stops
-        // the subview/accessibility-element overlap from being walked twice.
+        // Held for the whole walk, and that is what makes `seen` mean anything.
+        //
+        // `accessibilityElement(at:)` *creates* SwiftUI's elements on demand and hands back the only
+        // reference. Recursing and returning released each one, and the allocator reissued the
+        // address — so the next element hashed to an `ObjectIdentifier` already in `seen`, was
+        // treated as visited, and the walk returned `[]` for a hierarchy that was fully there.
+        //
+        // The symptom is the entire target reading empty at once: 51 failures across 35 tests, on a
+        // fresh simulator, deterministic over seven consecutive runs, flipping green-to-red on an
+        // unrelated source split that moved the binary layout. `ObjectIdentifier` is unique among
+        // *live* objects only, and nothing here was keeping them alive.
+        retained.append(element)
         guard seen.insert(ObjectIdentifier(element)).inserted else { return [] }
         budget -= 1
 
@@ -109,14 +286,20 @@ final class PhoneSurfaceTests: XCTestCase {
 
         for index in 0 ..< Self.childCount(of: element) {
             if budget <= 0 { break }
-            if let child = element.accessibilityElement(at: index) as? NSObject {
-                found += walk(child, seen: &seen, depth: depth + 1, budget: &budget, collect: collect)
+            if let child = Self.child(of: element, at: index) {
+                found += walk(
+                    child, seen: &seen, retained: &retained,
+                    depth: depth + 1, budget: &budget, collect: collect
+                )
             }
         }
         if let view = element as? UIView {
             for subview in view.subviews {
                 if budget <= 0 { break }
-                found += walk(subview, seen: &seen, depth: depth + 1, budget: &budget, collect: collect)
+                found += walk(
+                    subview, seen: &seen, retained: &retained,
+                    depth: depth + 1, budget: &budget, collect: collect
+                )
             }
         }
         return found
@@ -128,9 +311,22 @@ final class PhoneSurfaceTests: XCTestCase {
     /// is meaningless. Both become zero; anything real is capped so one pathological node cannot
     /// consume the whole budget.
     private static func childCount(of element: NSObject) -> Int {
+        // `accessibilityElements` first. SwiftUI's `_UIHostingView` publishes through the array and
+        // leaves `accessibilityElementCount()` at 0 — measured on iOS 26.5, where a hosted `Text`
+        // reported `accessibilityElements.count == 1` and `accessibilityElementCount() == 0` in the
+        // same breath. Reading only the indexed API walked straight past every element SwiftUI had.
+        if let elements = element.accessibilityElements { return min(elements.count, 256) }
         let count = element.accessibilityElementCount()
         guard count > 0, count != NSNotFound else { return 0 }
         return min(count, 256)
+    }
+
+    /// One accessibility child, from whichever of the two APIs the element publishes through.
+    private static func child(of element: NSObject, at index: Int) -> NSObject? {
+        if let elements = element.accessibilityElements {
+            return index < elements.count ? elements[index] as? NSObject : nil
+        }
+        return element.accessibilityElement(at: index) as? NSObject
     }
 
     func labels(in controller: UIViewController) -> [String] {
@@ -144,7 +340,14 @@ final class PhoneSurfaceTests: XCTestCase {
     func tappableFrames(of element: NSObject, in _: UIView) -> [CGRect] {
         var seen = Set<ObjectIdentifier>()
         var budget = 3000
-        return walk(element, seen: &seen, depth: 0, budget: &budget) { object -> [CGRect] in
+        var retained: [NSObject] = []
+        return walk(
+            element,
+            seen: &seen,
+            retained: &retained,
+            depth: 0,
+            budget: &budget
+        ) { object -> [CGRect] in
             guard object.accessibilityTraits.contains(.button),
                   object.accessibilityFrame.height > 0 else { return [] }
             return [object.accessibilityFrame]
@@ -271,15 +474,30 @@ final class PhoneSurfaceTests: XCTestCase {
         )
     }
 
-    /// The tallest view whose height matches the design's row constant — the row itself.
+    /// The row's height, read from the accessibility frame rather than from a `UIView`'s bounds.
+    ///
+    /// **The `UIView` tree has no row in it.** SwiftUI draws `PairedMacRow` into the hosting view's
+    /// layers and creates no per-row `UIView`, so a walk of `descendants(of:).bounds.height` matched
+    /// nothing and both callers failed with "no row was found in either render" — the same mistake
+    /// this file already records for `UILabel`, arriving through geometry instead of through text.
+    /// X1 carried these two as the surfaces still empty; this is what they were.
+    ///
+    /// The accessibility frame is the row, because the row is what the row publishes. It is in
+    /// window coordinates, and both renders are hosted at the same size, so the two are comparable.
     ///
     /// Returns nil when nothing matched, so a comparison of two absent rows fails instead of
     /// quietly comparing zero with zero.
     private func rowHeight(in controller: UIViewController) -> CGFloat? {
-        descendants(of: controller.view)
-            .map(\.bounds.height)
-            .filter { abs($0 - PhoneRowHeight) < 6 }
-            .max()
+        var seen = Set<ObjectIdentifier>()
+        var retained: [NSObject] = []
+        var budget = 3000
+        let heights = walk(
+            controller.view, seen: &seen, retained: &retained, depth: 0, budget: &budget
+        ) { object -> [CGFloat] in
+            let height = object.accessibilityFrame.height
+            return abs(height - PhoneRowHeight) < 6 ? [height] : []
+        }
+        return heights.max()
     }
 
     /// **The helper's content-size override really does reach the SwiftUI environment.**
@@ -442,6 +660,100 @@ final class PhoneSurfaceTests: XCTestCase {
         }
     }
 
+    /// The typed path has something to type into.
+    ///
+    /// `TypedEntryView` drew eight styled boxes, a helper line and a submit button, and no input
+    /// affordance of any kind — no field, no keypad, no focus state. `PairingCodeEntry` had carried
+    /// `append(contentsOf:)` and `deleteBackward()` the whole time and nothing in the UI called
+    /// either, so the submit button's `.disabled(!entry.isComplete)` could never become false. That
+    /// matters beyond one screen: the source comments cite A16 — every camera state must still
+    /// offer the typed path — and for `.restricted`, where iOS Settings is a dead end, the typed
+    /// path is the *primary* recovery rather than the fallback.
+    ///
+    /// Asserted through the rendered hierarchy rather than by reading the view, because the defect
+    /// was precisely that the view looked complete.
+    func testTypedEntryPublishesAFieldToTypeInto() {
+        var entry = PairingCodeEntry()
+        let binding = Binding(get: { entry }, set: { entry = $0 })
+        let controller = host(ScrollView {
+            TypedEntryView(entry: binding, failure: nil, onSubmit: {}, onScanInstead: {})
+        })
+
+        /// The UIView tree rather than the accessibility tree: a SwiftUI `TextField` becomes a
+        /// `UITextField`, and that class is exactly what XCUITest's `app.textFields` resolves to on
+        /// glass. Asserting on the same object both harnesses look for keeps this test and the
+        /// on-glass one making the same claim.
+        func textFields(under view: UIView) -> [UITextField] {
+            var found: [UITextField] = []
+            if let field = view as? UITextField { found.append(field) }
+            for child in view.subviews {
+                found.append(contentsOf: textFields(under: child))
+            }
+            return found
+        }
+        let fields = textFields(under: controller.view)
+
+        XCTAssertFalse(
+            fields.isEmpty,
+            "the typed-entry surface published nothing that can take keyboard input, so the code "
+                + "cannot be entered and 'Pair Mac' can never enable. On screen: "
+                + labels(in: controller).joined(separator: " | ")
+        )
+    }
+
+    /// A27 leg 2 for the pairing pre-prompt family: four states, each rendering its own headline.
+    ///
+    /// Added after `TypedEntryView` was found drawing `PairingCopy.entry(.typedEntryReady).body`
+    /// and never its headline, so the one surface a user reaches by *choosing* it — "Enter the code
+    /// instead" — was the only one that never confirmed where they had arrived. The copy carried a
+    /// headline the whole time; nothing asserted that any view drew it.
+    ///
+    /// Written over the family rather than the one view, because a headline defined and not drawn
+    /// leaves no trace anywhere: no failing assertion, no selector, no crash. It is exactly the
+    /// class of defect only a rendered hierarchy can see.
+    func testEveryPairingPrePromptRendersItsHeadline() {
+        var entry = PairingCodeEntry()
+        let binding = Binding(get: { entry }, set: { entry = $0 })
+
+        let surfaces: [(String, PairingCopy.Key, AnyView)] = [
+            ("camera not determined", .cameraNotDetermined, AnyView(
+                CameraPermissionView(
+                    authorization: .notDetermined,
+                    onRequest: {}, onOpenSettings: {}, onTypeInstead: {}
+                )
+            )),
+            ("camera denied", .cameraDenied, AnyView(
+                CameraPermissionView(
+                    authorization: .denied,
+                    onRequest: {}, onOpenSettings: {}, onTypeInstead: {}
+                )
+            )),
+            ("camera restricted", .cameraRestricted, AnyView(
+                CameraPermissionView(
+                    authorization: .restricted,
+                    onRequest: {}, onOpenSettings: {}, onTypeInstead: {}
+                )
+            )),
+            ("typed entry", .typedEntryReady, AnyView(
+                TypedEntryView(
+                    entry: binding, failure: nil, onSubmit: {}, onScanInstead: {}
+                )
+            ))
+        ]
+
+        for (name, key, view) in surfaces {
+            guard let headline = PairingCopy.entry(key).headline else {
+                XCTFail("\(key) carries no headline, so this test is asserting nothing for \(name)")
+                continue
+            }
+            let rendered = labels(in: host(ScrollView { view })).joined(separator: " | ")
+            XCTAssertTrue(
+                rendered.contains(headline),
+                "the \(name) surface did not render its headline '\(headline)'. On screen: \(rendered)"
+            )
+        }
+    }
+
     /// A27 leg 2 for the two storage-failure surfaces: the manifest entry is what the view for
     /// that surface and state **actually renders**, measured from the rendered hierarchy.
     ///
@@ -487,9 +799,28 @@ final class PhoneSurfaceTests: XCTestCase {
     /// hierarchy rather than from the manifest that describes it.
     func testNarrowingIsRenderedWherePermissionIsDecided() {
         let neverPaired = host(ScrollView { PairedMacSettingsView(state: .neverPaired) })
+        let neverPairedText = labels(in: neverPaired)
         XCTAssertTrue(
-            labels(in: neverPaired).joined().contains("cannot install, update or remove"),
+            neverPairedText.joined().contains("cannot install, update or remove"),
             "the pre-pairing surface does not state the narrowing"
+        )
+        // DEF-026: exactly once. `settingsNeverPaired` carries the narrowing inside its own block,
+        // and the About section rendered it again — the same sentence twice on the surface a
+        // first-time user meets first. i1-phone-pairing.html states it once in §B and once in §I.
+        let statements = neverPairedText.filter { $0.contains("cannot install, update or remove") }
+        XCTAssertEqual(
+            statements.count, 1,
+            "the narrowing is stated \(statements.count) times on the never-paired surface"
+        )
+        // The paired surface states it under About, which is the only place it appears there.
+        let paired = host(
+            ScrollView {
+                PairedMacSettingsView(state: .reachable(FixturePairingService.specimenMac))
+            }
+        )
+        XCTAssertEqual(
+            labels(in: paired).filter { $0.contains("cannot install, update or remove") }.count, 1,
+            "the paired surface does not state the narrowing exactly once"
         )
 
         let success = host(
@@ -499,5 +830,95 @@ final class PhoneSurfaceTests: XCTestCase {
             labels(in: success).joined().contains("cannot install, update or remove"),
             "the paired surface does not restate the narrowing"
         )
+    }
+
+    /// DEF-024: a pairing action drawn at label width where the design draws it at content width.
+    ///
+    /// `i1-phone-pairing.html` styles every pairing action `.cta`, which is `width:100%`. The build
+    /// declared that with `.frame(maxWidth: .infinity)` on the `Button` — outside the style — so the
+    /// layout frame stretched while the style's own background still wrapped a hugging label. The
+    /// on-glass camera pre-prompt and typed-entry captures show three such centred pills.
+    ///
+    /// The oracle is the painted band rather than any view's frame, because the frame was already
+    /// full width while the defect was present. Two renders of the same button differing only in
+    /// `fillsWidth` must paint bands of different widths; before the fix they painted the same one.
+    func testAFullWidthPhoneButtonPaintsAFullWidthBand() throws {
+        let width = PhoneSurfaceTests.phoneSize.width
+
+        /// `ImageRenderer` rather than `drawHierarchy`: SwiftUI draws a `ButtonStyle` background into
+        /// its own backing layers, and `drawHierarchy` on an off-screen window returned a single flat
+        /// colour — which measured as a full-width band for both arms and would have read as a pass.
+        func paintedBand(fillsWidth: Bool) throws -> CGFloat {
+            let renderer = ImageRenderer(
+                content: Button("Allow camera access", action: {})
+                    .buttonStyle(PhoneProminentButtonStyle(fillsWidth: fillsWidth))
+                    .frame(width: width, height: 88)
+            )
+            renderer.scale = 1
+            let cgImage = try XCTUnwrap(renderer.cgImage, "the button did not rasterise")
+            return try Self.widestRun(matchingCentreOf: cgImage)
+        }
+
+        let filled = try paintedBand(fillsWidth: true)
+        let hugging = try paintedBand(fillsWidth: false)
+
+        XCTAssertGreaterThan(
+            filled, width * 0.9,
+            "a fillsWidth button painted a \(filled)pt band inside a \(width)pt container"
+        )
+        XCTAssertLessThan(
+            hugging, filled - 40,
+            "fillsWidth changed nothing: both renders painted \(hugging)pt and \(filled)pt, "
+                + "which is the shape of the defect — a width declared outside the style"
+        )
+    }
+
+    /// The widest horizontal run of the button's fill colour, in points.
+    ///
+    /// The fill is found as the most common colour that is not the corner colour. Sampling the
+    /// image's centre was tried first and measured 393pt for both arms: the centre pixel sits inside
+    /// a label glyph, so the sampled colour was the label's white, which also fills the region
+    /// outside the control — a target colour that cannot vary with the subject is not a readback.
+    static func widestRun(matchingCentreOf image: CGImage) throws -> CGFloat {
+        let w = image.width, h = image.height
+        var pixels = [UInt8](repeating: 0, count: w * h * 4)
+        let context = try XCTUnwrap(CGContext(
+            data: &pixels, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+        ))
+        context.draw(image, in: CGRect(x: 0, y: 0, width: w, height: h))
+
+        func rgb(_ x: Int, _ y: Int) -> (Int, Int, Int) {
+            let i = (y * w + x) * 4
+            return (Int(pixels[i]), Int(pixels[i + 1]), Int(pixels[i + 2]))
+        }
+        let background = rgb(0, 0)
+        var histogram: [Int: Int] = [:]
+        for y in 0 ..< h {
+            for x in 0 ..< w {
+                let c = rgb(x, y)
+                guard c != background else { continue }
+                histogram[c.0 << 16 | c.1 << 8 | c.2, default: 0] += 1
+            }
+        }
+        // A render that came back one flat colour is a broken instrument, not a full-width band.
+        XCTAssertFalse(histogram.isEmpty, "the rasterised button is a single flat colour")
+        let packed = histogram.max { $0.value < $1.value }?.key ?? 0
+        let target = ((packed >> 16) & 0xFF, (packed >> 8) & 0xFF, packed & 0xFF)
+        func matches(_ c: (Int, Int, Int)) -> Bool {
+            abs(c.0 - target.0) < 12 && abs(c.1 - target.1) < 12 && abs(c.2 - target.2) < 12
+        }
+
+        var widest = 0
+        for y in 0 ..< h {
+            var run = 0
+            for x in 0 ..< w {
+                run = matches(rgb(x, y)) ? run + 1 : 0
+                widest = max(widest, run)
+            }
+        }
+        let scale = CGFloat(w) / PhoneSurfaceTests.phoneSize.width
+        return CGFloat(widest) / max(scale, 1)
     }
 }

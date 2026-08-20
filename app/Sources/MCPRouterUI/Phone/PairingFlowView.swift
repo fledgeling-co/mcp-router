@@ -239,6 +239,20 @@ public struct PhoneSettingsScreen<Preview: View>: View {
 
     @State private var state: PairedMacSurfaceState = .loading
     @State private var isPairing = false
+    /// The flow's model, owned here for as long as the flow is open.
+    ///
+    /// **It cannot be built inside `navigationDestination`'s closure.** `PairingFlowView` takes it
+    /// as `@Bindable`, which observes an object someone else owns rather than owning one, so a
+    /// model constructed in that closure is replaced on every re-render of this screen — and
+    /// `step`'s initial value is `.scan`, so each replacement threw away whatever `start()` had
+    /// decided and put the scanner back.
+    ///
+    /// That was invisible until 20 Aug 2026 because the simulator reports camera access as
+    /// `.authorized`, which makes `start()` set `.scan` — the same value the reset produced. On a
+    /// real phone that has not yet been asked, the effect is that the pre-prompt explaining what
+    /// the camera is for can be replaced by the scanner it was meant to precede, and the scanner
+    /// has no permission to show anything.
+    @State private var pairingModel: PairingFlowModel?
     @State private var confirmingUnpair = false
     /// Set when `clear()` threw. Held on the screen rather than added to
     /// `PairedMacSurfaceState` on purpose: the nine states of `DESIGN.md` §5 describe what the
@@ -291,6 +305,9 @@ public struct PhoneSettingsScreen<Preview: View>: View {
                         // sentence describing the previous attempt stops being true.
                         onPair: {
                             unpairFailure = nil
+                            pairingModel = PairingFlowModel(
+                                pairing: pairing, camera: camera, store: store
+                            )
                             isPairing = true
                         },
                         onUnpair: { confirmingUnpair = true }
@@ -301,19 +318,25 @@ public struct PhoneSettingsScreen<Preview: View>: View {
             .background(ColorToken.ground.color)
             .navigationTitle("Settings")
             .navigationDestination(isPresented: $isPairing) {
-                PairingFlowView(
-                    model: PairingFlowModel(pairing: pairing, camera: camera, store: store),
-                    onOpenSettings: openSystemSettings,
-                    onFinished: {
-                        isPairing = false
-                        // A completed pairing settles the question the failed unpair raised, so
-                        // the banner must not outlive it — otherwise a Mac that was just correctly
-                        // re-paired sits under "Couldn't unpair … still paired. Nothing changed".
-                        unpairFailure = nil
-                        Task { await load() }
-                    },
-                    cameraPreview: cameraPreview
-                )
+                // `onPair` sets the model before it sets `isPairing`, so this is never nil while
+                // the destination is on screen. The nil branch is what the type system requires
+                // rather than a state the flow reaches.
+                if let pairingModel {
+                    PairingFlowView(
+                        model: pairingModel,
+                        onOpenSettings: openSystemSettings,
+                        onFinished: {
+                            isPairing = false
+                            // A completed pairing settles the question the failed unpair
+                            // raised, so the banner must not outlive it — otherwise a Mac that
+                            // was just correctly re-paired sits under "Couldn't unpair … still
+                            // paired. Nothing changed".
+                            unpairFailure = nil
+                            Task { await load() }
+                        },
+                        cameraPreview: cameraPreview
+                    )
+                }
             }
             // A named consequence, and Cancel is its own control. `DESIGN.md` §9 prefers undo over
             // confirm — but unpairing revokes a credential and cannot be undone, so it earns the

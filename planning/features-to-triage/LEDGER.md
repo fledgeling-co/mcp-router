@@ -74,7 +74,7 @@ it never tested.
 | X2 | The iOS on-glass instrument, and the six cases it takes off `n/a` | `X2-ios-on-glass.md` | — | — | **Done** (ai/x2 → main; lane-owned device, six green runs) |
 | X3 | The iOS unit lane read an empty accessibility tree because the engine was off | `X3-ios-unit-lane-empty-tree.md` | — | — | Done (DEF-029 closed, armed three ways) |
 | X6 | Cleanup's `Read first…`, the half DEF-011 was held open for | — | — | — | **Done** (ai/x6 → main; CASE-0135/0136/0137, nine mutation arms) |
-| M27 | The sidebar foot's loopback readout and the child-process label | `M27-sidebar-foot-readout.md` | — | — | **Ready to verify** (`ai/m27`; both restored, the mock's `--live` dot deliberately not — two out-of-family reviews, recorded in `DESIGN.md` §2) |
+| M27 | The sidebar foot's loopback readout and the child-process label | `M27-sidebar-foot-readout.md` | — | — | **Ready to verify** (`ai/m27` @ `c84ddc8`; both restored, on glass 8 of 8 boards. The mock's `--live` dot deliberately not — and the same argument convicted the count numeral, which was painting `--live` on `0 of 4`. `mac-shell.sh` exit 0, evidence in `planning/evidence/M27-acceptance.md` and `planning/evidence/M27/`) |
 | M28 | Five findings that need a decision rather than a runner | `M28-decision-docket.md` | — | — | Needs input (owner) |
 | X7 | The campaign's published artifacts under-report what it knows | `X7-campaign-artifacts-underreport.md` | — | — | Untriaged (**upstream**: fledgeling-plugins, not this repo) |
 | X8 | Two campaign detectors report findings they cannot support | `X8-detectors-misattribute.md` | — | — | Untriaged (**upstream**: fledgeling-plugins, not this repo) |

@@ -42,4 +42,48 @@ Two things about the assertion are worth the next runner's attention:
 
 | Screen | How verified | Commit | Result |
 |---|---|---|---|
-| _to be filled by the acceptance run_ | | | |
+| SURF-001, the shell, on all eight destinations | `scripts/acceptance/mac-shell.sh` — the eight-destination walk. Per board: `sidebar_address` over the AX dump, bounded left by the sidebar outline's x, right by its trailing edge, and below by the `Child processes` label's y; whole-field match on `^(Router endpoint, )?127\.0\.0\.1:[0-9]+$` | `c84ddc8` | **8 of 8** read `127.0.0.1:8971`, Settings included — the board whose own Endpoint row at x≈942 is what a window-wide grep would have matched |
+| The count card's label, all eight destinations | Same walk. Substring `Child processes` inside the same sidebar bounds; its y is then the bound the address is held below | `c84ddc8` | **8 of 8**. It was 0 of 9 when the campaign measured it |
+| The observed port is the served one | The oracle reads which recording `FixtureControlAPIClient` decodes out of the client's own source, then that file's `port` | `c84ddc8` | `servers-pending-auth.json`, port **8971**, printed by the run. The script previously read `servers.json` — a file the app does not serve |
+| The foot's fourth state — offline | Second launch, `MCPROUTER_SCENARIO=offline`. Two readers: the canonical one, and `sidebar_anything_endpoint_shaped` for anything host-and-port shaped. Plus the label's absence | `c84ddc8` | **Nothing endpoint-shaped in the sidebar, and no label.** `"The router isn't running"` verbatim, no counts |
+| The foot's fourth state — unauthorized | As above. The router answers 401, so the poll failed and no port was ever observed | `c84ddc8` | **Nothing endpoint-shaped, and no label.** `"This app isn't authorised to talk to the router"` verbatim |
+| A35's readout label, still in the tree | Pre-existing assertion: an element whose whole text matches `^[0-9]+ of [0-9]+ declared servers running$` | `c84ddc8` | **Pass** — and it is what refused `.combine`. See below |
+| Invisibility | `frontmost` recorded at start and asserted unchanged; `check_invisible` after each block | `c84ddc8` | The app never came to the front. The run's own closing line: *"all of it without once coming to the front"* |
+
+Whole run: **exit 0**, `planning/evidence/M27/mac-shell-run.txt`.
+
+## What the run refused, which is the part worth reading
+
+**`.accessibilityElement(children: .combine)` on the count row failed A35's assertion, measured.**
+Two out-of-family reviews asked for it and the reasoning was good — one element, one VoiceOver
+stop, the label joined to the reading it heads. A35's gate requires an element whose *whole* text is
+`N of M declared servers running`; a combined row publishes `Child processes, N of M …` and the run
+went red at *"the readout's accessibility label is not in the tree"*. The row therefore merges into
+neither one element nor none: `.ignore` (what shipped) discards the label, `.combine` breaks A35,
+and leaving it alone publishes both as self-describing stops. `SidebarFootTests` pins all three.
+
+Three defensible forms, one survivor, and only the running app could say which.
+
+## The captures, and what binds them to what they show
+
+`planning/evidence/M27/captures.tsv` carries a row per destination: the destination, the
+**CGWindowID** the capture was taken by, the bundle path the pid was executing, the exact string the
+foot assertion read out of the accessibility tree in that same iteration, the file name, and the
+timestamp. Captures are by window id rather than by screen rectangle, which is the only route that
+photographs *this* window rather than whatever sits over a region.
+
+Two of the eight are committed — `sidebar-foot-Activity.png` (the ordinary case) and
+`sidebar-foot-Settings.png` (the board that draws its own `127.0.0.1` in the content zone, so a
+naive check would have called the foot present there when it was not). The other six were captured
+in the same run and are in the tsv; they are not committed because eight window captures is 1.9MB
+and this directory has no precedent for images.
+
+## The environment, recorded rather than hidden
+
+The first two attempts at this run were lost to machine load, not to the product. Load average was
+**170 to 295** throughout, from other sessions on this machine: the first run failed at
+*"the app is running and put no window on screen within 20 seconds"*, and a hand check afterwards
+found the same build launching and drawing a window fine. The passing run raised
+`MAC_APP_WAIT_{GONE,START,WINDOW}_TICKS` to 400 (100s). That changes no assertion — those bounds
+only decide whether an environment stall is reported as a product failure, which is what the
+script's own failure text says it is claiming.

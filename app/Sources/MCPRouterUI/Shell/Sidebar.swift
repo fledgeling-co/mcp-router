@@ -128,17 +128,36 @@
                 // transform here to remove, which is what A12 asserts.
                 .environment(\.defaultMinListRowHeight, MetricToken.tableRows.leadingScalar)
 
-                Divider()
-
+                // M27: no divider above the readout any more. It has a card of its own now — the
+                // one `prototype.html` draws — and a full-bleed rule above a bordered plate is two
+                // separations doing one job.
                 Readout(
                     state: model.readout.state,
                     tracePoints: model.tracePoints(),
                     traceLabel: model.traceLabel()
                 )
                 .frame(height: readoutHeight)
+                // All four edges. The top one was missing and the card sat flush against the last
+                // nav row — the divider that used to separate them went with the card, so nothing
+                // was left holding them apart. `DESIGN.md` §2 says the card's margins are its own,
+                // which means the same margin on every side.
+                .padding(ReadoutGeometry.cardMargin)
+
+                if SidebarFootPresence.isDrawn(foot) {
+                    Divider()
+                    SidebarFoot(reading: foot)
+                }
             }
             .background(sidebarBackground)
             .focusSection()
+        }
+
+        /// Where the app is pointed, from the same poll everything else in this shell renders.
+        ///
+        /// Read from `trackerState` rather than from a second source: the port is the one the
+        /// router answered on, which is what makes the line an observation instead of a constant.
+        private var foot: LoopbackFoot {
+            LoopbackFoot.reading(for: model.trackerState)
         }
 
         /// The failure and empty forms carry wrapped prose, so they are allowed to be taller than the

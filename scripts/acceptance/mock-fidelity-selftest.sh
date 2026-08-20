@@ -139,6 +139,28 @@ dump = {
 if os.environ.get("FIXTURE_DRIFT") == "1":
     dump["root"]["children"][2]["text"] = "Do the other thing"
 
+# One mutation per layer that had no arming case until 21 Aug 2026. The out-of-family review
+# (planning/evidence/M23-review-codex.md, finding 8) made the point the brief already makes:
+# proving one route to exit 1 and one to exit 3 leaves every other layer free to be constant-green
+# without the selftest noticing. Each of these makes exactly one layer speak.
+if os.environ.get("FIXTURE_AXIS_LIE") == "1":
+    # The children stay where they are; only the label changes. A structure layer that trusted the
+    # annotation instead of the geometry would report this tree clean.
+    dump["root"]["axis"] = "horizontal"
+    dump["root"]["kind"] = "hstack"
+if os.environ.get("FIXTURE_ZERO_AREA") == "1":
+    dump["root"]["children"][1]["frame"]["width"] = 0
+if os.environ.get("FIXTURE_CASCADE_LOST") == "1":
+    # Two nodes naming Body, laid out at different single-line heights: an ancestor .font() won on
+    # one of them. This is the residue the font-weight-face layer cannot see, so if type-metrics
+    # does not catch it nothing does.
+    dump["root"]["children"][2]["kind"] = "text"
+    dump["root"]["children"][2]["frame"]["height"] = 24
+if os.environ.get("FIXTURE_EXTRA_NODE") == "1":
+    dump["root"]["children"].append(
+        node("invented", "card", "leaf", (0, 80, 200, 40), text="Nothing in the mock says this")
+    )
+
 open(os.path.join(root, "dumps/fixture.ideal.json"), "w").write(json.dumps(dump, indent=1))
 
 layers = ["tokens", "literals", "structure", "geometry", "type-metrics", "copy", "breadth"]
@@ -155,11 +177,13 @@ open(os.path.join(root, "planning/fidelity/fixture.layers.json"), "w").write(jso
     "layers": declared,
 }, indent=1))
 
-open(os.path.join(root, "planning/fidelity/fixture.pairing.tsv"), "w").write(
+pairing = (
     "ideal\tv-ideal/heading/fixture\tfixture.ideal/heading\n"
     "ideal\tv-ideal/sentence/one-sentence\tfixture.ideal/sentence\n"
-    "ideal\tv-ideal/button/do-the-thing\tfixture.ideal/action\n"
 )
+if os.environ.get("FIXTURE_DROP_PAIRING") != "1":
+    pairing += "ideal\tv-ideal/button/do-the-thing\tfixture.ideal/action\n"
+open(os.path.join(root, "planning/fidelity/fixture.pairing.tsv"), "w").write(pairing)
 
 if os.environ.get("FIXTURE_NO_DUMP") == "1":
     os.remove(os.path.join(root, "dumps/fixture.ideal.json"))
@@ -195,7 +219,68 @@ export STUB_TOKENS_SILENT=1; expect "a token suite that printed no marker return
 root="$SCRATCH/shrunk"; build "$root"
 export STUB_TOKEN_ROWS=4; expect "a shrunken token census returns 3, not 0" 3 "$root" "below the floor"; unset STUB_TOKEN_ROWS
 
-# 8 — the gate script's own preflight, driven for real
+# 8 — structure: a node that calls itself horizontal while its children stack vertically.
+root="$SCRATCH/axis"; export FIXTURE_AXIS_LIE=1; build "$root"; unset FIXTURE_AXIS_LIE
+expect "an axis the geometry contradicts returns 1" 1 "$root" "declares axis horizontal"
+
+# 9 — geometry: a node that laid out to nothing. A zero-area frame diffs clean against every
+# other zero-area frame, which is agreement between two absences.
+root="$SCRATCH/zero"; export FIXTURE_ZERO_AREA=1; build "$root"; unset FIXTURE_ZERO_AREA
+expect "a zero-area frame returns 1" 1 "$root" "zero-area frame"
+
+# 10 — type-metrics: two nodes naming one type role, laid out at different single-line heights.
+root="$SCRATCH/cascade"; export FIXTURE_CASCADE_LOST=1; build "$root"; unset FIXTURE_CASCADE_LOST
+expect "one role measured at two heights returns 1" 1 "$root" "lost the cascade"
+
+# 11 — breadth, forwards: a section in the build that nothing in the mock accounts for. Matching a
+# mock means removing what it does not have, not only adding what it lacks.
+root="$SCRATCH/extra"; export FIXTURE_EXTRA_NODE=1; build "$root"; unset FIXTURE_EXTRA_NODE
+expect "a section the mock has no affordance for returns 1" 1 "$root" "is in the build and not in the mock"
+
+# 12 — breadth, backwards: delete the pairing row for an affordance the mock draws. The review
+# lane's finding 4 predicted this hides the row and returns 0, on the reading that the ledger
+# trusts its own denominator. It does not: the inventory is re-derived from the mock every run, so
+# a deleted pairing makes the affordance read `absent`, which is a finding.
+root="$SCRATCH/unpaired"; export FIXTURE_DROP_PAIRING=1; build "$root"; unset FIXTURE_DROP_PAIRING
+expect "deleting a pairing row returns 1, not 0" 1 "$root" "is absent from the build"
+
+# 13 — the real colour-literal lint, against every colour-constructor spelling the `literals` layer
+# claims to catch. Not the stub: this layer's whole value is that it EXECUTES that script, and on
+# 21 Aug 2026 three of these spellings passed it clean while the M23 spec claimed otherwise.
+LINT="$REPO/scripts/lint/no-raw-design-values.sh"
+PROBE="$REPO/app/Sources/MCPRouterUI/MockFidelitySelftestProbe.swift"
+trap 'rm -rf "$SCRATCH"; rm -f "$PROBE"' EXIT
+while IFS= read -r spelling; do
+  [ -z "$spelling" ] && continue
+  cases=$((cases + 1))
+  printf 'import SwiftUI\nenum MockFidelitySelftestProbe { static let probe = %s }\n' "$spelling" > "$PROBE"
+  if "$LINT" > /dev/null 2>&1; then
+    echo "FAIL  the colour-literal lint let '$spelling' through"
+    fail=1
+  else
+    echo "ok    the colour-literal lint catches $spelling"
+  fi
+done <<'SPELLINGS'
+Color(white: 0.5)
+Color(hue: 0.5, saturation: 0.5, brightness: 0.5)
+Color(red: 0.1, green: 0.2, blue: 0.3)
+Color(.sRGB, red: 0.1, green: 0.2, blue: 0.3)
+Color(.sRGBLinear, red: 0.1, green: 0.2, blue: 0.3)
+Color(.displayP3, red: 0.1, green: 0.2, blue: 0.3)
+Color(cgColor: someCGColor)
+SPELLINGS
+rm -f "$PROBE"
+# And the tree with no probe in it must still be clean, or every case above passed for the wrong
+# reason — a lint that is red whatever you feed it proves nothing about the spellings.
+cases=$((cases + 1))
+if "$LINT" > /dev/null 2>&1; then
+  echo "ok    the lint is clean once the probe is removed"
+else
+  echo "FAIL  the lint is red on an unmodified tree, so the spelling cases above proved nothing"
+  fail=1
+fi
+
+# 14 — the gate script's own preflight, driven for real
 cases=$((cases + 1))
 ./scripts/acceptance/mock-fidelity-gate.sh no-such-surface > /dev/null 2>&1
 if [ $? = 3 ]; then

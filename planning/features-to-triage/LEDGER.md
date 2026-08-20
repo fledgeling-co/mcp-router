@@ -15,6 +15,8 @@ first.
 | R3 | Swift router: control, usage, registry | `R3-router-control-registry.md` | — | — | Untriaged |
 | R5 | Swift router: OAuth and the auth routes | `R5-router-auth.md` | — | — | Untriaged |
 | R4 | Differential parity harness and cutover | `R4-router-parity-cutover.md` | — | — | Untriaged |
+| R4-C1 | The installer points at Swift; the TypeScript tree stays | `R4-C1-installer-points-at-swift.md` | — | — | **Done** (ai/r4c) |
+| R4-C2 | Retire `src/*.ts` — held, and what it waits on | `R4-C1-installer-points-at-swift.md` | — | — | Held (owner: not on a green streak) |
 | M1 | Mac window shell, menu bar, keyboard | `M1-mac-shell.md` | — | — | Untriaged |
 | M2 | Activity: the live call log | `M2-activity.md` | — | — | Untriaged |
 | M3 | Servers: the breaker board | `M3-servers-board.md` | — | — | Untriaged |

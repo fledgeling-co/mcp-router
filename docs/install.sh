@@ -6,7 +6,8 @@
 #
 # What it does, in order, and nothing else:
 #   0. fetches the source into ~/.local/share/mcp-router, if you piped this in
-#   1. builds the router
+#   1. builds BOTH routers — the Swift one that will serve, and the TypeScript one that stays as
+#      the fallback and as the parity harness's reference (MCPR_ROUTER=node to serve from it)
 #   2. copies your stdio MCP servers out of ~/.claude.json into the router's own list
 #   3. indexes them once, so `tools/list` can be served with nothing running
 #   4. writes two launchd agents with THIS machine's absolute paths and loads them
@@ -24,10 +25,26 @@ die()  { printf '%sxxx%s %s\n' "$RED" "$RST" "$1" >&2; exit 1; }
 [[ "$(uname -s)" == "Darwin" ]] || die "This installer is macOS-only: it uses launchd. On Linux, build with \`npm run build\` and run \`node dist/index.js serve\` under systemd."
 
 # ---------------------------------------------------------------- prerequisites
+# Node stays a prerequisite even though the daemon is now Swift, and that is the whole point of
+# the half-cutover: the TypeScript router remains built and runnable, so MCPR_ROUTER=node puts the
+# machine back on it in one reinstall. A fallback you cannot run is not a fallback.
 command -v node >/dev/null 2>&1 || die "node not found on PATH. Install Node 20 or newer."
 NODE_BIN="$(command -v node)"
 NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]')"
 (( NODE_MAJOR >= 20 )) || die "Node $NODE_MAJOR is too old; this needs 20 or newer (tested on 22)."
+
+# Which router the two launchd agents run. `swift` is the default as of the cutover; `node` is the
+# way back, and it is documented rather than hidden because it is the thing that makes this
+# reversible.
+MCPR_ROUTER="${MCPR_ROUTER:-swift}"
+case "$MCPR_ROUTER" in
+  swift|node) ;;
+  *) die "MCPR_ROUTER is \"$MCPR_ROUTER\"; it takes swift or node." ;;
+esac
+
+if [ "$MCPR_ROUTER" = swift ]; then
+  command -v swift >/dev/null 2>&1 || die "swift not found on PATH. Install Xcode or the Swift toolchain, or run with MCPR_ROUTER=node."
+fi
 
 # ---------------------------------------------------------------- source
 # Resolve the repo from this script's own location so the launchd agents point
@@ -64,13 +81,29 @@ PORT="${MCP_ROUTER_PORT:-8879}"
 
 say "source  $REPO_ROOT"
 say "node    $NODE_BIN (v$(node -p 'process.versions.node'))"
+say "router  $MCPR_ROUTER"
 say "port    $PORT"
 mkdir -p "$ROUTER_HOME" "$AGENTS"
 
 # ---------------------------------------------------------------- build
-say "building"
+# BOTH are built, whichever one is selected, and that is deliberate rather than wasteful.
+#
+# The TypeScript router is the oracle the differential parity harness compares against — 83 rows,
+# both routers driven on the wire, byte-compared. `dist/index.js` is what that harness runs as the
+# reference, so a machine that stops building it stops being able to answer "did the Swift router
+# change behaviour" at all. It is also the way back: MCPR_ROUTER=node reinstalls onto a router that
+# is already built and already on disk.
+say "building the TypeScript router (the fallback, and the harness's reference)"
 ( cd "$REPO_ROOT" && npm install --silent && npm run build --silent )
 [[ -f "$REPO_ROOT/dist/index.js" ]] || die "build produced no dist/index.js"
+
+SWIFT_BIN=""
+if [ "$MCPR_ROUTER" = swift ]; then
+  say "building the Swift router (release)"
+  ( cd "$REPO_ROOT/app" && swift build -c release --product MCPRouterCLI )
+  SWIFT_BIN="$REPO_ROOT/app/.build/release/MCPRouterCLI"
+  [ -x "$SWIFT_BIN" ] || die "swift build produced no executable at $SWIFT_BIN"
+fi
 
 # ---------------------------------------------------------------- adopt + index
 if [[ -f "$CLAUDE_JSON" ]]; then
@@ -89,13 +122,21 @@ say "indexing (spawns each server once, then shuts it down)"
 NODE_DIR="$(dirname "$NODE_BIN")"
 LAUNCHD_PATH="$NODE_DIR:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
 
-# The Swift router ships ALONGSIDE the TypeScript one, and this is the seam between them.
+# The seam between the two routers, and as of the cutover the Swift side is the default.
 #
-# `node dist/index.js` stays what this installer writes. Setting MCPR_ROUTER_BINARY to a built Swift
-# binary points the agents at it instead — deliberately opt-in, deliberately undocumented in the
-# README, and deliberately not a flag: flipping the default is R4's, behind its differential
-# parity gate and behind a decision the user takes, because it changes the router their own live
-# sessions depend on.
+# **This is half of R4-C, on purpose, and the other half is not scheduled.** `spec-R4.md` specifies
+# the cutover as one commit that both points the agents at Swift AND deletes `src/*.ts`,
+# `package.json` and `dist/`. Only the first half is done here. The second would delete the
+# reference the 83-row differential harness compares against, so it would retire the one instrument
+# that can answer whether the Swift router has changed behaviour — at the moment the Swift router
+# starts serving the user's live sessions, which is exactly when that question starts mattering.
+# The owner took the switch and held the deletion; it is a second, smaller decision, and the
+# evidence it waits on is a captured reproduction of DEF-033 or a bound met that somebody states in
+# advance rather than a green streak nobody set a threshold for.
+#
+# MCPR_ROUTER=node is the way back, and it is one reinstall: the TypeScript router is still built
+# above and still on disk. MCPR_ROUTER_BINARY overrides which Swift binary is used, which is what
+# the install parity lanes drive.
 #
 # BOTH agents move together. They used to not: the `watch` agent stayed on node because there was no
 # Swift watcher, and a variable that moved both would have left the second one running a verb the
@@ -103,13 +144,31 @@ LAUNCHD_PATH="$NODE_DIR:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
 # R2-W built that watcher, so the exception is gone. Moving only one would be the worse of the two
 # failures now available: a Swift `serve` restarted by a node `watch` writing the same servers.json
 # without taking the mutation lock the Swift side takes.
-ROUTER_BINARY="${MCPR_ROUTER_BINARY:-}"
-if [ -n "$ROUTER_BINARY" ]; then
-  [ -x "$ROUTER_BINARY" ] || die "MCPR_ROUTER_BINARY is set to \"$ROUTER_BINARY\", which is not executable"
-  say "MCPR_ROUTER_BINARY is set: both agents will run $ROUTER_BINARY"
+ROUTER_BINARY=""
+if [ "$MCPR_ROUTER" = swift ]; then
+  # Two ways this can be wrong and they are not the same fault, so they do not share a sentence:
+  # an override the caller supplied that does not point at an executable, and a build that was
+  # supposed to have produced one and did not.
+  if [ -n "${MCPR_ROUTER_BINARY:-}" ]; then
+    ROUTER_BINARY="$MCPR_ROUTER_BINARY"
+    [ -x "$ROUTER_BINARY" ] || die "MCPR_ROUTER_BINARY is set to \"$ROUTER_BINARY\", which is not executable"
+  else
+    ROUTER_BINARY="$SWIFT_BIN"
+    [ -x "$ROUTER_BINARY" ] || die "the Swift router was not built at \"$ROUTER_BINARY\". Re-run, or install with MCPR_ROUTER=node."
+  fi
+  say "both agents will run $ROUTER_BINARY"
+else
+  say "both agents will run node $REPO_ROOT/dist/index.js"
 fi
 
-# Both `serve` and `watch` run whichever binary is selected; every other verb stays on node.
+# Both `serve` and `watch` run whichever binary is selected.
+#
+# Every other verb stays on node, including the `import` and `index` this installer runs above and
+# the `node -e` that writes the router entry into ~/.claude.json. That is not an oversight and it is
+# not a split brain: those three are one-shot setup steps, all three are parity-proven rows, and
+# two of them are extracted out of this file verbatim by the install lanes as their oracle. Moving
+# them would change the bytes those lanes read while proving nothing the daemon switch does not
+# already prove.
 program_args() { # verb
   if [ -n "$ROUTER_BINARY" ] && { [ "$1" = serve ] || [ "$1" = watch ]; }; then
     printf '\t\t<string>%s</string>\n\t\t<string>%s</string>\n' "$ROUTER_BINARY" "$1"

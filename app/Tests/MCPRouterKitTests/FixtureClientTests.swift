@@ -167,8 +167,10 @@ struct FixtureClientTests {
     func cleanupSkillsProposesSkills() async throws {
         let response = try await FixtureControlAPIClient(.cleanupSkills).skills()
         let capable = response.clients.filter(\.supportsSkills)
-        #expect(capable.allSatisfy { $0.status == .read },
-                "a client that cannot be read holds the whole proposal back, so no row would draw")
+        #expect(
+            capable.allSatisfy { $0.status == .read },
+            "a client that cannot be read holds the whole proposal back, so no row would draw"
+        )
 
         let proposed = response.skills.filter { skill in
             if case .candidate = CleanupPresentation.candidacy(for: skill, clients: response.clients) {
@@ -176,12 +178,16 @@ struct FixtureClientTests {
             }
             return false
         }
-        #expect(proposed.count == 2,
-                "expected two cleanup-eligible skills, got \(proposed.map(\.name))")
+        #expect(
+            proposed.count == 2,
+            "expected two cleanup-eligible skills, got \(proposed.map(\.name))"
+        )
 
         let moved = proposed.filter { SkillChecks.originUnchanged($0).verdict == .failed }
-        #expect(moved.map(\.name) == ["pr-summariser"],
-                "exactly one row should substitute Read first…, got \(moved.map(\.name))")
+        #expect(
+            moved.map(\.name) == ["pr-summariser"],
+            "exactly one row should substitute Read first…, got \(moved.map(\.name))"
+        )
 
         // The other half of the board is unchanged: this scenario adds skills, it does not take
         // servers away, so the two treatments are photographed side by side rather than alone.

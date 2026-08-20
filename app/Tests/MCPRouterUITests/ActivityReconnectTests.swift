@@ -78,8 +78,13 @@
         /// task is cancelled, so the group's own cancellation cannot reclaim it and the group never
         /// returns. Measured here on 2026-08-14: the suite hung for eleven minutes rather than
         /// failing in two seconds. Polling a latch and cancelling the work is what actually bounds it.
+        /// **30 seconds, not 2**, for `ShellTestSupport.waitUntil`'s reason (DEF-030). The defect
+        /// this bounds is a call that *never* returns, so it exhausts any budget and a generous one
+        /// costs only the time a genuine hang takes to report. Two seconds was inside the
+        /// scheduling noise of a contended host, and this test was one of the four that failed
+        /// there and passed on the same source minutes later.
         static func completes(
-            within duration: Duration = .seconds(2),
+            within duration: Duration = .seconds(30),
             _ body: @escaping @MainActor () async -> Void
         ) async -> Bool {
             let latch = Latch()

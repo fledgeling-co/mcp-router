@@ -1,0 +1,143 @@
+[
+  {
+    "id": "REQ-001",
+    "class": "behaviour",
+    "text": "One shared HTTP MCP endpoint lists tools from a disk cache and starts an upstream only when a tool on it is called; at rest there are zero child processes.",
+    "source": "README.md:7-49",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-002",
+    "class": "behaviour",
+    "text": "The tool cache is keyed on each server's command/args/env identity and tools are namespaced <server>__<tool>.",
+    "source": "README.md:110-111",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-003",
+    "class": "affordance",
+    "text": "The Mac shell navigates eight destinations — Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Settings — via the sidebar and ⌘1–7 / ⌘,.",
+    "source": "DESIGN.md:322-334; Destination.swift:43-113",
+    "evidence": "observed"
+  },
+  {
+    "id": "REQ-004",
+    "class": "behaviour",
+    "text": "The Servers board reflects live server states from ServerStateTracker (running, tripped, never used, held) without inventing a figure the tracker did not observe.",
+    "source": "DESIGN.md:29; spec-M3.md; spec-F4.md",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-005",
+    "class": "honesty-guardrail",
+    "text": "When the tracker is stale or the router is not running, live counts go absent rather than displaying last-known figures as current.",
+    "source": "DESIGN.md:263; spec-F4.md",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-006",
+    "class": "honesty-guardrail",
+    "text": "The phone queues; it never installs. No path from the phone or a notification can put a server on the Mac without explicit human review on the Mac.",
+    "source": "DESIGN.md:348-351; spec-I3.md; spec-I6.md",
+    "evidence": "observed"
+  },
+  {
+    "id": "REQ-007",
+    "class": "honesty-guardrail",
+    "text": "Numbers the router does not observe are never displayed. There is no fabricated memory saving.",
+    "source": "DESIGN.md:292-294",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-008",
+    "class": "affordance",
+    "text": "The menu-bar popover shows a readout, attention rows, and an inbox band of oldest-first arrivals; a partial row carries no review affordance.",
+    "source": "DESIGN.md; spec-I6.md; spec-M8.md",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-009",
+    "class": "behaviour",
+    "text": "Disposing an inbox item immediately withdraws its notification banner; a multi-item banner carries Review only.",
+    "source": "spec-I6.md",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-010",
+    "class": "behaviour",
+    "text": "The phone exposes Discover, Triage, Queue, Library and Settings; Triage commit is a single-batch undoable enqueue.",
+    "source": "spec-I3.md; prototype.html phone nav",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-011",
+    "class": "behaviour",
+    "text": "RouterCore manages live stdio children and HTTP upstreams with single-flight spawn and idle reaping.",
+    "source": "spec-R2.md; README.md:113",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-012",
+    "class": "behaviour",
+    "text": "The control API is loopback-only, authenticated, and refuses to write command/args/env through PATCH.",
+    "source": "ORCHESTRATOR.md standing constraints; spec-R3.md; spec-M8.md",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-013",
+    "class": "honesty-guardrail",
+    "text": "Mutations to servers.json use atomic staging and a lock so concurrent writers cannot clobber.",
+    "source": "spec-R2W.md",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-014",
+    "class": "behaviour",
+    "text": "Swift RouterCore matches the TypeScript reference on the parity corpus; the cutover target is 82 of 83 with fixture-registry-search a standing exclusion.",
+    "source": "spec-R4.md; ORCHESTRATOR.md CUTOVER TARGET",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-015",
+    "class": "affordance",
+    "text": "Mac Pairing sheet shows an 8-character Crockford code and QR; the phone can scan or type it.",
+    "source": "spec-M6.md; spec-I1.md; prototype.html ?sheet=pair",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-016",
+    "class": "behaviour",
+    "text": "A pairing exchange actually contacts the other device and stores a record only after that contact succeeds.",
+    "source": "spec-I5.md; ORCHESTRATOR.md I5 row",
+    "evidence": "contradicted",
+    "note": "I5 measured neither side implements a transport; the phone stores a paired-Mac record for a Mac it never contacted."
+  },
+  {
+    "id": "REQ-017",
+    "class": "affordance",
+    "text": "Every data surface ships the nine DESIGN.md §5 states with real copy on the unhappy paths.",
+    "source": "DESIGN.md:250-271",
+    "evidence": "unknown"
+  },
+  {
+    "id": "REQ-018",
+    "class": "behaviour",
+    "text": "Undo is the Mac contract for reversible acts; a named-consequence dialog is reserved for genuinely destructive ones and is never the default button.",
+    "source": "DESIGN.md:339-344",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-019",
+    "class": "honesty-guardrail",
+    "text": "A refused write is shown as the server's refusal. Success affordances are not shown for work that did not happen.",
+    "source": "DESIGN.md:290; sweeps H; I1 Keychain 'Paired.' defect",
+    "evidence": "reported"
+  },
+  {
+    "id": "REQ-020",
+    "class": "deferred",
+    "text": "install.sh flips to the Swift binary and retires src/*.ts once parity is 82 of 83 and the owner decides.",
+    "source": "ORCHESTRATOR.md R4-C",
+    "evidence": "reported"
+  }
+]

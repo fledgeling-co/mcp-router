@@ -1,0 +1,49 @@
+[
+  {
+    "id": "FLOW-001",
+    "title": "phone-triage-to-mac-inbox",
+    "critical": true,
+    "steps": [
+      {"id": "FLOW-001.01", "surface": "SURF-013", "title": "Select items in Phone Triage and commit to Queue", "atoms": ["triage.card", "queue.commitBar", "badge.count"]},
+      {"id": "FLOW-001.02", "surface": "SURF-009", "title": "Mac popover shows the arrival in the inbox band", "atoms": ["popover.inboxBand", "band.oldestFirst", "statusItem.dot"]},
+      {"id": "FLOW-001.03", "surface": "SURF-008", "title": "Open the Review sheet and accept or decline", "atoms": ["review.sheet", "capability.statement", "button.install", "button.decline"]},
+      {"id": "FLOW-001.04", "surface": "SURF-008", "title": "Disposition withdraws the banner and updates the queue", "atoms": ["notifier.withdraw", "undo.bar", "queue.updated"]}
+    ]
+  },
+  {
+    "id": "FLOW-002",
+    "title": "mac-pairing-to-phone-pairing",
+    "critical": true,
+    "steps": [
+      {"id": "FLOW-002.01", "surface": "SURF-010", "title": "Open the Mac Pairing sheet and show an 8-character Crockford code", "atoms": ["pairing.sheet", "code.8char", "pairing.countdown"]},
+      {"id": "FLOW-002.02", "surface": "SURF-014", "title": "Phone scans the QR or types the code", "atoms": ["qr.scanner", "input.codeField", "paired.confirmation"]}
+    ]
+  },
+  {
+    "id": "FLOW-003",
+    "title": "router-oauth-flow",
+    "critical": true,
+    "steps": [
+      {"id": "FLOW-003.01", "surface": "SURF-016", "title": "Start an auth flow on the control API and listen on :8880", "atoms": ["auth.start", "port.8880", "callback.listener"]},
+      {"id": "FLOW-003.02", "surface": "SURF-016", "title": "Receive the callback and persist the auth record", "atoms": ["callback.response", "token.store", "server.updated"]}
+    ]
+  },
+  {
+    "id": "FLOW-004",
+    "title": "servers-add-and-cleanup",
+    "critical": false,
+    "steps": [
+      {"id": "FLOW-004.01", "surface": "SURF-002", "title": "Add a server and see the breaker rise on first call", "atoms": ["sheet.addServer", "tracker.running", "server.placard"]},
+      {"id": "FLOW-004.02", "surface": "SURF-007", "title": "Inspect Cleanup candidates and confirm removal", "atoms": ["cleanup.row", "confirm.sheet", "server.removed"]}
+    ]
+  },
+  {
+    "id": "FLOW-005",
+    "title": "lazy-spawn-and-idle-reap",
+    "critical": true,
+    "steps": [
+      {"id": "FLOW-005.01", "surface": "SURF-015", "title": "tools/list is served from cache with no child running", "atoms": ["manifest.cache", "child.count.zero"]},
+      {"id": "FLOW-005.02", "surface": "SURF-015", "title": "tools/call spawns only that upstream; idle reaps it", "atoms": ["child.spawned", "child.reaped"]}
+    ]
+  }
+]

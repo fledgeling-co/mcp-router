@@ -1,0 +1,200 @@
+[
+  {
+    "id": "CASE-014",
+    "req": "REQ-001",
+    "surface": "SURF-003",
+    "flow": null,
+    "step": null,
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-003",
+      "state": "loaded",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "activity-board",
+      "dataShape": "call-stream",
+      "executionPlane": "native-ax"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": "app/Tests/MCPRouterUITests/ActivityModelTests.swift",
+    "armedBy": "disabled event accumulation in ActivityModel.swift; suite went red; restored"
+  },
+  {
+    "id": "CASE-015",
+    "req": "REQ-001",
+    "surface": "SURF-004",
+    "flow": null,
+    "step": null,
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-004",
+      "state": "loaded",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "skills-board",
+      "dataShape": "marketplaces",
+      "executionPlane": "native-ax"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": "app/Tests/MCPRouterUITests/SkillsMenuTests.swift",
+    "armedBy": "removed skill filter by marketplace in SkillsBoardModel.swift; suite went red; restored"
+  },
+  {
+    "id": "CASE-016",
+    "req": "REQ-001",
+    "surface": "SURF-005",
+    "flow": null,
+    "step": null,
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-005",
+      "state": "loaded",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "discover-board",
+      "dataShape": "catalog-results",
+      "executionPlane": "native-ax"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": "app/Tests/MCPRouterUITests/DiscoverBoardTests.swift",
+    "armedBy": "disabled search debounce in DiscoverBoardModel.swift; suite went red; restored"
+  },
+  {
+    "id": "CASE-017",
+    "req": "REQ-001",
+    "surface": "SURF-006",
+    "flow": null,
+    "step": null,
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-006",
+      "state": "loaded",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "evals-board",
+      "dataShape": "check-history",
+      "executionPlane": "native-ax"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": "app/Tests/MCPRouterUITests/CheckHistoryStoreTests.swift",
+    "armedBy": "disabled check result persistence; suite went red; restored"
+  },
+  {
+    "id": "CASE-018",
+    "req": "REQ-001",
+    "surface": "SURF-007",
+    "flow": "FLOW-004",
+    "step": "FLOW-004.02",
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-007",
+      "state": "loaded",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "cleanup-board",
+      "dataShape": "candidates",
+      "executionPlane": "native-ax"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": "app/Tests/MCPRouterUITests/CleanupPresentationTests.swift",
+    "armedBy": "reverted candidate scoring logic; suite went red; restored"
+  },
+  {
+    "id": "CASE-019",
+    "req": "REQ-001",
+    "surface": "SURF-010",
+    "flow": "FLOW-002",
+    "step": "FLOW-002.01",
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-010",
+      "state": "code-active",
+      "viewport": "400x300",
+      "theme": "light",
+      "role": "pairing-sheet",
+      "dataShape": "8char-code",
+      "executionPlane": "native-ax"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": "app/Tests/MCPRouterUITests/PairingSheetTests.swift",
+    "armedBy": "corrupted Crockford code generation; suite went red; restored"
+  },
+  {
+    "id": "CASE-020",
+    "req": "REQ-001",
+    "surface": "SURF-011",
+    "flow": null,
+    "step": null,
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-011",
+      "state": "loaded",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "settings-board",
+      "dataShape": "preferences",
+      "executionPlane": "native-ax"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": "app/Tests/MCPRouterUITests/SettingsAndMenuBarTests.swift",
+    "armedBy": "inverted quarantine toggle binding in SettingsBoard; suite went red; restored"
+  },
+  {
+    "id": "CASE-021",
+    "req": "REQ-008",
+    "surface": "SURF-012",
+    "flow": null,
+    "step": null,
+    "lane": "ios-glass",
+    "cell": {
+      "surface": "SURF-012",
+      "state": "loaded",
+      "viewport": "390x844",
+      "theme": "light",
+      "role": "phone-discover",
+      "dataShape": "capabilities-list",
+      "executionPlane": "simctl"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": "app/Tests/MCPRouterKitTests/DiscoverStateTests.swift",
+    "armedBy": "reverted band grouping by capability category; suite went red; restored"
+  },
+  {
+    "id": "CASE-022",
+    "req": "REQ-008",
+    "surface": "SURF-014",
+    "flow": "FLOW-002",
+    "step": "FLOW-002.02",
+    "lane": "ios-glass",
+    "cell": {
+      "surface": "SURF-014",
+      "state": "scanning",
+      "viewport": "390x844",
+      "theme": "light",
+      "role": "qr-scanner",
+      "dataShape": "camera-feed",
+      "executionPlane": "simctl"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": "app/Tests/MCPRouterKitTests/PairingPayloadTests.swift",
+    "armedBy": "corrupted QR payload parser in PairingPayload.swift; suite went red; restored"
+  }
+]

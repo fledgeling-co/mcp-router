@@ -16,6 +16,14 @@ import Foundation
 /// - a client whose directory could not be read renders an *unknown* slot, never an empty one,
 ///   because an empty slot asserts the skill is absent somewhere nobody managed to look.
 public enum SkillPresentation {
+    /// The Skills header action.
+    ///
+    /// `Add marketplace…`, which is what `prototype.html:786` puts in that slot and what
+    /// `MenuCommand.addMarketplace` has always said. The board shipped `Manage marketplaces…`, so
+    /// the menu item and the button that open the same sheet named it two different things —
+    /// DEF-012. Stated once here so they cannot drift again.
+    public static let marketplacesAction = "Add marketplace…"
+
     // MARK: - Header
 
     /// The subtitle under "Skills".

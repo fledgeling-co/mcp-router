@@ -135,6 +135,9 @@
     actor RecordingUsageClient: ControlAPIClient {
         struct Call: Sendable { let limit: Int?; let server: String?; let cwd: String? }
         private(set) var calls: [Call] = []
+        /// How many times `POST /usage/reset` was issued. Counted rather than flagged: the
+        /// difference between "the dialog sent one" and "every keystroke sent one" is the number.
+        private(set) var resets = 0
         private let inner = FixtureControlAPIClient(.populated)
 
         func usage(
@@ -209,7 +212,8 @@
         }
 
         func resetUsage() async throws(ControlAPIError) -> UsageReset {
-            try await inner.resetUsage()
+            resets += 1
+            return try await inner.resetUsage()
         }
     }
 

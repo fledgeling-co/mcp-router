@@ -1,0 +1,4 @@
+[submodule ".claude/plugins/fledgeling-plugins"]
+	path = .claude/plugins/fledgeling-plugins
+	url = https://github.com/fledgeling-co/fledgeling-plugins.git
+	branch = main

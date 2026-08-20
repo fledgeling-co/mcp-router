@@ -9,16 +9,20 @@ import SwiftUI
 struct AnyPhoneButton: ButtonStyle {
     enum Kind { case prominent, standard }
     private let kind: Kind
+    private let fillsWidth: Bool
 
-    init(_ kind: Kind) {
+    init(_ kind: Kind, fillsWidth: Bool = false) {
         self.kind = kind
+        self.fillsWidth = fillsWidth
     }
 
     func makeBody(configuration: Configuration) -> some View {
         Group {
             switch kind {
-            case .prominent: PhoneProminentButtonStyle().makeBody(configuration: configuration)
-            case .standard: PhoneStandardButtonStyle().makeBody(configuration: configuration)
+            case .prominent:
+                PhoneProminentButtonStyle(fillsWidth: fillsWidth).makeBody(configuration: configuration)
+            case .standard:
+                PhoneStandardButtonStyle(fillsWidth: fillsWidth).makeBody(configuration: configuration)
             }
         }
     }
@@ -56,8 +60,7 @@ struct PairedNotStoredView: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             Button(entry.actionLabel ?? "Pair again", action: onPairAgain)
-                .buttonStyle(PhoneProminentButtonStyle())
-                .frame(maxWidth: .infinity)
+                .buttonStyle(PhoneProminentButtonStyle(fillsWidth: true))
 
             Spacer()
         }
@@ -111,8 +114,7 @@ struct PairedSuccessView: View {
             )
 
             Button(entry.actionLabel ?? "Done", action: onDone)
-                .buttonStyle(PhoneProminentButtonStyle())
-                .frame(maxWidth: .infinity)
+                .buttonStyle(PhoneProminentButtonStyle(fillsWidth: true))
 
             Spacer()
         }

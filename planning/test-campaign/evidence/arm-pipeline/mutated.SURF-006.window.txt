@@ -1,0 +1,87 @@
+0	AXWindow	AXStandardWindow	Checks								SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1	180.0	184.0	980.0	620.0	0
+1	AXGroup	AXHostingView										180.0	184.0	980.0	620.0	0
+2	AXSplitGroup										SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1, SidebarNavigationSplitView	176.0	184.0	988.0	620.0	0
+3	AXGroup	AXHostingView										184.0	192.0	256.0	604.0	0
+4	AXScrollArea											184.0	236.0	256.0	475.0	0
+5	AXOutline				Sidebar		1				sidebar	184.0	236.0	256.0	475.0	0
+6	AXRow	AXOutlineRow						0				184.0	236.0	256.0	19.0	
+7	AXCell						1	0				194.0	236.0	236.0	19.0	1
+8	AXGroup	AXHostingView										198.0	236.0	240.0	19.0	0
+9	AXHeading				Running		1					198.0	238.5	45.0	14.0	
+6	AXRow	AXOutlineRow						0				184.0	255.0	256.0	32.0	
+7	AXCell						1	0				194.0	255.0	236.0	32.0	1
+8	AXButton				Activity		1					201.5	263.0	71.0	16.0	
+6	AXRow	AXOutlineRow						0				184.0	287.0	256.0	32.0	
+7	AXCell						1	0				194.0	287.0	236.0	32.0	1
+8	AXButton				Servers, 1 need attention		1					200.0	295.0	224.0	16.0	
+6	AXRow	AXOutlineRow						0				184.0	319.0	256.0	32.0	
+7	AXCell						1	0				194.0	319.0	236.0	32.0	1
+8	AXButton				Skills		1					203.0	327.0	55.0	16.0	
+6	AXRow	AXOutlineRow						0				184.0	364.0	256.0	19.0	
+7	AXCell						1	0				194.0	364.0	236.0	19.0	1
+8	AXGroup	AXHostingView										198.0	364.0	240.0	19.0	0
+9	AXHeading				Library		1					198.0	366.5	39.0	14.0	
+6	AXRow	AXOutlineRow						0				184.0	383.0	256.0	32.0	
+7	AXCell						1	0				194.0	383.0	236.0	32.0	1
+8	AXButton				Discover		1					202.0	391.0	77.5	16.0	
+6	AXRow	AXOutlineRow						0				184.0	415.0	256.0	32.0	
+7	AXCell						1	0				194.0	415.0	236.0	32.0	1
+8	AXButton				Inbox		1					200.5	423.0	58.5	16.0	
+6	AXRow	AXOutlineRow						1				184.0	447.0	256.0	32.0	
+7	AXCell						1	1				194.0	447.0	236.0	32.0	1
+8	AXButton				Checks		1	1				200.5	455.0	70.5	16.0	
+6	AXRow	AXOutlineRow						0				184.0	479.0	256.0	32.0	
+7	AXCell						1	0				194.0	479.0	236.0	32.0	1
+8	AXButton				Cleanup, 3 never used		1					201.5	487.0	222.5	16.0	
+6	AXRow	AXOutlineRow						0				184.0	524.0	256.0	0.0	
+7	AXCell						1	0				194.0	524.0	236.0	0.0	1
+8	AXGroup	AXHostingView										198.0	524.0	240.0	0.0	0
+6	AXRow	AXOutlineRow						0				184.0	524.0	256.0	32.0	
+7	AXCell						1	0				194.0	524.0	236.0	32.0	1
+8	AXButton				Settings		1					201.0	532.0	76.0	16.0	
+6	AXColumn							0			ListColumn	194.0	236.0	236.0	475.0	
+4	AXUnknown				1 of 4 declared servers running		1				sidebar	192.0	720.0	240.0	16.0	
+4	AXStaticText			last 5s · peak 1			1				sidebar	192.0	773.5	99.0	13.0	
+3	AXSplitter			264			0	0				440.0	236.0	0.0	568.0	0
+3	AXGroup	AXHostingView										176.0	184.0	988.0	620.0	0
+4	AXStaticText			none	mcprouter-key-probe						content	1088.0	776.0	72.0	24.0	1
+4	AXScrollArea										content	440.0	236.0	724.0	568.0	0
+5	AXStaticText			Checks			1					456.0	252.0	77.0	26.0	
+5	AXButton				Re-check all…		1					1042.0	256.0	106.0	24.0	0
+5	AXStaticText			The checks MCP Router runs itself, stamped to the version each was run against. No model-graded evaluation exists in this product.			1					456.0	280.0	543.0	29.0	
+5	AXRadioGroup						1					456.0	317.0	460.0	24.0	0
+6	AXRadioButton	AXSegment		1	All 10		1					456.0	317.0	115.0	24.0	0
+6	AXRadioButton	AXSegment		0	Not met 5		1					572.0	317.0	114.0	24.0	0
+6	AXRadioButton	AXSegment		0	Not observed 3		1					687.0	317.0	114.0	24.0	0
+6	AXRadioButton	AXSegment		0	Unstamped 2		1					802.0	317.0	114.0	24.0	0
+5	AXImage				search		1				magnifyingglass	933.5	323.0	12.0	12.0	
+5	AXTextField						1					951.0	321.0	181.0	16.0	0
+5	AXStaticText			subject			1					502.0	349.0	37.5	13.0	
+5	AXStaticText			kind			1					690.0	349.0	21.5	13.0	
+5	AXStaticText			checks			1					758.0	349.0	35.5	13.0	
+5	AXStaticText			checked against			1					934.0	349.0	82.0	13.0	
+5	AXOpaqueProviderGroup	AXOpaqueProviderList					1					456.0	366.0	692.0	440.0	
+6	AXStaticText			fixture-stdio, Server. 2 confirmed, 3 not observed, 1 not applicable.			1					456.0	366.0	692.0	48.0	
+6	AXStaticText			fixture-http, Server. 2 confirmed, 3 not observed, 1 not applicable.			1					456.0	415.0	692.0	48.0	
+6	AXStaticText			fixture-tools, Server. 5 confirmed, 1 not applicable.			1					456.0	464.0	692.0	48.0	
+6	AXStaticText			fixture-oauth, Server. 2 confirmed, 1 not met, 3 not observed.			1					456.0	513.0	692.0	48.0	
+6	AXStaticText			design-craft, Skill. 4 confirmed, 1 not applicable.			1					456.0	562.0	692.0	48.0	
+6	AXStaticText			trawl, Skill. 4 confirmed, 1 not met.			1					456.0	611.0	692.0	48.0	
+6	AXStaticText			changelog-writer, Skill. 3 confirmed, 1 not met, 1 not applicable.			1					456.0	660.0	692.0	48.0	
+6	AXStaticText			intent-layer, Skill. 2 confirmed, 1 not met, 2 not applicable.			1					456.0	709.0	692.0	48.0	
+6	AXStaticText			ai-gateway, Skill. 4 confirmed, 1 not applicable.			1					456.0	758.0	692.0	48.0	
+5	AXStaticText			A check is something MCP Router performed and can show you the input to. It grades how well a capability does its job. Skills are executed by the router, so this reports how one behaved when an agent used it.			1					456.0	863.0	650.5	27.0	
+5	AXScrollBar			0			1					1146.0	235.0	19.0	552.5	0
+6	AXValueIndicator			0								1155.0	239.0	6.0	411.5	
+6	AXButton	AXIncrementArrow										1147.0	236.0	0.0	0.0	
+6	AXButton	AXDecrementArrow										1147.0	236.0	0.0	0.0	
+6	AXButton	AXIncrementPage										1155.0	651.0	6.0	132.5	
+6	AXButton	AXDecrementPage										1155.0	239.0	6.0	0.0	
+1	AXToolbar											180.0	184.0	980.0	52.0	0
+2	AXButton				Hide Sidebar		1	0				393.0	184.0	47.0	52.0	0
+1	AXButton	AXCloseButton					1					198.0	202.0	16.0	16.0	0
+1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					244.0	202.0	16.0	16.0	0
+2	AXGroup											245.0	203.0	14.0	14.0	0
+3	AXGroup											245.0	203.0	14.0	14.0	0
+1	AXButton	AXMinimizeButton					1					221.0	202.0	16.0	16.0	0
+1	AXStaticText			Checks			1					444.0	184.0	712.0	52.0	0

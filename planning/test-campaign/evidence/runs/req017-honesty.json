@@ -1,0 +1,36 @@
+{
+ "checked": 10,
+ "failures": [
+  "offline publishes NO counts line",
+  "offline does not zero the counts",
+  "exactly the readable loads publish counts"
+ ],
+ "states": {
+  "populated": {
+   "countsLine": "2 tools from 4 servers \u00b7 1 running",
+   "tools": 2,
+   "servers": 4,
+   "running": 1,
+   "filterSegmentRunning": 1,
+   "dump": "SURF-002.window.txt"
+  },
+  "empty": {
+   "countsLine": "0 tools from 0 servers \u00b7 0 running",
+   "tools": 0,
+   "servers": 0,
+   "running": 0,
+   "filterSegmentRunning": null,
+   "dump": "SURF-002.empty.window.txt"
+  },
+  "offline": {
+   "countsLine": "0 tools from 0 servers \u00b7 0 running",
+   "tools": 0,
+   "servers": 0,
+   "running": 0,
+   "filterSegmentRunning": null,
+   "dump": "SURF-002.offline.window.txt"
+  }
+ },
+ "decoy": "zeroed",
+ "pass": false
+}

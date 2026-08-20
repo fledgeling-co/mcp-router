@@ -132,8 +132,7 @@ struct ScanView<Preview: View>: View {
             PhoneNoticeList(entry: PairingCopy.entry(.scanCaution))
 
             Button(PairingCopy.entry(.scanReady).actionLabel ?? "", action: onTypeInstead)
-                .buttonStyle(PhoneStandardButtonStyle())
-                .frame(maxWidth: .infinity)
+                .buttonStyle(PhoneStandardButtonStyle(fillsWidth: true))
 
             Text(PairingCopy.entry(.scanNoCode).body)
                 .typeRole(.callout)
@@ -164,20 +163,23 @@ struct CameraPermissionView: View {
                     .foregroundStyle(ColorToken.t3.color)
             }
 
+            // `--attn`, not neutral. i1-phone-pairing.html draws the pre-prompt in `.wants`, whose
+            // fill, border and headline are all `--attn`, and annotates §C with the reason: a
+            // caution before an irreversible grant is not a failure and not decoration — a decision
+            // is genuinely being asked for. `PhoneMessageBlock.Tone.caution` carries that same
+            // sentence and this surface was the one place it was earned and not used. DEF-027.
             PhoneNoticeList(
                 entry: entry,
-                tone: authorization == .notDetermined ? .neutral : .failure,
+                tone: authorization == .notDetermined ? .caution : .failure,
                 glyph: authorization == .notDetermined ? .shield : .warn
             )
 
             Button(entry.actionLabel ?? "", action: primaryAction)
-                .buttonStyle(PhoneProminentButtonStyle())
-                .frame(maxWidth: .infinity)
+                .buttonStyle(PhoneProminentButtonStyle(fillsWidth: true))
 
             if let secondary = entry.secondaryActionLabel {
                 Button(secondary, action: onTypeInstead)
-                    .buttonStyle(PhoneStandardButtonStyle())
-                    .frame(maxWidth: .infinity)
+                    .buttonStyle(PhoneStandardButtonStyle(fillsWidth: true))
             }
         }
     }
@@ -324,8 +326,9 @@ struct PairingOutcomeView: View {
                 // Refused is reported without alarm and **without retry as the primary action** —
                 // someone made a decision at the Mac, and pressing a prominent "Try again" against
                 // that decision is the app arguing with its user.
-                .buttonStyle(isRefusal ? AnyPhoneButton(.standard) : AnyPhoneButton(.prominent))
-                .frame(maxWidth: .infinity)
+                .buttonStyle(isRefusal
+                    ? AnyPhoneButton(.standard, fillsWidth: true)
+                    : AnyPhoneButton(.prominent, fillsWidth: true))
 
             Spacer()
         }

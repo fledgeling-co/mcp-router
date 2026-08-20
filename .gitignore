@@ -60,7 +60,23 @@ xcuserdata/
 *.xcodeproj/
 app/**/Info.plist
 app/.derived/
+# The ios-glass lane builds signed, into its own derived data — DEF-017.
+app/.derived-signed/
 
 # Private status pages. This repo is public and docs/ is the published site;
 # these name project state and are written for one reader.
 planning/status/
+
+# The campaign's AX driver is built from scripts/acceptance/axkit.swift; the binary is an
+# artifact of that source, not a second copy of it.
+planning/test-campaign/bin/axkit
+**/__pycache__/
+
+# The superseded paper-green campaign is kept for its registry — the record of what a campaign
+# that had never reached a display server looked like. Its captures and its embedded evidence
+# page are regenerable from that registry and are 6.5 MB of a public clone.
+planning/test-campaign.2026-08-19-paper/evidence/
+planning/test-campaign.2026-08-19-paper/evidence.html
+
+# Editor and tool backups.
+*.bak

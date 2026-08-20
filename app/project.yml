@@ -146,6 +146,35 @@ targets:
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/MCPRouterIOS.app/MCPRouterIOS"
         BUNDLE_LOADER: "$(TEST_HOST)"
 
+  # ---------------------------------------------------------------- iOS on-glass tests
+  #
+  # A UI-test target, and it exists because `MCPRouterIOSTests` above cannot answer the question
+  # the campaign's `ios-glass` lane asks. That target is a *unit* test hosted by the app: it
+  # constructs views in the app's process and reads them through a hand-rolled walk of
+  # `UIView.accessibilityLabel`. It never taps a tab, so it cannot tell "each tab renders its own
+  # surface" from "all five render Settings" — which is precisely the failure `PhoneShell`'s own
+  # `switch` comment names as the one worth guarding.
+  #
+  # XCUITest runs out of process against the installed app on a booted simulator, reads iOS's own
+  # accessibility tree rather than a walk of ours, and its screenshots are taken by the runner
+  # *after* a named surface assertion passed — which is what makes a capture attributable to a
+  # surface instead of being a photograph of whatever was on screen.
+  #
+  # It never needs Simulator.app. `xcodebuild test` against an already-`simctl boot`ed device
+  # drives the runtime directly, so this obeys `planning/practices/UI_VERIFICATION.md` rule 1.
+  MCPRouterIOSUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: MCPRouterIOSUITests
+    dependencies:
+      - target: MCPRouterIOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.fledgeling.mcprouter.ios.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: MCPRouterIOS
+
 schemes:
   MCPRouterIOS:
     build:
@@ -155,3 +184,15 @@ schemes:
     test:
       targets:
         - MCPRouterIOSTests
+
+  # A separate scheme so `make test-ios` stays the fast in-process suite and the on-glass lane is
+  # asked for by name. One scheme carrying both would make every unit run pay for an app install
+  # and five tab transitions.
+  MCPRouterIOSGlass:
+    build:
+      targets:
+        MCPRouterIOS: all
+        MCPRouterIOSUITests: [test]
+    test:
+      targets:
+        - MCPRouterIOSUITests

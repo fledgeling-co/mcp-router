@@ -474,6 +474,18 @@ acceptance: build-mac build-mac-release
 	./scripts/acceptance/mac-shell.sh
 	./scripts/acceptance/r7-harness-reconciliation.sh
 
+## R6 — the PATH a spawned child inherits, measured at both routers under a scratch HOME.
+##
+## Its own target rather than a line in `acceptance`: it builds the release Swift CLI and indexes a
+## fixture server at each router, which is a minute of work that the Mac acceptance run does not
+## need. It writes nothing outside its own mktemp directory.
+acceptance-r6: build-router-release
+	npm run build
+	./scripts/acceptance/r6-child-path.sh
+
+build-router-release:
+	cd $(APP_DIR) && swift build -c release --product MCPRouterCLI
+
 lint: tools
 	@fail=0; \
 	swiftformat --lint . --config .swiftformat || fail=1; \

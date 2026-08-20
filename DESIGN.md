@@ -162,6 +162,77 @@ board jumps when data lands, and a height buried in another cell's prose cannot 
 
 Concentric corners throughout: child radius = parent radius − padding.
 
+### The sidebar foot `(specified)`
+
+The last two elements in the sidebar, below the destinations, on **every** board — they belong to
+the shared wrapper rather than to a surface. Written out because the build had lost one of them
+entirely and half of the other, and neither absence was visible to any check.
+
+| Element | What it draws |
+|---|---|
+| The readout card | A plate — `--f3` fill, `--line` hairline — holding the label `Child processes`, the counts `n of m`, the 60-second trace and its footer. Its margin is the same on **all four** edges; there is no divider above it, because a rule above a bordered plate is two separations doing one job — which means nothing but that margin holds it off the last destination row |
+| The foot line | The loopback address the app is talking to — `127.0.0.1:<port>` — in monospace at `--t3`, over a divider |
+
+Its geometry is **derived from the table above rather than added to it**, the way the boards'
+metrics are: the card's margin is twice the selection inset, its padding is the selection radius,
+its radius is the selection radius plus half the inset — landing on this document's own card radius
+of 10 — and the foot line is one dense row plus that inset above and below. The chrome-geometry
+table is the token table, and a value composed from tokens does not earn a token of its own.
+
+**The port is the observed one, never a constant.** Both this line and Settings' `Endpoint` row
+compose from `LoopbackAddress`, which takes the port the router answered on. The prototype *drew*
+the literal `127.0.0.1:8879` while the fixture router answered on 8971 — the honesty rule broken
+outward, since a user who moved the port would be told to reach for the wrong one. It was amended
+on this branch and now draws `127.0.0.1:${S.port}` from a `port` value, with the annotation saying
+why; this paragraph is the record of what it used to say, not a live description of it.
+
+**The foot says where the app is pointed. It does not say how the router is.** The prototype paints
+a `--live` dot on this line and the shipped build does not, deliberately. `--live` means *a child
+process is running* and it is already spent, correctly, on the count in the card directly above; a
+green dot beside a card reading `0 of 4` paints that meaning where nothing is running, which is the
+decorative use §2 forbids.
+
+That argument convicted the numeral too, and it took three out-of-family reviews to notice: the
+count itself was painted `--live` unconditionally, so `0 of 4` was already the green mark this
+paragraph refuses. **The count spends `--live` only above zero** and falls to `--t1` at zero, where
+nothing is running but the reading is still the loudest thing the card has to say. The trace keeps
+`--live` at every value: its stroke identifies which quantity is plotted, and a flat line at zero
+is a reading of the count rather than a claim that something is up. A dot in a neutral tier was the remaining option and it fails §6 instead:
+a signal meaning "answering" needs a word for that state, `ControlAPIError` already owns that word,
+and "not answering" would be false for `.unauthorized`, where the router answers 401 and the poll
+still fails. The router's condition is the card's job.
+
+**The card announces as one element, not two.** The label and the reading it heads are one stop for
+a screen reader — `Child processes, 3 of 8 declared servers running` — for the reason A35 already
+matches the destination rows as a prefix rather than whole: a row carrying a value announces as one
+sentence, and splitting it costs a reader a swipe to reach a label that carries no value on its own.
+This is written down because the build has now held all three available forms and two of them were
+green on some gate: the shipped defect discarded the label from the accessibility plane entirely,
+and the fix for that briefly published two stops because A35's readout line — anchored whole, in the
+era when this row had no label to combine with — rejected the combined form. The gate recorded the
+absence rather than a decision, and was widened to its own stated tolerance rather than obeyed.
+
+Its states, since a foot with one state is the same third of a design as a board with one:
+
+| Condition | The foot |
+|---|---|
+| No poll has answered yet | A skeleton at the line's own height, so nothing moves when the first poll lands |
+| The last poll answered | The address |
+| The last poll failed, an earlier one answered | The address, unchanged — a refresh that did not complete is not evidence the router moved |
+| Nothing has ever answered | Nothing, and no divider either. The card above is already carrying this state in `ControlAPIError`'s own words |
+
+The skeleton's job is the **loading → answered** transition, where the foot is the same height
+either way and nothing moves. Loading → *never answered* does move, and that is accepted rather
+than overlooked: the card above changes height on that same transition by design — the failure form
+carries wrapped prose and is allowed to be taller than the counts form — so the whole foot region is
+re-laid out for a different state, and reserving a wordless band under a rule would be dead chrome
+in the one state that already has the most to say.
+
+**Still owed here, recorded rather than fixed:** the prototype draws the count as a 26px display
+numeral over `of N declared`, and the build draws a label-left / value-right row. That is a third
+divergence in the same element; it is a type and density decision rather than a missing element, so
+it converts under `M23`'s mock-to-SwiftUI contract with the rest of the board, not in passing.
+
 ### Breaker geometry `(specified)`
 
 The signature element's construction, recorded value by value. It is here rather than in

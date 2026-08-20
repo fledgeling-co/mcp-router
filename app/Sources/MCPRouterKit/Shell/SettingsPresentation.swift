@@ -32,7 +32,10 @@ public enum SettingsPresentation {
 
         /// Composed from the **observed** port, never a constant. A build that renders `8879` for a
         /// router listening on 9999 is telling the user to point their client at the wrong place.
-        public var endpoint: String { "http://127.0.0.1:\(port)/mcp" }
+        ///
+        /// Spelled by `LoopbackAddress` rather than here, so this row and the sidebar's foot line
+        /// cannot disagree about the address they are both describing (M27).
+        public var endpoint: String { LoopbackAddress.controlEndpoint(port) }
 
         /// The reap horizon in whole seconds, which is the unit the router's own configuration
         /// uses and the unit M3's row copy already speaks.

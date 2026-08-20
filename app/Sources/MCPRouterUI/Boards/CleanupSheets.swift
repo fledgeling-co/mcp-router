@@ -2,7 +2,8 @@
     import MCPRouterKit
     import SwiftUI
 
-    /// Cleanup's two dialogs, both named-consequence and both with Cancel leading.
+    /// Cleanup's three sheets: two named-consequence dialogs, both with Cancel leading, and one
+    /// that asks for nothing at all.
     ///
     /// `DESIGN.md` §8 says removal is "undoable, never confirmed" — and §9's escalation clause
     /// governs here instead, because neither of these is undoable and M3 already measured why for the
@@ -18,6 +19,8 @@
                 RemoveServerSheet(board: board, name: name)
             case .resetHistory:
                 ResetHistorySheet(board: board)
+            case let .provenance(skillPath):
+                SkillProvenanceSheet(board: board, skillPath: skillPath)
             }
         }
     }
@@ -150,6 +153,120 @@
             }
             .padding(M7BoardMetrics.panePadding)
             .frame(width: M7BoardMetrics.sheetWidth)
+        }
+    }
+
+    /// `Read first…` — what moved, before anything is decided about it.
+    ///
+    /// **The only sheet on this board that asks for nothing.** Both of the others end in an act
+    /// with no undo; this one ends in the reader knowing something, which is why its dismiss button
+    /// says "Leave it" rather than "Cancel" — there is nothing here to cancel.
+    ///
+    /// **It replaces Inspect and Remove on the row rather than joining them**, which is
+    /// `prototype.html:961` making the same argument this pane makes everywhere else: a skill whose
+    /// marketplace moved since the router first saw it is the one candidate where "never invoked"
+    /// is the least interesting thing about it, and one click from that row to a removal dialog is
+    /// the click nobody should have.
+    ///
+    /// **Removal is dimmed here, not absent.** The control API is read-only for skills, so this
+    /// dialog could not remove one even if the reader decided to — and §3.4 dims a control in place
+    /// with a discoverable reason rather than hiding it. The prototype's `Remove it` button would
+    /// have been a control that does nothing.
+    struct SkillProvenanceSheet: View {
+        @Bindable var board: CleanupBoardModel
+        let skillPath: String
+
+        private var skill: Skill? { board.skill(atPath: skillPath) }
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: M7BoardMetrics.gap * 2) {
+                Text(CleanupPresentation.provenanceTitle(name: skill?.name ?? skillPath))
+                    .typeRole(.title3)
+                    .foregroundStyle(ColorToken.t1.color)
+
+                Text(CleanupPresentation.provenanceLede)
+                    .typeRole(.body)
+                    .foregroundStyle(ColorToken.t2.color)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if let provenance = skill?.provenance {
+                    observations(provenance)
+                } else {
+                    // The skill left the reading while its sheet was open, or the move was resolved
+                    // by a poll that landed since. Either way there is no observation left to show,
+                    // and inventing one is the defect this whole sheet exists to avoid.
+                    Text(CleanupPresentation.consequenceUnavailable)
+                        .typeRole(.body)
+                        .foregroundStyle(ColorToken.t2.color)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                DisabledAction(label: "Remove", reason: CheckCopy.skillRemoveDisabled)
+
+                HStack {
+                    Spacer(minLength: 0)
+                    if let path = skill?.path {
+                        // The sheet cannot show the skill itself, and "read first" is not an
+                        // instruction anyone can follow from a dialog that only names two URLs.
+                        // Same label as the Skills inspector: one wording per action (§6).
+                        Button("Reveal in Finder") {
+                            NSWorkspace.shared.selectFile(path, inFileViewerRootedAtPath: "")
+                        }
+                        .buttonStyle(StandardButtonStyle())
+                    }
+                    Button(CleanupPresentation.provenanceDismiss) { board.sheet = nil }
+                        .buttonStyle(StandardButtonStyle())
+                        .keyboardShortcut(.cancelAction)
+                }
+            }
+            .padding(M7BoardMetrics.panePadding)
+            .frame(width: M7BoardMetrics.sheetWidth)
+        }
+
+        /// The three fields `SkillProvenance` carries, and nothing the router did not observe.
+        private func observations(_ provenance: SkillProvenance) -> some View {
+            VStack(alignment: .leading, spacing: M7BoardMetrics.gap) {
+                VStack(alignment: .leading, spacing: M7BoardMetrics.tightGap) {
+                    field(CleanupPresentation.provenanceFirstSeenLabel, provenance.firstSeenSource)
+                    // The one value in fail colour, because it is the one that changed.
+                    field(
+                        CleanupPresentation.provenanceCurrentLabel,
+                        provenance.currentSource,
+                        tint: ColorToken.fail.color
+                    )
+                    field(CleanupPresentation.provenanceObservedLabel, provenance.firstSeenAt)
+                }
+
+                Text(
+                    CheckCopy.ownerChanged(
+                        firstSeen: provenance.firstSeenSource,
+                        current: provenance.currentSource
+                    )
+                )
+                .typeRole(.body)
+                .foregroundStyle(ColorToken.attention.color)
+                .fixedSize(horizontal: false, vertical: true)
+
+                Text(CleanupPresentation.provenanceLimit)
+                    .typeRole(.caption)
+                    .foregroundStyle(ColorToken.t3.color)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+
+        private func field(_ label: String, _ value: String, tint: Color? = nil) -> some View {
+            HStack(alignment: .firstTextBaseline, spacing: M7BoardMetrics.gap) {
+                Text(label)
+                    .typeRole(.caption)
+                    .foregroundStyle(ColorToken.t3.color)
+                Spacer(minLength: M7BoardMetrics.gap)
+                Text(value)
+                    .typeRole(.caption, monospaced: true)
+                    .foregroundStyle(tint ?? ColorToken.t2.color)
+                    .multilineTextAlignment(.trailing)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .accessibilityElement(children: .combine)
         }
     }
 

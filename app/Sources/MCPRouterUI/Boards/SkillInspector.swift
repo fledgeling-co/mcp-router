@@ -156,11 +156,10 @@
                     // States what is still true before what is worrying. The failure mode of a
                     // supply-chain banner is panic, and the code on disk genuinely has not moved.
                     Text(
-                        """
-                        When this Mac first saw this marketplace it resolved to \
-                        \(provenance.firstSeenSource). It now resolves to \(provenance.currentSource). \
-                        The code you have has not changed.
-                        """
+                        CheckCopy.ownerChanged(
+                            firstSeen: provenance.firstSeenSource,
+                            current: provenance.currentSource
+                        )
                     )
                     .typeRole(.body)
                     .foregroundStyle(ColorToken.attention.color)

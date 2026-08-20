@@ -22,13 +22,29 @@
             )
         }
 
-        static func skill(name: String = "pr-summariser") -> Skill {
+        static func skill(
+            name: String = "pr-summariser",
+            presence: [String: SkillPresence] = ["claude": .present],
+            provenance: SkillProvenance? = nil
+        ) -> Skill {
             Skill(
                 name: name, description: "Summarises a pull request", path: "/skills/\(name)",
                 source: .plugin(PluginOrigin(
                     plugin: "review-kit", marketplace: "fledgeling", pluginVersion: "0.4.1"
                 )),
-                presence: ["claude": .present], held: nil, provenance: nil
+                presence: presence, held: nil, provenance: provenance
+            )
+        }
+
+        /// A marketplace that resolves somewhere other than where the router first saw it.
+        static func moved(
+            firstSeen: String = "github:fledgeling/plugins",
+            current: String = "github:pr-tools-collective/plugins"
+        ) -> SkillProvenance {
+            SkillProvenance(
+                firstSeenSource: firstSeen,
+                currentSource: current,
+                firstSeenAt: "2026-03-14T09:00:00Z"
             )
         }
 

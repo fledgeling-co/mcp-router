@@ -62,6 +62,21 @@
             public let headerKeys: [String]?
             public let isScoped: Bool
 
+            /// Why this one has to be read before it is removed, or `nil` when nothing has moved.
+            ///
+            /// It carries the router's own sentence — `CheckCopy.originMoved`, the same string the
+            /// Checks board publishes for `originUnchanged` — rather than a flag, because the row
+            /// has to say what moved and a Bool cannot. Only a skill can carry one: a server has no
+            /// marketplace to have moved away from.
+            ///
+            /// A row with one is a different row. `prototype.html:961` withholds Inspect and Remove
+            /// from it and offers `Read first…` in their place, and that is the design making the
+            /// same argument this board makes everywhere else — a skill whose origin changed since
+            /// install is the one candidate where "never invoked" is the least interesting thing
+            /// about it, and removing it without reading why is the decision nobody should be one
+            /// click away from.
+            public let provenance: String?
+
             public var id: String { "\(key.kind.rawValue):\(key.id)" }
             public var kind: CheckSubjectKind { key.kind }
         }
@@ -89,11 +104,19 @@
         public enum Sheet: Equatable, Sendable, Identifiable {
             case removeServer(name: String)
             case resetHistory
+            /// What `Read first…` opens.
+            ///
+            /// Keyed by the skill's resolved path, not by its name, for the reason `Skill` gives
+            /// for identifying itself the same way: clients hold skills by symlink into a shared
+            /// library, so a name is neither unique nor stable and two unrelated skills can share
+            /// a directory name. The sheet renders the name it finds at that path.
+            case provenance(skillPath: String)
 
             public var id: String {
                 switch self {
                 case let .removeServer(name): "remove:\(name)"
                 case .resetHistory: "reset"
+                case let .provenance(skillPath): "prov:\(skillPath)"
                 }
             }
         }
@@ -168,7 +191,9 @@
                         tools: server.tools,
                         envKeys: server.envKeys,
                         headerKeys: server.headerKeys,
-                        isScoped: !server.projects.isEmpty
+                        isScoped: !server.projects.isEmpty,
+                        // A server has no marketplace, so there is nothing it could have moved from.
+                        provenance: nil
                     )
                 )
             }
@@ -188,7 +213,8 @@
                             tools: 0,
                             envKeys: nil,
                             headerKeys: nil,
-                            isScoped: false
+                            isScoped: false,
+                            provenance: Self.provenanceNote(for: skill)
                         )
                     )
                 }
@@ -240,6 +266,30 @@
         public func count(for filter: Filter) -> Int? {
             let n = candidates.count(where: { filter.matches($0) })
             return n == 0 ? nil : n
+        }
+
+        /// The router's own sentence about a moved origin, or `nil`.
+        ///
+        /// Read through `SkillChecks.originUnchanged` rather than off `skill.provenance` directly,
+        /// so this board and the Checks board cannot disagree about what counts as moved. That
+        /// check is `.notApplicable` for a standalone skill — it has no marketplace, so an unmoved
+        /// origin is not something that can be true of it — and `.passed` when the router recorded
+        /// no move. Only `.failed` produces a note here, and its reason is the string the check
+        /// already composed.
+        static func provenanceNote(for skill: Skill) -> String? {
+            let result = SkillChecks.originUnchanged(skill)
+            guard result.verdict == .failed else { return nil }
+            return result.reason
+        }
+
+        /// The skill behind a `Read first…` sheet, or `nil` when the row has left the reading.
+        ///
+        /// Looked up rather than carried on the sheet case, so the sheet renders what the router
+        /// last said rather than a copy taken when the button was pressed — a poll can land while
+        /// the sheet is open, and the removal dialog beside it already handles that disappearance
+        /// rather than showing a stale claim.
+        public func skill(atPath path: String) -> Skill? {
+            state.reading?.skills?.skills.first { $0.path == path }
         }
 
         public func selectedCandidate() -> Candidate? {

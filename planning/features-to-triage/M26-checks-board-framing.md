@@ -1,4 +1,4 @@
-# M24 — the Checks board and the design's eval board are two different surfaces
+# M26 — the Checks board and the design's eval board are two different surfaces
 
 **Category:** mac · **Found:** 2026-08-20, by the campaign's vocabulary differential
 **Defect:** DEF-031 · **Surface:** SURF-006 · **Related:** M7 (Evals and Cleanup), DEF-011, DEF-012

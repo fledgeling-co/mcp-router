@@ -6,8 +6,8 @@
   "targetReadback": "Discover",
   "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
   "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testDiscoverRendersTheRoutersCatalogue]",
-  "sha256": "c7bccef6c4ec6555aacbe81410dd7d73237429e35bd5579f52ecb567e88f7fe9",
-  "capturedAt": "2026-08-20T06:55:37.017554+00:00",
+  "sha256": "fb59515de8832c3c530d36fb67df212056378b3ab38e820ebe8bd29a6299c280",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
   "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
   "witnessed": false
  },
@@ -18,8 +18,8 @@
   "targetReadback": "Discover",
   "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
   "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testDiscoverTracksWhatTheRouterReturned]",
-  "sha256": "abb5825d859959c24ebc68dc12265e9097f3db2214e39624b859013d120c2849",
-  "capturedAt": "2026-08-20T06:55:37.017554+00:00",
+  "sha256": "efacc8e553e3084390fea6e18e446c553d8b1e58372739c8c9ae24e9d045e124",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
   "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
   "witnessed": false
  },
@@ -30,8 +30,8 @@
   "targetReadback": "Pair Mac",
   "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
   "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
-  "sha256": "57f16912a5956a04827c28569f94f3ab9378e8614fef68f775764aa6f89e50c7",
-  "capturedAt": "2026-08-20T06:55:37.017554+00:00",
+  "sha256": "e84897f27a63079643cb3a317ed495dfeefe0b2b89e894668117c8f0e6c590a9",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
   "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
   "witnessed": false
  },
@@ -42,8 +42,8 @@
   "targetReadback": "Pair Mac",
   "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
   "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
-  "sha256": "b96a2c14f27f47776e6b7a39c37494775e0b5ad27c07c08caaa681926b33f114",
-  "capturedAt": "2026-08-20T06:55:37.017554+00:00",
+  "sha256": "49be996cecefc81f8ce03bacca9b742ac134246cc188695d745038348a048f51",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
   "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
   "witnessed": false
  },
@@ -54,8 +54,8 @@
   "targetReadback": "Pair Mac",
   "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
   "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
-  "sha256": "3dccff7659b044df4b0d9313cd4d20f4ec90d418d88e25e0a8ef5e910d76b2b2",
-  "capturedAt": "2026-08-20T06:55:37.017554+00:00",
+  "sha256": "6c58ee19619fe773968e86acfcd60559f752645b75a2128d161250ac8cef266d",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
   "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
   "witnessed": false
  },
@@ -66,8 +66,8 @@
   "targetReadback": "Settings",
   "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
   "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
-  "sha256": "a98a2ee5ea52cd63a4ae11d50d9e0bc07dec326494b5e4364cf01ad5c69556d2",
-  "capturedAt": "2026-08-20T06:55:37.017554+00:00",
+  "sha256": "cb15aa3016a9a5589e9ac6fb2eb0f27d89f040440dac435ed564bc5d246aacf7",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
   "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
   "witnessed": false
  },
@@ -78,8 +78,8 @@
   "targetReadback": "Library",
   "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
   "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
-  "sha256": "ab911bc9e768446b010a73bfd6c3b91dd49222b2dfc57af54419669d8b571600",
-  "capturedAt": "2026-08-20T06:55:37.017554+00:00",
+  "sha256": "5305bbc36e148891b553a4fcba1edd9c938a38c4869df1167d830357052e3639",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
   "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
   "witnessed": false
  },
@@ -90,8 +90,8 @@
   "targetReadback": "Queue",
   "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
   "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
-  "sha256": "1644b158b92453791e15dd7519fbedbddbe1b7d497f833ac58048d983a0f0659",
-  "capturedAt": "2026-08-20T06:55:37.017554+00:00",
+  "sha256": "d013a14efe1b52712f4994d250b79b4b74dfd44022ef183f117c376007c3fba8",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
   "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
   "witnessed": false
  },
@@ -102,8 +102,8 @@
   "targetReadback": "Triage",
   "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
   "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
-  "sha256": "dec1c9e702e29f9e77e6b67bbd51d053b7456112fd9e23c0a2f642c8b8762a86",
-  "capturedAt": "2026-08-20T06:55:37.017554+00:00",
+  "sha256": "651e672f5333326fecf0256700a02ec08657c96b6316a60ef625e522d3b4c918",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
   "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
   "witnessed": false
  }

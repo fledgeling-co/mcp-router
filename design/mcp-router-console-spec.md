@@ -36,7 +36,7 @@ Nine boards and the Settings window, four states each, every cell carrying its o
 | Activity | live stream, 1,482 calls | Nothing has called a tool yet | — | The event stream dropped |
 | Harnesses | 6 detected, 2 want a decision | No AI harnesses found | Reading six configuration files | Codex's configuration would not parse |
 | Skills | 38 installed, 1 held | No skills installed | Fetching fledgeling-plugins | Doctor found 3 broken links |
-| Discover | 4 results for "postgres" | No results for "kubernetes log tailing" | Asking both indexes | One index answered, the other did not |
+| Discover *(storefront)* | featured, three collection rails, eight category tiles — or 4 results once a query narrows it | No results for "kubernetes log tailing" | Asking both indexes | One index answered, the other did not |
 | Inbox | 3 undecided | Nothing is waiting on you | Installing postgres-mcp | postgres-mcp failed to install |
 | Insights | 9,418 calls, analyst ran | Not enough history yet | Analysing your sessions | Primary analyst hit its limit, fallback ran |
 | Checks | 4 suites, 1 stale | Nothing here ships a check suite | Running trawl · 1.5.0 | 2 of 11 checks failed |
@@ -45,7 +45,78 @@ Nine boards and the Settings window, four states each, every cell carrying its o
 
 Two conditional states beyond the six: **overflow** is exercised (11 upstreams in a 250px jack field, a 7-column table beside a 340px inspector, 18 Antigravity servers in a diff) and **disabled** is exercised on 11 rules. **Offline** is `n/a` — the router is loopback-only, so there is no network for the app to lose.
 
-Twelve sheets, each a decision with its evidence attached: pair, reconcile, quarantine, readme, capability-delta, add-server, add-marketplace, recommendation, queued-detail, analyzer, path, confirm-remove.
+Thirteen sheets, each a decision with its evidence attached: pair, reconcile, quarantine, readme, capability-delta, add-server, add-marketplace, recommendation, queued-detail, analyzer, path, confirm-remove, official.
+
+## Discover is a storefront, and a table only once you narrow it
+
+The store leads the source list — `Store` (Discover, Skills) above `Routing`, `Maintenance` and
+`Attention` — because finding a capability is what someone opens this app to do, and managing the
+ones they already have is what they do afterwards.
+
+Browsing and searching get different instruments, and the switch is the query. With nothing typed,
+Discover draws a **featured band** of two heroes, three **collection rails** that scroll sideways
+with the next card peeking, and eight **category tiles** carrying counts. Type anything and all of
+that gives way to the dense results table. Neither instrument can do the other's job: rails and
+heroes answer "what is worth having" and cannot be scanned for a match, and a table is scannable
+and says nothing about what to want. The Mac App Store, Vercel's marketplace and Cal.com's app
+store all make the same cut.
+
+**Nothing on the storefront is ranked by us.** Every card carries the figure its own index
+publishes and names the index — "4.1k stars · official index", "created 12 Nov 2025 · Smithery" —
+and an entry whose index publishes no figure carries none rather than a zero. The two featured
+slots are chosen from facts that can be observed rather than curated: one entry is new in the
+official registry, and the other has updates waiting on this Mac. There is no editorial team, so
+there is no "Editors' choice".
+
+**The Official filter is a claim about the publisher and says so.** A `What is official?` control
+sits beside the filter and opens the sheet that defines it: the index lists the publisher as the
+owner of the namespace the entry sits in, and the publisher is the vendor whose product the entry
+talks to. Anthropic, OpenAI, Google, Vercel, GitHub, Microsoft, Stripe and Fledgeling match today —
+Fledgeling because its marketplace was added here and it owns the namespace its plugins sit in, so
+any marketplace the user adds is treated the same way. The sheet also states what the filter does
+*not* say: nothing about maintenance, nothing about whether the checks pass, and nothing that
+changes the consent sheet, which appears for an official server exactly as it does for a community
+one.
+
+The capability sheet gained a **product header** between its titlebar and its README panes — mark,
+name, verified publisher, one-line pitch, and the install action — plus a five-cell facts strip
+(kind, version, licence, which harnesses it runs in, what it reads). The header does not scroll,
+because the reader's question eight paragraphs into "what it does" is still "and do I install it".
+
+### The artwork, and why it depicts capabilities rather than publishers
+
+Fourteen generated WebP assets are embedded as data URIs on `:root` — twelve 128px squircle app
+tiles and two 1000×236 banner bands — 60 KB in total, which is what makes embedding them
+affordable and keeps the mock one file.
+
+Every card in this store names a real publisher: Anthropic, OpenAI, Google, Vercel, GitHub,
+Microsoft, Stripe, Fledgeling. Drawing an icon that resembled any of their marks would be
+manufacturing a logo they never made, and a mock that ships a fabricated Anthropic glyph is worse
+than a mock with no art at all. So **every tile depicts what the entry does** — a database, a file
+tree, a browser window, a cloud, a branching graph, a pen and rule, a chat bubble, a chart, a flow
+of three linked nodes, a compass, an icon canvas, a clock over a rising series — and the publisher
+is stated in words beside it. Both banners are abstract for the same reason.
+
+Icons are assigned by capability, not by slot, and no two cards in the same rail share a tile
+except where the shared tile is the honest read: `filesystem` and `google-drive` are both file
+trees. `postgres-mcp` keeps the database tile and `pg-schema-tools` takes the branching graph,
+because migrations and schema diffs are a diff, not a store.
+
+The generator prompts, so a replacement can match the family:
+
+| Asset | Prompt |
+|---|---|
+| Tiles 1–4 (database, file tree, browser, cloud) | *A 2x2 grid of four macOS application icons on a plain near-white ground, Big Sur squircle shape, smooth top-lit single-hue gradient per tile, a white thin-stroke line-art glyph centred in each, soft drop shadow. Hues: azure, graphite, slate, green. Flat and exact, not glossy, no 3D, no bevel. No text, no letters, no numerals, no wordmarks, nothing resembling a real company logo.* |
+| Tiles 5–8 (version control, design, messaging, observability) | As above, hues violet / amber / teal / magenta, with tiles 1–4 passed as reference images so the family holds. |
+| Tiles 9–12 (flow, compass, icon canvas, time series) | As above, hues indigo `#4051B5` / cyan `#0891B2` / coral `#E2564A` / olive `#6B7A2E`, with both earlier sheets as reference images. |
+| `banner-deploy` | *Thin routing lines converging through nodes, azure to indigo, abstract, no text.* 1536×512, cropped to 1000×236. |
+| `banner-market` | *A row of rounded-square modules, graphite to amber, abstract, no text.* Same crop. |
+
+Each 1024×1024 sheet is sliced by detecting the tile within its quadrant — `(luminance < 600) |
+(saturation > 40)`, so the drop shadow does not drag the bounding square off-centre — inset 3.5%,
+then masked with a 4× supersampled rounded rectangle at radius 0.235 and downsampled to 128px.
+WebP at q90 with `-sharp_yuv`; the banners at q93, inspected for banding in the gradient.
+
 
 ## Destructive actions and their gates
 

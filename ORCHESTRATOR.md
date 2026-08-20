@@ -206,6 +206,39 @@ Status: `Untriaged → Spec → Plan → In Progress → Ready to merge → Merg
 | **R4-C** | **The installer cutover** | router | P1 P2 P3 P4 · **82 of 83** | — | Opus — never downgrade | **Wave 4 — last** | — | The owner chose `finish-first`, so the switch is licensed **only once parity reads 83 of 83**. Currently 71 from the repo root. Flips `install.sh` to the Swift binary and retires `src/*.ts` |
 | — | **BLOCKED: the Apple developer identity** | — | — | — | — | **Needs input** | — | `apple-identity` came back `as-found`: pre-selected by the page, never confirmed, and flagged `blocksAutomation`. **Not scheduled.** Its note points at a 1Password vault, and the bundle id it supplies is domain-shaped rather than reverse-DNS and conflicts with the assumed one. Holds signing, the phone leaving the simulator, and `D-e` |
 
+| M15 | Settings becomes its own window | mac | — | — | Opus | Untriaged | — | Nine-brief programme from `design/mcp-router-console.html`; M23 is the conversion contract and blocks M15–M22. |
+| M16 | The Signal Path replaces the Breaker Column | mac | — | — | Opus | Untriaged | — | Recorded in LEDGER.md; see `M16-signal-path.md`. |
+| M17 | Four states on every surface, and chrome that follows | mac | — | — | Opus | Untriaged | — | Recorded in LEDGER.md; see `M17-surface-states.md`. |
+| M18 | Twelve sheets, and the gate each decision gets | mac | — | — | Opus | Untriaged | — | Recorded in LEDGER.md; see `M18-sheets-and-gates.md`. |
+| M19 | The in-app GitHub-flavoured Markdown viewer | mac | — | — | Opus | Untriaged | — | Recorded in LEDGER.md; see `M19-gfm-viewer.md`. |
+| M20 | Menu bar, status item, and the notification banner | mac | — | — | Opus | Untriaged | — | Recorded in LEDGER.md; see `M20-menubar-status-notification.md`. |
+| M21 | The token layer, the split accent, and `DESIGN.md` | mac | — | — | Opus | Untriaged | — | Recorded in LEDGER.md; see `M21-token-layer-and-design-md.md`. |
+| M22 | The Harnesses and Insights boards | mac | — | — | Opus | Untriaged | — | Part of the M15–M23 programme; the range row above carried it, this row gives it a status of its own. |
+| M23 | The mock-to-SwiftUI conversion contract | mac | — | — | Opus | Untriaged | — | The conversion contract the other eight wait on — five measurement layers, breadth-before-depth ledger, third exit state. |
+| M24 | The storefront's own artwork — banners and app-style icons | mac | — | — | Opus | **Done** (ai/m24 → main; design-only, 23 files, all under `design/`) | `ai/m24` | Recorded in LEDGER.md. |
+| M25 | The controls row, not the columns, set the boards' width | mac | — | — | Opus | **Done** (ai/x4 broke the min-width chain, ai/x5 flexed the two controls rows) | — | Recorded in LEDGER.md; see `M25-board-columns-do-not-flex.md`. |
+| M26 | The Checks board and the design's eval board are two surfaces | mac | — | — | Opus | **Done** (ai/m26 → main; owner kept the reachability board, mock amended, DEF-031 closed) | `ai/m26` | Recorded in LEDGER.md; see `M26-checks-board-framing.md`. |
+| M27 | The sidebar foot's loopback readout and the child-process label | mac | — | — | Opus | Untriaged | — | Recorded in LEDGER.md; see `M27-sidebar-foot-readout.md`. |
+| M28 | Five findings that need a decision rather than a runner | mac | — | — | Opus | Needs input (owner) | — | **A decision docket, not work.** Closes by the owner answering five questions (DEF-042, DEF-049, DEF-008, DEF-057, DEF-033). A fleet reading only the table will dispatch it; it must not be given a slot. |
+| R4-C1 | The installer points at Swift; the TypeScript tree stays | router | — | — | Opus | **Done** (ai/r4c) | — | Recorded in LEDGER.md; see `R4-C1-installer-points-at-swift.md`. |
+| R4-C2 | Retire `src/*.ts` — held, and what it waits on | router | — | — | Opus | Held (owner: not on a green streak) | — | Held by owner decision: the TypeScript reference stays until several consecutive whole-gates pass, including a cold port-reuse path. Not a green-streak call. |
+| R9 | The SDK drops an upstream's message on -32603; the router reads it off the wire | router | — | — | Opus | **Done** (ai/r9 → main; DEF-047 closed, 7 tests armed 5-of-7 red, parity 82/83 0 diverged) | `ai/r9` | Recorded in LEDGER.md; see `R9-sdk-drops-upstream-message.md`. |
+| X2 | The iOS on-glass instrument, and the six cases it takes off `n/a` | harness | — | — | Opus | **Done** (ai/x2 → main; lane-owned device, six green runs) | `ai/x2` | Recorded in LEDGER.md; see `X2-ios-on-glass.md`. |
+| X3 | The iOS unit lane read an empty accessibility tree because the engine was off | harness | — | — | Opus | Done (DEF-029 closed, armed three ways) | — | Recorded in LEDGER.md; see `X3-ios-unit-lane-empty-tree.md`. |
+| X6 | Cleanup's `Read first…`, the half DEF-011 was held open for | harness | — | — | Opus | **Done** (ai/x6 → main; CASE-0135/0136/0137, nine mutation arms) | `ai/x6` | Recorded in LEDGER.md. |
+| X7 | The campaign's published artifacts under-report what it knows | harness | — | — | Opus | Untriaged (**upstream**: fledgeling-plugins, not this repo) | — | **Cannot be closed from this repository.** test-campaign 0.9.2 lives in the plugin cache; the vendored submodule carries 0.5.0 and does not contain the scripts (DEF-057). Closing it means a change pushed to fledgeling-plugins and a submodule bump. |
+| X8 | Two campaign detectors report findings they cannot support | harness | — | — | Opus | Untriaged (**upstream**: fledgeling-plugins, not this repo) | — | **Cannot be closed from this repository** — same reason as X7. |
+
+**Reconciled 2026-08-21.** The twenty-two rows below existed in
+`planning/features-to-triage/LEDGER.md` and in no row of this file, which is the memory a
+resuming fleet plans from. Fifteen of them had already merged. They are added here rather
+than left to be rediscovered by a runner. `planning/ledger-reconcile.py` is the check that
+found them and refuses in both directions; run it after every allocation.
+
+Three ids in this table have no LEDGER row and need one there rather than here: **P5**,
+**P6**, **R2-R**, **R2-W**, **R4-C**. And **X4** and **X5** are branches merged into `main`
+that neither file records at all — the ids are spent, and both files read them as free.
+
 **Mock note:** every item's mock is a deep link into the single interactive
 `design/mocks/prototype.html`, not a separate file. `design/mocks/mac-surfaces.html` and
 `ios-surfaces.html` are superseded static contact sheets — do not build from them; they

@@ -37,7 +37,40 @@ carries subjects and reachability readings; there is no eval case in it, no suit
 something that does not exist — the same reason `Read first…` is recorded as a stated gap in
 DEF-011 rather than drawn unconditionally.
 
-## The decision this needs
+## The decision, taken
+
+**2026-08-20, by the owner: keep the reachability board and amend the design.** The first
+of the three options below. `design/mocks/prototype.html`'s `PANES.evals` now draws the
+board that ships — title `Checks`, the built subtitle, `Re-check all…`, the four filters
+`All | Not met | Not observed | Unstamped`, and the columns `subject · kind · checks ·
+checked against` over one row per server and skill. Rendered and read back through the
+sanctioned engine: 14 rows, 4 columns, 5 controls, all matching. **DEF-031 closed.**
+
+Three things worth recording about how it was done.
+
+`DESIGN.md` needed no change. It already says there is no eval runner in this product —
+"no eval endpoint on the control API, no eval field on any wire type" — so the mock was
+the only design of record still carrying the eval board, and amending it made the two
+agree rather than requiring a third edit.
+
+**The explanatory comment nearly reintroduced the finding.** The first version of the
+comment above `PANES.evals` named the two removed buttons, to say why they had gone. The
+vocabulary differential greps this file for control names; prose explaining a removed
+control puts it straight back into the in-design set. This is the inverse of the trap
+recorded in `ShellDetailWidthTests` — there a predicate was satisfied by the prose
+explaining it, here a predicate would have been *tripped* by it. The comment now points
+at this file instead, and the labels appear nowhere in the mock.
+
+**The board is drawn with no search field, and that is deliberate.** The built board has
+one; so do Discover and Skills. No Mac board in this mock draws one. Adding a search field
+to Checks alone would trade one differential finding for another and make Checks the odd
+board out, so it matches the mock's own idiom. The missing search field is a pre-existing,
+board-wide divergence that predates this item and is not M26's to fix.
+
+The eval board is not withdrawn as an idea. It is a feature programme rather than a pane,
+and the third option below is still the better long-term shape.
+
+## The decision as it was framed
 
 Which board does the product want? The two answers cost very different amounts.
 

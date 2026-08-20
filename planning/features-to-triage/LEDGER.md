@@ -58,6 +58,7 @@ first.
 | M26 | The Checks board and the design's eval board are two surfaces | `M26-checks-board-framing.md` | — | — | **Done** (ai/m26 → main; owner kept the reachability board, mock amended, DEF-031 closed) |
 | P7 | `control-auth-post-http` needs a real OAuth client | `P7-auth-post-oauth-client.md` | — | — | **Done** (ai/p7 → main; parity reached 82 of 83) |
 | P8 | Make `install-launchd-watch`'s `reran` term attributable | `P8-launchd-watch-attributable.md` | — | — | **Done** (ai/p8 → main; the lane was shown able to go red) |
+| R9 | The SDK drops an upstream's message on -32603; the router reads it off the wire | `R9-sdk-drops-upstream-message.md` | — | — | In Progress (ai/r9; DEF-047 closed, 7 tests armed, parity pending) |
 | X1 | The iOS accessibility-tree harness, and two surfaces still empty | `X1-ios-a11y-harness.md` | — | — | Done (closed by X3's engine fix + the accessibility-frame row oracle; `make test-ios` 36/0) |
 | X2 | The iOS on-glass instrument, and the six cases it takes off `n/a` | `X2-ios-on-glass.md` | — | — | **Done** (ai/x2 → main; lane-owned device, six green runs) |
 | X3 | The iOS unit lane read an empty accessibility tree because the engine was off | `X3-ios-unit-lane-empty-tree.md` | — | — | Done (DEF-029 closed, armed three ways) |

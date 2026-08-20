@@ -53,7 +53,11 @@ it never tested.
 | M14 | A shipped menu tells the user the app is not built | `M14-menu-says-not-built.md` | — | — | **Merged** `7e7ed70` |
 | R6 | Children inherit launchd's minimal PATH | `R6-child-process-path.md` | — | — | Ready to verify (`ai/r6` `7a4f15a`) |
 | R8 | An upstream that refuses our credentials must say so | `R8-auth-rejection-visible.md` | — | — | **Done** (ai/r8 → main; owner unfroze `src/`, A38 rewritten to guard the reference's existence; Swift half unblocked by R9; parity 82/83 control 16/16 0 diverged; auth gate examined=8 failures=0) |
-| R7 | The router's thesis is unmet for every harness but Claude Code | `R7-harness-reconciliation.md` | — | — | Untriaged |
+| R7 | The router's thesis is unmet for every harness but Claude Code | `R7-harness-reconciliation.md` | `spec-R7.md` | `plan-R7.md` | Ready to verify (`ai/r7`) |
+| R7-C1 | The Harnesses board and the `GET /harnesses` route behind it | — | — | — | Deferred (child of R7; blocked on M22) |
+| R7-C2 | Apply a reconciliation plan to a harness config, behind a human | — | — | — | Deferred (child of R7; the write R7 refuses) |
+| R7-C3 | opencode's transport is unestablished | — | — | — | Deferred (child of R7) |
+| R7-C4 | Project-scoped harness entries | — | — | — | Deferred (child of R7) |
 | M15 | Settings becomes its own window | `M15-settings-window.md` | — | — | Untriaged |
 | M16 | The Signal Path replaces the Breaker Column | `M16-signal-path.md` | — | — | Untriaged |
 | M17 | Four states on every surface, and chrome that follows | `M17-surface-states.md` | — | — | Untriaged |
@@ -159,3 +163,16 @@ it never tested.
   `design/mcp-router-console.html`. They are UI specification, not defects: each names something
   the mock draws that no earlier brief covers. `design/mcp-router-console-spec.md` carries the
   audit numbers and the list of what the mock specifies rather than measures.
+
+- **Three ids mean two things each, and R7 found it while allocating.** `ORCHESTRATOR.md`'s
+  deferred register (lines ~334–337) carries rows **R6** (router-side eval runner), **R7** (skills
+  write endpoint) and **R8** (server soft-delete), while this table carries **R6** (child PATH,
+  ready to verify), **R7** (harness reconciliation, this item) and **R8** (auth rejection, Done).
+  Six live rows, three ids. The deferred register was populated from a different allocator than
+  this table and nothing reconciles the two namespaces, which is the same hole the notes above
+  describe for membership — `ledger-reconcile.py` compares ids across files and a collision
+  between a *ledger* id and a *deferred-register* id is not a membership disagreement, so it
+  reports agreement. R7 did **not** renumber anything: three rows written by other items are not
+  a runner's to renumber mid-fleet, and picking a direction silently is how the drift got here.
+  R7's own children are `R7-C1`…`R7-C4`, following `R4-C1`/`R4-C2`, which cannot collide either way.
+  The decision this needs is which namespace yields — that is M28's shape, not a runner's.

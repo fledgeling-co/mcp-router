@@ -1,5 +1,21 @@
 # M23 gap-fix — out-of-family review, two lanes
 
+> **Superseded, and the reason matters.** The snapshot both lanes reviewed here is not what
+> shipped: it carried a planted `timeout=1` on `run()`, which HEAD does not contain — `grep -n
+> timeout scripts/acceptance/mock_fidelity.py` returns only the `= 900` default and its two uses.
+> So every finding below was made against a file this repository has never held, and one of grok's
+> six was spent on the plant. The second pass's review is `M23-gapfix-2-review.md`, against the
+> shipped diff, and when the verifier showed both lanes the real code they immediately returned
+> blocking findings this round did not.
+>
+> A second correction, on this file's own reasoning rather than its inputs: it offered grok ranking
+> the planted `timeout=1` first as evidence the lane had read the artifact. It does not establish
+> that. There was no matched trial without the plant, and "a hard-coded one-second timeout looks
+> like a debug leftover" is a stock finding a pattern-matcher produces on request. It rules out a
+> canned response and nothing further. Showing a lane read a diff needs a control it must *not*
+> flag — which is how the second pass is graded.
+
+
 Both lanes reviewed the gap-fix diff to `scripts/acceptance/mock_fidelity.py`, briefed with the
 three findings of `planning/features-to-triage/M23-gapfix.md` and asked whether each was actually
 closed and whether the new code could be bypassed. The diff was passed **inline in the prompt**

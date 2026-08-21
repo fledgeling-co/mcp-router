@@ -346,3 +346,172 @@ instrument broke its own precondition.
 
 `D-m23-a` through `D-m23-e` stay deferred, `D-m23-c` (dark-only dumps) and `D-m23-b` (the unread
 resolved-colour layer) expressly.
+
+---
+
+# Second gap-fix appendix — 2026-08-21
+
+`planning/features-to-triage/M23-gapfix-2.md`. The first pass's three fixes all reproduce and all
+three arms fire; what came back is not *"the fixes did not land"* but *"the properties they assert
+do not yet hold, by routes of the same class"*. Each closed the route its finding named. So the
+question this appendix has to answer for every fix is not "does the example work now" but "what
+else of this shape is still reachable" — and each fix below is armed by the route the finding
+named **and** by one nobody named.
+
+## 13 · The five blockers, and the eleven the review added
+
+`B2` first, because it closes a class rather than a list.
+
+### B2 — the exception boundary is the class, not the doors
+
+`measuring()` is a context manager that converts any `Exception` to `Inconclusive` with the
+traceback quoted into the reason, and `Context(...)`, `ctx.load()`, every layer call and the report
+write are inside one. `KeyboardInterrupt` and `SystemExit` derive from `BaseException` and are
+deliberately outside it: an operator pressing ^C is not an unmeasurable surface.
+
+Listing doors does not close this, which is why the boundary is the class — `KeyError` on a
+hand-authored manifest, `TypeError` on a quoted floor, `IndexError` on a malformed argument and
+`UnicodeDecodeError` on a pairing file are one event, which is that the verdict does not exist.
+
+| Route | Named by | Exit before | Exit now |
+|---|---|---|---|
+| manifest missing `floors` — `KeyError` in `Context.__init__` | the finding | 1 | 3 |
+| dump node missing `role` — `KeyError` inside `layer_breadth` | the finding | 1 | 3 |
+| type ladder role missing `size` — `KeyError` in `layer_type_metrics` | **this runner** | 1 | 3 |
+| `children` not a list — `TypeError` from a frame inside a layer | **this runner** | 1 | 3 |
+| a manifest naming a layer the gate cannot run | **the review** | 3, stale ledger | 3, ledger replaced |
+| a ledger that cannot be written at all | **the review** | 3, silent | 3, reported |
+
+The second half of the failure is the ledger: a reader who opens `servers.ledger.md` after a run
+that raised finds the last good table, with its `clean` cells, and nothing saying the run that just
+happened measured nothing. `write_unmeasured_report` replaces it. It does not say *when* the run
+stopped, because it is now also the failure path for `write_report` after eight layers have run,
+and a file claiming "before any layer ran" would be the gate telling a reader something it knows to
+be untrue.
+
+**Arm.** Narrowing the `except` to `()` returns all four malformed artifacts to exit 1 and the
+stale ledger to disk.
+
+### B1 — a count with no floor under it, and then the floor with nothing under it
+
+`layer_literals` reads the lint's scan count precisely because a lint that scanned nothing and a
+lint that found nothing print the same exit code — and compared it to nothing. It now compares it
+to `floors["lintFiles"]`, 118, the census measured on the run that wrote it.
+
+Two routes past that, both from the review, both of the same shape as the defect:
+
+- **A floor of `0` is not a floor.** `observations < 0` is false for a layer that measured nothing,
+  so `"lintFiles": 0` restores the defect *through its own fix*. The comparison cannot catch this,
+  because the comparison is what is being defeated. Floors are validated as positive integers at
+  `Context.__init__`, once, rather than at each of the four sites. `bool` is excluded explicitly:
+  `isinstance(True, int)` is true in Python and `observations < True` is a floor of one wearing the
+  wrong type.
+- **B1's property is layer-wide.** Writing one floor per layer closes a list. A required layer that
+  ran, raised nothing and measured nothing has produced its pass and its cannot-discriminate in the
+  same shape, which is `G4-assertions-that-do-not-read-their-own-quantity.md` exactly, so that is
+  now inconclusive for every layer at once — including the ones a future surface adds.
+
+| Route | Named by | Exit before | Exit now |
+|---|---|---|---|
+| `scanning 0 files` | the finding | **0** | 3 |
+| `scanning 2 files`, floor 3 — non-zero and below | **this runner** | 0 | 3 |
+| `"lintFiles": 0` | **the review** | 0 | 3 |
+| `copy` running with an empty population | **the review** | 0 | 3 |
+
+The last uses `copy` rather than `type-metrics` deliberately: type-metrics carries a guard of its
+own, so it would not have isolated the general floor.
+
+**Arm.** `if False:` on the floor returns `scanning 0 files` to exit 0. `if False:` on the general
+floor returns the empty-population case to exit 1, not 3.
+
+### B3 — `present` requires something readable, not something truthy
+
+`" ".join(x.split())` drops `\xa0` and keeps U+200B, U+FEFF, U+00AD, U+2060 and the directional
+marks, so `if mock_text and app_text` called two zero-width spaces equal and wrote `present`.
+`readable()` removes whitespace, eleven invisible categories and a short list of blank codepoints,
+and is used only for *is there anything here to compare* — never for the comparison, since two
+strings differing by an invisible codepoint are still different.
+
+The category test is a class and picks up every future member. `BLANK_CODEPOINTS` — the four
+Hangul fillers and U+2800 BRAILLE PATTERN BLANK — is a list and picks up nothing else, because
+Unicode publishes no "renders blank" property. The two errors are not symmetric: filtering too much
+costs a finding that names what was not measured, filtering too little is a false `present`, so the
+list errs long. That asymmetry is the whole answer to `Co`, and the residue is `D-m23-p`.
+
+| Codepoint | Category | Named by |
+|---|---|---|
+| U+200B ZERO WIDTH SPACE | `Cf` | the finding |
+| U+FEFF, U+00AD | `Cf` | **this runner** |
+| U+3164 HANGUL FILLER | `Lo` — a letter | **the review**, all three lanes |
+| U+034F COMBINING GRAPHEME JOINER | `Mn` | **the review** |
+
+U+034F is the interesting one: adding `Mn Me Mc` to the categories closes it as a class rather than
+as a codepoint, and cannot hide content, because a combining mark draws on the base character in
+front of it — `readable("é")` still keeps the `e`.
+
+**Arm.** Restoring truthiness returns all four to exit 0. Removing `BLANK_CODEPOINTS` returns
+U+3164 alone. Removing the mark categories returns U+034F alone.
+
+### B4 — one control answers one affordance
+
+`pairs[state]` is keyed by affordance, so N affordances could name one build node and each earn
+`present` off one measurement of one control. The claimants are now counted in a pre-pass, before
+any row is written: if a pairing is ambiguous then neither claimant was measured, and letting
+whichever came first keep `present` would pick a winner by inventory position.
+
+Counted, not filtered — `[o for o in claimants if o != my_id]` looks like the same test and is not.
+Two inventory entries sharing an id both name the node, the comprehension removes both occurrences,
+and each row sees an empty list. The number of claimants is the quantity the check is named for.
+
+| Route | Named by | Exit before | Exit now |
+|---|---|---|---|
+| two headings on one control | the finding | 0 | 1 |
+| a heading and a sentence — different kinds | **this runner** | 0 | 1 |
+| two inventory entries carrying one id | **the review** | 0 | 1 |
+
+The third is reachable only from an inventory tool that does not disambiguate; `mock-affordances.py`
+appends `#N`, so the selftest reaches it through a wrapper that strips the suffix rather than by
+pretending the shipped tool can emit one. `D-m23-w`.
+
+### D-m23-l — an unvouched pair reads `unclassified`
+
+The coordinator's own correction. `divergent` is reserved for a difference that was measured, and
+*this gate has never established the two are the same control* is not that. Four outcomes, one of
+which is a claim that a measurement happened. On the filled ledger `divergent` falls 18 → 16 and
+`unclassified` rises 6 → 8: the two rows the verifier identified, and no others.
+
+It matters ahead of when it bites — the nine mock kinds `VOUCHED_CONTROLS` does not name
+(`D-m23-h`) each land here, and a correct build would have read `divergent`.
+
+**Arm.** Restoring `divergent` returns the ledger to `divergent 18 · unclassified 6`.
+
+### The five the review added beyond the blockers
+
+Duplicate layer names in the manifest (the dict keeps the last, so an appended optional entry
+demotes a required layer — the list length is now compared to the dict's); the run order drifting
+from the layer table (`declared[name]` sits one line outside the boundary, and the two lists are now
+checked against each other); the manifest-validation exits leaving the ledger; the suppressed ledger
+write; and the unmeasured ledger claiming a stage it does not know. All five are armed. The full
+review, its factual probe and its negative control are in `M23-gapfix-2-review.md`.
+
+## 14 · Gates, this pass
+
+| Gate | Result |
+|---|---|
+| `mock-fidelity-gate.sh servers` | exit **1** — 132 findings, 116 breadth + 16 copy |
+| ledger | `absent 80 · covered-by-pair 16 · divergent 16 · extra 10 · extra-cited 2 · present 3 · structure-unpaired 14 · unclassified 8` |
+| `MCP_ROUTER_WRITE_TOKEN_REGISTER=1` | exit **3**, tokens INCONCLUSIVE, ledger written |
+| `mock-fidelity-selftest.sh` | exit **0** — 47 cases, all three exits observed |
+| `make lint` | exit **0** |
+| `make test` ×2 | exit **0** twice, 1603 tests in 200 suites |
+| `ledger-reconcile.py` | exit **0** — no findings across A–I |
+
+The test count is 1603/200 where the work order quotes 1580/198; the difference arrived with `main`
+in the merge at the top of this pass, not from anything here.
+
+## 15 · What this pass found and did not fix
+
+`D-m23-s` (copy measures unvouched pairings — `D-m23-l` one layer over, deferred because filtering
+copy's population moves the finding count acceptance 6 pins at 16), `D-m23-t`, `D-m23-u`, `D-m23-v`
+and `D-m23-w` are new rows in ORCHESTRATOR.md's deferred register; `D-m23-p` is rewritten to the
+residue that is actually left. Everything from the first pass stays deferred.

@@ -146,6 +146,12 @@ def status_rows(
 # nothing would miss the one that matters. What must never differ is whether the item shipped.
 STATES = [
     (r"needs more work", "needs-more-work"),
+    # Added 2026-08-22 with the M15-M22 triage, which is the first pass to write this status into
+    # either file. Without it `lifecycle` returns None for both rows, they land in I's unread list,
+    # and the check that is named for currency reads nothing at all for a pair of ids — so
+    # "Needs More Info" here beside "Untriaged" there would satisfy every predicate. Same argument
+    # the "ready to verify" row above was added on.
+    (r"needs more info", "needs-more-info"),
     (r"needs input", "needs-input"),
     (r"superseded", "superseded"),
     (r"retired", "retired"),

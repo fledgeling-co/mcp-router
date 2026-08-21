@@ -72,9 +72,17 @@ for f in "${FILES[@]}"; do
   done < <(grep -nE '"#[0-9A-Fa-f]{3,8}"' "$f" || true)
 
   # A colour constructed from components rather than from a token.
+  #
+  # Every SwiftUI `Color` initializer that takes raw numbers or a foreign colour value, not just
+  # the two spellings this first caught. Measured 21 Aug 2026 under M23: `Color(white: 0.5)`,
+  # `Color(hue:saturation:brightness:)` and `Color(.displayP3, red:green:blue:)` all passed this
+  # lint clean while the M23 spec claimed component-constructed colours were caught. A rule whose
+  # gaps are invisible is the "green report from a blind instrument" the conversion contract is
+  # written against, one level down. `scripts/lint/no-raw-design-values-selftest.sh` now arms every
+  # spelling listed here, so a future narrowing goes red instead of going quiet.
   while IFS= read -r hit; do
     report "$rel:$hit  — colour built from components; use ColorToken.color"
-  done < <(grep -nE '(NSColor|UIColor)\(|Color\(\s*\.sRGB|Color\(red:' "$f" || true)
+  done < <(grep -nE '(NSColor|UIColor)\(|Color\(\s*\.(sRGB|sRGBLinear|displayP3|p3)\b|Color\(\s*(red|white|hue|cgColor|nsColor|uiColor|platformColor):' "$f" || true)
 
   # A numeric font size. `.system(size: someToken.size)` is fine; `.system(size: 16)` is not.
   while IFS= read -r hit; do

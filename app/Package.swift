@@ -1,5 +1,19 @@
 // swift-tools-version: 6.0
+import Foundation
 import PackageDescription
+
+/// M23's measurement harness is compiled only when it is asked for.
+///
+/// With `MCP_ROUTER_MEASURE=1` in the environment at package-load time, `MEASURE` is defined for
+/// the presentation layer and for the tool that drives it; without it, every `measured(…)` call
+/// site is the identity modifier, the recorder is not linked into the app, and `MeasureDump` exits
+/// 3 — inconclusive — rather than reporting a surface it never rendered.
+///
+/// A compile-time define rather than a runtime flag: a runtime switch leaves the recorder, the
+/// preference key and the per-node closures in the shipped binary, which is a measurement
+/// apparatus in a product nobody is measuring.
+let measuring = ProcessInfo.processInfo.environment["MCP_ROUTER_MEASURE"] == "1"
+let measureDefine: [SwiftSetting] = measuring ? [.define("MEASURE")] : []
 
 /// `MCPRouterKit` is the code both apps and the Swift router's tests share, and it deliberately has
 /// **no external dependencies** — both app targets link it, and a pre-1.0 package in that graph
@@ -43,7 +57,7 @@ let package = Package(
             name: "MCPRouterUI",
             dependencies: ["MCPRouterKit"],
             path: "Sources/MCPRouterUI",
-            swiftSettings: [.swiftLanguageMode(.v6)]
+            swiftSettings: [.swiftLanguageMode(.v6)] + measureDefine
         ),
         // The Swift router's data layer. Deliberately NOT linked by either app target: the Mac app
         // talks to the router only over the loopback control API, and leaving this out of the
@@ -88,6 +102,15 @@ let package = Package(
             dependencies: ["RouterCore"],
             path: "Sources/ControlDiff",
             swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+        // M23's conversion harness driver. Renders one surface in a hosted view, reads what the
+        // instrumented nodes report about themselves, and writes the JSON tree the fidelity gate
+        // diffs. Never activates and never comes to the front.
+        .executableTarget(
+            name: "MeasureDump",
+            dependencies: ["MCPRouterKit", "MCPRouterUI"],
+            path: "Sources/MeasureDump",
+            swiftSettings: [.swiftLanguageMode(.v6)] + measureDefine
         ),
         .executableTarget(
             name: "ControlProbe",

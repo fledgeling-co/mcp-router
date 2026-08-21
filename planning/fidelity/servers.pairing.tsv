@@ -1,0 +1,139 @@
+# planning/fidelity/servers.pairing.tsv — which build node answers which mock affordance.
+#
+# Four tab-separated columns:  state <TAB> affordance <TAB> node <TAB> citation
+#
+# This file declares ONLY the pairing. It never declares a status: present, divergent, absent and
+# unclassified are computed by scripts/acceptance/mock_fidelity.py from the two artifacts on every
+# run, which is what makes `present` earned by measuring rather than asserted. Deleting a line here
+# does not delete a row from the ledger — the mock side of the inventory is derived from the mock
+# on every run, so an affordance with no line becomes `absent`, which is a finding.
+#
+#   node = -            the affordance has no counterpart in the build
+#   affordance = +path  a build node with no counterpart in the mock, cited
+#
+# A citation is external and pre-existing: a file and the claim it already makes. A justification
+# composed while filling this in is motivated classification wearing a citation's clothes, and the
+# row is a defect either way — a citation records WHO OWNS the difference, and never suppresses it.
+#
+# What this file is not: a conversion. The Servers board in the build was written against DESIGN.md
+# (Instrument Panel, breaker column) and the mock draws Patchbay (signal path, jack lane, inspector).
+# M16 owns that supersession and M17 owns the four states' copy. This ledger is the measurement that
+# says how far apart they are today, filled before either of those items starts.
+
+# ---------------------------------------------------------------- ideal
+ideal	v-ideal/heading/servers	servers.ideal/board-column/board-header/title-block/title
+ideal	v-ideal/sentence/every-mcp-server-your-agents-can-reach-a-jack-li	servers.ideal/board-column/board-header/title-block/subtitle	planning/features-to-triage/M16-signal-path.md — "A jack carries a plug, the server name, and its condition in words"; the mock's board subtitle introduces the jack lane the build has no counterpart for
+ideal	v-ideal/button/add-server	servers.ideal/board-column/board-header/primary-action
+ideal	v-ideal/button/reap-idle	-	planning/features-to-triage/M7-evals-cleanup.md owns the reap/cleanup verbs
+ideal	v-ideal/card/signal-path-5-harnesses-1-endpoint-11-upstreams-	-	planning/features-to-triage/M16-signal-path.md — "Three parts on one rail: Harnesses / The hub / The jacks"
+ideal	v-ideal/icon/unlabelled	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/icon/unlabelled#2	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled	-	planning/features-to-triage/M16-signal-path.md — the harness state dots
+ideal	v-ideal/indicator/unlabelled#2	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#3	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#4	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#5	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#6	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#7	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#8	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#9	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/jack/obscura-3-41-left	-	planning/features-to-triage/M16-signal-path.md — the jack lane
+ideal	v-ideal/jack/dossier-0-58-left	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/jack/docker-mcp-tripped	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/jack/mobbin-2-held-changes	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/jack/google-search-dormant	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/jack/ref-tools-mcp-dormant	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/jack/yt-transcript-dormant	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/jack/lifeline-dormant	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/jack/media-gen-pro-dormant	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/jack/ai-elements-dormant	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/jack/pocketsmith-needs-sign-in	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/banner/two-tools-on-mobbin-changed-their-input-schema-h	-	planning/features-to-triage/M18-sheets-and-gates.md owns the held-changes review gate
+ideal	v-ideal/icon/unlabelled#3	-	planning/features-to-triage/M18-sheets-and-gates.md
+ideal	v-ideal/button/review-changes	-	planning/features-to-triage/M18-sheets-and-gates.md
+ideal	v-ideal/section-header/all-servers	-
+ideal	v-ideal/card/server-transport-tools-state-calls-24h-resident-	servers.ideal/board-column/table
+ideal	v-ideal/column-header/server	servers.ideal/board-column/column-headers/column-server
+ideal	v-ideal/column-header/transport	servers.ideal/board-column/column-headers/column-transport
+ideal	v-ideal/column-header/tools	servers.ideal/board-column/column-headers/column-tools
+ideal	v-ideal/column-header/state	-
+ideal	v-ideal/column-header/calls-24h	servers.ideal/board-column/column-headers/column-calls
+ideal	v-ideal/column-header/resident	-	DESIGN.md §6 — "Numbers the router does not observe are never displayed"; the router reports no resident-memory figure
+ideal	v-ideal/column-header/last-call	servers.ideal/board-column/column-headers/column-last used
+ideal	v-ideal/column-header/unlabelled	-
+ideal	v-ideal/row/obscura-stdio-41-awake-pid-91204-94-142-mb-1-min	servers.ideal/board-column/table/row-fixture-stdio
+ideal	v-ideal/row/dossier-stdio-33-awake-pid-91388-42-72-mb-3-min-	servers.ideal/board-column/table/row-fixture-http
+ideal	v-ideal/row/docker-mcp-stdio-4-tripped-3-fails-18-14-min-ago	servers.ideal/board-column/table/row-fixture-tools
+ideal	v-ideal/row/mobbin-stdio-3-2-held-changes-6-2-h-ago	servers.ideal/board-column/table/row-fixture-oauth
+ideal	v-ideal/row/google-search-stdio-1-dormant-142-12-s-ago	-
+ideal	v-ideal/row/ref-tools-mcp-stdio-2-dormant-27-38-min-ago	-
+ideal	v-ideal/row/pocketsmith-stdio-oauth-2-needs-sign-in-0-never	-
+ideal	v-ideal/row/sift-stdio-disabled-by-you-0-4-d-ago	-
+ideal	v-ideal/indicator/unlabelled#10	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug, superseded in the build by the breaker
+ideal	v-ideal/indicator/unlabelled#11	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#12	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#13	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#14	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#15	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#16	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#17	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#18	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#19	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#20	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#21	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#22	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#23	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#24	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#25	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#26	-
+ideal	v-ideal/callout/four-more-upstreams-are-dormant-and-cost-nothing	-
+ideal	v-ideal/button/hide-inspector	-	planning/features-to-triage/M16-signal-path.md — "Selecting a jack selects that server in the table below and in the inspector"
+ideal	v-ideal/icon/unlabelled#4	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/icon/unlabelled#5	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/button/wake-now	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/button/trip-breaker	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/button/more-actions	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/section-header/process	-	planning/features-to-triage/M16-signal-path.md — the inspector is unrendered in this frame because nothing is selected
+ideal	v-ideal/section-header/identity	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/section-header/idle-duty-last-hour	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/section-header/tools-41	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/section-header/reached-by	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/field/state-awake-since-18-22-07	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/field/pid-91204	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/field/resident-142-mb	-	DESIGN.md §6 — "Numbers the router does not observe are never displayed"
+ideal	v-ideal/field/idle-window-5-min-3-41-left	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/field/in-flight-1-call	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/field/command-obscura-mcp	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/field/resolved-users-you-local-bin-obscura	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/field/environment-2-vars-values-hidden	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/field/manifest-hash-a3f890b	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/codeblock/browser-navigate-browser-screenshot-browser-clic	-	planning/features-to-triage/M16-signal-path.md
+# Build nodes the mock's affordance census has no counterpart for.
+ideal	+servers.ideal/board-column/controls/search-field	-	design/mcp-router-console.html:1799 puts the search field in the window toolbar (id="globalSearch"), outside #b-servers, so the mock's board census cannot contain one
+ideal	+servers.ideal/board-column/controls/filter-bar	-	design/mcp-router-console.html:1797-1803 draws the board filter in the window toolbar rather than in the board
+
+# ---------------------------------------------------------------- empty
+empty	v-empty/icon/unlabelled	servers.empty/board-column/message-state/message-icon
+empty	v-empty/heading/no-servers-adopted-yet	servers.empty/board-column/message-state/message-copy/message-title	planning/features-to-triage/M17-surface-states.md — the per-surface copy table gives Servers/empty as "No servers adopted yet"
+empty	v-empty/sentence/mcp-router-has-not-taken-over-any-of-your-harnes	servers.empty/board-column/message-state/message-copy/message-detail	planning/features-to-triage/M17-surface-states.md
+empty	v-empty/button/adopt-from-claude-code	servers.empty/board-column/message-state/message-action	planning/features-to-triage/M17-surface-states.md
+empty	v-empty/button/add-one-by-hand	-	planning/features-to-triage/M17-surface-states.md
+empty	v-empty/sentence/nothing-is-written-until-you-confirm-the-diff-yo	-	planning/features-to-triage/M18-sheets-and-gates.md owns the confirm-the-diff gate
+
+# ---------------------------------------------------------------- loading
+loading	v-loading/heading/servers	servers.loading/board-column/board-header/title-block/title
+loading	v-loading/sentence/indexing-each-server-once-so-no-session-ever-has	servers.loading/board-column/board-header/title-block/subtitle	planning/features-to-triage/M17-surface-states.md owns the loading copy
+loading	v-loading/card/indexing-11-servers-7-of-11-obscura-41-tools-dos	-	planning/features-to-triage/M17-surface-states.md
+loading	v-loading/progress/indexing-progress	-	planning/features-to-triage/M17-surface-states.md
+loading	v-loading/card/unlabelled	servers.loading/board-column/skeleton
+loading	v-loading/skeleton-row/unlabelled	servers.loading/board-column/skeleton/skeleton-row-0
+loading	v-loading/skeleton-row/unlabelled#2	servers.loading/board-column/skeleton/skeleton-row-1
+loading	v-loading/skeleton-row/unlabelled#3	servers.loading/board-column/skeleton/skeleton-row-2
+
+# ---------------------------------------------------------------- error
+error	v-error/icon/unlabelled	servers.error/board-column/failure-pane/message-state/message-icon
+error	v-error/heading/cannot-reach-the-router	servers.error/board-column/failure-pane/message-state/message-copy/message-title	planning/features-to-triage/M17-surface-states.md — the per-surface copy table gives Servers/error as "Cannot reach the router"
+error	v-error/sentence/nothing-answered-on-127-0-0-1-8879-your-agent-se	servers.error/board-column/failure-pane/message-state/message-copy/message-detail	planning/features-to-triage/M17-surface-states.md
+error	v-error/button/start-the-router	servers.error/board-column/failure-pane/failure-action
+error	v-error/button/reveal-log	-	planning/features-to-triage/M17-surface-states.md
+error	v-error/codeblock/launchctl-print-gui-501-gg-rhodes-mcp-router-sta	-	planning/features-to-triage/M17-surface-states.md

@@ -44,6 +44,7 @@
                     // cannot happen. `Space` on the selected row toggles Keep warm instead, which is
                     // the lever the router actually has.
                     Breaker(state: row.breaker)
+                        .measured("breaker", role: "row-indicator", kind: .leaf)
 
                     VStack(alignment: .leading, spacing: 0) {
                         Text(row.name)
@@ -51,14 +52,23 @@
                             .foregroundStyle(ColorToken.t1.color)
                             .lineLimit(1)
                             .truncationMode(.tail)
+                            .measured(
+                                "name", role: "row-name", kind: .text,
+                                tokens: ["foreground": .t1], type: .body, text: row.name
+                            )
                         Text(subtitleText)
                             // Monospace is the instrument voice (§2): this line is status data.
                             .typeRole(.caption, monospaced: true)
                             .foregroundStyle(subtitleTint.color)
                             .lineLimit(1)
                             .truncationMode(.tail)
+                            .measured(
+                                "state", role: "row-state", kind: .text,
+                                tokens: ["foreground": subtitleTint], type: .caption, text: subtitleText
+                            )
                     }
                     .frame(width: ServersBoardMetrics.nameColumn, alignment: .leading)
+                    .measured("name-block", role: "row-name-block", kind: .vstack, alignment: "leading")
 
                     cell(row.transport, width: ServersBoardMetrics.transportColumn, tint: .t2)
                     cell("\(row.tools)", width: ServersBoardMetrics.toolsColumn, tint: .t2)
@@ -84,6 +94,22 @@
             .accessibilityElement(children: .contain)
             .accessibilityLabel(row.name)
             .accessibilityValue(subtitleText)
+            .measured("row-\(row.id)", role: "table-row", kind: .hstack, text: rowText)
+        }
+
+        /// Every string this row draws, in draw order.
+        ///
+        /// A container that reports no text of its own is paired against a mock row whose label is
+        /// its whole subtree's text, and the two are then not compared at all — which the M23 gate
+        /// reports as `unclassified` rather than as agreement. Composing it here is what turns that
+        /// row into a real comparison, and it is a concatenation of the cells above rather than a
+        /// second spelling of them: change a cell and this changes with it.
+        private var rowText: String {
+            var parts = [row.name, subtitleText, row.transport, "\(row.tools)", "\(row.calls)"]
+            if row.errors > 0 { parts.append("\(row.errors)") }
+            parts.append(row.lastUsed.map { shortAgo($0) } ?? "Never")
+            if let action = row.action { parts.append(action.label) }
+            return parts.joined(separator: " ")
         }
 
         /// A failed write is reported **against this row**, replacing the state line, because that is

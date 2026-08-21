@@ -119,26 +119,47 @@ public struct MessageState: View {
         VStack(spacing: MetricToken.selectionInset.leadingScalar * 3) {
             IconView(icon, size: TypeToken.largeTitle.size)
                 .foregroundStyle(tint.color)
+                .measured(
+                    "message-icon",
+                    role: "state-illustration",
+                    kind: .leaf,
+                    tokens: ["foreground": tint]
+                )
 
             VStack(spacing: MetricToken.selectionInset.leadingScalar) {
                 Text(message.title)
                     .typeRole(.title3)
                     .foregroundStyle(ColorToken.t1.color)
+                    .measured(
+                        "message-title", role: "state-title", kind: .text,
+                        tokens: ["foreground": .t1], type: .title3, text: message.title
+                    )
 
                 Text(message.detail)
                     .typeRole(.body)
                     .foregroundStyle(ColorToken.t2.color)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
+                    .measured(
+                        "message-detail", role: "state-detail", kind: .text,
+                        tokens: ["foreground": .t2], type: .body, text: message.detail
+                    )
             }
+            .measured("message-copy", role: "state-copy", kind: .vstack)
 
             if let label = message.actionLabel {
                 Button(label) { action?() }
                     .buttonStyle(ProminentButtonStyle())
+                    .measured(
+                        "message-action", role: "state-action", kind: .leaf,
+                        tokens: ["background": .accent, "foreground": .onAccent],
+                        type: .body, text: label
+                    )
             }
         }
         .frame(maxWidth: MetricToken.sidebar.leadingScalar + MetricToken.titlebar.leadingScalar)
         .padding(MetricToken.selectionRadius.leadingScalar * 3)
+        .measured("message-state", role: "state-container", kind: .vstack)
     }
 }
 
@@ -156,7 +177,7 @@ public struct SkeletonRows: View {
 
     public var body: some View {
         VStack(spacing: 1) {
-            ForEach(0 ..< count, id: \.self) { _ in
+            ForEach(0 ..< count, id: \.self) { index in
                 HStack(spacing: MetricToken.selectionRadius.leadingScalar) {
                     RoundedRectangle(cornerRadius: BreakerGeometry.standard.housingRadius)
                         .fill(ColorToken.f2.color)
@@ -176,9 +197,11 @@ public struct SkeletonRows: View {
                 }
                 .padding(.horizontal, MetricToken.selectionRadius.leadingScalar)
                 .frame(height: MetricToken.serversRow.leadingScalar)
+                .measured("skeleton-row-\(index)", role: "skeleton-row", kind: .hstack)
             }
         }
         .accessibilityLabel("Loading servers")
+        .measured("skeleton", role: "skeleton", kind: .vstack)
     }
 }
 

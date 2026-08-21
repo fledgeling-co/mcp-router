@@ -179,17 +179,18 @@ final class FakeTransport: UpstreamTransporting, Sendable {
 /// the sleep only picks a different load average to be correct at. Waiting on the condition needs
 /// no such choice: a busy machine makes this slower and never wrong.
 ///
-/// `within` is a deadlock breaker rather than the observation. It is three orders of magnitude
-/// above the events these tests wait on, and its expiry is **reported as a failure naming the
-/// condition**, so a mutation that stops the event happening at all fails with a reason instead of
-/// hanging the suite.
+/// `within` is a deadlock breaker rather than the observation. The events here are actor hops that
+/// take microseconds, so ten seconds is four orders of magnitude of headroom, and its expiry is
+/// **reported as a failure naming the condition** — a mutation that stops the event happening
+/// fails with a reason instead of hanging the suite. It was thirty seconds first, and the mutation
+/// gate is what argued it down: killing eviction made the run take 33 seconds to say so.
 /// It **throws** rather than recording an issue, because a recorded issue lets execution carry on
 /// into assertions whose precondition never held — one timeout then reports as a cascade of
 /// secondary failures that did not happen. And the poll is cancellation-aware: swallowing the
 /// cancellation would turn the sleep into a no-op and spin this loop until the deadline.
 func waitUntil(
     _ what: Comment,
-    within seconds: Double = 30,
+    within seconds: Double = 10,
     sourceLocation: SourceLocation = #_sourceLocation,
     _ condition: @Sendable () async -> Bool
 ) async throws {

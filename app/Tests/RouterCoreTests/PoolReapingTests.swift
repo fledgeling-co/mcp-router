@@ -61,8 +61,9 @@ struct PoolReapingTests {
     func perServerIdleWins() async throws {
         let transport = FakeTransport()
         // One pool, one default that is effectively never, and two servers: `own` asks for its own
-        // short window, `inherits` takes the default. The second is what makes the claim testable
-        // as a comparison instead of as a duration.
+        // short window, `inherits` takes the default. Two servers rather than one because the
+        // claim has two halves — the asking server gets what it asked for, AND the default is
+        // still in force for a server that asked for nothing.
         let pool = makePool(
             [stdioUpstream("own", idleMs: 25), stdioUpstream("inherits")],
             transport: transport,
@@ -85,11 +86,10 @@ struct PoolReapingTests {
         #expect(other.idleMilliseconds == 600_000, "a server that asks for nothing takes the default")
         try #require(armed.idleMilliseconds == 25, "and one that asks gets its own, not the default")
 
-        // Then the reap itself, awaited through the timer's own task so it is observed when it
-        // happens rather than sampled at a moment picked in advance. `Task.sleep` is at-least and
-        // the deadline was taken before the task existed, so the woken timer's own deadline check
-        // cannot fail: the reap is complete when the task returns. The 150ms sleep this replaces
-        // passed in isolation four times running and failed under whole-suite load.
+        // Then the reap itself. The pool awaits its own timer and returns once the reap has run,
+        // so this is observed when it happens rather than sampled at a moment picked in advance.
+        // The 150ms sleep it replaces passed in isolation four times running and failed under
+        // whole-suite load.
         await pool.awaitReap("own", epoch: armed.epoch)
         #expect(await !pool.isLive("own"))
         // Honestly a clock dependency, and stated as one rather than dressed up: it holds unless

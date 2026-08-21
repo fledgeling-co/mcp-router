@@ -141,11 +141,17 @@ struct WatchAdoptionTests {
         var state = WatchState.load(path: scratch.statePath, fileSystem: RealFileSystem())
         #expect(state.failures["broken"] != nil, "a failed index must be recorded")
         #expect(state.mcpServersHash == nil, "a pending name withholds the hash")
-        // A failed entry is removed from the manifest rather than cached as indexed.
+        // R17 — the failure is recorded in BOTH places, and neither substitutes for the other.
+        // The backoff above is the retry policy; the manifest row below is what `/servers` and
+        // `UpstreamStateReport` read. This used to assert the entry was `nil`, and that deletion
+        // is why `namecheap` reported `error: None, tools: 0, state: idle` on the owner's machine.
         let manifest = ManifestIO.load(
             path: scratch.manifestPath, fileSystem: RealFileSystem()
         ).manifest
-        #expect(manifest.entry(named: "broken") == nil)
+        let brokenEntry = manifest.entry(named: "broken")
+        #expect(brokenEntry != nil, "a failed index must leave a manifest row, not nothing")
+        #expect(brokenEntry?.error?.string.isEmpty == false, "and the row must carry the reason")
+        #expect(brokenEntry?.tools.isEmpty == true, "with no tools, so nothing is served from it")
 
         // Inside the window: no spawn is attempted, so no new failure is recorded at the new time.
         clock.advance(by: 60000)

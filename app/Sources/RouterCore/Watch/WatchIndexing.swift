@@ -141,26 +141,21 @@ public struct WatchIndexer: Sendable {
             nowMilliseconds: { clock.nowMilliseconds },
             observe: { _ in observation }
         )
-        // A failure is recorded in this watcher's own backoff, never as a manifest entry: an entry
-        // carrying an error still *looks* indexed to the next reader, and `watch.ts:244` deletes it
-        // for exactly that reason.
-        if !step.failed.isEmpty {
-            Self.removeEntry(named: upstream.name, from: &manifest)
-        }
+        // R17 — the failure entry `build` just wrote is KEPT, and the backoff records it too.
+        //
+        // Both sides used to delete it here, on the reasoning that an entry carrying an error still
+        // *looks* indexed to the next reader. No reader reads it that way: `WatchAdoption`'s own
+        // gate rejects an entry with an error, `ToolUnion.isStale` returns true for it,
+        // `ToolUnion.union` skips a zero-tool entry, and `UpstreamStateReport` reads `error` as the
+        // `detail` it puts in front of the user. Deleting it erased the only durable record that
+        // the router had tried the server at all — measured on the owner's machine on 2026-08-21,
+        // where `namecheap` failed `Connection closed` every five minutes and `/servers` reported
+        // `error: None, tools: 0, state: idle`, the reason surviving only in watch-state.json.
+        //
+        // The backoff is untouched: it is the retry policy, and this row is the record.
         try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)
         pending.append(event)
         report.built.append(contentsOf: step.built)
         report.failed.append(contentsOf: step.failed)
-    }
-
-    /// `delete manifest.servers[name]`, preserving the order of everything else.
-    ///
-    /// Local rather than a new method on ``Manifest``: that type is R1's and is byte-identical on
-    /// several in-flight branches, so adding to it would manufacture a merge conflict for a
-    /// capability only this file needs.
-    static func removeEntry(named name: String, from manifest: inout Manifest) {
-        guard case let .object(entries)? = manifest.serversValue else { return }
-        let target = JSString(name)
-        manifest.setTopLevel("servers", .object(entries.filter { $0.key != target }))
     }
 }

@@ -239,9 +239,29 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
       for (const f of failed) {
         const name = f.slice(0, f.indexOf(':'));
         const entry = toIndex.find((u) => u.name === name);
-        // Drop the error record rather than caching it: retry policy lives in this
-        // watcher's own backoff, not in a manifest entry that would look indexed.
-        delete next.servers[name];
+        /*
+         * The error row `buildManifest` just wrote is KEPT (R17).
+         *
+         * It used to be deleted here — `delete next.servers[name]` — on the reasoning that
+         * an entry carrying an error still "looks indexed" to the next reader. No reader
+         * reads it that way: this watcher's own adoption gate rejects `entry.error` a few
+         * blocks down, `isStale` returns true for it, `unionTools` skips a zero-tool entry,
+         * and `describe` and `reportUpstreams` exist precisely to surface it. What the
+         * delete actually did was erase the only durable record that this server had been
+         * tried at all.
+         *
+         * Measured on the owner's machine, 2026-08-21: `namecheap` and `lifeline` both fail
+         * `MCP error -32000: Connection closed`. `lifeline` is not staged in ~/.claude.json,
+         * so this loop never ran over it and the row `index` wrote survived. `namecheap` is
+         * staged, so every fire past the backoff re-indexed it and deleted the row again —
+         * including the row `index --force` had just written. `/servers` then reported
+         * `error: None, tools: 0, state: idle` for a server whose reason this process had in
+         * hand and discarded. The reason survived only in watch-state.json, which no surface
+         * reads.
+         *
+         * The backoff below is untouched. It is the retry policy; the manifest row is the
+         * record. They answer different questions and neither substitutes for the other.
+         */
         watchLog(`failed to index "${f}"; left in ~/.claude.json, will retry`);
         if (entry) failures[name] = { hash: upstreamHash(entry), at: now, error: f };
       }

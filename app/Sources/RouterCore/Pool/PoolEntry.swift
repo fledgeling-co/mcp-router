@@ -73,8 +73,31 @@ struct PoolHandle: Sendable {
 /// clock stays for the values that are reported.
 struct ReapTimer {
     let epoch: ReapEpoch
+    /// The window this arming resolved to, kept because it is the thing a test needs to CHECK.
+    ///
+    /// Comparing deadlines instead was weaker in two ways an out-of-family review caught: two
+    /// deadlines taken minutes apart can order wrongly for a reason that is not the pool's, and a
+    /// window of 599 seconds compares as smaller than a 600-second default while being just as
+    /// wrong as 600. The integer is exact, is the same local that computes the deadline and drives
+    /// the sleep, and involves no clock at all.
+    let idleMilliseconds: Int
     let deadline: ContinuousClock.Instant
     let task: Task<Void, Never>
+}
+
+/// What an arming chose, without the machinery it chose it with.
+///
+/// The `Task` deliberately does not travel: it is live, unstructured and cancellable, and three
+/// out-of-family reviewers independently named handing one to a test as the wrong seam — a caller
+/// could cancel a production timer, or await one that has since been superseded. The pool awaits
+/// its own tasks instead (`awaitReap`, `awaitSessionEnded`) and lets only this value out.
+///
+/// `idleMilliseconds` is the window the arming RESOLVED TO, which is the thing a test about idle
+/// windows actually wants to check. It is exact, it is the same local that computes the deadline
+/// and drives the sleep, and reading it involves no clock at all.
+struct ReapArming: Sendable {
+    let epoch: ReapEpoch
+    let idleMilliseconds: Int
 }
 
 /// One attempt to open an upstream, shared by every caller that arrives while it is in flight.

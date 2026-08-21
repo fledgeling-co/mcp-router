@@ -168,6 +168,98 @@ final class FakeTransport: UpstreamTransporting, Sendable {
     }
 }
 
+/// Wait until the pool reports a condition, rather than until a chosen number of milliseconds
+/// have passed.
+///
+/// That distinction is the whole of G3. A fixed sleep encodes a guess about scheduler latency made
+/// on a quiet machine: `PoolReapingTests`' 150ms wait for a 25ms idle window passed four times
+/// running in isolation and failed under whole-suite load. Where the guess turns over is not
+/// known — a deliberate reproduction at load average 114, with the test process at the lowest
+/// priority, did NOT reproduce it, and the incident that filed the item happened at 548. Widening
+/// the sleep only picks a different load average to be correct at. Waiting on the condition needs
+/// no such choice: a busy machine makes this slower and never wrong.
+///
+/// `within` is a deadlock breaker rather than the observation. The events here are actor hops that
+/// take microseconds, so ten seconds is four orders of magnitude of headroom, and its expiry is
+/// **reported as a failure naming the condition** — a mutation that stops the event happening
+/// fails with a reason instead of hanging the suite. It was thirty seconds first, and the mutation
+/// gate is what argued it down: killing eviction made the run take 33 seconds to say so.
+/// It **throws** rather than recording an issue, because a recorded issue lets execution carry on
+/// into assertions whose precondition never held — one timeout then reports as a cascade of
+/// secondary failures that did not happen. And the poll is cancellation-aware: swallowing the
+/// cancellation would turn the sleep into a no-op and spin this loop until the deadline.
+func waitUntil(
+    _ what: Comment,
+    within seconds: Double = 10,
+    sourceLocation: SourceLocation = #_sourceLocation,
+    _ condition: @Sendable () async -> Bool
+) async throws {
+    let deadline = ContinuousClock.now.advanced(by: .seconds(seconds))
+    var cancelled = false
+    while ContinuousClock.now < deadline {
+        if await condition() { return }
+        do { try await Task.sleep(nanoseconds: 2_000_000) } catch { cancelled = true; break }
+    }
+    let why = cancelled ? "the waiting task was cancelled" : "timed out after \(seconds)s"
+    try #require(Bool(false), "\(why) waiting for: \(what)", sourceLocation: sourceLocation)
+}
+
+/// Await an event the pool owns, under the same deadlock breaker `waitUntil` uses.
+///
+/// `awaitReap` and `awaitSessionEnded` await a `Task` the pool started, so the only bound on them
+/// is the pool's own armed window — and P6 configures that at 600 000 ms, because a default that
+/// is effectively never is what makes the per-server override provable. Awaiting one unbounded
+/// turns a regression in the reaping path into a run that ends without naming a test: the
+/// mutation that reaps at the default window while the arming records the requested one measured
+/// **601.184 seconds**, and even then the single issue landed on the residual clock-dependency
+/// line rather than on the window claim; killed at 150 seconds it exits 142 with no test name at
+/// all. This item's thesis ranks a nameless timeout below a flake, so the awaits get the bound
+/// the polls already have, and a regression in this class names an assertion inside the CI bound.
+///
+/// The wait is **abandoned**, not cancelled. A task group around `await task.value` as it stands
+/// would not help: that call on a `Task<_, Never>` has no cancellation check, so the group awaits
+/// the loser after `cancelAll()` and the run still takes ten minutes — the bound landing on the
+/// wrong side of the await. An observer records the landing instead and this polls that record, so
+/// giving up costs one task that finishes by itself later, in a run that has already gone red.
+///
+/// **A group is not ruled out, only that shape of one**, and the correction is a reviewer's rather
+/// than mine: make the WAIT cancellation-aware and a group abandons it properly. `AuthorizationURLBox`
+/// in `OAuthFlowStarter.swift` is that construction, written here for this exact hang — a race whose
+/// losing child could not be resumed by cancellation ran 91 seconds against a 20-second budget. A
+/// continuation resumed by whichever of event or deadline arrives first would also retire the 2ms
+/// poll and `D-g3-i` with it. It is `D-g3-k`, deferred rather than dismissed: this poll is measured
+/// and the handshake would need its own mutation evidence to be worth more than it.
+///
+/// Ten seconds is a **smaller** margin here than it is on `waitUntil`, and is stated rather than
+/// inherited: the conditions there are actor hops taking microseconds, while the events here
+/// include the pool's own 25ms and 30ms windows, so the headroom is 300-400x rather than four
+/// orders of magnitude. It is still 66x the 150ms budget that produced this item's original red.
+/// Reaching it needs the machine to stretch a 25ms window past ten seconds, which is the total
+/// starvation `waitUntil`'s own note describes and not a load a number could be chosen against.
+///
+/// `event` should **await an outcome rather than do work**. On the timed-out path the observer
+/// outlives the test that started it, holding the pool until the arming it is parked on completes;
+/// the five call sites here only await, so nothing acts late, and the reap that eventually runs is
+/// the pool's own task, which exists whether or not anything is watching it. Put work in the
+/// closure and that stops being true. An out-of-family reviewer read the leak as the observer
+/// performing pool cleanup during later tests; it does not, and this is what keeps that so.
+func awaitEvent(
+    _ what: Comment,
+    within seconds: Double = 10,
+    sourceLocation: SourceLocation = #_sourceLocation,
+    _ event: @escaping @Sendable () async -> Void
+) async throws {
+    let landed = Mutex(false)
+    let observer = Task { await event(); landed.withLock { $0 = true } }
+    // Cancelling buys nothing on the timed-out path — the observer is parked in `await
+    // task.value`, which ignores cancellation — but leaving a task uncancelled on the way out is
+    // worse hygiene than saying so, and it does stop the observer if `event` ever gains a check.
+    defer { observer.cancel() }
+    try await waitUntil(what, within: seconds, sourceLocation: sourceLocation) {
+        landed.withLock { $0 }
+    }
+}
+
 /// A clock the test drives, so an idle window can be asserted rather than slept through.
 final class TestClock: RouterClock, Sendable {
     private let now: Mutex<Double>

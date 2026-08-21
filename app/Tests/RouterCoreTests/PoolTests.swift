@@ -62,8 +62,12 @@ struct PoolTests {
         await transport.waitForGatedOpen()
         async let second = pool.lease("a")
         async let third = pool.lease("a")
-        // Give the two joiners a chance to reach the cohort before the gate opens.
-        try? await Task.sleep(nanoseconds: 20_000_000)
+        // Open the gate once the two joiners have actually reached the cohort, rather than after a
+        // window long enough that they probably have. Losing that bet makes the pool look as
+        // though it spawned three children, which is the defect this test exists to catch.
+        try await waitUntil("all three callers to join the cohort") {
+            await pool.waitingCallers("a") >= 3
+        }
         transport.openGate()
 
         let leases = try await [first, second, third]
@@ -119,15 +123,24 @@ struct PoolTests {
     @Test("P4 — an upstream with a call outstanding is never reaped")
     func noReapWhileInFlight() async throws {
         let transport = FakeTransport()
-        let pool = makePool([stdioUpstream("a", idleMs: 30)], transport: transport)
+        // Both windows are short, deliberately. Which of the two the pool picks is P6's claim, not
+        // this one, and setting them equal is what makes the await at the end bounded under any
+        // mutation instead of needing a guard number to protect it.
+        let pool = makePool([stdioUpstream("a", idleMs: 30)], transport: transport, idleMs: 30)
 
         let lease = try await pool.lease("a")
-        // Well past the idle window, but the call has not finished.
-        try? await Task.sleep(nanoseconds: 120_000_000)
+        // A call outstanding arms no timer at all, which is stronger than finding the upstream
+        // still live 120ms into a 30ms window — that only says a reap had not happened *yet*.
+        let duringCall = await pool.armedReap("a")
+        #expect(duringCall == nil, "a call in flight leaves no idle timer armed")
         #expect(await pool.isLive("a"), "the reaper must not close an upstream mid-call")
 
-        await pool.release(lease)
-        try? await Task.sleep(nanoseconds: 120_000_000)
+        // And the close is awaited through the timer the release arms, so the second half is not a
+        // second bet on 120ms being longer than whatever the machine is doing.
+        let armed = try #require(await pool.releaseObservingReap(lease), "release arms the timer")
+        try await awaitEvent("`a` to be reaped once the call had finished") {
+            await pool.awaitReap("a", epoch: armed.epoch)
+        }
         #expect(await !pool.isLive("a"), "and it must close once the call has finished")
     }
 

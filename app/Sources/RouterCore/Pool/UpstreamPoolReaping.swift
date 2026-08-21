@@ -36,7 +36,9 @@ public extension UpstreamPool {
             try? await Task.sleep(nanoseconds: UInt64(idleMs) * 1_000_000)
             await self?.reapIfStillDue(name: name, epoch: epoch, handle: handle.id, deadline: deadline)
         }
-        entry.reap = ReapTimer(epoch: epoch, deadline: deadline, task: task)
+        entry.reap = ReapTimer(
+            epoch: epoch, idleMilliseconds: idleMs, deadline: deadline, task: task
+        )
     }
 
     /// The woken timer's four-part check.

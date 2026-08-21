@@ -21,28 +21,43 @@
 # than no gate, because ORCHESTRATOR.md cites this file as the reason the refusal holds. The pair
 # is now looked for per FILE, which is the unit a person writes an applier in.
 #
-# ## Three refusals
+# ## Three refusals, each stated as what it actually reads
 #
-#   1. a file that names a harness config path in CODE and also writes a file
+#   1. a file whose CODE names a harness config path — whole, or by the file name a path is
+#      assembled from — and that also writes a file
 #   2. a file that uses R7's reconciliation API — `ReconciliationPlan`, `HarnessReport`, or the
-#      `ClientConfigs` calls that hand out a harness path — and also writes a file
-#   3. any file write at all inside the seam — `RouterCore/Discovery`, `HarnessesVerb.swift`, and
-#      any file named `Harness*`, `Reconciliation*` or `ClientConfig*` anywhere under app/Sources —
-#      however the path was obtained. Rules 1 and 2 need a recognisable token; this one does not,
-#      so an applier taking a bare `String` path is still refused where one would actually live.
+#      `ClientConfigs` calls that hand out a harness path, matched across a line wrap — and that
+#      also writes a file
+#   3. inside the seam — `RouterCore/Discovery`, `HarnessesVerb.swift`, and any file named
+#      `Harness*`, `Reconciliation*` or `ClientConfig*` anywhere under app/Sources — **any call in
+#      the mutating vocabulary below, however the path was obtained**. Rules 1 and 2 need a
+#      recognisable token; this one does not, so an applier taking a bare `String` path is refused
+#      where one would actually live. Its vocabulary is deliberately wider than theirs, because the
+#      seam is a closed set of files and a false positive there costs one comment: it carries the C
+#      stdio calls, a subprocess that could redirect into a file, and the calls that replace a
+#      config without writing to it at all — a symlink, a hard link, a mode change.
 #
 # ## What this gate does NOT check, said plainly rather than left to be discovered
 #
-# It is `grep`, not a call graph, and **it does not establish that no applier exists**. An applier
-# split across two neutrally-named files outside the seam — one asking `ClientConfigs.path(for:)`
-# for the target, another taking a `String` and writing it — satisfies no intersection and lives in
-# no watched name, and this gate exits 0 on it. That is registered as `D-r7-m`, and the closed-world
-# fix is named there: census the whole set of writing files against a declared allowlist. Until
-# somebody takes that trade, the honest claim is the one this gate can carry — no single file pairs
-# a harness path or a reconciliation plan with a write, and the seam writes nothing at all. Anything
-# stronger is prose. The plants in `no-harness-config-writes-selftest.sh` are the population this
-# gate is proven against, and the split-file case is kept there as a declared blind spot rather than
-# left for the next verifier to find.
+# It is `grep`, not a call graph. Three limits, and each has a case in
+# `no-harness-config-writes-selftest.sh` so it shows up in a run rather than only in this paragraph.
+#
+#   * **It does not establish that no applier exists.** An applier split across two neutrally-named
+#     files outside the seam — one asking `ClientConfigs.path(for:)` for the target, another taking
+#     a `String` and writing it — satisfies no intersection and lives in no watched name, and this
+#     gate exits 0 on it. That is `D-r7-m`, asserted as a miss at `P10`. The closed-world fix is
+#     named there: census the whole set of writing files against a declared allowlist.
+#   * **Rule 3 refuses a vocabulary, not the concept of writing.** Every entry is probed against a
+#     string it must match before any file is read, and the five walk-throughs a verifier found are
+#     kept as cases, so the vocabulary's reach is measured rather than asserted. A spelling nobody
+#     has thought of is still a spelling nobody has thought of.
+#   * **Rules 1 and 2 are open-world and stay narrow on purpose.** A file that reaches a harness
+#     path through a value passed in from somewhere else, and that lives outside the seam, is not a
+#     finding here. Widening them to every write in the tree is the same trade `D-r7-m` names.
+#
+# The claim this gate can carry, and the one `spec-R7.md` §7 and ORCHESTRATOR.md now make: no single
+# file pairs a harness config with a write, and **the seam neither writes nor relinks anything**.
+# That `ReconciliationPlan` has no applier today is established by reading the tree, not by this.
 #
 # `~/.claude.json` is written on purpose by `install-entry` and `watch`, which is pre-existing,
 # parity-locked product behaviour (`ClaudeStagingEntry`, `WatchBackup`). Those files carry no
@@ -67,13 +82,37 @@ FAILURES=0
 # nothing but a writing constructor, and it matches every spelling and every wrapper around it.
 #
 # The harness config files R7 reads, by their distinguishing path fragment.
-HARNESS_PATHS='\.claude\.json|claude_desktop_config\.json|\.codex/config\.toml|\.chatgpt/config\.toml|\.cursor/mcp\.json|\.gemini/settings\.json|\.grok/config\.toml|opencode/opencode\.json'
+HARNESS_PATHS='\.claude\.json|claude_desktop_config\.json|\.codex/config\.toml|\.chatgpt/config\.toml|\.cursor/mcp\.json|\.gemini/settings\.json|\.gemini/config/mcp_config\.json|\.grok/config\.toml|opencode/opencode\.json'
+
+# The same files by NAME alone. Nothing in this repository builds a path by writing it out whole —
+# every one of them is assembled a component at a time through `appendingPathComponent`, and a
+# vocabulary of whole paths cannot see the assembled form. Measured against `app/Sources`: eight
+# files name one of these in code and the only one of them that writes anything writes to standard
+# output, so this widening costs no false positive today.
+HARNESS_PATH_PARTS='settings\.json|mcp_config\.json|claude_desktop_config\.json|\.claude\.json|mcp\.json|config\.toml|opencode\.json'
 
 # R7's own API. A file holding any of these is handling a harness config or a plan for one, and a
 # write in the same file is the applier spec §7 says must not exist.
-R7_API='ReconciliationPlan|HarnessReport|ClientConfigs\.path\(for:|ClientConfigs\.inventory\(|ClientConfigs\.discover\('
+#
+# Matched against the file's code with newlines collapsed to spaces, and tolerant of whitespace
+# around the dot and the paren, because this repository's own `line_length: warning 110` wraps a
+# long call by itself: `ClientConfigs.path(` followed by `for:` on the next line satisfied
+# `ClientConfigs\.path\(for:` in nobody's file.
+R7_API='ReconciliationPlan|HarnessReport|ClientConfigs[[:space:]]*\.[[:space:]]*(path|inventory|discover)[[:space:]]*\('
 
 WRITING='writeFile|createFile|write\(to:|write\(toFile:|removeItem|moveItem|copyItem|forWritingTo:|forWritingAtPath|forUpdatingTo:|forUpdatingAtPath|toFileAtPath:|OutputStream\(|replaceItem\(at:|\.write\(|contentsOfFile:.*write|/bin/cp|/bin/mv|/usr/bin/tee'
+
+# Rule 3 only. The seam is a closed set — eight files today — so it can afford a vocabulary that
+# would be noisy across 313, and its claim is the strong one: nothing in here reaches another
+# program's configuration at all.
+#
+# Three groups, and the third is the one no plant had named. The C stdio calls obtain a path
+# perfectly well and appear in no Swift write spelling. A subprocess writes a file with no write
+# call anywhere in the diff — `/bin/sh -c 'cat > target'`. And a symlink, a hard link or a mode
+# change **replaces or alters a harness config while writing nothing**: `D-r7-v` records that even
+# the acceptance lane's byte digest cannot see the last of those, so a gate that also could not see
+# it would leave the mutation unwitnessed on both instruments.
+SEAM_MUTATING='fopen\(|fdopen\(|freopen\(|fputs\(|fputc\(|fwrite\(|fprintf\(|creat\(|O_WRONLY|O_RDWR|O_CREAT|O_APPEND|posix_spawn|Process\(|executableURL|launchPath|/bin/sh|/bin/bash|/bin/zsh|/usr/bin/env|createSymbolicLink|createLink|linkItem|setAttributes\(|trashItem'
 
 # `.write(` also matches writing to a standard stream, which is printing rather than writing a
 # config. Excluded so that `Out.print` does not make every verb a finding — which is the kind of
@@ -103,21 +142,87 @@ report() {
 # input: `grep -E pattern file | grep -qvE other` reports a match for a file with no matches at
 # all, which would have made all three rules fire on all 313 sources.
 file_writes() {
-  code_lines "$1" \
-    | grep -nE "$WRITING" \
-    | sed -E "s/$NOT_A_FILE_WRITE\.write\(/PRINTS(/g" \
-    | grep -E "$WRITING"
+  writes_matching "$1" "$WRITING"
 }
 
-# The file with its comments removed. A harness path in a doc comment is documentation; several
-# files under `app/Sources` discuss `~/.claude.json` in prose and write something unrelated, and
-# reading those as findings is how a gate stops being run. Whole-line `//`, `///`, and the three
-# shapes a block comment takes are all removed — `app/Sources` contains one real `/* … */` block,
-# so the block case is measured rather than hypothetical.
-# Comment lines are **blanked, not deleted**, so `grep -n` downstream still reports the line number
-# a person would open the file at.
+# The same, over rule 3's wider vocabulary.
+seam_writes() {
+  writes_matching "$1" "$WRITING|$SEAM_MUTATING"
+}
+
+# Every line in $1 that matches vocabulary $2. Empty when the file only prints.
+#
+# The printing construct is **neutralised in the line** rather than the line being dropped. Dropping
+# it let `try data.write(to: target) // FileHandle.standardOutput` erase itself from the gate with a
+# trailing comment — both out-of-family reviewers found that one independently. Rewriting only the
+# head of the call leaves any real write on the same line still matching.
+#
+# Written as a capture-and-test rather than `grep -q`, because BSD `grep -qv` exits 0 on empty
+# input: `grep -E pattern file | grep -qvE other` reports a match for a file with no matches at
+# all, which would have made all three rules fire on all 313 sources.
+writes_matching() {
+  code_lines "$1" \
+    | grep -nE "$2" \
+    | sed -E "s/$NOT_A_FILE_WRITE\.write\(/PRINTS(/g" \
+    | grep -E "$2"
+}
+
+# The file with its comments removed, **as a comment reader rather than as a line shape**.
+#
+# A harness path in a doc comment is documentation; several files under `app/Sources` discuss
+# `~/.claude.json` in prose and write something unrelated, and reading those as findings is how a
+# gate stops being run. The previous version blanked any line whose first characters were `//`,
+# `/*`, `*/` or `*`, which is a guess about how comments are laid out, and it was wrong in both
+# directions at once:
+#
+#   * a write SHARING a line with a block comment was blanked with it — the same trailing-comment
+#     evasion `writes_matching` was hardened against, left open one function along; and
+#   * prose inside a `/* … */` whose lines do not begin with `*` was read as CODE, so a file that
+#     only documents what it refuses to do reads as a finding.
+#
+# So the block state is tracked instead. Comment spans are **blanked, not deleted**, so `grep -n`
+# downstream still reports the line number a person would open the file at. Two deliberate
+# narrownesses: a whole-line `//` comment is blanked while a TRAILING one keeps its text, because a
+# trailing comment must never be able to erase a real write beside it; and `/*` opens a block only
+# where it starts the line or follows an opener character, so `let pattern = "/*"` and the `src/*.ts`
+# this repository already carries in a doc comment do not blank the rest of a file.
 code_lines() {
-  sed -E 's#^[[:space:]]*(//|/\*|\*/|\*[^/]).*$##' "$1" 2>/dev/null
+  awk '
+    function opener(s,   pos, base, ch) {
+      base = 0
+      while (1) {
+        pos = index(substr(s, base + 1), "/*")
+        if (pos == 0) return 0
+        pos = base + pos
+        if (pos == 1) return pos
+        ch = substr(s, pos - 1, 1)
+        if (ch == " " || ch == "\t" || ch == "(" || ch == "{" || ch == "," || ch == ";") return pos
+        base = pos + 1
+      }
+    }
+    {
+      line = $0
+      out = ""
+      if (!inblock && line ~ /^[[:space:]]*\/\//) { print ""; next }
+      while (length(line) > 0) {
+        if (inblock) {
+          i = index(line, "*/")
+          if (i == 0) { line = ""; break }
+          line = substr(line, i + 2)
+          inblock = 0
+          continue
+        }
+        s = opener(line)
+        d = index(line, "//")
+        if (d > 0 && (s == 0 || d < s)) { out = out line; break }
+        if (s == 0) { out = out line; break }
+        out = out substr(line, 1, s - 1)
+        line = substr(line, s + 2)
+        inblock = 1
+      }
+      print out
+    }
+  ' "$1" 2>/dev/null
 }
 
 code_of() {
@@ -142,9 +247,17 @@ probe "$WRITING"           'let stream = OutputStream(toFileAtPath: target, appe
 probe "$WRITING"           'try manager.replaceItem(at: url, withItemAt: staged)'
 probe "$WRITING"           'let handle = try FileHandle(forUpdatingTo: url)'
 probe "$WRITING"           'let stream = OutputStream(url: target, append: false)'
+probe "$SEAM_MUTATING"     'guard let handle = fopen(target, "w") else { return }'
+probe "$SEAM_MUTATING"     'task.executableURL = URL(fileURLWithPath: "/bin/sh")'
+probe "$SEAM_MUTATING"     'let task = Process()'
+probe "$SEAM_MUTATING"     'try manager.createSymbolicLink(atPath: target, withDestinationPath: staged)'
+probe "$SEAM_MUTATING"     'try manager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: target)'
 probe "$HARNESS_PATHS"     'let path = home.appendingPathComponent(".gemini/settings.json")'
+probe "$HARNESS_PATHS"     'let path = home.appendingPathComponent(".gemini/config/mcp_config.json")'
+probe "$HARNESS_PATH_PARTS" 'let path = dir.appendingPathComponent("mcp_config.json")'
 probe "$R7_API"            'func apply(_ plan: ReconciliationPlan, to target: String) throws {'
 probe "$R7_API"            'let target = ClientConfigs.path(for: client, homeDirectory: home)'
+probe "$R7_API"            'guard let target = ClientConfigs.path( for: client, homeDirectory: home'
 probe "$NOT_A_FILE_WRITE"  'FileHandle.standardOutput.write(Data(text.utf8))'
 
 # ------------------------------------------------------------------ rules 1 and 2
@@ -160,8 +273,10 @@ while IFS= read -r file; do
   # the whole pipeline non-zero, so a large file with an early harness literal could silently stop
   # being a finding.
   code="$(code_of "$file")"
+  # One line, so a call wrapped across two of them is still one token to the pattern.
+  joined="$(printf '%s' "$code" | tr '\n' ' ')"
   names_path=""
-  if grep -qE "$HARNESS_PATHS" <<< "$code"; then
+  if grep -qE "$HARNESS_PATHS|$HARNESS_PATH_PARTS" <<< "$code"; then
     names_path="yes"
     NAMING=$((NAMING + 1))
   fi
@@ -171,7 +286,7 @@ while IFS= read -r file; do
     report "$file names a harness config path and writes a file:"
     printf '%s\n' "$writes" | sed 's/^/    /'
   fi
-  if grep -qE "$R7_API" <<< "$code"; then
+  if grep -qE "$R7_API" <<< "$joined"; then
     report "$file handles a reconciliation plan or a harness path, and writes a file:"
     printf '%s\n' "$writes" | sed 's/^/    /'
   fi
@@ -201,9 +316,9 @@ if [ "${#SEAM_LIST[@]}" -gt 0 ]; then
 fi
 for file in ${SEAM_UNIQUE+"${SEAM_UNIQUE[@]}"}; do
   SEAM_EXAMINED=$((SEAM_EXAMINED + 1))
-  writes="$(file_writes "$file")"
+  writes="$(seam_writes "$file")"
   [ -n "$writes" ] || continue
-  report "$file is inside R7's seam, which writes nothing at all:"
+  report "$file is inside R7's seam, which neither writes nor relinks anything:"
   printf '%s\n' "$writes" | sed 's/^/    /'
 done
 

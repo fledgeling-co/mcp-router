@@ -101,7 +101,7 @@ struct HarnessDialectTests {
 
     @Test("only Gemini reads httpUrl; the same bytes in another harness's file are not a route")
     func theDialectIsPerClient() {
-        #expect(HarnessDialect.known(for: .geminiCLI).endpointKeys == ["url", "httpUrl"])
+        #expect(HarnessDialect.known(for: .geminiCLI).endpointKeys == ["url", "httpUrl", "serverUrl"])
         for client in MCPClient.allCases where client != .geminiCLI {
             #expect(
                 HarnessDialect.known(for: client).endpointKeys == ["url"],
@@ -184,22 +184,25 @@ struct HarnessDialectTests {
         #expect(found.entryCount == 1)
     }
 
-    @Test("what leaves canonicalisation declares one endpoint under one key")
+    @Test("what leaves resolution declares one endpoint under one key")
     func canonicalDropsTheOtherSpelling() {
-        let rewritten = Self.gemini.canonicalised(
+        guard case let .entry(rewritten) = Self.gemini.resolve(
             server("x", #"{"httpUrl":"https://example.com/mcp","timeout":5}"#)
-        )
+        ) else {
+            Issue.record("one spelling is not a conflict")
+            return
+        }
         #expect(rewritten.raw.member("url")?.asString?.string == "https://example.com/mcp")
         #expect(rewritten.raw.member("httpUrl") == nil, "two spellings of one endpoint is not canonical")
         #expect(rewritten.raw.member("timeout") != nil, "and nothing else about the entry is lost")
     }
 
-    @Test("canonicalising leaves an entry that already spells it url exactly as it was")
+    @Test("resolution leaves an entry that already spells it url exactly as it was")
     func canonicalIsIdempotent() {
         let original = server("x", #"{"type":"http","url":"https://example.com/mcp"}"#)
-        #expect(Self.gemini.canonicalised(original) == original)
+        #expect(Self.gemini.resolve(original) == .entry(original))
         let stdio = server("y", #"{"command":"npx","args":["-y","a"]}"#)
-        #expect(Self.gemini.canonicalised(stdio) == stdio)
+        #expect(Self.gemini.resolve(stdio) == .entry(stdio))
     }
 
     // MARK: - The whole measured shape, end to end

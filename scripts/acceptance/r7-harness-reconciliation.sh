@@ -19,6 +19,15 @@
 #   unreadable   a config that could not be parsed. The human output says so and suppresses the
 #                plan; the JSON must be able to say so too, or this lane — which asserts on JSON
 #                only — cannot tell a broken file from a clean unwired one
+#   which file    BOTH Gemini config files present and disagreeing, which is the state the machine
+#                 this was measured on is actually in. `agy` reads `config/mcp_config.json`; the
+#                 stale `settings.json` beside it says stdio shim where the live one says HTTP
+#   pre-migration only `settings.json`, because a straight path swap breaks that install
+#   serverUrl    the key `agy` writes, as opposed to the struct tag pass 1 taught the reader
+#   evidence     an entry that merely mentions the router's address — a `curl` at `/health`, an
+#                 endpoint key at `/health`, a stdio server carrying a stale url — is not a route
+#   two spellings an entry declaring two different endpoints is reported rather than resolved by
+#                 precedence, in both directions, while two that agree are one endpoint
 #
 # Exit codes: 0 pass, 1 a wrong answer, 2 the environment could not run the lane.
 set -uo pipefail
@@ -39,7 +48,7 @@ trap cleanup EXIT
 command -v python3 >/dev/null 2>&1 || { echo "environment: python3 is not installed"; exit 2; }
 
 SCRATCH_HOME="$WORK/home"
-mkdir -p "$SCRATCH_HOME/.gemini" "$SCRATCH_HOME/.claude/mcp-router"
+mkdir -p "$SCRATCH_HOME/.gemini/config" "$SCRATCH_HOME/.claude/mcp-router"
 
 # The router's own upstream set. Three stdio servers, one of which the fixture harness will declare
 # under a DIFFERENT name — so a name-only comparison cannot reach three and the lane would go red.
@@ -84,6 +93,32 @@ write_harness_http_url() {
     "github":  { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-github"] }$duplicates
   }
 }
+JSON
+}
+
+# The file `agy` 1.1.17 actually reads. Its MCP configuration moved out of `settings.json` and
+# into `config/mcp_config.json`, and the key it writes there is `serverUrl` — its help text names
+# "serverUrl (string, required)" and its error string is `MCP server %q must have either command or
+# serverUrl`. On the machine this item was measured on both files exist and disagree.
+write_migrated() {
+  local duplicates="$1" router="$2"
+  cat > "$SCRATCH_HOME/.gemini/config/mcp_config.json" <<JSON
+{
+  "mcpServers": {
+    "router":  $router,
+    "github":  { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-github"] }$duplicates
+  }
+}
+JSON
+}
+
+remove_migrated() { rm -f "$SCRATCH_HOME/.gemini/config/mcp_config.json"; }
+
+# One arbitrary Gemini entry, whatever the file. Used where a pass is about the READING rule rather
+# than about the comparison, so the fixture is as small as the question.
+write_gemini_entries() {
+  cat > "$SCRATCH_HOME/.gemini/config/mcp_config.json" <<JSON
+{ "mcpServers": $1 }
 JSON
 }
 
@@ -143,6 +178,8 @@ elif row[key] is None:
     print("null")
 elif key == "duplicates":
     print(",".join(d["harnessName"] for d in row[key]))
+elif key == "unparsed":
+    print(";".join(row[key]))
 else:
     print(row[key])
 ' "$1"
@@ -274,6 +311,130 @@ check "the screen carries the same reason the wire does" \
       1 "$(printf '%s' "$TEXT" | grep -cF "could not be read: $UNREADABLE")"
 check "and the harness is offered no plan at all" \
       0 "$(printf '%s' "$TEXT" | gemini_plan | grep -c .)"
+
+# ---------------------------------------------------------------- pass 6: the file agy reads
+# **The route neither pass had an assertion for, and it is this machine's live state**: both Gemini
+# config files present, disagreeing about the transport, the entry count and two of the servers.
+# The first gap-fix added `httpUrl` to the key list — a route — while R7 went on reading a file the
+# harness had stopped reading, which is the property. Reported here: the migrated file wins, and
+# with it the transport, the count, and the plan.
+echo "r7: both Gemini config files present and disagreeing — the one agy reads wins"
+write_router_config "$FULL_UPSTREAMS"
+write_harness "$THREE_DUPLICATES"
+write_migrated "$THREE_DUPLICATES" '{ "serverUrl": "http://127.0.0.1:'"$PORT"'/mcp" }'
+BEFORE="$(fixture_digest)"
+OUT="$(probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+check "the path read"     "$SCRATCH_HOME/.gemini/config/mcp_config.json" \
+                          "$(printf '%s' "$OUT" | field path)"
+check "route"             http                    "$(printf '%s' "$OUT" | field route)"
+check "state"             wired-with-duplicates   "$(printf '%s' "$OUT" | field state)"
+check "duplicateCount"    3                       "$(printf '%s' "$OUT" | field duplicateCount)"
+
+TEXT="$(text_probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+PLAN="$(printf '%s' "$TEXT" | gemini_plan)"
+check "no shim replacement is proposed for a migration already performed" \
+      0 "$(printf '%s' "$PLAN" | grep -c -- '~ replace')"
+check "and no + add line either" 0 "$(printf '%s' "$PLAN" | grep -c -- '+ add')"
+check "the stale file is not the one named in the plan" \
+      0 "$(printf '%s' "$PLAN" | grep -c 'settings.json')"
+check "every harness fixture is byte-identical after two probes" "$BEFORE" "$(fixture_digest)"
+
+# ---------------------------------------------------------------- pass 7: a pre-migration install
+# A straight path swap answers this machine and breaks the install one release behind it, which is
+# the same wrong answer with a different date on it.
+echo "r7: only settings.json present — a pre-migration install is still read"
+remove_migrated
+write_harness "$THREE_DUPLICATES"
+OUT="$(probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+check "the path read"     "$SCRATCH_HOME/.gemini/settings.json" \
+                          "$(printf '%s' "$OUT" | field path)"
+check "route"             stdio-shim              "$(printf '%s' "$OUT" | field route)"
+check "duplicateCount"    3                       "$(printf '%s' "$OUT" | field duplicateCount)"
+
+# ---------------------------------------------------------------- pass 8: Gemini's written key
+# `serverUrl` is the spelling in `~/.gemini/config/mcp_config.json` on this machine, six times over,
+# and the router's own entry is one of them. `httpUrl` — pass 1's widening — is a struct tag that
+# appears in that file zero times.
+echo "r7: the harness wired on serverUrl, the key agy writes"
+write_migrated "$FOUR_DUPLICATES" '{ "serverUrl": "http://127.0.0.1:'"$PORT"'/mcp" }'
+OUT="$(probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+check "route"             http                    "$(printf '%s' "$OUT" | field route)"
+check "state"             wired-with-duplicates   "$(printf '%s' "$OUT" | field state)"
+check "duplicateCount"    4                       "$(printf '%s' "$OUT" | field duplicateCount)"
+check "the names"  "obscura,dossier,Ref,Mobbin"   "$(printf '%s' "$OUT" | field duplicates)"
+TEXT="$(text_probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+check "the headline" 1 \
+      "$(printf '%s' "$TEXT" | grep -c 'wired via HTTP, and carrying 4 duplicate direct upstream(s)')"
+
+# ---------------------------------------------------------------- pass 9: what counts as a route
+# A harness that is not routed must not read routed. Two shapes, and the second is the one nobody
+# named: B3 was filed on the shim axis, where a `curl` at `/health` made the whole harness read
+# `wired via a stdio shim`; the identical evidence rule was wrong one axis along, where a plain
+# endpoint key at `/health` read `wired via HTTP`. Both come from comparing host and port and never
+# asking what the URL pointed at.
+echo "r7: an entry that merely mentions the router's address is not a route"
+write_router_config "$FULL_UPSTREAMS"
+write_gemini_entries '{ "health": { "command": "curl", "args": ["-s", "http://127.0.0.1:'"$PORT"'/health"] } }'
+OUT="$(probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+check "a health-check curl leaves the harness not wired" \
+      not-wired "$(printf '%s' "$OUT" | field state)"
+check "and the entry stays in the count"  1  "$(printf '%s' "$OUT" | field entries)"
+
+write_gemini_entries '{ "probe": { "url": "http://127.0.0.1:'"$PORT"'/health" } }'
+OUT="$(probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+check "an endpoint key at a non-MCP path is not a route either" \
+      none "$(printf '%s' "$OUT" | field route)"
+
+write_gemini_entries '{ "fs": { "command": "npx", "args": ["-y", "fs-mcp"], "url": "http://127.0.0.1:'"$PORT"'/mcp" } }'
+OUT="$(probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+check "a stdio server carrying a stale url is not wired over HTTP" \
+      none "$(printf '%s' "$OUT" | field route)"
+
+# The other direction, in the same pass, because a path rule that refused the real endpoint would
+# be a worse defect than the one it replaced.
+write_gemini_entries '{ "router": { "serverUrl": "http://127.0.0.1:'"$PORT"'/mcp" } }'
+OUT="$(probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+check "the MCP endpoint itself is still a route" http "$(printf '%s' "$OUT" | field route)"
+
+# ---------------------------------------------------------------- pass 10: two spellings, one entry
+# A decoy `url` beside a real endpoint returned before canonicalising, so the entry was neither
+# counted as a duplicate nor reported unreadable — the silent zero spec §4 forbids in those words.
+echo "r7: an entry whose two spellings disagree is reported, never silently zero"
+write_gemini_entries '{
+    "router": { "serverUrl": "http://127.0.0.1:'"$PORT"'/mcp" },
+    "Mobbin": { "serverUrl": "https://api.mobbin.com/mcp" }
+  }'
+OUT="$(probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+check "the control: one spelling, and it is a duplicate" 1 "$(printf '%s' "$OUT" | field duplicateCount)"
+
+write_gemini_entries '{
+    "router": { "serverUrl": "http://127.0.0.1:'"$PORT"'/mcp" },
+    "Mobbin": { "serverUrl": "https://api.mobbin.com/mcp", "url": "https://decoy.example/mcp" }
+  }'
+OUT="$(probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+check "the decoy does not erase it silently" 0 "$(printf '%s' "$OUT" | field duplicateCount)"
+UNPARSED="$(printf '%s' "$OUT" | field unparsed)"
+if [ -z "$UNPARSED" ] || [ "$UNPARSED" = "MISSING" ] || [ "$UNPARSED" = "[]" ]; then
+  echo "  FAIL  unparsed: a decoy erased a duplicate and nothing was reported (got \"$UNPARSED\")"
+  FAILURES=$((FAILURES + 1))
+else
+  echo "  ok    unparsed = $UNPARSED"
+fi
+
+# Neither direction is resolved by precedence, and agreement is not a disagreement.
+write_gemini_entries '{
+    "router": { "serverUrl": "http://127.0.0.1:'"$PORT"'/mcp" },
+    "Mobbin": { "url": "https://api.mobbin.com/mcp", "httpUrl": "https://decoy.example/mcp" }
+  }'
+OUT="$(probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+check "the decoy in the other direction is refused too" 0 "$(printf '%s' "$OUT" | field duplicateCount)"
+
+write_gemini_entries '{
+    "router": { "serverUrl": "http://127.0.0.1:'"$PORT"'/mcp" },
+    "Mobbin": { "url": "https://api.mobbin.com/mcp", "serverUrl": "https://api.mobbin.com/mcp" }
+  }'
+OUT="$(probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+check "two spellings that agree are one endpoint" 1 "$(printf '%s' "$OUT" | field duplicateCount)"
 
 echo
 if [ "$FAILURES" -eq 0 ]; then

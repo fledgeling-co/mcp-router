@@ -372,3 +372,105 @@ changes what happens the moment the user follows the tool's own printed advice �
 router directly and drop the shim"* — which is exactly the state the old reader could not see.
 
 Every row of `--json` now carries `"unreadable": null`, and the eight rows are otherwise unmoved.
+
+---
+
+# Second gap-fix — the file R7 had never opened
+
+Taken **2026-08-21**, after `R7-gapfix-2.md`. Everything below is read-only against the machine's
+own configs, and the digest at the end proves it.
+
+## B1 — which file, measured rather than assumed
+
+`agy` 1.1.17 moved its MCP configuration out of `~/.gemini/settings.json` on 14 Aug and left the
+old file behind. Both exist here, and they disagree:
+
+| | `~/.gemini/settings.json` | `~/.gemini/config/mcp_config.json` |
+|---|---|---|
+| servers | 18 | 20 |
+| member keys | `command`, `args`, `env` | `serverUrl` ×6, `command` ×14, `args` ×14, `env` ×7, `headers` ×3 |
+| the router entry | `npx -y mcp-remote http://127.0.0.1:8879/mcp` | `serverUrl: http://127.0.0.1:8879/mcp` |
+| mtime | 14 Aug 18:27 | 16 Aug 00:51 |
+
+`agy mcp list` prints the second file exactly — twenty rows, with `router`, `diolog-admin`,
+`diolog-tasks`, `linear`, `mobbin` and `pocketsmith` typed `http`. `~/.gemini/config/.migrated`
+(14 Aug 10:47, zero bytes) marks the move. The only MCP config paths in the shipped binary are
+`.gemini/config/mcp_config.json` and `config/mcp_config.json`; `~/.gemini/settings.json` appears in
+it only as the settings file, and its own changelog names the legacy path as a **fixed bug**:
+*"pressing the `[Disable]` button wrote to the legacy `mcp_config.json` path instead of the
+migrated `config/mcp_config.json` path"*.
+
+## The Gemini row, from the shipped binary
+
+```
+Gemini CLI
+  /Users/lukerhodes/.gemini/config/mcp_config.json
+  wired via HTTP, and carrying 12 duplicate direct upstream(s)
+  the router already serves:
+    mobbin
+    Ref (the router calls it ref-tools-mcp — same command, different name)
+    namecheap
+    docker-mcp
+    dossier
+    google-search
+    media-gen-pro
+    yt-transcript
+    sift
+    lifeline
+    obscura
+    ai-elements
+  Remove the duplicate entries below; the router already serves them.
+```
+
+```json
+{"harness": "geminiCLI", "path": "/Users/lukerhodes/.gemini/config/mcp_config.json",
+ "exists": true, "unreadable": null, "state": "wired-with-duplicates", "route": "http",
+ "entries": 19, "duplicateCount": 12}
+```
+
+**The count, defended against the harness's own answer.** `agy mcp list` prints 20 rows. One is
+the router, which `entries` excludes, leaving 19. Twelve of those the router already fronts; the
+seven it does not are `agy-plugins`, `chrome-devtools`, `diolog-admin`, `diolog-tasks`, `github`,
+`linear` and `pocketsmith`. 12 + 7 = 19. Two of the seven — `diolog-admin` and `diolog-tasks` —
+exist only in the migrated file, so the same arithmetic against `settings.json` cannot reach 20 at
+all, which is the arithmetic pass 1 was doing.
+
+**What changed in the answer.** Before: `wired via a stdio shim (mcp-remote) — one child process
+per session`, 12 duplicates over 17 entries, and a plan proposing
+`~ replace router (stdio shim -> direct HTTP)` — a migration the user performed on 14 Aug. After:
+`wired via HTTP`, 12 duplicates over 19 entries, and no replacement proposed. The other seven
+harness rows are unmoved.
+
+## The read-only boundary, on the real files
+
+```
+$ shasum -a 256 ~/.gemini/settings.json ~/.gemini/config/mcp_config.json   # before
+$ ./app/.build/debug/MCPRouterCLI harnesses --port 8879
+$ ./app/.build/debug/MCPRouterCLI harnesses --port 8879 --json
+$ shasum -a 256 ~/.gemini/settings.json ~/.gemini/config/mcp_config.json   # after
+→ identical
+```
+
+## Gates, second pass
+
+| Gate | Result | Exit |
+|---|---|---|
+| `swiftformat --lint` | `0/509 files require formatting` | 0 |
+| `swiftlint --strict` | `Found 0 violations, 0 serious in 502 files` | 0 |
+| `make test` #1 | `1642 tests in 202 suites passed` | 0 |
+| `make test` #2 | `1 issue` — `CallbackLifecycleTests.swift:238`, an unrelated bind race | 1 |
+| `make test` #3 | `1642 tests in 202 suites passed` | 0 |
+| `make test` #4 | `1642 tests in 202 suites passed` | 0 |
+| `make parity` | `358 vector cases compared (floor 358)` | 0 |
+| `no-raw-design-values` | `clean` | 0 |
+| `no-wire-codable` | `2 exemption(s) recorded` | 0 |
+| `no-harness-config-writes` | `313 examined, 8 name a harness config, 20 write a file, 8 in the seam — none writes one` | 0 |
+| `no-harness-config-writes-selftest` | `22 case(s) held` | 0 |
+| `r7-harness-reconciliation.sh` | `pass`, 55 checks over ten passes | 0 |
+| `make lint` | **blocked** at the `tools` guard — `node_modules is missing` | 2 |
+
+`make test` run #2's failure is `a listener binds once — reuse is refused rather than quietly
+racing`, which binds a loopback TCP port and raced under whole-suite concurrency. It is **0 of 8**
+in isolation and 3 of 4 green under the full suite, and nothing in this diff touches a listener.
+Registered as `D-r7-x` rather than re-run away from. `PoolReapingTests` (`G3`) did not flake in any
+of the four runs.

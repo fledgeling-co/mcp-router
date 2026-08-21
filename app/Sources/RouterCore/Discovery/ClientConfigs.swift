@@ -59,10 +59,11 @@ public enum ClientConfigs {
         fileSystem: FileSystem = RealFileSystem()
     ) -> [ClientConfigReport] {
         MCPClient.allCases.compactMap { client in
-            guard let path = path(
+            guard let path = resolvedPath(
                 for: client,
                 homeDirectory: homeDirectory,
-                projectDirectory: projectDirectory
+                projectDirectory: projectDirectory,
+                fileSystem: fileSystem
             )
             else { return nil }
             return ClientConfigReport(
@@ -73,40 +74,100 @@ public enum ClientConfigs {
         }
     }
 
+    /// The path this client's config is **declared** at — the first of
+    /// ``candidatePaths(for:homeDirectory:projectDirectory:)``.
+    ///
+    /// Pure, and it asks the filesystem nothing, so it is the right answer for "where would this
+    /// harness's config live" and the wrong one for "which file is this harness reading". A harness
+    /// that has moved its config between releases has two answers, and only the disk knows which is
+    /// live: see ``resolvedPath(for:homeDirectory:projectDirectory:fileSystem:)``.
     public static func path(
         for client: MCPClient,
         homeDirectory: String,
         projectDirectory: String?
     ) -> String? {
+        candidatePaths(
+            for: client, homeDirectory: homeDirectory, projectDirectory: projectDirectory
+        ).first
+    }
+
+    /// Every path this client's config could live at, **most current first**.
+    ///
+    /// One entry for every harness but one, and the exception is the harness this item exists for.
+    /// `agy` 1.1.17 moved its MCP configuration out of `~/.gemini/settings.json` and into
+    /// `~/.gemini/config/mcp_config.json`, leaving the old file in place: on the machine R7 was
+    /// measured on both exist and they disagree about the transport, about two of the servers, and
+    /// about the entry count. Reading the older one is how the first pass came to report a harness
+    /// as shimmed, count twelve duplicates over seventeen entries, and offer the user a migration
+    /// they had already performed — while `agy mcp list` printed twenty rows with four of them
+    /// typed `http`.
+    ///
+    /// **Resolved rather than swapped.** A straight path swap answers this machine and breaks a
+    /// pre-migration install, which is the same shape of wrong answer one release earlier.
+    public static func candidatePaths(
+        for client: MCPClient,
+        homeDirectory: String,
+        projectDirectory: String?
+    ) -> [String] {
         let home = homeDirectory as NSString
         switch client {
         case .claudeCode:
-            return home.appendingPathComponent(".claude.json")
+            return [home.appendingPathComponent(".claude.json")]
         case .claudeDesktop:
-            return home
-                .appendingPathComponent("Library/Application Support/Claude/claude_desktop_config.json")
+            return [home
+                .appendingPathComponent("Library/Application Support/Claude/claude_desktop_config.json")]
         case .codexCLI:
-            return home.appendingPathComponent(".codex/config.toml")
+            return [home.appendingPathComponent(".codex/config.toml")]
         case .chatGPTCLI:
             // Project-scoped rather than global: the ChatGPT CLI writes its config beside the
             // project it was run in.
-            guard let projectDirectory else { return nil }
-            return (projectDirectory as NSString).appendingPathComponent(".chatgpt/config.toml")
+            guard let projectDirectory else { return [] }
+            return [(projectDirectory as NSString).appendingPathComponent(".chatgpt/config.toml")]
         case .cursor:
             // cursor-agent reads this file too — measured 2026-08-21 in the shipped 2026.08.11
             // bundle, which joins `.cursor/mcp.json` under both the home and the project. One
             // entry covers the IDE and the CLI because they share the file.
-            return home.appendingPathComponent(".cursor/mcp.json")
+            return [home.appendingPathComponent(".cursor/mcp.json")]
         case .geminiCLI:
-            // The Gemini / Antigravity CLI (`agy` on this machine). It was absent from this enum
-            // and it is R7's entire subject: it is the harness carrying a stdio shim to the router
-            // alongside twelve servers the router already fronts.
-            return home.appendingPathComponent(".gemini/settings.json")
+            // The Gemini / Antigravity CLI (`agy` on this machine), and R7's entire subject.
+            //
+            // Four independent lines from the shipped 1.1.17 binary say the FIRST of these is the
+            // file it reads, and each is quotable rather than inferred: its changelog string — "for
+            // managing MCP servers in your user-level `mcp_config.json`"; its help text — "`serverUrl`
+            // (string, required)"; its error string — `MCP server %q must have either command or
+            // serverUrl`; and the only MCP config paths in the binary at all, `.gemini/config/
+            // mcp_config.json` and `config/mcp_config.json`. A fifth is on disk:
+            // `~/.gemini/config/.migrated` dates the move. `agy mcp list` prints exactly that
+            // file's contents.
+            //
+            // The second is kept because it is what an install that predates the migration still
+            // reads, and it is the shape upstream `gemini-cli` writes.
+            return [
+                home.appendingPathComponent(".gemini/config/mcp_config.json"),
+                home.appendingPathComponent(".gemini/settings.json")
+            ]
         case .grokCLI:
-            return home.appendingPathComponent(".grok/config.toml")
+            return [home.appendingPathComponent(".grok/config.toml")]
         case .opencode:
-            return home.appendingPathComponent(".config/opencode/opencode.json")
+            return [home.appendingPathComponent(".config/opencode/opencode.json")]
         }
+    }
+
+    /// The path this client is **actually reading**: the first candidate that exists on disk.
+    ///
+    /// Falls back to the first candidate when none exists, so an absent harness is reported at the
+    /// path the harness itself would create rather than at a legacy one — and `exists: false` says
+    /// the rest.
+    static func resolvedPath(
+        for client: MCPClient,
+        homeDirectory: String,
+        projectDirectory: String?,
+        fileSystem: FileSystem
+    ) -> String? {
+        let candidates = candidatePaths(
+            for: client, homeDirectory: homeDirectory, projectDirectory: projectDirectory
+        )
+        return candidates.first { fileSystem.fileExists(atPath: $0) } ?? candidates.first
     }
 
     static func read(
@@ -241,8 +302,9 @@ public enum ClientConfigs {
         fileSystem: FileSystem = RealFileSystem()
     ) -> [ClientConfigReport] {
         MCPClient.allCases.compactMap { client in
-            guard let path = path(
-                for: client, homeDirectory: homeDirectory, projectDirectory: projectDirectory
+            guard let path = resolvedPath(
+                for: client, homeDirectory: homeDirectory,
+                projectDirectory: projectDirectory, fileSystem: fileSystem
             )
             else { return nil }
             return ClientConfigReport(

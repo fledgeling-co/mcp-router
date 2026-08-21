@@ -25,7 +25,7 @@ restated rather than cited.
 | Claude Desktop | — | `~/Library/Application Support/Claude/claude_desktop_config.json` | 0 | none | not wired |
 | Codex CLI | `codex` 0.146.0 | `~/.codex/config.toml` (944 KB) | 5 `[mcp_servers.*]` | none | **not wired**, 1 overlap |
 | Cursor | `cursor-agent` 2026.08.11 | `~/.cursor/mcp.json` (22 B) | 0 | none | not wired |
-| Gemini / Antigravity | `agy` 1.1.17 | `~/.gemini/settings.json` | 18 | `router` → `npx -y mcp-remote http://127.0.0.1:8879/mcp` | **wired via a stdio shim**, **12 duplicates** |
+| Gemini / Antigravity | `agy` 1.1.17 | `~/.gemini/config/mcp_config.json` | 19 + router | `router` → `serverUrl: http://127.0.0.1:8879/mcp` | wired via HTTP, **12 duplicates** |
 | grok | `grok` 1.0.5 | `~/.grok/config.toml` | 3 `[mcp_servers.*]` | `[mcp_servers.router] url = "http://127.0.0.1:8879/mcp"` | wired via HTTP, **1 duplicate** |
 | opencode | `opencode` 1.0.169 | `~/.config/opencode/opencode.json` | — | — | config absent |
 
@@ -33,6 +33,21 @@ The router itself was running with **13 upstreams** and 91 tools (`GET /status` 
 
 **Three of those rows are new since the brief and two of them contradict it.**
 
+- **The Gemini row is a correction of this spec's own first version, and it is the finding this
+  item was sent back on twice.** That version recorded `~/.gemini/settings.json`, 18 entries, all
+  stdio, the router on an `mcp-remote` shim. Every one of those readings was taken from a file
+  `agy` had stopped reading. Its MCP configuration moved to `~/.gemini/config/mcp_config.json` on
+  14 Aug — `~/.gemini/config/.migrated` dates it — and the old file was left in place, so the two
+  now disagree about the transport, about the count, and about two of the servers
+  (`diolog-admin` and `diolog-tasks` exist only in the live one). Four independent lines from the
+  shipped binary name the live one: its changelog string (*"for managing MCP servers in your
+  user-level `mcp_config.json`"*), its help text (*"`serverUrl` (string, required)"*), its error
+  string (`MCP server %q must have either command or serverUrl`), and the only MCP config paths
+  the binary carries at all. `agy mcp list` prints that file exactly — twenty rows, four of them
+  typed `http`, a transport `settings.json` cannot express. It was settled at `effect-witness`:
+  during a live `agy` session seven stdio MCP children spawned and **zero** processes referenced
+  `127.0.0.1:8879`. The shim this spec reported does not exist, and the migration it proposed had
+  already been performed. `url` and `httpUrl` appear in that file **zero** times.
 - The brief recorded Claude Code as "1 router entry — working as designed". It carries **three**
   today: the router, a direct `pocketsmith` HTTP entry, and a direct `namecheap` stdio entry —
   and `namecheap` is a server the router already fronts. The one harness the brief exempted is
@@ -59,11 +74,12 @@ worth exactly what produced it.
 | Claude Desktop | no | **taken on documentation** | not installed with a config here; no binary was probed |
 | opencode 1.0.169 | unknown | **not established** | no config present, and the launcher is a shim whose bundle was not probed |
 
-**The brief's premise is false for the harness it was written about.** Rule 3 says *"`mcp-remote`
-is how a harness with no HTTP MCP transport reaches the router at all, so it is not simply a
-mistake"*. `agy` 1.1.17 ships a streamable-HTTP MCP client and a config key for it. The shim in
-`~/.gemini/settings.json` is not a workaround for a missing transport; it is a stale wiring
-choice, and it is removable.
+**The brief's premise is false for the harness it was written about, and the shim it describes is
+gone.** Rule 3 says *"`mcp-remote` is how a harness with no HTTP MCP transport reaches the router
+at all, so it is not simply a mistake"*. `agy` 1.1.17 ships a streamable-HTTP MCP client and a
+config key for it, and the live file uses that key: the shim survives only in the pre-migration
+`~/.gemini/settings.json`, which nothing reads. It was a stale wiring choice, it was removable,
+and it was removed on 14 Aug — six days before this spec first reported it as current.
 
 **What none of this establishes**, stated rather than implied: probing a binary for a symbol and
 a config key proves the code path is *present*, not that a given endpoint would *connect*. The
@@ -75,10 +91,17 @@ a shipped artifact, and §3 carries that distinction into the type rather than l
 Router upstreams: `ref-tools-mcp ai-elements namecheap docker-mcp dossier google-search
 media-gen-pro yt-transcript sift lifeline obscura mobbin atlas-admin`.
 
-Against Gemini's 18 entries: **11 match by name**, and **one more matches by config identity
-under a different name** — Gemini's `Ref` and the router's `ref-tools-mcp` are both
+Against Gemini's 19 non-router entries: **11 match by name**, and **one more matches by config
+identity under a different name** — Gemini's `Ref` and the router's `ref-tools-mcp` are both
 `npx -y ref-tools-mcp@3.0.3` with the same env key, and both hash to `30da6798334b2466` under
 the existing `UpstreamHash`. Twelve, not the brief's ten.
+
+**That twelve is defensible against the harness's own answer.** `agy mcp list` prints twenty rows;
+one of them is the router; the remaining nineteen are what `entries` counts. Twelve of them the
+router already fronts, and the seven it does not — `agy-plugins`, `chrome-devtools`,
+`diolog-admin`, `diolog-tasks`, `github`, `linear`, `pocketsmith` — add back to nineteen. Two of
+those seven are servers the pre-migration file has never heard of, so the same arithmetic run
+against `settings.json` cannot reach twenty at all.
 
 Against grok's 3: `mobbin` matches **by name and not by identity** — the router fronts
 `https://api.mobbin.com/mcp`, grok declares `https://mcp.mobbin.com/mcp`.
@@ -155,16 +178,45 @@ is decided **by URL and never by name**:
 - `.directHTTP` — an entry whose endpoint has a loopback host (`127.0.0.1`, `localhost`, `::1`,
   `[::1]`) and this router's port.
 
+**The file is the harness's too, and that is read before any key is.** `ClientConfigs` resolves a
+client's config from an ordered list of candidates rather than from one fixed path, taking the
+first that exists. Only Gemini has more than one candidate today, and it is the whole of §1.1's
+correction: `~/.gemini/config/mcp_config.json` first, `~/.gemini/settings.json` behind it. Both
+exist on this machine and they disagree, so a straight path swap would have answered this machine
+and broken a pre-migration install — the same wrong answer with a different date on it.
+
 **The endpoint key is the harness's, not ours.** `url` is what Claude Code, Cursor, Codex and grok
-write. **Gemini writes `httpUrl`** — §1.2's own evidence for that harness is the config struct's
-`json:"httpUrl"`, and the first version of this item cited that string three lines above a reader
-that could not act on it. `.directHTTP` was unreachable for the harness the item exists for, and
-the printed remedy told the user to create the state the tool could not read. `HarnessDialect`
-carries the spellings **per client**, on the same rule `HTTPCapability` follows: reading Gemini's
-key out of a Cursor file would be a claim about how Cursor reads its own config that nothing here
-has established, and an inert key would become "wired via HTTP". Every value must be a **string**
-— `"url": true` is not an endpoint — and detection tests **every** spelling the harness uses, so a
-decoy `url` elsewhere cannot hide an `httpUrl` aimed at this router.
+write. **Gemini writes `serverUrl`** — its help text names *"`serverUrl` (string, required)"*, its
+error string is `MCP server %q must have either command or serverUrl`, and the router's own entry
+in the live file is `{"serverUrl": "http://127.0.0.1:8879/mcp"}`, one of six. `httpUrl` is a struct
+tag in the same binary and is read as well, because it is the shape upstream `gemini-cli` writes.
+`HarnessDialect` carries the spellings **per client**, on the same rule `HTTPCapability` follows:
+reading Gemini's keys out of a Cursor file would be a claim about how Cursor reads its own config
+that nothing here has established, and an inert key would become "wired via HTTP". Every value must
+be a **string** — `"url": true` is not an endpoint — and detection tests **every** spelling the
+harness uses, so a decoy `url` elsewhere cannot hide a `serverUrl` aimed at this router.
+
+**A route is evidence that the harness reaches this router's MCP endpoint, not that it mentions the
+router's address.** Two things follow, and each removed a confident wrong answer:
+
+- The URL must be at ``MCPEndpoint.path``. `{"health": {"command": "curl", "args": ["-s",
+  "http://127.0.0.1:8879/health"]}}` reported the whole harness *wired via a stdio shim* while no
+  MCP route existed at all, and the entry then vanished from the count because the entry `detect`
+  selected is filtered out of the comparison. The identical rule was wrong one axis along: a plain
+  endpoint key at `/health` read *wired via HTTP*. A trailing slash is the same endpoint; a query
+  or fragment is ignored; `/` alone is not `/mcp`.
+- **An entry carrying a `command` is a stdio entry.** Endpoint keys were tested first, so a stdio
+  server with a leftover `url` beat a live child process and read *wired via HTTP*. `agy` states
+  the same exclusivity in its own error string. An explicitly declared HTTP `type` overrides the
+  command, because an explicit transport is a statement rather than an inference and refusing it
+  would turn a wired harness unwired — the same defect, inverted.
+
+**An entry whose spellings disagree is reported, never resolved by precedence.** `{"httpUrl":
+"<real>", "url": "<decoy>"}` used to return before canonicalising, so the entry was hashed from the
+decoy and was neither counted as a duplicate nor reported unreadable — the silent zero this section
+forbids two paragraphs below. Detection is unaffected and still asks yes/no of every spelling; it
+is the **comparison** that has to hash one value and has no evidence for the pick. Two spellings
+carrying the same string are one endpoint, not a disagreement.
 
 `ServerParser` and `UpstreamHash` are **not** taught the dialect. Both are shared with adoption,
 with `import` and `watch`, and through them with the TypeScript reference; widening either would
@@ -268,22 +320,38 @@ remove and the entry it would add, and it renders a diff. There is no `apply`, n
 protocol and no conformer.
 
 `scripts/lint/no-harness-config-writes.sh` runs in `make lint` and refuses three things: a file
-that names a harness config path in code and also writes a file; a file that handles a
-`ReconciliationPlan`, a `HarnessReport` or a `ClientConfigs` path and also writes a file; and any
-file write at all inside the seam — `RouterCore/Discovery`, `HarnessesVerb.swift`, and any file
-named `Harness*`, `Reconciliation*` or `ClientConfig*`. Its rules are **file-scoped**; they were
-line-scoped, and a realistic applier that asked for the target on one line and wrote it on a later
-one walked through while the gate printed `none writes one`.
+whose code names a harness config path — whole, or by the file name a path is assembled from — and
+that also writes a file; a file that handles a `ReconciliationPlan`, a `HarnessReport` or a
+`ClientConfigs` path and also writes a file; and, inside the seam — `RouterCore/Discovery`,
+`HarnessesVerb.swift`, and any file named `Harness*`, `Reconciliation*` or `ClientConfig*` — **any
+call in a mutating vocabulary, however the path was obtained**. Its rules are **file-scoped**; they
+were line-scoped, and a realistic applier that asked for the target on one line and wrote it on a
+later one walked through while the gate printed `none writes one`.
+
+**The header used to claim more than the gate checked, and five appliers walked through the gap.**
+A verifier planted them and all five exited 0: a `ClientConfigs.path(` call wrapped across two
+lines by this repository's own 110-column limit; a path assembled a component at a time rather than
+written out whole; `fopen`/`fputs` inside the seam; a `Process` running `/bin/sh -c '… > target'`
+inside the seam; and a write sharing a line with a block comment, which the comment stripper blanked
+along with the comment. Each is now refused, and each is a case in the selftest. Rule 3's vocabulary
+is deliberately wider than rules 1 and 2's, because the seam is a closed set of eight files where a
+false positive costs one comment: it carries the C stdio calls, a subprocess that could redirect
+into a file, and the calls that replace a config **without writing to it at all** — a symlink, a
+hard link, a mode change. That last group is the one no plant had named, and `D-r7-v` records that
+the acceptance lane's byte digest cannot see a mode change either, so a gate blind to it would have
+left the mutation unwitnessed on both instruments.
 
 **What it does not establish, because that distinction is the whole value of having it.** It is
-`grep`, not a call graph, and it does not prove that no applier exists. An applier split across two
-neutrally-named files outside the seam — one asking for the path, another taking a `String` and
-writing it — satisfies no intersection and lives in no watched name. That is `D-r7-m`, and
-`no-harness-config-writes-selftest.sh` carries the case as an assertion that the gate **misses**
-it, so the limit is visible from a run rather than from a paragraph. The claim this item makes is
-the one the gate can carry: no single file pairs a harness config with a write, and the seam
-writes nothing at all. That `ReconciliationPlan` has no applier **today** is established by
-reading the tree, not by the gate.
+`grep`, not a call graph, and it does not prove that no applier exists. Three limits, each with a
+case in `no-harness-config-writes-selftest.sh` so it shows up in a run rather than in a paragraph:
+an applier split across two neutrally-named files outside the seam satisfies no intersection and
+lives in no watched name (`D-r7-m`, asserted as a miss at `P10`); rule 3 refuses a **vocabulary**
+rather than the concept of writing, and every entry in it is probed against a string it must match
+before any file is read; and rules 1 and 2 stay narrow on purpose, so a file outside the seam that
+reaches a harness path through a value passed in from elsewhere is not a finding. The claim this
+item makes is the one the gate can carry: no single file pairs a harness config with a write, and
+**the seam neither writes nor relinks anything**. That `ReconciliationPlan` has no applier **today**
+is established by reading the tree, not by the gate.
 
 Two reasons, and only the first is about safety. Mutating a developer's live agent configuration
 is not a change a fleet runner makes unattended. And the brief's own framing is that **config
@@ -314,5 +382,8 @@ the write is R7-C2's, behind a human.
 | A4 | §1's measurement is reproducible from the shipped binary, not from ad-hoc shell | `mcp-router harnesses` against the real configs, recorded in `planning/evidence/R7-acceptance.md` |
 | A5 | Route detection is by endpoint, so a harness entry *named* `router` pointing elsewhere is not wired | unit test |
 | A6 | A renamed duplicate is caught, and a same-name-different-target entry is caught, and each says which basis found it | unit tests built from §1.3's two real cases |
-| A7 | No single file under `app/Sources` pairs a harness config with a write, and R7's seam writes nothing at all | `scripts/lint/no-harness-config-writes.sh`, in `make lint`, with `no-harness-config-writes-selftest.sh` beside it: 13 cases — five plants refused, four innocent shapes left green, one declared blind spot (`D-r7-m`) asserted as a miss — and six mutations of the gate's own rules each turning that selftest red |
+| A7 | No single file under `app/Sources` pairs a harness config with a write, and R7's seam neither writes nor relinks anything | `scripts/lint/no-harness-config-writes.sh`, in `make lint`, with `no-harness-config-writes-selftest.sh` beside it: 22 cases — twelve plants refused, including the five that walked through the header's old claim, five innocent shapes left green, one declared blind spot (`D-r7-m`) asserted as a miss — and mutations of the gate's own rules each turning that selftest red |
 | A8 | The detector can go red | the acceptance lane's arming pass mutates the comparison and requires a wrong answer |
+| A9 | The harness's **own** config file is the one read, and a pre-migration install still is | `HarnessResolutionTests`, and the lane's which-file and pre-migration passes: both Gemini files present and disagreeing, then only the older one |
+| A10 | An entry that merely mentions the router's address is not a route, on either axis | `HarnessResolutionTests`, and the lane's evidence pass — a `curl` health check, an endpoint key at `/health`, a stdio server carrying a stale `url`, and the real endpoint still reading as one |
+| A11 | An entry declaring two different endpoints is reported, never silently counted as no-duplicate | `HarnessDialectTests`, and the lane's two-spellings pass, in both directions plus the agreeing control |

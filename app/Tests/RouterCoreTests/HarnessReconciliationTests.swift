@@ -350,7 +350,10 @@ struct HarnessRemedyTests {
     func newClientPaths() throws {
         let reports = ClientConfigs.discover(homeDirectory: "/Users/x", projectDirectory: nil)
         let byClient = Dictionary(uniqueKeysWithValues: reports.map { ($0.client, $0.path) })
-        #expect(byClient[.geminiCLI] == "/Users/x/.gemini/settings.json")
+        // Under a home where nothing exists, Gemini resolves to the file `agy` would write —
+        // `~/.gemini/config/mcp_config.json` — rather than to the pre-migration one it used to name.
+        // `HarnessResolutionTests` covers what happens when one, both or neither is actually there.
+        #expect(byClient[.geminiCLI] == "/Users/x/.gemini/config/mcp_config.json")
         #expect(byClient[.grokCLI] == "/Users/x/.grok/config.toml")
 
         // The load-bearing difference between the two entry points: `discover` drops the router's

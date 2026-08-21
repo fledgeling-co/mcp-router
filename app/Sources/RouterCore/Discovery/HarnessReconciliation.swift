@@ -210,9 +210,7 @@ public enum HarnessReconciliation {
         let dialect = subject.dialect
         let route = HarnessRoute.detect(entries: entries, port: port, dialect: dialect)
         let routerEntryName = wiredEntryName(route)
-        let others = entries
-            .filter { $0.name != routerEntryName }
-            .map(dialect.canonicalised)
+        let others = entries.filter { $0.name != routerEntryName }
 
         let byName = Set(upstreams.map(\.name))
         var byHash: [String: String] = [:]
@@ -227,15 +225,31 @@ public enum HarnessReconciliation {
                 duplicates.append(Duplicate(harnessName: entry.name, routerName: entry.name, basis: .name))
                 continue
             }
-            switch ServerParser.parse(name: entry.name, raw: entry.raw) {
+            // The comparison runs on the canonical form, because that is where the shared parser
+            // and the identity digest need one spelling. Detection above ran on the entries exactly
+            // as the harness wrote them, so the dialect widening is the thing under test rather
+            // than something the caller already did for it.
+            let resolved: DiscoveredServer
+            switch dialect.resolve(entry) {
+            case let .entry(canonical):
+                resolved = canonical
+            case let .conflict(reason):
+                unparsed.append("\(entry.name): \(reason)")
+                continue
+            }
+            switch ServerParser.parse(name: resolved.name, raw: resolved.raw) {
             case let .upstream(parsed):
                 let hash = UpstreamHash.hash(parsed)
                 guard let routerName = byHash[hash] else { continue }
                 duplicates.append(
-                    Duplicate(harnessName: entry.name, routerName: routerName, basis: .identity(hash: hash))
+                    Duplicate(
+                        harnessName: resolved.name,
+                        routerName: routerName,
+                        basis: .identity(hash: hash)
+                    )
                 )
             case let .skipped(reason):
-                unparsed.append("\(entry.name): \(reason)")
+                unparsed.append("\(resolved.name): \(reason)")
             }
         }
 

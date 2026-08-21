@@ -234,6 +234,141 @@ enum FileStore {
 SWIFT
 expect "P10 a split applier outside the seam is NOT caught — the gate's declared blind spot" 0
 
+# ---------------------------------------------------------------- P11 — the wrapped call
+# The verifier's first walk-through, and the one that will happen by itself: this repository's own
+# `line_length: warning 110` pushes a long call onto a second line, and `ClientConfigs\.path\(for:`
+# is a pattern that wants both halves adjacent. The rule was file-scoped; the PATTERN was not.
+build_baseline
+cat > "$TREE/MCPRouterCLI/WrappedApplier.swift" <<'SWIFT'
+enum WrappedApplier {
+    static func apply(_ text: String, for client: MCPClient, homeDirectory home: String) throws {
+        guard let target = ClientConfigs.path(
+            for: client, homeDirectory: home, projectDirectory: nil
+        ) else { return }
+        try text.write(toFile: target, atomically: true, encoding: .utf8)
+    }
+}
+SWIFT
+expect "P11 a wrapped ClientConfigs.path( call is still the R7 API" 1
+
+# ---------------------------------------------------------------- P12 — the assembled path
+# The path literal never appears: it is built a component at a time, which is how every other path
+# in this repository is built. A vocabulary of whole paths cannot see it, so the gate carries the
+# distinguishing FILE NAMES as well.
+build_baseline
+cat > "$TREE/MCPRouterCLI/AssemblingApplier.swift" <<'SWIFT'
+enum AssemblingApplier {
+    static func apply(_ text: String, home: NSString) throws {
+        let target = home.appendingPathComponent(".gemini")
+            .appendingPathComponent("config")
+            .appendingPathComponent("mcp_config.json")
+        try text.write(toFile: target, atomically: true, encoding: .utf8)
+    }
+}
+SWIFT
+expect "P12 a harness path assembled from components is still a harness path" 1
+
+# ---------------------------------------------------------------- P13 — C stdio in the seam
+# Rule 3's claim is any file write at all inside the seam, however the path was obtained. `fopen`
+# and `fputs` obtain it perfectly well and were in no vocabulary.
+build_baseline
+cat > "$TREE/RouterCore/Discovery/HarnessWriteThrough.swift" <<'SWIFT'
+enum HarnessWriteThrough {
+    static func apply(_ text: String, to target: String) {
+        guard let handle = fopen(target, "w") else { return }
+        fputs(text, handle)
+        fclose(handle)
+    }
+}
+SWIFT
+expect "P13 an fopen/fputs applier inside the seam is refused" 1
+
+# ---------------------------------------------------------------- P14 — the subprocess in the seam
+# A shell redirect writes the file without any Swift write call in the diff at all.
+build_baseline
+cat > "$TREE/RouterCore/Discovery/HarnessShellApplier.swift" <<'SWIFT'
+enum HarnessShellApplier {
+    static func apply(_ text: String, to target: String) throws {
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/sh")
+        task.arguments = ["-c", "cat > \(target)"]
+        try task.run()
+    }
+}
+SWIFT
+expect "P14 a /bin/sh redirect inside the seam is refused" 1
+
+# ---------------------------------------------------------------- P15 — the block-comment line
+# `code_lines` blanked any line whose first characters opened a block comment, so a write sharing
+# that line was erased from the gate. This is the trailing-comment evasion `file_writes` was
+# hardened against, left open one function along.
+build_baseline
+cat > "$TREE/RouterCore/Discovery/HarnessCommentApplier.swift" <<'SWIFT'
+enum HarnessCommentApplier {
+    static func apply(_ text: String, to target: String) throws {
+        /* the plan is rendered above */ try text.write(toFile: target, atomically: true, encoding: .utf8)
+    }
+}
+SWIFT
+expect "P15 a write sharing a line with a block comment is still a write" 1
+
+# ---------------------------------------------------------------- P16 — mutation without a write
+# **The route nobody had named.** Every plant so far reaches the file through something spelled like
+# a write. Replacing a harness config with a symlink, hard-linking one over it, or changing its mode
+# mutates the developer's live configuration through calls that contain no write token at all — and
+# `D-r7-v` records that even the acceptance lane's byte digest would not see the last of those.
+build_baseline
+cat > "$TREE/RouterCore/Discovery/HarnessLinkApplier.swift" <<'SWIFT'
+enum HarnessLinkApplier {
+    static func apply(_ staged: URL, over target: String) throws {
+        try FileManager.default.createSymbolicLink(atPath: target, withDestinationPath: staged.path)
+    }
+}
+SWIFT
+expect "P16 replacing a harness config with a symlink is a mutation, not an exemption" 1
+
+build_baseline
+cat > "$TREE/RouterCore/Discovery/HarnessModeApplier.swift" <<'SWIFT'
+enum HarnessModeApplier {
+    static func apply(_ target: String) throws {
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: target)
+    }
+}
+SWIFT
+expect "P16b changing a harness config's mode inside the seam is refused too" 1
+
+# ---------------------------------------------------------------- P17 — the block comment's body
+# The opposite direction of P15, and the reason it is here: a comment reader that keeps code after
+# `*/` must also drop prose INSIDE a block whose lines do not begin with `*`. A gate that reads that
+# prose as code fires on a file that only documents what it refuses to do.
+build_baseline
+cat > "$TREE/RouterCore/Log/LooseBlockComment.swift" <<'SWIFT'
+/*
+  This type does not write anything. It is documented here that an applier would call
+  try text.write(toFile: home + "/.gemini/settings.json", atomically: true, encoding: .utf8)
+  and that spec §7 refuses exactly that.
+*/
+enum LooseBlockComment {
+    static func describe() -> String { "nothing is written" }
+}
+SWIFT
+expect "P17 prose inside a block comment is documentation, whatever its lines begin with" 0
+
+# ---------------------------------------------------------------- P18 — a slash-star in a line comment
+# `app/Sources` carries `src/*.ts` inside a `///` line. A block-comment reader that took that as an
+# opener would blank the rest of the file and report every writer in it as clean — the vacuity this
+# gate exists to refuse, arriving through its own comment stripper.
+build_baseline
+cat > "$TREE/MCPRouterCLI/SlashStarApplier.swift" <<'SWIFT'
+/// Transcribed from `src/*.ts` rather than reasoned about.
+enum SlashStarApplier {
+    static func apply(_ text: String, home: String) throws {
+        try text.write(toFile: home + "/.cursor/mcp.json", atomically: true, encoding: .utf8)
+    }
+}
+SWIFT
+expect "P18 a /* inside a line comment does not blank the file after it" 1
+
 # ---------------------------------------------------------------- P6 — prose is not a finding
 build_baseline
 cat > "$TREE/RouterCore/Watch/WatchState.swift" <<'SWIFT'

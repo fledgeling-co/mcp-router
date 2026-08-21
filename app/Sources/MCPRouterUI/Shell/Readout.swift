@@ -13,7 +13,13 @@
     /// Sentence case throughout, per `DESIGN.md` §6, and no uppercasing transform anywhere.
     public enum ReadoutCopy {
         /// The at-rest readout's own label. Prose, so it is never monospaced (§2).
-        public static let runningLabel = "Running"
+        ///
+        /// **`Child processes`, not `Running`, since M27.** The design of record labels this card
+        /// `Child processes` and the build drew the count unlabelled; the string appeared in 0 of 9
+        /// accessibility dumps of the running app. The label carries no honesty question — it names
+        /// what the number already is — so the design wins. `Running` also collided with the
+        /// sidebar's own `Running` group header, which is a different thing two rows above it.
+        public static let childProcessesLabel = "Child processes"
 
         /// "3 of 8" — child processes running against servers declared. Both numbers come from one
         /// `/servers` response and nothing is derived from them.
@@ -42,6 +48,18 @@
         }
     }
 
+    /// Which tier the counts numeral is painted in, held here so the rule is a value rather than a
+    /// condition buried in a view body.
+    ///
+    /// `--live` means *a child process is running* and §2 makes that meaning exclusive. The numeral
+    /// earns it while the count is above zero and does not while it is zero, which is the same test
+    /// this branch applied to the mock's foot dot and then failed to apply to the number beside it.
+    public enum ReadoutTint {
+        public static func counts(running: Int) -> ColorToken {
+            running > 0 ? .live : .t1
+        }
+    }
+
     /// The readout's geometry, so the skeleton can be exactly the populated form's size.
     ///
     /// A29 turns on this being one number rather than two: a skeleton at a different height makes
@@ -55,11 +73,47 @@
         /// The gap between the readout's three rows, and its inner padding.
         public static let spacing = MetricToken.selectionInset.leadingScalar
 
-        /// The whole readout: a counts row, the trace, a footer row, and padding above and below.
+        /// The whole readout: a counts row, the trace, a footer row, and the card's own padding
+        /// above and below.
+        ///
+        /// The padding term is `cardPadding`, not `spacing`, since M27 put the readout inside the
+        /// card the design of record draws. The composition is what A29 turns on rather than the
+        /// total: skeleton and populated form are held to one constant, whatever that constant is.
         public static let height =
             MetricToken.tableRows.leadingScalar * 2
                 + traceHeight
-                + spacing * 4
+                + spacing * 2
+                + cardPadding * 2
+
+        // MARK: - The card the readout sits in (M27)
+
+        /// The gap between the card and the sidebar's three edges.
+        ///
+        /// The card is what `design/mocks/prototype.html` draws and the build had lost: the count
+        /// was an uncarded row against the nav list, so nothing said where the list ended and the
+        /// instrument began. Derived from the selection inset rather than picked, like every other
+        /// number in this file.
+        public static let cardMargin = MetricToken.selectionInset.leadingScalar * 2
+
+        /// The card's own inner padding, which is what the readout's horizontal padding already was.
+        public static let cardPadding = MetricToken.selectionRadius.leadingScalar
+
+        /// `DESIGN.md` §2's "card radius 10–14", reached the way `SettingsMetrics.cardRadius`
+        /// reaches it, so the two cards in this app are one radius rather than two.
+        public static let cardRadius =
+            MetricToken.selectionRadius.leadingScalar + MetricToken.selectionInset.leadingScalar / 2
+
+        /// A hairline, at the focus ring's half — the width every other line in this app is drawn at.
+        public static let hairline = MetricToken.focusRing.leadingScalar / 2
+
+        /// What the card actually offers its contents: the whole height less the card's own padding
+        /// above and below.
+        ///
+        /// Named because two things have to agree on it and they had already stopped: the populated
+        /// form fills it by construction — two dense rows, the trace, and the two gaps between them
+        /// — and the skeleton has to be given it explicitly. `SidebarFootTests` holds
+        /// the two equal, which is A29's claim stated as arithmetic rather than as prose.
+        public static let interiorHeight = height - cardPadding * 2
     }
 
     /// The at-rest readout in the sidebar's footer.
@@ -96,26 +150,77 @@
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, MetricToken.selectionRadius.leadingScalar)
-            .padding(.vertical, ReadoutGeometry.spacing)
+            .padding(ReadoutGeometry.cardPadding)
+            .background(card)
+        }
+
+        /// The card itself — the element `prototype.html` draws around this readout and the build
+        /// had lost. A quiet raised plate: the tertiary fill, a hairline bezel, and §2's card
+        /// radius. Nothing here is an indicator colour; the instrument inside it is what carries
+        /// meaning.
+        private var card: some View {
+            RoundedRectangle(cornerRadius: ReadoutGeometry.cardRadius, style: .continuous)
+                .fill(ColorToken.f3.color)
+                .overlay(
+                    RoundedRectangle(cornerRadius: ReadoutGeometry.cardRadius, style: .continuous)
+                        .strokeBorder(ColorToken.line.color, lineWidth: ReadoutGeometry.hairline)
+                )
         }
 
         @ViewBuilder
         private func counts(running: Int, declared: Int, note: String?) -> some View {
             HStack(alignment: .firstTextBaseline, spacing: ReadoutGeometry.spacing) {
-                Text(ReadoutCopy.runningLabel)
+                Text(ReadoutCopy.childProcessesLabel)
                     .typeRole(.subheadline)
                     .foregroundStyle(ColorToken.t3.color)
                 Spacer(minLength: 0)
                 // Instrument data, so monospaced — and `--live` because this number *is* the count
                 // of child processes running, which is that token's one documented meaning.
+                //
+                // **Only while it is above zero**, which is the half M27 got wrong in the same
+                // change that made it checkable. §2 gives `--live` exactly one meaning and this
+                // branch's own design text refuses a green dot beside a card reading `0 of 4` on
+                // that ground — while the numeral was painting `--live` on that very reading. Both
+                // out-of-family reviews landed on it. `.populated(running: 0, declared: m)` is
+                // reachable whenever servers are declared and all of them are idle, which is the
+                // ordinary morning state of this app, so it is not a corner.
+                //
+                // Zero falls to `--t1` rather than to a dimmer tier: nothing is running, but the
+                // reading is still the loudest thing the card has to say.
                 Text(ReadoutCopy.counts(running: running, declared: declared))
                     .typeRole(.body, monospaced: true)
-                    .foregroundStyle(ColorToken.live.color)
+                    .foregroundStyle(ReadoutTint.counts(running: running).color)
+                    // A35's sentence, carried by the numeral itself rather than by the merged row.
+                    .accessibilityLabel(
+                        ReadoutCopy.accessibilityLabel(running: running, declared: declared)
+                    )
             }
             .frame(height: MetricToken.tableRows.leadingScalar)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(ReadoutCopy.accessibilityLabel(running: running, declared: declared))
+            // **One element: the label joined to the reading it heads.** Three forms were tried
+            // against the running app, and this one was reached last, by way of the wrong answer.
+            //
+            // `.ignore` is what shipped, and it discarded the label: the row published one element
+            // whose text was the counts sentence, so `Child processes` was on screen and absent
+            // from every instrument that reads the accessibility plane. That is the same reading
+            // the campaign's differential took when it reported the label missing, and a fix the
+            // measuring instrument cannot see is a fix that gets re-reported.
+            //
+            // Leaving the row unmerged fixed that and cost a VoiceOver reader a swipe: two stops
+            // for one metric, the first of them — `Child processes` — carrying no value at all,
+            // and the second naming the quantity differently (`declared servers`). This branch
+            // shipped that form for one commit, on the ground that `.combine` failed A35's own
+            // assertion in `mac-shell.sh`. **That ground was wrong, and three out-of-family lanes
+            // from three model families said so independently.** A35 matches the destination rows
+            // as a PREFIX, and its own comment says why: "a row that carries a badge announces it
+            // as part of one sentence … that is the point of the label, so the assertion has to
+            // allow for it". The readout's line was anchored `^…$` instead — written when this row
+            // had no label to combine with, because the missing label is the defect M27 exists to
+            // fix. So the anchor never encoded a decision about a combined form; it encoded the
+            // absence of one, and it was widened to the tolerance A35 already applies thirty lines
+            // above.
+            //
+            // A gate written before the element existed does not get to pick the element's shape.
+            .accessibilityElement(children: .combine)
 
             TraceStrip(points: tracePoints)
                 .frame(height: ReadoutGeometry.traceHeight)
@@ -166,6 +271,14 @@
     /// §5 — "skeleton matching the real row geometry; never a spinner over a blank pane." The height
     /// is `ReadoutGeometry.height`, the same constant the populated form is held to, so the sidebar
     /// does not move when the first poll answers.
+    ///
+    /// **The inner frame is the card's interior, and it subtracts `cardPadding` rather than
+    /// `spacing`.** Those two were the same term until M27 put the readout inside a card: the
+    /// wrapper's vertical padding was `spacing`, so `height - spacing * 2` *was* the interior. It is
+    /// `cardPadding` now, and the stale subtraction left the skeleton 8pt taller than the interior
+    /// it sits in — the one state whose whole job is to occupy the populated form's space, drawn
+    /// overflowing it by 4pt top and bottom. `ReadoutGeometry.interiorHeight` names the quantity so
+    /// the two cannot come apart again.
     struct ReadoutSkeleton: View {
         var body: some View {
             VStack(alignment: .leading, spacing: ReadoutGeometry.spacing) {
@@ -185,7 +298,7 @@
                         maxHeight: MetricToken.tableRows.leadingScalar / 3
                     )
             }
-            .frame(height: ReadoutGeometry.height - ReadoutGeometry.spacing * 2, alignment: .leading)
+            .frame(height: ReadoutGeometry.interiorHeight, alignment: .leading)
             .accessibilityLabel(ReadoutCopy.loadingLabel)
         }
     }

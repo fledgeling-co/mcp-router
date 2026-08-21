@@ -1,0 +1,95 @@
+frontmost at start: Sidetone
+tokens: sidebar=256 toolbar=52 titlebar=33 tableRow=24
+DESIGN.md §2 sidebar rows: 24 32 40
+
+the three-zone shell
+  ok — sidebar rendered 256.0pt = MetricToken.sidebar
+  ok — unified toolbar rendered 52.0pt = MetricToken.unifiedToolbar
+  ok — chrome band above content = 52.0pt = MetricToken.unifiedToolbar
+  ok — AppKit's title bar (32pt) sits inside the unified band, as a unified toolbar means
+  NOTE — DESIGN.md §2 records a 33pt titlebar; AppKit here reports 32pt.
+  NOTE   Reported as a shared-surface finding rather than changed: DESIGN.md and MetricToken
+  NOTE   belong to the design system, not to this item.
+  ok — 8 destination rows share one height, 32.0pt, which §2 documents
+  ok — all eight destinations are in the accessibility tree
+  ok — both group headers are in the accessibility tree, sentence case
+  ok — both badges announce what they count
+  ok — Skills and Inbox carry no badge — the router serves no count for either
+  ok — the readout announces its counts as a sentence
+  ok — window title is 'Checks' — the view, not the app
+  (the user moved to 'EgressMac' during 'the window assertions'; the app stayed in the background)
+
+the menu bar
+  ok — exactly six app menus: MCP Router|File|Edit|View|Window|Help
+  inventory: 34 commands
+  ok — every one of the 34 inventoried commands is in the menu bar
+  ok — no command in the menu bar is unaccounted for
+  ok — all 25 inventoried shortcuts are bound with the key and modifiers stated
+  availability oracle: 20 app-declared commands, boards installed: servers skills activity settings discover evals cleanup inbox 
+  ok — 20 app-declared commands match MenuCommand.availability(in:) — 17 enabled and silent, 3 dimmed with their reason
+
+the keyboard and the selection
+  ok — Servers: the row reports itself selected and the title follows it
+  ok — Discover: the row reports itself selected and the title follows it
+  ok — Settings: the row reports itself selected and the title follows it
+  ok — Activity: the row reports itself selected and the title follows it
+  ok — ⌘H reached the app while it was inactive — ⌘-chords are dispatched to this process
+  (the user moved to 'SecurityAgent' during 'the selection assertions'; the app stayed in the background)
+  ok — the key probe holds keyboard focus in the content zone
+  ok — Space reached a focused surface in the content zone
+  ok — Return reached a focused surface in the content zone
+  ok — Esc reached a focused surface in the content zone
+
+keyboard focus
+  ok — focus is visible and accent-bound: 1124 accent px unfocused → 5071 focused, longest run 440px
+  NOTE — the ring's width is AppKit's, not this item's: M1 ships no control that draws its own.
+  NOTE   MetricToken.focusRing is read by F2's focusRing modifier, which the shell does not use.
+
+every board: top-aligned, single-scrolled
+  the app under test serves servers-pending-auth.json, which answers on port 8971
+  ok — Activity: 1 content scroll area, first element 0.0pt below the content top, foot reads 127.0.0.1:8971, count announces as one element: "Child processes, 1 of 4 declared servers running"
+  ok — Servers: 1 content scroll area, first element 16.0pt below the content top, foot reads 127.0.0.1:8971, count announces as one element: "Child processes, 1 of 4 declared servers running"
+  ok — Skills: 1 content scroll area, first element 16.0pt below the content top, foot reads 127.0.0.1:8971, count announces as one element: "Child processes, 1 of 4 declared servers running"
+  ok — Discover: 1 content scroll area, first element 16.0pt below the content top, foot reads 127.0.0.1:8971, count announces as one element: "Child processes, 1 of 4 declared servers running"
+  ok — Inbox: 1 content scroll area, first element 16.0pt below the content top, foot reads 127.0.0.1:8971, count announces as one element: "Child processes, 1 of 4 declared servers running"
+  ok — Checks: 1 content scroll area, first element 16.0pt below the content top, foot reads 127.0.0.1:8971, count announces as one element: "Child processes, 1 of 4 declared servers running"
+  ok — Cleanup: 1 content scroll area, first element 16.0pt below the content top, foot reads 127.0.0.1:8971, count announces as one element: "Child processes, 1 of 4 declared servers running"
+  ok — Settings: 1 content scroll area, first element 16.0pt below the content top, foot reads 127.0.0.1:8971, count announces as one element: "Child processes, 1 of 4 declared servers running"
+  ok — 'Evals' appears in neither the eight panes nor the menu bar; the sidebar, the title and the pane heading all read 'Checks'
+
+the scroll edge
+  at rest: opacity 0.0000 over 1369px (1.000 of the band readable, 1.000 agreeing)
+  scrolled to 0.95 (content under the edge, 0.872 uniform below it):
+    opacity 0.0742 over 1296px (0.947 of the band readable, 1.000 agreeing)
+  ok — the scroll edge: nothing at rest, one line at opacity 0.0742 across 1296px of the content width once scrolled, with content underneath it
+  ok — returning to the top cleared it: opacity back to 0.0000
+
+restoration across a relaunch
+  before quit: Checks at 180,140,980,620
+  after relaunch: Checks at 180,140,980,620
+  ok — the selected destination survived quit and relaunch (Checks)
+  ok — the window frame survived quit and relaunch (180,140,980,620)
+
+the failure states, in the running app
+  ok — offline: the sidebar foot draws nothing endpoint-shaped, and the count card keeps no label
+  ok — offline: the app carries "The router isn't running" verbatim, and renders no counts
+  ok — unauthorized: the sidebar foot draws nothing endpoint-shaped, and the count card keeps no label
+  ok — unauthorized: the app carries "This app isn't authorised to talk to the router" verbatim, and renders no counts
+
+a command is off for a destination that has no board, or for a feature that does not exist
+  boards installed: 8 of 8 destinations
+  ok — every destination has a board, and no command claims otherwise
+  ok — File / Pair iPhone… is enabled and carries no reason — the menu agrees with the board underneath it
+  ok — File / Export library… is dimmed and gives a reason of its own: 'This feature hasn't been built yet.'
+  ok — File / Export library… carries no shortcut — §8 granted it none
+  ok — no app-declared command binds ⌘E — the chord stays with the system
+  ok — 1 command(s) with no feature behind them are dimmed, each with its own sentence
+  ok — neither scaffold type is in the Release bundle
+  ok — the Debug key probe is absent from Release
+  ok — MCP Router was never the frontmost application during this run (it ended on 'SecurityAgent')
+
+acceptance: the Mac shell measures 256.0/52.0/32, carries its
+acceptance: 34 commands with their shortcuts and reasons, moves its selection and
+acceptance: title together, receives the three bare keys, shows its scroll edge, and restores
+acceptance: its destination and frame — all of it without once coming to the front.
+exit=0

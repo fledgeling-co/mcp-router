@@ -16,6 +16,113 @@
             case sectionNotFound(String)
         }
 
+        /// The body of one declaration, extracted by balancing braces rather than by splitting on an
+        /// indented `}`.
+        ///
+        /// The split form it replaces was **vacuous in two ways at once**, and two out-of-family
+        /// reviews from different model families found both:
+        ///
+        /// 1. `components(separatedBy:)` never returns an empty array, so `.first` and `.last` are
+        ///    non-`nil` even when the delimiter is absent entirely. Every `#require` guarding one of
+        ///    those was unfailable, and its diagnostic string could never print.
+        /// 2. Splitting on the FIRST `"\n        }"` ends the body at the first member-indented
+        ///    brace. Today that is the declaration's own end, so the gates using it were correct by
+        ///    layout; a nested `if`/closure closing at that indent — which `swiftformat` is free to
+        ///    produce — would silently truncate the body, and every `!body.contains(…)` assertion
+        ///    downstream would pass on text that no longer includes the region it is denying.
+        ///
+        /// Both failures are silent and both are green, which is the pair worth removing rather than
+        /// patching. This throws where the old form returned something plausible.
+        ///
+        /// `marker` must appear exactly once: a second occurrence — an overload, or a comment
+        /// quoting the signature — makes "which declaration" ambiguous, and picking either end of
+        /// that ambiguity is how a scoped gate reads the wrong function.
+        ///
+        /// **What comes back is code with its line comments removed**, and that is the third hole a
+        /// reviewer found rather than a tidiness point. Every gate built on this asks whether some
+        /// string is in a view's body; the bodies in this repo carry long comments that *discuss the
+        /// modifiers being asserted about*, so `body.contains(".accessibilityLabel(")` was satisfied
+        /// by a paragraph explaining `.accessibilityLabel`, and a negative assertion is one careless
+        /// sentence away from going vacuous the same way. Comments are prose about the code, not the
+        /// code, so they are not what a source gate should be reading.
+        static func declarationBody(of marker: String, in source: String) throws -> String {
+            let occurrences = source.components(separatedBy: marker).count - 1
+            guard occurrences == 1 else {
+                throw OracleError.sectionNotFound(
+                    "'\(marker)' appears \(occurrences) times, so which declaration is meant is ambiguous"
+                )
+            }
+            guard let markerRange = source.range(of: marker),
+                  let open = source[markerRange.upperBound...].firstIndex(of: "{")
+            else {
+                throw OracleError.sectionNotFound("'\(marker)' opens no brace")
+            }
+
+            var depth = 0
+            var index = open
+            var code = ""
+            while index < source.endIndex {
+                if let span = nonCodeSpan(source, from: index) {
+                    // A string literal is code and stays; a comment is prose about the code and goes.
+                    if span.isString, depth > 0 { code += source[index ..< span.end] }
+                    index = span.end
+                    continue
+                }
+                let character = source[index]
+                if character == "{" { depth += 1 }
+                if character == "}" {
+                    depth -= 1
+                    if depth == 0 { return code }
+                }
+                if depth > 0 { code.append(character) }
+                index = source.index(after: index)
+            }
+            throw OracleError.sectionNotFound("'\(marker)' is never closed")
+        }
+
+        /// The span of the comment or string literal starting at `index`, or `nil` when code starts
+        /// there.
+        ///
+        /// Both are stepped over **whole**, by looking ahead rather than by remembering the previous
+        /// character, and that is what makes the walk above safe on this repo's own source: a `}` or
+        /// a `//` inside a string literal is text. `LoopbackAddress.controlEndpoint` returns
+        /// `"http://\(hostPort(port))/mcp"`, so a scanner that treated `//` as a comment opener
+        /// wherever it found one would swallow the rest of that line — which is the class of silent
+        /// truncation this whole reader exists to remove, reintroduced one layer down.
+        private static func nonCodeSpan(
+            _ source: String,
+            from index: String.Index
+        ) -> (end: String.Index, isString: Bool)? {
+            let rest = source[index...]
+            if rest.hasPrefix("//") {
+                return (rest.firstIndex(of: "\n") ?? source.endIndex, false)
+            }
+            if rest.hasPrefix("/*") {
+                let after = source.index(index, offsetBy: 2)
+                let close = source[after...].range(of: "*/")
+                return (close?.upperBound ?? source.endIndex, false)
+            }
+            guard source[index] == "\"" else { return nil }
+            return (endOfStringLiteral(source, openedAt: index), true)
+        }
+
+        /// Where the string literal opened at `index` closes, honouring backslash escapes.
+        private static func endOfStringLiteral(
+            _ source: String,
+            openedAt index: String.Index
+        ) -> String.Index {
+            var cursor = source.index(after: index)
+            while cursor < source.endIndex {
+                if source[cursor] == "\\" {
+                    cursor = source.index(cursor, offsetBy: 2, limitedBy: source.endIndex) ?? source.endIndex
+                    continue
+                }
+                if source[cursor] == "\"" { return source.index(after: cursor) }
+                cursor = source.index(after: cursor)
+            }
+            return source.endIndex
+        }
+
         /// Waits for a condition to hold rather than for a duration to elapse.
         ///
         /// A fixed `Task.sleep` reads like a wait but is really a bet on scheduler latency, and the
@@ -121,6 +228,10 @@
             "app/Sources/MCPRouterUI/Shell/ShellWindow.swift",
             "app/Sources/MCPRouterUI/Shell/Sidebar.swift",
             "app/Sources/MCPRouterUI/Shell/Readout.swift",
+            // M27's foot line, enrolled here rather than merely added to the directory: it is the
+            // one element in the shell drawn on every board, so a token or indicator-colour gate
+            // that could not see it would be blind on all nine surfaces at once.
+            "app/Sources/MCPRouterUI/Shell/SidebarFoot.swift",
             "app/Sources/MCPRouterUI/Shell/ScaffoldPane.swift",
             "app/Sources/MCPRouterUI/Shell/ScrollEdge.swift",
             "app/Sources/MCPRouterUI/Shell/ShellChrome.swift",

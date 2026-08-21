@@ -260,11 +260,16 @@
             // Both forms are held to the same constant, which is the only way the sidebar does not
             // move when the first poll lands. Composed from tokens, so it follows `DESIGN.md`.
             #expect(ReadoutGeometry.height > 0)
+            // The padding term became `cardPadding` when M27 put the readout inside the card the
+            // design of record draws. The clause is that the two forms are one constant composed
+            // from tokens — not that the constant never changes — so the formula is restated here
+            // rather than the assertion loosened.
             #expect(
                 ReadoutGeometry.height
                     == MetricToken.tableRows.leadingScalar * 2
                     + ReadoutGeometry.traceHeight
-                    + ReadoutGeometry.spacing * 4
+                    + ReadoutGeometry.spacing * 2
+                    + ReadoutGeometry.cardPadding * 2
             )
             let source = try ShellTestSupport.repoFile("app/Sources/MCPRouterUI/Shell/Sidebar.swift")
             #expect(
@@ -284,7 +289,7 @@
         @Test("the readout's copy carries no figure beyond the counts and the trace")
         func copyCarriesNoFabricatedMetric() {
             let strings = [
-                ReadoutCopy.runningLabel,
+                ReadoutCopy.childProcessesLabel,
                 ReadoutCopy.counts(running: 3, declared: 8),
                 ReadoutCopy.notIndexed(2),
                 ReadoutCopy.emptyTitle,

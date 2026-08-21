@@ -48,7 +48,7 @@
                 justification: "focus"
             ),
             IndicatorUse(
-                element: "the readout's running count and its trace",
+                element: "the readout's running count while it is above zero, and its trace",
                 token: .live,
                 justification: "a child process is running"
             ),

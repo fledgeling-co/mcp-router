@@ -478,8 +478,10 @@ elif broken == "duplicate-layer":
 elif broken == "manifest-not-json":
     # The manifest replaced with bytes `json.load` refuses. `load_json` raises `Inconclusive` from
     # inside `measuring("manifest")`, which is the FIRST of `write_unmeasured_report`'s five callers
-    # and the only one no run in this file reached: a trace of the whole suite recorded 145 engine
-    # runs, 10 of them with `--report`, eight marker emissions — and zero through this route.
+    # and the one the trace found nothing through: on the 59-case suite that shipped before the
+    # sixth pass, 145 python3 processes, 52 of them engine runs and 10 of those carrying
+    # `--report`, produced eight marker emissions and none on this route. Only an engine run can
+    # reach it, both emission sites being engine code, and case 61 below is what reaches it now.
     open(manifest_path, "w").write("{ this is not json\n")
 elif broken == "unknown-layer":
     # Not an exception at all — a manifest that fails validation. It returned 3 correctly and
@@ -1224,6 +1226,17 @@ fi
 # "145 engine runs" was this file's own wording for that trace and it is wrong: 145 is every
 # python3 process the suite starts, the fixture builder and the affordance tool included, and the
 # engine is 52 of them. Re-measured on the same suite with a `sitecustomize.py` logging argv.
+#
+# The correction filed against that wording said 53 and named an inline `-c` script as the extra
+# process. This file has never run one: no `-c` form appears at any of the 11 revisions
+# `git log --follow` names for it. What 53 was counted from is not recoverable — the correction
+# did not say — but the one thing in the suite that would produce it is case 46, which hands the
+# engine's path to a `python3 -` stdin heredoc. That heredoc `ast.parse`s the engine's source and
+# never executes it, and its `sys.argv[0]` is `-`, so it is an engine READER rather than an engine
+# run: a count keyed on the path appearing in a command line takes it, a count keyed on
+# `sys.argv[0]` does not. That suite held one such heredoc; the sixth pass added case 60's second,
+# which reads the engine the same way. 52 is the `sys.argv[0]` figure — the number of times the
+# engine's own code ran — and is the one this table rests on.
 
 # 60 — the enumeration itself, checked against the engine's syntax tree on every run.
 #
@@ -1430,8 +1443,10 @@ else
 fi
 
 # 61 — R1: the manifest itself will not parse. This is the first of `write_unmeasured_report`'s
-# five callers and the only one no run in this file reached — measured, not assumed: a trace of the
-# two emission lines across all 145 engine processes the suite starts recorded zero hits here.
+# five callers and the one the trace found nothing through — measured, not assumed: across the 52
+# engine runs in that 59-case suite (145 python3 processes in all, per the route table above), a
+# trace of the two emission lines recorded zero hits here. Engine runs are the whole population
+# that can reach it, since both emission sites are engine code. This case is what reaches it.
 # Every other route to an obituary was covered and this one was not, which is what happens when a
 # marker is armed route by route against a route set nobody enumerated.
 root="$SCRATCH/manifest-unparseable"; LEDGER61="$SCRATCH/manifest-unparseable-ledger.md"

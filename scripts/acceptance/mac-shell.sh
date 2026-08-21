@@ -303,7 +303,17 @@ pass "Skills and Inbox carry no badge — the router serves no count for either"
 
 # The readout. Its label is generated from two observed counts, so this matches the shape rather
 # than a fixed string — a fixed one would pin the fixture rather than the derivation.
-printf '%s\n' "$WINDOW_TEXT" | grep -qE '^[0-9]+ of [0-9]+ declared servers running$' \
+#
+# **The `Child processes, ` head is tolerated for the same reason the destination rows above are
+# matched as a prefix**, and this line is the one place A35 was inconsistent with its own stated
+# principle. The comment at the top of this section says a row carrying a badge announces it as one
+# sentence and "the assertion has to allow for it"; this line anchored `^…$` instead. It could
+# afford to, because the readout row had no label — that missing label IS the defect M27 exists to
+# fix — so the anchor recorded the absence of a combined form rather than a decision against one.
+# It stayed anchored long enough to reject the correct fix once: M27 shipped an unmerged row for one
+# commit because `.combine` went red here. Widened, not weakened — the sentence itself is still
+# matched whole, and a row that announced a bare number would still fail.
+printf '%s\n' "$WINDOW_TEXT" | grep -qE '^(Child processes, )?[0-9]+ of [0-9]+ declared servers running$' \
   || fail "the readout's accessibility label is not in the tree"
 pass "the readout announces its counts as a sentence"
 
@@ -595,9 +605,18 @@ SWIFT
 # produced a FAIL naming the product. The content digest covers every input the app is built from
 # and is blind to mtimes, so it is both stricter and rebase-proof.
 
+# **Two files were added here on 2026-08-21, and the breakage they fix predates M27's change.**
+# `MenuCommand.title` began reading `SkillPresentation.marketplacesAction` at `2ff0941`, and this
+# hand-picked list did not follow, so every run of this script since has stopped at
+# `BLOCKED: could not build the availability oracle` — before reaching anything downstream of it.
+# A file list that has to be maintained by hand alongside a module is the shape of the defect; it is
+# left as a list rather than replaced with the built module here, because swapping the oracle's
+# build strategy is a change to M1's evidence lane rather than to this one.
 swiftc -O -o "$WORK/menu-oracle" \
   "$APP_DIR/Sources/MCPRouterKit/Shell/MenuCommand.swift" \
   "$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift" \
+  "$APP_DIR/Sources/MCPRouterKit/Skills/SkillPresentation.swift" \
+  "$APP_DIR/Sources/MCPRouterKit/Control/SkillModels.swift" \
   "$WORK/main.swift" 2>"$WORK/oracle.log" \
   || { cat "$WORK/oracle.log" >&2; blocked "could not build the availability oracle"; }
 
@@ -863,6 +882,133 @@ check_invisible "the focus-ring assertion"
 echo
 echo "every board: top-aligned, single-scrolled"
 
+# M27's two readers, defined once so the presence and the absence checks below cannot be asking
+# different questions — which is how an absence check goes vacuously green.
+#
+# `sidebar_address` prints the loopback address drawn INSIDE the sidebar, or nothing. Bound to the
+# sidebar by geometry rather than by presence anywhere in the window: Settings draws `127.0.0.1` in
+# its own Endpoint row at x≈942, which is the content zone, and a window-wide grep would report the
+# foot line present on the one board that never had it.
+# Bounded on THREE sides rather than one, after both out-of-family reviews found the same class of
+# hole in the single-sided version:
+#
+#   - **left**, by the sidebar outline's own x, rather than by `$13 > 0`. A window flush against the
+#     screen's left edge puts the foot at x=0, `$13 > 0` is then false, and the absence check goes
+#     green with an address plainly on screen. A literal 0 was doing the job the outline's own
+#     geometry can do exactly.
+#   - **right**, by the outline's trailing edge, as before — Settings draws `127.0.0.1` in its own
+#     Endpoint row at x≈942, which is the content zone.
+#   - **below** the readout card, by y. Without it the foot could be moved ABOVE the destination
+#     list, keeping its x, and pass on all eight boards while `DESIGN.md` requires it last.
+#
+# And the field is matched WHOLE rather than by substring, so `127.0.0.1:8971 whatever` fails
+# instead of being truncated to the prefix the assertion wanted. The optional `Router endpoint, `
+# head is tolerated because which of AXValue/AXTitle/AXDescription SwiftUI puts an explicit label
+# into is not this gate's to assume — that part stays deliberately loose.
+sidebar_address() {
+    awk -F'\t' -v l="$2" -v r="$3" -v top="$4" '
+        $13 >= l && $13 < r && $14 >= top {
+            for (i = 4; i <= 6; i++) {
+                if ($i ~ /^(Router endpoint, )?127\.0\.0\.1:[0-9]+$/) {
+                    value = $i
+                    sub(/^Router endpoint, /, "", value)
+                    print value
+                    exit
+                }
+            }
+        }' "$1"
+}
+
+# The complement, and the reason the absence check is not vacuous against a REWORDED address. The
+# reader above matches one canonical form; a state that wrongly drew `localhost:8971` or
+# `0.0.0.0:8971` would return nothing from it and the absence assertion would pass with an address
+# on screen. This one asks the broader question — anything in the sidebar shaped like a host and a
+# port — and is used only where the answer must be "nothing".
+sidebar_anything_endpoint_shaped() {
+    awk -F'\t' -v l="$2" -v r="$3" '
+        $13 >= l && $13 < r {
+            for (i = 4; i <= 6; i++) {
+                if ($i ~ /(127\.0\.0\.1|localhost|0\.0\.0\.0|::1)[: ]*[0-9]{2,5}/) { print $i; exit }
+            }
+        }' "$1"
+}
+
+# What the count card announces as ONE element, or nothing.
+#
+# The label check below is a substring test and the A35 check is window-wide, so between them they
+# pass just as happily on a row that publishes `Child processes` and `N of M declared servers
+# running` as two separate stops — which is the form this branch shipped for one commit and then
+# withdrew. Neither of them measures the thing the withdrawal was about. This does: a single field
+# whose whole text is the label joined to the reading it heads is `.combine` having actually reached
+# the accessibility tree, per board, rather than a modifier read out of the source by a unit test.
+sidebar_count_announcement() {
+    awk -F'\t' -v l="$2" -v r="$3" '
+        $13 >= l && $13 < r {
+            for (i = 4; i <= 6; i++) {
+                if ($i ~ /^Child processes, [0-9]+ of [0-9]+ declared servers running$/) {
+                    print $i
+                    exit
+                }
+            }
+        }' "$1"
+}
+
+# The sidebar's own left edge, trailing edge, and the y below which the foot must sit. Read from the
+# outline and from the readout card rather than assumed, in one place, so the presence and absence
+# checks cannot come to disagree about where the sidebar is.
+sidebar_bounds() {
+    awk -F'\t' '$2 == "AXOutline" { printf "%s %s\n", $13, $13 + $15; exit }' "$1"
+}
+
+# The expected port is read out of the recording the Debug fixture serves, never typed. The line
+# under test is the one whose whole defect class is a hard-coded port, so a hard-coded port in its
+# oracle would be the same mistake one layer out.
+# **And out of the recording the app ACTUALLY serves, which is not the one this read first.**
+# `FixtureControlAPIClient.servers()` decodes `servers-pending-auth` — the populated case
+# deliberately uses the recording carrying an in-flight authorization — while this oracle read
+# `servers.json`. The two happen to carry the same port today, so the check was right by luck: an
+# oracle pointed at a file the subject does not serve is measuring a different app. The recording's
+# name is taken from the client's own source rather than typed here, for the same reason the port is.
+WANT_FIXTURE="$(sed -n 's/.*try decode("\([a-z-]*\)", as: ServersResponse\.self).*/\1/p' \
+  "$APP_DIR/Sources/MCPRouterKit/Control/FixtureControlAPIClient.swift" | head -1)"
+[ -n "$WANT_FIXTURE" ] \
+  || blocked "could not read which servers recording FixtureControlAPIClient decodes"
+WANT_PORT="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['port'])" \
+  "$APP_DIR/Sources/MCPRouterKit/Control/Fixtures/$WANT_FIXTURE.json")"
+[ -n "$WANT_PORT" ] || blocked "could not read the fixture router's port out of $WANT_FIXTURE.json"
+echo "  the app under test serves $WANT_FIXTURE.json, which answers on port $WANT_PORT"
+
+# An optional evidence capture, off unless `MCPR_EVIDENCE_DIR` is set, so an ordinary gate run still
+# writes nothing outside its scratch directory.
+#
+# It exists because the campaign's rule about published captures is the one this item was reported
+# under: a picture is only evidence when something binds it to the surface it claims to show. A wall
+# of captures on this project once showed three unrelated documents while every gate stayed green,
+# and only the filename tied a picture to a screen. So each capture is taken by **CGWindowID** — the
+# only route that photographs THIS window rather than whatever is on top of a screen rectangle — and
+# a row is written naming the destination, that window id, the bundle the pid is executing, and the
+# exact string the assertion above read out of the accessibility tree in the same iteration. A
+# capture whose row disagrees with its neighbours is visibly not of the surface it says.
+EVIDENCE_DIR="${MCPR_EVIDENCE_DIR:-}"
+if [ -n "$EVIDENCE_DIR" ]; then
+    mkdir -p "$EVIDENCE_DIR"
+    EVIDENCE_WIN="$("$AXKIT" winid "$PID" || true)"
+    [ -n "$EVIDENCE_WIN" ] || blocked "could not resolve the window id for the evidence capture"
+    printf 'destination\twindow_id\tbundle\tfoot_read\tcount_announcement\tcapture\ttaken_at\n' \
+      > "$EVIDENCE_DIR/captures.tsv"
+fi
+
+capture_evidence() {
+    [ -n "$EVIDENCE_DIR" ] || return 0
+    local dest="$1" foot="$2" announce="$3" out="$EVIDENCE_DIR/sidebar-foot-$1.png"
+    screencapture -o -x -l"$EVIDENCE_WIN" "$out"
+    [ -s "$out" ] || blocked "the evidence capture produced no image — grant Screen Recording"
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+      "$dest" "$EVIDENCE_WIN" "$MAC_APP" "$foot" "$announce" "$(basename "$out")" \
+      "$(date -u +%FT%TZ)" \
+      >> "$EVIDENCE_DIR/captures.tsv"
+}
+
 : > "$WORK/all-panes.tsv"
 for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
     "$AXKIT" select "$PID" "$dest" >/dev/null || fail "could not select $dest"
@@ -900,7 +1046,56 @@ for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
     DROP="$(awk -v a="$TY" -v b="$CY" 'BEGIN { printf "%.1f", a - b }')"
     awk -v d="$DROP" 'BEGIN { exit !(d <= 40 && d >= -1) }' \
       || fail "$dest starts ${DROP}pt below the content top — the board is centred in the shell's over-tall frame rather than aligned to it"
-    echo "  ok — $dest: 1 content scroll area, first element ${DROP}pt below the content top"
+    # M27 — SURF-001's two foot elements, on this destination.
+    #
+    # Both live in the *shared sidebar wrapper*, so the claim is "on every board" rather than "on
+    # one", and a single-board check would have passed against the build this closes: the campaign's
+    # differential found the loopback line on **0 of 9** destinations and the string `Child
+    # processes` on 0 of 9, while every existing gate was green.
+    #
+    # Bound to the sidebar by geometry, not by presence. The Settings board draws `127.0.0.1` in its
+    # own Endpoint row at x≈942, which is the content zone — a naive window-wide grep would have
+    # reported the foot line present on the one board that never had it.
+    # Matched on the ADDRESS rather than on the accessibility label, and as a substring rather than
+    # an anchored whole. Which of `AXValue`, `AXTitle` or `AXDescription` SwiftUI puts an explicit
+    # `accessibilityLabel` into is not this gate's to assume, and an assertion keyed on the wrapper
+    # text can pass its absence check while the element is on screen — the exact vacuity this
+    # campaign has already paid for.
+    # `SIDE_R` is already in hand from the content-zone measurement above; only the left edge is new.
+    # Read from the same outline, so the two bounds cannot come from different elements.
+    read -r SIDE_L _ <<< "$(sidebar_bounds "$WORK/window.tsv")"
+    [ -n "$SIDE_L" ] || fail "$dest: could not read the sidebar's own left edge"
+
+    # The label first, because its y is the bound the address is then held below. Substring rather
+    # than equality: a screen reader may be handed the label joined to the value it heads, and an
+    # equality test would report a present label as missing.
+    LABEL_Y="$(awk -F'\t' -v l="$SIDE_L" -v r="$SIDE_R" '
+        $13 >= l && $13 < r {
+            for (i = 4; i <= 6; i++) if (index($i, "Child processes") > 0) { print $14; exit }
+        }' "$WORK/window.tsv")"
+    [ -n "$LABEL_Y" ] \
+      || fail "$dest: the sidebar's count is unlabelled — the design of record names it 'Child processes' (M27)"
+
+    # And the label and its reading are ONE element, which the substring test above cannot see.
+    ANNOUNCE="$(sidebar_count_announcement "$WORK/window.tsv" "$SIDE_L" "$SIDE_R")"
+    [ -n "$ANNOUNCE" ] \
+      || fail "$dest: the count card announces its label and its reading as two stops — a screen reader reaches the number by a second swipe, and the label alone carries no value (M27)"
+
+    # Held BELOW the card it is the foot of, so "last in the sidebar" is measured rather than
+    # assumed. Without a y bound the foot could be moved above the destination list, keep its x, and
+    # pass on all eight boards.
+    FOOT="$(sidebar_address "$WORK/window.tsv" "$SIDE_L" "$SIDE_R" "$LABEL_Y")"
+    [ -n "$FOOT" ] \
+      || fail "$dest: the sidebar foot carries no loopback readout below the count card — it is in the shared wrapper, so it belongs on every board (M27)"
+
+    # The port is the one the running router answered on, never the mock's constant. A line reading
+    # 8879 is a line composed from a literal.
+    [ "$FOOT" = "127.0.0.1:$WANT_PORT" ] \
+      || fail "$dest: the foot reads '$FOOT', but the router this app is talking to answered on port $WANT_PORT"
+
+    capture_evidence "$dest" "$FOOT" "$ANNOUNCE"
+
+    echo "  ok — $dest: 1 content scroll area, first element ${DROP}pt below the content top, foot reads $FOOT, count announces as one element: \"$ANNOUNCE\""
 done
 
 # D3 — the rename is complete rather than half-applied. `Evals` was the one label in this app
@@ -1172,6 +1367,40 @@ for state in offline unauthorized; do
     if printf '%s\n' "$STATE_TEXT" | grep -qE '^[0-9]+ of [0-9]+ declared servers running$'; then
         fail "the $state state still renders running counts — a count is a claim about a router that did not answer (A18)"
     fi
+    # M27 — the foot's fourth state, on glass, and it applies to BOTH of these states rather than
+    # to the offline one alone. `unauthorized` means the router answered 401: the poll still failed,
+    # so no port was ever observed, so there is no address the app can claim to have reached.
+    #
+    # Asked with the same reader the presence check uses. An absence check phrased differently from
+    # its presence twin is an absence check that can go green because it was looking for the wrong
+    # string.
+    read -r STATE_SIDE_L STATE_SIDE_R <<< "$(sidebar_bounds "$WORK/window.tsv")"
+    [ -n "$STATE_SIDE_L" ] || fail "$state: could not find the sidebar outline"
+    # The canonical reader, with its y bound dropped to the whole sidebar: there is no count card in
+    # this state to sit below, and an absence check must look everywhere the thing could be rather
+    # than only where it belongs.
+    STATE_FOOT="$(sidebar_address "$WORK/window.tsv" "$STATE_SIDE_L" "$STATE_SIDE_R" 0)"
+    [ -z "$STATE_FOOT" ] \
+      || fail "the $state app draws '$STATE_FOOT' in the sidebar for a router that never answered (M27)"
+    # And the broader question, because the reader above matches one canonical form. A state that
+    # wrongly drew `localhost:8971` would return nothing from it and this assertion would pass with
+    # an address on screen — which is the absence-check vacuity this campaign has already paid for.
+    STATE_ANY="$(sidebar_anything_endpoint_shaped "$WORK/window.tsv" "$STATE_SIDE_L" "$STATE_SIDE_R")"
+    [ -z "$STATE_ANY" ] \
+      || fail "the $state app draws '$STATE_ANY' in the sidebar — an endpoint for a router that never answered (M27)"
+    # And the count card's label goes with its numbers. The failure form replaces the counts form
+    # rather than emptying it, so a readout still headed `Child processes` under an error message
+    # would be a card describing a metric it is no longer showing. Asked here because the presence
+    # side of this pair is asserted on all eight boards above, and a label is exactly the kind of
+    # chrome that survives a state change nobody checked.
+    STATE_LABEL="$(awk -F'\t' -v l="$STATE_SIDE_L" -v r="$STATE_SIDE_R" '
+        $13 >= l && $13 < r {
+            for (i = 4; i <= 6; i++) if (index($i, "Child processes") > 0) { print $i; exit }
+        }' "$WORK/window.tsv")"
+    [ -z "$STATE_LABEL" ] \
+      || fail "the $state app still heads the readout '$STATE_LABEL' — the card names a count it is not showing (M27)"
+    pass "$state: the sidebar foot draws nothing endpoint-shaped, and the count card keeps no label"
+
     pass "$state: the app carries \"$want\" verbatim, and renders no counts"
     check_invisible "the $state state"
 done

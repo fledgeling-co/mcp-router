@@ -110,11 +110,14 @@ anywhere else because a brief that misstates its own diff is the `G2` shape.
 | `waitingCallers(_:)` | `pendingWaiters` | A cohort test must open its gate once the joiners have arrived. Arrival is recorded only here |
 
 `ReapArming` is a new **`Sendable`** value type carrying the epoch and the resolved window,
-and it is the only thing that leaves the actor. `ReapTimer` gains `idleMilliseconds` and is
-**not** `Sendable` — it never was, at `e32b185` or at HEAD, where `struct ReapTimer {` stands
-unchanged at `PoolEntry.swift:74`. It holds the live task and does not travel. An earlier
-draft of this paragraph claimed `Sendable` was added to it and then, fifteen lines on, that it
-had been removed; neither happened.
+and it is the only thing that leaves the actor. `ReapTimer` gains `idleMilliseconds` and
+**carries no explicit `Sendable` annotation** — it carried none at `e32b185` either, where
+`struct ReapTimer {` stands unchanged at `PoolEntry.swift:74`. It holds the live task and does
+not travel. Saying it "is not `Sendable`" was itself wrong and is corrected here under
+`D-g3-v`: every target builds under `.swiftLanguageMode(.v6)` and all of `ReapTimer`'s stored
+properties are `Sendable`, so it conforms implicitly. An earlier draft of this paragraph
+claimed `Sendable` was *added* to it and then, fifteen lines on, that it had been removed;
+neither happened.
 
 None of them is `public`; they are reachable through `@testable import` and nothing in
 `RouterCore`, the app or the CLI calls them. No behaviour changed — this is the fix

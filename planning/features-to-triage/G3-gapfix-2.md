@@ -84,3 +84,106 @@ They are **not** in this pass's scope — `D-g3-s` records them and the classifi
 ## Scope
 
 `PoolAwaitBoundTests.swift`, `PoolTestSupport.swift`, `UpstreamPool.swift`, the three pool suites, and this item's briefs and register rows. `D-g3-a`…`D-g3-f`, `D-g3-h`, `D-g3-i`, `D-g3-k`, `D-g3-s` and `D-g3-u` stay deferred. `D-g3-o` (the failure message dumps ~13 KB of source before the actionable line, because `#expect` captures `lines`) is a one-line fix inside a file you are editing anyway — take it. `D-g3-v` is a wording fix in the brief: `ReapTimer` conforms to `Sendable` implicitly under `.swiftLanguageMode(.v6)` since all its stored properties are `Sendable`, so the accurate phrasing is "carries no explicit `Sendable` annotation".
+
+---
+
+## Delivered — gap-fix 2, 2026-08-21
+
+### The scanner was rebuilt rather than patched
+
+Six controls added to the delivered scanner would have made the set longer. Every one of the seven
+defects found so far — the panel's two and the verifier's five — is an instance of exactly two
+approximations standing in for Swift's own grammar:
+
+- **comment and literal lexing** done by a line's first three characters and a truncation at the
+  first `//` (`D-g3-l`, `D-g3-m`, and the block-comment half of `D-g3-n`);
+- **block structure** read from indentation (`#if` at column 0 and tabs, the rest of `D-g3-n`; the
+  panel's wrap-counting was the same mistake one layer up).
+
+Both are gone. `Delexer` (`PoolAwaitBoundDelexer.swift`) implements Swift's comment and
+string-literal grammar — line, block, **nested** block, single-line, multi-line, raw at any hash
+count, escapes, interpolation, and a literal nested inside an interpolation — blanking each byte in
+place so the output has the same length and the same line breaks as the input. `AwaitBoundScan`
+then walks **brace balance** outward from the call and reads the statement each enclosing `{`
+terminates, back to the previous `{`, `}` or `;`. Indentation is consulted nowhere.
+
+Three named residues of the old scan close as side effects: a newline between the call's name and
+its paren is now matched, `awaitEvent (` with a space is read as the wrapper, and a `{` or `}`
+inside a literal is no longer block structure. `func ` is still tested before `awaitEvent(` on an
+opener, and that is still load-bearing — it is what stops `func awaitEvent(…) {` wrapping its own
+body.
+
+### How the control set was established as complete rather than longer
+
+The population to cover is not "shapes somebody might write", which is open. It is the two grammars
+the scanner now implements, which are closed and enumerable. **32 controls**, split by family and
+each asserting both directions — which lines are call sites, and which of those must report.
+
+Each was then held to the standard this repo applies to any guard: **it must have been seen to
+fail.** Sixteen single-mechanism mutations of the classifier, applied one at a time and restored
+from a `cp` backup:
+
+| mutation | mechanism removed | controls red |
+|---|---|---|
+| M1 | block comments close at their innermost terminator | 1 |
+| M2 | literal stripping | 7 |
+| M3 | interpolation tracking | 1 |
+| M4 | escape handling | 2 |
+| M5 | the `func ` terminator on an opener | 1 |
+| M6 | the opener span, cut back to the call's own line | 1 |
+| M7 | brace-depth bookkeeping | 2 |
+| M8 | line comments | 1 |
+| M9 | position-preserving blanking of non-ASCII | 1 |
+| M10 | the `(` boundary after the call's name | 1 |
+| M11 | the old same-line `awaitEvent(` shortcut, reinstated | 3 |
+| M12 | block comments | 2 |
+| M13 | `isBounded` always true | 19 |
+| M14 | `isBounded` always false | 11 |
+| M15 | the leading-dot requirement on a call | 1 |
+| M16 | block comments never close | 2 |
+
+**16 of 16 mutations red, and all 32 controls red under at least one of them.** M11 is the
+instructive one the brief asked about: it reinstates the single line this pass deleted and reds
+exactly the three `D-g3-l` shapes, which is the direct in-repo demonstration that those controls
+discriminate the defect they were written for.
+
+Two controls were rewritten during this because they did **not** discriminate as first drafted.
+`"\(d["k"]) x"` re-synchronises by accident when interpolation tracking is removed, so the needle
+was moved inside the nested literal, where the two readings actually disagree; and no fixture had a
+non-ASCII byte in code position, so nothing could catch a delexer that dropped bytes instead of
+blanking them. Both facts came from running the matrix, not from reading the code.
+
+### What is outside the claim
+
+Complete with respect to those two grammars; **not** complete with respect to Swift. Stated in the
+source rather than implied: a call reached through a stored function reference or a bare
+`awaitReap(…)` with no receiver carries nothing to match; a call inside a nested `func` within a
+wrap reports unbounded, because the walk stops at the enclosing `func`; `#if` branches are read as
+though every branch compiles; the three directories in `D-g3-u` are outside the scanned trees; and
+a bare call added to `PoolAwaitBoundTests.swift` itself is excluded with the needles it is spelled
+with. `D-g3-t` is unchanged — the gate asserts the wrap exists and says nothing about its contents.
+
+The controls are deliberately **not** excluded from the scan. Every needle in them sits inside a
+literal, so a scan that reads one as code is a scan whose literal handling is broken, and the
+standing-constraint test then reds naming the control file — a true report rather than a false one.
+
+### `D-g3-q`, deferred with a reason that was tested
+
+Both accessors replaced with an immediate `return`: **only `PoolReapingTests.swift:101` reds, 4 of
+4 runs at 0% idle.** `PoolTests.swift:144` stayed green where the verifier saw it red 4 of 4, so
+four of the five sites showed no mutation power here and that site's power is load-dependent.
+
+The reason was measured rather than argued. A probe printing which branch `awaitSessionEnded` takes
+reports `PROBE-EARLY-RETURN` **3 of 3** and `PROBE-AWAITS-WATCHER` **0** — at every one of the three
+`awaitSessionEnded` sites the handle is already gone and the accessor awaits nothing, whatever the
+caller does. That is `D-g3-g`'s mechanism, so `D-g3-g` is the remedy and no call-site change can
+substitute for it. `D-g3-g` stays deferred by this pass's scope, so `D-g3-q` does too.
+
+### Gates
+
+`make test` **0** and **0**; `make lint` **0** over 497 files; `make parity` **0**;
+`make acceptance-r6` **0**. The assigned mutation — deadline and sleep on `defaultIdleMs` while the
+arming still records `idleMs` — reds at **exit 2 after 11.280 s**, at `PoolReapingTests.swift:98:29`
+naming *timed out after 10.0s waiting for: `own` to be reaped under the arming it just made*. All
+mutated files restored from a `cp` backup. The machine sat at **0.0% idle** throughout, with two
+sibling runners live in the same repo.

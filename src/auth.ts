@@ -58,6 +58,55 @@ export function authorizedAt(server: string): string | undefined {
 }
 
 /**
+ * What the credential store actually holds for one server.
+ *
+ * Three states rather than the boolean `hasTokens` gives, because they want three different
+ * sentences. `none` is a server nobody has ever authorized. `started` is a record carrying a
+ * client registration and a PKCE verifier and no tokens — an authorization whose browser leg
+ * never came back, which re-running does fix. `authorized` holds tokens, and re-running it is
+ * the one remedy that is guaranteed not to help.
+ *
+ * Measured 2026-08-21: `pocketsmith.json` is exactly the `started` shape, for a server that is
+ * no longer an upstream at all. That is why this reports on a name the caller supplies from the
+ * upstream list rather than on whatever files happen to be in the directory.
+ */
+export type AuthRecordState = 'none' | 'started' | 'authorized';
+
+export function recordState(server: string): AuthRecordState {
+  if (!existsSync(recordPath(server))) return 'none';
+  return readRecord(server).tokens?.access_token ? 'authorized' : 'started';
+}
+
+/**
+ * Whether a refresh token is held, which is what decides if a refused credential has a remedy
+ * the user can type.
+ *
+ * A server holding a refresh token and serving nothing is not an authorization problem — telling
+ * its owner to re-authorize sends them round a loop that cannot succeed. A server whose access
+ * token was refused with no refresh token behind it genuinely does need authorizing again.
+ */
+export function hasRefreshToken(server: string): boolean {
+  return !!readRecord(server).tokens?.refresh_token;
+}
+
+/**
+ * When the held access token expires, derived from the stored `authorizedAt` plus `expires_in`.
+ *
+ * A stored stamp, never a cached verdict: REQ-007's rule is that the router does not display what
+ * it has not observed, and "expired" computed from two recorded numbers is an observation where
+ * "stale" copied from a status field is a belief. Undefined when either half is missing, which is
+ * honest — a token with no declared lifetime has no knowable expiry.
+ */
+export function tokenExpiry(server: string): string | undefined {
+  const rec = readRecord(server);
+  const seconds = rec.tokens?.expires_in;
+  if (typeof seconds !== 'number' || !rec.authorizedAt) return undefined;
+  const from = Date.parse(rec.authorizedAt);
+  if (Number.isNaN(from)) return undefined;
+  return new Date(from + seconds * 1000).toISOString();
+}
+
+/**
  * Did this failure mean the upstream refused our credentials?
  *
  * There is one predicate rather than three because the router had three, they

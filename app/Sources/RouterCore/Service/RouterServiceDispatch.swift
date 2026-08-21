@@ -10,8 +10,22 @@ import Foundation
 ///
 /// **Dispatch order is `src/router.ts`'s and is not rearrangeable** — see the type's own
 /// documentation for why `/health` and `/status` are answered ahead of the control block.
+///
+/// One thing sits **ahead** of that order rather than in it: ``RequestAuthority``. The Host check
+/// used to live inside ``MCPEndpoint``, so it guarded `/mcp` and nothing else; it now wraps the
+/// whole ladder, which is what makes a route added below inherit it.
 extension RouterService {
     func respond(to request: HTTPWireRequest) async -> HTTPWireResponse {
+        await RequestAuthority.guarding(
+            request,
+            allowedHosts: RequestAuthority.allowedHosts(host: config.host, port: config.port)
+        ) { request in
+            await self.dispatch(request)
+        }
+    }
+
+    /// The ladder itself, reached only for a request whose authority this router answers for.
+    private func dispatch(_ request: HTTPWireRequest) async -> HTTPWireResponse {
         let (path, query) = request.pathAndQuery
 
         if path == "/health", request.method == "GET" {
@@ -26,6 +40,23 @@ extension RouterService {
 
         if path == "/status", request.method == "GET" {
             return await statusResponse()
+        }
+
+        // The router's own authorization server, ahead of the control block and of `/mcp`.
+        //
+        // Its paths are exact-matched and share nothing with `/callback`, which belongs to the
+        // OTHER OAuth role this process plays — client to its upstreams. Two roles on one port is
+        // the arrangement R14 accepted, and keeping the endpoint sets unambiguous is what stops a
+        // request meant for one being read by the other.
+        if AuthServerPaths.isAuthServerPath(path), let authServerSeal {
+            let routes = AuthServerRoutes(
+                seal: authServerSeal, config: config, clock: clock, usedCodes: usedCodes
+            )
+            if let response = await routes.respond(
+                to: request, path: path, query: query, report: { await self.upstreamReport() }
+            ) {
+                return response
+            }
         }
 
         if ControlPaths.isControlPath(path) {
@@ -43,6 +74,7 @@ extension RouterService {
             ])).utf8), reason: "Not Found")
         }
 
+        let report = await upstreamReport()
         let endpoint = MCPEndpoint(
             deps: MCPEndpoint.Deps(
                 config: config,
@@ -53,6 +85,7 @@ extension RouterService {
                 log: log,
                 clock: clock
             ),
+            instructions: UpstreamStateReport.instructions(from: report),
             identify: { descriptor in
                 let identity = PeerIdentities.shared.identity(for: descriptor)
                 return CallerIdentity(
@@ -61,6 +94,22 @@ extension RouterService {
             }
         ).with(connection: request.connection)
         return await endpoint.respond(to: request)
+    }
+
+    /// The four-state report, built from what the router has actually observed.
+    ///
+    /// Read through the manifest **store** rather than a snapshot, for the reason `tools/list` is:
+    /// an `index` run while this process is up must reach the next reader. The tool count is the
+    /// discriminator, never `auth.authorized` — measured 2026-08-21, that field read true for four
+    /// of the five upstreams serving nothing.
+    func upstreamReport() async -> [UpstreamReport] {
+        await UpstreamStateReport.rows(
+            config: config,
+            manifest: manifest.current(),
+            auth: auth,
+            nowMilliseconds: clock.nowMilliseconds,
+            entry: UpstreamStateReport.entryPoint()
+        )
     }
 
     private func statusResponse() async -> HTTPWireResponse {

@@ -54,6 +54,17 @@ public actor RouterService {
     /// first" is a property of the process: a coordinator constructed inside `controlResponse`
     /// would be a fresh one every request and two authorizations would fight over :8880 instead.
     let authFlow: OAuthFlowStarter
+    /// The authorization server's signing key and its used-code set.
+    ///
+    /// Held by the service rather than built per request, for the reason `authFlow` is: "a code is
+    /// single-use" is a property of the process, and a set constructed inside the dispatcher would
+    /// be a fresh empty one every request, which is the same as not checking at all.
+    ///
+    /// Optional because a home whose auth directory cannot be written is a router that still
+    /// serves /mcp perfectly well. The routes then answer nothing and the dispatcher falls through
+    /// — degraded honestly rather than refusing to start.
+    let authServerSeal: AuthServerSeal?
+    let usedCodes = UsedCodeSet()
     let token: String
     let tokenPath: String
     let configPath: String
@@ -107,6 +118,7 @@ public actor RouterService {
         // Whether the token already existed is read *before* loading it, because `load()` mints one
         // when it is missing and there is no way to ask afterwards which happened. The reference
         // logs "wrote a new control token" only on the minting path.
+        authServerSeal = try? AuthServerSeal(authDir: config.authDir, fileSystem: fileSystem)
         let path = (home.root as NSString).appendingPathComponent("control.token")
         tokenPath = path
         wroteToken = !fileSystem.fileExists(atPath: path)

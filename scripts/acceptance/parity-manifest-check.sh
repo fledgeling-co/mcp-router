@@ -275,6 +275,18 @@ grep -q 'url.pathname !== MCP_PATH' "$ROUTER_TS" \
 grep -qE '^[[:space:]]*if \(isControlPath\(url\.pathname\)\)' "$ROUTER_TS" \
   || note "src/router.ts no longer dispatches on isControlPath — the 16 control rows describe a surface it does not reach"
 
+# The same argument for the authorization server, whose rows are delegated the same way. Anchored
+# to a dispatch line rather than the bare name, so the delegation cannot be deleted and described
+# in the same edit.
+grep -qE '^[[:space:]]*if \(isAuthServerPath\(url\.pathname\)\)' "$ROUTER_TS" \
+  || note "src/router.ts no longer dispatches on isAuthServerPath — the authserver rows describe a surface it does not reach"
+
+# R15's guard. It is not a route, so no row describes it as one; what the authserver-host-authority
+# row asserts is that it runs AHEAD of the ladder. A guard that has been moved, renamed or deleted
+# leaves that row describing a property the reference no longer has.
+grep -qE '^[[:space:]]*if \(hostRefusal\(req, res, url\.pathname, allowedHosts\)\) return;' "$ROUTER_TS" \
+  || note "src/router.ts no longer applies hostRefusal ahead of the dispatch ladder — every route inherited the authority check from it (R15)"
+
 # The independent signal. Counting `url.pathname [!=]== ` lines and comparing them to what the
 # same idiom extracted is not independent at all: `url.pathname==='/metrics'` without spaces,
 # `url.pathname.startsWith('/admin')` and `['/a'].includes(url.pathname)` are each invisible to
@@ -290,7 +302,9 @@ while IFS= read -r pathname_use; do
   pathname_rest="$(printf '%s' "$pathname_use" \
     | sed -e "s/url\.pathname === '[^']*'//g" \
           -e 's/url\.pathname !== MCP_PATH//g' \
-          -e 's/isControlPath(url\.pathname)//g')"
+          -e 's/isControlPath(url\.pathname)//g' \
+          -e 's/isAuthServerPath(url\.pathname)//g' \
+          -e 's/hostRefusal(req, res, url\.pathname, allowedHosts)//g')"
   case "$pathname_rest" in
     *url.pathname*) ;;
     *) continue ;;
@@ -359,6 +373,54 @@ while IFS= read -r subject; do
   printf '%s\n' "$mcp_from_source" | grep -qxF -e "$subject" \
     || note "the manifest carries mcp row \"$subject\", which src/router.ts does not answer"
 done <<< "$mcp_from_manifest"
+
+# ------------------------------------------------------------------ authserver routes
+# The same argument as the control block, for the group R14 added. The paths are declared once in
+# src/oauth.ts as exported constants and read out of there, so a route added to that file with no
+# row here is a red rather than a quietly smaller denominator.
+OAUTH_TS="$REPO_ROOT/src/oauth.ts"
+if [ ! -f "$OAUTH_TS" ]; then
+  echo "environment: no authorization server at $OAUTH_TS, and the manifest carries authserver rows"
+  exit 2
+fi
+
+# `export const NAME = '/path';` — the one shape those constants take.
+authserver_paths="$(sed -n "s/^export const [A-Z_]* = '\(\/[a-zA-Z0-9_.\/-]*\)';.*/\1/p" "$OAUTH_TS" | sort -u)"
+if [ -z "$authserver_paths" ]; then
+  echo "environment: extracted no paths from $OAUTH_TS — the declaration shape has changed and this"
+  echo "             check would otherwise report a clean manifest against nothing."
+  exit 2
+fi
+
+# The independent count, in the shape the control and cli blocks use. `isAuthServerPath` decides
+# ownership, so every path it tests must be one of the constants above: a literal compared inline
+# there is a route with no constant, no demanded row, and no presence on either side of the
+# comparison.
+inline_paths="$(sed -n "/export function isAuthServerPath/,/^}/p" "$OAUTH_TS" \
+  | grep -oE "pathname (===|\.startsWith\()[^)]*'[^']*'" | grep -oE "'[^']*'" | tr -d "'" || true)"
+for inline in $inline_paths; do
+  case "$inline" in
+    /*) note "isAuthServerPath compares the literal \"$inline\" rather than a declared constant."
+        detail "  A path with no constant demands no manifest row and is invisible to both sides." ;;
+  esac
+done
+
+# Row subjects carry an HTTP verb ("POST /register"); the two non-route rows (instructions, the
+# dispatcher check) carry no leading slash and are excluded from this reconciliation by that.
+authserver_rows="$(awk -F'\t' '$1 == "authserver" { print $3 }' "$MANIFEST" \
+  | awk '{ print $NF }' | grep '^/' | sort -u)"
+
+while IFS= read -r route; do
+  [ -z "$route" ] && continue
+  printf '%s\n' "$authserver_rows" | grep -qxF "$route" \
+    || note "src/oauth.ts declares \"$route\" and the manifest has no authserver row for it"
+done <<< "$authserver_paths"
+
+while IFS= read -r route; do
+  [ -z "$route" ] && continue
+  printf '%s\n' "$authserver_paths" | grep -qxF "$route" \
+    || note "the manifest carries authserver row \"$route\", which src/oauth.ts does not declare"
+done <<< "$authserver_rows"
 
 # ------------------------------------------------------------------ fixtures
 fixtures_on_disk="$(find "$FIXTURE_DIR" -name '*.json' -exec basename {} .json \; | sort)"

@@ -82,7 +82,20 @@ if [ "${STUB_TOKENS_GARBLED:-0}" = "1" ]; then
   echo "MOCK-FIDELITY-TOKENS: register rewritten at planning/fidelity/token-register.json"
   exit 0
 fi
-echo "MOCK-FIDELITY-TOKENS: rows=${STUB_TOKEN_ROWS:-12} matched=8 pending=4 uncited=${STUB_TOKENS_UNCITED:-0}"
+# `matched` is derived rather than written, so the census partitions the row count the way the
+# real suite's does. It used to be the constant 8 beside `rows=${STUB_TOKEN_ROWS:-12}`, so the
+# shrunken-census case handed the engine `rows=4 matched=8 pending=4` — a marker claiming to
+# account for 12 rows out of 4. The floor case passed on that, which is a fixture the engine's own
+# census arithmetic now refuses, and rightly.
+STUB_ROWS=${STUB_TOKEN_ROWS:-12}
+STUB_PENDING=${STUB_TOKEN_PENDING:-4}
+STUB_MATCHED=$((STUB_ROWS - STUB_PENDING))
+if [ "${STUB_TOKENS_MISCOUNT:-0}" = "1" ]; then
+  # A census that does not add up: the marker names a population this layer reports as its
+  # `observations`, and nothing derived it. `rows` is whatever the suite says it is.
+  STUB_MATCHED=$((STUB_MATCHED + 3))
+fi
+echo "MOCK-FIDELITY-TOKENS: rows=$STUB_ROWS matched=$STUB_MATCHED pending=$STUB_PENDING uncited=${STUB_TOKENS_UNCITED:-0}"
 echo "MOCK-FIDELITY-PENDING: metric/jack-lane mock=44px swift=absent citation=M21-metric-rows"
 echo "MOCK-FIDELITY-MOCK-LITERALS: stray=${STUB_MOCK_LITERALS:-0}"
 exit "${STUB_TOKENS_EXIT:-0}"
@@ -116,6 +129,17 @@ expect() {
     shift 3
     for want in "$@"; do
       [ -z "$want" ] && continue
+      # A want written `!text` is a REFUTATION: the run must not say it. Two layers reading one
+      # pairing can only be shown to agree by asserting that the second one stayed quiet, and an
+      # assertion that only ever looks for presence cannot express that.
+      if [ "${want:0:1}" = "!" ]; then
+        if grep -qF -- "${want:1}" <<<"$out"; then
+          echo "FAIL  $name — the report said what it must not: ${want:1}"
+          echo "$out" | sed 's/^/        /'
+          fail=1
+        fi
+        continue
+      fi
       if ! grep -qF -- "$want" <<<"$out"; then
         echo "FAIL  $name — exit was right but the report never said: $want"
         echo "$out" | sed 's/^/        /'
@@ -155,6 +179,12 @@ if CLAIM == "same":
     extra_mock += '    <h3>Shared</h3>\n    <h3>Shared</h3>\n'
 elif CLAIM == "cross":
     extra_mock += '    <h3>Shared</h3>\n    <p>Shared</p>\n'
+elif CLAIM == "same-copy":
+    # Two headings with DIFFERENT labels, both pointed at one control. Both are vouched against it,
+    # so the claimant test is the only thing that can speak — and the copy layer, which reads the
+    # same pairings, has a genuine string difference to report on a pairing the breadth layer has
+    # just recorded as unmeasurable.
+    extra_mock += '    <h3>Alpha</h3>\n    <h3>Beta</h3>\n'
 # A card the mock fills with TWO rows, against a build that draws three.
 if os.environ.get("FIXTURE_SURPLUS_CHILD") == "1":
     extra_mock += (
@@ -245,13 +275,46 @@ if INVISIBLE:
     )
 if CLAIM:
     dump["root"]["children"].append(
-        node("shared", "board-title", "text", (0, 110, 90, 26), text="Shared", type_role="Title1")
+        node("shared", "board-title", "text", (0, 110, 90, 26),
+             text="Alpha" if CLAIM == "same-copy" else "Shared", type_role="Title1")
     )
+if os.environ.get("FIXTURE_MULTILINE") == "1":
+    # A Body node laid out well past 1.5x the role's floor: a wrap count rather than a line box, so
+    # the per-role height check excludes it. It is counted as an eligible text node and NOT as a
+    # comparison, which is the split this fixture exists to show in the note.
+    dump["root"]["children"].append(
+        node("wrapped", "state-detail", "text", (0, 130, 200, 40), text="Two lines of copy here",
+             type_role="Body")
+    )
+if os.environ.get("FIXTURE_DUP_PATH") == "1":
+    # Two siblings carrying one id, so `flatten` produces one path twice and `dict(flatten(...))`
+    # keeps whichever came last. A pairing naming that path does not name a control (`D-m23-m`).
+    dump["root"]["children"].append(
+        node("sentence", "board-subtitle", "text", (0, 150, 200, 16), text="Impostor",
+             type_role="Body")
+    )
+if os.environ.get("FIXTURE_NO_AXIS") == "1":
+    # Every `axis` key gone, and nothing else touched. The structure layer's job is corroborating a
+    # declared axis against where the children landed, so this tree gives it nothing to corroborate
+    # — while carrying the same 4 nodes, so the `dumpNodes` floor is untouched. It used to print
+    # the identical `4 nodes across 1 states · clean` line as a fully instrumented tree and exit 0.
+    # `axis` is nil wherever the kind does not stack, so a surface annotating leaves and skipping
+    # containers reaches this.
+    def strip_axis(n):
+        n.pop("axis", None)
+        for kid in n.get("children", []):
+            strip_axis(kid)
+    strip_axis(dump["root"])
 if os.environ.get("FIXTURE_KIND_MISMATCH") == "1":
     # The label agrees exactly, so nothing but the control-kind check can speak here: a mock `card`
     # answered by a build node calling itself a `skeleton`.
+    # FIXTURE_PANEL_TEXT is what the BUILD node reads. Left at "Panel" the two labels agree
+    # exactly, so nothing but the control-kind check can speak. Set to something else, the copy
+    # layer has a real string difference to report on a pairing the breadth layer has just filed as
+    # one it could not establish was the same control at all.
     dump["root"]["children"].append(
-        node("panel", "skeleton", "vstack", (0, 80, 200, 40), text="Panel")
+        node("panel", "skeleton", "vstack", (0, 80, 200, 40),
+             text=os.environ.get("FIXTURE_PANEL_TEXT") or "Panel")
     )
 if os.environ.get("FIXTURE_SURPLUS_CHILD") == "1":
     dump["root"]["children"].append(
@@ -302,6 +365,9 @@ elif CLAIM == "same":
 elif CLAIM == "cross":
     pairing += ("ideal\tv-ideal/heading/shared\tfixture.ideal/shared\n"
                 "ideal\tv-ideal/sentence/shared\tfixture.ideal/shared\n")
+elif CLAIM == "same-copy":
+    pairing += ("ideal\tv-ideal/heading/alpha\tfixture.ideal/shared\n"
+                "ideal\tv-ideal/heading/beta\tfixture.ideal/shared\n")
 if os.environ.get("FIXTURE_KIND_MISMATCH") == "1":
     pairing += "ideal\tv-ideal/card/panel\tfixture.ideal/panel\n"
 if os.environ.get("FIXTURE_SURPLUS_CHILD") == "1":
@@ -600,6 +666,226 @@ expect "a required layer with an empty population returns 3, not 0" 3 "$root" "m
 # without anything saying so.
 root="$SCRATCH/dup-layer"; export FIXTURE_BROKEN=duplicate-layer; build "$root"; unset FIXTURE_BROKEN
 expect "a manifest naming one layer twice returns 3" 3 "$root" "appears twice"
+
+# ---------------------------------------------------------------- the out-of-family panel's five
+# Every case below came back from `gpt-5.6-sol`, `gemini-3.7-flash-high` or `grok-4.6` against the
+# diff that closed BL-1 to BL-3. Two of the three enumerations were incomplete when they read them.
+
+# 47 — BL-2 from the node side. The claimant test establishes that one control answers one mock
+# affordance, and it rests on a pairing's node path naming ONE control. `dict(flatten(...))` keeps
+# the last node of a repeated path silently, so two siblings sharing an id make a pairing to that
+# path vouch for whichever survived. Registered as `D-m23-m` and reached again here by
+# `gpt-5.6-sol`, which is why it is closed rather than deferred a third time.
+root="$SCRATCH/duppath"; export FIXTURE_DUP_PATH=1; build "$root"; unset FIXTURE_DUP_PATH
+expect "two siblings sharing a path return 3, not a vouched comparison" 3 "$root" \
+  "does not name a control"
+
+# 48 — BL-3 in the layer two lanes reached independently after the first three were closed.
+# `layer_type_metrics` counted every text node naming a role and then excluded the multi-line ones
+# from the per-role check with a `continue`, so its population was the eligibility census rather
+# than the comparisons it ran. The zero-guard cannot be fooled here — `floor = min(...)` keeps one
+# node per role — so this is asserted on the note, which is where the overstatement was printed.
+root="$SCRATCH/multiline"; export FIXTURE_MULTILINE=1; build "$root"; unset FIXTURE_MULTILINE
+expect "the type layer reports comparisons and census separately" 1 "$root" \
+  "2 per-role comparison(s) over 3 text nodes" "1 multi-line node(s) excluded"
+
+# 49 — BL-1: the reporting of a failure must not itself be able to fail. `gate()`'s INCONCLUSIVE
+# handlers used a raw `print`, so an unencodable console raised BEFORE `write_unmeasured_report`,
+# the top-level boundary caught the encoding error instead, and the ledger recorded that rather
+# than the reason the run was actually inconclusive (`gemini-3.7-flash-high`).
+root="$SCRATCH/ascii-domain"; export FIXTURE_NO_DUMP=1; build "$root"; unset FIXTURE_NO_DUMP
+LEDGER49="$SCRATCH/ascii-domain-ledger.md"
+cases=$((cases + 1))
+out49=$(PATH="$root/bin:$PATH" PYTHONIOENCODING=ascii python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER49" 2>&1)
+status49=$?
+if [ "$status49" = 3 ] && grep -qF 'no artifact at' "$LEDGER49" \
+   && ! grep -qF 'UnicodeEncodeError' "$LEDGER49"; then
+  echo "ok    an unencodable console does not replace the reason a run was inconclusive"
+else
+  echo "FAIL  the domain reason was lost: exit $status49, ledger: $(head -12 "$LEDGER49" | tr '\n' ' ' | cut -c1-220)"
+  echo "$out49" | sed 's/^/        /'
+  fail=1
+fi
+
+# 50 — BL-1, region two, both standard streams. `> >(:) 2>&1` points stderr at the same dead pipe,
+# which is the ordinary spelling of the `| head` route this gate was measured against. Flushing and
+# hushing stdout alone left the interpreter's shutdown flush of stderr to exit 120
+# (`gemini-3.7-flash-high`, `grok-4.6` — both, independently).
+root="$SCRATCH/bothpipes"; build "$root"
+cases=$((cases + 1))
+PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" > >(:) 2>&1
+status50=$?
+if [ "$status50" = 3 ]; then
+  echo "ok    stdout and stderr on one dead pipe returns 3, not 120 — exit $status50"
+else
+  echo "FAIL  both streams on a dead pipe returned $status50, not 3"
+  fail=1
+fi
+
+# 51 — the ledger claim is the WRITER's, not an inference from the clock. An mtime is not an
+# ownership token: a stale ledger with a future timestamp is already newer than any stamp the gate
+# script could take, and a concurrent run writing the same path satisfies the same test
+# (`gpt-5.6-sol`). The engine prints the marker the script reads, and prints it only after a write
+# that returned.
+root="$SCRATCH/marker"; build "$root"
+LEDGER51="$SCRATCH/marker-ledger.md"
+cases=$((cases + 1))
+out51=$(PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER51" 2>&1)
+out51_none=$(PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" 2>&1)
+if grep -qF "mock-fidelity: report written to $LEDGER51" <<<"$out51" \
+   && ! grep -qF "report written to" <<<"$out51_none"; then
+  echo "ok    the engine claims a written report only when it wrote one"
+else
+  echo "FAIL  the report-written marker does not track the write"
+  echo "$out51" | sed 's/^/        /'
+  fail=1
+fi
+
+# ---------------------------------------------------------------- the third gap-fix's three
+# Each of the three below is a property whose previous fix landed at the site the finding named
+# while the property quantified over something wider — the failure mode that produced three
+# Needs-More-Work verdicts in a row. The cases are written against the widest member.
+
+# 39 — BL-3: a dump with every `axis` key removed. The structure layer corroborates declared axes
+# against child geometry, and this tree declares none, so it makes zero comparisons — while
+# carrying the same node count, so its floor is untouched. `observations` was the node census, so
+# the layer-wide zero-observation guard read a quantity this layer never compares and this printed
+# the same `clean` line as a fully instrumented surface, at exit 0.
+root="$SCRATCH/no-axis"; export FIXTURE_NO_AXIS=1; build "$root"; unset FIXTURE_NO_AXIS
+expect "a dump with no declared axis returns 3, not 0" 3 "$root" "structure: the layer ran, raised nothing and measured nothing"
+
+# 40 — BL-3 in the other layer whose `observations` is a number it is handed rather than one it
+# derives. The tokens layer reports `rows` as its population and the `tokenRows` floor reads it;
+# nothing checked that the census it prints beside it adds up to that number (`D-m23-o`).
+root="$SCRATCH/miscount"; build "$root"
+export STUB_TOKENS_MISCOUNT=1
+expect "a token census that does not partition its rows returns 3" 3 "$root" "does not partition the population"
+unset STUB_TOKENS_MISCOUNT
+
+# 41 — BL-2 / `D-m23-s`: an unvouched pairing whose two labels differ. The breadth layer records
+# that it could not establish the two are the same control; the copy layer read the same
+# `ctx.pairs` with no such test and stated the difference between their labels as a measured one,
+# three lines below in the same log. Both tests now live in the structure, so the second reader
+# cannot contradict the first.
+root="$SCRATCH/unvouched-copy"
+export FIXTURE_KIND_MISMATCH=1 FIXTURE_PANEL_TEXT="Different words"; build "$root"
+unset FIXTURE_KIND_MISMATCH FIXTURE_PANEL_TEXT
+expect "copy stays silent on a pairing breadth could not vouch for" 1 "$root" \
+  "never vouched for" '!Different words" in the build'
+
+# 42 — BL-2, the claimant half of the same property. Two headings with different labels naming one
+# control: breadth reports that neither was measured, and copy reported the difference between one
+# of those labels and the control's text as a finding.
+root="$SCRATCH/claim-copy"; export FIXTURE_DOUBLE_CLAIM=same-copy; build "$root"; unset FIXTURE_DOUBLE_CLAIM
+expect "copy stays silent on a control two affordances name" 1 "$root" \
+  "affordances name in total" '!in the mock and'
+
+# 43 — BL-1: a console that cannot encode what the gate prints. The layer lines carry `·`, so
+# `PYTHONIOENCODING=ascii` raises inside the print loop — which sat between the layers and the
+# report write, outside every boundary. It exited 1, the code that means differences were found,
+# with the report never written and the previous run's table intact on disk. The report is now
+# written first and the whole of the run is inside one boundary, so this is exit 3 AND the ledger
+# on disk is this run's real table rather than an earlier run's.
+root="$SCRATCH/ascii"; build "$root"
+LEDGER43="$SCRATCH/ascii-ledger.md"
+printf '# Breadth ledger — fixture\n\n| Layer | Result |\n|---|---|\n| `breadth` | STALE-FROM-AN-EARLIER-RUN |\n' > "$LEDGER43"
+cases=$((cases + 1))
+out43=$(PATH="$root/bin:$PATH" PYTHONIOENCODING=ascii python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER43" 2>&1)
+status43=$?
+# The last clause is the diagnostic's own honesty: a failure AFTER the report was written has
+# measured eight layers, and saying "nothing this covers was measured" one line above "the ledger
+# describes the layers that ran" is the gate contradicting itself (`gpt-5.6-sol`).
+if [ "$status43" = 3 ] && grep -qF 'UnicodeEncodeError' <<<"$out43" \
+   && ! grep -qF 'STALE-FROM-AN-EARLIER-RUN' "$LEDGER43" \
+   && grep -qF 'Present / divergent / absent' "$LEDGER43" \
+   && grep -qF 'The layers ran and the ledger was written' <<<"$out43" \
+   && ! grep -qF 'Nothing this covers was measured' <<<"$out43"; then
+  echo "ok    a console that cannot encode the report returns 3 with this run's table on disk"
+else
+  echo "FAIL  a non-encodable console returned $status43, ledger head: $(head -5 "$LEDGER43" | tr '\n' ' ')"
+  echo "$out43" | sed 's/^/        /'
+  fail=1
+fi
+
+# 44 — BL-1 at the widest member there is: outside `main()` altogether. A `print` to a pipe whose
+# reader has gone does not raise at the print — the text sits in the buffer — so CPython raises
+# during the shutdown flush, after `main()` has returned and after every boundary in the file has
+# been left. It prints `Exception ignored` and exits **120**, which is not one of this gate's three
+# exits and which `mock-fidelity-gate.sh` passes through as though it were a verdict. Flushing
+# stdout inside the boundary is what moves it back in. `>(:)` is a process substitution whose
+# reader exits immediately, which is the deterministic form of `| head`.
+root="$SCRATCH/brokenpipe"; build "$root"
+cases=$((cases + 1))
+PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" > >(:) 2>/dev/null
+status44=$?
+if [ "$status44" = 3 ]; then
+  echo "ok    stdout with no reader returns 3, not the interpreter's 120 — exit $status44"
+else
+  echo "FAIL  stdout with no reader returned $status44, not 3"
+  fail=1
+fi
+
+# 46 — BL-2's enumeration, checked rather than asserted. The fix for a property that quantifies
+# over "every reader of this structure" is only as good as the enumeration behind it, and the
+# enumeration was wrong twice: the claimant test went into `layer_breadth` while `layer_copy` read
+# the same dict with no such test. So the reader set is now read out of the engine's own syntax
+# tree on every run, and a new layer that reaches past `ctx.comparable` to the raw declaration goes
+# red here rather than in whatever the next verifier happens to try.
+cases=$((cases + 1))
+if python3 - "$ENGINE" <<'ENUM'
+import ast, sys
+
+tree = ast.parse(open(sys.argv[1], encoding="utf-8").read())
+# Every function whose body reads the `.pairs` attribute of anything. `ctx.pairs` and `self.pairs`
+# are the same structure under two names, and there is no `getattr` anywhere in this file, so an
+# attribute read is the only way to reach it and this walk finds all of them.
+readers = set()
+for parent in ast.walk(tree):
+    if not isinstance(parent, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        continue
+    for node in ast.walk(parent):
+        if isinstance(node, ast.Attribute) and node.attr == "pairs":
+            readers.add(parent.name)
+
+# `__init__` declares it, `load` writes it, `derive_pairings` turns it into the set a layer may
+# compare, and `layer_breadth` is the layer whose subject IS pairing integrity, so it reads the raw
+# declaration on purpose to report what is wrong with it. Any other name here is a layer comparing
+# two sides of a pairing nothing has vouched for.
+allowed = {"__init__", "load", "derive_pairings", "layer_breadth"}
+if readers != allowed:
+    print(f"readers of .pairs are {sorted(readers)}, expected {sorted(allowed)}")
+    sys.exit(1)
+# An attribute walk enumerates the readers only while an attribute read is the only way in.
+# `getattr(ctx, "pairs")`, `vars(ctx)["pairs"]` and `ctx.__dict__["pairs"]` all reach the same
+# structure without an `ast.Attribute` named `pairs` (`gpt-5.6-sol`), so their presence anywhere in
+# the engine invalidates this check and is reported as such rather than passing quietly.
+source = open(sys.argv[1], encoding="utf-8").read()
+for escape in ("getattr(", "vars(", "__dict__"):
+    if escape in source:
+        print(f"the engine contains {escape!r}, so an attribute walk no longer enumerates its readers")
+        sys.exit(1)
+ENUM
+then
+  echo "ok    only the layer that reports on pairing integrity reads the raw pairing declaration"
+else
+  echo "FAIL  a reader of ctx.pairs appeared that does not apply the claimant and vouched tests"
+  fail=1
+fi
+
+# `D-m23-y` — the gate script's `ledger written to …` sentence — is NOT armed here, and the reason
+# is worth writing down rather than leaving as a gap in the count. Every path this selftest can
+# drive the gate script down (`no-such-surface`, a manifest that will not parse) returns before the
+# engine is ever invoked, so the sentence is not reached and a case here would pass whether the fix
+# existed or not — a vacuous check, which is the failure this whole item is about. Reaching that
+# line needs the MEASURE build and four rendered dumps, which is three minutes and not hermetic.
+# It is armed for real against the live surface instead, and the red and green are recorded in
+# planning/evidence/M23-gapfix-3.md.
 
 # 37 — the real colour-literal lint, against every colour-constructor spelling the `literals` layer
 # claims to catch. Not the stub: this layer's whole value is that it EXECUTES that script, and on

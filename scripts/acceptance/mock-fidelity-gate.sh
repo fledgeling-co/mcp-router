@@ -39,14 +39,26 @@ DUMPS="planning/fidelity/dumps"
 LEDGER="planning/fidelity/${SURFACE}.ledger.md"
 SETTLE=${MOCK_FIDELITY_SETTLE:-1.5}
 
+# Every stage below can exit 3 before the engine is ever invoked — a missing manifest, a MEASURE
+# build that failed, a harness that would not render. Each of those leaves the previous run's table
+# sitting at $LEDGER under an exit that says this run measured nothing, which is the stale ledger
+# with the gate script rather than the engine in front of it (`grok-4.6`). So they say so.
+stale_ledger_note() {
+  if [ -f "$LEDGER" ]; then
+    echo "              The table at $LEDGER is an earlier run's and does not describe this one."
+  fi
+}
+
 if [ ! -f "$MANIFEST" ]; then
   echo "INCONCLUSIVE mock-fidelity: no layer manifest at $MANIFEST, so which layers this surface's"
   echo "              verdict depends on is unknown. That is not a clean surface."
+  stale_ledger_note
   exit 3
 fi
 
 STATES=$(python3 -c 'import json,sys; print(" ".join(json.load(open(sys.argv[1]))["states"]))' "$MANIFEST") || {
   echo "INCONCLUSIVE mock-fidelity: $MANIFEST did not parse"
+  stale_ledger_note
   exit 3
 }
 
@@ -56,6 +68,7 @@ if ! (cd app && MCP_ROUTER_MEASURE=1 swift build --product MeasureDump) > "$BUIL
   echo "INCONCLUSIVE mock-fidelity: the MEASURE build failed, so no surface was measured. swift said:"
   sed 's/^/              /' "$BUILD_LOG" | tail -30
   rm -f "$BUILD_LOG"
+  stale_ledger_note
   exit 3
 fi
 rm -f "$BUILD_LOG"
@@ -63,6 +76,7 @@ rm -f "$BUILD_LOG"
 TOOL="$ROOT/app/.build/debug/MeasureDump"
 if [ ! -x "$TOOL" ]; then
   echo "INCONCLUSIVE mock-fidelity: $TOOL is missing after a build that reported success"
+  stale_ledger_note
   exit 3
 fi
 
@@ -84,6 +98,7 @@ if [ $preflight != 3 ] || [ -f "$DUMPS/.preflight.json" ]; then
   echo "              named for one state may hold another and nothing downstream can tell. It said:"
   sed 's/^/              /' "$PREFLIGHT_OUT"
   rm -f "$PREFLIGHT_OUT" "$DUMPS/.preflight.json"
+  stale_ledger_note
   exit 3
 fi
 rm -f "$PREFLIGHT_OUT"
@@ -95,11 +110,32 @@ for state in $STATES; do
   if ! perl -e 'alarm shift @ARGV; exec @ARGV' 180 \
        "$TOOL" --surface "$SURFACE" --state "$state" --settle "$SETTLE" --out "$out"; then
     echo "INCONCLUSIVE mock-fidelity: MeasureDump could not render '$SURFACE.$state'"
+    stale_ledger_note
     exit 3
   fi
 done
 
-python3 scripts/acceptance/mock_fidelity.py "$MANIFEST" "$DUMPS" --report "$LEDGER"
-status=$?
-echo "mock-fidelity-gate: ledger written to $LEDGER"
+# "ledger written to …" used to be printed unconditionally, one line after a run that had exited 1
+# without ever reaching `write_report` — so the sentence naming the artifact was the thing that made
+# a stale table look like this run's.
+#
+# It is now the engine's own claim rather than this script's inference. An mtime is not an ownership
+# token: a stale ledger carrying a future timestamp is already newer than any stamp taken here, and
+# a concurrent run writing the same path satisfies the same test (`gpt-5.6-sol`). So the engine
+# prints REPORT_MARKER after a write that returned, through its `emit`, and this reads that. If both
+# of the engine's streams are gone the marker is lost and this under-claims, which is the direction
+# that cannot turn an earlier run's table into this one's.
+ENGINE_LOG=$(mktemp)
+python3 scripts/acceptance/mock_fidelity.py "$MANIFEST" "$DUMPS" --report "$LEDGER" 2>&1 | tee "$ENGINE_LOG"
+status=${PIPESTATUS[0]}
+if grep -qF "mock-fidelity: report written to $LEDGER" "$ENGINE_LOG"; then
+  echo "mock-fidelity-gate: ledger written to $LEDGER"
+elif [ -f "$LEDGER" ]; then
+  echo "mock-fidelity-gate: NO ledger was written by this run (exit $status). The table at $LEDGER"
+  echo "                    is an earlier run's and does not describe this one."
+else
+  echo "mock-fidelity-gate: no ledger was written by this run (exit $status), and there is no"
+  echo "                    file at $LEDGER."
+fi
+rm -f "$ENGINE_LOG"
 exit $status

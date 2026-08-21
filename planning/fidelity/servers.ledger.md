@@ -11,10 +11,10 @@ finding disappear.
 |---|---|---|
 | `tokens` | clean | 25 matched, 64 pending, of 89 rows |
 | `literals` | clean | scanning 118 files |
-| `structure` | clean | 73 nodes across 4 states |
+| `structure` | clean | 73 nodes across 4 states · 26 declared axis/axes corroborated against child geometry |
 | `geometry` | clean | 73 frames |
-| `type-metrics` | clean | 24 text nodes · 4 roles · Caption=13pt Body=16pt Title3=19pt Title1=26pt · 2 multi-line node(s) excluded from the per-role check |
-| `copy` | 16 finding(s) | 20 paired strings |
+| `type-metrics` | clean | 22 per-role comparison(s) over 24 text nodes · 4 roles · Caption=13pt Body=16pt Title3=19pt Title1=26pt · 2 multi-line node(s) excluded from the per-role check |
+| `copy` | 16 finding(s) | 19 paired strings |
 | `breadth` | 116 finding(s) | absent 80 · covered-by-pair 16 · divergent 16 · extra 10 · extra-cited 2 · present 3 · structure-unpaired 14 · unclassified 8 |
 | `font-weight-face` | inconclusive (substituted) | font-weight-face: String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face |
 

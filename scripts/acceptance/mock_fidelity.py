@@ -80,6 +80,18 @@ for _kind, _pairs in VOUCHED_CONTROLS.items():
         MOCK_KINDS_FOR_ROLE.setdefault(_role, set()).add(_kind)
 
 
+def vouched_pairing(affordance_kind: str, node: dict) -> bool:
+    """Has this gate ever established that this build control answers this mock kind?
+
+    One definition, because it was two. `layer_breadth` asked this question and `layer_copy` did
+    not, so the same pairing read `unclassified — a pairing this gate has never vouched for` in the
+    breadth table and produced a stated, measured label difference in the copy layer three lines
+    below it, on the same run (`D-m23-s`). Whichever layer is right, they cannot both be, and the
+    only way two readers of one structure stay in agreement is for the test to exist once.
+    """
+    return (node["role"], node["kind"]) in VOUCHED_CONTROLS.get(affordance_kind, set())
+
+
 @dataclass
 class Layer:
     name: str
@@ -95,8 +107,80 @@ class Layer:
     note: str = ""
 
 
+#: What `mock-fidelity-gate.sh` reads to decide whether to claim a ledger was written. An mtime is
+#: not an ownership token — a stale ledger with a future timestamp, or a concurrent run writing the
+#: same path, both satisfy `-nt` (`gpt-5.6-sol`) — so the claim comes from the process that did the
+#: writing. It goes out through `emit`, so a console that cannot encode the report still delivers it
+#: on stderr. If both streams are gone the script under-claims, which is the safe direction.
+REPORT_MARKER = "mock-fidelity: report written to "
+
+
 class Inconclusive(Exception):
     """Raised by a layer that could not run. The message is quoted into the report verbatim."""
+
+
+@dataclass
+class Run:
+    """What the boundary around the whole run needs to know to write the run's own obituary.
+
+    `gate()` fills these in as it learns them, so a failure at any point can still name the surface
+    and replace the ledger. `report_written` is the one that stops the cure being worse than the
+    disease: once a real table is on disk, a later failure must not overwrite it with "this run did
+    not produce a table", because by then the run DID produce one.
+    """
+    report_path: str | None = None
+    surface: str = "unknown"
+    report_written: bool = False
+
+
+def emit(text: str) -> bool:
+    """Print, and say whether stdout took it.
+
+    Every `print` in this file writes to a destination this process does not own. It can be a
+    console that cannot encode what is being printed — `PYTHONIOENCODING=ascii` chokes on the `·`
+    in the very first layer line — or a pipe whose reader has gone. Both raise, and the reporting
+    of a failure is the one place that must not fail, so this falls back to stderr and reports
+    which stream took the text.
+    """
+    try:
+        print(text)
+        sys.stdout.flush()
+        return True
+    except Exception:
+        try:
+            sys.stderr.write(text + "\n")
+            sys.stderr.flush()
+        except Exception:
+            pass
+        return False
+
+
+def hush_streams() -> None:
+    """Point stdout and stderr at /dev/null so the interpreter's shutdown flush has somewhere to go.
+
+    CPython flushes `sys.stdout` after `main()` has returned, which is outside every boundary in
+    this file. A `print` to a pipe whose reader exited does not raise at the print — the text sits
+    in the buffer under the 64 KB pipe limit — so the failure surfaces at that shutdown flush, the
+    interpreter prints `Exception ignored ... BrokenPipeError`, and the process exits **120**. That
+    is not one of this gate's three exits, and `mock-fidelity-gate.sh` passes it straight through
+    as though it were a verdict. Redirecting the descriptor is the documented way out: the buffered
+    bytes go to /dev/null and the exit code this file computed is the one the caller sees.
+
+    Both streams. This file writes its two usage messages and `emit`'s fallback to stderr, and
+    `2> >(:)` takes a two-line script to 120 in three runs of three — so does `> >(:) 2>&1`, which
+    is the ordinary spelling of the `| head` route. Covering stdout alone would be this property
+    fixed at the site the finding named, one more time (`gemini-3.7-flash-high`, `grok-4.6`).
+    """
+    try:
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        for stream in (sys.stdout, sys.stderr):
+            try:
+                os.dup2(devnull, stream.fileno())
+            except Exception:
+                continue
+        os.close(devnull)
+    except Exception:
+        pass
 
 
 @contextlib.contextmanager
@@ -230,6 +314,33 @@ def flatten(node: dict, path: list[str] | None = None) -> list[tuple[str, dict]]
     return out
 
 
+def index_nodes(root: dict, what: str) -> dict[str, dict]:
+    """Nodes by path, refusing a tree in which a path names more than one node.
+
+    `dict(flatten(root))` keeps the LAST node of any repeated path and says nothing about the
+    others, so two siblings sharing an id make one of them invisible to every layer that indexes by
+    path. That is `D-m23-m`, and it is this pass's property from the node side rather than the
+    affordance side: the claimant test establishes that one control answers one affordance, and it
+    rests on a pairing's node path naming one control. Where a path names two, `vouched_pairing`
+    vouches for whichever node the dict kept, which is a measurement of something nobody chose.
+
+    Raised from `derive_pairings`, which runs inside `Context.load`, so it fires before any layer.
+    """
+    flat = flatten(root)
+    index = dict(flat)
+    if len(index) != len(flat):
+        seen: dict[str, int] = {}
+        for path, _ in flat:
+            seen[path] = seen.get(path, 0) + 1
+        collisions = sorted(path for path, count in seen.items() if count > 1)
+        raise Inconclusive(
+            f"{what}: {len(flat) - len(index)} node(s) share a path with a sibling, so a pairing "
+            f"naming one of those paths does not name a control: {', '.join(collisions[:5])}"
+            + (" …" if len(collisions) > 5 else "")
+        )
+    return index
+
+
 # --------------------------------------------------------------------------- layers
 
 def layer_tokens(ctx) -> Layer:
@@ -265,6 +376,28 @@ def layer_tokens(ctx) -> Layer:
             f"so the register was never read ({error!r}). The suite printed, verbatim:\n"
             f"{marker}"
         ) from error
+    # The census has to partition the number this layer reports as its population, because
+    # `observations` is what the `tokenRows` floor and the layer-wide zero-observation guard both
+    # read — and `rows` is a number the marker ASSERTS rather than one this gate derives. Until
+    # this check existed, `rows=89 matched=0 pending=0` cleared a floor of 89 off a suite that
+    # compared nothing, which is the same shape as the `structure` layer counting nodes it
+    # enumerated instead of axes it corroborated (`D-m23-o`).
+    if matched < 0 or pending < 0 or uncited < 0 or rows < 0:
+        raise Inconclusive(
+            f"tokens: the census is negative (rows={rows} matched={matched} pending={pending} "
+            f"uncited={uncited}), so the register was never counted"
+        )
+    if matched + pending != rows:
+        raise Inconclusive(
+            f"tokens: the marker says {rows} rows and accounts for {matched} matched plus "
+            f"{pending} pending, which is {matched + pending}. The census does not partition the "
+            "population this layer reports, so what it measured is unknown."
+        )
+    if uncited > pending:
+        raise Inconclusive(
+            f"tokens: {uncited} rows are reported as pending-without-citation out of {pending} "
+            "pending rows, so the two counts are not describing the same set"
+        )
     layer.observations = rows
     layer.ran = True
     if layer.observations < ctx.floors["tokenRows"]:
@@ -363,9 +496,23 @@ def layer_structure(ctx) -> Layer:
     children are stacked vertically is a finding, not a label.
     """
     layer = Layer("structure")
+    # Two quantities, because this layer's floor and this layer's verdict are floors on different
+    # things and reporting one number for both is the G4 defect
+    # (planning/features-to-triage/G4-assertions-that-do-not-read-their-own-quantity.md).
+    #
+    # `nodes_seen` is the census: how much of the surface the harness instrumented at all, which is
+    # what `dumpNodes` is a ratchet on and what "a surface with nothing instrumented diffs clean"
+    # means. `layer.observations` is what this layer actually CORROBORATED: declared axes checked
+    # against where the children landed and found to carry evidence either way. They were one number
+    # until 2026-08-21, and `observations` was the census — so the layer-wide `observations == 0`
+    # guard in `main()` read a quantity this layer never compares, and a dump with every `axis` key
+    # removed made zero comparisons while printing the same `73 nodes across 4 states · clean` line
+    # as a fully instrumented one. `axis` is `nil` wherever the kind does not stack, so a surface
+    # that annotates its leaves and skips its containers is not hypothetical.
+    nodes_seen = 0
     for state, dump in ctx.dumps.items():
         nodes = flatten(dump["root"])
-        layer.observations += len(nodes)
+        nodes_seen += len(nodes)
         for path, node in nodes:
             children = node.get("children", [])
             if len(children) < 2 or node.get("axis") not in ("horizontal", "vertical"):
@@ -389,6 +536,10 @@ def layer_structure(ctx) -> Layer:
             down = sum(disjoint(a, b, "vertical") for a, b in pairs)
             if across == down:
                 continue  # overlapping or single-point children carry no axis evidence either way
+            # Counted here rather than at the top of the loop, and this is the whole of the
+            # distinction: a declared axis whose children overlap was LOOKED at and not measured,
+            # so it is not an observation. Only a comparison that reached a verdict is.
+            layer.observations += 1
             observed = "horizontal" if across > down else "vertical"
             if observed != node["axis"]:
                 layer.findings.append(
@@ -396,12 +547,15 @@ def layer_structure(ctx) -> Layer:
                     f"{len(pairs)} child pairs, {across} separate horizontally and {down} vertically"
                 )
     layer.ran = True
-    if layer.observations < ctx.floors["dumpNodes"]:
+    if nodes_seen < ctx.floors["dumpNodes"]:
         raise Inconclusive(
-            f"structure: the four dumps carry {layer.observations} nodes, below the floor of "
+            f"structure: the {len(ctx.dumps)} dumps carry {nodes_seen} nodes, below the floor of "
             f"{ctx.floors['dumpNodes']} — a surface with nothing instrumented diffs clean"
         )
-    layer.note = f"{layer.observations} nodes across {len(ctx.dumps)} states"
+    layer.note = (
+        f"{nodes_seen} nodes across {len(ctx.dumps)} states · {layer.observations} declared "
+        "axis/axes corroborated against child geometry"
+    )
     return layer
 
 
@@ -451,6 +605,15 @@ def layer_type_metrics(ctx) -> Layer:
     ladder = None
     heights: dict[str, list[tuple[str, float]]] = {}
     multiline = 0
+    # The same split `layer_structure` now carries, and for the same reason. `typed_nodes` is how
+    # many text nodes named a role at all — the eligibility census. `layer.observations` is how many
+    # of them the per-role height check actually ruled on, which is the census minus the multi-line
+    # nodes it excludes with a `continue`. Both `gpt-5.6-sol` and `grok-4.6` reached this
+    # independently against the diff that listed this layer as already agreeing: 24 nodes reported,
+    # 2 excluded, 22 compared. The zero-guard cannot be fooled here the way it could in `structure`,
+    # because `floor = min(...)` keeps at least one node per role — but the number the guard and the
+    # note both read was still not the number of comparisons.
+    typed_nodes = 0
 
     for state, dump in ctx.dumps.items():
         ladder = dump.get("typeLadder") or ladder
@@ -465,10 +628,10 @@ def layer_type_metrics(ctx) -> Layer:
                 continue
             if node["kind"] != "text":
                 continue  # a control's frame is a control height, not a line box
-            layer.observations += 1
+            typed_nodes += 1
             heights.setdefault(role, []).append((f"{state}: {path}", node["frame"]["height"]))
 
-    if layer.observations == 0:
+    if typed_nodes == 0:
         raise Inconclusive("type-metrics: no instrumented text node named a type role, so nothing was measured")
 
     single: dict[str, float] = {}
@@ -479,11 +642,13 @@ def layer_type_metrics(ctx) -> Layer:
             if height > floor + 0.5:
                 if height > floor * 1.5:
                     multiline += 1
-                    continue
+                    continue  # a wrap count is not a line box, so this one was not compared
                 layer.findings.append(
                     f"{where} names {role} and measured {height}pt, where every other single-line "
                     f"{role} node measured {floor}pt — one of the two lost the cascade"
                 )
+            # Last in the body, so the `continue` above keeps an excluded node out of the count.
+            layer.observations += 1
 
     ordered = sorted(single, key=lambda role: (ladder[role]["size"], role))
     for smaller, larger in zip(ordered, ordered[1:]):
@@ -504,7 +669,8 @@ def layer_type_metrics(ctx) -> Layer:
 
     layer.ran = True
     layer.note = (
-        f"{layer.observations} text nodes · {len(single)} roles · "
+        f"{layer.observations} per-role comparison(s) over {typed_nodes} text nodes · "
+        f"{len(single)} roles · "
         + " ".join(f"{role}={single[role]}pt" for role in ordered)
         + (f" · {multiline} multi-line node(s) excluded from the per-role check" if multiline else "")
     )
@@ -519,10 +685,21 @@ def layer_copy(ctx) -> Layer:
     the data left empty, or a view that was never reached.
     """
     layer = Layer("copy")
-    for state, pairs in ctx.pairs.items():
-        nodes = dict(flatten(ctx.dumps[state]["root"]))
+    # `ctx.comparable`, not `ctx.pairs`. The population of this layer is the pairings the gate has
+    # established are the same control and that exactly one affordance names — the same two tests
+    # the breadth layer's status turns on, applied here because they are properties of the pairing
+    # rather than of whichever layer happens to be reading it.
+    #
+    # Reading `ctx.pairs` directly is what let this layer state a measured difference between two
+    # labels while the breadth table, on the same run, recorded that it could not establish the two
+    # sides were the same control (`D-m23-s`). The number moved and the verdict did not: 20 paired
+    # strings became 19, and all 16 findings survive, because the pairing this drops carries no
+    # copy difference. A finding removed here would have been a difference between a mock string
+    # and a build string that were never shown to belong to the same control.
+    for state, comparable in ctx.comparable.items():
+        nodes = index_nodes(ctx.dumps[state]["root"], f"dump[{state}]")
         by_id = {a["id"]: a for a in ctx.inventory[state]["affordances"]}
-        for affordance_id, node_path in pairs.items():
+        for affordance_id, node_path in comparable.items():
             affordance = by_id.get(affordance_id)
             node = nodes.get(node_path)
             if affordance is None or node is None:
@@ -557,7 +734,7 @@ def layer_breadth(ctx) -> Layer:
     rows = []
     for state in ctx.states:
         inventory = ctx.inventory[state]["affordances"]
-        nodes = dict(flatten(ctx.dumps[state]["root"]))
+        nodes = index_nodes(ctx.dumps[state]["root"], f"dump[{state}]")
         pairs = ctx.pairs.get(state, {})
         paired_nodes = set()
 
@@ -575,11 +752,13 @@ def layer_breadth(ctx) -> Layer:
         # Counted first rather than as the loop goes, because order is not evidence: if a pairing is
         # ambiguous then neither claimant was measured, and letting whichever came first keep
         # `present` would pick a winner by inventory position.
-        claims: dict[str, list[str]] = {}
-        for affordance in inventory:
-            claimed = pairs.get(affordance["id"])
-            if claimed is not None:
-                claims.setdefault(claimed, []).append(affordance["id"])
+        #
+        # Both this and the vouched test now live in `Context.derive_pairings`, and this layer reads
+        # what that produced rather than computing its own copy. The copy layer reads the same
+        # thing, which is the point: a test written into one reader of `ctx.pairs` holds for that
+        # reader, and there are two of them.
+        claims = ctx.claims[state]
+        comparable = ctx.comparable.get(state, {})
 
         for affordance in inventory:
             layer.observations += 1
@@ -613,7 +792,7 @@ def layer_breadth(ctx) -> Layer:
             # identity for an icon node, so an icon pair has nothing to compare and lands as
             # `unclassified` rather than as agreement. That is the honest outcome, not the audited
             # one.
-            vouched = (node["role"], node["kind"]) in VOUCHED_CONTROLS.get(affordance["kind"], set())
+            vouched = vouched_pairing(affordance["kind"], node)
 
             # Four outcomes, not two, and only one of them is a claim that a measurement happened.
             #
@@ -635,9 +814,13 @@ def layer_breadth(ctx) -> Layer:
             # duplicate rather than through the pairing. The number of claimants is the quantity
             # the check is named for, so it reads that number.
             claimants = claims.get(node_path, [])
-            if len(claimants) > 1:
-                status = "unclassified"
-            elif not vouched:
+            # Whether the two sides may be compared at all is `ctx.comparable`'s answer, not this
+            # layer's — one derived set, so this table and the copy layer's findings cannot
+            # contradict each other about the same pairing. `claimants` and `vouched` are read
+            # below only to say WHICH of the two tests it failed, because a reader who fixes a
+            # collision should not then discover an unvouched pairing waiting behind it
+            # (`D-m23-t`).
+            if comparable.get(affordance["id"]) != node_path:
                 status = "unclassified"
             elif readable(mock_text) and readable(app_text):
                 status = "present" if mock_text == app_text else "divergent"
@@ -866,6 +1049,13 @@ class Context:
         self.dumps: dict[str, dict] = {}
         self.inventory: dict[str, dict] = {}
         self.pairs: dict[str, dict[str, str]] = {}
+        #: node path -> every affordance id that names it, per state. Built from the INVENTORY
+        #: rather than from `pairs`, because two inventory entries sharing one id both resolve
+        #: through the one pairing row and a dict keyed by id would lose the second (`D-m23-w`).
+        self.claims: dict[str, dict[str, list[str]]] = {}
+        #: affordance id -> node path, for the pairings a layer may actually compare. Derived once
+        #: in `derive_pairings` and read by every layer that compares two sides of a pairing.
+        self.comparable: dict[str, dict[str, str]] = {}
         self.citations: dict[str, str] = {}
         self.extra_allowed: dict[str, dict[str, str]] = {}
         self.breadth_rows: list[tuple] = []
@@ -914,33 +1104,82 @@ class Context:
                     self.citations[affordance] = citation
         if seen == 0:
             raise Inconclusive(f"pairing: {pairing} declares nothing, so every affordance reads absent")
+        self.derive_pairings()
+
+    def derive_pairings(self) -> None:
+        """Which pairings a layer is allowed to compare, decided once for every layer that compares.
+
+        `self.pairs` is a declaration — which build node somebody says answers which mock affordance
+        — and nothing about it is a measurement. Two tests stand between that declaration and a
+        comparison:
+
+        **One claimant.** The dict is keyed by affordance, so any number of affordances may name one
+        control. Two that do are two rows credited to one measurement, and neither of them was
+        measured: whichever the control answers, the rest were not.
+
+        **A vouched pairing.** `VOUCHED_CONTROLS` is the gate's record that this build role and kind
+        may answer this mock kind at all. Without it, "these two are the same control" is an
+        assertion the pairing file made about itself.
+
+        Both tests used to live inside `layer_breadth`, which is one of the two layers that reads
+        `self.pairs`. `layer_copy` reads the same structure and applied neither, so a pairing breadth
+        filed `unclassified` because it could not establish the two were the same control produced,
+        in the same run, a copy finding stating a measured difference between their labels. A test
+        that lives in a reader holds for that reader; a test that lives in the structure holds for
+        every reader there will ever be, including the next layer somebody adds.
+        """
+        for state in self.states:
+            nodes = index_nodes(self.dumps[state]["root"], f"dump[{state}]")
+            pairs = self.pairs.get(state, {})
+
+            claims: dict[str, list[str]] = {}
+            for affordance in self.inventory[state]["affordances"]:
+                claimed = pairs.get(affordance["id"])
+                if claimed is not None:
+                    claims.setdefault(claimed, []).append(affordance["id"])
+            self.claims[state] = claims
+
+            comparable: dict[str, str] = {}
+            for affordance in self.inventory[state]["affordances"]:
+                node_path = pairs.get(affordance["id"])
+                if node_path is None:
+                    continue
+                node = nodes.get(node_path)
+                if node is None:
+                    continue  # the breadth layer owns pairing integrity and reports this
+                if len(claims.get(node_path, [])) > 1:
+                    continue
+                if not vouched_pairing(affordance["kind"], node):
+                    continue
+                comparable[affordance["id"]] = node_path
+            self.comparable[state] = comparable
 
 
-def main() -> int:
+def gate(run: Run) -> int:
     if len(sys.argv) < 3:
         sys.stderr.write("usage: mock_fidelity.py <layers.json> <dump-dir> [--report <path>]\n")
         return 2
     manifest_path, dump_dir = sys.argv[1], sys.argv[2]
-    report_path = None
     if "--report" in sys.argv:
         index = sys.argv.index("--report") + 1
         if index >= len(sys.argv):
             sys.stderr.write("usage: mock_fidelity.py <layers.json> <dump-dir> [--report <path>]\n"
                              "       --report was given with no path after it\n")
             return 2
-        report_path = sys.argv[index]
+        run.report_path = sys.argv[index]
+    report_path = run.report_path
 
     # The surface is needed for the unmeasured ledger before the manifest is known to parse, so it
     # falls back to the path rather than failing to name what could not be measured.
-    surface = os.path.basename(manifest_path).split(".")[0]
+    surface = run.surface = os.path.basename(manifest_path).split(".")[0]
 
     try:
         with measuring("manifest"):
             manifest = load_json(manifest_path, "manifest")
-            surface = manifest.get("surface", surface)
+            surface = run.surface = manifest.get("surface", surface)
             declared = {entry["name"]: entry for entry in manifest["layers"]}
     except Inconclusive as error:
-        print(f"INCONCLUSIVE {error}")
+        emit(f"INCONCLUSIVE {error}")
         write_unmeasured_report(report_path, surface, str(error))
         return 3
 
@@ -949,7 +1188,7 @@ def main() -> int:
     # reached by a validation that failed rather than by an exception. `unmeasured()` is the single
     # door out, so a new check added here cannot forget the ledger without also forgetting to exit.
     def unmeasured(reason: str) -> int:
-        print(f"INCONCLUSIVE {reason}")
+        emit(f"INCONCLUSIVE {reason}")
         write_unmeasured_report(report_path, surface, reason)
         return 3
 
@@ -999,7 +1238,7 @@ def main() -> int:
             ctx = Context(manifest, dump_dir)
             ctx.load()
     except Inconclusive as error:
-        print(f"INCONCLUSIVE {error}")
+        emit(f"INCONCLUSIVE {error}")
         write_unmeasured_report(report_path, surface, str(error))
         return 3
 
@@ -1032,6 +1271,26 @@ def main() -> int:
             if entry.get("required", True):
                 blocked.append((name, str(error)))
 
+    # Written before a line of it is printed, and that order is the fix rather than a tidy-up.
+    # The console loop below is several hundred `print` calls carrying arbitrary text from the
+    # dumps, and it used to sit BETWEEN the layers and this write. A console that could not encode
+    # one of those lines therefore killed the process at exit 1 — the code that means differences
+    # were found — with the report never reached and the previous run's `servers.ledger.md` intact
+    # on disk, while `mock-fidelity-gate.sh` printed `ledger written to …` on the next line. That is
+    # the stale-ledger failure this gate has now closed three times, arriving one frame further out
+    # each time. Measuring the layers and then losing the table to a `print` is the one ordering
+    # that cannot be defended, so the table goes down first.
+    if report_path:
+        try:
+            with measuring("report"):
+                write_report(report_path, ctx, results, declared)
+            run.report_written = True
+            emit(REPORT_MARKER + report_path)
+        except Inconclusive as error:
+            emit(f"INCONCLUSIVE {error}")
+            write_unmeasured_report(report_path, ctx.surface, str(error))
+            return 3
+
     print(f"mock-fidelity: surface '{ctx.surface}' across {len(ctx.states)} states")
     findings = 0
     for layer in results:
@@ -1055,15 +1314,6 @@ def main() -> int:
             # value is in planning/fidelity/token-register.json, which the suite diffs against.
             print(f"      carried: {line[:200]}{'…' if len(line) > 200 else ''}")
 
-    if report_path:
-        try:
-            with measuring("report"):
-                write_report(report_path, ctx, results, declared)
-        except Inconclusive as error:
-            print(f"INCONCLUSIVE {error}")
-            write_unmeasured_report(report_path, ctx.surface, str(error))
-            return 3
-
     if blocked:
         print(f"mock-fidelity: EXIT 3 — {len(blocked)} required layer(s) could not run")
         return 3
@@ -1072,6 +1322,87 @@ def main() -> int:
         return 1
     print("mock-fidelity: EXIT 0 — every required layer ran and found nothing")
     return 0
+
+
+def main() -> int:
+    """The boundary around the whole run, which is the widest thing there is to put one around.
+
+    `measuring()` closed the class one frame at a time and the class kept being wider than the
+    frame. It wrapped the layers, then `Context(...)` and `ctx.load()`, then the report write — and
+    each time, the next verifier found the property failing somewhere else in `main()`: the console
+    print loop, which ran between the layers and the report write and is outside all of them.
+
+    Enumerating the remaining frames one more time is the move that has now failed three times, so
+    this stops enumerating. Everything `gate()` does is inside one `except Exception`, including
+    the argument parse, the four validation returns, the handlers of the other boundaries, the
+    console loop and the final verdict print. Whatever raises, the run did not deliver a verdict,
+    and the exit code for that is 3 with the ledger saying so.
+
+    Two things stay outside it, both deliberately. `KeyboardInterrupt` and `SystemExit` derive from
+    `BaseException`: an operator pressing ^C is not an unmeasurable surface. And a ledger already
+    written is not overwritten with "this run did not produce a table", because by then it did —
+    the run failed to REPORT a measurement rather than to make one, and replacing a real table with
+    an obituary would be this gate telling a reader something it knows to be untrue.
+
+    So the property is about what this gate PRODUCES, not about every code the process can exit
+    with: a verdict is 0, 1 or 3, a usage error is 2, and ^C is neither — it is the run being
+    stopped rather than the run reaching an answer. `gpt-5.6-sol` was right that the unqualified
+    form ("the process exits 0/1/2/3") is false at 130, and the honest repair is the wording rather
+    than swallowing the interrupt.
+
+    `Run()` is the one statement before the `try`, and it assigns three constants. The handler is
+    the one region after it, and its body is wrapped so it cannot escape either — `emit` and
+    `write_unmeasured_report` already swallow their own failures, and the guard makes that
+    structural rather than a property of the two functions it happens to call today.
+    """
+    run = Run()
+    try:
+        code = gate(run)
+        # The last thing that can raise, and it raises after every boundary inside `gate()` has
+        # been left. Doing it here rather than letting the interpreter do it at shutdown is what
+        # turns a broken pipe from exit 120 into exit 3. Both streams, because either one can
+        # carry the process to 120 from a frame this file does not own.
+        sys.stdout.flush()
+        sys.stderr.flush()
+        return code
+    except Exception as error:
+        try:
+            # The reason says what is true of THIS run rather than one sentence for both cases. A
+            # failure after the report was written has measured eight layers, and printing "nothing
+            # this covers was measured" one line above "the ledger describes the layers that ran"
+            # is the gate contradicting itself in the file whose subject is honest reporting
+            # (`gpt-5.6-sol`).
+            if run.report_written:
+                what = ("            The layers ran and the ledger was written. What failed came "
+                        "after the measurement, so this run has a table and no delivered verdict:")
+            else:
+                what = ("            Nothing this covers was measured. The gate raised outside "
+                        "every layer, rather than returning a verdict:")
+            reason = (
+                f"gate: {type(error).__name__}: {error}\n{what}\n"
+                + "\n".join("            " + line
+                            for line in traceback.format_exc().rstrip().splitlines())
+            )
+            emit(f"INCONCLUSIVE {reason}")
+            if run.report_written:
+                emit(
+                    f"mock-fidelity: the ledger at {run.report_path} was written before this "
+                    "happened and describes the layers that ran. It stands; this run's verdict "
+                    "does not."
+                )
+            else:
+                write_unmeasured_report(run.report_path, run.surface, reason)
+        except Exception:
+            pass
+        # Last, so nothing that still had something to say is silenced by it: if a stream is still
+        # refusing at this point, the buffer it is refusing has to go somewhere or the interpreter
+        # raises again during shutdown and overwrites this exit code with 120.
+        try:
+            sys.stdout.flush()
+            sys.stderr.flush()
+        except Exception:
+            hush_streams()
+        return 3
 
 
 def write_unmeasured_report(path: str | None, surface: str, reason: str) -> None:
@@ -1104,8 +1435,9 @@ def write_unmeasured_report(path: str | None, surface: str, reason: str) -> None
                       "below rather than no differences. What stopped it, and at which stage, "
                       "verbatim:\n\n```\n")
             out.write(reason.rstrip() + "\n```\n")
+        emit(REPORT_MARKER + path)
     except Exception as error:
-        print(f"mock-fidelity: WARNING the ledger at {path} could not be replaced "
+        emit(f"mock-fidelity: WARNING the ledger at {path} could not be replaced "
               f"({type(error).__name__}: {error}). Whatever table is on disk is an earlier run's "
               "and does not describe this one.")
 

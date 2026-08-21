@@ -1,5 +1,6 @@
 import CryptoKit
 import Foundation
+import Network
 
 /// The router's own authorization server — the half that faces MCP **clients**.
 ///
@@ -161,10 +162,45 @@ public enum AuthServerAuthority {
     ///
     /// `[::1]` is here alongside `127.0.0.1` and `localhost`, at any port, per RFC 8252 §7.3.
     public static func isLoopbackRedirect(_ uri: String) -> Bool {
-        guard uri.count <= 2048, let url = URL(string: uri), url.scheme == "http" else { return false }
+        guard uri.count <= 2048, let url = URL(string: uri),
+              url.scheme?.lowercased() == "http"
+        else { return false }
         // `URL.host` strips the brackets from an IPv6 literal, so `[::1]` arrives as `::1`.
         guard let host = url.host else { return false }
-        return host == "127.0.0.1" || host == "localhost" || host == "::1" || host == "[::1]"
+        return isLoopbackHost(host)
+    }
+
+    /// Is this host the loopback, in any spelling the two URL parsers can hand us?
+    ///
+    /// Foundation's `URL` and Node's WHATWG parser normalise differently, and the difference was
+    /// MEASURED across 21 hostile and benign shapes on 2026-08-21 rather than assumed. Two of them
+    /// mattered and are handled here:
+    ///
+    ///   · **Case.** Node lowercases the host, so `http://LOCALHOST/cb` arrives as `localhost`;
+    ///     Foundation preserves it. Without the lowercase below a client registering an uppercase
+    ///     host works against the reference and is refused here.
+    ///   · **IPv6 spelling.** Node canonicalises `[0:0:0:0:0:0:0:1]` to `[::1]`; Foundation hands
+    ///     back the long form verbatim. Parsed as an address rather than compared as text, every
+    ///     spelling of the loopback resolves to the same 16 bytes.
+    ///
+    /// What is NOT reconciled, and is a declared divergence rather than an oversight: Node's
+    /// parser also accepts IPv4 shorthand — `http://127.1/cb` and `http://2130706433/cb` both
+    /// normalise to `127.0.0.1` — and this does not. That direction is safe (the reference accepts
+    /// a registration this router refuses; neither ever redirects off the machine) and matching it
+    /// would mean reimplementing WHATWG host parsing, which is a larger surface with its own
+    /// failure modes than the shapes it would buy. See the `div-r14-redirect-host` parity row.
+    ///
+    /// Every userinfo trick was measured to be refused by BOTH parsers — `http://[::1]@evil.example/cb`
+    /// resolves to `evil.example` at each — because the host is read from the parsed URL rather
+    /// than matched against the raw string.
+    static func isLoopbackHost(_ host: String) -> Bool {
+        let lowered = host.lowercased()
+        if lowered == "127.0.0.1" || lowered == "localhost" { return true }
+        let bare = lowered.hasPrefix("[") && lowered.hasSuffix("]")
+            ? String(lowered.dropFirst().dropLast())
+            : lowered
+        guard bare.contains(":") else { return false }
+        return IPv6Address(bare)?.rawValue == IPv6Address.loopback.rawValue
     }
 
     /// The origins this router is willing to be POSTed to by a browser.

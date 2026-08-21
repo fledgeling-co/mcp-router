@@ -44,7 +44,7 @@ cleanup() {
 trap cleanup EXIT
 
 RESULTS="${PARITY_RESULTS:-}"
-OWNED="authserver/authserver-metadata-resource authserver/authserver-metadata-as
+OWNED="divergence/div-r14-redirect-host authserver/authserver-metadata-resource authserver/authserver-metadata-as
 authserver/authserver-register authserver/authserver-authorize authserver/authserver-token
 authserver/authserver-instructions authserver/authserver-state-report
 authserver/authserver-host-authority"
@@ -72,6 +72,9 @@ declare -A ROW_FAIL
 row() { ROW_FAIL["$1"]=$(( ${ROW_FAIL["$1"]:-0} + ${2:-0} )); }
 verdict_rows() {
   local id
+  record divergence div-r14-redirect-host \
+    "$([ "${ROW_FAIL[authserver-register]:-0}" = 0 ] && echo ok || echo fail)" \
+    "asserted in both directions across fifteen redirect_uri shapes"
   for id in authserver-metadata-resource authserver-metadata-as authserver-register \
             authserver-authorize authserver-token authserver-instructions \
             authserver-state-report authserver-host-authority; do
@@ -158,6 +161,8 @@ diffcmp "GET /.well-known/oauth-authorization-server" /.well-known/oauth-authori
 CURRENT_ROW=authserver-register
 diffcmp "POST /register with a remote https redirect_uri is refused, identically" /register \
   -X POST -H 'content-type: application/json' -d '{"redirect_uris":["https://attacker.example/cb"]}'
+diffcmp "POST /register with a text/plain body is refused on content-type, identically" /register \
+  -X POST -H 'content-type: text/plain' -d '{"redirect_uris":["http://127.0.0.1:1/cb"]}'
 diffcmp "POST /register with no redirect_uris is refused, identically" /register \
   -X POST -H 'content-type: application/json' -d '{}'
 diffcmp "cross-origin POST /register is refused, identically" /register \
@@ -212,10 +217,34 @@ flow() { # label base
   v="$(python3 -c 'import base64,os;print(base64.urlsafe_b64encode(os.urandom(32)).rstrip(b"=").decode())')"
   ch="$(python3 -c "import base64,hashlib;print(base64.urlsafe_b64encode(hashlib.sha256('$v'.encode()).digest()).rstrip(b'=').decode())")"
 
-  check "$(status -G "$B/authorize" --data-urlencode "client_id=$cid" \
+  bodyof -G "$B/authorize" --data-urlencode "client_id=$cid" \
     --data-urlencode 'redirect_uri=http://127.0.0.1:33418/callback' \
     --data-urlencode 'response_type=code' --data-urlencode "code_challenge=$ch" \
-    --data-urlencode 'code_challenge_method=S256')" 200 "$label GET /authorize renders the consent page"
+    --data-urlencode 'code_challenge_method=S256' > "$WORK/consent.html"
+  [ -s "$WORK/consent.html" ] && ok "$label GET /authorize renders the consent page" \
+                              || bad "$label GET /authorize rendered nothing"
+  # The ticket the page issues, read back the way a browser reads it: out of the form.
+  local consent
+  consent="$(sed -n 's/.*name="consent" value="\([^"]*\)".*/\1/p' "$WORK/consent.html" | head -1)"
+  [ -n "$consent" ] && ok "$label the consent page carries a signed consent ticket" \
+                    || bad "$label no consent ticket on the consent page"
+
+  # A POST that never went through the page is refused, so the interstitial is not decorative.
+  local noticket
+  noticket="$(curl -sS -i -m 10 -X POST "$B/authorize" -H 'content-type: application/x-www-form-urlencoded' \
+    --data-urlencode "client_id=$cid" --data-urlencode 'redirect_uri=http://127.0.0.1:33418/callback' \
+    --data-urlencode "code_challenge=$ch" 2>/dev/null)"
+  if printf '%s' "$noticket" | head -1 | grep -q ' 400 ' \
+     && ! printf '%s' "$noticket" | grep -qi '^location:'; then
+    ok "$label POST /authorize without a consent ticket is refused and mints no code"
+  else
+    bad "$label POST /authorize minted a code without the consent page having been rendered"
+  fi
+
+  # /register must declare JSON: a text/plain form body parses as JSON and needs no preflight.
+  check "$(status -X POST "$B/register" -H 'content-type: text/plain' \
+    -d '{"redirect_uris":["http://127.0.0.1:1/cb"]}')" 415 \
+    "$label POST /register without a JSON content-type is refused"
 
   # PKCE is required, not merely offered.
   loc="$(curl -sS -i -m 10 -G "$B/authorize" --data-urlencode "client_id=$cid" \
@@ -257,7 +286,8 @@ flow() { # label base
   # exit 28 here means the redirect a browser follows would stall.
   curl -sS -i -m 10 -X POST "$B/authorize" -H 'content-type: application/x-www-form-urlencoded' \
     --data-urlencode "client_id=$cid" --data-urlencode 'redirect_uri=http://127.0.0.1:33418/callback' \
-    --data-urlencode "code_challenge=$ch" --data-urlencode 'state=xyz' >"$WORK/redirect" 2>/dev/null
+    --data-urlencode "code_challenge=$ch" --data-urlencode 'state=xyz' \
+    --data-urlencode "consent=$consent" >"$WORK/redirect" 2>/dev/null
   local curl_status=$?
   if [ "$curl_status" = 0 ]; then
     ok "$label the 302 response completes rather than hanging on unframed body"
@@ -331,9 +361,15 @@ redirect_frame() { # base -> header names, in order
   reg="$(bodyof "$B/register" -X POST -H 'content-type: application/json' \
     -d '{"redirect_uris":["http://127.0.0.1:33418/callback"]}')"
   cid="$(printf '%s' "$reg" | python3 -c 'import json,sys;print(json.load(sys.stdin).get("client_id",""))')"
+  local consent
+  consent="$(bodyof -G "$B/authorize" --data-urlencode "client_id=$cid" \
+    --data-urlencode 'redirect_uri=http://127.0.0.1:33418/callback' \
+    --data-urlencode 'response_type=code' --data-urlencode 'code_challenge=abc' \
+    --data-urlencode 'code_challenge_method=S256' \
+    | sed -n 's/.*name="consent" value="\([^"]*\)".*/\1/p' | head -1)"
   curl -sS -i -m 10 -X POST "$B/authorize" -H 'content-type: application/x-www-form-urlencoded' \
     --data-urlencode "client_id=$cid" --data-urlencode 'redirect_uri=http://127.0.0.1:33418/callback' \
-    --data-urlencode 'code_challenge=abc' 2>/dev/null \
+    --data-urlencode 'code_challenge=abc' --data-urlencode "consent=$consent" 2>/dev/null \
     | sed -n '1,/^\r$/p' | tr -d '\r' | sed -e 's/:.*//' -e '/^$/d'
 }
 redirect_frame "$TS" > "$WORK/frame.ts"
@@ -411,6 +447,40 @@ for side in ts swift; do
   dmode="$(stat -f '%Lp' "$WORK/$side/auth" 2>/dev/null)"
   [ "$mode" = 600 ] && [ "$dmode" = 700 ] && ok "$side issuer.key $mode in auth/ $dmode" \
                                           || bad "$side issuer.key mode $mode, dir $dmode"
+done
+
+echo
+echo "redirect_uri parsing, at both routers (the two URL parsers normalise differently):"
+CURRENT_ROW=authserver-register
+# Measured across 21 shapes on 2026-08-21. Every userinfo trick resolves to the attacker's host at
+# BOTH parsers, because both read the PARSED host rather than the raw string. The two shapes Node
+# accepts and Foundation refuses are declared in div-r14-redirect-host and are asserted here as a
+# divergence in BOTH directions, so it cannot be quietly fixed from either end without this saying so.
+reg_status() { # base uri
+  status "$1/register" -X POST -H 'content-type: application/json' \
+    -d "{\"redirect_uris\":[\"$2\"]}"
+}
+for uri in 'http://[::1]:1/cb' 'http://127.0.0.1:1/cb' 'http://localhost:1/cb' \
+           'http://LOCALHOST:1/cb' 'http://[0:0:0:0:0:0:0:1]:1/cb'; do
+  a="$(reg_status "$TS" "$uri")"; b="$(reg_status "$SW" "$uri")"
+  if [ "$a" = 201 ] && [ "$b" = 201 ]; then ok "accepted at both: $uri"
+  else bad "$uri -> $a / $b, expected 201 / 201"; fi
+done
+for uri in 'https://127.0.0.1/cb' 'http://[::1]@evil.example/cb' 'http://127.0.0.1@evil.example/cb' \
+           'http://localhost@evil.example/cb' 'http://[::ffff:127.0.0.1]/cb' \
+           'http://127.0.0.1.evil.example/cb' 'http://localhost.evil.example/cb' \
+           'http://evil.example/cb#127.0.0.1'; do
+  a="$(reg_status "$TS" "$uri")"; b="$(reg_status "$SW" "$uri")"
+  if [ "$a" = 400 ] && [ "$b" = 400 ]; then ok "refused at both: $uri"
+  else bad "$uri -> $a / $b, expected 400 / 400"; fi
+done
+for uri in 'http://127.1/cb' 'http://2130706433/cb'; do
+  a="$(reg_status "$TS" "$uri")"; b="$(reg_status "$SW" "$uri")"
+  if [ "$a" = 201 ] && [ "$b" = 400 ]; then
+    ok "declared divergence holds — the reference accepts IPv4 shorthand and Swift refuses: $uri"
+  else
+    bad "div-r14-redirect-host is stale: $uri -> $a / $b, declared 201 / 400"
+  fi
 done
 
 echo

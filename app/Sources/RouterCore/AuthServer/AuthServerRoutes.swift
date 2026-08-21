@@ -26,6 +26,9 @@ public struct AuthServerRoutes: Sendable {
     /// An authorization code lives 60 seconds and is used within one.
     static let codeTTLMilliseconds: Double = 60_000
     static let maxRedirectURIs = 10
+    /// How long the consent ticket below stays good: long enough to read the upstream report,
+    /// short enough that one found in a browser history is useless.
+    static let consentTTLMilliseconds: Double = 10 * 60_000
 
     let seal: AuthServerSeal
     let config: RouterConfig
@@ -107,6 +110,17 @@ public struct AuthServerRoutes: Sendable {
         if path == AuthServerPaths.register {
             guard request.method == "POST" else { return Self.methodNotAllowed() }
             if originIsForeign(request) { return Self.forbiddenOrigin() }
+            // The declared content type is required, not merely tolerated, and it is a second
+            // control rather than a formality. A `<form enctype="text/plain">` can be crafted so
+            // its body parses as valid JSON, and a form POST is a CORS *simple request*: no
+            // preflight stands in the way. Insisting on `application/json` puts the preflight back
+            // — and this router answers none — so the Origin check is no longer the only thing
+            // standing here. The control API applies the same rule for the same reason.
+            guard (request.first("content-type") ?? "").hasPrefix("application/json") else {
+                return Self.oauthError(
+                    415, "invalid_request", "expected content-type: application/json"
+                )
+            }
             return registerResponse(request)
         }
 
@@ -266,10 +280,30 @@ public struct AuthServerRoutes: Sendable {
                 "code_challenge with code_challenge_method=S256 is required", checked.state
             )
         }
+        // Proof that this page was rendered, carried in a hidden field and required by the POST.
+        //
+        // Without it `POST /authorize` mints a code for anyone who can shape the form — the
+        // interstitial is decorative, and an auto-submitting page skips it entirely. The Origin
+        // check already refuses a cross-origin POST, so this is defence in depth rather than the
+        // only control; it is here because "the human saw the screen" is the one thing this flow
+        // claims and nothing was making it true.
+        let consent = seal.seal(.object([
+            member("t", "consent"),
+            member("c", checked.clientID),
+            member("r", checked.redirectURI),
+            member("h", checked.challenge),
+            JSONMember(
+                key: JSString("x"),
+                value: .number(
+                    (clock.nowMilliseconds + Self.consentTTLMilliseconds).rounded(.down)
+                )
+            )
+        ]))
         var hidden: [(String, String)] = [
             ("client_id", checked.clientID),
             ("redirect_uri", checked.redirectURI),
-            ("code_challenge", checked.challenge)
+            ("code_challenge", checked.challenge),
+            ("consent", consent)
         ]
         if let state = checked.state { hidden.append(("state", state)) }
         if let scope = checked.scope { hidden.append(("scope", scope)) }
@@ -285,6 +319,25 @@ public struct AuthServerRoutes: Sendable {
         switch validate(form) {
         case let .refused(reason): return Self.fatalPage(reason)
         case let .ok(params): checked = params
+        }
+        // The ticket the GET issued, re-checked against what this POST claims. A ticket for a
+        // different client, redirect or challenge is not consent to this request.
+        let ticketBlob = seal.unseal(form.first { $0.name == "consent" }?.value ?? "")
+        let ticketOk: Bool = {
+            guard let ticket = ticketBlob,
+                  ticket.member("t")?.asString?.string == "consent",
+                  case let .number(expiry) = ticket.member("x") ?? .null,
+                  clock.nowMilliseconds <= expiry,
+                  ticket.member("c")?.asString?.string == checked.clientID,
+                  ticket.member("r")?.asString?.string == checked.redirectURI,
+                  ticket.member("h")?.asString?.string == checked.challenge
+            else { return false }
+            return true
+        }()
+        guard ticketOk else {
+            return Self.fatalPage(
+                "this authorization did not come from the consent page, or it has expired. Start again."
+            )
         }
         guard !checked.challenge.isEmpty else {
             return Self.redirectError(

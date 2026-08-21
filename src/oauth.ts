@@ -142,7 +142,18 @@ export function isLoopbackRedirect(uri: string): boolean {
     return false;
   }
   if (url.protocol !== 'http:') return false;
-  return url.hostname === '127.0.0.1' || url.hostname === 'localhost' || url.hostname === '[::1]';
+  /*
+   * `url.hostname` is already lowercased and canonicalised by the WHATWG parser — `LOCALHOST`
+   * arrives as `localhost` and `[0:0:0:0:0:0:0:1]` as `[::1]`. The lowercase below is therefore a
+   * no-op here and is written anyway, because the Swift port has to reproduce this rule against a
+   * parser that normalises differently, and a rule stated only in one implementation's incidental
+   * behaviour is a rule the other cannot be checked against.
+   *
+   * Every userinfo trick is refused by construction: `http://[::1]@evil.example/cb` has hostname
+   * `evil.example`, because this reads the PARSED host rather than matching the raw string.
+   */
+  const host = url.hostname.toLowerCase();
+  return host === '127.0.0.1' || host === 'localhost' || host === '[::1]';
 }
 
 // ---------------------------------------------------------------------------- origins
@@ -395,6 +406,28 @@ interface CodeBlob {
   j: string;
 }
 
+/**
+ * Proof that the consent page was rendered, carried in a hidden field and required by the POST.
+ *
+ * Without it `POST /authorize` is a stateless endpoint that mints a code for anyone who can shape
+ * the form — the interstitial is decorative, and an auto-submitting page skips it entirely. The
+ * Origin check already refuses a cross-origin POST, so this is defence in depth rather than the
+ * only control; it is here because "the human saw the screen" is the one thing this flow claims
+ * and nothing was making it true.
+ *
+ * Ten minutes: long enough to read the upstream report, short enough that a ticket found in a
+ * browser history is useless.
+ */
+interface ConsentBlob {
+  t: 'consent';
+  c: string;
+  r: string;
+  h: string;
+  x: number;
+}
+
+const CONSENT_TTL_MS = 10 * 60_000;
+
 interface TokenBlob {
   t: 'access' | 'refresh';
   iat: number;
@@ -631,6 +664,22 @@ export function handleAuthServer(
   if (p === REGISTER_PATH) {
     if (req.method !== 'POST') return methodNotAllowed(res);
     if (originRefused(req, cfg)) return forbiddenOrigin(res);
+    /*
+     * The declared content type is required, not merely tolerated, and it is a second control
+     * rather than a formality. A `<form enctype="text/plain">` can be crafted so its body parses
+     * as valid JSON, and a form POST is a CORS *simple request*: no preflight stands in the way.
+     * Insisting on `application/json` puts the preflight back — and the router answers none — so
+     * the Origin check is no longer the only thing standing here. The control API applies the same
+     * rule for the same reason.
+     */
+    const contentType = String(req.headers['content-type'] ?? '');
+    if (!contentType.startsWith('application/json')) {
+      json(res, 415, {
+        error: 'invalid_request',
+        error_description: 'expected content-type: application/json',
+      });
+      return true;
+    }
     // Parsed here rather than by the dispatcher, so one reader owns the stream. A body that is
     // not JSON is an empty registration, which fails the redirect_uris check below with the
     // message that names the real problem.
@@ -820,6 +869,16 @@ function authorizeGet(res: ServerResponse, url: URL, deps: AuthServerDeps): bool
     ['client_id', checked.clientId],
     ['redirect_uri', checked.redirectUri],
     ['code_challenge', checked.challenge],
+    [
+      'consent',
+      seal({
+        t: 'consent',
+        c: checked.clientId,
+        r: checked.redirectUri,
+        h: checked.challenge,
+        x: Date.now() + CONSENT_TTL_MS,
+      } satisfies ConsentBlob),
+    ],
   ];
   if (checked.state !== undefined) hidden.push(['state', checked.state]);
   if (checked.scope !== undefined) hidden.push(['scope', checked.scope]);
@@ -831,6 +890,22 @@ function authorizeGet(res: ServerResponse, url: URL, deps: AuthServerDeps): bool
 function authorizePost(res: ServerResponse, form: URLSearchParams): boolean {
   const checked = validateAuthorize(form);
   if ('fatal' in checked) return fatalPage(res, checked.fatal);
+  // The ticket the GET issued, re-checked against what this POST claims. A ticket for a different
+  // client, redirect or challenge is not consent to this request.
+  const ticket = unseal<ConsentBlob>(form.get('consent') ?? '');
+  if (
+    !ticket ||
+    ticket.t !== 'consent' ||
+    Date.now() > ticket.x ||
+    ticket.c !== checked.clientId ||
+    ticket.r !== checked.redirectUri ||
+    ticket.h !== checked.challenge
+  ) {
+    return fatalPage(
+      res,
+      'this authorization did not come from the consent page, or it has expired. Start again.'
+    );
+  }
   if (!checked.challenge) {
     return redirectError(
       res,

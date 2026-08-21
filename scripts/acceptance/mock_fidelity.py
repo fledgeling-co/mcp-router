@@ -33,6 +33,49 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 # anything else optional is itself inconclusive.
 ALLOWED_OPTIONAL = {"font-weight-face"}
 
+# Which build (role, kind) may answer which mock affordance kind.
+#
+# `PRESENT` is earned by measuring, and the measurement behind "these two are the same control" is
+# this table: the role and structural kind the running view reported, against the kind the mock's
+# census derived. Without it the status came from the label alone, so a mock `card` answered by a
+# `skeleton` read `present` on the strength of neither side carrying a string — agreement between
+# two absences, which is the brief's "two controls doing the same job are not a match" exactly.
+#
+# Every pairing is listed, including the ones where the two words happen to agree. An earlier draft
+# let a build role that SPELLED the mock kind vouch for itself, and the out-of-family review
+# (grok-4.6, finding 2) was right that this is a name collision rather than a measurement: it skips
+# the structural kind the table exists to constrain, and a build that renames `skeleton` to `card`
+# earns its own pass with no table edit. Extending the list is a deliberate, reviewable act — the
+# same reason `ALLOWED_OPTIONAL` lives in the gate rather than in the manifest the gate reads.
+#
+# What is deliberately absent is as load-bearing as what is present. `button` does not list
+# `state-action-disabled`: the mock draws `Start the router` as `btn primary lg` with no disabled
+# attribute, so a build that answers it with a disabled control has changed the control, and that
+# is a finding for M17 to own rather than a spelling this gate waves through. Nor does `card` list
+# `skeleton`.
+#
+# It covers the six mock kinds the one filled ledger pairs. The other eleven the census can derive
+# have no entry, so the first surface to pair one reads it as a finding until the pairing is
+# vouched — `D-m23-h` in ORCHESTRATOR.md's deferred register.
+VOUCHED_CONTROLS: dict[str, set[tuple[str, str]]] = {
+    "heading": {("board-title", "text"), ("state-title", "text")},
+    "sentence": {("board-subtitle", "text"), ("state-detail", "text")},
+    "button": {("primary-action", "leaf"), ("state-action", "leaf")},
+    "card": {("table", "vstack")},
+    "icon": {("state-illustration", "leaf")},
+    "row": {("table-row", "hstack")},
+    "column-header": {("column-header", "text")},
+    "skeleton-row": {("skeleton-row", "hstack")},
+}
+
+# The same table read backwards: which mock kinds a build role may be answering. It is what lets the
+# breadth layer ask whether the mock's census reaches a build node's granularity at all, rather than
+# inferring it from whether some sibling happened to get paired.
+MOCK_KINDS_FOR_ROLE: dict[str, set[str]] = {}
+for _kind, _pairs in VOUCHED_CONTROLS.items():
+    for _role, _ in _pairs:
+        MOCK_KINDS_FOR_ROLE.setdefault(_role, set()).add(_kind)
+
 
 @dataclass
 class Layer:
@@ -54,7 +97,28 @@ class Inconclusive(Exception):
 
 
 def run(cmd: list[str], cwd: str = ROOT, timeout: int = 900) -> subprocess.CompletedProcess:
-    return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout)
+    """Shell out, and fail to `Inconclusive` rather than out of the process.
+
+    A layer that shells out has two ways to measure nothing, and neither of them is a finding: the
+    tool can hang until the alarm goes off, and it can fail to launch at all. Both used to escape
+    `main` as an uncaught exception, which exits 1 — the code that means "differences were found" —
+    before `write_report` runs, so the stale ledger already on disk sat beside an exit that read as
+    a measured verdict. That is the gate's own doctrine violated inside the gate.
+    """
+    try:
+        return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired as error:
+        raise Inconclusive(
+            f"{os.path.basename(cmd[0])} did not finish inside {timeout}s, so whatever it was asked "
+            f"to measure was never measured: {' '.join(cmd)}"
+        ) from error
+    except UnicodeDecodeError as error:
+        raise Inconclusive(
+            f"{os.path.basename(cmd[0])} wrote bytes that are not text, so its output was never "
+            f"read: {error}"
+        ) from error
+    except OSError as error:
+        raise Inconclusive(f"could not run {' '.join(cmd)}: {error}") from error
 
 
 # --------------------------------------------------------------------------- artifacts
@@ -94,8 +158,27 @@ def layer_tokens(ctx) -> Layer:
             "compared. A check that prints nothing cannot be told from one that did not run.\n"
             + "\n".join(output.splitlines()[-15:])
         )
-    fields = dict(part.split("=", 1) for part in marker.split(":", 1)[1].split())
-    layer.observations = int(fields["rows"])
+    # The marker is a line of `name=value` fields, and a line that is not is a layer that read
+    # nothing. It happens for a reason nobody planned: with MCP_ROUTER_WRITE_TOKEN_REGISTER=1 in the
+    # environment the suite prints `MOCK-FIDELITY-TOKENS: register rewritten at <path>` and returns
+    # before the census. Unguarded, `dict(part.split("=", 1) ...)` raises ValueError, python exits 1,
+    # and `write_report` never runs — an unmeasured layer reported as findings, beside a stale
+    # ledger. An unparseable marker is a layer that could not run, which is exit 3.
+    try:
+        fields = dict(part.split("=", 1) for part in marker.split(":", 1)[1].split())
+        # Every field is read as the number it claims to be. `matched` used to be taken as a string
+        # and printed into the ledger's note unexamined, so `matched=garbage` produced a census line
+        # nobody could act on beside a layer reported as clean — the out-of-family review
+        # (gpt-5.6-sol, finding 6) named it.
+        rows, matched = int(fields["rows"]), int(fields["matched"])
+        pending, uncited = int(fields["pending"]), int(fields["uncited"])
+    except (ValueError, KeyError) as error:
+        raise Inconclusive(
+            "tokens: the MOCK-FIDELITY-TOKENS marker does not carry the name=value census fields, "
+            f"so the register was never read ({error!r}). The suite printed, verbatim:\n"
+            f"{marker}"
+        ) from error
+    layer.observations = rows
     layer.ran = True
     if layer.observations < ctx.floors["tokenRows"]:
         raise Inconclusive(
@@ -111,18 +194,27 @@ def layer_tokens(ctx) -> Layer:
         if not layer.findings:
             layer.findings.append(f"token parity suite exited {result.returncode}")
 
-    pending = int(fields["pending"])
-    if int(fields["uncited"]):
-        layer.findings.append(f"{fields['uncited']} pending token rows carry no citation")
+    if uncited:
+        layer.findings.append(f"{uncited} pending token rows carry no citation")
     for line in output.splitlines():
         if line.startswith("MOCK-FIDELITY-PENDING:"):
             layer.carried.append("token " + line.split(":", 1)[1].strip())
-    layer.note = f"{fields['matched']} matched, {pending} pending, of {layer.observations} rows"
+    layer.note = f"{matched} matched, {pending} pending, of {layer.observations} rows"
 
     stray = next((l for l in output.splitlines() if l.startswith("MOCK-FIDELITY-MOCK-LITERALS:")), None)
     if stray is None:
         raise Inconclusive("tokens: the mock's own zero-literals property was never measured")
-    count = int(stray.split("=", 1)[1])
+    # The field is required to be NAMED, not merely to sit after the first `=`. Reading whatever
+    # followed the `=` accepted `MOCK-FIDELITY-MOCK-LITERALS: unrelated=0` as a clean measurement of
+    # a property nothing had measured (gpt-5.6-sol, finding 6).
+    try:
+        literal_fields = dict(part.split("=", 1) for part in stray.split(":", 1)[1].split())
+        count = int(literal_fields["stray"])
+    except (ValueError, KeyError) as error:
+        raise Inconclusive(
+            "tokens: the mock's zero-literals marker carries no `stray=` count, so the property was "
+            f"never read ({error!r}). The suite printed, verbatim:\n{stray}"
+        ) from error
     if count:
         layer.findings.append(f"the mock writes {count} colour literals outside its token blocks")
     return layer
@@ -391,33 +483,62 @@ def layer_breadth(ctx) -> Layer:
             mock_text = " ".join((affordance.get("label") or "").split())
             app_text = " ".join((node.get("text") or "").split())
 
-            # Four outcomes, not two. The version this replaced read `present` whenever either side
-            # carried no text, which handed a free pass to exactly the pairing the brief warns
-            # about: a labelled mock affordance paired to a build container that reports no string
-            # of its own compared nothing and said the two agreed. `PRESENT` is earned by
-            # measuring, so a comparison the instrument could not make is `unclassified` — a
-            # finding that names what it could not read — rather than agreement.
-            if mock_text == app_text:
-                status = "present"
-            elif mock_text and app_text:
+            # The control kind, before the label. The brief asks for a pair to be audited on
+            # label, control kind and glyph, and a status computed from the label alone reads a
+            # mock `card` answered by a build `skeleton` as agreement because neither carries a
+            # string. So `affordance["kind"]` — which used to be written into the ledger and never
+            # compared to anything — is checked against the role and kind the view reported.
+            #
+            # The glyph is the third of those three and stays unread: the harness records no glyph
+            # identity for an icon node, so an icon pair has nothing to compare and lands as
+            # `unclassified` rather than as agreement. That is the honest outcome, not the audited
+            # one.
+            vouched = (node["role"], node["kind"]) in VOUCHED_CONTROLS.get(affordance["kind"], set())
+
+            # Four outcomes, not two. The version this replaced read `present` whenever the two
+            # strings were equal, and in six of this surface's ten `present` rows both of them were
+            # the empty string: a comparison of nothing against nothing, reported as a match. So
+            # `present` now requires two strings that exist and agree, and every comparison the
+            # instrument could not make is `unclassified` — a finding that names what it could not
+            # read — rather than agreement.
+            if not vouched:
                 status = "divergent"
+            elif mock_text and app_text:
+                status = "present" if mock_text == app_text else "divergent"
             else:
                 status = "unclassified"
 
             rows.append((state, affordance["id"], affordance["kind"], status,
-                         f'mock="{mock_text[:60]}"', f'build={node_path} text="{app_text[:60]}"',
+                         f'mock="{mock_text[:60]}" kind={affordance["kind"]}',
+                         f'build={node_path} text="{app_text[:60]}" '
+                         f'role={node["role"]} kind={node["kind"]}',
                          ctx.citations.get(affordance["id"], "")))
-            if status == "divergent":
+            if not vouched:
+                layer.findings.append(
+                    f"{state}: {affordance['id']} is a mock {affordance['kind']} answered by "
+                    f"{node_path}, which reports role '{node['role']}' and kind '{node['kind']}' — "
+                    "a pairing this gate has never vouched for, so the two are not known to be the "
+                    "same control"
+                )
+            elif status == "divergent":
                 layer.findings.append(
                     f"{state}: {affordance['id']} label differs — mock \"{mock_text[:50]}\" vs "
                     f"build \"{app_text[:50]}\""
                 )
             elif status == "unclassified":
-                side = "the build node reports no text" if mock_text else "the mock affordance carries no label"
-                layer.findings.append(
-                    f"{state}: {affordance['id']} is paired to {node_path} but {side}, so the label "
-                    "was never compared"
-                )
+                if not mock_text and not app_text:
+                    layer.findings.append(
+                        f"{state}: {affordance['id']} is paired to {node_path} and neither side "
+                        "carries a string, so nothing was compared — agreement between two "
+                        "absences is not a measurement"
+                    )
+                else:
+                    side = ("the build node reports no text" if mock_text
+                            else "the mock affordance carries no label")
+                    layer.findings.append(
+                        f"{state}: {affordance['id']} is paired to {node_path} but {side}, so the "
+                        "label was never compared"
+                    )
 
         # The reverse direction. Matching the mock means removing what it does not have, not only
         # adding what it lacks, so an instrumented node nothing in the mock accounts for is a
@@ -432,24 +553,77 @@ def layer_breadth(ctx) -> Layer:
         # `structure-unpaired` so the number is visible. A subtree with nothing paired anywhere
         # inside it is not exempt: it goes red at its root and at every leaf, which is what an
         # invented section looks like.
+        #
+        # The exemption is a QUOTA rather than a blanket, and that is the whole of the difference.
+        # Where the mock's census reaches a granularity — where it names affordances of a kind this
+        # build role is allowed to answer — the mock has said how many there are, and a build node
+        # of that role which answers none of them is an uncounted invention. The loading state is
+        # the case this exists for: the mock draws three skeleton rows, the build draws four, and
+        # under a blanket exemption the fourth was classified `covered-by-pair` and produced no
+        # finding at all. Extra elements are divergent too.
+        #
+        # The question is asked of the MOCK's inventory, not of how many siblings happened to get
+        # paired. An earlier draft used pairing success as the quota, and the out-of-family review
+        # (grok-4.6, finding 3) was right on both counts: it left the original hole reachable
+        # whenever none of the same-role children were paired, and its finding text said "the mock
+        # accounts for N" about a number that was pairing success rather than census length.
         def subtree_has_pair(path: str) -> bool:
             prefix = path + "/"
             return any(p.startswith(prefix) for p in paired_nodes)
 
-        def inside_a_pair(path: str) -> bool:
-            return any(path.startswith(p + "/") for p in paired_nodes)
+        def nearest_pair(path: str) -> str | None:
+            """The paired node this one sits inside, innermost first, or None."""
+            owners = [p for p in paired_nodes if path.startswith(p + "/")]
+            return max(owners, key=len) if owners else None
+
+        # (paired ancestor, build role) -> every node under it carrying that role, and how many of
+        # them answer an affordance. Both numbers are quoted in the finding.
+        kin: dict[tuple[str, str], list[str]] = {}
+        for path, node in nodes.items():
+            owner = nearest_pair(path)
+            if owner is not None:
+                kin.setdefault((owner, node["role"]), []).append(path)
+
+        # How many affordances of each kind the mock's census names for this state.
+        census: dict[str, int] = {}
+        for affordance in inventory:
+            census[affordance["kind"]] = census.get(affordance["kind"], 0) + 1
 
         for path, node in nodes.items():
             if path in paired_nodes or node["role"] == "surface":
                 continue
-            # A descendant of a paired node is accounted for by that pair: the mock's census names
-            # the row, and the row's label IS its subtree's text, so reporting the row's own name
-            # and state lines as "in the build and not in the mock" states something false about the
-            # mock. Pairing happens at the granularity the mock's census offers; what is inside a
+            # A descendant of a paired node is accounted for by that pair ONLY where the mock's
+            # census never reached that granularity: the mock names the row, and the row's label IS
+            # its subtree's text, so reporting the row's own name and state lines as "in the build
+            # and not in the mock" states something false about the mock. What is inside such a
             # pair is compared by the copy, geometry and type-metrics layers instead.
-            if inside_a_pair(path):
-                rows.append((state, path, node["role"], "covered-by-pair", "mock=inside a paired affordance",
-                             f"build={path}", ""))
+            #
+            # Where the census DID reach it, the exemption becomes a count, and anything past the
+            # count is an uncounted invention rather than containment.
+            owner = nearest_pair(path)
+            if owner is not None:
+                answerable = sorted(MOCK_KINDS_FOR_ROLE.get(node["role"], set()))
+                declared = sum(census.get(kind, 0) for kind in answerable)
+                if declared == 0:
+                    rows.append((state, path, node["role"], "covered-by-pair",
+                                 "mock=inside a paired affordance, at a granularity the mock's "
+                                 "census does not reach", f"build={path}", ""))
+                    continue
+                siblings = kin.get((owner, node["role"]), [])
+                answered = sum(1 for p in siblings if p in paired_nodes)
+                surplus = (
+                    f"role '{node['role']}' answers mock kind(s) {', '.join(answerable)}, of which "
+                    f"the mock's census for this state names {declared}; {answered} of the "
+                    f"{len(siblings)} node(s) of that role under {owner} answer one, and this one "
+                    "answers none"
+                )
+                citation = ctx.extra_allowed.get(state, {}).get(path)
+                rows.append((state, path, node["role"], "extra-cited" if citation else "extra",
+                             f"mock={surplus}", f"build={path}", citation or ""))
+                layer.findings.append(
+                    f"{state}: {path} is in the build and not in the mock — {surplus}"
+                    + (f" ({citation})" if citation else "")
+                )
                 continue
             if node.get("children") and subtree_has_pair(path):
                 rows.append((state, path, node["role"], "structure-unpaired", "mock=no affordance of a declared kind",

@@ -55,6 +55,13 @@ if [ "${STUB_TOKENS_SILENT:-0}" = "1" ]; then
   echo "Test run with 0 tests in 0 suites"
   exit 0
 fi
+if [ "${STUB_TOKENS_GARBLED:-0}" = "1" ]; then
+  # What the real suite prints with MCP_ROUTER_WRITE_TOKEN_REGISTER=1 in the environment: it
+  # rewrites the register and returns BEFORE the census, so the marker is there and carries no
+  # name=value fields at all.
+  echo "MOCK-FIDELITY-TOKENS: register rewritten at planning/fidelity/token-register.json"
+  exit 0
+fi
 echo "MOCK-FIDELITY-TOKENS: rows=${STUB_TOKEN_ROWS:-12} matched=8 pending=4 uncited=${STUB_TOKENS_UNCITED:-0}"
 echo "MOCK-FIDELITY-PENDING: metric/jack-lane mock=44px swift=absent citation=M21-metric-rows"
 echo "MOCK-FIDELITY-MOCK-LITERALS: stray=${STUB_MOCK_LITERALS:-0}"
@@ -97,13 +104,30 @@ import json, os, sys
 
 root = sys.argv[1]
 
+extra_mock = ""
+# A glyph with no label on either side. The mock's census carries it, the build draws it, and
+# neither reports a string — which is the shape six of the servers ledger's ten `present` rows had.
+if os.environ.get("FIXTURE_EMPTY_BOTH") == "1":
+    extra_mock += '    <svg><use href="#i-warn"></use></svg>\n'
+# A card, to be paired against a build node that calls itself something else entirely.
+if os.environ.get("FIXTURE_KIND_MISMATCH") == "1":
+    extra_mock += '    <div class="card">Panel</div>\n'
+# A card the mock fills with TWO rows, against a build that draws three.
+if os.environ.get("FIXTURE_SURPLUS_CHILD") == "1":
+    extra_mock += (
+        '    <div class="card">Rows\n'
+        '      <div class="skel-row">Row one</div>\n'
+        '      <div class="skel-row">Row two</div>\n'
+        '    </div>\n'
+    )
+
 open(os.path.join(root, "design/fixture.html"), "w").write("""<!doctype html>
 <section id="b-fixture">
   <div class="v v-ideal">
     <h1>Fixture</h1>
     <p>One sentence.</p>
     <button class="btn primary">Do the thing</button>
-  </div>
+""" + extra_mock + """  </div>
 </section>
 """)
 
@@ -131,8 +155,9 @@ dump = {
                       "evidence": "a SwiftUI Font is opaque",
                       "confirmedInsteadBy": "the type-metrics layer"}],
     "root": node("fixture.ideal", "surface", "vstack", (0, 0, 400, 200), axis="vertical", children=[
-        node("heading", "heading", "text", (0, 0, 120, 26), text="Fixture", type_role="Title1"),
-        node("sentence", "sentence", "text", (0, 30, 200, 16), text="One sentence.", type_role="Body"),
+        node("heading", "board-title", "text", (0, 0, 120, 26), text="Fixture", type_role="Title1"),
+        node("sentence", "board-subtitle", "text", (0, 30, 200, 16), text="One sentence.",
+             type_role="Body"),
         node("action", "primary-action", "leaf", (0, 50, 110, 24), text="Do the thing", type_role="Body"),
     ]),
 }
@@ -160,6 +185,23 @@ if os.environ.get("FIXTURE_EXTRA_NODE") == "1":
     dump["root"]["children"].append(
         node("invented", "card", "leaf", (0, 80, 200, 40), text="Nothing in the mock says this")
     )
+if os.environ.get("FIXTURE_EMPTY_BOTH") == "1":
+    dump["root"]["children"].append(node("glyph", "state-illustration", "leaf", (0, 80, 16, 16)))
+if os.environ.get("FIXTURE_KIND_MISMATCH") == "1":
+    # The label agrees exactly, so nothing but the control-kind check can speak here: a mock `card`
+    # answered by a build node calling itself a `skeleton`.
+    dump["root"]["children"].append(
+        node("panel", "skeleton", "vstack", (0, 80, 200, 40), text="Panel")
+    )
+if os.environ.get("FIXTURE_SURPLUS_CHILD") == "1":
+    dump["root"]["children"].append(
+        node("rows", "table", "vstack", (0, 80, 200, 60),
+             text="Rows Row one Row two", children=[
+            node("skel-0", "skeleton-row", "hstack", (0, 80, 200, 16), text="Row one"),
+            node("skel-1", "skeleton-row", "hstack", (0, 100, 200, 16), text="Row two"),
+            node("skel-2", "skeleton-row", "hstack", (0, 120, 200, 16), text="Row three"),
+        ])
+    )
 
 open(os.path.join(root, "dumps/fixture.ideal.json"), "w").write(json.dumps(dump, indent=1))
 
@@ -183,6 +225,16 @@ pairing = (
 )
 if os.environ.get("FIXTURE_DROP_PAIRING") != "1":
     pairing += "ideal\tv-ideal/button/do-the-thing\tfixture.ideal/action\n"
+if os.environ.get("FIXTURE_EMPTY_BOTH") == "1":
+    pairing += "ideal\tv-ideal/icon/unlabelled\tfixture.ideal/glyph\n"
+if os.environ.get("FIXTURE_KIND_MISMATCH") == "1":
+    pairing += "ideal\tv-ideal/card/panel\tfixture.ideal/panel\n"
+if os.environ.get("FIXTURE_SURPLUS_CHILD") == "1":
+    pairing += (
+        "ideal\tv-ideal/card/rows-row-one-row-two\tfixture.ideal/rows\n"
+        "ideal\tv-ideal/skeleton-row/row-one\tfixture.ideal/rows/skel-0\n"
+        "ideal\tv-ideal/skeleton-row/row-two\tfixture.ideal/rows/skel-1\n"
+    )
 open(os.path.join(root, "planning/fidelity/fixture.pairing.tsv"), "w").write(pairing)
 
 if os.environ.get("FIXTURE_NO_DUMP") == "1":
@@ -244,7 +296,32 @@ expect "a section the mock has no affordance for returns 1" 1 "$root" "is in the
 root="$SCRATCH/unpaired"; export FIXTURE_DROP_PAIRING=1; build "$root"; unset FIXTURE_DROP_PAIRING
 expect "deleting a pairing row returns 1, not 0" 1 "$root" "is absent from the build"
 
-# 13 — the real colour-literal lint, against every colour-constructor spelling the `literals` layer
+# 13 — breadth, G1(a): a pairing where NEITHER side carries a string. Agreement between two
+# absences is not a measurement, so this is `unclassified` rather than `present`. Six of the ten
+# `present` rows in planning/fidelity/servers.ledger.md had exactly this shape.
+root="$SCRATCH/emptyboth"; export FIXTURE_EMPTY_BOTH=1; build "$root"; unset FIXTURE_EMPTY_BOTH
+expect "a pair with no string on either side returns 1" 1 "$root" "agreement between two absences is not a measurement"
+
+# 14 — breadth, G1(b): the labels agree exactly and the CONTROL does not. Two controls doing the
+# same job are not a match, so the mock kind is checked against the role and kind the view reported.
+root="$SCRATCH/kind"; export FIXTURE_KIND_MISMATCH=1; build "$root"; unset FIXTURE_KIND_MISMATCH
+expect "a mock card answered by a build skeleton returns 1" 1 "$root" "never vouched for"
+
+# 15 — breadth, G2: the mock's census reaches this granularity and names two rows; the build draws
+# three. Under the blanket `inside_a_pair` exemption this read `covered-by-pair` and said nothing.
+root="$SCRATCH/surplus"; export FIXTURE_SURPLUS_CHILD=1; build "$root"; unset FIXTURE_SURPLUS_CHILD
+expect "a build child past the mock's count returns 1" 1 "$root" "and this one answers none"
+
+# 16 — tokens, G3: the marker is printed and carries no census fields. It is what the real suite
+# prints with MCP_ROUTER_WRITE_TOKEN_REGISTER=1 in the environment, and unguarded it raised an
+# uncaught ValueError — exit 1, the code that means differences were found, with the report never
+# written and a stale ledger left on disk beside it.
+root="$SCRATCH/garbled"; build "$root"
+export STUB_TOKENS_GARBLED=1
+expect "an unparseable token marker returns 3, not 1" 3 "$root" "does not carry the name=value census fields"
+unset STUB_TOKENS_GARBLED
+
+# 17 — the real colour-literal lint, against every colour-constructor spelling the `literals` layer
 # claims to catch. Not the stub: this layer's whole value is that it EXECUTES that script, and on
 # 21 Aug 2026 three of these spellings passed it clean while the M23 spec claimed otherwise.
 #
@@ -313,7 +390,7 @@ Color(cgColor: someCGColor)
 "#FF00FF"
 SPELLINGS
 
-# 14 — the gate script's own preflight, driven for real
+# 18 — the gate script's own preflight, driven for real
 cases=$((cases + 1))
 ./scripts/acceptance/mock-fidelity-gate.sh no-such-surface > /dev/null 2>&1
 if [ $? = 3 ]; then

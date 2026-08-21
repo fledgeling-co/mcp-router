@@ -105,6 +105,50 @@ SWIFT
   python3 "$SCRATCH/build-fixture.py" "$root"
 }
 
+# Extends a scratch root so `mock-fidelity-gate.sh` itself can be driven against it. $1 = directory.
+#
+# The gate script's console decision — the three-branch block that turns REPORT_MARKER into
+# `ledger written to <path>`, `NO ledger was written by this run` or `there is no file at <path>`
+# — was declared uncoverable here until 21 Aug 2026, on the grounds that reaching it needs the
+# MEASURE build and four rendered dumps: "three minutes and not hermetic". That was measurably
+# false, and this helper is the disproof. The script resolves its root from `$0` and bash does not
+# resolve a symlink there, so a link inside the scratch tree makes every path it touches resolve
+# inside the scratch tree — the same trick the engine cases and the lint probe already use.
+# `swift build --product MeasureDump` is answered by the `swift` stub `build` already writes, which
+# exits 0 whatever it is handed. `MeasureDump` is the twelve lines below. The decision is reached
+# in about a second and all three of its branches are driven, which is what stops the marker's only
+# consumer being the one link in the chain nothing pulls on.
+build_gate_root() {
+  local root=$1
+  build "$root"
+  ln -sf "$REPO/scripts/acceptance/mock-fidelity-gate.sh" \
+         "$root/scripts/acceptance/mock-fidelity-gate.sh"
+  mkdir -p "$root/app/.build/debug" "$root/planning/fidelity/dumps"
+  cat > "$root/app/.build/debug/MeasureDump" <<'MEASURE'
+#!/bin/bash
+# Stub stand-in for the MeasureDump product, with the two behaviours the gate script reads: it
+# exits 3 on a --state it does not recognise and writes nothing — which is the gate's own preflight,
+# asserted on every run — and otherwise writes that state's dump to --out. The dump is the one
+# `build` has already generated, so the fixture the gate measures is the fixture the engine cases
+# measure.
+here=$(cd "$(dirname "$0")/../../.." && pwd)
+state=""; out=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --state) state=$2; shift 2;;
+    --out) out=$2; shift 2;;
+    *) shift;;
+  esac
+done
+if [ "$state" != "ideal" ]; then
+  echo "MeasureDump: unknown state '$state' — refusing rather than defaulting to ideal"
+  exit 3
+fi
+cp "$here/dumps/fixture.ideal.json" "$out"
+MEASURE
+  chmod +x "$root/app/.build/debug/MeasureDump"
+}
+
 # $1 = case name, $2 = expected exit, $3 = scratch root, $4... = strings the report must contain.
 # Several rather than one because an exit code and a reason are not the same claim as a STATUS: a
 # row that reads `divergent` and one that reads `unclassified` print the same finding here, and
@@ -414,6 +458,12 @@ elif broken == "duplicate-layer":
     m = json.load(open(manifest_path))
     m["layers"].insert(0, {"name": "font-weight-face", "required": True})
     json.dump(m, open(manifest_path, "w"), indent=1)
+elif broken == "manifest-not-json":
+    # The manifest replaced with bytes `json.load` refuses. `load_json` raises `Inconclusive` from
+    # inside `measuring("manifest")`, which is the FIRST of `write_unmeasured_report`'s five callers
+    # and the only one no run in this file reached: a trace of the whole suite recorded 145 engine
+    # runs, 10 of them with `--report`, eight marker emissions — and zero through this route.
+    open(manifest_path, "w").write("{ this is not json\n")
 elif broken == "unknown-layer":
     # Not an exception at all — a manifest that fails validation. It returned 3 correctly and
     # returned it from a `print`/`return 3` pair that never touched the report, so the previous
@@ -617,7 +667,14 @@ cases=$((cases + 1))
 out32=$(PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
   "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER32" 2>&1)
 status32=$?
+# The marker clause covers the SECOND of `write_unmeasured_report`'s five callers — the
+# `unmeasured()` helper, which is where all six manifest-validation returns leave the run. Case 49
+# covers the third (an `Inconclusive` from `Context`), and until this clause those were the same
+# assertion: moving `emit(REPORT_MARKER + path)` out of `write_unmeasured_report` and into case
+# 49's own call site left all 59 cases green while this route lost the marker and the gate denied
+# an obituary it had just written.
 if [ "$status32" = 3 ] && grep -q 'This run did not produce a table' "$LEDGER32" \
+   && grep -qF "mock-fidelity: report written to $LEDGER32" <<<"$out32" \
    && ! grep -q '`breadth` | clean' "$LEDGER32"; then
   echo "ok    a manifest that fails validation returns 3 AND replaces the stale ledger"
 else
@@ -821,14 +878,24 @@ chmod 700 "$SCRATCH/nowrite51"
 # written by this run (exit 1) … is an earlier run's and does not describe this one` over it. The
 # engine resolves its own root from `__file__`, so running from `$root` changes nothing but this
 # argument (`claude-fable-5`, asked to break rather than review).
+#
+# The leading `./` is `D-m23-ap` a second time, and it is not decoration. `abspath` was one of a
+# family of path-tidying edits, and the two spellings that closure pinned — an absolute path under
+# `$SCRATCH`, and a bare relative name — are both FIXED POINTS of `os.path.normpath`, so
+# `emit(REPORT_MARKER + os.path.normpath(report_path))` left all 59 cases green. `./rel-ledger.md`
+# is a fixed point of neither: it normalises to `rel-ledger.md` and absolutises to `$root/…`, so
+# one spelling now reds every member of the family rather than one of them. It is still the path
+# the caller handed over, which is the property being pinned — `mock-fidelity-gate.sh` greps for
+# `REPORT_MARKER + $LEDGER` verbatim, so any spelling the engine prefers to the caller's makes the
+# real gate deny its own table.
 out51_rel=$(cd "$root" && PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
-  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "rel-ledger.md" 2>&1)
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "./rel-ledger.md" 2>&1)
 if grep -qF "mock-fidelity: report written to $LEDGER51" <<<"$out51" \
    && ! grep -qF "report written to" <<<"$out51_none" \
    && [ "$status51_fail" = 3 ] \
    && ! grep -qF "report written to" <<<"$out51_fail" \
    && grep -qF "could not be replaced" <<<"$out51_fail" \
-   && grep -qF "mock-fidelity: report written to rel-ledger.md" <<<"$out51_rel" \
+   && grep -qF "mock-fidelity: report written to ./rel-ledger.md" <<<"$out51_rel" \
    && [ -f "$root/rel-ledger.md" ]; then
   echo "ok    the engine claims a written report only when it wrote one"
 else
@@ -926,10 +993,18 @@ fi
 root="$SCRATCH/brokenpipe"; build "$root"
 LEDGER44="$SCRATCH/brokenpipe-ledger.md"
 LEDGER44U="$SCRATCH/brokenpipe-unbuffered-ledger.md"
+# stderr goes to a file rather than to /dev/null, and that is `D-m23-ar`. Both invocations below
+# drive stdout-dead-with-stderr-open — the one configuration in which `emit`'s fallback is the only
+# thing that can carry the marker — and both used to throw the fallback away, so replacing
+# `emit(REPORT_MARKER + report_path)` with a bare `print` left the suite at 59 green while the
+# marker reached no stream at all. The register said this route was driven by no case; it was
+# driven by two and asserted by neither.
+ERR44="$SCRATCH/brokenpipe-stderr.txt"
+ERR44U="$SCRATCH/brokenpipe-unbuffered-stderr.txt"
 printf '# Breadth ledger — fixture\n\n| Layer | Result |\n|---|---|\n| `breadth` | STALE-FROM-AN-EARLIER-RUN |\n' > "$LEDGER44"
 cases=$((cases + 1))
 PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
-  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER44" > >(:) 2>/dev/null
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER44" > >(:) 2>"$ERR44"
 status44=$?
 # The second invocation is the same dead pipe with the buffer taken away, and it is what makes this
 # route ORDERING-sensitive. Buffered, the print loop never reaches a `write(2)`: the text sits under
@@ -943,17 +1018,27 @@ status44=$?
 # what CI sets to keep interleaved logs readable.
 printf '# Breadth ledger — fixture\n\n| Layer | Result |\n|---|---|\n| `breadth` | STALE-FROM-AN-EARLIER-RUN |\n' > "$LEDGER44U"
 PATH="$root/bin:$PATH" PYTHONUNBUFFERED=1 python3 "$root/scripts/acceptance/mock_fidelity.py" \
-  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER44U" > >(:) 2>/dev/null
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER44U" > >(:) 2>"$ERR44U"
 status44u=$?
+# The two marker clauses read the STDERR file, and they are the only assertions in this suite that
+# the marker survived a stream failure. `emit` prints, flushes, and falls back to stderr when the
+# flush raises; here the flush always raises, buffered or not, because the pipe's reader has gone.
+# So a marker that is delivered by anything but `emit` — a bare `print`, a `sys.stdout.write`, a
+# `print(..., file=sys.stdout)` — is lost on both invocations, `mock-fidelity-gate.sh` denies a
+# ledger this run did write, and nothing else in the file notices.
 if [ "$status44" = 3 ] && ! grep -qF 'STALE-FROM-AN-EARLIER-RUN' "$LEDGER44" \
    && grep -qF 'Present / divergent / absent' "$LEDGER44" \
+   && grep -qF "mock-fidelity: report written to $LEDGER44" "$ERR44" \
    && [ "$status44u" = 3 ] && ! grep -qF 'STALE-FROM-AN-EARLIER-RUN' "$LEDGER44U" \
-   && grep -qF 'Present / divergent / absent' "$LEDGER44U"; then
-  echo "ok    stdout with no reader returns 3, not the interpreter's 120 — exit $status44"
+   && grep -qF 'Present / divergent / absent' "$LEDGER44U" \
+   && grep -qF "mock-fidelity: report written to $LEDGER44U" "$ERR44U"; then
+  echo "ok    stdout with no reader returns 3 and the marker still reaches stderr — exit $status44"
 else
   echo "FAIL  stdout with no reader returned $status44 buffered / $status44u unbuffered; ledgers:"
   echo "      buffered:   $(head -5 "$LEDGER44" | tr '\n' ' ')"
   echo "      unbuffered: $(head -5 "$LEDGER44U" | tr '\n' ' ')"
+  echo "      stderr:     $(cat "$ERR44" 2>/dev/null | tr '\n' ' ' | cut -c1-200)"
+  echo "      stderr(u):  $(cat "$ERR44U" 2>/dev/null | tr '\n' ' ' | cut -c1-200)"
   fail=1
 fi
 
@@ -1004,14 +1089,321 @@ else
   fail=1
 fi
 
-# `D-m23-y` — the gate script's `ledger written to …` sentence — is NOT armed here, and the reason
-# is worth writing down rather than leaving as a gap in the count. Every path this selftest can
-# drive the gate script down (`no-such-surface`, a manifest that will not parse) returns before the
-# engine is ever invoked, so the sentence is not reached and a case here would pass whether the fix
-# existed or not — a vacuous check, which is the failure this whole item is about. Reaching that
-# line needs the MEASURE build and four rendered dumps, which is three minutes and not hermetic.
-# It is armed for real against the live surface instead, and the red and green are recorded in
-# planning/evidence/M23-gapfix-3.md.
+# ------------------------------------------------------ the sixth gap-fix: the marker, enumerated
+#
+# Five passes armed REPORT_MARKER route by route, and each next verification found another route.
+# What was missing was not one more case but the enumeration, so here it is — argued from the
+# engine's structure rather than from how hard anybody looked, and checked by case 60 below rather
+# than left as this comment's word.
+#
+# `mock-fidelity-gate.sh` decides between `ledger written to <path>` and `NO ledger was written by
+# this run` on one `grep -qF "mock-fidelity: report written to $LEDGER"`. Anything that satisfies
+# that grep has to put those bytes on a stream the script captures, so the question closes by
+# finding every place the engine can print them:
+#
+#   * the byte string exists once in the engine, as the module constant `REPORT_MARKER` — no
+#     second literal, no f-string, no `.format`;
+#   * that constant is read at exactly two places, both spelled `emit(REPORT_MARKER + …)`;
+#   * nothing in the engine reaches a module global under another name — no `getattr`, no `vars`,
+#     no `__dict__`. This enumeration rests on that, which is why case 60 re-checks it here
+#     instead of relying on case 46 having checked it for a different reason.
+#
+# Two emission sites, therefore:
+#
+#   S1  `gate()`, immediately after `write_report` returned and `run.report_written` was set. One
+#       predecessor — the `if report_path:` block — so it is reached only with `--report`, and only
+#       on a write that returned.
+#   S2  the tail of `write_unmeasured_report`, after the obituary was written. Reached through that
+#       function's callers, and only when `path` is truthy and `open()` accepted it; otherwise the
+#       function returns at `if not path` or emits the WARNING instead.
+#
+# `write_unmeasured_report` is called at exactly five sites, which is the other half of the
+# enumeration and is checked by the same case:
+#
+#   R1  gate()               — the manifest failed to load          … case 61
+#   R2  gate().unmeasured()  — one of six validation returns        … case 32
+#   R3  gate()               — Context construction or load raised  … case 49
+#   R4  gate()               — write_report raised                  … case 51, third invocation
+#   R5  main()               — something escaped gate() unwritten   … unreachable with a path
+#
+# Six route classes, and what each is worth:
+#
+#   S1 is asserted four ways: case 43 (the marker survives a console that cannot encode the
+#      report), case 44 (it reaches stderr when stdout is dead), and case 51's first and fourth
+#      invocations (present on a write that returned, and spelled the way the CALLER spelled the
+#      path rather than however the engine would prefer to spell it).
+#   R1-R4 are asserted at the cases named above. R4's assertion is that the marker is ABSENT,
+#      because that is the route whose write failed.
+#   R5 cannot reach the marker while `--report` is set, and that is a property of the engine
+#      rather than a hole here. With a report path, `gate()` either returns 3 from R1-R4 without
+#      raising, or it reaches the report block — and if it reaches the report block then
+#      `run.report_written` is true before anything downstream can raise, so `main()`'s handler
+#      takes its other branch, the one that says the ledger stands. That claim is checked rather
+#      than asserted: the ordering which makes R5 reachable with a path is the report write moved
+#      back after the console loop, and case 43 goes red under it on the three clauses that read
+#      this run's table and the diagnostic naming it. Under that ordering the marker is still
+#      emitted — from S2, through R5 — which is what "R5 became reachable" looks like from here,
+#      and it is why the `Run` wiring is checked in case 60 rather than left to a route that
+#      currently cannot execute.
+#
+# Measured against the shipped suite before this pass, by tracing the two emission lines across
+# every engine process the suite starts: 145 runs, 10 of them with `--report`, eight emissions —
+# five at S1, three at S2, through R2 once and R3 twice. R1 was executed by nothing at all, and
+# R2's emission was read by nothing. Both are closed above and below.
+
+# 60 — the enumeration itself, checked against the engine's syntax tree on every run.
+#
+# This is `D-m23-aw`, which is this item's own defect one level up: the suite states in prose what
+# it cannot reach, and a bound that is wrong reads exactly like one that is right. The gate-script
+# declaration that used to sit here was measured false this pass. So the reachability claims that
+# CAN be made checkable are made checkable, and this is the one that matters — if a third emission
+# site or a sixth caller appears, the route table above is incomplete and the suite says so, rather
+# than a seventh verification finding it.
+cases=$((cases + 1))
+if python3 - "$ENGINE" "$REPO/scripts/acceptance/mock-fidelity-gate.sh" <<'ENUM'
+import ast, sys
+
+engine, gate = sys.argv[1], sys.argv[2]
+source = open(engine, encoding="utf-8").read()
+tree = ast.parse(source)
+problems = []
+
+# One spelling of the marker, or the two sites below are not the whole set.
+spellings = source.count("report written to")
+if spellings != 1:
+    problems.append(f"'report written to' appears {spellings} times in the engine; the marker has "
+                    "to have exactly one spelling or an enumeration of its emitters means nothing")
+
+# The walk below finds a global through the name it is bound to. These reach one without it.
+for escape in ("getattr(", "vars(", "__dict__"):
+    if escape in source:
+        problems.append(f"the engine contains {escape!r}, so walking for the name REPORT_MARKER no "
+                        "longer enumerates everything that can print it")
+
+# Innermost enclosing function for every node, so `unmeasured` is attributed to itself rather than
+# to `gate` around it.
+marker_reads, wur_reads = [], []
+
+
+def walk(node, owner):
+    for child in ast.iter_child_nodes(node):
+        inner = child.name if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) else owner
+        if isinstance(child, ast.Name) and isinstance(child.ctx, ast.Load):
+            if child.id == "REPORT_MARKER":
+                marker_reads.append(owner)
+            elif child.id == "write_unmeasured_report":
+                wur_reads.append(owner)
+        walk(child, inner)
+
+
+walk(tree, "<module>")
+
+if sorted(marker_reads) != ["gate", "write_unmeasured_report"]:
+    problems.append(f"REPORT_MARKER is read in {sorted(marker_reads)}, expected "
+                    "['gate', 'write_unmeasured_report'] — a new emission site is a route the "
+                    "suite has no assertion for")
+
+# Every read has to be the marker going out through `emit`, because `emit` is the only thing in the
+# file that falls back to stderr — a marker delivered by a bare `print` is lost exactly when the
+# gate needs it, and that is invisible to any case that does not read a dead stdout's stderr.
+emitted = sum(
+    1 for node in ast.walk(tree)
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "emit"
+    and len(node.args) == 1 and isinstance(node.args[0], ast.BinOp)
+    and isinstance(node.args[0].op, ast.Add)
+    and isinstance(node.args[0].left, ast.Name) and node.args[0].left.id == "REPORT_MARKER")
+if emitted != len(marker_reads):
+    problems.append(f"{len(marker_reads)} reads of REPORT_MARKER and {emitted} of them are "
+                    "`emit(REPORT_MARKER + …)`; the rest cannot reach a second stream")
+
+defs = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == "emit"]
+if len(defs) != 1:
+    problems.append(f"{len(defs)} definitions of emit(), expected 1")
+elif "stderr" not in ast.dump(defs[0]):
+    problems.append("emit() no longer names stderr, so the marker has no second stream and the "
+                    "engine's own docstring — 'a console that cannot encode the report still "
+                    "delivers it on stderr' — is false")
+
+# R5 is the one route with no behavioural assertion, because it cannot execute with a report path
+# set. What can be checked is that it stays WIRED: `gate()` records the path on `Run` as it parses
+# it, and `main()`'s handler hands that recorded path to the obituary. Dropping the `Run` field and
+# keeping only the local — a redundant-assignment cleanup, and the local is what every reachable
+# route already uses — leaves all 67 cases green and leaves `main()` writing the obituary to `None`,
+# so the first ordering change after it silently loses the ledger (`gemini-3.7-flash-high`, asked to
+# break rather than review).
+stores = [n for n in ast.walk(tree)
+          if isinstance(n, ast.Attribute) and n.attr == "report_path"
+          and isinstance(n.ctx, ast.Store)]
+if not stores:
+    problems.append("nothing assigns run.report_path any more, so main()'s handler writes the "
+                    "obituary to None on the one route this suite cannot drive")
+handler = [n for n in ast.walk(tree)
+           if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
+           and n.func.id == "write_unmeasured_report" and n.args
+           and isinstance(n.args[0], ast.Attribute) and n.args[0].attr == "report_path"]
+if len(handler) != 1:
+    problems.append(f"{len(handler)} calls of write_unmeasured_report take run.report_path, "
+                    "expected 1 — main()'s handler is the only route that cannot read the local")
+
+expected_callers = ["gate", "gate", "gate", "main", "unmeasured"]
+if sorted(wur_reads) != expected_callers:
+    problems.append(f"write_unmeasured_report is reached from {sorted(wur_reads)}, expected "
+                    f"{expected_callers}. Every caller is a route to the marker, and the suite "
+                    "asserts one per route: R1 case 61, R2 case 32, R3 case 49, R4 case 51")
+
+# The producer and the consumer have to be the same claim. Loosening this grep — dropping $LEDGER,
+# or guarding it on the exit code — makes the gate script deny a ledger it wrote, and no engine
+# case can see that (`gemini-3.7-flash-high`, asked to break rather than review).
+consumer = open(gate, encoding="utf-8").read()
+wanted = 'grep -qF "mock-fidelity: report written to $LEDGER" "$ENGINE_LOG"'
+if consumer.count(wanted) != 1:
+    problems.append("mock-fidelity-gate.sh no longer reads the marker at the path it asked for, "
+                    f"as `{wanted}` — the producer and the consumer have drifted apart")
+
+for line in problems:
+    print(line)
+sys.exit(1 if problems else 0)
+ENUM
+then
+  echo "ok    the marker is emitted at two sites and its obituary has five callers, all enumerated"
+else
+  echo "FAIL  the marker's emission sites or routes have changed, so the route table is incomplete"
+  fail=1
+fi
+
+# 61 — R1: the manifest itself will not parse. This is the first of `write_unmeasured_report`'s
+# five callers and the only one no run in this file reached — measured, not assumed: a trace of the
+# two emission lines across all 145 engine processes the suite starts recorded zero hits here.
+# Every other route to an obituary was covered and this one was not, which is what happens when a
+# marker is armed route by route against a route set nobody enumerated.
+root="$SCRATCH/manifest-unparseable"; LEDGER61="$SCRATCH/manifest-unparseable-ledger.md"
+export FIXTURE_BROKEN=manifest-not-json; build "$root"; unset FIXTURE_BROKEN
+printf '# Breadth ledger — fixture\n\n| Layer | Result |\n|---|---|\n| `breadth` | STALE-FROM-AN-EARLIER-RUN |\n' > "$LEDGER61"
+cases=$((cases + 1))
+out61=$(PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER61" 2>&1)
+status61=$?
+if [ "$status61" = 3 ] && grep -qF 'did not parse' <<<"$out61" \
+   && grep -qF "mock-fidelity: report written to $LEDGER61" <<<"$out61" \
+   && grep -qF 'This run did not produce a table' "$LEDGER61" \
+   && ! grep -qF 'STALE-FROM-AN-EARLIER-RUN' "$LEDGER61"; then
+  echo "ok    a manifest that will not parse replaces the ledger and says so — exit $status61"
+else
+  echo "FAIL  an unparseable manifest returned $status61, ledger: $(head -8 "$LEDGER61" | tr '\n' ' ' | cut -c1-200)"
+  echo "$out61" | sed 's/^/        /'
+  fail=1
+fi
+
+# 62-67 — the marker's only consumer, driven hermetically.
+#
+# `mock-fidelity-gate.sh` lines 126-141 are where the marker is finally read, and until this pass
+# no case reached them: the two gate-script routes the suite could drive (`no-such-surface`, an
+# unparseable manifest) both return before the engine is invoked. The file said so, and gave a
+# reason that was measurably false — that reaching the decision needs the MEASURE build and four
+# rendered dumps, "three minutes and not hermetic". It needs a symlinked script, the `swift` stub
+# this file already writes and twelve lines of `MeasureDump`, and it takes about a second.
+#
+# All three branches are driven, plus both emission sites and both non-zero verdicts, because the
+# block's failure modes are not symmetric: deleting the grep, inverting it, collapsing the two
+# denial branches into one, and guarding the affirmation on `$status` are four different edits and
+# only the last of them is invisible to a clean fixture.
+
+gate_case() {
+  # $1 = name, $2 = expected exit, $3 = root, $4... = strings the gate's own output must carry
+  # (a leading `!` refutes, as in `expect`).
+  local name=$1 want=$2 root=$3 out status
+  cases=$((cases + 1))
+  shift 3
+  out=$(cd "$root" && PATH="$root/bin:$PATH" ./scripts/acceptance/mock-fidelity-gate.sh fixture 2>&1)
+  status=$?
+  if [ "$status" != "$want" ]; then
+    echo "FAIL  $name — the gate script exited $status, expected $want"
+    echo "$out" | sed 's/^/        /'
+    fail=1
+    return
+  fi
+  local w
+  for w in "$@"; do
+    [ -z "$w" ] && continue
+    if [ "${w:0:1}" = "!" ]; then
+      if grep -qF -- "${w:1}" <<<"$out"; then
+        echo "FAIL  $name — the gate script said what it must not: ${w:1}"
+        echo "$out" | sed 's/^/        /'
+        fail=1
+        return
+      fi
+      continue
+    fi
+    if ! grep -qF -- "$w" <<<"$out"; then
+      echo "FAIL  $name — the gate script never said: $w"
+      echo "$out" | sed 's/^/        /'
+      fail=1
+      return
+    fi
+  done
+  echo "ok    $name — exit $status"
+}
+
+CLAIM_YES="mock-fidelity-gate: ledger written to planning/fidelity/fixture.ledger.md"
+CLAIM_NO="mock-fidelity-gate: NO ledger was written by this run"
+CLAIM_NONE="mock-fidelity-gate: no ledger was written by this run"
+
+# 62 — a clean surface: the engine writes the table, emits at S1, and the script repeats the claim.
+root="$SCRATCH/gate-clean"; build_gate_root "$root"
+gate_case "the gate claims a ledger the engine said it wrote" 0 "$root" "$CLAIM_YES" "!$CLAIM_NO"
+grep -qF 'Present / divergent / absent' "$root/planning/fidelity/fixture.ledger.md" || {
+  echo "FAIL  the gate script's clean run left no table at planning/fidelity/fixture.ledger.md"; fail=1; }
+
+# 63 — findings. The exit has to be the ENGINE's, not `tee`'s: the engine is on the left of a pipe
+# and `status=${PIPESTATUS[0]}` is the line that keeps exit 1 from arriving as exit 0.
+root="$SCRATCH/gate-drift"; export FIXTURE_DRIFT=1; build_gate_root "$root"; unset FIXTURE_DRIFT
+gate_case "the gate passes the engine's findings exit through the pipe" 1 "$root" \
+  "$CLAIM_YES" "label differs" "!$CLAIM_NO"
+
+# 64 — a ledger that could not be replaced, with an earlier run's table sitting at the path. No
+# marker, a file on disk: the denial branch, and the one sentence in the whole gate that stops a
+# stale table being read as this run's. The FILE is read-only rather than its directory, because
+# `open(path, "w")` on an existing writable file succeeds in a directory nobody may write to.
+root="$SCRATCH/gate-deny"; build_gate_root "$root"
+printf '# Breadth ledger — fixture\n\n| Layer | Result |\n|---|---|\n| `breadth` | STALE-FROM-AN-EARLIER-RUN |\n' \
+  > "$root/planning/fidelity/fixture.ledger.md"
+chmod 400 "$root/planning/fidelity/fixture.ledger.md"
+gate_case "the gate denies a ledger this run did not write" 3 "$root" \
+  "$CLAIM_NO" "is an earlier run's and does not describe this one" "!$CLAIM_YES"
+chmod 600 "$root/planning/fidelity/fixture.ledger.md"
+grep -qF 'STALE-FROM-AN-EARLIER-RUN' "$root/planning/fidelity/fixture.ledger.md" || {
+  echo "FAIL  case 64's stale table was replaced after all, so the denial was about something else"
+  fail=1; }
+
+# 65 — the same run with nothing at the path at all. A third sentence rather than the second one
+# naming a file that is not there.
+root="$SCRATCH/gate-nofile"; build_gate_root "$root"
+chmod 500 "$root/planning/fidelity"
+gate_case "the gate says so when there is no ledger at all" 3 "$root" \
+  "$CLAIM_NONE" "and there is no" "!$CLAIM_NO" "!$CLAIM_YES"
+chmod 700 "$root/planning/fidelity"
+
+# 66 — exit 3 WITH a table. The decision reads the marker, not the exit code, and those are
+# different claims: a run that measured eight layers, wrote the table and then found a required
+# layer blocked exits 3 having written the very file the script is about to describe. Guarding the
+# affirmation on `[ $status -ne 3 ]` reads as a tidy-up, leaves every engine case green, and makes
+# the gate deny its own table (`gemini-3.7-flash-high`, asked to break rather than review).
+root="$SCRATCH/gate-blocked"; export FIXTURE_NO_AXIS=1; build_gate_root "$root"; unset FIXTURE_NO_AXIS
+gate_case "the gate claims a ledger written by a run that then went inconclusive" 3 "$root" \
+  "$CLAIM_YES" "measured nothing" "!$CLAIM_NO"
+grep -qF 'Present / divergent / absent' "$root/planning/fidelity/fixture.ledger.md" || {
+  echo "FAIL  case 66's run exited 3 without leaving the table it claimed"; fail=1; }
+
+# 67 — the same decision reached from the OTHER emission site. Here the run never measures
+# anything: `Context.__init__` raises, `write_unmeasured_report` replaces the ledger with the
+# obituary and emits the marker from S2, and the gate has to affirm — the file at that path IS
+# this run's, and saying otherwise would send a reader to a table that no longer exists.
+root="$SCRATCH/gate-obituary"; export FIXTURE_BROKEN=manifest-no-floors; build_gate_root "$root"
+unset FIXTURE_BROKEN
+gate_case "the gate claims the obituary as this run's ledger" 3 "$root" \
+  "$CLAIM_YES" "!$CLAIM_NO"
+grep -qF 'This run did not produce a table' "$root/planning/fidelity/fixture.ledger.md" || {
+  echo "FAIL  case 67 left something other than the obituary at the ledger path"; fail=1; }
 
 # 37 — the real colour-literal lint, against every colour-constructor spelling the `literals` layer
 # claims to catch. Not the stub: this layer's whole value is that it EXECUTES that script, and on

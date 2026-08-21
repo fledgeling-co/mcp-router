@@ -203,12 +203,17 @@ public actor UpstreamPool {
     ///
     /// **Unbounded by design, so call it under a bound.** The wait is exactly as long as the
     /// arming, and an arming can be the pool's default — ten minutes in P6, which is what makes
-    /// the per-server override provable there. Nothing here can shorten that: `await task.value`
-    /// on a `Task<_, Never>` has no cancellation check, so a deadline inside this method could not
-    /// abandon the wait, and a breaker that names the line it gave up on needs the caller's source
-    /// location anyway. `awaitEvent` in `PoolTestSupport` is where both live, and a test asserts
-    /// every call site goes through it — a regression in the reaping path is meant to name an
-    /// assertion inside the CI bound rather than time the run out without naming anything.
+    /// the per-server override provable there. The bound lives in `awaitEvent` in
+    /// `PoolTestSupport` and a test asserts every call site goes through it, so a regression in
+    /// the reaping path names an assertion inside the CI bound instead of timing the run out
+    /// without naming anything.
+    ///
+    /// The reason it lives there rather than here is **layering, not concurrency** — a correction
+    /// owed to the out-of-family panel, which caught the first version of this comment claiming
+    /// more. A deadline in here could abandon the wait perfectly well; what cannot come into an
+    /// actor in `RouterCore` is `#require`, and a breaker that names the line it gave up on needs
+    /// the caller's source location. What is genuinely true of `await task.value` is narrower: it
+    /// has no cancellation check, so cancelling a waiter does not end the wait.
     func awaitReap(_ name: String, epoch: ReapEpoch) async {
         guard let timer = entries[name]?.reap, timer.epoch == epoch else { return }
         await timer.task.value

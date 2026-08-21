@@ -216,13 +216,33 @@ func waitUntil(
 /// all. This item's thesis ranks a nameless timeout below a flake, so the awaits get the bound
 /// the polls already have, and a regression in this class names an assertion inside the CI bound.
 ///
-/// The wait is **abandoned**, not cancelled, and that distinction is the reason this exists rather
-/// than a task group. `await task.value` on a `Task<_, Never>` has no cancellation check, so
-/// racing it against a sleep inside a group changes nothing: the group awaits every child before
-/// it returns, including the one still sitting out the ten-minute timer, and the run takes ten
-/// minutes anyway — the bound landing on the wrong side of the await. An observer records the
-/// landing instead and this polls that record, so giving up costs one task that finishes by
-/// itself later, in a run that has already gone red.
+/// The wait is **abandoned**, not cancelled. A task group around `await task.value` as it stands
+/// would not help: that call on a `Task<_, Never>` has no cancellation check, so the group awaits
+/// the loser after `cancelAll()` and the run still takes ten minutes — the bound landing on the
+/// wrong side of the await. An observer records the landing instead and this polls that record, so
+/// giving up costs one task that finishes by itself later, in a run that has already gone red.
+///
+/// **A group is not ruled out, only that shape of one**, and the correction is a reviewer's rather
+/// than mine: make the WAIT cancellation-aware and a group abandons it properly. `AuthorizationURLBox`
+/// in `OAuthFlowStarter.swift` is that construction, written here for this exact hang — a race whose
+/// losing child could not be resumed by cancellation ran 91 seconds against a 20-second budget. A
+/// continuation resumed by whichever of event or deadline arrives first would also retire the 2ms
+/// poll and `D-g3-i` with it. It is `D-g3-k`, deferred rather than dismissed: this poll is measured
+/// and the handshake would need its own mutation evidence to be worth more than it.
+///
+/// Ten seconds is a **smaller** margin here than it is on `waitUntil`, and is stated rather than
+/// inherited: the conditions there are actor hops taking microseconds, while the events here
+/// include the pool's own 25ms and 30ms windows, so the headroom is 300-400x rather than four
+/// orders of magnitude. It is still 66x the 150ms budget that produced this item's original red.
+/// Reaching it needs the machine to stretch a 25ms window past ten seconds, which is the total
+/// starvation `waitUntil`'s own note describes and not a load a number could be chosen against.
+///
+/// `event` should **await an outcome rather than do work**. On the timed-out path the observer
+/// outlives the test that started it, holding the pool until the arming it is parked on completes;
+/// the five call sites here only await, so nothing acts late, and the reap that eventually runs is
+/// the pool's own task, which exists whether or not anything is watching it. Put work in the
+/// closure and that stops being true. An out-of-family reviewer read the leak as the observer
+/// performing pool cleanup during later tests; it does not, and this is what keeps that so.
 func awaitEvent(
     _ what: Comment,
     within seconds: Double = 10,
@@ -237,62 +257,6 @@ func awaitEvent(
     defer { observer.cancel() }
     try await waitUntil(what, within: seconds, sourceLocation: sourceLocation) {
         landed.withLock { $0 }
-    }
-}
-
-/// The bound above is worth what its being used is worth, so its being used is asserted.
-///
-/// `awaitReap` and `awaitSessionEnded` cannot bound themselves: abandoning a wait needs a second
-/// task, and a breaker that reports through `#require` needs the caller's source location to name
-/// the line that gave up. Both belong out here, which leaves an accessor whose hazard lives in a
-/// doc comment — and a doc comment is evidence for the moment somebody reads it. That is the
-/// argument `StandingConstraintsTests` already makes for turning a remembered `grep` into an
-/// assertion, arriving in the file that needs it.
-///
-/// Counted per function rather than by line distance: a proximity window goes red on a wrap that
-/// happens to sit a few lines further up, and a gate that can report a failure that is not there
-/// is the defect this whole item exists to remove. The bound accepted in exchange is that two
-/// accessor calls inside one `awaitEvent` block read as one wrapped and one bare, and this asks
-/// for them to be split.
-@Suite("The pool's unbounded awaits are called under a bound")
-struct PoolAwaitBoundTests {
-    /// Spelled with the leading dot so a definition (`func awaitReap`) is not read as a call.
-    private static let unbounded = [".awaitReap(", ".awaitSessionEnded("]
-
-    @Test("every awaitReap and awaitSessionEnded call site sits inside awaitEvent")
-    func unboundedAwaitsAreWrapped() throws {
-        // This file is skipped because it is where the needles are spelled out, and scanning it
-        // would read this checker's own source as call sites. Nothing here calls the accessors.
-        let checker = URL(fileURLWithPath: #filePath).lastPathComponent
-        let tests = try RepoTree.root().appendingPathComponent("app/Tests")
-        let files = RepoTree.swiftFiles(under: tests).filter { $0.lastPathComponent != checker }
-        try #require(!files.isEmpty, "no test sources were scanned, so this proves nothing")
-
-        var seen = 0
-        for file in files {
-            let text = try String(contentsOf: file, encoding: .utf8)
-            for body in text.components(separatedBy: "func ") {
-                let calls = Self.unbounded.reduce(0) { $0 + occurrences(of: $1, in: body) }
-                guard calls > 0 else { continue }
-                seen += calls
-                let signature = body.prefix(while: { $0 != "\n" })
-                #expect(
-                    calls <= occurrences(of: "awaitEvent(", in: body),
-                    """
-                    \(file.lastPathComponent), func \(signature): \(calls) await(s) on a task the \
-                    pool owns, and fewer `awaitEvent` wraps. Such an await runs as long as the \
-                    arming — 600 000 ms in P6 — so a regression there times the run out instead of \
-                    naming a test.
-                    """
-                )
-            }
-        }
-        // A scan that reached nothing must not read as a scan that found nothing wrong.
-        #expect(seen >= 5, "only \(seen) call sites were read; the five known ones are not being seen")
-    }
-
-    private func occurrences(of needle: String, in text: String) -> Int {
-        text.components(separatedBy: needle).count - 1
     }
 }
 

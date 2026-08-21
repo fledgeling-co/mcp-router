@@ -151,6 +151,12 @@ STATES = [
     (r"retired", "retired"),
     (r"\bheld\b", "held"),
     (r"\bmerged\b|\bdone\b", "shipped"),
+    # "Ready to verify" must be tested BEFORE "verified": it is the state every item passes
+    # through on its way to Done, and `\bverified\b` does not match "verify", so before this
+    # row existed the check that is named for currency read nothing at all for the one moment
+    # the two files are most likely to disagree. It announced the skip rather than passing
+    # silently, which is the only reason it was cheap to find.
+    (r"ready to verify|ready for verification", "ready-to-verify"),
     (r"ready to merge|\bverified\b", "verified"),
     (r"in progress|dispatched", "in-progress"),
     (r"ready for ai", "ready-for-ai"),

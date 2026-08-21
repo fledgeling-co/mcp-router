@@ -18,6 +18,7 @@ Three already found here, each filed separately and none recognised as the same 
 | `ledger-reconcile.py` check H, before the skip list | rows | rows it could parse — 23 four-cell register rows were dropped silently |
 | G2's first acceptance test | readability | in-scope-ness — satisfiable by moving rows *out* of the reader's scope |
 | R7's `no-harness-config-writes.sh` | any write anywhere under `app/Sources` | writes on the *same physical line* as the token, so a realistic applier walks through |
+| `ledger-reconcile.py` check I | whether the two ledgers agree on an item's state | whether they agree on a state its classifier can name — and `\bverified\b` does not match "verify", so **`Ready to verify`, the state every item passes through on its way to Done, matched no pattern at all**. The currency check read nothing for the one moment the two files are most likely to disagree. Found 2026-08-21 when M23 became the only row in that state; fixed by adding the pattern ahead of `verified`. It reported `1 unread (M23)` rather than passing silently, which is the only reason it cost one line to find — and is the difference between this instance and the first one in this table |
 
 And the one from `egress` that produced the framing: a test named
 `the_exchange_budget_has_measured_headroom_over_the_slowest_verb` reads `warm_worst * 4`. Cutting

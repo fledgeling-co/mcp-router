@@ -1362,8 +1362,31 @@ def main() -> int:
         # been left. Doing it here rather than letting the interpreter do it at shutdown is what
         # turns a broken pipe from exit 120 into exit 3. Both streams, because either one can
         # carry the process to 120 from a frame this file does not own.
-        sys.stdout.flush()
-        sys.stderr.flush()
+        #
+        # It is caught HERE rather than left to the boundary below, and the reason is the word
+        # "after" in the line above. By this point `gate()` has returned: it has written whatever
+        # ledger it was going to write and has already said, on the way past, what it did. Letting
+        # this flush fall into that handler re-entered the obituary logic with `report_written`
+        # False and a real `report_path`, so the obituary was written a SECOND time and the ledger
+        # a reader opens said `gate: BrokenPipeError` where the first write had said
+        # `manifest: no artifact at …` — the true cause replaced by a downstream symptom, in the
+        # file whose subject is honest reporting. Measured 3/3 on a direct invocation whose stdout
+        # had no reader; `mock-fidelity-gate.sh` cannot reach it because `tee` holds the pipe open.
+        #
+        # This says nothing about what is on disk. The route that reaches it includes the one where
+        # the obituary write itself failed, and there the ledger is an earlier run's — the WARNING
+        # one line above is what describes it, and a second sentence claiming the file records this
+        # run would contradict it (`claude-fable-5`, asked to break rather than review).
+        try:
+            sys.stdout.flush()
+            sys.stderr.flush()
+        except Exception as error:
+            emit(f"INCONCLUSIVE gate: {type(error).__name__}: {error}\n"
+                 "            The verdict was reached and this happened while flushing after it, "
+                 "so the run has no delivered verdict. What it already said about the ledger is "
+                 "what stands.")
+            hush_streams()
+            return 3
         return code
     except Exception as error:
         try:

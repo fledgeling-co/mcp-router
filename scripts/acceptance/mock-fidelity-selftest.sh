@@ -8,6 +8,23 @@
 # red was trusted for weeks. So this drives the real layer engine against a scratch tree built for
 # each case, and fails if any case comes back with an exit the case was not built to produce.
 #
+# The three standing gates on this item, with their commands. One of them spent four briefs in the
+# gate list as "B 3 with a ledger written" with no surface, no command and no fixture recorded
+# anywhere, so every pass reported it and no pass could run it — a gate in a standing list that
+# nobody can run is a claim rather than a check.
+#
+#   A  ./scripts/acceptance/mock-fidelity-gate.sh
+#      The real surface end to end. Needs the MEASURE build, so about three minutes and not
+#      hermetic. Exit 1 with findings, and the ledger at planning/fidelity/servers.ledger.md.
+#   B  python3 scripts/acceptance/mock_fidelity.py planning/fidelity/servers.layers.json \
+#        /tmp/no-such-dumps --report /tmp/mock-fidelity-B.ledger.md
+#      The third exit against the real manifest: a layer the verdict depends on could not read its
+#      artifact. Exit 3, the obituary written to the report path and the marker emitted. Hermetic,
+#      no build, and it writes nowhere the repo reads. Established 21 Aug 2026 — what pass 2 ran
+#      under this letter was never written down and is not recoverable, so this is an equivalent
+#      rather than a reproduction, and it is recorded here so the next pass has one to run.
+#   C  this file. Exit 0, hermetic, about a second, and it reaches all three exits including B's.
+#
 # It is hermetic and takes about a second. The scratch tree is a whole fake repo root: the engine
 # computes its root from its own __file__, so a SYMLINK to it inside a temp directory makes every
 # path it resolves — the mock, the pairing, the lint, the app — resolve inside that directory. The
@@ -1042,6 +1059,56 @@ else
   fail=1
 fi
 
+# 68 — R5 with a report path, on the same fixture, which the route table below called unreachable.
+#
+# The completeness argument for that row was sound about `gate()`'s interior and silent about
+# `main()`, which flushes stdout AFTER `gate()` has returned. Point the same dead pipe at a run
+# whose manifest is missing and `gate()` takes R1: it writes the obituary naming
+# `manifest: no artifact at …`, emits the marker, and returns 3. The flush then raises
+# `BrokenPipeError` into the boundary with `report_written` False and `report_path` set — so the
+# obituary was written a SECOND time, the marker emitted a second time, and the ledger a reader
+# opens named a downstream symptom where the first write had named the cause. Measured 3/3 on the
+# shipped engine with no mutation, which is what makes this a defect rather than a hardening.
+#
+# The two invocations are case 44's buffered/unbuffered pair and they are not equivalent here
+# either: `PYTHONUNBUFFERED=1` makes `emit`'s own write raise at the print, so nothing is left in
+# the buffer for `main()`'s flush to re-raise on, the route is never entered, and the unbuffered
+# run is green on the shipped engine. The buffered one is the load-bearing invocation, and a case
+# built only on the unbuffered spelling would have seen nothing (`claude-fable-5`).
+LEDGER68="$SCRATCH/brokenpipe-obituary-ledger.md"
+LEDGER68U="$SCRATCH/brokenpipe-obituary-unbuffered-ledger.md"
+ERR68="$SCRATCH/brokenpipe-obituary-stderr.txt"
+ERR68U="$SCRATCH/brokenpipe-obituary-unbuffered-stderr.txt"
+MISSING68="$root/planning/fidelity/no-such-manifest.layers.json"
+printf '# Breadth ledger — fixture\n\n| Layer | Result |\n|---|---|\n| `breadth` | STALE-FROM-AN-EARLIER-RUN |\n' > "$LEDGER68"
+printf '# Breadth ledger — fixture\n\n| Layer | Result |\n|---|---|\n| `breadth` | STALE-FROM-AN-EARLIER-RUN |\n' > "$LEDGER68U"
+cases=$((cases + 1))
+PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$MISSING68" "$root/dumps" --report "$LEDGER68" > >(:) 2>"$ERR68"
+status68=$?
+PATH="$root/bin:$PATH" PYTHONUNBUFFERED=1 python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$MISSING68" "$root/dumps" --report "$LEDGER68U" > >(:) 2>"$ERR68U"
+status68u=$?
+markers68=$(grep -cF "mock-fidelity: report written to $LEDGER68" "$ERR68")
+markers68u=$(grep -cF "mock-fidelity: report written to $LEDGER68U" "$ERR68U")
+# The symptom belongs on the console and the cause belongs in the file. Both clauses matter: an
+# engine that stopped reporting the broken pipe at all would satisfy the ledger clauses while
+# losing the failure, and one that reports it into the ledger is the defect this case exists for.
+if [ "$status68" = 3 ] && [ "$status68u" = 3 ] \
+   && grep -qF 'no artifact at' "$LEDGER68" && ! grep -qF 'BrokenPipeError' "$LEDGER68" \
+   && ! grep -qF 'STALE-FROM-AN-EARLIER-RUN' "$LEDGER68" && [ "$markers68" = 1 ] \
+   && grep -qF 'INCONCLUSIVE gate: BrokenPipeError' "$ERR68" \
+   && grep -qF 'no artifact at' "$LEDGER68U" && ! grep -qF 'BrokenPipeError' "$LEDGER68U" \
+   && ! grep -qF 'STALE-FROM-AN-EARLIER-RUN' "$LEDGER68U" && [ "$markers68u" = 1 ]; then
+  echo "ok    a pipe that breaks after the verdict leaves the obituary naming the cause — exit $status68"
+else
+  echo "FAIL  the obituary was overwritten after the verdict: exit $status68 buffered / $status68u unbuffered,"
+  echo "      markers $markers68 buffered / $markers68u unbuffered (1 each expected)"
+  echo "      ledger:     $(grep -m2 -E 'gate:|manifest:|STALE' "$LEDGER68" | tr '\n' ' ' | cut -c1-200)"
+  echo "      ledger(u):  $(grep -m2 -E 'gate:|manifest:|STALE' "$LEDGER68U" | tr '\n' ' ' | cut -c1-200)"
+  fail=1
+fi
+
 # 46 — BL-2's enumeration, checked rather than asserted. The fix for a property that quantifies
 # over "every reader of this structure" is only as good as the enumeration behind it, and the
 # enumeration was wrong twice: the claimant test went into `layer_breadth` while `layer_copy` read
@@ -1124,7 +1191,7 @@ fi
 #   R2  gate().unmeasured()  — one of six validation returns        … case 32
 #   R3  gate()               — Context construction or load raised  … case 49
 #   R4  gate()               — write_report raised                  … case 51, third invocation
-#   R5  main()               — something escaped gate() unwritten   … unreachable with a path
+#   R5  main()               — gate() raised with nothing written   … case 68
 #
 # Six route classes, and what each is worth:
 #
@@ -1134,22 +1201,29 @@ fi
 #      path rather than however the engine would prefer to spell it).
 #   R1-R4 are asserted at the cases named above. R4's assertion is that the marker is ABSENT,
 #      because that is the route whose write failed.
-#   R5 cannot reach the marker while `--report` is set, and that is a property of the engine
-#      rather than a hole here. With a report path, `gate()` either returns 3 from R1-R4 without
-#      raising, or it reaches the report block — and if it reaches the report block then
-#      `run.report_written` is true before anything downstream can raise, so `main()`'s handler
-#      takes its other branch, the one that says the ledger stands. That claim is checked rather
-#      than asserted: the ordering which makes R5 reachable with a path is the report write moved
-#      back after the console loop, and case 43 goes red under it on the three clauses that read
-#      this run's table and the diagnostic naming it. Under that ordering the marker is still
-#      emitted — from S2, through R5 — which is what "R5 became reachable" looks like from here,
-#      and it is why the `Run` wiring is checked in case 60 rather than left to a route that
-#      currently cannot execute.
+#   R5 WAS reachable with a report path, and this row now says what was measured rather than what
+#      was argued. The argument — with `--report` set, `gate()` either returns 3 from R1-R4
+#      without raising, or it reaches the report block, after which `run.report_written` is true
+#      before anything downstream can raise — is sound about `gate()`'s INTERIOR and silent about
+#      `main()`, which flushed stdout AFTER `gate()` had returned. Point a dead pipe at a run whose
+#      manifest is missing and that flush raised into the boundary with `report_written` False and
+#      `report_path` set: R5 executed with a real path, the obituary was written a second time,
+#      and the ledger a reader opens said `gate: BrokenPipeError` where the first write had said
+#      `manifest: no artifact at …`. Measured 3/3 on the engine as shipped, no mutation.
+#      The engine now catches that flush where it happens, one frame before the boundary, so what
+#      reaches R5 is `gate()` RAISING with the report unwritten — which is the part the interior
+#      argument does cover. Case 68 is the regression test and it was watched red on the shipped
+#      engine before it was green on this one; the `Run` wiring R5 depends on is checked in case 60.
+#      The lesson is the row rather than the fix: the completeness argument was derived from this
+#      engine and did not read the comment sitting directly above the line that falsified it.
 #
-# Measured against the shipped suite before this pass, by tracing the two emission lines across
-# every engine process the suite starts: 145 runs, 10 of them with `--report`, eight emissions —
-# five at S1, three at S2, through R2 once and R3 twice. R1 was executed by nothing at all, and
-# R2's emission was read by nothing. Both are closed above and below.
+# Measured against the 59-case suite that shipped before the sixth pass, by tracing every python3
+# process it starts: 145 processes, of which 52 are the engine and 10 of those carry `--report`.
+# Eight emissions — five at S1, three at S2, through R2 once and R3 twice. R1 was executed by
+# nothing at all, and R2's emission was read by nothing. Both are closed above and below.
+# "145 engine runs" was this file's own wording for that trace and it is wrong: 145 is every
+# python3 process the suite starts, the fixture builder and the affordance tool included, and the
+# engine is 52 of them. Re-measured on the same suite with a `sitecustomize.py` logging argv.
 
 # 60 — the enumeration itself, checked against the engine's syntax tree on every run.
 #
@@ -1168,17 +1242,91 @@ source = open(engine, encoding="utf-8").read()
 tree = ast.parse(source)
 problems = []
 
-# One spelling of the marker, or the two sites below are not the whole set.
-spellings = source.count("report written to")
-if spellings != 1:
-    problems.append(f"'report written to' appears {spellings} times in the engine; the marker has "
-                    "to have exactly one spelling or an enumeration of its emitters means nothing")
+# The marker's spelling, derived from the syntax tree rather than from a substring scan of the
+# file. `source.count("report written to")` reads a comment as a spelling and misses one the
+# parser would fold: `"mock-fidelity: report" " written to "` is a single Constant carrying the
+# marker's bytes and adds nothing to that count, so a second emitter spelled that way satisfies
+# the consumer's grep byte for byte while the guard stays silent.
+MARKER = "mock-fidelity: report written to "
 
-# The walk below finds a global through the name it is bound to. These reach one without it.
-for escape in ("getattr(", "vars(", "__dict__"):
+
+def folded(node):
+    """The constant string a node denotes, or None.
+
+    Implicit concatenation is already one Constant by the time the parser is done; `+` of two
+    foldable sides and an f-string whose pieces are all constants are the other two spellings.
+    Bytes are folded too, because `os.write(1, b"...")` reaches the consumer's stream without
+    going anywhere near `print`.
+    """
+    if isinstance(node, ast.Constant):
+        value = node.value
+        if isinstance(value, bytes):
+            try:
+                value = value.decode("utf-8")
+            except UnicodeDecodeError:
+                return None
+        return value if isinstance(value, str) else None
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+        left, right = folded(node.left), folded(node.right)
+        return None if left is None or right is None else left + right
+    if isinstance(node, ast.JoinedStr):
+        pieces = [folded(value) for value in node.values]
+        return None if any(piece is None for piece in pieces) else "".join(pieces)
+    return None
+
+
+spellings = [node for node in ast.walk(tree)
+             if (value := folded(node)) is not None and MARKER in value]
+if len(spellings) != 1:
+    problems.append(f"the marker's bytes are spelled {len(spellings)} times in the engine's syntax "
+                    "tree, expected 1 — every emitter has to reach the consumer through the one "
+                    "constant, or an enumeration of the emitters means nothing")
+
+# Assembly, which is the same evasion one layer down: `"mock-fidelity: %s to %s" % ("report
+# written", path)` puts the consumer's bytes on the stream without any fold ever seeing them, and
+# so does a `.format`, a `.join`, or `os.write(1, b"mock-fidelity: ")`. Nothing else in this engine
+# needs a long fragment of the marker, so a constant that is one is either the marker being
+# reassembled or a message that should be using REPORT_MARKER. Seven is the shortest bound this
+# file admits, measured rather than chosen: at six `'report'` collides and at four `'mock'` does.
+for node in ast.walk(tree):
+    if not isinstance(node, ast.Constant):
+        continue
+    value = folded(node)
+    if value is not None and value != MARKER and len(value) >= 7 and value in MARKER:
+        problems.append(f"line {node.lineno} carries {value!r}, a {len(value)}-character piece of "
+                        "the marker. Assembled at run time — `%`, `.format`, `.join`, split bytes "
+                        "through os.write — those bytes reach the consumer with no spelling to find")
+
+# The walk below finds a global through the name it is bound to. Each of these reaches one without
+# it, and `sys.modules[__name__].REPORT_MARKER` is an Attribute rather than a Name load, so it
+# reads the constant while the walk records nothing.
+for escape in ("getattr(", "vars(", "__dict__", "globals(", "locals(", "setattr(", "eval(",
+               "exec(", "compile(", "__import__", "importlib", "sys.modules", "os.write("):
     if escape in source:
         problems.append(f"the engine contains {escape!r}, so walking for the name REPORT_MARKER no "
                         "longer enumerates everything that can print it")
+
+# A sibling module is the third way to add an emitter without touching anything the walk above
+# reads: this is a walk of THIS file's syntax tree and it says nothing about a file this one
+# imports. Standard library only, and no relative import, keeps the enumeration's population equal
+# to the file it walks. If the engine is ever split into a package this fails, and that is the
+# signal to re-derive the enumeration across the package rather than a false alarm — the single
+# file is what the completeness argument rests on, so the cost is accepted deliberately.
+for node in ast.walk(tree):
+    if isinstance(node, ast.Import):
+        imported = [(alias.name.split(".")[0], 0) for alias in node.names]
+    elif isinstance(node, ast.ImportFrom):
+        imported = [((node.module or "").split(".")[0], node.level)]
+    else:
+        continue
+    for name, level in imported:
+        if level:
+            problems.append(f"line {node.lineno} imports relatively from {'.' * level}{name}, so "
+                            "the marker can be emitted from a file this enumeration never reads")
+        elif name not in sys.stdlib_module_names:
+            problems.append(f"line {node.lineno} imports {name!r}, which is not in the standard "
+                            "library, so the marker can be emitted from a file this enumeration "
+                            "never reads")
 
 # Innermost enclosing function for every node, so `unmeasured` is attributed to itself rather than
 # to `gate` around it.
@@ -1260,6 +1408,16 @@ if consumer.count(wanted) != 1:
     problems.append("mock-fidelity-gate.sh no longer reads the marker at the path it asked for, "
                     f"as `{wanted}` — the producer and the consumer have drifted apart")
 
+# What this does NOT catch, measured rather than left to a reader's optimism. Every check above is
+# static, and a static check on an emitter is one-directional by construction: it catches the
+# marker being LOST or MOVED, and it catches the classes of new emitter enumerated above, but it
+# cannot enumerate every way bytes can be assembled at run time. Measured against this engine:
+# a chained `+` of constants, a `.format`, a `.join`, a `%`, split bytes through `os.write` and a
+# subprocess handed the marker as implicitly-concatenated pieces all go red here; an assembly from
+# constants of SIX characters or fewer — six pieces or more — stays green, because seven is the
+# shortest fragment bound this file admits. The other half of the guard is behavioural and it is
+# what covers a marker that goes missing: cases 43, 44, 49, 51 and 61 assert the marker per route
+# on real runs, and 62-67 assert what the consumer does with it.
 for line in problems:
     print(line)
 sys.exit(1 if problems else 0)

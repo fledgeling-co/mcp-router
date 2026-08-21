@@ -11,6 +11,7 @@ import { UpstreamPool } from './pool.js';
 import { splitToolName, unionTools, visibleTo, placardFor, type ManifestStore } from './manifest.js';
 import { ClientResolver, UsageStore, projectOf } from './usage.js';
 import { handleControl, controlToken, isControlPath } from './control.js';
+import { handleAuthServer, isAuthServerPath, instructionsFor } from './oauth.js';
 import { log } from './log.js';
 
 const MCP_PATH = '/mcp';
@@ -41,6 +42,34 @@ function readBody(req: IncomingMessage): Promise<unknown> {
   });
 }
 
+/**
+ * The request body as text, for the authorization-server routes.
+ *
+ * `readBody` parses JSON and rejects anything else, which is right for /mcp and for the control
+ * API and wrong for `/token`: RFC 6749 makes that endpoint `application/x-www-form-urlencoded`,
+ * and a parser that throws on a form body would refuse every standard OAuth client. The stream can
+ * be consumed exactly once, so whichever reader runs must be the only one.
+ */
+function readRaw(req: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    let size = 0;
+    req.on('data', (c: Buffer) => {
+      size += c.length;
+      // Far below readBody's 32 MiB: nothing legitimate on these routes is larger than a few
+      // hundred bytes, and a looping page must not be able to make the router hold megabytes.
+      if (size > 64 * 1024) {
+        reject(new Error('request body too large'));
+        req.destroy();
+        return;
+      }
+      chunks.push(c);
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    req.on('error', reject);
+  });
+}
+
 function json(res: ServerResponse, status: number, body: unknown): void {
   const payload = JSON.stringify(body);
   res.writeHead(status, {
@@ -48,6 +77,56 @@ function json(res: ServerResponse, status: number, body: unknown): void {
     'content-length': Buffer.byteLength(payload),
   });
   res.end(payload);
+}
+
+/**
+ * The authority check, for every route rather than for /mcp alone.
+ *
+ * It used to live only inside the MCP transport — `enableDnsRebindingProtection` on
+ * `StreamableHTTPServerTransport` — which the dispatcher below reaches after /health,
+ * /status and the whole control block have already answered. Measured on 2026-08-21:
+ * /health, /status, /servers and /usage all returned 200 to `Host: evil.example` while
+ * /mcp returned 403. A page on a domain whose DNS re-resolves to 127.0.0.1 is
+ * same-origin with the router by the browser's reckoning, so it could read the usage
+ * history, the project list and the full command line of every configured server. Not
+ * a credential leak — `envKeys` is variable names only — but a reconnaissance surface
+ * nobody chose to publish.
+ *
+ * So the check moved to the front of the ladder, where a route added later inherits it
+ * rather than having to opt in.
+ *
+ * `/mcp`'s answer is the transport's own, byte for byte, because a parity row pins it:
+ * `403 Forbidden`, `content-type: application/json`, and the JSON-RPC envelope in the
+ * member order `jsonrpc, error, id`. Every other route gets the ordinary error envelope
+ * this file's 404 already uses.
+ *
+ * One ordering consequence, deliberate: a POST to /mcp that is both wrongly addressed
+ * and unparseable now answers 403 rather than the 500 it answered when `readBody` ran
+ * first. Refusing a foreign authority before reading its body is the better order, and
+ * the Swift port moves with it.
+ *
+ * A request with no Host header at all is left alone here — Node's own parser answers
+ * 400 to an HTTP/1.1 request without one, so this branch is unreachable through it, and
+ * inventing a refusal the reference cannot produce would be a divergence rather than a fix.
+ */
+function hostRefusal(
+  req: IncomingMessage,
+  res: ServerResponse,
+  pathname: string,
+  allowedHosts: string[]
+): boolean {
+  const host = req.headers.host;
+  if (host === undefined || allowedHosts.includes(host)) return false;
+  if (pathname === MCP_PATH) {
+    json(res, 403, {
+      jsonrpc: '2.0',
+      error: { code: -32000, message: `Invalid Host header: ${host}` },
+      id: null,
+    });
+  } else {
+    json(res, 403, { error: `Invalid Host header: ${host}` });
+  }
+  return true;
 }
 
 /**
@@ -66,7 +145,19 @@ function buildMcpServer(
   usage: UsageStore,
   identify: () => Promise<{ pid?: number; cwd?: string; client?: string }>
 ): Server {
-  const server = new Server({ name: 'mcp-router', version: '0.1.0' }, { capabilities: { tools: {} } });
+  /*
+   * `instructions` reaches the MODEL, not the human: hosts inject it into the system prompt. It is
+   * the second of the two surfaces R14 chose, and the cheap one — it is what lets an assistant
+   * answer "why can't you use X" correctly instead of concluding the capability does not exist.
+   *
+   * Computed per request, because this Server is built per request and the answer changes the
+   * moment an upstream is authorized or re-indexed. A constant string here would be a cached
+   * status, which is the one thing the state report may not be built from.
+   */
+  const server = new Server(
+    { name: 'mcp-router', version: '0.1.0' },
+    { capabilities: { tools: {} }, instructions: instructionsFor(cfg, manifest.current()) }
+  );
 
   // Read through the store, not a snapshot: a `mcp-router index` run while this
   // process is up must reach the next client that lists tools. The caller's own
@@ -205,6 +296,10 @@ export async function startRouter(
    * and a plain POST reaches this endpoint — which runs every MCP server the user
    * owns, with the user's full environment. The Host header is what distinguishes
    * that request from a real local client, so it is checked.
+   *
+   * The check itself runs in `hostRefusal` at the top of the dispatcher, so it guards every
+   * route. The transport keeps its own copy below as defence in depth — the same list, so
+   * the two can never disagree about what the bound authority is.
    */
   const allowedHosts = [
     ...new Set([
@@ -236,6 +331,9 @@ export async function startRouter(
       const identity = resolver.identify(req.socket);
       identity.catch(() => undefined);
 
+      // Ahead of every route, so a route added below inherits it. See hostRefusal.
+      if (hostRefusal(req, res, url.pathname, allowedHosts)) return;
+
       if (url.pathname === '/health') {
         return json(res, 200, { ok: true, upstreams: cfg.upstreams.length });
       }
@@ -248,6 +346,23 @@ export async function startRouter(
           pendingAuth: pool.pending(),
           tools: unionTools(manifest.current(), cfg.upstreams).length,
         });
+      }
+
+      /*
+       * The router's own authorization server, ahead of the control block and of /mcp.
+       *
+       * Its paths are exact-matched and share nothing with `/callback`, which belongs to the
+       * OTHER OAuth role this process plays — client to its upstreams. Two roles on one port is
+       * the arrangement R14 accepted, and keeping the endpoint sets unambiguous is what stops a
+       * request meant for one being read by the other.
+       *
+       * Its body is read here for the same reason the control block reads its own: the request
+       * stream can be consumed once, so the reader has to be the one that owns the path.
+       */
+      if (isAuthServerPath(url.pathname)) {
+        const rawBody =
+          req.method === 'POST' ? await readRaw(req).catch(() => undefined) : undefined;
+        if (handleAuthServer(req, res, url, rawBody, { cfg, manifest: manifest.current() })) return;
       }
 
       // The control API mutates config and streams the call log, so it is handled

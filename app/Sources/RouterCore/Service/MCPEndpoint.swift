@@ -52,15 +52,25 @@ public struct MCPEndpoint: Sendable {
     }
 
     let deps: Deps
+    /// What `initialize` advertises in `instructions`, or nil when there is nothing to say.
+    ///
+    /// This reaches the **model** rather than the human: hosts inject it into the system prompt.
+    /// It is the second of R14's two chosen surfaces and the cheap one — it is what lets an
+    /// assistant answer "why can't you use X" correctly instead of concluding the capability does
+    /// not exist. Passed in rather than computed here, because the answer changes the moment an
+    /// upstream is authorised and the composition root is what can see that.
+    let instructions: String?
     /// Resolves who is on the other end of the socket. Called at accept time by the service, and
     /// awaited here — by which point the answer is cached, so a tool call pays nothing for it.
     let identify: @Sendable (ConnectionDescriptor) async -> CallerIdentity
 
     public init(
         deps: Deps,
+        instructions: String? = nil,
         identify: @escaping @Sendable (ConnectionDescriptor) async -> CallerIdentity
     ) {
         self.deps = deps
+        self.instructions = instructions
         self.identify = identify
     }
 
@@ -176,19 +186,14 @@ public struct MCPEndpoint: Sendable {
         return nil
     }
 
-    /// The authorities a request may name. `cfg.host:port` first, then the three loopback spellings,
-    /// de-duplicated — `src/router.ts:allowedHosts`.
+    /// The authorities a request may name.
+    ///
+    /// The list is ``RequestAuthority``'s, not a second copy: since R15 the dispatcher refuses a
+    /// foreign Host ahead of this endpoint, and this check is the reference's transport-level
+    /// `enableDnsRebindingProtection`, kept as defence in depth. Two lists could disagree about
+    /// what the bound authority is; one cannot.
     private var allowedHosts: [String] {
-        var seen: [String] = []
-        for candidate in [
-            "\(deps.config.host):\(deps.config.port)",
-            "127.0.0.1:\(deps.config.port)",
-            "localhost:\(deps.config.port)",
-            "[::1]:\(deps.config.port)"
-        ] where !seen.contains(candidate) {
-            seen.append(candidate)
-        }
-        return seen
+        RequestAuthority.allowedHosts(host: deps.config.host, port: deps.config.port)
     }
 
     // MARK: - One JSON-RPC message
@@ -209,7 +214,10 @@ public struct MCPEndpoint: Sendable {
 
         switch method {
         case "initialize":
-            return Self.success(id: id, result: .object([
+            // `instructions` goes LAST, after `serverInfo`. Measured against the reference on
+            // 2026-08-21: the SDK appends it to the result it has already built, and member order
+            // is part of the bytes the parity lane diffs.
+            var result: [JSONMember] = [
                 JSONMember(key: JSString("protocolVersion"), value: .string(JSString("2025-06-18"))),
                 JSONMember(key: JSString("capabilities"), value: .object([
                     JSONMember(key: JSString("tools"), value: .object([]))
@@ -218,7 +226,13 @@ public struct MCPEndpoint: Sendable {
                     JSONMember(key: JSString("name"), value: .string(JSString("mcp-router"))),
                     JSONMember(key: JSString("version"), value: .string(JSString("0.1.0")))
                 ]))
-            ]))
+            ]
+            if let instructions, !instructions.isEmpty {
+                result.append(
+                    JSONMember(key: JSString("instructions"), value: .string(JSString(instructions)))
+                )
+            }
+            return Self.success(id: id, result: .object(result))
         case "ping":
             return Self.success(id: id, result: .object([]))
         case "tools/list":

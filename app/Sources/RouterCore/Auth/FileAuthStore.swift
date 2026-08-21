@@ -74,6 +74,17 @@ public struct FileAuthStore: Sendable {
         try write(server, record)
     }
 
+    /// Whether a record file exists at all, which `read` deliberately cannot tell you.
+    ///
+    /// `read` returns an empty record for both an absent file and an unreadable one, because that
+    /// is what the reference does. The upstream state report needs the distinction the reference
+    /// draws with `existsSync`: a server nobody has ever authorised and one whose authorisation
+    /// was started and abandoned want different sentences, and only the file's presence tells them
+    /// apart.
+    public func recordExists(_ server: JSString) async -> Bool {
+        fileSystem.fileExists(atPath: path(server))
+    }
+
     /// `hasTokens` (B60).
     public func hasTokens(_ server: JSString) async -> Bool {
         await read(server).hasAccessToken

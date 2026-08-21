@@ -61,8 +61,8 @@ public enum UpstreamStateReport {
     ) async -> [UpstreamReport] {
         var out: [UpstreamReport] = []
         for upstream in config.upstreams {
-            out.append(
-                await row(
+            await out.append(
+                row(
                     upstream: upstream, manifest: manifest, auth: auth,
                     nowMilliseconds: nowMilliseconds, entry: entry
                 )
@@ -126,6 +126,24 @@ public enum UpstreamStateReport {
             )
         }
 
+        return authorisedRow(
+            upstream: upstream, record: record, indexError: indexError,
+            nowMilliseconds: nowMilliseconds, verb: verb
+        )
+    }
+
+    /// The row for an upstream that holds tokens and is still serving nothing.
+    ///
+    /// Its own function because it is the case the whole type exists for: `mobbin` holds a valid
+    /// access token, a refresh token and an `authorizedAt` stamp, and serves nothing. It must not
+    /// be told to re-authorise.
+    private static func authorisedRow(
+        upstream: UpstreamConfig,
+        record: AuthRecord,
+        indexError: String?,
+        nowMilliseconds: Double,
+        verb: String
+    ) -> UpstreamReport {
         let refused = indexError.map(AuthRefusal.isRefusal) ?? false
         let refreshHeld = record.hasRefreshToken
         let at = record.authorizedAt?.string

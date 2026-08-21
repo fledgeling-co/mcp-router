@@ -63,14 +63,17 @@ public struct AuthServerSeal: Sendable {
         if fileSystem.fileExists(atPath: path),
            let data = try? fileSystem.readFile(atPath: path)
         {
-            let hex = String(decoding: data, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
+            let hex = (String(bytes: data, encoding: .utf8) ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
             if let bytes = Self.bytes(fromHex: hex), bytes.count == 32 {
                 key = SymmetricKey(data: Data(bytes))
                 return
             }
         }
         var fresh = [UInt8](repeating: 0, count: 32)
-        for index in fresh.indices { fresh[index] = UInt8.random(in: 0 ... 255) }
+        for index in fresh.indices {
+            fresh[index] = UInt8.random(in: 0 ... 255)
+        }
         try fileSystem.createDirectory(atPath: authDir, mode: 0o700)
         let hex = fresh.map { String(format: "%02x", $0) }.joined()
         try fileSystem.writeFile(Data((hex + "\n").utf8), atPath: path, mode: 0o600)
@@ -107,7 +110,9 @@ public struct AuthServerSeal: Sendable {
         var padded = text
             .replacingOccurrences(of: "-", with: "+")
             .replacingOccurrences(of: "_", with: "/")
-        while padded.count % 4 != 0 { padded += "=" }
+        while padded.count % 4 != 0 {
+            padded += "="
+        }
         return Data(base64Encoded: padded)
     }
 
@@ -122,7 +127,9 @@ public struct AuthServerSeal: Sendable {
         let given = Array(supplied.utf8)
         guard expected.count == given.count else { return false }
         var difference: UInt8 = 0
-        for index in expected.indices { difference |= expected[index] ^ given[index] }
+        for index in expected.indices {
+            difference |= expected[index] ^ given[index]
+        }
         return difference == 0
     }
 

@@ -42,12 +42,12 @@ extension RouterService {
             return await statusResponse()
         }
 
-        /// The router's own authorization server, ahead of the control block and of `/mcp`.
-        ///
-        /// Its paths are exact-matched and share nothing with `/callback`, which belongs to the
-        /// OTHER OAuth role this process plays — client to its upstreams. Two roles on one port is
-        /// the arrangement R14 accepted, and keeping the endpoint sets unambiguous is what stops a
-        /// request meant for one being read by the other.
+        // The router's own authorization server, ahead of the control block and of `/mcp`.
+        //
+        // Its paths are exact-matched and share nothing with `/callback`, which belongs to the
+        // OTHER OAuth role this process plays — client to its upstreams. Two roles on one port is
+        // the arrangement R14 accepted, and keeping the endpoint sets unambiguous is what stops a
+        // request meant for one being read by the other.
         if AuthServerPaths.isAuthServerPath(path), let authServerSeal {
             let routes = AuthServerRoutes(
                 seal: authServerSeal, config: config, clock: clock, usedCodes: usedCodes

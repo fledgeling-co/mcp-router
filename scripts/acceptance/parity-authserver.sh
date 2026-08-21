@@ -241,6 +241,14 @@ flow() { # label base
     bad "$label POST /authorize minted a code without the consent page having been rendered"
   fi
 
+  # The consent ticket must not be redeemable AS a code. Both blobs carry client, redirect,
+  # challenge and expiry; only the type tag and the nonce tell them apart, and the review lane
+  # redeemed a ticket at /token for a working token before the tag existed.
+  check "$(status -X POST "$B/token" -H 'content-type: application/x-www-form-urlencoded' \
+    --data-urlencode 'grant_type=authorization_code' --data-urlencode "code=$consent" \
+    --data-urlencode "code_verifier=$v")" 400 \
+    "$label a consent ticket is NOT redeemable as an authorization code"
+
   # /register must declare JSON: a text/plain form body parses as JSON and needs no preflight.
   check "$(status -X POST "$B/register" -H 'content-type: text/plain' \
     -d '{"redirect_uris":["http://127.0.0.1:1/cb"]}')" 415 \

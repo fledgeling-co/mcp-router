@@ -398,7 +398,21 @@ interface ClientBlob {
   n?: string;
 }
 
+/**
+ * An authorization code. The `t` tag is load-bearing rather than decorative.
+ *
+ * Without it a **consent ticket** is redeemable as a code: the two blobs share `c`, `r`, `h` and
+ * `x`, which is everything /token checks, and the missing `j` degrades to burning the empty
+ * string. The out-of-family review redeemed a ticket lifted from the consent page at /token and
+ * got a working access and refresh token — a ten-minute value standing in for a sixty-second one,
+ * and the single-use check defeated because every such redemption burns the same empty nonce.
+ *
+ * Two sealed values with the same shape and different meanings is a type confusion, and the fix
+ * is the one that generalises: every blob this issuer signs names what it is, and every consumer
+ * checks the name.
+ */
 interface CodeBlob {
+  t: 'code';
   c: string;
   r: string;
   h: string;
@@ -917,6 +931,7 @@ function authorizePost(res: ServerResponse, form: URLSearchParams): boolean {
   }
 
   const code = seal({
+    t: 'code',
     c: checked.clientId,
     r: checked.redirectUri,
     h: checked.challenge,
@@ -966,7 +981,11 @@ function tokenPost(res: ServerResponse, form: URLSearchParams): boolean {
     const code = form.get('code') ?? '';
     const verifier = form.get('code_verifier') ?? '';
     const blob = unseal<CodeBlob>(code);
-    if (!blob) return tokenError(res, 'invalid_grant', 'the authorization code is not valid');
+    // The tag AND a real nonce. A blob of another kind, or one carrying no `j`, is not a code
+    // however well its other members line up — see CodeBlob.
+    if (!blob || blob.t !== 'code' || typeof blob.j !== 'string' || !blob.j) {
+      return tokenError(res, 'invalid_grant', 'the authorization code is not valid');
+    }
     if (Date.now() > blob.x) return tokenError(res, 'invalid_grant', 'the authorization code has expired');
     // Bound to the client and the redirect it was issued for, so a code intercepted by another
     // local listener cannot be redeemed against a different registration.

@@ -31,14 +31,17 @@ struct RequestAuthorityTests {
 
     private static func bodyText(_ response: HTTPWireResponse) -> String {
         guard case let .bytes(bytes) = response.body else { return "<stream>" }
-        return String(decoding: bytes, as: UTF8.self)
+        return String(bytes: bytes, encoding: .utf8) ?? "<not utf-8>"
     }
 
     /// A counter a `@Sendable` closure may increment. `Mutex` rather than a `var` captured by the
     /// closure, because the dispatch seam is `@Sendable` and has to stay so.
     private final class Ran: Sendable {
         private let count = Mutex(0)
-        func record() { count.withLock { $0 += 1 } }
+        func record() {
+            count.withLock { $0 += 1 }
+        }
+
         var times: Int { count.withLock { $0 } }
     }
 
@@ -60,7 +63,10 @@ struct RequestAuthorityTests {
             dispatch: throwaway
         )
         #expect(refused.status == 403)
-        #expect(ran.times == 0, "the route ran, so the guard is inside the ladder rather than ahead of it")
+        #expect(
+            ran.times == 0,
+            "the route ran, so the guard is inside the ladder rather than ahead of it"
+        )
 
         let served = await RequestAuthority.guarding(
             Self.request("/a-route-added-after-r15", host: "127.0.0.1:\(Self.port)"),
@@ -120,8 +126,10 @@ struct RequestAuthorityTests {
             path: "/mcp",
             allowedHosts: Self.allowed
         )
-        let expected =
-            #"{"jsonrpc":"2.0","error":{"code":-32000,"message":"Invalid Host header: evil.example"},"id":null}"#
+        // Split only so the line fits the lint; the bytes are unchanged and the length assertion
+        // below is what proves that.
+        let expected = #"{"jsonrpc":"2.0","error":{"code":-32000,"#
+            + #""message":"Invalid Host header: evil.example"},"id":null}"#
         #expect(response?.status == 403)
         #expect(response?.reason == "Forbidden")
         #expect(response.map(Self.bodyText) == expected)

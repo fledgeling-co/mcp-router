@@ -24,11 +24,11 @@ public struct AuthServerRoutes: Sendable {
     /// browser leg is a client that never opens a tab on reconnect.
     static let accessTTLSeconds = 365 * 24 * 60 * 60
     /// An authorization code lives 60 seconds and is used within one.
-    static let codeTTLMilliseconds: Double = 60_000
+    static let codeTTLMilliseconds: Double = 60000
     static let maxRedirectURIs = 10
     /// How long the consent ticket below stays good: long enough to read the upstream report,
     /// short enough that one found in a browser history is useless.
-    static let consentTTLMilliseconds: Double = 10 * 60_000
+    static let consentTTLMilliseconds: Double = 10 * 60000
 
     let seal: AuthServerSeal
     let config: RouterConfig
@@ -57,6 +57,27 @@ public struct AuthServerRoutes: Sendable {
 
     // MARK: - Dispatch
 
+    /// Which endpoint a path names. Resolved once so ``respond(to:path:query:report:)`` is a
+    /// switch over five cases rather than a ladder of string tests.
+    enum Route {
+        case resourceMetadata
+        case serverMetadata
+        case register
+        case authorize
+        case token
+    }
+
+    static func route(for path: String) -> Route? {
+        if path == AuthServerPaths.wellKnownResource
+            || path.hasPrefix("\(AuthServerPaths.wellKnownResource)/") { return .resourceMetadata }
+        if path == AuthServerPaths.wellKnownServer
+            || path.hasPrefix("\(AuthServerPaths.wellKnownServer)/") { return .serverMetadata }
+        if path == AuthServerPaths.register { return .register }
+        if path == AuthServerPaths.authorize { return .authorize }
+        if path == AuthServerPaths.token { return .token }
+        return nil
+    }
+
     /// Answer one authorization-server request, or `nil` when the path is not ours.
     ///
     /// Nothing here sets `Access-Control-Allow-Origin`, answers an `OPTIONS` preflight, sends
@@ -70,79 +91,84 @@ public struct AuthServerRoutes: Sendable {
         query: String?,
         report: @Sendable () async -> [UpstreamReport]
     ) async -> HTTPWireResponse? {
-        guard AuthServerPaths.isAuthServerPath(path) else { return nil }
-
-        if path == AuthServerPaths.wellKnownResource
-            || path.hasPrefix("\(AuthServerPaths.wellKnownResource)/")
-        {
-            guard request.method == "GET" else { return Self.methodNotAllowed() }
-            return Self.json(200, .object([
-                member("resource", "\(issuer)/mcp"),
-                JSONMember(key: JSString("authorization_servers"), value: .array([
-                    .string(JSString(issuer))
-                ])),
-                JSONMember(key: JSString("scopes_supported"), value: .array([
-                    .string(JSString("mcp"))
-                ])),
-                JSONMember(key: JSString("bearer_methods_supported"), value: .array([
-                    .string(JSString("header"))
-                ]))
-            ]))
-        }
-
-        if path == AuthServerPaths.wellKnownServer
-            || path.hasPrefix("\(AuthServerPaths.wellKnownServer)/")
-        {
-            guard request.method == "GET" else { return Self.methodNotAllowed() }
-            return Self.json(200, .object([
-                member("issuer", issuer),
-                member("authorization_endpoint", "\(issuer)\(AuthServerPaths.authorize)"),
-                member("token_endpoint", "\(issuer)\(AuthServerPaths.token)"),
-                member("registration_endpoint", "\(issuer)\(AuthServerPaths.register)"),
-                strings("response_types_supported", ["code"]),
-                strings("grant_types_supported", ["authorization_code", "refresh_token"]),
-                strings("code_challenge_methods_supported", ["S256"]),
-                strings("token_endpoint_auth_methods_supported", ["none"]),
-                strings("scopes_supported", ["mcp"])
-            ]))
-        }
-
-        if path == AuthServerPaths.register {
-            guard request.method == "POST" else { return Self.methodNotAllowed() }
-            if originIsForeign(request) { return Self.forbiddenOrigin() }
-            // The declared content type is required, not merely tolerated, and it is a second
-            // control rather than a formality. A `<form enctype="text/plain">` can be crafted so
-            // its body parses as valid JSON, and a form POST is a CORS *simple request*: no
-            // preflight stands in the way. Insisting on `application/json` puts the preflight back
-            // — and this router answers none — so the Origin check is no longer the only thing
-            // standing here. The control API applies the same rule for the same reason.
-            guard (request.first("content-type") ?? "").hasPrefix("application/json") else {
-                return Self.oauthError(
-                    415, "invalid_request", "expected content-type: application/json"
-                )
-            }
-            return registerResponse(request)
-        }
-
-        if path == AuthServerPaths.authorize {
+        guard let route = Self.route(for: path) else { return nil }
+        switch route {
+        case .resourceMetadata:
+            return get(request) { Self.json(200, resourceMetadata) }
+        case .serverMetadata:
+            return get(request) { Self.json(200, serverMetadata) }
+        case .register:
+            return postGuarded(request) { registerGuarded(request) }
+        case .authorize:
             switch request.method {
-            case "GET":
-                return await authorizeGet(query: query, report: report)
-            case "POST":
-                if originIsForeign(request) { return Self.forbiddenOrigin() }
-                return authorizePost(Self.form(request))
-            default:
-                return Self.methodNotAllowed()
+            case "GET": return await authorizeGet(query: query, report: report)
+            case "POST": return postGuarded(request) { authorizePost(Self.form(request)) }
+            default: return Self.methodNotAllowed()
             }
+        case .token:
+            return await postGuardedAsync(request) { await tokenResponse(Self.form(request)) }
         }
+    }
 
-        if path == AuthServerPaths.token {
-            guard request.method == "POST" else { return Self.methodNotAllowed() }
-            if originIsForeign(request) { return Self.forbiddenOrigin() }
-            return await tokenResponse(Self.form(request))
+    /// A GET-only endpoint.
+    private func get(
+        _ request: HTTPWireRequest, _ body: () -> HTTPWireResponse
+    ) -> HTTPWireResponse {
+        guard request.method == "GET" else { return Self.methodNotAllowed() }
+        return body()
+    }
+
+    /// A POST-only endpoint behind the Origin check, so no route can forget it.
+    private func postGuarded(
+        _ request: HTTPWireRequest, _ body: () -> HTTPWireResponse
+    ) -> HTTPWireResponse {
+        guard request.method == "POST" else { return Self.methodNotAllowed() }
+        if originIsForeign(request) { return Self.forbiddenOrigin() }
+        return body()
+    }
+
+    private func postGuardedAsync(
+        _ request: HTTPWireRequest, _ body: () async -> HTTPWireResponse
+    ) async -> HTTPWireResponse {
+        guard request.method == "POST" else { return Self.methodNotAllowed() }
+        if originIsForeign(request) { return Self.forbiddenOrigin() }
+        return await body()
+    }
+
+    var resourceMetadata: JSONValue {
+        .object([
+            member("resource", "\(issuer)/mcp"),
+            strings("authorization_servers", [issuer]),
+            strings("scopes_supported", ["mcp"]),
+            strings("bearer_methods_supported", ["header"])
+        ])
+    }
+
+    var serverMetadata: JSONValue {
+        .object([
+            member("issuer", issuer),
+            member("authorization_endpoint", "\(issuer)\(AuthServerPaths.authorize)"),
+            member("token_endpoint", "\(issuer)\(AuthServerPaths.token)"),
+            member("registration_endpoint", "\(issuer)\(AuthServerPaths.register)"),
+            strings("response_types_supported", ["code"]),
+            strings("grant_types_supported", ["authorization_code", "refresh_token"]),
+            strings("code_challenge_methods_supported", ["S256"]),
+            strings("token_endpoint_auth_methods_supported", ["none"]),
+            strings("scopes_supported", ["mcp"])
+        ])
+    }
+
+    /// The declared content type is required, not merely tolerated, and it is a second control
+    /// rather than a formality. A `<form enctype="text/plain">` can be crafted so its body parses
+    /// as valid JSON, and a form POST is a CORS *simple request*: no preflight stands in the way.
+    /// Insisting on `application/json` puts the preflight back — and this router answers none — so
+    /// the Origin check is no longer the only thing standing here. The control API applies the
+    /// same rule for the same reason.
+    private func registerGuarded(_ request: HTTPWireRequest) -> HTTPWireResponse {
+        guard (request.first("content-type") ?? "").hasPrefix("application/json") else {
+            return Self.oauthError(415, "invalid_request", "expected content-type: application/json")
         }
-
-        return nil
+        return registerResponse(request)
     }
 
     private func originIsForeign(_ request: HTTPWireRequest) -> Bool {
@@ -151,7 +177,7 @@ public struct AuthServerRoutes: Sendable {
 
     // MARK: - Registration
 
-    private func registerResponse(_ request: HTTPWireRequest) -> HTTPWireResponse {
+    func registerResponse(_ request: HTTPWireRequest) -> HTTPWireResponse {
         // A body that is not JSON is an empty registration, which fails the redirect_uris check
         // below with the message that names the real problem.
         let parsed = (try? JSONParser.parse(request.body)) ?? .null
@@ -201,414 +227,11 @@ public struct AuthServerRoutes: Sendable {
         return Self.json(201, .object(body))
     }
 
-    // MARK: - Authorize
-
-    struct AuthorizeParams {
-        var clientID: String
-        var redirectURI: String
-        var challenge: String
-        var state: String?
-        var scope: String?
-    }
-
-    /// Everything `/authorize` must agree about before anything is minted.
-    ///
-    /// The distinction the caller then draws is the one that matters: an error about the
-    /// `redirect_uri` itself may never be *redirected* to it, because that is a hop to a
-    /// destination we have just decided not to trust.
-    /// The refusal reason, as its own type rather than `Result<_, String>` — `String` is not an
-    /// `Error`, and a bare enum here also names the four ways this can fail in one place.
-    enum AuthorizeCheck {
-        case ok(AuthorizeParams)
-        case refused(String)
-    }
-
-    func validate(_ items: [(name: String, value: String)]) -> AuthorizeCheck {
-        let get = { (key: String) -> String? in items.first { $0.name == key }?.value }
-        let clientID = get("client_id") ?? ""
-        let redirectURI = get("redirect_uri") ?? ""
-        guard let blob = seal.unseal(clientID),
-              case let .array(registered) = blob.member("u") ?? .null
-        else {
-            return .refused("client_id is not one this router issued")
-        }
-        guard !redirectURI.isEmpty else { return .refused("redirect_uri is required") }
-        // Both, in this order: registered, and loopback. The registration is signed, so the second
-        // check is not redundant paranoia — it is what holds if a registration ever predates the rule.
-        guard registered.contains(where: { $0.asString?.string == redirectURI }) else {
-            return .refused("redirect_uri is not one this client registered")
-        }
-        guard AuthServerAuthority.isLoopbackRedirect(redirectURI) else {
-            return .refused("redirect_uri must be an http loopback address")
-        }
-        return .ok(AuthorizeParams(
-            clientID: clientID,
-            redirectURI: redirectURI,
-            challenge: get("code_challenge") ?? "",
-            state: get("state"),
-            scope: get("scope")
-        ))
-    }
-
-    /// The interstitial. This is the one surface with guaranteed human eyes on it.
-    ///
-    /// The "you can close this window" page belongs to the *client's* loopback listener, not to
-    /// us, so this is the only page the router owns in this flow — which is why the upstream
-    /// report renders here rather than anywhere further along.
-    private func authorizeGet(
-        query: String?, report: @Sendable () async -> [UpstreamReport]
-    ) async -> HTTPWireResponse {
-        let items = RouterService.queryItems(query)
-        let get = { (key: String) -> String? in items.first { $0.name == key }?.value }
-        let checked: AuthorizeParams
-        switch validate(items) {
-        case let .refused(reason): return Self.fatalPage(reason)
-        case let .ok(params): checked = params
-        }
-        guard (get("response_type") ?? "") == "code" else {
-            return Self.redirectError(
-                checked.redirectURI, "unsupported_response_type",
-                "only response_type=code is supported", checked.state
-            )
-        }
-        // PKCE S256 is required rather than merely supported. `plain` is a challenge that is its
-        // own verifier, which on a machine where any local process can read a redirect is no
-        // protection at all.
-        guard (get("code_challenge_method") ?? "") == "S256", !checked.challenge.isEmpty else {
-            return Self.redirectError(
-                checked.redirectURI, "invalid_request",
-                "code_challenge with code_challenge_method=S256 is required", checked.state
-            )
-        }
-        // Proof that this page was rendered, carried in a hidden field and required by the POST.
-        //
-        // Without it `POST /authorize` mints a code for anyone who can shape the form — the
-        // interstitial is decorative, and an auto-submitting page skips it entirely. The Origin
-        // check already refuses a cross-origin POST, so this is defence in depth rather than the
-        // only control; it is here because "the human saw the screen" is the one thing this flow
-        // claims and nothing was making it true.
-        let consent = seal.seal(.object([
-            member("t", "consent"),
-            member("c", checked.clientID),
-            member("r", checked.redirectURI),
-            member("h", checked.challenge),
-            JSONMember(
-                key: JSString("x"),
-                value: .number(
-                    (clock.nowMilliseconds + Self.consentTTLMilliseconds).rounded(.down)
-                )
-            )
-        ]))
-        var hidden: [(String, String)] = [
-            ("client_id", checked.clientID),
-            ("redirect_uri", checked.redirectURI),
-            ("code_challenge", checked.challenge),
-            ("consent", consent)
-        ]
-        if let state = checked.state { hidden.append(("state", state)) }
-        if let scope = checked.scope { hidden.append(("scope", scope)) }
-        return Self.htmlPage(
-            200, AuthServerPage.consent(rows: await report(), hidden: hidden)
-        )
-    }
-
-    /// The Continue button. Everything is re-validated; nothing is trusted for having been on the
-    /// page we drew.
-    private func authorizePost(_ form: [(name: String, value: String)]) -> HTTPWireResponse {
-        let checked: AuthorizeParams
-        switch validate(form) {
-        case let .refused(reason): return Self.fatalPage(reason)
-        case let .ok(params): checked = params
-        }
-        // The ticket the GET issued, re-checked against what this POST claims. A ticket for a
-        // different client, redirect or challenge is not consent to this request.
-        let ticketBlob = seal.unseal(form.first { $0.name == "consent" }?.value ?? "")
-        let ticketOk: Bool = {
-            guard let ticket = ticketBlob,
-                  ticket.member("t")?.asString?.string == "consent",
-                  case let .number(expiry) = ticket.member("x") ?? .null,
-                  clock.nowMilliseconds <= expiry,
-                  ticket.member("c")?.asString?.string == checked.clientID,
-                  ticket.member("r")?.asString?.string == checked.redirectURI,
-                  ticket.member("h")?.asString?.string == checked.challenge
-            else { return false }
-            return true
-        }()
-        guard ticketOk else {
-            return Self.fatalPage(
-                "this authorization did not come from the consent page, or it has expired. Start again."
-            )
-        }
-        guard !checked.challenge.isEmpty else {
-            return Self.redirectError(
-                checked.redirectURI, "invalid_request", "code_challenge is required", checked.state
-            )
-        }
-        var nonce = ""
-        for _ in 0 ..< 12 {
-            nonce.append("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-                .randomElement() ?? "a")
-        }
-        let code = seal.seal(.object([
-            member("c", checked.clientID),
-            member("r", checked.redirectURI),
-            member("h", checked.challenge),
-            // Floored, because `Date.now()` is an integral number of milliseconds and this value
-            // is serialised into the code. A fractional expiry is a number the reference cannot
-            // produce, and the two would diverge inside a blob nothing else can see.
-            JSONMember(
-                key: JSString("x"),
-                value: .number((clock.nowMilliseconds + Self.codeTTLMilliseconds).rounded(.down))
-            ),
-            member("j", nonce)
-        ]))
-        var target = "\(checked.redirectURI)\(checked.redirectURI.contains("?") ? "&" : "?")"
-        target += "code=\(Self.percentEncode(code))"
-        if let state = checked.state { target += "&state=\(Self.percentEncode(state))" }
-        return Self.redirect(target)
-    }
-
-    // MARK: - Token
-
-    private func tokenResponse(_ form: [(name: String, value: String)]) async -> HTTPWireResponse {
-        let get = { (key: String) -> String? in form.first { $0.name == key }?.value }
-        switch get("grant_type") ?? "" {
-        case "authorization_code":
-            guard let blob = seal.unseal(get("code") ?? "") else {
-                return Self.oauthError(400, "invalid_grant", "the authorization code is not valid")
-            }
-            guard case let .number(expiry) = blob.member("x") ?? .null,
-                  clock.nowMilliseconds <= expiry
-            else {
-                return Self.oauthError(400, "invalid_grant", "the authorization code has expired")
-            }
-            let issuedTo = blob.member("c")?.asString?.string ?? ""
-            if let claimed = get("client_id"), claimed != issuedTo {
-                return Self.oauthError(400, "invalid_grant", "the code was issued to a different client")
-            }
-            let issuedFor = blob.member("r")?.asString?.string ?? ""
-            if let redirect = get("redirect_uri"), redirect != issuedFor {
-                return Self.oauthError(
-                    400, "invalid_grant",
-                    "redirect_uri does not match the one the code was issued for"
-                )
-            }
-            guard let verifier = get("code_verifier"), !verifier.isEmpty else {
-                return Self.oauthError(400, "invalid_request", "code_verifier is required")
-            }
-            guard OAuthPKCE.challenge(for: verifier) == (blob.member("h")?.asString?.string ?? "")
-            else {
-                return Self.oauthError(400, "invalid_grant", "the PKCE verifier does not match")
-            }
-            let nonce = blob.member("j")?.asString?.string ?? ""
-            guard await usedCodes.burn(nonce, expiresAt: expiry, now: clock.nowMilliseconds) else {
-                return Self.oauthError(
-                    400, "invalid_grant", "the authorization code has already been used"
-                )
-            }
-            return issue(scope: get("scope"))
-
-        case "refresh_token":
-            // Validated rather than waved through. An issuer that mints a fresh token for any
-            // refresh request is an issuer whose tokens mean nothing, and validating costs nothing
-            // once they are signed — the signature is the whole check.
-            guard let blob = seal.unseal(get("refresh_token") ?? ""),
-                  blob.member("t")?.asString?.string == "refresh"
-            else {
-                return Self.oauthError(
-                    400, "invalid_grant", "the refresh token is not one this router issued"
-                )
-            }
-            return issue(scope: get("scope") ?? blob.member("s")?.asString?.string)
-
-        default:
-            return Self.oauthError(
-                400, "unsupported_grant_type",
-                "only authorization_code and refresh_token are supported"
-            )
-        }
-    }
-
-    private func issue(scope: String?) -> HTTPWireResponse {
-        let now = (clock.nowMilliseconds / 1000).rounded(.down)
-        var access: [JSONMember] = [
-            member("t", "access"),
-            JSONMember(key: JSString("iat"), value: .number(now)),
-            JSONMember(key: JSString("exp"), value: .number(now + Double(Self.accessTTLSeconds)))
-        ]
-        var refresh: [JSONMember] = [
-            member("t", "refresh"),
-            JSONMember(key: JSString("iat"), value: .number(now))
-        ]
-        if let scope {
-            access.append(member("s", scope))
-            refresh.append(member("s", scope))
-        }
-        var body: [JSONMember] = [
-            member("access_token", seal.seal(.object(access))),
-            member("token_type", "Bearer"),
-            JSONMember(key: JSString("expires_in"), value: .number(Double(Self.accessTTLSeconds))),
-            // Deliberately NOT rotated on refresh. A rotating refresh token has to be paired with
-            // a grace window, because clients crash between rotating and storing; a stable one has
-            // no such window to get wrong, and rotation buys nothing for a credential that confers
-            // no privilege.
-            member("refresh_token", seal.seal(.object(refresh)))
-        ]
-        // Echoed rather than rejected: a client asking for a scope this router does not model is
-        // not an error worth failing an otherwise complete flow over.
-        if let scope, !scope.isEmpty { body.append(member("scope", scope)) }
-        return Self.json(200, .object(body))
-    }
-
-    // MARK: - Wire helpers
-
-    private func member(_ key: String, _ value: String) -> JSONMember {
+    func member(_ key: String, _ value: String) -> JSONMember {
         JSONMember(key: JSString(key), value: .string(JSString(value)))
     }
 
-    private func strings(_ key: String, _ values: [String]) -> JSONMember {
+    func strings(_ key: String, _ values: [String]) -> JSONMember {
         JSONMember(key: JSString(key), value: .array(values.map { .string(JSString($0)) }))
-    }
-
-    static func json(_ status: Int, _ value: JSONValue) -> HTTPWireResponse {
-        let bytes = Data(JSStringify.compact(value).utf8)
-        return HTTPWireResponse(
-            status: status,
-            headers: [
-                (name: "content-type", value: "application/json"),
-                (name: "content-length", value: String(bytes.count)),
-                (name: "cache-control", value: "no-store")
-            ],
-            body: .bytes(bytes)
-        )
-    }
-
-    static func oauthError(_ status: Int, _ error: String, _ description: String) -> HTTPWireResponse {
-        json(status, .object([
-            JSONMember(key: JSString("error"), value: .string(JSString(error))),
-            JSONMember(key: JSString("error_description"), value: .string(JSString(description)))
-        ]))
-    }
-
-    static func methodNotAllowed() -> HTTPWireResponse {
-        oauthError(405, "invalid_request", "method not allowed")
-    }
-
-    /// A browser POST from an origin that is not this router.
-    ///
-    /// 403 rather than a CORS answer, because the point is that the request must not execute at
-    /// all — a form-encoded POST is a CORS *simple request* and runs whether or not its response
-    /// can be read.
-    static func forbiddenOrigin() -> HTTPWireResponse {
-        oauthError(
-            403, "invalid_request", "cross-origin requests are not accepted on this endpoint"
-        )
-    }
-
-    static func htmlPage(_ status: Int, _ body: String) -> HTTPWireResponse {
-        let bytes = Data(body.utf8)
-        return HTTPWireResponse(
-            status: status,
-            headers: [
-                (name: "content-type", value: "text/html; charset=utf-8"),
-                (name: "content-length", value: String(bytes.count)),
-                (name: "cache-control", value: "no-store"),
-                // So the page cannot be silently framed by a site the user is visiting, in either
-                // the legacy header or the modern directive. It is a consent screen, and a framed
-                // consent screen is a clickjacking target.
-                (name: "x-frame-options", value: "DENY"),
-                (name: "content-security-policy", value: "frame-ancestors 'none'; form-action 'self'"),
-                (name: "referrer-policy", value: "no-referrer")
-            ],
-            body: .bytes(bytes)
-        )
-    }
-
-    static func fatalPage(_ reason: String) -> HTTPWireResponse {
-        htmlPage(400, AuthServerPage.fatal(reason: reason))
-    }
-
-    /// A 302 framed the way the reference frames it: **chunked**, with an immediately-terminated
-    /// body.
-    ///
-    /// Measured 2026-08-21, and it is a hang rather than a cosmetic divergence. `res.end()` with no
-    /// data makes Node emit `Transfer-Encoding: chunked` and the terminating zero-length chunk. An
-    /// empty `.bytes` body here emits neither that nor a `content-length`, so with
-    /// `Connection: keep-alive` the client has no way to know the body ended: curl waited the full
-    /// 8s budget and gave up with 0 bytes, and a browser following the redirect would stall the
-    /// same way. The `location` header is readable long before that, which is exactly why an
-    /// assertion that only reads the header passes while the response never completes.
-    ///
-    /// `MCPEndpoint`'s DELETE answer uses this same shape for the same reason.
-    static func redirect(_ location: String) -> HTTPWireResponse {
-        HTTPWireResponse(
-            status: 302,
-            reason: "Found",
-            headers: [
-                (name: "location", value: location),
-                (name: "cache-control", value: "no-store")
-            ],
-            body: .chunks(AsyncStream { $0.finish() })
-        )
-    }
-
-    /// `error=` back to a redirect_uri already proven registered and loopback.
-    static func redirectError(
-        _ redirectURI: String, _ error: String, _ description: String, _ state: String?
-    ) -> HTTPWireResponse {
-        var target = "\(redirectURI)\(redirectURI.contains("?") ? "&" : "?")"
-        target += "error=\(percentEncode(error))"
-        target += "&error_description=\(percentEncode(description))"
-        if let state { target += "&state=\(percentEncode(state))" }
-        return redirect(target)
-    }
-
-    /// `URLSearchParams`' encoding: everything outside the unreserved set is percent-encoded and a
-    /// space becomes `+`.
-    static func percentEncode(_ text: String) -> String {
-        var allowed = CharacterSet.alphanumerics
-        allowed.insert(charactersIn: "*-._")
-        return (text.addingPercentEncoding(withAllowedCharacters: allowed) ?? text)
-            .replacingOccurrences(of: "%20", with: "+")
-    }
-
-    /// `application/x-www-form-urlencoded`, and JSON for the clients that send it anyway.
-    ///
-    /// RFC 6749 specifies the form encoding and every standard library sends it, but some MCP
-    /// clients post JSON to `/token`. Accepting both costs a branch and turns a class of
-    /// "Authenticate failed" into a working flow; the security posture does not depend on the
-    /// encoding, because the Origin check has already run either way.
-    static func form(_ request: HTTPWireRequest) -> [(name: String, value: String)] {
-        let raw = String(decoding: request.body, as: UTF8.self)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !raw.isEmpty else { return [] }
-        if raw.hasPrefix("{") {
-            guard let parsed = try? JSONParser.parse(raw),
-                  case let .object(members) = parsed
-            else { return [] }
-            return members.compactMap { entry in
-                entry.value.asString.map { (name: entry.key.string, value: $0.string) }
-            }
-        }
-        return RouterService.queryItems(raw)
-    }
-}
-
-/// The used-code set, as an actor because two token requests can arrive at once and "has this code
-/// been burned" is a read-modify-write.
-public actor UsedCodeSet {
-    private var entries: [String: Double] = [:]
-
-    public init() {}
-
-    /// Record this code as used, or report that it already was.
-    ///
-    /// Pruned by expiry on every call rather than capped by count: an expired code is refused by
-    /// its own `x` field, so remembering it any longer buys nothing.
-    public func burn(_ nonce: String, expiresAt: Double, now: Double) -> Bool {
-        entries = entries.filter { $0.value >= now }
-        guard entries[nonce] == nil else { return false }
-        entries[nonce] = expiresAt
-        return true
     }
 }

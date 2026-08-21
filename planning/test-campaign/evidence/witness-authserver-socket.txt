@@ -1,0 +1,5 @@
+before:      LISTEN on 8891 = 1   decoy 8898 = 0
+during:      ESTABLISHED on 8891 = 4 (router-owned halves = 1)   decoy = 0
+first bytes: HTTP/1.1 200 OKcontent-type: app
+
+examined=2 ports · effect-class=inbound-socket · witnessed=1 · decoy=0

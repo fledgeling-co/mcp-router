@@ -129,9 +129,14 @@ enum AwaitBoundShapeControls {
     ]
 }
 
-/// Family C — how a call may be spelled, and what only looks like one. Split from Family B because
-/// one enum may not exceed 250 lines, and the seam is a real one: these turn on the call's own
-/// shape rather than on the block that encloses it.
+/// Family C — Swift's statement and trailing-closure grammar: how a call may be spelled, what only
+/// looks like one, and which call a brace belongs to. Split from Family B because SwiftLint's
+/// `type_body_length` warns at 250 lines by default, and the seam is a real one: these turn on the
+/// call's own shape rather than on the block that encloses it.
+///
+/// This family's population is **open** — every control is a shape somebody wrote down, not a
+/// production of a grammar the scanner implements. `AwaitBoundControl` says so where the count is
+/// claimed, and `AwaitBoundStatementControls` carries the rest of the family.
 enum AwaitBoundSpellingControls {
     static let all: [AwaitBoundControl] = [
         AwaitBoundControl(

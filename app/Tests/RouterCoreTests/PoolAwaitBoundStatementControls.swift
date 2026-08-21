@@ -3,8 +3,9 @@ import Foundation
 /// Family C, continued — Swift's statement grammar: the prefixes that introduce a statement without
 /// being one, and the call the brace actually belongs to.
 ///
-/// A separate enum from `AwaitBoundSpellingControls` for the 250-line type-body limit, and the same
-/// family: its population is open, and `AwaitBoundControl` says so where the count is claimed.
+/// A separate enum from `AwaitBoundSpellingControls` because SwiftLint's `type_body_length` warns at
+/// 250 lines by default and `.swiftlint.yml` does not configure it. Same family either way: its
+/// population is open, and `AwaitBoundControl` says so where the count is claimed.
 ///
 /// Every control here was written from a defect a reader found by construction rather than from
 /// reading the code, and each carries the **one token** that pins it: delete the label, swap the
@@ -121,6 +122,68 @@ enum AwaitBoundStatementControls {
                 "}"
             ],
             calls: [4], unbounded: [4]
+        ),
+        AwaitBoundControl(
+            "`Task` wearing its module name still escapes the wrap",
+            [
+                "func f() async throws {",
+                #"    try await awaitEvent("x") {"#,
+                "        _Concurrency.Task {",
+                "            await p.awaitReap(a)",
+                "        }",
+                "    }",
+                "}"
+            ],
+            calls: [4], unbounded: [4]
+        ),
+        AwaitBoundControl(
+            "a closure handed to `Task` as a named argument escapes it just as hard",
+            [
+                "func f() async throws {",
+                #"    try await awaitEvent("x") {"#,
+                "        Task.detached(operation: {",
+                "            await p.awaitReap(a)",
+                "        })",
+                "    }",
+                "}"
+            ],
+            calls: [4], unbounded: [4]
+        ),
+        AwaitBoundControl(
+            "a receiver's dot at the end of a line is still the receiver's dot",
+            [
+                "func f() async throws {",
+                "    try await analytics.",
+                #"        awaitEvent("x") {"#,
+                "            await p.awaitReap(a)",
+                "        }",
+                "}"
+            ],
+            calls: [4], unbounded: [4]
+        ),
+        AwaitBoundControl(
+            "a closure trailing `Task` inside somebody else's argument list still escapes",
+            [
+                "func f() async throws {",
+                #"    try await awaitEvent("x") {"#,
+                "        keep(Task {",
+                "            await p.awaitReap(a)",
+                "        })",
+                "    }",
+                "}"
+            ],
+            calls: [4], unbounded: [4]
+        ),
+        AwaitBoundControl(
+            "an argument naming `init` is somebody's member, not a declaration",
+            [
+                "func f() async throws {",
+                #"    try await awaitEvent(.init("x")) {"#,
+                "        await p.awaitReap(a)",
+                "    }",
+                "}"
+            ],
+            calls: [3], unbounded: []
         )
     ]
 }

@@ -1,28 +1,44 @@
 import Testing
 
-/// Controls for `AwaitBoundScan`, one per production of the two grammars it reads.
+/// Controls for `AwaitBoundScan`: one per production for the two grammars it implements, and one per
+/// shape somebody wrote down for the layer it approximates.
 ///
 /// The scanner has been defeated twice — by a review panel and then by a verifier who planted 22
 /// call sites and got five wrong answers in both directions. Both times the controls were built by
 /// hand, run once, and thrown away, so nothing in the tree exercised the classifier and the next
 /// reader had only the prose to go on. These stay.
 ///
-/// **Why this set is complete rather than merely longer.** Every defect found so far — all five of
-/// the verifier's and both of the panel's — was one of two things: an approximation of Swift's
-/// comment and string grammar (a comment recognised by its first three characters, a line truncated
-/// at the first `//`), or an approximation of Swift's block structure (indentation standing in for
-/// braces). Neither approximation is left. So the population to cover is not "shapes somebody might
-/// write", which is open, but the two grammars the scanner now implements, which are closed and
-/// citable:
+/// **What the count covers, family by family — because 64 is not one population.** An earlier
+/// version of this comment claimed the set was complete, on the argument that the scanner now holds
+/// two grammars rather than an approximation of them. That argument is sound for two of the three
+/// families and does not reach the third, and a single number standing across all three read wider
+/// than it was.
 ///
-/// - **Family A, the lexical grammar** — line comment, block comment, nested block comment,
-///   single-line literal, multi-line literal, raw literal, escape, interpolation, and a literal
-///   nested inside an interpolation. One control per production, plus the three shapes the verifier
-///   planted, which are instances of the first two.
-/// - **Family B, block structure** — the enclosing block on the call's own line, several levels out,
-///   with a wrapped opener, a sibling block already closed, a `func` whose own signature carries the
-///   needle, two wraps and a bare call, two calls in one wrap, file scope, and the three layouts
-///   that used to decide the answer and no longer can: `#if` at column 0, tabs, and no indentation.
+/// - **Family A, the lexical grammar — 19 controls, closed.** Line comment, block comment, nested
+///   block comment, single-line literal, multi-line literal, raw literal, escape, interpolation, and
+///   a literal nested inside an interpolation. The population is a citable production list, one
+///   control per production, plus the three shapes a verifier planted, which are instances of the
+///   first two.
+/// - **Family B, block structure — 12 controls, closed.** The enclosing block on the call's own
+///   line, several levels out, with a wrapped opener, a sibling block already closed, a `func` whose
+///   own signature carries the needle, two wraps and a bare call, two calls in one wrap, file scope,
+///   and the three layouts that used to decide the answer and no longer can: `#if` at column 0,
+///   tabs, and no indentation. The population is brace nesting, which is what Swift uses.
+/// - **Family C, Swift's statement and trailing-closure grammar — 33 controls, OPEN.**
+///   `verdict`, `statement`, `firstWord` and `continuesStatement`, plus five hand-written keyword
+///   lists. Nothing here implements a grammar; each control is a shape somebody wrote down, and the
+///   set of shapes somebody might write is exactly the open population the other two families
+///   escape. The count is a floor on coverage and not a bound on the space.
+///
+/// The split is where the defects are, which is why stating it matters. The scanner has been broken
+/// by a panel once and by a verifier three times, and every defect of the third round was in Family
+/// C: a statement label reading as a wrap, a labelled string-literal argument producing no call site
+/// at all, and `Task` inside a string interpolation reddening a correct wrap.
+///
+/// **What the mutation matrix proves, stated separately for the same reason.** Every control has
+/// been seen to fail under at least one single-mechanism mutation, so no mechanism in the code as
+/// written is decorative. That is mutation adequacy of the implementation. It is a different claim
+/// from covering the grammar the implementation *should* have, and in Family C the two come apart.
 ///
 /// Each control names the direction it holds — the calls the scan must see, and which of them must
 /// report. A control that only asserted "no red" would pass on a scan that sees nothing at all,
@@ -57,8 +73,8 @@ struct AwaitBoundControl {
         + AwaitBoundStatementControls.all
 }
 
-/// Controls for `AwaitBoundScan`, one per production of the two grammars it reads. The argument for
-/// why the set is complete rather than merely longer is on `AwaitBoundControl` above.
+/// Controls for `AwaitBoundScan`. What the count covers, family by family — and which family has no
+/// closed population — is on `AwaitBoundControl` above.
 @Suite("The await-bound scanner, held to a control per production it reads")
 struct PoolAwaitBoundControlTests {
     @Test("every control classifies as it says, in both directions")

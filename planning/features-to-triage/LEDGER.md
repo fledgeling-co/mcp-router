@@ -53,7 +53,11 @@ it never tested.
 | M14 | A shipped menu tells the user the app is not built | `M14-menu-says-not-built.md` | — | — | **Merged** `7e7ed70` |
 | R6 | Children inherit launchd's minimal PATH | `R6-child-process-path.md` | `spec-R6.md` | `plan-R6.md` | **Done** — merged to `main` at `1d958b4` (`ai/r6` `7a4f15a`; rung `effect-witness`; 9 follow-ups `D-r6-d`…`D-r6-k`) — both routers append the user's own `bin` directories to a child's PATH; `r6-child-path.sh` examined=6 failures=0; parity census untouched at 83 rows, cli 17/17, pool 5/5 |
 | R8 | An upstream that refuses our credentials must say so | `R8-auth-rejection-visible.md` | — | — | **Done** (ai/r8 → main; owner unfroze `src/`, A38 rewritten to guard the reference's existence; Swift half unblocked by R9; parity 82/83 control 16/16 0 diverged; auth gate examined=8 failures=0) |
-| R7 | The router's thesis is unmet for every harness but Claude Code | `R7-harness-reconciliation.md` | — | — | **Verified — Done** (`effect-witness`, 2026-08-21). B1 closed and cross-checked against `agy mcp list`'s own twenty rows; both real Gemini configs byte-identical on six attributes across the run. All five write-gate walk-throughs now exit 1, re-planted independently. B3 and B4 closed in both directions with a seven-shape sweep finding no remaining silent zero. The stripper was checked by construction and three string-literal shapes still miss — latent, since the whole tree opens exactly one block comment and it is genuine. `make lint`'s three-pass block is a false dependency. Awaiting merge; follow-ups `D-r7-z`…`D-r7-ai` |
+| R7 | The router's thesis is unmet for every harness but Claude Code | `R7-harness-reconciliation.md` | `spec-R7.md` | `plan-R7.md` | **Merged** — **Verified — Done** (`effect-witness`, 2026-08-21). B1 closed and cross-checked against `agy mcp list`'s own twenty rows; both real Gemini configs byte-identical on six attributes across the run. All five write-gate walk-throughs now exit 1, re-planted independently. B3 and B4 closed in both directions with a seven-shape sweep finding no remaining silent zero. The stripper was checked by construction and three string-literal shapes still miss — latent, since the whole tree opens exactly one block comment and it is genuine. `make lint`'s three-pass block is a false dependency. Awaiting merge; follow-ups `D-r7-z`…`D-r7-ai` — prior-pass detail: **Ready to verify** — gap-fix 2 complete (`ai/r7` `d285298`). B1 closed against the real machine: the run reads `~/.gemini/config/mcp_config.json` and its 19 entries plus the router match `agy mcp list`'s twenty rows. The panel again caught two defects in the fix — a key rewrite that made stdio entries read as HTTP, and byte-for-byte endpoint comparison turning `/mcp` vs `/mcp/` into B4's silent loss. **The write gate's own comment stripper was blanking every line to EOF** on a Swift string containing a slash-star, so an applier under one reported clean. Selftest 22→27 cases, lane 55→59 checks. Two findings overruled on measurement. grok down as a lane at 16.5 KB, substituted with fable. Follow-up `D-r7-y` |
+| R7-C1 | The Harnesses board and the `GET /harnesses` route behind it | — | — | — | Deferred (child of R7; blocked on M22) |
+| R7-C2 | Apply a reconciliation plan to a harness config, behind a human | — | — | — | Deferred (child of R7; the write R7 refuses) |
+| R7-C3 | opencode's transport is unestablished | — | — | — | Deferred (child of R7) |
+| R7-C4 | Project-scoped harness entries | — | — | — | Deferred (child of R7) |
 | R11 | Skills write endpoint (remove/disable) with preconditions and undo | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R7, renumbered 2026-08-21) |
 | R12 | Server soft-delete with a restore endpoint | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R8, renumbered 2026-08-21) |
 | R13 | Router-side behavioural eval runner — servers only | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R6, renumbered 2026-08-21) |
@@ -276,3 +280,16 @@ it never tested.
   `design/mcp-router-console.html`. They are UI specification, not defects: each names something
   the mock draws that no earlier brief covers. `design/mcp-router-console-spec.md` carries the
   audit numbers and the list of what the mock specifies rather than measures.
+
+- **Three ids mean two things each, and R7 found it while allocating.** `ORCHESTRATOR.md`'s
+  deferred register (lines ~334–337) carries rows **R6** (router-side eval runner), **R7** (skills
+  write endpoint) and **R8** (server soft-delete), while this table carries **R6** (child PATH,
+  ready to verify), **R7** (harness reconciliation, this item) and **R8** (auth rejection, Done).
+  Six live rows, three ids. The deferred register was populated from a different allocator than
+  this table and nothing reconciles the two namespaces, which is the same hole the notes above
+  describe for membership — `ledger-reconcile.py` compares ids across files and a collision
+  between a *ledger* id and a *deferred-register* id is not a membership disagreement, so it
+  reports agreement. R7 did **not** renumber anything: three rows written by other items are not
+  a runner's to renumber mid-fleet, and picking a direction silently is how the drift got here.
+  R7's own children are `R7-C1`…`R7-C4`, following `R4-C1`/`R4-C2`, which cannot collide either way.
+  The decision this needs is which namespace yields — that is M28's shape, not a runner's.

@@ -60,23 +60,30 @@ load 548, and choosing a sleep value means choosing a load average to be correct
 Two kinds of observation replace every one of them, and neither one contains a duration.
 
 **Read what the arming chose.** A claim about *which* idle window applies is a claim about
-the deadline the pool installed, not about what has happened 150ms later. And it is a
-claim about a **relationship** between two armings, so it is asserted as one: P6 now arms
-two servers in one pool — one asking for its own 25ms window, one inheriting the pool's
-600-second default — and requires `own.deadline < inherits.deadline`. Both deadlines come
-off the same clock inside the same millisecond, so whatever the machine is doing moves
-both terms together and drops out of the comparison. That is what makes it hold anywhere
-rather than on an idle box. Under mutation the two land **22 microseconds apart in the
-wrong order** and it fails, which is the point: it discriminates at a scale no sleep could
-have been set at.
+the integer the pool resolved to, not about what has happened 150ms later. Each arming now
+carries `idleMilliseconds` — the same local that computes the deadline and drives the
+sleep — and P6 asserts it exactly: 25 for the server that asked, 600_000 for the one that
+did not. No clock is read, so there is nothing a slow machine can move and nothing a later
+reader can widen. Under mutation it reads `(armed.idleMilliseconds → 600000) == 25`.
 
-**Await the event itself.** Where the claim really is about the outcome, the test awaits
-the task the outcome happens inside. `await armed.task.value` returns when the reap is
-complete: `Task.sleep` is at-least, and `deadline` is computed *before* the task exists, so
-the woken timer's own deadline check cannot fail. A busy machine makes the test slower
-instead of wrong. The same shape covers eviction (`await watcher.value` on the handle's
-end-watcher) and cohort arrangement (`waitingCallers` reaching the expected count before
-the fake transport's gate is opened).
+That is the second design. The first compared the two armings' *deadlines*, which the
+out-of-family panel took apart: two deadlines captured minutes apart can order wrongly for
+a reason that is not the pool's, and a window of 599 seconds compares as smaller than a
+600-second default while being just as wrong.
+
+**Await the event itself.** Where the claim really is about the outcome, the pool awaits
+its own task and returns when the outcome has landed. `awaitReap(_:epoch:)` returns once
+the reap has run: `Task.sleep` is at-least, and `deadline` is computed *before* the task
+exists, so the woken timer's own deadline check cannot fail. A busy machine makes the test
+slower instead of wrong. `awaitSessionEnded(_:handle:)` is the same shape for eviction, and
+`waitingCallers` reaching the expected count is the same shape for cohort arrangement.
+
+The awaiting happens **inside** the actor rather than by handing a task out, and that works
+because an actor releases its executor at a suspension point — the timer gets the actor it
+needs. Naming the epoch or the handle is what makes each wait exact: an arming that is no
+longer installed returns immediately, because the only ways it can have gone are that it
+already fired or that something superseded it, and the caller's next assertion is what
+tells those apart.
 
 The precedent is in the same file. P6a — *a woken timer from a previous arming cannot
 reap* — already refused to test its guard through timing, and its comment says why: *"a
@@ -92,9 +99,15 @@ for exactly this reason and carries exactly this argument in its own doc comment
 
 | Added | Returns | Why a test cannot do without it |
 |---|---|---|
-| `armedReap(_:)` | the installed `ReapTimer` | The deadline and the timer's task are the only two things that say which window the pool chose and when it acted. Both are private state of the actor; from outside, the sole alternative is to sample `isLive` at a moment of the test's choosing, which is the defect |
-| `endWatcher(_:)` | the handle's end-watcher task | Eviction happens *inside* that task. Nothing else it touches changes before the eviction lands, so there is no other observable to wait on |
+| `releaseObservingReap(_:)` | a `ReapArming` | The release and the reading of what it armed must be **one** actor operation. Two hops leave a gap a 25ms window can expire inside, which is this item's own defect one layer in |
+| `armedReap(_:)` | a `ReapArming?` | For asserting there is **no** arming — a claim no amount of waiting can establish. Safe as a second hop precisely because nothing can appear in the gap |
+| `awaitReap(_:epoch:)` | — | The reap runs inside a task the actor owns. Nothing else changes before it lands, so there is no other observable to wait on |
+| `awaitSessionEnded(_:handle:)` | — | Same, for eviction |
 | `waitingCallers(_:)` | `pendingWaiters` | A cohort test must open its gate once the joiners have arrived. Arrival is recorded only here |
+
+`ReapArming` is a new value type carrying the epoch and the resolved window. `ReapTimer`
+gains `idleMilliseconds` and **loses** `Sendable`: it holds the live task and no longer
+travels anywhere.
 
 None of them is `public`; they are reachable through `@testable import` and nothing in
 `RouterCore`, the app or the CLI calls them. No behaviour changed — this is the fix
@@ -140,36 +153,77 @@ precedes the log and `isLive` reports it, so it waits on the eviction instead.
 
 ## What is still a number, and why it is not a threshold
 
-`waitUntil` in `PoolTestSupport.swift` polls every 2ms and gives up after 30 seconds. The
-30 seconds is a **deadlock breaker, not the observation**: it is three orders of magnitude
-above the events involved, and its expiry is reported as a failure naming the condition,
-so a mutation that stops the event happening fails with a reason instead of hanging the
-suite. Nothing about a verdict depends on it short of thirty seconds of total starvation,
-by which point every other lane has failed too.
+`waitUntil` in `PoolTestSupport.swift` polls every 2ms and gives up after ten seconds. Those
+ten seconds are a **deadlock breaker, not the observation**: the events are actor hops
+measured in microseconds, so it is four orders of magnitude of headroom, and its expiry is
+reported as a failure naming the condition — a mutation that stops the event happening
+fails with a reason instead of hanging the suite. Nothing about a verdict depends on it
+short of ten seconds of total starvation, by which point every other lane has failed too.
+
+It was thirty seconds first, and the mutation gate is what argued it down: killing eviction
+made the run take 33 seconds to say so, and a gate that slow is one nobody runs.
 
 ## Mutation evidence
 
 `SWIFT_PRACTICES` §7: an assertion nobody has watched fail is not known to bite. Four
 mutations, each applied to the pool and then restored.
 
-| Mutation | What went red | How fast |
+| Mutation | What went red, and on what | Gate |
 |---|---|---|
-| `let idleMs = defaultIdleMs` — the per-server window is ignored | P6 per-server on `armed.deadline (…346916) < other.deadline (…287708)`; P6 zero-disables on a timer that should not exist | 0.304s |
-| `reapIfStillDue` stops calling `reap` | P6 per-server and P4 in-flight, both on `!isLive` | 0.081s |
-| the `config.warm == true` guard removed | P5 on a warm server that armed a timer | 0.026s |
-| `sessionEnded` stops evicting | P8, P8a, and both lifecycle P8s, on `!isLive`, `shutdownCount == 1`, `opens == 2` and handle identity | — |
+| `let idleMs = defaultIdleMs` — the per-server window is ignored | P6 per-server on `(armed.idleMilliseconds → 600000) == 25`; P6 zero-disables on `ReapArming(epoch: epoch#1, idleMilliseconds: 20) == nil` | 6s |
+| `reapIfStillDue` stops calling `reap` | P6 per-server and P4 in-flight, both on `!isLive` | 4s |
+| the `config.warm == true` guard removed | P5, on a warm server that armed a 20ms timer | 3s |
+| `sessionEnded` stops evicting | P8, P8a and both lifecycle P8s, on `!isLive`, `shutdownCount == 1`, `opens == 2`, handle identity, and `waitUntil` naming the condition it gave up on | 13s |
+| `release` stops re-arming | P6 per-server and P4 on `releaseObservingReap → nil`, P4a on the epoch counter, P6a on a missing epoch | 4s |
+| *(restored)* | — | **exit 0**, 3s |
 
-The second mutation is the one that proves the awaited half bites, and the first proves
-the compared half does. Both halves of the replacement assertion have been seen to fail.
+The first three mutations cover the read-the-arming half and the second covers the
+awaited half, so both halves of the replacement have been seen to fail. The fifth is the
+one that proves `releaseObservingReap` is not merely returning something.
 
-**One mutation caught a defect in the fix itself, which is the reason to run them.** The
-first cut of P4 guarded its `await` with `#require(window < .milliseconds(60000))` — the
-pool's configured default. Under mutation the armed window *is* that default minus a few
-microseconds, so the guard passed and the test then awaited a sixty-second timer: the
-suite took **63.968 seconds** to agree with a mutation it was supposed to catch. A gate
-that takes a minute to agree has stopped being a gate. The guard is gone rather than
-improved — P4's pool now sets both windows short, so the await is bounded whichever value
-the pool picks and no number is needed to protect it.
+**Two defects in the fix were caught by running the mutations, which is the reason to run
+them.** The first cut of P4 guarded its `await` with `#require(window <
+.milliseconds(60000))` — the pool's configured default. Under mutation the armed window
+*is* that default minus a few microseconds, so the guard passed and the test then awaited
+a sixty-second timer: the suite took **63.968 seconds** to agree with a mutation it was
+supposed to catch. The guard is gone rather than improved — P4's pool now sets both
+windows short, so the await is bounded whichever value the pool picks. The second: killing
+eviction cost 33 seconds, 30 of them inside `waitUntil`'s deadlock breaker, which is what
+argued that number down to ten. A gate that takes half a minute to agree is one nobody
+runs.
+
+## What three out-of-family reviewers found
+
+The whole diff went to `gpt-5.6-sol`, `gemini-3.7-flash-high` and `grok-4.6` inline, with
+the pool's mechanics described rather than left to be discovered. All three delivered.
+Codex refused the first invocation — *"Not inside a trusted directory"* — and produced no
+`-o` file at all, which is the signal to check rather than its exit code; re-run from
+inside the repo it answered.
+
+**They found this fix carrying the defect it was written to remove, and I had not.** Codex
+marked it CRITICAL, Gemini MAJOR, Grok reached it from the other end. `release()` and then
+`armedReap()` are two actor hops, and a 25-millisecond window can expire inside the gap:
+the timer fires, the reap clears it, and the test reads `nil` for a pool that behaved
+perfectly. A narrower window than the original 150ms, and exactly the same shape.
+
+Everything they raised, and what was done:
+
+| Finding | Lanes | Taken |
+|---|---|---|
+| `release` then observe is itself a race | all three | **Yes** — `releaseObservingReap` does both in one actor operation |
+| Comparing deadlines does not prove which window was chosen; 599s passes | codex, grok | **Yes** — the arming carries the resolved integer and it is asserted exactly |
+| Handing a live cancellable `Task` to a test is the wrong seam | all three | **Yes** — no task leaves the actor; `awaitReap` and `awaitSessionEnded` await from inside |
+| `waitUntil` records an issue and carries on, so one timeout reports as a cascade | gemini | **Yes** — it throws |
+| Its poll swallows cancellation and becomes a 30-second busy spin | codex, grok | **Yes** — cancellation-aware, and the message says which exit it took |
+| Capturing the end-watcher after `release` is the same race again | codex | **Yes** — the tests name the handle they expect to lose instead |
+| The `waitingCallers` argument is correct but is an unenforced invariant on `acquire` | codex, grok | **Partly** — it is stated in the accessor's doc comment; nothing enforces it |
+| `isLive("inherits")` is a residual clock dependency, do not call it clock-free | grok | **Yes** — labelled in the source as the 600-second dependency it is |
+| `await task.value` proves completion, not a reap | codex, grok | **Noted** — true, and the `!isLive` that follows is what makes it a reap witness |
+| Inject a clock into the reaping path instead | gemini, grok | **No** — deferred as `D-g3-e`, with the reason |
+| `try? await Task.sleep` can complete without reaping | codex, grok | **No** — not a defect: the only early return is cancellation, and `cancelReap` also clears the epoch the woken task checks |
+
+All three independently confirmed the `waitingCallers` actor-isolation argument, which was
+the question I was least sure of.
 
 ## The reproduction that failed, and what it tells you
 

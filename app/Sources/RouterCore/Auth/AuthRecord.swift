@@ -45,6 +45,35 @@ public struct AuthRecord: Sendable, Hashable {
     /// The record's `authorizedAt`, verbatim, or nil (B97).
     public var authorizedAt: JSString? { member("authorizedAt")?.asString }
 
+    /// Whether a refresh token is held, which is what decides if a refused credential has a
+    /// remedy the user can type.
+    ///
+    /// A server holding a refresh token and serving nothing is not an authorisation problem, and
+    /// telling its owner to re-authorise sends them round a loop that cannot succeed. A server
+    /// whose access token was refused with no refresh token behind it genuinely does need
+    /// authorising again. `mobbin` is the first case and is why this accessor exists.
+    public var hasRefreshToken: Bool {
+        guard let token = member("tokens")?.member("refresh_token") else { return false }
+        if case let .string(text) = token { return !text.isEmpty }
+        return false
+    }
+
+    /// When the held access token expires, in milliseconds, from the stored `authorizedAt` plus
+    /// `expires_in`.
+    ///
+    /// A stored stamp, never a cached verdict: REQ-007's rule is that the router does not display
+    /// what it has not observed, and "expired" computed from two recorded numbers is an
+    /// observation where "stale" copied from a status field is a belief. Nil when either half is
+    /// missing, which is honest — a token with no declared lifetime has no knowable expiry.
+    public var accessTokenExpiry: Double? {
+        guard case let .number(seconds) = member("tokens")?.member("expires_in") ?? .null,
+              seconds.isFinite,
+              let stamp = authorizedAt?.string
+        else { return nil }
+        guard let parsed = AuthStamp.milliseconds(stamp) else { return nil }
+        return parsed + seconds * 1000
+    }
+
     /// The record's `codeVerifier`, verbatim, or nil. The *throwing* accessor the reference exposes
     /// lives on the provider (B97); this is the raw read it is built on.
     public var codeVerifier: JSString? { member("codeVerifier")?.asString }

@@ -21,6 +21,15 @@ public enum AuthStamp {
         return left > right
     }
 
+    /// The same stamp as milliseconds since the epoch, or nil when it cannot be read.
+    ///
+    /// The public form of the parse below, for the one caller that needs the value rather than an
+    /// ordering: an access token's expiry is `authorizedAt + expires_in`, and that is arithmetic
+    /// on a number rather than a comparison of two stamps.
+    public static func milliseconds(_ text: String) -> Double? {
+        parse(text).map { $0.timeIntervalSince1970 * 1000 }
+    }
+
     /// Built per call rather than held in a static. `ISO8601DateFormatter` is not `Sendable`, so
     /// a shared instance is a data race under strict concurrency and the compiler refuses it —
     /// and this runs once per server on a control request, not on the relay's hot path.

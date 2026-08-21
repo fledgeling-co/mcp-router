@@ -1,0 +1,26 @@
+REQ-021 — the Authenticate flow completes
+  ok   protected-resource metadata (200)
+  ok   authorization-server metadata (200)
+  ok   registration returns a client_id (yes)
+REQ-022 — /mcp never returns 401
+  ok   no Authorization header (200)
+  ok   garbage bearer (200)
+  ok   empty Authorization header (200)
+REQ-024 — every route refuses a foreign Host
+  ok   foreign Host on /health (403)
+  ok   foreign Host on /status (403)
+  ok   foreign Host on /servers (403)
+  ok   foreign Host on /usage (403)
+  ok   foreign Host on /mcp (403)
+  ok   foreign Host on /authorize (403)
+  ok   foreign Host on /token (403)
+  ok   foreign Host on /register (403)
+  ok   foreign Host on /.well-known/oauth-protected-resource (403)
+  ok   foreign Host on /.well-known/oauth-authorization-server (403)
+REQ-025 — the refusals
+  ok   cross-origin POST /register (403)
+  ok   Origin: null POST /register (403)
+  ok   /register without JSON type (415)
+  ok   external redirect_uri (400)
+
+examined=20 pass=20 failures=0

@@ -20,6 +20,16 @@ enum ScanByte {
     static let carriageReturn = UInt8(ascii: "\r")
     static let openSquare = UInt8(ascii: "[")
     static let closeSquare = UInt8(ascii: "]")
+    static let openAngle = UInt8(ascii: "<")
+    static let closeAngle = UInt8(ascii: ">")
+
+    /// What a literal's bytes become, as against the space a comment's bytes become. A comment is
+    /// nothing and a literal is a VALUE, and blanking both to whitespace made the two
+    /// indistinguishable downstream: `p.awaitReap(name: "own")` delexed to `p.awaitReap(name:    )`,
+    /// which is the shape of an unapplied method reference, so the call was discarded and no site
+    /// was reported at all. One byte that is neither whitespace nor an identifier character keeps a
+    /// value visible as a value while carrying none of its content.
+    static let elided = UInt8(ascii: "~")
 
     static func isStatementBoundary(_ byte: UInt8) -> Bool {
         byte == openBrace || byte == closeBrace || byte == semicolon
@@ -44,9 +54,15 @@ enum ScanByte {
 
 /// Swift's comment and string-literal grammar, applied so that whatever is left is code.
 ///
-/// Every comment byte and every byte inside a literal becomes a space, newlines stay where they
-/// are, and bytes above ASCII are blanked too — so the output has the same length and the same line
-/// breaks as the input, and one offset means the same thing in both.
+/// Every comment byte becomes a space and every byte of a literal — content, delimiters and the
+/// interpolation markers — becomes `ScanByte.elided`, newlines stay where they are, and bytes above
+/// ASCII are elided too — so the output has the same length and the same line breaks as the input,
+/// and one offset means the same thing in both.
+///
+/// The two fillers are different on purpose. A comment is nothing, so whitespace is what it leaves
+/// behind; a literal and a non-ASCII identifier are values, and leaving whitespace where a value
+/// stood let `p.awaitReap(name: "own")` read as the method reference `p.awaitReap(name:)` and
+/// vanish. Both doors on to that miss are the same one byte.
 ///
 /// The grammar it implements, one production per control in `PoolAwaitBoundControlTests`: line
 /// comment, block comment, **nested** block comment, single-line literal, multi-line literal, raw
@@ -142,7 +158,7 @@ struct Delexer {
         let multiline = opensMultiline(at: probe)
         literals.append(Literal(hashes: hashes, multiline: multiline))
         mode = .string
-        blank(hashes + (multiline ? 3 : 1))
+        elide(hashes + (multiline ? 3 : 1))
         return true
     }
 
@@ -174,7 +190,7 @@ struct Delexer {
         if interpolations[interpolations.count - 1] == 0 {
             interpolations.removeLast()
             mode = .string
-            blank(1)
+            elide(1)
         } else {
             keep()
         }
@@ -202,7 +218,7 @@ struct Delexer {
         }
         if src[index] == ScanByte.backslash, stepEscape(literal) { return }
         if src[index] == ScanByte.quote, stepClose(literal) { return }
-        blank(1)
+        elide(1)
     }
 
     /// `\` plus this literal's own hash count either opens an interpolation or escapes one
@@ -218,11 +234,11 @@ struct Delexer {
         if src[probe] == ScanByte.openParen {
             interpolations.append(1)
             mode = .code
-            blank(probe + 1 - index)
+            elide(probe + 1 - index)
             return true
         }
         // A line continuation escapes the newline itself, and the newline has to stay where it is.
-        blank(probe - index + (src[probe] == ScanByte.newline ? 0 : 1))
+        elide(probe - index + (src[probe] == ScanByte.newline ? 0 : 1))
         return true
     }
 
@@ -239,7 +255,7 @@ struct Delexer {
         guard hashes == literal.hashes else { return false }
         literals.removeLast()
         mode = .code
-        blank(probe - index)
+        elide(probe - index)
         return true
     }
 
@@ -248,15 +264,27 @@ struct Delexer {
     }
 
     private mutating func blank(_ count: Int) {
+        fill(count, with: ScanByte.space)
+    }
+
+    /// A literal's bytes, replaced by a byte that is neither whitespace nor an identifier
+    /// character — so what is left says "a value stood here" without saying what it was.
+    private mutating func elide(_ count: Int) {
+        fill(count, with: ScanByte.elided)
+    }
+
+    private mutating func fill(_ count: Int, with byte: UInt8) {
         let bounded = min(count, src.count - index)
-        out.append(contentsOf: repeatElement(ScanByte.space, count: bounded))
+        out.append(contentsOf: repeatElement(byte, count: bounded))
         index += bounded
     }
 
-    /// Above ASCII is blanked rather than copied, so an offset into the output is a character count
-    /// as well as a byte count and nothing downstream has to know the difference.
+    /// Above ASCII is elided rather than copied, so an offset into the output is a character count
+    /// as well as a byte count and nothing downstream has to know the difference. Elided rather
+    /// than blanked because a non-ASCII identifier is code: `p.awaitReap(name: café)` blanked to
+    /// whitespace is the same miss a blanked literal was.
     private mutating func keep() {
-        out.append(src[index] < 0x80 ? src[index] : ScanByte.space)
+        out.append(src[index] < 0x80 ? src[index] : ScanByte.elided)
         index += 1
     }
 }

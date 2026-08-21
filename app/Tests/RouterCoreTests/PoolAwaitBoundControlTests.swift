@@ -54,6 +54,7 @@ struct AwaitBoundControl {
     static let all = AwaitBoundLexicalControls.all
         + AwaitBoundShapeControls.all
         + AwaitBoundSpellingControls.all
+        + AwaitBoundStatementControls.all
 }
 
 /// Controls for `AwaitBoundScan`, one per production of the two grammars it reads. The argument for

@@ -177,7 +177,10 @@ enum AwaitBoundScan {
         index = skipSpace(from: index + name.count, in: code)
         guard index < code.count, code[index] == ScanByte.openParen else { return nil }
         // `pool.awaitReap(_:epoch:)` is a reference to the method, not a call of it, and awaits
-        // nothing — an argument list ending in `:` is the shape no call can have.
+        // nothing — an argument list ending in `:` is the shape no call can have. This reads the
+        // delexed text, so it rests on a literal leaving `ScanByte.elided` behind rather than
+        // whitespace: while literals blanked to spaces, `awaitReap(name: "own")` ended in `:` too
+        // and the call was discarded, reporting no site at all.
         let close = matchingParen(from: index, in: code)
         guard close < 0 || lastMeaningful(before: close - 1, in: code) != ScanByte.colon
         else { return nil }
@@ -255,10 +258,11 @@ enum AwaitBoundScan {
         if Self.bodyKeywords.contains(firstWord(of: opener)) { return .keepWalking }
         // A closure handed to `Task` outlives the block it was written in, so being inside one is
         // not being inside the wait. Lexical containment and execution bound part company here, and
-        // this is the one place the scan can tell.
-        if Self.escapes.contains(where: { wordIndex(of: $0, in: opener) != nil }) {
-            return .function
-        }
+        // this is the one place the scan can tell. Read from the call that RECEIVES the brace, not
+        // from the opener as a whole: searching the whole statement reddened a correct wrap whose
+        // message interpolated `Task.currentPriority`, because an interpolation is code and the
+        // word was there. Swapping `Task` for `Clock` in that same line pinned it.
+        if Self.escapes.contains(trailingClosureOwner(in: opener)) { return .function }
         guard let name = wordIndex(of: Self.wrapMarker, in: opener) else { return .keepWalking }
         // The wrapper is a free function. `analytics.awaitEvent("x") { … }` is somebody else's
         // method that happens to share the name, and it bounds nothing.
@@ -292,8 +296,57 @@ enum AwaitBoundScan {
         return bodyKeywords.contains(Array(code[start ..< end]))
     }
 
+    /// The word the statement begins with, past any prefix that introduces a statement without
+    /// being one.
+    ///
+    /// A **statement label** is such a prefix, and it is legal on `if`, `while`, `for`, `switch`,
+    /// `do` and `repeat`. Without this step `check: if awaitEvent(x) {` read `check`, the
+    /// control-flow test above never fired, and an `if` body read as the wrapper's trailing
+    /// closure — a MISS on a genuinely unbounded call, pinned by deleting the one token: identical
+    /// source without the label reported correctly. A `case`/`default` clause is the same shape,
+    /// introducing the statement after its colon rather than being one.
     private static func firstWord(of opener: [UInt8]) -> [UInt8] {
-        var start = 0
+        var word = wordSpan(from: 0, in: opener)
+        // Two is a bound rather than a search: Swift allows one label per statement and a `case`
+        // clause cannot carry one.
+        for _ in 0 ..< 2 {
+            guard let after = statementPrefixEnd(after: word, in: opener) else { break }
+            word = wordSpan(from: after, in: opener)
+        }
+        return Array(opener[word])
+    }
+
+    /// One past the `:` closing a prefix that introduces the statement rather than being it, or nil
+    /// when `word` is the statement's own first word.
+    private static func statementPrefixEnd(after word: Range<Int>, in opener: [UInt8]) -> Int? {
+        guard !word.isEmpty else { return nil }
+        if Self.caseClauses.contains(Array(opener[word])) {
+            return clauseColon(from: word.upperBound, in: opener)
+        }
+        var probe = word.upperBound
+        while probe < opener.count, opener[probe] == ScanByte.space {
+            probe += 1
+        }
+        // A label is an identifier and then `:` with nothing between. `var x: Int = 1 {` puts a
+        // second word there and `try await awaitEvent(…) {` has no colon at all, so neither is one.
+        return probe < opener.count && opener[probe] == ScanByte.colon ? probe + 1 : nil
+    }
+
+    /// One past the `:` ending a `case` clause, counting brackets so `case (1, 2):` and
+    /// `case .some(x):` end where they read as ending.
+    private static func clauseColon(from index: Int, in opener: [UInt8]) -> Int? {
+        var depth = 0
+        for probe in index ..< opener.count {
+            let byte = opener[probe]
+            if byte == ScanByte.openParen || byte == ScanByte.openSquare { depth += 1 }
+            if byte == ScanByte.closeParen || byte == ScanByte.closeSquare { depth -= 1 }
+            if byte == ScanByte.colon, depth == 0 { return probe + 1 }
+        }
+        return nil
+    }
+
+    private static func wordSpan(from index: Int, in opener: [UInt8]) -> Range<Int> {
+        var start = index
         while start < opener.count, opener[start] == ScanByte.space {
             start += 1
         }
@@ -301,7 +354,48 @@ enum AwaitBoundScan {
         while end < opener.count, ScanByte.isIdentifier(opener[end]) {
             end += 1
         }
-        return Array(opener[start ..< end])
+        return start ..< end
+    }
+
+    /// The root of the receiver chain of the call this `{` is a trailing closure of — `Task` for
+    /// `Task {`, `Task.detached {` and `Task.detached(priority: .high) {`, `analytics` for
+    /// `analytics.awaitEvent("x") {` — and empty when the brace opens something that is not a
+    /// trailing closure at all.
+    ///
+    /// Read backwards from the brace, because that is where ownership is decided. A generic
+    /// argument list and an argument list are both stepped over, so `Task<Never, Never>(…) {` is
+    /// still `Task`.
+    private static func trailingClosureOwner(in opener: [UInt8]) -> [UInt8] {
+        var end = opener.count
+        while end > 0, opener[end - 1] == ScanByte.space {
+            end -= 1
+        }
+        end = groupStart(closingAt: end, in: opener, open: ScanByte.openParen, close: ScanByte.closeParen)
+        end = groupStart(closingAt: end, in: opener, open: ScanByte.openAngle, close: ScanByte.closeAngle)
+        var start = end
+        while start > 0, ScanByte.isIdentifier(opener[start - 1]) || opener[start - 1] == ScanByte.dot {
+            start -= 1
+        }
+        guard start < end else { return [] }
+        return Array(opener[start ..< end].prefix { $0 != ScanByte.dot })
+    }
+
+    /// Where the group closing just before `end` opens, or `end` unchanged when nothing closes
+    /// there.
+    private static func groupStart(closingAt end: Int, in text: [UInt8], open: UInt8, close: UInt8)
+        -> Int {
+        guard end > 0, text[end - 1] == close else { return end }
+        var depth = 0
+        var index = end - 1
+        while index >= 0 {
+            if text[index] == close { depth += 1 }
+            if text[index] == open {
+                depth -= 1
+                if depth == 0 { return index }
+            }
+            index -= 1
+        }
+        return end
     }
 
     private static func collapsed(_ text: [UInt8]) -> [UInt8] {
@@ -344,6 +438,7 @@ enum AwaitBoundScan {
     private static let declarations = ["func", "init", "deinit", "subscript"].map { Array($0.utf8) }
     private static let bodyKeywords = ["if", "while", "for", "switch", "guard", "catch", "repeat",
                                        "else", "do", "defer"].map { Array($0.utf8) }
+    private static let caseClauses = ["case", "default"].map { Array($0.utf8) }
     private static let escapes = ["Task"].map { Array($0.utf8) }
     private static let wrapMarker = Array("awaitEvent".utf8)
 

@@ -450,32 +450,30 @@ function html(res: ServerResponse, status: number, body: string): void {
   res.end(body);
 }
 
-/** `application/x-www-form-urlencoded`, and JSON for the clients that send it anyway. */
-function readForm(body: unknown, raw: string | undefined): URLSearchParams {
-  if (raw !== undefined) {
-    const trimmed = raw.trim();
-    if (trimmed.startsWith('{')) {
-      try {
-        const parsed = JSON.parse(trimmed) as Record<string, unknown>;
-        const params = new URLSearchParams();
-        for (const [k, v] of Object.entries(parsed)) {
-          if (typeof v === 'string') params.set(k, v);
-        }
-        return params;
-      } catch {
-        return new URLSearchParams();
+/**
+ * `application/x-www-form-urlencoded`, and JSON for the clients that send it anyway.
+ *
+ * RFC 6749 specifies the form encoding and every standard library sends it, but some MCP clients
+ * post JSON to `/token`. Accepting both costs four lines and turns a class of "Authenticate
+ * failed" into a working flow; the security posture does not depend on the encoding, because the
+ * Origin check has already run either way.
+ */
+function readForm(raw: string | undefined): URLSearchParams {
+  if (raw === undefined) return new URLSearchParams();
+  const trimmed = raw.trim();
+  if (trimmed.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(trimmed) as Record<string, unknown>;
+      const params = new URLSearchParams();
+      for (const [k, v] of Object.entries(parsed)) {
+        if (typeof v === 'string') params.set(k, v);
       }
+      return params;
+    } catch {
+      return new URLSearchParams();
     }
-    return new URLSearchParams(trimmed);
   }
-  if (body && typeof body === 'object') {
-    const params = new URLSearchParams();
-    for (const [k, v] of Object.entries(body as Record<string, unknown>)) {
-      if (typeof v === 'string') params.set(k, v);
-    }
-    return params;
-  }
-  return new URLSearchParams();
+  return new URLSearchParams(trimmed);
 }
 
 function issuerFor(cfg: RouterConfig): string {
@@ -577,7 +575,6 @@ export function handleAuthServer(
   req: IncomingMessage,
   res: ServerResponse,
   url: URL,
-  body: unknown,
   rawBody: string | undefined,
   deps: AuthServerDeps
 ): boolean {
@@ -618,7 +615,17 @@ export function handleAuthServer(
   if (p === REGISTER_PATH) {
     if (req.method !== 'POST') return methodNotAllowed(res);
     if (originRefused(req, cfg)) return forbiddenOrigin(res);
-    const b = (body ?? {}) as { redirect_uris?: unknown; client_name?: unknown };
+    // Parsed here rather than by the dispatcher, so one reader owns the stream. A body that is
+    // not JSON is an empty registration, which fails the redirect_uris check below with the
+    // message that names the real problem.
+    let b: { redirect_uris?: unknown; client_name?: unknown } = {};
+    if (rawBody) {
+      try {
+        b = JSON.parse(rawBody) as typeof b;
+      } catch {
+        b = {};
+      }
+    }
     const uris = Array.isArray(b.redirect_uris) ? b.redirect_uris : [];
     if (uris.length === 0 || uris.length > MAX_REDIRECT_URIS) {
       json(res, 400, {
@@ -657,7 +664,7 @@ export function handleAuthServer(
     if (req.method === 'GET') return authorizeGet(res, url, deps);
     if (req.method === 'POST') {
       if (originRefused(req, cfg)) return forbiddenOrigin(res);
-      return authorizePost(res, readForm(body, rawBody));
+      return authorizePost(res, readForm(rawBody));
     }
     return methodNotAllowed(res);
   }
@@ -666,7 +673,7 @@ export function handleAuthServer(
   if (p === TOKEN_PATH_OAUTH) {
     if (req.method !== 'POST') return methodNotAllowed(res);
     if (originRefused(req, cfg)) return forbiddenOrigin(res);
-    return tokenPost(res, readForm(body, rawBody));
+    return tokenPost(res, readForm(rawBody));
   }
 
   return false;

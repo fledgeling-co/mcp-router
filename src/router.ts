@@ -42,6 +42,34 @@ function readBody(req: IncomingMessage): Promise<unknown> {
   });
 }
 
+/**
+ * The request body as text, for the authorization-server routes.
+ *
+ * `readBody` parses JSON and rejects anything else, which is right for /mcp and for the control
+ * API and wrong for `/token`: RFC 6749 makes that endpoint `application/x-www-form-urlencoded`,
+ * and a parser that throws on a form body would refuse every standard OAuth client. The stream can
+ * be consumed exactly once, so whichever reader runs must be the only one.
+ */
+function readRaw(req: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    let size = 0;
+    req.on('data', (c: Buffer) => {
+      size += c.length;
+      // Far below readBody's 32 MiB: nothing legitimate on these routes is larger than a few
+      // hundred bytes, and a looping page must not be able to make the router hold megabytes.
+      if (size > 64 * 1024) {
+        reject(new Error('request body too large'));
+        req.destroy();
+        return;
+      }
+      chunks.push(c);
+    });
+    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    req.on('error', reject);
+  });
+}
+
 function json(res: ServerResponse, status: number, body: unknown): void {
   const payload = JSON.stringify(body);
   res.writeHead(status, {
@@ -117,7 +145,19 @@ function buildMcpServer(
   usage: UsageStore,
   identify: () => Promise<{ pid?: number; cwd?: string; client?: string }>
 ): Server {
-  const server = new Server({ name: 'mcp-router', version: '0.1.0' }, { capabilities: { tools: {} } });
+  /*
+   * `instructions` reaches the MODEL, not the human: hosts inject it into the system prompt. It is
+   * the second of the two surfaces R14 chose, and the cheap one — it is what lets an assistant
+   * answer "why can't you use X" correctly instead of concluding the capability does not exist.
+   *
+   * Computed per request, because this Server is built per request and the answer changes the
+   * moment an upstream is authorized or re-indexed. A constant string here would be a cached
+   * status, which is the one thing the state report may not be built from.
+   */
+  const server = new Server(
+    { name: 'mcp-router', version: '0.1.0' },
+    { capabilities: { tools: {} }, instructions: instructionsFor(cfg, manifest.current()) }
+  );
 
   // Read through the store, not a snapshot: a `mcp-router index` run while this
   // process is up must reach the next client that lists tools. The caller's own
@@ -306,6 +346,23 @@ export async function startRouter(
           pendingAuth: pool.pending(),
           tools: unionTools(manifest.current(), cfg.upstreams).length,
         });
+      }
+
+      /*
+       * The router's own authorization server, ahead of the control block and of /mcp.
+       *
+       * Its paths are exact-matched and share nothing with `/callback`, which belongs to the
+       * OTHER OAuth role this process plays — client to its upstreams. Two roles on one port is
+       * the arrangement R14 accepted, and keeping the endpoint sets unambiguous is what stops a
+       * request meant for one being read by the other.
+       *
+       * Its body is read here for the same reason the control block reads its own: the request
+       * stream can be consumed once, so the reader has to be the one that owns the path.
+       */
+      if (isAuthServerPath(url.pathname)) {
+        const rawBody =
+          req.method === 'POST' ? await readRaw(req).catch(() => undefined) : undefined;
+        if (handleAuthServer(req, res, url, rawBody, { cfg, manifest: manifest.current() })) return;
       }
 
       // The control API mutates config and streams the call log, so it is handled

@@ -697,10 +697,21 @@ expect "two siblings sharing a path return 3, not a vouched comparison" 3 "$root
 # The repair is to assert the PARTITION rather than the two sentences. Every text node that names a
 # ladder role either gets compared or gets excluded as a wrap count, so `comparisons + excluded ==
 # census` is an identity of the layer rather than a fact about this fixture, and it is the sentence
-# `reports comparisons and census separately` actually claims. It cannot be satisfied by a note that
-# reports one number twice: the census mutation gives 3 + 1 = 3, and dropping the exclusion counter
-# gives 2 + 0 = 3. Both are red here, and the three literals are kept beside it so a fixture that
-# quietly stopped producing a multi-line node cannot satisfy the identity at 0 + 0 == 0.
+# `reports comparisons and census separately` actually claims.
+#
+# The identity has to be asserted BEFORE the fixture's numbers, and that is `D-m23-aj`. Written as a
+# fifth conjunct after `cmp = 2`, `census = 3` and `excl = 1`, it could only ever reduce to 3 = 3:
+# any value that differs reddens a literal and the `&&` chain short-circuits before the identity is
+# reached, so under both of this case's own mutations it was never evaluated. Decoration inside the
+# instrument that proves the gate is the same defect this item exists to catch, one level in.
+#
+# So the identity leads and the fixture's shape follows it as floors. `cmp >= 2`, `excl >= 1` and
+# `census = 3` give up nothing the three literals caught — with the identity they pin cmp to 2 and
+# excl to 1 exactly — while leaving the identity room to fire. The census mutation gives 3 + 1 = 3
+# and dropping the exclusion counter gives 2 + 0 = 3; both are now red AT THE IDENTITY, and deleting
+# the identity takes the census mutation green, which is the measurement that says it carries load.
+# The floors are what stop a fixture that quietly stopped producing a multi-line node satisfying the
+# identity at 0 + 0 == 0.
 root="$SCRATCH/multiline"; export FIXTURE_MULTILINE=1; build "$root"; unset FIXTURE_MULTILINE
 cases=$((cases + 1))
 out48=$(PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
@@ -708,11 +719,15 @@ out48=$(PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.p
 status48=$?
 RE_CMP='([0-9]+) per-role comparison\(s\) over ([0-9]+) text nodes'
 RE_EXCL='([0-9]+) multi-line node\(s\) excluded'
-cmp48=""; census48=""; excl48=""
+# `excl48` starts at 0 rather than the empty string because the note only prints the excluded clause
+# when something was excluded, so an absent clause means zero excluded rather than an unreadable
+# note — and the floor below needs a number. An unmatched RE_CMP leaves cmp48 and census48 empty,
+# where the identity reads 0 = "" and reddens, short-circuiting before either floor sees a non-integer.
+cmp48=""; census48=""; excl48=0
 [[ "$out48" =~ $RE_CMP ]] && { cmp48=${BASH_REMATCH[1]}; census48=${BASH_REMATCH[2]}; }
 [[ "$out48" =~ $RE_EXCL ]] && excl48=${BASH_REMATCH[1]}
-if [ "$status48" = 1 ] && [ "$cmp48" = 2 ] && [ "$census48" = 3 ] && [ "$excl48" = 1 ] \
-   && [ "$((cmp48 + excl48))" = "$census48" ]; then
+if [ "$status48" = 1 ] && [ "$((cmp48 + excl48))" = "$census48" ] \
+   && [ "$cmp48" -ge 2 ] && [ "$excl48" -ge 1 ] && [ "$census48" = 3 ]; then
   echo "ok    the type layer reports comparisons and census separately — $cmp48 + $excl48 = $census48"
 else
   echo "FAIL  the type layer's note does not partition its census: exit $status48, comparisons"
@@ -855,9 +870,20 @@ status43=$?
 # The last clause is the diagnostic's own honesty: a failure AFTER the report was written has
 # measured eight layers, and saying "nothing this covers was measured" one line above "the ledger
 # describes the layers that ran" is the gate contradicting itself (`gpt-5.6-sol`).
+#
+# The marker clause is what makes the ledger's DELIVERY armed rather than only its write. `emit`
+# falls back to stderr precisely so "a console that cannot encode the report still delivers it",
+# and `mock-fidelity-gate.sh` greps for that one literal to decide between `ledger written to <path>`
+# and `NO ledger was written by this run`. Before this clause the suite pinned the marker's presence
+# on success (case 51's first invocation) and its absence on a failed write (its third), and nothing
+# at all about the case where the write SUCCEEDS and a later print raises. Deferring the emit to
+# after the console loop under `if report_path and run.report_written:` leaves every other assertion
+# in this case word-for-word true — exit 3, this run's table on disk, both diagnostics — while the
+# marker reaches neither stream and the gate denies its own ledger (`gemini-3.7-flash-high`).
 if [ "$status43" = 3 ] && grep -qF 'UnicodeEncodeError' <<<"$out43" \
    && ! grep -qF 'STALE-FROM-AN-EARLIER-RUN' "$LEDGER43" \
    && grep -qF 'Present / divergent / absent' "$LEDGER43" \
+   && grep -qF "mock-fidelity: report written to $LEDGER43" <<<"$out43" \
    && grep -qF 'The layers ran and the ledger was written' <<<"$out43" \
    && ! grep -qF 'Nothing this covers was measured' <<<"$out43"; then
   echo "ok    a console that cannot encode the report returns 3 with this run's table on disk"

@@ -151,6 +151,12 @@ STATES = [
     (r"retired", "retired"),
     (r"\bheld\b", "held"),
     (r"\bmerged\b|\bdone\b", "shipped"),
+    # "Ready to verify" must be tested BEFORE "verified": it is the state every item passes
+    # through on its way to Done, and `\bverified\b` does not match "verify", so before this
+    # row existed the check that is named for currency read nothing at all for the one moment
+    # the two files are most likely to disagree. It announced the skip rather than passing
+    # silently, which is the only reason it was cheap to find.
+    (r"ready to verify|ready for verification", "ready-to-verify"),
     (r"ready to merge|\bverified\b", "verified"),
     (r"in progress|dispatched", "in-progress"),
     (r"ready for ai", "ready-for-ai"),
@@ -461,10 +467,48 @@ def main() -> int:
               "the status vocabulary moved past STATES. A gate that never ran is not a gate "
               "that passed.", file=sys.stderr)
         return 2
+    # ---- J: a row that parses to more cells than its header ------------------------------
+    #
+    # Named for exactly what it reads, because the two causes it catches are different and
+    # both are real. A literal `|` inside a cell renders correctly in GFM and splits every
+    # naive reader — the RULE this file carries was written after `D-r7-k` did it, and then
+    # broken again by the next long note authored here, which is why this is a check and not
+    # a habit. The other cause is a row of one table's shape filed inside another's.
+    #
+    # H skips rows with FEWER cells than their header and names them. Nothing read the other
+    # direction, so a note carrying a pipe passed every check while parsing wrong.
+    j_findings: list[str] = []
+    j_examined = 0
+    for label, text in (("ORCHESTRATOR", orch), ("LEDGER", ledger)):
+        header: int | None = None
+        for n, line in enumerate(text.splitlines(), 1):
+            if not line.startswith("|"):
+                header = None
+                continue
+            cells = line.strip().strip("|").split(" | ")
+            if header is None:
+                header = len(cells)
+                continue
+            if not set(line.replace("|", "").replace("-", "").replace(":", "").strip()):
+                continue
+            j_examined += 1
+            if len(cells) > header:
+                j_findings.append(f"{label}:{n} parses to {len(cells)} cells against a "
+                                  f"{header}-cell header — {cells[0].strip()[:40]}")
+    if j_findings:
+        findings.append(("J", "a table row parses to more cells than its header, so it renders "
+                              "correctly and every reader splitting on the pipe reads it wrong",
+                         j_findings))
+    print(f"J examined {j_examined} table rows in both files")
+    if j_examined == 0:
+        print("usage error: check J examined 0 rows — the table reader stopped matching. "
+              "A gate that never ran is not a gate that passed.", file=sys.stderr)
+        return 2
+
     print()
 
     if not findings:
-        print("reconciled — no findings across A, B, B-range, C, D, E, F, G, H, I")
+        print("reconciled — no findings across A, B, B-range, C, D, E, F, G, H, I, J")
         return 0
     for code, why, ids in findings:
         print(f"{code}. {why}")

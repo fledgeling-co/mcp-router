@@ -14,6 +14,13 @@
 # refused, a forged refresh token is refused. That split is stated rather than hidden, because a
 # lane that normalises away the thing it is meant to check is worse than no lane.
 #
+# ROWS THIS LANE OWNS. It writes results for these ids and no others; the `record` guard below
+# refuses anything else, because the gate matches on (group, id) and binds no script to either —
+# authorship has to be closed from the lane's side or it is not closed at all.
+#   authserver: authserver-metadata-resource authserver-metadata-as authserver-register
+#               authserver-authorize authserver-token authserver-instructions
+#               authserver-state-report authserver-host-authority
+#
 # Exit codes: 0 everything agreed and every constraint held, 1 a failure, 2 the environment could
 # not run the lane.
 
@@ -36,10 +43,45 @@ cleanup() {
 }
 trap cleanup EXIT
 
+RESULTS="${PARITY_RESULTS:-}"
+OWNED="authserver/authserver-metadata-resource authserver/authserver-metadata-as
+authserver/authserver-register authserver/authserver-authorize authserver/authserver-token
+authserver/authserver-instructions authserver/authserver-state-report
+authserver/authserver-host-authority"
+
+record() { # group id ok|fail detail
+  [ -n "$RESULTS" ] || return 0
+  case " $(echo $OWNED) " in
+    *" $1/$2 "*) ;;
+    *) echo "  LANE BUG: refusing to record $1/$2, which this lane does not own" >&2; return 1 ;;
+  esac
+  printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$4" >> "$RESULTS"
+}
+
 pass=0; fail=0
 ok()   { pass=$((pass + 1)); printf '  ok   %s\n' "$1"; }
-bad()  { fail=$((fail + 1)); printf '  FAIL %s\n' "$1"; }
+# Every failure is attributed to the row being exercised, so a row is proven only when the checks
+# that speak for it all passed. CURRENT_ROW is set before each block below.
+CURRENT_ROW="authserver-metadata-resource"
+bad()  { fail=$((fail + 1)); printf '  FAIL %s\n' "$1"; ROW_FAIL["$CURRENT_ROW"]=$(( ${ROW_FAIL["$CURRENT_ROW"]:-0} + 1 )); }
 check(){ if [ "$1" = "$2" ]; then ok "$3 ($2)"; else bad "$3 — expected $2, got $1"; fi; }
+
+# Per-row verdicts. A row is proven only when every check that speaks for it passed, so each row
+# tracks its own tally rather than inheriting the lane's.
+declare -A ROW_FAIL
+row() { ROW_FAIL["$1"]=$(( ${ROW_FAIL["$1"]:-0} + ${2:-0} )); }
+verdict_rows() {
+  local id
+  for id in authserver-metadata-resource authserver-metadata-as authserver-register \
+            authserver-authorize authserver-token authserver-instructions \
+            authserver-state-report authserver-host-authority; do
+    if [ "${ROW_FAIL[$id]:-0}" = 0 ]; then
+      record authserver "$id" ok "compared at both routers by parity-authserver.sh"
+    else
+      record authserver "$id" fail "${ROW_FAIL[$id]} check(s) failed"
+    fi
+  done
+}
 
 command -v node >/dev/null 2>&1 || { echo "environment: node is not installed"; exit 2; }
 [ -f "$REPO_ROOT/dist/index.js" ] || {
@@ -107,10 +149,13 @@ diffcmp() { # label path [curl args...]
   else bad "$label — $(diff "$WORK/a" "$WORK/b" | head -4 | tr '\n' ' ' | cut -c1-150)"; fi
 }
 
+CURRENT_ROW=authserver-metadata-resource
 diffcmp "GET /.well-known/oauth-protected-resource" /.well-known/oauth-protected-resource
-diffcmp "GET /.well-known/oauth-authorization-server" /.well-known/oauth-authorization-server
 diffcmp "GET /.well-known/oauth-protected-resource/mcp (RFC 9728 suffix form)" \
   /.well-known/oauth-protected-resource/mcp
+CURRENT_ROW=authserver-metadata-as
+diffcmp "GET /.well-known/oauth-authorization-server" /.well-known/oauth-authorization-server
+CURRENT_ROW=authserver-register
 diffcmp "POST /register with a remote https redirect_uri is refused, identically" /register \
   -X POST -H 'content-type: application/json' -d '{"redirect_uris":["https://attacker.example/cb"]}'
 diffcmp "POST /register with no redirect_uris is refused, identically" /register \
@@ -118,6 +163,7 @@ diffcmp "POST /register with no redirect_uris is refused, identically" /register
 diffcmp "cross-origin POST /register is refused, identically" /register \
   -X POST -H 'content-type: application/json' -H 'Origin: https://attacker.example' \
   -d '{"redirect_uris":["http://127.0.0.1:1/cb"]}'
+CURRENT_ROW=authserver-token
 diffcmp "cross-origin POST /token is refused, identically" /token \
   -X POST -H 'content-type: application/x-www-form-urlencoded' -H 'Origin: https://attacker.example' \
   -d 'grant_type=refresh_token&refresh_token=x'
@@ -138,11 +184,13 @@ diffcmp "a forged refresh token is refused, identically" /token \
 diffcmp "an unsupported grant is refused, identically" /token \
   -X POST -H 'content-type: application/x-www-form-urlencoded' -d 'grant_type=password'
 diffcmp "GET /token is refused, identically" /token
+CURRENT_ROW=authserver-authorize
 diffcmp "GET /authorize with an unissued client_id renders the same refusal page" \
   "/authorize?client_id=forged&redirect_uri=http%3A%2F%2F127.0.0.1%3A1%2Fcb&response_type=code"
 
 echo
 echo "the whole flow, at each router:"
+CURRENT_ROW=authserver-authorize
 
 flow() { # label base
   local label="$1" B="$2" reg cid v ch loc code tok at rt
@@ -298,6 +346,7 @@ fi
 
 echo
 echo "the state report, at both routers:"
+CURRENT_ROW=authserver-state-report
 # The page must name the upstream that is serving nothing, and must NOT tell the owner to
 # authorise one that is already authorised. `needsauth` has no credential record here, so it is
 # the never-authorised row; `probe` is stdio and can never be an authorisation story.
@@ -323,6 +372,7 @@ for pair in "reference:$TS" "Swift:$SW"; do
   printf '%s' "$page" | grep -q 'Authorising will not help' \
     && ok "$side the stdio upstream is told authorising will not help it" \
     || bad "$side the stdio upstream was mis-reported as an auth problem"
+  CURRENT_ROW=authserver-instructions
   instr="$(bodyof "$B/mcp" -X POST -H 'content-type: application/json' \
     -H 'accept: application/json, text/event-stream' \
     -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"lane","version":"1"}}}' \
@@ -331,10 +381,12 @@ for pair in "reference:$TS" "Swift:$SW"; do
   printf '%s' "$instr" | grep -q 'needsauth' \
     && ok "$side initialize carries instructions naming the same set" \
     || bad "$side initialize instructions do not name needsauth"
+  CURRENT_ROW=authserver-state-report
 done
 
 echo
 echo "a token minted before a restart still validates after it:"
+CURRENT_ROW=authserver-token
 kill "$TS_PID" 2>/dev/null; wait "$TS_PID" 2>/dev/null
 kill "$SWIFT_PID" 2>/dev/null; wait "$SWIFT_PID" 2>/dev/null
 MCP_ROUTER_HOME="$WORK/ts" node "$REPO_ROOT/dist/index.js" serve --port "$TS_PORT" \
@@ -353,6 +405,7 @@ done
 
 echo
 echo "the issuer key is 0600 in a 0700 directory, at both routers:"
+CURRENT_ROW=authserver-token
 for side in ts swift; do
   mode="$(stat -f '%Lp' "$WORK/$side/auth/issuer.key" 2>/dev/null)"
   dmode="$(stat -f '%Lp' "$WORK/$side/auth" 2>/dev/null)"
@@ -361,6 +414,43 @@ for side in ts swift; do
 done
 
 echo
-echo "r14-auth-server: $pass checks passed, $fail failed"
+echo "R15 — the authority check sits ahead of the whole ladder:"
+CURRENT_ROW=authserver-host-authority
+# Every route, old and new. The point of the row is that a route added later inherits the refusal,
+# so the pre-existing routes are checked here alongside the ones R14 added: before R15 these four
+# answered 200 to a foreign Host while /mcp answered 403.
+for path in /health /status /servers /usage /registry/search /nope \
+            /.well-known/oauth-protected-resource /.well-known/oauth-authorization-server \
+            /register /authorize /token; do
+  a="$(status "$TS$path" -H 'Host: evil.example')"
+  b="$(status "$SW$path" -H 'Host: evil.example')"
+  if [ "$a" = 403 ] && [ "$b" = 403 ]; then ok "a foreign Host is refused on $path at both routers"
+  else bad "$path answered $a / $b to a foreign Host, not 403 / 403"; fi
+done
+# And /mcp's refusal body is still the transport's own, byte for byte, at both routers.
+bodyof "$TS/mcp" -X POST -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' -H 'Host: evil.example' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' > "$WORK/mcp403.ts"
+bodyof "$SW/mcp" -X POST -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' -H 'Host: evil.example' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' > "$WORK/mcp403.sw"
+expected='{"jsonrpc":"2.0","error":{"code":-32000,"message":"Invalid Host header: evil.example"},"id":null}'
+if [ "$(cat "$WORK/mcp403.ts")" = "$expected" ] && [ "$(cat "$WORK/mcp403.sw")" = "$expected" ]; then
+  ok "/mcp's 403 body is unchanged and identical at both routers"
+else
+  bad "/mcp's 403 body moved — the parity row's pinned wording no longer holds"
+fi
+# The other routes get an ordinary 403, not the JSON-RPC envelope.
+if bodyof "$TS/health" -H 'Host: evil.example' | grep -q '^{"error":"Invalid Host header' \
+   && bodyof "$SW/health" -H 'Host: evil.example' | grep -q '^{"error":"Invalid Host header'; then
+  ok "a non-/mcp route gets the ordinary error envelope, not the JSON-RPC one"
+else
+  bad "a non-/mcp route's refusal body is not the ordinary envelope"
+fi
+
+verdict_rows
+
+echo
+echo "parity-authserver: $pass checks passed, $fail failed"
 [ "$fail" -gt 0 ] && exit 1
 exit 0

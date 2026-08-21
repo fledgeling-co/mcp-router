@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | ID | M21 |
-| Status | Needs More Info |
+| Status | **To Do** |
 | Category | mac · design authority · foundation |
 | Depends on | F2 ✓ · M23 ✓ |
-| Blocked by | one essential question in §2 — the same fork M16 carries, asked here in its general form |
+| Blocked by | nothing — the essential question is answered: settled 2026-08-22 — `design/mcp-router-console.html` is the design of record. The owner's instruction was *whichever's newest*; the console mock is the newer **design** (created 20 Aug against the prototype's 13 Aug) while the prototype is the more recently **touched file** (21 Aug, because M27 was implementing against it). Corroborated one-directionally by `PRD.md` §9.1, by `planning/fidelity/` keying every layer and the token register to it, and by M23's only manifest. See ORCHESTRATOR.md's DESIGN OF RECORD block. M21 is therefore the re-authoring of `DESIGN.md` against the console mock, which is what `PRD.md` §9.1 already recorded. |
 | Blocks in practice | nothing hard. Six of the eight items in this programme proceed under a recorded assumption; M16 is the one that cannot |
 | Brief | `planning/features-to-triage/M21-token-layer-and-design-md.md` |
 | Triage | 2026-08-22 · §2 is owner-facing · §3 is the pipeline record |

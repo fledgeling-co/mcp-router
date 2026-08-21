@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | ID | M16 |
-| Status | Needs More Info |
+| Status | **To Do** |
 | Category | mac · mock conversion |
 | Depends on | M3 ✓ · M23 ✓ |
-| Blocked by | one essential question in §2, which is the same fork M21 carries |
+| Blocked by | nothing — the essential question is answered: settled 2026-08-22 — `design/mcp-router-console.html` is the design of record. The owner's instruction was *whichever's newest*; the console mock is the newer **design** (created 20 Aug against the prototype's 13 Aug) while the prototype is the more recently **touched file** (21 Aug, because M27 was implementing against it). Corroborated one-directionally by `PRD.md` §9.1, by `planning/fidelity/` keying every layer and the token register to it, and by M23's only manifest. See ORCHESTRATOR.md's DESIGN OF RECORD block. M16 is therefore a **retirement**: `DESIGN.md` §1 names the breaker column as the signature and §2 records nineteen of its measurements, `Breaker.swift:4` and `BreakerGeometry.swift:5` cite it in source, and `BreakerParityTests` asserts exact two-way name-set equality between `DESIGN.md`'s rows and `BreakerGeometry.standard` — so removing the levers reddens a parity test whose oracle is the document M21 is re-authoring. Sequence the two deliberately. |
 | Brief | `planning/features-to-triage/M16-signal-path.md` |
 | Source mock | `design/mcp-router-console.html` — the design-authority question is §2's question |
 | Triage | 2026-08-22 · §2 is owner-facing · §3 is the pipeline record |

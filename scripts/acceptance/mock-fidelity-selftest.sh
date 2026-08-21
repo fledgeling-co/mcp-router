@@ -746,7 +746,15 @@ cases=$((cases + 1))
 out49=$(PATH="$root/bin:$PATH" PYTHONIOENCODING=ascii python3 "$root/scripts/acceptance/mock_fidelity.py" \
   "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER49" 2>&1)
 status49=$?
+# The marker clause covers the WRITABLE obituary, which nothing else here reaches.
+# `write_unmeasured_report` emits `REPORT_MARKER` too, and case 51's failing write points at an
+# UNwritable directory where `open()` raises and the marker is correctly absent — so this is the
+# only run in the file that replaces a ledger with an obituary a path actually accepted. Dropping
+# `emit(REPORT_MARKER + path)` from `write_unmeasured_report` leaves all 59 cases green while
+# `mock-fidelity-gate.sh` denies a ledger it did write (`gemini-3.7-flash-high`, asked to break
+# rather than review).
 if [ "$status49" = 3 ] && grep -qF 'no artifact at' "$LEDGER49" \
+   && grep -qF "mock-fidelity: report written to $LEDGER49" <<<"$out49" \
    && ! grep -qF 'UnicodeEncodeError' "$LEDGER49"; then
   echo "ok    an unencodable console does not replace the reason a run was inconclusive"
 else
@@ -802,11 +810,26 @@ out51_fail=$(PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidel
   --report "$SCRATCH/nowrite51/ledger.md" 2>&1)
 status51_fail=$?
 chmod 700 "$SCRATCH/nowrite51"
+
+# The fourth invocation passes a `--report` the caller spelled RELATIVE, and it is what pins the
+# marker to the path the engine was HANDED rather than one it derived. `mock-fidelity-gate.sh`
+# greps for `REPORT_MARKER + $LEDGER` with `$LEDGER` relative to the repo root, so wrapping
+# `report_path` in `os.path.abspath()` — an edit that reads as a tidy-up — makes the real gate deny
+# its own table. Every other `--report` in this file is already an absolute path under `$SCRATCH`,
+# where `abspath` is the identity, so that edit left all 59 cases green. Measured on the live gate:
+# the engine wrote the table and exited 1 at 132 findings, and the wrapper printed `NO ledger was
+# written by this run (exit 1) … is an earlier run's and does not describe this one` over it. The
+# engine resolves its own root from `__file__`, so running from `$root` changes nothing but this
+# argument (`claude-fable-5`, asked to break rather than review).
+out51_rel=$(cd "$root" && PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "rel-ledger.md" 2>&1)
 if grep -qF "mock-fidelity: report written to $LEDGER51" <<<"$out51" \
    && ! grep -qF "report written to" <<<"$out51_none" \
    && [ "$status51_fail" = 3 ] \
    && ! grep -qF "report written to" <<<"$out51_fail" \
-   && grep -qF "could not be replaced" <<<"$out51_fail"; then
+   && grep -qF "could not be replaced" <<<"$out51_fail" \
+   && grep -qF "mock-fidelity: report written to rel-ledger.md" <<<"$out51_rel" \
+   && [ -f "$root/rel-ledger.md" ]; then
   echo "ok    the engine claims a written report only when it wrote one"
 else
   echo "FAIL  the report-written marker does not track the write (unwritable run exited $status51_fail)"

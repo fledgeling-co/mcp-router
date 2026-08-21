@@ -91,12 +91,28 @@ enum HarnessesVerb {
 
     /// The same report as JSON, built through ``JSStringify`` rather than `JSONEncoder` — the
     /// repository's wire rule, enforced by `scripts/lint/no-wire-codable.sh`.
+    ///
+    /// **`unreadable` is the field a consumer reads first.** When it is non-null the harness's file
+    /// could not be parsed, and every other field on that row is the empty report rather than a
+    /// measurement: `state` reads `not-wired`, `entries` and `duplicateCount` read 0. Nothing was
+    /// counted, so nothing there means what it says.
     static func json(_ reports: [HarnessReport], port: Int) -> String {
         let rows: [JSONValue] = reports.map { report in
             .object([
                 JSONMember(key: JSString("harness"), value: .string(JSString(report.client.rawValue))),
                 JSONMember(key: JSString("path"), value: .string(JSString(report.path))),
                 JSONMember(key: JSString("exists"), value: .bool(report.exists)),
+                // Read this before `state`. A config that could not be read reaches the encoder as
+                // an empty report, so `state` says `not-wired` and `duplicateCount` says 0 — the
+                // same bytes a clean unwired harness produces. The human output draws that
+                // distinction and suppresses the plan; without this member the machine output could
+                // not express it at all, and the acceptance lane, which asserts on JSON only, could
+                // not see it either. That collision already cost one confident wrong answer against
+                // `~/.grok/config.toml`.
+                JSONMember(
+                    key: JSString("unreadable"),
+                    value: report.unreadable.map { JSONValue.string(JSString($0)) } ?? .null
+                ),
                 JSONMember(key: JSString("state"), value: .string(JSString(stateWord(report.state)))),
                 JSONMember(key: JSString("route"), value: .string(JSString(routeWord(report.route)))),
                 JSONMember(key: JSString("entries"), value: .number(Double(report.entryCount))),

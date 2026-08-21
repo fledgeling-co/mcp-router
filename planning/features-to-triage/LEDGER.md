@@ -58,7 +58,7 @@ it never tested.
 | R12 | Server soft-delete with a restore endpoint | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R8, renumbered 2026-08-21) |
 | R13 | Router-side behavioural eval runner — servers only | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R6, renumbered 2026-08-21) |
 | G2 | The ledger table holds two row shapes, and every reader silently drops one | `G2-orchestrator-table-is-heterogeneous.md` | — | — | Ready for AI — deferred from 2026-08-21 while agents were mid-read |
-| G3 | `make test` is not deterministically green | — | — | — | Ready for AI — found independently by two verifiers, 2026-08-21 |
+| G3 | `make test` is not deterministically green | `G3-make-test-is-not-deterministic.md` | — | — | **Ready to verify** (`ai/g3` `4c0f920`; ten `make test` runs all exit 0; the fix contains no duration — it asserts what the arming chose and awaits the event; the out-of-family panel found the fix carrying the defect it was written to remove and it was taken; 11 of 14 fixed sleeps removed; 6 follow-ups `D-g3-a`…`D-g3-f`) |
 | G4 | Assertions that do not read the quantity they are named for | `G4-assertions-that-do-not-read-their-own-quantity.md` | — | — | Untriaged — filed 2026-08-21 from a cross-session exchange with `egress`; three instances already found in this repo and each treated as unrelated. Triage decides whether it is its own item or the policy half of `G1` |
 | M15 | Settings becomes its own window | `M15-settings-window.md` | — | — | Untriaged |
 | M16 | The Signal Path replaces the Breaker Column | `M16-signal-path.md` | — | — | Untriaged |

@@ -10,8 +10,22 @@ import Foundation
 ///
 /// **Dispatch order is `src/router.ts`'s and is not rearrangeable** — see the type's own
 /// documentation for why `/health` and `/status` are answered ahead of the control block.
+///
+/// One thing sits **ahead** of that order rather than in it: ``RequestAuthority``. The Host check
+/// used to live inside ``MCPEndpoint``, so it guarded `/mcp` and nothing else; it now wraps the
+/// whole ladder, which is what makes a route added below inherit it.
 extension RouterService {
     func respond(to request: HTTPWireRequest) async -> HTTPWireResponse {
+        await RequestAuthority.guarding(
+            request,
+            allowedHosts: RequestAuthority.allowedHosts(host: config.host, port: config.port)
+        ) { request in
+            await self.dispatch(request)
+        }
+    }
+
+    /// The ladder itself, reached only for a request whose authority this router answers for.
+    private func dispatch(_ request: HTTPWireRequest) async -> HTTPWireResponse {
         let (path, query) = request.pathAndQuery
 
         if path == "/health", request.method == "GET" {

@@ -176,19 +176,14 @@ public struct MCPEndpoint: Sendable {
         return nil
     }
 
-    /// The authorities a request may name. `cfg.host:port` first, then the three loopback spellings,
-    /// de-duplicated — `src/router.ts:allowedHosts`.
+    /// The authorities a request may name.
+    ///
+    /// The list is ``RequestAuthority``'s, not a second copy: since R15 the dispatcher refuses a
+    /// foreign Host ahead of this endpoint, and this check is the reference's transport-level
+    /// `enableDnsRebindingProtection`, kept as defence in depth. Two lists could disagree about
+    /// what the bound authority is; one cannot.
     private var allowedHosts: [String] {
-        var seen: [String] = []
-        for candidate in [
-            "\(deps.config.host):\(deps.config.port)",
-            "127.0.0.1:\(deps.config.port)",
-            "localhost:\(deps.config.port)",
-            "[::1]:\(deps.config.port)"
-        ] where !seen.contains(candidate) {
-            seen.append(candidate)
-        }
-        return seen
+        RequestAuthority.allowedHosts(host: deps.config.host, port: deps.config.port)
     }
 
     // MARK: - One JSON-RPC message

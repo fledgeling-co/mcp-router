@@ -11,6 +11,7 @@ import { UpstreamPool } from './pool.js';
 import { splitToolName, unionTools, visibleTo, placardFor, type ManifestStore } from './manifest.js';
 import { ClientResolver, UsageStore, projectOf } from './usage.js';
 import { handleControl, controlToken, isControlPath } from './control.js';
+import { handleAuthServer, isAuthServerPath, instructionsFor } from './oauth.js';
 import { log } from './log.js';
 
 const MCP_PATH = '/mcp';
@@ -48,6 +49,56 @@ function json(res: ServerResponse, status: number, body: unknown): void {
     'content-length': Buffer.byteLength(payload),
   });
   res.end(payload);
+}
+
+/**
+ * The authority check, for every route rather than for /mcp alone.
+ *
+ * It used to live only inside the MCP transport — `enableDnsRebindingProtection` on
+ * `StreamableHTTPServerTransport` — which the dispatcher below reaches after /health,
+ * /status and the whole control block have already answered. Measured on 2026-08-21:
+ * /health, /status, /servers and /usage all returned 200 to `Host: evil.example` while
+ * /mcp returned 403. A page on a domain whose DNS re-resolves to 127.0.0.1 is
+ * same-origin with the router by the browser's reckoning, so it could read the usage
+ * history, the project list and the full command line of every configured server. Not
+ * a credential leak — `envKeys` is variable names only — but a reconnaissance surface
+ * nobody chose to publish.
+ *
+ * So the check moved to the front of the ladder, where a route added later inherits it
+ * rather than having to opt in.
+ *
+ * `/mcp`'s answer is the transport's own, byte for byte, because a parity row pins it:
+ * `403 Forbidden`, `content-type: application/json`, and the JSON-RPC envelope in the
+ * member order `jsonrpc, error, id`. Every other route gets the ordinary error envelope
+ * this file's 404 already uses.
+ *
+ * One ordering consequence, deliberate: a POST to /mcp that is both wrongly addressed
+ * and unparseable now answers 403 rather than the 500 it answered when `readBody` ran
+ * first. Refusing a foreign authority before reading its body is the better order, and
+ * the Swift port moves with it.
+ *
+ * A request with no Host header at all is left alone here — Node's own parser answers
+ * 400 to an HTTP/1.1 request without one, so this branch is unreachable through it, and
+ * inventing a refusal the reference cannot produce would be a divergence rather than a fix.
+ */
+function hostRefusal(
+  req: IncomingMessage,
+  res: ServerResponse,
+  pathname: string,
+  allowedHosts: string[]
+): boolean {
+  const host = req.headers.host;
+  if (host === undefined || allowedHosts.includes(host)) return false;
+  if (pathname === MCP_PATH) {
+    json(res, 403, {
+      jsonrpc: '2.0',
+      error: { code: -32000, message: `Invalid Host header: ${host}` },
+      id: null,
+    });
+  } else {
+    json(res, 403, { error: `Invalid Host header: ${host}` });
+  }
+  return true;
 }
 
 /**
@@ -205,6 +256,10 @@ export async function startRouter(
    * and a plain POST reaches this endpoint — which runs every MCP server the user
    * owns, with the user's full environment. The Host header is what distinguishes
    * that request from a real local client, so it is checked.
+   *
+   * The check itself runs in `hostRefusal` at the top of the dispatcher, so it guards every
+   * route. The transport keeps its own copy below as defence in depth — the same list, so
+   * the two can never disagree about what the bound authority is.
    */
   const allowedHosts = [
     ...new Set([
@@ -235,6 +290,9 @@ export async function startRouter(
        */
       const identity = resolver.identify(req.socket);
       identity.catch(() => undefined);
+
+      // Ahead of every route, so a route added below inherits it. See hostRefusal.
+      if (hostRefusal(req, res, url.pathname, allowedHosts)) return;
 
       if (url.pathname === '/health') {
         return json(res, 200, { ok: true, upstreams: cfg.upstreams.length });

@@ -191,3 +191,158 @@ predicted would pass.
   this work, not three.
 - **`make lint` had twenty-nine open violations when this item started**, and nothing in the
   pipeline had reported them. The gates in §1 are now each run with their exit code read directly.
+
+---
+
+# M23 gap-fix — the three blocking findings, and the mutation that arms each
+
+Second pass on the same branch, against `planning/features-to-triage/M23-gapfix.md`. `main` was
+merged in first (`47f34ff`) for R6 and R10; the `Makefile` conflict was resolved by keeping both
+sides' targets, and `LEDGER.md` auto-merged onto `main`'s newer M23 row.
+
+Every number below is quoted from the run that produced it. The mutations were applied to a `cp`
+backup and restored from it — never with `git checkout`, which destroyed uncommitted work in this
+tree once before.
+
+## 8 · Gates, this pass
+
+| Gate | Command | Result |
+|---|---|---|
+| Conversion gate | `./scripts/acceptance/mock-fidelity-gate.sh servers` | **exit 1 — 132 findings** |
+| Gate, tokens unmeasurable | `MCP_ROUTER_WRITE_TOKEN_REGISTER=1 ./scripts/acceptance/mock-fidelity-gate.sh servers` | **exit 3** — tokens INCONCLUSIVE, ledger written |
+| Gate, planted `TimeoutExpired` | `timeout=1` on the tokens layer's `swift test` | **exit 3** by the same path |
+| Gate selftest | `./scripts/acceptance/mock-fidelity-selftest.sh` | **26 cases** (from 22), all three exits observed, exit 0 |
+| Out-of-family review | `grok-4.6` at xhigh · `gpt-5.6-sol` at high | both landed; two holes closed because of them — `M23-gapfix-review.md` |
+| Lint | `make lint` | exit 0 |
+| Full suite, run 1 | `make test` | exit 0 — **1580 tests in 198 suites passed** |
+| Full suite, run 2 | `make test` | exit 0 — **1580 tests in 198 suites passed** |
+
+`make test` was run twice because `PoolReapingTests.swift:61` is non-deterministically red under
+whole-suite load (G3 in `ORCHESTRATOR.md` — a 150ms sleep against a 25ms idle reap, a wall-clock
+assumption rather than a product defect). Both runs were green here, so the flake did not fire.
+
+## 9 · G1 — `present` is earned, on two axes
+
+**Was:** status came from `mock_text == app_text`. In **6 of the 10** `present` rows of
+`planning/fidelity/servers.ledger.md` both sides were the empty string, so agreement between two
+absences read as a match. And `affordance["kind"]` was written into the ledger and compared to
+nothing, so mock kind `card` paired to build role `skeleton` read `present` as well.
+
+**Now:** `present` requires two strings that both exist and agree. Everything the instrument could
+not compare is `unclassified`, which is a finding naming what it could not read. And the pair is
+audited on the control before the label: the build node's `role` and `kind` are checked against the
+mock's kind through `VOUCHED_CONTROLS`, a declared table in the gate rather than in the manifest
+the gate reads — the same placement, and for the same reason, as `ALLOWED_OPTIONAL`.
+
+Ledger counts moved `present 10 → 3`, `unclassified 1 → 6`, `divergent 16 → 18`.
+
+**Two findings this surfaced on the real surface, neither of them the instrument's:**
+
+- `loading`: `v-loading/card/unlabelled` is a mock `card` answered by a node reporting role
+  `skeleton`. Registered `D-m23-g`'s sibling case; M17 owns the loading state.
+- `error`: `v-error/button/start-the-router` is answered by `state-action-disabled` while the mock
+  draws it `btn primary lg` with no disabled attribute — a control the build changed, read as
+  `present` until now. Registered `D-m23-g`.
+
+**Mutation A — restore `mock_text == app_text`:**
+
+```
+FAIL  a pair with no string on either side returns 1 — expected exit 1, got 0
+mock-fidelity-selftest: FAILED — an exit the gate is supposed to reach was not reached.
+```
+
+Exit **0**, not 1: with the old comparison the whole scratch tree reads clean. Restored from
+`/tmp/m23-backups/mock_fidelity.py.fixed`; 26/26 green again.
+
+**Mutation B — `vouched = True`, i.e. the kind is never compared:**
+
+```
+FAIL  a mock card answered by a build skeleton returns 1 — expected exit 1, got 0
+```
+
+The fixture's labels agree exactly, so nothing but the control check can speak there. Restored.
+
+## 10 · G2 — the exemption is a quota, not a blanket
+
+**Was:** any descendant of a paired node was `covered-by-pair`. The mock's `v-loading` draws three
+skeleton rows and the build draws four; the fourth produced no finding at all.
+
+**Now:** where at least one build node of the same role under the same paired ancestor was paired
+to an affordance, the mock has declared how many there are, and the surplus is reported:
+
+```
+loading: servers.loading/board-column/skeleton/skeleton-row-3 is in the build and not in the mock
+— role 'skeleton-row' answers mock kind(s) skeleton-row, of which the mock's census for this
+state names 3; 3 of the 4 node(s) of that role under servers.loading/board-column/skeleton
+answer one, and this one answers none
+```
+
+Planting a fifth child in `servers.loading.json` reported **two**, naming `skeleton-row-3` and
+`skeleton-row-4`. Restored from the `cp` backup; back to one, and `git diff
+planning/fidelity/dumps/` is empty.
+
+The quota is asked of the **mock's census**, not of how many siblings happened to get paired. The
+first draft used pairing success, and both review lanes showed that left the original hole
+reachable — see `planning/evidence/M23-gapfix-review.md`.
+
+Where the mock's census never reaches that granularity — a build `row-name` inside a paired
+`table-row`, say — the exemption is unchanged, and `covered-by-pair` went `17 → 16` rather than
+collapsing.
+
+**Mutation C — restore the blanket exemption (`if declared == 0` → `if True`):**
+
+```
+FAIL  a build child past the mock's count returns 1 — expected exit 1, got 0
+```
+
+## 11 · G3 — a layer that measured nothing exits 3
+
+**Was:** with `MCP_ROUTER_WRITE_TOKEN_REGISTER=1` inherited, the Swift suite prints
+`MOCK-FIDELITY-TOKENS: register rewritten at <path>` and returns before the census.
+`dict(part.split("=", 1) for part in …)` raised an uncaught `ValueError`, python exited **1**, and
+`write_report` never ran — a stale committed ledger on disk beside an exit code meaning
+"differences were found". `subprocess.TimeoutExpired` escaped identically.
+
+**Now:** `run()` converts both `TimeoutExpired` and `OSError` to `Inconclusive`, and the marker
+parse and the zero-literals count are guarded, quoting the tool's own words rather than
+paraphrasing them:
+
+```
+  tokens             INCONCLUSIVE
+      tokens: the MOCK-FIDELITY-TOKENS marker does not carry the name=value census fields, so the
+      register was never read (ValueError('dictionary update sequence element #0 has length 1; 2
+      is required')). The suite printed, verbatim:
+      MOCK-FIDELITY-TOKENS: register rewritten at …/planning/fidelity/token-register.json
+```
+
+`GATE_B_EXIT=3`, and the ledger **was** written — `31948` bytes, mtime advanced, with
+`| `tokens` | **INCONCLUSIVE** | …` as its first layer row. The register the run rewrote was
+restored from backup and is byte-identical to the committed one.
+
+**Planted `TimeoutExpired`** — `timeout=1` on the tokens layer's `swift test` — gave
+`GATE_C_EXIT=3` by the same path.
+
+**Mutation D — remove the `Inconclusive` wrapper from the marker parse:**
+
+```
+FAIL  an unparseable token marker returns 3, not 1 — expected exit 3, got 1
+```
+
+The uncaught `ValueError` returns, and with it exit 1.
+
+## 12 · What this pass found and did not fix
+
+Six rows in `ORCHESTRATOR.md`'s deferred register. `D-m23-f` — the gate's tokens layer runs
+`swift test` in the same SwiftPM `.build` the MEASURE product links against, so a run leaves
+`MCPRouterUI` compiled without `MEASURE` and the next run's `swift build --product MeasureDump`
+can fail to link `SurfaceRecorder`. It happened twice here, both times after a `swift test` killed
+mid-compile, and it is why two attempts at the final gate run exited 3 before `rm -rf app/.build`
+cleared it. The gate reports it as INCONCLUSIVE, which is the right exit for the wrong reason: the
+instrument broke its own precondition.
+
+`D-m23-g` — the error state's primary action is `state-action-disabled` where the mock draws
+`btn primary lg`; read `present` until now, a finding since, and M17's to fix. `D-m23-h`,
+`D-m23-i`, `D-m23-j` and `D-m23-k` come out of the review and are described there.
+
+`D-m23-a` through `D-m23-e` stay deferred, `D-m23-c` (dark-only dumps) and `D-m23-b` (the unread
+resolved-colour layer) expressly.

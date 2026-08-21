@@ -474,3 +474,136 @@ racing`, which binds a loopback TCP port and raced under whole-suite concurrency
 in isolation and 3 of 4 green under the full suite, and nothing in this diff touches a listener.
 Registered as `D-r7-x` rather than re-run away from. `PoolReapingTests` (`G3`) did not flake in any
 of the four runs.
+
+---
+
+# Third round: out-of-family review of the second pass's own diff
+
+Three families were asked to review the diff before it was reported ready. Two delivered on the
+first attempt, one was down, and the fourth family was substituted for it rather than retrying.
+
+| Lane | Header proving how it ran | Bytes | Verdict |
+|---|---|---|---|
+| OpenAI — `codex exec` | `model: gpt-5.6-sol` · `reasoning effort: high` · `sandbox: read-only` | 4,327 | six findings, all on the shell gate |
+| Google — `agy` | `--model gemini-3.7-flash-high` (effort baked into the model id) | 4,469 | three findings, all on the Swift seam |
+| xAI — `grok` | — | **0** | lane down: empty output and empty log at a 16.5 KB packet, having already failed at 64 KB. Reported once and substituted |
+| Anthropic (substitute) — `claude` | `--model claude-fable-5 --effort high` | 5,783 | four findings; independently reproduced Google's endpoint-comparison one |
+
+Nine distinct findings across the three lanes. **Six were taken**, two were overruled on a
+measurement, and one was registered as deferred.
+
+## Taken — the seam
+
+**A stdio entry was being promoted to HTTP by its own leftovers.** `HarnessDialect.resolve` rewrote
+any non-standard endpoint key to `url` without asking what the entry was. `ServerParser` selects the
+transport from a truthy `url` whenever `type` is absent, so an entry of `{"command": "uvx", "args":
+[…], "serverUrl": "http://…/stale"}` was digested as an HTTP upstream: the stdio duplicate against
+the router's own stdio server was lost, and a false HTTP one could be invented against whatever sat
+at the stale address. The route rule already knew this entry was stdio; the comparison did not ask
+it. It asks now, through the same predicate.
+
+**Two spellings differing only in a trailing slash were called a conflict.** `endpointPath` folds a
+single trailing slash, so the route rule and the conflict rule disagreed about whether `/mcp` and
+`/mcp/` are one endpoint — and the entry went to `unparsed`, which is B4's silent loss arriving
+through formatting instead of a decoy. Endpoints are now compared normalised, and `JSURL` supplies
+scheme, host and port so host case and a default port fold with it.
+
+**One trailing slash is tolerated; two are not.** The old loop stripped every one, so
+`http://127.0.0.1:8879/mcp///` read as this router. `new URL()` keeps `/mcp//` as `/mcp//` and a
+router serving `/mcp` answers 404 there, so folding it claimed a route that does not exist.
+
+## Taken — the gate
+
+**The comment reader was wrong in both directions at once, and the first direction was silent.**
+`let marker = " /*"` is a Swift string containing a slash-star; the reader opened a block on it and
+blanked every line after it to end of file, so an applier under one reported clean. That is the
+vacuity this gate exists to refuse, arriving through the gate's own stripper. The mirror image: a
+`//` inside a URL string was read as a line comment and suppressed the real block opener after it,
+so a file documenting what it refuses to do became a finding. The reader now tracks the string
+state, which is the rule Swift itself applies, and both directions are cases.
+
+**The relink group was named routes rather than the property.** `createSymbolicLink`, `createLink`
+and `setAttributes` were in the vocabulary; `symlink`, `link`, `chmod`, `rename` and `truncate` were
+not, so the same mutation in its POSIX spelling walked through. The reviewer called this the
+diff's own defect in miniature and was right.
+
+**Three of the widened path names were generic enough to refuse this product.** `settings.json`,
+`config.toml` and `mcp.json` are among the commonest file names in software, and rule 1 fires across
+all 313 sources, so a file writing its own `config.toml` became a finding with no suppression
+comment to answer it. Those three now count only where a harness home is named too. The distinctive
+names — `mcp_config.json`, `claude_desktop_config.json`, `.claude.json`, `opencode.json` — still
+count alone.
+
+**The probes did not establish what the header claimed.** The wrapped-call probe contained no
+newline, so it proved the pattern tolerated whitespace while never exercising the line-joining it
+was added for; one subject matched two vocabulary entries and could not discriminate them; and five
+subjects were counted against twenty-two alternatives under a header saying every entry was probed.
+There is now a subject per alternative and a closure check that splits `SEAM_MUTATING` on `|` and
+exits 2 for any alternative no subject matches. **It failed on its first run** — `link\(` had no
+subject — which is the check doing its job before anything else did.
+
+## Overruled, on a measurement rather than a preference
+
+**"`url` should leave Gemini's dialect, because agy's error string names only `command` and
+`serverUrl`."** The inference is that the error string enumerates the accepted keys. It does not:
+`strings -a ~/.local/bin/agy` returns `json:"httpUrl"` as a struct tag on the same binary, and that
+key appears in neither the error string nor the help text. So the prose is not an enumeration, and
+dropping `url` would risk reporting a working config as not wired and then offering to wire it —
+which is F1, the self-triggering defect this whole item exists for. Kept, with the reasoning.
+
+**"`endpointPath`'s two-slash limit diverges from `JSURL`'s WHATWG slash-skipping."** Conditional in
+the reviewer's own words, and measured false: `JSURL.authority` consumes `while consumed < 2`, with
+a comment giving the reason (`file:///tmp/x` has an empty host and a path of `/tmp/x`). For
+`http:///host/mcp` the authority is empty, which `JSURL` rejects outright for a special scheme other
+than `file`, so `isThisRouter` refuses at its first guard and the path reader is never consulted.
+The two halves agree, and a test now says so in both directions.
+
+## Deferred
+
+`D-r7-y` — a name duplicate is settled before an entry's endpoints are read, so a conflict inside
+one is never reported. The entry is still counted, so nothing goes silently to zero; what is lost is
+a second finding about an entry already reported.
+
+## Arms for the third round
+
+| Arm | Mutation | Red |
+|---|---|---|
+| P1 | the stdio guard removed from `resolve` | unit: `(found.duplicates.count → 0) == 1`. Lane: `FAIL a stdio entry with a stale endpoint is still the stdio server it is: expected 1, got 0` |
+| P2 | endpoints compared raw again | unit: `found.unparsed → ["m: declares two different endpoints — url=http://127.0.0.1:9999/x and serverUrl=http://127.0.0.1:9999/x/ …"]`, and `duplicates.count → 0`. Lane: two checks, including `a readable entry was reported unreadable` |
+| P3 | `isStdio` reads a display string again | `(found.route → .notWired) == .directHTTP(name: "r", url: "http://127.0.0.1:8879/mcp")` |
+| P4 | the path reader insists on `://` again | 3 issues over 2 suites, first `(endpointPath(of: "http:/127.0.0.1:8879/mcp") → "") == "/mcp"` |
+| P5 | every trailing slash folded again | `(endpointPath(of: "http://127.0.0.1:8879/mcp//") → "/mcp") == "/mcp/"`, and `isThisRouter` returning true for it |
+| gate | the whole pre-panel gate, against the new selftest | **4 of 27 cases** — P19, P20, P21, P22, each with the reviewer's exact failure; P20b passed both ways, as the control direction it is |
+
+**Arm P1 passed on its first run, and the arm was the thing at fault.** The unit fixture named the
+harness entry the same as the router's upstream, so it matched on name and `HarnessDialect.resolve`
+was never reached — `D-r7-y`, met in the test written to guard against the defect beside it. The
+entry is now named `browser` against an upstream named `fetch`, so the identity basis is what is
+being exercised, and the arm goes red at both levels. The acceptance lane's own version of this
+check was written with the rename from the start.
+
+## Gates, third round
+
+| Gate | Result | Exit |
+|---|---|---|
+| `swiftformat --lint .` | `0/509 files require formatting` | 0 |
+| `swiftlint --strict` | `Found 0 violations, 0 serious in 502 files` | 0 |
+| `swift test` #1 | `1648 tests in 202 suites passed` | 0 |
+| `swift test` #2 | `1648 tests in 202 suites passed` | 0 |
+| `make parity` | `358 vector cases compared (floor 358)` | 0 |
+| `no-raw-design-values` | `clean` | 0 |
+| `no-wire-codable` | `2 exemption(s) recorded` | 0 |
+| `no-harness-config-writes` | `313 examined, 8 name a harness config, 20 write a file, 8 in the seam — none writes one` | 0 |
+| `no-harness-config-writes-selftest` | `27 case(s) held` | 0 |
+| `r7-harness-reconciliation.sh` | `pass`, 59 checks over eleven passes | 0 |
+| `make lint` | **blocked** at the `tools` guard — `node_modules is missing`, the same recorded block as passes 1 and 2. All six of its steps run individually above | 2 |
+
+`D-r7-x`'s bind race did not recur in either run. The real machine re-measures unchanged —
+`~/.gemini/config/mcp_config.json`, `wired-with-duplicates`, route `http`, 19 entries, 12
+duplicates, `unparsed: []`, and 19 + the router entry is `agy mcp list`'s twenty rows. Both real
+Gemini configs are byte-identical before and after every run in this round.
+
+**One process note worth carrying.** `swiftformat --lint . 2>&1 | tail -2; echo exit=$?` reported
+`exit=0` over a failing run, because `$?` was `tail`'s. That is the same mistake the brief names for
+gate logs, one command shorter, and it hid a real `wrapFunctionBodies` violation until the gate was
+re-run unpiped. Capture the exit code from the tool, then read the log.

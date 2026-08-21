@@ -24,7 +24,9 @@
 # ## Three refusals, each stated as what it actually reads
 #
 #   1. a file whose CODE names a harness config path — whole, or by the file name a path is
-#      assembled from — and that also writes a file
+#      assembled from, with the three names that are not distinctive (`settings.json`,
+#      `config.toml`, `mcp.json`) counting only where a harness home is named too — and that also
+#      writes a file
 #   2. a file that uses R7's reconciliation API — `ReconciliationPlan`, `HarnessReport`, or the
 #      `ClientConfigs` calls that hand out a harness path, matched across a line wrap — and that
 #      also writes a file
@@ -33,9 +35,10 @@
 #      the mutating vocabulary below, however the path was obtained**. Rules 1 and 2 need a
 #      recognisable token; this one does not, so an applier taking a bare `String` path is refused
 #      where one would actually live. Its vocabulary is deliberately wider than theirs, because the
-#      seam is a closed set of files and a false positive there costs one comment: it carries the C
-#      stdio calls, a subprocess that could redirect into a file, and the calls that replace a
-#      config without writing to it at all — a symlink, a hard link, a mode change.
+#      seam is a closed set of files: it carries the C stdio calls in both their Foundation and
+#      POSIX spellings, a subprocess at all, and the calls that replace a config without writing to
+#      it — a symlink, a hard link, a mode change. Two of its entries refuse more than writing, and
+#      the note above `SEAM_MUTATING` says which and why.
 #
 # ## What this gate does NOT check, said plainly rather than left to be discovered
 #
@@ -47,10 +50,11 @@
 #     a `String` and writing it — satisfies no intersection and lives in no watched name, and this
 #     gate exits 0 on it. That is `D-r7-m`, asserted as a miss at `P10`. The closed-world fix is
 #     named there: census the whole set of writing files against a declared allowlist.
-#   * **Rule 3 refuses a vocabulary, not the concept of writing.** Every entry is probed against a
-#     string it must match before any file is read, and the five walk-throughs a verifier found are
-#     kept as cases, so the vocabulary's reach is measured rather than asserted. A spelling nobody
-#     has thought of is still a spelling nobody has thought of.
+#   * **Rule 3 refuses a vocabulary, not the concept of writing.** Every alternative in it is
+#     required to be exercised by one of the probe subjects below — mechanically, by splitting the
+#     pattern on `|` and failing the gate at exit 2 for any alternative no subject matches — so the
+#     claim is checked rather than made. The five walk-throughs a verifier found are kept as cases.
+#     A spelling nobody has thought of is still a spelling nobody has thought of.
 #   * **Rules 1 and 2 are open-world and stay narrow on purpose.** A file that reaches a harness
 #     path through a value passed in from somewhere else, and that lives outside the seam, is not a
 #     finding here. Widening them to every write in the tree is the same trade `D-r7-m` names.
@@ -89,7 +93,19 @@ HARNESS_PATHS='\.claude\.json|claude_desktop_config\.json|\.codex/config\.toml|\
 # vocabulary of whole paths cannot see the assembled form. Measured against `app/Sources`: eight
 # files name one of these in code and the only one of them that writes anything writes to standard
 # output, so this widening costs no false positive today.
-HARNESS_PATH_PARTS='settings\.json|mcp_config\.json|claude_desktop_config\.json|\.claude\.json|mcp\.json|config\.toml|opencode\.json'
+HARNESS_PATH_PARTS='mcp_config\.json|claude_desktop_config\.json|\.claude\.json|opencode\.json'
+
+# The names that are NOT distinctive, and the company they must keep.
+#
+# `settings.json`, `config.toml` and `mcp.json` are three of the commonest file names in software.
+# Reading any of them as a harness config on its own refuses this product for writing its own
+# `config.toml`, and an out-of-family reviewer found exactly that: a rule that fires on
+# `root.appendingPathComponent("config.toml")` beside an unrelated cache write is a false positive
+# with no suppression syntax to answer it, which is how a gate gets deleted. They count only in a
+# file that also names a harness's HOME — which is where the path they belong to is assembled, and
+# is the thing that makes the name a harness's rather than anyone's.
+HARNESS_PATH_GENERIC='settings\.json|config\.toml|mcp\.json'
+HARNESS_HOMES='\.gemini|\.codex|\.chatgpt|\.cursor|\.grok|\.claude|opencode|Claude/'
 
 # R7's own API. A file holding any of these is handling a harness config or a plan for one, and a
 # write in the same file is the applier spec §7 says must not exist.
@@ -106,13 +122,24 @@ WRITING='writeFile|createFile|write\(to:|write\(toFile:|removeItem|moveItem|copy
 # would be noisy across 313, and its claim is the strong one: nothing in here reaches another
 # program's configuration at all.
 #
-# Three groups, and the third is the one no plant had named. The C stdio calls obtain a path
-# perfectly well and appear in no Swift write spelling. A subprocess writes a file with no write
-# call anywhere in the diff — `/bin/sh -c 'cat > target'`. And a symlink, a hard link or a mode
-# change **replaces or alters a harness config while writing nothing**: `D-r7-v` records that even
-# the acceptance lane's byte digest cannot see the last of those, so a gate that also could not see
-# it would leave the mutation unwitnessed on both instruments.
-SEAM_MUTATING='fopen\(|fdopen\(|freopen\(|fputs\(|fputc\(|fwrite\(|fprintf\(|creat\(|O_WRONLY|O_RDWR|O_CREAT|O_APPEND|posix_spawn|Process\(|executableURL|launchPath|/bin/sh|/bin/bash|/bin/zsh|/usr/bin/env|createSymbolicLink|createLink|linkItem|setAttributes\(|trashItem'
+# Four groups. The C stdio calls obtain a path perfectly well and appear in no Swift write
+# spelling. A subprocess writes a file with no write call anywhere in the diff — `/bin/sh -c 'cat >
+# target'`. A symlink, a hard link or a mode change **replaces or alters a harness config while
+# writing nothing**: `D-r7-v` records that even the acceptance lane's byte digest cannot see the
+# last of those, so a gate that also could not see it would leave the mutation unwitnessed on both
+# instruments. And the POSIX spellings of those same three — `symlink`, `link`, `chmod`, `rename`,
+# `truncate` — which an out-of-family reviewer found the Foundation-only version missing, correctly
+# calling it the same defect this pass exists to close: a vocabulary of named routes rather than the
+# property behind them.
+#
+# **Two entries are deliberately broader than "writes".** `fopen(` matches every mode, and
+# `Process(`/`executableURL`/`launchPath` say nothing about whether the child writes. That is not an
+# oversight: the seam reads harness configs through an injected `FileSystem`, so a raw C handle or a
+# spawned process there is out of band whatever it then does, and narrowing `fopen` to a literal
+# `"w"` is defeated by a mode held in a variable. The cost of that breadth is stated plainly rather
+# than waved at: there is no suppression comment, so a false positive here means rewriting the code
+# or amending this vocabulary in a commit that says why.
+SEAM_MUTATING='fopen\(|fdopen\(|freopen\(|fputs\(|fputc\(|fwrite\(|fprintf\(|creat\(|O_WRONLY|O_RDWR|O_CREAT|O_APPEND|O_TRUNC|posix_spawn|Process\(|executableURL|launchPath|/bin/sh|/bin/bash|/bin/zsh|/usr/bin/env|createSymbolicLink|createLink|linkItem|setAttributes\(|trashItem|link\(|chmod\(|rename\(|renameat\(|truncate\(|mkstemp\(|mkdtemp\(|utimes\(|Darwin\.write\(|dup2\('
 
 # `.write(` also matches writing to a standard stream, which is printing rather than writing a
 # config. Excluded so that `Out.print` does not make every verb a finding — which is the kind of
@@ -188,17 +215,38 @@ writes_matching() {
 # this repository already carries in a doc comment do not blank the rest of a file.
 code_lines() {
   awk '
-    function opener(s,   pos, base, ch) {
-      base = 0
-      while (1) {
-        pos = index(substr(s, base + 1), "/*")
-        if (pos == 0) return 0
-        pos = base + pos
-        if (pos == 1) return pos
-        ch = substr(s, pos - 1, 1)
-        if (ch == " " || ch == "\t" || ch == "(" || ch == "{" || ch == "," || ch == ";") return pos
-        base = pos + 1
+    # The first comment marker on the line that is not inside a string literal, as a kind and a
+    # position. A scan rather than a pattern, because both ways this reader has been wrong are the
+    # same mistake in mirror image, and both were found by out-of-family review:
+    #
+    #   * `let marker = " /*"` opened a block on a slash-star inside a STRING, and everything after
+    #     it — including a real write on the next line — was blanked through end of file. A gate
+    #     that goes quiet is the vacuity this file exists to refuse, arriving through its own
+    #     stripper. The previous guard, "a `/*` preceded by whitespace is an opener", is what let it
+    #     in: inside a string the preceding character is whitespace as often as anywhere else.
+    #   * `let reference = "https://example.test" /*` did the reverse. The `//` inside the URL was
+    #     read as a line comment starting before the real block opener, so the block never opened
+    #     and the prose inside it was read as code.
+    #
+    # Tracking the string state settles both, and it is the rule Swift itself applies. A backslash
+    # escapes the next character; the state resets at each line, so the body of a multi-line `"""`
+    # string is read as code — the direction that reports rather than the one that goes quiet.
+    function marker(s,   i, n, c, c2, instr) {
+      n = length(s); instr = 0
+      for (i = 1; i <= n; i++) {
+        c = substr(s, i, 1)
+        if (instr) {
+          if (c == "\\") { i++; continue }
+          if (c == "\"") { instr = 0 }
+          continue
+        }
+        if (c == "\"") { instr = 1; continue }
+        if (c != "/") continue
+        c2 = substr(s, i + 1, 1)
+        if (c2 == "/") { KIND = "line"; POS = i; return }
+        if (c2 == "*") { KIND = "block"; POS = i; return }
       }
+      KIND = "none"; POS = 0
     }
     {
       line = $0
@@ -212,12 +260,12 @@ code_lines() {
           inblock = 0
           continue
         }
-        s = opener(line)
-        d = index(line, "//")
-        if (d > 0 && (s == 0 || d < s)) { out = out line; break }
-        if (s == 0) { out = out line; break }
-        out = out substr(line, 1, s - 1)
-        line = substr(line, s + 2)
+        marker(line)
+        # A TRAILING line comment keeps its text: a comment must never be able to erase a real write
+        # beside it, which is the evasion `writes_matching` was hardened against.
+        if (KIND != "block") { out = out line; break }
+        out = out substr(line, 1, POS - 1)
+        line = substr(line, POS + 2)
         inblock = 1
       }
       print out
@@ -247,18 +295,90 @@ probe "$WRITING"           'let stream = OutputStream(toFileAtPath: target, appe
 probe "$WRITING"           'try manager.replaceItem(at: url, withItemAt: staged)'
 probe "$WRITING"           'let handle = try FileHandle(forUpdatingTo: url)'
 probe "$WRITING"           'let stream = OutputStream(url: target, append: false)'
-probe "$SEAM_MUTATING"     'guard let handle = fopen(target, "w") else { return }'
-probe "$SEAM_MUTATING"     'task.executableURL = URL(fileURLWithPath: "/bin/sh")'
-probe "$SEAM_MUTATING"     'let task = Process()'
-probe "$SEAM_MUTATING"     'try manager.createSymbolicLink(atPath: target, withDestinationPath: staged)'
-probe "$SEAM_MUTATING"     'try manager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: target)'
 probe "$HARNESS_PATHS"     'let path = home.appendingPathComponent(".gemini/settings.json")'
 probe "$HARNESS_PATHS"     'let path = home.appendingPathComponent(".gemini/config/mcp_config.json")'
 probe "$HARNESS_PATH_PARTS" 'let path = dir.appendingPathComponent("mcp_config.json")'
+probe "$HARNESS_PATH_GENERIC" 'let path = dir.appendingPathComponent("config.toml")'
+probe "$HARNESS_HOMES"     'let dir = home.appendingPathComponent(".codex")'
 probe "$R7_API"            'func apply(_ plan: ReconciliationPlan, to target: String) throws {'
 probe "$R7_API"            'let target = ClientConfigs.path(for: client, homeDirectory: home)'
-probe "$R7_API"            'guard let target = ClientConfigs.path( for: client, homeDirectory: home'
 probe "$NOT_A_FILE_WRITE"  'FileHandle.standardOutput.write(Data(text.utf8))'
+
+# Rule 2 is matched against the file's code with its NEWLINES collapsed, so the probe for that has
+# to carry a real newline. A single-line subject with a space in it establishes only that the
+# pattern tolerates whitespace, and would keep passing if the collapsing were removed altogether —
+# an out-of-family reviewer found the old probe proving nothing about the thing it was added for.
+# This one joins first, exactly as the rule does.
+probe_joined() {
+  printf '%s' "$2" | tr '\n' ' ' | grep -qE "$1" || {
+    echo "no-harness-config-writes: this gate's own pattern no longer matches across a line wrap."
+    echo "  pattern: $1"
+    exit 2
+  }
+}
+probe_joined "$R7_API" 'guard let target = ClientConfigs.path(
+    for: client, homeDirectory: home, projectDirectory: nil
+) else { return }'
+
+# Rule 3's vocabulary, one subject per alternative — and then the closure check that makes the
+# header's claim true rather than asserted: every alternative in `SEAM_MUTATING` must be matched by
+# at least one of these, so a spelling added without a subject fails the gate at exit 2 instead of
+# joining it unexercised. A reviewer counted five subjects against twenty-two alternatives and was
+# right to; the count is no longer maintained by hand.
+SEAM_PROBES=(
+  'guard let handle = fopen(target, "w") else { return }'
+  'let out = fdopen(descriptor, "w")'
+  'let reopened = freopen(target, "a", stdout)'
+  'fputs(text, handle)'
+  'fputc(0x0a, handle)'
+  'fwrite(bytes, 1, count, handle)'
+  'fprintf(handle, "%s", text)'
+  'let fd = creat(target, 0o644)'
+  'let fd = open(target, O_WRONLY)'
+  'let fd = open(target, O_RDWR)'
+  'let fd = open(target, O_CREAT | O_TRUNC, 0o644)'
+  'let fd = open(target, O_APPEND)'
+  'posix_spawn(&pid, tool, nil, nil, argv, environ)'
+  'let task = Process()'
+  'task.executableURL = URL(fileURLWithPath: shell)'
+  'task.launchPath = shell'
+  'task.arguments = ["/bin/sh", "-c", script]'
+  'task.arguments = ["/bin/bash", "-c", script]'
+  'task.arguments = ["/bin/zsh", "-c", script]'
+  'task.arguments = ["/usr/bin/env", "tee", target]'
+  'try manager.createSymbolicLink(atPath: target, withDestinationPath: staged)'
+  'try manager.createLink(at: url, withDestinationURL: stagedURL)'
+  'try manager.linkItem(atPath: staged, toPath: target)'
+  'try manager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: target)'
+  'try manager.trashItem(at: url, resultingItemURL: nil)'
+  'symlink(staged, target)'
+  'link(staged, target)'
+  'unlink(target)'
+  'chmod(target, 0o600)'
+  'rename(staged, target)'
+  'renameat(dirfd, staged, dirfd, target)'
+  'truncate(target, 0)'
+  'let fd = mkstemp(&template)'
+  'let dir = mkdtemp(&template)'
+  'utimes(target, times)'
+  'Darwin.write(fd, bytes, count)'
+  'dup2(fd, STDOUT_FILENO)'
+)
+for subject in ${SEAM_PROBES+"${SEAM_PROBES[@]}"}; do
+  probe "$SEAM_MUTATING" "$subject"
+done
+IFS='|' read -r -a SEAM_ALTS <<< "$SEAM_MUTATING"
+for alt in ${SEAM_ALTS+"${SEAM_ALTS[@]}"}; do
+  matched=""
+  for subject in ${SEAM_PROBES+"${SEAM_PROBES[@]}"}; do
+    if printf '%s\n' "$subject" | grep -qE "$alt"; then matched="yes"; break; fi
+  done
+  [ -n "$matched" ] && continue
+  echo "no-harness-config-writes: an entry in rule 3's vocabulary is exercised by no probe."
+  echo "  alternative: $alt"
+  echo "  Add a subject to SEAM_PROBES that this matches, or the header's claim is not true."
+  exit 2
+done
 
 # ------------------------------------------------------------------ rules 1 and 2
 EXAMINED=0
@@ -278,8 +398,10 @@ while IFS= read -r file; do
   names_path=""
   if grep -qE "$HARNESS_PATHS|$HARNESS_PATH_PARTS" <<< "$code"; then
     names_path="yes"
-    NAMING=$((NAMING + 1))
+  elif grep -qE "$HARNESS_PATH_GENERIC" <<< "$code" && grep -qE "$HARNESS_HOMES" <<< "$code"; then
+    names_path="yes"
   fi
+  [ -n "$names_path" ] && NAMING=$((NAMING + 1))
   [ -n "$writes" ] || continue
 
   if [ -n "$names_path" ]; then

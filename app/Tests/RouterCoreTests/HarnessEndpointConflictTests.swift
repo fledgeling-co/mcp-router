@@ -38,6 +38,76 @@ struct HarnessEndpointConflictTests {
         )
     }
 
+    // MARK: - the panel's two, and one it raised that the measurement refused
+
+    @Test("a stdio entry keeps its own identity, whatever endpoint key is left lying beside it")
+    func aStdioEntryIsNotPromotedToHTTP() {
+        // `ServerParser` selects the transport from a truthy `url` whenever `type` is absent, so
+        // rewriting a stdio entry's leftover `serverUrl` into `url` would flip its parse to HTTP and
+        // send `UpstreamHash` the stale address instead of the command. The router fronts this
+        // server over stdio; the comparison has to still see that.
+        //
+        // The harness entry is deliberately NOT named `fetch`. A name match is settled before an
+        // endpoint is resolved at all (`D-r7-y`), so an entry sharing the upstream's name would go
+        // on passing this test with the defect restored — which is what the first version of it did.
+        let stale = #"{"command":"uvx","args":["mcp-server-fetch"],"serverUrl":"http://127.0.0.1:9999/x"}"#
+        let found = report(
+            [server("browser", stale)],
+            against: [upstream("fetch", #"{"command":"uvx","args":["mcp-server-fetch"]}"#)]
+        )
+        #expect(found.duplicates.count == 1, "the stdio duplicate is what the entry actually is")
+        #expect(found.unparsed.isEmpty)
+        #expect(found.route == .notWired, "a stale endpoint on a stdio entry is not a route")
+        // The other direction: with no command, the same spelling is still promoted and compared.
+        let http = report(
+            [server("fetch", #"{"serverUrl":"http://127.0.0.1:9999/x"}"#)],
+            against: [upstream("fetch2", #"{"url":"http://127.0.0.1:9999/x"}"#)]
+        )
+        #expect(http.duplicates.count == 1, "an HTTP entry under a non-standard key is still resolved")
+    }
+
+    @Test("two spellings that differ only in a trailing slash are one endpoint, not a disagreement")
+    func aTrailingSlashIsNotAConflict() {
+        // The conflict rule and the route rule have to use one notion of sameness. `endpointPath`
+        // already folds a single trailing slash, so a conflict check comparing raw strings would
+        // contradict it and push a readable entry into `unparsed` — B4's own silent zero, arriving
+        // through formatting instead of a decoy.
+        let agreeing = #"{"url":"http://127.0.0.1:9999/x","serverUrl":"http://127.0.0.1:9999/x/"}"#
+        let found = report(
+            [server("m", agreeing)],
+            against: [upstream("m2", #"{"url":"http://127.0.0.1:9999/x"}"#)]
+        )
+        #expect(found.unparsed.isEmpty, "nothing here is unreadable")
+        #expect(found.duplicates.count == 1)
+        // The other direction: two spellings naming different places still conflict.
+        let differing = #"{"url":"http://127.0.0.1:9999/x","serverUrl":"http://127.0.0.1:9999/y"}"#
+        let split = report(
+            [server("m", differing)],
+            against: [upstream("m2", #"{"url":"http://127.0.0.1:9999/x"}"#)]
+        )
+        #expect(split.duplicates.isEmpty)
+        #expect(split.unparsed.count == 1)
+    }
+
+    @Test("one trailing slash is tolerated and two are not")
+    func onlyOneTrailingSlashIsFolded() {
+        #expect(RouterEndpoint.endpointPath(of: "http://127.0.0.1:8879/mcp/") == "/mcp")
+        #expect(RouterEndpoint.endpointPath(of: "http://127.0.0.1:8879/mcp//") == "/mcp/")
+        #expect(RouterEndpoint.isThisRouter(url: "http://127.0.0.1:8879/mcp/", port: Self.port))
+        #expect(!RouterEndpoint.isThisRouter(url: "http://127.0.0.1:8879/mcp//", port: Self.port))
+    }
+
+    @Test("a URL JSURL refuses is refused by the whole predicate, not half of it")
+    func bothHalvesAgreeOnAThirdSlash() {
+        // A reviewer read `parts`' two-slash limit as diverging from `JSURL`. Measured: `JSURL`
+        // consumes at most two as well, and for `http:///…` that leaves an empty host, which it
+        // rejects outright for a special scheme other than `file`. So the predicate refuses at the
+        // first guard and the path reader is never consulted — the two halves agree.
+        #expect(JSURL("http:///127.0.0.1:8879/mcp") == nil)
+        #expect(!RouterEndpoint.isThisRouter(url: "http:///127.0.0.1:8879/mcp", port: Self.port))
+        #expect(RouterEndpoint.isThisRouter(url: "http:/127.0.0.1:8879/mcp", port: Self.port))
+    }
+
     // MARK: - serverUrl — the key the harness actually writes
 
     @Test("a Gemini entry spelling the endpoint serverUrl is wired via HTTP, with no shim")

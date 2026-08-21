@@ -40,20 +40,56 @@ public enum RouterEndpoint {
     /// own `new URL()`. Adding a member to it would owe new vectors for a question only this item
     /// asks, so the narrower reader lives here with the rule that uses it.
     static func endpointPath(of text: String) -> String {
+        parts(of: text).path
+    }
+
+    /// Two spellings of one endpoint reduced to one string, so a difference that changes no
+    /// destination is not read as a disagreement.
+    ///
+    /// `http://h:8879/mcp` and `http://h:8879/mcp/` reach the same place — ``endpointPath`` already
+    /// says so — and a conflict check comparing raw strings would contradict it and push a perfectly
+    /// readable entry into `unparsed`, which is B4's own failure one spelling along. The query and
+    /// fragment stay in the comparison: a token in a query string is part of where a request goes.
+    static func comparable(_ text: String) -> String {
+        let split = parts(of: text)
+        guard let url = JSURL(text) else {
+            var trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.count > 1, trimmed.hasSuffix("/") {
+                trimmed.removeLast()
+            }
+            return trimmed
+        }
+        return "\(url.scheme)://\(url.host):\(url.port)\(split.path)\(split.suffix)"
+    }
+
+    private static func parts(of text: String) -> (path: String, suffix: String) {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let authorityMark = trimmed.range(of: "://") else { return "" }
-        let afterAuthority = trimmed[authorityMark.upperBound...]
-        guard let start = afterAuthority.firstIndex(where: { $0 == "/" || $0 == "?" || $0 == "#" }),
-              afterAuthority[start] == "/"
-        else { return "" }
-        let rest = afterAuthority[start...]
+        guard let colon = trimmed.firstIndex(of: ":") else { return ("", "") }
+        // Up to **two** slashes are the authority marker, which is ``JSURL``'s own rule rather than
+        // a literal `://`: a special scheme tolerates a missing or singular slash, so
+        // `http:/127.0.0.1:8879/mcp` reaches the same place and `JSURL` parses its host and port.
+        // A path reader that insisted on `://` would call that not-wired while the host check above
+        // called it this router — two halves of one predicate disagreeing about one string.
+        var remainder = trimmed[trimmed.index(after: colon)...]
+        var consumed = 0
+        while consumed < 2, remainder.first == "/" {
+            remainder = remainder.dropFirst()
+            consumed += 1
+        }
+        guard let start = remainder.firstIndex(where: { $0 == "/" || $0 == "?" || $0 == "#" })
+        else { return ("", "") }
+        guard remainder[start] == "/" else { return ("", String(remainder[start...])) }
+        let rest = remainder[start...]
         let end = rest.firstIndex { $0 == "?" || $0 == "#" } ?? rest.endIndex
         var path = String(rest[rest.startIndex ..< end])
-        // `/mcp/` and `/mcp` are the same endpoint. `/` alone is not `/mcp` and stays that way.
-        while path.count > 1, path.hasSuffix("/") {
+        // **One** trailing slash is the human spelling of the same endpoint. Two are not: `new URL()`
+        // keeps `/mcp//` as `/mcp//`, and a router serving `/mcp` answers 404 there, so folding it
+        // in would claim a harness reaches an endpoint it does not. `/` alone is not `/mcp` and
+        // stays that way.
+        if path.count > 1, path.hasSuffix("/") {
             path.removeLast()
         }
-        return path
+        return (path, String(rest[end...]))
     }
 
     /// The first token in `candidates` that is this router's endpoint.
@@ -173,8 +209,17 @@ public struct HarnessDialect: Sendable, Hashable {
         // `raw.member(...)` throughout, never `members.first(where:)`. The two disagree about which
         // of a duplicated key wins, and the disagreement would let detection follow one endpoint
         // while the comparison hashed another.
+        // A stdio entry's identity is its command, so an endpoint key sitting beside one is a
+        // leftover rather than a second opinion about where the server lives. Promoting it to `url`
+        // would hand `ServerParser` a truthy `url`, which it reads as the transport, so the entry
+        // would be digested as an HTTP upstream it is not — losing the stdio duplicate this
+        // comparison exists to find, and inventing an HTTP one against whatever sits at the stale
+        // address. Same predicate as the route, so the two rules cannot drift apart.
+        guard !HarnessRoute.isStdio(server) else { return .entry(server) }
         let declared = declaredEndpoints(in: server.raw)
-        let distinct = Set(declared.map(\.value))
+        // Normalised, not raw: `/mcp` and `/mcp/` are one endpoint declared twice, and calling that
+        // a conflict would lose the duplicate for a difference that changes no destination.
+        let distinct = Set(declared.map { RouterEndpoint.comparable($0.value) })
         guard distinct.count <= 1 else {
             let shown = declared.map { "\($0.key)=\($0.value)" }.joined(separator: " and ")
             return .conflict(
@@ -256,9 +301,13 @@ public extension HarnessRoute {
     /// the other: `type` is what Claude Code writes, an explicit transport is a statement rather
     /// than an inference, and refusing it would turn a wired harness unwired — the defect this
     /// rule exists to remove, inverted. The type names are ``ServerParser``'s own.
-    private static func isStdio(_ entry: DiscoveredServer) -> Bool {
-        guard let command = entry.raw.member("command")?.jsDisplayString, !command.isEmpty
-        else { return false }
+    static func isStdio(_ entry: DiscoveredServer) -> Bool {
+        // `isTruthy`, which is ``ServerParser``'s own test, rather than a non-empty display string.
+        // `jsDisplayString` renders JSON null as the four characters `null`, so `{"command": null,
+        // "url": "<this router>"}` would read as a stdio entry and go not-wired while the shared
+        // parser read it as the HTTP server it is — this rule refusing a route the rest of the
+        // program agrees exists.
+        guard entry.raw.member("command")?.isTruthy == true else { return false }
         guard let declared = entry.raw.member("type"), declared != .null else { return true }
         return !["http", "sse", "streamable-http"].contains(declared.jsDisplayString)
     }

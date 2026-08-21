@@ -239,6 +239,33 @@ struct HarnessResolutionTests {
         #expect(found.route == .directHTTP(name: "r", url: Self.endpoint))
     }
 
+    @Test("a null command is not a command, which is what the shared parser already says")
+    func aNullCommandIsNotAStdioEntry() {
+        // The stdio rule has to agree with `ServerParser`, which tests `command.isTruthy`. A rule
+        // reading the display string instead sees JSON null as the four characters `null` and calls
+        // this a stdio server, so the entry goes not-wired while every other reader in the program
+        // treats it as the HTTP server it is.
+        let found = report([server("r", #"{"command":null,"url":"\#(Self.endpoint)"}"#)])
+        #expect(found.route == .directHTTP(name: "r", url: Self.endpoint))
+        #expect(report([server("r", #"{"command":"","url":"\#(Self.endpoint)"}"#)]).route
+            == .directHTTP(name: "r", url: Self.endpoint))
+    }
+
+    @Test("a URL that JSURL parses is a URL the path reader parses too")
+    func thePathReaderAgreesWithTheHostReader() {
+        // `JSURL` follows the WHATWG rule that only the first two slashes are the authority marker,
+        // so a special scheme survives a missing one. Both halves of the route predicate have to
+        // read the same string the same way, or the host check says "this router" while the path
+        // check says "no path at all".
+        #expect(RouterEndpoint.endpointPath(of: "http:/127.0.0.1:8879/mcp") == "/mcp")
+        #expect(RouterEndpoint.endpointPath(of: "http://127.0.0.1:8879/mcp/") == "/mcp")
+        #expect(RouterEndpoint.endpointPath(of: "http://127.0.0.1:8879/mcp?x=1") == "/mcp")
+        #expect(RouterEndpoint.endpointPath(of: "http://127.0.0.1:8879").isEmpty)
+        #expect(RouterEndpoint.endpointPath(of: "http://127.0.0.1:8879/") == "/")
+        #expect(report([server("r", #"{"url":"http:/127.0.0.1:8879/mcp"}"#)]).route
+            == .directHTTP(name: "r", url: "http:/127.0.0.1:8879/mcp"))
+    }
+
     @Test("an mcp-remote shim is still a shim")
     func theShimStillReads() {
         let found = report([server(

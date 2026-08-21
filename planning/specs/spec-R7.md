@@ -249,6 +249,22 @@ An entry the harness declares that `ServerParser` cannot parse is reported as **
 is never silently counted as "no duplicate" — an entry nobody could read is not evidence of
 absence.
 
+**A leftover endpoint does not change what an entry is.** An entry carrying a `command` is a stdio
+server, and any endpoint key beside it is a stale address rather than a second opinion about where
+the server lives, so the seam leaves such an entry exactly as the harness wrote it. Normalising it
+would hand `ServerParser` a truthy `url`, which it reads as the transport whenever `type` is absent,
+and the entry would be digested as an HTTP upstream it is not — losing the stdio duplicate against
+the router's own stdio server and inventing an HTTP one against whatever sits at the stale address.
+The predicate is the same one the route uses, so the two rules cannot drift apart.
+
+**Two spellings are compared normalised, not byte-for-byte.** `/mcp` and `/mcp/` are one endpoint,
+which the route rule already says, and a conflict check that contradicted it would push a perfectly
+readable entry into `unparsed` — which is the same silent loss B4 was filed for, arriving through
+formatting instead of a decoy. Host case and a default port fold the same way, because `JSURL`
+already folds them. One trailing slash is tolerated and a second is not: `new URL()` keeps `/mcp//`
+as `/mcp//`, and a router serving `/mcp` answers 404 there, so folding it would claim a route that
+does not exist.
+
 For a harness that is **not wired**, the same overlaps are computed and reported under the word
 *overlap* rather than *duplicate*: nothing is being duplicated when there is no route, and the
 number means "what adopting this harness would consolidate".
@@ -335,19 +351,34 @@ written out whole; `fopen`/`fputs` inside the seam; a `Process` running `/bin/sh
 inside the seam; and a write sharing a line with a block comment, which the comment stripper blanked
 along with the comment. Each is now refused, and each is a case in the selftest. Rule 3's vocabulary
 is deliberately wider than rules 1 and 2's, because the seam is a closed set of eight files where a
-false positive costs one comment: it carries the C stdio calls, a subprocess that could redirect
-into a file, and the calls that replace a config **without writing to it at all** — a symlink, a
-hard link, a mode change. That last group is the one no plant had named, and `D-r7-v` records that
+false positive is answered by rewriting the code rather than by a suppression comment, which the
+gate does not have: it carries the C stdio calls in both their Foundation and POSIX spellings, a
+subprocess at all, and the calls that replace a config **without writing to it at all** — a symlink,
+a hard link, a mode change. That last group is the one no plant had named, and `D-r7-v` records that
 the acceptance lane's byte digest cannot see a mode change either, so a gate blind to it would have
 left the mutation unwitnessed on both instruments.
+
+**Out-of-family review of the fix found the fix's own hole, in both directions at once.** The
+comment reader that closed the block-comment walk-through opened a block on a `/*` inside a Swift
+string — `let marker = " /*"` — and blanked every line after it to end of file, so an applier under
+one reported clean: the vacuity this gate exists to refuse, arriving through the gate's own
+stripper. The mirror image was there too: a `//` inside a URL string was read as a line comment and
+suppressed the real block opener after it, so documentation became a finding. The reader now tracks
+the string state, which is the rule Swift itself applies, and both directions are cases. The same
+review found the POSIX spellings of the relink group missing — `symlink`, `link`, `chmod`, `rename`
+— which is this pass's own defect in miniature, a vocabulary of named routes rather than the
+property behind them; and it found three of the widened path names (`settings.json`, `config.toml`,
+`mcp.json`) generic enough to refuse this product for writing its own, so those three now count only
+in a file that also names a harness's home.
 
 **What it does not establish, because that distinction is the whole value of having it.** It is
 `grep`, not a call graph, and it does not prove that no applier exists. Three limits, each with a
 case in `no-harness-config-writes-selftest.sh` so it shows up in a run rather than in a paragraph:
 an applier split across two neutrally-named files outside the seam satisfies no intersection and
 lives in no watched name (`D-r7-m`, asserted as a miss at `P10`); rule 3 refuses a **vocabulary**
-rather than the concept of writing, and every entry in it is probed against a string it must match
-before any file is read; and rules 1 and 2 stay narrow on purpose, so a file outside the seam that
+rather than the concept of writing — every alternative in it must be exercised by one of the probe
+subjects, checked mechanically by splitting the pattern on `|` and failing at exit 2 for any
+alternative no subject matches, so the claim is verified rather than counted by hand; and rules 1 and 2 stay narrow on purpose, so a file outside the seam that
 reaches a harness path through a value passed in from elsewhere is not a finding. The claim this
 item makes is the one the gate can carry: no single file pairs a harness config with a write, and
 **the seam neither writes nor relinks anything**. That `ReconciliationPlan` has no applier **today**

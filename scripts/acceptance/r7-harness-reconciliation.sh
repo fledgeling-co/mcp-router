@@ -436,6 +436,49 @@ write_gemini_entries '{
 OUT="$(probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
 check "two spellings that agree are one endpoint" 1 "$(printf '%s' "$OUT" | field duplicateCount)"
 
+# An empty `unparsed` asserted WITHOUT an empty expected value. `D-r7-k` records the hazard in the
+# shape this replaces: `check "…" "" "$(… field unparsed)"` passes when the probe itself dies, since
+# a dead probe also yields the empty string. Capturing first separates the two.
+check_nothing_unparsed() {
+  local label="$1" got
+  if ! got="$(printf '%s' "$OUT" | field unparsed)"; then
+    echo "  FAIL  $label: the unparsed probe itself failed"
+    FAILURES=$((FAILURES + 1))
+  elif [ -n "$got" ] && [ "$got" != "[]" ]; then
+    echo "  FAIL  $label: a readable entry was reported unreadable (got \"$got\")"
+    FAILURES=$((FAILURES + 1))
+  else
+    echo "  ok    $label"
+  fi
+}
+
+# ---------------------------------------------------------------- pass 11: what the panel found
+# Both of these came out of out-of-family review of this pass's own diff, and both are B4's shape
+# arriving through the fix for B4: a perfectly readable entry dropped from the count for a reason
+# that is not about the entry.
+#
+# `browser` is deliberately NOT named `obscura`. A name match is settled before an endpoint is ever
+# resolved, so an entry sharing the upstream's name would pass this check with the defect in place.
+echo "r7: a leftover endpoint does not change what an entry already is"
+write_gemini_entries '{
+    "router":  { "serverUrl": "http://127.0.0.1:'"$PORT"'/mcp" },
+    "browser": { "command": "/usr/bin/obscura", "args": ["mcp"],
+                 "serverUrl": "http://127.0.0.1:9999/stale" }
+  }'
+OUT="$(probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+check "a stdio entry with a stale endpoint is still the stdio server it is" \
+  1 "$(printf '%s' "$OUT" | field duplicateCount)"
+check_nothing_unparsed "and nothing about it is unreadable"
+
+write_gemini_entries '{
+    "router": { "serverUrl": "http://127.0.0.1:'"$PORT"'/mcp" },
+    "Mobbin": { "url": "https://api.mobbin.com/mcp", "serverUrl": "https://api.mobbin.com/mcp/" }
+  }'
+OUT="$(probe)" || { echo "the verb failed:"; cat "$WORK/stderr.txt"; exit 1; }
+check "a trailing slash is one endpoint spelled twice, not two" \
+  1 "$(printf '%s' "$OUT" | field duplicateCount)"
+check_nothing_unparsed "so it is not unreadable either"
+
 echo
 if [ "$FAILURES" -eq 0 ]; then
   echo "r7-harness-reconciliation: pass"

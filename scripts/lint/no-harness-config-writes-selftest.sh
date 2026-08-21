@@ -369,6 +369,80 @@ enum SlashStarApplier {
 SWIFT
 expect "P18 a /* inside a line comment does not blank the file after it" 1
 
+# ---------------------------------------------------------------- P19 — a slash-star in a STRING
+# The critical one an out-of-family reviewer found in the previous comment reader. `" /*"` is a
+# Swift string containing a slash-star; a stripper that opened a block on it blanked every line
+# after it to end of file, so the applier below reported clean. A gate that goes quiet is the
+# vacuity this file exists to refuse, and it was arriving through the gate's own stripper.
+build_baseline
+cat > "$TREE/RouterCore/Discovery/HarnessCommentEvasion.swift" <<'SWIFT'
+enum HarnessCommentEvasion {
+    static let marker = " /*"
+    static func apply(_ text: String, to target: String) throws {
+        try text.write(toFile: target, atomically: true, encoding: .utf8)
+    }
+}
+SWIFT
+expect "P19 a slash-star inside a string does not blank the applier under it" 1
+
+# ---------------------------------------------------------------- P20 — a generic file name alone
+# The other direction of the same reviewer's finding. `config.toml` is one of the commonest file
+# names in software; reading it as a harness config on its own refuses this product for writing its
+# own, with no suppression comment to answer it. Nothing here names a harness.
+build_baseline
+cat > "$TREE/RouterCore/Log/ProjectSettings.swift" <<'SWIFT'
+enum ProjectSettings {
+    static func cache(_ text: String, under root: NSString) throws {
+        let target = root.appendingPathComponent("config.toml")
+        try text.write(toFile: target, atomically: true, encoding: .utf8)
+    }
+}
+SWIFT
+expect "P20 a generic config file name with no harness named beside it is not a finding" 0
+
+# ---------------------------------------------------------------- P20b — the same name, in company
+build_baseline
+cat > "$TREE/RouterCore/Log/CodexSettings.swift" <<'SWIFT'
+enum CodexSettings {
+    static func cache(_ text: String, under home: NSString) throws {
+        let dir = home.appendingPathComponent(".codex")
+        let target = (dir as NSString).appendingPathComponent("config.toml")
+        try text.write(toFile: target, atomically: true, encoding: .utf8)
+    }
+}
+SWIFT
+expect "P20b the same generic name beside a harness home is a harness config again" 1
+
+# ---------------------------------------------------------------- P21 — the POSIX spelling
+# P16 planted `createSymbolicLink`; the same mutation spelled `symlink()` walked through, which is
+# this pass's own defect in miniature — a vocabulary of named routes rather than the property.
+build_baseline
+cat > "$TREE/RouterCore/Discovery/HarnessRelink.swift" <<'SWIFT'
+enum HarnessRelink {
+    static func swap(_ staged: String, over target: String) {
+        symlink(staged, target)
+    }
+}
+SWIFT
+expect "P21 a POSIX symlink over a harness config is refused like the Foundation one" 1
+
+# ---------------------------------------------------------------- P22 — a slash-slash in a STRING
+# The mirror of P19. A `//` inside a URL string is not a line comment, and a reader that took it as
+# one never opened the block that follows on the same line — so the block's prose was read as code
+# and a file that only documents what it refuses to do became a finding.
+build_baseline
+cat > "$TREE/RouterCore/Log/DocumentedOnly.swift" <<'SWIFT'
+enum DocumentedOnly {
+    static let reference = "https://example.test" /*
+      An applier would write to ~/.gemini/settings.json here, and spec §7 refuses exactly that.
+    */
+    static func save(_ text: String, atPath path: String) throws {
+        try fileSystem.writeFile(Data(text.utf8), atPath: path)
+    }
+}
+SWIFT
+expect "P22 a slash-slash inside a string does not suppress the block comment after it" 0
+
 # ---------------------------------------------------------------- P6 — prose is not a finding
 build_baseline
 cat > "$TREE/RouterCore/Watch/WatchState.swift" <<'SWIFT'

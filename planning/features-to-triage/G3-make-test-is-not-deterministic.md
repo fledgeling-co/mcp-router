@@ -197,31 +197,74 @@ So the awaits get bounded the way the polls are. `awaitEvent` in `PoolTestSuppor
 event under `waitUntil`'s ten-second deadlock breaker and reports expiry as a failure naming the
 condition, at the caller's source location.
 
-**Why it is not a task group**, which is the part worth reading: `await task.value` on a
-`Task<_, Never>` has no cancellation check. Racing it against a sleep inside a group changes
-nothing, because the group awaits every child before it returns — including the one still
-sitting out the ten-minute timer — so the run takes ten minutes anyway and the bound has landed
-on the wrong side of the await. `awaitEvent` therefore **abandons** the wait rather than
-cancelling it: an observer task records the landing and the poll reads that record. Giving up
-costs one task that finishes by itself later, in a run that has already gone red.
+**Why it is not a task group around the await as it stands.** `await task.value` on a
+`Task<_, Never>` has no cancellation check, so racing it against a sleep inside a group changes
+nothing: the group awaits every child before it returns, including the one still sitting out the
+ten-minute timer, and the run takes ten minutes anyway. That is the bound landing on the wrong
+side of the await. `awaitEvent` therefore **abandons** the wait rather than cancelling it — an
+observer task records the landing and the poll reads that record — so giving up costs one task
+that finishes by itself later, in a run that has already gone red.
+
+**A group is not ruled out, only that shape of one, and the correction is grok's rather than
+mine.** Make the *wait* cancellation-aware and a group abandons it properly. This repository
+already contains that construction and wrote it for this exact hang: `AuthorizationURLBox` in
+`OAuthFlowStarter.swift` is a `withTaskCancellationHandler` around a continuation, and its own
+doc comment records the measurement that forced it — a race whose losing child cancellation could
+not resume ran **91 seconds against a 20-second budget**. A continuation resumed by whichever of
+the event or the deadline arrives first would also retire the 2ms poll, and `D-g3-i` with it.
+That is `D-g3-k`, deferred rather than dismissed: this poll is measured and that handshake would
+need its own mutation evidence to be worth more. What survives the correction is narrower and
+still load-bearing — cancelling a waiter on `task.value` does not end the wait — and the same
+overstatement was in the accessor's own doc comment, where the real reason is layering: `#require`
+cannot come into an actor in `RouterCore`.
+
+**And the ten seconds is a smaller margin here than it is on the polls**, which is stated rather
+than inherited. `waitUntil`'s conditions are actor hops taking microseconds — four orders of
+magnitude of headroom. `awaitEvent`'s events contain the pool's own 25ms and 30ms windows, so the
+headroom is 300–400×. That is still 66× the 150ms budget whose failure filed this item, and
+reaching it needs a machine that stretches a 25ms window past ten seconds — the total starvation
+`waitUntil`'s own note describes, not a load anybody could pick a number against.
 
 The bound is worth what its being used is worth, so its being used is asserted rather than
 documented. `PoolAwaitBoundTests` scans `app/Tests` and requires every `awaitReap` and
-`awaitSessionEnded` call site to sit inside an `awaitEvent`, counted per function rather than by
-line distance — a proximity window can go red on a wrap that sits a few lines further up, and a
-gate that reports a failure that is not there is the defect this item exists to remove. It is
-the argument `StandingConstraintsTests` already makes for turning a remembered `grep` into an
-assertion, arriving in the file that needed it.
+`awaitSessionEnded` call site to have **`awaitEvent` as its enclosing opener** — the nearest line
+above it with strictly less indentation. A wrapped call's is `try await awaitEvent(…) {`; a bare
+call's is the `func` line. It is the argument `StandingConstraintsTests` already makes for turning
+a remembered `grep` into an assertion, arriving in the file that needed it.
+
+Counting wraps per function was the first cut, and all three panel lanes took it apart: a
+function holding two `awaitEvent` blocks and one bare call satisfies `calls <= wraps` and passes.
+The rule is now lexical containment — walk outward from the call to the enclosing `func` — and
+**ten controls hold it, five in each direction**, because a gate that can report a failure that
+is not there is the defect this item exists to remove.
+
+| Control | Wanted | Got |
+|---|---|---|
+| A bare call | red | `PoolTests.swift:141` |
+| Two wraps and one bare call in one function | red | `PoolReapingTests.swift:160` |
+| `// awaitEvent(` written above a bare call | red | `PoolTests.swift:142` |
+| A bare call spelled `.awaitReap (` | red | red |
+| A bare call beside `awaitEvent` itself | red | `PoolTestSupport.swift:256` |
+| A wrap whose signature spans lines | green | green |
+| Two calls inside one `awaitEvent` block | green | green |
+| A wrap on the call's own line | green | green |
+| A wrap with an `if` nested inside it | green | green |
+| A trailing comment naming an accessor | green | green |
+
+Three of those reds and three of those greens are the panel's, not mine. The last red is the one
+worth reading: **planting a bare call beside `awaitEvent` passed** a version that had already been
+hardened twice, because the walk ran up to `func awaitEvent(`, whose own signature carries the
+needle. Grok reached the same hole independently and from the other end.
 
 ### The three measurements
 
-Machine at 48–59% idle throughout, with sibling runners measuring in the same repo.
+Machine at 41–51% idle across these three, with sibling runners measuring in the same repo.
 
 | Tree | `make test` | Wall | Where the red landed |
 |---|---|---|---|
-| Unmutated | **exit 0** | 13.9s, run 4.127s | 1584 tests in 198 suites, no issue |
-| Reap on the default window, arming records the requested | **exit 2** | 14.4s, run **10.417s** | `PoolReapingTests.swift:98` — *timed out after 10.0s waiting for: `own` to be reaped under the arming it just made* |
-| The swap the other way — arming records the default, reap on the requested | **exit 2** | 9.3s, run **4.325s** | `PoolReapingTests.swift:87` — `(armed.idleMilliseconds → 600000) == 25` |
+| Unmutated | **exit 0** twice | 10.1s and 5.5s, runs 4.092s and 4.023s | 1584 tests in 198 suites, no issue |
+| Reap on the default window, arming records the requested | **exit 2** | 15.4s, run **10.461s** | `PoolReapingTests.swift:98` — *timed out after 10.0s waiting for: `own` to be reaped under the arming it just made* |
+| The swap the other way — arming records the default, reap on the requested | **exit 2** | 7.9s, run **3.916s** | `PoolReapingTests.swift:87` — `(armed.idleMilliseconds → 600000) == 25` |
 
 The third is the route nobody had named, and it is the one that would expose a bound placed on
 the wrong side. It does not: the `#require` on the resolved integer throws before the await is
@@ -234,6 +277,35 @@ And the control, so the bound is what is being credited rather than the mutation
 mutation with P6's wrap removed, killed at 60 seconds, **exits 142 with no summary line and no
 report from P6** — 6× the bound and still nothing named. The standing constraint reddens on the
 missing wrap at 0.6 seconds, which is the guard doing its job while the run hangs anyway.
+
+### What the gap-fix panel found
+
+Three lanes on the diff, headers verified: codex `model: gpt-5.6-sol`, `reasoning effort: high`,
+`workdir` the worktree, verdict **WARNING**, 4,838 bytes; `gemini-3.7-flash-high` 12,152 bytes;
+`grok-4.6` at `--effort xhigh` 7,755 bytes. Codex reviewed the committed revision and said so;
+grok read the working tree and noticed it moving under it, twice, and said that too.
+
+| Finding | Lanes | Taken |
+|---|---|---|
+| The bound is on the right side and the group rejection is correct **as far as the rejected shape goes** | codex, grok | — |
+| **But a group is not ruled out** — make the wait cancellation-aware, as `AuthorizationURLBox` already does in this repo for the same 91-second hang | grok | **Correction taken**, construction deferred as `D-g3-k` |
+| The scan compares counts and never establishes containment; two wraps and a bare call passes | all three | **Yes** — lexical containment, ten controls |
+| A `func` whose own signature contains `awaitEvent(` reads as a wrap | grok, and a planted control | **Yes** — the walk stops at `func` without collecting it |
+| A wrap on the call's own line, and a wrap with an `if` nested inside it, are false reds | grok | **Yes** — both are controls now |
+| `// awaitEvent(` above a bare call is a false green | codex | **Yes** — a comment is never an opener |
+| A comment or trailing comment naming an accessor is read as a call site | codex, gemini, grok | **Yes** — comments are stripped before matching |
+| `.awaitReap (` with a space evades the needle | grok | **Yes** — the needle tolerates whitespace |
+| Excluding the checker by basename skips any file of that name | codex | **Yes** — excluded by path, and the checker moved to its own file so `PoolTestSupport` is scanned |
+| `waitUntil` tests its deadline before the condition, so an event landing in the final 2ms reports a timeout | codex, gemini, grok | **No** — this is `D-g3-i`, registered before this gap-fix and out of its scope. `awaitEvent` inherits it; the exposure is an event that takes ten seconds and *then* lands, not a 25ms window running long |
+| `awaitReap` returns immediately when no arming is installed, so `awaitEvent` reports success in microseconds | gemini (CRITICAL) | **No** — and refuted by the other two: every call site's next assertion is the reap witness, so it is a named red on the following line. `#require` on the arming above catches the never-armed case first |
+| The leaked observer performs pool cleanup during later tests | gemini (MAJOR) | **No** — refuted by codex and grok, and by measurement: the mutation run was 14.4s wall, so `swift test` does not drain unstructured work. The observer only awaits; the reap it waits on is the pool's own task, which runs whether or not anything watches |
+| A call reached through a stored function reference carries no needle | codex, grok | **No** — stated as a limit of a text scan rather than closed |
+| `Mutex<Bool>` handshake, actor reentrancy, `defer`, Swift 6 isolation | all three | — clean, independently |
+
+The pattern that repeated from the first round: **the panel found the fix carrying a version of
+the defect it was written to remove**, in the scan meant to keep the bound honest, and in a claim
+about task groups that was wider than the evidence. Both were closed. The one thing no lane
+found is the one a planted control did — which is the argument for planting them.
 
 ## Mutation evidence
 
@@ -327,18 +399,22 @@ tests executed on every one and no issue recorded in any of the ten logs. `make 
 notice a change to pool timing.
 
 **After the gap-fix.** `make test` **0** and **0**, 1584 tests in 198 suites both times, runs of
-4.410s and 4.064s — one test and one suite more than before, which is the standing constraint on
-the bound. `make lint` **0**, 0 violations in 493 files. `make parity` **0** at 358 of 358, floor
-358. `make acceptance-r6` **0** at `examined=6 failures=0`.
+4.092s and 4.023s — one test and one suite more than before, which is the standing constraint on
+the bound. `make lint` **0**, 0 violations in 494 files and 0 of 501 requiring formatting. `make
+parity` **0** at 358 of 358, floor 358. `make acceptance-r6` **0** at `examined=6 failures=0`.
 
 The suite is also faster: the eleven sleeps were **960** milliseconds of deliberate waiting —
 3×120 + 2×150 + 2×20 + 3×60 + 80, from the survey table above — and the three pool suites now
-run in 0.305 seconds together. An earlier draft wrote 950; the addition is the check.
+run in 0.305 seconds together, and 0.307 with the standing constraint's own suite alongside them.
+An earlier draft wrote 950; the addition is the check.
 
 ## Scope
 
 `app/Sources/RouterCore/Pool/UpstreamPool.swift` and `PoolEntry.swift` (observation only),
 and the four pool test files — the gap-fix adds `awaitEvent` and its standing constraint to
 `PoolTestSupport.swift`, five call sites across the three suites, and two doc comments on
-`UpstreamPool.swift` recording that the accessors are unbounded by construction. No product
-behaviour changed, no parity surface touched, and the reference router is not involved.
+`UpstreamPool.swift` recording that the accessors are unbounded by construction, and
+`PoolAwaitBoundTests.swift` for the standing constraint, its own file because `PoolTestSupport`
+reached the 400-line limit — the same reason `PoolReapingTests` is its own file, and it puts
+`PoolTestSupport` back inside the scanned set. No product behaviour changed, no parity surface
+touched, and the reference router is not involved.

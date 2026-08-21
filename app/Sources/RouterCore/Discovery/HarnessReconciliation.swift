@@ -192,6 +192,9 @@ public enum HarnessReconciliation {
         let client: MCPClient
         let path: String
         let capability: HTTPCapability
+        /// How this harness spells an endpoint. Per client, so Gemini's `httpUrl` is read where it
+        /// means something and nowhere else.
+        var dialect: HarnessDialect { .known(for: client) }
     }
 
     private static func compare(
@@ -200,9 +203,16 @@ public enum HarnessReconciliation {
         upstreams: [UpstreamConfig],
         port: Int
     ) -> HarnessReport {
-        let route = HarnessRoute.detect(entries: entries, port: port)
+        // Detection runs on the entries exactly as the harness wrote them, so the dialect widening
+        // in ``HarnessDialect/endpoint(in:)`` is the thing under test rather than something the
+        // caller already did for it. The comparison below runs on the canonical form, because that
+        // is where the shared parser and the identity digest need one spelling.
+        let dialect = subject.dialect
+        let route = HarnessRoute.detect(entries: entries, port: port, dialect: dialect)
         let routerEntryName = wiredEntryName(route)
-        let others = entries.filter { $0.name != routerEntryName }
+        let others = entries
+            .filter { $0.name != routerEntryName }
+            .map(dialect.canonicalised)
 
         let byName = Set(upstreams.map(\.name))
         var byHash: [String: String] = [:]

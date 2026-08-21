@@ -67,7 +67,7 @@ it never tested.
 | M20 | Menu bar, status item, and the notification banner | `M20-menubar-status-notification.md` | — | — | Untriaged |
 | M21 | The token layer, the split accent, and `DESIGN.md` | `M21-token-layer-and-design-md.md` | — | — | Untriaged |
 | M22 | The Harnesses and Insights boards | `M22-harnesses-and-insights-boards.md` | — | — | Untriaged |
-| M23 | The mock-to-SwiftUI conversion contract | `M23-mock-to-swiftui-contract.md` | — | — | **Needs More Work** — gap-fix re-queued (`ai/m23` `5d388fb`; `metamorphic`; 3 blocking, see `M23-gapfix.md`) |
+| M23 | The mock-to-SwiftUI conversion contract | `M23-mock-to-swiftui-contract.md` | — | — | **Ready to verify** — gap-fix delivered (`ai/m23` `29e2d18`; the 3 blocking findings of `M23-gapfix.md` closed, each armed by a mutation that goes red and returns on restore; gate 1/132, selftest 0/26, lint 0, `make test` 0 twice at 1580 tests; 6 follow-ups `D-m23-f`…`D-m23-k`) |
 | M24 | The storefront's own artwork — banners and app-style icons | — | — | — | **Done** (ai/m24 → main; design-only, 23 files, all under `design/`) |
 | M25 | The controls row, not the columns, set the boards' width | `M25-board-columns-do-not-flex.md` | — | — | **Done** (ai/x4 broke the min-width chain, ai/x5 flexed the two controls rows) |
 | M26 | The Checks board and the design's eval board are two surfaces | `M26-checks-board-framing.md` | — | — | **Done** (ai/m26 → main; owner kept the reachability board, mock amended, DEF-031 closed) |

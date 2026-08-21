@@ -129,15 +129,15 @@ report a failure that is not there.
 |---|---|---|---|---|
 | Reaping:37 | P5 warm is never reaped | 150ms, then still live | negative | **Fixed** — no timer is armed at all, which a late reap cannot satisfy |
 | Reaping:48 | P6 idleMs zero disables reaping | 120ms, then still live | negative | **Fixed** — same |
-| Reaping:61 | P6 per-server window wins | 150ms, then reaped | **exposed** | **Fixed** — two armings compared, then the timer awaited. *The filed defect* |
-| Reaping:107 | P8 self-closed is evicted | 60ms, then evicted | **exposed** | **Fixed** — awaits the end-watcher |
-| Reaping:126 | P8a stale close cannot evict | 60ms, then evicted | **exposed** | **Fixed** — awaits the end-watcher |
+| Reaping:61 | P6 per-server window wins | 150ms, then reaped | **exposed** | **Fixed** — the resolved window asserted exactly, then the reap awaited. *The filed defect* |
+| Reaping:107 | P8 self-closed is evicted | 60ms, then evicted | **exposed** | **Fixed** — awaits the eviction of a named handle |
+| Reaping:126 | P8a stale close cannot evict | 60ms, then evicted | **exposed** | **Fixed** — awaits the eviction of a named handle |
 | Reaping:178 | P11 a cohort counts once | 20ms before opening the gate | **exposed** | **Fixed** — waits for two waiting callers |
 | Pool:66 | P2 one open for three callers | 20ms before opening the gate | **exposed** | **Fixed** — waits for three waiting callers |
 | Pool:126 | P4 no reap while in flight | 120ms, then still live | negative | **Fixed** — no timer is armed while a call is outstanding |
-| Pool:130 | P4 …and it closes after | 120ms, then reaped | **exposed** | **Fixed** — awaits the timer's task |
-| Lifecycle:41 | P8 a self-ended session is closed | 80ms, then shut down | **exposed** | **Fixed** — awaits the end-watcher |
-| Lifecycle:61 | P8 eviction precedes the log | 60ms, then a lease | **exposed** | **Fixed** — waits for the eviction, *not* the watcher (below) |
+| Pool:130 | P4 …and it closes after | 120ms, then reaped | **exposed** | **Fixed** — awaits the reap under its own epoch |
+| Lifecycle:41 | P8 a self-ended session is closed | 80ms, then shut down | **exposed** | **Fixed** — awaits the eviction of a named handle |
+| Lifecycle:61 | P8 eviction precedes the log | 60ms, then a lease | **exposed** | **Fixed** — waits for `isLive` to flip, *not* for the watcher (below) |
 | Pool:92 | P2a a late start is closed | 20ms before opening the gate | safe | Left. Losing the window lets the start install and shutdown force-reaps it, so the assertion holds either way — the test proves less, never fails |
 | Pool:98 | P2a …the session was shut down | 50ms before asserting | safe | Left. Dead weight: both the lease attempt and `shutdown()` are already awaited above it |
 | Lifecycle:108 | P9 a second shutdown awaits the first | 30ms before the second call | safe | Left. Losing the window means the follower arrives after teardown finished, and shutdown is idempotent, so it passes vacuously |
@@ -146,10 +146,11 @@ Eleven removed, three left, one helper poll added. The three left are **vacuous-
 not false-red**: load can make each prove less than it means to, never report a failure
 that is not there. Each is a deferred-register row.
 
-`Lifecycle:61` is the one that could not use the watcher. Its whole point is to take a
+`Lifecycle:61` is the one that could not wait on the watcher. Its whole point is to take a
 lease *while the close is still being logged*, and the log is deliberately blocked for
-300ms — awaiting the watcher would wait the log out and destroy the window. Eviction
-precedes the log and `isLive` reports it, so it waits on the eviction instead.
+300ms — waiting for the watcher to finish would wait the log out and destroy the window.
+Eviction precedes the log and `isLive` reports it, so it waits for that instead. The
+ordering is the contract, and this test is what pins it.
 
 ## What is still a number, and why it is not a threshold
 
@@ -163,10 +164,15 @@ short of ten seconds of total starvation, by which point every other lane has fa
 It was thirty seconds first, and the mutation gate is what argued it down: killing eviction
 made the run take 33 seconds to say so, and a gate that slow is one nobody runs.
 
+The other durations left are the pool's **own** windows — the 25ms and 30ms these tests
+configure — and the tests wait through them for real. That is not a threshold: it is the
+product's behaviour being exercised, and no assertion depends on how long it takes.
+Removing even that wait needs an injected clock in the reaping path, which is `D-g3-e`.
+
 ## Mutation evidence
 
-`SWIFT_PRACTICES` §7: an assertion nobody has watched fail is not known to bite. Four
-mutations, each applied to the pool and then restored.
+`SWIFT_PRACTICES` §7: an assertion nobody has watched fail is not known to bite. Five
+mutations, each applied to the pool and then restored, with the restored tree re-run last.
 
 | Mutation | What went red, and on what | Gate |
 |---|---|---|
@@ -244,6 +250,18 @@ So the old test survives load average 114 and did not survive load average 548. 
 say where in that range it turns over, and that is the whole argument for the shape of this
 fix: a sleep long enough for 114 is not evidence about 548, and the number that would be is
 not knowable in advance.
+
+## Gates on the delivered tree
+
+`make test` ten times in a row, from a script writing exit codes to a log rather than a
+foreground loop: **0 0 0 0 0 0 0 0 0 0**, 5–6 seconds each, 1560 tests executed on every
+one and no issue recorded in any of the ten logs. `make lint` 0, over 489 files with 0
+violations. `make parity` 0 at **358 of 358**, floor 358. `make acceptance-r6` 0 at
+`examined=6 failures=0` — the lane that spawns real children, and the one most likely to
+notice a change to pool timing.
+
+The suite is also faster: the eleven sleeps were 950 milliseconds of deliberate waiting,
+and the three pool suites now run in 0.307 seconds together.
 
 ## Scope
 

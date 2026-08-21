@@ -93,21 +93,28 @@ on purpose is also a window hard to miss on purpose.
 
 ## What changed in production, and why the test could not be fixed without it
 
-Three read-only accessors on `UpstreamPool`, next to `currentIdentities` — which exists
-for exactly this reason and carries exactly this argument in its own doc comment — plus
-`Sendable` on `ReapTimer`, whose every member already was.
+**Five** test-only members on `UpstreamPool`, next to `currentIdentities` — which exists for
+exactly this reason and carries exactly this argument in its own doc comment. Two of them are
+read-only accessors (`armedReap`, `waitingCallers`), one releases and reports what the release
+armed as a single actor operation (`releaseObservingReap`), and two await an outcome the pool
+owns (`awaitReap`, `awaitSessionEnded`). Five is what the table below lists, what `grep` finds
+and what the register row says; three was a miscount, and it is corrected here rather than
+anywhere else because a brief that misstates its own diff is the `G2` shape.
 
 | Added | Returns | Why a test cannot do without it |
 |---|---|---|
 | `releaseObservingReap(_:)` | a `ReapArming` | The release and the reading of what it armed must be **one** actor operation. Two hops leave a gap a 25ms window can expire inside, which is this item's own defect one layer in |
 | `armedReap(_:)` | a `ReapArming?` | For asserting there is **no** arming — a claim no amount of waiting can establish. Safe as a second hop precisely because nothing can appear in the gap |
-| `awaitReap(_:epoch:)` | — | The reap runs inside a task the actor owns. Nothing else changes before it lands, so there is no other observable to wait on |
-| `awaitSessionEnded(_:handle:)` | — | Same, for eviction |
+| `awaitReap(_:epoch:)` | — | The reap runs inside a task the actor owns. Nothing else changes before it lands, so there is no other observable to wait on. **Unbounded by construction** — see the gap-fix below |
+| `awaitSessionEnded(_:handle:)` | — | Same, for eviction, and bounded the same way |
 | `waitingCallers(_:)` | `pendingWaiters` | A cohort test must open its gate once the joiners have arrived. Arrival is recorded only here |
 
-`ReapArming` is a new value type carrying the epoch and the resolved window. `ReapTimer`
-gains `idleMilliseconds` and **loses** `Sendable`: it holds the live task and no longer
-travels anywhere.
+`ReapArming` is a new **`Sendable`** value type carrying the epoch and the resolved window,
+and it is the only thing that leaves the actor. `ReapTimer` gains `idleMilliseconds` and is
+**not** `Sendable` — it never was, at `e32b185` or at HEAD, where `struct ReapTimer {` stands
+unchanged at `PoolEntry.swift:74`. It holds the live task and does not travel. An earlier
+draft of this paragraph claimed `Sendable` was added to it and then, fifteen lines on, that it
+had been removed; neither happened.
 
 None of them is `public`; they are reachable through `@testable import` and nothing in
 `RouterCore`, the app or the CLI calls them. No behaviour changed — this is the fix
@@ -129,7 +136,7 @@ report a failure that is not there.
 |---|---|---|---|---|
 | Reaping:37 | P5 warm is never reaped | 150ms, then still live | negative | **Fixed** — no timer is armed at all, which a late reap cannot satisfy |
 | Reaping:48 | P6 idleMs zero disables reaping | 120ms, then still live | negative | **Fixed** — same |
-| Reaping:61 | P6 per-server window wins | 150ms, then reaped | **exposed** | **Fixed** — the resolved window asserted exactly, then the reap awaited. *The filed defect* |
+| Reaping:61 | P6 per-server window wins | 150ms, then reaped | **exposed** | **Fixed** — the resolved window asserted exactly, then the reap awaited under a bound. *The filed defect* |
 | Reaping:107 | P8 self-closed is evicted | 60ms, then evicted | **exposed** | **Fixed** — awaits the eviction of a named handle |
 | Reaping:126 | P8a stale close cannot evict | 60ms, then evicted | **exposed** | **Fixed** — awaits the eviction of a named handle |
 | Reaping:178 | P11 a cohort counts once | 20ms before opening the gate | **exposed** | **Fixed** — waits for two waiting callers |
@@ -168,6 +175,65 @@ The other durations left are the pool's **own** windows — the 25ms and 30ms th
 configure — and the tests wait through them for real. That is not a threshold: it is the
 product's behaviour being exercised, and no assertion depends on how long it takes.
 Removing even that wait needs an injected clock in the reaping path, which is `D-g3-e`.
+
+## The gap-fix: the awaits get the bound the polls already have
+
+The verifier passed everything above and blocked on what it bought. `awaitReap` and
+`awaitSessionEnded` await a `Task` the pool started, and nothing shortens that wait, so **the
+effective bound on each is the pool's own armed window** — and P6 configures that at 600 000 ms,
+deliberately, because a default that is effectively never is what makes the per-server override
+provable. Run the mutation that reaps at the default while the arming records the requested
+window and the assertion at `PoolReapingTests.swift:87` passes silently, the await sits on a
+ten-minute timer, and the single issue lands 601.184 seconds later on the *`inherits`* line —
+which describes a different defect. Killed at a 150-second CI bound it exits 142 and names no
+test at all.
+
+That is this item's own thesis pointed back at it. A nameless timeout is worse than a flake,
+and the first cut of P4 had already met the same mechanism inside this item: the 63.968-second
+incident above. P4 closed it locally by setting both of its windows short. P6 cannot, because
+the long default *is* its claim.
+
+So the awaits get bounded the way the polls are. `awaitEvent` in `PoolTestSupport` runs the
+event under `waitUntil`'s ten-second deadlock breaker and reports expiry as a failure naming the
+condition, at the caller's source location.
+
+**Why it is not a task group**, which is the part worth reading: `await task.value` on a
+`Task<_, Never>` has no cancellation check. Racing it against a sleep inside a group changes
+nothing, because the group awaits every child before it returns — including the one still
+sitting out the ten-minute timer — so the run takes ten minutes anyway and the bound has landed
+on the wrong side of the await. `awaitEvent` therefore **abandons** the wait rather than
+cancelling it: an observer task records the landing and the poll reads that record. Giving up
+costs one task that finishes by itself later, in a run that has already gone red.
+
+The bound is worth what its being used is worth, so its being used is asserted rather than
+documented. `PoolAwaitBoundTests` scans `app/Tests` and requires every `awaitReap` and
+`awaitSessionEnded` call site to sit inside an `awaitEvent`, counted per function rather than by
+line distance — a proximity window can go red on a wrap that sits a few lines further up, and a
+gate that reports a failure that is not there is the defect this item exists to remove. It is
+the argument `StandingConstraintsTests` already makes for turning a remembered `grep` into an
+assertion, arriving in the file that needed it.
+
+### The three measurements
+
+Machine at 48–59% idle throughout, with sibling runners measuring in the same repo.
+
+| Tree | `make test` | Wall | Where the red landed |
+|---|---|---|---|
+| Unmutated | **exit 0** | 13.9s, run 4.127s | 1584 tests in 198 suites, no issue |
+| Reap on the default window, arming records the requested | **exit 2** | 14.4s, run **10.417s** | `PoolReapingTests.swift:98` — *timed out after 10.0s waiting for: `own` to be reaped under the arming it just made* |
+| The swap the other way — arming records the default, reap on the requested | **exit 2** | 9.3s, run **4.325s** | `PoolReapingTests.swift:87` — `(armed.idleMilliseconds → 600000) == 25` |
+
+The third is the route nobody had named, and it is the one that would expose a bound placed on
+the wrong side. It does not: the `#require` on the resolved integer throws before the await is
+reached, so that mutation never waits at all.
+
+`:98` is now the `awaitEvent` line rather than the `isLive("inherits")` line the 601-second run
+reported — the same number for a different line, and the message is what tells them apart.
+
+And the control, so the bound is what is being credited rather than the mutation: the same
+mutation with P6's wrap removed, killed at 60 seconds, **exits 142 with no summary line and no
+report from P6** — 6× the bound and still nothing named. The standing constraint reddens on the
+missing wrap at 0.6 seconds, which is the guard doing its job while the run hangs anyway.
 
 ## Mutation evidence
 
@@ -253,18 +319,26 @@ not knowable in advance.
 
 ## Gates on the delivered tree
 
-`make test` ten times in a row, from a script writing exit codes to a log rather than a
-foreground loop: **0 0 0 0 0 0 0 0 0 0**, 5–6 seconds each, 1560 tests executed on every
-one and no issue recorded in any of the ten logs. `make lint` 0, over 489 files with 0
-violations. `make parity` 0 at **358 of 358**, floor 358. `make acceptance-r6` 0 at
-`examined=6 failures=0` — the lane that spawns real children, and the one most likely to
+**At `4c0f920`, before the gap-fix.** `make test` ten times in a row, from a script writing exit
+codes to a log rather than a foreground loop: **0 0 0 0 0 0 0 0 0 0**, 5–6 seconds each, 1560
+tests executed on every one and no issue recorded in any of the ten logs. `make lint` 0, over
+489 files with 0 violations. `make parity` 0 at **358 of 358**, floor 358. `make acceptance-r6`
+0 at `examined=6 failures=0` — the lane that spawns real children, and the one most likely to
 notice a change to pool timing.
 
-The suite is also faster: the eleven sleeps were 950 milliseconds of deliberate waiting,
-and the three pool suites now run in 0.307 seconds together.
+**After the gap-fix.** `make test` **0** and **0**, 1584 tests in 198 suites both times, runs of
+4.410s and 4.064s — one test and one suite more than before, which is the standing constraint on
+the bound. `make lint` **0**, 0 violations in 493 files. `make parity` **0** at 358 of 358, floor
+358. `make acceptance-r6` **0** at `examined=6 failures=0`.
+
+The suite is also faster: the eleven sleeps were **960** milliseconds of deliberate waiting —
+3×120 + 2×150 + 2×20 + 3×60 + 80, from the survey table above — and the three pool suites now
+run in 0.305 seconds together. An earlier draft wrote 950; the addition is the check.
 
 ## Scope
 
 `app/Sources/RouterCore/Pool/UpstreamPool.swift` and `PoolEntry.swift` (observation only),
-and the four pool test files. No product behaviour changed, no parity surface touched, and
-the reference router is not involved.
+and the four pool test files — the gap-fix adds `awaitEvent` and its standing constraint to
+`PoolTestSupport.swift`, five call sites across the three suites, and two doc comments on
+`UpstreamPool.swift` recording that the accessors are unbounded by construction. No product
+behaviour changed, no parity surface touched, and the reference router is not involved.

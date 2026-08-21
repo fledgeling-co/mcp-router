@@ -10,12 +10,19 @@
     "rather than a guess. A layer that reads fewer rows than its floor exits 3, not 0: a shrunken",
     "denominator raises reported coverage while measuring less, which is the failure",
     "planning/evidence/P4-acceptance.md records four separate times. Lowering one is a deliberate",
-    "edit with a reason in the commit, never a side effect of deleting rows."
+    "edit with a reason in the commit, never a side effect of deleting rows.",
+    "",
+    "lintFiles is the fourth floor and it was missing until 2026-08-21. The literals layer reads",
+    "the lint's scan count precisely because a lint that scanned nothing and a lint that found",
+    "nothing print the same exit code -- and then compared that count to nothing, so a lint",
+    "scanning 0 files reported clean and the whole gate exited 0. A required layer that measured",
+    "nothing read as a pass, which is worse than the exit-1 defect it sat beside."
   ],
   "floors": {
     "tokenRows": 89,
     "dumpNodes": 73,
-    "affordances": 107
+    "affordances": 107,
+    "lintFiles": 118
   },
 
   "layers": [

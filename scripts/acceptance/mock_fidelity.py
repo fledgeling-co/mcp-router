@@ -17,10 +17,13 @@ Reading order for anyone extending this: `LAYERS` is the whole contract, one fun
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import subprocess
 import sys
+import traceback
+import unicodedata
 from dataclasses import dataclass, field
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -96,6 +99,41 @@ class Inconclusive(Exception):
     """Raised by a layer that could not run. The message is quoted into the report verbatim."""
 
 
+@contextlib.contextmanager
+def measuring(what: str):
+    """Everything raised inside becomes `Inconclusive`, with the traceback quoted.
+
+    The gate's doctrine is that a layer which measured nothing must read as inconclusive rather
+    than as findings, and the first version of that fix converted the three failures somebody had
+    thought of — a subprocess that hung, one that would not launch, a marker that would not parse.
+    Every other way out of a layer still escaped `main` as an uncaught exception, which exits 1,
+    the code that means differences were found, *before* the report is written. So the stale
+    committed ledger stayed on disk under an exit that reads as a measured verdict — the same
+    failure the earlier fix was written to end, arriving through a door nobody had listed.
+
+    Listing more doors does not close it, because the list is not the thing: a `KeyError` on a
+    hand-authored manifest, a `TypeError` on a floor somebody quoted as a string, an
+    `IndexError` on a malformed argument and a `UnicodeDecodeError` on a pairing file are all the
+    same event, which is that the verdict does not exist. So the boundary is the class. Anything
+    that is not a finding and not a clean run is exit 3.
+
+    `Inconclusive` passes through unchanged so a layer's own carefully worded reason is not buried
+    under a traceback. `KeyboardInterrupt` and `SystemExit` derive from `BaseException` and are
+    deliberately not caught: an operator pressing ^C is not an unmeasurable surface.
+    """
+    try:
+        yield
+    except Inconclusive:
+        raise
+    except Exception as error:
+        raise Inconclusive(
+            f"{what}: {type(error).__name__}: {error}\n"
+            f"            Nothing this covers was measured. The gate raised, rather than "
+            f"returning a verdict:\n"
+            + "\n".join("            " + line for line in traceback.format_exc().rstrip().splitlines())
+        ) from error
+
+
 def run(cmd: list[str], cwd: str = ROOT, timeout: int = 900) -> subprocess.CompletedProcess:
     """Shell out, and fail to `Inconclusive` rather than out of the process.
 
@@ -133,6 +171,55 @@ def load_json(path: str, what: str) -> dict:
             return json.load(handle)
     except json.JSONDecodeError as error:
         raise Inconclusive(f"{what}: {path} did not parse: {error}") from error
+
+
+# Categories whose codepoints put no mark on the screen: control, format, surrogate, private-use,
+# unassigned, the three separator classes, and the three combining-mark classes. The marks are here
+# for a narrower reason than the rest: a combining mark draws on the base character in front of it,
+# so removing them cannot hide content — `readable("e\u0301")` still keeps the `e` — while a string
+# that is nothing BUT marks, U+034F COMBINING GRAPHEME JOINER being the usual one, has no base to
+# draw on and puts nothing on the screen.
+INVISIBLE_CATEGORIES = {"Cc", "Cf", "Cs", "Co", "Cn", "Zs", "Zl", "Zp", "Mn", "Me", "Mc"}
+
+# Codepoints that put no mark on the screen from inside a *visible* category, so the category test
+# above cannot reach them. The four Hangul fillers are `Lo` — letters — and exist to occupy a
+# syllable position without drawing anything; U+2800 is a braille cell with no raised dots. There is
+# no property in the database that says "renders blank", so this is a list rather than a class, and
+# what is not on it is `D-m23-p`.
+BLANK_CODEPOINTS = {"\u115f", "\u1160", "\u3164", "\uffa0", "\u2800"}
+
+
+def readable(value: str | None) -> str:
+    """What is left of a string once everything that renders as nothing is removed.
+
+    `" ".join(text.split())` collapses the whitespace `str.split()` knows about, and that set is
+    not the set of codepoints a person cannot see. `\xa0` is dropped; U+200B ZERO WIDTH SPACE,
+    U+FEFF, U+00AD SOFT HYPHEN, U+2060 WORD JOINER and the directional marks all survive it, and
+    all six are invisible. So `if mock_text and app_text` — truthiness — called a label of one
+    zero-width space content, compared it against a build string of one zero-width space, found
+    them equal and wrote `present`. That is the literal form of the "agreement between two
+    absences" the four-outcome rule was written to end, one codepoint class over.
+
+    Used for the question "is there anything here to compare", never for the comparison itself: two
+    strings that differ only in an invisible codepoint are still different, and the equality test
+    keeps reading the normalised text so it says so.
+
+    Its limit, stated because a check that overclaims is the defect this pass exists to close. The
+    category test is a class and catches every future addition to it; `BLANK_CODEPOINTS` is a list
+    and catches only what is written on it, so a blank codepoint in a visible category that nobody
+    has put there yet still reads as content. `D-m23-p` carries that residue. The two errors are not
+    symmetric, which is why the list errs long: removing too much makes a real pairing read
+    `unclassified`, a finding that names what was not measured, while removing too little makes two
+    invisible strings read `present`, which is the false clean. That asymmetry is also the answer to
+    `Co`: a private-use codepoint can carry a visible glyph in a bundled font, and filtering it
+    anyway costs a finding rather than a false pass (`D-m23-u`).
+    """
+    return "".join(
+        ch for ch in (value or "")
+        if not ch.isspace()
+        and ch not in BLANK_CODEPOINTS
+        and unicodedata.category(ch) not in INVISIBLE_CATEGORIES
+    )
 
 
 def flatten(node: dict, path: list[str] | None = None) -> list[tuple[str, dict]]:
@@ -247,6 +334,16 @@ def layer_literals(ctx) -> Layer:
             f"literals: could not read the file count out of the lint's scan line, so the number "
             f"of files it read is unknown ({error}): {scan.strip()!r}"
         ) from error
+    if layer.observations < ctx.floors["lintFiles"]:
+        raise Inconclusive(
+            f"literals: the lint scanned {layer.observations} files, below the floor of "
+            f"{ctx.floors['lintFiles']}. This layer reads the scan count in the first place because "
+            "a lint that scanned nothing and a lint that found nothing print the same exit code — "
+            "and until this floor existed it read the number and compared it to nothing, so "
+            "`scanning 0 files` reported `clean` and the gate exited 0. A count with no floor under "
+            "it is the quantity in the name doing no work in the assertion "
+            "(planning/features-to-triage/G4-assertions-that-do-not-read-their-own-quantity.md)."
+        )
     layer.note = scan.split(": ", 1)[1]
     if result.returncode != 0:
         for line in output.splitlines():
@@ -432,7 +529,10 @@ def layer_copy(ctx) -> Layer:
                 continue  # reported by the breadth layer, which owns pairing integrity
             mock_text = " ".join((affordance.get("label") or "").split())
             app_text = " ".join((node.get("text") or "").split())
-            if not mock_text or not app_text:
+            # Readable content, not truthiness — the same test the breadth layer makes, for the same
+            # reason. Two strings of one zero-width space each are truthy, compare equal, and would
+            # be counted here as a paired string that agreed.
+            if not readable(mock_text) or not readable(app_text):
                 continue
             layer.observations += 1
             if mock_text != app_text:
@@ -460,6 +560,26 @@ def layer_breadth(ctx) -> Layer:
         nodes = dict(flatten(ctx.dumps[state]["root"]))
         pairs = ctx.pairs.get(state, {})
         paired_nodes = set()
+
+        # Which affordances name each build node, before any of them is classified.
+        #
+        # `ctx.pairs[state]` is keyed by affordance, so it will happily let every affordance in the
+        # mock name one build control, and nothing checked. Two mock headings pointed at one build
+        # control produced TWO `present` rows: the second was a measurement of the first control,
+        # credited to a second affordance that was never measured at all. It is the original G1
+        # again — a `present` not earned by measuring that control — and it does not fire on today's
+        # ledger only because no absent affordance happens to share a label with a vouched node.
+        # 80 of this surface's rows are `absent`, and those labels start matching exactly as M16
+        # converts the board, so the defect activates when someone is working toward exit 0.
+        #
+        # Counted first rather than as the loop goes, because order is not evidence: if a pairing is
+        # ambiguous then neither claimant was measured, and letting whichever came first keep
+        # `present` would pick a winner by inventory position.
+        claims: dict[str, list[str]] = {}
+        for affordance in inventory:
+            claimed = pairs.get(affordance["id"])
+            if claimed is not None:
+                claims.setdefault(claimed, []).append(affordance["id"])
 
         for affordance in inventory:
             layer.observations += 1
@@ -495,15 +615,31 @@ def layer_breadth(ctx) -> Layer:
             # one.
             vouched = (node["role"], node["kind"]) in VOUCHED_CONTROLS.get(affordance["kind"], set())
 
-            # Four outcomes, not two. The version this replaced read `present` whenever the two
-            # strings were equal, and in six of this surface's ten `present` rows both of them were
-            # the empty string: a comparison of nothing against nothing, reported as a match. So
-            # `present` now requires two strings that exist and agree, and every comparison the
-            # instrument could not make is `unclassified` — a finding that names what it could not
-            # read — rather than agreement.
-            if not vouched:
-                status = "divergent"
-            elif mock_text and app_text:
+            # Four outcomes, not two, and only one of them is a claim that a measurement happened.
+            #
+            # `present` requires this affordance to be the only one naming this control, the pairing
+            # to be one the gate has vouched for, and two strings with something readable in them
+            # that agree. Everything else is `unclassified`: a comparison the instrument could not
+            # make, which is a finding naming what it could not read.
+            #
+            # `divergent` is reserved for a difference that was actually measured. It used to carry
+            # the unvouched case too, which claims a measured difference where the truth is that the
+            # gate has never established the two are the same control — the coordinator's own
+            # correction, `D-m23-l`. That matters ahead of when it bites: the nine mock kinds
+            # `VOUCHED_CONTROLS` does not name (`D-m23-h`) will each land here, and a correct build
+            # would have read `divergent`.
+            # Counted rather than filtered by id. `[o for o in claimants if o != my_id]` looks
+            # like the same test and is not: two inventory entries sharing an id both name this
+            # node, the comprehension removes both occurrences, `others` is empty and each row
+            # earns `present` off one measurement — the original defect, reached through the
+            # duplicate rather than through the pairing. The number of claimants is the quantity
+            # the check is named for, so it reads that number.
+            claimants = claims.get(node_path, [])
+            if len(claimants) > 1:
+                status = "unclassified"
+            elif not vouched:
+                status = "unclassified"
+            elif readable(mock_text) and readable(app_text):
                 status = "present" if mock_text == app_text else "divergent"
             else:
                 status = "unclassified"
@@ -513,12 +649,19 @@ def layer_breadth(ctx) -> Layer:
                          f'build={node_path} text="{app_text[:60]}" '
                          f'role={node["role"]} kind={node["kind"]}',
                          ctx.citations.get(affordance["id"], "")))
-            if not vouched:
+            if len(claimants) > 1:
+                layer.findings.append(
+                    f"{state}: {affordance['id']} is paired to {node_path}, which "
+                    f"{len(claimants)} affordances name in total ({', '.join(sorted(claimants))}). "
+                    "One build control cannot answer several mock affordances, so whichever of them "
+                    "it does answer, the rest were never measured"
+                )
+            elif not vouched:
                 layer.findings.append(
                     f"{state}: {affordance['id']} is a mock {affordance['kind']} answered by "
                     f"{node_path}, which reports role '{node['role']}' and kind '{node['kind']}' — "
-                    "a pairing this gate has never vouched for, so the two are not known to be the "
-                    "same control"
+                    "a pairing this gate has never vouched for, so whether the two are the same "
+                    "control was never established"
                 )
             elif status == "divergent":
                 layer.findings.append(
@@ -526,15 +669,18 @@ def layer_breadth(ctx) -> Layer:
                     f"build \"{app_text[:50]}\""
                 )
             elif status == "unclassified":
-                if not mock_text and not app_text:
+                mock_seen, app_seen = readable(mock_text), readable(app_text)
+                if not mock_seen and not app_seen:
+                    invisible = "" if not (mock_text or app_text) else (
+                        " — both sides carry codepoints that render as nothing")
                     layer.findings.append(
                         f"{state}: {affordance['id']} is paired to {node_path} and neither side "
-                        "carries a string, so nothing was compared — agreement between two "
-                        "absences is not a measurement"
+                        f"carries a readable string, so nothing was compared{invisible}. Agreement "
+                        "between two absences is not a measurement"
                     )
                 else:
-                    side = ("the build node reports no text" if mock_text
-                            else "the mock affordance carries no label")
+                    side = ("the build node reports nothing readable" if mock_seen
+                            else "the mock affordance carries no readable label")
                     layer.findings.append(
                         f"{state}: {affordance['id']} is paired to {node_path} but {side}, so the "
                         "label was never compared"
@@ -685,6 +831,11 @@ LAYERS = {
     "font-weight-face": layer_font_weight_face,
 }
 
+# The order the layers run and print in. Kept beside the table it has to agree with, and checked
+# against it in `main()` rather than trusted.
+LAYER_ORDER = ["tokens", "literals", "structure", "geometry", "type-metrics", "copy", "breadth",
+               "font-weight-face"]
+
 
 # --------------------------------------------------------------------------- driver
 
@@ -694,6 +845,22 @@ class Context:
         self.surface = manifest["surface"]
         self.states = manifest["states"]
         self.floors = manifest["floors"]
+        # A floor of zero is not a floor. Every `observations < ctx.floors[...]` test in this file
+        # reads the census a layer measured and compares it to a number from the manifest — and
+        # `0 < 0` is false, so `"lintFiles": 0` restores exactly the defect the floor was added to
+        # close: the lint scans nothing, the layer reads `clean`, the gate exits 0. The comparison
+        # cannot catch that, because the comparison is the thing being defeated. So the floor itself
+        # is checked once here rather than at each of the four sites. `bool` is excluded explicitly
+        # because `isinstance(True, int)` is true in Python and `observations < True` is a floor of
+        # one wearing the wrong type.
+        for floor_name, floor_value in sorted(self.floors.items()):
+            if isinstance(floor_value, bool) or not isinstance(floor_value, int) or floor_value < 1:
+                raise Inconclusive(
+                    f"manifest: floor '{floor_name}' is {floor_value!r}. A floor is the smallest "
+                    "census a layer may measure and still be believed, so it has to be a positive "
+                    "whole number. At zero or below, the `observations < floor` test is false for a "
+                    "layer that measured nothing, which is the one case the floor exists to catch."
+                )
         self.section = manifest["section"]
         self.dump_dir = dump_dir
         self.dumps: dict[str, dict] = {}
@@ -756,49 +923,109 @@ def main() -> int:
     manifest_path, dump_dir = sys.argv[1], sys.argv[2]
     report_path = None
     if "--report" in sys.argv:
-        report_path = sys.argv[sys.argv.index("--report") + 1]
+        index = sys.argv.index("--report") + 1
+        if index >= len(sys.argv):
+            sys.stderr.write("usage: mock_fidelity.py <layers.json> <dump-dir> [--report <path>]\n"
+                             "       --report was given with no path after it\n")
+            return 2
+        report_path = sys.argv[index]
+
+    # The surface is needed for the unmeasured ledger before the manifest is known to parse, so it
+    # falls back to the path rather than failing to name what could not be measured.
+    surface = os.path.basename(manifest_path).split(".")[0]
 
     try:
-        manifest = load_json(manifest_path, "manifest")
+        with measuring("manifest"):
+            manifest = load_json(manifest_path, "manifest")
+            surface = manifest.get("surface", surface)
+            declared = {entry["name"]: entry for entry in manifest["layers"]}
     except Inconclusive as error:
         print(f"INCONCLUSIVE {error}")
+        write_unmeasured_report(report_path, surface, str(error))
         return 3
 
-    declared = {entry["name"]: entry for entry in manifest["layers"]}
+    # Every one of these five exits is a run that measured nothing, and each used to return 3 while
+    # leaving the last good table on disk — the same stale ledger `measuring()` was added to end,
+    # reached by a validation that failed rather than by an exception. `unmeasured()` is the single
+    # door out, so a new check added here cannot forget the ledger without also forgetting to exit.
+    def unmeasured(reason: str) -> int:
+        print(f"INCONCLUSIVE {reason}")
+        write_unmeasured_report(report_path, surface, reason)
+        return 3
+
+    if len(manifest["layers"]) != len(declared):
+        # `{entry["name"]: entry for entry in ...}` keeps the LAST of any repeated name and says
+        # nothing, so a manifest carrying `breadth` twice — the second copy `required: false` with
+        # a substitute — silences a required layer through a key collision. The dict is shorter
+        # than the list it was built from, and until now nothing compared the two lengths.
+        return unmeasured(
+            f"manifest: declares {len(manifest['layers'])} layer entries under {len(declared)} "
+            "distinct names, so at least one name appears twice and the later entry silently "
+            "replaced the earlier one"
+        )
+    if set(LAYER_ORDER) != set(LAYERS):
+        # The run order is written out longhand so the report reads in a fixed order, which makes it
+        # a second list of layer names that can drift from `LAYERS`. If it does, `declared[name]`
+        # raises a `KeyError` from outside `measuring()` — one line above the boundary that exists
+        # to catch exactly that.
+        return unmeasured(
+            f"gate: the run order and the layer table disagree: "
+            f"{sorted(set(LAYER_ORDER) ^ set(LAYERS))}"
+        )
     unknown = set(declared) - set(LAYERS)
     if unknown:
-        print(f"INCONCLUSIVE manifest: declares layers this gate cannot run: {sorted(unknown)}")
-        return 3
+        return unmeasured(f"manifest: declares layers this gate cannot run: {sorted(unknown)}")
     missing = set(LAYERS) - set(declared)
     if missing:
-        print(f"INCONCLUSIVE manifest: does not declare {sorted(missing)}, so those layers are silent")
-        return 3
+        return unmeasured(
+            f"manifest: does not declare {sorted(missing)}, so those layers are silent")
     for name, entry in declared.items():
         if not entry.get("required", True) and name not in ALLOWED_OPTIONAL:
-            print(
-                f"INCONCLUSIVE manifest: '{name}' is marked required:false. Only "
-                f"{sorted(ALLOWED_OPTIONAL)} may be, and that allowlist lives in the gate rather "
-                "than in the manifest the gate reads."
+            return unmeasured(
+                f"manifest: '{name}' is marked required:false. Only {sorted(ALLOWED_OPTIONAL)} may "
+                "be, and that allowlist lives in the gate rather than in the manifest the gate "
+                "reads."
             )
-            return 3
         if not entry.get("required", True) and not entry.get("substitute"):
-            print(f"INCONCLUSIVE manifest: '{name}' is optional with no substitute recorded")
-            return 3
+            return unmeasured(f"manifest: '{name}' is optional with no substitute recorded")
 
-    ctx = Context(manifest, dump_dir)
     try:
-        ctx.load()
+        # Construction is inside the boundary as well as `load`. `Context.__init__` reads
+        # `manifest["floors"]` and four more required keys, so a hand-authored `<surface>.layers.json`
+        # missing one raised a `KeyError` from outside every `try` in this function — and that file
+        # is the first artifact each of M15–M22 writes, which makes it the error a future conversion
+        # is most likely to make first.
+        with measuring("context"):
+            ctx = Context(manifest, dump_dir)
+            ctx.load()
     except Inconclusive as error:
         print(f"INCONCLUSIVE {error}")
+        write_unmeasured_report(report_path, surface, str(error))
         return 3
 
     results: list[Layer] = []
     blocked: list[tuple[str, str]] = []
-    for name in ["tokens", "literals", "structure", "geometry", "type-metrics", "copy", "breadth",
-                 "font-weight-face"]:
+    for name in LAYER_ORDER:
         entry = declared[name]
         try:
-            results.append(LAYERS[name](ctx))
+            with measuring(name):
+                layer = LAYERS[name](ctx)
+                # The floor every layer has, underneath the four a manifest names. `lintFiles` was
+                # added because the literals layer read a census and compared it to nothing — but
+                # that is a property of layers, not of that layer, and writing one floor per layer
+                # closes a list. A required layer that ran, raised nothing and measured nothing has
+                # produced the pass and the cannot-discriminate in the same shape, which is the G4
+                # defect exactly (planning/features-to-triage/
+                # G4-assertions-that-do-not-read-their-own-quantity.md). Its verdict does not
+                # exist, so it says so. The optional layers are excluded because a substituted
+                # layer is a measurement made somewhere else, recorded in the manifest.
+                if entry.get("required", True) and layer.observations == 0:
+                    raise Inconclusive(
+                        f"{name}: the layer ran, raised nothing and measured nothing — 0 "
+                        "observations. A layer with an empty population cannot tell a surface that "
+                        "agrees from a surface it never looked at, and both of those print `clean`."
+                    )
+                results.append(layer)
         except Inconclusive as error:
             layer = Layer(name, inconclusive=str(error))
             results.append(layer)
@@ -829,7 +1056,13 @@ def main() -> int:
             print(f"      carried: {line[:200]}{'…' if len(line) > 200 else ''}")
 
     if report_path:
-        write_report(report_path, ctx, results, declared)
+        try:
+            with measuring("report"):
+                write_report(report_path, ctx, results, declared)
+        except Inconclusive as error:
+            print(f"INCONCLUSIVE {error}")
+            write_unmeasured_report(report_path, ctx.surface, str(error))
+            return 3
 
     if blocked:
         print(f"mock-fidelity: EXIT 3 — {len(blocked)} required layer(s) could not run")
@@ -839,6 +1072,42 @@ def main() -> int:
         return 1
     print("mock-fidelity: EXIT 0 — every required layer ran and found nothing")
     return 0
+
+
+def write_unmeasured_report(path: str | None, surface: str, reason: str) -> None:
+    """Overwrite the ledger for a run that did not reach a verdict.
+
+    The stale-ledger failure has two halves, and fixing the exit code fixes one of them. A reader
+    who opens `servers.ledger.md` after a run that raised still finds the last good run's table,
+    with its counts and its `clean` cells, and nothing in the file says the run that just happened
+    measured nothing. So a run that cannot measure replaces the file with what happened to it.
+
+    It does not say *when* the run stopped, because it is called from stages that are not all before
+    the layers — a `write_report` that raises has measured eight layers and lost the table, and a
+    file claiming "before any layer ran" would be this gate telling a reader something it knows to
+    be untrue. The `reason` opens with the stage name, so the file says only what it has.
+
+    Nor can it fail quietly. Suppressing `OSError` made "the ledger was replaced" and "the ledger
+    could not be replaced, so the table you are reading is the previous run's" print the same
+    nothing, which is the stale ledger again with a permission bit in front of it. Anything raised
+    here is reported and the exit stays 3: a ledger that could not be written is not a measurement.
+    """
+    if not path:
+        return
+    try:
+        os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+        with open(path, "w", encoding="utf-8") as out:
+            out.write(f"# Breadth ledger — {surface} (generated by "
+                      "scripts/acceptance/mock-fidelity-gate.sh)\n\n")
+            out.write("## This run did not produce a table\n\n"
+                      "The gate exited 3 without completing a measurement, so there are no rows "
+                      "below rather than no differences. What stopped it, and at which stage, "
+                      "verbatim:\n\n```\n")
+            out.write(reason.rstrip() + "\n```\n")
+    except Exception as error:
+        print(f"mock-fidelity: WARNING the ledger at {path} could not be replaced "
+              f"({type(error).__name__}: {error}). Whatever table is on disk is an earlier run's "
+              "and does not describe this one.")
 
 
 def write_report(path: str, ctx: Context, results: list[Layer], declared: dict) -> None:

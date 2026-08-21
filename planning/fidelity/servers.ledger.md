@@ -10,12 +10,12 @@ finding disappear.
 | Layer | Result | Detail |
 |---|---|---|
 | `tokens` | clean | 25 matched, 64 pending, of 89 rows |
-| `literals` | clean | scanning 117 files |
+| `literals` | clean | scanning 118 files |
 | `structure` | clean | 73 nodes across 4 states |
 | `geometry` | clean | 73 frames |
 | `type-metrics` | clean | 24 text nodes · 4 roles · Caption=13pt Body=16pt Title3=19pt Title1=26pt · 2 multi-line node(s) excluded from the per-role check |
 | `copy` | 16 finding(s) | 20 paired strings |
-| `breadth` | 116 finding(s) | absent 80 · covered-by-pair 16 · divergent 18 · extra 10 · extra-cited 2 · present 3 · structure-unpaired 14 · unclassified 6 |
+| `breadth` | 116 finding(s) | absent 80 · covered-by-pair 16 · divergent 16 · extra 10 · extra-cited 2 · present 3 · structure-unpaired 14 · unclassified 8 |
 | `font-weight-face` | inconclusive (substituted) | font-weight-face: String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face |
 
 ## Present / divergent / absent
@@ -152,7 +152,7 @@ finding disappear.
 | loading | v-loading/sentence/indexing-each-server-once-so-no-session-ever-has | sentence | divergent | mock="Indexing each server once, so no session ever has to." kind=sentence | build=servers.loading/board-column/board-header/title-block/subtitle text="Reading the router…" role=board-subtitle kind=text | planning/features-to-triage/M17-surface-states.md owns the loading copy |
 | loading | v-loading/card/indexing-11-servers-7-of-11-obscura-41-tools-dos | card | absent | mock="Indexing 11 servers 7 of 11 obscura → 41 tools · dossier → 3" | build=no paired node | planning/features-to-triage/M17-surface-states.md |
 | loading | v-loading/progress/indexing-progress | progress | absent | mock="Indexing progress" | build=no paired node | planning/features-to-triage/M17-surface-states.md |
-| loading | v-loading/card/unlabelled | card | divergent | mock="" kind=card | build=servers.loading/board-column/skeleton text="" role=skeleton kind=vstack |  |
+| loading | v-loading/card/unlabelled | card | unclassified | mock="" kind=card | build=servers.loading/board-column/skeleton text="" role=skeleton kind=vstack |  |
 | loading | v-loading/skeleton-row/unlabelled | skeleton-row | unclassified | mock="" kind=skeleton-row | build=servers.loading/board-column/skeleton/skeleton-row-0 text="" role=skeleton-row kind=hstack |  |
 | loading | v-loading/skeleton-row/unlabelled#2 | skeleton-row | unclassified | mock="" kind=skeleton-row | build=servers.loading/board-column/skeleton/skeleton-row-1 text="" role=skeleton-row kind=hstack |  |
 | loading | v-loading/skeleton-row/unlabelled#3 | skeleton-row | unclassified | mock="" kind=skeleton-row | build=servers.loading/board-column/skeleton/skeleton-row-2 text="" role=skeleton-row kind=hstack |  |
@@ -164,7 +164,7 @@ finding disappear.
 | error | v-error/icon/unlabelled | icon | unclassified | mock="" kind=icon | build=servers.error/board-column/failure-pane/message-state/message-icon text="" role=state-illustration kind=leaf |  |
 | error | v-error/heading/cannot-reach-the-router | heading | divergent | mock="Cannot reach the router" kind=heading | build=servers.error/board-column/failure-pane/message-state/message-copy/message-title text="The router isn't running" role=state-title kind=text | planning/features-to-triage/M17-surface-states.md — the per-surface copy table gives Servers/error as "Cannot reach the router" |
 | error | v-error/sentence/nothing-answered-on-127-0-0-1-8879-your-agent-se | sentence | divergent | mock="Nothing answered on 127.0.0.1:8879 . Your agent sessions hav" kind=sentence | build=servers.error/board-column/failure-pane/message-state/message-copy/message-detail text="Nothing is listening on the control port, so there is nothin" role=state-detail kind=text | planning/features-to-triage/M17-surface-states.md |
-| error | v-error/button/start-the-router | button | divergent | mock="Start the router" kind=button | build=servers.error/board-column/failure-pane/failure-action text="Start the router" role=state-action-disabled kind=leaf |  |
+| error | v-error/button/start-the-router | button | unclassified | mock="Start the router" kind=button | build=servers.error/board-column/failure-pane/failure-action text="Start the router" role=state-action-disabled kind=leaf |  |
 | error | v-error/button/reveal-log | button | absent | mock="Reveal log…" | build=no paired node | planning/features-to-triage/M17-surface-states.md |
 | error | v-error/codeblock/launchctl-print-gui-501-gg-rhodes-mcp-router-sta | codeblock | absent | mock="launchctl print gui/501/gg.rhodes.mcp-router state = not run" | build=no paired node | planning/features-to-triage/M17-surface-states.md |
 | error | servers.error/board-column | board-column | structure-unpaired | mock=no affordance of a declared kind | build=servers.error/board-column (1 children, at least one paired) |  |

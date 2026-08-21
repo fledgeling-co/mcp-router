@@ -35,11 +35,31 @@ build() {
   ln -sf "$ENGINE" "$root/scripts/acceptance/mock_fidelity.py"
   ln -sf "$AFFORDANCES" "$root/scripts/acceptance/mock-affordances.py"
 
+  # The shipped inventory tool disambiguates two identical affordances as `…/shared` and
+  # `…/shared#2`, so the engine is never handed a duplicate id BY IT. The engine does not require
+  # that and nothing checks it, and the injectivity check reads a list keyed by id — so this
+  # wrapper runs the real tool and drops the suffix, which is the inventory a hand-written pairing
+  # tool, or the next version of this one, can hand it.
+  if [ "${FIXTURE_DUP_ID:-0}" = "1" ]; then
+    rm -f "$root/scripts/acceptance/mock-affordances.py"
+    cat > "$root/scripts/acceptance/mock-affordances.py" <<DUP
+import json, subprocess, sys
+out = subprocess.run([sys.executable, "$AFFORDANCES"] + sys.argv[1:], capture_output=True, text=True)
+if out.returncode != 0:
+    sys.stderr.write(out.stderr)
+    sys.exit(out.returncode)
+data = json.loads(out.stdout)
+for affordance in data["affordances"]:
+    affordance["id"] = affordance["id"].split("#")[0]
+print(json.dumps(data))
+DUP
+  fi
+
   cat > "$root/scripts/lint/no-raw-design-values.sh" <<'LINT'
 #!/bin/bash
 # Stub stand-in for the real colour-literal lint. Prints the same scan line the real one does,
 # because the engine reads the file count off it and treats its absence as inconclusive.
-echo "no-raw-design-values: scanning 3 files"
+echo "no-raw-design-values: scanning ${STUB_LINT_SCANNED:-3} files"
 if [ "${STUB_LINT_FINDING:-0}" = "1" ]; then
   echo "app/Sources/Fixture/Thing.swift:12: Color(red: 1, green: 0, blue: 0)  — colour literal; use ColorToken"
   exit 1
@@ -72,7 +92,10 @@ SWIFT
   python3 "$SCRATCH/build-fixture.py" "$root"
 }
 
-# $1 = case name, $2 = expected exit, $3 = scratch root, $4 = a string the report must contain.
+# $1 = case name, $2 = expected exit, $3 = scratch root, $4... = strings the report must contain.
+# Several rather than one because an exit code and a reason are not the same claim as a STATUS: a
+# row that reads `divergent` and one that reads `unclassified` print the same finding here, and
+# only the layer's count line tells them apart.
 # Any STUB_* variables the case needs are exported by the caller and unset after, rather than
 # prefixed onto the call: a prefix assignment on a shell FUNCTION does not reliably reach the
 # commands the function runs, and a stub that silently did not take effect would make a case pass
@@ -90,11 +113,15 @@ expect() {
     fail=1
   else
     echo "ok    $name — exit $status"
-    if [ -n "${4:-}" ] && ! grep -qF -- "$4" <<<"$out"; then
-      echo "FAIL  $name — exit was right but the report never said: $4"
-      echo "$out" | sed 's/^/        /'
-      fail=1
-    fi
+    shift 3
+    for want in "$@"; do
+      [ -z "$want" ] && continue
+      if ! grep -qF -- "$want" <<<"$out"; then
+        echo "FAIL  $name — exit was right but the report never said: $want"
+        echo "$out" | sed 's/^/        /'
+        fail=1
+      fi
+    done
   fi
 }
 
@@ -112,6 +139,22 @@ if os.environ.get("FIXTURE_EMPTY_BOTH") == "1":
 # A card, to be paired against a build node that calls itself something else entirely.
 if os.environ.get("FIXTURE_KIND_MISMATCH") == "1":
     extra_mock += '    <div class="card">Panel</div>\n'
+# Both sides carry one codepoint that renders as nothing. FIXTURE_INVISIBLE picks which, so the
+# named route (U+200B) and a route of this runner's own (U+FEFF, U+00AD) are the same case with a
+# different codepoint rather than three hand-written fixtures.
+INVISIBLE = os.environ.get("FIXTURE_INVISIBLE") or ""
+if INVISIBLE:
+    extra_mock += f'    <h2>{INVISIBLE}</h2>\n'
+# Two mock affordances pointed at one build control. `same` is the route the finding named — two
+# headings, both vouched against that control and both reading its text, so nothing but the
+# injectivity check can speak and the case is isolated. `cross` is this runner's own and the
+# likelier accident: a heading and a sentence both answered by the one label the build draws,
+# which also shows the check is on the node rather than on the kind.
+CLAIM = os.environ.get("FIXTURE_DOUBLE_CLAIM") or ""
+if CLAIM == "same":
+    extra_mock += '    <h3>Shared</h3>\n    <h3>Shared</h3>\n'
+elif CLAIM == "cross":
+    extra_mock += '    <h3>Shared</h3>\n    <p>Shared</p>\n'
 # A card the mock fills with TWO rows, against a build that draws three.
 if os.environ.get("FIXTURE_SURPLUS_CHILD") == "1":
     extra_mock += (
@@ -161,6 +204,13 @@ dump = {
         node("action", "primary-action", "leaf", (0, 50, 110, 24), text="Do the thing", type_role="Body"),
     ]),
 }
+if os.environ.get("FIXTURE_COPY_BLANK") == "1":
+    # Every paired build node loses its string. The copy layer skips a pairing with nothing
+    # readable on a side, so it runs with an empty population: it raises nothing, finds nothing,
+    # and printed `clean`. No floor in the manifest covers `copy` and the layer has no guard of its
+    # own — unlike type-metrics, which carries one, which is why this fixture uses copy.
+    for child in dump["root"]["children"]:
+        child["text"] = None
 if os.environ.get("FIXTURE_DRIFT") == "1":
     dump["root"]["children"][2]["text"] = "Do the other thing"
 
@@ -187,6 +237,16 @@ if os.environ.get("FIXTURE_EXTRA_NODE") == "1":
     )
 if os.environ.get("FIXTURE_EMPTY_BOTH") == "1":
     dump["root"]["children"].append(node("glyph", "state-illustration", "leaf", (0, 80, 16, 16)))
+if INVISIBLE:
+    # A vouched heading pair whose two strings are each one invisible codepoint. Truthy, equal, and
+    # nothing a reader could see on either side.
+    dump["root"]["children"].append(
+        node("ghost", "board-title", "text", (0, 80, 40, 26), text=INVISIBLE, type_role="Title1")
+    )
+if CLAIM:
+    dump["root"]["children"].append(
+        node("shared", "board-title", "text", (0, 110, 90, 26), text="Shared", type_role="Title1")
+    )
 if os.environ.get("FIXTURE_KIND_MISMATCH") == "1":
     # The label agrees exactly, so nothing but the control-kind check can speak here: a mock `card`
     # answered by a build node calling itself a `skeleton`.
@@ -215,7 +275,7 @@ declared.append({"name": "font-weight-face", "required": False,
 open(os.path.join(root, "planning/fidelity/fixture.layers.json"), "w").write(json.dumps({
     "surface": "fixture", "mock": "design/fixture.html", "section": "b-fixture",
     "pairing": "planning/fidelity/fixture.pairing.tsv", "states": ["ideal"],
-    "floors": {"tokenRows": 10, "dumpNodes": 4, "affordances": 3},
+    "floors": {"tokenRows": 10, "dumpNodes": 4, "affordances": 3, "lintFiles": 3},
     "layers": declared,
 }, indent=1))
 
@@ -227,6 +287,21 @@ if os.environ.get("FIXTURE_DROP_PAIRING") != "1":
     pairing += "ideal\tv-ideal/button/do-the-thing\tfixture.ideal/action\n"
 if os.environ.get("FIXTURE_EMPTY_BOTH") == "1":
     pairing += "ideal\tv-ideal/icon/unlabelled\tfixture.ideal/glyph\n"
+if INVISIBLE:
+    pairing += "ideal\tv-ideal/heading/unlabelled\tfixture.ideal/ghost\n"
+if CLAIM == "same" and os.environ.get("FIXTURE_DUP_ID") == "1":
+    # One pairing row, and an inventory whose two headings share the id it names. Both affordances
+    # resolve through it, so the collision is inside the id rather than inside the pairing — and a
+    # check that filtered the claimant list by `!= my_id` would remove both of them and see none.
+    pairing += "ideal\tv-ideal/heading/shared\tfixture.ideal/shared\n"
+elif CLAIM == "same":
+    # Both are headings, both vouched against this control, both reading its text. Without the
+    # injectivity check both read `present` and the tree is clean.
+    pairing += ("ideal\tv-ideal/heading/shared\tfixture.ideal/shared\n"
+                "ideal\tv-ideal/heading/shared#2\tfixture.ideal/shared\n")
+elif CLAIM == "cross":
+    pairing += ("ideal\tv-ideal/heading/shared\tfixture.ideal/shared\n"
+                "ideal\tv-ideal/sentence/shared\tfixture.ideal/shared\n")
 if os.environ.get("FIXTURE_KIND_MISMATCH") == "1":
     pairing += "ideal\tv-ideal/card/panel\tfixture.ideal/panel\n"
 if os.environ.get("FIXTURE_SURPLUS_CHILD") == "1":
@@ -239,6 +314,64 @@ open(os.path.join(root, "planning/fidelity/fixture.pairing.tsv"), "w").write(pai
 
 if os.environ.get("FIXTURE_NO_DUMP") == "1":
     os.remove(os.path.join(root, "dumps/fixture.ideal.json"))
+
+# Four malformed artifacts, each raising a DIFFERENT exception type from a different frame. The
+# point is the class rather than the list: every one of them used to escape main() uncaught, exit 1
+# — the code that means differences were found — and leave the previous run's ledger on disk.
+manifest_path = os.path.join(root, "planning/fidelity/fixture.layers.json")
+broken = os.environ.get("FIXTURE_BROKEN") or ""
+if broken == "manifest-no-floors":
+    # KeyError in Context.__init__, which used to sit outside every try in main().
+    m = json.load(open(manifest_path)); del m["floors"]
+    json.dump(m, open(manifest_path, "w"), indent=1)
+elif broken == "node-no-role":
+    # KeyError deep inside layer_breadth, one frame further in than any guarded call.
+    d = json.load(open(os.path.join(root, "dumps/fixture.ideal.json")))
+    del d["root"]["children"][0]["role"]
+    json.dump(d, open(os.path.join(root, "dumps/fixture.ideal.json"), "w"), indent=1)
+elif broken == "floor-is-a-string":
+    # A floor quoted rather than written as a number, the likeliest slip in a hand-authored
+    # manifest. It used to raise TypeError from `int < str` inside layer_tokens; it is now caught
+    # by the floor validation before any layer runs, which is why this case asserts that message
+    # and `nodes-not-a-list` below carries the raw-TypeError route instead.
+    m = json.load(open(manifest_path)); m["floors"]["tokenRows"] = "10"
+    json.dump(m, open(manifest_path, "w"), indent=1)
+elif broken == "duplicate-layer":
+    # The dict comprehension that builds `declared` keeps the LAST entry of any repeated name, so
+    # a required entry followed by an optional one for the same layer is silently demoted. The list
+    # is longer than the dict built from it, and nothing compared the two lengths.
+    #
+    # `font-weight-face` rather than a livelier layer, so the case isolates: it is the one name in
+    # `ALLOWED_OPTIONAL`, so both entries pass the optional validation and nothing but the length
+    # check can speak. Without that check this manifest reads the trailing optional entry, exits 0,
+    # and the required declaration at the top of the list has no effect on anything.
+    m = json.load(open(manifest_path))
+    m["layers"].insert(0, {"name": "font-weight-face", "required": True})
+    json.dump(m, open(manifest_path, "w"), indent=1)
+elif broken == "unknown-layer":
+    # Not an exception at all — a manifest that fails validation. It returned 3 correctly and
+    # returned it from a `print`/`return 3` pair that never touched the report, so the previous
+    # run's table stayed on disk under a run that measured nothing. Same stale ledger, reached by
+    # a check that failed rather than by a raise.
+    m = json.load(open(manifest_path)); m["layers"].append({"name": "colour", "required": True})
+    json.dump(m, open(manifest_path, "w"), indent=1)
+elif broken == "floor-is-zero":
+    # A floor of zero is not a floor: `observations < 0` is false for a layer that measured
+    # nothing, so `lintFiles: 0` restores the exact defect the floor was added to close.
+    m = json.load(open(manifest_path)); m["floors"]["lintFiles"] = 0
+    json.dump(m, open(manifest_path, "w"), indent=1)
+elif broken == "nodes-not-a-list":
+    # A raw TypeError from a frame inside a layer, kept because the two floor fixtures above are
+    # now caught by an explicit check and no longer exercise the generic boundary.
+    d = json.load(open(os.path.join(root, "dumps/fixture.ideal.json")))
+    d["root"]["children"] = "not a list of nodes"
+    json.dump(d, open(os.path.join(root, "dumps/fixture.ideal.json"), "w"), indent=1)
+elif broken == "ladder-no-size":
+    # This runner's second: a type ladder whose role carries no size. KeyError inside
+    # layer_type_metrics' ordering pass, which no lane enumerated either.
+    d = json.load(open(os.path.join(root, "dumps/fixture.ideal.json")))
+    del d["typeLadder"]["Body"]["size"]
+    json.dump(d, open(os.path.join(root, "dumps/fixture.ideal.json"), "w"), indent=1)
 PY
 
 echo "mock-fidelity-selftest: driving the layer engine against scratch trees"
@@ -300,12 +433,16 @@ expect "deleting a pairing row returns 1, not 0" 1 "$root" "is absent from the b
 # absences is not a measurement, so this is `unclassified` rather than `present`. Six of the ten
 # `present` rows in planning/fidelity/servers.ledger.md had exactly this shape.
 root="$SCRATCH/emptyboth"; export FIXTURE_EMPTY_BOTH=1; build "$root"; unset FIXTURE_EMPTY_BOTH
-expect "a pair with no string on either side returns 1" 1 "$root" "agreement between two absences is not a measurement"
+expect "a pair with no string on either side returns 1" 1 "$root" "Agreement between two absences is not a measurement"
 
 # 14 — breadth, G1(b): the labels agree exactly and the CONTROL does not. Two controls doing the
 # same job are not a match, so the mock kind is checked against the role and kind the view reported.
 root="$SCRATCH/kind"; export FIXTURE_KIND_MISMATCH=1; build "$root"; unset FIXTURE_KIND_MISMATCH
-expect "a mock card answered by a build skeleton returns 1" 1 "$root" "never vouched for"
+# The two labels agree exactly here, so the old `divergent` was claiming a measured difference
+# that does not exist. `D-m23-l`: a pairing the gate has never vouched for is a comparison it could
+# not make, which is `unclassified`. Asserted on the layer's own count line, because both statuses
+# print the same finding text.
+expect "a mock card answered by a build skeleton returns 1" 1 "$root" "never vouched for" "unclassified 1"
 
 # 15 — breadth, G2: the mock's census reaches this granularity and names two rows; the build draws
 # three. Under the blanket `inside_a_pair` exemption this read `covered-by-pair` and said nothing.
@@ -321,7 +458,150 @@ export STUB_TOKENS_GARBLED=1
 expect "an unparseable token marker returns 3, not 1" 3 "$root" "does not carry the name=value census fields"
 unset STUB_TOKENS_GARBLED
 
-# 17 — the real colour-literal lint, against every colour-constructor spelling the `literals` layer
+# 17 — B1: a required layer that scanned nothing. The literals layer reads the lint's file count
+# because a lint that scanned nothing and one that found nothing print the same exit code — and it
+# compared that count to nothing, so this returned `literals ran · scanning 0 files · clean` and the
+# whole gate exited 0. A required layer measuring nothing, reported as a pass.
+root="$SCRATCH/scan0"; build "$root"
+export STUB_LINT_SCANNED=0
+expect "a lint that scanned nothing returns 3, not 0" 3 "$root" "below the floor of 3"
+unset STUB_LINT_SCANNED
+
+# 18 — B1, a route the finding did not name: a scan that is NON-ZERO and below its floor. A
+# zero-check would pass this; a floor does not. It is the difference between testing the sentinel
+# and testing the quantity.
+root="$SCRATCH/scan2"; build "$root"
+export STUB_LINT_SCANNED=2
+expect "a lint scanning fewer files than its floor returns 3" 3 "$root" "the lint scanned 2 files"
+unset STUB_LINT_SCANNED
+
+# 19-22 — B2: four malformed artifacts, four exception types, four frames. Each used to escape
+# main() uncaught and exit 1 with the previous run's ledger still on disk. The last two are routes
+# this runner chose rather than ones the findings named.
+for case in manifest-no-floors node-no-role ladder-no-size nodes-not-a-list; do
+  root="$SCRATCH/broken-$case"; export FIXTURE_BROKEN=$case; build "$root"; unset FIXTURE_BROKEN
+  expect "a malformed artifact ($case) returns 3, not 1" 3 "$root" "Nothing this covers was measured"
+done
+
+# 23 — B2: the ledger a run that measured nothing leaves behind. Fixing the exit code fixes half of
+# the stale-ledger failure; a reader who opens the file still finds the last good run's table.
+root="$SCRATCH/stale"; build "$root"
+cases=$((cases + 1))
+LEDGER="$SCRATCH/stale-ledger.md"
+printf '# Breadth ledger — fixture\n\n| Layer | Result |\n|---|---|\n| `breadth` | clean |\n' > "$LEDGER"
+export FIXTURE_BROKEN=manifest-no-floors; build "$root"; unset FIXTURE_BROKEN
+PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER" > /dev/null 2>&1
+if grep -q 'This run did not produce a table' "$LEDGER" && ! grep -q '`breadth` | clean' "$LEDGER"; then
+  echo "ok    a run that measured nothing overwrites the stale ledger"
+else
+  echo "FAIL  the stale ledger survived a run that measured nothing"
+  fail=1
+fi
+
+# 24-28 — B3: `present` required truthiness, not readable content. Each of these is one codepoint
+# that renders as nothing and that `str.split()` does not drop, on a vouched heading pair whose two
+# strings are equal. U+200B is the route the finding named; the rest are not. U+3164 HANGUL FILLER
+# is the interesting one: it is category `Lo`, a LETTER, so the category test that catches the other
+# three cannot see it, and it is the reason `readable()` carries a codepoint list as well as a
+# category test.
+while IFS='	' read -r label codepoint; do
+  [ -z "$label" ] && continue
+  root="$SCRATCH/invis-$label"
+  export FIXTURE_INVISIBLE=$codepoint; build "$root"; unset FIXTURE_INVISIBLE
+  expect "two $label strings read unclassified, not present" 1 "$root" "render as nothing"
+done <<SPELLINGS
+U+200B	​
+U+FEFF	﻿
+U+00AD	­
+U+3164	ㅤ
+U+034F	͏
+SPELLINGS
+
+# 28 — B4: one build control named by two mock affordances. Neither was measured: whichever the
+# control answers, the other earned `present` off a measurement of something else. Different kinds
+# rather than the two headings the finding named — the likelier accident, and it proves the check
+# is on the node rather than on the kind.
+root="$SCRATCH/claim-same"; export FIXTURE_DOUBLE_CLAIM=same; build "$root"; unset FIXTURE_DOUBLE_CLAIM
+expect "one control named by two headings returns 1, not 0" 1 "$root" "affordances name in total"
+
+# 29 — B4, this runner's own route: the two claimants are different KINDS, which is the likelier
+# accident and shows the check is on the node rather than on the kind.
+root="$SCRATCH/claim-cross"; export FIXTURE_DOUBLE_CLAIM=cross; build "$root"; unset FIXTURE_DOUBLE_CLAIM
+expect "one control named by a heading and a sentence returns 1" 1 "$root" "affordances name in total"
+
+# 30 — B1, the floor's own hole: `observations < floor` is false at `0 < 0`, so a manifest that
+# writes `lintFiles: 0` restores the defect the floor closes, through the floor. The comparison
+# cannot catch this, because the comparison is what is being defeated.
+root="$SCRATCH/floor0"; export FIXTURE_BROKEN=floor-is-zero; build "$root"; unset FIXTURE_BROKEN
+expect "a floor of zero returns 3, not 0" 3 "$root" "has to be a positive"
+
+# 31 — the same check's other half: a floor quoted as a string. It used to reach layer_tokens and
+# raise; it is now named before any layer runs.
+root="$SCRATCH/floorstr"; export FIXTURE_BROKEN=floor-is-a-string; build "$root"; unset FIXTURE_BROKEN
+expect "a floor that is a string returns 3" 3 "$root" "has to be a positive"
+
+# 32 — B2 through a door that is not an exception: a manifest naming a layer this gate cannot run
+# fails validation, which returned 3 from a `print`/`return` pair that never wrote a report. Exit
+# and ledger are separate claims, so this asserts both.
+root="$SCRATCH/unknown-layer"; LEDGER32="$SCRATCH/unknown-layer-ledger.md"
+printf '# Breadth ledger — fixture\n\n| Layer | Result |\n|---|---|\n| `breadth` | clean |\n' > "$LEDGER32"
+export FIXTURE_BROKEN=unknown-layer; build "$root"; unset FIXTURE_BROKEN
+cases=$((cases + 1))
+out32=$(PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER32" 2>&1)
+status32=$?
+if [ "$status32" = 3 ] && grep -q 'This run did not produce a table' "$LEDGER32" \
+   && ! grep -q '`breadth` | clean' "$LEDGER32"; then
+  echo "ok    a manifest that fails validation returns 3 AND replaces the stale ledger"
+else
+  echo "FAIL  a validation failure returned $status32 and left this ledger: $(head -3 "$LEDGER32" | tr '\n' ' ')"
+  echo "$out32" | sed 's/^/        /'
+  fail=1
+fi
+
+# 33 — and when the ledger cannot be replaced at all. Suppressing the error made "replaced" and
+# "could not replace, so what you are reading is an earlier run" print the same nothing, which is
+# the stale ledger with a permission bit in front of it. The exit stays 3 and the run says so.
+root="$SCRATCH/nowrite-root"; export FIXTURE_BROKEN=manifest-no-floors; build "$root"; unset FIXTURE_BROKEN
+mkdir -p "$SCRATCH/nowrite"; chmod 500 "$SCRATCH/nowrite"
+cases=$((cases + 1))
+out33=$(PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" \
+  --report "$SCRATCH/nowrite/ledger.md" 2>&1)
+status33=$?
+chmod 700 "$SCRATCH/nowrite"
+if [ "$status33" = 3 ] && grep -qF 'could not be replaced' <<<"$out33"; then
+  echo "ok    a ledger that cannot be written is reported rather than suppressed"
+else
+  echo "FAIL  an unwritable ledger returned $status33 and said nothing about it"
+  echo "$out33" | sed 's/^/        /'
+  fail=1
+fi
+
+# 34 — B4, the route the injectivity check itself could be defeated through: two inventory entries
+# carrying ONE id, both naming one control. `[o for o in claimants if o != my_id]` removes both
+# occurrences, so each row sees an empty list and earns `present` off a single measurement — the
+# original defect, reached through the duplicate rather than through the pairing. Counting the
+# claimants reads the quantity the check is named for.
+root="$SCRATCH/dup-id"
+export FIXTURE_DOUBLE_CLAIM=same FIXTURE_DUP_ID=1; build "$root"; unset FIXTURE_DOUBLE_CLAIM FIXTURE_DUP_ID
+expect "two affordances sharing one id return 1, not 0" 1 "$root" "affordances name in total"
+
+# 35 — B1 at the scope of the property rather than of the layer that had the defect. Every paired
+# build node loses its string, so `copy` runs with an empty population: it raises nothing, finds
+# nothing, and no floor in the manifest covers it. Writing one floor per layer closes a list; a
+# required layer that measured nothing reading inconclusive closes the class.
+root="$SCRATCH/no-type"; export FIXTURE_COPY_BLANK=1; build "$root"; unset FIXTURE_COPY_BLANK
+expect "a required layer with an empty population returns 3, not 0" 3 "$root" "measured nothing — 0"
+
+# 36 — a manifest that names one layer twice. The second entry, optional and substituted, replaces
+# the first in the dict `declared` is built from, and the required layer stops being required
+# without anything saying so.
+root="$SCRATCH/dup-layer"; export FIXTURE_BROKEN=duplicate-layer; build "$root"; unset FIXTURE_BROKEN
+expect "a manifest naming one layer twice returns 3" 3 "$root" "appears twice"
+
+# 37 — the real colour-literal lint, against every colour-constructor spelling the `literals` layer
 # claims to catch. Not the stub: this layer's whole value is that it EXECUTES that script, and on
 # 21 Aug 2026 three of these spellings passed it clean while the M23 spec claimed otherwise.
 #
@@ -390,7 +670,7 @@ Color(cgColor: someCGColor)
 "#FF00FF"
 SPELLINGS
 
-# 18 — the gate script's own preflight, driven for real
+# 38 — the gate script's own preflight, driven for real
 cases=$((cases + 1))
 ./scripts/acceptance/mock-fidelity-gate.sh no-such-surface > /dev/null 2>&1
 if [ $? = 3 ]; then

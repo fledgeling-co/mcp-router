@@ -62,7 +62,8 @@ it never tested.
 | R12 | Server soft-delete with a restore endpoint | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R8, renumbered 2026-08-21) |
 | R13 | Router-side behavioural eval runner — servers only | — | — | — | Registered (ORCHESTRATOR.md deferred register; filed as R6, renumbered 2026-08-21) |
 | G2 | The ledger table holds two row shapes, and every reader silently drops one | `G2-orchestrator-table-is-heterogeneous.md` | — | — | Ready for AI — deferred from 2026-08-21 while agents were mid-read |
-| G3 | `make test` is not deterministically green | — | — | — | Ready for AI — found independently by two verifiers, 2026-08-21 |
+| G3 | `make test` is not deterministically green | `G3-make-test-is-not-deterministic.md` | — | — | **Ready to verify** (`ai/g3` `4c0f920`; ten `make test` runs all exit 0; the fix contains no duration — it asserts what the arming chose and awaits the event; the out-of-family panel found the fix carrying the defect it was written to remove and it was taken; 11 of 14 fixed sleeps removed; 6 follow-ups `D-g3-a`…`D-g3-f`) |
+| G4 | Assertions that do not read the quantity they are named for | `G4-assertions-that-do-not-read-their-own-quantity.md` | — | — | Untriaged — filed 2026-08-21 from a cross-session exchange with `egress`; three instances already found in this repo and each treated as unrelated. Triage decides whether it is its own item or the policy half of `G1` |
 | M15 | Settings becomes its own window | `M15-settings-window.md` | — | — | Untriaged |
 | M16 | The Signal Path replaces the Breaker Column | `M16-signal-path.md` | — | — | Untriaged |
 | M17 | Four states on every surface, and chrome that follows | `M17-surface-states.md` | — | — | Untriaged |
@@ -71,7 +72,7 @@ it never tested.
 | M20 | Menu bar, status item, and the notification banner | `M20-menubar-status-notification.md` | — | — | Untriaged |
 | M21 | The token layer, the split accent, and `DESIGN.md` | `M21-token-layer-and-design-md.md` | — | — | Untriaged |
 | M22 | The Harnesses and Insights boards | `M22-harnesses-and-insights-boards.md` | — | — | Untriaged |
-| M23 | The mock-to-SwiftUI conversion contract | `M23-mock-to-swiftui-contract.md` | — | — | **In progress** — gap-fix dispatched 2026-08-21 (`ai/m23` `5d388fb`; `metamorphic`; 3 blocking, see `M23-gapfix.md`) |
+| M23 | The mock-to-SwiftUI conversion contract | `M23-mock-to-swiftui-contract.md` | — | — | **Needs More Work** (2nd) — gap-fix re-queued (`ai/m23` `f74ca96`; rung `metamorphic`; 4 blocking, see `M23-gapfix-2.md`; all three first-pass criteria reproduce, but each closed the ROUTE its finding named rather than the property — three independent instruments converged on the same new set; all three blockers closed with red-green mutation arms; 6 new follow-ups `D-m23-f`…`D-m23-k`; original verdict `ai/m23` `5d388fb`; `metamorphic`; 3 blocking, see `M23-gapfix.md`) |
 | M24 | The storefront's own artwork — banners and app-style icons | — | — | — | **Done** (ai/m24 → main; design-only, 23 files, all under `design/`) |
 | M25 | The controls row, not the columns, set the boards' width | `M25-board-columns-do-not-flex.md` | — | — | **Done** (ai/x4 broke the min-width chain, ai/x5 flexed the two controls rows) |
 | M26 | The Checks board and the design's eval board are two surfaces | `M26-checks-board-framing.md` | — | — | **Done** (ai/m26 → main; owner kept the reachability board, mock amended, DEF-031 closed) |

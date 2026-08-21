@@ -64,9 +64,17 @@ red inside the CI bound, not a timeout.**
    arming still records `idleMs`. `make test` goes red **inside 150 seconds** and names an
    assertion about the window, not `PoolReapingTests.swift:98`.
 2. The unmutated tree stays green, twice, and the three pool suites alone stay near 0.31 s.
-3. A route nobody has named: the mutation with the two windows swapped the *other* way —
+3. ~~A route nobody has named: the mutation with the two windows swapped the *other* way —
    arming records the default while the deadline uses the requested one. If that also takes
-   ten minutes, the bound is on the wrong side of the await.
+   ten minutes, the bound is on the wrong side of the await.~~ **Deleted, and the criterion was
+   the orchestrator's rather than the runner's** (`D-g3-r`). It could not report what it was
+   named for: that mutation leaves the reap deadline on the requested 25 ms window, so it could
+   not take ten minutes whichever side the bound sat on — relaxing `:87` so execution reaches
+   `:98` gives P6 passing in 2.291 s and the run green. **The assigned mutation carries the
+   whole claim**, and it carries it because the observable that separates the two sides is the
+   duration: bounded on the caller's side it reds in 11.280 s naming its own condition, and
+   unbounded it runs 601.184 s and names a different line. A second mutation would measure the
+   same split, so there is no discriminating version of this criterion to build.
 
 ## Four follow-ups, and one of them is this brief
 

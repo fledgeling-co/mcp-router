@@ -183,18 +183,24 @@ final class FakeTransport: UpstreamTransporting, Sendable {
 /// above the events these tests wait on, and its expiry is **reported as a failure naming the
 /// condition**, so a mutation that stops the event happening at all fails with a reason instead of
 /// hanging the suite.
+/// It **throws** rather than recording an issue, because a recorded issue lets execution carry on
+/// into assertions whose precondition never held — one timeout then reports as a cascade of
+/// secondary failures that did not happen. And the poll is cancellation-aware: swallowing the
+/// cancellation would turn the sleep into a no-op and spin this loop until the deadline.
 func waitUntil(
     _ what: Comment,
     within seconds: Double = 30,
     sourceLocation: SourceLocation = #_sourceLocation,
     _ condition: @Sendable () async -> Bool
-) async {
+) async throws {
     let deadline = ContinuousClock.now.advanced(by: .seconds(seconds))
+    var cancelled = false
     while ContinuousClock.now < deadline {
         if await condition() { return }
-        try? await Task.sleep(nanoseconds: 2_000_000)
+        do { try await Task.sleep(nanoseconds: 2_000_000) } catch { cancelled = true; break }
     }
-    Issue.record("timed out after \(seconds)s waiting for: \(what)", sourceLocation: sourceLocation)
+    let why = cancelled ? "the waiting task was cancelled" : "timed out after \(seconds)s"
+    try #require(Bool(false), "\(why) waiting for: \(what)", sourceLocation: sourceLocation)
 }
 
 /// A clock the test drives, so an idle window can be asserted rather than slept through.

@@ -65,7 +65,7 @@ struct PoolTests {
         // Open the gate once the two joiners have actually reached the cohort, rather than after a
         // window long enough that they probably have. Losing that bet makes the pool look as
         // though it spawned three children, which is the defect this test exists to catch.
-        await waitUntil("all three callers to join the cohort") {
+        try await waitUntil("all three callers to join the cohort") {
             await pool.waitingCallers("a") >= 3
         }
         transport.openGate()
@@ -137,9 +137,8 @@ struct PoolTests {
 
         // And the close is awaited through the timer the release arms, so the second half is not a
         // second bet on 120ms being longer than whatever the machine is doing.
-        await pool.release(lease)
-        let armed = try #require(await pool.armedReap("a"), "release must arm the timer")
-        await armed.task.value
+        let armed = try #require(await pool.releaseObservingReap(lease), "release arms the timer")
+        await pool.awaitReap("a", epoch: armed.epoch)
         #expect(await !pool.isLive("a"), "and it must close once the call has finished")
     }
 

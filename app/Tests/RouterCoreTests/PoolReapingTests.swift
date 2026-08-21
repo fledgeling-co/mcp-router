@@ -69,31 +69,32 @@ struct PoolReapingTests {
             idleMs: 600_000
         )
 
+        // The release and the reading of what it armed are ONE actor operation. Two would be a
+        // second hop, and a 25ms window can expire inside one: the timer fires, the reap clears
+        // it, and a correct pool reports no timer. That is this test's own defect one layer in,
+        // and it is what two out-of-family reviewers found in the first version of this fix.
         let inherited = try await pool.lease("inherits")
-        await pool.release(inherited)
+        let other = try #require(await pool.releaseObservingReap(inherited), "release arms a timer")
         let owned = try await pool.lease("own")
-        await pool.release(owned)
+        let armed = try #require(await pool.releaseObservingReap(owned), "on both servers")
 
-        // The claim is a RELATIONSHIP between two armings, so it is asserted as one: no window is
-        // chosen here and none can be widened later. Both deadlines come off the same clock inside
-        // the same millisecond, so whatever the machine is doing moves both terms together and
-        // drops out of the comparison — which is the difference between an assertion that holds on
-        // an idle box and one that holds anywhere.
-        //
-        // A `require` rather than an `expect` because the await below is only safe once this has
-        // held: a pool that armed the 600-second default would stall the suite for ten minutes and
-        // then agree, and a mutation gate that hangs proves nothing.
-        let armed = try #require(await pool.armedReap("own"), "release must arm a timer")
-        let other = try #require(await pool.armedReap("inherits"), "on both servers")
-        try #require(armed.deadline < other.deadline, "the server's own window, not the default")
+        // The window each arming RESOLVED TO, compared exactly. Not a duration measured against a
+        // clock and not two deadlines ordered against each other — an integer the pool chose,
+        // read back. Nothing here can be made wrong by a slow machine, and nothing here is a
+        // threshold anybody could widen later.
+        #expect(other.idleMilliseconds == 600_000, "a server that asks for nothing takes the default")
+        try #require(armed.idleMilliseconds == 25, "and one that asks gets its own, not the default")
 
         // Then the reap itself, awaited through the timer's own task so it is observed when it
         // happens rather than sampled at a moment picked in advance. `Task.sleep` is at-least and
         // the deadline was taken before the task existed, so the woken timer's own deadline check
         // cannot fail: the reap is complete when the task returns. The 150ms sleep this replaces
         // passed in isolation four times running and failed under whole-suite load.
-        await armed.task.value
+        await pool.awaitReap("own", epoch: armed.epoch)
         #expect(await !pool.isLive("own"))
+        // Honestly a clock dependency, and stated as one rather than dressed up: it holds unless
+        // ten minutes passed between arming `inherits` and here. Six hundred seconds of slack is
+        // not the same as none.
         #expect(await pool.isLive("inherits"), "and the default window has not come round")
     }
 
@@ -138,13 +139,14 @@ struct PoolReapingTests {
         let pool = makePool([stdioUpstream("a")], transport: transport)
 
         let lease = try await pool.lease("a")
+        let handle = try #require(await pool.currentIdentities("a").handle)
         await pool.release(lease)
 
-        // Eviction happens inside the watcher task, so the watcher is the thing to await. Taken
-        // before the session ends, because evicting is what removes the handle it hangs off.
-        let watcher = try #require(await pool.endWatcher("a"))
+        // Eviction happens inside the watcher task, and the pool awaits its own. Naming the handle
+        // makes the wait exact: if the eviction has already landed, there is nothing to wait for,
+        // and that is the outcome rather than a missed one.
         transport.sessions[0].endOnItsOwn()
-        await watcher.value
+        await pool.awaitSessionEnded("a", handle: handle)
 
         #expect(await !pool.isLive("a"), "a dead upstream must not be handed out again")
         let next = try await pool.lease("a")
@@ -158,13 +160,12 @@ struct PoolReapingTests {
         let pool = makePool([stdioUpstream("a")], transport: transport)
 
         let first = try await pool.lease("a")
-        await pool.release(first)
         let firstHandle = try #require(await pool.currentIdentities("a").handle)
+        await pool.release(first)
 
-        // The first dies and is replaced. Awaited through its own watcher for the same reason.
-        let watcher = try #require(await pool.endWatcher("a"))
+        // The first dies and is replaced, awaited by naming the handle whose eviction is expected.
         transport.sessions[0].endOnItsOwn()
-        await watcher.value
+        await pool.awaitSessionEnded("a", handle: firstHandle)
         #expect(await !pool.isLive("a"))
         let second = try await pool.lease("a")
         await pool.release(second)
@@ -219,7 +220,7 @@ struct PoolReapingTests {
         // The gate opens once the second caller has actually joined the cohort. Sleeping 20ms and
         // hoping is the same bet as the one above: lose it and the second caller takes a HOT
         // acquire instead, and the test reports that as a counting defect in the pool.
-        await waitUntil("both callers to join the cohort") { await pool.waitingCallers("a") >= 2 }
+        try await waitUntil("both callers to join") { await pool.waitingCallers("a") >= 2 }
         transport.openGate()
         let cohort = try await [first, second]
         for lease in cohort {

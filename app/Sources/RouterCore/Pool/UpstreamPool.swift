@@ -165,23 +165,53 @@ public actor UpstreamPool {
         (entries[name]?.handle?.id, entries[name]?.reap?.epoch)
     }
 
-    /// The idle timer armed right now, so a test can read the window the pool **chose** and await
-    /// the reap itself rather than sleep past a guess at when it will land.
+    /// The arming installed right now — for asserting that there is **none**, which is a claim no
+    /// amount of waiting can establish and no delay can invalidate.
     ///
-    /// A fixed sleep in a concurrency test is a bet on scheduler latency, and the bet is placed on
-    /// a quiet machine. Measured here on 2026-08-21: a 150ms wait for a 25ms window passed four
-    /// times running in isolation and failed under whole-suite load, and while this repository was
-    /// pinned at load average 400 it would have failed every time. Awaiting `task` takes exactly
-    /// as long as the reap takes, so a busy machine makes the test slower instead of wrong.
-    func armedReap(_ name: String) -> ReapTimer? {
-        entries[name]?.reap
+    /// To observe an arming that DOES exist, use `releaseObservingReap`. Reading this one after
+    /// `release` has returned is a second actor hop, and a short window can expire inside it: the
+    /// timer fires, the reap clears it, and the caller sees `nil` for an upstream that behaved
+    /// perfectly. That is this item's own defect one layer in, and it is what two out-of-family
+    /// reviewers found in the first version of this seam.
+    func armedReap(_ name: String) -> ReapArming? {
+        guard let timer = entries[name]?.reap else { return nil }
+        return ReapArming(epoch: timer.epoch, idleMilliseconds: timer.idleMilliseconds)
     }
 
-    /// The task watching this upstream for an end it did not ask for. Eviction happens inside that
-    /// task, so awaiting it **is** the eviction completing — the same reason as above, one event
-    /// along. Read it before ending the session: evicting is what removes the handle it hangs off.
-    func endWatcher(_ name: String) -> Task<Void, Never>? {
-        entries[name]?.handle?.endWatcher
+    /// Release a lease and report the arming that release made, as **one** actor operation.
+    ///
+    /// Both halves run with no suspension between them, so nothing can fire and clear the timer
+    /// between arming it and reporting it. That atomicity is the entire reason this exists rather
+    /// than a caller doing `release` and then `armedReap`.
+    func releaseObservingReap(_ lease: UpstreamLease) -> ReapArming? {
+        release(lease)
+        return armedReap(lease.server)
+    }
+
+    /// Await the reap armed under `epoch`, so a test observes it happening rather than sampling a
+    /// moment picked in advance.
+    ///
+    /// `Task.sleep` is at-least and the deadline is taken before the task exists, so a woken timer
+    /// cannot fail its own deadline check — when the task returns, the reap has run. Returning
+    /// early when that arming is no longer installed is correct rather than a shortcut: the only
+    /// ways it can have gone are that it already fired or that something superseded it, and the
+    /// caller's next assertion is what tells those apart.
+    ///
+    /// The await happens here rather than in the caller because an actor releases its executor at
+    /// a suspension point: the timer gets the actor it needs, and no cancellable task is handed
+    /// out for a test to cancel or outlive.
+    func awaitReap(_ name: String, epoch: ReapEpoch) async {
+        guard let timer = entries[name]?.reap, timer.epoch == epoch else { return }
+        await timer.task.value
+    }
+
+    /// Await the eviction of `handle` by the watcher that saw its session end. Eviction happens
+    /// inside that task, so this returns once it has been applied — and returns immediately when
+    /// the handle is already gone, which is the outcome it was waiting for.
+    func awaitSessionEnded(_ name: String, handle: HandleID) async {
+        guard let live = entries[name]?.handle, live.id == handle,
+              let watcher = live.endWatcher else { return }
+        await watcher.value
     }
 
     /// Callers that have committed to a start and do not yet hold a lease.
@@ -190,6 +220,10 @@ public actor UpstreamPool {
     /// are meant to join, and this is the observable that says they arrived. The count is written
     /// before `acquire` is entered and the actor is not released again until the joiner is parked
     /// on the shared flight, so observing it from outside cannot be early.
+    ///
+    /// That last clause is a fact about this code rather than about the language: it holds because
+    /// nothing on the path from the increment to `await flight.task.value` actually suspends. Add
+    /// a suspension there and this stops being sufficient, so the two belong in one change.
     func waitingCallers(_ name: String) -> Int {
         entries[name]?.pendingWaiters ?? 0
     }

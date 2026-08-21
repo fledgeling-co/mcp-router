@@ -35,29 +35,73 @@ There is a better third design: separate the board into orthogonal dimensions:
 That is cleaner because duplicate direct upstreams can coexist with either HTTP or shim routing—it is not truly an alternative transport state. If the UI must retain exactly four headline states, use A, but derive the fourth “duplicate upstreams” presentation as a higher-priority warning layered over the underlying route. This preserves truthful observations, avoids invented process counts, and always gives the user an evidence-appropriate next action.
 ---
 
-## Pass 2 — the diff review, and it did not happen
+## Pass 2 — the diff review, re-run in the gap-fix, and delivered by all three
 
-**Attempted on three families and delivered by none.** Recorded rather than dropped, because a
-logged downgrade is a result and a silent pass is not.
+**The first attempt's record was wrong, and being wrong about that outranked every defect it
+missed.** It recorded three families attempted and none delivering. The verifier re-ran the same
+three and all three delivered; so did this gap-fix. **Both original failures were operator error,
+not lanes being down.**
 
 | Lane | Invocation | Outcome |
 |---|---|---|
-| OpenAI | `codex exec -m gpt-5.6-sol -c model_reasoning_effort=high -s read-only -o /tmp/r7-codex-review.md`, alarm 900 | Killed by the alarm still enumerating the tree. Header asserted `model: gpt-5.6-sol` and `reasoning effort: high`; the log reached 328 KB of file listings and **the `-o` file was never created**. |
-| xAI | `grok -m grok-4.6 --effort xhigh`, alarm 700 | Exited having written **379 bytes of narration and no finding** — three sentences about what it was going to read. |
-| Google | `agy --model gemini-3.7-flash-high -p`, alarm 700, the diff **inline** so it need not explore | Exited with a **0-byte** output file. |
-| OpenAI, retried once with the diff inline and "do not read any files" | `codex exec …`, alarm 600 | Same shape as the first: header correct, **no `-o` file**. |
+| OpenAI | `codex exec -m gpt-5.6-sol -c model_reasoning_effort=high -s read-only -C <worktree> -o …`, alarm 900, prompt inline | **4,578 B.** Header asserted in the log: `model: gpt-5.6-sol`, `reasoning effort: high` |
+| xAI | `grok -m grok-4.6 --effort xhigh -p "<prompt>"`, alarm 900 | **4,750 B**, after an early ~200 B of narration. That early write is what the first attempt mistook for the whole output |
+| Google | `agy --model gemini-3.7-flash-high -p "<prompt>"`, alarm 900 | **5,371 B** |
 
-The diagnosis for the first attempt is legible in its own log — it spent its whole budget walking
-`app/Sources` rather than reading the diff it was given — and inlining the diff was the fix that
-should have worked. It did not, for either of the two lanes it was tried on.
+Two diagnoses, both mechanical. `codex exec` refuses instantly with *Not inside a trusted
+directory* when launched from `/tmp`, writing no `-o` file at all; `-C <worktree>` fixes it, and
+the first attempt's 328 KB of file listings was a *different* failure — a lane sent to explore a
+tree rather than handed the diff. Passing the diff **inline** and forbidding exploration is what
+makes all three finish inside the alarm. An absent or empty `-o` file is a lane failure; a small
+early write is not, and neither is a lane that has not finished.
 
-**What this costs, stated rather than waved away.** The design fork above was reviewed out of
-family and the answer was taken. The **diff was not.** Every claim about this diff's correctness
-rests on the gates in `R7-acceptance.md` — 1551 unit tests, 22 of them this item's, an acceptance
-lane shown able to go red, a lint gate shown able to go red, and swiftlint `--strict` at zero — and
-on one Claude reading its own work, which is the thing an out-of-family pass exists to distrust.
-The verifier that takes this item to Done is a fresh agent from another family, and this is the
-first thing it should re-do.
+Raw outputs: `planning/evidence/R7/gapfix-review-{codex,grok,agy}.md`.
 
-`codex exec` exits 0 on a usage limit and `grok` exits 0 when session init fails, so none of these
-outcomes was read off an exit code. Each is read off a missing or empty output file.
+### What they found, and what was done with it
+
+**All three independently named the same top defect**, and it was one the gap-fix had already
+introduced while closing F1: the `httpUrl` widening was applied to **every** harness rather than to
+Gemini. codex — *"Those harnesses do not necessarily interpret `httpUrl`… Recognize `httpUrl` only
+for harnesses confirmed to support it."* grok — *"Global `httpUrl` is how you get a false route."*
+agy reached the same conclusion from the other end, confirming the canonicalisation could not leak
+outside the R7 path but flagging its blast radius. **Taken in full**: `HarnessDialect` is now
+per-client, on the same rule `HTTPCapability` follows, and a Cursor entry carrying Gemini's key
+reads `not-wired` with a test that says why.
+
+Taken, in the order they were filed:
+
+| Finding | Lane(s) | Action |
+|---|---|---|
+| The dialect applies to every harness — F1 inverted, and it could delete a stdio server the harness really runs | all three | **Taken.** `HarnessDialect.known(for:)`, per client, with two tests |
+| A truthy non-string `url` shadows a real `httpUrl` and coerces to `"true"` | codex | **Taken.** Endpoints must be strings |
+| `canonicalised` leaves `httpUrl` beside the injected `url` | grok, agy | **Taken.** It now emits one endpoint under one key |
+| `raw.member(key)` in one place and `members.first(where:)` in another disagree on a duplicated key | grok | **Taken.** One lookup |
+| The stdout exclusion drops the whole line, so `try data.write(to: t) // FileHandle.standardOutput` erases itself | codex, agy | **Taken.** The printing call is neutralised *within* the line, not the line dropped |
+| `code_of` misses block comments, and rule 2 read the unfiltered file | codex, grok, agy | **Taken.** Comments are blanked (numbers preserved) and both rules read code |
+| `code_of "$f" \| grep -q` can SIGPIPE under `pipefail` and silently un-find a match | codex | **Taken.** Captured, then matched with a here-string |
+| `FileHandle.init(forWritingTo:)` does not match a token anchored on the type name | grok | **Taken.** The vocabulary is argument labels, so every spelling matches |
+| `forUpdatingTo:`, `forUpdatingAtPath`, `OutputStream(url:)` missing | codex, grok, agy | **Taken**, plus `/bin/cp`, `/bin/mv`, `/usr/bin/tee` |
+| P5 passed for the wrong reason — its plant also carried `handle.write(data)` | codex | **Taken.** P5 and the new P8 each carry exactly one write token |
+| The read-only assertion greps for one token a rewrite could preserve | codex, grok | **Taken**, both passes. sha256 over every fixture — which also closes `D-r7-j` |
+| `gemini_plan`'s awk runs to EOF if a block's footer is missing | grok, agy | **Taken**, bounded at the next unindented line rather than agy's proposed regex, which eats the footer |
+| Pass 5 accepts any non-empty `unreadable`, including `"ok"` | grok | **Taken.** The wire's sentence must appear verbatim on the screen, and the whole empty row is pinned |
+| The lane never exercises an `httpUrl` duplicate on the wire | agy | **Taken.** A fourth duplicate, matched on identity, in pass 4 |
+
+Overruled, with the reason:
+
+- **"Widen rule 3 to `MCPRouterCLI/*.swift`"** (grok). Not taken: `ImportVerb.swift` legitimately
+  writes `~/.claude.json` through the `install-entry` path, which is pre-existing parity-locked
+  behaviour, so that widening turns the gate red on shipped code. grok's own alternative — *"keep
+  `D-r7-m` and stop citing this script as the reason an applier cannot land"* — is what was done:
+  the gate's header, `spec-R7.md` §7 and the ledger row now all state what it does check, and the
+  selftest asserts the miss.
+- **The gate's stdout exclusion is still same-line** (grok): `let h = FileHandle.standardOutput`
+  then `h.write(data)` counts as a file write. Not fixed — it over-fires rather than under-fires,
+  the gate prints the offending line, and closing it needs flow analysis. Registered `D-r7-q`.
+- **"Mark conflicting endpoint keys unparsed rather than guessing"** (codex). Not taken here:
+  nothing establishes which key `agy` itself prefers, the shape has been seen on no machine, and
+  the current rule matches what `ServerParser` would do with the same bytes. Registered `D-r7-p`
+  so the assumption is written down as one.
+
+Everything the three lanes agreed on was taken. Nothing was overruled on more than one lane's
+objection without the reason above.

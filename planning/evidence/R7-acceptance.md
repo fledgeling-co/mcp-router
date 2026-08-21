@@ -229,3 +229,146 @@ and both are recorded because the second is the more dangerous shape.
 - **Project-scoped entries are not read.** `~/.claude.json` carries 8 more across 5 projects and
   Codex has `[projects.*]`. The verb prints the scope it read rather than letting a global-only
   count read as a whole-machine one. R7-C4.
+
+---
+
+# The gap-fix — three findings closed, 2026-08-21
+
+Verified at `metamorphic`, **Needs More Work**, three blocking (`R7-gapfix.md`). Everything above
+still reproduces: the real-machine measurement below is byte-identical to §A4's, so all three
+*contradicts-the-brief* rows stand unchanged.
+
+## F1 — Gemini is wired on `httpUrl`, and the reader could not see it
+
+`HarnessRoute.detect` read `url` and nothing else, so `.wiredViaHTTP` was **unreachable for
+Gemini** — the harness this item exists for. The block printed `json:"httpUrl"` as its own evidence
+and three lines later failed to read an `httpUrl` entry, reported `not wired`, and emitted a plan
+offering to add a router entry to an already-routed harness. Self-triggering: the remedy told the
+user to create the state the tool could not read.
+
+`HarnessDialect` now carries the endpoint spellings **per client** — `["url", "httpUrl"]` for
+Gemini, `["url"]` for everything else, on the same rule `HTTPCapability` follows, because reading
+Gemini's key out of a Cursor file is a claim about Cursor that nothing has established. Endpoints
+must be strings. Detection tests every spelling, so a decoy `url` cannot hide a real `httpUrl`.
+`ServerParser` and `UpstreamHash` are untouched; the harness entry is normalised to `url` at this
+seam, and it is the **raw** JSON that is normalised because `UpstreamHash` digests
+`raw.member("url")` rather than the parsed value.
+
+**Red-green, three mutations, each restored from a `cp` backup:**
+
+| Mutation | Result |
+|---|---|
+| Gemini's `endpointKeys` back to `["url"]` | unit **24 of 38 tests red**; lane **8 failing checks** — `route: expected http, got none`, `state: got not-wired`, and `no + add line for a harness that is already wired: expected 0, got 1`, which is the original defect reproduced verbatim |
+| `detect` back to `entry.raw.member("url")` | unit red, 9 issues over 5 tests |
+| the comparison no longer canonicalises | lane **5 failing checks** — `duplicateCount: expected 4, got 3`, and the `httpUrl` duplicate reads `ABSENT` |
+
+All three restored, all green.
+
+## F2 — `--json` can say "could not be read"
+
+`unreadable` carries the parser's own sentence, or JSON `null`. The verb's doc comment says to read
+it first, because the rest of that row is the empty report and a consumer switching on `state`
+alone still sees a clean unwired harness (`D-r7-l`).
+
+The lane asserts **both directions and the binding between them**: a readable config carries
+`null`, an unreadable one carries a reason, the whole empty row is pinned (`state`,
+`duplicateCount`, `entries`), and the screen must carry the *same sentence* the wire does — so a
+field hard-coded to any plausible string fails. Dropping the member from the encoder gives
+**3 failing checks**, including `a readable config carries no reason: expected null, got MISSING`.
+
+## F3 — the write-boundary gate enforces what it claims, and declares what it cannot
+
+Both rules were line-scoped. A realistic applier — path on one line, `write(toFile:)` on a later
+one — exited 0 with `none writes one`, while `ORCHESTRATOR.md` cited the gate as the reason the
+refusal holds. Now:
+
+- both rules are **file-scoped**, over comment-blanked code (line numbers preserved);
+- a third rule refuses **any** file write inside the seam — `RouterCore/Discovery`,
+  `HarnessesVerb.swift`, and any `Harness*`/`Reconciliation*`/`ClientConfig*` file anywhere —
+  which catches an applier that names nothing recognisable;
+- the write vocabulary is **argument labels** (`forWritingTo:`, `forUpdatingTo:`,
+  `forUpdatingAtPath`, `toFileAtPath:`, `OutputStream(`, `/bin/cp`…), so `FileHandle(forWritingTo:)`
+  and `FileHandle.init(forWritingTo:)` are the same call to it;
+- printing is neutralised **within** a line rather than the line being dropped, so a trailing
+  `// FileHandle.standardOutput` no longer erases a real write;
+- eight **pattern-integrity probes** run before any file is read, so a gutted pattern exits 2
+  instead of passing everything.
+
+```
+no-harness-config-writes: 313 file(s) examined, 8 name a harness config, 20 write a file,
+                          8 in the seam — none writes one
+exit=0
+```
+
+`scripts/lint/no-harness-config-writes-selftest.sh`, in `make lint` beside its subject, **13 cases**:
+
+```
+  ok    a tree with no applier passes (exit 0)
+  ok    P1  a harness path literal beside a write, one line, is refused (exit 1)
+  ok    P2  a reconciliation plan beside a write, one line, is refused (exit 1)
+  ok    P3  a realistic applier, path and write on different lines, is refused (exit 1)
+  ok    P4  a bare-String applier inside the seam is refused by the seam rule (exit 1)
+  ok    P5  forWritingTo: is the only write token in the file, and counts (exit 1)
+  ok    P8  forUpdatingTo: is the only write token in the file, and counts (exit 1)
+  ok    P9  a harness path in a block comment is documentation too (exit 0)
+  ok    P10 a split applier outside the seam is NOT caught — the gate's declared blind spot (exit 0)
+  ok    P6  a harness path discussed in a doc comment is documentation, not a write (exit 0)
+  ok    P7  writing to standard output is printing, not writing a config (exit 0)
+  ok    a tree naming no harness config at all is an environment failure, not a pass (exit 2)
+  ok    a tree with an empty seam is an environment failure, not a pass (exit 2)
+
+no-harness-config-writes-selftest: 13 case(s) held
+```
+
+**P3 is the verifier's plant that walked through, and it now exits 1.** **P10 asserts that the gate
+misses something** — a split applier across two neutrally-named files outside the seam — so the
+limit is visible from a run rather than from a paragraph, and closing it turns this file red on
+purpose. `D-r7-m`.
+
+**Six mutations of the gate's own rules, each turning the selftest red:**
+
+| Mutation | Result |
+|---|---|
+| rule 1 back to line-scoped | red — and the gate exits **2**, refusing to run, because a probe no longer matches |
+| rule 2 back to line-scoped | red — **P3 exits 0**: the realistic applier walks through again |
+| the seam rule stops reporting | red — P4 exits 0 |
+| `forWritingTo:` dropped from the vocabulary | red at exit 2 — the pattern probe refuses |
+| `forUpdatingTo:` dropped | red at exit 2, same reason |
+| comment blanking removed | red — P9 and P10 exit 1, the gate fires on documentation |
+
+## The gates, re-run whole
+
+| Gate | Result | Exit |
+|---|---|---|
+| `swiftformat --lint` | `0/507 files require formatting` | 0 |
+| `swiftlint --strict` | `Found 0 violations, 0 serious in 500 files` | 0 |
+| `swift test` (`make test`) run 1 | `executed 1621 tests` | 0 |
+| `swift test` (`make test`) run 2 | `executed 1621 tests` | 0 |
+| `make parity` | `358 vector cases compared (floor 358)` | 0 |
+| `parity-lock-selftest` | `12 held, 0 did not` | 0 |
+| `parity-normalise-selftest` | `14 behaved, 0 did not` | 0 |
+| `parity-manifest-selftest` | `the MCP SDK is not installed` — **blocked, not passed** | 2 |
+| `no-raw-design-values` | `clean` | 0 |
+| `no-wire-codable` | `2 exemption(s) recorded` | 0 |
+| `no-harness-config-writes` | `313 examined … none writes one` | 0 |
+| `no-harness-config-writes-selftest` | `13 case(s) held` | 0 |
+| `r7-harness-reconciliation.sh` | `pass`, 27 checks over five passes | 0 |
+
+`make test` was run twice deliberately: `PoolReapingTests.swift:61` is non-deterministically red
+under whole-suite load (`G3`). **It did not flake in either run**, on top of two earlier runs in
+the same session that also passed — four green runs, no reds.
+
+`make lint` and `make all` remain blocked at the `tools` guard in a fresh worktree with no
+`node_modules`; the six lint steps were run individually and all pass. `parity-manifest-selftest`
+is blocked for the same missing SDK. Both are recorded as blocked rather than as passes.
+
+## A4 re-taken from the rebuilt binary
+
+`./app/.build/debug/MCPRouterCLI harnesses` against the machine's real configs is **byte-identical
+to §A4 above** — the same five states, the same 12 Gemini duplicates, the same `Ref` on the
+identity basis. The dialect fix changes nothing on this machine, and that is the correct outcome:
+this machine's Gemini reaches the router through the `mcp-remote` shim, not through `httpUrl`. It
+changes what happens the moment the user follows the tool's own printed advice — *"point it at the
+router directly and drop the shim"* — which is exactly the state the old reader could not see.
+
+Every row of `--json` now carries `"unreadable": null`, and the eight rows are otherwise unmoved.

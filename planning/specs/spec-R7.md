@@ -152,8 +152,25 @@ this document.
 **Route.** A harness is wired when one of its entries points at *this router's endpoint*, which
 is decided **by URL and never by name**:
 
-- `.directHTTP` — an entry whose `url` has a loopback host (`127.0.0.1`, `localhost`, `::1`,
+- `.directHTTP` — an entry whose endpoint has a loopback host (`127.0.0.1`, `localhost`, `::1`,
   `[::1]`) and this router's port.
+
+**The endpoint key is the harness's, not ours.** `url` is what Claude Code, Cursor, Codex and grok
+write. **Gemini writes `httpUrl`** — §1.2's own evidence for that harness is the config struct's
+`json:"httpUrl"`, and the first version of this item cited that string three lines above a reader
+that could not act on it. `.directHTTP` was unreachable for the harness the item exists for, and
+the printed remedy told the user to create the state the tool could not read. `HarnessDialect`
+carries the spellings **per client**, on the same rule `HTTPCapability` follows: reading Gemini's
+key out of a Cursor file would be a claim about how Cursor reads its own config that nothing here
+has established, and an inert key would become "wired via HTTP". Every value must be a **string**
+— `"url": true` is not an endpoint — and detection tests **every** spelling the harness uses, so a
+decoy `url` elsewhere cannot hide an `httpUrl` aimed at this router.
+
+`ServerParser` and `UpstreamHash` are **not** taught the dialect. Both are shared with adoption,
+with `import` and `watch`, and through them with the TypeScript reference; widening either would
+change what the router adopts out of its own config and what a cached manifest hashes to. The
+harness entry is normalised to `url` at this seam instead, and it is the **raw** JSON that is
+normalised, because `UpstreamHash` digests `raw.member("url")` rather than the parsed value.
 - `.stdioShim` — a **stdio** entry, any of whose `command` or `args` is such a URL. The bridge is
   named from the first argument that is neither a flag nor the URL (`mcp-remote`), falling back
   to the command's last path component. This catches `supergateway`, `mcp-proxy` and a
@@ -198,6 +215,13 @@ Reports every harness in `MCPClient.allCases`, in fixed order. Human output is o
 harness naming the state, the path, the counts, and the overlapping names in the order the
 harness declares them. `--json` emits the same via `JSStringify`.
 
+**`unreadable` is on the wire, and it is the field to read first.** A config that could not be
+parsed reaches the encoder as the empty report, so `state` reads `not-wired` and `entries` and
+`duplicateCount` read 0 — the same bytes a clean unwired harness produces. The human output draws
+that line and suppresses the plan; without this member the machine output could not, and the
+acceptance lane, which asserts on JSON only, could not see the difference either. It carries the
+parser's own sentence, and the lane asserts that the wire and the screen carry the same one.
+
 Exit status is **0 whenever the measurement succeeded**, including when harnesses are
 misconfigured. A configuration finding is not a failure of the command that found it, and a
 non-zero exit here would put every gate that ever calls it into a state where a true report
@@ -241,9 +265,25 @@ this item's tests and its acceptance lane is created under a scratch directory. 
 
 `ReconciliationPlan` is the seam, and it is deliberately inert: it names the entries a fix would
 remove and the entry it would add, and it renders a diff. There is no `apply`, no writer
-protocol and no conformer. `scripts/lint/no-harness-config-writes.sh` runs in `make lint` and
-fails if any file under `app/Sources` names a harness config path in a writing position, so the
-seam cannot gain a caller without someone deleting the gate that says it should not.
+protocol and no conformer.
+
+`scripts/lint/no-harness-config-writes.sh` runs in `make lint` and refuses three things: a file
+that names a harness config path in code and also writes a file; a file that handles a
+`ReconciliationPlan`, a `HarnessReport` or a `ClientConfigs` path and also writes a file; and any
+file write at all inside the seam — `RouterCore/Discovery`, `HarnessesVerb.swift`, and any file
+named `Harness*`, `Reconciliation*` or `ClientConfig*`. Its rules are **file-scoped**; they were
+line-scoped, and a realistic applier that asked for the target on one line and wrote it on a later
+one walked through while the gate printed `none writes one`.
+
+**What it does not establish, because that distinction is the whole value of having it.** It is
+`grep`, not a call graph, and it does not prove that no applier exists. An applier split across two
+neutrally-named files outside the seam — one asking for the path, another taking a `String` and
+writing it — satisfies no intersection and lives in no watched name. That is `D-r7-m`, and
+`no-harness-config-writes-selftest.sh` carries the case as an assertion that the gate **misses**
+it, so the limit is visible from a run rather than from a paragraph. The claim this item makes is
+the one the gate can carry: no single file pairs a harness config with a write, and the seam
+writes nothing at all. That `ReconciliationPlan` has no applier **today** is established by
+reading the tree, not by the gate.
 
 Two reasons, and only the first is about safety. Mutating a developer's live agent configuration
 is not a change a fleet runner makes unattended. And the brief's own framing is that **config
@@ -274,5 +314,5 @@ the write is R7-C2's, behind a human.
 | A4 | §1's measurement is reproducible from the shipped binary, not from ad-hoc shell | `mcp-router harnesses` against the real configs, recorded in `planning/evidence/R7-acceptance.md` |
 | A5 | Route detection is by endpoint, so a harness entry *named* `router` pointing elsewhere is not wired | unit test |
 | A6 | A renamed duplicate is caught, and a same-name-different-target entry is caught, and each says which basis found it | unit tests built from §1.3's two real cases |
-| A7 | Nothing under `app/Sources` writes a harness config | `scripts/lint/no-harness-config-writes.sh`, in `make lint`, shown able to go red |
+| A7 | No single file under `app/Sources` pairs a harness config with a write, and R7's seam writes nothing at all | `scripts/lint/no-harness-config-writes.sh`, in `make lint`, with `no-harness-config-writes-selftest.sh` beside it: 13 cases — five plants refused, four innocent shapes left green, one declared blind spot (`D-r7-m`) asserted as a miss — and six mutations of the gate's own rules each turning that selftest red |
 | A8 | The detector can go red | the acceptance lane's arming pass mutates the comparison and requires a wrong answer |

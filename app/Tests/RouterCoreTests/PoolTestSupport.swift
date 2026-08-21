@@ -204,6 +204,98 @@ func waitUntil(
     try #require(Bool(false), "\(why) waiting for: \(what)", sourceLocation: sourceLocation)
 }
 
+/// Await an event the pool owns, under the same deadlock breaker `waitUntil` uses.
+///
+/// `awaitReap` and `awaitSessionEnded` await a `Task` the pool started, so the only bound on them
+/// is the pool's own armed window — and P6 configures that at 600 000 ms, because a default that
+/// is effectively never is what makes the per-server override provable. Awaiting one unbounded
+/// turns a regression in the reaping path into a run that ends without naming a test: the
+/// mutation that reaps at the default window while the arming records the requested one measured
+/// **601.184 seconds**, and even then the single issue landed on the residual clock-dependency
+/// line rather than on the window claim; killed at 150 seconds it exits 142 with no test name at
+/// all. This item's thesis ranks a nameless timeout below a flake, so the awaits get the bound
+/// the polls already have, and a regression in this class names an assertion inside the CI bound.
+///
+/// The wait is **abandoned**, not cancelled, and that distinction is the reason this exists rather
+/// than a task group. `await task.value` on a `Task<_, Never>` has no cancellation check, so
+/// racing it against a sleep inside a group changes nothing: the group awaits every child before
+/// it returns, including the one still sitting out the ten-minute timer, and the run takes ten
+/// minutes anyway — the bound landing on the wrong side of the await. An observer records the
+/// landing instead and this polls that record, so giving up costs one task that finishes by
+/// itself later, in a run that has already gone red.
+func awaitEvent(
+    _ what: Comment,
+    within seconds: Double = 10,
+    sourceLocation: SourceLocation = #_sourceLocation,
+    _ event: @escaping @Sendable () async -> Void
+) async throws {
+    let landed = Mutex(false)
+    let observer = Task { await event(); landed.withLock { $0 = true } }
+    // Cancelling buys nothing on the timed-out path — the observer is parked in `await
+    // task.value`, which ignores cancellation — but leaving a task uncancelled on the way out is
+    // worse hygiene than saying so, and it does stop the observer if `event` ever gains a check.
+    defer { observer.cancel() }
+    try await waitUntil(what, within: seconds, sourceLocation: sourceLocation) {
+        landed.withLock { $0 }
+    }
+}
+
+/// The bound above is worth what its being used is worth, so its being used is asserted.
+///
+/// `awaitReap` and `awaitSessionEnded` cannot bound themselves: abandoning a wait needs a second
+/// task, and a breaker that reports through `#require` needs the caller's source location to name
+/// the line that gave up. Both belong out here, which leaves an accessor whose hazard lives in a
+/// doc comment — and a doc comment is evidence for the moment somebody reads it. That is the
+/// argument `StandingConstraintsTests` already makes for turning a remembered `grep` into an
+/// assertion, arriving in the file that needs it.
+///
+/// Counted per function rather than by line distance: a proximity window goes red on a wrap that
+/// happens to sit a few lines further up, and a gate that can report a failure that is not there
+/// is the defect this whole item exists to remove. The bound accepted in exchange is that two
+/// accessor calls inside one `awaitEvent` block read as one wrapped and one bare, and this asks
+/// for them to be split.
+@Suite("The pool's unbounded awaits are called under a bound")
+struct PoolAwaitBoundTests {
+    /// Spelled with the leading dot so a definition (`func awaitReap`) is not read as a call.
+    private static let unbounded = [".awaitReap(", ".awaitSessionEnded("]
+
+    @Test("every awaitReap and awaitSessionEnded call site sits inside awaitEvent")
+    func unboundedAwaitsAreWrapped() throws {
+        // This file is skipped because it is where the needles are spelled out, and scanning it
+        // would read this checker's own source as call sites. Nothing here calls the accessors.
+        let checker = URL(fileURLWithPath: #filePath).lastPathComponent
+        let tests = try RepoTree.root().appendingPathComponent("app/Tests")
+        let files = RepoTree.swiftFiles(under: tests).filter { $0.lastPathComponent != checker }
+        try #require(!files.isEmpty, "no test sources were scanned, so this proves nothing")
+
+        var seen = 0
+        for file in files {
+            let text = try String(contentsOf: file, encoding: .utf8)
+            for body in text.components(separatedBy: "func ") {
+                let calls = Self.unbounded.reduce(0) { $0 + occurrences(of: $1, in: body) }
+                guard calls > 0 else { continue }
+                seen += calls
+                let signature = body.prefix(while: { $0 != "\n" })
+                #expect(
+                    calls <= occurrences(of: "awaitEvent(", in: body),
+                    """
+                    \(file.lastPathComponent), func \(signature): \(calls) await(s) on a task the \
+                    pool owns, and fewer `awaitEvent` wraps. Such an await runs as long as the \
+                    arming — 600 000 ms in P6 — so a regression there times the run out instead of \
+                    naming a test.
+                    """
+                )
+            }
+        }
+        // A scan that reached nothing must not read as a scan that found nothing wrong.
+        #expect(seen >= 5, "only \(seen) call sites were read; the five known ones are not being seen")
+    }
+
+    private func occurrences(of needle: String, in text: String) -> Int {
+        text.components(separatedBy: needle).count - 1
+    }
+}
+
 /// A clock the test drives, so an idle window can be asserted rather than slept through.
 final class TestClock: RouterClock, Sendable {
     private let now: Mutex<Double>

@@ -138,7 +138,9 @@ struct PoolTests {
         // And the close is awaited through the timer the release arms, so the second half is not a
         // second bet on 120ms being longer than whatever the machine is doing.
         let armed = try #require(await pool.releaseObservingReap(lease), "release arms the timer")
-        await pool.awaitReap("a", epoch: armed.epoch)
+        try await awaitEvent("`a` to be reaped once the call had finished") {
+            await pool.awaitReap("a", epoch: armed.epoch)
+        }
         #expect(await !pool.isLive("a"), "and it must close once the call has finished")
     }
 

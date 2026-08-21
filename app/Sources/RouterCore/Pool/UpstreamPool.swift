@@ -200,6 +200,15 @@ public actor UpstreamPool {
     /// The await happens here rather than in the caller because an actor releases its executor at
     /// a suspension point: the timer gets the actor it needs, and no cancellable task is handed
     /// out for a test to cancel or outlive.
+    ///
+    /// **Unbounded by design, so call it under a bound.** The wait is exactly as long as the
+    /// arming, and an arming can be the pool's default — ten minutes in P6, which is what makes
+    /// the per-server override provable there. Nothing here can shorten that: `await task.value`
+    /// on a `Task<_, Never>` has no cancellation check, so a deadline inside this method could not
+    /// abandon the wait, and a breaker that names the line it gave up on needs the caller's source
+    /// location anyway. `awaitEvent` in `PoolTestSupport` is where both live, and a test asserts
+    /// every call site goes through it — a regression in the reaping path is meant to name an
+    /// assertion inside the CI bound rather than time the run out without naming anything.
     func awaitReap(_ name: String, epoch: ReapEpoch) async {
         guard let timer = entries[name]?.reap, timer.epoch == epoch else { return }
         await timer.task.value
@@ -208,6 +217,9 @@ public actor UpstreamPool {
     /// Await the eviction of `handle` by the watcher that saw its session end. Eviction happens
     /// inside that task, so this returns once it has been applied — and returns immediately when
     /// the handle is already gone, which is the outcome it was waiting for.
+    ///
+    /// Unbounded for the same reason as `awaitReap` above, and bounded the same way: through
+    /// `awaitEvent`, which every call site is asserted to use.
     func awaitSessionEnded(_ name: String, handle: HandleID) async {
         guard let live = entries[name]?.handle, live.id == handle,
               let watcher = live.endWatcher else { return }

@@ -41,7 +41,9 @@ struct PoolLifecycleTests {
         // Awaited through the eviction rather than through a window chosen in advance; see
         // `waitUntil` in `PoolTestSupport` for why the difference matters.
         session.endOnItsOwn()
-        await pool.awaitSessionEnded("a", handle: handle)
+        try await awaitEvent("the self-ended handle on `a` to be evicted") {
+            await pool.awaitSessionEnded("a", handle: handle)
+        }
 
         #expect(session.shutdownCount == 1, "the evicted session must be shut down exactly once")
         #expect(await !pool.isLive("a"))

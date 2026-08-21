@@ -90,7 +90,14 @@ struct PoolReapingTests {
         // so this is observed when it happens rather than sampled at a moment picked in advance.
         // The 150ms sleep it replaces passed in isolation four times running and failed under
         // whole-suite load.
-        await pool.awaitReap("own", epoch: armed.epoch)
+        //
+        // Under a bound, because the pool's await is as long as the arming and this pool's default
+        // arming is ten minutes. A mutation that reaps `own` on the default window would otherwise
+        // leave the claim at the line above passing, the run taking 601 seconds, and the eventual
+        // red landing on the `inherits` line below — which describes a different defect.
+        try await awaitEvent("`own` to be reaped under the arming it just made") {
+            await pool.awaitReap("own", epoch: armed.epoch)
+        }
         #expect(await !pool.isLive("own"))
         // Honestly a clock dependency, and stated as one rather than dressed up: it holds unless
         // ten minutes passed between arming `inherits` and here. Six hundred seconds of slack is
@@ -146,7 +153,9 @@ struct PoolReapingTests {
         // makes the wait exact: if the eviction has already landed, there is nothing to wait for,
         // and that is the outcome rather than a missed one.
         transport.sessions[0].endOnItsOwn()
-        await pool.awaitSessionEnded("a", handle: handle)
+        try await awaitEvent("the dead handle on `a` to be evicted") {
+            await pool.awaitSessionEnded("a", handle: handle)
+        }
 
         #expect(await !pool.isLive("a"), "a dead upstream must not be handed out again")
         let next = try await pool.lease("a")
@@ -165,7 +174,9 @@ struct PoolReapingTests {
 
         // The first dies and is replaced, awaited by naming the handle whose eviction is expected.
         transport.sessions[0].endOnItsOwn()
-        await pool.awaitSessionEnded("a", handle: firstHandle)
+        try await awaitEvent("generation A's handle to be evicted") {
+            await pool.awaitSessionEnded("a", handle: firstHandle)
+        }
         #expect(await !pool.isLive("a"))
         let second = try await pool.lease("a")
         await pool.release(second)

@@ -186,10 +186,22 @@ public enum AuthServerAuthority {
         return seen
     }
 
-    /// An absent `Origin` is allowed, because that is what an MCP client sends. A present one must
-    /// be ours.
+    /// An **absent** `Origin` is allowed, because that is what an MCP client sends. Anything else
+    /// must be one of ours — including the literal `null`.
+    ///
+    /// `Origin: null` was allowed in the first cut, and the out-of-family review named it as the
+    /// one control actually bypassable. It is attacker-reachable: a sandboxed `<iframe>` without
+    /// `allow-same-origin`, a `data:` or `blob:` document, and some redirect chains all emit it.
+    /// That matters most on `/register`, because a form with `enctype="text/plain"` and a crafted
+    /// field name produces a body a JSON parser accepts — so the JSON content type is not itself a
+    /// defence and this check is the only one standing there.
+    ///
+    /// It is not a complete exploit today: with no `Access-Control-Allow-Origin` the 201 is
+    /// unreadable cross-origin, so the attacker never learns the `client_id` it would need. But
+    /// that is the browser's behaviour rather than this router's control, and refusing `null`
+    /// costs nothing — a real MCP client sends no header at all.
     public static func originRefused(_ request: HTTPWireRequest, host: String, port: Int) -> Bool {
-        guard let origin = request.first("origin"), origin != "null" else { return false }
+        guard let origin = request.first("origin") else { return false }
         return !selfOrigins(host: host, port: port).contains(origin)
     }
 }

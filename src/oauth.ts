@@ -166,9 +166,25 @@ function selfOrigins(cfg: RouterConfig): string[] {
   ];
 }
 
+/**
+ * An **absent** `Origin` is allowed, because that is what an MCP client sends. Anything else must
+ * be one of ours — including the literal `null`.
+ *
+ * `Origin: null` was allowed in the first cut, and the out-of-family review named it as the one
+ * control actually bypassable. It is attacker-reachable: a sandboxed `<iframe>` without
+ * `allow-same-origin`, a `data:` or `blob:` document, and some redirect chains all emit it. That
+ * matters most on `/register`, because a form with `enctype="text/plain"` and a crafted field name
+ * produces a body `JSON.parse` accepts — so the JSON content type is not itself a defence and the
+ * Origin check is the only one standing there.
+ *
+ * It is not a complete exploit today: no `Access-Control-Allow-Origin` means the 201 is unreadable
+ * cross-origin, so the attacker never learns the `client_id` it would need. But that is the
+ * browser's behaviour rather than this router's control, and refusing `null` costs nothing —
+ * a real MCP client sends no header at all.
+ */
 function originRefused(req: IncomingMessage, cfg: RouterConfig): boolean {
   const origin = req.headers.origin;
-  if (origin === undefined || origin === 'null') return false;
+  if (origin === undefined) return false;
   return !selfOrigins(cfg).includes(origin);
 }
 

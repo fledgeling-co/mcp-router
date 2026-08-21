@@ -121,6 +121,17 @@ diffcmp "cross-origin POST /register is refused, identically" /register \
 diffcmp "cross-origin POST /token is refused, identically" /token \
   -X POST -H 'content-type: application/x-www-form-urlencoded' -H 'Origin: https://attacker.example' \
   -d 'grant_type=refresh_token&refresh_token=x'
+# The out-of-family review's one finding: a sandboxed iframe, a data: document and some redirect
+# chains all send `Origin: null`, and it used to be waved through as "not a browser origin".
+diffcmp "Origin: null is refused on /register, identically" /register \
+  -X POST -H 'content-type: application/json' -H 'Origin: null' \
+  -d '{"redirect_uris":["http://127.0.0.1:1/cb"]}'
+diffcmp "Origin: null is refused on /token, identically" /token \
+  -X POST -H 'content-type: application/x-www-form-urlencoded' -H 'Origin: null' \
+  -d 'grant_type=refresh_token&refresh_token=x'
+diffcmp "a text/plain JSON-CSRF body on /register is refused when it carries an Origin" /register \
+  -X POST -H 'content-type: text/plain' -H 'Origin: https://attacker.example' \
+  -d '{"redirect_uris":["http://127.0.0.1:1/cb"]}'
 diffcmp "a forged refresh token is refused, identically" /token \
   -X POST -H 'content-type: application/x-www-form-urlencoded' \
   -d 'grant_type=refresh_token&refresh_token=forged.notasignature'

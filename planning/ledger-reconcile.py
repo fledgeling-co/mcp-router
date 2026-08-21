@@ -505,10 +505,69 @@ def main() -> int:
               "A gate that never ran is not a gate that passed.", file=sys.stderr)
         return 2
 
+    # ---- K: a deferred-register id that occurs twice in one file ------------------------
+    #
+    # Check F reads ids matching the ALLOCATION pattern and nothing else, so `D-<parent>-<letter>`
+    # rows — the whole deferred register, and the largest table in ORCHESTRATOR.md — are invisible
+    # to it. That exclusion is correct for F's purpose: these are notes, not allocations, and
+    # counting them as allocations would flood every check that reads the register. It is not
+    # correct as the whole story, because F is named for identity collisions and the register is
+    # where most ids now live.
+    #
+    # Found 2026-08-21 by G3's third verifier, which reported five ids occurring twice inside one
+    # section, three of them carrying materially different text. The reconciler passed that file
+    # clean across all ten checks.
+    #
+    # Two severities, because they are different defects. An exact duplicate is untidy. A
+    # duplicate whose bodies DIVERGE means a grep for the id returns two different answers, and
+    # the reader has no way to know which is current — worse than one wrong row.
+    k_findings: list[str] = []
+    k_examined = 0
+    child_id = re.compile(r"^D-[a-z0-9]+-[a-z]+$")
+    for label, text in (("ORCHESTRATOR", orch), ("LEDGER", ledger)):
+        rows: dict[str, list[tuple[int, str]]] = {}
+        for n, line in enumerate(text.splitlines(), 1):
+            if not line.startswith("| "):
+                continue
+            cells = line.split("|")
+            if len(cells) < 3:
+                continue
+            cell = cells[1].strip().replace("**", "").replace("~~", "").strip()
+            if not child_id.fullmatch(cell):
+                continue
+            k_examined += 1
+            # The WHOLE row, not the description cell. First cut compared `cells[2]` and read
+            # two of G3's five duplicates as "same text" where the verifier, reading whole
+            # rows, called three of them divergent — the detail cell is where the content
+            # lives, so a check named for divergence that reads one cell of four is this
+            # register's own G4 shape, inside the check added to catch it.
+            rows.setdefault(cell, []).append((n, line.strip()))
+        for cid, seen in sorted(rows.items()):
+            if len(seen) < 2:
+                continue
+            bodies = {body for _, body in seen}  # whole rows
+            lines_at = ", ".join(str(n) for n, _ in seen)
+            if len(bodies) > 1:
+                k_findings.append(f"{label}: {cid} occurs {len(seen)}x at lines {lines_at} "
+                                  f"with {len(bodies)} DIFFERENT descriptions — a grep for it "
+                                  f"returns two different answers")
+            else:
+                k_findings.append(f"{label}: {cid} occurs {len(seen)}x at lines {lines_at}, "
+                                  f"same text")
+    if k_findings:
+        findings.append(("K", "a deferred-register id occurs more than once in one file; check F "
+                              "reads only allocation-pattern ids and cannot see the register",
+                         k_findings))
+    print(f"K examined {k_examined} deferred-register rows in both files")
+    if k_examined == 0:
+        print("usage error: check K examined 0 register rows — the id pattern stopped matching. "
+              "A gate that never ran is not a gate that passed.", file=sys.stderr)
+        return 2
+
     print()
 
     if not findings:
-        print("reconciled — no findings across A, B, B-range, C, D, E, F, G, H, I, J")
+        print("reconciled — no findings across A, B, B-range, C, D, E, F, G, H, I, J, K")
         return 0
     for code, why, ids in findings:
         print(f"{code}. {why}")

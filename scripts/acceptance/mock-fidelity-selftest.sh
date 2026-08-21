@@ -685,9 +685,41 @@ expect "two siblings sharing a path return 3, not a vouched comparison" 3 "$root
 # from the per-role check with a `continue`, so its population was the eligibility census rather
 # than the comparisons it ran. The zero-guard cannot be fooled here — `floor = min(...)` keeps one
 # node per role — so this is asserted on the note, which is where the overstatement was printed.
+#
+# Both assertions read the comparison count, because the second one used to not. `1 multi-line
+# node(s) excluded` is a true sentence about a quantity the mutation does not touch: reverting
+# `observations` to the eligibility census takes the note to `3 per-role comparison(s) over 3 text
+# nodes · … · 1 multi-line node(s) excluded`, which reddens the first want and leaves the second
+# one word-for-word intact (measured). So the case was armed by one of its two assertions, and the
+# other was this item's own defect — an assertion satisfied by something that survives the mutation
+# it is written under — sitting inside the instrument that proves the gate (`D-m23-ah`).
+#
+# The repair is to assert the PARTITION rather than the two sentences. Every text node that names a
+# ladder role either gets compared or gets excluded as a wrap count, so `comparisons + excluded ==
+# census` is an identity of the layer rather than a fact about this fixture, and it is the sentence
+# `reports comparisons and census separately` actually claims. It cannot be satisfied by a note that
+# reports one number twice: the census mutation gives 3 + 1 = 3, and dropping the exclusion counter
+# gives 2 + 0 = 3. Both are red here, and the three literals are kept beside it so a fixture that
+# quietly stopped producing a multi-line node cannot satisfy the identity at 0 + 0 == 0.
 root="$SCRATCH/multiline"; export FIXTURE_MULTILINE=1; build "$root"; unset FIXTURE_MULTILINE
-expect "the type layer reports comparisons and census separately" 1 "$root" \
-  "2 per-role comparison(s) over 3 text nodes" "1 multi-line node(s) excluded"
+cases=$((cases + 1))
+out48=$(PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" 2>&1)
+status48=$?
+RE_CMP='([0-9]+) per-role comparison\(s\) over ([0-9]+) text nodes'
+RE_EXCL='([0-9]+) multi-line node\(s\) excluded'
+cmp48=""; census48=""; excl48=""
+[[ "$out48" =~ $RE_CMP ]] && { cmp48=${BASH_REMATCH[1]}; census48=${BASH_REMATCH[2]}; }
+[[ "$out48" =~ $RE_EXCL ]] && excl48=${BASH_REMATCH[1]}
+if [ "$status48" = 1 ] && [ "$cmp48" = 2 ] && [ "$census48" = 3 ] && [ "$excl48" = 1 ] \
+   && [ "$((cmp48 + excl48))" = "$census48" ]; then
+  echo "ok    the type layer reports comparisons and census separately — $cmp48 + $excl48 = $census48"
+else
+  echo "FAIL  the type layer's note does not partition its census: exit $status48, comparisons"
+  echo "      '$cmp48', census '$census48', excluded '$excl48'"
+  echo "$out48" | sed 's/^/        /'
+  fail=1
+fi
 
 # 49 — BL-1: the reporting of a failure must not itself be able to fail. `gate()`'s INCONCLUSIVE
 # handlers used a raw `print`, so an unencodable console raised BEFORE `write_unmeasured_report`,
@@ -736,12 +768,35 @@ out51=$(PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.p
   "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER51" 2>&1)
 out51_none=$(PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
   "$root/planning/fidelity/fixture.layers.json" "$root/dumps" 2>&1)
+# The third invocation, and the only one of the three that can discriminate. In the first the write
+# succeeds, so the marker is printed whichever side of `write_report` the `emit` sits on; in the
+# second there is no `--report` at all, so `if report_path:` is false and the marker is unreachable
+# either way. Both of those stay green with the `emit` moved BEFORE the write — measured, and it is
+# what the fourth verification bounced this item for. The one configuration in which the two
+# orderings differ is a `--report` path whose WRITE FAILS, and it is case 33's `chmod 500` fixture
+# under a root that reaches the report block: a clean tree, eight layers measured, and an OSError
+# from `open()`. The marker moved before the write prints `report written to` on a run that wrote
+# nothing, and `mock-fidelity-gate.sh` greps for exactly that string to decide whether to print
+# `ledger written to` — so this assertion is the one holding `D-m23-y` shut.
+#
+# Its own directory rather than case 33's, which is chmod'ed back to 700 as that case ends: sharing
+# the path would make this case's result depend on the order the two run in.
+mkdir -p "$SCRATCH/nowrite51"; chmod 500 "$SCRATCH/nowrite51"
+out51_fail=$(PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" \
+  --report "$SCRATCH/nowrite51/ledger.md" 2>&1)
+status51_fail=$?
+chmod 700 "$SCRATCH/nowrite51"
 if grep -qF "mock-fidelity: report written to $LEDGER51" <<<"$out51" \
-   && ! grep -qF "report written to" <<<"$out51_none"; then
+   && ! grep -qF "report written to" <<<"$out51_none" \
+   && [ "$status51_fail" = 3 ] \
+   && ! grep -qF "report written to" <<<"$out51_fail" \
+   && grep -qF "could not be replaced" <<<"$out51_fail"; then
   echo "ok    the engine claims a written report only when it wrote one"
 else
-  echo "FAIL  the report-written marker does not track the write"
+  echo "FAIL  the report-written marker does not track the write (unwritable run exited $status51_fail)"
   echo "$out51" | sed 's/^/        /'
+  echo "$out51_fail" | sed 's/^/        /'
   fail=1
 fi
 
@@ -820,14 +875,36 @@ fi
 # stdout inside the boundary is what moves it back in. `>(:)` is a process substitution whose
 # reader exits immediately, which is the deterministic form of `| head`.
 root="$SCRATCH/brokenpipe"; build "$root"
+LEDGER44="$SCRATCH/brokenpipe-ledger.md"
+LEDGER44U="$SCRATCH/brokenpipe-unbuffered-ledger.md"
+printf '# Breadth ledger — fixture\n\n| Layer | Result |\n|---|---|\n| `breadth` | STALE-FROM-AN-EARLIER-RUN |\n' > "$LEDGER44"
 cases=$((cases + 1))
 PATH="$root/bin:$PATH" python3 "$root/scripts/acceptance/mock_fidelity.py" \
-  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" > >(:) 2>/dev/null
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER44" > >(:) 2>/dev/null
 status44=$?
-if [ "$status44" = 3 ]; then
+# The second invocation is the same dead pipe with the buffer taken away, and it is what makes this
+# route ORDERING-sensitive. Buffered, the print loop never reaches a `write(2)`: the text sits under
+# the 8 KB stdout buffer, nothing raises inside `gate()`, and the report is written whichever side
+# of the loop it sits on — so the first invocation alone cannot tell the shipped order from the
+# reverted one, which is `D-m23-ag`. Measured here, and reached independently by
+# `gemini-3.7-flash-high` and `grok-4.6` from the code alone. `PYTHONUNBUFFERED=1` makes the first
+# `print` in the loop write immediately and raise there, inside `gate()`: with the report written
+# first the ledger on disk is this run's table, and with the write moved after the loop it is the
+# stale one, because the write is never reached. It is not a contrived environment either — it is
+# what CI sets to keep interleaved logs readable.
+printf '# Breadth ledger — fixture\n\n| Layer | Result |\n|---|---|\n| `breadth` | STALE-FROM-AN-EARLIER-RUN |\n' > "$LEDGER44U"
+PATH="$root/bin:$PATH" PYTHONUNBUFFERED=1 python3 "$root/scripts/acceptance/mock_fidelity.py" \
+  "$root/planning/fidelity/fixture.layers.json" "$root/dumps" --report "$LEDGER44U" > >(:) 2>/dev/null
+status44u=$?
+if [ "$status44" = 3 ] && ! grep -qF 'STALE-FROM-AN-EARLIER-RUN' "$LEDGER44" \
+   && grep -qF 'Present / divergent / absent' "$LEDGER44" \
+   && [ "$status44u" = 3 ] && ! grep -qF 'STALE-FROM-AN-EARLIER-RUN' "$LEDGER44U" \
+   && grep -qF 'Present / divergent / absent' "$LEDGER44U"; then
   echo "ok    stdout with no reader returns 3, not the interpreter's 120 — exit $status44"
 else
-  echo "FAIL  stdout with no reader returned $status44, not 3"
+  echo "FAIL  stdout with no reader returned $status44 buffered / $status44u unbuffered; ledgers:"
+  echo "      buffered:   $(head -5 "$LEDGER44" | tr '\n' ' ')"
+  echo "      unbuffered: $(head -5 "$LEDGER44U" | tr '\n' ' ')"
   fail=1
 fi
 

@@ -112,11 +112,14 @@ extension AwaitBoundScan {
         while trailing > 0, opener[trailing - 1] == ScanByte.space {
             trailing -= 1
         }
-        trailing = groupStart(closingAt: trailing, in: opener,
-                              open: ScanByte.openParen, close: ScanByte.closeParen)
-        trailing = groupStart(closingAt: trailing, in: opener,
-                              open: ScanByte.openAngle, close: ScanByte.closeAngle)
-        return [trailing, openArgumentList(in: opener)].flatMap { chainComponents(endingAt: $0, in: opener) }
+        trailing = groupStart(
+            closingAt: trailing, in: opener, open: ScanByte.openParen, close: ScanByte.closeParen
+        )
+        trailing = groupStart(
+            closingAt: trailing, in: opener, open: ScanByte.openAngle, close: ScanByte.closeAngle
+        )
+        return [trailing, openArgumentList(in: opener)]
+            .flatMap { chainComponents(endingAt: $0, in: opener) }
     }
 
     /// The dot-separated identifier chain ending at `end`, or nothing when there is none there.

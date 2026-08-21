@@ -228,7 +228,18 @@ is the scanner's remaining soft edge. Named consequences: an accessor block (`ge
 `willSet`, `didSet`) is not a terminator where `func`, `init`, `deinit` and `subscript` are; a
 second **labelled** trailing closure on the wrapper would read as unbounded; and a generic spelling
 `awaitEvent<T>(…)` would too. None of the three is reachable with `awaitEvent`'s current signature,
-and each fails toward a red on correct source rather than toward a miss.
+and each of those three fails toward a red on correct source rather than toward a miss.
+
+> **Corrected in gap-fix 3.** That last clause was written about three named shapes and read as a
+> claim about the layer, and as a claim about the layer it is false. The next verifier measured
+> **two misses and one false fire** in exactly this residue, each pinned by a one-token control: a
+> statement label before a control keyword read an unbounded call as bounded; a labelled
+> string-literal final argument produced no call site at all; and `Task` inside a string
+> interpolation reddened a correct wrap. Two to one toward the dangerous direction, on the first
+> serious attempt. **The layer fails both ways and the direction is not predictable from it** —
+> which matters, because a claim about which way a residue fails is what decides whether the residue
+> is tolerable. All three are fixed and controlled; the three shapes named above are unchanged and
+> still unreachable.
 
 Also outside: **Swift 5.7 regex literals** (`/…/`, `#/…/#`) are not lexed, so one carrying a block
 comment opener or an odd quote count desynchronises the delexer — the readability guard turns that
@@ -245,17 +256,25 @@ The controls are deliberately **not** excluded from the scan. Every needle in th
 literal, so a scan that reads one as code is a scan whose literal handling is broken, and the
 standing-constraint test then reds naming the control file — a true report rather than a false one.
 
-### `D-g3-q`, deferred with a reason that was tested
+### `D-g3-q`, deferred on scope
 
-Both accessors replaced with an immediate `return`: **only `PoolReapingTests.swift:101` reds, 4 of
-4 runs at 0% idle.** `PoolTests.swift:144` stayed green where the verifier saw it red 4 of 4, so
-four of the five sites showed no mutation power here and that site's power is load-dependent.
+**Withdrawn in gap-fix 3: the narrowing this section derived does not reproduce.** This pass ran
+both accessors replaced with an immediate `return` and saw only `PoolReapingTests.swift:101` red, 4
+of 4 at 0% idle, and wrote `PoolTests.swift:144` up as load-dependent — needing the 30 ms window not
+to have elapsed while the machine is busy. The next verifier ran the same mutation at 15.5% idle
+falling to 0.6% and a 1-minute load of 127, which is *heavier* contention than this pass had, and
+got **both sites red 4 of 4**. Heavier load producing the site this pass said load suppressed
+refutes the explanation on its own terms, so the register goes back to the previous verifier's
+reading: gutting the two accessors reds `PoolReapingTests.swift:101` and `PoolTests.swift:144`, and
+the three `awaitSessionEnded` sites never move.
 
-The reason was measured rather than argued. A probe printing which branch `awaitSessionEnded` takes
-reports `PROBE-EARLY-RETURN` **3 of 3** and `PROBE-AWAITS-WATCHER` **0** — at every one of the three
-`awaitSessionEnded` sites the handle is already gone and the accessor awaits nothing, whatever the
-caller does. That is `D-g3-g`'s mechanism, so `D-g3-g` is the remedy and no call-site change can
-substitute for it. `D-g3-g` stays deferred by this pass's scope, so `D-g3-q` does too.
+**The deferral never needed that measurement.** It rests on scope: the remedy is `D-g3-g`, which is
+deferred, and a call-site change cannot substitute for it. That much is measured and stands — a
+probe printing which branch `awaitSessionEnded` takes reports `PROBE-EARLY-RETURN` **3 of 3** and
+`PROBE-AWAITS-WATCHER` **0**, so at every one of the three sites the handle is already gone and the
+accessor awaits nothing whatever the caller does. Deferring on scope alone was available the whole
+time and needs no contested number; deriving a narrower claim from one machine's timing was the
+error, and the orchestrator relayed it into the ledger as fact before anyone re-ran it.
 
 ### Gates
 
@@ -333,7 +352,9 @@ Two of the lane's findings were **not** taken, with the reason recorded rather t
 `awaitEvent`'s signature has no generic parameter and one closure parameter, so neither is
 reachable, and both fail toward a red on correct source rather than toward a miss. The same holds
 for a closure passed as an earlier argument alongside a trailing one. All three are listed above
-under what is still approximated.
+under what is still approximated. **Read these three as three shapes and not as the layer's
+direction** — see the correction in that section: the layer they sit in was measured failing toward
+a miss twice and toward a red once in the pass after this one.
 
 The lane's last finding is a genuine trade and is kept deliberately: a Swift 5.7 regex literal
 carrying an unbalanced brace would trip the readability guard and red CI on correct source. There

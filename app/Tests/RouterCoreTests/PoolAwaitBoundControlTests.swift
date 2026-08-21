@@ -8,7 +8,7 @@ import Testing
 /// hand, run once, and thrown away, so nothing in the tree exercised the classifier and the next
 /// reader had only the prose to go on. These stay.
 ///
-/// **What the count covers, family by family — because 64 is not one population.** An earlier
+/// **What the count covers, family by family — because 69 is not one population.** An earlier
 /// version of this comment claimed the set was complete, on the argument that the scanner now holds
 /// two grammars rather than an approximation of them. That argument is sound for two of the three
 /// families and does not reach the third, and a single number standing across all three read wider
@@ -24,16 +24,19 @@ import Testing
 ///   own signature carries the needle, two wraps and a bare call, two calls in one wrap, file scope,
 ///   and the three layouts that used to decide the answer and no longer can: `#if` at column 0,
 ///   tabs, and no indentation. The population is brace nesting, which is what Swift uses.
-/// - **Family C, Swift's statement and trailing-closure grammar — 33 controls, OPEN.**
+/// - **Family C, Swift's statement and trailing-closure grammar — 38 controls, OPEN.**
 ///   `verdict`, `statement`, `firstWord` and `continuesStatement`, plus five hand-written keyword
 ///   lists. Nothing here implements a grammar; each control is a shape somebody wrote down, and the
 ///   set of shapes somebody might write is exactly the open population the other two families
 ///   escape. The count is a floor on coverage and not a bound on the space.
 ///
 /// The split is where the defects are, which is why stating it matters. The scanner has been broken
-/// by a panel once and by a verifier three times, and every defect of the third round was in Family
-/// C: a statement label reading as a wrap, a labelled string-literal argument producing no call site
-/// at all, and `Task` inside a string interpolation reddening a correct wrap.
+/// by a panel once, by a verifier three times and by two out-of-family lanes asked to break it, and
+/// **every defect of the third round was in Family C**: a statement label reading as a wrap, a
+/// labelled string-literal argument producing no call site at all, `Task` inside a string
+/// interpolation reddening a correct wrap, a module-qualified `Task`, a closure handed to `Task` as
+/// a named argument, an argument naming `init` read as a declaration, and a receiver's dot at the
+/// end of a line.
 ///
 /// **What the mutation matrix proves, stated separately for the same reason.** Every control has
 /// been seen to fail under at least one single-mechanism mutation, so no mechanism in the code as

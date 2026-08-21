@@ -185,7 +185,7 @@ enum AwaitBoundScan {
 
     static let declarations = ["func", "init", "deinit", "subscript"].map { Array($0.utf8) }
     static let bodyKeywords = ["if", "while", "for", "switch", "guard", "catch", "repeat",
-                                       "else", "do", "defer"].map { Array($0.utf8) }
+                               "else", "do", "defer"].map { Array($0.utf8) }
     static let caseClauses = ["case", "default"].map { Array($0.utf8) }
     static let escapes = ["Task"].map { Array($0.utf8) }
     static let wrapMarker = Array("awaitEvent".utf8)

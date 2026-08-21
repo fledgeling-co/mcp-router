@@ -157,6 +157,45 @@ a token before connecting, or on every reconnect. That is tolerable only because
 zero-interaction — so verify against real clients that it does not open a browser tab per
 reconnect. Long-lived tokens plus a working refresh is the mitigation.
 
+## The spec tension, recorded rather than resolved
+
+The xAI lane raised a constraint the other two did not, and it cuts at the design:
+
+> If you advertise an AS, the spec then says the MCP server **MUST** validate tokens — so
+> either stay non-protected (ignore Bearer, never `401`) or actually protect `/mcp`. Do not
+> mix them.
+
+The decided design does mix them: advertise an authorization server so the client's button
+succeeds, and keep `/mcp` ignoring Bearer so nothing breaks. That is knowingly outside the
+letter of the spec, and it should be taken as a decision rather than discovered later as a bug.
+The lane's own framing of why the button exists at all is that it is client UX — a client
+assuming OAuth for every HTTP server — rather than anything the server asked for.
+
+The honest alternatives are: accept the deviation and document it; or actually protect `/mcp`,
+which means a loopback relay starts rejecting requests and every existing client breaks until
+it re-authenticates. The second is a much larger change and a worse product. **Recorded as the
+owner's call, not settled here.**
+
+Three further constraints from the same lane, all cheap:
+
+- Do not send `Access-Control-Allow-Private-Network`, and add no `OPTIONS` handler that
+  blesses a web origin.
+- Do not fetch a client-metadata `client_id` URL — that is an SSRF the router would perform on
+  request.
+- Do not put the issued token in a cookie.
+- `[::1]` belongs in the loopback set alongside `127.0.0.1` and `localhost`, any port per
+  RFC 8252.
+
+Its CORS decomposition is also sharper than the second lane's and corrects it: **DCR does not
+have the simple-request hole** — it is `POST application/json`, which preflights, and the
+router answers no preflight. `/token` is a form POST that a page can send but cannot read.
+**`/authorize` is a navigation, not a CORS request at all, and is the one that matters.**
+
+And a concrete failure mode for the stateless design: an in-memory authorization server forgets
+registrations, so after a restart the next `refresh_token` grant returns `invalid_client`, and
+*some clients mark the server logged-out and stop sending tools*. That is the R14 bug returning
+by another route, which is the argument for the signed-blob `client_id` above.
+
 ## Acceptance
 
 1. A client's Authenticate action against `http://127.0.0.1:8879/mcp` completes successfully.

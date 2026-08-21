@@ -59,11 +59,25 @@ struct PoolAwaitBoundTests {
 
         var seen = 0
         var offenders: [String] = []
+        var unreadable: [String] = []
         for file in files {
-            let sites = try AwaitBoundScan.sites(in: String(contentsOf: file, encoding: .utf8))
-            seen += sites.count
-            offenders += sites.filter { !$0.bounded }.map { "\(file.lastPathComponent):\($0.line)" }
+            let read = try AwaitBoundScan.scan(String(contentsOf: file, encoding: .utf8))
+            seen += read.sites.count
+            offenders += read.sites.filter { !$0.bounded }
+                .map { "\(file.lastPathComponent):\($0.line)" }
+            if !read.readable { unreadable.append(file.lastPathComponent) }
         }
+        // A file the lexer lost sync on yields no call sites, which is indistinguishable from a
+        // clean file. Saying so is the difference between this gate missing something and this gate
+        // reporting that it could not look.
+        #expect(
+            unreadable.isEmpty,
+            """
+            \(unreadable.joined(separator: ", ")) ended mid-comment or mid-literal, or left \
+            unbalanced braces, so the scan of them proves nothing. A construct the delexer does not \
+            know — a regex literal carrying `/*`, most likely — is the thing to look for.
+            """
+        )
         // The offending locations rather than the source they were found in. `#expect` displays the
         // expression it was handed, so passing `lines` to it printed the whole 13 KB file ahead of
         // the sentence that says what to do about it (`D-g3-o`).
@@ -106,11 +120,33 @@ enum AwaitBoundScan {
     private static let names = [Array("awaitReap".utf8), Array("awaitSessionEnded".utf8)]
 
     static func sites(in source: String) -> [Site] {
+        scan(source).sites
+    }
+
+    /// A file read, and whether the read is trustworthy.
+    ///
+    /// `readable` is false when delexing ends mid-comment or mid-literal, or when the braces left
+    /// behind do not balance. Both mean the lexer lost sync — a Swift 5.7 regex literal containing
+    /// `/*` would do it — and a scan that has lost sync reports **no** call sites rather than the
+    /// wrong ones, which is a silent miss. Reporting the file as unreadable turns that whole class
+    /// into a named red instead.
+    static func scan(_ source: String) -> (sites: [Site], readable: Bool) {
         var delexer = Delexer(source)
         let code = delexer.run()
-        return callOffsets(in: code).map {
+        let sites = callOffsets(in: code).map {
             Site(line: line(at: $0, in: code), bounded: isBounded(callAt: $0, in: code))
         }
+        return (sites, delexer.endedCleanly && bracesBalance(in: code))
+    }
+
+    private static func bracesBalance(in code: [UInt8]) -> Bool {
+        var depth = 0
+        for byte in code {
+            if byte == ScanByte.openBrace { depth += 1 }
+            if byte == ScanByte.closeBrace { depth -= 1 }
+            if depth < 0 { return false }
+        }
+        return depth == 0
     }
 
     private static func line(at offset: Int, in code: [UInt8]) -> Int {
@@ -140,7 +176,20 @@ enum AwaitBoundScan {
         // The byte after the name must be whitespace or `(`, so `.awaitReaper(` is not this call.
         index = skipSpace(from: index + name.count, in: code)
         guard index < code.count, code[index] == ScanByte.openParen else { return nil }
+        // `pool.awaitReap(_:epoch:)` is a reference to the method, not a call of it, and awaits
+        // nothing — an argument list ending in `:` is the shape no call can have.
+        let close = matchingParen(from: index, in: code)
+        guard close < 0 || lastMeaningful(before: close - 1, in: code) != ScanByte.colon
+        else { return nil }
         return index + 1
+    }
+
+    private static func lastMeaningful(before end: Int, in code: [UInt8]) -> UInt8? {
+        var index = end - 1
+        while index >= 0, code[index] <= ScanByte.space {
+            index -= 1
+        }
+        return index >= 0 ? code[index] : nil
     }
 
     private static func matches(_ name: [UInt8], at index: Int, in code: [UInt8]) -> Bool {
@@ -150,7 +199,7 @@ enum AwaitBoundScan {
 
     private static func skipSpace(from index: Int, in code: [UInt8]) -> Int {
         var index = index
-        while index < code.count, code[index] == ScanByte.space || code[index] == ScanByte.newline {
+        while index < code.count, code[index] <= ScanByte.space {
             index += 1
         }
         return index
@@ -183,33 +232,144 @@ enum AwaitBoundScan {
 
     private enum Verdict { case bounded, function, keepWalking }
 
-    /// The statement the `{` at `index` terminates — back to the previous `{`, `}` or `;`. A span
-    /// rather than a line is what lets an `awaitEvent(` whose arguments wrap be seen as the opener
-    /// it is, and the reason no indentation is consulted anywhere.
+    /// The statement the `{` at `index` terminates, and what it makes of the block.
     ///
     /// `func ` is tested first and it is load-bearing: a function whose own signature contains the
     /// needle — `func awaitEvent(…) {` — would otherwise read as a wrap around its own body, which
-    /// is how a bare call planted beside `awaitEvent` first got through.
+    /// is how a bare call planted beside `awaitEvent` first got through. Both markers are matched
+    /// on a **word boundary**, because `if myfunc {` contains `func ` and `mock_awaitEvent(`
+    /// contains `awaitEvent(` — an out-of-family reviewer wrote both out, one in each direction.
     private static func verdict(forBlockOpenedAt index: Int, in code: [UInt8]) -> Verdict {
-        var start = index - 1
-        while start >= 0, !ScanByte.isStatementBoundary(code[start]) {
-            start -= 1
+        // Whitespace runs collapse to one space rather than vanishing: removing it altogether
+        // welds `try await awaitEvent(` into one word and destroys the boundary being tested for.
+        let opener = collapsed(statement(endingAt: index, in: code))
+        // A declaration's body is never a wrap, whatever its signature says. `func` was the first
+        // of these and the others are its siblings: an `init` inside a wrapped block runs whenever
+        // the type is instantiated, which is the same hazard.
+        if Self.declarations.contains(where: { wordIndex(of: $0, in: opener) != nil }) {
+            return .function
         }
-        let opener = Array(code[(start + 1) ..< index])
-        if contains(Self.funcMarker, in: opener) { return .function }
-        // Whitespace removed for the wrapper test alone, so `awaitEvent (` and an opener whose
-        // arguments wrap onto their own lines are both the wrapper they look like.
-        if contains(Self.wrapMarker, in: opener.filter { $0 > ScanByte.space }) { return .bounded }
-        return .keepWalking
+        // A control-flow body is a body, not a trailing closure. `if flags.awaitEvent(x) {` has
+        // exactly the shape the ownership test below accepts, because a condition has no closing
+        // paren of its own — an out-of-family lane wrote out five of these.
+        if Self.bodyKeywords.contains(firstWord(of: opener)) { return .keepWalking }
+        // A closure handed to `Task` outlives the block it was written in, so being inside one is
+        // not being inside the wait. Lexical containment and execution bound part company here, and
+        // this is the one place the scan can tell.
+        if Self.escapes.contains(where: { wordIndex(of: $0, in: opener) != nil }) {
+            return .function
+        }
+        guard let name = wordIndex(of: Self.wrapMarker, in: opener) else { return .keepWalking }
+        // The wrapper is a free function. `analytics.awaitEvent("x") { … }` is somebody else's
+        // method that happens to share the name, and it bounds nothing.
+        if name > 0, opener[name - 1] == ScanByte.dot { return .keepWalking }
+        var paren = name + Self.wrapMarker.count
+        if paren < opener.count, opener[paren] == ScanByte.space { paren += 1 }
+        guard paren < opener.count, opener[paren] == ScanByte.openParen else { return .keepWalking }
+        // The trailing closure belongs to the call whose arguments close LAST. Without this,
+        // `withTimeout(awaitEvent("x")) { … }` reads as an `awaitEvent` block and a genuinely
+        // unbounded await inside it passes — as does `guard awaitEvent(…) != nil else { … }`.
+        let after = matchingParen(from: paren, in: opener)
+        // Never closing means the brace sits INSIDE the argument list, which is the non-trailing
+        // spelling `awaitEvent("x", { … })` — bounded, and one formatting choice from the blessed
+        // form, so reading it as a red is the false fire this gate exists to not be.
+        if after < 0 { return .bounded }
+        return opener[after...].allSatisfy { $0 == ScanByte.space } ? .bounded : .keepWalking
     }
 
-    private static let funcMarker = Array("func ".utf8)
-    private static let wrapMarker = Array("awaitEvent(".utf8)
-
-    private static func contains(_ needle: [UInt8], in haystack: [UInt8]) -> Bool {
-        guard needle.count <= haystack.count else { return false }
-        return (0 ... haystack.count - needle.count).contains {
-            Array(haystack[$0 ..< $0 + needle.count]) == needle
+    /// Whether the word ending just before `index` is one no statement can end on, so the line
+    /// break is a continuation. `if` on its own line above its condition is legal Swift, and without
+    /// this the span starts below the `if` and the body reads as the wrapper's trailing closure.
+    private static func continuesStatement(before index: Int, in code: [UInt8]) -> Bool {
+        var end = index
+        while end > 0, code[end - 1] <= ScanByte.space {
+            end -= 1
         }
+        var start = end
+        while start > 0, ScanByte.isIdentifier(code[start - 1]) {
+            start -= 1
+        }
+        return bodyKeywords.contains(Array(code[start ..< end]))
+    }
+
+    private static func firstWord(of opener: [UInt8]) -> [UInt8] {
+        var start = 0
+        while start < opener.count, opener[start] == ScanByte.space {
+            start += 1
+        }
+        var end = start
+        while end < opener.count, ScanByte.isIdentifier(opener[end]) {
+            end += 1
+        }
+        return Array(opener[start ..< end])
+    }
+
+    private static func collapsed(_ text: [UInt8]) -> [UInt8] {
+        var out: [UInt8] = []
+        for byte in text {
+            let plain = byte <= ScanByte.space ? ScanByte.space : byte
+            if plain == ScanByte.space, out.last == ScanByte.space { continue }
+            out.append(plain)
+        }
+        return out
+    }
+
+    /// The statement text before the `{` at `index`.
+    ///
+    /// Back to the previous `{`, `}`, `;` **or line break** — Swift ends a statement at a newline
+    /// too, and leaving that out let an `awaitEvent(` on an entirely separate earlier line bound a
+    /// call it does not enclose. A newline inside unclosed brackets is a continuation rather than an
+    /// end, which is what keeps a wrapped `awaitEvent(` opener readable, and a span that comes back
+    /// empty keeps walking, which is what keeps a brace on its own line readable.
+    private static func statement(endingAt index: Int, in code: [UInt8]) -> [UInt8] {
+        var start = index - 1
+        var brackets = 0
+        var lastNonEmpty = index
+        while start >= 0 {
+            let byte = code[start]
+            if ScanByte.isStatementBoundary(byte) { break }
+            if byte == ScanByte.closeParen || byte == ScanByte.closeSquare { brackets += 1 }
+            if byte == ScanByte.openParen || byte == ScanByte.openSquare { brackets -= 1 }
+            if byte == ScanByte.newline, brackets <= 0, !continuesStatement(before: start, in: code) {
+                if code[(start + 1) ..< lastNonEmpty].contains(where: { $0 > ScanByte.space }) {
+                    return Array(code[(start + 1) ..< index])
+                }
+                lastNonEmpty = start
+            }
+            start -= 1
+        }
+        return Array(code[(start + 1) ..< index])
+    }
+
+    private static let declarations = ["func", "init", "deinit", "subscript"].map { Array($0.utf8) }
+    private static let bodyKeywords = ["if", "while", "for", "switch", "guard", "catch", "repeat",
+                                       "else", "do", "defer"].map { Array($0.utf8) }
+    private static let escapes = ["Task"].map { Array($0.utf8) }
+    private static let wrapMarker = Array("awaitEvent".utf8)
+
+    /// Where `needle` occurs as a whole word, or nil. Both sides are checked: without the left one
+    /// `mock_awaitEvent(` is a wrap and `if myfunc {` is a declaration; without the right one
+    /// `subscriptValue` is a declaration and `awaitEventually(` is a wrap.
+    private static func wordIndex(of needle: [UInt8], in haystack: [UInt8]) -> Int? {
+        guard needle.count <= haystack.count else { return nil }
+        return (0 ... haystack.count - needle.count).last {
+            Array(haystack[$0 ..< $0 + needle.count]) == needle
+                && ($0 == 0 || !ScanByte.isIdentifier(haystack[$0 - 1]))
+                && ($0 + needle.count == haystack.count
+                    || !ScanByte.isIdentifier(haystack[$0 + needle.count]))
+        }
+    }
+
+    /// One past the `)` matching the `(` at `open`, or -1 if it is never closed.
+    private static func matchingParen(from open: Int, in text: [UInt8]) -> Int {
+        var depth = 0
+        for index in open ..< text.count {
+            if text[index] == ScanByte.openParen { depth += 1 }
+            if text[index] == ScanByte.closeParen {
+                depth -= 1
+                if depth == 0 { return index + 1 }
+            }
+        }
+        return -1
     }
 }

@@ -113,55 +113,133 @@ inside a literal is no longer block structure. `func ` is still tested before `a
 opener, and that is still load-bearing — it is what stops `func awaitEvent(…) {` wrapping its own
 body.
 
+### Criterion 2, answered: it is neither one fix nor two, and the donor is defective
+
+The brief proposes making `isBounded` strip comments before its same-line test "the way `isCall`
+already does", and asks whether that closes both directions or one. Traced against the six measured
+defects, it closes **three of six**, and the shared cause it points at is not the real one.
+
+- It closes the three `D-g3-l` misses — the trailing `// TODO`, the block comment and the URL — all
+  of which turn on the raw line's text.
+- It does **not** close `D-g3-m`. That defect is in `isCall`, the function being copied *from*:
+  `isCall` truncates at the first `//` with no notion of a string literal, so
+  `let u = "http://x"; await pool.awaitReap(a)` is never seen as a call at all. Copying its
+  treatment into `isBounded` propagates the bug rather than curing it.
+- It closes **none** of the three `D-g3-n` false fires. Two are indentation and one is `isComment`'s
+  three-prefix test; comment truncation reaches neither.
+
+So the "one fix for both directions" reading is false on the evidence — the two directions do not
+share the mechanism the brief attributes to them. What they do share sits one level up: **`isCall`
+and `isBounded` each carry a hand-rolled model of Swift's comment grammar, and both models are
+wrong.** Counted that way it is one fix — replace the model, in one place, feeding both — which is
+what shipped. Counted as patches it is three, and it still leaves the other direction untouched,
+because indentation-as-block-structure needs its own independent replacement that no amount of
+comment handling can reach.
+
+That is why the same-line test was deleted rather than repaired. `M11` reinstates it and reds
+exactly the three `D-g3-l` controls, which is the measurement behind this paragraph rather than an
+argument for it.
+
 ### How the control set was established as complete rather than longer
 
 The population to cover is not "shapes somebody might write", which is open. It is the two grammars
-the scanner now implements, which are closed and enumerable. **32 controls**, split by family and
+the scanner now implements, which are closed and enumerable. **53 controls**, split by family and
 each asserting both directions — which lines are call sites, and which of those must report.
 
 Each was then held to the standard this repo applies to any guard: **it must have been seen to
-fail.** Sixteen single-mechanism mutations of the classifier, applied one at a time and restored
+fail.** Thirty-one single-mechanism mutations of the classifier, applied one at a time and restored
 from a `cp` backup:
 
 | mutation | mechanism removed | controls red |
 |---|---|---|
 | M1 | block comments close at their innermost terminator | 1 |
-| M2 | literal stripping | 7 |
+| M2 | literal stripping | 9 |
 | M3 | interpolation tracking | 1 |
 | M4 | escape handling | 2 |
-| M5 | the `func ` terminator on an opener | 1 |
-| M6 | the opener span, cut back to the call's own line | 1 |
+| M5 | the declaration terminators on an opener | 2 |
+| M6 | the opener span, cut back to the call's own line | 3 |
 | M7 | brace-depth bookkeeping | 2 |
 | M8 | line comments | 1 |
 | M9 | position-preserving blanking of non-ASCII | 1 |
 | M10 | the `(` boundary after the call's name | 1 |
 | M11 | the old same-line `awaitEvent(` shortcut, reinstated | 3 |
-| M12 | block comments | 2 |
-| M13 | `isBounded` always true | 19 |
-| M14 | `isBounded` always false | 11 |
+| M12 | block comments | 2 + 1 readability |
+| M13 | `isBounded` always true | 35 |
+| M14 | `isBounded` always false | 15 |
 | M15 | the leading-dot requirement on a call | 1 |
-| M16 | block comments never close | 2 |
+| M16 | block comments never close | 4 |
+| M17 | the statement boundary at a line break | 1 |
+| M18 | the left word boundary on both markers | 2 |
+| M19 | the trailing closure belonging to the call that closes last | 1 |
+| M20 | the newline rule on a multi-line literal opener | 1 |
+| M21 | the readability report | 3 readability |
+| M22 | continuing past an empty statement span | 1 |
+| M23 | the brace-balance half of the readability report | 1 readability |
+| M24 | `\r` skipped before a multi-line literal's line break | 1 |
+| M25 | a line comment at EOF counting as a clean end | 1 |
+| M26 | control-flow keywords opening a body rather than a wrap | 4 |
+| M27 | `init`/`deinit`/`subscript` as terminators | 1 |
+| M28 | an unclosed argument list reading as a wrap | 1 |
+| M29 | the right word boundary on both markers | 1 |
+| M30 | tabs skipped between the dot and the name | 1 |
+| M31 | an argument list ending in `:` being a reference | 1 |
+| M32 | a line break after a word no statement can end on | 1 |
+| M33 | `Task` as an escaping context | 1 |
+| M34 | the wrapper having to be unqualified | 1 |
 
-**16 of 16 mutations red, and all 32 controls red under at least one of them.** M11 is the
+**34 of 34 mutations red, and all 53 controls red under at least one of them.** M11 is the
 instructive one the brief asked about: it reinstates the single line this pass deleted and reds
 exactly the three `D-g3-l` shapes, which is the direct in-repo demonstration that those controls
 discriminate the defect they were written for.
 
-Two controls were rewritten during this because they did **not** discriminate as first drafted.
+**M17 is worth reading twice, because it changed its answer.** When the statement boundary at a line
+break was first added it reds nothing: the trailing-closure ownership rule already rejected every
+shape it was written for, and it was kept only because it makes the opener the statement it claims
+to be. Two rounds later the third lane found `if` on the line above its condition, and the fix for
+that — a line break is a boundary only when the word before it can end a statement — is what makes
+the boundary load-bearing. Removing it now reds a control. A mechanism with no demonstrated power
+is not necessarily dead; sometimes it is waiting for the defect that needs it, and the honest
+handling is to say which of the two you have evidence for.
+
+Three controls were rewritten during this because they did **not** discriminate as first drafted.
 `"\(d["k"]) x"` re-synchronises by accident when interpolation tracking is removed, so the needle
 was moved inside the nested literal, where the two readings actually disagree; and no fixture had a
 non-ASCII byte in code position, so nothing could catch a delexer that dropped bytes instead of
-blanking them. Both facts came from running the matrix, not from reading the code.
+blanking them. And the `func awaitEvent(…)` fixture carried a trailing `async throws`, which M19's ownership rule
+rejects on its own, so the `func ` terminator it was written for was never what decided it; the
+signature now ends at its closing paren. All three came from running the matrix rather than from
+reading the code.
 
-### What is outside the claim
+### What reading the grammar buys, and where it still approximates
 
-Complete with respect to those two grammars; **not** complete with respect to Swift. Stated in the
-source rather than implied: a call reached through a stored function reference or a bare
-`awaitReap(…)` with no receiver carries nothing to match; a call inside a nested `func` within a
-wrap reports unbounded, because the walk stops at the enclosing `func`; `#if` branches are read as
-though every branch compiles; the three directories in `D-g3-u` are outside the scanned trees; and
-a bare call added to `PoolAwaitBoundTests.swift` itself is excluded with the needles it is spelled
-with. `D-g3-t` is unchanged — the gate asserts the wrap exists and says nothing about its contents.
+**Bought, and each of these is measured rather than argued.** The comment and literal grammar is
+Swift's own, so "text that looks like code and is not" is closed by construction rather than by
+listing shapes — removing literal stripping reds nine controls at once. Block structure is brace
+nesting, which is Swift's own, so indentation, tabs, `#if` placement and where a brace sits cannot
+change the answer at all. Delexing is position-preserving — same byte length, same line breaks — so
+a reported line number is the source's line number, asserted over every fixture rather than assumed.
+And losing sync is now a **named red** instead of a silent miss, which is what caught a raw literal
+blanking the tail of a real file.
+
+**Still approximated, and this is where both reviewer rounds found their defects — not in the
+lexer.** `statement` and `verdict` decide *which call a brace belongs to* using paren matching plus
+a keyword list. That is an approximation of Swift's statement and trailing-closure grammar, and it
+is the scanner's remaining soft edge. Named consequences: an accessor block (`get`, `set`,
+`willSet`, `didSet`) is not a terminator where `func`, `init`, `deinit` and `subscript` are; a
+second **labelled** trailing closure on the wrapper would read as unbounded; and a generic spelling
+`awaitEvent<T>(…)` would too. None of the three is reachable with `awaitEvent`'s current signature,
+and each fails toward a red on correct source rather than toward a miss.
+
+Also outside: **Swift 5.7 regex literals** (`/…/`, `#/…/#`) are not lexed, so one carrying a block
+comment opener or an odd quote count desynchronises the delexer — the readability guard turns that
+into a named red except where the file happens to resynchronise, which was the CRLF shape and is now
+closed. `#if` branches are read as though every branch compiles. A call through a stored function
+reference or a bare `awaitReap(…)` with no receiver carries nothing to match. A call inside a nested
+`func` within a wrap reports unbounded, because the walk stops at the enclosing `func`. The three
+directories in `D-g3-u` are outside the scanned trees, and a bare call added to
+`PoolAwaitBoundTests.swift` itself is excluded with the needles it is spelled with. `D-g3-t` is
+unchanged: the gate asserts the wrap exists and says nothing about what runs inside it, so a closure
+captured and escaped from the wrap satisfies it.
 
 The controls are deliberately **not** excluded from the scan. Every needle in them sits inside a
 literal, so a scan that reads one as code is a scan whose literal handling is broken, and the
@@ -181,9 +259,146 @@ substitute for it. `D-g3-g` stays deferred by this pass's scope, so `D-g3-q` doe
 
 ### Gates
 
-`make test` **0** and **0**; `make lint` **0** over 497 files; `make parity` **0**;
-`make acceptance-r6` **0**. The assigned mutation — deadline and sleep on `defaultIdleMs` while the
-arming still records `idleMs` — reds at **exit 2 after 11.280 s**, at `PoolReapingTests.swift:98:29`
-naming *timed out after 10.0s waiting for: `own` to be reaped under the arming it just made*. All
-mutated files restored from a `cp` backup. The machine sat at **0.0% idle** throughout, with two
-sibling runners live in the same repo.
+Measured on the delivered tree, each to a full log rather than through a pipe:
+
+| gate | exit | output |
+|---|---|---|
+| `make test` | **0** | `Test run with 1587 tests in 199 suites passed after 4.941 seconds` |
+| `make test` again | **0** | `Test run with 1587 tests in 199 suites passed after 4.130 seconds` |
+| `make lint` | **0** | `Done linting! Found 0 violations, 0 serious in 497 files` |
+| `make parity` | **0** | `parity: 358 vector cases compared (floor 358)` |
+| `make acceptance-r6` | **0** | `examined=6 failures=0` |
+
+The assigned mutation — deadline and sleep on `defaultIdleMs` while the arming still records
+`idleMs` — reds at **exit 2**, `Test run with 1587 tests in 199 suites failed after 10.589 seconds
+with 1 issue`, at `PoolReapingTests.swift:98:29` naming *timed out after 10.0s waiting for: `own` to
+be reaped under the arming it just made*. That is the whole property: a named red inside the CI
+bound where the unbounded form measured 601.184 s. Every mutated file was restored from a `cp`
+backup and the restoration diffed before the gates ran.
+
+One red on an earlier gate run, recorded rather than re-rolled away:
+`CallbackLifecycleTests.swift:238` — *the callback listener was cancelled before it bound* — went
+red once in six runs, in a file this pass does not touch and which carries three fixed sleeps. It is
+the third measured instance of `D-g3-c`'s class and is recorded under `D-g3-s`. Machine idle ranged
+from **0.0%** to **44.6%** across the session with two sibling runners live in the same repo.
+
+### The out-of-family round found four more, and the readability guard found a fifth
+
+Each lane was asked to **break** the scanner in both directions rather than to review it. That
+question has produced a defect on every round of this item, and it did again — four real ones, all
+fixed here and registered as `D-g3-y`:
+
+- the opener span ran back to the enclosing brace, so `log(awaitEvent(x))` on an earlier line bounded
+  a later `if` block;
+- the span's `awaitEvent(` could belong to an inner call, so `withTimeout(awaitEvent("x")) { … }` and
+  `guard awaitEvent(…) != nil else { … }` both read as wraps — the trailing closure now has to belong
+  to the call whose arguments close **last**;
+- both markers matched mid-identifier, so `mock_awaitEvent(` was a wrap and `if myfunc {` was a
+  `func`;
+- and, prompted by a lane pointing at Swift 5.7 regex literals as a desync route rather than by any
+  lane naming it, a **readability guard**: delexing that ends mid-comment or mid-literal, or leaves
+  unbalanced braces, now reports the file as unread instead of as clean.
+
+That guard immediately reported `PrimitiveBodyTests.swift`. A raw literal at `:140` holding two
+quote characters — hash, quote, quote, quote, quote, hash — was being read as a multi-line opener
+that never closes, blanking the rest of a real file. Swift requires a multi-line literal's content
+to start on the next line; the rule now says so. **This is the shape of miss the whole gate exists
+to not have**, and nothing but the guard would have shown it: a desynchronised scan finds no call
+sites, which looks exactly like a file that had none.
+
+Eight controls and seven mutations were added for that round, and nine more controls with eight
+more mutations for the round below. The lanes are recorded in the run
+report: gemini delivered, codex was out of credits until 27 August with its header verified, and
+grok failed twice — hallucinated output on the direct CLI and out of usage on the `cursor-agent`
+fallback.
+
+### A third round on the finished scanner, and three more
+
+The final state went back to the Google lane with the same instruction. Three more real defects,
+all fixed here and folded into `D-g3-y`:
+
+- **An `if` on the line above its condition.** `if` ⏎ `awaitEvent("ready") {` is legal Swift, and the
+  statement boundary added in round one stopped at that line break, so the span began below the `if`
+  and the body read as the wrapper's trailing closure. A line break is now only a boundary when the
+  word before it is one a statement can end on.
+- **A closure handed to `Task`.** `awaitEvent("x") { Task.detached { await pool.awaitReap(a) } }` is
+  lexically inside the wrap and outlives it. This is the one place the scan can tell lexical
+  containment from an execution bound, and it now does.
+- **Somebody else's method of the same name.** `analytics.awaitEvent("x") { … }` bounded nothing and
+  read as a wrap, because `.` counts as a word boundary. The wrapper is a free function, so a
+  qualified spelling is now rejected.
+
+Two of the lane's findings were **not** taken, with the reason recorded rather than left implicit.
+`awaitEvent<T>(…)` and a second labelled trailing closure would both be read as unbounded — but
+`awaitEvent`'s signature has no generic parameter and one closure parameter, so neither is
+reachable, and both fail toward a red on correct source rather than toward a miss. The same holds
+for a closure passed as an earlier argument alongside a trailing one. All three are listed above
+under what is still approximated.
+
+The lane's last finding is a genuine trade and is kept deliberately: a Swift 5.7 regex literal
+carrying an unbalanced brace would trip the readability guard and red CI on correct source. There
+are **no regex literals in the four scanned trees today** (checked), the guard's message names a
+regex literal as the first thing to look for, and the alternative is the silent miss it was added
+to remove. Named as `D-g3-y`'s open edge rather than pretended away.
+
+### The lanes
+
+| lane | family | outcome |
+|---|---|---|
+| `gemini-3.7-flash-high` | Google | **Delivered twice.** Round one found the opener span, the trailing-closure owner and both word boundaries; round three found the three above |
+| `claude-fable-5` at high | Anthropic, substituting for codex | **Delivered.** Ported the implementation into a harness and *ran* every break rather than tracing it — five defects including the CRLF desync that keeps the readability guard green |
+| `gpt-5.6-sol` at high | OpenAI | **Down.** `ERROR: You've hit your usage limit … try again at Aug 27th`. Header verified before the refusal: `model: gpt-5.6-sol`, `reasoning effort: high` |
+| `grok-4.6` at xhigh | xAI | **Down, four ways.** The direct CLI returned output about an unrelated repository at a 5.6 KB packet; the `cursor-agent --force --model grok-4.6` fallback returned `You're out of usage`; and two runs at a **3.7 KB** packet emitted only narration before the 900 s alarm killed them |
+
+Asking each lane to *break* the scanner rather than review it produced a defect on every round it
+was asked — nine across the two that answered, plus one the readability guard found on its own.
+
+### The instrument question, answered rather than assumed
+
+A reviewer argued that a byte scanner is the wrong instrument and that a **compile-time witness** —
+a type only `awaitEvent` can mint, required by `awaitReap` — is strictly better. On the property it
+is right, and the argument is registered as `D-g3-z` rather than dismissed. It is not taken because
+the witness would have to live in `RouterCore` for `UpstreamPool` to name it, and `@testable import`
+makes any `internal` initialiser mintable from any test, so making it unforgeable means moving the
+bound into `RouterCore` — the layering the accessor's own doc argues against. SwiftSyntax is the same
+property with a real parser and costs an exact-pinned pre-1.0 dependency and its build time. The
+scan is what fits the constraint today, and what it cannot do is now written down rather than left
+to be rediscovered.
+
+### A second out-of-family round, and five more in both directions
+
+The substitute lane (`claude-fable-5`, high) was given the same instruction and did something the
+others did not: it ported the implementation verbatim into a harness and **ran** each break rather
+than tracing it. Five confirmed defects, all fixed here and registered under `D-g3-y`:
+
+- **A control-flow body reads as a wrap.** `if flags.awaitEvent(ready) { … }` has exactly the shape
+  the ownership rule accepts, because a condition carries no closing paren of its own — the same for
+  `while`, `for … in`, `switch` and `catch … where`. Five constructed and all five confirmed. The
+  opener's first word is now checked against the body keywords.
+- **CRLF desynchronises the delexer while leaving it looking clean.** `opensMultiline` skipped
+  spaces and tabs before the line break but not `\r`, so in a CRLF file `"""` read as three
+  single-line literals and the whole string body was scanned as code. It realigns afterwards, so
+  **`endedCleanly` and the brace balance both still passed** — the one break that defeats the
+  readability guard as well. A string containing `awaitEvent("ghost") {` then bounds a real call
+  below it, and a string containing a call reds on prose.
+- **`init`, `deinit` and `subscript` bodies were walked straight through** where `func` terminates.
+  A call in the `init` of a type declared inside a wrap ran whenever the type was instantiated and
+  read as bounded — the unlisted sibling of the nested-`func` residue.
+- **A closure passed as an ordinary argument was a false red.** `awaitEvent("x", { … })` leaves
+  `awaitEvent`'s paren unclosed within the opener, and the walk stepped past the only bound there
+  is. One formatting choice from the blessed spelling, so it was the most likely of all of them to
+  fire on real code.
+- **Two smaller false fires:** a tab between the dot and the name made a real call invisible, and an
+  unapplied method reference `pool.awaitReap(_:epoch:)` — which awaits nothing — reported unbounded.
+
+The same lane confirmed the round above holds: `withTimeout(awaitEvent("x")) { }`, the `guard` form,
+chained trailing closures, second trailing closures, interpolation closures carrying braces, nested
+raw and multi-line literals, `#""""#`, `\u{…}`, keypath backslashes and split openers all classify
+correctly.
+
+It also corrected one leg of the `D-g3-z` argument, and the correction is taken: a capability
+token's source location **can** ride on default `#filePath`/`#line` arguments, so "a breaker that
+names its line needs the caller's location" does not block it. What still does is forgeability —
+the token type must live in `RouterCore` for `UpstreamPool` to name it, and `@testable import` makes
+any `internal` initialiser mintable from any test, so making it unforgeable means moving the bound
+into `RouterCore`. That is a real design change with its own evidence to gather, not a gap-fix.

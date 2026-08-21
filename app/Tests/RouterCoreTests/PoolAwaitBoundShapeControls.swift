@@ -50,7 +50,7 @@ enum AwaitBoundShapeControls {
         AwaitBoundControl(
             "a function whose own signature carries the needle does not wrap its body",
             [
-                "func awaitEvent(_ what: String, _ body: () async -> Void) async throws {",
+                "func awaitEvent(_ what: String, _ body: () async -> Void) {",
                 "    await p.awaitReap(a)",
                 "}"
             ],
@@ -125,7 +125,15 @@ enum AwaitBoundShapeControls {
                 "}"
             ],
             calls: [3], unbounded: []
-        ),
+        )
+    ]
+}
+
+/// Family C — how a call may be spelled, and what only looks like one. Split from Family B because
+/// one enum may not exceed 250 lines, and the seam is a real one: these turn on the call's own
+/// shape rather than on the block that encloses it.
+enum AwaitBoundSpellingControls {
+    static let all: [AwaitBoundControl] = [
         AwaitBoundControl(
             "a space before the call's paren is the same call",
             ["func f() async throws {", "    await p.awaitReap (a)", "}"],
@@ -144,6 +152,197 @@ enum AwaitBoundShapeControls {
         AwaitBoundControl(
             "a definition is not a call, because a call needs the dot",
             ["func awaitReap(_ name: String) async {", "    await other()", "}"],
+            calls: [], unbounded: []
+        ),
+        AwaitBoundControl(
+            "a wrapper named on an earlier statement does not bound a later block",
+            [
+                "func f() async throws {",
+                #"    log(awaitEvent(named: "x"))"#,
+                "    if true {",
+                "        await p.awaitReap(a)",
+                "    }",
+                "}"
+            ],
+            calls: [4], unbounded: [4]
+        ),
+        AwaitBoundControl(
+            "a trailing closure belongs to the call whose arguments close last",
+            [
+                "func f() async throws {",
+                #"    withTimeout(awaitEvent("x")) {"#,
+                "        await p.awaitReap(a)",
+                "    }",
+                "}"
+            ],
+            calls: [3], unbounded: [3]
+        ),
+        AwaitBoundControl(
+            "a `guard` whose condition names the wrapper does not bound its else block",
+            [
+                "func f() async throws {",
+                #"    guard awaitEvent("x") != nil else {"#,
+                "        await p.awaitReap(a)",
+                "        return",
+                "    }",
+                "}"
+            ],
+            calls: [3], unbounded: [3]
+        ),
+        AwaitBoundControl(
+            "a longer identifier ending in the wrapper's name is not the wrapper",
+            [
+                "func f() async throws {",
+                #"    mock_awaitEvent("x") {"#,
+                "        await p.awaitReap(a)",
+                "    }",
+                "}"
+            ],
+            calls: [3], unbounded: [3]
+        ),
+        AwaitBoundControl(
+            "an identifier ending in `func` does not terminate the walk",
+            [
+                "func f() async throws {",
+                #"    try await awaitEvent("x") {"#,
+                "        let myfunc = true",
+                "        if myfunc {",
+                "            await p.awaitReap(a)",
+                "        }",
+                "    }",
+                "}"
+            ],
+            calls: [5], unbounded: []
+        ),
+        AwaitBoundControl(
+            "a brace on its own line still belongs to the opener above it",
+            [
+                "func f() async throws {",
+                #"    try await awaitEvent("x")"#,
+                "    {",
+                "        await p.awaitReap(a)",
+                "    }",
+                "}"
+            ],
+            calls: [4], unbounded: []
+        ),
+        AwaitBoundControl(
+            "an `if` whose condition names the wrapper opens a body, not a wrap",
+            [
+                "func f() async throws {",
+                "    if awaitEvent(ready) {",
+                "        await p.awaitReap(a)",
+                "    }",
+                "}"
+            ],
+            calls: [3], unbounded: [3]
+        ),
+        AwaitBoundControl(
+            "a `for` whose sequence names the wrapper opens a body, not a wrap",
+            [
+                "func f() async throws {",
+                "    for id in awaitEvent(batch) {",
+                "        await p.awaitReap(id)",
+                "    }",
+                "}"
+            ],
+            calls: [3], unbounded: [3]
+        ),
+        AwaitBoundControl(
+            "a closure passed as an ordinary argument to the wrapper still bounds",
+            [
+                "func f() async throws {",
+                #"    try await awaitEvent("x", {"#,
+                "        await p.awaitReap(a)",
+                "    })",
+                "}"
+            ],
+            calls: [3], unbounded: []
+        ),
+        AwaitBoundControl(
+            "an `if` on the line above its condition still opens a body",
+            [
+                "func f() async throws {",
+                "    if",
+                #"        awaitEvent("ready") {"#,
+                "        await p.awaitReap(a)",
+                "    }",
+                "}"
+            ],
+            calls: [4], unbounded: [4]
+        ),
+        AwaitBoundControl(
+            "an `if` further down its own statement still opens a body",
+            [
+                "func f() async throws {",
+                "    let x = 1",
+                "    if awaitEvent(x) {",
+                "        await p.awaitReap(a)",
+                "    }",
+                "}"
+            ],
+            calls: [4], unbounded: [4]
+        ),
+        AwaitBoundControl(
+            "a closure handed to `Task` outlives the wrap it sits in",
+            [
+                "func f() async throws {",
+                #"    try await awaitEvent("x") {"#,
+                "        Task.detached {",
+                "            await p.awaitReap(a)",
+                "        }",
+                "    }",
+                "}"
+            ],
+            calls: [4], unbounded: [4]
+        ),
+        AwaitBoundControl(
+            "somebody else's method of the same name is not the wrapper",
+            [
+                "func f() async throws {",
+                #"    analytics.awaitEvent("x") {"#,
+                "        await p.awaitReap(a)",
+                "    }",
+                "}"
+            ],
+            calls: [3], unbounded: [3]
+        ),
+        AwaitBoundControl(
+            "an `init` inside a wrap runs when the type does, so it is not wrapped",
+            [
+                "func f() async throws {",
+                #"    try await awaitEvent("x") {"#,
+                "        struct S {",
+                "            init() {",
+                "                await p.awaitReap(a)",
+                "            }",
+                "        }",
+                "    }",
+                "}"
+            ],
+            calls: [5], unbounded: [5]
+        ),
+        AwaitBoundControl(
+            "an identifier starting with a declaration keyword does not terminate the walk",
+            [
+                "func f() async throws {",
+                #"    try await awaitEvent("x") {"#,
+                "        if subscriptValue {",
+                "            await p.awaitReap(a)",
+                "        }",
+                "    }",
+                "}"
+            ],
+            calls: [4], unbounded: []
+        ),
+        AwaitBoundControl(
+            "a tab between the dot and the name is the same call",
+            ["func f() async throws {", "    await p.\tawaitReap(a)", "}"],
+            calls: [2], unbounded: [2]
+        ),
+        AwaitBoundControl(
+            "an unapplied method reference awaits nothing and is not a call",
+            ["func f() async throws {", "    let g = p.awaitReap(_:epoch:)", "    _ = g", "}"],
             calls: [], unbounded: []
         ),
         AwaitBoundControl(

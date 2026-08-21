@@ -51,7 +51,9 @@ struct AwaitBoundControl {
     /// file opening one.
     static let triple = "\"\"\""
 
-    static let all = AwaitBoundLexicalControls.all + AwaitBoundShapeControls.all
+    static let all = AwaitBoundLexicalControls.all
+        + AwaitBoundShapeControls.all
+        + AwaitBoundSpellingControls.all
 }
 
 /// Controls for `AwaitBoundScan`, one per production of the two grammars it reads. The argument for
@@ -75,6 +77,29 @@ struct PoolAwaitBoundControlTests {
             )
         }
     }
+
+    /// A source the lexer loses sync on must be reported as unread, not as clean. A scan that has
+    /// lost sync finds no call sites, which is indistinguishable from a file that had none — the
+    /// silent miss this whole gate exists to not be.
+    @Test("losing sync is reported rather than read as a clean file")
+    func lostSyncIsReported() {
+        for control in AwaitBoundControl.all {
+            #expect(
+                AwaitBoundScan.scan(control.source).readable,
+                "\(control.what): a well-formed fixture was reported unreadable"
+            )
+        }
+        let broken = [
+            ("an unterminated block comment", "func f() {\n    /* never closed\n}"),
+            ("an unterminated multi-line literal", "func f() {\n    let s = " + triple + "\n  text\n"),
+            ("unbalanced braces", "func f() {\n")
+        ]
+        for (what, source) in broken {
+            #expect(!AwaitBoundScan.scan(source).readable, "\(what) was read as a clean file")
+        }
+    }
+
+    private let triple = AwaitBoundControl.triple
 
     /// The invariant every line number in a failure message rests on: delexing replaces bytes, it
     /// never adds or removes any, and it never moves a line break. Asserted over every fixture
@@ -211,6 +236,45 @@ enum AwaitBoundLexicalControls {
                 "}"
             ],
             calls: [3], unbounded: [3]
+        ),
+        AwaitBoundControl(
+            "a raw literal holding two quotes is not a multi-line opener",
+            [
+                "func f() async throws {",
+                ###"    let s = #""""#"###,
+                "    await p.awaitSessionEnded(b)",
+                "}"
+            ],
+            calls: [3], unbounded: [3]
+        ),
+        AwaitBoundControl(
+            "trailing spaces before the line break still open a multi-line literal",
+            [
+                "func f() async throws {",
+                "    let s = " + AwaitBoundControl.triple + "  ",
+                "    await p.awaitReap(a)",
+                "    " + AwaitBoundControl.triple,
+                "    await p.awaitSessionEnded(b)",
+                "}"
+            ],
+            calls: [5], unbounded: [5]
+        ),
+        AwaitBoundControl(
+            "a CRLF file's multi-line literal is still a literal",
+            [
+                "func f() async throws {\r",
+                "    let s = " + AwaitBoundControl.triple + "\r",
+                "    await p.awaitReap(a)\r",
+                "    " + AwaitBoundControl.triple + "\r",
+                "    await p.awaitSessionEnded(b)\r",
+                "}"
+            ],
+            calls: [5], unbounded: [5]
+        ),
+        AwaitBoundControl(
+            "a file ending in a line comment with no trailing newline is a whole file",
+            ["func f() async throws {", "    await p.awaitReap(a)", "} // done"],
+            calls: [2], unbounded: [2]
         ),
         AwaitBoundControl(
             "a brace inside a literal is not block structure",

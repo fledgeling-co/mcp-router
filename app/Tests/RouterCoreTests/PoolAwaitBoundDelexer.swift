@@ -14,9 +14,31 @@ enum ScanByte {
     static let star = UInt8(ascii: "*")
     static let backslash = UInt8(ascii: "\\")
     static let semicolon = UInt8(ascii: ";")
+    static let colon = UInt8(ascii: ":")
+
+    static let tab = UInt8(ascii: "\t")
+    static let carriageReturn = UInt8(ascii: "\r")
+    static let openSquare = UInt8(ascii: "[")
+    static let closeSquare = UInt8(ascii: "]")
 
     static func isStatementBoundary(_ byte: UInt8) -> Bool {
         byte == openBrace || byte == closeBrace || byte == semicolon
+    }
+
+    /// Whitespace that may sit between a multi-line literal's delimiter and its line break. `\r`
+    /// is in the set because a CRLF file otherwise reads `\"\"\"` as three single-line literals and
+    /// scans the whole string body as code — a desync that leaves `endedCleanly` true.
+    static func isLineFiller(_ byte: UInt8) -> Bool {
+        byte == space || byte == tab || byte == carriageReturn
+    }
+
+    /// What Swift will let an identifier be made of, for the purpose of a word boundary. ASCII
+    /// only, because the delexer has already blanked everything above it.
+    static func isIdentifier(_ byte: UInt8) -> Bool {
+        byte == UInt8(ascii: "_")
+            || (byte >= UInt8(ascii: "0") && byte <= UInt8(ascii: "9"))
+            || (byte >= UInt8(ascii: "a") && byte <= UInt8(ascii: "z"))
+            || (byte >= UInt8(ascii: "A") && byte <= UInt8(ascii: "Z"))
     }
 }
 
@@ -46,6 +68,16 @@ struct Delexer {
     init(_ source: String) {
         src = Array(source.utf8)
         out.reserveCapacity(src.count)
+    }
+
+    /// Whether the source ran out while a comment or a literal was still open. A well-formed Swift
+    /// file ends in code, so anything else means the lexer lost sync and the read cannot be trusted.
+    var endedCleanly: Bool {
+        // A line comment at EOF with no trailing newline is legal Swift and ends the file in
+        // `.lineComment`, so it is a clean end too. Reported by an out-of-family lane as a false red
+        // on correct source, which is the direction this gate must not fail in.
+        (mode == .code || mode == .lineComment)
+            && blockDepth == 0 && literals.isEmpty && interpolations.isEmpty
     }
 
     mutating func run() -> [UInt8] {
@@ -107,13 +139,27 @@ struct Delexer {
             probe += 1
         }
         guard probe < src.count, src[probe] == ScanByte.quote else { return false }
-        let multiline = probe + 2 < src.count
-            && src[probe + 1] == ScanByte.quote
-            && src[probe + 2] == ScanByte.quote
+        let multiline = opensMultiline(at: probe)
         literals.append(Literal(hashes: hashes, multiline: multiline))
         mode = .string
         blank(hashes + (multiline ? 3 : 1))
         return true
+    }
+
+    /// Three quotes open a multi-line literal only when the content starts on the next line, which
+    /// is Swift's rule and not a refinement of it. Without the newline test, `#""""#` — a raw
+    /// literal holding two quote characters — reads as a multi-line opener that never closes, and
+    /// the rest of the file is blanked as literal content. `PrimitiveBodyTests.swift:140` is that
+    /// line, and the readability check is what turned a silent miss into a named red.
+    private func opensMultiline(at probe: Int) -> Bool {
+        guard probe + 2 < src.count,
+              src[probe + 1] == ScanByte.quote,
+              src[probe + 2] == ScanByte.quote else { return false }
+        var index = probe + 3
+        while index < src.count, ScanByte.isLineFiller(src[index]) {
+            index += 1
+        }
+        return index < src.count && src[index] == ScanByte.newline
     }
 
     /// Interpolated text is code and is kept as code; only the two delimiters are blanked. The

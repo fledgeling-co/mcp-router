@@ -49,8 +49,13 @@ at the marker — same call, same argument shape — so they are one class rathe
 Measured by tracing the two emission lines across every engine process the suite starts, with a
 `sitecustomize.py` on `PYTHONPATH` rather than by editing the engine:
 
-- **145 engine runs**, 10 of them with `--report`. Without `--report`, `write_unmeasured_report`
-  returns at `if not path` and no marker is possible, which is why 135 runs are irrelevant to it.
+- **145 python3 processes, of which 52 are the engine**, 10 of those with `--report`. Without
+  `--report`, `write_unmeasured_report` returns at `if not path` and no marker is possible, which
+  is why 42 of the engine's runs are irrelevant to it. *Corrected on the seventh pass* (`D-m23-bc`):
+  this line read "145 engine runs", which is every python3 process the suite starts — the fixture
+  builder and the affordance tool included. Re-measured on the same 59-case suite with a
+  `sitecustomize.py` logging argv: 145 processes, 52 the engine, 10 with `--report`, 0 `python3 -c`.
+  Every emission figure below is unaffected; only the population was over-counted, 2.8x.
 - **Eight marker emissions**: five at S1 (cases 43, 44 twice, 51's first and fourth invocations),
   three at S2 — through R2 once (case 32) and R3 twice (cases 23 and 49).
 - **R1 was executed by nothing at all.**
@@ -88,17 +93,23 @@ after every restore. Baseline: exit 0, 67 cases, 67 ok.
 
 | # | Mutation | Before this pass | Now |
 |---|---|---|---|
-| 1 | `os.path.normpath(report_path)` on S1 | all 59 green | 1 at 66 ok — **case 51 alone** |
-| 2 | S2's `emit` moved into R3's call site | all 59 green | 1 at 64 ok — cases 32, 60, 61 |
-| 3 | S1's `emit` → a bare `print` | all 59 green | 1 at 65 ok — cases 44, 60 |
-| 4 | gate: affirmation guarded on `[ $status -ne 3 ]` | all 59 green | 1 at 65 ok — cases 66, 67 |
-| 5 | gate: marker grep → `[ -s "$ENGINE_LOG" ]` | all 59 green | 1 at 64 ok — cases 60, 64, 65 |
-| 6 | S2's `emit` deleted | 1 FAIL, case 49 | 1 at 62 ok — cases 32, 49, 60, 61, 67 |
-| 7 | report write moved after the console loop | 2 FAIL | 1 at 65 ok — cases 43, 44 |
-| 8 | a sixth caller of `write_unmeasured_report` | invisible | 1 at 66 ok — **case 60 alone** |
-| 9 | `run.report_path` dropped for the local | invisible | 1 at 66 ok — **case 60 alone** |
-| 10 | gate: `set -uo pipefail` → `set -euo pipefail` | invisible | 1 at 61 ok — all six gate cases |
-| 11 | gate: marker grep → `[ -f "$LEDGER" ]` | invisible | 1 at 65 ok — cases 60, 64 |
+| 1 | `os.path.normpath(report_path)` on S1 | **invisible** — 59 ok, 0 FAIL | 1 at 66 ok — **case 51 alone** |
+| 2 | S2's `emit` moved into R3's call site | **invisible** — 59 ok, 0 FAIL | 1 at 64 ok — cases 32, 60, 61 |
+| 3 | S1's `emit` → a bare `print` | **invisible** — 59 ok, 0 FAIL | 1 at 65 ok — cases 44, 60 |
+| 4 | gate: affirmation guarded on `[ $status -ne 3 ]` | **invisible** — 59 ok, 0 FAIL | 1 at 65 ok — cases 66, 67 |
+| 5 | gate: marker grep → `[ -s "$ENGINE_LOG" ]` | **invisible** — 59 ok, 0 FAIL | 1 at 64 ok — cases 60, 64, 65 |
+| 6 | S2's `emit` deleted | visible — 1 FAIL, case 49 | 1 at 62 ok — cases 32, 49, 60, 61, 67 |
+| 7 | report write moved after the console loop | visible — 2 FAIL | 1 at 65 ok — cases 43, 44 |
+| 8 | a sixth caller of `write_unmeasured_report` | **invisible** — 59 ok, 0 FAIL | 1 at 66 ok — **case 60 alone** |
+| 9 | `run.report_path` dropped for the local | **invisible** — 59 ok, 0 FAIL | 1 at 66 ok — **case 60 alone** |
+| 10 | gate: `set -uo pipefail` → `set -euo pipefail` | **invisible** — 59 ok, 0 FAIL | 1 at 61 ok — all six gate cases |
+| 11 | gate: marker grep → `[ -f "$LEDGER" ]` | **invisible** — 59 ok, 0 FAIL | 1 at 65 ok — cases 60, 64 |
+
+**Nine of the eleven were invisible to the shipped suite** — arms 1-5 and 8-11 each ran 59 ok with
+0 FAIL, and only 6 and 7 were visible. *Corrected on the seventh pass* (`D-m23-bb`): this pass
+reported five, everywhere except this table. The column carried one fact under two wordings, "all
+59 green" and "invisible", and the summary counted one of them. The error **understates** the pass,
+and the table it contradicted was sitting directly beneath it.
 
 Arm 7 is the one that shows R5 becoming reachable: under that ordering the marker is still
 emitted, from S2 through R5, and what goes red is the table and the diagnostic naming it.

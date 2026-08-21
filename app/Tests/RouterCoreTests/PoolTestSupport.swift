@@ -173,10 +173,11 @@ final class FakeTransport: UpstreamTransporting, Sendable {
 ///
 /// That distinction is the whole of G3. A fixed sleep encodes a guess about scheduler latency made
 /// on a quiet machine: `PoolReapingTests`' 150ms wait for a 25ms idle window passed four times
-/// running in isolation and failed under whole-suite load, and this repository has since been
-/// observed at a load average where it would have failed every time. Widening the sleep only moves
-/// the threshold onto the next machine. Waiting on the condition removes it — a busy machine makes
-/// this slower and never wrong.
+/// running in isolation and failed under whole-suite load. Where the guess turns over is not
+/// known — a deliberate reproduction at load average 114, with the test process at the lowest
+/// priority, did NOT reproduce it, and the incident that filed the item happened at 548. Widening
+/// the sleep only picks a different load average to be correct at. Waiting on the condition needs
+/// no such choice: a busy machine makes this slower and never wrong.
 ///
 /// `within` is a deadlock breaker rather than the observation. It is three orders of magnitude
 /// above the events these tests wait on, and its expiry is **reported as a failure naming the

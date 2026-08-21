@@ -384,7 +384,7 @@ watch_seed() { # dir  -- writes a scratch HOME with the given staging file on st
 # on disk produces the identical `spawn <path> ENOENT` on both sides, while an upstream that answers
 # `initialize` and then refuses `tools/list` is recorded `MCP error -32000: <msg>` by node and
 # `[-32000] <msg>` by Swift. One failure point agrees byte for byte and the other does not, so the
-# text belongs to a pool-layer row and not to this one. What R17 asserts — that a row exists and
+# text belongs to a row in the pool group and not to this one. What R17 asserts — that a row exists and
 # carries a reason — is exactly what is projected.
 #
 # A second divergence the same fixture measured, recorded here because it is a cost and not a
@@ -398,10 +398,10 @@ watch_seed() { # dir  -- writes a scratch HOME with the given staging file on st
 #
 # The two binaries spell a JSON-RPC error's code differently when an upstream answers `initialize`
 # and then refuses `tools/list`: node writes `MCP error -32000: <msg>` and Swift writes
-# `[-32000] <msg>`. Measured 2026-08-22 against the two-failure fixture below. That is a pool-layer
-# divergence that predates R17 and was invisible until this lane grew a scenario reaching the list
-# point at all — the three older scenarios only ever fail at spawn, where both sides produce the
-# identical `spawn <path> ENOENT`.
+# `[-32000] <msg>`. Measured 2026-08-22 against the two-failure fixture below. That is a divergence
+# in the pool group's territory, it predates R17, and it was invisible until this lane grew a
+# scenario reaching the list point at all — the three older scenarios only ever fail at spawn,
+# where both sides produce the identical `spawn <path> ENOENT`.
 #
 # So the CODE and the MESSAGE are still compared, byte for byte; only the punctuation around the
 # code is folded. A different code, a different message, a line for the wrong server, a missing line

@@ -166,6 +166,26 @@ than barriering on whole waves, so the real overlap is greater than the table im
 > when this session began. Do not `git add -A` here — that mistake has already swept a third
 > session's work into a commit twice in this repo.
 
+### DISPATCH — A PID OBTAINED FROM A PATTERN IS NOT YOURS TO KILL
+
+Reported 2026-08-23 by the armada conductor, from another project: a runner killed **a third
+session's `agy` review** by running `pgrep -f "agy --model gemini-3.7-flash-high"` and killing the
+first match.
+
+That is expensive here specifically. **`agy` is the only out-of-family lane on this machine** —
+`codex` is limited until 27 August, `grok` returns 402, `glm` is not installed. So a stray kill
+does not slow a review down; it removes the only lane that can grade one, and the loss is silent
+because the victim just sees an empty output file.
+
+The rule: **name the process from its full command line and confirm it is yours before killing
+anything.** A pattern match is a candidate, not an identification. Where a runner needs to know
+whether a worktree is occupied, the check is `pgrep -x claude` plus `lsof -a -p <pid> -d cwd` and
+comparing the path — not a `-f` match on a brief filename, which collides the moment two items
+carry a file of the same name.
+
+Measured today: two live processes both matched `-f "GAPFIX-2-BRIEF"` because M18 and R19 each
+had a file of that name. Their cwds were different worktrees, and only the cwd separated them.
+
 ### DISPATCH — PERCH'S ACCOUNT-TRANSFER NOTICE KILLS A HEADLESS RUNNER AT LAUNCH
 
 Measured 2026-08-23 across a seven-verifier wave. **Four died at launch, and a re-dispatch of one

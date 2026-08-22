@@ -67,3 +67,41 @@ acceptance lane rather than in a count. Both were found only by driving the app.
 `m22-boards.sh` is now enrolled in `make acceptance`. **A lane nothing dispatches passes by hand
 forever while reading as covered work** — `parity-stream.sh` sat executable and unrun from `R2-R`
 until `P3`. Any new acceptance lane gets enrolled in the same change that writes it.
+
+## Two sessions reached this independently, by different routes
+
+Worth recording because it changes what the finding is. The armada conductor received this
+conclusion **at the start of the evening**, from the `m22` worker directly, in almost these words:
+driving the shipped app found a defect three green instruments could not, the freshness line read
+`Read now ago`, and the fidelity gate was structurally blind because the mock has no freshness line
+to disagree with — that line being M22's own addition. It reached this orchestrator hours later
+through the same worker's handover note.
+
+Two routes, one conclusion. **So this is not one runner's insight; it is what falls out of driving
+a surface the mock does not fully describe.** Anyone who drives such a surface will find it, and
+anyone who only runs the gate will not.
+
+**Disposition, 2026-08-23:** the coverage claim on the four branches waiting to merge that carry
+M23 conversions is **suspended, not merely qualified**, until this item lands. *Clean over N nodes*
+is not a coverage statement about a surface; it is a statement about the intersection of the
+surface with the mock.
+
+## The same shape, in six instruments in one evening
+
+This item is one of six independent findings on 2026-08-23 that share a single mechanism: **an
+instrument that cannot fail reports exactly like one that passed.**
+
+| instrument | why it could not fail |
+|---|---|
+| `mock-fidelity` on a build-side addition | no mock counterpart to disagree with |
+| M18's Cleanup sheet | no test mentions either keyboard shortcut |
+| M20's plan slices | the promised names exist only in the plan |
+| G5's `\binstalled\b` | cannot match inside `_installed_` — `_` is a word character |
+| a `pf` anchor (another project) | its positive control could never resolve |
+| a gate exiting 0 (another project) | over an empty population |
+
+And a seventh, which is the one worth pausing on because it is the tool that measures the others:
+**`reckon.py check` exits 0 by comparing `summary` against `rows` and never reading `headline`.**
+Three sessions tonight quoted a generated headline that disagreed with the rows beneath it. That is
+this same class inside the instrument the fleet uses to count its own remaining work — filed
+against `reckon` rather than left as three sessions' folklore.

@@ -63,3 +63,34 @@ with an expiry date nobody wrote down.
 
 **This is the orchestrator's defect, not a runner's.** The briefs that cited `/tmp` paths were
 written here, and `GAPFIX-BRIEF.md:64` is mine.
+
+## The matching rule, and the second half of the same mistake
+
+`lukerhodes-2f` supplied the rule that pairs with "load-bearing instruments get committed":
+**a brief cites a repo path or it cites nothing.** Two briefs failed it today, both written by
+this fleet hours earlier rather than inherited — `GAPFIX-BRIEF.md:64` (`/tmp/m18-build2.log`)
+and `VERIFY-BRIEF.md:29` (`/tmp/g5gf3/sweep3.py`). Neither was a stale inheritance; both were
+fresh.
+
+Then the opposite error, measured 2026-08-23 across every worktree. The dispatch artifacts this
+orchestrator wrote — `WORK-ORDER.md`, `GAPFIX-BRIEF.md`, `VERIFY-BRIEF.md` — went **inside the
+tree under test**, and are now inconsistently handled:
+
+| Tracked | Untracked |
+|---|---|
+| M12, M19, M20, G5V2 | M16, M18 (×2), M22, M17, G5, R19, R19V |
+
+Four of twelve are committed and would merge into `main` carrying the orchestrator's own prompts
+as though they were project artifacts. Nobody decided that; it is the residue of writing working
+material into the subject. `M20` caught it and handled it well — `bcc69dd` isolates the file so
+the commit can be dropped before merge — but that is a per-runner workaround for something the
+dispatcher caused, and eleven other runners did not each invent it.
+
+So the two failures are one root. `/tmp` is too volatile to cite and the worktree is too durable
+to write into, and the fleet never decided where its own working material lives. The answer is
+"beside the work, not in it": a path inside the repository that the item's own diff does not
+touch, or an ignore entry that makes the choice for everyone rather than per runner.
+
+Whoever triages this should settle **both** directions at once. Fixing only the `/tmp` half
+moves the briefs into worktrees and makes the tracked-artifact problem universal instead of a
+third of the time.

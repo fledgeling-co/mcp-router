@@ -46,9 +46,9 @@ clone unable to re-run anything the campaign reports.
 1. `test-campaign` at the version the gates run is present in this repository at a repo-relative
    path, at a **pinned** version rather than a moving `main`, and the pinned version is stated
    somewhere a reader finds it.
-2. Every gate that invokes a `test-campaign` script resolves it from that path rather than from
-   the machine's plugin cache — and **a run with the cache renamed away proves it**, because a
-   path that still silently falls back to the cache is this item's own defect class.
+2. The vendored copy is **runnable from the repository with the plugin cache renamed away**, and
+   the run is shown. That is the reproducibility test, and it is deliberately not the same as
+   criterion 2 in the first draft of this brief — see the finding below.
 3. A fresh clone reproduces the campaign's gate numbers. State which numbers you checked and what
    they came out at; a claim of reproducibility that nobody re-ran is what this item exists to
    remove.
@@ -58,6 +58,32 @@ clone unable to re-run anything the campaign reports.
 5. The dispatch hazard in `ORCHESTRATOR.md` is updated if this changes it — and if the 546 MB
    submodule is still present and still breaks worktree runners, say so plainly rather than
    letting the fix read as having removed it.
+
+## The finding that reshaped this item, measured before dispatch
+
+The first draft of this brief asked that *every gate invoking a `test-campaign` script resolve it
+from the vendored path*. **There are no such invocations.** Searched across `Makefile`,
+`scripts/`, and `planning/test-campaign/bin/` for `campaign.py`, `strict-check`,
+`capture-lineage`, `vacuity-check`, `attach-shots` and `witness-worklist`: every hit is a **comment
+mentioning a script by name**, and nothing resolves a skill directory — `plugins/cache` and
+`fledgeling-plugins` appear nowhere outside `.claude/`.
+
+The campaign is run by an agent invoking the skill, and the skill resolves its own `scripts/`
+directory from wherever the skill was loaded, which is the machine's plugin cache. **Vendoring a
+copy into the repository does not change where the skill loads from**, so "make the gates read
+from it" is not a path edit — there is no path to edit.
+
+That splits into two jobs and only the first is this item:
+
+- **Carry the code, pinned, and prove it runs from here.** Achievable now, and it is what the
+  owner's answer bought: a fresh clone can reproduce the numbers by hand.
+- **Give the repository its own gate wrappers** that invoke the vendored scripts, so `make` can
+  run them and CI could. That is new surface rather than a relocation, and it is filed separately
+  as **G5-C1** rather than smuggled in here.
+
+Recorded because the first draft's criterion had **no subject**, which is the same defect that
+sent an R17 runner at a gate its branch could not satisfy this morning. A criterion nothing can
+satisfy is indistinguishable, to the runner, from one it failed.
 
 ## What this does not do, and must not claim to
 

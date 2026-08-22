@@ -55,7 +55,5 @@
             sheet = .queuedItem(id: subject)
             return sheet
         }
-
-        var selection: String?
     }
 #endif

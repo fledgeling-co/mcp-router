@@ -120,6 +120,8 @@
         /// the sheet's action then disagrees with the board about what has already happened.
         public var sheetItemID: String?
 
+        public var selection: String?
+
         /// Values typed into the review sheet's requirement fields, keyed as
         /// `RegistryCapability` keys them.
         public var requirementValues: [String: String] = [:]

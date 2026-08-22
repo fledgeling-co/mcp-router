@@ -236,6 +236,7 @@ Ten checks against a running router using the SDK's own client, which is the sam
 | `src/router.ts` | The stateless HTTP layer and how a dead upstream is contained |
 | `src/watch.ts` | The adoption watcher and its refusal behaviour |
 | `docs/install.sh` | What the one-liner actually does, in order (and what GitHub Pages serves) |
+| `vendor/README.md` | The pinned `test-campaign` copy the campaign gates run from, and how to check the pin |
 
 ---
 

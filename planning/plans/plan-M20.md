@@ -26,7 +26,7 @@ The item is not "add two menus". It is four things with separate failure modes:
 2. **An accelerator map that three documents disagree about**, plus a conflict the triage note did
    not reach: the mock binds `⌘R` to `Re-index Manifest` while `DESIGN.md` §8 binds it to
    `Reset the selected server`.
-3. **An invariant this item deliberately widens.** `InboxArrivalTests.nothingOutsideTheWindowInstalls`
+3. **An invariant this item deliberately widens.** `InboxBoundaryTests.nothingOutsideTheWindowInstalls`
    asserts that no path outside the window declares a server. The popover's `Approve` is a path
    outside the window that declares a server. It is amended in the open, with the notification
    half left strictly closed and given more coverage rather than less.
@@ -295,7 +295,7 @@ not a consequence of §3.6.
     `ShellRestoration` its accessor, both following `menuBarVisible` exactly. The Menu bar pane
     gains the row.
 16. `InboxBoardModel.review(itemID:)`'s comment and
-    `InboxArrivalTests.nothingOutsideTheWindowInstalls` are **amended in the open** (§3, item 3):
+    `InboxBoundaryTests.nothingOutsideTheWindowInstalls` are **amended in the open** (§3, item 3):
     the notification half stays absolutely closed and gains the finding actions; the popover's
     `Approve` is named as the one outside-the-window install, with its two conditions.
 

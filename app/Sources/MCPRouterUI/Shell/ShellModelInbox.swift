@@ -107,7 +107,7 @@
         /// Checking them twice is deliberate. The band's `isApprovable` decides what is *drawn*, and
         /// this decides what *happens* — one is a presentation rule and the other is the gate. A guard
         /// that exists only in the view is a guard a second call site removes silently, and
-        /// `InboxArrivalTests.nothingOutsideTheWindowInstalls` drives this method rather than the view.
+        /// `InboxBoundaryTests.nothingOutsideTheWindowInstalls` drives this method rather than the view.
         ///
         /// It goes through `InboxBoardModel.accept(_:)` — **the board's existing install path, not a
         /// second one.** `requirementValues` is whatever the sheet last held, which is empty on this

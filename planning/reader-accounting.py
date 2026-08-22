@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Every raw-input reader in `planning/` and `scripts/` must account for what it drops.
+"""Every raw-input reader tracked under `planning/` and `scripts/` must account for what it drops.
 
 G4's subject is an assertion named for a quantity that reads a different one, and the half of that
 class this gate reaches is the silent drop: a reader takes N items from outside the process, keeps
@@ -33,12 +33,19 @@ reach is the defect wearing the fix's clothes:
   * It resolves an iteration's subject syntactically, one binding deep. An iteration whose
     subject it cannot resolve is COUNTED AND NAMED as unresolved rather than assumed derived —
     the same rule the thing being gated is held to.
+  * Its population is what `git ls-files` names, so a reader is out of scope until it is tracked.
+    That is deliberate and it costs something: a silent drop written this morning is invisible
+    until it is added. The alternative cost is the one measured — the first cut walked the
+    working directory, read another session's untracked work-in-progress as a finding, and
+    reddened a shared branch over a file that is not in the repository and that nobody reading
+    the red could act on. A gate reports on the repository or it reports on whoever last ran it.
 
 Exit 0 when every raw-input reader is accounted, declared or a recorded gap; 1 on a reader that
 drops silently and says nothing; 2 when the gate measured nothing, which is not a pass.
 """
 
 import ast
+import subprocess
 import sys
 from pathlib import Path
 
@@ -515,11 +522,54 @@ def read_registry() -> tuple[dict[str, tuple[str, str]], list[str], int]:
     return declared, malformed, pinned
 
 
+def tracked_files() -> list[str]:
+    """Every path the repository tracks, repo-relative, from `git ls-files`.
+
+    `-z` terminates each record with a NUL, so the field after the final terminator is the
+    terminator's own tail rather than a path. It is sliced off rather than filtered out: a
+    comprehension's `if` over raw input is a silent drop by shape — this gate says so about
+    everybody else's — and there is no reason for the sentence to stop being true here.
+    """
+    out = subprocess.run(["git", "-C", str(ROOT), "ls-files", "-z"],
+                         capture_output=True, check=True).stdout.decode()
+    return out.split("\0")[:-1]
+
+
+def scanned_python(tracked: list[str]) -> tuple[list[str], list[str], list[str]]:
+    """Partition the tracked paths into (read, tracked but absent from the working tree, other).
+
+    Every tracked path lands in exactly one of the three, so the lengths close back on
+    `git ls-files` — the accounting `claim-sweep.py` prints, and the one this gate demands of
+    every reader it examines. A tracked path with no file behind it is a staged deletion or a
+    half-finished checkout; it is counted and named rather than skipped, because a denominator
+    that quietly shrinks is the failure this gate is for.
+    """
+    scanned: list[str] = []
+    absent: list[str] = []
+    other: list[str] = []
+    for rel in tracked:
+        if not (rel.endswith(".py") and rel.split("/", 1)[0] in SCANNED):
+            other.append(rel)
+        elif (ROOT / rel).is_file():
+            scanned.append(rel)
+        else:
+            absent.append(rel)
+    return scanned, absent, other
+
+
 def main() -> int:
-    files = sorted(p for d in SCANNED for p in (ROOT / d).rglob("*.py")
-                   if "node_modules" not in p.parts)
+    try:
+        tracked = tracked_files()
+    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+        print(f"usage error: `git ls-files` could not enumerate the repository ({exc}). This "
+              "gate's population is what the repository tracks; falling back to a directory walk "
+              "would silently change what it measured.", file=sys.stderr)
+        return 2
+
+    scanned, absent, other = scanned_python(tracked)
+    files = [ROOT / rel for rel in scanned]
     if not files:
-        print("usage error: no Python files found under "
+        print("usage error: `git ls-files` names no Python file under "
               f"{', '.join(SCANNED)} — the gate did not run", file=sys.stderr)
         return 2
 
@@ -548,8 +598,13 @@ def main() -> int:
     stale = sorted(k for k in declared if k not in silent)
     gaps = sorted(k for k in covered if declared[k][0] == "gap")
 
-    print("reader-accounting — raw-input readers in " + " and ".join(f"{d}/" for d in SCANNED))
+    scope = " and ".join(f"{d}/" for d in SCANNED)
+    print("reader-accounting — raw-input readers in " + scope)
     print()
+    print(f"  enumerated   {len(tracked):4d} paths tracked by `git ls-files` — {len(scanned)} "
+          f"Python under {scope} + {len(absent)} tracked but absent")
+    print(f"               from the working tree + {len(other)} elsewhere = "
+          f"{len(scanned) + len(absent) + len(other)}")
     print(f"  files        {len(files):4d} Python files, {len(unparsed)} unparsed")
     print(f"  iterations   {iterations:4d} examined; {discarding} discard at least one item")
     print(f"  subject      {len(unresolved):4d} discarding iterations decompose no raw input this "

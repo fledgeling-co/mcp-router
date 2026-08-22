@@ -136,7 +136,7 @@ none is carried.
 | `parity-cli.sh` | exit 0 — `cli: 18 verbs agreed, 0 did not`, all four `cli-watch` scenarios `ok` |
 | `ledger-reconcile.py` | exit 0 at 14:23 — `reconciled — no findings across A, B, B-range, C, D, E, F, G, H, I, J, K`, `K examined 217 deferred-register rows`. Exit 1 when re-run at 14:33, for a reason outside this branch — below |
 
-### The reconciler moved under us, and not by this branch's hand
+### The reconciler went red under us, and the cause was neither this branch nor a merge
 
 The clean run above is real and is the first of two. Ten minutes later the same command exited 1:
 
@@ -147,11 +147,27 @@ E. a branch merged into main with no row in either file (the id is spent and bot
 1 of 10 checks found something. Which file is right is a judgement about what shipped; fix it by hand.
 ```
 
-Between the runs the merged-branch line went `merged ai/*  26 branches` to `27`, and `ai/g5`'s tip
-became an ancestor of `main` — another session's merge, in a shared object store this worktree reads
-but does not own. `main` gained two commits in that window, at 14:22:37 and 14:30:07. Check E
+Between the runs the merged-branch line went `merged ai/*  26 branches` to `27`, and `ai/g5`
+appeared in that listing. `main` gained two commits in that window, at 14:22:37 and 14:30:07. Check E
 compares branches merged into `main` against the rows in this branch's `ORCHESTRATOR.md` and
 `LEDGER.md`, neither of which carries a G5 row at base `13e728b`.
+
+> **Corrected by gap-fix 4 (BL-3). There was no G5 merge.** This paragraph originally read that
+> `ai/g5`'s tip *became an ancestor of `main` — another session's merge, in a shared object store
+> this worktree reads but does not own*. The conclusion that paragraph supported — that the finding
+> was not this pass's — is right, and the revert test below establishes it properly. The **cause**
+> was wrong, and the git state says so plainly: `git merge-base ai/g5 main` is `2fbe062`, a commit
+> **on** `main` timed 14:26:58; `ai/g5` was cut from it and had committed **nothing** by 14:33, so
+> its tip *was* a `main` commit. `git branch --merged main --list ai/*` therefore listed it from the
+> instant it was created, and `main`'s merge list holds M21, R7, M23 and G3 and **no G5**. What made
+> that unreadable is the premise at `ledger-reconcile.py:282`, whose docstring calls that listing
+> *the hardest evidence an id is taken* — true of a branch with commits, false of an empty one. This
+> is the **check-E false-RED**, recorded on `main` as a dispatch hazard and as `D-g4-b`, G4's twelfth
+> instance: *a check-E finding naming a branch created after this worktree's base is this, not a
+> defect* — confirm from `main` before acting on one. The state has since moved on again, which is
+> the same lesson twice: `ai/g5` took two commits at 14:40:51 and 14:48:55, so `2fbe062` is now
+> `ai/g5~2`, the branch is no longer an ancestor of `main`, and it no longer appears in that listing
+> at all.
 
 That it is not this pass's was measured rather than argued. With `ORCHESTRATOR.md` restored to `HEAD`
 and the edit reverted, the reconciler prints the identical finding:
@@ -178,6 +194,15 @@ That chain was killed and re-run into `/tmp/r17gf3/`, so no figure above shares 
 outside this worktree.
 
 ## `D-r17-d` corrected — the rate was wrong and the mechanism is now proven
+
+> **Superseded by gap-fix 4.** Everything below is this pass's measurement and stands as history.
+> What does not stand is reading either column as a condition: the fourth verification ran 368
+> invocations on a quiet tree and got **0 of 80 at four concurrent** against the 29 of 80 recorded
+> here, plus 0 at 8× and 16× and 1 of 96 at 32×. The controlling variable is total machine pressure
+> rather than this gate's own concurrency, and the row now states no rate at all. *The mechanism is
+> proven rather than suspected* is likewise downgraded there to **proven once and not reproduced
+> since** — the fourth verification's single red gave direction A only and could not re-witness the
+> both-directions contradiction.
 
 The row claimed a flat *about a quarter to a third of runs*. The third verification refuted that and
 replaced it with something stronger, and this pass re-measured the shape rather than carrying it:

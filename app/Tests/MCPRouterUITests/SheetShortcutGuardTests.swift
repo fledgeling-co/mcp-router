@@ -145,6 +145,127 @@
             #expect(offenders.isEmpty, "only the innermost of these is live: \(offenders)")
         }
 
+        // MARK: - Which control takes the accent fill
+
+        /// The seven sheet views carrying a control written `Button("Cancel")`.
+        ///
+        /// Named rather than counted, because the guard below reads the **literal-label**
+        /// population and a control whose label is an expression is invisible to it —
+        /// `PairingFlowView`'s `Button(…secondaryActionLabel ?? "Cancel", role: .cancel)` is the one
+        /// such control in the tree, and it is covered by the `role: .cancel` half of the sweep
+        /// instead. Asserting the set makes an eighth Cancel a classification someone made rather
+        /// than a control that quietly joined a population and was excused by it.
+        static let cancelControlViews: Set<String> = [
+            "ActivityResetHistorySheet", "AddServerSheet", "DiscoverDetailSheet", "InboxReviewSheet",
+            "RemoveServerDialog", "RemoveServerSheet", "ResetHistorySheet"
+        ]
+
+        /// The style reader and the label reader, each shown reading and shown failing.
+        ///
+        /// Two fixtures rather than one: an offender that must be found, and the same row repaired,
+        /// which must not be. An absence check whose reader has gone blind reports the same clean
+        /// answer as a conforming tree, and the blind version is the one that arrives silently.
+        @Test("the scanner reads a button's label and its style, in both directions")
+        func theScannerReadsLabelsAndStyles() {
+            let filled = """
+            struct ProbeSheet: View {
+                var body: some View {
+                    HStack {
+                        Button("Cancel") { board.sheet = nil }
+                            .buttonStyle(ProminentButtonStyle())
+                            .keyboardShortcut(.cancelAction)
+                        Button(ProbeCopy.dismiss) { board.sheet = nil }
+                            .buttonStyle(.plain)
+                        Button("Remove", role: .destructive) {
+                            Task { await board.remove(name) }
+                        }
+                        .buttonStyle(StandardButtonStyle())
+                    }
+                }
+            }
+            """
+            let controls = SheetShortcutScan.views(in: filled, file: "fixture.swift")
+                .first?.controls ?? []
+            #expect(controls.count == 3, "the scanner stopped pairing modifiers to buttons")
+            #expect(
+                controls.map(\.label) == ["Cancel", "", "Remove"],
+                "the label reader is wrong: \(controls.map(\.label))"
+            )
+            #expect(
+                controls.map(\.buttonStyles) == [
+                    ["ProminentButtonStyle"],
+                    ["plain"],
+                    ["StandardButtonStyle"]
+                ],
+                "the style reader is wrong: \(controls.map(\.buttonStyles))"
+            )
+            #expect(
+                Self.accentFilledCancels(in: SheetShortcutScan.views(in: filled, file: "fixture.swift"))
+                    .count == 1,
+                "the sweep did not find a planted accent-filled Cancel, so a clean tree proves nothing"
+            )
+
+            // The fixture's only prominent style is Cancel's, so this repairs that row and nothing
+            // else; `#expect` above has already established there are exactly three controls.
+            let repaired = filled.replacingOccurrences(
+                of: ".buttonStyle(ProminentButtonStyle())",
+                with: ".buttonStyle(StandardButtonStyle())"
+            )
+            #expect(repaired != filled, "the repair matched nothing, so the check below proves nothing")
+            #expect(
+                Self.accentFilledCancels(in: SheetShortcutScan.views(in: repaired, file: "fixture.swift"))
+                    .isEmpty,
+                "the sweep reports an offender on a row that draws Cancel plain"
+            )
+        }
+
+        /// Every control that dismisses and takes the accent fill, as `file:line view → styles`.
+        static func accentFilledCancels(in views: [SheetShortcutScan.SheetView]) -> [String] {
+            var offenders: [String] = []
+            for view in views {
+                for control in view.controls
+                    where (control.label == "Cancel" || control.isCancelRole)
+                    && control.buttonStyles.contains("ProminentButtonStyle")
+                {
+                    offenders.append("\(view.file):\(control.line) \(view.name) → \(control.buttonStyles)")
+                }
+            }
+            return offenders
+        }
+
+        /// **The blocker gap-fix 3 exists for.** `DESIGN.md`:441 — *"One prominent accent-filled
+        /// action per view, trailing. Cancel leads. Destructive is never the default."* — puts the
+        /// fill on a trailing affirmative and Cancel in the leading position, so Cancel is never the
+        /// control that takes it; `DESIGN.md`:433 makes a violation of that section *"a defect rather
+        /// than a variation"*.
+        ///
+        /// M18 filled `RemoveServerSheet`'s Cancel at `4c320a8` and `RemoveServerDialog`'s came from
+        /// `589ab2e`. Both drifted in with the whole suite green, which is the same way the shortcut
+        /// defect arrived, and is why this is a guard rather than a fixed comment.
+        @Test("no control labelled Cancel is the accent-filled action")
+        func noCancelControlIsAccentFilled() throws {
+            let offenders = try Self.accentFilledCancels(in: SheetShortcutScan.allViews())
+            #expect(
+                offenders.isEmpty,
+                "Cancel leads and the accent fill is trailing — DESIGN.md §3.4 rule 4: \(offenders)"
+            )
+        }
+
+        @Test("the literal-Cancel population is the seven views named here")
+        func theCancelPopulationIsTheSevenNamed() throws {
+            let found = try Set(
+                SheetShortcutScan.allViews()
+                    .filter { view in view.controls.contains { $0.label == "Cancel" } }
+                    .map(\.name)
+            )
+            let added = found.subtracting(Self.cancelControlViews).sorted()
+            let gone = Self.cancelControlViews.subtracting(found).sorted()
+            #expect(
+                found == Self.cancelControlViews,
+                "the Cancel population moved. Added: \(added). Gone: \(gone)"
+            )
+        }
+
         // MARK: - The population, and the gap that is left in it
 
         @Test("the sheet population is the fifteen named here")

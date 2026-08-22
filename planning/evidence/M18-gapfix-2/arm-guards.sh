@@ -104,10 +104,17 @@ arm "an unclassified sheet added to the population" \
     'SheetShortcutGuardTests'
 
 # 5 — the scanner blinded, which would take every guard above with it.
+#
+# The anchor moved in gap-fix 3: `stripped` was split into `withoutComment` (literals kept, for the
+# label) and `withoutLiterals` (for the brace counting). Shadowing the parameter empties every line
+# read, which is the same blinding as before at the new seam.
 arm "the scanner made to read nothing" \
     app/Tests/MCPRouterUITests/SheetShortcutScan.swift \
-    '            let withoutComment = line.components(separatedBy: "//").first ?? ""' \
-    '            let withoutComment = ""' \
+    '        static func withoutComment(_ line: String) -> String {
+            var inString = false' \
+    '        static func withoutComment(_ line: String) -> String {
+            let line = ""
+            var inString = false' \
     'SheetShortcutGuardTests'
 
 # 6 — the destructive fill back to the one the mock does not draw.
@@ -130,6 +137,55 @@ arm "the mock's destructive rule given a background" \
     '.btn.destructive{color:var(--fail-ink);background:none;box-shadow:none;}' \
     '.btn.destructive{color:var(--fail-ink);background:var(--raised);box-shadow:none;}' \
     'MockButtonFidelityTests'
+
+# --- gap-fix 3: which control takes the accent fill -------------------------------------------
+#
+# One mutation per property. Arms 9 and 10 are the two sites separately, because a single arm going
+# red would prove the guard covers *one* of them; 11 and 12 blind the two readers the Cancel guards
+# stand on, since an absence check whose reader has stopped reading returns the same clean answer a
+# conforming tree does.
+
+# 9 — the site M18 introduced at `4c320a8`, filled again.
+arm "RemoveServerSheet's Cancel filled again" \
+    app/Sources/MCPRouterUI/Boards/CleanupSheets.swift \
+    '                    Button("Cancel") { board.sheet = nil }
+                        .buttonStyle(StandardButtonStyle())
+                        .keyboardShortcut(.cancelAction)
+                    Button("Remove", role: .destructive) {' \
+    '                    Button("Cancel") { board.sheet = nil }
+                        .buttonStyle(ProminentButtonStyle())
+                        .keyboardShortcut(.cancelAction)
+                    Button("Remove", role: .destructive) {' \
+    'SheetShortcutGuardTests'
+
+# 10 — the sibling site, which came from `589ab2e` and predates M18.
+arm "RemoveServerDialog's Cancel filled again" \
+    app/Sources/MCPRouterUI/Boards/ServerSheets.swift \
+    '                Button("Cancel") { board.sheet = nil }
+                    .buttonStyle(StandardButtonStyle())
+                    .keyboardShortcut(.cancelAction)
+
+                Button("Remove", role: .destructive) {' \
+    '                Button("Cancel") { board.sheet = nil }
+                    .buttonStyle(ProminentButtonStyle())
+                    .keyboardShortcut(.cancelAction)
+
+                Button("Remove", role: .destructive) {' \
+    'SheetShortcutGuardTests'
+
+# 11 — the label reader made to match nothing, so every control reads as unlabelled.
+arm "the label reader made to read nothing" \
+    app/Tests/MCPRouterUITests/SheetShortcutScan.swift \
+    '                guard let opening = rawDeclaration.range(of: "Button(") else { return "" }' \
+    '                guard let opening = rawDeclaration.range(of: "ZZNeverMatches(") else { return "" }' \
+    'SheetShortcutGuardTests'
+
+# 12 — the style reader made to match nothing, so no control carries a style.
+arm "the style reader made to read nothing" \
+    app/Tests/MCPRouterUITests/SheetShortcutScan.swift \
+    '                    guard var style = firstArgument(of: "buttonStyle(", in: modifier) else { return nil }' \
+    '                    guard var style = firstArgument(of: "ZZNeverMatches(", in: modifier) else { return nil }' \
+    'SheetShortcutGuardTests'
 
 echo
 if ! git diff --quiet || [ -n "$(git status --porcelain --untracked-files=no)" ]; then

@@ -269,8 +269,13 @@
                 // is the default, which is the reasoning `Boards/CleanupSheets.swift` carries in
                 // full. (That verdict's list is nine of fifteen rather than the eight of fourteen
                 // it states; `SheetShortcutGuardTests` carries the correction and the population.)
+                //
+                // Cancel is drawn plain for the same reason, and that half predates M18: `589ab2e`
+                // filled it in M3. §3.4 puts the accent fill on a *trailing* affirmative and Cancel
+                // leads, so on a confirmation whose only affirmative act is destructive nothing
+                // takes the fill. `SheetShortcutGuardTests.noCancelControlIsAccentFilled` holds it.
                 Button("Cancel") { board.sheet = nil }
-                    .buttonStyle(ProminentButtonStyle())
+                    .buttonStyle(StandardButtonStyle())
                     .keyboardShortcut(.cancelAction)
 
                 Button("Remove", role: .destructive) {

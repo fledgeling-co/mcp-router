@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
 # Runs `escape-shortcut-probe.swift` over every shape × key and prints the matrix.
 #
-# Six shapes × two keys = twelve runs at ~6s each. Each run opens a window and takes keyboard
-# focus for its five seconds, because a posted key event only reaches the responder chain of a
-# key window — that is the cost of measuring this rather than reading it.
+# Seven shapes × two keys = fourteen runs at ~6s each. The count is `shapes` below; it read six
+# until `hidden-cancel` was added and this line was not updated with it.
+#
+# Each run opens a window and takes keyboard focus for its five seconds, because a posted key event
+# only reaches the responder chain of a key window — that is the cost of measuring this rather than
+# reading it.
 #
 # Results land in a scratch directory (default `$TMPDIR/escape-shortcut-probe`); the instrument is
 # what is committed, and the table this prints is what gets pasted into the record.
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-out="${1:-${TMPDIR:-/tmp}escape-shortcut-probe}"
+# `${TMPDIR}` ends in `/` on macOS and is unset elsewhere, so the separator is added here rather
+# than assumed: without it an unset `TMPDIR` wrote the results to `/tmpescape-shortcut-probe`.
+scratch="${TMPDIR:-/tmp}"
+out="${1:-${scratch%/}/escape-shortcut-probe}"
 mkdir -p "$out"
 rm -f "$out"/result-*.txt "$out"/state-*.txt
 

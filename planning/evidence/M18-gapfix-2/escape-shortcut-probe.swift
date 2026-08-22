@@ -26,6 +26,11 @@ import SwiftUI
 /// Named for the tree they describe rather than for a verdict, so a row cannot silently become the
 /// name of something else: `preM18` is `87e16dc`, `m18Shipped` is `6721e5c`'s
 /// `CleanupSheets.swift:99-107`, and the three `candidate…` rows are shapes under consideration.
+///
+/// **One row now describes two trees, and the name only says one of them.** `preM18` is also the
+/// shape gap-fix 2 shipped, so the row that certifies the current tree is named for the old one.
+/// Kept rather than renamed, because the matrix is quoted by line in two records and a rename would
+/// strand both; read `pre-m18` as *the shape before M18 and after gap-fix 2* wherever it appears.
 enum Shape: String, CaseIterable {
     /// `87e16dc` — Cancel took Escape, the destructive button carried nothing.
     case preM18 = "pre-m18"

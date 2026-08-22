@@ -101,10 +101,25 @@
                     // builds both shapes and posts a keycode 53, and the shipped one reports
                     // `REMOVE` where the shape below reports `CANCEL`.
                     //
-                    // Cancel keeps the filled primary M18 gave it — §3.4's one prominent action
-                    // per view, and the disagreement with `RemoveServerDialog` that M18 set out to
-                    // close — and carries Escape rather than Return, which is the shape every
-                    // other dismissing control in this tree already uses.
+                    // **Cancel is drawn plain, and §3.4 is the reason rather than the exception
+                    // to it.** `DESIGN.md`:441 reads *"One prominent accent-filled action per
+                    // view, trailing. Cancel leads. Destructive is never the default."* — the
+                    // accent fill belongs to a trailing affirmative, Cancel is the leading
+                    // control and so is never it, and a confirmation whose only affirmative act
+                    // is destructive has no candidate for the fill at all. The clause is a
+                    // ceiling, not a quota.
+                    //
+                    // M18 filled this Cancel at `4c320a8` and gap-fix 2 kept it under a comment
+                    // citing §3.4 as the *reason* for the fill — the clause cited forbids the
+                    // shape it was cited for, and a comment is what the next reader takes as
+                    // settled. Plain here agrees with `ResetHistorySheet` and
+                    // `ActivityResetHistorySheet` below, with `RemoveServerDialog`, and with the
+                    // mock's own `sh-confirm-remove`, which draws Cancel as a bare `.btn`. So the
+                    // disagreement M18 set out to close is closed rather than moved.
+                    // `SheetShortcutGuardTests.noCancelControlIsAccentFilled` holds it.
+                    //
+                    // Cancel carries Escape rather than Return, which is the shape every other
+                    // dismissing control in this tree already uses.
                     //
                     // **Nothing here is the default, deliberately.** The same probe measures that
                     // one control cannot hold both shortcuts: SwiftUI keeps the innermost
@@ -113,7 +128,7 @@
                     // Return doing nothing is the correct end of that trade rather than a
                     // casualty of it.
                     Button("Cancel") { board.sheet = nil }
-                        .buttonStyle(ProminentButtonStyle())
+                        .buttonStyle(StandardButtonStyle())
                         .keyboardShortcut(.cancelAction)
                     Button("Remove", role: .destructive) {
                         Task { await board.remove(name, keepHistory: keepHistory) }

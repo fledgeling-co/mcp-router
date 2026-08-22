@@ -331,6 +331,31 @@ independent confirmation that it is claim accounting rather than load measuremen
 Disk is the tightest axis at **13.7% free** (254 GiB absolute, 234 GiB clear of the hard gate) —
 graded healthy, so watch rather than worry.
 
+### R19'S PARAGRAPH HAS FAILED THREE PASSES, EACH TIME BY A NEW EXCLUSIVITY CLAIM
+
+Three verifications, three `Needs More Work`, and **each pass removed one exclusivity claim and wrote
+another**:
+
+1. *A node-side delete would have failed **both**.* — false; the Swift arm leaves
+   `IndexFailureRecordTests` green.
+2. *`parity-cli.sh` is **not what catches** that one.* — false; it reddens on both arms, because a
+   differential harness sees a one-sided regression whichever side it is on.
+3. *What `IndexFailureRecordTests` **uniquely** holds is the both-sides-at-once case.* — false;
+   `parity-overlap.sh` reddens there too.
+
+**And the third was written four lines below the sentence the same pass narrowed for exactly this
+reason.** The narrowing itself was right — arm A against two unnamed instruments showed
+`parity-overlap.sh` reddening, so pasting the verdict's ready-made *the only instrument that does*
+would have produced a **third** false exclusivity rather than a second.
+
+**So the defect is the paragraph, not any sentence in it.** It is written in a register that reaches
+for uniqueness — *only*, *not what catches*, *uniquely* — over a set of instruments nobody has
+enumerated. A fourth pass briefed on the new sentence alone will write a fourth.
+
+**Brief the next pass on the register**: state what each instrument *does* catch and stop there.
+Every exclusivity claim requires enumerating the full instrument set, and this item has now
+discovered a previously-unnamed instrument on each of three passes.
+
 ### HAZARD — TWO IDENTICALLY-NAMED `MCPRouter.app` BUNDLES EXIST RIGHT NOW
 
 **Live as of 2026-08-23, with seven verifiers running.** Found by M20's verifier as its V5, verified

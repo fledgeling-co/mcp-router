@@ -86,6 +86,42 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+
+## A twenty-first — a glob that matched a different project, and it nearly wrote a verdict
+
+Caught before it landed, by the orchestrator, on the orchestrator.
+
+A verifier's `-p` output came back as 383 bytes reading *"verification stands at Done"* with the
+report itself in an earlier turn. To recover the evidence rather than record an unread verdict, the
+orchestrator looked up the agent's transcript with:
+
+```
+ls -d ~/.claude/projects/*G4* | head -1
+```
+
+That glob matches **twelve** directories. Eleven are `…-T-diolog-bench-*` temp dirs whose random
+suffixes happen to contain `G4` — `5mnG4w`, `A8L4G4`, `b01G44`, `BpG4Cs`, `fljeG4`, `G44iiF`,
+`G4SUab`, `gIhgG4`, `ifWUG4`, `P3uhG4`, `TrocG4` — and one is the worktree. `head -1` took the
+first alphabetically, which is a benchmark run about a React showcase component.
+
+**The extracted "verdict" was a coherent, detailed engineering report about a completely different
+codebase**, and nothing in its shape said so. Only reading it caught it.
+
+The named quantity is *this item's verifier transcript*; the read quantity is *the first path whose
+name contains the substring `G4`*. An item id is two characters, and two characters match anything.
+That is the whole defect, and it is the table's shape arriving through a filesystem glob rather
+than an assertion.
+
+**What makes it the worst instance here is the failure mode**: it does not produce a wrong number,
+it produces a *fabricated verdict* — plausible, specific, and about someone else's work — into a
+ledger whose whole purpose is being auditable later. Every other instance in this table degrades a
+measurement. This one manufactures one.
+
+Remedy, and it is one character: **anchor the path.** `~/.claude/projects/-Users-lukerhodes-Dev-mcp-router--worktrees-G4`
+is exact and cannot match a temp directory. More generally, a lookup keyed on a short id must be
+anchored at both ends, and a transcript must be confirmed to belong to the run being reported —
+the cheapest check is that its first user message is the brief that was dispatched.
+
 ## A twentieth — the measurement technique that removed its own record
 
 G5's gap-fix moved `planning/progress/G5-gapfix.md` out of the tree to isolate whether that one

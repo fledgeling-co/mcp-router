@@ -78,6 +78,28 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+
+## The method note that came out of fixing the eleventh, and it generalises
+
+G4's gap-fix rebuilt the absence sweep three times before it was right, and **neither wrong
+version was caught by the absence check**. Both were caught by a *control asserting the corrected
+figures are present*.
+
+- Whitespace normalisation alone still leaves `over 27 # iterations` — a comment marker inside the
+  wrapped phrase, which no amount of newline collapsing removes.
+- An unqualified `*` strip turned `**Fifteen readers` into `*Fifteen readers`, so the corrected
+  text stopped matching the pattern written to find it.
+
+The general statement is the useful part, and it is the cleanest thing this item has produced:
+**an absence check cannot detect its own blindness.** A clean result means either the claim is gone
+or the reader cannot see it, and those are indistinguishable from the inside. A *presence* control
+over the replacement text distinguishes them for free — if the corrected phrase is not found, the
+reader is broken, whatever the absence check said.
+
+That is worth carrying beyond this item. Every one of the four absence sweeps in this table
+(instances 1, 4, 5, 10) would have been caught on its first run by a presence control over the
+thing that should have been there.
+
 ## A thirteenth instance — M15's arm 6b, and this one was found on purpose
 
 `no-raw-design-values.sh` is named for *no raw geometry literal survives in the design surfaces*.

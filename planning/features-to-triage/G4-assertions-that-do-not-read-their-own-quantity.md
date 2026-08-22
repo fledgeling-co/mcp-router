@@ -83,6 +83,31 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+
+## An eighteenth — a cross-file citation that goes stale in the direction its subject moved
+
+Flagged by G4's gap-fix 2 while repointing a sentence, and correctly left alone as out of scope:
+
+`planning/progress/G4.md:151` cites `G4-gapfix.md` §6 as the proof that the reconciler at `72958de`
+gives the check-E finding against the same tree. **§6 now records that finding not reproducing**,
+because `ai/g5` committed and stopped being an ancestor of `main`.
+
+So the citation is named for *what §6 proves* and reads *what §6 proved when the sentence was
+written*. Same shape as the fifteenth — a record citing content that does not say what the citation
+claims — but arrived at without anybody writing a placeholder: **§6 was rewritten truthfully, and
+that is what broke the sentence pointing at it.**
+
+Two things follow that are worth more than the instance. **A citation to a section is a claim about
+that section's contents, and nothing checks it** — not the accounting contract, which reads Python
+readers, and not the null-run gate, which reads assertions. And **the direction matters**: this one
+went stale because its subject was *corrected*, so the more diligent the item, the more of these it
+creates. An item that fixes a claim in one place and leaves three citations pointing at the old
+reading has made the record worse in the way this table exists to catch.
+
+Cheap partial remedy, in the same family as the presence control: a citation naming a section should
+quote the phrase it relies on, so a sweep can find the quotation when the section changes. A bare
+`§6` is unfalsifiable; `§6's "the reconciler exits 1"` is a claim a grep can break.
+
 ## A seventeenth — the control itself becoming a corpus hit, found by G5's gap-fix
 
 R17's gap-fix 4 established that **a report echoing what it matched becomes a corpus hit**. G5's

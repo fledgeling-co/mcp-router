@@ -496,7 +496,19 @@ readers had the anomaly and read it as noise.
 That is a **different failure from the seven instruments that could not fail**: here the instrument
 reported an anomaly faithfully and its readers discarded it. Probably the more common of the two.
 
-### SEVEN INSTRUMENTS THAT COULD NOT FAIL, IN ONE DAY, ACROSS SEVEN MECHANISMS
+### NINE INSTRUMENTS THAT COULD NOT FAIL, IN ONE DAY, ACROSS NINE MECHANISMS
+
+Two more arrived from this wave's verifications, and both guard something load-bearing:
+
+| # | instrument | why it could not fail |
+|---|---|---|
+| 8 | M19's `nothingFallsBack` | filters for `MarkdownBlock.plainText`, **never constructed anywhere in `app/`** — and the red-green arm proving it **reddens by trapping**, not by asserting |
+| 9 | M12's `A15c` C7 row | greps `reading taken $shape` against a sentence hardcoding `at `, so **`taken at 3m ago` passes** — while claiming to prove the item's central design decision |
+
+Both were found by **planting rather than by reading**, and both runs carried a **negative control**
+that failed correctly — which is what turns *"I could not make it fail"* into *"it cannot fail"*.
+
+### THE ORIGINAL SEVEN
 
 The armada conductor is carrying this count because it is what the whole night was about. **An
 instrument that cannot fail reports exactly like one that passed.**

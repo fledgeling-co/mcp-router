@@ -94,3 +94,36 @@ touch, or an ignore entry that makes the choice for everyone rather than per run
 Whoever triages this should settle **both** directions at once. Fixing only the `/tmp` half
 moves the briefs into worktrees and makes the tracked-artifact problem universal instead of a
 third of the time.
+
+## The third axis: a citation that resolved when written and not where it is read
+
+Found 2026-08-23 by `lukerhodes-2f`, which had made the error itself and reported it unprompted.
+
+`/tmp` paths rot **in time**. Bare line numbers rot **across revisions**, and the failure looks
+identical to whoever lands on them: a pointer into nothing, indistinguishable from evidence that
+was never gathered.
+
+The measurement. Gap-fix 3's verdict cites its blocker as `G5.md:159`. That is **correct at
+`a9603e5`**, the base gap-fix 3 worked from and the frame `D-g5-d`'s own ten citations use. It
+becomes `:170` at `43b44a2` and stays there. Both the recovery session and this orchestrator
+independently declared it "not revision drift" after checking `43b44a2`, `3e63811` and the
+worktree — **three frames, all on the same side of the edit.** Three concordant readings from
+one side of a change are one reading, and ruling out drift on that basis is an absence check
+with no presence control, which is a guard this document set already ships.
+
+It is systemic rather than incidental: **six of `D-g5-d`'s ten citations fail the same way**, and
+gap-fix 3's own verdict carries `:159` bare in its opening sentence, its arm-4 paragraph and its
+work order — the three places a reader acts.
+
+**The fix is not renumbering, which would hide it.** A number chased to the current revision is
+correct until the next edit and carries no way to tell. Carry the frame — `G5.md:159` at
+`a9603e5` — and the pointer stays checkable from either side. Where a frame is impractical, quote
+the phrase relied on, which this repo already requires of cross-file citations for exactly this
+reason.
+
+So this item now has three axes and one root: **a record's pointer must resolve where it is
+read, not merely where it was written.** `/tmp` fails it in time, a bare line number fails it
+across revisions, and a dispatch artifact written into the subject fails it by changing what it
+points at. A guard for the first two is mechanical and cheap; the argument for building it is
+that two independent agents hit the third axis within an hour of writing the item about the
+first.

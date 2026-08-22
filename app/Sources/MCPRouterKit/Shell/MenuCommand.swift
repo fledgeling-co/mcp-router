@@ -175,7 +175,10 @@ public enum MenuCommand: Hashable, Sendable {
     public var title: String {
         switch self {
         case .about: "About MCP Router"
-        case .settings: "Settings"
+        // `…` because it opens a window now (§3.4). M8 shipped it without one, correctly, while
+        // Settings was a sidebar destination and `⌘,` moved the selection; M15 makes that false.
+        // `opensAFurtherView` is derived from this string, so it follows for free.
+        case .settings: "Settings…"
         case .hide: "Hide MCP Router"
         case .hideOthers: "Hide Others"
         case .showAll: "Show All"

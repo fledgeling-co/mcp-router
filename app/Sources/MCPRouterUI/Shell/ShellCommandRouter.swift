@@ -56,6 +56,15 @@
             case removeSelectedServer
             /// Show the Skills board's marketplaces sheet — `⌘⇧N`.
             case showMarketplaces
+            /// Open the `Settings` scene — `⌘,` and `MCP Router ▸ Settings…`.
+            ///
+            /// **Not a no-op, and the distinction is the whole reason this case exists.** The menu
+            /// item is a `SettingsLink`, which performs the actuation itself; a case whose `perform`
+            /// arm did nothing would make the mapping grep-testable and nothing more, and would leave
+            /// this router structurally unable to open Settings from anywhere else — the menu-bar
+            /// popover, an error banner, a future onboarding path. So the arm calls an opener the
+            /// window injects, and the clause is behaviourally testable.
+            case openSettingsScene
         }
 
         /// The whole mapping, exhaustive over `MenuCommand` so a new command cannot be added
@@ -102,10 +111,11 @@
         private static func shellOperation(for command: MenuCommand) -> Operation {
             switch command {
             case let .selectDestination(destination): .select(destination)
-            // `⌘,` selects the Settings destination rather than opening a further view, which is why
-            // its title carries no ellipsis (§3.4). M8 may move Settings to its own scene; this is
-            // the line that would change.
-            case .settings: .select(.settings)
+            // `SettingsLink` is what actuates this from the menu; the operation is what makes the
+            // mapping assertable and what lets anything else in the app open the window. M8 shipped
+            // this as `.select(.settings)`, when Settings was a sidebar destination, and named this
+            // as the line that would change.
+            case .settings: .openSettingsScene
             case .showSidebar: .toggleSidebar
             case .about: .aboutPanel
             case .addServer, .find, .resetServer, .removeServer, .addMarketplace, .pairPhone,
@@ -150,8 +160,38 @@
                 // from the File menu from anywhere, which is what §3.9 asks for.
                 model?.select(.inbox)
                 model?.inboxBoard.pairing.open()
+            case .openSettingsScene: openSettings()
             case .none: break
             }
+        }
+
+        // MARK: - Opening the Settings scene
+
+        /// How this router reaches a scene it cannot see.
+        ///
+        /// `EnvironmentValues.openSettings` needs a view *inside* a scene, and a menu command is
+        /// outside every scene — the same `@FocusedValue` fact this type's own note measured. It is
+        /// perfectly reachable from a view inside a scene, so `ShellWindow` installs it on appearance
+        /// beside the `ShellMenuReasons.provideContext` line that solves the identical problem for
+        /// menu reasons.
+        ///
+        /// The private `NSApp.sendAction(Selector(("showSettingsWindow:")))` route is deliberately
+        /// **not** taken: it is an undocumented selector that was spelled `showPreferencesWindow:`
+        /// two releases ago, and `SWIFT_PRACTICES.md` §6 forbids a symbol present in neither this
+        /// repo nor a pinned dependency.
+        @MainActor private static var settingsOpener: (() -> Void)?
+
+        /// Installed by `ShellWindow` from `@Environment(\.openSettings)`.
+        @MainActor
+        public static func provideSettingsOpener(_ open: @escaping () -> Void) {
+            settingsOpener = open
+        }
+
+        /// Opens the scene, or does nothing when no window has installed an opener yet — the same
+        /// honest outcome a command with no focused model has.
+        @MainActor
+        private static func openSettings() {
+            settingsOpener?()
         }
 
         /// `⌘F` on whichever board is showing, split out for the same reason

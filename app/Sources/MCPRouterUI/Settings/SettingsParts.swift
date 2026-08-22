@@ -5,31 +5,47 @@
     /// A titled group of settings. Sentence case, secondary colour, no case transform anywhere —
     /// `DESIGN.md` §3.2 says the fix for a tracked upper-case header is to remove it, not to
     /// re-track it, so the label is stored the way it is drawn.
+    ///
+    /// **It takes the title as a string now, and that is the whole of the change from the board's
+    /// version.** It used to take `SettingsPresentation.Group`, a four-case enum that was the board's
+    /// complete inventory of groups; a window of seven panes has no such closed set, and the headers
+    /// it does carry are named on `SettingsPaneCopy` beside the rest of each pane's copy. The enum
+    /// went with its last caller.
     struct SettingsGroup<Content: View>: View {
-        let group: SettingsPresentation.Group
+        let title: String
         @ViewBuilder let content: Content
 
-        init(_ group: SettingsPresentation.Group, @ViewBuilder content: () -> Content) {
-            self.group = group
+        init(_ title: String, @ViewBuilder content: () -> Content) {
+            self.title = title
             self.content = content()
         }
 
         var body: some View {
             VStack(alignment: .leading, spacing: SettingsMetrics.tightGap) {
-                Text(group.rawValue)
+                Text(title)
                     .typeRole(.subheadline)
                     .foregroundStyle(ColorToken.t3.color)
                     .padding(.bottom, SettingsMetrics.tightGap)
+                    .measured(
+                        "group-title", role: "group-title", kind: .text,
+                        tokens: ["foreground": .t3], type: .subheadline, text: title
+                    )
                 content
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .contain)
-            .accessibilityLabel(group.rawValue)
+            .accessibilityLabel(title)
+            .measured("group", role: "settings-group", kind: .vstack, alignment: "leading")
         }
     }
 
     /// An inset card. Concentric corners: the child radius is the parent's less its padding (§2).
     struct SettingsCard<Content: View>: View {
+        /// Unique among this card's siblings, so two cards in one pane are two nodes in the dump
+        /// rather than one that overwrote the other. `index_nodes` refuses a tree in which a path
+        /// names more than one node, so an unnamed second card is an inconclusive run, not a quiet
+        /// one.
+        var id = "card"
         @ViewBuilder let content: Content
 
         var body: some View {
@@ -43,6 +59,7 @@
                     RoundedRectangle(cornerRadius: SettingsMetrics.cardRadius, style: .continuous)
                         .strokeBorder(ColorToken.line.color, lineWidth: SettingsMetrics.hairline)
                 )
+                .measured(id, role: "table", kind: .vstack, tokens: ["background": .panel])
         }
     }
 
@@ -85,6 +102,37 @@
                 }
             }
             .frame(minHeight: SettingsMetrics.rowHeight)
+            .measured(
+                "row-\(label)", role: "table-row", kind: .hstack,
+                type: .body, text: label
+            )
+        }
+    }
+
+    /// A helper sentence under a card: what governs the values above, or where they are set.
+    ///
+    /// Was a private `helper(_:)` on the Settings board; it is a view now because seven panes draw
+    /// it and a function copied into each of them is seven places for the type role to drift.
+    struct SettingsHelp: View {
+        let text: String
+        /// Unique among this pane's siblings, for the reason `SettingsCard`'s is.
+        var id = "help"
+
+        init(_ text: String, id: String = "help") {
+            self.text = text
+            self.id = id
+        }
+
+        var body: some View {
+            Text(text)
+                .typeRole(.subheadline)
+                .foregroundStyle(ColorToken.t3.color)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, SettingsMetrics.tightGap)
+                .measured(
+                    id, role: "state-detail", kind: .text,
+                    tokens: ["foreground": .t3], type: .subheadline, text: text
+                )
         }
     }
 

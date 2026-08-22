@@ -124,10 +124,19 @@ done
 # geometry than the shell does — column widths, row heights, a skeleton that has to match the row it
 # stands in for — so a board outside this list is the largest unguarded surface in the app. Each
 # board directory joins as it ships.
+#
+# M15's Settings window joins for a reason worth stating: without this line the geometry rule and
+# A36's one-channel rule would have SILENTLY STOPPED applying to code that was under them the day
+# before. `SettingsBoard.swift` lived in `Boards/`, which is listed; the window that replaces it
+# lives in a directory that was not. The `[ -d "$dir" ]` guard below only fires for a *listed*
+# directory that is missing, so a directory nobody listed is invisible to it. The comment above
+# already said "each board directory joins as it ships"; this is that, and the file count printed
+# below is what proves the directory was scanned rather than merely named.
 GEOMETRY_DIRS=(
   "$ROOT/app/Sources/MCPRouterUI/Shell"
   "$ROOT/app/Sources/MCPRouterUI/Activity"
   "$ROOT/app/Sources/MCPRouterUI/Boards"
+  "$ROOT/app/Sources/MCPRouterUI/Settings"
 )
 
 # M3 brings the boards under the same two rules. They were scoped to the shell so that a merged gate

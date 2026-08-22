@@ -131,7 +131,7 @@ struct ServerBoardShapeTests {
         let row = ServerRowModel(server: s, idleMs: 300_000, pendingAuth: nil)
         #expect(row.calls == 1204, "a column reading callsServed would show 0 for a busy server")
         #expect(row.id == "obscura")
-        #expect(row.breaker == BreakerState.running)
+        #expect(row.jack == JackState.live)
     }
 
     @Test("Row identity is the server's name, so a reorder cannot bleed state between rows")

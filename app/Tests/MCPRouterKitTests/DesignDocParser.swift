@@ -326,27 +326,13 @@ enum DesignDocParser {
 
     /// The Signal Path's construction, one row per dimension.
     ///
-    /// A separate table from chrome geometry for the reason `breakerRows` gives below: it is
-    /// component construction rather than app chrome, and the four values a window actually lays
-    /// out with should not be buried under a signature element's dimensions.
+    /// A separate table from chrome geometry because it is component construction rather than app
+    /// chrome, and the four values a window actually lays out with should not be buried under a
+    /// signature element's dimensions. The outgoing signature's own table made the same argument
+    /// with nineteen rows; this is the same seam with a different element on it.
     static func signalPathRows(in text: String) throws -> [MetricRow] {
         var rows: [MetricRow] = []
         for line in try tableLines(in: text, under: "Signal Path geometry") {
-            guard let c = cells(of: line), c.count >= 2 else { continue }
-            if c[0] == "Element" { continue }
-            rows.append(MetricRow(element: c[0], leadingScalar: leadingScalar(c[1])))
-        }
-        return rows
-    }
-
-    /// The breaker's construction, one row per dimension.
-    ///
-    /// A separate table from chrome geometry because it is component construction rather than app
-    /// chrome, and because mixing nineteen breaker rows into the chrome ladder would bury the four
-    /// values a window actually lays out with. Same shape, so the same row rules apply.
-    static func breakerRows(in text: String) throws -> [MetricRow] {
-        var rows: [MetricRow] = []
-        for line in try tableLines(in: text, under: "Breaker geometry") {
             guard let c = cells(of: line), c.count >= 2 else { continue }
             if c[0] == "Element" { continue }
             rows.append(MetricRow(element: c[0], leadingScalar: leadingScalar(c[1])))

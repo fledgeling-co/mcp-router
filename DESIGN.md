@@ -499,6 +499,16 @@ failures.
 ## 6 · Words
 
 - Sentence case everywhere — headers, labels, buttons.
+- **The menu bar is the one exception, and it is this document's own precedence rule rather than
+  a carve-out.** Apple's HIG specifies title-style capitalization for menu titles and menu items,
+  the header above says the kit wins where it and this file disagree, and macOS contributes
+  fourteen of the menu bar's items itself under strings the app cannot rename — `Hide Others`,
+  `Select All`, `Bring All to Front`. Until M20 the app's own thirteen were sentence case, so the
+  bar carried `Hide Others` directly above `Add server…`: the rule was already broken, in the
+  worse direction, by half of one surface. Menu items are Title Case; every other surface,
+  including buttons that say the same words as a menu item, stays sentence case. Where a string
+  was shared between the two — `Add marketplace…` was one literal on a menu item and two Skills
+  buttons — the menu takes its own.
 - Buttons are verb-first and name the action. "Send 2 to Mac", never "Submit" or "OK".
 - One name per state across both devices, taken from one source rather than spelled twice. The
   worked example is the router being unreachable: `ControlAPIError.routerNotRunning` carries the
@@ -552,11 +562,37 @@ Named in every spec, not discovered later.
 | `⌘R` | Reset the selected server |
 | `⌘⌫` | Remove the selected server (undoable, never confirmed) |
 | `⌘,` | Settings |
+| `⌃W` | Wake the selected server — keep it resident rather than reaping it when idle |
+| `⌘1` | Discover |
+| `⌘2` | Skills |
+| `⌘3` | Servers |
+| `⌘4` | Activity |
+| `⌘6` | Checks |
+| `⌘7` | Cleanup |
+| `⌘8` | Inbox |
 | `Return` | commits the view's one default action |
 | `Esc` | dismisses the sheet, then clears selection |
 | `Space` | toggles the selected row's breaker |
 
 Focus rings are visible, accent-bound, 2px. Tab order runs sidebar → table → inspector.
+
+**The board digits are in this table for the first time at M20, and two of the nine are missing
+on purpose.** They were the one part of the accelerator map that lived only in a `switch`, so
+`MenuCommandTests`' both-ways check against this section covered every chord in the app except
+the seven a user presses most. `⌘5` and `⌘9` belong to Harnesses and Insights, which M22 ships;
+they are absent here rather than reassigned, because a row for a board that does not exist is a
+binding this document states and the app cannot honour — and packing the other seven into
+`⌘1`–`⌘7` would move every digit on the day M22 lands. The order is the design of record's, set
+at `6c513b0`; `PRD.md` §9.4 still lists the older one and is stale against its own mock.
+
+**A command that cannot fire in any context is granted no chord here.** That is why the Router
+and Library menus contribute exactly one row between them: eight of their ten commands are
+`.featureUnbuilt`, and the mock's `⌘R`, `⇧⌘R`, `⌃T`, `⌃⌘R`, `⌥⌘Q`, `⌥⌘U`, `⌥⌘D` and `⌥⌘K` are
+not granted. The rule is the one the app already applied to `Export Library…`, whose `⌘E` was a
+standard macOS combination claimed for a command that could never fire. `⌘R` in particular stays
+bound to `Reset the selected server` above, and is deliberately not re-pointed at the mock's
+`Re-index Manifest`: this section was re-authored *from* that same mock under M21, so it is the
+later reading of one source.
 
 ---
 

@@ -111,6 +111,14 @@
             // operation. This is the set being narrowed by exactly what shipped — the same move M3
             // and M4 made — rather than an exemption.
             .union([.pairPhone])
+            // M20 adds the three Router verbs the control API can actually perform: `Wake Selected
+            // Server` is `patch(warm: true)`, `Review Held Changes…` is the held-change sheet the
+            // popover's band already opens, and `Reveal Router Log in Finder` needs no router at
+            // all. The other nine commands M20 added are `.featureUnbuilt` in every context and
+            // stay outside this set, which is what the loop below asserts about them — a menu item
+            // that claimed an operation for a route `src/control.ts` does not serve is exactly the
+            // lie M14 was raised for.
+            .union([.wakeServer, .reviewHeldChanges, .revealRouterLog])
 
             for command in MenuCommand.allCases where !acting.contains(command) {
                 #expect(

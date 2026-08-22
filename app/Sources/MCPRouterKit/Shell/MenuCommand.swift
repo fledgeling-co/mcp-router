@@ -1,68 +1,23 @@
 import Foundation
 
-/// The six menus, in bar order.
+/// The eight menus the app is responsible for, in bar order.
+///
+/// **Six until M20.** `Router` and `Library` are the mock's own two, and they sit between View and
+/// Window because that is where `design/mcp-router-console.html` draws them — the bar order is a
+/// fact about the drawn menu bar rather than a preference, and `mac-shell.sh` reads it back off the
+/// running app in this order.
+///
+/// The Apple menu is macOS's and is not here, for the reason fourteen individual *items* are marked
+/// `isSystemProvided`: the app does not build it and cannot rename it.
 public enum MenuBarMenu: String, CaseIterable, Sendable {
     case app = "MCP Router"
     case file = "File"
     case edit = "Edit"
     case view = "View"
+    case router = "Router"
+    case library = "Library"
     case window = "Window"
     case help = "Help"
-}
-
-/// A keyboard shortcut as data.
-///
-/// Deliberately **not** SwiftUI's `KeyboardShortcut`: this module must stay free of UI frameworks
-/// (`SWIFT_PRACTICES.md` §8) so the router's own tests can import it, and so the parity test that
-/// compares this map against `DESIGN.md` §8 can run without a UI stack. `MCPRouterUI` maps this
-/// to the SwiftUI value at the point of binding.
-public struct KeyChord: Hashable, Sendable {
-    public enum Modifier: String, CaseIterable, Sendable, Comparable {
-        case control, option, shift, command
-
-        /// Apple's canonical display position: ⌃ ⌥ ⇧ ⌘.
-        ///
-        /// An exhaustive `switch` rather than an index into a literal array, because the array
-        /// form needs a force-unwrap to compare — and `force_unwrapping` is a SwiftLint *error*
-        /// here (`SWIFT_PRACTICES.md` §3). This spelling also fails to compile when a modifier is
-        /// added without being given a position, which the array form would not.
-        var displayRank: Int {
-            switch self {
-            case .control: 0
-            case .option: 1
-            case .shift: 2
-            case .command: 3
-            }
-        }
-
-        public static func < (lhs: Modifier, rhs: Modifier) -> Bool {
-            lhs.displayRank < rhs.displayRank
-        }
-
-        public var glyph: String {
-            switch self {
-            case .control: "⌃"
-            case .option: "⌥"
-            case .shift: "⇧"
-            case .command: "⌘"
-            }
-        }
-    }
-
-    /// The key itself, as the glyph the menu shows: `N`, `,`, `⌫`, `1`, `?`.
-    public let key: String
-    public let modifiers: Set<Modifier>
-
-    public init(_ key: String, _ modifiers: Set<Modifier> = [.command]) {
-        self.key = key
-        self.modifiers = modifiers
-    }
-
-    /// The shortcut as `DESIGN.md` §8 and the menu bar both write it — modifiers in Apple's order,
-    /// then the key. This is the string the parity test compares, so the two cannot drift.
-    public var display: String {
-        modifiers.sorted().map(\.glyph).joined() + key
-    }
 }
 
 /// Why a command cannot be used right now.
@@ -97,16 +52,40 @@ public enum CommandAvailability: Hashable, Sendable {
     /// actual condition — a state-shaped reason for a surface that simply does not exist yet
     /// would be a lie, and `DESIGN.md` §6 rules out both blame and invention.
     ///
-    /// `.featureUnbuilt`'s sentence is generic rather than naming the feature, because exactly one
-    /// command carries it. Naming it needs either an associated value — which changes every `==`
-    /// against the case — or moving reason resolution onto `MenuCommand`; both are larger than the
-    /// item that added the case, and both become worth doing the moment a second command takes it.
+    /// **This is the generic answer, and `MenuCommand.reason(in:)` is the one the menu reads.**
+    /// `.featureUnbuilt`'s sentence used to be generic *because* exactly one command carried it,
+    /// and its own note named the moment that stops being true: *"both are larger than the item
+    /// that added the case, and both become worth doing the moment a second command takes it."*
+    /// M20 is that moment — eight commands carry it — and of the two options the note offered, the
+    /// one taken is moving resolution onto `MenuCommand`. An associated value would have changed
+    /// every `==` against the case at six sites; this changes none of them, and every existing
+    /// reader of this property keeps the answer it already had.
     public var reason: String? {
         switch self {
         case .enabled: nil
         case .surfaceAbsent: "This part of the app isn't built yet."
         case .featureUnbuilt: "This feature hasn't been built yet."
         case .needsServerSelection: "Select a server first."
+        }
+    }
+
+    /// The short form, for the shortcut column.
+    ///
+    /// The brief and `PRD.md` §9.8 both put the reason **in the shortcut column** rather than only
+    /// in a tool tip — `Install Command-Line Tool · Installed` is the pattern — because a reason
+    /// that needs a hover is a reason a person reading the menu does not have. `NSMenuItemBadge` is
+    /// the platform's own right-aligned trailing text and is what `ShellMenuReasons` writes this
+    /// into; the full sentence above stays in the help tag, where the accessibility tree reads it.
+    ///
+    /// **The two unbuilt answers keep different words here too.** Collapsing them to one badge
+    /// would undo M14's separation one layer down, where no test was looking: the sentences would
+    /// still differ and the thing a person actually reads would not.
+    public var badge: String? {
+        switch self {
+        case .enabled: nil
+        case .surfaceAbsent: "Not in this build"
+        case .featureUnbuilt: "Not built yet"
+        case .needsServerSelection: "No selection"
         }
     }
 }
@@ -127,12 +106,17 @@ public enum MenuCommand: Hashable, Sendable {
     /// App.
     case about, settings, hide, hideOthers, showAll, quit
     /// File.
-    case addServer, addMarketplace, pairPhone, exportLibrary, closeWindow
+    case addServer, addMarketplace, pairPhone, closeWindow
     /// Edit.
     case undo, redo, cut, copy, paste, selectAll, find, resetServer, removeServer
     // View.
     case selectDestination(Destination)
     case showSidebar
+    /// Router — the daemon's own verbs (M20).
+    case reindexManifest, restartRouter, wakeServer, tripBreaker, reapChildren
+    case reviewHeldChanges, revealRouterLog, stopRouter
+    /// Library (M20). `exportLibrary` moved here from File, which is where the mock draws it.
+    case updateAllSkills, runDoctor, runAllChecks, exportLibrary
     // Window.
     case minimise, zoom, bringAllToFront
     // Help.
@@ -145,18 +129,27 @@ public enum MenuCommand: Hashable, Sendable {
     /// than a silent gap. That external oracle is what makes a literal list acceptable.
     private static let fixedCases: [MenuCommand] = [
         .about, .settings, .hide, .hideOthers, .showAll, .quit,
-        .addServer, .addMarketplace, .pairPhone, .exportLibrary, .closeWindow,
+        .addServer, .addMarketplace, .pairPhone, .closeWindow,
         .undo, .redo, .cut, .copy, .paste, .selectAll, .find, .resetServer, .removeServer,
         .showSidebar,
+        .reindexManifest, .restartRouter, .wakeServer, .tripBreaker, .reapChildren,
+        .reviewHeldChanges, .revealRouterLog, .stopRouter,
+        .updateAllSkills, .runDoctor, .runAllChecks, .exportLibrary,
         .minimise, .zoom, .bringAllToFront,
         .help, .whatTheRouterDoes, .reportIssue
     ]
 
     /// The destination-selection commands are generated from `Destination`, so the View menu can
     /// never fall out of step with the sidebar.
+    ///
+    /// **Ordered by accelerator digit rather than by sidebar order since M20.** The mock draws the
+    /// View menu in digit order and the digits are no longer contiguous with the sidebar's order —
+    /// `⌘5` and `⌘9` belong to Harnesses and Insights, which M22 ships. A menu reading 4, 3, 2, 1
+    /// is what sidebar order would produce, and the digit is the only thing this menu is for.
     public static var allCases: [MenuCommand] {
         let destinations = Destination.allCases
             .filter { $0.selectionDigit != nil }
+            .sorted { ($0.selectionDigit ?? 0) < ($1.selectionDigit ?? 0) }
             .map { MenuCommand.selectDestination($0) }
         return fixedCases + destinations
     }
@@ -164,14 +157,31 @@ public enum MenuCommand: Hashable, Sendable {
     public var menu: MenuBarMenu {
         switch self {
         case .about, .settings, .hide, .hideOthers, .showAll, .quit: .app
-        case .addServer, .addMarketplace, .pairPhone, .exportLibrary, .closeWindow: .file
+        case .addServer, .addMarketplace, .pairPhone, .closeWindow: .file
         case .undo, .redo, .cut, .copy, .paste, .selectAll, .find, .resetServer, .removeServer: .edit
         case .selectDestination, .showSidebar: .view
+        case .reindexManifest, .restartRouter, .wakeServer, .tripBreaker, .reapChildren,
+             .reviewHeldChanges, .revealRouterLog, .stopRouter: .router
+        case .updateAllSkills, .runDoctor, .runAllChecks, .exportLibrary: .library
         case .minimise, .zoom, .bringAllToFront: .window
         case .help, .whatTheRouterDoes, .reportIssue: .help
         }
     }
 
+    /// The item's title.
+    ///
+    /// **Title case since M20, and it is the kit winning rather than §6 losing.** `DESIGN.md` §6
+    /// asks for sentence case everywhere and its own precedence rule says the macOS 27 kit wins
+    /// where the two disagree; Apple's HIG specifies title-style capitalization for menu items, and
+    /// the brief, `PRD.md` §9.8 and the mock all draw them that way. Six of the titles below were
+    /// already title case for exactly this reason — they are strings macOS contributes and the app
+    /// cannot rename — so the menu bar was previously carrying `Hide Others` directly above `Add
+    /// server…`. §6 now records the exception explicitly rather than being quietly broken by half
+    /// the menu.
+    ///
+    /// The **verbs are unchanged**: this is a case conversion, not a rename. The mock spells `⌘N`
+    /// as `New Server…` and `DESIGN.md` §8 spells it `Add server…`; §8 is the document
+    /// `MenuCommandTests` holds this model against and it wins, so the command stays `Add`.
     public var title: String {
         switch self {
         case .about: "About MCP Router"
@@ -183,10 +193,14 @@ public enum MenuCommand: Hashable, Sendable {
         case .hideOthers: "Hide Others"
         case .showAll: "Show All"
         case .quit: "Quit MCP Router"
-        case .addServer: "Add server…"
-        case .addMarketplace: SkillPresentation.marketplacesAction
+        case .addServer: "Add Server…"
+        // **No longer `SkillPresentation.marketplacesAction`.** The Skills board draws that string
+        // on two buttons, and `DESIGN.md` §6 keeps buttons in sentence case — so the menu item and
+        // the button stopped being able to share one literal the moment the menu went title case.
+        // `ActivityResetEntryPointTests` pins the button's spelling and is untouched by this.
+        case .addMarketplace: "Add Marketplace…"
         case .pairPhone: "Pair iPhone…"
-        case .exportLibrary: "Export library…"
+        case .exportLibrary: "Export Library…"
         case .closeWindow: "Close"
         case .undo: "Undo"
         case .redo: "Redo"
@@ -195,16 +209,27 @@ public enum MenuCommand: Hashable, Sendable {
         case .paste: "Paste"
         case .selectAll: "Select All"
         case .find: "Find"
-        case .resetServer: "Reset server"
-        case .removeServer: "Remove server"
+        case .resetServer: "Reset Server"
+        case .removeServer: "Remove Server"
         case let .selectDestination(destination): destination.title
-        case .showSidebar: "Show sidebar"
+        case .showSidebar: "Show Sidebar"
+        case .reindexManifest: "Re-index Manifest"
+        case .restartRouter: "Restart Router"
+        case .wakeServer: "Wake Selected Server"
+        case .tripBreaker: "Trip Selected Breaker"
+        case .reapChildren: "Reap Idle Children"
+        case .reviewHeldChanges: "Review Held Changes…"
+        case .revealRouterLog: "Reveal Router Log in Finder"
+        case .stopRouter: "Stop Router"
+        case .updateAllSkills: "Update All Skills"
+        case .runDoctor: "Run Doctor"
+        case .runAllChecks: "Run All Checks"
         case .minimise: "Minimize"
         case .zoom: "Zoom"
         case .bringAllToFront: "Bring All to Front"
-        case .help: "MCP Router help"
-        case .whatTheRouterDoes: "What the router actually does"
-        case .reportIssue: "Report an issue"
+        case .help: "MCP Router Help"
+        case .whatTheRouterDoes: "What the Router Actually Does"
+        case .reportIssue: "Report an Issue"
         }
     }
 
@@ -244,6 +269,9 @@ public enum MenuCommand: Hashable, Sendable {
              .addServer, .addMarketplace, .pairPhone, .exportLibrary,
              .find, .resetServer, .removeServer,
              .selectDestination, .showSidebar,
+             .reindexManifest, .restartRouter, .wakeServer, .tripBreaker, .reapChildren,
+             .reviewHeldChanges, .revealRouterLog, .stopRouter,
+             .updateAllSkills, .runDoctor, .runAllChecks,
              .help, .whatTheRouterDoes, .reportIssue:
             false
         }
@@ -276,6 +304,24 @@ public enum MenuCommand: Hashable, Sendable {
             destination.selectionDigit.map { KeyChord("\($0)") }
         case .showSidebar: KeyChord("S", [.command, .control])
         case .minimise: KeyChord("M")
+        // The one accelerator M20 grants, and the rule that granted only one.
+        //
+        // The mock's Router and Library menus claim ten chords. Nine of them sit on commands that
+        // are `.featureUnbuilt` in every context, and this repo already argued that case at length
+        // over `⌘E` below: a shortcut on a command that can never fire is a system combination
+        // claimed for nothing. So the rule generalises rather than being re-decided per item — **a
+        // command that cannot fire in any context carries no accelerator** — and `⌃W` is the only
+        // one left, because `Wake Selected Server` is the only Router verb the control API can
+        // perform (`patch(warm: true)`).
+        //
+        // `⌘R` is deliberately **not** re-pointed at `Re-index Manifest`, which is where the mock
+        // binds it. `DESIGN.md` §8 binds `⌘R` to resetting the selected server and was re-authored
+        // *from* this same mock under M21 on 2026-08-22 — the later reading of one source — and it
+        // is the document `MenuCommandTests` holds this map against.
+        //
+        // `Stop Router` would carry none regardless of that rule: `PRD.md` §9.7's gate row and the
+        // brief both say so, because its blast radius is every session on the machine.
+        case .wakeServer: KeyChord("W", [.control])
         // `MCP Router help` deliberately carries **no** shortcut, and this is measured rather
         // than assumed. `DESIGN.md` §8 never asked for one; an earlier draft of the inventory
         // invented `⌘?`, which is `⇧⌘/` on every layout macOS ships and is **reserved by the
@@ -293,93 +339,21 @@ public enum MenuCommand: Hashable, Sendable {
         //
         // The day export ships, §8 is the place that grants it a key, not this switch.
         case .about, .showAll, .pairPhone, .exportLibrary, .zoom, .bringAllToFront,
+             .reindexManifest, .restartRouter, .tripBreaker, .reapChildren,
+             .reviewHeldChanges, .revealRouterLog, .stopRouter,
+             .updateAllSkills, .runDoctor, .runAllChecks,
              .help, .whatTheRouterDoes, .reportIssue: nil
         }
     }
 
-    /// Whether this command is usable in the build M1 ships.
+    /// Whether this command selects a destination.
     ///
-    /// **Kept exactly as it was, and that is deliberate.** This is the answer with no board
-    /// installed and nothing selected, which is what `spec-M1.md`'s inventory table records and what
-    /// `MenuCommandTests` parses out of it. M3 does not edit this — it adds `availability(in:)`
-    /// below, and the live app passes a real context. An additive API leaves M1's contract intact
-    /// rather than rewriting a merged spec table to accommodate a later item.
-    public var availability: CommandAvailability {
-        availability(in: .none)
-    }
-
-    /// What the live app knows when it builds the menu.
-    ///
-    /// Two facts, because two are what the *context-dependent* refusals distinguish: whether the
-    /// surface a command acts on exists in this build, and whether it has the selection it needs.
-    /// `.featureUnbuilt` is deliberately **not** represented here — a feature nobody has written is
-    /// not a fact about the running app's state, and giving it a context field would invite a
-    /// caller to switch it off, which is the one thing that answer must not be able to do.
-    public struct CommandContext: Hashable, Sendable {
-        public let installedDestinations: Set<Destination>
-        /// `nil` when no server is selected; otherwise whether that server is tripped, which is the
-        /// only per-server fact any command branches on.
-        public let selectedServerIsTripped: Bool?
-
-        public init(installedDestinations: Set<Destination>, selectedServerIsTripped: Bool?) {
-            self.installedDestinations = installedDestinations
-            self.selectedServerIsTripped = selectedServerIsTripped
-        }
-
-        /// No board installed, nothing selected — M1's world, and the default this type answers in.
-        public static let none = CommandContext(installedDestinations: [], selectedServerIsTripped: nil)
-    }
-
-    /// Whether this command is usable, given what is installed and what is selected.
-    public func availability(in context: CommandContext) -> CommandAvailability {
-        let hasServers = context.installedDestinations.contains(.servers)
-        switch self {
-        // These three need the Servers board and nothing more.
-        case .addServer, .find:
-            return hasServers ? .enabled : .surfaceAbsent
-        // These act on a selected server, so they need the board *and* a selection. The order
-        // matters: with no board at all the honest reason is that the surface does not exist, not
-        // that the user failed to select something that cannot be selected.
-        case .resetServer:
-            guard hasServers else { return .surfaceAbsent }
-            // Resetting a server that is not tripped would be a request the router has nothing to
-            // do with, so the command dims rather than sending one.
-            return context.selectedServerIsTripped == true ? .enabled : .needsServerSelection
-        case .removeServer:
-            guard hasServers else { return .surfaceAbsent }
-            return context.selectedServerIsTripped == nil ? .needsServerSelection : .enabled
-        // Marketplaces live on the Skills board, so this command goes live with that board — the
-        // same rule `addServer` follows for Servers. Before M4 it read "this part of the app isn't
-        // built yet", which stops being true the moment the board ships; a menu that keeps saying
-        // it is the shell disagreeing with its own window.
-        case .addMarketplace:
-            return context.installedDestinations.contains(.skills) ? .enabled : .surfaceAbsent
-        // Pairing's sheet is hosted by the Inbox board: `ShellCommandRouter` selects `.inbox` and
-        // then calls `inboxBoard.pairing.open()` — the *same* call the board's own always-enabled
-        // `Pairing…` button makes. So this follows `addServer`'s rule with `.inbox` in place of
-        // `.servers`, and for the same reason: a menu that refuses what the board underneath it
-        // offers is the shell disagreeing with its own window.
-        //
-        // What this claims is bounded, and deliberately so. `…` means "opens a further view"
-        // (`DESIGN.md` §3.4), and the further view exists and ships. It does **not** claim a phone
-        // can pair: `ShellPairingFactory` returns `NoTransportInboxService` in every Release build,
-        // so the sheet reaches `.noEndpoint` and says "Pairing is not available in this build" —
-        // adjacent to the thing, which is where §6 puts it. Were the board's button ever gated on
-        // `PairingAvailability`, this would have to be gated the same way.
-        case .pairPhone:
-            return context.installedDestinations.contains(.inbox) ? .enabled : .surfaceAbsent
-        // No context makes an unwritten feature exist, so this arm does not ask about one. There is
-        // no export surface in either target; this is the product lacking the feature, not this
-        // build lacking a board, and the two now have different answers.
-        case .exportLibrary:
-            return .featureUnbuilt
-        case .about, .settings, .hide, .hideOthers, .showAll, .quit, .closeWindow,
-             .undo, .redo, .cut, .copy, .paste, .selectAll,
-             .selectDestination, .showSidebar,
-             .minimise, .zoom, .bringAllToFront,
-             .help, .whatTheRouterDoes, .reportIssue:
-            return .enabled
-        }
+    /// So the View menu's builder can take its items from `inMenu(.view)` — which is already in
+    /// digit order — rather than re-deriving the order from `Destination`. Two places deriving one
+    /// order is two places for it to be wrong, and the digits stopped being contiguous at M20.
+    public var isDestinationSelection: Bool {
+        if case .selectDestination = self { return true }
+        return false
     }
 
     /// The commands in one menu, in menu order.

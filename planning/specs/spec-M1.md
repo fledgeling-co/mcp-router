@@ -63,10 +63,9 @@ what exists and what it is bound to, the model for what it can do right now.
 | MCP Router | Hide Others | ⌥⌘H | enabled |
 | MCP Router | Show All | — | enabled |
 | MCP Router | Quit MCP Router | ⌘Q | enabled |
-| File | Add server… | ⌘N | surfaceAbsent |
-| File | Add marketplace… | ⇧⌘N | surfaceAbsent |
+| File | Add Server… | ⌘N | surfaceAbsent |
+| File | Add Marketplace… | ⇧⌘N | surfaceAbsent |
 | File | Pair iPhone… | — | surfaceAbsent |
-| File | Export library… | — | featureUnbuilt |
 | File | Close | ⌘W | enabled |
 | Edit | Undo | ⌘Z | enabled |
 | Edit | Redo | ⇧⌘Z | enabled |
@@ -75,36 +74,64 @@ what exists and what it is bound to, the model for what it can do right now.
 | Edit | Paste | ⌘V | enabled |
 | Edit | Select All | ⌘A | enabled |
 | Edit | Find | ⌘F | surfaceAbsent |
-| Edit | Reset server | ⌘R | surfaceAbsent |
-| Edit | Remove server | ⌘⌫ | surfaceAbsent |
-| View | Activity | ⌘1 | enabled |
-| View | Servers | ⌘2 | enabled |
-| View | Skills | ⌘3 | enabled |
-| View | Discover | ⌘4 | enabled |
-| View | Inbox | ⌘5 | enabled |
+| Edit | Reset Server | ⌘R | surfaceAbsent |
+| Edit | Remove Server | ⌘⌫ | surfaceAbsent |
+| View | Discover | ⌘1 | enabled |
+| View | Skills | ⌘2 | enabled |
+| View | Servers | ⌘3 | enabled |
+| View | Activity | ⌘4 | enabled |
 | View | Checks | ⌘6 | enabled |
 | View | Cleanup | ⌘7 | enabled |
-| View | Show sidebar | ⌃⌘S | enabled |
+| View | Inbox | ⌘8 | enabled |
+| View | Show Sidebar | ⌃⌘S | enabled |
+| Router | Re-index Manifest | — | featureUnbuilt |
+| Router | Restart Router | — | featureUnbuilt |
+| Router | Wake Selected Server | ⌃W | surfaceAbsent |
+| Router | Trip Selected Breaker | — | featureUnbuilt |
+| Router | Reap Idle Children | — | featureUnbuilt |
+| Router | Review Held Changes… | — | surfaceAbsent |
+| Router | Reveal Router Log in Finder | — | enabled |
+| Router | Stop Router | — | featureUnbuilt |
+| Library | Update All Skills | — | featureUnbuilt |
+| Library | Run Doctor | — | featureUnbuilt |
+| Library | Run All Checks | — | featureUnbuilt |
+| Library | Export Library… | — | featureUnbuilt |
 | Window | Minimize | ⌘M | enabled |
 | Window | Zoom | — | enabled |
 | Window | Bring All to Front | — | enabled |
-| Help | MCP Router help | — | enabled |
-| Help | What the router actually does | — | enabled |
-| Help | Report an issue | — | enabled |
+| Help | MCP Router Help | — | enabled |
+| Help | What the Router Actually Does | — | enabled |
+| Help | Report an Issue | — | enabled |
 
 One row per command, deliberately: a compound row ("Cut / Copy / Paste") cannot be parsed
 unambiguously, and an oracle a test has to guess at is not an oracle. `MenuCommandTests` parses
 this table out of this file and compares it against `MenuCommand.allCases` in **both**
 directions.
 
-**Six titles here are title case against `DESIGN.md` §6, and that is the kit winning.** `Hide
-Others`, `Show All`, `Close`, `Select All`, `Minimize` and `Bring All to Front` are items **macOS
-contributes itself** — the app does not build them and cannot rename them. The strings above were
-measured from the running menu bar rather than guessed, and `DESIGN.md`'s own precedence rule
-settles the conflict: where the document and the macOS 27 kit disagree, the kit wins. Writing
-`Minimise` here would have produced an inventory that can never match the menu bar it describes.
+**Every title here is title case, and that is the kit winning.** It used to be six of them —
+`Hide Others`, `Show All`, `Close`, `Select All`, `Minimize` and `Bring All to Front`, all items
+**macOS contributes itself** under strings the app can neither build nor rename, measured from the
+running menu bar rather than guessed. `DESIGN.md`'s precedence rule settled that conflict then and
+settles the rest of it now: Apple's HIG specifies title-style capitalization for menu items, and
+the six exceptions were evidence that the rule was already the kit's rather than evidence that the
+other thirteen were fine. M20 converted them, and `DESIGN.md` §6 records the menu bar as its one
+named exception rather than being quietly broken by half a surface. Writing `Minimise` here would
+still have produced an inventory that can never match the menu bar it describes.
 
-**Fourteen of the thirty-three are the system's**, marked by `MenuCommand.isSystemProvided`. That
+**`Add Marketplace…` stopped sharing a literal with the Skills board's buttons.** It was
+`SkillPresentation.marketplacesAction`, which the board draws on two buttons; buttons stay sentence
+case, so one string could no longer be both. The board's spelling is unchanged and
+`ActivityResetEntryPointTests` still pins it.
+
+**This table has grown twice since M1 shipped and is still M1's oracle.** M20 added the Router and
+Library menus, moved `Export Library…` out of File into Library where the mock draws it, and took
+the board digits from the design of record — Discover `⌘1` through Inbox `⌘8`, with `⌘5` and `⌘9`
+reserved for the two boards M22 ships and therefore **absent**. The Availability column still means
+what its own paragraph above says it means: the answer in `CommandContext.none`, which is why
+`Wake Selected Server` and `Review Held Changes…` read `surfaceAbsent` here and answer
+`needsServerSelection` in a build with the Servers board installed and nothing selected.
+
+**Fourteen of the forty-five are the system's**, marked by `MenuCommand.isSystemProvided`. That
 matters for how A19 is checkable: macOS also contributes items this inventory does **not** list —
 Services, Close All, Delete, Writing Tools, AutoFill, Start Dictation, Emoji & Symbols, Show Tab
 Bar, Show All Tabs, Enter Full Screen, Minimize All, Zoom All, Fill, Center, Move & Resize, Full

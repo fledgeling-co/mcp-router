@@ -58,15 +58,35 @@ struct ShellDestinationTests {
         }
     }
 
-    @Test("exactly seven destinations carry a selection digit, numbered 1 through 7")
-    func selectionDigitsAreContiguous() {
-        let digits = Destination.ordered.compactMap(\.selectionDigit)
-        #expect(digits == [1, 2, 3, 4, 5, 6, 7])
-        // Every destination carries one now, because the one that did not was Settings and Settings
-        // is a window. The digit stays optional on the type so the filter that keeps a digit-less
-        // destination out of the View menu survives; what is asserted here is that nothing is
-        // currently being filtered out silently.
-        #expect(digits.count == Destination.allCases.count)
+    /// The digits are the design of record's, and **the two gaps are the assertion**.
+    ///
+    /// This used to assert `[1, 2, 3, 4, 5, 6, 7]` in sidebar order, which was true while the map
+    /// was contiguous and the sidebar's order was the menu's. M20 takes the mock's — Discover `⌘1`
+    /// through Insights `⌘9`, set at `6c513b0` — of which Harnesses `⌘5` and Insights `⌘9` are
+    /// M22's and do not exist here. So the digits are sparse, deliberately: packing the other seven
+    /// into `⌘1`–`⌘7` would move every digit a user has learned on the day M22 ships.
+    ///
+    /// Asserted as a **map** rather than as a sorted list, because the failure this guards against
+    /// is a destination silently taking the wrong digit, and a list of the same seven numbers in
+    /// the same order cannot see that.
+    @Test("every destination carries the design of record's digit, and ⌘5 and ⌘9 are M22's")
+    func selectionDigitsAreTheDesignOfRecords() {
+        let map = Dictionary(
+            uniqueKeysWithValues: Destination.allCases.compactMap { destination in
+                destination.selectionDigit.map { (destination, $0) }
+            }
+        )
+        #expect(map == [
+            .discover: 1, .skills: 2, .servers: 3, .activity: 4,
+            .evals: 6, .cleanup: 7, .inbox: 8
+        ])
+        #expect(!map.values.contains(5), "⌘5 belongs to Harnesses, which M22 ships")
+        #expect(!map.values.contains(9), "⌘9 belongs to Insights, which M22 ships")
+        // Every destination still carries one, because the one that did not was Settings and
+        // Settings is a window. The digit stays optional on the type so the filter that keeps a
+        // digit-less destination out of the View menu survives; what is asserted here is that
+        // nothing is currently being filtered out silently.
+        #expect(map.count == Destination.allCases.count)
     }
 
     /// **The observation this makes flips at M15 without a line of `restoring` moving**, which is

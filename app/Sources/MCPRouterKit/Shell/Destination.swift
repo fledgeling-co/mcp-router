@@ -107,19 +107,38 @@ public enum Destination: String, CaseIterable, Sendable, Identifiable {
     /// it, and collapsing it now would delete the filter that keeps a future digit-less destination
     /// out of the menu.
     ///
+    /// **The map is the mock's since M20, and the digits are absolute rather than contiguous.**
+    /// `design/mcp-router-console.html` reads Discover `⌘1`, Skills `⌘2`, Servers `⌘3`, Activity
+    /// `⌘4`, Harnesses `⌘5`, Checks `⌘6`, Cleanup `⌘7`, Inbox `⌘8`, Insights `⌘9`. Harnesses and
+    /// Insights are M22's and do not exist, so **`⌘5` and `⌘9` are unbound** rather than the other
+    /// seven being packed into `⌘1`–`⌘7`: packing them would move every digit a user has learned on
+    /// the day M22 lands, and a shortcut that moves is worse than one that is briefly missing.
+    ///
+    /// `PRD.md` §9.4 still lists the older order (Servers `⌘1` through Cleanup `⌘9`) and is stale
+    /// against its own mock — the re-order landed at `6c513b0` on 2026-08-20, an owner-authored
+    /// commit whose message states the intent, after §9.4 was written. `spec-M20.md` §2 records
+    /// that as an assumption rather than a question, on the ground that reversing one table breaks
+    /// nothing.
+    ///
+    /// **The sidebar's own order is untouched.** `ordered` is still declaration order and the two
+    /// groups are still Running and Library, because regrouping the sidebar into the mock's four
+    /// sections is M22's — `group` says so below. So the View menu and the sidebar list these seven
+    /// in different orders until M22 lands, which is declared in `planning/fidelity/` rather than
+    /// left to be discovered.
+    ///
     /// **Settings is not here and does not get `⌘0`.** `DESIGN.md` §8 binds it to `⌘,`; giving it a
     /// digit too would put two shortcuts on one command, which is how a menu bar starts teaching two
-    /// different habits for the same thing. M20 owns the accelerator map and is where a second
-    /// chord would be granted, in the document rather than in a `switch`.
+    /// different habits for the same thing. M20 owns the accelerator map and granted exactly one new
+    /// chord — `⌃W` — in `DESIGN.md` §8 rather than in a `switch`.
     public var selectionDigit: Int? {
         switch self {
-        case .activity: 1
-        case .servers: 2
-        case .skills: 3
-        case .discover: 4
-        case .inbox: 5
+        case .discover: 1
+        case .skills: 2
+        case .servers: 3
+        case .activity: 4
         case .evals: 6
         case .cleanup: 7
+        case .inbox: 8
         }
     }
 

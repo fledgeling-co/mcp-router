@@ -129,6 +129,8 @@ never the harness's own cwd notice.
 | R17 gap-fix 2 | `.worktrees/R17` | `ai/r17` | `55075ed` | 11:50 | before verify, before merge |
 | M21 | `.worktrees/M21` | `ai/m21` | `4de2080` | 12:05 | before verify, before merge |
 | M15 | `.worktrees/M15` | `ai/m15` | `4de2080` | 12:07 | before verify, before merge |
+| R19 | `.worktrees/R19` | `ai/r19` | `72958de` | 12:26 | before verify, before merge |
+| G4 | `.worktrees/G4` | `ai/g4` | `72958de` | 12:26 | before verify, before merge |
 
 **R17's base is behind main and its dispatch contradicted itself** — it froze the branch off main
 while setting `reconciler 0 across A–L` as a gate, and check L only exists on main from `b616dc1`.
@@ -141,9 +143,19 @@ They are the per-surface half of the same programme: M21 delivers the token laye
 site keeps the name it already names, so choosing which surfaces move from `--accent` to
 `--accent-ink` is theirs. Dispatched early they would build against the palette M21 replaces.
 
-**R19 and G4 are Ready for AI, independent of everything in flight, and have no spec yet.** Their
-triage verdicts on 2026-08-22 settled the precondition each was blocked on, so a runner starts at
-the spec stage rather than at triage. They are the next two slots to fill.
+**R19 and G4 were dispatched at 12:26** and write their own spec and plan before building —
+their 2026-08-22 triage settled the precondition each was blocked on, so a runner starts at the
+spec stage rather than at triage. Both briefs restate the settled decision and say *do not
+reopen it*, because the cheapest way for either item to fail is a runner re-litigating a fork
+that a lane already closed.
+
+**The next slots are R16, R18 and M12**, and R18 waits for R17: its brief asks to be planned
+alongside `R20`, which exists only on `ai/r17` at `b41c588` and reaches main when R17 merges.
+
+**Five concurrent runners is the ceiling here.** Each brief caps subagents at two, which keeps
+the product at ten against the fleet's ~16 budget. The machine sat at 0% idle when these were
+dispatched, but that is eighteen other sessions rather than this fleet — runners here are
+API-bound, and their local CPU share is small.
 
 
 ```

@@ -331,6 +331,50 @@ independent confirmation that it is claim accounting rather than load measuremen
 Disk is the tightest axis at **13.7% free** (254 GiB absolute, 234 GiB clear of the hard gate) —
 graded healthy, so watch rather than worry.
 
+### THE REMAINING-WORK FIGURES WERE WRONG BY A FACTOR OF THREE — RE-RUN BEFORE PLANNING
+
+Corrected 2026-08-23 after `Google Drive Fixes` found the classifier defect and the armada conductor
+relayed it. **`reckon` 1.0.0 classes a brief it cannot join to the registry as `unbuilt`** — it
+publishes *"I could not find evidence for this"* as *"this was never built"*. 1.1.0 makes `unjoined`
+its own class and routes it to **decision** work, which is the right destination: an unjoined brief
+needs a person to read it, not an engineer to build it.
+
+**The test is `grep -c unjoined` on the `reckon.py` that will actually run — 14 means fixed, 0 means
+the old classifier.** A version string cannot be the test, because **both versions sit in the plugin
+cache and both look installed.**
+
+Measured on this repo's own ledger: **all 78 `unbuilt` rows had zero edges to the registry**, and the
+tool stated the reason in its own field — *"no requirement, defect or case in the registry answers to
+this brief"*. Not one was established as unbuilt.
+
+| | 1.0.0 | 1.1.0 |
+|---|---|---|
+| remaining | 171 | **155** |
+| **product** | **155** | **49** |
+| evidence | 14 | 16 |
+| decision | 2 | **90** |
+| unbuilt | 78 | **1** |
+| unjoined | — | **87** |
+| broken | 77 | 51 |
+| verified-done | 112 | 134 |
+| rows | 287 | 297 |
+
+Corrected ledger at `planning/reckoning/2026-08-23-fixed/`, gate clean.
+
+**The join warning matters more than the delta.** 17.9% of briefs could be joined at all — 6% across
+the whole ledger — and 1.1.0 **withholds retirement claims below half** rather than answering
+confidently from a join it knows is too weak. 1.0.0 had no such warning and answered anyway. So this
+reckoning cannot speak to what is done; it can only say what it could not reach.
+
+**The reader-level lesson, which is the part worth keeping.** This orchestrator recorded *"62 of 78
+`unbuilt` are merged or done"* and filed it as **staleness**. `Google Drive Fixes` recorded *"18 of
+23 unbuilt already merged"* and filed it the same way, twelve hours earlier. **One instrument-level
+question — why would a merged brief be classed unbuilt? — would have found this either time.** Both
+readers had the anomaly and read it as noise.
+
+That is a **different failure from the seven instruments that could not fail**: here the instrument
+reported an anomaly faithfully and its readers discarded it. Probably the more common of the two.
+
 ### SEVEN INSTRUMENTS THAT COULD NOT FAIL, IN ONE DAY, ACROSS SEVEN MECHANISMS
 
 The armada conductor is carrying this count because it is what the whole night was about. **An

@@ -166,6 +166,66 @@ than barriering on whole waves, so the real overlap is greater than the table im
 > when this session began. Do not `git add -A` here — that mistake has already swept a third
 > session's work into a commit twice in this repo.
 
+### DISPATCH — A GAP-FIX HANDED A VERDICT REBUILDS; ONE HANDED THE FINDINGS CONVERGES
+
+From `sidetone` via the armada conductor, 2026-08-23, and **checked against this session's own four
+gap-fix briefs, where it found two failures.**
+
+None of the four said *"address the verifier's findings"* — no vague referral. But the itemisation
+was uneven:
+
+| brief | cited locations | named findings |
+|---|---|---|
+| M20 | 3 | 3 |
+| M18 | 1 | blocker located; three non-blocking described only |
+| M16 | **0** | **described four and told the runner there were six** |
+| R19 | **0** | gave the matrix, pointed at the verdict for the rest |
+
+M16's is the instructive one. Its verdict carries six numbered findings; the brief described four
+and asserted six. **Findings 5 and 6 were never mentioned** — an `AC9` composition table omitting a
+category so neither column reaches its own 116, and a correct base figure whose stated derivation is
+in the wrong units. Both are counting defects of the class this fleet spent the day on. A runner
+reading that brief gets four of six with no way to know which two are missing.
+
+Both were amended in flight with a marked addendum rather than edited silently.
+
+**The rule, with the half that doing it added.** Itemise the findings with their sites — and
+itemise **from the findings section**, saying explicitly that the verdict's other citations are not
+a work list. Extracting locations mechanically does not give you the findings: M16's verdict cites
+**20** distinct `file:line` locations and almost none is a defect site; R19's cites **12**, same.
+They are measurement citations. A runner handed all 20 treats them as 20 jobs.
+
+### VERIFY — SPLIT THE MECHANICAL FROM THE OUT-OF-FAMILY, BECAUSE THE ONLY LANE LEFT CANNOT EXECUTE
+
+From `proctor-mcp` via the conductor. `agy`/gemini is the **only** out-of-family lane on this
+machine (`codex` limited to 27 August, `grok` at 402, `glm` absent) and it is a **one-shot that
+cannot execute anything** — it cannot run a test, walk a diff, or reproduce.
+
+So a verify stage briefed to *"get an out-of-family verdict"* gets a judgement over artifacts and
+nothing mechanical. The shape to use instead, recorded as a logged downgrade rather than a silent
+pass:
+
+- **Mechanical verification** on a fresh-context Opus verifier that did not build the work — which
+  preserves ship-fleet's structural rule that a runner cannot verify its own build.
+- **Out-of-family judgement** on gemini over the artifacts.
+
+**Do not brief one agent to do both**, because one agent briefed to do both will do the half it can
+and report the whole. That is the same failure as an instrument that cannot fail reporting like one
+that passed, one level up: **the agent that cannot execute reports like one that did.**
+
+`M16V` demonstrates why it is not optional. It had presented `claude-fable-5` as its deciding second
+opinion — different model, same family, writer was Opus, so not out-of-family at all — and corrected
+the report before committing. Its verdict now says plainly that gemini said `Done` and it took
+`Needs More Work` against it, with the downgrade logged.
+
+### DISPATCH — PUT THE SESSION ID IN THE BRIEF YOU DROP IN A WORKTREE
+
+`m18-c9` and `m16v-15` are both this session's runners and **neither could know it**. Each was
+started from an untracked brief with no parent handle, and one wrote: *"I may well be the orphan the
+m22 session meant, or a replacement for it — I can't distinguish those from inside."* It cost the
+armada conductor two round trips to establish that no second writer existed. A line naming the
+dispatching session closes it.
+
 ### SIX VERIFICATIONS, SIX `Needs More Work`, AND THE DEFECTS ARE NOT WHERE THE WORK IS
 
 Measured 2026-08-23 across M16, M18, M19 (pending), M20, R19 and G5. **Every verdict came back

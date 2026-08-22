@@ -66,6 +66,15 @@ same *"it is stale"* framing. All are rewritten; the two progress-note sites kee
 and add a marked correction beneath it, because a note that quietly acquires the right answer stops
 being a record of what happened.
 
+> **Corrected at gap-fix 4**, per the gap-fix 3 verdict's F3. The heading says _four_ and the
+> sentence beneath it names two sites _beyond the brief's three_, which is five — matching the
+> five-entry list above it. Both readings are reachable: `G5-gapfix-2.md:112` carries the `0.9.4`
+> staleness claim rather than the `0.9.6` one, so scoping "the claim" to `0.9.6` gives four. But then
+> that site is not an addition to the brief's three and does not belong in the sentence that says it
+> is. **Five sites were rewritten; four of them carried the `0.9.6` claim.** The count above is left
+> as written with the correction marked beneath, by the convention this paragraph states one line
+> earlier.
+
 ## BL-2 — `D-g5-d` said two documents; four carry the label, in ten places
 
 Counted over tracked Markdown at `a9603e5`, excluding the vendored tree:

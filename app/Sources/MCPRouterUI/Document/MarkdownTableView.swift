@@ -16,12 +16,11 @@
             Grid(horizontalSpacing: 0, verticalSpacing: 0) {
                 GridRow {
                     ForEach(Array(table.header.enumerated()), id: \.offset) { index, cell in
-                        self.cell(cell, alignment: alignment(index), role: .callout, tint: .t1)
-                            .background(ColorToken.panel.color)
-                            .measured(
-                                "column-\(index)", role: "column-header", kind: .text,
-                                tokens: ["background": .panel], type: .callout, text: cell.text
-                            )
+                        self.cell(
+                            cell, alignment: alignment(index), role: .callout, tint: .t1,
+                            node: "column-\(index)"
+                        )
+                        .background(ColorToken.panel.color)
                     }
                 }
                 ForEach(Array(table.rows.enumerated()), id: \.offset) { _, row in
@@ -42,14 +41,31 @@
             index < table.alignments.count ? table.alignments[index] : .leading
         }
 
+        /// One cell. `node` instruments it, and **the instrument sits on the text rather than on
+        /// the padded cell**: the type-metrics layer compares a role's measured line box against
+        /// the ladder, and a node whose frame includes eight points of cell padding reported
+        /// Callout at 23pt against Body's 16pt — an inverted ladder, which that layer reads as the
+        /// signature of a substituted role. The padding is the cell's, not the type's.
+        @ViewBuilder
         private func cell(
             _ inline: MarkdownInline,
             alignment: MarkdownTable.Alignment,
             role: TypeToken,
-            tint: ColorToken
+            tint: ColorToken,
+            node: String? = nil
         ) -> some View {
-            MarkdownInlineText(inline: inline, role: role, tint: tint)
-                .frame(maxWidth: .infinity, alignment: frameAlignment(alignment))
+            // Only a header cell is instrumented. A body cell takes no node at all rather than an
+            // empty one: `measured("")` is still a node, and a table of forty cells would report
+            // forty siblings under one name, of which the recorder keeps the last.
+            Group {
+                if let node {
+                    MarkdownInlineText(inline: inline, role: role, tint: tint)
+                        .measured(node, role: "column-header", kind: .text, type: role, text: inline.text)
+                } else {
+                    MarkdownInlineText(inline: inline, role: role, tint: tint)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: frameAlignment(alignment))
                 .padding(.vertical, DocumentMetrics.cellPaddingVertical)
                 .padding(.horizontal, DocumentMetrics.cellPaddingHorizontal)
                 .overlay {

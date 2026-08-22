@@ -4,9 +4,9 @@
 
 Mine your own past agent sessions for evidence about what happened, what you asked for, and when a
 decision was actually made. It reads the session stores already on your Mac; it **never** uploads
-them. Its home is [the fledgeling marketplace](https://github.com/fledgeling-co/fledgeling-plugins).
+them.
 
-> Built because "I know I asked for this three weeks ago" is a claim you should be able to check
+> Built because “I know I asked for this three weeks ago” is a claim you should be able to check
 > rather than argue about.
 
 ## What it reads

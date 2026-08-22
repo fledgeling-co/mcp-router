@@ -49,7 +49,12 @@
 
             case let .table(table):
                 MarkdownTableView(table: table)
-                    .measured(nodeID, role: "table", kind: .vstack, tokens: ["background": .panel])
+                    // `.grid`, not `.vstack`. A `Grid` has two axes and the structure layer
+                    // corroborates a declared axis against where the children actually landed —
+                    // declaring this vertical while the instrumented children are its header cells
+                    // reported an axis the geometry contradicts, which is the self-description the
+                    // layer exists to catch. `MeasureKind.grid` carries no axis for that reason.
+                    .measured(nodeID, role: "table", kind: .grid, tokens: ["background": .panel])
 
             case .rule:
                 Rectangle()
@@ -76,6 +81,28 @@
 
         /// A stable node name for the measurement harness, unique among a document's blocks.
         private var nodeID: String { "block-\(index)-\(block.kind.rawValue)" }
+
+        /// The words a run of blocks contains, flattened. What a container node reports as its own
+        /// text, so a pairing against a mock element that carries its subtree's words can be
+        /// compared rather than classified as uncomparable.
+        static func spokenText(of blocks: [MarkdownBlock]) -> String {
+            blocks.map { block in
+                switch block {
+                case let .heading(_, content): content.text
+                case let .paragraph(content): content.text
+                case let .codeFence(_, code): code
+                case let .blockquote(inner): spokenText(of: inner)
+                case let .list(list): list.items.map(\.text).joined(separator: " ")
+                case let .table(table): table.header.map(\.text).joined(separator: " ")
+                case .rule: ""
+                case let .image(image): image.alternateText
+                case let .shields(shields): shields.map { "\($0.key) \($0.value)" }.joined(separator: " ")
+                case let .plainText(text): text
+                }
+            }
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        }
 
         private func headingRole(_ level: Int) -> TypeToken {
             switch level {
@@ -129,7 +156,13 @@
                 }
             }
             .fixedSize(horizontal: false, vertical: true)
-            .measured(nodeID, role: "callout", kind: .hstack, tokens: ["border": .lineStrong])
+            // The quote's own words, so the copy layer has something to compare. Without this the
+            // node reported nothing readable and the pairing read `unclassified` — the gate
+            // correctly refusing to call agreement between two absences a measurement.
+            .measured(
+                nodeID, role: "callout", kind: .hstack,
+                tokens: ["border": .lineStrong], text: Self.spokenText(of: inner)
+            )
         }
 
         // MARK: - Lists

@@ -11,11 +11,11 @@ finding disappear.
 |---|---|---|
 | `tokens` | clean | 70 matched, 19 pending, of 89 rows |
 | `literals` | clean | scanning 132 files |
-| `structure` | 1 finding(s) | 42 nodes across 1 states · 8 declared axis/axes corroborated against child geometry |
+| `structure` | clean | 42 nodes across 1 states · 7 declared axis/axes corroborated against child geometry |
 | `geometry` | clean | 42 frames |
-| `type-metrics` | 1 finding(s) | 9 per-role comparison(s) over 11 text nodes · 5 roles · Callout=23pt Body=16pt Title3=35pt Title2=36pt Title1=42pt · 2 multi-line node(s) excluded from the per-role check |
-| `copy` | 2 finding(s) | 26 paired strings |
-| `breadth` | 31 finding(s) | absent 23 · divergent 2 · extra-cited 4 · present 24 · structure-unpaired 9 · unclassified 2 |
+| `type-metrics` | clean | 9 per-role comparison(s) over 11 text nodes · 5 roles · Callout=15pt Body=16pt Title3=35pt Title2=36pt Title1=42pt · 2 multi-line node(s) excluded from the per-role check |
+| `copy` | 1 finding(s) | 27 paired strings |
+| `breadth` | 29 finding(s) | absent 23 · divergent 1 · extra-cited 4 · present 26 · structure-unpaired 9 · unclassified 1 |
 | `font-weight-face` | inconclusive (substituted) | font-weight-face: String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face |
 
 ## Present / divergent / absent
@@ -25,7 +25,7 @@ finding disappear.
 | ideal | sh-readme/button/read-me | button | present | mock="Read me" kind=button | build=readme.ideal/readme-sheet/sheet-titlebar/tab-readMe text="Read me" role=tab kind=leaf |  |
 | ideal | sh-readme/button/changelog | button | present | mock="Changelog" kind=button | build=readme.ideal/readme-sheet/sheet-titlebar/tab-changelog text="Changelog" role=tab kind=leaf |  |
 | ideal | sh-readme/button/capabilities | button | present | mock="Capabilities" kind=button | build=readme.ideal/readme-sheet/sheet-titlebar/tab-capabilities text="Capabilities" role=tab kind=leaf |  |
-| ideal | sh-readme/icon/unlabelled | icon | unclassified | mock="" kind=icon | build=readme.ideal/readme-sheet/product-header/verified-mark text="" role=verified-mark kind=leaf |  |
+| ideal | sh-readme/icon/unlabelled | icon | unclassified | mock="" kind=icon | build=readme.ideal/readme-sheet/product-header/verified-mark text="" role=verified-mark kind=leaf | D8 · the mock's affordance is a bare <use href="#i-verified"> and an icon carries no text on either side, so the copy layer has nothing to compare and says so rather than reading two absences as agreement |
 | ideal | sh-readme/button/what-changed | button | absent | mock="What changed…" | build=no paired node | D2 · planning/features-to-triage/M18-sheets-and-gates.md owns the sheet inventory and the install flow; CapabilityDocumentSheet.actions is the seam and the measured render supplies none, because a press that does nothing is the honesty rule pointed outward |
 | ideal | sh-readme/button/install | button | absent | mock="Install…" | build=no paired node | D2 · planning/features-to-triage/M18-sheets-and-gates.md owns the sheet inventory and the install flow; CapabilityDocumentSheet.actions is the seam and the measured render supplies none, because a press that does nothing is the honesty rule pointed outward |
 | ideal | sh-readme/badge/marketplace-fledgeling | badge | present | mock="marketplace fledgeling" kind=badge | build=readme.ideal/readme-sheet/sheet-body/block-0-shields/badge-0 text="marketplace fledgeling" role=badge kind=hstack |  |
@@ -33,8 +33,8 @@ finding disappear.
 | ideal | sh-readme/badge/checks-12-of-12 | badge | present | mock="checks 12 of 12" kind=badge | build=readme.ideal/readme-sheet/sheet-body/block-0-shields/badge-2 text="checks 12 of 12" role=badge kind=hstack |  |
 | ideal | sh-readme/badge/licence-mit | badge | present | mock="licence MIT" kind=badge | build=readme.ideal/readme-sheet/sheet-body/block-0-shields/badge-3 text="licence MIT" role=badge kind=hstack |  |
 | ideal | sh-readme/heading/trawl | heading | present | mock="trawl" kind=heading | build=readme.ideal/readme-sheet/sheet-body/block-1-heading1 text="trawl" role=heading kind=text |  |
-| ideal | sh-readme/sentence/mine-your-own-past-agent-sessions-for-evidence-a | sentence | divergent | mock="Mine your own past agent sessions for evidence about what ha" kind=sentence | build=readme.ideal/readme-sheet/sheet-body/block-2-paragraph text="Mine your own past agent sessions for evidence about what ha" role=sentence kind=text |  |
-| ideal | sh-readme/callout/built-because-i-know-i-asked-for-this-three-week | callout | unclassified | mock="Built because “I know I asked for this three weeks ago” is a" kind=callout | build=readme.ideal/readme-sheet/sheet-body/block-3-blockquote text="" role=callout kind=hstack |  |
+| ideal | sh-readme/sentence/mine-your-own-past-agent-sessions-for-evidence-a | sentence | present | mock="Mine your own past agent sessions for evidence about what ha" kind=sentence | build=readme.ideal/readme-sheet/sheet-body/block-2-paragraph text="Mine your own past agent sessions for evidence about what ha" role=sentence kind=text |  |
+| ideal | sh-readme/callout/built-because-i-know-i-asked-for-this-three-week | callout | present | mock="Built because “I know I asked for this three weeks ago” is a" kind=callout | build=readme.ideal/readme-sheet/sheet-body/block-3-blockquote text="Built because “I know I asked for this three weeks ago” is a" role=callout kind=hstack |  |
 | ideal | sh-readme/heading/what-it-reads | heading | present | mock="What it reads" kind=heading | build=readme.ideal/readme-sheet/sheet-body/block-4-heading2 text="What it reads" role=heading kind=text |  |
 | ideal | sh-readme/column-header/harness | column-header | present | mock="Harness" kind=column-header | build=readme.ideal/readme-sheet/sheet-body/block-5-table/column-0 text="Harness" role=column-header kind=text |  |
 | ideal | sh-readme/column-header/store | column-header | present | mock="Store" kind=column-header | build=readme.ideal/readme-sheet/sheet-body/block-5-table/column-1 text="Store" role=column-header kind=text |  |

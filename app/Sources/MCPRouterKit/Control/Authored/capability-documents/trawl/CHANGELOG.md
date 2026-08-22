@@ -6,7 +6,8 @@
 - `--decisions` now recognises a decision recorded as a table row.
 - Fixes a crash on a truncated final line, which happens whenever a session is killed.
 
-**Capability change:** none. This version promotes itself.
+**Capability change:** none. This version promotes itself. Released from
+[the fledgeling marketplace](https://github.com/fledgeling-co/fledgeling-plugins).
 
 ## 1.4.2 — 17 Aug 2026
 

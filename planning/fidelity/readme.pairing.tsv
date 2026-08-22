@@ -25,7 +25,7 @@
 ideal	sh-readme/button/read-me	readme.ideal/readme-sheet/sheet-titlebar/tab-readMe
 ideal	sh-readme/button/changelog	readme.ideal/readme-sheet/sheet-titlebar/tab-changelog
 ideal	sh-readme/button/capabilities	readme.ideal/readme-sheet/sheet-titlebar/tab-capabilities
-ideal	sh-readme/icon/unlabelled	readme.ideal/readme-sheet/product-header/verified-mark
+ideal	sh-readme/icon/unlabelled	readme.ideal/readme-sheet/product-header/verified-mark	D8 · the mock's affordance is a bare <use href="#i-verified"> and an icon carries no text on either side, so the copy layer has nothing to compare and says so rather than reading two absences as agreement
 ideal	sh-readme/button/what-changed	-	D2 · planning/features-to-triage/M18-sheets-and-gates.md owns the sheet inventory and the install flow; CapabilityDocumentSheet.actions is the seam and the measured render supplies none, because a press that does nothing is the honesty rule pointed outward
 ideal	sh-readme/button/install	-	D2 · planning/features-to-triage/M18-sheets-and-gates.md owns the sheet inventory and the install flow; CapabilityDocumentSheet.actions is the seam and the measured render supplies none, because a press that does nothing is the honesty rule pointed outward
 ideal	sh-readme/badge/marketplace-fledgeling	readme.ideal/readme-sheet/sheet-body/block-0-shields/badge-0

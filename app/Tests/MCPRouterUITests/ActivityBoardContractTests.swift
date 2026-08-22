@@ -184,10 +184,13 @@
 
             // Asserted exactly rather than by containment, so a board appearing or vanishing here is
             // a deliberate edit rather than something a subset check waves through. M3 merged after
-            // M2, then M4, M8, M5, M7, and finally M6 — which closed the set.
+            // M2, then M4, M8, M5, M7, and M6 — which closed the set at eight. **M15 took one back
+            // out**: Settings is a `Settings` scene now, so it is not a destination and has no
+            // board. The `allCases` invariant below is untouched, and it is what proves that
+            // removal was complete rather than partial.
             #expect(
                 BoardRegistry.installed
-                    == [.servers, .activity, .skills, .settings, .discover, .evals, .cleanup, .inbox]
+                    == [.servers, .activity, .skills, .discover, .evals, .cleanup, .inbox]
             )
             #expect(BoardRegistry.scaffolded.isEmpty)
 

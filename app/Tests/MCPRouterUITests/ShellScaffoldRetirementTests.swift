@@ -46,8 +46,11 @@
         func installedIsTheShippedSet() {
             #expect(
                 BoardRegistry.installed
-                    == [.servers, .activity, .skills, .settings, .discover, .evals, .cleanup, .inbox],
-                "M2 Activity, M3 Servers, M4 Skills, M8 Settings, M5 Discover, M7 Evals + Cleanup, M6 Inbox"
+                    == [.servers, .activity, .skills, .discover, .evals, .cleanup, .inbox],
+                """
+                M2 Activity, M3 Servers, M4 Skills, M5 Discover, M7 Evals + Cleanup, M6 Inbox — \
+                and M15 took M8's Settings board back out, into a Settings scene
+                """
             )
             // `isEmpty` rather than `count == 0`, which the linter prefers and which says the same
             // thing. The count assertion that used to sit here pinned "one destination is still
@@ -93,7 +96,7 @@
         @Test("the placeholder sentence exists only as the retired-string comment")
         func placeholderIsNotReintroduced() throws {
             let sentinel = "isn't built yet"
-            for path in ShellTestSupport.shellFiles {
+            for path in ShellTestSupport.shellFiles + ShellTestSupport.settingsFiles {
                 let source = try ShellTestSupport.repoFile(path)
                 guard source.contains(sentinel) else { continue }
                 #expect(

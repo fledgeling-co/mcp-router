@@ -219,14 +219,38 @@ public enum SettingsPresentation {
     public static let paneTitle = "Settings"
     public static let paneSubtitle = "What the router is, and what this Mac remembers about it"
 
-    /// The four group headers, in order. Sentence case, and stored that way rather than
-    /// upper-cased at render time — `DESIGN.md` §3.2 says the fix for tracked uppercase is to
-    /// remove it, not to re-track it.
-    public enum Group: String, CaseIterable, Sendable {
-        case router = "Router"
-        case menuBar = "Menu bar"
-        case warmSet = "Warm set"
-        case controlToken = "Control token"
+    /// The two router files the Advanced pane names, derived from the **same** directory the client
+    /// resolves to find the token — so the paths shown are the paths used rather than a second guess
+    /// that could drift.
+    ///
+    /// **Paths and no sizes.** The mock draws `router.log · 4.2 MB`; a byte figure would need a
+    /// `stat` of a file inside a directory A36's one-channel rule keeps this layer out of, and
+    /// `DESIGN.md` §6 forbids a number nobody observed either way. There is no field here one could
+    /// occupy, which is the same structural enforcement `TokenStatus` uses for the token.
+    public struct RouterFiles: Equatable, Sendable {
+        public let home: URL
+
+        public init(home: URL) {
+            self.home = home
+        }
+
+        public static let logFileName = "router.log"
+        public static let configurationFileName = "servers.json"
+
+        public func logPath(homeDirectory: String = NSHomeDirectory()) -> String {
+            Self.tilde(home.appendingPathComponent(Self.logFileName).path, homeDirectory)
+        }
+
+        public func configurationPath(homeDirectory: String = NSHomeDirectory()) -> String {
+            Self.tilde(home.appendingPathComponent(Self.configurationFileName).path, homeDirectory)
+        }
+
+        /// The tilde form when the path is under this user's home, and the full path otherwise —
+        /// the same rule `RouterFacts.homeDisplay` applies, spelled once for both.
+        static func tilde(_ path: String, _ homeDirectory: String) -> String {
+            guard !homeDirectory.isEmpty, path.hasPrefix(homeDirectory) else { return path }
+            return "~" + path.dropFirst(homeDirectory.count)
+        }
     }
 
     /// The shared label-column width. One constant used by every group, which is what makes

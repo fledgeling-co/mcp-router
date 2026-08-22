@@ -303,10 +303,6 @@
             "app/Sources/MCPRouterUI/Boards/SkillsBoardModel.swift",
             "app/Sources/MCPRouterUI/Boards/SkillInspector.swift",
             "app/Sources/MCPRouterUI/Boards/SkillSheets.swift",
-            // M8's Settings pane.
-            "app/Sources/MCPRouterUI/Boards/SettingsBoard.swift",
-            "app/Sources/MCPRouterUI/Boards/SettingsBoardModel.swift",
-            "app/Sources/MCPRouterUI/Boards/SettingsBoardParts.swift",
             // Split out of ServerSheets.swift for the same reason. It is also the view M8
             // changed, so keeping it separately gated is the honest arrangement.
             "app/Sources/MCPRouterUI/Boards/ToolChangeCard.swift",
@@ -332,6 +328,29 @@
             "app/Sources/MCPRouterUI/Boards/M7BoardMetrics.swift"
         ]
 
+        /// M15's Settings window, listed for the same reason `boardFiles` is — and enrolled in the
+        /// boundary gates in the same commit that created the directory, because a directory nobody
+        /// enrolled is a directory every source-level gate is blind to. That is the escape
+        /// `boardFileListIsComplete`'s own docstring was written about after
+        /// `ServerInspectorSections.swift`, and `settingsFileListIsComplete` is what stops it here.
+        ///
+        /// **It spans two directories**, because the seven panes have a subdirectory of their own,
+        /// and the completeness pin reads both — `contentsOfDirectory` is not recursive, so a list
+        /// pinned to `Settings/` alone would have left `Settings/Panes/` outside every gate while
+        /// reporting the directory covered.
+        static let settingsFiles = [
+            "app/Sources/MCPRouterUI/Settings/SettingsWindow.swift",
+            "app/Sources/MCPRouterUI/Settings/SettingsWindowModel.swift",
+            "app/Sources/MCPRouterUI/Settings/SettingsMetrics.swift",
+            "app/Sources/MCPRouterUI/Settings/SettingsParts.swift",
+            "app/Sources/MCPRouterUI/Settings/SettingsPaneRow.swift",
+            "app/Sources/MCPRouterUI/Settings/Panes/RouterPane.swift",
+            "app/Sources/MCPRouterUI/Settings/Panes/GovernedElsewherePane.swift",
+            "app/Sources/MCPRouterUI/Settings/Panes/SecurityPane.swift",
+            "app/Sources/MCPRouterUI/Settings/Panes/MenuBarPane.swift",
+            "app/Sources/MCPRouterUI/Settings/Panes/AdvancedPane.swift"
+        ]
+
         /// M2's board, listed for the same reason `boardFiles` is.
         ///
         /// It is called out separately because its absence was a live defect rather than a tidiness
@@ -353,9 +372,13 @@
         ]
 
         /// Everything the boundary gates scan.
-        static var gatedFiles: [String] { shellFiles + boardFiles + activityFiles }
+        static var gatedFiles: [String] {
+            shellFiles + boardFiles + activityFiles + settingsFiles
+        }
 
         /// Every file that draws a surface, and so must obey §7's entry-motion rule.
-        static var animatedSurfaceFiles: [String] { shellFiles + boardFiles + activityFiles }
+        static var animatedSurfaceFiles: [String] {
+            shellFiles + boardFiles + activityFiles + settingsFiles
+        }
     }
 #endif

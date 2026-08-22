@@ -195,6 +195,9 @@ struct MenuCommandTests {
     @Test("the ellipsis is on exactly the commands that open a further view")
     func ellipsisRule() {
         let opening: Set = [
+            // `Settings…` joined at M15. It opens a window now rather than selecting a sidebar
+            // destination, and §3.4 makes that distinction the ellipsis's whole job.
+            "Settings…",
             "Add server…", "Add marketplace…", "Pair iPhone…", "Export library…"
         ]
         for command in MenuCommand.allCases {

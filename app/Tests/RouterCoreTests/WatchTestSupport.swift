@@ -78,6 +78,12 @@ enum WatchWorld {
     /// announces itself by creating `started`, then waits for `gate` to appear before answering
     /// anything. The test therefore controls exactly how long "indexing" takes, instead of betting
     /// on a `sleep` outrunning a process launch.
+    ///
+    /// `fail` selects WHERE the child dies, which is R17's subject. `""` is the healthy server.
+    /// `"list"` completes `initialize` and then closes its pipe on `tools/list` — the second of the
+    /// two points an index can fail at, and the one the owner's `namecheap` and `lifeline` both
+    /// reach (`MCP error -32000: Connection closed`, measured 2026-08-21). The first point, failing
+    /// before any session exists, needs no child at all: a command that is not on disk reaches it.
     static let childSource = """
     import json, os, sys, time
 
@@ -85,6 +91,7 @@ enum WatchWorld {
     started = sys.argv[2] if len(sys.argv) > 2 else ""
     gate = sys.argv[3] if len(sys.argv) > 3 else ""
     tool = sys.argv[4] if len(sys.argv) > 4 else "alpha"
+    fail = sys.argv[5] if len(sys.argv) > 5 else ""
 
     with open(pid_path, "w") as handle:
         handle.write(str(os.getpid()))
@@ -110,6 +117,8 @@ enum WatchWorld {
                 "capabilities": {"tools": {}},
                 "serverInfo": {"name": "watchstub", "version": "1.0.0"}}}
         elif method == "tools/list":
+            if fail == "list":
+                sys.exit(1)
             reply = {"jsonrpc": "2.0", "id": message["id"], "result": {"tools": [
                 {"name": tool, "description": "a tool", "inputSchema": {"type": "object"}}]}}
         else:
@@ -124,22 +133,28 @@ enum WatchWorld {
         name: String,
         started: URL? = nil,
         gate: URL? = nil,
-        tool: String = "alpha"
+        tool: String = "alpha",
+        fail: String = ""
     ) throws -> JSONValue {
         let script = scratch.root.appendingPathComponent("watch-child.py")
         if !FileManager.default.fileExists(atPath: script.path) {
             try childSource.write(to: script, atomically: true, encoding: .utf8)
         }
         let pid = scratch.root.appendingPathComponent("\(name).pid")
+        // The `fail` argument is appended only when it is asked for. It is part of the child's
+        // argv, so an unconditional `""` would move `UpstreamHash.hash` for every existing entry
+        // and rewrite bytes that other tests in this suite compare.
+        var args: [JSONValue] = [
+            .string(JSString(script.path)),
+            .string(JSString(pid.path)),
+            .string(JSString(started?.path ?? "")),
+            .string(JSString(gate?.path ?? "")),
+            .string(JSString(tool))
+        ]
+        if !fail.isEmpty { args.append(.string(JSString(fail))) }
         return .object([
             JSONMember(key: JSString("command"), value: .string(JSString("python3"))),
-            JSONMember(key: JSString("args"), value: .array([
-                .string(JSString(script.path)),
-                .string(JSString(pid.path)),
-                .string(JSString(started?.path ?? "")),
-                .string(JSString(gate?.path ?? "")),
-                .string(JSString(tool))
-            ]))
+            JSONMember(key: JSString("args"), value: .array(args))
         ])
     }
 

@@ -201,7 +201,10 @@ echo "=============================================================="
 # The one sweep this script performs, and it is justified: M6's claim is that the sentence has left
 # the *product*, which is not a claim about one pane. It is cheap — one selection each, one dump —
 # and it is the only run in the fleet that can make it.
-for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
+# Settings left this list at M15: it is a `Settings` scene now rather than a destination, so
+# `axkit select` would fail to find a row and the sweep would report a blocked selection as a
+# product defect.
+for dest in Activity Servers Skills Discover Inbox Checks Cleanup; do
     "$AXKIT" select "$PID" "$dest" >/dev/null || fail "could not select $dest"
     sleep 1
     dump
@@ -209,7 +212,7 @@ for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
         fail "$dest still renders the placeholder"
     fi
 done
-pass "A4: all 8 destinations render a real board — the placeholder is gone from the product"
+pass "A4: all 7 destinations render a real board — the placeholder is gone from the product"
 check_invisible "the destination sweep"
 
 echo

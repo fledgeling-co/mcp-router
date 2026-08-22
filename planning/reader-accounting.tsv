@@ -1,6 +1,6 @@
 # planning/reader-accounting.tsv — what each raw-input reader drops, and why that is not its subject.
 #
-# rows: 18
+# rows: 17
 #
 # `reader-accounting.py` finds every reader in planning/ and scripts/ that decomposes raw input and
 # discards part of it without recording what it discarded. A reader appears here when the drop is
@@ -16,6 +16,11 @@
 # The earlier version of this line read 19 readers, 27 discarding iterations and 50 drop sites,
 # from a run with the gate inside the directories it scans. Corrected 2026-08-22 after the first
 # verification; `planning/progress/G4.md` §1 carries the command.
+#
+# `planning/reader-accounting.py::main` left this file on 2026-08-22 and the pin moved from 18 to
+# 17 in the same change. Its declaration covered a `node_modules` filter in the census
+# comprehension; the census now enumerates `git ls-files` instead, which drops nothing, so the
+# declaration was outliving its reader and the gate said so.
 #
 # The pinned `# rows:` count is checked by the gate. A row that vanishes shrinks the denominator and
 # the gate reports better, which is the failure this whole item is about — move the pin in the same
@@ -33,7 +38,6 @@ planning/ledger-reconcile.py::content_words	declared	Check F's stopword and leng
 planning/ledger-reconcile.py::expand_range	declared	A pair whose two series differ (`M9-R12`) and a span wider than 40 are not allocation ranges — they are a commit range or a line reference. Dropping them is what stops check D expanding a four-digit line span into a hundred false ids; both conditions predate G4 and are stated in the docstring.
 planning/ledger-reconcile.py::main	gap	Checks J and K, six drops. J drops a non-table line (check L reads those), the first row of each table (consumed as the header) and the separator rule. K drops a non-table line, a row with fewer than three cells, and a first cell that is not a `D-<parent>-<letter>` id. K's short-row drop is a real hole: a register row with fewer cells than its header is read by K not at all, by J not at all (J reads only the other direction) and by H only inside a grouped count, so it would be invisible in all three. Measured 2026-08-22: 0 such rows in either file today. Recorded rather than fixed, because the fix is another check and not a declaration.
 planning/reader-accounting.py::analyse_file	declared	An iteration that discards nothing is not this gate's subject. It is counted in the `iterations` total printed on every run, and naming the 205 non-discarding iterations individually would bury the 96 that do discard (this tree, 2026-08-22).
-planning/reader-accounting.py::main	declared	The file census excludes anything under `node_modules`: a vendored reader is not this repository's to hold to a contract. The surviving file count is printed on every run, so a filter that began excluding too much shows as a falling denominator rather than as a quieter gate.
 planning/reader-accounting.py::read_registry	declared	Blank lines and `#` comments in this file are not rows. Every other line is either parsed into a declaration or named in the malformed list, which is what makes a mistyped row a red rather than a shorter denominator.
 planning/reader-accounting.py::seed_params	declared	The taint seed reads call sites only. A node that is not a call, or is a call to something this module does not define, cannot bind a parameter, so dropping it changes no seed and no classification.
 planning/set-status.py::main	declared	Every `data-id` in the SVG is scanned and a node whose id was not named on the command line is left alone — setting the status of the ids it was given is the tool's whole subject. The opposite direction is checked and loud: an id given on the command line and not found in the SVG exits non-zero naming it.

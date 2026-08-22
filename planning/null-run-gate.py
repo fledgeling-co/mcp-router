@@ -40,6 +40,7 @@ What this does NOT reach, stated rather than implied:
 Exit 0 when every arm bit; 1 when one did not; 2 when the gate could not run one.
 """
 
+import re
 import shutil
 import subprocess
 import sys
@@ -108,6 +109,7 @@ class Arm:
     why: str             # what this arm proves the assertion can still see
     build: object        # (scratch root) -> None
     exit_code: object    # int, or a predicate over the exit code
+    repo: bool = False   # git-init the scratch tree and track what the builders wrote
     expect: str = ""     # a substring the output must carry
     forbid: str = ""     # a substring the output must NOT carry
     run: str = ""        # path to execute, when it differs from `target`
@@ -137,11 +139,40 @@ def accounting_tree(root: Path) -> None:
         f"# scratch registry\n# rows: {len(keep)}\n" + "\n".join(keep) + "\n", encoding="utf-8")
 
 
-def lint_tree(script: str, dirs: tuple[str, ...], content: str = "") -> object:
+def script_dirs(script: str) -> tuple[str, ...]:
+    """The directories a lint script names, read out of the script rather than restated beside it.
+
+    M15 widened `GEOMETRY_DIRS` in `no-raw-design-values.sh` from three to four and the literal
+    here stayed at three. Every RAW arm then built a tree the rule exited early on — it printed
+    `the geometry checks did not run`, never reached the plant, stayed green, and the arm
+    correctly reported that it could not discriminate. `make lint` was red on the merged tree for
+    that and nothing else.
+
+    That is this item's own thirteenth instance one level up: a hardcoded list of what to create
+    is a denominator that stops tracking its numerator the first time somebody adds a directory.
+    So take every `"$ROOT/…"` the script itself names, in order, de-duplicated. Over-inclusion is
+    free — a scratch directory nothing scans costs one empty mkdir — while under-inclusion is the
+    failure above, so a whole-file sweep is deliberately the loose direction.
+
+    The one shape it would read wrong is a `"$ROOT/…"` naming a file, which would be created as a
+    directory. The script names none today, and one appearing would make the arm go loud rather
+    than quiet: the read fails, `set -euo pipefail` kills the script, and the arm reports that it
+    could not discriminate instead of reporting a pass.
+    """
+    text = (ROOT / "scripts" / "lint" / script).read_text(encoding="utf-8")
+    found = tuple(dict.fromkeys(re.findall(r'"\$ROOT/([A-Za-z0-9_./+-]+)"', text)))
+    if not found:
+        raise LookupError(f'{script} names no "$ROOT/…" directory — the derivation stopped '
+                          "matching, and a fixture built from nothing measures nothing")
+    return found
+
+
+def lint_tree(script: str, dirs: tuple[str, ...] | None = None, content: str = "") -> object:
+    """A scratch tree for a shell lint. `dirs=None` derives them from the script — see above."""
     def build(root: Path) -> None:
         (root / "scripts" / "lint").mkdir(parents=True)
         shutil.copy(ROOT / "scripts" / "lint" / script, root / "scripts" / "lint" / script)
-        for d in dirs:
+        for d in (script_dirs(script) if dirs is None else dirs):
             (root / d).mkdir(parents=True, exist_ok=True)
             (root / d / "Clean.swift").write_text(content or CLEAN_SWIFT, encoding="utf-8")
     return build
@@ -191,8 +222,8 @@ def empty_accounting_tree(root: Path) -> None:
 def empty_raw_tree(root: Path) -> None:
     (root / "scripts" / "lint").mkdir(parents=True)
     shutil.copy(ROOT / RAW, root / RAW)
-    for d in RAW_DIRS:
-        (root / d).mkdir(parents=True)
+    for d in script_dirs("no-raw-design-values.sh"):
+        (root / d).mkdir(parents=True, exist_ok=True)
 
 
 LEDGER_MD = "planning/features-to-triage/LEDGER.md"
@@ -201,10 +232,12 @@ ACCOUNTING = "planning/reader-accounting.py"
 WIRE = "scripts/lint/no-wire-codable.sh"
 RAW = "scripts/lint/no-raw-design-values.sh"
 
+# `no-wire-codable.sh` is not derived from: it spells its directories as bare names under its own
+# `ROOT=` and tolerates a missing one (`[ -d ] && present+=`), erroring only when none exist. A
+# stale literal there cannot produce the early exit above, so the arms keep naming the two they
+# mean to plant in. `no-raw-design-values.sh` requires every listed directory, which is what made
+# its list load-bearing — the RAW arms take theirs from `script_dirs`.
 WIRE_DIRS = ("app/Sources/RouterCore/Control", "app/Sources/RouterCore/Registry")
-RAW_DIRS = ("app/Sources/MCPRouterUI", "app/MCPRouter", "app/MCPRouterIOS",
-            "app/Sources/MCPRouterKit", "app/Sources/MCPRouterUI/Shell",
-            "app/Sources/MCPRouterUI/Activity", "app/Sources/MCPRouterUI/Boards")
 
 ARMS: list[Arm] = [
     # ---- the baseline. Every poison below is only evidence because this one is green -------
@@ -274,11 +307,11 @@ ARMS: list[Arm] = [
     # ---- the accounting gate, armed against itself -------------------------------------------
     Arm("BASE-accounting", ACCOUNTING, "poison",
         "the scratch tree is accounted, so a red under a plant is the plant",
-        accounting_tree, 0, expect="accounted —"),
+        accounting_tree, 0, expect="accounted —", repo=True),
     Arm("ACC-silent-reader", ACCOUNTING, "poison",
         "a newly planted reader that discards raw input and records nothing",
         chain(accounting_tree, write("scripts/leaky.py", LEAKY_READER)),
-        1, expect="discard raw input and record nothing"),
+        1, expect="discard raw input and record nothing", repo=True),
     Arm("ACC-pin", ACCOUNTING, "poison",
         "a declaration deleted without moving the pinned row count",
         chain(accounting_tree,
@@ -286,7 +319,7 @@ ARMS: list[Arm] = [
                   "\n".join(line for line in (root / "planning" / "reader-accounting.tsv")
                             .read_text(encoding="utf-8").splitlines()
                             if "::read_registry" not in line) + "\n", encoding="utf-8")),
-        1, expect="against a pinned"),
+        1, expect="against a pinned", repo=True),
     Arm("ACC-stale", ACCOUNTING, "poison",
         "a declaration naming a reader that no longer exists",
         chain(accounting_tree,
@@ -295,11 +328,11 @@ ARMS: list[Arm] = [
                   .replace("# rows: 4", "# rows: 5")
                   + "planning/gone.py::vanished\tdeclared\tthis reader was deleted\n",
                   encoding="utf-8")),
-        1, expect="declaration outlived its reader"),
+        1, expect="declaration outlived its reader", repo=True),
     Arm("NULL-accounting-empty", ACCOUNTING, "null",
         "a tree with no Python readers at all",
         empty_accounting_tree, 2, expect="usage error", forbid="accounted —",
-        run="tools/reader-accounting.py"),
+        run="tools/reader-accounting.py", repo=True),
 
     # ---- the two shell lints with no selftest of their own ------------------------------------
     Arm("BASE-wire", WIRE, "poison", "the scratch tree is clean, so a red under a plant is the plant",
@@ -331,13 +364,13 @@ ARMS: list[Arm] = [
         expect="scanned nothing", forbid="no-wire-codable: clean"),
 
     Arm("BASE-raw", RAW, "poison", "the scratch tree is clean, so a red under a plant is the plant",
-        lint_tree("no-raw-design-values.sh", RAW_DIRS), 0, expect="no-raw-design-values: clean"),
+        lint_tree("no-raw-design-values.sh"), 0, expect="no-raw-design-values: clean"),
     Arm("RAW-import", RAW, "poison", "MCPRouterKit importing a UI framework",
-        chain(lint_tree("no-raw-design-values.sh", RAW_DIRS),
+        chain(lint_tree("no-raw-design-values.sh"),
               write("app/Sources/MCPRouterKit/Bad.swift", "import SwiftUI\n")),
         1, expect="must import no UI framework"),
     Arm("RAW-bridge", RAW, "poison", "a shell growing its own colour bridge again",
-        chain(lint_tree("no-raw-design-values.sh", RAW_DIRS),
+        chain(lint_tree("no-raw-design-values.sh"),
               write("app/MCPRouter/Bad.swift",
                     "extension ColorToken {\n    var swiftUIColor: Int { 0 }\n}\n")),
         1, expect="private colour bridge in a shell"),
@@ -350,8 +383,10 @@ ARMS: list[Arm] = [
 # because a population stated as "the hermetic ones" and never enumerated is the denominator
 # failure this item exists to stop.
 NOT_ARMED = [
-    ("ledger-reconcile.py check E", "reads `git branch --merged main`; a scratch tree is not a "
-                                    "repository, so the arm would measure the git failure path"),
+    ("ledger-reconcile.py check E", "reads `git branch --merged main`; the reconciler's scratch "
+                                    "trees are not repositories, so the arm would measure the git "
+                                    "failure path. The accounting arms are given one because "
+                                    "`git ls-files` IS their instrument's enumeration"),
     ("scripts/lint/no-harness-config-writes.sh", "already armed by its own selftest — ten plants "
                                                  "including a deliberate miss (P10)"),
     ("62 further shell files under scripts/", "need a booted simulator, a built Swift router or a "
@@ -359,6 +394,38 @@ NOT_ARMED = [
                                               "mock-fidelity-selftest.sh own those"),
     ("the Swift suite (1684 tests)", "armed by scripts/red-green.py's mutation lane, not here"),
 ]
+
+
+def make_repo(root: Path) -> str:
+    """Track everything the builders wrote. Returns "" on success, or why it could not.
+
+    `reader-accounting.py` enumerates through `git ls-files`, so a scratch tree that is not a
+    repository would exercise its cannot-enumerate path and every accounting arm would be
+    measuring that instead of the check it is named for. Only the arms that declare `repo=True`
+    get one: the reconciler's check E reads `git branch --merged main`, and handing it a
+    repository with no `main` would arm the git failure path rather than the check, which is the
+    reason NOT_ARMED gives for leaving it out.
+
+    Paths are collected before `git init` so the index never grows `.git`'s own contents, and are
+    named explicitly rather than swept, so an arm's fixture is exactly what its builders wrote.
+    The walk is partitioned rather than filtered: git has no index entry for a directory, so the
+    two lists are what a scratch tree is made of rather than a kept half and a discarded one, and
+    an empty directory going untracked is the property `NULL-accounting-empty` stands on.
+    """
+    files: list[str] = []
+    dirs: list[str] = []
+    for entry in sorted(root.rglob("*")):
+        (files if entry.is_file() else dirs).append(str(entry.relative_to(root)))
+    try:
+        subprocess.run(["git", "init", "-q"], cwd=root, check=True, capture_output=True,
+                       timeout=60)
+        if files:
+            subprocess.run(["git", "add", "--"] + files, cwd=root, check=True,
+                           capture_output=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return (f"the scratch repository could not be built over {len(files)} file(s) in "
+                f"{len(dirs)} directories: {exc}")
+    return ""
 
 
 def fire(arm: Arm) -> tuple[str, str]:
@@ -369,6 +436,10 @@ def fire(arm: Arm) -> tuple[str, str]:
             arm.build(root)
         except (OSError, LookupError) as exc:
             return "blocked", f"the scratch tree could not be built: {exc}"
+        if arm.repo:
+            verdict = make_repo(root)
+            if verdict:
+                return "blocked", verdict
         script = root / (arm.run or arm.target)
         if not script.is_file():
             return "blocked", f"{arm.run or arm.target} is not in the scratch tree"

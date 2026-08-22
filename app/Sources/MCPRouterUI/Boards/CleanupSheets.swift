@@ -11,11 +11,11 @@
     /// *names*, never values. An app that cannot read a secret cannot restore an entry carrying one.
     struct CleanupSheetHost: View {
         @Bindable var board: CleanupBoardModel
-        let sheet: CleanupBoardModel.Sheet
+        let sheet: RouterSheet.Cleanup
 
         var body: some View {
             switch sheet {
-            case let .removeServer(name):
+            case let .removeCandidate(name):
                 RemoveServerSheet(board: board, name: name)
             case .resetHistory:
                 ResetHistorySheet(board: board)
@@ -309,7 +309,7 @@
                 switch candidate.kind {
                 case .server:
                     Button("Remove…") {
-                        board.sheet = .removeServer(name: candidate.key.id)
+                        board.request(.removeInstalledCapability, subject: candidate.key.id)
                     }
                     .buttonStyle(StandardButtonStyle())
                 case .skill:

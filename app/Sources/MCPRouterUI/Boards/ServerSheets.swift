@@ -6,7 +6,7 @@
     struct ServerSheetHost: View {
         @Bindable var shell: ShellModel
         @Bindable var board: ServersBoardModel
-        let sheet: ServersBoardModel.Sheet
+        let sheet: RouterSheet.Servers
 
         private var servers: [MCPServer] { shell.trackerState?.servers ?? [] }
 
@@ -178,7 +178,7 @@
                 }
             } actions: {
                 Button("Remove \(serverName)") {
-                    board.sheet = .removeServer(server: serverName)
+                    board.request(.removeInstalledCapability, subject: serverName)
                 }
                 .buttonStyle(StandardButtonStyle())
                 .foregroundStyle(ColorToken.fail.color)

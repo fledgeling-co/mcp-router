@@ -111,7 +111,7 @@
                             """
                         )
                         Button("Review the change") {
-                            board.sheet = .heldChange(server: server.name)
+                            board.request(.acceptHeldChanges, subject: server.name)
                             Task { await board.loadHeldChanges(server.name) }
                         }
                         .buttonStyle(StandardButtonStyle(scale: .small))

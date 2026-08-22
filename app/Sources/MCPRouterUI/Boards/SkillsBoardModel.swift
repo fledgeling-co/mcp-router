@@ -41,18 +41,6 @@
             }
         }
 
-        public enum Sheet: Equatable, Sendable, Identifiable {
-            case heldVersion(skillID: String)
-            case marketplaces
-
-            public var id: String {
-                switch self {
-                case let .heldVersion(skillID): "held:\(skillID)"
-                case .marketplaces: "marketplaces"
-                }
-            }
-        }
-
         @ObservationIgnored public let client: any ControlAPIClient
 
         public private(set) var state: LoadState = .loading
@@ -66,7 +54,7 @@
         public var selection: String?
         public var filter: SkillPresentation.Filter = .all
         public var search: String = ""
-        public var sheet: Sheet?
+        public var sheet: RouterSheet.Skills?
         public private(set) var focusSearchRequests: Int = 0
 
         public init(client: any ControlAPIClient) {

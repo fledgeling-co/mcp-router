@@ -23,13 +23,19 @@
             boardColumn
                 .task { await board.load() }
                 .onDisappear { board.pairing.stopTicking() }
-                .sheet(isPresented: reviewPresented) {
-                    if let item = board.sheetItem() {
-                        InboxReviewSheet(board: board, item: item)
+                // One `.sheet(item:)` where there were two `isPresented:` presentations, over the
+                // inventory's own type. The item decides which sheet is drawn, so the class of bug
+                // the brief names — a sheet opening on the previously selected row — cannot happen
+                // here: `sheetItem()` looks the row up fresh against the id the item carries.
+                .sheet(item: $board.sheet) { sheet in
+                    switch sheet {
+                    case .queuedItem:
+                        if let item = board.sheetItem() {
+                            InboxReviewSheet(board: board, item: item)
+                        }
+                    case .pairPhone:
+                        PairingSheet(session: board.pairing)
                     }
-                }
-                .sheet(isPresented: pairingPresented) {
-                    PairingSheet(session: board.pairing)
                 }
                 .onKeyPress(.escape) {
                     board.escape()
@@ -42,28 +48,6 @@
                 // reaches the scroll view instead of being swallowed.
                 .onKeyPress(.upArrow) { board.moveSelection(by: -1) ? .handled : .ignored }
                 .onKeyPress(.downArrow) { board.moveSelection(by: 1) ? .handled : .ignored }
-        }
-
-        /// The pairing sheet's presentation.
-        ///
-        /// An explicit `Binding` rather than `$board.pairing.isOpen`: `pairing` is a `let`, so
-        /// `@Bindable`'s projection cannot reach through it. Closing through `session.close()`
-        /// rather than by writing the flag also stops the ticker, which a bare assignment would
-        /// leave running against a sheet nobody is looking at.
-        private var pairingPresented: Binding<Bool> {
-            Binding(
-                get: { board.pairing.isOpen },
-                set: { if !$0 { board.pairing.close() } }
-            )
-        }
-
-        /// Bound rather than stored: the model holds the sheet's item **by id**, so the sheet reads
-        /// the same row the board does.
-        private var reviewPresented: Binding<Bool> {
-            Binding(
-                get: { board.sheetItemID != nil },
-                set: { if !$0 { board.sheetItemID = nil } }
-            )
         }
 
         private var boardColumn: some View {

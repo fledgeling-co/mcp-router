@@ -25,6 +25,14 @@
 
         private(set) var status: SettingsPresentation.TokenStatus = .absent
 
+        /// The window's one open sheet.
+        ///
+        /// It lives on the **window's** model rather than the shell's so the presentation attaches
+        /// to the Settings window, which is the brief's one requirement with no reference to build
+        /// against: the mock draws both windows on one page and cannot demonstrate it. A sheet
+        /// hung off `ShellModel` here would drop from the console's titlebar instead.
+        var sheet: RouterSheet.Settings?
+
         init(store: any ControlTokenStore, file: RouterTokenFile = RouterTokenFile()) {
             self.store = store
             self.file = file

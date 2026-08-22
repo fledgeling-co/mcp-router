@@ -134,4 +134,10 @@ public enum SettingsPaneCopy {
         case .router, .security, .menuBar, .advanced: nil
         }
     }
+
+    /// The Advanced pane's control that opens the child-PATH sheet.
+    ///
+    /// `…` because it opens a further view (`DESIGN.md` §3.4), which is also what makes the
+    /// derivation in `MenuCommand.opensAFurtherView` read correctly for anything that reuses it.
+    public static let childPathAction = "What your servers can find…"
 }

@@ -140,7 +140,7 @@
                             inspect: { board.selection = candidate.id },
                             // Opens the dialog rather than removing. The one destructive act on
                             // this board is never a single click, here or anywhere else on it.
-                            remove: { board.sheet = .removeServer(name: candidate.key.id) },
+                            remove: { board.request(.removeInstalledCapability, subject: candidate.key.id) },
                             // `key.id` is the skill's resolved path, which is what the sheet looks
                             // the skill up by. The row only draws this when it has a provenance
                             // note, and only a skill can carry one.
@@ -174,7 +174,7 @@
                     // Standard, never accent-filled. §3.4 allows one prominent action per view and
                     // forbids a destructive one as the default; the only thing this pane proposes is
                     // a removal, so the correct number of prominent actions is zero.
-                    Button(CleanupPresentation.resetLabel) { board.sheet = .resetHistory }
+                    Button(CleanupPresentation.resetLabel) { board.request(.resetCallHistory) }
                         .buttonStyle(StandardButtonStyle())
                         .disabled(board.state.reading == nil)
                 }

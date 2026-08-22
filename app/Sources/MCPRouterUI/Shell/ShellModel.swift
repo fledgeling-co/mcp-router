@@ -341,7 +341,7 @@
                 serversBoard.sheet = nil
                 return
             }
-            serversBoard.sheet = .heldChange(server: name)
+            serversBoard.request(.acceptHeldChanges, subject: name)
             await serversBoard.loadHeldChanges(name)
         }
 

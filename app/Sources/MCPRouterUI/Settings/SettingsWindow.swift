@@ -70,6 +70,14 @@
                 detail
             }
             .navigationTitle(SettingsPresentation.paneTitle)
+            // Attached here, on the Settings window's own root, so the sheet drops from this
+            // window's titlebar and is modal to it alone.
+            .sheet(item: $model.sheet) { sheet in
+                switch sheet {
+                case .childPath:
+                    ChildPathSheet(dismiss: { model.sheet = nil })
+                }
+            }
             // **Escape, and it ships because the platform does not provide it.** Measured on the
             // running build on 2026-08-22: with the Settings window open, a keycode-53 event posted
             // to the process left it open, so the `Settings` scene does not close on Escape by
@@ -77,7 +85,7 @@
             // the fallback D3's measurement table named for exactly this reading.
             //
             // No conflict with `keysReservedForContent`: that rule governs *menu commands*, and this
-            // is a window-root handler on a window with no rows, no default action and no sheet.
+            // is a window-root handler, and the sheet below takes Escape first when it is open.
             .onExitCommand { dismiss() }
             .task { await model.load(unauthorized: offlineError == .unauthorized) }
             .onChange(of: offlineError) { _, new in
@@ -180,7 +188,8 @@
                 AdvancedPane(
                     shell: shell,
                     routerHome: model.routerHome,
-                    buildIdentity: buildIdentity
+                    buildIdentity: buildIdentity,
+                    onShowChildPath: { model.sheet = .childPath }
                 )
             }
         }

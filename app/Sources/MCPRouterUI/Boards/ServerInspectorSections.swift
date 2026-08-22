@@ -152,7 +152,7 @@
         var danger: some View {
             section("Danger") {
                 Button("Remove this server…") {
-                    board.sheet = .removeServer(server: server.name)
+                    board.request(.removeInstalledCapability, subject: server.name)
                 }
                 // Destructive, and never the default (§3.4). It is a standard control rather than a
                 // filled one; the view's single prominent action is `Add server…`.

@@ -99,7 +99,7 @@
                 // allows one prominent action per view and forbids a destructive one as the
                 // default; nothing on this board is prominent, so this is not either. Offering it
                 // before `records` exists would let a click discard a history nobody has seen.
-                Button(CleanupPresentation.resetLabel) { model.sheet = .resetHistory }
+                Button(CleanupPresentation.resetLabel) { model.request(.resetCallHistory) }
                     .buttonStyle(StandardButtonStyle())
                     .disabled(model.records == nil)
             }

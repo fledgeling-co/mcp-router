@@ -5,7 +5,7 @@
     /// Routes the board's one open sheet to its surface.
     struct SkillSheetHost: View {
         @Bindable var board: SkillsBoardModel
-        let sheet: SkillsBoardModel.Sheet
+        let sheet: RouterSheet.Skills
 
         var body: some View {
             switch sheet {

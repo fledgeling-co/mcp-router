@@ -47,22 +47,24 @@
 
         /// The open dialog, or none. One case today; an enum rather than a `Bool` because the next
         /// one is a different dialog and not a second flag.
-        public var sheet: Sheet?
+        public var sheet: RouterSheet.Activity?
+
+        /// Opens the gate `SheetGate` declares for an action rather than a sheet chosen by hand.
+        ///
+        /// One action reaches this board — forgetting the call record — and it is the gate table's
+        /// eighth row, which the brief's own table does not carry. It is here because it is
+        /// destructive and irreversible: the evidence this board is drawn from is what it discards.
+        @discardableResult
+        public func request(_ action: SheetGate.Action) -> RouterSheet.Activity? {
+            guard case .sheet(.resetHistory) = SheetGate.gate(for: action) else { return nil }
+            sheet = .resetHistory
+            return sheet
+        }
 
         /// The typed failure of the last **write**, kept apart from `failure` above, which is the
         /// last read's. A dialog that reported a load error would be answering a question the user
         /// did not ask, and a board that folded the two would lose which one is stale.
         public private(set) var writeError: ControlAPIError?
-
-        public enum Sheet: Equatable, Sendable, Identifiable {
-            case resetHistory
-
-            public var id: String {
-                switch self {
-                case .resetHistory: "reset"
-                }
-            }
-        }
 
         /// What the live feed is doing. `nil` until the subscription reports anything.
         public private(set) var phase: StreamPhase?

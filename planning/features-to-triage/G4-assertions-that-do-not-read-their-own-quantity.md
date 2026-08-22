@@ -73,6 +73,31 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 `mean` and discarding the samples. None of it is available before that. This bears directly on
 `G3`, whose subject is the only wall-clock assertion in this suite.
 
+
+## A ninth instance, found 2026-08-22, and it is the orchestrator's
+
+A dispatch brief's gate line is named for *the base this branch was cut from* and read from
+*whichever report was last in front of the author*. Four occurrences in one morning:
+
+| Stated in the brief | Measured at the base |
+|---|---|
+| `make test` 0 at **1686/210** | **1684 in 209** — the 1686 is `ai/r17`'s, and that branch is 16 commits ahead of main |
+| lint 0 over **531 files** | **530** |
+| `scripts/acceptance/no-raw-design-values.sh` | the script is `scripts/lint/no-raw-design-values.sh` |
+| `reconciler 0 across **A–L**` | the base carries **A–K**; check L landed on main afterwards |
+
+It belongs in this table because it is the same shape as everything above it and not because it
+is embarrassing: the number is *plausible*, its subject is *in its name*, and a green reading
+against it proves nothing about the base the brief actually named. Two runners hit it
+independently and both spent attention proving the orchestrator wrong — G4's own runner reported
+the two-test gap as unexplained, because the brief had told it to expect more than exists.
+
+**Neither mechanism this item builds would catch it**, which is worth saying plainly: nothing is
+dropped and nothing is vacuous. It is instance 2/3/7's kind — a real quantity read from the wrong
+place — and it lands on the wrong side of this item's own boundary. The remedy is procedural and
+sits in `ORCHESTRATOR.md` as a dispatch hazard: run the gate line against the stated base and
+paste what it returns, rather than carrying a figure across branches.
+
 ---
 
 ## Triage — 2026-08-22

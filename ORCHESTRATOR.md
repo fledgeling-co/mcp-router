@@ -126,11 +126,26 @@ never the harness's own cwd notice.
 
 | Item | Worktree | Branch | Base | Dispatched | Stop rules |
 |---|---|---|---|---|---|
-| R17 gap-fix 2 | `.worktrees/R17` | `ai/r17` | `55075ed` | 11:50 | before verify, before merge |
+| R17 gap-fix 2 | `.worktrees/R17` | `ai/r17` | `55075ed` | 11:50 | **verifying** — runner done at `13e728b` |
 | M21 | `.worktrees/M21` | `ai/m21` | `4de2080` | 12:05 | before verify, before merge |
 | M15 | `.worktrees/M15` | `ai/m15` | `4de2080` | 12:07 | before verify, before merge |
 | R19 | `.worktrees/R19` | `ai/r19` | `72958de` | 12:26 | before verify, before merge |
-| G4 | `.worktrees/G4` | `ai/g4` | `72958de` | 12:26 | before verify, before merge |
+| G4 | `.worktrees/G4` | `ai/g4` | `72958de` | 12:26 | **verifying** — runner done, 8 commits |
+
+**Both verifiers are a logged in-family downgrade.** `codex` is down until 27 August on a usage
+limit and the `grok` balance is exhausted (`402 … usage balance exhausted`, re-confirmed
+2026-08-22), so the only out-of-family lane left is `agy`, which cannot run shell commands
+non-interactively and therefore cannot run a gate. A fresh `claude -p` on `claude-opus-5[1m]` is
+the sanctioned substitute; it is recorded here rather than passing silently, because the
+verifier-out-of-family invariant is being missed and not met.
+
+**The RUNNER CONTEXT hazard bit for real, on the one runner still on the 200k model.** R17's
+runner completed all four acceptance criteria, ran every gate, wrote its 10 KB progress note at
+12:35 — and died on `Prompt is too long` before it could commit. Its work was committed on its
+branch by the orchestrator at `13e728b`, attributed in the message. Nothing was lost, and it would
+have been if the worktree had been cleaned before anyone looked. **A runner that dies this way
+leaves a clean exit and a full worktree**, which reads from outside exactly like a runner that
+started and did nothing.
 
 **R17's base is behind main and its dispatch contradicted itself** — it froze the branch off main
 while setting `reconciler 0 across A–L` as a gate, and check L only exists on main from `b616dc1`.

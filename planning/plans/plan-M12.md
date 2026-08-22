@@ -178,3 +178,24 @@ The stale state is reachable without a fixture: load the board against a live ro
 router, let the next poll throw, and `LoadState.stale` is what the board holds. If the router cannot
 be driven into that state within the one pass, the state is proved at seam 2 and the report says the
 rendered half is unproven — a named gap beats a green nobody checked.
+
+---
+
+## What the plan review changed, and what the build actually did
+
+The plan above is the one that went to `agy --model gemini-3.7-flash-high` for the adversarial
+review. Ten findings came back and five of them changed the design, so this section records the
+delta rather than leaving the plan reading as though it had been followed. The dispositions in full
+are in `planning/specs/spec-M12.md` §"The second out-of-family review".
+
+| The plan said | What shipped, and why |
+|---|---|
+| `agoPhrase` — "just now" / "3m ago", boundary-tested at 4s and 5s | **Gone.** A relative age is computed when a view body runs, and a modal's body does not re-run while it sits open; the phrase would freeze at whatever it said when the sheet opened. `asOfLabel` states a clock time instead, and adds the date when the reading is not from today |
+| `resetFigureProvenance(… statesACount: Bool …)` | **`calls: Int?`**, the same parameter `resetConsequence` takes. The `!= nil` versus `> 0` decision was the mutation the plan wanted red, and with a `Bool` it lived in the model where the pure-function test could not see it |
+| both functions return `String?` | **`CleanupPresentation.Provenance`** — `.none`, `.quiet`, `.marked`. The plan put the stale-versus-quiet branch inside the view, which is the one layer this repo cannot assert against, and it was the whole subject of the item |
+| one new view, `FigureProvenance`, branching on `isStale` | **`ProvenanceNote`**, switching over the value above. The sheets carry no staleness branch at all, and a test fails if `board.isStale` reappears in that file |
+| the removal line names "the tool count and the key names above" | **It names neither.** `removeConsequence` prints no key names for a server with no env or header keys, so the line would have claimed provenance over something not on screen |
+| four files change | **Seven.** Three are splits forced by SwiftLint: `CleanupPresentation.swift` and `CleanupBoardModel.swift` both crossed the 400-line file limit and the class crossed the 250-line type-body limit, so the provenance functions, the two state types and the model's provenance accessors each took a file. `M7ExercisedRequestTests.swift` gained two failure knobs, because `LoadState.stale` is unreachable against a double that always answers |
+| `Reading(...)` has four construction sites | **One**, in `load()`. The rest were a guess and the tree says otherwise |
+| mutations M1–M4 | M1 (`agoPhrase`) no longer applies; the other three stand, plus one for the refusal reason. The table in `planning/evidence/M12-acceptance.md` is the one that was run |
+

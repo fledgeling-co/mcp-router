@@ -87,6 +87,16 @@ exactly what it claims. The two surfaces differ in fact, not in policy.
 attempted. The two later responses can only be newer, so the age this reports is **never younger than
 the truth** — the conservative direction for a staleness disclosure.
 
+**The dialog states a clock time, not an elapsed age**, and this changed during the plan review. A
+relative phrase — "taken 3m ago" — is computed when the view body runs, and a modal's body does not
+re-run while it sits open: nothing it reads is observed state that changes with the clock, and this
+board does not poll on a timer. A dialog left open for a quarter of an hour would go on saying "3m
+ago", which is a figure reading as fresher than it is: the defect this item exists to remove,
+rebuilt one line below the fix. An absolute stamp is equally true at every instant the dialog is on
+screen, and an "as of" **time** is what finding 8 asked for in the first place. The date is added
+only when the reading is not from today, so a reading from yesterday cannot read as one from this
+afternoon.
+
 ### D4 · A stale reading discloses; it does not dim the button
 
 `.stale` means the last *read* threw. It does not mean the write will. Dimming the destructive
@@ -110,8 +120,11 @@ POST against a router whose state was last read successfully some time ago.
 | C3 | The removal dialog states when its tool count and key names were observed | `CleanupPresentation.removeFigureProvenance`; `CleanupPresentationTests` |
 | C4 | In `.stale`, both dialogs carry the board's own stale wording — the last reading the router gave, and nothing about it is current | `CleanupPresentation`, both provenance functions; `CleanupProvenanceTests` |
 | C5 | The stale line renders as `Banner(icon: .warn, tint: .attention)` and the fresh line as a `--t3` `.caption`, so the two differ structurally and not only by hue | `FigureProvenance` in `CleanupSheets.swift`; `CleanupProvenanceTests.staleAndFreshDifferInStructure` |
-| C6 | Where there is no figure to date — the router did not answer `usageSummary()`, or no reading has landed — the fresh case says nothing rather than dating an absent number | both provenance functions return `String?`; `CleanupPresentationTests` |
-| C7 | An age under five seconds reads "just now" and never "now ago" | `CleanupPresentation.agoPhrase`; boundary test at 4s / 5s |
+| C6 | Where there is no figure to date — the router did not answer `usageSummary()`, or no reading has landed — the fresh case says nothing rather than dating an absent number | `Provenance.none`; `zeroIsAFigureAndNilIsNot`, `anUnansweredSummaryCarriesNoProvenance` |
+| C11 | An observed **zero** is dated like any other figure, and its line does not contradict the consequence above it or point at a figure the dialog does not draw | `zeroIsAFigureAndNilIsNot` |
+| C12 | The removal line claims provenance over nothing the dialog may not have drawn — a server with no env or header keys has no key names on screen | `theRemovalLineClaimsNothingAbsent` + `theRemovalLinesPremiseHolds` |
+| C13 | A **stale** reading whose summary never answered says the reading carried no call count, rather than a sentence that reads as a claim about the count | `aStaleReadingWithNoCountSaysSo` |
+| C7 | The stamp does not decay: the same `observedAt` renders identically however long the dialog stays open | `CleanupPresentation.asOfLabel`; `theStampIsAbsoluteRatherThanElapsed` renders the same reading at open and fifteen minutes later |
 | C8 | `resetConsequence` is byte-identical to `main`, and both boards still call it | `git diff main -- CleanupPresentation.swift` shows no change inside that function; its five existing assertions still pass |
 | C9 | The destructive buttons keep the enablement they had: `Remove` disabled only when the candidate has left the list, `Reset history` never disabled | `CleanupSheets.swift`; `CleanupProvenanceTests.aStaleReadingDoesNotDimTheDestructiveButton` |
 | C10 | No new number reaches the UI. Every figure in both dialogs is one the router reported, and `observedAt` is a device clock reading about the app's own act of reading, not a claim about the router | `SWIFT_PRACTICES.md` §5 self-review; no new field is read from the wire |
@@ -124,14 +137,15 @@ dialogs — which is what the item changes.
 
 | Condition | Reset dialog | Removal dialog |
 |---|---|---|
-| Loaded, count observed | consequence + `--t3` caption: *"This figure is from the reading taken 3m ago. Whatever the router has recorded since is discarded as well, and is not in it."* | consequence + caption: *"The tool count and the key names above are from the reading taken 3m ago."* |
-| Loaded, count **not** observed (`usageSummary()` threw) | consequence drops the number ("the router has not said how many"); **no provenance line** — there is no figure to date | n/a: the tool count and key names come from `servers()`, which must have succeeded for a reading to exist |
-| Loaded, observed **zero** | the zero sentence ("nothing to discard") + the same caption, which is what makes the zero honest: it may already be false | n/a |
-| **Stale** | `Banner(.warn, .attention)`: *"This is the last reading the router gave, taken 3m ago, and nothing about it is current. Whatever the router has recorded since is discarded as well, and is not in the figure above."* | `Banner(.warn, .attention)`: *"… and nothing about it is current — what removing this server takes with it may have changed since."* |
-| Stale, count not observed | `Banner` with the first sentence only | n/a |
-| No reading at all (`.loading` / `.failed`) | the header's `Reset history…` is reachable in `.loading`; the consequence drops the number and there is no provenance line | the sheet is opened from a row, so there is no reading-free path to it |
-| Candidate gone from the list | n/a | `CleanupPresentation.consequenceUnavailable`, `Remove` dimmed — unchanged by this item |
-| Under five seconds old | *"…the reading taken just now."* | *"…the reading taken just now."* |
+| Loaded, count > 0 | consequence, then a `--t3` caption: *"This figure is from the reading taken at 14:32. Whatever the router has recorded after that is discarded as well."* | consequence, then a caption: *"What removing it takes with it was read at 14:32."* |
+| Loaded, observed **zero** | the zero sentence ("nothing to discard"), then *"The count was zero in the reading taken at 14:32. Whatever the router has recorded after that is discarded as well."* — the opening changes because there is no figure on screen for "this figure" to point at, and the accrual clause is what makes the zero honest | n/a |
+| Loaded, count **not** observed (`usageSummary()` threw) | the consequence drops the number ("the router has not said how many"); **no provenance line** — there is no figure to date | still dated: the tool count and key names come from `servers()`, which answered. The two dialogs read different responses and this is the state where that shows |
+| **Stale**, count observed | `Banner(.warn, .attention)`: *"This is the last reading the router gave, taken at 14:32, and nothing about it is current. Whatever the router has recorded after that is discarded as well."* | `Banner(.warn, .attention)`: *"This is the last reading the router gave, taken at 14:32, and nothing about it is current. What removing it takes with it may have changed."* |
+| **Stale**, count not observed | `Banner`: *"… and nothing about it is current. It carried no call count."* — its own sentence, because the marker alone would sit under "the router has not said how many" and read as a claim about the count | as above |
+| No reading at all (`.loading` / `.failed`) | the header's `Reset history…` is reachable in `.loading`; the consequence drops the number and there is no provenance line | the sheet opens from a row, so there is no reading-free path to it |
+| Candidate gone from the list | n/a | `consequenceUnavailable`, `Remove` dimmed — unchanged by this item, and asserted unchanged |
+| Taken on an earlier day | the stamp carries the date as well as the time, so a reading from yesterday cannot read as one from this afternoon | the same |
+| The dialog is left open | the stamp does not move, because it is a clock time rather than an elapsed age | the same |
 
 ## Out of scope, and found-not-fixed
 
@@ -214,3 +228,28 @@ irreversible act now disclose with different honesty, Cleanup dated and marked, 
 Two Claudes agreeing is not two families agreeing. This is logged as corroboration of a decision the
 measurement already carried, not as the second gate — the two lanes that would have been the second
 gate are down until 27 August.
+
+## The second out-of-family review — of the plan, and what it changed
+
+The design moved materially between the spec's first draft and the code, so the **plan** went back
+to `agy --model gemini-3.7-flash-high` briefed adversarially: refute it, rank by severity, and check
+hardest for copy that reads as more current or more complete than it is, and for assertions that
+would pass either way. Ten findings. Five changed the design, two changed the tests, one changed the
+prose, one is recorded as found-not-fixed, one is rejected.
+
+| Finding | Disposition |
+|---|---|
+| **Accepted — the sharpest of the ten, and it would have shipped.** *"`FigureProvenance` accepts a static `text: String` evaluated at sheet presentation time. SwiftUI will not re-evaluate the view body merely because time elapses. If a user keeps the dialog open for 15 minutes the caption continues to read 'taken just now'."* | Correct, and worse than stated: this board has no timer, so nothing re-renders a modal at all. The fix is not a `TimelineView` but a different claim — the stamp is now an **absolute clock time** (`asOfLabel`), which is equally true at every instant the dialog is on screen and is what "as of" meant in finding 8. `agoPhrase` and its five-second boundary are gone with it. `theStampIsAbsoluteRatherThanElapsed` renders one reading at open and fifteen minutes later and requires the two to be equal. |
+| **Accepted.** *"Direct logical contradiction on an observed zero: the consequence asserts nothing will be discarded while the provenance asserts new calls will be. And 'This figure' has no antecedent — the zero consequence contains no digits."* | Both true. The zero branch now opens *"The count was zero in the reading taken at …"*, which points at the claim above it rather than at a figure that is not drawn, and the accrual clause reads *"…recorded after that is discarded as well"* in every branch, which is consistent with "there is nothing to discard **as of then**". `zeroIsAFigureAndNilIsNot` asserts the absence of `This figure` on that branch. |
+| **Accepted.** *"'The tool count and the key names above' is false for a server defining zero env vars and zero headers — no key names are rendered above."* | Verified against `ServersBoardModel.removeConsequence`, which draws *"Nothing secret is stored on this entry"* and prints no keys. The line no longer enumerates: *"What removing it takes with it was read at 14:32."* Two tests, in two targets, because the premise lives in a module the Kit suite cannot import. |
+| **Accepted.** *"Stating 'this is the last reading the router gave' when `recordedCalls == nil` is factually false about a count the router never gave."* | The stale-and-uncounted case is its own sentence now — *"It carried no call count."* — rather than the counted one with a clause missing. C13. |
+| **Accepted as found-not-fixed, not as a defect in this item.** *"If `servers()` succeeds and `usageSummary()` throws, `load()` sets `.loaded` with `recordedCalls = nil`, silently wiping the previously observed count and restamping `observedAt`."* | The behaviour is real and is on `main`. It is not dishonest — the consequence then says the router has not stated how many, which is true of that reading, and keeping the old count would be exactly the defect M12 fixes. What is missing is §5's Partial: the board says nothing about the figure it lost. That is a board change rather than a dialog one. Recorded below as found-not-fixed 4, with the mechanism. |
+| **Accepted.** *"`aStaleReadingDoesNotDimTheDestructiveButton` does not test button dimming — the sheet uses `.disabled(candidate == nil)` inline, so the test passes even if a developer adds `.disabled(board.isStale)`."* | Correct: it was a test of a property the sheet did not read. The sheet's decision moved onto the model as `removalRefusalReason(for:)`, which `.disabled` and `.help` both now read, and the test asserts that. A source-level assertion additionally fails if `board.isStale` appears anywhere in the sheets. |
+| **Accepted.** *"`anObservedZeroStillGetsItsAsOfTime` cannot catch mutation M2: it lives in the pure-function suite and receives `statesACount: Bool`, while the mutation lives in the model."* | Correct. `resetFigureProvenance` now takes `calls: Int?` raw — the same parameter `resetConsequence` takes — so the `!= nil` versus `> 0` decision lives inside the pure function where the pure test can see it. The model passes `reading.recordedCalls` and decides nothing. |
+| **Accepted.** *"`provenanceInventsNoNumber` is a tautology — the functions take only `Bool` and `Date`."* | It was. Now that the count is a parameter it is a real assertion, and it asserts the useful thing rather than the tautological one: the provenance line must never **restate** the figure, or the dialog would have two places to be wrong about one number and they could disagree. |
+| **Accepted, partially.** *"Seam 3 never asserts that either sheet instantiates the note or wires `isStale` correctly."* | This repo has no view-tree seam in its unit suite. What could be done was done — the treatment decision moved out of the view into an asserted value, and a source-level test fails if either call site is deleted. What is left is that the note *renders* as a banner rather than a caption, which is proved in the UI pass and is recorded there rather than claimed here. |
+| **Accepted.** *"Two distinct meanings of 'since' in adjacent sentences: the observation window's start, and elapsed time since the poll."* | The accrual clause reads "recorded **after that**" now. The word appears once per dialog. |
+| **Accepted, by consequence.** *"`shortAgo` was engineered for narrow fixed-width table gutters; reusing 'taken 1mo ago' inside full-width modal prose violates macOS conventions."* | Moot once the stamp became absolute — `shortAgo` is no longer in either sentence. |
+| **Accepted.** *"Asymmetric phrasing drift: fresh ends '…and is not in it', stale ends '…and is not in the figure above', with no rationale."* | One clause now, identical in every branch that has a figure. |
+| **Rejected — the claim is not made.** *"The spec claims out-of-family validation while recording that Codex and Grok failed to run."* | The spec's header row names one out-of-family lane, names the two that were down with their exact errors, and marks the fable lane in-family and explicitly not the second gate. One out-of-family review is what happened and is what is claimed. |
+

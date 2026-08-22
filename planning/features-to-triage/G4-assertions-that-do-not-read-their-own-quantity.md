@@ -84,6 +84,32 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+
+## A nineteenth — a guard whose comment claims more than its instrument can see
+
+M15 built a regression guard for the duplicate `Settings…` it found by hand, replacing a matcher
+with a counter. Its verifier armed the **chord half** separately, by re-chording `Add server…` to
+`,`:
+
+> AppKit **strips the chord from the loser**. The run read *"the 35 chords read are on one item each
+> (24 item(s) carry no command character)"* against a 36/23 baseline — so **A19b saw nothing.**
+
+`A20` caught it instead, so the gate is not blind. But A19b's comment claims it catches *"two
+commands claiming one chord, `⌘,` on `Settings…` and on anything else"*, and `AXMenuItemCmdChar`
+cannot observe that: by the time the tree is read, the collision has already been resolved and only
+one item still carries the chord. **On identical duplicates the chord line fires as a consequence
+of the duplicate rather than as a detection of the collision**, which is what the runner's own paste
+showed and what nobody read it as.
+
+This is the table's shape with the two halves cleanly separated: the guard **works**, and its
+**description of what it proves** is wider than what it reads. That distinction matters because the
+next person to extend the guard will trust the comment, not the paste — and will build on a
+capability the instrument does not have.
+
+The remedy here is not code. It is that **a guard's comment is an assertion about the instrument,
+and it should be armed like one**: the arming that revealed this took one re-chording and produced
+a number that disagreed with the comment on sight.
+
 ## An eighteenth — a cross-file citation that goes stale in the direction its subject moved
 
 Flagged by G4's gap-fix 2 while repointing a sentence, and correctly left alone as out of scope:

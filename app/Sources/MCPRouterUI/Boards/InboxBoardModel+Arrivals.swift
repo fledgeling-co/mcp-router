@@ -18,7 +18,10 @@
         /// then would claim a state nobody has read. The pane says `Reading what is waiting…`
         /// because it has a whole surface to say it on; the popover has a line, and a line that says
         /// nothing every time is one the eye stops reading.
-        func bandZone(now: Date = Date()) -> PopoverContent.InboxZone? {
+        func bandZone(
+            approveFromPopover: Bool = false,
+            now: Date = Date()
+        ) -> PopoverContent.InboxZone? {
             switch state {
             case .loading:
                 nil
@@ -31,6 +34,7 @@
                     waiting: rows,
                     device: pairedDeviceName,
                     report: bandReport(),
+                    approveFromPopover: approveFromPopover,
                     now: now
                 )
                 .map(PopoverContent.InboxZone.band)

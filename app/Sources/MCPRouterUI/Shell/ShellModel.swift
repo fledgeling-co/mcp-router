@@ -177,6 +177,18 @@
             }
         }
 
+        /// Whether the popover's queued-item band may install. Persisted the same way.
+        ///
+        /// Observable on the model rather than read from `UserDefaults` where it is used, so the band
+        /// loses its `Approve` the instant the checkbox changes rather than on the next poll — and so
+        /// the one preference in this app that opens an install path has a place a test can set.
+        public var isApproveFromPopoverEnabled: Bool {
+            didSet {
+                guard oldValue != isApproveFromPopoverEnabled else { return }
+                store.save(approveFromPopover: isApproveFromPopoverEnabled)
+            }
+        }
+
         /// The scroll-edge separator's state, and the resting baseline it is measured against.
         public private(set) var scrollEdge = ScrollEdgeState()
 
@@ -207,11 +219,13 @@
             // own bundle identifier, which A36 forbids these files from reading — see
             // `ArrivalNotifierFactory` for why that gate is satisfied rather than amended.
             notifier: any ArrivalNotifier = SilentArrivalNotifier(),
+            // `nil` takes the factory's; `makeInboxBoard` carries why this is injectable at all.
+            inboxService: (any InboxService)? = nil,
             clock: @escaping @MainActor () -> Date = { Date() }
         ) {
             self.client = client
             self.eventSource = eventSource
-            inboxBoard = Self.makeInboxBoard(client: client, notifier: notifier)
+            inboxBoard = Self.makeInboxBoard(client: client, notifier: notifier, service: inboxService)
             // Poll-only, and at the shell's own stated cadence rather than the tracker's default —
             // A16 requires the refresh rate the surface actually runs at to be the one named.
             tracker = ServerStateTracker(
@@ -224,6 +238,7 @@
             selection = store.restoredDestination()
             isSidebarVisible = store.restoredSidebarVisible()
             isMenuBarVisible = store.restoredMenuBarVisible()
+            isApproveFromPopoverEnabled = store.restoredApproveFromPopover()
         }
 
         // MARK: - Talking to the router

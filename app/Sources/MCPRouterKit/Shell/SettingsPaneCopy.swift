@@ -89,6 +89,10 @@ public enum SettingsPaneCopy {
     // MARK: - Menu bar
 
     public static let statusItemLabel = "Status item"
+    /// The row label for the popover's install gate. Its own row rather than a second control under
+    /// `Status item`, because the two answer different questions — whether the item is drawn, and
+    /// what pressing something inside it may do.
+    public static let popoverApprovalLabel = "Queued items"
 
     // MARK: - Advanced
 

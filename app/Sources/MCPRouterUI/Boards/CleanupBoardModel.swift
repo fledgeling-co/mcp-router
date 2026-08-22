@@ -12,44 +12,6 @@
     @MainActor
     @Observable
     public final class CleanupBoardModel {
-        public enum LoadState: Sendable {
-            case loading
-            case loaded(Reading)
-            case stale(Reading, ControlAPIError)
-            case failed(ControlAPIError)
-
-            public var reading: Reading? {
-                switch self {
-                case let .loaded(reading), let .stale(reading, _): reading
-                case .loading, .failed: nil
-                }
-            }
-
-            public var error: ControlAPIError? {
-                switch self {
-                case let .stale(_, error), let .failed(error): error
-                case .loading, .loaded: nil
-                }
-            }
-        }
-
-        public struct Reading: Sendable {
-            public var servers: [MCPServer]
-            public var skills: SkillsResponse?
-            /// `UsageSummary.since` — the type `usageSummary()` returns. Not `UsageResponse.since`,
-            /// which belongs to the call log, and not `ServersResponse.since`.
-            public var since: String?
-            /// How many calls the router has recorded across the window, or **nil when it did not
-            /// say**.
-            ///
-            /// Optional rather than zero-defaulted, and the difference is load-bearing. This figure
-            /// appears in the reset dialog's consequence, which is the disclosure for an
-            /// irreversible act with no restore endpoint. A zero substituted for an unanswered
-            /// `usageSummary()` makes that dialog read "0 calls are discarded" — a number the router
-            /// never reported, in the one direction that makes an irreversible action look free.
-            public var recordedCalls: Int?
-        }
-
         /// One proposed row.
         public struct Candidate: Identifiable, Sendable, Equatable {
             public let key: SubjectKey
@@ -123,6 +85,11 @@
 
         @ObservationIgnored public let client: any ControlAPIClient
 
+        /// Injected for the reason `ActivityModel`'s is: every relative time this board states is
+        /// measured from *now*, and a test that has to sleep to reach a boundary is a test that
+        /// proves nothing.
+        @ObservationIgnored public let clock: @MainActor () -> Date
+
         public private(set) var state: LoadState = .loading
         public var selection: String?
         public var filter: Filter = .all
@@ -131,8 +98,12 @@
         public private(set) var focusSearchRequests: Int = 0
         public private(set) var writeError: ControlAPIError?
 
-        public init(client: any ControlAPIClient) {
+        public init(
+            client: any ControlAPIClient,
+            clock: @escaping @MainActor () -> Date = { Date() }
+        ) {
             self.client = client
+            self.clock = clock
         }
 
         // MARK: - Reading
@@ -141,7 +112,13 @@
             do {
                 let servers = try await client.servers().servers
                 guard !Task.isCancelled else { return }
-                var reading = Reading(servers: servers, skills: nil, since: nil, recordedCalls: nil)
+                var reading = Reading(
+                    observedAt: clock(),
+                    servers: servers,
+                    skills: nil,
+                    since: nil,
+                    recordedCalls: nil
+                )
                 do {
                     reading.skills = try await client.skills()
                 } catch {

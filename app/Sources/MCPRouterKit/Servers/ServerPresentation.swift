@@ -354,6 +354,13 @@ public struct ServerRowModel: Equatable, Sendable, Identifiable {
     public let name: String
     public let subtitle: ServerSubtitle
     public let breaker: BreakerState
+    /// What the Signal Path's jack and this row's plug both draw. **The same value in both**, so
+    /// the band and the table cannot disagree about one server — which is the whole of the brief's
+    /// *"one selection, three representations"* applied to state rather than to selection.
+    public let jack: JackState
+    /// The jack's word, in full and contracted. Carried on the row model rather than derived in the
+    /// band, so the two surfaces read one computation of one server's condition.
+    public let condition: JackCondition
     public let transport: String
     public let tools: Int
     /// Lifetime calls from the usage log — **not** `callsServed`, which is the current child
@@ -369,6 +376,8 @@ public struct ServerRowModel: Equatable, Sendable, Identifiable {
         name = server.name
         subtitle = ServerSubtitle.forServer(server, idleMs: idleMs)
         breaker = BreakerState.forServer(server)
+        jack = JackState.forServer(server)
+        condition = JackCondition.forServer(server, idleMs: idleMs)
         transport = server.transport.rawValue
         tools = server.tools
         calls = server.usage.calls

@@ -131,6 +131,7 @@ never the harness's own cwd notice.
 | M15 | `.worktrees/M15` | `ai/m15` | `4de2080` | 12:07 | before verify, before merge |
 | R19 | `.worktrees/R19` | `ai/r19` | `72958de` | 12:26 | before verify, before merge |
 | G4 gap-fix | `.worktrees/G4` | `ai/g4` | HEAD | 14:20 | before verify, before merge — verified NMW on the census |
+| G5 | `.worktrees/G5` | `ai/g5` | `e121801` | 14:32 | before verify, before merge |
 
 **Both verifiers are a logged in-family downgrade.** `codex` is down until 27 August on a usage
 limit and the `grok` balance is exhausted (`402 … usage balance exhausted`, re-confirmed
@@ -164,8 +165,18 @@ spec stage rather than at triage. Both briefs restate the settled decision and s
 reopen it*, because the cheapest way for either item to fail is a runner re-litigating a fork
 that a lane already closed.
 
-**The next slots are R16, R18 and M12**, and R18 waits for R17: its brief asks to be planned
-alongside `R20`, which exists only on `ai/r17` at `b41c588` and reaches main when R17 merges.
+**M21's merge at `e121801` unblocks M16, M17, M18, M19, M20 and M22** — they are the per-surface
+half of its programme and were held only because they would have built against the palette it
+replaced. They are the largest block of ready work in the backlog.
+
+**Two ready items are deliberately not dispatched, because of who they would collide with.**
+`R21` edits `AuthRoutes.swift:120`, which is one of R19's eight manifest write sites, and R19 is
+rewriting all eight — two runners on one line. `M12` and `M16` both reach into the UI tree that
+M15 is restructuring around a new `Settings` scene. Both wait for their neighbour to merge rather
+than for capacity.
+
+**R18 waits for R17**: its brief asks to be planned alongside `R20`, which exists only on
+`ai/r17` at `b41c588` and reaches main when R17 merges.
 
 **Five concurrent runners is the ceiling here.** Each brief caps subagents at two, which keeps
 the product at ten against the fleet's ~16 budget. The machine sat at 0% idle when these were

@@ -32,10 +32,25 @@ cd vendor/test-campaign && find . -type f -print0 | sort -z | xargs -0 shasum -a
 Against upstream, given a clone of `fledgeling-plugins` at `$UP`:
 
 ```sh
+rm -rf /tmp/tc-check && mkdir -p /tmp/tc-check          # tar will not create -C, and a stale
+                                                        # extract diffs against the wrong tree
 git -C "$UP" archive 28ecd6753386ff6d480a98d6646a5b73c62dc299 plugins/test-campaign \
   | tar -x -C /tmp/tc-check --strip-components=2
-diff -r /tmp/tc-check vendor/test-campaign
+diff -r /tmp/tc-check vendor/test-campaign               # exit 0, no output
 ```
+
+Against the plugin cache, if the machine still holds `0.9.2`, two more `--exclude` flags are needed —
+`diff`'s `--exclude` matches basenames, and the harness leaves a `.in_use` lock directory and an
+`.orphaned_at` marker inside every cached version:
+
+```sh
+C=~/.claude/plugins/cache/fledgeling-plugins/test-campaign/0.9.2
+diff -r --exclude=__pycache__ --exclude=.in_use --exclude=.orphaned_at vendor/test-campaign "$C"
+```
+
+Which version that cache currently holds is not recorded here — it is shared, and it moves. Read it with
+`jq -r '.plugins["test-campaign@fledgeling-plugins"][0].version' ~/.claude/plugins/installed_plugins.json`.
+The pin above is the fixed point.
 
 ## Running the gates
 

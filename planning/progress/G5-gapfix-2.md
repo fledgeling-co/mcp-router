@@ -77,11 +77,22 @@ never the target:
 | `0.9.2` | `0.9.2` | 62 of 76 (82%) |
 | `0.9.3` | `0.9.3` | 62 of 76 (82%) |
 | `0.9.4` | `0.9.4` | 62 of 76 (82%) |
-| **`0.9.6`** — newest | `0.9.6` | **62 of 76 (82%)**, ratchet 58 |
+| `0.9.6` | `0.9.6` | **62 of 76 (82%)**, ratchet 58 |
 
-The row now says that 0.9.1 names a version rather than the cache's current state, that the cache holds
-**0.9.6** today, and that 0.9.6 reads 62 against the ratchet's 58. The trap it describes is unchanged —
-it is a property of every version through 0.9.1, and it sits behind the cache rather than in it.
+The row now says that 0.9.1 names a version rather than the cache's current state, and that each version
+from 0.9.2 on reads 62 against the ratchet's 58. The trap it describes is unchanged — it is a property of
+every version through 0.9.1, and it sits behind the cache rather than in it.
+
+> **Corrected at gap-fix 3.** This section originally labelled `0.9.6` *"newest"* and had the rewritten
+> hazard row say *"the cache holds 0.9.6 today"* — a present-tense claim about a cache four agents write
+> to, written at 16:18 and false by 17:38 the same day, when the cache took `0.9.8`. **It restaged the
+> defect this pass had just fixed one section above**, where BL-2 withdraws a moving reference rather than
+> re-numbering it. Re-numbering to `0.9.8` would have restarted the same clock, so the claim is withdrawn
+> instead: the version column above is a reading per named version, taken at gap-fix 2 and re-taken at
+> gap-fix 3, and what the cache holds now is read with
+> `jq -r '.plugins["test-campaign@fledgeling-plugins"][0].version' ~/.claude/plugins/installed_plugins.json`
+> rather than quoted here. At gap-fix 3 that read `0.9.8`, which reads 62 of 76 like every version from
+> 0.9.2 on. See `planning/progress/G5-gapfix-3.md`.
 
 ## Registered, not fixed
 
@@ -98,11 +109,13 @@ fourth was found here.
 - **`D-g5-c`** — `strict-ratchet.json` holds `"checked": 58, "total": 70` and should read 62. Already
   in three documents; given an id so it can be pointed at. `planning/test-campaign/` belongs to another
   session.
-- **`D-g5-d`** — *found here.* Two documents call the installed version `0.9.4`. It is stale, and the
-  tree behind the label carries **two manifests that disagree**: `.claude-plugin/plugin.json` reads
-  `0.9.4` while the top-level `plugin.json` reads `0.9.3`. An upstream packaging slip, not this
-  repository's. **The readings stand and only the label is wrong**, so the rows are left as records of
-  what was measured when they were written.
+- **`D-g5-d`** — *found here.* Documents call the installed version `0.9.4`, and the tree behind the
+  label carries **two manifests that disagree**: `.claude-plugin/plugin.json` reads `0.9.4` while the
+  top-level `plugin.json` reads `0.9.3`. An upstream packaging slip, not this repository's. **The
+  readings stand and only the label is wrong**, so the rows are left as records of what was measured
+  when they were written. *Written here as "two documents"; **four** carry it in ten places, corrected
+  in the register row at gap-fix 3. The label also named an instant rather than a state — the install
+  moved to `0.9.8` the same evening — so the count was corrected and the ten labels were left alone.*
 
 ## The sweep
 

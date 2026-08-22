@@ -325,7 +325,8 @@
             "app/Sources/MCPRouterUI/Boards/CleanupBoardModel.swift",
             "app/Sources/MCPRouterUI/Boards/CleanupBoardRow.swift",
             "app/Sources/MCPRouterUI/Boards/CleanupSheets.swift",
-            "app/Sources/MCPRouterUI/Boards/M7BoardMetrics.swift"
+            "app/Sources/MCPRouterUI/Boards/M7BoardMetrics.swift",
+            "app/Sources/MCPRouterUI/Boards/OfficialMarkSheet.swift"
         ]
 
         /// M15's Settings window, listed for the same reason `boardFiles` is — and enrolled in the

@@ -16,6 +16,7 @@
     ///
     /// Rows whose gate is not a sheet are asserted for what they *are* instead: the reversible one
     /// opens nothing, and the two with no host say who owns them.
+    @MainActor
     @Suite("The gate table, routed through")
     struct SheetGateRoutingTests {
         // MARK: - Accept held schema changes → quarantine
@@ -63,7 +64,7 @@
         func approveQueuedInstallOpensQueuedDetail() async {
             let board = InboxBoardModel(
                 client: FixtureControlAPIClient(.populated),
-                service: FixtureInboxService(.populated)
+                service: FixtureInboxService(.paired)
             )
             await board.load()
             guard let first = board.rows.first else {
@@ -159,7 +160,7 @@
         func closingPairingStopsTheTicker() async {
             let board = InboxBoardModel(
                 client: FixtureControlAPIClient(.populated),
-                service: FixtureInboxService(.populated)
+                service: FixtureInboxService(.paired)
             )
 
             board.sheet = .pairPhone

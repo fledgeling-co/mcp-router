@@ -827,7 +827,7 @@ note was touched; the after-pass is what the table reports.
 | gate | result |
 |---|---|
 | `make lint` | **exit 0** — 0 violations, 0 serious in **552 files**; `tools:` printed `Version: 2.45.4 · swiftlint 0.65.0 · swiftformat 0.62.1`, so the prerequisite passed rather than being skipped. `reader-accounting.py`: **20 raw-input readers over 28 discarding iterations, 51 drop sites**; 3 accounting, 16 declaring, **1 known gap**, **0 unaccounted**. `null-run-gate.py`: **28 assertions armed, 28 changed verdict**, **0 held green**, 0 blocked, 4 populations named as not armed |
-| `make test` | **exit 0** — **1728 tests in 216 suites** passed, 13.5s |
+| `make test` | **exit 0** — **1728 tests in 216 suites** passed; 11.0s on the after-pass, 13.5s on the before-pass, the difference being machine load rather than anything in the tree |
 | `scripts/acceptance/parity-cli.sh` | **exit 0** — **18 verbs agreed, 0 did not**; all four `cli-watch` scenarios green, the fourth included. The matrix's **none** row, re-measured here |
 | `scripts/acceptance/parity-overlap.sh` | **exit 0** — **2 agreed, 0 did not**; `overlap-watch-index` at `rows=lifeline,slowfail`, neither binary rewrote `servers.json` |
 | `scripts/acceptance/parity-manifest-check.sh` | **exit 0** — **94 rows**, consistent with `control.ts`, `index.ts`, `router.ts` and the fixture directory; every cited test, script and row id resolves. **It went red once tonight in 12 runs**, spuriously; recorded below rather than dropped |

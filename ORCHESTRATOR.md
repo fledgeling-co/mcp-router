@@ -226,6 +226,25 @@ m22 session meant, or a replacement for it — I can't distinguish those from in
 armada conductor two round trips to establish that no second writer existed. A line naming the
 dispatching session closes it.
 
+### HAZARD — ITEM IDS AND MUTATION IDS SHARE A NAMESPACE IN `scripts/red-green.py`
+
+Second instance found 2026-08-23, so it is a pattern rather than an incident.
+
+`scripts/red-green.py` numbers its mutations `M01…M59`. **Those collide with this fleet's item ids
+and nothing distinguishes them.** The existing `"M20"` in that file is **the twentieth mutation**, on
+`ServerStateTracker.swift` — nothing to do with item M20.
+
+- **M19's renumber** found four `M29`s in the tree that were mutation ids: two in `spec-F3.md`, one in
+  `G3-gapfix-2.md`, one in `scripts/red-green.py`. A tree-wide `sed` would have silently corrupted a
+  red-green record, **and nothing would have gone red**, because those tables are prose to every gate
+  we run.
+- **M20's gap-fix** hit it from the other side and gave its five new drift guards ids **outside** the
+  `M01…M59` range on purpose, recording it as *a trap for anyone grepping the item id*.
+
+**So: never grep a bare item id across this tree, and never `sed` one.** Name the file set
+explicitly, as M19's renumber did. The collision is invisible to every gate, which is why it has to
+be a dispatch rule rather than a check.
+
 ### DISPATCH — DO NOT CITE THIS FILE BY LINE NUMBER; THE ORCHESTRATOR IS WRITING IT
 
 Measured 2026-08-23 by M16's gap-fix runner, and the cause is this session's own bookkeeping.

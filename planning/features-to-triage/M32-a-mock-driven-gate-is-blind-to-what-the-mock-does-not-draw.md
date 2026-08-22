@@ -149,3 +149,27 @@ harmless in the event, exactly as recorded — and now sourced rather than relay
 Two facts for whoever picks up M22: it has advanced to **`6bd8385`**, and its `mock_fidelity.py`
 blob is still **`67342e135acf`**, byte-identical to main's, so the zero diff on that file holds at
 the new tip.
+
+## A second blindness, from M20, and it is worse than the first
+
+Found 2026-08-23 by M20's gap-fix runner, which called it *worth more than the first* of its two
+declared limits.
+
+The mock's **four header count cells match none of the affordance-derivation rules.** So
+`Resident 214 MB` — a real, user-visible, wrong-if-wrong number — **would never appear as an absent
+affordance however long that gate ran.** Not "the gate has no opinion because the mock does not draw
+it", which is this item's opening case. The mock **does** draw it, and the derivation rules cannot
+see what it draws.
+
+That is a distinct mechanism with the same consequence, and it is harder to notice: the first case
+at least leaves an `extra` row a reader could interrogate. This one leaves **nothing at all** — the
+affordance is neither `present`, nor `divergent`, nor `absent`, because it never enters the census.
+
+M20 enforced it structurally instead and said so. But the general form is unaddressed: **an
+affordance-derivation rule set that silently declines to derive is a coverage claim with a hole
+nobody can size.** Triage should ask how many other drawn affordances fall outside every rule, which
+is a question about the rules rather than about any surface.
+
+Also from the same run: `mock-fidelity-gate.sh popover` **exits 3** because `#statusPopover` has no
+`.v-<state>` frame, and the generated ledger says so in its own words rather than reporting a clean
+run over nothing.

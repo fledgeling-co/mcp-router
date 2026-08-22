@@ -105,6 +105,13 @@ public struct ProminentButtonStyle: ButtonStyle {
         self.scale = scale
     }
 
+    /// The label tier for a role, in a state. Split out so the destructive branch is one
+    /// expression rather than a nested ternary inside the body.
+    private func labelColour(for role: ButtonRole?) -> ColorToken {
+        guard isEnabled else { return .t4 }
+        return role == .destructive ? .failInk : .t1
+    }
+
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .typeRole(scale.labelRole)
@@ -129,12 +136,31 @@ public struct StandardButtonStyle: ButtonStyle {
         self.scale = scale
     }
 
+    /// The label tier for a role, in a state. Split out so the destructive branch is one
+    /// expression rather than a nested ternary inside the body.
+    private func labelColour(for role: ButtonRole?) -> ColorToken {
+        guard isEnabled else { return .t4 }
+        return role == .destructive ? .failInk : .t1
+    }
+
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .typeRole(scale.labelRole)
             // §5: `--t4` is the disabled tier and never live text. Disabled dims in place (§3.4)
             // rather than disappearing, so the control keeps its size and its position.
-            .foregroundStyle(isEnabled ? ColorToken.t1.color : ColorToken.t4.color)
+            //
+            // **The destructive tier comes from the role, not from the call site.** M18's brief:
+            // "a destructive alternative takes `.destructive` rather than a red foreground colour,
+            // so the platform styles it." A custom `ButtonStyle` replaces the platform's rendering,
+            // so it has to honour the role itself — `configuration.role` is what makes that
+            // possible without the call site naming a colour.
+            //
+            // `--fail-ink` rather than `--fail`, and the difference is measured rather than
+            // stylistic: `ColorToken.fail.contrastRole` is `pairedWithAWord` (an indicator beside a
+            // word) while `failInk` is `text`. This label sits on `--raised`, which is one of §2's
+            // four text grounds, so the indicator hue would ship a label under the contrast floor.
+            // The two call sites that wrote `ColorToken.fail` directly did exactly that.
+            .foregroundStyle(labelColour(for: configuration.role).color)
             .padding(.horizontal, scale.horizontalPadding)
             .frame(height: scale.height)
             .background(

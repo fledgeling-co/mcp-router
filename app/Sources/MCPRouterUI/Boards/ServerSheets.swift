@@ -177,11 +177,10 @@
                     }
                 }
             } actions: {
-                Button("Remove \(serverName)") {
+                Button("Remove \(serverName)", role: .destructive) {
                     board.request(.removeInstalledCapability, subject: serverName)
                 }
                 .buttonStyle(StandardButtonStyle())
-                .foregroundStyle(ColorToken.fail.color)
 
                 // Cancel leads, and its label says what it actually does: closing this sheet sends
                 // no request, because the router is already serving the approved text and the change
@@ -265,11 +264,10 @@
                     .buttonStyle(ProminentButtonStyle())
                     .keyboardShortcut(.defaultAction)
 
-                Button("Remove") {
+                Button("Remove", role: .destructive) {
                     Task { await board.remove(server.name, keepHistory: keepHistory) }
                 }
                 .buttonStyle(StandardButtonStyle())
-                .foregroundStyle(ColorToken.fail.color)
             }
         }
     }

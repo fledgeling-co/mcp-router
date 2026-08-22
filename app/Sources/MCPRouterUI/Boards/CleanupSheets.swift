@@ -91,13 +91,19 @@
                 HStack {
                     Spacer(minLength: 0)
                     // Cancel leads, and the destructive button is never the default (§9).
+                    // Cancel leads, is the sheet's one filled primary, and is the default action.
+                    // This sheet used to have no filled primary and no default at all, while its
+                    // sibling `RemoveServerDialog` had both — two surfaces doing the same job with
+                    // two different answers to "what does Return do here". §3.4 settles it: one
+                    // prominent action per view, and destructive is never the default.
                     Button("Cancel") { board.sheet = nil }
-                        .buttonStyle(StandardButtonStyle())
-                        .keyboardShortcut(.cancelAction)
-                    Button("Remove") {
+                        .buttonStyle(ProminentButtonStyle())
+                        .keyboardShortcut(.defaultAction)
+                    Button("Remove", role: .destructive) {
                         Task { await board.remove(name, keepHistory: keepHistory) }
                     }
                     .buttonStyle(StandardButtonStyle())
+                    .keyboardShortcut(.cancelAction)
                     .disabled(candidate == nil)
                     .help(candidate == nil ? CleanupPresentation.consequenceUnavailable : "")
                 }

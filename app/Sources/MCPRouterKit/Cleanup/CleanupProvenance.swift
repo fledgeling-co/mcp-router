@@ -106,7 +106,7 @@ public static func resetFigureProvenance(
     // that says the router never gave a number, and saying only that would read as a claim about
     // the count. It says what is true of the count instead.
     guard calls != nil else { return .marked("\(marker) It carried no call count.") }
-    return .marked("\(marker) \(accrual)")
+    return .quiet("\(marker) \(accrual)")
 }
 
 /// The removal dialog's provenance.

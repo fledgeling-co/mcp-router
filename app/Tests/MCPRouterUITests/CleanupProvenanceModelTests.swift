@@ -164,13 +164,13 @@
         /// `MCPRouterKitTests` cannot import `MCPRouterUI`, so the half of that argument which reads
         /// `removeConsequence` is checked here: a server with neither env nor header keys draws no
         /// key names, which is why the removal provenance line does not claim any.
+        @MainActor
         @Test("the removal line's premise holds: a bare entry's consequence names no keys")
         func theRemovalLinesPremiseHolds() {
             let bare = ServersBoardModel.removeConsequence(envKeys: [], headerKeys: [])
             #expect(
                 !bare.lowercased().contains("key"),
-                "the no-secrets consequence names keys after all, so the provenance line could have "
-                    + "claimed them: \(bare)"
+                "the no-secrets consequence names keys, so provenance could have claimed them: \(bare)"
             )
         }
 
@@ -186,11 +186,20 @@
         /// UI pass, not here, and the acceptance ledger says so.
         @Test("C5: both destructive sheets render the note, and neither branches on staleness itself")
         func bothSheetsRenderTheNote() throws {
-            let source = try String(
+            let whole = try String(
                 contentsOf: ShellTestSupport.repoRoot()
                     .appending(path: "app/Sources/MCPRouterUI/Boards/CleanupSheets.swift"),
                 encoding: .utf8
             )
+            // Comment lines are dropped before anything is searched. The doc comment on
+            // `ProvenanceNote` explains why a sheet must not branch on staleness, and it names the
+            // expression to do that — so a search over the raw file finds the sentence forbidding
+            // the thing and reports it as the thing. G3 built a delexer for this confusion; one line
+            // of it is enough here, and a comment cannot contain a call site anyway.
+            let source = whole
+                .split(separator: "\n", omittingEmptySubsequences: false)
+                .filter { !$0.trimmingCharacters(in: .whitespaces).hasPrefix("//") }
+                .joined(separator: "\n")
             #expect(
                 source.contains("ProvenanceNote(board.resetFigureProvenance)"),
                 "the reset dialog draws no provenance note"
@@ -199,10 +208,11 @@
                 source.contains("ProvenanceNote(board.removeFigureProvenance)"),
                 "the removal dialog draws no provenance note"
             )
+            // The treatment is the model's decision so that it can be asserted at all, and so the
+            // two dialogs cannot drift into different renderings of one state.
             #expect(
                 !source.contains("board.isStale"),
-                "a sheet branches on staleness itself; the treatment is the model's decision so that "
-                    + "it can be asserted, and so the two dialogs cannot drift apart"
+                "a sheet branches on staleness itself rather than rendering the decided treatment"
             )
         }
     }

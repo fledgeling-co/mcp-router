@@ -1,4 +1,4 @@
-# M29 — where a capability's documentation actually comes from
+# M30 — where a capability's documentation actually comes from
 
 **Depends on:** M19 (built the renderer and the panel). **Blocks:** nothing that ships today.
 **Raised by:** M19's build, 2026-08-22, from a measured absence rather than a design idea.

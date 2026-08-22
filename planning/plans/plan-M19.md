@@ -159,7 +159,7 @@ that shape; it renders a document inside it.
     production arm returns an unavailable state, and **file the endpoint as its own item**. The
     `grok-4.6` lane was attempted first and refused with `402 Payment Required`; `codex` is
     recorded down to 2026-08-27.
-22. **The endpoint becomes a brief, not a TODO.** `planning/features-to-triage/M29-capability-document-source.md`
+22. **The endpoint becomes a brief, not a TODO.** `planning/features-to-triage/M30-capability-document-source.md`
     is written in this item so the gap has an owner rather than a sentence in a plan.
 
 ## 4 · Steps
@@ -306,7 +306,7 @@ that shape; it renders a document inside it.
 
 - **Files:** `planning/specs/spec-M19.md` (status), `ORCHESTRATOR.md` (row),
   `planning/progress/M19.md`, `planning/evidence/M19-acceptance.md`,
-  `planning/features-to-triage/M29-capability-document-source.md`, `DESIGN.md` (§10 if a new gap
+  `planning/features-to-triage/M30-capability-document-source.md`, `DESIGN.md` (§10 if a new gap
   is owed)
 
 ## 5 · Audit coverage
@@ -349,7 +349,7 @@ by running the last of those before starting.
   ones the mock draws. A document containing one renders it as plain text, visibly.
 - **The entry point.** M18 owns the sheet inventory and the panel this renders inside.
 - **A live document source.** No control-API route serves one; filed as
-  `planning/features-to-triage/M29-capability-document-source.md`.
+  `planning/features-to-triage/M30-capability-document-source.md`.
 - **Syntax highlighting inside a fence.** The mock draws a monospace ground and no colour.
 - **The iPhone.** `PRD.md` §7.2 names both platforms; the mock draws this surface on the Mac only
   and `spec-M19.md`'s category is `mac`.

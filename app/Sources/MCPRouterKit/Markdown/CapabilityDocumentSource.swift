@@ -11,7 +11,7 @@ import Foundation
 ///
 /// `Unavailable` is the production arm. It is not a stub waiting to be filled in: it is the honest
 /// answer to "what does this app know about that capability's read me", and it stays the answer
-/// until something serves one. `planning/features-to-triage/M29-capability-document-source.md`
+/// until something serves one. `planning/features-to-triage/M30-capability-document-source.md`
 /// is where that is owned.
 public protocol CapabilityDocumentSource: Sendable {
     /// The document for one capability, by the name the router identifies it under.

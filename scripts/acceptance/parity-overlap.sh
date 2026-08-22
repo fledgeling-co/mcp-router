@@ -124,6 +124,10 @@ seed() { # side
 JSON
   # `slowfail` is staged only. It answers nothing and is killed by the startup timeout, so the
   # watcher records a backoff and adopts nothing — which is what keeps `servers.json` untouched.
+  # It also LEAVES A MANIFEST ROW carrying its reason, which is R17's decision and is why the
+  # expected row set below is two names rather than one. When this lane was written the watcher
+  # deleted that row, so the manifest ended holding `lifeline` alone; R17 keeps it, and the merge
+  # of the two items is where the two facts met. The row under test is still `lifeline`'s.
   cat > "$home/.claude.json" <<JSON
 {
   "numStartups": 41,
@@ -177,9 +181,18 @@ echo
 ts_rows="$(overlap_case ts)"
 sw_rows="$(overlap_case swift)"
 
+# Exact rather than "does it contain lifeline": a watcher that wrote rows nobody asked for would
+# pass a containment check, and `rows_of` sorts, so the order is the fixture's and not the clock's.
+# `lifeline` is the row this lane exists for — written by the SECOND writer, at t+2s, inside the
+# fire's window. `slowfail` is the staged server's own failure record, R17's, and asserting it here
+# means a watcher that went back to deleting it reddens this row too.
+WANTED_ROWS="lifeline,slowfail"
+
 problems=""
-[ "$ts_rows" = "lifeline" ] || problems="$problems reference:[rows=$ts_rows, wanted lifeline]"
-[ "$sw_rows" = "lifeline" ] || problems="$problems swift:[rows=$sw_rows, wanted lifeline]"
+[ "$ts_rows" = "$WANTED_ROWS" ] \
+  || problems="$problems reference:[rows=$ts_rows, wanted $WANTED_ROWS]"
+[ "$sw_rows" = "$WANTED_ROWS" ] \
+  || problems="$problems swift:[rows=$sw_rows, wanted $WANTED_ROWS]"
 [ "$ts_rows" = "$sw_rows" ] || problems="$problems disagree:[ts=$ts_rows swift=$sw_rows]"
 # The guard that keeps the no-kickstart claim in this file's header true rather than assumed. An
 # adoption would rewrite servers.json, and on the reference the next line is a hardcoded

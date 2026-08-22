@@ -331,6 +331,34 @@ independent confirmation that it is claim accounting rather than load measuremen
 Disk is the tightest axis at **13.7% free** (254 GiB absolute, 234 GiB clear of the hard gate) —
 graded healthy, so watch rather than worry.
 
+### HAZARD — TWO IDENTICALLY-NAMED `MCPRouter.app` BUNDLES EXIST RIGHT NOW
+
+**Live as of 2026-08-23, with seven verifiers running.** Found by M20's verifier as its V5, verified
+here:
+
+```
+~/Library/Developer/Xcode/DerivedData/MCPRouter-flunszcvdpykvngedkuolsadbrhh/Build/Products/Debug/MCPRouter.app
+~/Library/Developer/Xcode/DerivedData/MCPRouter-ggpomhshywquhjafyrfgjqfgdyek/Build/Products/Debug/MCPRouter.app
+```
+
+One is the graded runner's worktree build, one is the verifier's. **They are distinguished only by an
+opaque hash segment.** A verifier that globs for `MCPRouter.app` measures whichever it finds first —
+**a different tree — and gets output that looks exactly right.** No error, no empty result, no
+absence to notice.
+
+M20's verifier avoided it by proving its subject via `WorkspacePath` before reading anything off the
+bundle. **Every runner reading a built bundle must do the same**: derive the path from its own
+workspace, never glob for the name.
+
+Same family as `G6` (an artifact that does not survive) and `G9` (a path that was correct when
+written): **an identifier that resolves to the wrong thing rather than to nothing.**
+
+**A measurement note against this session.** The first probe here used `find … -maxdepth 4` and
+returned **0**, because the bundles sit at depth 5. That zero was reported as nothing — briefly. It
+was caught by re-measuring rather than by anyone correcting it, which is the **third** wrong-scope
+failure this session has committed today and the first it caught itself. **A zero from a scoped
+probe is a candidate, not a result.**
+
 ### STAND DOWN — NO NEW RUNNERS UNTIL THE 5-MINUTE LOAD CLEARS
 
 2026-08-23, armada-wide. **Start nothing new.** Existing runners finish; they are not to be killed,

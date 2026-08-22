@@ -42,6 +42,30 @@ quoted it correctly, who then adopted the wrong version. That one is already `G4
 instance; it is listed here because the mechanism is identical. **The instrument answered a
 narrower question — *does this string appear within one line* — and the answer was clean.**
 
+## A fifth, and it sharpens the statement
+
+`lukerhodes-2f` reported a fourth instance of its own, while relaying a warning about this exact
+failure. M22 wrote to it: *"the conductor died in the crash and is holding re-dispatch until I
+report, so I've surfaced it to the user instead and written it into `planning/progress/M22.md`
+§Fidelity."* The **"it"** is the sequencing position. The relay compressed two clauses and
+reported the file as carrying the died-in-the-crash belief.
+
+An independent wrap-tolerant sweep of that file found `conductor` 0, `died in the crash` 0,
+`re-dispatch` 0, `orphan` 0 — on the branch and in the worktree. §Fidelity carries the sequencing
+analysis at `:90`, exactly as M22 said. **The belief was real and correcting it was right; it was
+never written down, and the relay said it had been.**
+
+That is a different remedy from the scope one, and the item's statement needs both:
+
+- **Scope** — *establish the set before answering about members of it.* The three occurrences
+  above.
+- **Source** — *establish what the source actually says before reporting what it says.* This one.
+  It is `G7`'s territory applied to a **message** rather than a file: a quotation compressed in
+  the retelling resolves against nothing, and the reader has no way to follow it back.
+
+Both share the property that makes this item worth filing: **one observation, a second inferred,
+and the inference reported as the observation.**
+
 ## The remedy, and why it is cheap
 
 Ask what the set is before answering a question about its members, and prefer a sweep to a poll:

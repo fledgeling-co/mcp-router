@@ -13,11 +13,31 @@ for the first time.
 
 R19's commit closure carried the base's `delete next.servers[name]` forward into the locked span. It
 never chose that against R17; R19's base predates R17's merge, so it inherited the delete along with
-everything else. R17 is the later decision, it reverses that delete, and two things behind it settle
-the merge without any judgement of mine: `IndexFailureRecordTests` asserts the row survives a watch
-run, and `parity-cli.sh`'s fourth `cli-watch` scenario compares the manifest's *shape* between the
-two binaries, `reason=yes` included. A merged tree that kept R19's delete on the node side would
-have failed both. So the delete goes and the lock stays.
+everything else. R17 is the later decision, it reverses that delete, and two instruments behind it
+settle the merge without any judgement of mine — **one instrument per side, not both instruments
+for both sides.** Which one guards which half is the useful thing to write down, and it is what
+this paragraph now says. *(It said something else, and something false, until gap-fix 1; the
+withdrawn sentence and how it was disproved are in the closing section of this note.)*
+
+**`parity-cli.sh` pins the node side.** Its fourth `cli-watch` scenario compares the manifest's
+*shape* between the two binaries, `reason=yes` included. Put `delete next.servers[name]` back into
+`src/watch.ts` alone and the scenario reddens with the mutation string `surface.tsv` records
+verbatim, while the other three stay green. `IndexFailureRecordTests` stays **green** through that
+same arm, and it could not do otherwise: it is a Swift test — `@testable import RouterCore`,
+driving `WatchWorld.runner` and `ManifestIO` — and no path through it executes `src/watch.ts` at
+all.
+
+**`IndexFailureRecordTests` pins the Swift side.** Restore the effect of R19's `removeEntry` call
+inside `WatchIndexing.swift`'s locked span and the suite fails with 11 issues. `parity-cli.sh` is
+not what catches that one.
+
+So the delete goes on **both** sides and the lock stays, each side held by the instrument that can
+see it. The two are **complementary rather than redundant**, which is the argument for carrying
+both: `parity-cli.sh` is differential — it diffs node's streams, exit code and files against
+Swift's — so it reddens on a one-sided regression and would stay **green** if both sides regressed
+together, because the two would still agree. `IndexFailureRecordTests` is absolute on the Swift
+side and blind to node, so it cannot be fooled by agreement. Between them the both-at-once case
+that the differential lane structurally cannot see is still caught.
 
 R17's ~40-line comment is placed where the delete used to be, above the `failed` loop, with one
 paragraph rewritten. The paragraph arguing R19 as a live alternative mechanism is now history: R19
@@ -131,24 +151,73 @@ R19's own note has it at 19 of 21 on two standalone runs and the first gate run 
 second; it also records that R17's verifier measured the same 19 of 21 on `main` on 2026-08-22, and
 `control.ts`'s own comment says which side loses the race is a property of the machine that day.
 Measured here on a quiet tree: **standalone `parity-oauth.sh` 3 runs — 19/21, 21/21, 21/21**, and
-**inside `parity-gate.sh` 4 runs of 4 at 19/21**. That split is itself worth recording: the row is
-mostly green run alone and was red on every gate run here, so whatever the race turns on, the gate
-supplies more of it than a standalone run does. Reported, not chased; both parent items are Done and
-this is not a licence to touch either one's code.
+**inside `parity-gate.sh` 4 runs of 4 at 19/21**. Reported, not chased; both parent items are Done
+and this is not a licence to touch either one's code.
 
-### The claim sweep's red is inherited
+**A gate run is two draws, not one, and that is deliberate.** `parity-oauth.sh` executes twice
+inside every full gate — once as the `suite` lane's citation of it, once as the `oauth` lane itself
+— and between the two copies a `fail` wins. The mechanism is written down in
+`scripts/acceptance/parity-suite.sh`, at the comment closing *"which is the right precedence for a
+finding nobody can explain yet — DEF-033"*, and it is kept rather than deduplicated because on
+20 Aug 2026 the two copies disagreed inside a single gate and a single run would have reported a
+clean 82 of 83 with nobody the wiser. That is the piece the account above was missing: a clean
+standalone run of this script would go unnoticed inside a gate, because the gate takes the worse of
+two draws where a standalone run takes one. So part of "the gate supplies more of it" runs through
+the harness rather than through the machine — **incomplete rather than wrong**, and now complete.
 
-`planning/claim-sweep.py` exits 1 on 11 blocking-class hits, in `ORCHESTRATOR.md`,
-`G4-assertions-that-do-not-read-their-own-quantity.md`, `R17-gapfix-2.md` and `R17-gapfix-3.md`.
-None is a file this item touches. The withdrawn wording those hits are for is R17's, and this note
-does not quote it — the script's own docstring warns that a progress doc pasting a clean sweep
-becomes the next sweep's corpus hit, and `planning/progress/R19-integration.md` is not in its
-`RECORDS` exclusion. Counted with a whitespace-collapsing grep across three revisions, that wording
-appears **0 times on `a27fd52` (R19's tip), once in each of `ORCHESTRATOR.md` and the G4 brief on
-the `main` that was merged, and the same once on the merged tree** — so the merge carries the hits
-in from `main` unchanged rather than reintroducing them. Two of the four sit under
-`planning/features-to-triage/`, which the script's `RECORDS` exclusion does not cover; it excludes
-`planning/progress/R17-gapfix-*.md` only.
+**The 4-of-4 does not reproduce.** This item's verifier ran the full gate three times on the merged
+tree and got **red, green, green** — `control 16 of 16 proven` on both greens, no diverged row at
+all. It also caught the two copies disagreeing *inside* one gate: the suite citation read 19 passed
+2 failed while the oauth lane read 21 passed 0 failed, twenty minutes apart in the same run. The
+failing check is a single unretried `grep -q '"authorized":true'` in `parity-oauth.sh` against a
+value the Swift router reaches asynchronously — the shape of a check that loses under load, not one
+that has found a divergence.
+
+**Gate and machine are confounded in both datasets, and this note states no rate.** The verifier's
+only red landed at load average 400 on 16 cores with its two greens at 175 and 23, and a full gate
+costs eight to ten minutes of sustained load that a standalone run never generates — so the two
+candidate causes move together in its runs and in the four recorded above, and neither set can
+separate them. This cell of the record has now published a reproduction rate that the next
+measurement contradicted, four times running, and the fifth is not written here. The confounding is
+the finding. If anyone prices the row, the remedy is a bounded poll in place of that single `grep`,
+not another census.
+
+### The claim sweep's red is inherited, and it is not the claim it looks like
+
+`planning/claim-sweep.py` exits 1 on **11 blocking-class hits**, and they are three patterns for
+one claim: classes **A1 (5 hits), A2 (5) and A3 (1)**, all of them R17's withdrawn count of
+manifest-writer sites sitting outside the lock. They live in four files — `ORCHESTRATOR.md`,
+`planning/features-to-triage/G4-assertions-that-do-not-read-their-own-quantity.md`,
+`planning/features-to-triage/R17-gapfix-2.md` and `planning/features-to-triage/R17-gapfix-3.md`.
+The matched phrases are named by class id and not quoted here: the script's own docstring warns
+that a progress doc pasting a sweep becomes the next sweep's corpus, this file is not in its
+`RECORDS` exclusion, and quoting them would make this note hits twelve and thirteen.
+
+**None of the four is a file this branch writes, so the hits are inherited rather than
+introduced.** `git diff --name-only adfa923..eb3e42c` — the merge base against this tip — lists
+twenty files and none of these four; all four blobs are identical between this tip and `adfa923`,
+which is a commit on `main`; and running the three blocking patterns over `main`'s *current* copies
+counts the same 11 — measured at `87f6f2e` and again at `4a56120`, twenty minutes later, because
+`main` moved between the two. The last two checks are deliberately of different kinds for exactly
+that reason: a blob comparison against `main`'s tip rots inside the hour, while *this branch never
+wrote these files* does not.
+
+**The wording a reader is most likely to reach for is a different claim, and it blocks nothing.**
+That is classes **B1 and B2** — the withdrawn clause about R19's window and staging — hitting
+twice, in `ORCHESTRATOR.md` and `R17-gapfix-2.md`, and `BLOCKING = ("A1", "A2", "A3")` in
+`planning/claim-sweep.py` keeps both out of the exit code. Neither hit asserts the claim either:
+both are the block reports that withdrew it, so deleting them would delete the record of the
+withdrawal. Editing that wording would change nothing about the red and would cost the corpus its
+own history — worth writing down, because this item's own brief pointed there.
+
+The script is wired into no target — `git grep claim-sweep -- Makefile scripts` returns nothing —
+so its exit code blocks nothing mechanically, and closing it means editing `ORCHESTRATOR.md` and
+two other items' briefs while the orchestrator is writing `ORCHESTRATOR.md` concurrently. Follow-up
+for the orchestrator, not this item. The cheaper fix is in the script rather than the corpus:
+`RECORDS` excludes `planning/progress/R17-gapfix-*.md` but not the `planning/features-to-triage/`
+copies of the same documents, and **7 of the 11 live in those two copies** — A1×1, A2×1, A3×1 in
+`R17-gapfix-2.md` and A1×2, A2×2 in `R17-gapfix-3.md`, counted off the script's own per-class
+output.
 
 ## The absence claim in the rewritten note, and the negative half of it
 
@@ -160,8 +229,11 @@ inside a lock block opened by `withExclusiveLock` / `ConfigMutationLock.withExcl
 one level of indirection, inside a helper every call to which is itself inside one.
 
 **6 of 6 covered, exit 0.** `src/manifest.ts:190` in `manifestCommitter`, `src/watch.ts:265` in the
-watcher's closure, `src/control.ts:465` on approve, `AuthRoutes.swift:173` via `promote()`,
-`WatchIndexing.swift:209`, `ManifestIndexer.swift:186`.
+watcher's closure, `src/control.ts:465` on approve, `app/Sources/RouterCore/Auth/AuthRoutes.swift:173`
+via `promote()`, `app/Sources/RouterCore/Watch/WatchIndexing.swift:209`,
+`app/Sources/RouterCore/Service/ManifestIndexer.swift:186`. The three Swift sites were bare
+filenames until gap-fix 1 and now carry their paths, for the reason given there: this repo has two
+Swift modules and a filename alone sends a reader to the wrong one.
 
 **Both negative halves were run.** Moving node's watch save outside its closure takes the checker to
 5 of 6, exit 1; moving Swift's outside its block does the same. In both arms the naive control that
@@ -193,3 +265,141 @@ the working tree holds only the two intended files.
   arm. On this tree the same arm reads `rows=slowfail`. R19's note is a record of R19's branch and is
   not rewritten here; `surface.tsv` carries both measurements, which is where a reader of the merged
   tree will look.
+- **`parity-manifest-check.sh` does not resolve `file.swift:line` citations of source.** It reported
+  *every cited test, script and row id resolves* while `surface.tsv` pointed at a comment line three
+  above the call it named, and it still reports the same sentence now that the citation is corrected
+  — so the sentence is true about the classes it checks and silent about this one. Whether source
+  citations are worth resolving is somebody's to price; the class has now rotted once, and the
+  correction in gap-fix 1 gives that row's Swift sites their paths and the rotted one its call text
+  so a phrase search finds it when the line moves again.
+
+## Gap-fix 1 — four record corrections, no code
+
+**2026-08-22, on `ai/r19` at `eb3e42c`**, after a **Needs More Work** verdict from a fresh-context
+verifier in `.worktrees/R19V` (`planning/verification/R19-verdict.md` there). The verifier merged
+`main` into `eb3e42c` cleanly, re-measured every gate on the merged tree and agreed with all of
+them — lint 0 over 552, `make test` 1728 in 216, `parity-cli` 18 verbs 0 disagreed with all four
+`cli-watch` scenarios green, `parity-overlap` 2 of 2, the reconciler clean across A–L — and
+confirmed that its merged tree's `src/`, `app/`, `scripts/`, `Makefile` and `planning/parity/` were
+byte-identical to `eb3e42c`. This gap-fix breaks that for `planning/parity/surface.tsv` alone, by
+one line of citation, and for nothing under `src/`, `app/`, `scripts/` or `Makefile`. **No code
+changed here, and no gate logic.** What was wrong was what two sentences said and what two accounts
+left out.
+
+### The sentence that was measurably false
+
+The `src/watch.ts` resolution paragraph used to close:
+
+> `IndexFailureRecordTests` asserts the row survives a watch run, and `parity-cli.sh`'s fourth
+> `cli-watch` scenario compares the manifest's *shape* between the two binaries, `reason=yes`
+> included. **A merged tree that kept R19's delete on the node side would have failed both.** So the
+> delete goes and the lock stays.
+
+The verifier armed it and the bolded half is false. With the node delete restored, `parity-cli.sh`
+reddens on the fourth scenario with `surface.tsv`'s recorded mutation string verbatim and the other
+three stay green — and `IndexFailureRecordTests` **passes**, 2 tests in 1 suite. It is a Swift
+test; nothing in it executes `src/watch.ts`. The verifier then ran the negative half, restoring the
+Swift-side deletion's effect inside `WatchIndexing.swift`'s locked span, and that suite failed with
+11 issues — so it is not merely insensitive, it is sensitive to the *other* side.
+
+The rewritten paragraph is not a hedge and is stronger than what it replaces: it names which
+instrument pins which side, and why the pair is needed rather than either alone — `parity-cli.sh`
+is differential and would stay green under a simultaneous both-side regression, and
+`IndexFailureRecordTests` is the absolute check that catches exactly that case on the Swift side.
+Read on this tree rather than taken on report:
+`app/Tests/RouterCoreTests/IndexFailureRecordTests.swift` opens `@testable import RouterCore` and
+drives `WatchWorld.runner` and `ManifestIO`, and
+`scripts/acceptance/parity-cli.sh` runs both binaries into separate `MCP_ROUTER_HOME`s and `diff`s
+the results, which is what makes it blind to a regression both sides share.
+
+The tree's own declarations already had this right, which is the sting: `surface.tsv`'s
+`overlap-watch-index` row records the node arm as producing a **disagreement between the binaries**
+— a differential effect, not a Swift-side one. One narrative sentence overstated what the rows
+recorded accurately.
+
+### The citation that had rotted three lines
+
+`planning/parity/surface.tsv`'s `cli` / `cli-watch` / `watch` row cited `WatchIndexing.swift:206`
+for the Swift watcher's manifest save. On this tree `:206` is a comment — *stage `lifeline` as well
+and its row starts disappearing* — and the `try? ManifestIO.save(…)` it meant is at **`:209`**. All
+three Swift sites in that pairing were bare filenames, and this repo has two Swift modules; the
+verifier looked in `MCPRouterKit` first because nothing said `RouterCore`. Fixed by giving all
+three their repo-relative paths and giving the one that rotted its call text as well, so the next
+reader can find it by phrase when the line moves again. The same three were bare filenames in this
+note's own six-site list and now carry their paths too — the numbers there were already right, the
+module was not stated, and fixing one copy while leaving the other reads as arbitrary. The node
+sites were correct everywhere. **Each of the six was re-read on this tree before the edit**,
+including `ManifestIndexer.swift:186` and `AuthRoutes.swift:173`, which resolve — and which sit
+under `Service/` and `Auth/`, not the `Indexing/` and `HTTP/` a reader might guess.
+
+`parity-manifest-check.sh` reports every cited test, script and row id resolving while this citation
+was three lines stale, so it does not resolve `file.swift:line` citations of source. Recorded below
+as somebody's to price.
+
+### Two accounts that were incomplete rather than wrong
+
+The gate-race account now names **DEF-033** — `parity-oauth.sh` running twice per full gate with a
+`fail` winning between the copies — which is why the gate reddens this row more readily than a
+standalone run does, and why a clean single run inside a gate goes unnoticed. And it now carries the
+verifier's three full gate runs, **red, green, green**, against the four-of-four recorded here.
+
+**Arm 4 is recorded as confounded and is not re-measured.** The verifier's only red landed at load
+average 400 with its greens at 175 and 23, and a gate run generates eight to ten minutes of load a
+standalone run does not, so gate and machine move together in its dataset and in this one. Four
+successive measurements of this cell have each contradicted the rate the one before it published.
+No fifth rate is stated. The verifier reported the confounding instead of chasing it, which is the
+right call, and this note follows it.
+
+### What the claim sweep's 11 hits actually are
+
+Corrected above. In short: the 11 blocking hits are classes **A1–A3**, one claim of R17's, in four
+files this branch never writes; the wording this item's own brief pointed at is **B1/B2**, which
+`BLOCKING = ("A1", "A2", "A3")` excludes from the exit code and which appears only inside the
+reports that withdrew it. One count in the verdict is off and is corrected here: **7 of the 11**
+sit in the two `planning/features-to-triage/R17-gapfix-*.md` copies that `RECORDS` does not
+cover, not 4 — A1×1, A2×1, A3×1 in `R17-gapfix-2.md` and A1×2, A2×2 in `R17-gapfix-3.md`, counted
+off the script's own per-class output on this tree.
+
+### Gates after this gap-fix
+
+Documents only, so `make test` and the parity lanes are unmoved from the table above and were not
+re-run. The gates that read the two edited files were, and `make lint` was run because the brief
+predicted it would not.
+
+| gate | result |
+|---|---|
+| `make lint` | **0 violations, 0 serious in 552 files**, exit 0 |
+| `scripts/acceptance/parity-manifest-check.sh` | exit 0 — **94 rows**, consistent with `control.ts`, `index.ts`, `router.ts` and the fixture directory; every cited test, script and row id resolves |
+| `planning/claim-sweep.py` | **exit 1, 11 blocking-class hits** — the same 11, the same four files, the same per-class counts |
+| `planning/ledger-reconcile.py` | **exit 1** — one finding, `E`, and it is `main`'s drift rather than this edit's |
+
+**`make lint` ran rather than failing at `tools`.** The gap-fix brief expected the prerequisite to
+bite because a fresh worktree has no `node_modules` and no `dist/index.js`; this one has both, so
+`make tools` printed its version line and lint ran whole. Recorded because the brief offered
+running the components directly as the fallback and it was not needed.
+
+**The claim sweep's output is byte-identical before and after this edit but for one line number.**
+Diffed the two runs: the only difference is the pre-existing non-blocking `A5` hit in this file
+moving from `:62` to `:82` as the text above it grew. Zero new hits in any class, blocking or not,
+from either edited file — which is the check worth running when a correction has to describe a
+withdrawn claim without becoming a fresh instance of it.
+
+**The reconciler's exit 1 is not this edit's and not this branch's.** It reads
+`planning/features-to-triage/LEDGER.md` and `ORCHESTRATOR.md`, neither of which this gap-fix
+touches and neither of which appears in `git diff --name-only adfa923..eb3e42c`. Its finding is
+`E — a branch merged into main with no row in either file: G4-B (ai/g4b)`: `ai/g4b` landed on
+`main` after `adfa923`, so this tip's copies of both files predate the row that would answer for
+it. The verifier read exit 0 on the *merged* tree, which is the same fact from the other side. It
+resolves on merge and needs nothing here.
+
+### Where `main` was, for the next reader
+
+`main` read **`87f6f2e`** when this gap-fix started and **`4a56120`** — *G4's twenty-third: an
+assertion that keeps passing after its claim goes false* — about twenty minutes later, while the
+gates above were running. That is the sixth and seventh tip this item has seen, after `54666f7`,
+`43e4199`, `adfa923`, `bc39aa1` and the two the verifier logged. The blocking-pattern count over
+`main`'s four claim-sweep files was re-run against `4a56120` and still reads 11, so that check
+survived the move; the reconciler's `E` finding is what did not, and it is recorded above as
+main's rather than this branch's. The moving target is a dispatch property rather than any runner's
+problem — this is the third consecutive item to log it, and a gap-fix asked to gate the tree
+nobody will merge cannot win the race by running faster either.

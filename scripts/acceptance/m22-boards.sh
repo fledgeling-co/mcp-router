@@ -124,7 +124,12 @@ pass "H: the finding is a count, not a judgement"
 # §3.4: a disabled control dims in place with a discoverable reason and never disappears. Both
 # halves are asserted, because drawing it enabled and drawing it not at all are the two failures
 # this replaced — it was an enabled button setting a sheet state nothing presented.
-DISABLED_RECONCILE="$(awk -F'\t' '$2 == "AXButton" && $5 ~ /^Reconcile/ && $7 == "0" { n++ } END { print n+0 }' "$WORK/window.tsv")"
+# Column offsets are axkit's own, and they are not the obvious ones: SwiftUI puts a Button's label
+# in **AXDescription** (field 6) rather than AXTitle, and `enabled` is field 8. Written against
+# fields 5 and 7 first, this reported "no Reconcile control is drawn disabled" about three controls
+# that were drawn and disabled — a gate reading the wrong column says the product is wrong.
+# `row_labels` in m7-evals-cleanup.sh reads field 6 for the same reason.
+DISABLED_RECONCILE="$(awk -F'\t' '$2 == "AXButton" && $6 ~ /^Reconcile/ && $8 == "0" { n++ } END { print n+0 }' "$WORK/window.tsv")"
 [ "$DISABLED_RECONCILE" -ge 1 ] \
   || fail "no Reconcile control is drawn disabled — it is either absent or live"
 spoken | grep -qF "isn't built yet, so nothing here can be reconciled" \

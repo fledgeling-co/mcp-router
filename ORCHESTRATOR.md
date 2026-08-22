@@ -166,6 +166,39 @@ than barriering on whole waves, so the real overlap is greater than the table im
 > when this session began. Do not `git add -A` here — that mistake has already swept a third
 > session's work into a commit twice in this repo.
 
+### DISPATCH — PERCH'S ACCOUNT-TRANSFER NOTICE KILLS A HEADLESS RUNNER AT LAUNCH
+
+Measured 2026-08-23 across a seven-verifier wave. **Four died at launch, and a re-dispatch of one
+died again on a different account pair.** Each produced a 224–241 byte file containing only:
+
+> ⬤ Perch · account switched — this conversation is moving from `<a>` to `<b>` based on Relay's
+> current routing and usage state. **Reply to continue on the new account, or tell me to stop.**
+
+`claude -p` has no way to reply, so it exits having done nothing. The work is not lost — nothing
+was started — but the dispatch is, and the failure is silent in the sense that matters: **the
+wrapper exits 0.**
+
+Perch's own contract (`RelayCore/Models.swift`, `transferConfirmThreshold`, default 450k): *tokens
+a session may push through the proxy before an account transfer pauses for a one-beat confirmation
+notice instead of switching silently … at or above it, the proxy tells the user their account
+changed **and waits for them to continue***. These were fresh sessions that had pushed nothing, so
+the notice is firing on a transfer decided before the first request rather than on a threshold
+crossing.
+
+**Why now**: the Personal pool has **3 of 9 accounts under 100% weekly**, so transfers are
+frequent. This is the same pool exhaustion behind the Bedrock spend.
+
+**Do not fix this by editing Perch's config.** It is the user's routing system, it affects every
+session on the machine, and the threshold is theirs to set. What an orchestrator can do:
+
+- **Read each dispatch's output before recording the runner as working.** A 224-byte file is this
+  failure. `pgrep`+`lsof` on the worktree is the liveness check; the wrapper's exit code is not.
+- Re-dispatch, and expect a proportion to die. It is not deterministic — five of seven survived.
+- **Two Perch findings worth reporting upstream**: the notice is correct for an interactive session
+  and fatal for a headless one, with no non-interactive path; and one notice named an **empty
+  destination** — *"moving from luke.rhodes@icloud.com to  based on Relay's current routing"* — so
+  it announced a transfer to nothing.
+
 ### OWNER DECISION 2026-08-23 — `PARITY_CUTOVER_TARGET` STAYS AT 82
 
 The census now derives ~91 on `main` (92 rows less the standing exclusion) and 93 on M22's

@@ -155,7 +155,13 @@ extension RouterService {
     private func controlResponse(
         _ request: HTTPWireRequest, path: String, query: String?
     ) async -> HTTPWireResponse? {
-        var deps = await ControlDeps(
+        var deps = await controlDeps()
+        return await controlResponse(request, path: path, query: query, deps: &deps)
+    }
+
+    /// Everything the control API is given, assembled once per request.
+    private func controlDeps() async -> ControlDeps {
+        await ControlDeps(
             config: config,
             upstreams: config.upstreams.map { (name: JSString($0.name), upstream: $0) },
             pool: PoolSnapshotPort(pool: pool),
@@ -206,8 +212,24 @@ extension RouterService {
             // route answered 405 to the half of `POST /servers/:name/auth` the reference answers
             // 200 to (`D-p1-a`, the `control-auth-post-http` row). `OAuthFlowStarter` is the
             // service's own, built once, so the single-flow rule holds across requests.
-            authFlow: authFlow
+            authFlow: authFlow,
+            // M22. Both are the daemon's, and both are absent in `ControlDiff` on purpose: that
+            // oracle exists to compare the routes `src/control.ts` answers, and these two are
+            // declared divergences from it. A real inventory there would additionally put whoever
+            // is running the gate's own `$HOME` inside a parity run.
+            harnesses: DiskHarnessInventory(),
+            insights: PoolInsightsPort(pool: pool)
         )
+    }
+
+    /// How one request and one response cross the boundary.
+    ///
+    /// Split from the construction above when M22 added two dependencies and took the combined
+    /// function past this repository's 60-line body cap. The seam is real rather than arithmetic:
+    /// what the control API is *given* and how a request *reaches* it change for different reasons.
+    private func controlResponse(
+        _ request: HTTPWireRequest, path: String, query: String?, deps: inout ControlDeps
+    ) async -> HTTPWireResponse? {
         let handler = ControlHandler(token: token)
         let response = await handler.handle(
             ControlAPIRequest(

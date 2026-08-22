@@ -80,10 +80,12 @@ what exists and what it is bound to, the model for what it can do right now.
 | View | Activity | ⌘1 | enabled |
 | View | Servers | ⌘2 | enabled |
 | View | Skills | ⌘3 | enabled |
-| View | Discover | ⌘4 | enabled |
-| View | Inbox | ⌘5 | enabled |
-| View | Checks | ⌘6 | enabled |
-| View | Cleanup | ⌘7 | enabled |
+| View | Harnesses | ⌘4 | enabled |
+| View | Discover | ⌘5 | enabled |
+| View | Inbox | ⌘6 | enabled |
+| View | Checks | ⌘7 | enabled |
+| View | Cleanup | ⌘8 | enabled |
+| View | Insights | ⌘9 | enabled |
 | View | Show sidebar | ⌃⌘S | enabled |
 | Window | Minimize | ⌘M | enabled |
 | Window | Zoom | — | enabled |
@@ -91,6 +93,15 @@ what exists and what it is bound to, the model for what it can do right now.
 | Help | MCP Router help | — | enabled |
 | Help | What the router actually does | — | enabled |
 | Help | Report an issue | — | enabled |
+
+**The View block moved twice, and both times the spec moved with the code in the same change.**
+M15 removed the ungrouped Settings row when Settings became a window. **M22 added Harnesses and
+Insights and renumbered four digits**, because the View menu lists destinations in declaration
+order and labels each with its own digit — leaving Discover at ⌘4 while Harnesses sat above it at
+⌘8 would print `⌘1 ⌘2 ⌘3 ⌘8 ⌘4 ⌘5 ⌘6 ⌘7 ⌘9` down one menu. A11's group membership moved in the
+same edit. M20 owns the accelerator map and any further re-mapping; the console mock's own
+numbering disagrees with this one and that disagreement is recorded under M20 rather than settled
+here.
 
 One row per command, deliberately: a compound row ("Cut / Copy / Paste") cannot be parsed
 unambiguously, and an oracle a test has to guess at is not an oracle. `MenuCommandTests` parses
@@ -169,7 +180,7 @@ launched and driven through the accessibility tree, which is the lane
 
 | # | Clause | Evidence type |
 |---|---|---|
-| A11 | The sidebar carries exactly two named groups in order — **Running** (Activity, Servers, Skills) and **Library** (Discover, Inbox, Checks, Cleanup) — plus an ungrouped **Settings** | red-green test over the destination model |
+| A11 | The sidebar carries exactly two named groups in order — **Running** (Activity, Servers, Skills, Harnesses) and **Library** (Discover, Inbox, Checks, Cleanup, Insights) | red-green test over the destination model |
 | A12 | Group headers are **sentence case**, never tracked uppercase, and no uppercasing transform is applied anywhere in the shell (§3.2) | red-green test on the literal strings and on the absence of a case transform |
 | A13 | Badges derive only from what the router reports: Servers = count where `needsAttention`, Cleanup = count where `neverUsed`. **Skills and Inbox carry no badge** — Skills has no endpoint at all, and Inbox means the *phone's review queue* (§9), which M6 owns and which the router does not serve today. `heldChanges` is **not** an inbox: it is a server's held tool-surface change and is already counted by `needsAttention` on the Servers badge | red-green test per derivation against fixtures, plus a test that fails if a badge is introduced for a destination with no router-observed source |
 | A14 | A four-digit badge does not change a row's height or move its icon; the **label** truncates and the badge does not | measurement at a forced overflow |
@@ -186,7 +197,7 @@ launched and driven through the accessibility tree, which is the lane
 | A20 | Every shortcut in `DESIGN.md` §8 that is a ⌘-combination is bound to the menu item the inventory names, with the key and modifiers the document states | red-green test that **parses §8 out of `DESIGN.md`** and compares in both directions, the way `DesignTokenParityTests` does for tokens |
 | A21 | **The shell routes the three bare keys rather than declining them.** `Space`, `Return` and `Esc` are not consumed by the shell; a content surface can claim each and receive it. M1 ships the routing and proves it with a test surface that claims all three | red-green test: a test surface installed in the content zone receives each of the three, and the shell is shown not to swallow them |
 | A22 | A command whose surface is not yet installed is **present, disabled, and carries its stated reason** — never hidden (§3.4) | red-green test on the reason string + AX assertion that the item exists, reports itself disabled, **and carries the reason** |
-| A23 | ⌘1–⌘7 and ⌘, change the **selected destination**, not merely the title: the sidebar row reports itself selected and the toolbar title follows it | exercised interaction asserting the row's selected state *and* the title |
+| A23 | ⌘1–⌘9 and ⌘, change the **selected destination**, not merely the title: the sidebar row reports itself selected and the toolbar title follows it | exercised interaction asserting the row's selected state *and* the title |
 | A24 | Keyboard focus is visible, accent-bound and 2pt | measurement of the rendered ring against `MetricToken.focusRing` and `ColorToken.accent` |
 | A25 | Tab order is **`DESIGN.md` §8's — sidebar → table → inspector** — for the elements that exist. M1 has no table and no inspector, so it ships sidebar → content and the order is asserted as a *prefix* of §8's, with the content zone's own children appended by the surface that owns them. The shell never places a chrome element between sidebar and content | red-green test asserting the shell's order is a prefix of §8's and that nothing is interposed |
 

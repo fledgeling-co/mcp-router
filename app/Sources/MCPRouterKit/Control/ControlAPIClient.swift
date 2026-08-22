@@ -149,6 +149,17 @@ public protocol ControlAPIClient: Sendable {
     /// Every followed marketplace, with what it supplies.
     func marketplaces() async throws(ControlAPIError) -> MarketplacesResponse
 
+    /// Every harness detected on this machine, and how each one currently reaches the router.
+    ///
+    /// The app may not read a harness configuration file itself — `no-raw-design-values.sh`'s A36
+    /// rule forbids `FileManager`, `Data(contentsOf:)`, `URL(fileURLWithPath:)` and `Bundle`
+    /// anywhere under `Boards/`, because reading a file is one of the ways past this boundary. So
+    /// the Harnesses board exists only if this operation does.
+    func harnesses() async throws(ControlAPIError) -> HarnessesResponse
+
+    /// Everything the Insights board draws, counted from what the router served and opened.
+    func insights() async throws(ControlAPIError) -> InsightsResponse
+
     // MARK: Writing
 
     /// Declare a new server. `force` adopts one that failed to start, which the router otherwise
@@ -183,6 +194,25 @@ public protocol ControlAPIClient: Sendable {
 }
 
 public extension ControlAPIClient {
+    /// A client that does not serve M22's two boards, answering as a router that does not have
+    /// them — because for a surface those are the same state.
+    ///
+    /// Unlike every other operation on this protocol, these two exist **only on the Swift
+    /// router**: the TypeScript router is still the installed default and answers both 404, which
+    /// `LiveControlAPIClient` already maps to this exact error. So a conformer with no opinion
+    /// about them is indistinguishable from a router that predates them, and the boards are
+    /// designed around that state either way. `malformedResponse` carries the wording — *the
+    /// router may be newer or older than this app* — and a default that returned an empty
+    /// response instead would render "no harnesses on this Mac", which is a finding rather than
+    /// an absence.
+    func harnesses() async throws(ControlAPIError) -> HarnessesResponse {
+        throw ControlAPIError.malformedResponse(detail: "this router has no /harnesses endpoint")
+    }
+
+    func insights() async throws(ControlAPIError) -> InsightsResponse {
+        throw ControlAPIError.malformedResponse(detail: "this router has no /insights endpoint")
+    }
+
     /// Defaults so a caller that wants the ordinary behaviour does not have to name the flag.
     func add(_ server: NewServer) async throws(ControlAPIError) -> AddedServer {
         try await add(server, force: false)

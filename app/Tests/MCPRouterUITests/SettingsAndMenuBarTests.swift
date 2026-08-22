@@ -50,7 +50,7 @@
             #expect(!Destination.allCases.contains { $0.title == "Settings" })
             #expect(!Destination.allCases.contains { $0.rawValue == "settings" })
             #expect(BoardRegistry.installed == Set(Destination.allCases))
-            #expect(BoardRegistry.installed.count == 7)
+            #expect(BoardRegistry.installed.count == 9, "seven, plus M22's Harnesses and Insights")
         }
 
         // MARK: - A15 · the menu-bar preference survives a relaunch

@@ -9,9 +9,10 @@
     /// harness and this app does not write harness files. Offering a remedy there would offer an
     /// action that cannot work.
     ///
-    /// The reconcile case is M18's panel and is deliberately not presented here — the controls that
-    /// would open it are drawn dim with that reason instead, which is `DESIGN.md` §3.4's rule
-    /// rather than a placeholder.
+    /// The reconcile panel is **not** presented here, and not modelled here either. It is a hole
+    /// this board owns rather than a slot it fills — the controls that would open it are drawn dim
+    /// with that reason, per `DESIGN.md` §3.4 — so there is no arm for it below and no case on
+    /// ``HarnessesBoardModel/Sheet`` to write one against.
     struct HarnessSheetHost: View {
         let board: HarnessesBoardModel
         let sheet: HarnessesBoardModel.Sheet
@@ -22,12 +23,6 @@
                 ShimExplanationSheet(row: board.rows.first { $0.harness == harness }) {
                     board.sheet = nil
                 }
-            case .reconcile:
-                // Unreachable while the reconcile controls are disabled. It is a real arm rather
-                // than a `fatalError` because the state exists on the model for M18 to present
-                // from, and an arm that crashes is a worse answer than one that closes.
-                EmptyView()
-                    .onAppear { board.sheet = nil }
             }
         }
     }

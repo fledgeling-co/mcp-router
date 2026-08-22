@@ -36,19 +36,25 @@
             }
         }
 
-        /// The one sheet this board opens, and the one explanation it shows in place.
+        /// The one sheet this board opens.
         ///
-        /// `explainShim` is a case rather than a sheet with a fix in it, because there is no fix on
-        /// this side: the transport belongs to the harness and this app does not write harness
-        /// files. An explanation and a remedy are different affordances and collapsing them would
-        /// offer an action that cannot work.
+        /// **One case, and the absence of a second one is the substance.** `explainShim` is an
+        /// explanation rather than a sheet with a fix in it, because there is no fix on this side:
+        /// the transport belongs to the harness and this app writes no harness files. Collapsing an
+        /// explanation and a remedy would offer an action that cannot work.
+        ///
+        /// **There is deliberately no `reconcile` case.** The reconcile panel is a hole this board
+        /// owns rather than a slot it fills: `RouterSheet.Kind.reconcile` carries `owner: "M22"` as
+        /// a record that the mock draws the sheet and the build does not host it, and
+        /// `RouterSheetTests.unhostedKindsAreTheOnesOnRecord` asserts it stays in the unhosted set.
+        /// A case here would be unreachable — both controls that would open it are drawn dim — and
+        /// would read as an intention to host. (Established on `ai/m18` at `6721e5c`; that type does
+        /// not exist on this branch, so nothing here can be compiled against it yet.)
         public enum Sheet: Equatable, Sendable, Identifiable {
-            case reconcile(harness: String)
             case explainShim(harness: String)
 
             public var id: String {
                 switch self {
-                case let .reconcile(harness): "reconcile:\(harness)"
                 case let .explainShim(harness): "shim:\(harness)"
                 }
             }

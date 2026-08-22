@@ -153,6 +153,25 @@ struct M22BoardModelTests {
         #expect(caption.contains("since the router started"))
     }
 
+    @Test("the freshness line reads as a sentence at both ends of shortAgo's own boundary")
+    func freshnessLineReadsAsASentence() {
+        // Under five seconds `shortAgo` returns the WORD "now", and above it a duration. Composing
+        // one sentence for both rendered "Read now ago" in the shipped app. The boundary is the
+        // test, per SWIFT_PRACTICES §7 — testing the middle would have passed on the day this
+        // shipped.
+        let taken = Date(timeIntervalSince1970: 1_787_401_800)
+        let iso = "2026-08-22T12:30:00.000Z"
+        #expect(HarnessBoardCopy.readAt(iso, now: taken) == "Read just now")
+        #expect(HarnessBoardCopy.readAt(iso, now: taken.addingTimeInterval(4)) == "Read just now")
+        #expect(HarnessBoardCopy.readAt(iso, now: taken.addingTimeInterval(5)) == "Read 5s ago")
+        #expect(HarnessBoardCopy.readAt(iso, now: taken.addingTimeInterval(600)) == "Read 10m ago")
+        // And nothing composes a sentence with the bare word in it, at any age.
+        for seconds in stride(from: 0.0, through: 200_000, by: 997) {
+            let line = HarnessBoardCopy.readAt(iso, now: taken.addingTimeInterval(seconds))
+            #expect(!line.contains("now ago"), "\(line) is not a sentence")
+        }
+    }
+
     @Test("the failure rate carries its own numerator and denominator")
     func failureRateShowsItsRatio() {
         let totals = CallTotals(total: 9418, failed: 12, unreadableLines: 0)

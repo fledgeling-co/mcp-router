@@ -82,7 +82,12 @@ public enum HarnessBoardCopy {
     /// read — and the brief's own words are that a stale reading here is worse than no reading.
     public static func readAt(_ timestamp: String, now: Date = Date()) -> String {
         guard let date = timestamp.asControlAPIDate else { return "Read just now" }
-        return "Read \(shortAgo(date, from: now)) ago"
+        let ago = shortAgo(date, from: now)
+        // `shortAgo` returns the WORD "now" under five seconds and a duration above it, so
+        // composing "Read \(ago) ago" unconditionally renders **"Read now ago"** on a fresh board.
+        // Found by driving the shipped app rather than by a unit test: nothing asserted the exact
+        // string, and every reader of this function had been looking at the branch that reads well.
+        return ago == "now" ? "Read just now" : "Read \(ago) ago"
     }
 
     public static let emptyTitle = "No AI harnesses found"

@@ -74,9 +74,20 @@ echo "H — the Harnesses board"
 echo "=============================================================="
 open_pane Harnesses
 
-spoken | grep -q "isn't built yet" \
-  && fail "the Harnesses pane still renders the shell's placeholder"
-pass "H: no scaffold sentinel"
+# **Not a sentinel search.** The sibling scripts grep the window for "isn't built yet", which was
+# the scaffold's own sentence when a scaffold existed. It does not any more — `ScaffoldCopy` and
+# `ScaffoldedDestination` are deleted, and `mac-shell.sh` greps the Release bundle for those TYPE
+# NAMES rather than for the sentence, precisely because the sentence is also
+# `CommandAvailability.surfaceAbsent`'s live help tag.
+#
+# Written as a sentinel search first, this failed on its first run — matching the help tag on this
+# board's own three disabled Reconcile controls, which name an absent surface in exactly those
+# words because §6 asks for one name per state. A negative substring check cannot tell "the
+# placeholder survived" from "a control correctly says a surface is missing", so it is replaced by
+# a positive assertion: the board's own content is on screen.
+spoken | grep -qF "Which AI tools on this Mac actually route through here" \
+  || fail "the Harnesses board did not draw its own header — the pane is not this board"
+pass "H: the board drew its own content"
 
 TITLE="$("$AXKIT" title "$PID")"
 [ "$TITLE" = "Harnesses" ] || fail "the window title is '$TITLE', not 'Harnesses' (§3.7)"
@@ -110,6 +121,16 @@ spoken | grep -qE "runs [0-9]+ servers? of its own, [0-9]+ of which this router 
   || fail "the finding is not phrased as a count of what was measured"
 pass "H: the finding is a count, not a judgement"
 
+# §3.4: a disabled control dims in place with a discoverable reason and never disappears. Both
+# halves are asserted, because drawing it enabled and drawing it not at all are the two failures
+# this replaced — it was an enabled button setting a sheet state nothing presented.
+DISABLED_RECONCILE="$(awk -F'\t' '$2 == "AXButton" && $5 ~ /^Reconcile/ && $7 == "0" { n++ } END { print n+0 }' "$WORK/window.tsv")"
+[ "$DISABLED_RECONCILE" -ge 1 ] \
+  || fail "no Reconcile control is drawn disabled — it is either absent or live"
+spoken | grep -qF "isn't built yet, so nothing here can be reconciled" \
+  || fail "the disabled Reconcile control carries no discoverable reason (§3.4)"
+pass "H: $DISABLED_RECONCILE Reconcile control(s) drawn, disabled, each carrying its reason"
+
 check_invisible "the Harnesses assertions"
 
 # ================================================================ Insights
@@ -119,8 +140,8 @@ echo "I — the Insights board"
 echo "=============================================================="
 open_pane Insights
 
-spoken | grep -q "isn't built yet" \
-  && fail "the Insights pane still renders the shell's placeholder"
+spoken | grep -qF "Every number here is counted from calls this router served" \
+  || fail "the Insights board did not draw its own header — the pane is not this board"
 TITLE="$("$AXKIT" title "$PID")"
 [ "$TITLE" = "Insights" ] || fail "the window title is '$TITLE', not 'Insights' (§3.7)"
 pass "I: §3.7 — the window title names the view"

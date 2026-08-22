@@ -74,6 +74,36 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 `G3`, whose subject is the only wall-clock assertion in this suite.
 
 
+
+## A tenth instance, found 2026-08-22 by R17's third verification
+
+An absence sweep named for *"this claim survives nowhere in the corpus"* that reads *"this claim
+survives on no single line"*. R17 gap-fix 2's criterion 3 asked for a grep proving a withdrawn
+claim was gone. The grep returned clean. The claim is still there:
+
+```
+grep -c "all four uncovered sites" planning/evidence/R17-acceptance.md   →  0
+re.findall(r'all\s+four\s+uncovered', open(path).read())                →  1
+```
+
+The file is hard-wrapped, and the wrap falls between `all four` and `uncovered sites`. Every
+line-anchored reader is blind to it, and a clean exit from one is indistinguishable from an absence.
+
+This is the sharpest instance in the table, because the assertion was **written specifically to
+catch a claim that had already survived two corrections** — and it is the fourth consecutive pass
+to block on that claim. The first three were diligence: a correction landing in some of a claim's
+homes. This one is the instrument: a sweep that could not read one of the homes at all.
+
+It also lands on this item's *unreachable* side, like the ninth. Nothing is dropped and nothing is
+vacuous — the grep read every line it was given and answered honestly about lines. The quantity in
+its name is *occurrences in the corpus* and the quantity it reads is *occurrences within a line*.
+Same shape as instances 2, 3, 7 and the `egress` one.
+
+**Cheap general remedy, worth stating because it costs nothing**: an absence assertion over prose
+normalises whitespace across newlines before matching, or reads whole files. A presence assertion
+does not need this — a hard wrap can hide a match, so it can only ever turn a true finding into a
+false clean, which is the direction that matters.
+
 ## A ninth instance, found 2026-08-22, and it is the orchestrator's
 
 A dispatch brief's gate line is named for *the base this branch was cut from* and read from

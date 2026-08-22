@@ -87,6 +87,30 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+## A twenty-second — the instrument's own suite count, stale in the gate built to catch stale counts
+
+Found 2026-08-22 by the orchestrator while reading `null-run-gate.py`'s output on the merged tree
+that fixed instances 13 and the enumeration boundary.
+
+`planning/null-run-gate.py:395` names one of its four not-armed populations as **"the Swift suite
+(1684 tests)"**. `main` is at **1725 tests in 215 suites** and has been since M15 merged at
+`29d5111`. The literal was true when it was written and rotted three merges later, which is this
+item's whole shape.
+
+It gates nothing. The string is descriptive output in a list of populations the gate deliberately
+does not arm, so no verdict turns on it and no arm reads it. That is exactly why it is worth
+recording rather than fixing in passing: it is the **benign** form of the defect, and the benign
+form is how the class survives review. A reader checking whether the gate's coverage claim is
+current has one number to check and it is wrong.
+
+The remedy is the same sentence this item keeps writing. Either derive the count — the suite size
+is available from `swift test --list-tests` or from the last recorded gate run — or stop naming a
+quantity the note does not need, because "the Swift suite" alone carries the whole meaning of the
+row and cannot rot.
+
+Filed, not fixed, because the fix belongs with whoever next touches that file's population list and
+a drive-by edit to a gate wired into `make lint` costs more review than the defect costs a reader.
+
 ## A twenty-first — a glob that matched a different project, and it nearly wrote a verdict
 
 Caught before it landed, by the orchestrator, on the orchestrator.

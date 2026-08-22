@@ -124,7 +124,28 @@ than barriering on whole waves, so the real overlap is greater than the table im
 > reconciler is clean across A–L, and no worktree carries an `index.lock`. One commit that looked
 > lost had landed: M22 was cut *during* `git commit` and `8952a5b` is on the branch.
 >
-> **Do not re-dispatch M12, M16, M18, M19, M20, M22, R19V or G5V2.** A separate recovery session
+> **HOLD LIFTED 2026-08-23.** All eight came back up on their own session ids with context intact,
+> none cold-started, each told to reconcile against git and treat any `/tmp` file it was polling as
+> stale. **Record the session ids — they are how this work stays recoverable if a terminal dies
+> again**, and a resumed session is worth far more than a relaunched one:
+>
+> | Item | Session id | State when it was cut |
+> |---|---|---|
+> | M12 | `495116b3-751e-44b9-8984-4d6d137bcf98` | mid poll-loop |
+> | M16 | `88a082e2-f132-448d-9483-24f66418d471` | inside `make lint` |
+> | M18 | `2543db46-0f87-447c-9b32-de9d3a08b4f3` | **finished 08:42** — predates its own gap-fix brief |
+> | M19 | `026cf02d-b260-4045-9a0b-2eacca1e76da` | inside `mock-fidelity-gate.sh` |
+> | M20 | `948f8fe7-eee9-467c-817e-ef0f9b04235a` | **finished 08:10** owing 17 uncommitted paths |
+> | M22 | `9fa43667-98db-42f7-a570-af0206880c7b` | mid-commit; it landed as `8952a5b` |
+> | R19V | `b3bbdb08-2e04-4f24-91b4-9df540eb7777` | mid poll-loop, no verdict written |
+> | G5V2 | `e4e8324f-d51a-4da1-ad0b-8b5b977c65fa` | mid tip-reconciliation, no verdict written |
+>
+> **`M18`'s resumed session has an information gap nobody else has.** It finished at 08:42 believing
+> the item was blocked on a build it could not get through. The orchestrator then got one through at
+> low priority and found the real defect, and wrote `GAPFIX-BRIEF.md` into that worktree — a file
+> that session has never seen. Point it there rather than letting it re-derive the failure.
+>
+> The original hold, kept for the record: a separate recovery session
 > (`lukerhodes-2f`) is resuming all eight **by session id**, so they come back holding the context
 > they had. Relaunching one from its original prompt throws that away, and two processes on one
 > worktree is worse than a cold start. Wait for each to report in.

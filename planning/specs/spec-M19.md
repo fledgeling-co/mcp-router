@@ -3,13 +3,16 @@
 | | |
 |---|---|
 | ID | M19 |
-| Status | To Do |
+| Status | Developer Review |
 | Category | mac · mock conversion · untrusted input |
 | Depends on | M4 ✓ · M23 ✓ · M18 (owns the panel this renders inside) · M21 (the badge colour, and only that) |
 | Delivers | `PRD.md` §7.2 |
 | Brief | `planning/features-to-triage/M19-gfm-viewer.md` |
 | Source mock | `design/mcp-router-console.html`, the `readme` panel — the design-authority question is M21's, recorded in §3.1 |
 | Triage | 2026-08-22 · §2 is owner-facing · §3 is the pipeline record |
+| Plan | `planning/plans/plan-M19.md` (committed `037e030`, tier Large) |
+| Built | `ai/m19` · `9b13a49` kit · `f019299` panel and measurement · `b781751` gate findings · `bb61d01` tests |
+| Evidence | `planning/evidence/M19-acceptance.md` · `planning/fidelity/readme.ledger.md` |
 
 ---
 

@@ -81,8 +81,12 @@
                     // A checkmark beside the word says the same thing and costs no re-basing.
                     IconView(.check, size: TypeToken.subheadline.size)
                         .foregroundStyle(ColorToken.accentText.color)
-                        .measured("verified-mark", role: "verified-mark", kind: .leaf,
-                                  tokens: ["foreground": .accentText])
+                        .measured(
+                            "verified-mark",
+                            role: "verified-mark",
+                            kind: .leaf,
+                            tokens: ["foreground": .accentText]
+                        )
                     Text("Official")
                         .typeRole(.subheadline)
                         .foregroundStyle(ColorToken.accentText.color)

@@ -58,7 +58,7 @@
         @Test("the panel's three states each construct and each carry their own content")
         func statesConstruct() throws {
             let loading = CapabilityDocumentSheet(content: .loading)
-            let populated = CapabilityDocumentSheet(content: .document(try document()))
+            let populated = try CapabilityDocumentSheet(content: .document(document()))
             let unavailable = CapabilityDocumentSheet(content: .unavailable(.notServed))
             #expect(loading.content == .loading)
             #expect(populated.content != .loading)

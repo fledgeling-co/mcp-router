@@ -46,7 +46,6 @@
         /// the ladder, and a node whose frame includes eight points of cell padding reported
         /// Callout at 23pt against Body's 16pt — an inverted ladder, which that layer reads as the
         /// signature of a substituted role. The padding is the cell's, not the type's.
-        @ViewBuilder
         private func cell(
             _ inline: MarkdownInline,
             alignment: MarkdownTable.Alignment,
@@ -66,12 +65,12 @@
                 }
             }
             .frame(maxWidth: .infinity, alignment: frameAlignment(alignment))
-                .padding(.vertical, DocumentMetrics.cellPaddingVertical)
-                .padding(.horizontal, DocumentMetrics.cellPaddingHorizontal)
-                .overlay {
-                    Rectangle()
-                        .strokeBorder(ColorToken.line.color, lineWidth: DocumentMetrics.hairline)
-                }
+            .padding(.vertical, DocumentMetrics.cellPaddingVertical)
+            .padding(.horizontal, DocumentMetrics.cellPaddingHorizontal)
+            .overlay {
+                Rectangle()
+                    .strokeBorder(ColorToken.line.color, lineWidth: DocumentMetrics.hairline)
+            }
         }
 
         private func frameAlignment(_ alignment: MarkdownTable.Alignment) -> Alignment {

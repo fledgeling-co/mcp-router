@@ -20,14 +20,23 @@ MOCK = pathlib.Path(__file__).resolve().parents[3] / "design" / "mcp-router-cons
 
 
 def sites(source: str):
-    """Every element carrying both `btn` and `primary` as whole class words, with its tag and line."""
+    """Every element carrying both `btn` and `primary` as whole class words, with its tag and line.
+
+    Returns the matches *and* the two drop counts, because a reader that discards part of its raw
+    input and reports only what survived cannot be checked against the file it read —
+    `planning/reader-accounting.py` is the gate that says so, and it caught this function doing it.
+    """
     found = []
+    dropped = {"no class attribute": [], "class without both words": []}
     for match in re.finditer(r"<([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>", source):
         attribute = re.search(r'class="([^"]*)"', match.group(0))
         if attribute is None:
+            dropped["no class attribute"].append(source.count("\n", 0, match.start()) + 1)
             continue
         words = attribute.group(1).split()
-        if "btn" in words and "primary" in words:
+        if "btn" not in words or "primary" not in words:
+            dropped["class without both words"].append(source.count("\n", 0, match.start()) + 1)
+        else:
             found.append({
                 "line": source.count("\n", 0, match.start()) + 1,
                 "tag": match.group(1),
@@ -36,7 +45,7 @@ def sites(source: str):
                 # only the attribute would report a `class="btn primary disabled"` as live.
                 "disabled": bool(re.search(r"\bdisabled\b", match.group(0))) or "disabled" in words,
             })
-    return found
+    return found, dropped
 
 
 def main() -> int:
@@ -44,7 +53,7 @@ def main() -> int:
         print(f"design of record not found at {MOCK}", file=sys.stderr)
         return 2
     source = MOCK.read_text()
-    all_sites = sites(source)
+    all_sites, dropped = sites(source)
     buttons = [s for s in all_sites if s["tag"] == "button"]
     prefixed = [s for s in all_sites if s["class"].strip().startswith("btn primary")]
 
@@ -54,6 +63,12 @@ def main() -> int:
     print(f"| Any element whose class attribute carries both words | **{len(all_sites)}** |")
     print(f"| `<button>` elements only | **{len(buttons)}** |")
     print(f"| Class attribute values beginning with the literal `btn primary` | **{len(prefixed)}** |")
+    examined = len(all_sites) + sum(len(lines) for lines in dropped.values())
+    print()
+    print(f"Elements examined: **{examined}**. Dropped, and why: "
+          + ", ".join(f"{len(lines)} with {reason}" for reason, lines in dropped.items())
+          + ". Nothing else was discarded, so the three counts above and these drops sum to the "
+            "whole population.")
     print()
     disabled = [s for s in all_sites if s["disabled"]]
     rule = re.search(r"\.btn\.primary[^{}]*:disabled|\.primary[^{}]*:disabled", source)

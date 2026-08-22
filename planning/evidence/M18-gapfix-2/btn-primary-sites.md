@@ -6,6 +6,8 @@
 | `<button>` elements only | **33** |
 | Class attribute values beginning with the literal `btn primary` | **29** |
 
+Elements examined: **3566**. Dropped, and why: 692 with no class attribute, 2839 with class without both words. Nothing else was discarded, so the three counts above and these drops sum to the whole population.
+
 Carrying `disabled`, as an attribute or as a class: **0** of 35.
 A `:disabled` rule that reaches `.primary` anywhere in the file: **none**.
 

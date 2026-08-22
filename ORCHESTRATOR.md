@@ -166,6 +166,60 @@ than barriering on whole waves, so the real overlap is greater than the table im
 > when this session began. Do not `git add -A` here — that mistake has already swept a third
 > session's work into a commit twice in this repo.
 
+### MERGE ORDER — THREE BRANCHES AND ONE `VOUCHED_CONTROLS` TABLE, AND NOBODY HAS MEASURED THE UNION
+
+Measured 2026-08-23, and it is **three-way** rather than the two a peer flagged:
+
+| Branch | `scripts/acceptance/mock_fidelity.py` | Keys it touches |
+|---|---|---|
+| `ai/m19` | **+29 / −6** | `heading` `sentence` `button` `icon` `row`, and new `badge` `codeblock` `callout` |
+| `ai/m16` | **+18 / −1** | `card` (adds `signature`), new `jack`, `indicator` **deliberately absent** |
+| `ai/m22` | **0** | none — but it is *reasoning about* the table and has an open question on it |
+
+**The textual collision is the easy half.** No key is edited by both: `M19` and `M16` own disjoint
+sets, so the conflict is adjacency in one dict and the resolution is a **union**, not a judgement.
+Take both.
+
+**The measurement gap is the half that matters, and neither branch could have seen it.** `M16`'s
+own comment states the mechanism: vouching a kind puts it into `MOCK_KINDS_FOR_ROLE`, and the
+quota rule then reclassifies every unpaired build node of that role from `covered-by-pair` to
+`extra`. `M16` cites exactly that to justify leaving `indicator` absent. `M19` adds **six** kinds
+under the same rule.
+
+Each measured its own additions against the **pre-existing** frames — `M19` re-measured all six
+and reports 87/6/8/6 and 52/4 unchanged. Neither measured against the *other's* additions, and
+`M16`'s frames (`signature`, `jack`) did not exist when `M19` measured. **So the merged table is
+a combination nobody has run.**
+
+**Order: `M19` first, `M16` second, and `M16` re-measures its own frames against the merged
+table** — the still-building branch absorbs the change rather than the finished one being
+reopened. `M22` edits nothing here and only needs to read the merged version before answering its
+open question; its question may already be answered by `M16`'s `indicator` note, which is a
+worked example of the same rule.
+
+Neither order is safe without that re-measurement. A union that reclassifies a population would
+show up as a fidelity finding on a surface neither item changed.
+
+### MERGE — M22'S SHIM SHEET SHOULD NOT FOLD INTO `reconcile`, AND THE ARGUMENT IS SUBSTANTIVE
+
+Recorded because `M18`'s session has exited and this would otherwise die with it.
+
+`M22` argues its shim explanation sheet wants its own `Kind` case rather than being folded into
+`reconcile`, and the reasoning is about what the two sheets *are* rather than about naming:
+**`reconcile` is a diff of a file before a write. The shim sheet exists precisely because no write
+is available** — a harness's transport belongs to the harness and this app writes no harness
+files. So the honest affordance is an explanation, and the absent remedy is its substance rather
+than a gap in it.
+
+With the leading-hyphen convention above, that makes **three** options at merge — local-only, a
+hyphenated `Kind` case of its own, or folded into `reconcile` — and `M22` has argued the third is
+wrong.
+
+`M22` also acted on a correction rather than filing it: `HarnessesBoardModel.Sheet` carried an
+unreachable `.reconcile` case whose host arm dismissed on appear. Dead either way, but under the
+corrected reading it read as **an intention to host**, which is what would have broken
+`unhostedKindsAreTheOnesOnRecord` at merge. Removed at `0a5728a`.
+
 ### MERGE ORDER — M18, M19 AND M22 SHARE A FILE THAT EXISTS ON ONLY ONE OF THEM
 
 `app/Sources/MCPRouterKit/Shell/RouterSheet.swift` exists on **`ai/m18` only**. `ai/m19` and

@@ -41,13 +41,18 @@
             // for the sidebar's readout card: a cell carrying a value announces as one sentence,
             // and splitting it costs a reader a swipe to reach a label with no value on its own.
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("\(shield.key), \(shield.value)")
+            .accessibilityLabel(accessibilityText)
             .measured(
                 "badge-\(index)", role: "badge", kind: .hstack,
                 tokens: ["background": valueFill, "foreground": .onAccent],
                 type: .subheadline, text: "\(shield.key) \(shield.value)"
             )
         }
+
+        /// The phrase a screen reader hears. One stop rather than two, for the reason `DESIGN.md`
+        /// records for the sidebar's readout card: a cell carrying a value announces as one
+        /// sentence, and splitting it costs a reader a swipe to reach a label with no value.
+        var accessibilityText: String { "\(shield.key), \(shield.value)" }
 
         private func cell(_ text: String, foreground: ColorToken, background: ColorToken) -> some View {
             Text(text)

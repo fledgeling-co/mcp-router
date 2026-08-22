@@ -19,7 +19,13 @@ copy of `planning/test-campaign/` under `/tmp` so the campaign directory was nev
 | 0.5.0 — the submodule pin | 58 of 76 (76%) | **0×** |
 | **0.9.1** — the version the recorded sitting was run with | **58 of 76 (76%)**, `held.` | **0×** |
 | 0.9.2 — vendored here | 62 of 76 (82%) | 2× |
-| 0.9.4 — installed | 62 of 76 (82%) | 2× |
+| 0.9.4 — a later cache copy | 62 of 76 (82%) | 2× |
+
+> **Corrected at gap-fix 4.** The last row bound `0.9.4` to the word _installed_. The reading is
+> unchanged and still reproduces; what went was the label, which asserted the state of a cache four
+> agents share and which took four versions on 2026-08-22 alone. The withdrawn string is not quoted
+> here on purpose — quoting it would push this file out of `planning/installed-claim-sweep.py`'s
+> scanned set, and it is preserved in `G5-gapfix-4.md` and in git.
 
 `cases.json` holds 76 cases, of which exactly four carry `effect-witness` — CASE-0145, 0146, 0147
 and 0148, all `pass`, all armed. `capture-lineage.py` is byte-identical across 0.9.1 and 0.9.2 and

@@ -14,7 +14,7 @@ For `test-campaign` that is not what happens. Measured 2026-08-22:
 | | |
 |---|---|
 | Vendored `plugins/test-campaign/.claude-plugin/plugin.json` | `0.5.0` |
-| Installed in the machine's plugin cache, and what every gate this campaign reports actually ran | `0.9.2` |
+| What every gate this campaign reports actually ran, from the machine's plugin cache | `0.9.2` |
 | `du -sh .claude/plugins/fledgeling-plugins` | **546 MB** (`plugins/` is 540 MB of it) |
 | `du -sh .claude/plugins/fledgeling-plugins/plugins/test-campaign` | **8.9 MB** |
 

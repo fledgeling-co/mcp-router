@@ -241,8 +241,9 @@ The docket offered bump-and-re-run or drop-the-claim. Measured today:
 
 - `.claude/plugins/fledgeling-plugins` is **546 MB**, of which `plugins/` is 540 MB.
 - **`plugins/test-campaign` alone is 8.9 MB** — 1.6% of the whole.
-- Vendored `plugin.json` says `0.5.0`; the installed cache says `0.9.2`. Four minor versions, as
-  recorded.
+- Vendored `plugin.json` says `0.5.0`; the cache copy every gate this campaign reports actually ran
+  is `0.9.2`. Four minor versions, as recorded. Which version is in the cache *now* is not a fact
+  this docket can hold — read it rather than quoting it.
 
 And a cost the docket could not have known, because it was measured this morning: **populating
 this submodule in a worktree breaks every runner dispatched into it.** 546 MB of plugin skills

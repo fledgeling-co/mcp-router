@@ -87,6 +87,43 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+## A twenty-third — an assertion that will keep passing after its claim becomes false
+
+Found 2026-08-23 by `lukerhodes-2f` at merge planning, verified here. It is the sharpest form of
+this item's subject yet, because **nothing goes red at any point.**
+
+`RouterSheet.Kind.owner` on `ai/m18` documents itself as *"Who closes this sheet, for the four
+the mock draws and this app cannot host yet"* — who closes the hole, not who last worked on it.
+`.readme` returns `"M19"`. And `app/Tests/MCPRouterKitTests/RouterSheetTests.swift` asserts, in
+the test named *"the four unhosted kinds are the four triage named, with their owners"*:
+
+```swift
+#expect(RouterSheet.Kind.readme.owner == "M19")
+```
+
+M19 has now built that sheet's contents — parser, shields, images, three tabs, header and facts
+strip, measured under `M23` at `planning/fidelity/readme.ledger.md`. What remains missing is the
+**entry point**, which is M18's, and a **document source**, filed as `M30`. So the moment
+`ai/m19` merges, `"M19"` stops naming who closes the hole and starts naming who used to be
+working near it.
+
+**The test goes on passing.** The string still equals the string. The assertion reads a literal
+against a literal and is structurally incapable of noticing that the literal's *meaning* expired
+— which is this item's whole subject, arriving without a number attached. Every prior instance
+was a count that a measurement could contradict; this one is a claim no measurement in the suite
+can reach, guarded by a test whose green is evidence of nothing.
+
+It is also invisible on either branch alone. `ai/m18` is correct as it stands, `ai/m19` never
+touches the file, and `RouterSheet.swift` does not exist on `ai/m19` or `ai/m22` at all — both
+were cut from `87e16dc`. The falsity is created by the merge and by nothing else, so no gate
+either branch runs can see it.
+
+The remedy is not to update the string to `"M18 + M30"`, which would be true until the next
+merge and equally unable to say so. Either derive the owner from something the suite can check —
+a reference to the item id that a missing item invalidates — or stop asserting the literal and
+assert the property the test is named for: that every unhosted kind has *an* owner, which
+`:80`'s companion test already does correctly.
+
 ## A twenty-second — the instrument's own suite count, stale in the gate built to catch stale counts
 
 Found 2026-08-22 by the orchestrator while reading `null-run-gate.py`'s output on the merged tree

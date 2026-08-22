@@ -23,6 +23,17 @@ import Foundation
     enum Surface: String, CaseIterable {
         case servers
         case settings
+        /// The menu-bar popover.
+        ///
+        /// **This is the only route to M20's acceptance criterion 4** — *"a structure dump of the
+        /// popover shows three separately focusable controls in the queued-item band"* — and the
+        /// reason is structural rather than a matter of convenience. `SURF-009` carries three `n/a`
+        /// cases with one stated reason: *"NSStatusItem is not an AXPress target while MCPRouter is
+        /// backgrounded; this campaign never activates, so the popover cannot be opened or
+        /// photographed."* The accessibility plane cannot reach this surface at all. This tool hosts
+        /// it in an `NSHostingView` under `.prohibited`, so it is measured without the app ever
+        /// coming forward and without `UI_VERIFICATION.md` rule 1 being broken.
+        case popover
     }
 
     /// The drawn state to render it in.
@@ -53,6 +64,23 @@ import Foundation
             case (_, .empty): .empty
             case (_, .loading): .loading
             case (_, .error): .offline
+            }
+        }
+
+        /// The inbox this state renders the popover against.
+        ///
+        /// `nil` for every surface but the popover, which is the only one that draws the queue. The
+        /// popover's ideal frame needs `.paired` rather than the factory's Debug default of `.none`,
+        /// because an empty queue draws no band — and a band with no rows draws no controls, so a dump
+        /// taken against it would report criterion 4's three controls as absent while measuring a
+        /// surface that was never asked to draw them.
+        func inbox(for surface: Surface) -> (any InboxService)? {
+            guard surface == .popover else { return nil }
+            switch self {
+            case .ideal: return FixtureInboxService(.paired)
+            case .empty: return FixtureInboxService(.pairedEmpty)
+            case .loading: return FixtureInboxService(.loading)
+            case .error: return FixtureInboxService(.failed)
             }
         }
 
@@ -189,6 +217,11 @@ import Foundation
                         shell: shell,
                         board: ServersBoardModel(client: client, tracker: shell.tracker)
                     )
+                case .popover:
+                    // The popover sets its own width from `PopoverMetrics`, so the frame below only
+                    // bounds it. It is drawn top-leading in that frame, which is where the geometry
+                    // layer expects a surface's origin.
+                    MenuBarPopover(shell: shell)
                 case .settings:
                     // The **in-memory** token store, not the default keychain one: this is an
                     // unsigned SwiftPM executable with no keychain access group, where
@@ -234,8 +267,23 @@ import Foundation
         NSApplication.shared.setActivationPolicy(.prohibited)
 
         let client = FixtureControlAPIClient(args.state.fixture(for: args.surface))
-        let shell = ShellModel(client: client)
-        if args.state.polls { await shell.refresh(at: Date()) }
+        // **The scratch domain, not the developer's own preferences.** `MeasuredSurface` already
+        // hands the Settings window a scratch `ShellRestoration` for this reason; the popover reads a
+        // preference off the *model* — whether the band may draw its `Approve` — so the model needs
+        // the same treatment or the dump depends on which machine it ran on, which is not a
+        // measurement of the surface.
+        let shell = ShellModel(
+            client: client,
+            store: ShellRestoration(defaults: MeasuredSurface.scratchDefaults),
+            inboxService: args.state.inbox(for: args.surface)
+        )
+        if args.state.polls {
+            await shell.refresh(at: Date())
+            // The band is derived from the board, and the board is empty until something loads it. The
+            // popover's own `.task` does not load the inbox — `ShellModel.startInboxPolling` does, and
+            // this tool runs no poll loop.
+            if args.surface == .popover { await shell.inboxBoard.load() }
+        }
         return render(args, shell: shell, client: client)
     }
 

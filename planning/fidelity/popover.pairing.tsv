@@ -1,0 +1,48 @@
+# planning/fidelity/popover.pairing.tsv — which build node answers which mock affordance.
+#
+# Four tab-separated columns:  state <TAB> affordance <TAB> node <TAB> citation
+#
+# This file declares ONLY the pairing. It never declares a status: present, divergent, absent and
+# unclassified are computed by scripts/acceptance/mock_fidelity.py from the two artifacts on every
+# run, which is what makes `present` earned by measuring rather than asserted.
+#
+#   node = -            the affordance has no counterpart in the build, or none this surface
+#                       instruments — the citation says which, and they are not the same thing
+#   affordance = +path  a build node with no counterpart in the mock, cited
+#
+# READ THE MANIFEST'S `note` FIRST. As of 2026-08-23 the engine CANNOT RUN against this surface:
+# `mock-affordances.py` needs a `.v-<state>` frame inside the section and `#statusPopover` has none,
+# so `mock-fidelity-gate.sh popover` exits 3 with `error: #statusPopover has no '.v-ideal' block`.
+# The affordance ids below were derived by driving that script's own `SurfaceParser` over the sliced
+# `#statusPopover` fragment, so they are what it will produce once it can slice this surface — 14
+# rows, matching the manifest's floor. They are not hand-invented.
+#
+# THE ONE DIVERGENCE THIS FILE CANNOT CARRY AS A ROW: `Resident 214 MB`. The mock's four header count
+# cells are plain divs with `small muted` / `mono` and match none of the derivation rules, so the
+# inventory holds no affordance for any of them — including the one number in this popover that does
+# not ship. It is enforced structurally instead: `MenuBarPresentation.Counts` has no field a memory
+# figure could come from, asserted by reflection in `MenuBarPresentationTests.headerHasNoSkillsField`,
+# because `residentMb()` in `src/pool.ts` has zero callers and never reaches the wire. Declared here
+# as D1 so a later reader does not conclude the gate examined it.
+#
+# The three counts the build DOES draw are build-only rows below, for the same reason: they answer no
+# derivable affordance, and criterion 5 — no number the popover renders is absent from the wire — is
+# about exactly them.
+#
+ideal	+popover.ideal/count-running-now	popover.ideal/count-running-now	D3 · a build node the derived inventory cannot hold. "Running now" is the mock's own label (:1458) and the value is servers.filter(isRunning).count — the same derivation ReadoutModel uses, so the popover and the window cannot disagree.
+ideal	+popover.ideal/count-declared	popover.ideal/count-declared	D4 · the mock's second cell (:1462). servers.count, off the same poll.
+ideal	+popover.ideal/count-tools	popover.ideal/count-tools	D5 · the mock's third cell (:1466). Sum of MCPServer.tools, off the same poll.
+ideal	v-ideal/banner/luke-s-iphone-queued-postgres-mcp-6-tools-reads-	popover.ideal/inbox-band	D6 · the mock draws one queued row for postgres-mcp reading 6 tools; the build draws the authored fixture's two (Local notes, DeepWiki) because FixtureInboxService(.paired) is what this surface can be rendered against. A copy difference caused by fixture content rather than by the build, and the band's own headline is InboxCopy.subtitle either way.
+ideal	v-ideal/icon/unlabelled	-	D7 · the band's phone glyph is drawn by the build (MenuBarInboxBand has no glyph on the inbox row; PopoverContent's attention band draws AttentionCause.iconName) — not instrumented, and the inbox row genuinely carries no leading glyph. Owned by whichever item converts the band's ornament; spec-M20.md declares the three controls, not a glyph.
+ideal	v-ideal/button/approve	popover.ideal/inbox-band/inbox-row-q-1/inbox-approve	D2 · DIVERGENT BY DECISION. The mock draws this `btn primary` (accent fill, white label) at design/mcp-router-console.html:1486 and plan-M20.md step 13 says "(prominent)". The build draws it StandardButtonStyle in the mock's leading position. DESIGN.md:212 binds accent exposure to a live accessibility deviation — --on-accent on --accent is a recorded contrast shortfall pinned by LightAppearanceTests.darkOnAccentDeviationIsPinned — and bounds it to "one prominent accent-filled action per view". The band caps at MenuBarPresentation.inboxBandLimit = 3 rows and the footer's Open MCP Router already holds this view's prominent slot, so prominence here would put two to four accent fills in the smallest surface in the app. The same passage names the substitute: "distinguished by shape and position too, never by colour alone."
+ideal	v-ideal/button/review	popover.ideal/inbox-band/inbox-row-q-1/inbox-review	
+ideal	v-ideal/button/not-now	popover.ideal/inbox-band/inbox-row-q-1/inbox-decline	D8 · agreement, recorded because it took a second string to get it. InboxCopy.Band.declineAction is "Not now" and InboxCopy.declineAction stays "Decline" for the board and the review sheet — the mock itself spells this state three ways across three surfaces (:1488, :3274, :4197), so the divergence between surfaces is the design of record's. plan-M20.md step 13 states the condition that decided it.
+ideal	v-ideal/button/open-console	-	D9 · the build draws this footer control and calls it "Open MCP Router" (MenuBarPresentation.openWindowLabel, drawn at MenuBarPopover.footer). Not instrumented, so this row is a gap in coverage rather than a missing control — see the manifest's INSTRUMENTATION COVERAGE note. The label difference is M8's wording and is not M20's to change.
+ideal	v-ideal/button/re-index	-	D10 · Re-index is MenuCommand.reindexManifest, which is .featureUnbuilt in every context: /servers/:name/reindex is per-server and the control API has no manifest-wide route (plan-M20.md §4). The build offers Quit in this slot instead. A footer button that cannot fire is exactly what M14 was raised against, so it is absent by decision.
+ideal	v-ideal/indicator/unlabelled	-	D11 · the band's own state dot in the mock. The build's band carries no dot: the popover's attention band draws one per row and the inbox band does not, because the whole band is --attn-edged already (MenuBarInboxBand's overlay). Not instrumented either way.
+ideal	v-ideal/indicator/unlabelled#2	-	D12 · one of the six call-row outcome dots in the mock's "Last six calls" section. The build DRAWS these — MenuBarPopover.CallRowView, capped at MenuBarPresentation.recentCallLimit = 6 — and they are not instrumented. Read this as coverage missing, not as the build missing a call log.
+ideal	v-ideal/indicator/unlabelled#3	-	D12 · one of the six call-row outcome dots in the mock's "Last six calls" section. The build DRAWS these — MenuBarPopover.CallRowView, capped at MenuBarPresentation.recentCallLimit = 6 — and they are not instrumented. Read this as coverage missing, not as the build missing a call log.
+ideal	v-ideal/indicator/unlabelled#4	-	D12 · one of the six call-row outcome dots in the mock's "Last six calls" section. The build DRAWS these — MenuBarPopover.CallRowView, capped at MenuBarPresentation.recentCallLimit = 6 — and they are not instrumented. Read this as coverage missing, not as the build missing a call log.
+ideal	v-ideal/indicator/unlabelled#5	-	D12 · one of the six call-row outcome dots in the mock's "Last six calls" section. The build DRAWS these — MenuBarPopover.CallRowView, capped at MenuBarPresentation.recentCallLimit = 6 — and they are not instrumented. Read this as coverage missing, not as the build missing a call log.
+ideal	v-ideal/indicator/unlabelled#6	-	D12 · one of the six call-row outcome dots in the mock's "Last six calls" section. The build DRAWS these — MenuBarPopover.CallRowView, capped at MenuBarPresentation.recentCallLimit = 6 — and they are not instrumented. Read this as coverage missing, not as the build missing a call log.
+ideal	v-ideal/indicator/unlabelled#7	-	D12 · one of the six call-row outcome dots in the mock's "Last six calls" section. The build DRAWS these — MenuBarPopover.CallRowView, capped at MenuBarPresentation.recentCallLimit = 6 — and they are not instrumented. Read this as coverage missing, not as the build missing a call log.

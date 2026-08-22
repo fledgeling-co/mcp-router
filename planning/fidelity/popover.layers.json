@@ -1,0 +1,66 @@
+{
+  "surface": "popover",
+  "mock": "design/mcp-router-console.html",
+  "section": "statusPopover",
+  "pairing": "planning/fidelity/popover.pairing.tsv",
+  "states": ["ideal"],
+
+  "note": [
+    "STATUS, MEASURED 2026-08-23: this manifest is authored and the engine CANNOT RUN AGAINST IT.",
+    "`mock-affordances.py` slices a section and then slices a `.v-<state>` frame inside it, and",
+    "`#statusPopover` has no such frame — it is one unframed surface, where `#b-servers` and `#swin`",
+    "carry `.v-ideal` / `.v-empty` blocks. The gate therefore exits 3 with",
+    "`error: #statusPopover has no '.v-ideal' block`, which is the designed could-not-run exit and",
+    "not a clean surface. Recorded as a difference rather than a pass, and the fix is either a",
+    "whole-section fallback in that script for a surface declaring one state, or state frames in the",
+    "mock. Neither is M20's: the first is a shared gate whose blast radius is every surface, and the",
+    "second edits the design of record to satisfy an instrument.",
+    "",
+    "What DID get measured, and what M20's acceptance actually rests on, is the structure dump this",
+    "surface now produces. `MeasureDump --surface popover --state ideal` writes 12 nodes, and",
+    "`planning/evidence/M20-acceptance.md` reads criterion 4 off it: three separately focusable",
+    "controls in the queued-item band, at three disjoint frames on one horizontal axis. That is the",
+    "only lane that reaches this surface at all — `SURF-009` carries three `n/a` cases whose stated",
+    "reason is that NSStatusItem is not an AXPress target while the app is backgrounded, so the",
+    "popover cannot be opened or photographed by the accessibility campaign.",
+    "",
+    "ONE AFFORDANCE-DERIVATION FACT worth knowing before anyone trusts a future ledger for this",
+    "surface: the mock's four header count cells are plain `div`s carrying `small muted` and `mono`,",
+    "which match NONE of `mock-affordances.py`'s rules, so the derived inventory has 14 rows and none",
+    "of them is a count. `Resident 214 MB` — the one number in this popover that does not ship — would",
+    "therefore never appear as an absent affordance however long the gate ran. It is declared in the",
+    "pairing file's header and enforced structurally instead, by `MenuBarPresentation.Counts` having no",
+    "field it could come from (`MenuBarPresentationTests.headerHasNoSkillsField`).",
+    "",
+    "INSTRUMENTATION COVERAGE IS PARTIAL AND THAT IS NOT THE SAME AS THE BUILD BEING PARTIAL. The",
+    "`.measured` calls on this surface cover the header counts and the decision band — the zone",
+    "criterion 4 is about. The call log, the stale notice, the attention band and the footer are drawn",
+    "by the build and are NOT instrumented, so they pair to `-` in the pairing file with that reason",
+    "cited. A reader must not read those rows as the build lacking a call log.",
+    "",
+    "The floors below are the census sizes measured on the run that wrote them and are a ratchet:",
+    "a layer reading fewer rows than its floor exits 3, not 0, because a shrunken denominator raises",
+    "reported coverage while measuring less."
+  ],
+  "floors": {
+    "tokenRows": 89,
+    "dumpNodes": 12,
+    "affordances": 14,
+    "lintFiles": 125
+  },
+
+  "layers": [
+    { "name": "tokens", "required": true },
+    { "name": "literals", "required": true },
+    { "name": "structure", "required": true },
+    { "name": "geometry", "required": true },
+    { "name": "type-metrics", "required": true },
+    { "name": "copy", "required": true },
+    { "name": "breadth", "required": true },
+    {
+      "name": "font-weight-face",
+      "required": false,
+      "substitute": "A SwiftUI Font is opaque — String(describing: Font.system(size: 13, weight: .semibold)) returns \"Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)\", with no size, weight or face in it. Confirmed instead by: the TypeToken each text node names is recorded in tokens[\"type\"] at apply time and checked against the measured line box by the type-metrics layer; DesignTokenParityTests pins the eight-role ladder against DESIGN.md; scripts/lint/no-raw-design-values.sh fails any font size that does not come off it. None of the three can see an ancestor .font() winning the cascade, and that residue is what this row is."
+    }
+  ]
+}

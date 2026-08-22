@@ -60,15 +60,27 @@ ALLOWED_OPTIONAL = {"font-weight-face"}
 # It covers the six mock kinds the one filled ledger pairs. The other eleven the census can derive
 # have no entry, so the first surface to pair one reads it as a finding until the pairing is
 # vouched — `D-m23-h` in ORCHESTRATOR.md's deferred register.
-# M19 is the first surface to pair five of the eleven, which is the case `D-m23-h` names: a
-# pairing this table has never seen reads `unclassified` until somebody adds it deliberately. The
-# additions are a document's own vocabulary — a heading answered by a heading, a `<li>` answered by
-# a list item, a `<th>` by a column header, a `<pre>` by a scrolling code block, a `<blockquote>` by
-# a quote, and a `<span class="shield">` by the badge the app re-draws from it. Each is a mock kind
-# and a build role that genuinely do the same job, and none of them lets a build role vouch for
-# itself by spelling the mock's kind — `heading`/`heading` is listed because the ROLE and the
-# structural KIND together are what the table constrains, and a `heading` that reported itself an
-# `hstack` still reads unclassified.
+# M19 ADDED EIGHT PAIRINGS AND REMOVED NONE, which is the case `D-m23-h` names: a pairing this table
+# has never seen reads `unclassified` until somebody adds it deliberately, and every addition
+# therefore weakens this gate by one classification. Three of the eight are keys the table did not
+# hold — `badge`, `callout`, `codeblock` — and five sit under keys it already had. All eight, as
+# mock-kind <- (build-role, structural-kind): badge<-(badge, hstack), button<-(tab, leaf),
+# callout<-(callout, hstack), codeblock<-(codeblock, scroll), heading<-(heading, text),
+# icon<-(verified-mark, leaf), row<-(list-item, hstack), sentence<-(sentence, text). Measured by
+# ast.literal_eval of this dict at 87e16dc and here, flattened to pairs: 11 before, 19 after.
+#
+# They are a document's own vocabulary — a heading answered by a heading, a `<li>` by a list item, a
+# `<pre>` by a scrolling code block, a `<blockquote>` by a quote, a `<span class="shield">` by the
+# badge the app re-draws from it, and the sheet's tabs by the buttons that do the same job. Each is
+# a mock kind and a build role that genuinely do the same job, and none of them lets a build role
+# vouch for itself by spelling the mock's kind — `heading`/`heading` is listed because the ROLE and
+# the structural KIND together are what the table constrains, and a `heading` that reported itself
+# an `hstack` still reads unclassified.
+#
+# This said "the first surface to pair five of the eleven" until M19's gap-fix. Five is the number
+# of EXISTING KEYS that gained a pairing, which is a real quantity attached to the wrong noun, and
+# the enumeration under it named `<th>` by a column header — a pairing that was already here and is
+# not one of M19's additions.
 VOUCHED_CONTROLS: dict[str, set[tuple[str, str]]] = {
     "heading": {("board-title", "text"), ("state-title", "text"), ("heading", "text")},
     "sentence": {("board-subtitle", "text"), ("state-detail", "text"), ("sentence", "text")},

@@ -19,8 +19,14 @@
 #
 # THE SINGLE FACT THAT DECIDES MOST OF THIS FILE: the mock keeps the read me, the changelog and the
 # capability list in the DOM at once and toggles `hidden`, so the census inventories all three; a
-# tab renders one. Twenty-four rows below are the changelog's and the capability list's, and every
-# one of them cites D1.
+# tab renders one. TWENTY rows below are the changelog's and the capability list's, and every one of
+# them cites D1.
+#
+# Counted over the non-comment, non-blank lines of this file, split on TAB, column four beginning
+# `D1 · `. Two independent readings agree: the generated ledger's own D1 total is 20, and the census
+# of `#s-md-changelog` (14) plus `#s-md-caps` (6) is 20. This header said TWENTY-FOUR until the
+# gap-fix, which is a wrong count in the header of the file whose whole job is adjudicating findings
+# — the thing that teaches a later reader it is not authoritative.
 
 ideal	sh-readme/button/read-me	readme.ideal/readme-sheet/sheet-titlebar/tab-readMe
 ideal	sh-readme/button/changelog	readme.ideal/readme-sheet/sheet-titlebar/tab-changelog

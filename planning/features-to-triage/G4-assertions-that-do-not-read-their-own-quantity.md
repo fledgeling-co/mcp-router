@@ -80,6 +80,32 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+
+## A fifteenth instance — this item's own progress note, and the orchestrator put it there
+
+`planning/progress/G4-gapfix.md:269` shipped as the literal string **`GATES_PLACEHOLDER`**, under a
+heading reading *"§6 · Gates, measured on this branch today"*. Acceptance criterion 5 asked for
+gates measured and **pasted**. The record pastes nothing.
+
+The heading is named for a measurement; the section contains a token saying a measurement was
+intended. And §7 then **cites §6** — *"§6 records it doing more than moving: it is now the sole
+reason `ledger-reconcile.py` exits 1"* — for a claim that measures false, since the reconciler
+exits 0.
+
+**A record citing unwritten content, in support of a claim that measures false, is the sharpest
+instance in this table.** It is also the only one where the mechanism is a person rather than a
+predicate: the runner exited mid-`make all` having said it would fill §6 in, and **the orchestrator
+committed the file without reading it.**
+
+That is worth keeping precisely because no gate could have caught it. The accounting contract reads
+Python readers; the null-run gate reads assertions. Neither reads a progress note, and a heading
+that promises a measurement is not a checkable claim. **The general shape holds anyway: a section
+named for evidence, containing a promise of evidence, cited elsewhere as though it were evidence.**
+
+The cheap remedy is the one this item already argues for in a different register — a presence
+control. A commit hook or a gate asserting that no tracked file contains a `*_PLACEHOLDER` token
+costs one grep, and would have caught it before it reached a verifier.
+
 ## A fourteenth instance — the parity gate's coverage-by-group block, found by R19 in passing
 
 `parity-gate.sh`'s coverage summary is named for *coverage by group*. It walked a **hardcoded list

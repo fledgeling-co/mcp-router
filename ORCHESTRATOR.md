@@ -19,6 +19,7 @@ every state change, before acting on that change.
 | Worktrees | `.worktrees/<ID>` on `ai/<id>` |
 | External model CLIs | **On** (no opt-out marker in this repo) but **the codex lane is UNAVAILABLE — do not probe it.** See below |
 | Concurrency | ≤8 slots; the DAG peaks at 5 |
+| Baseline on `main` | Measured at `6dc6007`, 2026-08-22 ~18:2x: `make test` **1725 tests in 215 suites** exit 0 · `make lint` exit 0, swiftlint 0 violations over 549 files · `ledger-reconcile.py` 0 across A–L · `reader-accounting.py` 0 · `null-run-gate.py` 0 with **28 armed, 0 held**. Re-measure before quoting — four briefs in this fleet have already carried a figure belonging to another branch |
 | Merges | **Serialized by the orchestrator.** Runners stop at ready-to-merge |
 
 ### Two standing decisions, taken with the user at preflight
@@ -117,7 +118,231 @@ than barriering on whole waves, so the real overlap is greater than the table im
 | 5 | M5 · M7 · M8 · I3 | 4 | — |
 | 6 | M6 | 1 | Phone → Mac inbox round-trip works end to end |
 
-### In flight — 2026-08-22, updated after G4-B merged
+
+> **THE TERMINAL DIED AT 08:55:13Z AND KILLED EIGHT DISPATCHES.** Nothing was lost — every one of
+> the eight has its work committed on its `ai/<item>` branch, `main` is intact at `78a27e7`, the
+> reconciler is clean across A–L, and no worktree carries an `index.lock`. One commit that looked
+> lost had landed: M22 was cut *during* `git commit` and `8952a5b` is on the branch.
+>
+> **HOLD LIFTED 2026-08-23.** All eight came back up on their own session ids with context intact,
+> none cold-started, each told to reconcile against git and treat any `/tmp` file it was polling as
+> stale. **Record the session ids — they are how this work stays recoverable if a terminal dies
+> again**, and a resumed session is worth far more than a relaunched one:
+>
+> | Item | Session id | State when it was cut |
+> |---|---|---|
+> | M12 | `495116b3-751e-44b9-8984-4d6d137bcf98` | mid poll-loop |
+> | M16 | `88a082e2-f132-448d-9483-24f66418d471` | inside `make lint` |
+> | M18 | `2543db46-0f87-447c-9b32-de9d3a08b4f3` | **finished 08:42** — predates its own gap-fix brief |
+> | M19 | `026cf02d-b260-4045-9a0b-2eacca1e76da` | inside `mock-fidelity-gate.sh` |
+> | M20 | `948f8fe7-eee9-467c-817e-ef0f9b04235a` | **finished 08:10** owing 17 uncommitted paths |
+> | M22 | `9fa43667-98db-42f7-a570-af0206880c7b` | mid-commit; it landed as `8952a5b` |
+> | R19V | `b3bbdb08-2e04-4f24-91b4-9df540eb7777` | mid poll-loop, no verdict written |
+> | G5V2 | `e4e8324f-d51a-4da1-ad0b-8b5b977c65fa` | mid tip-reconciliation, no verdict written |
+>
+> **`M18`'s resumed session has an information gap nobody else has.** It finished at 08:42 believing
+> the item was blocked on a build it could not get through. The orchestrator then got one through at
+> low priority and found the real defect, and wrote `GAPFIX-BRIEF.md` into that worktree — a file
+> that session has never seen. Point it there rather than letting it re-derive the failure.
+>
+> The original hold, kept for the record: a separate recovery session
+> (`lukerhodes-2f`) is resuming all eight **by session id**, so they come back holding the context
+> they had. Relaunching one from its original prompt throws that away, and two processes on one
+> worktree is worse than a cold start. Wait for each to report in.
+>
+> **The uncommitted work is the part a cold start would destroy.** `ai/m20` carries **17**
+> uncommitted paths including `KeyChord.swift`, `MenuCommandAvailability.swift` and
+> `MenuCommandRuleTests.swift` — new source that exists nowhere else — and it *finished its turn*
+> at 08:10 owing that commit rather than being cut. `ai/m19` carries **11**, including a whole
+> `app/Sources/MCPRouterUI/Document/` directory and three `planning/fidelity/` artifacts.
+>
+> **Neither verifier produced a verdict.** `R19V` and `G5V2` each hold only a `SCRATCH: merge main`
+> commit and no file under `planning/verification/`, so **R19 and G5 gap-fix 3 are both still
+> unverified and neither may merge.** Their sessions hold the measurements they had already taken,
+> which is the whole reason to resume rather than restart them.
+>
+> **`main`'s checkout has 21 dirty paths and none of them are this fleet's.** They are another
+> session's test-campaign witness work and the marketing store page, and they were already there
+> when this session began. Do not `git add -A` here — that mistake has already swept a third
+> session's work into a commit twice in this repo.
+
+### DISPATCH — PERCH'S ACCOUNT-TRANSFER NOTICE KILLS A HEADLESS RUNNER AT LAUNCH
+
+Measured 2026-08-23 across a seven-verifier wave. **Four died at launch, and a re-dispatch of one
+died again on a different account pair.** Each produced a 224–241 byte file containing only:
+
+> ⬤ Perch · account switched — this conversation is moving from `<a>` to `<b>` based on Relay's
+> current routing and usage state. **Reply to continue on the new account, or tell me to stop.**
+
+`claude -p` has no way to reply, so it exits having done nothing. The work is not lost — nothing
+was started — but the dispatch is, and the failure is silent in the sense that matters: **the
+wrapper exits 0.**
+
+Perch's own contract (`RelayCore/Models.swift`, `transferConfirmThreshold`, default 450k): *tokens
+a session may push through the proxy before an account transfer pauses for a one-beat confirmation
+notice instead of switching silently … at or above it, the proxy tells the user their account
+changed **and waits for them to continue***. These were fresh sessions that had pushed nothing, so
+the notice is firing on a transfer decided before the first request rather than on a threshold
+crossing.
+
+**Why now**: the Personal pool has **3 of 9 accounts under 100% weekly**, so transfers are
+frequent. This is the same pool exhaustion behind the Bedrock spend.
+
+**Do not fix this by editing Perch's config.** It is the user's routing system, it affects every
+session on the machine, and the threshold is theirs to set. What an orchestrator can do:
+
+- **Read each dispatch's output before recording the runner as working.** A 224-byte file is this
+  failure. `pgrep`+`lsof` on the worktree is the liveness check; the wrapper's exit code is not.
+- Re-dispatch, and expect a proportion to die. It is not deterministic — five of seven survived.
+- **Two Perch findings worth reporting upstream**: the notice is correct for an interactive session
+  and fatal for a headless one, with no non-interactive path; and one notice named an **empty
+  destination** — *"moving from luke.rhodes@icloud.com to  based on Relay's current routing"* — so
+  it announced a transfer to nothing.
+
+### OWNER DECISION 2026-08-23 — `PARITY_CUTOVER_TARGET` STAYS AT 82
+
+The census now derives ~91 on `main` (92 rows less the standing exclusion) and 93 on M22's
+branch. **The owner has held the target at the number they set on 2026-08-16.** The derived
+figure stays a **reported drift**, which is what `parity-gate.sh` already does — it prints both
+and alters no exit code, because a drift there *is a claim that needs an owner, not a measurement
+this run can settle*.
+
+Consequences to carry:
+
+- **The cutover bar is met.** `surface.tsv` reads **87 proven** against a target of **82**. Nobody
+  should write 93 as the bar, and no runner resolves the drift on its own.
+- **That does not by itself unhold `R4-C2`.** Its recorded hold is *owner: not on a green streak*,
+  which is a second condition and a separate decision.
+
+### SPEC — `spec-M22.md` §3.3 MISDESCRIBES `HarnessState`, AND THE ROUTE WOULD INHERIT IT
+
+Found by M16, verified against source 2026-08-23. `HarnessReconciliation.swift` declares **four**
+cases — `notWired(overlapping: Int)`, `wiredViaHTTP`, `wiredViaShim(bridge: String)`,
+`wiredWithDuplicates(route:count:)`. §3.3 names three: `.notWired`, `.wired(route:)`,
+`.wiredWithDuplicates(route:count:)`.
+
+**`.wired(route:)` does not exist.** It collapses `wiredViaHTTP` and `wiredViaShim(bridge:)` into
+one case carrying a payload neither has — `wiredViaShim` carries a **bridge name**, `wiredViaHTTP`
+carries nothing. A route built to the spec's names **could not distinguish an HTTP-wired harness
+from a shim-wired one**, which is the distinction the Harnesses board exists to show. The spec
+also drops `notWired`'s `overlapping` count.
+
+§3.3 then concludes *three of the brief's four readings exist in the model and one does not*. That
+is arithmetic on the wrong denominator — four exist, and the fourth reading it calls new modelling
+may not be.
+
+M22 owns both the spec and the route and has the finding. **M16's rail waits on `GET /harnesses`**,
+so it does not stop at M22. Correct the spec in the same change as the route, not after it.
+
+### MERGE ORDER — THREE BRANCHES AND ONE `VOUCHED_CONTROLS` TABLE, AND NOBODY HAS MEASURED THE UNION
+
+Measured 2026-08-23, and it is **three-way** rather than the two a peer flagged:
+
+| Branch | `scripts/acceptance/mock_fidelity.py` | Keys it touches |
+|---|---|---|
+| `ai/m19` | **+29 / −6** | `heading` `sentence` `button` `icon` `row`, and new `badge` `codeblock` `callout` |
+| `ai/m16` | **+18 / −1** | `card` (adds `signature`), new `jack`, `indicator` **deliberately absent** |
+| `ai/m22` | **0** | none — but it is *reasoning about* the table and has an open question on it |
+
+**The textual collision is the easy half.** No key is edited by both: `M19` and `M16` own disjoint
+sets, so the conflict is adjacency in one dict and the resolution is a **union**, not a judgement.
+Take both.
+
+**The measurement gap is the half that matters, and neither branch could have seen it.** `M16`'s
+own comment states the mechanism: vouching a kind puts it into `MOCK_KINDS_FOR_ROLE`, and the
+quota rule then reclassifies every unpaired build node of that role from `covered-by-pair` to
+`extra`. `M16` cites exactly that to justify leaving `indicator` absent. `M19` adds **six** kinds
+under the same rule.
+
+Each measured its own additions against the **pre-existing** frames — `M19` re-measured all six
+and reports 87/6/8/6 and 52/4 unchanged. Neither measured against the *other's* additions, and
+`M16`'s frames (`signature`, `jack`) did not exist when `M19` measured. **So the merged table is
+a combination nobody has run.**
+
+**Order: `M19` first, `M16` second, and `M16` re-measures its own frames against the merged
+table** — the still-building branch absorbs the change rather than the finished one being
+reopened. `M22` edits nothing here and only needs to read the merged version before answering its
+open question; its question may already be answered by `M16`'s `indicator` note, which is a
+worked example of the same rule.
+
+Neither order is safe without that re-measurement. A union that reclassifies a population would
+show up as a fidelity finding on a surface neither item changed.
+
+### MERGE — M22'S SHIM SHEET SHOULD NOT FOLD INTO `reconcile`, AND THE ARGUMENT IS SUBSTANTIVE
+
+Recorded because `M18`'s session has exited and this would otherwise die with it.
+
+`M22` argues its shim explanation sheet wants its own `Kind` case rather than being folded into
+`reconcile`, and the reasoning is about what the two sheets *are* rather than about naming:
+**`reconcile` is a diff of a file before a write. The shim sheet exists precisely because no write
+is available** — a harness's transport belongs to the harness and this app writes no harness
+files. So the honest affordance is an explanation, and the absent remedy is its substance rather
+than a gap in it.
+
+With the leading-hyphen convention above, that makes **three** options at merge — local-only, a
+hyphenated `Kind` case of its own, or folded into `reconcile` — and `M22` has argued the third is
+wrong.
+
+`M22` also acted on a correction rather than filing it: `HarnessesBoardModel.Sheet` carried an
+unreachable `.reconcile` case whose host arm dismissed on appear. Dead either way, but under the
+corrected reading it read as **an intention to host**, which is what would have broken
+`unhostedKindsAreTheOnesOnRecord` at merge. Removed at `0a5728a`.
+
+### MERGE ORDER — M18, M19 AND M22 SHARE A FILE THAT EXISTS ON ONLY ONE OF THEM
+
+`app/Sources/MCPRouterKit/Shell/RouterSheet.swift` exists on **`ai/m18` only**. `ai/m19` and
+`ai/m22` were both cut from `87e16dc` and neither has it, so neither can line up with it now and
+neither should be asked to.
+
+**Two things are NOT the same and were confused once already.** `RouterSheet` is what the app can
+present — seven board groups. `RouterSheet.Kind` is a separate inventory compared against the
+mock's `sh-*` ids, and **a `Kind` row carrying an owner is a record of a deliberate hole, not a
+slot to fill**. Hosting one would redden *M18's* tests, not the owner's: the test named *"every
+kind is either presentable or has an owner — never neither"* and its companion pinning the four
+unhosted kinds both live in `app/Tests/MCPRouterKitTests/RouterSheetTests.swift`.
+
+**The landmine, and it is silent.** That companion test asserts
+`RouterSheet.Kind.readme.owner == "M19"` as a literal. `owner` documents itself as *"Who closes
+this sheet"*. M19 has built the sheet's **contents**; the entry point is M18's and the document
+source is `M30`. So merging `ai/m19` makes the claim false **while the test goes on passing** —
+filed as `G4`'s twenty-third instance. Decide what `owner` means before both land, and prefer
+asserting the property over the literal.
+
+**Sequencing fact for whichever of `m18`/`m22` merges second**: `M22` holds a local
+`HarnessesBoardModel.Sheet` with `.reconcile(harness:)` and `.explainShim(harness:)` and has
+recorded the migration onto `RouterSheet` as a merge-time obligation in
+`planning/progress/M22.md` rather than inventing the enum's shape from a description. The second
+merge collapses that local enum. `M22` does not present `.reconcile` at all — both controls that
+would open it are drawn **disabled with the reason in their help tag**, because the panel is
+M18's.
+
+**The convention that makes the collapse possible**, measured: the mock's `sh-*` set is exactly
+**13** ids and `Kind` has **16** cases. The three extra — `registryDetail`, `resetHistory`,
+`skillProvenance` — carry **leading-hyphen** raw values, and the doc comment says why: a leading
+`-` is not a legal HTML id fragment in that file, so it cannot collide. The 13 unhyphenated match
+the 13 mock ids one for one. `M22`'s `.explainShim` has no mock id, so the hyphen convention is a
+**third option** at merge rather than local-or-nothing.
+
+### DISPATCH — `make lint` CANNOT RUN IN A FRESH WORKTREE, AND THREE RUNNERS HAVE PAID FOR IT
+
+`make lint` depends on the `tools` target, which wants `node_modules` and `dist/index.js`. A
+fresh worktree has neither, so the target fails before reaching a single check. **M18, M19 and
+the G4B verifier have each hit this independently**, and one of them lost most of a session's
+budget to it while attributing the failure to machine contention.
+
+The two known handlings, both correct, neither free:
+
+- Run the components directly (`swiftlint`, `swiftformat --lint`, `scripts/lint/*.sh`,
+  `planning/*.py`) and **record that as a difference from the target rather than as the target
+  passing** — M19's handling, and the honest one.
+- `npm install && npm run build` in the worktree first, or symlink `node_modules` and `dist`
+  from the main checkout — the G4B verifier's, and documented convention per `.gitignore:1-14`
+  and `planning/evidence/P7-acceptance.md:160`.
+
+Say which you want in the work order. A runner that discovers this itself spends real time on it
+and may report a red it did not cause.
+
+### In flight — 2026-08-23, after the 08:55:13Z crash · eight held for session-id recovery
 
 Recorded so a fresh session resumes the fleet from this file rather than from a transcript.
 Each runner is a detached `claude -p` in its own worktree; confirm liveness with
@@ -126,9 +351,18 @@ never the harness's own cwd notice.
 
 | Item | Worktree | Branch | Base | Dispatched | Stop rules |
 |---|---|---|---|---|---|
-| R19-INT | `.worktrees/R19` | `ai/r19` | `72958de` + main | 12:26 | **ready to verify** — 7 commits, `eb3e42c`; merge of main resolved three records by hand |
-| ~~G4-B~~ | — | `ai/g4b` | — | — | **MERGED `92a348d`** — verified Done `bc41e13`; cleared main's lint red |
-| G5 gap-fix 2 | `.worktrees/G5` | `ai/g5` | `2fbe062` | 15:0x | **ready to verify** — 4 commits, `a9603e5`, tree clean |
+| M12 | `.worktrees/M12` | `ai/m12` | 9 commits, `cbe60bc` | **cut 08:55** | held for recovery — was polling a governor exit |
+| M16 | `.worktrees/M16` | `ai/m16` | 2 commits, `a9d1bf9` | **cut 08:55** | held for recovery — cut inside `make lint`; `JackPresentation.swift` and its test are untracked |
+| M18 | `.worktrees/M18` | `ai/m18` | 8 commits, `6b620b3` | **cut 08:55** | held for recovery. Its **gap-fix never began** — the only dirt is the two brief files. `GAPFIX-BRIEF.md` is in the worktree and still the work to do: `swift build` exits 1 at `Controls.swift:111` |
+| M19 | `.worktrees/M19` | `ai/m19` | 2 commits, `9b13a49` | **cut 08:55** | held for recovery — **11 uncommitted paths**, cut inside `mock-fidelity-gate.sh` |
+| M20 | `.worktrees/M20` | `ai/m20` | 1 commit, `f3cc64d` | finished 08:10 | held for recovery — **17 uncommitted paths**; it ended its turn owing the commit, which is the documented DISPATCH hazard biting again |
+| M22 | `.worktrees/M22` | `ai/m22` | 3 commits, `8952a5b` | **cut 08:55** | held for recovery — the mid-flight commit landed. **M17 unblocks when this merges** |
+| R19-INT **verify** | `.worktrees/R19V` | detached `b3234ed` | — | **cut 08:55** | held for recovery — **no verdict written**; only a SCRATCH merge of `ed37a30` |
+| G5 gap-fix 3 **verify** | `.worktrees/G5V2` | detached `c49d674` | — | **cut 08:55** | held for recovery — **no verdict written**; only a SCRATCH merge of `28d0528` |
+| R19 | `.worktrees/R19` | `ai/r19` | 7 commits, `eb3e42c` | done | work complete, **blocked on R19V's verdict** |
+| G5 | `.worktrees/G5` | `ai/g5` | 5 commits, `43b44a2` | done | gap-fix 3 complete, **blocked on G5V2's verdict** |
+| M17 | `.worktrees/M17` | `ai/m17` | staged | not dispatched | work order written. Blocked on M22 merging |
+| G2 | `.worktrees/G2` | `ai/g2` | staged | not dispatched | blocked on the wave draining — it restructures the two files every recovered runner reads |
 
 **Both verifiers are a logged in-family downgrade.** `codex` is down until 27 August on a usage
 limit and the `grok` balance is exhausted (`402 … usage balance exhausted`, re-confirmed
@@ -293,6 +527,9 @@ does **not** change what any check reads, and must not be described as though it
 | M25 | The controls row, not the columns, set the boards' width | mac | — | — | Opus | **Done** (ai/x4 broke the min-width chain, ai/x5 flexed the two controls rows) | — | Recorded in LEDGER.md; see `M25-board-columns-do-not-flex.md`. |
 | M26 | The Checks board and the design's eval board are two surfaces | mac | — | — | Opus | **Done** (ai/m26 → main; owner kept the reachability board, mock amended, DEF-031 closed) | `ai/m26` | Recorded in LEDGER.md; see `M26-checks-board-framing.md`. |
 | M28 | Five findings that need a decision rather than a runner | mac | — | — | Opus | **Done** — all five dispositioned 2026-08-22 | — | **A decision docket, not work.** Closes by the owner answering five questions (DEF-042, DEF-049, DEF-008, DEF-057, DEF-033). A fleet reading only the table will dispatch it; it must not be given a slot. **Re-measured 2026-08-22 and four of the five no longer need an answer.** **DEF-042 is resolved, by a third route the docket did not consider**: the console mock — settled as the design of record that day — **re-sourced** the numbers rather than deleting or shelving them. `install velocity` is gone outright (`grep -ioc` 0 against the prototype's 2), `eval` 29→2 and `trend` 7→2, and every survivor is observable: both `trend` hits are one section headed *Why there is no "trending" band*, both `eval` hits are about a browser engine, `Last run` and `Runs` at `:3470-3474` are the **session analyst's own** cadence, and the Skills `Runs` column at `:2576` says where it comes from at `:2772` — the analyst grepping sessions, a PRD feature the owner asked for by name. What remains is per-surface work under M17/M20 plus `campaign.json`'s stale `designOfRecord`. **DEF-049 is answered in the code, with its reason**: the `try?` at `ServicePorts.swift:341` is now a `do`/`catch` at `:388-394` returning a `cacheFailure` that reaches `ControlPorts.swift:95` and drives `cached` at `:108`, and the doc comment records the docket's own smaller option taken, citing `ControlApproveDispatchTests.swift:114-118`. **Its "unverified lead" is refuted**: approve is reachable only with `pending` present and both implementations clear `error` when they stage one (`src/manifest.ts:246`, `ManifestBookkeeping.swift:83`), so `Describe.swift:208`'s guard fails before `:218` is reached. The plainer defect that survives is **R21**. **DEF-008 closed by the orchestrator** — the losing option is better at nothing here, so it was taken rather than asked. **DEF-033 unchanged**, open on purpose. **Only DEF-057 is left**, and it has a third option now: `plugins/test-campaign` alone is **8.9 MB** against the submodule's **546 MB**, and populating that submodule in a worktree was measured this morning to break every runner dispatched into it. **Closed 2026-08-22.** DEF-057 answered by the owner — vendor `test-campaign` only — and filed as **G5**. Four of five never reached the owner: two had been answered by work that landed after the docket was written, one was the orchestrator's to take, and DEF-033 needs nothing. The two that became work are **R21** and **G5**. |
+| M29 | "Disable a server" is drawn with nothing behind it | mac + router | R16 · R18 | `design/mcp-router-console.html` | — | **Untriaged** | — | Filed 2026-08-22 by M18's runner. A gate-table row with no action behind it and no owner. A decision before a build — see the LEDGER row for the three questions it has to answer, all of which touch items currently in flight. |
+| M30 | Where a capability document actually comes from | mac + router | M19 | — | — | **Untriaged** | — | Filed 2026-08-23 by M19's runner as M19's real exposure. Allocated `M29` and renumbered on the orchestrator's collision. **The renumber avoided a trap worth carrying**: four other `M29`s in this tree are **mutation ids in red-green tables** — same spelling, different namespace — and a tree-wide `sed` would have corrupted one with **nothing going red**, because those tables are prose to every gate. See the LEDGER row. |
+| M31 | The design of record cannot draw a disabled primary | design | — | `design/mcp-router-console.html` | — | **Untriaged** | — | Raised by `lukerhodes-2f` from M18's gap-fix, verified independently. `.btn:disabled` and `.btn.primary` are both specificity 0-2-0 with `.primary` second, so a disabled primary keeps its accent fill and label and differs from a live one only by losing its shadow — **drawn as though enabled**, which is the failure `DESIGN.md` names. **Inverts the instrument too**: `mock-fidelity` compares a build to the mock, so a build that correctly dims would be reported as a divergence. Reaches M18, M19 and M22; none owns it. |
 | R4-C1 | The installer points at Swift; the TypeScript tree stays | router | — | — | Opus | **Done** (ai/r4c) | — | Recorded in LEDGER.md; see `R4-C1-installer-points-at-swift.md`. |
 | R4-C2 | Retire `src/*.ts` — held, and what it waits on | router | — | — | Opus | Held (owner: not on a green streak) | — | Held by owner decision: the TypeScript reference stays until several consecutive whole-gates pass, including a cold port-reuse path. Not a green-streak call. |
 | R9 | The SDK drops an upstream's message on -32603; the router reads it off the wire | router | — | — | Opus | **Done** (ai/r9 → main; DEF-047 closed, 7 tests armed 5-of-7 red, parity 82/83 0 diverged) | `ai/r9` | Recorded in LEDGER.md; see `R9-sdk-drops-upstream-message.md`. |
@@ -318,6 +555,9 @@ does **not** change what any check reads, and must not be described as though it
 | G4 | Assertions that do not read the quantity they are named for | harness | — | — | Opus | **Merged** `de1315d` | — | Filed 2026-08-21 from a cross-session exchange with `egress`. **Three instances already found here and each treated as unrelated:** check H named for rows read parseable-rows; G2's first acceptance test named for readability read in-scope-ness; R7's `no-harness-config-writes.sh` named for any write under `app/Sources` reads writes on the same physical line. Its pass and its cannot-discriminate are indistinguishable, so the green carries no information about the thing in the name. All four instances were found by someone attacking something adjacent — none by review. Detection is cheap (perturb the named quantity, require red); whether the name→quantity mapping is mechanisable is the open question, and a mis-targeted perturbation that stays green is a false finding of the kind `detector-defects` refuses. Triage should also decide whether this is the policy half of `G1`. See `G4-assertions-that-do-not-read-their-own-quantity.md` **Triaged 2026-08-22 — Ready for AI, Standard, harness-only.** The open question was whether name→quantity is mechanisable; the Google lane (`agy`, `gemini-3.7-flash-high`) answered **no** — *heuristic or NLP mapping from test identifiers to arbitrary in-scope constants yields ambiguous bindings and false positives on auxiliary constants* — so **option B is refused on this repo's own detector-defects doctrine**, A starts at zero coverage and C holds no line. **The substitute needs no quantity at all**: raw-input accounting as a structural invariant (every reader returns `(matched, dropped)`, `dropped` empty unless a skip is declared) plus a null-run gate (an assertion passing on an empty, inverted or poisoned fixture is *provably* vacuous — a property of the assertion, not an inference about its name). Reaches instances 1, 4, 5, 6, every silent-drop and partial-match case, with no false-finding class. **Instances 2, 3, 7 and the `egress` one read a real quantity that is the wrong one and survive both mechanisms** — half this brief's own table is out of scope for its own fix, and the item must not report as closing the class. Separate from `G1`: G1 owns assertions that are too weak, this owns readers that cannot account for their input. **Verified 2026-08-22 (1st); verdict Needs More Work — gap-fix queued (`G4-gapfix.md`), figures only, no gate logic.** Four of five claims hold, each re-derived rather than read. **The load-bearing one stands**: `make all` is red at `parity-selftest` and **red identically at the base** — `git archive 72958de` plus this worktree's `node_modules` and `dist` gives `31 behaved, 5 did not`, exit 1, `diff`ing empty against the HEAD run bar one case killed at exit 143 under load 945 which behaved on re-run. Both gates print their boundary on every run, confirmed by running them. `no-wire-codable.sh` behaves as blamed. Both arms recorded as fixture defects read that way from outside. The verifier armed both gates itself **in a clone**, and both bit. **The block is one number and it is this item's own shape: the census's before column counts the instrument into its own denominator.** With the gate placed outside `planning/` and `scripts/`, the base reads **15 readers / 22 iterations / 34 drop sites**, not 19/27/48 — and copying `reader-accounting.py` into that base tree reproduces the reported column exactly, which proves the mechanism rather than suggesting it. `table_ids` had **one** base drop site, not three. *Nineteen readers in this repository* is `5a9569c`'s subject line and §1's headline. **The after column had already caught it** — `unresolved 67` is the measured 55 plus the 12 the three new files contribute — so the accounting was sound and the baseline was not. Filed as G4's **eleventh instance**, and the only one on its own reachable side. Also settled here: **1686/210 was never `main`'s** — `ai/r17` carries `IndexFailureRecordTests.swift`, one suite of exactly two `@Test`s, and `git diff --name-only HEAD main` holds zero `.swift` files. **Gap-fix 2 delivered 2026-08-22 at `8539f5e` and in verification, and this runner committed** — the first of three on this item to end its turn with a commit rather than a promise, after the brief said so in as many words and the orchestrator ran `make all` for it. **§6 is measured output with its elisions marked and counted**: `1 + 22 + 6 + 7 = 36 = 31 behaved + 5 not`, which is an arithmetic proof that the paste is complete rather than merely long — this item's own discipline applied to itself. The five `WRONG REASON` cases are verbatim, so the stale 82/83 and 84/83 fixture counts are visible against the tree's 91/92 rather than described. **§7's `D-g4-b` is repointed onto the verdict rather than the number**, with the three pastes diffed to show every other figure identical. **The sweep loads `main:planning/claim-sweep.py`'s `normalise` rather than copying it**, and uses `\s+` between words so no pattern matches its own text after collapse — which buys the fixed point that R17's exclusion-list approach cannot buy here, because the corrected figures live inside the scanned file. Re-run byte-identical, diffed twice. **Flagged and correctly untouched**: `planning/progress/G4.md:151` cites §6 for a finding §6 now records as not reproducing — filed as this item's **eighteenth instance**, and notable because §6 was *corrected*, so diligence is what broke the citation. **Gap-fix 2 verified Done 2026-08-22 and merged at `de1315d`.** Oracle rung **differential measurement with an armed control** — the verifier armed its own sweep against a synthetic residue before trusting its clean sheet, and **every figure came from a command it ran** rather than from the runner's account. §6's arithmetic holds (`1 + 22 + 6 + 7 = 36` case lines; `31 behaved + 5 did not = 36`), every non-elided line appears verbatim in its own run, and the two absent are make's echo and make's error because it invoked the script directly. **`D-g4-b`'s thesis proved itself a fourth time while being checked**: the aligned diff of the two pastes differs in exactly one line, `merged ai/*` 29 → 27, and the verifier's own run read **28** — a count that has moved 29, 27, 27, 28 with **no tracker file edited**. `ai/g5` has since added a third commit past the merge point, so *committed twice* is already stale, and chasing it is the row's own point. **The sweep loads `claim-sweep.py` from `main` rather than copying it** — absent from this HEAD, present there, `exec`'d — and its accounting closes: **1118 scanned + 157 skipped = 1275 = `git ls-files`**, so nothing is dropped in silence. Non-blocking imprecision left: §6's diagnostic sentence attributes all five selftest failures to the stale count, and `div-r1-d3` fails a different check — the *expectation* is stale in all five, so the sentence is right about the fixture and loose about the output. |
 | G4-B | The two gates G4 shipped, and the doctrine they each broke | harness | G4 ✓ | — | Opus | **Merged** `92a348d` | — | Filed 2026-08-22 when `main`'s `make lint` went red on G4's own merge — the fleet's **fourth merge-only break**, green on its branch and red beside other verified work. Both causes were G4's doctrine violated by G4's gates: a hardcoded `GEOMETRY_DIRS` list that M15 widened out from under the RAW arms, and a filesystem walk that read another session's untracked work-in-progress as a finding. Fixed forward rather than reverted, because both gates are verified, armed and correct about their subject; what was stale is one literal and one enumeration boundary. **Verified Done at `bc41e13`** over five arms, the strongest being a two-way boundary control on the real fixture — 22 files exit 0 untracked, 23 files exit 1 after `git add` alone with no byte changed. See the LEDGER row for the full verification. |
 | G5 | Vendor the `test-campaign` version the gates actually run | harness | — | — | Opus | **Needs More Work** — gap-fix 2 | — | Filed 2026-08-22 from **M28/DEF-057, answered by the owner**: vendor `test-campaign` only. Measured — vendored `plugin.json` says `0.5.0`, the cache the gates actually ran says `0.9.2`, and `plugins/test-campaign` is **8.9 MB** against `.claude/plugins/fledgeling-plugins`'s **546 MB**. 0.5.0 has five scripts and none the campaign depends on (`vacuity-check.py`, `capture-lineage.py`, `effect-witness`, `blindVocabulary` all absent), so a fresh clone following the documented `--init --recursive` reproduces none of the campaign's numbers while `LEDGER.md` claims it can. **The docket predates the second cost**: populating the submodule in a worktree breaks every runner sent into it, which cost three launches on 2026-08-22 and is now a dispatch hazard row above — so the vendoring claim describes something this fleet deliberately avoids. Rejected and recorded: bumping the whole submodule keeps 546 MB and the hazard; dropping the claim costs reproducibility outright. Acceptance requires the cache fallback be **disproved** by renaming it away, because a path that silently falls back is this item's own defect class. **X7 and X8 do not close** — vendoring makes them editable here for the first time, and an edit that never reaches upstream is a fork rather than a fix. **Verified 2026-08-22 (1st); verdict Needs More Work — gap-fix queued (`G5-gapfix.md`), documentary only, no change to the vendored tree, pin or gates.** Oracle rung **metamorphic**: the load-bearing claim was flipped by a controlled single-property mutation rather than re-run. **Confirmed and stronger than reported** — `effect-witness` appears **0×** in 0.5.0's `strict-check.py` and 2× in 0.9.2's, `EFFECT_RUNGS` lacks the rung, and relabelling the registry's four armed `effect-witness` cases to `outcome` **in a temp copy** makes 0.5.0 read 62. So the gap is the rung entire, 58 is exactly what `strict-ratchet.json` records, and a fresh clone prints the recorded figure and the word `held.` — **a false confirmation**. The **deny-instead-of-rename** substitution is judged better than what was asked: a deny fails every read of the subtree where a rename only moves the name, and its one scope gap is closed because the clone's submodule is uninitialised and all four scripts import stdlib only. **Gate parity is byte-identical stdout AND stderr**, the pin verified byte-for-byte against what GitHub returns, zero files changed under `planning/test-campaign/` after ~15 gate runs, and carrying the assets whole is what makes the tree-SHA identity possible. **The block: the attribution is inverted for the figure the item turns on.** `G5.md` calls the 58→62 rise *the registry moving, not the instrument*; the 2×2 says every version through **0.9.1 reads 58 on today's registry** while 0.9.2/0.9.3/0.9.4 read 62, and `RUN-2026-08-20.md:589` records 58 of 76 from a sitting headed **0.9.1** with `cases.json` unchanged since — so the entire +4 is the **instrument**. The lineage half stands as the registry (`capture-lineage.py` is byte-identical 0.9.1↔0.9.2). **Consequence the documents do not carry: 0.9.1 reads 58 too**, so the trap is not 0.5.0-only and the vendored pin does **not** reproduce the campaign's recorded strict figure — the recorded one is pre-0.9.2. Vendoring 0.9.2 stays right (0.9.1 plus the campaign's own DEF-048 fix; 8 lines in `strict-check.py`, 80 in `vacuity-check.py`, three scripts byte-identical). **For the owner: 92% of the vendored 8.9 MB is imagery** — `assets/` 8.2 MB against `skills/` 456 KB — and the verifier's judgement, accepted, is that the ratio does not change the call. **Gap-fix delivered 2026-08-22 and in verification, documents only — the vendored tree, the pin and every gate untouched.** The 2×2 is re-derived and stated: **0.9.1 reads 58 of 76 on today's registry, 0.9.2/0.9.3/0.9.4 read 62**, `capture-lineage.py` byte-identical 0.9.1↔0.9.2 judging 16 in both, the four `effect-witness` cases CASE-0145-0148 all armed and passing. So the strict rise is the **instrument** and the lineage rise is the **registry**, both halves of the strict case are necessary, and **0.9.1 reads 58 too** — the trap is not the submodule pin's alone and the vendored 0.9.2 does not reproduce the recorded strict figure. Gates green: lint **0 over 535**, reconciler **0 across A–L**, `parity-manifest-check.sh` exit 0 over **92 rows**; two moved denominators each isolated rather than explained away. **The sweep took two failing runs to get honest, and the second is filed as G4's seventeenth instance**: its wrap control was quoted unwrapped inside the document it guarded, so `grep -Fc` found the quotation and the control collapsed silently. All three controls are now proved two ways — `grep -Fc` 0, sweep 1. **Open and not this item's**: `strict-ratchet.json` still holds 58 and should read 62; recorded in all three documents rather than edited, because `planning/test-campaign/` belongs to another session. **Verified 2026-08-22 (2nd); verdict Needs More Work — gap-fix 2 queued (`G5-gapfix-2.md`), documents only, no gate re-run needed.** **Oracle rung metamorphic**: the verifier re-executed **seven versions of the instrument against two registry snapshots**, extracting scripts with `git archive` at each version-bump commit, and moved single properties to see the denominators and controls respond. **The block is closed and independently reproduced**, the controls armed both ways (`grep -Fc` 0 in the file each guards, normalised match 1, and mutating two phrases made them print `FAIL`), and **zero files changed under `planning/test-campaign/`**. **BL-1: `planning/progress/G5-gapfix.md` is deleted from the working tree** — the commit holds it, the rows point at it, and it is not on disk; the swiftformat move-aside that isolated the 284→285 skip count never moved back, so every gate afterwards ran on a tree missing the item's own record. Filed as G4's **twentieth** instance: a measurement technique with a side effect on its subject that nothing checked was undone. **BL-2**: the backtick paragraph's `main` clause is wrong — the parity argument stands on `64e1631` alone and `main` reads **1128**. **BL-3**: the hazard row's *the cache's 0.9.1* reads as present tense about a cache that today holds **0.9.6** and reads 62. Registered not fixed: `D-g5-a` (the sweep's ABSENT half was never repository surface — the withdrawn claims were checked over four hand-listed files, and the verifier's own corpus check over **1366 tracked files** found nothing leaked, *which was luck confirmed afterwards rather than coverage*), `D-g5-b` (the fixed point is **per-file, not general** — W1 is quoted unwrapped at `G5-gapfix.md:84` and a corpus-wide sweep would collapse on it), `D-g5-c` (`strict-ratchet.json` still 58, should be 62). |
+| G6 | Evidence kept in `/tmp` is not evidence | harness | — | — | — | **Untriaged** | — | Filed 2026-08-23. A sweep proving a guard is armed lived in `/tmp` and did not survive the crash, while R17's equivalent is committed at `planning/claim-sweep.py` and did. An accepted verdict and a live verifier both rest on files that are gone. See the LEDGER row. |
+| G7 | A citation that does not resolve where it is read | harness | — | — | — | **Untriaged** | — | Split out of `G6` 2026-08-23 on `G6`'s own coupling test: neither fix displaces or helps the other, so they are orthogonal rather than nested. See the LEDGER row. |
+| G8 | A question answered at the wrong scope returns a clean answer | harness | — | — | — | **Untriaged** | — | Filed 2026-08-23 beside `G7`. Three occurrences in one evening, plus a fourth by a line-anchored grep. **M16's reduction is the positive form and belongs in `mock_fidelity.py`'s header**, where it retires the three-way merge hazard rather than answering it once. |
 | M23 | The mock-to-SwiftUI conversion contract | mac | — | `design/mcp-router-console.html` | Opus | **Merged** `6d54ce2` | `ai/m23` `3e0b6b8` | **Merged 2026-08-21 at `6d54ce2`.** **Verified 2026-08-21 at `effect-witness`; verdict DONE.** No blocking findings, after eight bounces. Every load-bearing assertion is a live-process measurement rather than a reading: two full suite runs under the verifier's own `sitecustomize.py`, a `sys.settrace` line-trace of both emission sites with caller chains off live frames, a real `python3 -` process whose `argv[0]` and `ps` line were read directly, gate A driven end to end against the real MEASURE build, and `make test` run three times with the failing suite isolated three times. **The trace was rebuilt from `git archive` at `9bb2a2e` and every figure reproduces exactly**: 145 processes, 52 engine runs, 10 with `--report`, 8 emissions at 5 and 3, R1 at zero. **And `53` turns out to be recoverable** — it is the count of processes whose command line *mentions* the engine: the 52 runs plus case 46's heredoc reader. The row says *not recoverable* and then names case 46 as the one thing that would produce it, and the trace shows that thing produces precisely 53 — **so the row is honest and now under-claims rather than over-claims**. `D-m23-bk`'s revision sweep holds over all twelve blobs; `D-m23-bm` is exact, and the fifth statement in the earlier count was the `ExceptHandler`, which is not an `ast.stmt`. Gates: selftest 0 twice at 68, lint 0 over 521 files, gate A exit 1 at 132 with the ledger and all four dumps sha256-identical **to a baseline taken before anything ran**, gate B exit 3, reconciler 0 across A-K over 206 register rows. `make test` green on 2 of 3 with the one failure at `OAuthWireTests.swift:263` at 0.0% idle, and the suite alone passing 3/3 at equal or worse contention — the discrimination confirmed. **The machine was pathological: load 1009 with 648 runnable on 16 cores, and a three-line bash stub unscheduled for over three minutes.** **The merge was resolved against the standing union rule, with a reason**: both conflicts were the same M23 row diverging, so a literal union would have put two M23 rows in each table and tripped checks H and K; main's newer row was taken. **Why Done rather than another cycle** — the verifier found one genuinely false sentence (`D-m23-bn`) and did not block, drawing the distinction exactly: gap-fix 8 set three criteria and all three are met and independently re-measured, where the eighth verification's block was an **acceptance failure** — four sites asked for, three delivered. This is a rebuttal sentence whose substantive point is correct and on which no figure rests, *which is what the register exists to carry*. Follow-ups `D-m23-bn`...`D-m23-bq`, including **`D-m23-bq`: `swift test --filter` reports a zero-match filter as a pass** — `make test` guards exactly that and a direct `--filter` does not, so a verifier doing contention discrimination can record three green isolation runs that executed no test. G4's class, met in the verification path rather than the product. |
 | R10 | `index` prints two counts that disagree, and neither is checked | router | R9 ✓ | — | Opus | **Merged** `8241e0f` | `ai/r10` `f810870` | **Verified 2026-08-21 at `effect-witness`.** The verifier ran the rebuilt CLI as a separate process against a real `0o500` home and asserted the kernel's refusal from outside the product — `manifest.json` genuinely absent, the refusal in the router's own log — rather than that stdout stopped saying `ok`. 8 gates; two arms red (restoring `try? ManifestIO.save` and adding an `exit(1)` both turn the suite red, so the fix and the held exit-code contract are each pinned). codex failed twice for harness reasons — once *Not inside a trusted directory*, once an 880s SIGALRM with an empty `-o` — **logged as lane-down and substituted with agy/gemini-3.7-flash-high**, which found no blocking defect. Three follow-ups `D-r10-a`…`D-r10-c`. Two bundle claims refuted. |
 | R14 | A client's Authenticate action succeeds, and says which upstreams still need authorising | router | — | — | Opus | **Merged** `2481e05` | `ai/r14` `0ecf7b4` | **Merged 2026-08-21 at `2481e05`, on the owner's decision.** **Verified 2026-08-21 at `raster-visual`; verdict Done.** The load-bearing security and behaviour assertions sat at **`effect-witness`** — raw-socket reads of the 302's terminating chunk, `stat` on the issuer key, and real process kill and restart to prove token survival. **The symptom is fixed**, driven independently against built instances of **both** routers on spare ports under `MCP_ROUTER_HOME` sandboxes: discovery 200 plus the RFC 9728 suffixed form, `POST /register` **201 and idempotent**, `/authorize` 200 with `X-Frame-Options: DENY` and `frame-ancestors 'none'`, `/token` 200, code replay refused, refresh validated, garbage refresh refused. `/mcp` returned 200 bare, with a valid bearer, with a garbage bearer and with an empty header — **`401` appears nowhere in either implementation**. **The four-state report's discriminator was proved on the verifier's own fixtures rather than trusted**: on a synthetic set `auth.authorized` read `true` for 3 of 5 silent upstreams **and `false` for 3 of 8 healthy ones**, so it fails in both directions — and the page ignored it, giving `mobbin` *not an authorisation problem* with **no command box**, confirmed in the raster. **The bypass is closed and the class is clean**: consent ticket as code, ticket as refresh, access as refresh, refresh as code, `client_id` as code and access token as `client_id` are all refused on both routers. Also verified on both: `Origin: null` and cross-origin refused on all three POST routes, `/register` 415 unless `application/json`, loopback-only `redirect_uri` at registration *and* authorize with userinfo and suffix tricks refused, PKCE S256 mandatory, 64 KB cap, issuer key 0600 in a 0700 dir, tokens and `client_id` surviving a real restart. **The Swift 302 genuinely completes** — chunked with the terminating zero-length chunk, read off a raw socket, identical to the reference. Gates: `swift test` 1595/199 exit 0 with both new suites executed, `parity-authserver.sh` **94 checks 0 failed**, `parity-manifest-check` 0 at 92 rows, `make lint` 0. **Blocking for the merge, not for these items**: `parity-gate.sh` exits 1 on one row, `control / POST /servers/:name/auth`, which R14 cannot have caused — it changed **no file** under `Control/` — and which the verifier measured as a coin flip, **5 green and 4 red over nine runs of the identical binary**, uncorrelated with the gate wrapper. Registered `D-r14-f`. **The runner's lint claim is half right**: four steps not six is correct, but `D-r7-af` stands — the only mentions of `node_modules` and `dist` in the lint configuration are *exclusions*, so no step reads either path and `lint: tools` is a genuine false dependency; the runner answered *is lint blocked* while `D-r7-af` asked *does lint need node*. **The R7 refusal was right** and is not a gap. Lanes: gemini attacked from a malicious page's position and found **no working attack**, naming the stopping control for each of seven vectors and matching the verifier's own results independently; grok exited 0 after ~30 minutes with 303 bytes of preamble and no findings, reported as not delivered rather than retried. **Disclosed by the verifier**: running the CLI without `MCP_ROUTER_HOME` read the owner's live config and minted `~/.claude/mcp-router/auth/issuer.key` before dying on `EADDRINUSE`; it created exactly that one file, removed it, and the orchestrator independently confirmed the directory is intact — key absent, `mobbin.json` and `control.token` unchanged. Follow-ups `D-r14-a`...`D-r14-g`. |

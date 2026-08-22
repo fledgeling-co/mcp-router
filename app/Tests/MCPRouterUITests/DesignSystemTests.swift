@@ -29,8 +29,18 @@ struct IconTests {
     func inventoryMatchesTheSprite() {
         let spriteSymbols = 21
         let drawnReplacementsForUnicode = 1 // frost, replacing the prototype's ❄
-        #expect(Icon.allCases.count == spriteSymbols + drawnReplacementsForUnicode)
+        // M16: the console mock's sprite carries `#i-arrow-r` and the prototype's twenty-one did
+        // not. The Signal Path reads left to right and the arrow is what says so, so it arrives
+        // with the surface that draws it rather than on its own. Spelled as a third summand for
+        // the reason the second one is: a bare `== 23` could not tell this apart from a symbol
+        // that appeared without a reason.
+        let consoleMockAdditions = 1 // flow, the rail's arrow
+        #expect(
+            Icon.allCases.count
+                == spriteSymbols + drawnReplacementsForUnicode + consoleMockAdditions
+        )
         #expect(Icon.allCases.contains(.frost))
+        #expect(Icon.allCases.contains(.flow))
     }
 
     @Test("every system icon resolves to a symbol that actually draws")
@@ -305,8 +315,18 @@ struct SurfaceStateTests {
     @Test("the loading skeleton and the populated row share one height")
     func skeletonMatchesTheRealRow() {
         #expect(MetricToken.serversRow.leadingScalar == 56)
-        // And the row is tall enough to carry the breaker it exists to carry.
-        #expect(MetricToken.serversRow.leadingScalar >= BreakerGeometry.standard.housingHeight)
+        // And the row is tall enough to carry what it exists to carry.
+        //
+        // **The floor moved with the signature.** It was the breaker's 48pt housing until M16
+        // retired the lever; a row leading with an 8pt plug would clear that trivially, so keeping
+        // it would have left an assertion that reads like a constraint and cannot fail. What sets
+        // the height now is the two-line name block, which is the thing the loading skeleton has to
+        // reproduce exactly or the board jumps when the data lands.
+        #expect(
+            MetricToken.serversRow.leadingScalar
+                >= TypeToken.body.lineHeight + TypeToken.caption.lineHeight
+        )
+        #expect(MetricToken.serversRow.leadingScalar >= SignalPathGeometry.standard.rowPlugDiameter)
     }
 
     @Test("the overflow name is long enough to actually truncate")
@@ -357,7 +377,7 @@ struct DesignGalleryTests {
         let identifiers = DesignGallery.Section.allCases.map(DesignGallery.identifier(for:))
         #expect(Set(identifiers).count == DesignGallery.Section.allCases.count)
         #expect(identifiers.allSatisfy { $0.hasPrefix("gallery-section-") })
-        #expect(identifiers.contains("gallery-section-breaker"))
+        #expect(identifiers.contains("gallery-section-signal path"))
         // Distinct from the root, or a grep for one would match the other.
         #expect(!identifiers.contains(DesignGallery.galleryIdentifier))
     }

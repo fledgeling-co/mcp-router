@@ -23,6 +23,15 @@
         static var rowPadding: Double { MetricToken.selectionRadius.leadingScalar }
         static var panePadding: Double { MetricToken.selectionRadius.leadingScalar * 2 }
 
+        /// The leading slot the row's state mark sits in, and the gutter the column headers leave
+        /// for it. Read by both, so the header and the cells move together.
+        ///
+        /// It was `BreakerGeometry.standard.housingWidth` — 30pt of lever — until M16 retired the
+        /// breaker column. The plug's own footprint replaces it, so the table's columns move left by
+        /// the difference. That shift is the visible consequence of the retirement rather than an
+        /// incidental one.
+        static var indicatorColumn: Double { SignalPathGeometry.standard.rowPlugDiameter }
+
         static var nameColumn: Double { unit * 7 }
         static var transportColumn: Double { unit * 3 }
         static var toolsColumn: Double { unit * 2 }

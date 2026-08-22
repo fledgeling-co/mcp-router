@@ -286,6 +286,11 @@
             "app/Sources/MCPRouterUI/Boards/InboxReviewSheet.swift",
             "app/Sources/MCPRouterUI/Boards/PairingSheet.swift",
             "app/Sources/MCPRouterUI/Boards/PairingSessionModel.swift",
+            // M16's Signal Path — the signature element, enrolled in the boundary gates in the
+            // same commit that created the files, because a board file nobody listed is a board
+            // file every source-level gate is blind to. That is the escape the pin below is about.
+            "app/Sources/MCPRouterUI/Boards/SignalPath.swift",
+            "app/Sources/MCPRouterUI/Boards/Jack.swift",
             "app/Sources/MCPRouterUI/Boards/ServersBoard.swift",
             "app/Sources/MCPRouterUI/Boards/ServersBoardRow.swift",
             "app/Sources/MCPRouterUI/Boards/ServersBoardTable.swift",

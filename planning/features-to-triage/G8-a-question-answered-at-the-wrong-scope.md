@@ -108,6 +108,15 @@ and nobody had run it. Harmless in the event — the only node carrying `callout
 `unreadable-note`, error frame only, and it is already paired, so the quota rule has nothing to
 reclassify — but non-empty, and it was reported as empty.
 
+**The full measurement, recorded here because both other authors' sessions have ended and it
+otherwise survives only in `planning/fidelity/harnesses.layers.json` and `planning/progress/M22.md`.**
+The `m19+m16` union adds **ten** roles to `MOCK_KINDS_FOR_ROLE`: `badge`, `callout`, `codeblock`,
+`heading`, `jack`, `list-item`, `sentence`, `signature`, `tab`, `verified-mark`. The single
+intersecting node on M22's surface is `harnesses.error.json`, role `callout`, kind `text`, id
+**`unreadable-note`** — error frame only, and paired, so the quota rule has nothing to
+reclassify. **Harmless for a reason about M22's pairing coverage, not because the merge is
+inert.**
+
 M22 was left out because it has **zero diff** on `mock_fidelity.py`, which was taken for having
 no stake. **M16's own rule says why that is wrong**: the quota rule keys on the **build node's
 role**, not on the edit. A branch that never touches the table can still be reclassified by

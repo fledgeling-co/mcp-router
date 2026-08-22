@@ -166,6 +166,21 @@ than barriering on whole waves, so the real overlap is greater than the table im
 > when this session began. Do not `git add -A` here — that mistake has already swept a third
 > session's work into a commit twice in this repo.
 
+### OWNER DECISION 2026-08-23 — `PARITY_CUTOVER_TARGET` STAYS AT 82
+
+The census now derives ~91 on `main` (92 rows less the standing exclusion) and 93 on M22's
+branch. **The owner has held the target at the number they set on 2026-08-16.** The derived
+figure stays a **reported drift**, which is what `parity-gate.sh` already does — it prints both
+and alters no exit code, because a drift there *is a claim that needs an owner, not a measurement
+this run can settle*.
+
+Consequences to carry:
+
+- **The cutover bar is met.** `surface.tsv` reads **87 proven** against a target of **82**. Nobody
+  should write 93 as the bar, and no runner resolves the drift on its own.
+- **That does not by itself unhold `R4-C2`.** Its recorded hold is *owner: not on a green streak*,
+  which is a second condition and a separate decision.
+
 ### SPEC — `spec-M22.md` §3.3 MISDESCRIBES `HarnessState`, AND THE ROUTE WOULD INHERIT IT
 
 Found by M16, verified against source 2026-08-23. `HarnessReconciliation.swift` declares **four**

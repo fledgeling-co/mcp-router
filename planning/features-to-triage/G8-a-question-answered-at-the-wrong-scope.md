@@ -91,3 +91,48 @@ introduce a role I use.* Runnable before any merge, no judgement.
   merge hazard rather than answering it once.
 - Decide whether the presence-control rule earns a gate. Every absence-sweeping script in this
   repo already carries controls; nothing checks that a new one does.
+
+## A sixth, in the rule this item is carrying — and the rule invites it
+
+Measured 2026-08-23 after M22 found the gap. Three branches make **three pairs**; one pair was
+checked in both directions and the hazard reported closed.
+
+| surface | build roles | frames | intersection with what the merge adds |
+|---|---|---|---|
+| M16 servers | 39 | 4 | `jack`, `signature` — its own |
+| M19 readme | 21 | **1** | 8 roles — its own |
+| M22 harnesses | 42 | 4 | **`callout`** — M19's |
+
+M16 is clear of M19's roles and M19 of M16's, as both runs said. **M22 is not clear of M19's**,
+and nobody had run it. Harmless in the event — the only node carrying `callout` is
+`unreadable-note`, error frame only, and it is already paired, so the quota rule has nothing to
+reclassify — but non-empty, and it was reported as empty.
+
+M22 was left out because it has **zero diff** on `mock_fidelity.py`, which was taken for having
+no stake. **M16's own rule says why that is wrong**: the quota rule keys on the **build node's
+role**, not on the edit. A branch that never touches the table can still be reclassified by
+another branch's addition.
+
+> **Zero diff means no conflict. It does not mean no exposure.**
+
+That sentence must travel **with** the rule when this item lands it in `mock_fidelity.py`'s
+header, because the rule as stated — *does the other branch introduce a role my surface uses* —
+reads as addressed to branches that edit the table, and invites exactly this omission. M22's
+phrasing is the one to keep: **"came back empty" was M16's surface, not a property of the merge.
+The check is per-surface, and must be run once per surface, including surfaces that edited
+nothing.**
+
+## What this item owes `planning/claim-sweep.py`
+
+Routed here 2026-08-23 on the same reasoning that kept M16's rule out of the header: it is not
+M16's file and `ai/m16` is finished.
+
+M16's sizing note is the requirement, and it is sharper than the count finding above:
+
+> The useful output is the **normaliser's identity AND the sites**, not just the count — because
+> a bare count is what let two parties report *verified* over **disjoint subsets**. Two runs that
+> both say `2` and disagree about **which 2** is the failure we actually hit, and a count alone
+> cannot show it.
+
+The phrase-count record stands at **five sweeps, four answers, one phrase, one file**, and only
+the widest normaliser was complete.

@@ -79,6 +79,27 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+
+## A fourteenth instance — the parity gate's coverage-by-group block, found by R19 in passing
+
+`parity-gate.sh`'s coverage summary is named for *coverage by group*. It walked a **hardcoded list
+of nine group names**, so it reported coverage for the nine somebody typed and silently omitted any
+group added afterwards.
+
+It was already omitting one when R19 found it: `authserver`'s **eight rows** had never appeared in
+the summary. R19's own new `overlap` group would have been the second. The runner replaced the list
+with every group it finds, which is the right fix.
+
+Same shape as the thirteenth, and worth pairing with it: `no-raw-design-values.sh` reads the
+directories currently listed in `GEOMETRY_DIRS`, and this read the groups currently listed in a
+literal. **In both cases the summary is honest about what it looked at and silent about what it did
+not, and in both cases the omission is invisible unless you already know the missing name.** Eight
+rows of a security-adjacent group went unreported for as long as that list was stale.
+
+The general remedy is the same one the thirteenth wants: **derive the denominator from the data,
+never from a literal beside it.** A hardcoded list of what to summarise is a denominator that stops
+tracking its numerator the first time somebody adds a row.
+
 ## The method note that came out of fixing the eleventh, and it generalises
 
 G4's gap-fix rebuilt the absence sweep three times before it was right, and **neither wrong

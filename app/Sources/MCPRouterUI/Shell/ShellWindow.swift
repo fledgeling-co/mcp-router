@@ -214,8 +214,6 @@
                 ServersBoard(shell: model, board: model.serversBoard)
             case .skills:
                 SkillsBoard(shell: model, board: model.skillsBoard)
-            case .settings:
-                SettingsBoard(shell: model)
             case .discover:
                 DiscoverBoard(board: model.discoverBoard)
             case .evals:

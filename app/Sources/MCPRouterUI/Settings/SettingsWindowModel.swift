@@ -2,17 +2,24 @@
     import MCPRouterKit
     import SwiftUI
 
-    /// The Settings pane's own state, which is only ever the control token.
+    /// The Settings window's own state, which is only ever the control token.
     ///
-    /// Everything else the pane draws comes from the shell's poll. This owns the one fact the router
-    /// does not serve — whether this Mac has a token stored — and the one action the pane performs.
+    /// Everything else the window draws comes from the shell's poll. This owns the one fact the
+    /// router does not serve — whether this Mac has a token stored — and the one action the Security
+    /// pane performs.
+    ///
+    /// **One instance per window, and a `Settings` scene destroys its window on close**, so `load()`
+    /// re-reads the keychain on every `⌘,`. That was the Settings board's behaviour too — it built
+    /// its model in `init` and `ContentZone` rebuilt it on every destination switch — so it is not a
+    /// regression, and it is one `SecItemCopyMatching`. Recorded because it stops being cheap the
+    /// moment a pane adds a second read.
     ///
     /// The store is **injected**, so no test touches the real Keychain and the token clauses can run
     /// against `InMemoryTokenStore`. A model that constructed `KeychainTokenStore()` itself would
     /// make every test that exercises this pane prompt the developer's login keychain.
     @MainActor
     @Observable
-    final class SettingsBoardModel {
+    final class SettingsWindowModel {
         @ObservationIgnored private let store: any ControlTokenStore
         @ObservationIgnored private let file: RouterTokenFile
 

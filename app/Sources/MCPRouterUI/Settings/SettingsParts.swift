@@ -5,31 +5,64 @@
     /// A titled group of settings. Sentence case, secondary colour, no case transform anywhere —
     /// `DESIGN.md` §3.2 says the fix for a tracked upper-case header is to remove it, not to
     /// re-track it, so the label is stored the way it is drawn.
+    ///
+    /// **It takes the title as a string now, and that is the whole of the change from the board's
+    /// version.** It used to take `SettingsPresentation.Group`, a four-case enum that was the board's
+    /// complete inventory of groups; a window of seven panes has no such closed set, and the headers
+    /// it does carry are named on `SettingsPaneCopy` beside the rest of each pane's copy. The enum
+    /// went with its last caller.
     struct SettingsGroup<Content: View>: View {
-        let group: SettingsPresentation.Group
+        let title: String
         @ViewBuilder let content: Content
 
-        init(_ group: SettingsPresentation.Group, @ViewBuilder content: () -> Content) {
-            self.group = group
+        init(_ title: String, @ViewBuilder content: () -> Content) {
+            self.title = title
             self.content = content()
         }
 
         var body: some View {
             VStack(alignment: .leading, spacing: SettingsMetrics.tightGap) {
-                Text(group.rawValue)
+                // **`.measured` sits inside the padding, not outside it**, and the order is
+                // load-bearing rather than stylistic. Measured the other way round, this node's
+                // frame included the 4pt bottom gap and the type-metrics layer read an 11pt
+                // Subheadline as 18pt — taller than the 12pt Callout beside it, which is exactly
+                // what a substituted type role looks like to that layer. The instrument was
+                // reporting the padding as type.
+                Text(title)
                     .typeRole(.subheadline)
                     .foregroundStyle(ColorToken.t3.color)
+                    .measured(
+                        "group-title", role: "group-title", kind: .text,
+                        tokens: ["foreground": .t3], type: .subheadline, text: title
+                    )
                     .padding(.bottom, SettingsMetrics.tightGap)
                 content
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .contain)
-            .accessibilityLabel(group.rawValue)
+            .accessibilityLabel(title)
+            .measured(Self.nodeID(for: title), role: "settings-group", kind: .vstack, alignment: "leading")
+        }
+
+        /// A node id derived from the header, so two groups on one pane are two nodes in the dump.
+        ///
+        /// A fixed `"group"` collapsed them: `MeasureTree.assemble` keeps the first record for a
+        /// repeated path, so the Router card, its help sentence and the Warm set card all landed
+        /// under one node and the Router group's own header vanished from the tree. A dump that
+        /// quietly loses a subtree is the shape of failure the whole harness is written against, so
+        /// the id follows the one thing that is already unique per pane.
+        static func nodeID(for title: String) -> String {
+            "group-" + title.lowercased().split(separator: " ").joined(separator: "-")
         }
     }
 
     /// An inset card. Concentric corners: the child radius is the parent's less its padding (§2).
     struct SettingsCard<Content: View>: View {
+        /// Unique among this card's siblings, so two cards in one pane are two nodes in the dump
+        /// rather than one that overwrote the other. `index_nodes` refuses a tree in which a path
+        /// names more than one node, so an unnamed second card is an inconclusive run, not a quiet
+        /// one.
+        var id = "card"
         @ViewBuilder let content: Content
 
         var body: some View {
@@ -43,6 +76,7 @@
                     RoundedRectangle(cornerRadius: SettingsMetrics.cardRadius, style: .continuous)
                         .strokeBorder(ColorToken.line.color, lineWidth: SettingsMetrics.hairline)
                 )
+                .measured(id, role: "table", kind: .vstack, tokens: ["background": .panel])
         }
     }
 
@@ -85,6 +119,39 @@
                 }
             }
             .frame(minHeight: SettingsMetrics.rowHeight)
+            .measured(
+                "row-\(label)", role: "table-row", kind: .hstack,
+                type: .body, text: label
+            )
+        }
+    }
+
+    /// A helper sentence under a card: what governs the values above, or where they are set.
+    ///
+    /// Was a private `helper(_:)` on the Settings board; it is a view now because seven panes draw
+    /// it and a function copied into each of them is seven places for the type role to drift.
+    struct SettingsHelp: View {
+        let text: String
+        /// Unique among this pane's siblings, for the reason `SettingsCard`'s is.
+        var id = "help"
+
+        init(_ text: String, id: String = "help") {
+            self.text = text
+            self.id = id
+        }
+
+        var body: some View {
+            // Inside the padding, for the reason `SettingsGroup`'s header records: a measured frame
+            // that includes a gap is a type reading of the gap.
+            Text(text)
+                .typeRole(.subheadline)
+                .foregroundStyle(ColorToken.t3.color)
+                .fixedSize(horizontal: false, vertical: true)
+                .measured(
+                    id, role: "state-detail", kind: .text,
+                    tokens: ["foreground": .t3], type: .subheadline, text: text
+                )
+                .padding(.top, SettingsMetrics.tightGap)
         }
     }
 

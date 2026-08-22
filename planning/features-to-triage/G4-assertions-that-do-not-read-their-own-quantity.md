@@ -73,6 +73,336 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 `mean` and discarding the samples. None of it is available before that. This bears directly on
 `G3`, whose subject is the only wall-clock assertion in this suite.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+## A twentieth — the measurement technique that removed its own record
+
+G5's gap-fix moved `planning/progress/G5-gapfix.md` out of the tree to isolate whether that one
+file explained a `swiftformat` skip count moving 284 → 285. **That is good practice**, and the
+isolation is why the figure is trustworthy.
+
+**It never moved back.** `git status` shows the file deleted; the commit holds it, the working tree
+does not, and both `ORCHESTRATOR.md` and `LEDGER.md` point a reader at a path that is not on disk.
+Every gate the item ran afterwards ran on a tree missing its own record, and the item's sweep
+crashes on it.
+
+The shape is the table's, one turn further round: **an instrument that perturbs its subject to
+measure it, and does not restore the subject.** The reading it bought is correct — 285 is right, and
+it is right *because* of the move — and the cost was the artifact the reading was written into.
+
+Distinct from every other instance here, because nothing was misread and no number is wrong. The
+defect is that **the measurement had a side effect on the thing being measured, and no step checked
+the side effect had been undone.** A mutation arm in this repository is required to restore what it
+mutated and prove it with `git diff --quiet`; a move-aside for a denominator is the same operation
+and carries no such rule.
+
+Cheap remedy, and it is the mutation discipline extended one category: **any perturbation of the
+tree, for a measurement rather than for a change, ends with `git status` clean and that fact
+stated.** M21's arms already do this — nine mutations, each restored with `git checkout --` and
+confirmed by `git diff --quiet`. The gap is that a file move for a count was never thought of as a
+mutation.
+
+## A nineteenth — a guard whose comment claims more than its instrument can see
+
+M15 built a regression guard for the duplicate `Settings…` it found by hand, replacing a matcher
+with a counter. Its verifier armed the **chord half** separately, by re-chording `Add server…` to
+`,`:
+
+> AppKit **strips the chord from the loser**. The run read *"the 35 chords read are on one item each
+> (24 item(s) carry no command character)"* against a 36/23 baseline — so **A19b saw nothing.**
+
+`A20` caught it instead, so the gate is not blind. But A19b's comment claims it catches *"two
+commands claiming one chord, `⌘,` on `Settings…` and on anything else"*, and `AXMenuItemCmdChar`
+cannot observe that: by the time the tree is read, the collision has already been resolved and only
+one item still carries the chord. **On identical duplicates the chord line fires as a consequence
+of the duplicate rather than as a detection of the collision**, which is what the runner's own paste
+showed and what nobody read it as.
+
+This is the table's shape with the two halves cleanly separated: the guard **works**, and its
+**description of what it proves** is wider than what it reads. That distinction matters because the
+next person to extend the guard will trust the comment, not the paste — and will build on a
+capability the instrument does not have.
+
+The remedy here is not code. It is that **a guard's comment is an assertion about the instrument,
+and it should be armed like one**: the arming that revealed this took one re-chording and produced
+a number that disagreed with the comment on sight.
+
+## An eighteenth — a cross-file citation that goes stale in the direction its subject moved
+
+Flagged by G4's gap-fix 2 while repointing a sentence, and correctly left alone as out of scope:
+
+`planning/progress/G4.md:151` cites `G4-gapfix.md` §6 as the proof that the reconciler at `72958de`
+gives the check-E finding against the same tree. **§6 now records that finding not reproducing**,
+because `ai/g5` committed and stopped being an ancestor of `main`.
+
+So the citation is named for *what §6 proves* and reads *what §6 proved when the sentence was
+written*. Same shape as the fifteenth — a record citing content that does not say what the citation
+claims — but arrived at without anybody writing a placeholder: **§6 was rewritten truthfully, and
+that is what broke the sentence pointing at it.**
+
+Two things follow that are worth more than the instance. **A citation to a section is a claim about
+that section's contents, and nothing checks it** — not the accounting contract, which reads Python
+readers, and not the null-run gate, which reads assertions. And **the direction matters**: this one
+went stale because its subject was *corrected*, so the more diligent the item, the more of these it
+creates. An item that fixes a claim in one place and leaves three citations pointing at the old
+reading has made the record worse in the way this table exists to catch.
+
+Cheap partial remedy, in the same family as the presence control: a citation naming a section should
+quote the phrase it relies on, so a sweep can find the quotation when the section changes. A bare
+`§6` is unfalsifiable; `§6's "the reconciler exits 1"` is a claim a grep can break.
+
+## A seventeenth — the control itself becoming a corpus hit, found by G5's gap-fix
+
+R17's gap-fix 4 established that **a report echoing what it matched becomes a corpus hit**. G5's
+gap-fix hit the same shape one layer in, and it is worse because it defeats the thing that catches
+the first:
+
+> its wrap control was **quoted, unwrapped, in the very document it guarded**, so `grep -Fc` found
+> it and the control collapsed.
+
+A wrap control exists to prove the sweep can see a phrase split across a line break. Quote that
+control's text — unwrapped — inside the document being swept, and the naive matcher finds the
+quotation instead of the wrapped instance. The control then passes for the wrong reason, and it
+passes *silently*, because a control that fires is indistinguishable from a control that fired on
+the wrong thing.
+
+**Two failing runs before it was honest**, and neither was caught by the sweep's own result — the
+same finding as G4's gap-fix and R17's gap-fix 3 before it. What caught it was checking the control
+**two ways**: `grep -Fc` must return **0** on each wrap control while the sweep returns **1**. A
+control asserted to work is not a control; a control shown to fail the naive matcher and pass the
+real one is.
+
+That pairing is the generalisable part and it is cheap: **every control over a text corpus needs a
+negative half, and the negative half has to be run.** Three of this table's seventeen instances
+would have been caught on their first run by it.
+
+## Two more from R17's gap-fix 4, and the second one is a technique rather than a defect
+
+**Sixteenth — a total that disagrees with the table beneath it.** R17's fourth verification reported
+*"368 gate invocations"* over a table summing to **408**: 368 is the concurrent subtotal
+(80+96+96+96) and the serial 40 sits outside it. Both figures are right about different populations,
+and neither says which. That is how the next pass inherits a wrong denominator — the same route by
+which `D-r17-d` inherited three successive rates. The row now states 408 and names what 368 counts.
+
+**And a technique worth more than the instance: a report that echoes what it matched becomes a
+corpus hit.** Run without exclusions, gap-fix 3's absence sweep reds **8 times inside gap-fix 3's
+own document**, three of them on its pasted pattern labels. So an absence sweep whose output is
+filed alongside the corpus it sweeps *creates the very hits it reports*, and every subsequent run
+disagrees with the one before it — which is exactly why that criterion's evidence never reproduced
+across three passes.
+
+The fix generalises and is checkable rather than argued. `planning/claim-sweep.py` excludes the
+records of a withdrawn claim **by name, with no counts**, which makes its output a **fixed point
+under being pasted into one of them** — verified with `cmp`. That is the property an absence sweep
+over a documented corpus needs, and it is testable in three steps: run, paste the output into an
+excluded document, run again, compare.
+
+Its own authoring surfaced the same defect one layer in: **a blockquote `>` separates two words
+exactly as a hard wrap does**, so the correction's own quotation was invisible to it until fixed.
+List markers and table pipes are named as unhandled rather than silently absent — which is the
+accounting discipline this whole item is about, applied to itself.
+
+## A fifteenth instance — this item's own progress note, and the orchestrator put it there
+
+`planning/progress/G4-gapfix.md:269` shipped as the literal string **`GATES_PLACEHOLDER`**, under a
+heading reading *"§6 · Gates, measured on this branch today"*. Acceptance criterion 5 asked for
+gates measured and **pasted**. The record pastes nothing.
+
+The heading is named for a measurement; the section contains a token saying a measurement was
+intended. And §7 then **cites §6** — *"§6 records it doing more than moving: it is now the sole
+reason `ledger-reconcile.py` exits 1"* — for a claim that measures false, since the reconciler
+exits 0.
+
+**A record citing unwritten content, in support of a claim that measures false, is the sharpest
+instance in this table.** It is also the only one where the mechanism is a person rather than a
+predicate: the runner exited mid-`make all` having said it would fill §6 in, and **the orchestrator
+committed the file without reading it.**
+
+That is worth keeping precisely because no gate could have caught it. The accounting contract reads
+Python readers; the null-run gate reads assertions. Neither reads a progress note, and a heading
+that promises a measurement is not a checkable claim. **The general shape holds anyway: a section
+named for evidence, containing a promise of evidence, cited elsewhere as though it were evidence.**
+
+The cheap remedy is the one this item already argues for in a different register — a presence
+control. A commit hook or a gate asserting that no tracked file contains a `*_PLACEHOLDER` token
+costs one grep, and would have caught it before it reached a verifier.
+
+## A fourteenth instance — the parity gate's coverage-by-group block, found by R19 in passing
+
+`parity-gate.sh`'s coverage summary is named for *coverage by group*. It walked a **hardcoded list
+of nine group names**, so it reported coverage for the nine somebody typed and silently omitted any
+group added afterwards.
+
+It was already omitting one when R19 found it: `authserver`'s **eight rows** had never appeared in
+the summary. R19's own new `overlap` group would have been the second. The runner replaced the list
+with every group it finds, which is the right fix.
+
+Same shape as the thirteenth, and worth pairing with it: `no-raw-design-values.sh` reads the
+directories currently listed in `GEOMETRY_DIRS`, and this read the groups currently listed in a
+literal. **In both cases the summary is honest about what it looked at and silent about what it did
+not, and in both cases the omission is invisible unless you already know the missing name.** Eight
+rows of a security-adjacent group went unreported for as long as that list was stale.
+
+The general remedy is the same one the thirteenth wants: **derive the denominator from the data,
+never from a literal beside it.** A hardcoded list of what to summarise is a denominator that stops
+tracking its numerator the first time somebody adds a row.
+
+## The method note that came out of fixing the eleventh, and it generalises
+
+G4's gap-fix rebuilt the absence sweep three times before it was right, and **neither wrong
+version was caught by the absence check**. Both were caught by a *control asserting the corrected
+figures are present*.
+
+- Whitespace normalisation alone still leaves `over 27 # iterations` — a comment marker inside the
+  wrapped phrase, which no amount of newline collapsing removes.
+- An unqualified `*` strip turned `**Fifteen readers` into `*Fifteen readers`, so the corrected
+  text stopped matching the pattern written to find it.
+
+The general statement is the useful part, and it is the cleanest thing this item has produced:
+**an absence check cannot detect its own blindness.** A clean result means either the claim is gone
+or the reader cannot see it, and those are indistinguishable from the inside. A *presence* control
+over the replacement text distinguishes them for free — if the corrected phrase is not found, the
+reader is broken, whatever the absence check said.
+
+That is worth carrying beyond this item. Every one of the four absence sweeps in this table
+(instances 1, 4, 5, 10) would have been caught on its first run by a presence control over the
+thing that should have been there.
+
+## A thirteenth instance — M15's arm 6b, and this one was found on purpose
+
+`no-raw-design-values.sh` is named for *no raw geometry literal survives in the design surfaces*.
+It reads *no raw geometry literal survives in the directories currently listed in `GEOMETRY_DIRS`*.
+
+M15's runner armed exactly that gap rather than stumbling into it: remove `Settings/` from
+`GEOMETRY_DIRS`, and the same literal the rule exists to catch **passes clean**, while the scanned
+count silently drops **84 → 74**. The gate prints its denominator, which is the only reason the
+drop is visible at all — and nothing asserts that the denominator did not move.
+
+This is the same shape as the ninth and twelfth, and it is the first found by somebody deliberately
+aiming at it. It is also the cheapest to close of any instance in this table: a gate that prints a
+count is one assertion away from a gate that defends it. **A scanned-file count that can fall
+without failing is a coverage figure nobody is holding.**
+
+Worth pairing with the eleventh when this item's gap-fix runs, because they are the same fix from
+opposite directions — the census measured its base with the instrument inside the tree, and this
+gate measures its subject with the tree adjustable underneath the instrument.
+
+## A twelfth instance — the reconciler's check E, found the same afternoon
+
+Check E is named *"a branch merged into main with no row in either file"*. It reads **refs that
+are ancestors of `main`, compared against whatever ledger files this particular checkout happens
+to hold**. Two independent gaps between the name and the reading, and on 2026-08-22 they fired
+together:
+
+1. **A branch with no commits is an ancestor of main**, so `git branch --merged main` lists it the
+   instant it is created. `ai/g5` was cut from `2fbe062` and had committed nothing; `git rev-parse`
+   confirms its tip *is* a main commit. Nothing merged, and E called it merged.
+2. **It mixes live repository state with branch-local file state.** The `G5` row exists on `main`
+   and in no worktree, because every worktree is on an older base. So E read a *global, current*
+   branch list against a *local, stale* ledger and reported the disagreement as a defect.
+
+Reproduced deliberately: the reconciler exits 0 from `main` and exits 1 on `E — G5 (ai/g5)` from
+`.worktrees/R17`, on the same commit of the script, at the same moment.
+
+**This is the instance with the widest blast radius, because every runner runs the reconciler from
+a worktree.** R17's gap-fix 3 runner hit it, and its diagnosis — *another session merged `ai/g5`
+into main* — was the natural reading and wrong. It then did the right thing anyway: restored
+`ORCHESTRATOR.md` to `HEAD`, re-ran, got the identical finding, and proved the edit was not the
+cause. A check whose false positive reads as *somebody else broke main* costs more than one whose
+false positive reads as noise.
+
+Direction is false-RED, so it costs attention rather than correctness — the same direction as
+`D-r17-d`, and the same underlying error as the ninth instance: **a figure read from one scope and
+named for another.** Registered as `D-g4-b`, widened from the live-count half the G4 verifier
+first found. Not fixed here: five runners are reading that file.
+
+## An eleventh instance — this item's own census, found by its own verifier
+
+The census that is this item's headline deliverable counted **the instrument into its own
+denominator**. Run the shipped detector against `git archive 72958de` with the gate placed outside
+`planning/` and `scripts/`, and the base tree reads **15 readers over 22 discarding iterations and
+34 drop sites** — not the 19/27/48 reported. Copy `reader-accounting.py` into that base tree and
+the reported column reappears exactly, which is what proves the mechanism rather than merely
+suggesting it: the four readers and fourteen drop sites the gate itself contributes were counted as
+pre-existing.
+
+*"Nineteen readers in this repository"* is commit `5a9569c`'s subject line and §1's headline. The
+quantity in its name is **readers that existed before this item**; the quantity it reads is
+**readers present when the detector ran**, which includes the detector.
+
+Unlike the ninth and tenth, this one **is** on the reachable side — and the after column caught it
+without being asked: `unresolved 67` is the verifier's measured 55 plus the 12 the three new files
+contribute, with the per-file breakdown identical across both runs for the other eighteen files.
+The accounting was sound; the *baseline* it was compared against was not.
+
+Which is the general lesson worth keeping: a before-and-after census is two measurements, and the
+gate only governs one of them. **Measure the base with the instrument outside the tree**, or the
+improvement includes the improver.
+
+## A tenth instance, found 2026-08-22 by R17's third verification
+
+An absence sweep named for *"this claim survives nowhere in the corpus"* that reads *"this claim
+survives on no single line"*. R17 gap-fix 2's criterion 3 asked for a grep proving a withdrawn
+claim was gone. The grep returned clean. The claim is still there:
+
+```
+grep -c "all four uncovered sites" planning/evidence/R17-acceptance.md   →  0
+re.findall(r'all\s+four\s+uncovered', open(path).read())                →  1
+```
+
+The file is hard-wrapped, and the wrap falls between `all four` and `uncovered sites`. Every
+line-anchored reader is blind to it, and a clean exit from one is indistinguishable from an absence.
+
+This is the sharpest instance in the table, because the assertion was **written specifically to
+catch a claim that had already survived two corrections** — and it is the fourth consecutive pass
+to block on that claim. The first three were diligence: a correction landing in some of a claim's
+homes. This one is the instrument: a sweep that could not read one of the homes at all.
+
+It also lands on this item's *unreachable* side, like the ninth. Nothing is dropped and nothing is
+vacuous — the grep read every line it was given and answered honestly about lines. The quantity in
+its name is *occurrences in the corpus* and the quantity it reads is *occurrences within a line*.
+Same shape as instances 2, 3, 7 and the `egress` one.
+
+**Cheap general remedy, worth stating because it costs nothing**: an absence assertion over prose
+normalises whitespace across newlines before matching, or reads whole files. A presence assertion
+does not need this — a hard wrap can hide a match, so it can only ever turn a true finding into a
+false clean, which is the direction that matters.
+
+## A ninth instance, found 2026-08-22, and it is the orchestrator's
+
+A dispatch brief's gate line is named for *the base this branch was cut from* and read from
+*whichever report was last in front of the author*. Four occurrences in one morning:
+
+| Stated in the brief | Measured at the base |
+|---|---|
+| `make test` 0 at **1686/210** | **1684 in 209** — the 1686 is `ai/r17`'s, and that branch is 16 commits ahead of main |
+| lint 0 over **531 files** | **530** |
+| `scripts/acceptance/no-raw-design-values.sh` | the script is `scripts/lint/no-raw-design-values.sh` |
+| `reconciler 0 across **A–L**` | the base carries **A–K**; check L landed on main afterwards |
+
+It belongs in this table because it is the same shape as everything above it and not because it
+is embarrassing: the number is *plausible*, its subject is *in its name*, and a green reading
+against it proves nothing about the base the brief actually named. Two runners hit it
+independently and both spent attention proving the orchestrator wrong — G4's own runner reported
+the two-test gap as unexplained, because the brief had told it to expect more than exists.
+
+**Neither mechanism this item builds would catch it**, which is worth saying plainly: nothing is
+dropped and nothing is vacuous. It is instance 2/3/7's kind — a real quantity read from the wrong
+place — and it lands on the wrong side of this item's own boundary. The remedy is procedural and
+sits in `ORCHESTRATOR.md` as a dispatch hazard: run the gate line against the stated base and
+paste what it returns, rather than carrying a figure across branches.
+
 ---
 
 ## Triage — 2026-08-22

@@ -158,9 +158,9 @@ export interface EntryOutcome {
  * How a row reaches disk: it applies the mutation to a manifest and returns what the mutation
  * reported.
  *
- * A function rather than a path, because the two callers that need something extra inside the
- * critical section — the watcher, which drops a failed server's row in the same locked span that
- * wrote it — can wrap the standard one instead of doing their extra work in a second window.
+ * A function rather than a path, so a caller needing something extra inside the critical section can
+ * supply it rather than doing that work in a second window. The watcher was that caller until R17
+ * kept the failure row it used to drop; its closure is now this same policy, written out.
  */
 export type ManifestCommit = (apply: (current: Manifest) => EntryOutcome) => EntryOutcome;
 

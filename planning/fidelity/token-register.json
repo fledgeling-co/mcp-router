@@ -157,8 +157,7 @@
       "swift" : "—"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--accent",
       "observed" : {
@@ -167,13 +166,16 @@
         "mock.light" : "#0088FF",
         "mock.lightOverride" : "#0088FF",
         "swift.dark" : "#0091FF",
-        "swift.light" : "#0069CF"
+        "swift.darkContrast" : "#0091FF",
+        "swift.darkOverride" : "#0091FF",
+        "swift.light" : "#0088FF",
+        "swift.lightContrast" : "#0088FF",
+        "swift.lightOverride" : "#0088FF"
       },
       "swift" : "ColorToken(--accent)"
     },
     {
-      "citation" : "M21-ink-twins",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--accent-ink",
       "observed" : {
@@ -181,13 +183,17 @@
         "mock.darkOverride" : "#0A6FD6",
         "mock.light" : "#0071E3",
         "mock.lightOverride" : "#0071E3",
-        "swift" : "absent"
+        "swift.dark" : "#0A6FD6",
+        "swift.darkContrast" : "#0A6FD6",
+        "swift.darkOverride" : "#0A6FD6",
+        "swift.light" : "#0071E3",
+        "swift.lightContrast" : "#0071E3",
+        "swift.lightOverride" : "#0071E3"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--accent-ink)"
     },
     {
-      "citation" : "M21-ink-twins",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--accent-text",
       "observed" : {
@@ -197,35 +203,47 @@
         "mock.light" : "#0060C4",
         "mock.lightContrast" : "#004E9E",
         "mock.lightOverride" : "#0060C4",
-        "swift" : "absent"
+        "swift.dark" : "#6FB6FF",
+        "swift.darkContrast" : "#9CCDFF",
+        "swift.darkOverride" : "#6FB6FF",
+        "swift.light" : "#0060C4",
+        "swift.lightContrast" : "#004E9E",
+        "swift.lightOverride" : "#0060C4"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--accent-text)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--accent-wash",
       "observed" : {
         "mock.light" : "#0071E3@0.1",
-        "swift" : "absent"
+        "swift.dark" : "#0071E3@0.1",
+        "swift.darkContrast" : "#0071E3@0.1",
+        "swift.darkOverride" : "#0071E3@0.1",
+        "swift.light" : "#0071E3@0.1",
+        "swift.lightContrast" : "#0071E3@0.1",
+        "swift.lightOverride" : "#0071E3@0.1"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--accent-wash)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--accent-wash-line",
       "observed" : {
         "mock.light" : "#0071E3@0.22",
-        "swift" : "absent"
+        "swift.dark" : "#0071E3@0.22",
+        "swift.darkContrast" : "#0071E3@0.22",
+        "swift.darkOverride" : "#0071E3@0.22",
+        "swift.light" : "#0071E3@0.22",
+        "swift.lightContrast" : "#0071E3@0.22",
+        "swift.lightOverride" : "#0071E3@0.22"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--accent-wash-line)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--attn",
       "observed" : {
@@ -234,13 +252,16 @@
         "mock.light" : "#FF8D28",
         "mock.lightOverride" : "#FF8D28",
         "swift.dark" : "#FF9230",
-        "swift.light" : "#9F5A00"
+        "swift.darkContrast" : "#FF9230",
+        "swift.darkOverride" : "#FF9230",
+        "swift.light" : "#FF8D28",
+        "swift.lightContrast" : "#FF8D28",
+        "swift.lightOverride" : "#FF8D28"
       },
       "swift" : "ColorToken(--attn)"
     },
     {
-      "citation" : "M21-ink-twins",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--attn-ink",
       "observed" : {
@@ -250,13 +271,17 @@
         "mock.light" : "#8A5000",
         "mock.lightContrast" : "#6B3E00",
         "mock.lightOverride" : "#8A5000",
-        "swift" : "absent"
+        "swift.dark" : "#FF9230",
+        "swift.darkContrast" : "#FFB566",
+        "swift.darkOverride" : "#FF9230",
+        "swift.light" : "#8A5000",
+        "swift.lightContrast" : "#6B3E00",
+        "swift.lightOverride" : "#8A5000"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--attn-ink)"
     },
     {
-      "citation" : "M21-ink-twins",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--badge-bg",
       "observed" : {
@@ -264,13 +289,17 @@
         "mock.darkOverride" : "#B85400",
         "mock.light" : "#B34700",
         "mock.lightOverride" : "#B34700",
-        "swift" : "absent"
+        "swift.dark" : "#B85400",
+        "swift.darkContrast" : "#B85400",
+        "swift.darkOverride" : "#B85400",
+        "swift.light" : "#B34700",
+        "swift.lightContrast" : "#B34700",
+        "swift.lightOverride" : "#B34700"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--badge-bg)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--chrome",
       "observed" : {
@@ -278,13 +307,17 @@
         "mock.darkOverride" : "#262629",
         "mock.light" : "#F1F1F4",
         "mock.lightOverride" : "#F1F1F4",
-        "swift" : "absent"
+        "swift.dark" : "#262629",
+        "swift.darkContrast" : "#262629",
+        "swift.darkOverride" : "#262629",
+        "swift.light" : "#F1F1F4",
+        "swift.lightContrast" : "#F1F1F4",
+        "swift.lightOverride" : "#F1F1F4"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--chrome)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--desktop",
       "observed" : {
@@ -292,13 +325,17 @@
         "mock.darkOverride" : "#2A3140",
         "mock.light" : "#8A9BB4",
         "mock.lightOverride" : "#8A9BB4",
-        "swift" : "absent"
+        "swift.dark" : "#2A3140",
+        "swift.darkContrast" : "#2A3140",
+        "swift.darkOverride" : "#2A3140",
+        "swift.light" : "#8A9BB4",
+        "swift.lightContrast" : "#8A9BB4",
+        "swift.lightOverride" : "#8A9BB4"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--desktop)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--f1",
       "observed" : {
@@ -307,13 +344,16 @@
         "mock.light" : "#000000@0.06",
         "mock.lightOverride" : "#000000@0.06",
         "swift.dark" : "#FFFFFF@0.1",
-        "swift.light" : "#000000@0.13"
+        "swift.darkContrast" : "#FFFFFF@0.1",
+        "swift.darkOverride" : "#FFFFFF@0.1",
+        "swift.light" : "#000000@0.06",
+        "swift.lightContrast" : "#000000@0.06",
+        "swift.lightOverride" : "#000000@0.06"
       },
       "swift" : "ColorToken(--f1)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--f2",
       "observed" : {
@@ -321,14 +361,17 @@
         "mock.darkOverride" : "#FFFFFF@0.07",
         "mock.light" : "#000000@0.04",
         "mock.lightOverride" : "#000000@0.04",
-        "swift.dark" : "#FFFFFF@0.08",
-        "swift.light" : "#000000@0.1"
+        "swift.dark" : "#FFFFFF@0.07",
+        "swift.darkContrast" : "#FFFFFF@0.07",
+        "swift.darkOverride" : "#FFFFFF@0.07",
+        "swift.light" : "#000000@0.04",
+        "swift.lightContrast" : "#000000@0.04",
+        "swift.lightOverride" : "#000000@0.04"
       },
       "swift" : "ColorToken(--f2)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--f3",
       "observed" : {
@@ -337,13 +380,16 @@
         "mock.light" : "#000000@0.03",
         "mock.lightOverride" : "#000000@0.03",
         "swift.dark" : "#FFFFFF@0.05",
-        "swift.light" : "#000000@0.06"
+        "swift.darkContrast" : "#FFFFFF@0.05",
+        "swift.darkOverride" : "#FFFFFF@0.05",
+        "swift.light" : "#000000@0.03",
+        "swift.lightContrast" : "#000000@0.03",
+        "swift.lightOverride" : "#000000@0.03"
       },
       "swift" : "ColorToken(--f3)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--fail",
       "observed" : {
@@ -352,13 +398,16 @@
         "mock.light" : "#FF383C",
         "mock.lightOverride" : "#FF383C",
         "swift.dark" : "#FF4245",
-        "swift.light" : "#CD2738"
+        "swift.darkContrast" : "#FF4245",
+        "swift.darkOverride" : "#FF4245",
+        "swift.light" : "#FF383C",
+        "swift.lightContrast" : "#FF383C",
+        "swift.lightOverride" : "#FF383C"
       },
       "swift" : "ColorToken(--fail)"
     },
     {
-      "citation" : "M21-ink-twins",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--fail-ink",
       "observed" : {
@@ -368,13 +417,17 @@
         "mock.light" : "#C8102E",
         "mock.lightContrast" : "#9E0C24",
         "mock.lightOverride" : "#C8102E",
-        "swift" : "absent"
+        "swift.dark" : "#FF5A5D",
+        "swift.darkContrast" : "#FF8A8C",
+        "swift.darkOverride" : "#FF5A5D",
+        "swift.light" : "#C8102E",
+        "swift.lightContrast" : "#9E0C24",
+        "swift.lightOverride" : "#C8102E"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--fail-ink)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--focus",
       "observed" : {
@@ -382,13 +435,17 @@
         "mock.darkOverride" : "#0091FF",
         "mock.light" : "#0088FF",
         "mock.lightOverride" : "#0088FF",
-        "swift" : "absent"
+        "swift.dark" : "#0091FF",
+        "swift.darkContrast" : "#0091FF",
+        "swift.darkOverride" : "#0091FF",
+        "swift.light" : "#0088FF",
+        "swift.lightContrast" : "#0088FF",
+        "swift.lightOverride" : "#0088FF"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--focus)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--focus-halo",
       "observed" : {
@@ -396,13 +453,17 @@
         "mock.darkOverride" : "#0091FF@0.42",
         "mock.light" : "#0088FF@0.35",
         "mock.lightOverride" : "#0088FF@0.35",
-        "swift" : "absent"
+        "swift.dark" : "#0091FF@0.42",
+        "swift.darkContrast" : "#0091FF@0.42",
+        "swift.darkOverride" : "#0091FF@0.42",
+        "swift.light" : "#0088FF@0.35",
+        "swift.lightContrast" : "#0088FF@0.35",
+        "swift.lightOverride" : "#0088FF@0.35"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--focus-halo)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--ground",
       "observed" : {
@@ -410,14 +471,17 @@
         "mock.darkOverride" : "#1C1C1E",
         "mock.light" : "#FFFFFF",
         "mock.lightOverride" : "#FFFFFF",
-        "swift.dark" : "#1E1E1E",
-        "swift.light" : "#ECECEE"
+        "swift.dark" : "#1C1C1E",
+        "swift.darkContrast" : "#1C1C1E",
+        "swift.darkOverride" : "#1C1C1E",
+        "swift.light" : "#FFFFFF",
+        "swift.lightContrast" : "#FFFFFF",
+        "swift.lightOverride" : "#FFFFFF"
       },
       "swift" : "ColorToken(--ground)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--jack-off",
       "observed" : {
@@ -425,13 +489,17 @@
         "mock.darkOverride" : "#3C3C40",
         "mock.light" : "#D6D6DC",
         "mock.lightOverride" : "#D6D6DC",
-        "swift" : "absent"
+        "swift.dark" : "#3C3C40",
+        "swift.darkContrast" : "#3C3C40",
+        "swift.darkOverride" : "#3C3C40",
+        "swift.light" : "#D6D6DC",
+        "swift.lightContrast" : "#D6D6DC",
+        "swift.lightOverride" : "#D6D6DC"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--jack-off)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--jack-ring",
       "observed" : {
@@ -439,13 +507,17 @@
         "mock.darkOverride" : "#FFFFFF@0.16",
         "mock.light" : "#000000@0.14",
         "mock.lightOverride" : "#000000@0.14",
-        "swift" : "absent"
+        "swift.dark" : "#FFFFFF@0.16",
+        "swift.darkContrast" : "#FFFFFF@0.16",
+        "swift.darkOverride" : "#FFFFFF@0.16",
+        "swift.light" : "#000000@0.14",
+        "swift.lightContrast" : "#000000@0.14",
+        "swift.lightOverride" : "#000000@0.14"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--jack-ring)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--line",
       "observed" : {
@@ -455,14 +527,17 @@
         "mock.light" : "#000000@0.1",
         "mock.lightContrast" : "#000000@0.3",
         "mock.lightOverride" : "#000000@0.1",
-        "swift.dark" : "#FFFFFF@0.075",
-        "swift.light" : "#000000@0.1"
+        "swift.dark" : "#FFFFFF@0.09",
+        "swift.darkContrast" : "#FFFFFF@0.3",
+        "swift.darkOverride" : "#FFFFFF@0.09",
+        "swift.light" : "#000000@0.1",
+        "swift.lightContrast" : "#000000@0.3",
+        "swift.lightOverride" : "#000000@0.1"
       },
       "swift" : "ColorToken(--line)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--line-strong",
       "observed" : {
@@ -472,14 +547,17 @@
         "mock.light" : "#000000@0.18",
         "mock.lightContrast" : "#000000@0.46",
         "mock.lightOverride" : "#000000@0.18",
-        "swift.dark" : "#FFFFFF@0.14",
-        "swift.light" : "#000000@0.19"
+        "swift.dark" : "#FFFFFF@0.16",
+        "swift.darkContrast" : "#FFFFFF@0.48",
+        "swift.darkOverride" : "#FFFFFF@0.16",
+        "swift.light" : "#000000@0.18",
+        "swift.lightContrast" : "#000000@0.46",
+        "swift.lightOverride" : "#000000@0.18"
       },
-      "swift" : "ColorToken(--lineS)"
+      "swift" : "ColorToken(--line-strong)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--live",
       "observed" : {
@@ -488,13 +566,16 @@
         "mock.light" : "#34C759",
         "mock.lightOverride" : "#34C759",
         "swift.dark" : "#30D158",
-        "swift.light" : "#1B7B3C"
+        "swift.darkContrast" : "#30D158",
+        "swift.darkOverride" : "#30D158",
+        "swift.light" : "#34C759",
+        "swift.lightContrast" : "#34C759",
+        "swift.lightOverride" : "#34C759"
       },
       "swift" : "ColorToken(--live)"
     },
     {
-      "citation" : "M21-ink-twins",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--live-ink",
       "observed" : {
@@ -504,13 +585,17 @@
         "mock.light" : "#14682F",
         "mock.lightContrast" : "#0F4F24",
         "mock.lightOverride" : "#14682F",
-        "swift" : "absent"
+        "swift.dark" : "#30D158",
+        "swift.darkContrast" : "#6BE38B",
+        "swift.darkOverride" : "#30D158",
+        "swift.light" : "#14682F",
+        "swift.lightContrast" : "#0F4F24",
+        "swift.lightOverride" : "#14682F"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--live-ink)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--menubar",
       "observed" : {
@@ -518,9 +603,14 @@
         "mock.darkOverride" : "#1F1F22",
         "mock.light" : "#F6F6F8",
         "mock.lightOverride" : "#F6F6F8",
-        "swift" : "absent"
+        "swift.dark" : "#1F1F22",
+        "swift.darkContrast" : "#1F1F22",
+        "swift.darkOverride" : "#1F1F22",
+        "swift.light" : "#F6F6F8",
+        "swift.lightContrast" : "#F6F6F8",
+        "swift.lightOverride" : "#F6F6F8"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--menubar)"
     },
     {
       "classification" : "matched",
@@ -530,13 +620,16 @@
         "mock.dark" : "#FFFFFF",
         "mock.light" : "#FFFFFF",
         "swift.dark" : "#FFFFFF",
-        "swift.light" : "#FFFFFF"
+        "swift.darkContrast" : "#FFFFFF",
+        "swift.darkOverride" : "#FFFFFF",
+        "swift.light" : "#FFFFFF",
+        "swift.lightContrast" : "#FFFFFF",
+        "swift.lightOverride" : "#FFFFFF"
       },
-      "swift" : "ColorToken(--onAccent)"
+      "swift" : "ColorToken(--on-accent)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--panel",
       "observed" : {
@@ -545,7 +638,11 @@
         "mock.light" : "#F7F7F9",
         "mock.lightOverride" : "#F7F7F9",
         "swift.dark" : "#232326",
-        "swift.light" : "#F5F5F7"
+        "swift.darkContrast" : "#232326",
+        "swift.darkOverride" : "#232326",
+        "swift.light" : "#F7F7F9",
+        "swift.lightContrast" : "#F7F7F9",
+        "swift.lightOverride" : "#F7F7F9"
       },
       "swift" : "ColorToken(--panel)"
     },
@@ -559,13 +656,16 @@
         "mock.light" : "#FFFFFF",
         "mock.lightOverride" : "#FFFFFF",
         "swift.dark" : "#2C2C2E",
-        "swift.light" : "#FFFFFF"
+        "swift.darkContrast" : "#2C2C2E",
+        "swift.darkOverride" : "#2C2C2E",
+        "swift.light" : "#FFFFFF",
+        "swift.lightContrast" : "#FFFFFF",
+        "swift.lightOverride" : "#FFFFFF"
       },
       "swift" : "ColorToken(--raised)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--raised2",
       "observed" : {
@@ -574,13 +674,16 @@
         "mock.light" : "#E8E8EC",
         "mock.lightOverride" : "#E8E8EC",
         "swift.dark" : "#3A3A3C",
-        "swift.light" : "#E0E0E4"
+        "swift.darkContrast" : "#3A3A3C",
+        "swift.darkOverride" : "#3A3A3C",
+        "swift.light" : "#E8E8EC",
+        "swift.lightContrast" : "#E8E8EC",
+        "swift.lightOverride" : "#E8E8EC"
       },
       "swift" : "ColorToken(--raised2)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--scrim",
       "observed" : {
@@ -588,13 +691,17 @@
         "mock.darkOverride" : "#000000@0.52",
         "mock.light" : "#000000@0.28",
         "mock.lightOverride" : "#000000@0.28",
-        "swift" : "absent"
+        "swift.dark" : "#000000@0.52",
+        "swift.darkContrast" : "#000000@0.52",
+        "swift.darkOverride" : "#000000@0.52",
+        "swift.light" : "#000000@0.28",
+        "swift.lightContrast" : "#000000@0.28",
+        "swift.lightOverride" : "#000000@0.28"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--scrim)"
     },
     {
-      "citation" : "M21-ink-twins",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--shield-good",
       "observed" : {
@@ -604,13 +711,17 @@
         "mock.light" : "#14682F",
         "mock.lightContrast" : "#0E4F23",
         "mock.lightOverride" : "#14682F",
-        "swift" : "absent"
+        "swift.dark" : "#1B7A38",
+        "swift.darkContrast" : "#166B31",
+        "swift.darkOverride" : "#1B7A38",
+        "swift.light" : "#14682F",
+        "swift.lightContrast" : "#0E4F23",
+        "swift.lightOverride" : "#14682F"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--shield-good)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--sunken",
       "observed" : {
@@ -618,13 +729,17 @@
         "mock.darkOverride" : "#161618",
         "mock.light" : "#EDEDF0",
         "mock.lightOverride" : "#EDEDF0",
-        "swift" : "absent"
+        "swift.dark" : "#161618",
+        "swift.darkContrast" : "#161618",
+        "swift.darkOverride" : "#161618",
+        "swift.light" : "#EDEDF0",
+        "swift.lightContrast" : "#EDEDF0",
+        "swift.lightOverride" : "#EDEDF0"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--sunken)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--t1",
       "observed" : {
@@ -633,13 +748,16 @@
         "mock.light" : "#17171A",
         "mock.lightOverride" : "#17171A",
         "swift.dark" : "#FFFFFF",
-        "swift.light" : "#000000@0.95"
+        "swift.darkContrast" : "#FFFFFF",
+        "swift.darkOverride" : "#FFFFFF",
+        "swift.light" : "#17171A",
+        "swift.lightContrast" : "#17171A",
+        "swift.lightOverride" : "#17171A"
       },
       "swift" : "ColorToken(--t1)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--t2",
       "observed" : {
@@ -649,14 +767,17 @@
         "mock.light" : "#55555C",
         "mock.lightContrast" : "#2A2A30",
         "mock.lightOverride" : "#55555C",
-        "swift.dark" : "#FFFFFF@0.55",
-        "swift.light" : "#000000@0.62"
+        "swift.dark" : "#B8B8C0",
+        "swift.darkContrast" : "#F2F2F5",
+        "swift.darkOverride" : "#B8B8C0",
+        "swift.light" : "#55555C",
+        "swift.lightContrast" : "#2A2A30",
+        "swift.lightOverride" : "#55555C"
       },
       "swift" : "ColorToken(--t2)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--t3",
       "observed" : {
@@ -666,14 +787,17 @@
         "mock.light" : "#63636B",
         "mock.lightContrast" : "#2A2A30",
         "mock.lightOverride" : "#63636B",
-        "swift.dark" : "#FFFFFF@0.5",
-        "swift.light" : "#000000@0.58"
+        "swift.dark" : "#98989F",
+        "swift.darkContrast" : "#F2F2F5",
+        "swift.darkOverride" : "#98989F",
+        "swift.light" : "#63636B",
+        "swift.lightContrast" : "#2A2A30",
+        "swift.lightOverride" : "#63636B"
       },
       "swift" : "ColorToken(--t3)"
     },
     {
-      "citation" : "M21-direction-split",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--t4",
       "observed" : {
@@ -681,36 +805,47 @@
         "mock.darkOverride" : "#6E6E76",
         "mock.light" : "#9A9AA2",
         "mock.lightOverride" : "#9A9AA2",
-        "swift.dark" : "#FFFFFF@0.25",
-        "swift.light" : "#000000@0.33"
+        "swift.dark" : "#6E6E76",
+        "swift.darkContrast" : "#6E6E76",
+        "swift.darkOverride" : "#6E6E76",
+        "swift.light" : "#9A9AA2",
+        "swift.lightContrast" : "#9A9AA2",
+        "swift.lightOverride" : "#9A9AA2"
       },
       "swift" : "ColorToken(--t4)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--tl-close",
       "observed" : {
         "mock.light" : "#FF5F57",
-        "swift" : "absent"
+        "swift.dark" : "#FF5F57",
+        "swift.darkContrast" : "#FF5F57",
+        "swift.darkOverride" : "#FF5F57",
+        "swift.light" : "#FF5F57",
+        "swift.lightContrast" : "#FF5F57",
+        "swift.lightOverride" : "#FF5F57"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--tl-close)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--tl-min",
       "observed" : {
         "mock.light" : "#FEBC2E",
-        "swift" : "absent"
+        "swift.dark" : "#FEBC2E",
+        "swift.darkContrast" : "#FEBC2E",
+        "swift.darkOverride" : "#FEBC2E",
+        "swift.light" : "#FEBC2E",
+        "swift.lightContrast" : "#FEBC2E",
+        "swift.lightOverride" : "#FEBC2E"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--tl-min)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--tl-off",
       "observed" : {
@@ -718,20 +853,29 @@
         "mock.darkOverride" : "#3A3A3C",
         "mock.light" : "#D2D2D6",
         "mock.lightOverride" : "#D2D2D6",
-        "swift" : "absent"
+        "swift.dark" : "#3A3A3C",
+        "swift.darkContrast" : "#3A3A3C",
+        "swift.darkOverride" : "#3A3A3C",
+        "swift.light" : "#D2D2D6",
+        "swift.lightContrast" : "#D2D2D6",
+        "swift.lightOverride" : "#D2D2D6"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--tl-off)"
     },
     {
-      "citation" : "M21-owns-the-mock-token-block",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "colour",
       "name" : "--tl-zoom",
       "observed" : {
         "mock.light" : "#28C840",
-        "swift" : "absent"
+        "swift.dark" : "#28C840",
+        "swift.darkContrast" : "#28C840",
+        "swift.darkOverride" : "#28C840",
+        "swift.light" : "#28C840",
+        "swift.lightContrast" : "#28C840",
+        "swift.lightOverride" : "#28C840"
       },
-      "swift" : "—"
+      "swift" : "ColorToken(--tl-zoom)"
     },
     {
       "citation" : "M21-owns-the-mock-token-block",
@@ -807,15 +951,14 @@
       "swift" : "TypeToken.Body.size = 13"
     },
     {
-      "citation" : "M21-metric-rows",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "metric",
       "name" : "card-radius",
       "observed" : {
         "mock" : "10px",
-        "swift" : "absent"
+        "swift" : "10pt"
       },
-      "swift" : "—"
+      "swift" : "MetricToken.Card radius = 10"
     },
     {
       "classification" : "matched",
@@ -868,26 +1011,24 @@
       "swift" : "MetricToken.Control extra large = 36"
     },
     {
-      "citation" : "M21-metric-rows",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "metric",
       "name" : "grid-unit",
       "observed" : {
         "mock" : "8px",
-        "swift" : "absent"
+        "swift" : "8pt"
       },
-      "swift" : "—"
+      "swift" : "MetricToken.Grid unit = 8"
     },
     {
-      "citation" : "M21-metric-rows",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "metric",
       "name" : "jack-lane",
       "observed" : {
         "mock" : "44px",
-        "swift" : "absent"
+        "swift" : "44pt"
       },
-      "swift" : "—"
+      "swift" : "MetricToken.Jack lane = 44"
     },
     {
       "classification" : "matched",
@@ -900,15 +1041,14 @@
       "swift" : "MetricToken.Popover radius = 20"
     },
     {
-      "citation" : "M21-metric-rows",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "metric",
       "name" : "scrollbar",
       "observed" : {
         "mock" : "12px",
-        "swift" : "absent"
+        "swift" : "12pt"
       },
-      "swift" : "—"
+      "swift" : "MetricToken.Scrollbar = 12"
     },
     {
       "classification" : "matched",
@@ -931,26 +1071,24 @@
       "swift" : "MetricToken.Sidebar = 256"
     },
     {
-      "citation" : "M21-metric-rows",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "metric",
       "name" : "sidebar-row-large",
       "observed" : {
         "mock" : "40px",
-        "swift" : "absent"
+        "swift" : "40pt"
       },
-      "swift" : "—"
+      "swift" : "MetricToken.Sidebar row large = 40"
     },
     {
-      "citation" : "M21-metric-rows",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "metric",
       "name" : "sidebar-row-medium",
       "observed" : {
         "mock" : "32px",
-        "swift" : "absent"
+        "swift" : "32pt"
       },
-      "swift" : "—"
+      "swift" : "MetricToken.Sidebar row medium = 32"
     },
     {
       "classification" : "matched",
@@ -963,15 +1101,14 @@
       "swift" : "MetricToken.Titlebar = 33"
     },
     {
-      "citation" : "M21-metric-rows",
-      "classification" : "pending",
+      "classification" : "matched",
       "kind" : "metric",
       "name" : "toolbar-compact",
       "observed" : {
         "mock" : "40px",
-        "swift" : "absent"
+        "swift" : "40pt"
       },
-      "swift" : "—"
+      "swift" : "MetricToken.Compact toolbar = 40"
     },
     {
       "classification" : "matched",

@@ -3,9 +3,11 @@ import Foundation
 /// Reads the token tables out of `DESIGN.md` so a test can compare them against the code.
 ///
 /// The parser is **per-table and heading-driven** rather than applying one column rule to
-/// everything, because §2's tables genuinely differ in shape — the label-tier table has four
-/// columns (the third is a measured contrast ratio, which is documentation rather than a token),
-/// while the grounds and colour tables have three.
+/// everything, because §2's tables genuinely differ in shape — the three base colour tables carry
+/// a `Role` column and two measured contrast ratios alongside their two values, the
+/// increased-contrast overlay carries two values and nothing else, and the geometry tables are
+/// two columns of `Element | Value`. Columns are resolved by header name, per table, so a table
+/// that does not carry a ratio column is not an error while a table that does has it read.
 ///
 /// Every cell is normalised before it is compared. Each normalisation below exists because of a
 /// specific construct in the real document, not defensively:
@@ -23,14 +25,19 @@ import Foundation
 enum DesignDocParser {
     struct ColorRow: Equatable {
         let name: String
+        /// The `Role` column: which job the document says this token does, and therefore which
+        /// pair its floor is measured as. Nil on an increased-contrast overlay row, which states
+        /// two values and no role — the role lives on the base row and is stated once.
+        let role: String?
         let hex: String
         let opacity: Double
         let lightHex: String
         let lightOpacity: Double
-        /// The measured light-appearance contrast ratio the document claims for this token.
+        /// The measured contrast ratios the document claims for this token, per appearance.
         ///
         /// Nil where the document states none — `--ground` is what everything else is measured
         /// *against*, so it has no ratio of its own.
+        let documentedDarkContrast: Double?
         let documentedLightContrast: Double?
     }
 
@@ -256,24 +263,33 @@ enum DesignDocParser {
                 guard let lightHex = canonicalHex(light) else {
                     throw ParseError.unparsableCell(row: line, cell: light)
                 }
-                // The measured ratio is documentation rather than a token, so a table without the
-                // column is not an error — but where the column exists the value is checked, which
-                // is what makes the authored-light claim a measurement instead of an assertion.
-                var contrast: Double?
-                if let i = columns["contrast (light)"], i < c.count {
-                    contrast = leadingScalar(c[i])
-                }
+                // The role is required rather than optional. It is a contract the floor test
+                // reads, so a table that stopped carrying the column would silently stop
+                // declaring what every token in it is for — `columnMissing` says so instead.
+                let role = try cell("role")
                 rows.append(ColorRow(
                     name: c[0],
+                    role: role,
                     hex: darkHex,
                     opacity: opacity(in: dark) ?? 1.0,
                     lightHex: lightHex,
                     lightOpacity: opacity(in: light) ?? 1.0,
-                    documentedLightContrast: contrast
+                    documentedDarkContrast: ratio(named: "contrast (dark)", in: c, columns: columns),
+                    documentedLightContrast: ratio(named: "contrast (light)", in: c, columns: columns)
                 ))
             }
         }
         return rows
+    }
+
+    /// A measured ratio column, when the table carries one.
+    ///
+    /// The ratio is documentation rather than a token, so a table without the column is not an
+    /// error — but where the column exists the value is read and checked, which is what makes the
+    /// authored-appearance claim a measurement instead of an assertion.
+    private static func ratio(named: String, in cells: [String], columns: [String: Int]) -> Double? {
+        guard let i = columns[named], i < cells.count else { return nil }
+        return leadingScalar(cells[i])
     }
 
     /// The eight type roles. First cell is a plain role name, not a `--token`.
@@ -316,6 +332,63 @@ enum DesignDocParser {
             guard let c = cells(of: line), c.count >= 2 else { continue }
             if c[0] == "Element" { continue }
             rows.append(MetricRow(element: c[0], leadingScalar: leadingScalar(c[1])))
+        }
+        return rows
+    }
+}
+
+/// The increased-contrast overlay, read out of its own table.
+///
+/// An extension rather than another member of the enum above, because that type body is at
+/// SwiftLint's 250-line ceiling and this is the seam that splits most naturally: everything in the
+/// type reads a table that states values for the two base appearances, and everything here reads
+/// the one table that states what a third and fourth context change.
+extension DesignDocParser {
+    /// The increased-contrast overlay: the tokens `prefers-contrast: more` re-solves, and only
+    /// those.
+    ///
+    /// Returned as rows in their own right rather than merged into `colorRows`. Merging inside the
+    /// parser would make a value's provenance unrecoverable — a base value and an override would
+    /// arrive indistinguishable, and the whole point of the overlay is that *which* tokens
+    /// override is the assertion. The parity test composes the two and can therefore say which
+    /// table it disagreed with.
+    static func contrastRows(in text: String) throws -> [ColorRow] {
+        var rows: [ColorRow] = []
+        var columns: [String: Int]?
+        for line in try tableLines(in: text, under: "Increased contrast") {
+            guard let c = cells(of: line) else { continue }
+            guard c.first?.hasPrefix("--") == true else {
+                columns = try headerIndices(c)
+                continue
+            }
+            guard let columns else { throw ParseError.headerMissing("Increased contrast") }
+
+            func cell(_ name: String) throws -> String {
+                guard let i = columns[name] else {
+                    throw ParseError.columnMissing(name, "Increased contrast")
+                }
+                guard i < c.count else { throw ParseError.rowTooShort(row: line, want: name) }
+                return c[i]
+            }
+
+            let dark = try cell("dark")
+            let light = try cell("light")
+            guard let darkHex = canonicalHex(dark) else {
+                throw ParseError.unparsableCell(row: line, cell: dark)
+            }
+            guard let lightHex = canonicalHex(light) else {
+                throw ParseError.unparsableCell(row: line, cell: light)
+            }
+            rows.append(ColorRow(
+                name: c[0],
+                role: nil,
+                hex: darkHex,
+                opacity: opacity(in: dark) ?? 1.0,
+                lightHex: lightHex,
+                lightOpacity: opacity(in: light) ?? 1.0,
+                documentedDarkContrast: nil,
+                documentedLightContrast: nil
+            ))
         }
         return rows
     }

@@ -8,13 +8,35 @@ import Foundation
 /// reappears nowhere.
 ///
 /// **The manifest is re-read for every entry, inside the lock (X4b, closed by R19).** The reference
-/// used to load it once (`watch.ts:212`), spend seconds spawning and indexing children, and save
-/// the stale object — so a user who approved a held tool-change in the Mac app mid-adoption had that
-/// approval erased. That is W10's own argument applied to the file W10 did not name. Re-reading per
-/// entry shrank the window from seconds to microseconds; D-w3 was the deferred child for closing it
-/// entirely, and R19 is where that happened, on both routers: the re-read now happens under
-/// ``ConfigMutationLock`` on `manifest.json`'s own sidecar, so the entry that is merged is the one
-/// on disk and no second writer can be between the two.
+/// used to load it once at the top of `cmdWatch`, spend seconds spawning and indexing children, and
+/// save that stale object at the end — so a user who approved a held tool-change in the Mac app
+/// mid-adoption had that approval erased. That is W10's own argument applied to the file W10 did not
+/// name. Re-reading per entry shrank the window from seconds to microseconds; D-w3 was the deferred
+/// child for closing it entirely, and R19 is where that happened, on both routers: the re-read now
+/// happens under ``ConfigMutationLock`` on `manifest.json`'s own sidecar, so the entry that is
+/// merged is the one on disk and no second writer can be between the two.
+///
+/// R19 demonstrated that stale save rather than arguing it: a fire held open six seconds while
+/// `index --force` wrote another server's row left the manifest holding only what the fire had in
+/// hand.
+///
+/// **The two inventories were not a pairing, and now they are.** R17 recorded them as different
+/// sizes: FIVE `saveManifest` call sites on the reference against THREE `ManifestIO.save` sites
+/// here, so "five" was the reference's own count and neither list mapped onto the other site for
+/// site. R19 put all eight of those writers under the lock and collapsed the reference's five to
+/// three, so the lists are the same length and line up verb for verb — `manifestCommitter` against
+/// `ManifestIndexer` for index, import and the control re-index; `cmdWatch`'s commit closure
+/// against this type; the control API's approve against `AuthRoutes`. All six commit per entry, so
+/// the per-entry-against-per-run asymmetry R17 recorded is gone too. This side's count did not
+/// change, but one of its sites did: R19 lifted `ManifestIndexer` out of `ServicePorts`.
+///
+/// R17 declared a divergence here, because the two sides disagreed about WHEN the manifest is read
+/// and `parity-cli.sh` runs the binaries sequentially over separate homes, so no scenario it can
+/// hold reaches the property. R19 closed it by CONVERGENCE — the reference re-reads per entry too,
+/// under the same lock on the same sidecar — and the property it was declared for is now held by
+/// `scripts/acceptance/parity-overlap.sh`, which drives a second writer into the middle of a watch
+/// fire's window on both binaries. There is nothing left to declare, so the declaration is gone
+/// rather than restated.
 public struct WatchIndexer: Sendable {
     public struct Report: Sendable, Equatable {
         public var built: [String] = []
@@ -57,7 +79,8 @@ public struct WatchIndexer: Sendable {
     /// Index every upstream in `toIndex`, writing each result as it arrives.
     ///
     /// One pool for the whole set, `idleMs` 60 000, torn down on every path — the reference's shape
-    /// at `watch.ts:232-256`, where the teardown is a `finally`. Not a `defer`, because `defer`
+    /// in `cmdWatch`'s index block, where the teardown is a `finally`. (R17 cited that block by line
+    /// span; R19 changed its length, so it is cited by name here.) Not a `defer`, because `defer`
     /// cannot await and a fire-and-forget teardown would leave children alive after this returns.
     public func index(_ toIndex: [UpstreamConfig]) async -> Report {
         guard !toIndex.isEmpty else { return Report() }
@@ -153,14 +176,36 @@ public struct WatchIndexer: Sendable {
                     nowMilliseconds: { clock.nowMilliseconds },
                     observe: { _ in observation }
                 )
-                // A failure is recorded in this watcher's own backoff, never as a manifest entry: an
-                // entry carrying an error still *looks* indexed to the next reader, and the
-                // reference deletes it for exactly that reason. Inside the same locked span as the
-                // write that produced it, so no reader can observe the row this watcher has already
-                // decided not to keep.
-                if !step.failed.isEmpty {
-                    Self.removeEntry(named: upstream.name, from: &manifest)
-                }
+                // R17 — the failure entry `build` just wrote is KEPT, and the backoff records it
+                // too.
+                //
+                // Both sides used to delete it here, on the reasoning that an entry carrying an
+                // error still *looks* indexed to the next reader. No reader reads it that way:
+                // `WatchAdoption`'s own gate rejects an entry with an error, `ToolUnion.isStale`
+                // returns true for it, `ToolUnion.union` skips a zero-tool entry, and
+                // `UpstreamStateReport` reads `error` as the `detail` it puts in front of the user.
+                // Deleting it erased the attempt from the one file those readers join through;
+                // `watch-state.json` kept the reason, and nothing reads it — measured on the
+                // owner's machine on 2026-08-21, where `namecheap` failed `Connection closed` every
+                // five minutes and `/servers` reported `error: None, tools: 0, state: idle`, the
+                // reason surviving only in watch-state.json.
+                //
+                // That account is SUFFICIENT and not EXCLUSIVE — R19. A second mechanism erased a
+                // freshly-written row even after this fix, on the reference side, with no delete
+                // statement in its path: it loaded the manifest once per run and saved that same
+                // object at the end. The owner's measurement came from a timeline where the launchd
+                // watch agent and an `index --force` were both live, so what was seen is consistent
+                // with either. R19 has since CLOSED that mechanism on both routers — this save and
+                // the load above it are one locked span, and the reference's run-level save is gone
+                // — so it is history rather than a live alternative. The route account is kept for
+                // the ASYMMETRY between the two servers, which is what makes it survive R19 rather
+                // than merely fit beside it: a stale save can only erase a row written by SOMEONE
+                // ELSE during the window, and a staged server is in every fire's own hand, so an
+                // R19-only world predicts `namecheap` KEEPS its row while unstaged `lifeline` loses
+                // one — the opposite of what was measured. The pre-registered prediction held too:
+                // stage `lifeline` as well and its row starts disappearing.
+                //
+                // The backoff is untouched: it is the retry policy, and this row is the record.
                 try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)
                 return Applied(event: event, built: step.built, failed: step.failed)
             }
@@ -218,16 +263,5 @@ public struct WatchIndexer: Sendable {
                 .serverIndexed(server: server, toolCount: tools.count)
             }
         }
-    }
-
-    /// `delete manifest.servers[name]`, preserving the order of everything else.
-    ///
-    /// Local rather than a new method on ``Manifest``: that type is R1's and is byte-identical on
-    /// several in-flight branches, so adding to it would manufacture a merge conflict for a
-    /// capability only this file needs.
-    static func removeEntry(named name: String, from manifest: inout Manifest) {
-        guard case let .object(entries)? = manifest.serversValue else { return }
-        let target = JSString(name)
-        manifest.setTopLevel("servers", .object(entries.filter { $0.key != target }))
     }
 }

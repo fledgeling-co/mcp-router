@@ -251,17 +251,17 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
        * window was erased by a snapshot taken before it existed. The load moves in here; the
        * indexing above stays outside, which is what keeps the hold sub-millisecond.
        *
-       * The failure deletion is inside the same locked span as the write that produced it rather
-       * than in a second pass afterwards. Dropping the error record is deliberate — retry policy
-       * lives in this watcher's own backoff, not in a manifest entry that would look indexed to the
-       * next reader — and doing it in a second window would publish, for that window, exactly the
-       * row this watcher has decided not to keep.
+       * This closure is why `ManifestCommit` is a function rather than a path: the watcher used to
+       * drop a failed server's row inside the same locked span that wrote it, so no reader could
+       * observe a row it had already decided not to keep. R17 KEEPS that row — the account is in
+       * the `failed` loop below — so what is left is `manifestCommitter`'s policy written out
+       * rather than called. Collapsing the two is a change neither branch made and would move a
+       * census this file and `surface.tsv` both quote, so it is an item of its own, not a merge's.
        */
       const commit: ManifestCommit = (apply) =>
         withExclusiveLock(manifestPath, lockTimeoutMs(WATCHER_TIMEOUT_MS), () => {
           const current = loadManifest(manifestPath);
           const outcome = apply(current);
-          if (outcome.failed) delete current.servers[outcome.name];
           saveManifest(manifestPath, current);
           return outcome;
         });
@@ -272,6 +272,54 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
       for (const f of failed) {
         const name = f.slice(0, f.indexOf(':'));
         const entry = toIndex.find((u) => u.name === name);
+        /*
+         * The error row `buildManifest` just wrote is KEPT (R17).
+         *
+         * It used to be deleted here — `delete next.servers[name]` — on the reasoning that
+         * an entry carrying an error still "looks indexed" to the next reader. No reader
+         * reads it that way: this watcher's own adoption gate rejects `entry.error` a few
+         * blocks down, `isStale` returns true for it, `unionTools` skips a zero-tool entry,
+         * and `describe` and `reportUpstreams` exist precisely to surface it. What the
+         * delete actually did was erase the attempt from the one file those readers join
+         * through. `watch-state.json` kept the reason the whole time, durably, and this
+         * watcher reads that file every fire — for the backoff, never to show anyone. So it
+         * is a record no reader can reach rather than no record at all.
+         *
+         * Measured on the owner's machine, 2026-08-21: `namecheap` and `lifeline` both fail
+         * `MCP error -32000: Connection closed`. `lifeline` is not staged in ~/.claude.json,
+         * so this loop never ran over it and the row `index` wrote survived. `namecheap` is
+         * staged, so every fire past the backoff re-indexed it and deleted the row again, and
+         * the row `index --force` had just written was gone again too — by that delete or by
+         * the stale save R19 describes, whichever fire it fell into, because a row written
+         * AFTER a fire's load was not in `next` for the delete to reach. `/servers` then
+         * reported `error: None, tools: 0, state: idle` for a server whose reason this process
+         * had in hand and discarded. The reason survived only in watch-state.json, and nothing
+         * reads it back to any surface.
+         *
+         * That account is SUFFICIENT and not EXCLUSIVE — R19. A second mechanism erased a
+         * freshly-written row even after this fix, with no delete statement anywhere in its
+         * path: `cmdWatch` loaded the manifest once, spent seconds spawning and indexing
+         * children, and saved that same object at a `saveManifest` below this loop, so a row
+         * another path wrote inside that window was clobbered. Demonstrated against the FIXED
+         * code by holding a fire open six seconds while `index --force` wrote a second
+         * server's row. The owner's measurement came from a timeline where the launchd watch
+         * agent and an `index --force` were both live, so what was seen is consistent with
+         * either.
+         *
+         * That second mechanism is now CLOSED — R19 landed above: the load moved inside the
+         * lock, per entry, and the run-level save is gone. So it is history rather than a
+         * standing alternative, and the two accounts no longer compete for the same
+         * observation. The route account is kept anyway, for the ASYMMETRY between the two
+         * servers, which is what makes it survive R19 rather than merely fit alongside it: a
+         * stale save can only erase a row written by SOMEONE ELSE during the window, and a
+         * staged server is in every fire's own hand, so an R19-only world predicts `namecheap`
+         * KEEPS its row and unstaged `lifeline` loses one. That is the opposite of what was
+         * measured. The pre-registered prediction held as well: stage `lifeline` too and its
+         * row starts disappearing.
+         *
+         * The backoff below is untouched. It is the retry policy; the manifest row is the
+         * record. They answer different questions and neither substitutes for the other.
+         */
         watchLog(`failed to index "${f}"; left in ~/.claude.json, will retry`);
         if (entry) failures[name] = { hash: upstreamHash(entry), at: now, error: f };
       }

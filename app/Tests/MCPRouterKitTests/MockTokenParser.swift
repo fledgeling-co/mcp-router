@@ -45,6 +45,19 @@ enum MockTokenParser {
             case .light, .lightOverride, .lightContrast: false
             }
         }
+
+        /// Whether this context is one of the two `prefers-contrast: more` blocks.
+        ///
+        /// The second axis of the pairing. Without it, a Swift token that re-solves for increased
+        /// contrast is compared against its base value in the contexts where it overrides, so the
+        /// nine tokens that carry the accessibility half of the palette could never be `matched`
+        /// however correct they were.
+        var isIncreasedContrast: Bool {
+            switch self {
+            case .lightContrast, .darkContrast: true
+            case .light, .dark, .lightOverride, .darkOverride: false
+            }
+        }
     }
 
     // MARK: - Parsed shapes

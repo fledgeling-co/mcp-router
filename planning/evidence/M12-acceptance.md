@@ -83,7 +83,11 @@ reads red-then-green either way is exactly the shape this discipline exists to c
 script walked the Cleanup board and never opened a sheet: every claim about either dialog was a
 source read.
 
-*(rows appended after the run — see "What is not proved" below for the state this pass cannot reach)*
+**The section has never been executed.** `make build-mac` never got a berth — the harbourmaster
+governor refused weight 4 as over its ceiling of 3, then refused weight 3 under `cpu: critical` at a
+load average of 133 — and there is no Debug app in this worktree, so no row below is a measurement.
+The assertions are **authored and unrun**. That is a weaker state than either a pass or a fail, and
+it is recorded as itself rather than as an empty table somebody reads as "nothing to report".
 
 ## What is not proved, and why
 

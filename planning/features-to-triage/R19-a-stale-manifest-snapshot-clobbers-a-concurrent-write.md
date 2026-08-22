@@ -5,9 +5,13 @@
 
 ## The finding
 
-`cmdWatch` snapshots the manifest at `src/watch.ts:212` and saves that snapshot at `:273`. Anything
+`cmdWatch` snapshots the manifest at `src/watch.ts:212` and saves that snapshot at `:292`. Anything
 written to `manifest.json` in the window between is clobbered — **with no delete statement anywhere
 in the code path.**
+
+*(The save was at `:273` when this was filed. R17's gap-fix pass grew the comment block above it by
+nineteen lines on 2026-08-22; the code did not move. Re-cited here rather than left to rot, because a
+line citation that no longer lands is how a finding gets read as already fixed.)*
 
 Demonstrated in a sandbox against the **fixed** node watcher: a `watch` fire held open six seconds
 on a staged failing server, with `index --force` writing unstaged `lifeline`'s row at t+2s. The
@@ -25,7 +29,8 @@ R17's route account remains the better fit for the observed **asymmetry** — `n
 
 ## The class the repo already guards elsewhere
 
-`manifest.json` has **five** `saveManifest` call sites and no lock. The config writer has exactly
+`manifest.json` has **five** `saveManifest` call sites on the node side and **three**
+`ManifestIO.save` sites on the Swift side, and no lock on either. The config writer has exactly
 this guard and states it: *"W11 — the read happens inside the lock, so a concurrent write is not
 clobbered."* There is no equivalent for the manifest.
 
@@ -40,10 +45,43 @@ the two implementations already disagree on the property, and `parity-cli.sh` ca
 it runs the binaries **sequentially**. Whatever is decided here has to be declared in
 `surface.tsv` or covered by a scenario that overlaps a writer.
 
+**Declared 2026-08-22 by R17's gap-fix pass**, in `surface.tsv`'s `cli-watch` note and at the head
+of `WatchIndexing.swift`. The declaration is scoped to the **watch save alone** — `src/watch.ts:292`
+against `WatchIndexing.swift:187`.
+
+**Six sites are left uncovered, and they are not four pairs.** The two inventories are different
+sizes, counted from source on 2026-08-22. node has **five** `saveManifest` sites and `saveManifest`
+is its only manifest writer — `src/watch.ts:292`, `src/index.ts:146`, `src/index.ts:186`,
+`src/control.ts:262`, `src/control.ts:432` (`grep -rn saveManifest src/`). Swift has **three**
+`ManifestIO.save` sites and no other manifest writer — `AuthRoutes.swift:120`,
+`ServicePorts.swift:391`, `WatchIndexing.swift:187` (`grep -rn ManifestIO.save app/Sources/`). One
+save on each side is declared, which leaves **four on node and two on Swift**:
+
+| Uncovered site | Verb | What it faces on the other side |
+|---|---|---|
+| `src/index.ts:146` | `import` | Nothing positional. Swift has no once-per-run save on this verb |
+| `src/index.ts:186` | `index` | Nothing positional. Same |
+| `src/control.ts:262` | control re-index | `ServicePorts.swift:391`, which saves per entry |
+| `src/control.ts:432` | `/approve` | `AuthRoutes.swift:120` — the one genuine pair in this list |
+| `AuthRoutes.swift:120` | `/approve` | `src/control.ts:432` |
+| `ServicePorts.swift:391` | `index`, `import`, control re-index | node's three above, none of them positionally |
+
+Each of the six carries an unlocked read-then-save window **on its own side**; there is no
+site-for-site symmetry between the sides to claim, and on half the node list there is no twin to be
+symmetric with. `src/index.ts` loads once at `:101` and `:177` and saves once at `:146` and `:186`,
+while Swift routes both verbs through `ManifestIndexer.record`, which re-loads at
+`ServicePorts.swift:381` and saves at `:391` **per entry** — the same read-window disagreement the
+declaration records for `watch`, on the writer this item's own reproduction drove. That one is
+established by reading the source rather than by measuring it, and is registered as `VER2-R17-3`.
+
+Acceptance 2 below is unchanged: declaring the divergence is not seeing it, and only a scenario that
+overlaps a writer can.
+
 ## Acceptance
 
 1. A write landing between another path's read and its save survives, or the losing write is
-   detected and retried — decided as a policy over all five call sites, not one.
+   detected and retried — decided as a policy over **every manifest writer on both sides**, node's
+   five `saveManifest` sites and Swift's three `ManifestIO.save` sites, not one.
 2. A scenario that **overlaps** a writer, since a sequential lane is structurally blind to this.
 3. The Swift and node behaviours either converge or the divergence is declared.
 

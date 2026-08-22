@@ -20,7 +20,9 @@
 #   · the absolute home path, because the two binaries are run against two scratch homes;
 #   · the millisecond epoch in `import`'s backup filename (`servers.json.bak-<Date.now()>`), which
 #     is different on every run of either binary and cannot be made to agree.
-# Nothing else is normalised.
+# Nothing else is normalised, with ONE declared exception carried by the `watch` block alone: the
+# punctuation the two binaries wrap a JSON-RPC error code in. See `fold_rpc_code` below for what is
+# folded, what is still compared, and the measurement behind it.
 #
 # ROWS THIS LANE OWNS — asserted before any write, because the gate binds no script to a group:
 #   cli: cli-serve cli-import cli-index cli-refresh cli-status cli-tools cli-usage cli-help
@@ -358,13 +360,69 @@ auth_case "auth against an unknown server, router listening" -- auth nope
 # router issues a restart. The Swift side additionally runs under a scratch MCPR_LAUNCHD_LABEL.
 #
 # The FILES are the point of this verb, as `import` already recognised, so `servers.json` and the
-# remaining `~/.claude.json` are diffed as well as the three streams. `manifest.json` is NOT: its
-# entries carry `builtAt` at millisecond resolution, two binaries run in sequence cannot produce
-# equal bytes, and normalising that away would mean adding a time normaliser to a lane whose header
-# says only clocks and coordinates are normalised. Manifest parity is the fixture and state lanes'.
+# remaining `~/.claude.json` are diffed as well as the three streams. `manifest.json`'s BYTES are
+# not: its entries carry `builtAt` at millisecond resolution, two binaries run in sequence cannot
+# produce equal bytes, and normalising that away would mean adding a time normaliser to a lane whose
+# header says only clocks and coordinates are normalised. Manifest byte parity is the fixture and
+# state lanes'.
+#
+# Its SHAPE is compared here, and R17 is why. Both watchers used to delete the manifest row that
+# indexing had just written for a server that failed, which is how the owner's `namecheap` came to
+# report `error: None, tools: 0, state: idle` while `watch-state.json` held its reason. That row is
+# now kept, on both sides, and nothing in this lane would have noticed it going back.
 watch_seed() { # dir  -- writes a scratch HOME with the given staging file on stdin
   mkdir -p "$1/.claude/mcp-router"
   cat > "$1/.claude.json"
+}
+
+# The manifest as this lane compares it: one line per server, in file order, carrying the tool count
+# and whether a reason is recorded. A missing file is an empty shape, so the scenarios that write no
+# manifest at all still compare rather than erroring.
+#
+# The error TEXT is deliberately outside the projection, and that is a RECORDED DIVERGENCE rather
+# than a convenience. Measured 2026-08-22 over the two-failure fixture below: a command that is not
+# on disk produces the identical `spawn <path> ENOENT` on both sides, while an upstream that answers
+# `initialize` and then refuses `tools/list` is recorded `MCP error -32000: <msg>` by node and
+# `[-32000] <msg>` by Swift. One failure point agrees byte for byte and the other does not, so the
+# text belongs to a row in the pool group and not to this one. What R17 asserts — that a row exists and
+# carries a reason — is exactly what is projected.
+#
+# A second divergence the same fixture measured, recorded here because it is a cost and not a
+# string: an upstream that answers `initialize` and then EXITS during `tools/list` is diagnosed
+# immediately by the Swift transport (0.13s for the whole run) and waits out the MCP SDK's 60s
+# request timeout on node (60.65s), which is why the fixture below refuses the list rather than
+# dying in it. Machine idle at the time was 0.18%, and the Swift side run in the same minute is what
+# rules the load out as the cause.
+# One MORE normalisation, applied ONLY to this verb's two streams, and declared here because the
+# lane header's "nothing else is normalised" is otherwise no longer true.
+#
+# The two binaries spell a JSON-RPC error's code differently when an upstream answers `initialize`
+# and then refuses `tools/list`: node writes `MCP error -32000: <msg>` and Swift writes
+# `[-32000] <msg>`. Measured 2026-08-22 against the two-failure fixture below. That is a divergence
+# in the pool group's territory, it predates R17, and it was invisible until this lane grew a
+# scenario reaching the list point at all — the three older scenarios only ever fail at spawn,
+# where both sides produce the identical `spawn <path> ENOENT`.
+#
+# So the CODE and the MESSAGE are still compared, byte for byte; only the punctuation around the
+# code is folded. A different code, a different message, a line for the wrong server, a missing line
+# or an extra one all still redden this row. The divergence itself is recorded in
+# planning/parity/surface.tsv's cli-watch note rather than being disposed of here.
+fold_rpc_code() {
+  sed -e 's/MCP error \(-\{0,1\}[0-9][0-9]*\): /<rpc \1> /g' \
+      -e 's/\[\(-\{0,1\}[0-9][0-9]*\)\] /<rpc \1> /g'
+}
+
+manifest_shape() { # path
+  python3 - "$1" <<'PY'
+import json, sys
+try:
+    servers = json.load(open(sys.argv[1]))["servers"]
+except (OSError, ValueError, KeyError, TypeError):
+    servers = {}
+for name, entry in servers.items():
+    print("%s\ttools=%d\treason=%s" % (
+        name, len(entry.get("tools") or []), "yes" if entry.get("error") else "no"))
+PY
 }
 
 watch_both() { # label -- staged-json router-servers-json
@@ -387,9 +445,11 @@ watch_both() { # label -- staged-json router-servers-json
     >"$WORK/swift.out" 2>"$WORK/swift.err"; local sw_code=$?
 
   local problems=""
-  diff <(normalise <"$WORK/ts.out") <(normalise <"$WORK/swift.out") >"$WORK/d.out" 2>&1 \
+  diff <(normalise <"$WORK/ts.out" | fold_rpc_code) \
+       <(normalise <"$WORK/swift.out" | fold_rpc_code) >"$WORK/d.out" 2>&1 \
     || problems="$problems stdout:[$(head -4 "$WORK/d.out" | tr '\n' ' ' | cut -c1-110)]"
-  diff <(normalise <"$WORK/ts.err") <(normalise <"$WORK/swift.err") >"$WORK/d.err" 2>&1 \
+  diff <(normalise <"$WORK/ts.err" | fold_rpc_code) \
+       <(normalise <"$WORK/swift.err" | fold_rpc_code) >"$WORK/d.err" 2>&1 \
     || problems="$problems stderr:[$(head -4 "$WORK/d.err" | tr '\n' ' ' | cut -c1-110)]"
   [ "$ts_code" = "$sw_code" ] || problems="$problems exit:[ts=$ts_code swift=$sw_code]"
   diff <(normalise <"$WORK/ts/servers.json") <(normalise <"$WORK/swift/servers.json") \
@@ -398,9 +458,13 @@ watch_both() { # label -- staged-json router-servers-json
   diff <(normalise <"$WORK/home-ts/.claude.json") <(normalise <"$WORK/home-swift/.claude.json") \
     >"$WORK/d.stage" 2>&1 \
     || problems="$problems claude.json:[$(head -6 "$WORK/d.stage" | tr '\n' ' ' | cut -c1-110)]"
+  diff <(manifest_shape "$WORK/ts/manifest.json") <(manifest_shape "$WORK/swift/manifest.json") \
+    >"$WORK/d.man" 2>&1 \
+    || problems="$problems manifest:[$(head -6 "$WORK/d.man" | tr '\n' ' ' | cut -c1-110)]"
 
   if [ -z "$problems" ]; then
-    verdict cli-watch 1 "$label (exit $ts_code; streams, servers.json and ~/.claude.json identical)"
+    verdict cli-watch 1 \
+      "$label (exit $ts_code; streams, servers.json, ~/.claude.json and manifest shape identical)"
   else
     verdict cli-watch 0 "$label —$problems"
   fi
@@ -437,9 +501,54 @@ WATCH_SERVERS_SEEDED='{
 }'
 echo "toolset" > "$WORK/toolset"
 
+# R17's fixture: two upstreams that fail at DIFFERENT points of the index, so a record for each is
+# a property of the indexer rather than a patch aimed at one server.
+#
+# `deadcommand` has no process at all — the lease throws before any session exists. `refuseslist`
+# completes `initialize` and then answers `tools/list` with a JSON-RPC error, which is the far side
+# of the same catch. Both are declared in servers.json as well as staged, which is the shape the
+# owner's `namecheap` actually has and is also what keeps `configChanged` false so neither binary
+# reaches its `launchctl kickstart`.
+cat > "$WORK/refuseslist.py" <<'PY'
+import json, sys
+while True:
+    line = sys.stdin.readline()
+    if not line:
+        break
+    line = line.strip()
+    if not line:
+        continue
+    message = json.loads(line)
+    method = message.get("method")
+    if method == "initialize":
+        reply = {"jsonrpc": "2.0", "id": message["id"], "result": {
+            "protocolVersion": "2025-06-18", "capabilities": {"tools": {}},
+            "serverInfo": {"name": "refuseslist", "version": "1.0.0"}}}
+    elif method == "tools/list":
+        reply = {"jsonrpc": "2.0", "id": message["id"],
+                 "error": {"code": -32000, "message": "upstream refused to list its tools"}}
+    else:
+        continue
+    sys.stdout.write(json.dumps(reply) + "\n")
+    sys.stdout.flush()
+PY
+WATCH_TWO_FAILURES_SERVERS='{
+    "deadcommand": { "command": "/nonexistent/definitely-not-a-server" },
+    "refuseslist": { "command": "python3", "args": ["'"$WORK"'/refuseslist.py"] }
+  }'
+WATCH_TWO_FAILURES='{ "numStartups": 41, "mcpServers": '"$WATCH_TWO_FAILURES_SERVERS"' }'
+WATCH_SERVERS_TWO_FAILURES='{
+  "port": 8879,
+  "host": "127.0.0.1",
+  "idleMs": 300000,
+  "mcpServers": '"$WATCH_TWO_FAILURES_SERVERS"'
+}'
+
 watch_both "nothing staged takes the fast path" "$WATCH_EMPTY" "$WATCH_SERVERS_EMPTY"
 watch_both "a staged server is indexed, adopted and unstaged" "$WATCH_PROBE" "$WATCH_SERVERS_SEEDED"
 watch_both "an unparseable ~/.claude.json writes nothing" "{ truncated" "$WATCH_SERVERS_EMPTY"
+watch_both "two upstreams failing at different points each leave a row" \
+  "$WATCH_TWO_FAILURES" "$WATCH_SERVERS_TWO_FAILURES"
 
 echo
 echo "cli: $pass verbs agreed, $fail did not"

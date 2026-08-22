@@ -310,14 +310,25 @@ spoken | grep -qi "recorded after that is discarded as well" \
   || fail "the reset dialog does not say that what accrues after the reading is discarded too"
 pass "A15c: the figure is disclosed as a floor, not as the whole of what is lost"
 
-# It is a clock time, not an elapsed age. `shortAgo`'s vocabulary is what a relative one would use,
-# and none of it may appear in this sentence.
-for shape in "just now" "s ago" "m ago" "h ago" "d ago" "mo ago"; do
-    if spoken | grep -q "reading taken $shape"; then
-        fail "the reset dialog dates its figure relatively ('$shape') — it freezes while the sheet is open"
-    fi
-done
-pass "A15c: the as-of stamp is absolute, so it cannot decay while the dialog sits open"
+# It is a clock time, not an elapsed age, and this row has to be able to read it as one.
+#
+# What stood here swept six relative shapes as `reading taken $shape` and could match none of them.
+# The sentence hardcodes `at ` after `taken`, and `shortAgo` puts a digit where that pattern wanted
+# the unit — so `reading taken at 3m ago`, the regression the plan review killed and the one this
+# design decision exists to prevent, passed the row claiming to prove it absent. M12's verification
+# proved that by planting it: the defect live in the app, `24 passed, 0 failed`, exit 0.
+#
+# It reads the text that actually follows the phrase now, and asserts a clock time is present rather
+# than that a relative phrase is absent. `shortAgo`'s whole vocabulary — `now`, `12s`, `3m`, `5h`,
+# `2d`, `3mo` — carries no colon, so the relative form is what this cannot match.
+STAMP="$(spoken | grep -oE 'reading taken at [^.]+' | head -1 | sed 's/^reading taken at //' || true)"
+[ -n "$STAMP" ] \
+  || fail "nothing follows 'reading taken at' in the reset dialog — the stamp assertion below would read an empty string and pass"
+pass "A15c: the reset dialog's as-of stamp is on screen and non-empty — '$STAMP'"
+
+printf '%s\n' "$STAMP" | grep -qE '[0-9]{1,2}:[0-9]{2}' \
+  || fail "the reset dialog's as-of stamp is '$STAMP', which states no clock time — a relative age freezes at whatever it read when the sheet opened"
+pass "A15c: the as-of stamp is a clock time, so it cannot decay while the dialog sits open"
 
 # And the sheet did not quietly acquire a second wording for the consequence it shares with Activity.
 spoken | grep -qi "no way to bring them back\|nothing to discard\|has not said how many" \

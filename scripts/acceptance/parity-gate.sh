@@ -34,7 +34,7 @@ MANIFEST="${PARITY_MANIFEST:-$REPO_ROOT/planning/parity/surface.tsv}"
 # listed produces no results, no environment failure and no complaint — its rows simply stay
 # blocked under whatever note they carry. `stream` sat on disk in exactly that state from R2-R
 # until P3: written, executable, passing when run by hand, and dispatched by nothing.
-LANES="${PARITY_LANES:-control fixture divergence pool suite mcp cli install state log stream registry oauth authserver}"
+LANES="${PARITY_LANES:-control fixture divergence pool suite mcp cli install state log stream registry oauth authserver overlap}"
 WORK="$(mktemp -d -t parity-gate)"
 RESULTS="$WORK/results.tsv"
 : > "$RESULTS"

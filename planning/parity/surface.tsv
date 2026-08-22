@@ -1,6 +1,6 @@
 # planning/parity/surface.tsv — the cutover surface, enumerated.
 #
-# rows: 92
+# rows: 94
 #
 # The size of this census is pinned, and checked by parity-manifest-check.sh. Four groups are
 # reconciled against a source file and every row a lane speaks for is reconciled against the
@@ -153,3 +153,12 @@ state	state-ondisk-compat	servers.json, the usage store and the tool index writt
 # ---------------------------------------------------------------------------------------------
 # log — the brief's fifth corpus.
 log	log-bytes	log bytes over a live run	proven	-	one scripted session at each router; 13 log lines diffed in order, normalised only for timestamps, durations and paths
+# ---------------------------------------------------------------------------------------------
+# overlap — the two writers that are live at once.
+#
+# A group of its own rather than two more `cli` rows, because the distinction is not which verb is
+# being compared but whether anything else is running while it is. Every other group here compares
+# two binaries that never overlap; a row in one of them could not be red for the reason these are
+# green.
+overlap	overlap-watch-index	a manifest row written inside another path's read-to-save window	proven	-	R19. THE ONE PROPERTY EVERY OTHER LANE IS STRUCTURALLY BLIND TO: every other lane runs the two binaries sequentially over separate homes, so nothing it can hold is ever live at the same time as anything else, and a row clobbered by a concurrent writer cannot appear. scripts/acceptance/parity-overlap.sh runs a `watch` fire that stays open on a staged server failing by startup timeout, drives `index --force` into the middle of that window at t+2s, and asserts the row that second writer owns is still there when both have finished — on both binaries, and that they agree. `lifeline` is configured and never staged, so the watch fire never touches its row and a row of its that goes missing can only have been erased by somebody else's save. MEASURED 2026-08-22, node armed by putting the pre-R19 stale snapshot back: the manifest ends EMPTY, so the row is lost rather than merely stale. The same arm on the Swift watcher does NOT bite and that is recorded rather than swapped for one that does — its pre-R19 window was a per-entry re-read, microseconds wide, and no fixture lands inside it reliably. What proves the Swift half is RouterCoreTests/ManifestMutationLockTests, which holds the lock from a second process and plants a manifest before releasing it. NOT COMPARED, stated: the streams. Under a refused manifest write the reference throws and exits 1 where this router prints `not cached` and exits 0, which is R10/DEF-049's recorded decision and predates this item.
+overlap	overlap-lock-shared	manifest.json.lock, held by a third process	proven	-	R19. The row above proves each router's own read-modify-write is atomic against ITSELF; it cannot prove the two exclude EACH OTHER, and they only do if they agree on where the lock lives and what a lock on it means. The reference has no `flock` binding at all and reaches the same lock through macOS's O_EXLOCK open flag; this router calls flock(2) directly. So a third process takes a plain flock(LOCK_EX) on `<manifest>.lock` — the call O_EXLOCK is defined against — and each binary is then asked to write with MCPR_CONFIG_LOCK_TIMEOUT_MS=400: neither may land a row while it is held, and both must land one once it is released. A binary that ignored the sidecar writes straight through and reddens the first half. Both halves also pin the env override as one knob for both implementations. MEASURED 2026-08-22; armed on each side by removing the lock from its own writer.

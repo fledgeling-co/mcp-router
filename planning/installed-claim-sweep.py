@@ -404,13 +404,18 @@ def main():
         # modelled on. These stay inside `role` — removing them would move a total the notes quote —
         # but they are counted here so the subset has a normaliser committed beside it rather than a
         # number arrived at in a scratch directory.
-        for m in re.finditer(W + r"-claim-sweep", norm, re.I):
-            filename_hits.setdefault(f, []).append(raw.count("\n", 0, offsets[m.start()]) + 1)
-
         # A `role` hit sharing a line with a binding is the binding, not the correct form.
         hits["R1  installed, no version"] = [
             h for h in hits["R1  installed, no version"] if (h[1], h[2]) not in bound
         ]
+
+        # Counted after that suppression and under the same rule, so the subset is a subset: a
+        # filename on a line that also carries a binding is already reported as the binding, and
+        # counting it here too would make `of those N, M are …` read M > its own population.
+        for m in re.finditer(W + r"-claim-sweep", norm, re.I):
+            line = raw.count("\n", 0, offsets[m.start()]) + 1
+            if (f, line) not in bound:
+                filename_hits.setdefault(f, []).append(line)
 
     print("reader: %s" % provenance)
     print("scanned %d tracked files (%d skipped as non-text)" % (scanned, skipped))

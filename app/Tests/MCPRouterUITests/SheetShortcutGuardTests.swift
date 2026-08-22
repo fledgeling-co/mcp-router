@@ -71,7 +71,7 @@
                 }
             }
             """
-            let views = SheetShortcutScan.sheetViews(in: defective, file: "fixture.swift")
+            let views = SheetShortcutScan.views(in: defective, file: "fixture.swift")
             #expect(views.count == 1, "the scanner stopped recognising a sheet view")
             #expect(views.first?.controls.count == 2, "the scanner stopped pairing modifiers to buttons")
             let destructive = views.first?.controls.filter(\.isDestructive) ?? []
@@ -89,7 +89,7 @@
                     .buttonStyle(StandardButtonStyle())
                             .keyboardShortcut(.cancelAction)
                 """, with: "        .buttonStyle(StandardButtonStyle())")
-            let repaired = SheetShortcutScan.sheetViews(in: fixed, file: "fixture.swift")
+            let repaired = SheetShortcutScan.views(in: fixed, file: "fixture.swift")
             #expect(
                 repaired.first?.controls.first(where: \.isDestructive)?.shortcuts.isEmpty == true,
                 "the scanner reports a shortcut on a destructive button that carries none"
@@ -101,7 +101,8 @@
         @Test("no destructive control anywhere carries a keyboard shortcut")
         func noDestructiveControlCarriesAShortcut() throws {
             var offenders: [String] = []
-            for view in try SheetShortcutScan.allSheetViews() {
+            // Every view, not only the sheets: three destructive buttons in this tree are elsewhere.
+            for view in try SheetShortcutScan.allViews() {
                 for control in view.controls where control.isDestructive && !control.shortcuts.isEmpty {
                     offenders.append("\(view.file):\(control.line) \(view.name) → \(control.shortcuts)")
                 }
@@ -136,7 +137,7 @@
         @Test("no control carries two keyboard shortcuts, because SwiftUI would drop one")
         func noControlCarriesTwoShortcuts() throws {
             var offenders: [String] = []
-            for view in try SheetShortcutScan.allSheetViews() {
+            for view in try SheetShortcutScan.allViews() {
                 for control in view.controls where control.shortcuts.count > 1 {
                     offenders.append("\(view.file):\(control.line) \(view.name) → \(control.shortcuts)")
                 }

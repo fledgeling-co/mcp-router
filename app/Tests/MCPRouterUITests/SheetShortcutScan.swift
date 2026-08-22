@@ -26,18 +26,34 @@
 
             var isDestructive: Bool { declaration.contains("role: .destructive") }
 
-            /// The shortcut names this control carries, in written order — e.g. `["cancelAction"]`.
+            /// The shortcuts this control carries, in written order — e.g. `["cancelAction"]`.
+            ///
+            /// The **first argument** of each `keyboardShortcut(`, with any leading dot dropped, so a
+            /// chorded one reads as its key (`keyboardShortcut("r", modifiers: .command)` → `"r"`)
+            /// rather than being skipped. Matching only `keyboardShortcut(.` would have made
+            /// "no destructive control carries a key" true of a `⌘⌫` binding by not looking at it.
             var shortcuts: [String] {
                 modifiers.compactMap { modifier in
-                    guard let opening = modifier.range(of: "keyboardShortcut(.") else { return nil }
+                    guard let opening = modifier.range(of: "keyboardShortcut(") else { return nil }
                     let rest = modifier[opening.upperBound...]
-                    guard let end = rest.firstIndex(where: { $0 == ")" || $0 == "," }) else { return nil }
-                    return String(rest[rest.startIndex ..< end])
+                    var depth = 0
+                    var argument = ""
+                    for character in rest {
+                        if character == "(" { depth += 1 }
+                        if character == ")" {
+                            if depth == 0 { break }
+                            depth -= 1
+                        }
+                        if character == ",", depth == 0 { break }
+                        argument.append(character)
+                    }
+                    let trimmed = argument.trimmingCharacters(in: .whitespaces)
+                    return trimmed.hasPrefix(".") ? String(trimmed.dropFirst()) : trimmed
                 }
             }
         }
 
-        /// A `struct <Name>: View` block whose name ends `Sheet` or `Dialog`.
+        /// A `struct <Name>: View` block and the controls in it.
         struct SheetView {
             let name: String
             let file: String
@@ -45,6 +61,14 @@
             let controls: [Control]
 
             var shortcuts: [String] { controls.flatMap(\.shortcuts) }
+
+            /// Sheets are named for what they are, and hosts and frames are not among them.
+            ///
+            /// Suffix rather than a named list, so a fifteenth sheet is in the population the day it
+            /// is written. This is how `MissingSubjectSheet` turned up: M18's verdict enumerated
+            /// fourteen sheet views and it is the fifteenth, so the no-Escape-path figure that
+            /// verdict reports as 8 of 14 is 9 of 15.
+            var isSheet: Bool { name.hasSuffix("Sheet") || name.hasSuffix("Dialog") }
         }
 
         // MARK: - Reading the tree
@@ -62,10 +86,19 @@
             throw ScanError.rootNotFound
         }
 
-        /// Every sheet view under `app/Sources/MCPRouterUI`, from the whole subtree rather than a
-        /// named list of files — a sheet added in a new file is then in the population by default,
-        /// and `SheetShortcutGuardTests` is what makes an unclassified one fail.
+        /// Every sheet view under `app/Sources/MCPRouterUI`.
         static func allSheetViews() throws -> [SheetView] {
+            try allViews().filter(\.isSheet)
+        }
+
+        /// **Every** view, sheet or not, from the whole subtree rather than a named list of files.
+        ///
+        /// The destructive-control and double-shortcut guards read this rather than the sheets alone:
+        /// three destructive buttons in this tree live outside any sheet
+        /// (`Boards/ServerInspectorSections.swift:154`, `Phone/PairedMacSettingsView.swift:374`,
+        /// `Phone/PairingFlowView.swift:349`), and a guard that only ever looked at sheets would be
+        /// silent the first time one of those gained a key.
+        static func allViews() throws -> [SheetView] {
             let root = try repoRoot().appendingPathComponent("app/Sources/MCPRouterUI")
             guard let walker = FileManager.default.enumerator(atPath: root.path) else {
                 throw ScanError.nothingScanned
@@ -75,7 +108,7 @@
             for case let path as String in walker where path.hasSuffix(".swift") {
                 let source = try String(contentsOf: root.appendingPathComponent(path), encoding: .utf8)
                 filesRead += 1
-                views += sheetViews(in: source, file: path)
+                views += Self.views(in: source, file: path)
             }
             guard filesRead > 0 else { throw ScanError.nothingScanned }
             return views
@@ -83,7 +116,7 @@
 
         // MARK: - The parse
 
-        static func sheetViews(in source: String, file: String) -> [SheetView] {
+        static func views(in source: String, file: String) -> [SheetView] {
             let lines = source.components(separatedBy: .newlines).map(stripped)
             var views: [SheetView] = []
             var index = 0
@@ -121,12 +154,7 @@
             return kept
         }
 
-        /// `struct RemoveServerSheet: View {` → `RemoveServerSheet`; hosts and frames are not sheets.
-        ///
-        /// Suffix rather than a named list, so a fifteenth sheet is in the population the day it is
-        /// written. This is how `MissingSubjectSheet` turned up: M18's verdict enumerated fourteen
-        /// sheet views and it is the fifteenth, so the no-Escape-path figure that verdict reports as
-        /// 8 of 14 is 9 of 15.
+        /// `struct RemoveServerSheet: View {` → `RemoveServerSheet`.
         static func viewName(in line: String) -> String? {
             guard let match = line.range(
                 of: #"struct ([A-Za-z0-9]+)(<[^>]*>)?: View \{"#,
@@ -137,9 +165,7 @@
             guard let nameStart = declaration.range(of: "struct ")?.upperBound,
                   let nameEnd = declaration[nameStart...].firstIndex(where: { $0 == ":" || $0 == "<" })
             else { return nil }
-            let name = String(declaration[nameStart ..< nameEnd])
-            guard name.hasSuffix("Sheet") || name.hasSuffix("Dialog") else { return nil }
-            return name
+            return String(declaration[nameStart ..< nameEnd])
         }
 
         private static func delta(_ text: some StringProtocol, _ open: Character, _ close: Character) -> Int {

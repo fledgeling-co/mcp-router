@@ -432,6 +432,46 @@ was caught by re-measuring rather than by anyone correcting it, which is the **t
 failure this session has committed today and the first it caught itself. **A zero from a scoped
 probe is a candidate, not a result.**
 
+### DESTRUCTIVE EDIT BY THIS SESSION — 55,000 CHARACTERS OF LEDGER NARRATIVE, RESTORED
+
+**2026-08-23, commit `9d4da76`.** Advancing the stale status fields, this session's script did
+`cells[6] = <new status>` — a **replacement**. In `LEDGER.md` the status and the narrative **share
+that one cell**, so every row it touched lost its entire record:
+
+| row | before | after |
+|---|---|---|
+| M12 | 5,026 | **62** |
+| M20 | 8,029 | **53** |
+| M22 | 6,417 | **53** |
+| M19 | 6,439 | **62** |
+| G5 | 9,763 | **62** |
+| M16 | 6,626 | 2,112 |
+| M18 | 12,469 | 2,429 |
+| R19 | 12,705 | 2,455 |
+
+Four rows were reduced to the status lead alone. **That is the verification record for the entire
+wave** — every verdict, every finding, every measurement.
+
+**It was caught by a runner, not by this session.** M12's gap-fix hit the conflict while merging and
+reported it: *"the commit that made status fields lead replaced M12's ledger cell … and nothing after
+the dash."* It restored M12's from `1ae288f` on its own branch and **flagged that the same commit
+may have done it to other rows.** It had.
+
+**Restored from `9d4da76^`**, with each row now carrying the new status lead, the full prior
+narrative, and anything appended since — read back against pre-edit lengths, all eight at or above,
+reconciler clean A–L.
+
+**The rule this broke is one this session has written into every brief it dispatched tonight:** *read
+the file back once after patching — a patch has two success conditions, the string matched and the
+result still reads, and only the first is checkable by the tool that patched.* The script reported
+eight rows edited and eight rows were edited. Nothing failed. **No gate covers this**, because
+`ledger-reconcile.py` checks structure and agreement, and a row with a correct id, a correct status
+and an empty narrative is structurally perfect.
+
+**Two things follow.** A cell that holds two things is a cell where editing one destroys the other —
+worth splitting. And **the read-back has to be a length or content comparison, not a re-read**: this
+session did re-read the file, saw well-formed rows, and moved on.
+
 ### RELEASE IS A COORDINATION PROBLEM, NOT A MEASUREMENT ONE
 
 The correction that matters from tonight's two opposite mistakes, from `Google Drive Fixes` via the

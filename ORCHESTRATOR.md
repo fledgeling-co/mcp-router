@@ -117,6 +117,35 @@ than barriering on whole waves, so the real overlap is greater than the table im
 | 5 | M5 · M7 · M8 · I3 | 4 | — |
 | 6 | M6 | 1 | Phone → Mac inbox round-trip works end to end |
 
+### In flight — 2026-08-22, three runners
+
+Recorded so a fresh session resumes the fleet from this file rather than from a transcript.
+Each runner is a detached `claude -p` in its own worktree; confirm liveness with
+`pgrep -f 'model claude-opus-5 -p'` and read each pid's cwd with `lsof -a -p <pid> -d cwd`,
+never the harness's own cwd notice.
+
+| Item | Worktree | Branch | Base | Dispatched | Stop rules |
+|---|---|---|---|---|---|
+| R17 gap-fix 2 | `.worktrees/R17` | `ai/r17` | `55075ed` | 11:50 | before verify, before merge |
+| M21 | `.worktrees/M21` | `ai/m21` | `4de2080` | 12:05 | before verify, before merge |
+| M15 | `.worktrees/M15` | `ai/m15` | `4de2080` | 12:07 | before verify, before merge |
+
+**R17's base is behind main and its dispatch contradicted itself** — it froze the branch off main
+while setting `reconciler 0 across A–L` as a gate, and check L only exists on main from `b616dc1`.
+The worktree also still carries both committed conflict blocks that check L was written to catch.
+Resolution is the orchestrator's at finalisation: merge main into `ai/r17` — a base update, not a
+merge *to* main — then re-run the gate line as written. Recorded in full in `R17-gapfix-2.md`.
+
+**M16 · M17 · M18 · M19 · M20 · M22 are To Do and must not be dispatched before M21 merges.**
+They are the per-surface half of the same programme: M21 delivers the token layer and every call
+site keeps the name it already names, so choosing which surfaces move from `--accent` to
+`--accent-ink` is theirs. Dispatched early they would build against the palette M21 replaces.
+
+**R19 and G4 are Ready for AI, independent of everything in flight, and have no spec yet.** Their
+triage verdicts on 2026-08-22 settled the precondition each was blocked on, so a runner starts at
+the spec stage rather than at triage. They are the next two slots to fill.
+
+
 ```
 F1
 ├── F2 ─┬── M1 ──┬── M2

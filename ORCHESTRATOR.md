@@ -126,7 +126,7 @@ never the harness's own cwd notice.
 
 | Item | Worktree | Branch | Base | Dispatched | Stop rules |
 |---|---|---|---|---|---|
-| R17 gap-fix 2 | `.worktrees/R17` | `ai/r17` | `55075ed` | 11:50 | **verifying** — runner done at `13e728b` |
+| R17 gap-fix 3 | `.worktrees/R17` | `ai/r17` | `13e728b` | 14:05 | before verify, before merge — gap-fix 2 verified NMW |
 | M21 | `.worktrees/M21` | `ai/m21` | `4de2080` | 12:05 | **verifying** — runner done, 4 commits |
 | M15 | `.worktrees/M15` | `ai/m15` | `4de2080` | 12:07 | before verify, before merge |
 | R19 | `.worktrees/R19` | `ai/r19` | `72958de` | 12:26 | before verify, before merge |

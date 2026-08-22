@@ -121,7 +121,7 @@ struct AuthRoutesTests {
 
     private func manifest(with entry: String, server: String = "linear") -> (AuthTestFileSystem, String) {
         let fs = AuthTestFileSystem()
-        let path = "/router/manifest.json"
+        let path = ManifestLockScratch.path("authroutes")
         fs.memory.seed(
             "{\n  \"version\": 1,\n  \"servers\": {\n    \"\(server)\": \(entry)\n  }\n}",
             atPath: path
@@ -142,9 +142,10 @@ struct AuthRoutesTests {
     @Test("B88 — a corrupt manifest degrades to 409 rather than throwing")
     func corruptManifestIs409() async {
         let fs = AuthTestFileSystem()
-        fs.memory.seed("{not json", atPath: "/router/manifest.json")
+        let path = ManifestLockScratch.path("authroutes")
+        fs.memory.seed("{not json", atPath: path)
         let (status, body) = await AuthRoutes.approve(
-            server: JSString("linear"), manifestPath: "/router/manifest.json",
+            server: JSString("linear"), manifestPath: path,
             fileSystem: fs, nowMilliseconds: 0
         )
         #expect(status == 409)

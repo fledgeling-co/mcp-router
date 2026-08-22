@@ -83,16 +83,24 @@ struct ManifestIndexerWriteFailureTests {
         }
     }
 
+    /// One scratch manifest per test.
+    ///
+    /// A stored property rather than a default argument: Swift Testing builds a fresh instance per
+    /// `@Test`, so this is one path for every call inside one test and a different one between
+    /// tests — where a default argument is re-evaluated at each call and would hand the second
+    /// `indexer(...)` in a test an empty manifest.
+    private let scratchManifest = ManifestLockScratch.path("indexer")
+
     private func indexer(
         _ fileSystem: MemoryFileSystem,
-        path: String = "/router/manifest.json",
+        path: String? = nil,
         transport: any UpstreamTransporting = ListingTransport(),
         log: RouterLog? = nil
     ) -> ManifestIndexer {
         ManifestIndexer(
             startupTimeoutMs: 2000,
             transporting: transport,
-            manifestPath: path,
+            manifestPath: path ?? scratchManifest,
             fileSystem: fileSystem,
             log: log
         )
@@ -109,7 +117,7 @@ struct ManifestIndexerWriteFailureTests {
     @Test("the control: a writable manifest really does gain the tool, and reports it cached")
     func aWritableManifestGainsTheTool() async throws {
         let fileSystem = MemoryFileSystem()
-        let path = "/router/manifest.json"
+        let path = scratchManifest
         let outcome = await indexer(fileSystem).index(stdioUpstream("fixture"))
 
         #expect(outcome.error == nil)
@@ -127,7 +135,7 @@ struct ManifestIndexerWriteFailureTests {
     @Test("a refused write is reported as a refused write, not as a successful index")
     func aRefusedWriteIsReportedAsSuch() async {
         let fileSystem = MemoryFileSystem()
-        let path = "/router/manifest.json"
+        let path = scratchManifest
         refuseBothWriteArms(fileSystem)
 
         let outcome = await indexer(fileSystem).index(stdioUpstream("fixture"))
@@ -151,7 +159,7 @@ struct ManifestIndexerWriteFailureTests {
     @Test("the two numbers the verb prints are no longer free to disagree unnoticed")
     func theCountTheVerbPrintsIsReconciledWithTheOneItReports() async {
         let fileSystem = MemoryFileSystem()
-        let path = "/router/manifest.json"
+        let path = scratchManifest
         refuseBothWriteArms(fileSystem)
 
         let outcome = await indexer(fileSystem).index(stdioUpstream("fixture"))
@@ -186,7 +194,7 @@ struct ManifestIndexerWriteFailureTests {
         _ = await indexer(fileSystem, log: log).index(stdioUpstream("fixture"))
 
         let text = sink.text
-        #expect(text.contains("did not reach /router/manifest.json"), "the path is named")
+        #expect(text.contains("did not reach \(scratchManifest)"), "the path is named")
         #expect(text.contains("the manifest row for \"fixture\""), "and so is the server")
         #expect(
             text.contains("nothing from this run was recorded for it"),
@@ -219,7 +227,7 @@ struct ManifestIndexerWriteFailureTests {
     func aRefusedRenameIsAlsoAWriteThatDidNotLand() async {
         let recorder = OperationRecorder()
         let fileSystem = MemoryFileSystem(recorder: recorder)
-        let path = "/router/manifest.json"
+        let path = scratchManifest
         // Only the SECOND arm of `ManifestIO.save`. The temp file lands and the rename does not —
         // the arm the both-arms test above can never reach, because a refused `writeFile` means
         // `moveItem` is never called at all.
@@ -245,7 +253,7 @@ struct ManifestIndexerWriteFailureTests {
     @Test("a manifest that already holds an older row keeps it when the update cannot be written")
     func anOlderRowSurvivesARefusedUpdate() async {
         let fileSystem = MemoryFileSystem()
-        let path = "/router/manifest.json"
+        let path = scratchManifest
 
         let first = await indexer(fileSystem).index(stdioUpstream("fixture"))
         #expect(first.cached, "the control: the first index really did land")
@@ -296,7 +304,7 @@ struct ManifestIndexerWriteFailureTests {
         #expect(second.cached, "nothing was refused; the entry with its pending block did land")
         // The number the CLI's closing line prints, derived the way that line derives it. It counts
         // the APPROVED surface, so a reporter printing `tools` beside it prints 2 against 1.
-        let after = ManifestIO.load(path: "/router/manifest.json", fileSystem: fileSystem).manifest
+        let after = ManifestIO.load(path: scratchManifest, fileSystem: fileSystem).manifest
         let cached = ToolUnion.unionTools(
             manifest: after, upstreams: [stdioUpstream("fixture")]
         ).count

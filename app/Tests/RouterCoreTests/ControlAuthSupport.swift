@@ -138,7 +138,7 @@ enum ControlAuthSupport {
     /// A manifest on a memory filesystem, plus the path the config will point `manifestPath` at.
     static func seedManifest(_ entry: String, server: String = "p1-stdio") -> (AuthTestFileSystem, String) {
         let fileSystem = AuthTestFileSystem()
-        let path = "/router/manifest.json"
+        let path = ManifestLockScratch.path("controlauth")
         fileSystem.memory.seed(
             "{\n  \"version\": 1,\n  \"servers\": {\n    \"\(server)\": \(entry)\n  }\n}",
             atPath: path
@@ -151,7 +151,7 @@ enum ControlAuthSupport {
         // member to the composition, and this parameter was the merge-only break — both
         // branches compiled alone and the merged tree did not.
         fileSystem: any FileSystem & FileModeWriting = AuthTestFileSystem(),
-        manifestPath: String = "/router/manifest.json",
+        manifestPath: String = ManifestLockScratch.path("controlauth"),
         calls: AuthDispatchCalls = AuthDispatchCalls(),
         starter: (any AuthFlowStarting)? = nil,
         log: RouterLog? = nil

@@ -331,6 +331,33 @@ independent confirmation that it is claim accounting rather than load measuremen
 Disk is the tightest axis at **13.7% free** (254 GiB absolute, 234 GiB clear of the hard gate) —
 graded healthy, so watch rather than worry.
 
+### DISPATCH — CHECK THE TIP MOVED BEFORE SENDING A VERIFIER
+
+**Committed by this session, 2026-08-23.** G5's verdict `78ce229` had parent `6a3dbb8`. `ai/g5` was
+still `6a3dbb8` when the next verifier was dispatched, because the gap-fix that verdict called for
+was **recorded as owed and never dispatched.** So a verifier spent a full pass re-deriving a verdict
+that already existed, and its own report is what surfaced it: *the tree I graded is the tree that
+verdict graded, and no gap-fix has run since.*
+
+**The check is one command and it takes a second:**
+
+```
+git rev-parse ai/<item>                     # the tip you are about to grade
+git log -1 --format=%P <previous-verdict>   # the tree the last verdict graded
+```
+
+Equal means **there is nothing new to verify** — what is owed is the gap-fix, not another verdict.
+
+It was not wasted, which is the part that makes it easy to repeat: the verifier re-derived all five
+criteria independently and found **three new findings** the previous verdict had not. A wasted pass
+that returns value is harder to notice than one that returns nothing.
+
+**Related, and the reason this session missed it**: `Needs More Work` was recorded in the ledger row
+with *gap-fix N owed*, which reads like a state and is actually a **to-do with no owner**. A verdict
+that blocks does not dispatch its own successor. Either dispatch on receipt or make the owing
+explicit enough that the next dispatch reads it — the ledger row said it and the dispatcher did not
+look.
+
 ### R19'S PARAGRAPH HAS FAILED THREE PASSES, EACH TIME BY A NEW EXCLUSIVITY CLAIM
 
 Three verifications, three `Needs More Work`, and **each pass removed one exclusivity claim and wrote

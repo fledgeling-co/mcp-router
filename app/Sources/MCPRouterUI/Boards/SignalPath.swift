@@ -61,8 +61,24 @@
             )
             .measured(
                 "signal-path", role: "signature", kind: .vstack, alignment: "leading",
-                tokens: ["background": .panel]
+                tokens: ["background": .panel], text: bandText
             )
+        }
+
+        /// Every string this band draws, in draw order.
+        ///
+        /// The same composition `ServerRowView.rowText` makes, for the same reason: a container that
+        /// reports no text of its own is paired against a mock card whose label **is** its whole
+        /// subtree's text, and the two are then not compared at all — which M23's gate reports as
+        /// `unclassified` rather than as agreement. Composing it here turns the band's row into a
+        /// real comparison, and it is a concatenation of what is drawn below rather than a second
+        /// spelling of it: change a part and this changes with it.
+        private var bandText: String {
+            var parts = [SignalPathCopy.title, header.topology]
+            parts.append(contentsOf: SignalPathCopy.legend.map(\.word))
+            parts.append(hubText)
+            parts.append(contentsOf: rows.map { "\($0.name) \($0.condition.word)" })
+            return parts.joined(separator: " ")
         }
 
         // MARK: - Head
@@ -209,6 +225,11 @@
                     )
                 }
             }
+            // `flex:1` in the mock. Without it the grid negotiates its *ideal* width inside the
+            // rail's HStack rather than the width available, so the last track absorbs the
+            // remainder — measured at 142.5pt against its siblings' 132pt — and the packing stops
+            // being the one the brief specified.
+            .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityLabel(SignalPathCopy.jackField)
             .measured("jacks", role: "jack-field", kind: .grid)
         }

@@ -1,7 +1,10 @@
 # M20 acceptance — the menu bar measured for the first time, the popover measured at all
 
-Branch `ai/m20`, worktree `.worktrees/M20`. **Gap-fix 1 is `f9ba8fe` … `1520f0a`**, 2026-08-23, on
-top of the merge `e4aec36`. The delivered pass was `0bdfcbe` and `bcc69dd`.
+Branch `ai/m20`, worktree `.worktrees/M20`. **Gap-fix 1 is `f9ba8fe` … `2393c78`**, 2026-08-23, on
+top of the merge `e4aec36`, with `main` merged a second time at `8aecd90` after it moved to
+`55dbeca` mid-pass. **Every gate below was re-run on `8aecd90` and held**, and that merge touched no
+Swift file — `git diff --name-only $(git merge-base bcc69dd main) main -- app/ '*.swift'` counts 0 —
+which is why every Swift figure here is M20's alone. The delivered pass was `0bdfcbe` and `bcc69dd`.
 
 **This file did not exist until the gap-fix, and its absence is the first thing it has to record.**
 `planning/practices/UI_VERIFICATION.md` rule 2 asks for one per item at exactly this path.

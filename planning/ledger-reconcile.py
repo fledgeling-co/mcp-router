@@ -34,6 +34,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from input_accounting import Tally  # noqa: E402  — the sys.path line above has to come first
+
 # The id series this pipeline allocates. `D-<parent>-<letter>` deferred children and
 # `R1-D3`-style defect ids are NOT allocations and are excluded below.
 SERIES = r"(?:F|R|M|I|P|D|G|V|X)"
@@ -45,17 +48,32 @@ RANGE = re.compile(rf"({SERIES})(\d+)\s*[–—-]\s*({SERIES})?(\d+)")
 NOT_ALLOCATIONS = {f"M{n}" for n in range(50, 100)}
 
 
-def table_ids(text: str) -> set[str]:
-    """Ids in the first cell of a markdown table row — what an allocator scans."""
+def table_ids(text: str, source: str = "") -> tuple[set[str], Tally]:
+    """Ids in the first cell of a markdown table row — what an allocator scans.
+
+    Returns the ids and a `Tally` naming every line it did not keep, which is the denominator
+    checks A, B, C and G stand on and which nothing printed before G4. The three drops here were
+    all silent: a line that is not a table row, a row whose first cell is not an allocation id, and
+    a mutation id filtered out after the fact by a set subtraction the loop could not see. The
+    first of those is the shape check L was added for — an unresolved merge-conflict marker does
+    not begin with a pipe, so this reader discarded two of them for a day without a word.
+    """
+    tally = Tally("table row scan", source)
     found = set()
     for line in text.split("\n"):
         if not line.startswith("| "):
+            tally.drop(line, "not a table row")
             continue
         cell = line.split("|")[1].strip().replace("**", "").replace("~~", "").strip()
-        m = re.fullmatch(rf"{SERIES}\d+(?:-[A-Z]\d*)?", cell)
-        if m:
-            found.add(cell)
-    return found - NOT_ALLOCATIONS
+        if not re.fullmatch(rf"{SERIES}\d+(?:-[A-Z]\d*)?", cell):
+            tally.drop(line, "first cell is not an allocation id")
+            continue
+        if cell in NOT_ALLOCATIONS:
+            tally.drop(line, "a mutation id, which is not an allocation")
+            continue
+        tally.keep(cell)
+        found.add(cell)
+    return found, tally
 
 
 # Stopwords for check F. The bar is deliberately low — see the comment on `describes`.
@@ -66,7 +84,7 @@ FILLER = {
     "be", "been", "was", "were", "are", "as", "has", "have", "had", "can", "cannot", "s",
 }
 
-def describes(text: str, source: str) -> dict[str, list[tuple[str, str]]]:
+def describes(text: str, source: str) -> tuple[dict[str, list[tuple[str, str]]], Tally]:
     """Every table row's description cell, keyed by the id in the first cell.
 
     This is what an allocator reads to decide whether an id is the item it means. Checks A
@@ -82,21 +100,26 @@ def describes(text: str, source: str) -> dict[str, list[tuple[str, str]]]:
     defect as one across two, and a check that reads one row per file cannot see it.
     """
     out: dict[str, list[tuple[str, str]]] = {}
+    tally = Tally("description scan", source)
     for line in text.split("\n"):
         if not line.startswith("| "):
+            tally.drop(line, "not a table row")
             continue
         cells = line.split("|")
         if len(cells) < 3:
+            tally.drop(line, "fewer than three cells, so it has no description cell")
             continue
         cell = cells[1].strip().replace("**", "").replace("~~", "").strip()
         if not re.fullmatch(rf"{SERIES}\d+(?:-[A-Z]\d*)?", cell) or cell in NOT_ALLOCATIONS:
+            tally.drop(line, "first cell is not an allocation id")
             continue
+        tally.keep(cell)
         out.setdefault(cell, []).append((source, cells[2].strip()))
-    return out
+    return out, tally
 
 def status_rows(
-    text: str,
-) -> tuple[dict[str, list[tuple[int, str]]], list[tuple[int, str]]]:
+    text: str, source: str = "",
+) -> tuple[dict[str, list[tuple[int, str]]], Tally]:
     """Every table row's Status cell, keyed by id, indexed by the column's HEADER name.
 
     Positional indexing would be wrong here. This file has one 9-column table carrying a
@@ -118,26 +141,38 @@ def status_rows(
     four-cell deferred-child rows interleaved in the nine-column table with no header of their
     own; none can disagree about a status it has no cell for, but an instrument that says nothing
     about half its input has not earned the word clean.
+
+    That was true of ONE of this reader's four drops. It named the short rows and said nothing
+    about the other three — the header rule it consumes, every line outside a table with a Status
+    column, and every row whose first cell is not an allocation id. G4's census found it: the
+    reader that invented the skip list in this repository recorded a quarter of what it discarded.
+    All four are named now, and `Tally` is what makes that the short path rather than the diligent
+    one.
     """
     out: dict[str, list[tuple[int, str]]] = {}
-    skipped: list[tuple[int, str]] = []
+    tally = Tally("status row scan", source)
     header: list[str] = []
     lines = text.split("\n")
     for n, line in enumerate(lines, 1):
         if re.match(r"^\|[\s:\-]+\|", line) and n >= 2:
             header = [c.strip().lower() for c in lines[n - 2].split("|")][1:-1]
+            tally.drop((n, line), "a header rule, read for its column names rather than as a row")
             continue
         if not line.startswith("| ") or "status" not in header:
+            tally.drop((n, line), "not a row of a table with a Status column")
             continue
         cells = [c.strip() for c in line.split("|")][1:-1]
         if len(cells) < len(header):
-            skipped.append((n, cells[0].replace("**", "").replace("~~", "").strip() if cells else ""))
+            tally.drop((n, cells[0].replace("**", "").replace("~~", "").strip() if cells else ""),
+                       "fewer cells than its header")
             continue
         idc = cells[0].replace("**", "").replace("~~", "").strip()
         if not re.fullmatch(rf"{SERIES}\d+(?:-[A-Z]\d*)?", idc) or idc in NOT_ALLOCATIONS:
+            tally.drop((n, idc), "first cell is not an allocation id")
             continue
+        tally.keep(idc)
         out.setdefault(idc, []).append((n, cells[header.index("status")]))
-    return out, skipped
+    return out, tally
 
 # The lifecycle states a status cell can name, most specific first. Check I compares STATE,
 # never wording: the two files legitimately phrase one status differently — ORCHESTRATOR
@@ -319,7 +354,8 @@ def main() -> int:
     ledger = ledger_path.read_text(encoding="utf-8", errors="replace")
     orch = orch_path.read_text(encoding="utf-8", errors="replace")
 
-    l_table, o_table = table_ids(ledger), table_ids(orch)
+    l_table, l_scan = table_ids(ledger, "LEDGER.md")
+    o_table, o_scan = table_ids(orch, "ORCHESTRATOR.md")
     l_named, o_named = named_ids(ledger), named_ids(orch)
     l_range, o_range = range_ids(ledger), range_ids(orch)
     branches = merged_branches(root)
@@ -362,6 +398,15 @@ def main() -> int:
     print(f"LEDGER        {len(l_table):3d} rows, {len(l_named):3d} named")
     print(f"ORCHESTRATOR  {len(o_table):3d} rows, {len(o_named):3d} named")
     print(f"merged ai/*   {len(branches):3d} branches")
+    # The denominator checks A, B, C and G stand on. Their inputs are these two scans, and until
+    # G4 nothing printed what either scan discarded — so "no findings" from four checks rested on
+    # a row count with no total beside it.
+    for scan in (l_scan, o_scan):
+        print(f"  {scan.line()}")
+        if scan.measured_nothing():
+            print("usage error: the table scan read 0 lines. A gate that never ran is not a gate "
+                  "that passed.", file=sys.stderr)
+            return 2
     for problem in quote_balance(ledger):
         print(f"  warning: LEDGER.md {problem}")
     print()
@@ -370,8 +415,9 @@ def main() -> int:
     # noun, so demanding zero overlap is what stops this firing on a correct use; the cost
     # is that it misses a collision between two items that happen to share a word, which
     # is the safe direction for a check whose remedy is renumbering someone's id.
-    rows: dict[str, list[tuple[str, str]]] = describes(ledger, "LEDGER")
-    for i, rs in describes(orch, "ORCHESTRATOR").items():
+    rows, l_desc = describes(ledger, "LEDGER")
+    o_rows, o_desc = describes(orch, "ORCHESTRATOR")
+    for i, rs in o_rows.items():
         rows.setdefault(i, []).extend(rs)
     f = []
     for i in sorted(rows):
@@ -398,6 +444,13 @@ def main() -> int:
     # and the wrong one for "can a fleet resume from that file". This found R7: its only
     # appearance in ORCHESTRATOR was inside another row's prose, explaining that a colliding
     # deferred child had been renumbered off it.
+    # F and G's denominator. `describes` reads the same two files as `table_ids` and keeps a
+    # different subset — a row with fewer than three cells has an id and no description — so the
+    # two scans are printed separately rather than assumed equal.
+    for scan in (l_desc, o_desc):
+        print(f"  {scan.line()}")
+    print()
+
     g = sorted(l_table - o_table)
     if g:
         findings.append(("G", "in LEDGER's table but ORCHESTRATOR has no row for it — only a "
@@ -410,7 +463,7 @@ def main() -> int:
     # one of them — and it is worse than a missing row, because a missing row fails membership
     # while a stale duplicate fails nothing and gets scheduled. Found by dev-09 over a file
     # this script cleared at exit 0 with five such pairs in it.
-    o_status, o_skipped = status_rows(orch)
+    o_status, o_scan_status = status_rows(orch, "ORCHESTRATOR.md")
     h = []
     for i, rs in sorted(o_status.items()):
         seen = {st.replace("**", "").strip(): n for n, st in rs}
@@ -424,9 +477,11 @@ def main() -> int:
     # The denominator H stands on. Printed on every run, pass or fail: "no findings" over an
     # unstated subset is the failure this line exists to make impossible to report by accident.
     examined = sum(len(v) for v in o_status.values())
+    short = sorted({i for _, i in o_scan_status.named("fewer cells than its header") if i})
     print(f"H examined {examined} rows with a status cell; "
-          f"skipped {len(o_skipped)} with fewer cells than their header"
-          + (f" ({', '.join(sorted({i for _, i in o_skipped if i}))})" if o_skipped else ""))
+          f"skipped {len(o_scan_status.named('fewer cells than its header'))} with fewer cells "
+          f"than their header" + (f" ({', '.join(short)})" if short else ""))
+    print(f"  {o_scan_status.line()}")
     if examined == 0:
         print("usage error: check H examined 0 rows — the table shape changed and H measured "
               "nothing. A gate that never ran is not a gate that passed.", file=sys.stderr)
@@ -442,7 +497,7 @@ def main() -> int:
     # the tree — while ORCHESTRATOR still read **Ready for AI**. That is the expensive
     # direction: a fleet fills its slots from ORCHESTRATOR, so a stale row there dispatches a
     # runner to rebuild work that shipped days ago, and the runner has no way to find out.
-    l_status, l_skipped = status_rows(ledger)
+    l_status, l_scan_status = status_rows(ledger, "LEDGER.md")
     i_findings, i_unread, i_examined = [], [], 0
     for ident in sorted(set(o_status) & set(l_status)):
         o_cells = {st for _, st in o_status[ident]}
@@ -467,7 +522,10 @@ def main() -> int:
     # named rather than counted as agreement.
     print(f"I examined {i_examined} ids present in both files"
           + (f"; {len(i_unread)} unread ({', '.join(i_unread)})" if i_unread else "")
-          + f"; LEDGER skipped {len(l_skipped)} rows with fewer cells than their header")
+          + f"; LEDGER skipped "
+            f"{len(l_scan_status.named('fewer cells than its header'))} rows with fewer cells "
+            f"than their header")
+    print(f"  {l_scan_status.line()}")
     if i_examined == 0:
         print("usage error: check I examined 0 ids — either the tables stopped overlapping or "
               "the status vocabulary moved past STATES. A gate that never ran is not a gate "

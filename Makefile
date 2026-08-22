@@ -46,6 +46,16 @@ SURFACE    ?= servers
 
 .PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance mock-fidelity mock-fidelity-selftest lint format clean install-default
 
+## G4's two harness gates run inside `lint` rather than as a stage of their own. Both are
+## hermetic and finish in under ten seconds, and `lint` is where the other four script gates
+## already live — a lane of its own would be a lane somebody runs separately from `all`.
+##
+## `reader-accounting.py` reads what every Python reader under planning/ and scripts/ discards and
+## fails on one that discards silently. `null-run-gate.py` runs the hermetic assertions against
+## poisoned and empty input and fails on one that cannot be made to go red. Neither reaches an
+## assertion that reads a real quantity that is the wrong one; both print that boundary on every
+## run rather than leaving a green to imply it.
+
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
 ## `test-ios-glass` is in this list because `X2-ios-on-glass.md` said it would be: "The target
 ## exists, is documented, and joins `all` when DEF-X2-b and DEF-X2-c close." Both closed on
@@ -527,6 +537,8 @@ lint: tools
 	./scripts/lint/no-wire-codable.sh || fail=1; \
 	./scripts/lint/no-harness-config-writes.sh || fail=1; \
 	./scripts/lint/no-harness-config-writes-selftest.sh || fail=1; \
+	python3 planning/reader-accounting.py || fail=1; \
+	python3 planning/null-run-gate.py || fail=1; \
 	exit $$fail
 
 ## Writes formatting changes in place. Not part of `all` — a gate that edits your files is a gate

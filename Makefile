@@ -127,7 +127,19 @@ build-ios: generate
 ## Discovery is counted as non-blank listing lines rather than by matching a naming convention. An
 ## earlier version required each line to end in `()`, which is the Swift Testing spelling — a
 ## healthy XCTest-style listing (`Suite/testName`) counted as zero and failed a suite that was fine.
-## The shape of a line is not the signal; whether the listing produced anything is.
+## The shape of a line is not the signal; whether the listing named a TEST is.
+##
+## It used to count every non-blank line, which counts SwiftPM's build chatter along with the ids.
+## Measured on one unchanged tree: 1742, 1734 and 1733 across three runs, differing only by
+## build-cache state, against 1748 real ids and 3 chatter lines when warm. Nothing the gate DECIDED
+## was wrong — it only ever compared that number to zero — but the line reads like a test count and
+## was quoted as one, in a verdict draft and in a commit message. Two things are fixed here: the
+## number is now the count of test ids, so it is the thing its label says, and the chatter is
+## reported separately rather than silently folded in. The zero-check gets stronger as a side
+## effect, because a listing that succeeds while naming no test now reads as zero rather than as
+## however many lines the build printed.
+##
+## The number to quote for coverage is still `executed`, below, which comes from the xUnit report.
 ##
 ## Discovery is also not execution, and that is the gap the count below closes: a suite can
 ## enumerate thirty tests and run none of them, whether disabled or skipped. The gating number is
@@ -142,10 +154,14 @@ test: enum-layout-stamp
 	    echo "error: could not enumerate tests — this is a build or toolchain failure, not an empty suite:"; \
 	    echo "$$listing"; exit 1; \
 	  fi; \
-	  discovered=$$(printf '%s\n' "$$listing" | grep -cE '[^[:space:]]' || true); \
-	  echo "discovered $$discovered test lines"; \
+	  discovered=$$(printf '%s\n' "$$listing" \
+	                | grep -cE '^[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*/[A-Za-z_][A-Za-z0-9_]*\(' \
+	                || true); \
+	  chatter=$$(printf '%s\n' "$$listing" | grep -cE '[^[:space:]]' || true); \
+	  chatter=$$((chatter - discovered)); \
+	  echo "discovered $$discovered test ids ($$chatter further non-blank lines are build output)"; \
 	  if [ "$$discovered" -eq 0 ]; then \
-	    echo "error: the listing was empty — the suite is not running, which is a failure, not a pass"; \
+	    echo "error: the listing named no test — the suite is not running, which is a failure, not a pass"; \
 	    exit 1; \
 	  fi
 	@set -eu -o pipefail; cd $(APP_DIR); \

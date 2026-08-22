@@ -122,9 +122,15 @@ struct MenuCommandRuleTests {
     ///
     /// The rule the app already applied to `Export Library…`, whose `⌘E` was a standard macOS
     /// combination — Finder's *Eject* — claimed for a command that could never fire. M20 generalised
-    /// it rather than re-deciding it per item, and it is what settles nine of the ten chords the
+    /// it rather than re-deciding it per item, and it is what settles **seven** of the ten chords the
     /// mock's Router and Library menus claim. Without this, adding `⇧⌘R` to `Restart Router` because
     /// the mock draws it would pass every other test in this file.
+    ///
+    /// Seven rather than nine, because this clause can only see the limb it enforces. `⌃W` is granted,
+    /// `⌘1` is a duplicate the no-duplicate rule settles, and `⌥⌘Q` is refused by `DESIGN.md` §8's
+    /// second limb — the chord is AppKit's own `Quit and Keep Windows` — which nothing here reads,
+    /// since this file's subject is availability. The nine that is true of M20 is the number of the
+    /// twelve declared commands that are `.featureUnbuilt`, which is a different population.
     @Test("a command that can never fire claims no shortcut")
     func unbuildableCommandsClaimNoShortcut() {
         let everyContext = [

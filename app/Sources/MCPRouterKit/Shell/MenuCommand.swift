@@ -306,13 +306,26 @@ public enum MenuCommand: Hashable, Sendable {
         case .minimise: KeyChord("M")
         // The one accelerator M20 grants, and the rule that granted only one.
         //
-        // The mock's Router and Library menus claim ten chords. Nine of them sit on commands that
-        // are `.featureUnbuilt` in every context, and this repo already argued that case at length
-        // over `⌘E` below: a shortcut on a command that can never fire is a system combination
-        // claimed for nothing. So the rule generalises rather than being re-decided per item — **a
-        // command that cannot fire in any context carries no accelerator** — and `⌃W` is the only
-        // one left, because `Wake Selected Server` is the only Router verb the control API can
-        // perform (`patch(warm: true)`).
+        // The mock's Router and Library menus claim ten chords. **Seven** of them sit on commands
+        // that are `.featureUnbuilt` in every context, and this repo already argued that case at
+        // length over `⌘E` below: a shortcut on a command that can never fire is a system
+        // combination claimed for nothing. So the rule generalises rather than being re-decided per
+        // item — **a command that cannot fire in any context carries no accelerator** — and it is
+        // this switch that enforces it.
+        //
+        // Seven and not nine, and the difference matters because it is the difference between the
+        // rule reaching a chord and not. Of the other three: `⌘1` is the mock's Library menu
+        // re-drawing View's `Discover`, settled by declaring nothing twice; `⌃W` is granted here,
+        // because `Wake Selected Server` is the only Router verb the control API can perform
+        // (`patch(warm: true)`); and `⌥⌘Q` on `Review Held Changes…` is refused by a **second**
+        // limb of the rule rather than by this one — that command answers
+        // `.needsServerSelection` and does fire once a server is selected, and the chord is
+        // AppKit's own `Quit and Keep Windows`, measured on the running menu bar. `DESIGN.md` §8
+        // carries both limbs and the measurement.
+        //
+        // The nine that *is* right about M20 is a different population: nine of the twelve commands
+        // these two menus declare are `.featureUnbuilt`. That is an availability count and settles
+        // nothing about a key.
         //
         // `⌘R` is deliberately **not** re-pointed at `Re-index Manifest`, which is where the mock
         // binds it. `DESIGN.md` §8 binds `⌘R` to resetting the selected server and was re-authored

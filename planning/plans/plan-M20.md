@@ -42,6 +42,15 @@ from `MenuCommand.inMenu(_:)` exactly as the six existing groups do.
 Four slices, committed separately, in dependency order: the menu bar, the popover, the
 notification, then the conversion artifacts.
 
+**Delivery record, added by gap-fix 1.** The first pass delivered Slice A only, and did not compile:
+`MenuCommandAvailability.swift:110` held a bare `nil` in statement position, so no test in the suite
+ever ran against it. Slices B, C and D produced no code, no tests and no artifacts — seven names this
+plan promises each occurred in exactly one file, and that file was this one. Gap-fix 1 fixed the
+keyword and built all three. Where this plan and what shipped differ, the difference is stated at the
+step rather than left for a reader to find: step 12 gained a third condition (§5), step 13 took the
+second string it offered and did **not** take its `(prominent)` (§5), and §3.6's chord arithmetic was
+wrong in two ways (§3.6).
+
 ---
 
 ## 3 · Decisions
@@ -148,9 +157,22 @@ The repo already decided this, at length, on `⌘E`: *"the app was claiming a sy
 a command that can never fire, since `exportLibrary` is `.featureUnbuilt` in every context … The
 day export ships, §8 is the place that grants it a key, not this switch."*
 
-Applied here it settles nine of the mock's ten new chords without a judgment call: **a command that
-is `.featureUnbuilt` in every context gets no shortcut.** Only `Wake Selected Server` can fire, so
-only `⌃W` is granted, and it is granted in `DESIGN.md` §8 rather than in a `switch`.
+Applied here it settles **seven** of the mock's ten new chords without a judgment call: **a command
+that is `.featureUnbuilt` in every context gets no shortcut.** It is granted in `DESIGN.md` §8 rather
+than in a `switch`.
+
+**Corrected in gap-fix 1, and the original wording was wrong twice.** It said *nine of ten* and
+*"Only `Wake Selected Server` can fire"*. Neither holds. `Reveal Router Log in Finder` is `.enabled`
+outright and `Review Held Changes…` answers `.needsServerSelection`, so **three** of the twelve
+commands these menus declare can fire, not one. Against the ten chords the mock draws: seven sit on
+commands that can never fire and this rule refuses them; `⌃W` is granted; `⌘1` is View's `Discover`
+re-drawn and is settled by §3.7; and `⌥⌘Q` on `Review Held Changes…` was refused by **no stated
+rule at all** — the command fires, so this rule never reached it.
+
+§8 now carries a second limb for it, measured rather than argued: `⌥⌘Q` is AppKit's own
+`Quit and Keep Windows` (`NSAlternateQuitMenuItem`) in this app's own menu bar, so the chord could
+never reach a review sheet. The nine that *is* right is the number of the twelve declared commands
+that are `.featureUnbuilt` — an availability count, which settles nothing about a key.
 
 ### 3.7 No command is declared twice
 
@@ -234,9 +256,39 @@ not a consequence of §3.6.
 12. `InboxBand.Row` gains `isApprovable` — resolved **and** the preference on. Distinct from
     `isReviewable`, because the two answer different questions and collapsing them is how the
     Approve button would appear on a row whose entry could not be read.
+
+    **Built with a third condition: nothing the entry asks for is still blank.** The band has no
+    requirement fields, and `RegistryCapability.declaration(for:values:)` does not refuse an entry
+    with unmet requirements — it drops the empty values and sends the rest. So without this, pressing
+    Approve on an entry wanting an API key would send a credential-less declaration to the router,
+    which is the failure `RegistryCapability.action`'s own comment records having already found once
+    as dead code: *"reveal the fields, press Add with every box empty, and a credential-less
+    declaration reached the router."* Such a row keeps `Review…`, which is where the fields are.
+    It bites on a **recorded** fixture entry rather than only in a constructed test:
+    `smithery:deepwiki` asks for an `Authorization` header, and the rendered dump shows its row
+    carrying `Review…` and `Not now` while the row beside it carries all three.
 13. `MenuBarInboxBand` draws three controls: `Approve` (prominent), `Review…`, `Not now`. `Not now`
     is `InboxCopy.declineAction`'s new spelling — one wording per state, §6 — or a second string if
     the board's own button must keep `Decline`; the board is checked before choosing.
+
+    **The board was checked and the second string is what shipped.** `InboxBoardRow.swift:121`,
+    `InboxReviewSheet.swift:198` and `InboxConformanceTests.swift:243` all read the shared constant,
+    and the mock spells this state three ways across three surfaces — `Not now` in the popover
+    (`:1488`), `Not for me` on the board's own row (`:3274`), `Not now` again in the recommendation
+    sheet (`:4197`). Re-spelling the shared constant would have made the board and the sheet say
+    `Not now`, which is neither what they say nor what the mock draws for them. So
+    `InboxCopy.Band.declineAction` is a second string and the divergence is the design of record's.
+
+    **`(prominent)` was NOT taken, and this is the one place in the item where the mock loses.**
+    `ProminentButtonStyle` would put two to four accent-filled controls in the smallest surface in
+    the app — the band caps at three rows and the footer's `Open MCP Router` already holds this
+    view's prominent slot. `DESIGN.md:212` binds that budget to a live accessibility deviation
+    rather than to taste: `--on-accent` on `--accent` is a recorded contrast shortfall that
+    `LightAppearanceTests.darkOnAccentDeviationIsPinned` measures every run, and *"exposure is
+    bounded by §3 rule 4 — one prominent accent-filled action per view."* The same passage names
+    the substitute — *"distinguished by shape and position too, never by colour alone"* — so
+    `Approve` takes the mock's leading position with the standard fill. Declared as `D2` in
+    `planning/fidelity/popover.pairing.tsv`, where the conversion gate reads it.
 14. `ShellModel` gains `approveFromOutside(itemID:)`, which resolves the item and calls the board's
     existing `accept(_:)`. No second install path.
 15. `SettingsPresentation` gains the preference — label, help, key, default `true` — and
@@ -297,6 +349,18 @@ decisions are, which is what makes them testable without a UI stack.
 
 Each of A3, A4, B2, C1 and D1 is a drift guard, so each is broken deliberately and seen red before
 it is trusted (`SWIFT_PRACTICES.md` §7), and that is recorded in the evidence ledger.
+
+**That sentence was false when the first pass wrote it, and it is true now.** The verification pass
+found no evidence ledger, and `scripts/red-green.py` had 53 mutation sites of which not one named a
+menu command, a band control or a notification family — so nothing had been broken and nothing had
+been seen red. The trap that made it look otherwise is worth naming: that file's own `"M20"` is the
+**twentieth mutation id** in its `M01…M59` namespace, on `ServerStateTracker.swift`, present unchanged
+at this item's branch point. A grep for the item id reports these guards armed when they are not.
+
+Gap-fix 1 closed it durably rather than by running a probe: `scripts/red-green.py` gained
+`M20-A3`, `M20-A4`, `M20-B2`, `M20-C1` and `M20-D1` — ids outside that namespace so the collision
+cannot recur — and each was run. All five report **KILLED**, each naming the clause it killed.
+`planning/evidence/M20-acceptance.md` §7 carries the five runs verbatim with their durations.
 
 ---
 

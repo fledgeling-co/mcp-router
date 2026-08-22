@@ -585,14 +585,48 @@ binding this document states and the app cannot honour — and packing the other
 `⌘1`–`⌘7` would move every digit on the day M22 lands. The order is the design of record's, set
 at `6c513b0`; `PRD.md` §9.4 still lists the older one and is stale against its own mock.
 
-**A command that cannot fire in any context is granted no chord here.** That is why the Router
-and Library menus contribute exactly one row between them: eight of their ten commands are
-`.featureUnbuilt`, and the mock's `⌘R`, `⇧⌘R`, `⌃T`, `⌃⌘R`, `⌥⌘Q`, `⌥⌘U`, `⌥⌘D` and `⌥⌘K` are
-not granted. The rule is the one the app already applied to `Export Library…`, whose `⌘E` was a
-standard macOS combination claimed for a command that could never fire. `⌘R` in particular stays
-bound to `Reset the selected server` above, and is deliberately not re-pointed at the mock's
-`Re-index Manifest`: this section was re-authored *from* that same mock under M21, so it is the
-later reading of one source.
+**A chord is granted here only if the command can fire in some context and macOS has not already
+claimed the combination.** Two limbs, because one is not enough: the first is about the command and
+the second is about the key, and the eight chords the Router and Library menus do not take are
+refused by one limb or the other.
+
+Every refusal is stated in this prose and **none of them is a row in the table above**, which is
+deliberate and was measured rather than assumed: `MenuCommandTests.designSectionEightParses` reads
+that table as the set of bindings the app must hold, so a `⌥⌘Q` row saying *not granted* was read as
+a binding and went red on the chord count and on the both-ways check. The table states what is bound;
+this paragraph states what is refused and why.
+
+That is why those two menus contribute exactly one row between them. **Seven of the mock's ten new
+chords sit on commands that are `.featureUnbuilt` in every context** — `⌘R` *Re-index Manifest*,
+`⇧⌘R` *Restart Router*, `⌃T` *Trip Selected Breaker*, `⌃⌘R` *Reap Idle Children*, `⌥⌘U`
+*Update All Skills*, `⌥⌘D` *Run Doctor* and `⌥⌘K` *Run All Checks* — and the first limb refuses all
+seven. `⌘R` in particular stays bound to `Reset the selected server` above, and is deliberately not
+re-pointed at the mock's `Re-index Manifest`: this section was re-authored *from* that same mock
+under M21, so it is the later reading of one source. `⌘E` on `Export Library…` was refused earlier
+on the same limb.
+
+Of the remaining three, `⌃W` is **granted** — *Wake Selected Server* answers
+`.needsServerSelection` and fires once a server is selected — and `⌘1` is settled elsewhere, by the
+no-duplicate rule: the mock's Library menu re-draws View's `Discover`, and nothing is declared twice.
+
+**`⌥⌘Q` is the one the second limb exists for.** *Review Held Changes…* also answers
+`.needsServerSelection`, so it **can** fire and the first limb does not reach it: the rule as it
+stood refused a chord for a reason that was not true of it. The chord is refused because **AppKit has
+already installed it in this app's own menu bar.** Measured on the running app rather than argued
+from the HIG — `planning/evidence/M20-acceptance.md` §5 carries the accessibility read — the App menu
+carries `Quit MCP Router` at `Q` with no modifier mask and `Quit and Keep Windows` at `Q` with the
+option mask, the latter identified as `NSAlternateQuitMenuItem`: the standard alternate Quit, which
+AppKit contributes to any app using the stock App menu. AppKit matches a key equivalent in menu
+order, and the App menu precedes Router, so `⌥⌘Q` would never reach a review sheet — it would quit
+the app keeping its windows. The `Q` key is enclosed rather than merely adjacent: the same read shows
+`⌃⌘Q` on *Lock Screen*, `⇧⌘Q` on *Log Out* and `⌥⇧⌘Q` on *Log Out immediately*, all system-owned.
+
+The count in this paragraph is deliberately the **chord** count and not the command count, and the
+distinction is what the earlier wording got wrong. Of the twelve commands the two menus declare,
+**nine are `.featureUnbuilt`** and three are not (`revealRouterLog`, `reviewHeldChanges`,
+`wakeServer`). That arithmetic is about availability and settles nothing about a key. The rule needs
+the chord population — ten chords, seven refused on the command, one granted, one a duplicate, one
+claimed by AppKit — because a chord is what this section grants.
 
 ---
 

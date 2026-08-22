@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | ID | M22 |
-| Status | To Do |
+| Status | **Developer Review** — built on `ai/m22`, gated, not verified. A runner cannot verify its own build; `planning/progress/M22.md` carries what landed, what was measured and what is open |
 | Category | mac · mock conversion · new surfaces |
 | Depends on | M1 ✓ · R6 ✓ · R7 ✓ · M23 ✓ · M21 (the bar-fill colours, and only those) |
 | Absorbs | R7-C1 — the Harnesses board and the route behind it. See §3.4: R7-C1 waits on M22 and M22 needs R7-C1, so this item takes both halves |

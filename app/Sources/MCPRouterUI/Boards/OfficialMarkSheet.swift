@@ -8,10 +8,20 @@
     /// with no definition behind it is a trust signal the product has not earned; this is the
     /// definition."*
     ///
-    /// It has one action and it is not destructive, so it takes the default and there is nothing
-    /// to cancel — `DESIGN.md` §3.4's one prominent action, and the brief's at-most-one-filled
-    /// primary. The mock's publisher grid is absent and says so on the surface; `OfficialMarkCopy`
-    /// carries why.
+    /// It has one action and it is not destructive, so that one control is both the prominent
+    /// action and the way out — `DESIGN.md` §3.4's one prominent action, and the brief's
+    /// at-most-one-filled primary. The mock's publisher grid is absent and says so on the surface;
+    /// `OfficialMarkCopy` carries why.
+    ///
+    /// **It carries Escape rather than Return, and that is a measured trade rather than a
+    /// preference.** As drawn by M18 it held `.defaultAction` alone, so Escape did nothing at all
+    /// on it — the M18 verdict's Finding 3, and `planning/evidence/M18-gapfix-2/` measures both
+    /// that (`NEITHER` on a posted keycode 53) and why one control cannot simply hold both keys:
+    /// SwiftUI keeps the innermost `.keyboardShortcut` and drops the other, whichever order they
+    /// are written in. So one key was available and `DESIGN.md` §8 gives `Esc` to dismissing.
+    /// The workaround that keeps both — a zero-size zero-opacity twin holding `.cancelAction` —
+    /// was measured working and rejected: an invisible duplicate of the only control on the
+    /// surface costs more than the key it buys.
     struct OfficialMarkSheet: View {
         @Bindable var board: DiscoverBoardModel
 
@@ -60,7 +70,7 @@
             } actions: {
                 Button(OfficialMarkCopy.dismiss) { board.sheet = nil }
                     .buttonStyle(ProminentButtonStyle())
-                    .keyboardShortcut(.defaultAction)
+                    .keyboardShortcut(.cancelAction)
             }
         }
     }
@@ -92,9 +102,10 @@
                         .fixedSize(horizontal: false, vertical: true)
                 }
             } actions: {
+                // Escape rather than Return, for the reason `OfficialMarkSheet` states above.
                 Button(ChildPathCopy.dismiss, action: dismiss)
                     .buttonStyle(ProminentButtonStyle())
-                    .keyboardShortcut(.defaultAction)
+                    .keyboardShortcut(.cancelAction)
             }
         }
     }

@@ -90,20 +90,35 @@
 
                 HStack {
                     Spacer(minLength: 0)
-                    // Cancel leads, and the destructive button is never the default (§9).
-                    // Cancel leads, is the sheet's one filled primary, and is the default action.
-                    // This sheet used to have no filled primary and no default at all, while its
-                    // sibling `RemoveServerDialog` had both — two surfaces doing the same job with
-                    // two different answers to "what does Return do here". §3.4 settles it: one
-                    // prominent action per view, and destructive is never the default.
+                    // **Escape dismisses, and no key reaches Remove.**
+                    //
+                    // M18 shipped this row with the two keys swapped: `.cancelAction` on the
+                    // destructive button and `.defaultAction` on Cancel, so Escape performed the
+                    // removal and Return dismissed — against the spec's *"Return activates the
+                    // default; Escape cancels"*, against §9's *"never the default button"*, and
+                    // against the comment that used to sit on this line. It is measured rather
+                    // than reasoned: `planning/evidence/M18-gapfix-2/escape-shortcut-probe.swift`
+                    // builds both shapes and posts a keycode 53, and the shipped one reports
+                    // `REMOVE` where the shape below reports `CANCEL`.
+                    //
+                    // Cancel keeps the filled primary M18 gave it — §3.4's one prominent action
+                    // per view, and the disagreement with `RemoveServerDialog` that M18 set out to
+                    // close — and carries Escape rather than Return, which is the shape every
+                    // other dismissing control in this tree already uses.
+                    //
+                    // **Nothing here is the default, deliberately.** The same probe measures that
+                    // one control cannot hold both shortcuts: SwiftUI keeps the innermost
+                    // `.keyboardShortcut` and silently drops the other, both ways round. A sheet
+                    // whose only affirmative act is destructive should have no default button, so
+                    // Return doing nothing is the correct end of that trade rather than a
+                    // casualty of it.
                     Button("Cancel") { board.sheet = nil }
                         .buttonStyle(ProminentButtonStyle())
-                        .keyboardShortcut(.defaultAction)
+                        .keyboardShortcut(.cancelAction)
                     Button("Remove", role: .destructive) {
                         Task { await board.remove(name, keepHistory: keepHistory) }
                     }
                     .buttonStyle(StandardButtonStyle())
-                    .keyboardShortcut(.cancelAction)
                     .disabled(candidate == nil)
                     .help(candidate == nil ? CleanupPresentation.consequenceUnavailable : "")
                 }

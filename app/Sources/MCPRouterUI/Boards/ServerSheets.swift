@@ -258,11 +258,18 @@
                     .fixedSize(horizontal: false, vertical: true)
                 }
             } actions: {
-                // Cancel leads and is the default; the destructive action is never the default
-                // button (§3.4).
+                // Cancel leads and takes Escape; the destructive action takes no key at all (§3.4).
+                //
+                // **This is `RemoveServerSheet`'s row, and it is here because the two must not
+                // disagree.** M18's whole reason for touching the shortcuts on that sheet was that
+                // this dialog and that sheet gave two answers to "what does a key do here"; fixing
+                // only the sheet would have left the pair disagreeing in the other direction.
+                // Escape had no path on this dialog before — one of the eight the M18 verdict
+                // enumerates — and Return dismissed it. Now Escape dismisses and nothing is the
+                // default, which is the reasoning `Boards/CleanupSheets.swift` carries in full.
                 Button("Cancel") { board.sheet = nil }
                     .buttonStyle(ProminentButtonStyle())
-                    .keyboardShortcut(.defaultAction)
+                    .keyboardShortcut(.cancelAction)
 
                 Button("Remove", role: .destructive) {
                     Task { await board.remove(server.name, keepHistory: keepHistory) }

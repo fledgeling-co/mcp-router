@@ -86,6 +86,13 @@
             //
             // No conflict with `keysReservedForContent`: that rule governs *menu commands*, and this
             // is a window-root handler, and the sheet below takes Escape first when it is open.
+            //
+            // **That last clause was aspirational when it was written and is now true.** M18's
+            // verifier measured this exact shape — a window root carrying `.onExitCommand` with a
+            // sheet above it — and found Escape reaching *nothing*: the handler correctly did not
+            // fire, and `ChildPathSheet` had no `.cancelAction` to take it either, so the key was
+            // inert rather than handled. The sheet now carries `.cancelAction`, so it does take
+            // Escape first, and this window's handler is what Escape reaches when no sheet is up.
             .onExitCommand { dismiss() }
             .task { await model.load(unauthorized: offlineError == .unauthorized) }
             .onChange(of: offlineError) { _, new in

@@ -5,33 +5,52 @@ renders. Where this file and a general craft rule disagree, this file wins; wher
 file and Apple's macOS 27 UI kit disagree, **the kit wins** — native correctness is never
 traded for style.
 
-The reference implementation is `design/mocks/prototype.html`. It is interactive, carries
-every surface, and is deep-linkable (`?pane=&tab=&sheet=&sel=&only=mac|phone`). When this
-document and the prototype disagree, the prototype is stale and this document is the spec.
+The reference implementation is `design/mcp-router-console.html` — the design of record,
+settled by the owner on 2026-08-22 and recorded in `ORCHESTRATOR.md`'s DESIGN OF RECORD
+block. It is interactive and carries every Mac surface; it is not deep-linkable, so a
+citation into it is a line number rather than a query string. §1 and §2 below were
+re-authored *from* it under M21, which is why the precedence still runs this way: when
+this document and the mock disagree, the mock is stale and this document is the spec.
+`design/mocks/prototype.html` is the superseded prototype and is cited only where a
+surface it drew has not yet been converted.
 
 ---
 
 ## 1 · Direction
 
-**Instrument Panel** — a specialisation of the corpus's *Terminal Dark*: graphite ground,
-one system accent bound to interaction, three indicator colours that only ever do their
-own job, monospace reserved for instrument data.
+**Patchbay** — a light-first precision routing console: a white ground with a graphite
+chrome step above it, the system accent bound to selection and focus, three indicator hues
+that only ever do their own job — each carrying a text-safe twin — and monospace reserved
+for anything a user could paste into a terminal.
 
-Runner-up was *System Native*, rejected because an app whose whole subject is "which of
-your capabilities are live right now" wants a board you read at a glance, not a settings
-pane you navigate.
+Runner-up was *Blueprint Graphite*, set aside for two reasons rather than one. The
+direction it would have replaced was already dark graphite, so choosing it would have been
+a refinement wearing a decision's clothes; and the densest reading surfaces here are a
+servers table, an activity log and a schema diff, which are easier on a light ground
+(`PRD.md` §9.1).
 
-**Named risk:** a skeuomorphic control (the breaker) inside a native app.
-**Signature element:** the breaker column on Servers — one lever per declared server,
-snapping up the instant an agent calls it and easing down when the reaper closes it. It is
-a literal rendering of the mechanism the product exists for, and it is the only loud thing
-in the app. Everything else stays quiet so it can be.
+**Named risk:** a routing metaphor drawn literally inside a native app, and a light-first
+default in a category whose users mostly run dark. The second is bounded rather than
+argued away — dark is authored to the same standard, not derived, and every value in this
+section is stated for both.
 
-**The known weakness, stated rather than hidden:** Terminal Dark is one of the two looks a
-model defaults to on any brief. The subject genuinely earns it, so the direction stands —
-but distinctiveness has to come from *subject-mining*, and right now the breaker is the
-only mined element. Anything built from here should add a second one rather than another
-stock table. See §9.
+**Signature element:** the **Signal Path** on Servers — a lane of jacks, one per declared
+server, showing what is plugged into the router right now. It is a literal rendering of
+the mechanism the product exists for, and it is the only loud thing in the app. Everything
+else stays quiet so it can be. `--jack-off`, `--jack-ring` and the `Jack lane` metric are
+its values and are authored in §2; **M16 draws it.**
+
+**The outgoing signature, recorded rather than deleted:** the breaker column — one lever
+per declared server, snapping up the instant an agent calls it. `### Breaker geometry`
+below still specifies it value by value and the app still draws it, because M21 authors
+the token layer and moves no surface. M16 retires both together.
+
+**The known weakness, stated rather than hidden:** the previous direction's weakness was
+that Terminal Dark is one of the two looks a model defaults to on any brief. This one
+trades that for the opposite risk — a light, quiet, system-native console is the *other*
+default — and answers it the same way, by subject-mining. The Signal Path is the mined
+element; a board whose other surfaces are stock tables has one signature and eight
+defaults. See §10.
 
 ---
 
@@ -40,79 +59,190 @@ stock table. See §9.
 Every value below is either an Apple `(specified)` kit value or a stated deviation from
 one. Nothing here was picked by eye.
 
-**Both appearances are authored.** Light is not an inversion of dark, and the reason is
-measured rather than aesthetic: every dark indicator hue, placed unchanged on the light
-ground, lands between 1.71:1 and 2.91:1 — against the 4.5:1 a label needs. All four are
-re-solved. The tiers, lines and fills are authored to reproduce **dark's measured contrast
-ratio**, not to copy its alpha, because a dark hairline on a light ground and a light
-hairline on a dark ground are not equally visible at the same opacity. That is why the
-alphas differ (`--t2` is 55% in dark and 62% in light) while the hierarchy reads the same
-in both. Every ratio in the Light column below was measured on `--ground`, not estimated.
+**Four appearance contexts, all four authored.** Light, dark, and each of those again under
+increased contrast. Light is the primary one — this is a light-first direction, so dark is the
+authored counterpart rather than the source. What light and dark reproduce in each other is not an
+alpha but a *job*: the label tiers are solid hexes in both, because a tier that composites over
+whatever surface it lands on has a different contrast on each of the seven grounds here. Lines,
+fills, the scrim and the two washes stay `rgba`, because a hairline genuinely is a modification of
+the ground beneath it. **Increased contrast is authored per appearance**, not once for both: `--t2`
+has to go darker in light and lighter in dark, so a single scheme-agnostic override paints
+low-contrast ink in whichever appearance it was not written for — the opposite of what was asked
+for, in the mode it was asked for.
+
+**The Role column is a contract, not a label.** It names the one job a token does, and therefore
+which pair its contrast is measured as. `ContrastFloorTests` reads
+`ColorToken.contrastRole` and measures the pairing the role implies — `text` against all four
+grounds at 4.5:1, `fill` under `--on-accent` at 4.5:1, `nonText` at 3:1 (WCAG 1.4.11) — and
+`DesignTokenParityTests` holds the column and the code to the same value. Three roles have no
+floor and say why in their own words rather than being skipped: `disabled` is exempt under WCAG
+1.4.3, `pairedWithAWord` is exempt under 1.4.11 because §6 requires a word beside every state that
+has a colour, and `hairline` has no floor a 6%-alpha fill could meaningfully clear. A skipped check
+and a passed check are the same shade of green.
+
+**The two Contrast columns are one fixed measurement**, computed with the same WCAG 2.x
+arithmetic the code uses and checked from this document by
+`LightAppearanceTests`: each token composited over `--ground` in that appearance, except
+`--on-accent`, which is measured over `--accent`. They are *not* the role's own floor — a `fill`
+measured against the ground is a number about a pairing nothing draws. Read the column for drift
+and the role for whether the value is doing its job.
 
 ### Grounds and lines
 
-| Token | Dark | Light | Contrast (light) | Use |
-|---|---|---|---|---|
-| `--ground` | `#1E1E1E` | `#ECECEE` | — | window background (kit: dark window / light window) |
-| `--panel` | `#232326` | `#F5F5F7` | 1.08:1 | one tonal step up — same direction in both |
-| `--raised` | `#2C2C2E` | `#FFFFFF` | 1.18:1 | resting control surfaces |
-| `--raised2` | `#3A3A3C` | `#E0E0E4` | 1.12:1 | hovered / emphasized control surfaces |
-| `--line` | `#FFF` @7.5% | `#000` @10% | 1.25:1 | hairline dividers |
-| `--lineS` | `#FFF` @14% | `#000` @19% | 1.56:1 | control bezels |
-| `--f1` | `#FFF` @10% | `#000` @13% | 1.35:1 | fills — bezels |
-| `--f2` | `#FFF` @8% | `#000` @10% | 1.25:1 | fills — tracks |
-| `--f3` | `#FFF` @5% | `#000` @6% | 1.14:1 | fills — inactive |
+| Token | Role | Dark | Light | Contrast (dark) | Contrast (light) | Use |
+|---|---|---|---|---|---|---|
+| `--desktop` | ground | `#2A3140` | `#8A9BB4` | 1.31:1 | 2.83:1 | what the window sits on — a screenshot backdrop, never a surface the app draws into |
+| `--ground` | ground | `#1C1C1E` | `#FFF` | — | — | window background (kit: dark window / light window) |
+| `--chrome` | ground | `#262629` | `#F1F1F4` | 1.13:1 | 1.13:1 | titlebar and toolbar — one tonal step off the ground, in both appearances |
+| `--menubar` | ground | `#1F1F22` | `#F6F6F8` | 1.03:1 | 1.08:1 | the menu bar and the popover hanging off it |
+| `--panel` | ground | `#232326` | `#F7F7F9` | 1.09:1 | 1.07:1 | sidebars and inspectors |
+| `--raised` | ground | `#2C2C2E` | `#FFF` | 1.22:1 | 1.00:1 | resting control surfaces |
+| `--raised2` | ground | `#3A3A3C` | `#E8E8EC` | 1.50:1 | 1.22:1 | hovered / emphasized control surfaces |
+| `--sunken` | ground | `#161618` | `#EDEDF0` | 1.06:1 | 1.17:1 | a well a control sits *in* — a track, a search field |
+| `--scrim` | chrome | `#000` @52% | `#000` @28% | 1.14:1 | 1.99:1 | behind a modal sheet |
+| `--line` | hairline | `#FFF` @9% | `#000` @10% | 1.30:1 | 1.25:1 | hairline dividers |
+| `--line-strong` | hairline | `#FFF` @16% | `#000` @18% | 1.65:1 | 1.53:1 | control bezels |
+| `--f1` | hairline | `#FFF` @10% | `#000` @6% | 1.34:1 | 1.14:1 | fills — bezels |
+| `--f2` | hairline | `#FFF` @7% | `#000` @4% | 1.22:1 | 1.09:1 | fills — tracks |
+| `--f3` | hairline | `#FFF` @5% | `#000` @3% | 1.15:1 | 1.07:1 | fills — inactive |
+| `--jack-off` | chrome | `#3C3C40` | `#D6D6DC` | 1.55:1 | 1.45:1 | a Signal Path jack with nothing plugged into it (M16) |
+| `--jack-ring` | hairline | `#FFF` @16% | `#000` @14% | 1.65:1 | 1.38:1 | the ring around a jack |
+| `--tl-close` | chrome | `#FF5F57` | `#FF5F57` | 5.69:1 | 2.99:1 | the window close button, at the system hue |
+| `--tl-min` | chrome | `#FEBC2E` | `#FEBC2E` | 10.08:1 | 1.69:1 | the window minimise button, at the system hue |
+| `--tl-zoom` | chrome | `#28C840` | `#28C840` | 7.64:1 | 2.23:1 | the window zoom button, at the system hue |
+| `--tl-off` | chrome | `#3A3A3C` | `#D2D2D6` | 1.50:1 | 1.51:1 | all three of the above when the window is not key |
+| `--focus` | nonText | `#0091FF` | `#0088FF` | 5.26:1 | 3.52:1 | the focus ring (§8) |
+| `--focus-halo` | hairline | `#0091FF` @42% | `#0088FF` @35% | 1.93:1 | 1.54:1 | the ring's outer glow |
+| `--accent-wash` | hairline | `#0071E3` @10% | `#0071E3` @10% | 1.09:1 | 1.15:1 | an accent tint behind a mark — never behind text |
+| `--accent-wash-line` | hairline | `#0071E3` @22% | `#0071E3` @22% | 1.24:1 | 1.36:1 | the wash's own edge |
 
-Dark is authored, never inverted. Chrome is graphite, never pure black — and its light
-counterpart is a light grey, never pure white.
+Dark is authored, never inverted. Chrome is graphite, never pure black — and its light counterpart
+is a light grey, never pure white. `--desktop` is the only value here the app never paints: it is
+what the window is photographed against, and it is in the palette so a screenshot cannot invent one.
 
-**The one reversal in the system:** `--raised2` is *lighter* than `--raised` in dark and
-*darker* in light. Emphasis always moves away from the ground; in light the resting
-surface is already white, so darker is the only direction left. Everything else steps the
-same way in both appearances.
+**The one reversal in the system:** `--raised2` is *lighter* than `--raised` in dark and *darker*
+in light. Emphasis always moves away from the ground; in light the resting surface is already
+white, so darker is the only direction left. Everything else steps the same way in both
+appearances.
+
+**Five tokens are the same value in both appearances, and that is authored rather than skipped.**
+The three traffic lights are the system's own hues and do not change with appearance on the
+platform itself; the two accent washes are a 10% and 22% tint of `--accent-ink`, and a tint is
+defined by what it modifies, so the ground underneath does the appearance-switching for it.
+`LightAppearanceTests` exempts exactly these five, by name and with this reason, rather than
+relaxing the rule.
 
 ### Label tiers
 
-| Token | Dark | Light | Contrast (light) | Use |
-|---|---|---|---|---|
-| `--t1` | `#FFF` @100% | `#000` @95% | 16.58:1 | primary text |
-| `--t2` | `#FFF` @55% | `#000` @62% | 5.85:1 | secondary text, metadata |
-| `--t3` | `#FFF` @50% | `#000` @58% | 5.09:1 | section headers, column headers, tertiary |
-| `--t4` | `#FFF` @25% | `#000` @33% | 2.27:1 | **disabled controls only — never live text** |
+| Token | Role | Dark | Light | Contrast (dark) | Contrast (light) | Use |
+|---|---|---|---|---|---|---|
+| `--t1` | text | `#FFF` | `#17171A` | 17.01:1 | 17.89:1 | primary text |
+| `--t2` | text | `#B8B8C0` | `#55555C` | 8.63:1 | 7.39:1 | secondary text, metadata |
+| `--t3` | text | `#98989F` | `#63636B` | 5.94:1 | 5.95:1 | section headers, column headers, tertiary |
+| `--t4` | disabled | `#6E6E76` | `#9A9AA2` | 3.37:1 | 2.79:1 | **disabled controls only — never live text** |
 
-**Deviation, deliberate:** the kit's tertiary tier is 25%. On a `#1E1E1E` ground that
-measures 2.29:1, and Contrast Dilution is this direction's named #1 defect. Tertiary text
-therefore sits at 50%; 25% is retained only where dimming *is* the message. The light
-column carries the same deviation, expressed as the ratio rather than the alpha.
+**Deviation, deliberate:** the kit's tertiary tier dims far enough to land near 2.3:1 on a graphite
+ground, and Contrast Dilution is this direction's named #1 defect. `--t3` is therefore held at
+5.94:1 dark and 5.95:1 light — a tier below `--t2` in weight, not in readability. `--t4` is the
+only tier under the floor in either appearance, and it is the only one whose entire job is to say
+*this control is unavailable*: it is claimed as exempt under WCAG 1.4.3 by the `disabled` role
+rather than by a check that quietly skips it.
+
+**The tiers are solid, and they used to be an alpha.** The previous direction wrote them as white
+or black over the ground at 25–100%, which reads correctly on one surface and drifts on the other
+six. A solid hex measures the same on `--panel`, `--raised` and `--chrome` as it does on
+`--ground`, which is what makes the four-ground floor check in `ContrastFloorTests` meaningful
+rather than a measurement of the ground.
 
 ### Colour
 
-| Token | Dark | Light | Contrast (light) | Meaning — exclusive |
-|---|---|---|---|---|
-| `--accent` | `#0091FF` | `#0069CF` | 4.54:1 | selection, focus, the one primary action |
-| `--live` | `#30D158` | `#1B7B3C` | 4.51:1 | a child process is running |
-| `--attn` | `#FF9230` | `#9F5A00` | 4.52:1 | wants a human decision |
-| `--fail` | `#FF4245` | `#CD2738` | 4.51:1 | failed or tripped |
-| `--onAccent` | `#FFFFFF` | `#FFFFFF` | 5.35:1 | the label drawn on an accent fill |
+| Token | Role | Dark | Light | Contrast (dark) | Contrast (light) | Meaning — exclusive |
+|---|---|---|---|---|---|---|
+| `--accent` | nonText | `#0091FF` | `#0088FF` | 5.26:1 | 3.52:1 | selection, focus, the one primary action — as a ring, plug, dot or tint, never as text |
+| `--live` | pairedWithAWord | `#30D158` | `#34C759` | 8.42:1 | 2.22:1 | a child process is running |
+| `--attn` | pairedWithAWord | `#FF9230` | `#FF8D28` | 7.62:1 | 2.31:1 | wants a human decision |
+| `--fail` | pairedWithAWord | `#FF4245` | `#FF383C` | 4.96:1 | 3.57:1 | failed or tripped |
+| `--accent-ink` | fill | `#0A6FD6` | `#0071E3` | 3.45:1 | 4.70:1 | the accent as a **fill** carrying `--on-accent`. Never text — see the note below |
+| `--accent-text` | text | `#6FB6FF` | `#0060C4` | 7.95:1 | 6.05:1 | the accent as **text** on a ground |
+| `--live-ink` | text | `#30D158` | `#14682F` | 8.42:1 | 6.88:1 | a child process is running, as text |
+| `--attn-ink` | text | `#FF9230` | `#8A5000` | 7.62:1 | 6.51:1 | wants a human decision, as text |
+| `--fail-ink` | text | `#FF5A5D` | `#C8102E` | 5.57:1 | 5.88:1 | failed or tripped, as text |
+| `--shield-good` | fill | `#1B7A38` | `#14682F` | 3.15:1 | 6.88:1 | the filled badge on a verified publisher, carrying `--on-accent` |
+| `--badge-bg` | fill | `#B85400` | `#B34700` | 3.49:1 | 5.50:1 | the filled count badge, carrying `--on-accent` |
+| `--on-accent` | fillLabel | `#FFF` | `#FFF` | 3.23:1 | 3.52:1 | the label drawn on an accent fill |
 
-All four indicator hues are macOS 27 system hues — the dark column the dark set, the light
-column re-solved in OKLCH so the hue angle survives the darkening. **Nothing else in the
-app may be any of these three indicator colours** — that exclusivity is what makes one
-amber dot in a menu bar mean something. Per-item identity colour, if ever needed, comes
-from the remaining system hues and is never the accent.
+All four indicator hues are macOS 27 system hues, at the platform's own published values in both
+appearances — this direction does not re-solve them, it adds a text-safe twin instead. **Nothing
+else in the app may be any of these colours**, twins included: that exclusivity is what makes one
+amber dot in a menu bar mean something. `ColorToken.isReservedMeaning` covers all eleven, because
+an ink is the same exclusive meaning at a different lightness, and leaving the twins unreserved
+would open a hole in the rule exactly the size of the new tokens. Per-item identity colour, if ever
+needed, comes from the remaining system hues and is never the accent.
 
-`--attn` is additionally pulled toward yellow. Solved on hue alone it lands 21.5° from
-`--fail` at near-identical lightness, which is exactly where protan and deuteran vision
-compresses — and those two tokens mean "wants a decision" and "failed". The shipped pair
-sits 39.8° apart, and colour is never the only signal carrying either.
+`--attn` is additionally pulled toward yellow. Solved on hue alone it lands close to `--fail` at
+near-identical lightness, which is exactly where protan and deuteran vision compresses — and those
+two tokens mean "wants a decision" and "failed". Colour is never the only signal carrying either.
 
-**Deviation, deliberate, and against us:** `--onAccent` on `--accent` measures **3.23:1 in
-dark**, under the 4.5:1 a 13pt semibold label wants; near-black would give 6.49:1. Every
-native filled accent control on macOS carries a white label, and this document's own
-precedence says the kit wins where it and this document disagree. So white stands, recorded
-with its measurement rather than hidden. Exposure is bounded by §3 rule 4 — one prominent
-accent-filled action per view — and that control is distinguished by shape and position
-too, never by colour alone.
+**Why there are three accent tokens and not two.** `--accent` is the published system blue and
+measures 3.52:1 on the light ground: correct as a ring, a plug or a selection tint, and a known
+failure under a 13pt label. `--accent-ink` is the fill that carries `--on-accent`. `--accent-text`
+is the accent *as text*, and it exists because `--accent-ink` used as text measures 4.17:1 on
+`--chrome` and 4.39:1 on `--panel` — collapsing the two would ship the failure the split exists to
+prevent, one ground over.
+
+**The suffix `-ink` means two opposite things, and the Role column is the answer.** On
+`--live-ink`, `--attn-ink` and `--fail-ink` it means *text*; on `--accent-ink` it means *fill*.
+The spelling is the design of record's and this document does not rename it — a Swift-only rename
+would put the two palettes back behind a translation table, which is the thing this item removed.
+What closes the trap instead is that `--accent-ink` declares the role `fill`, and a call site that
+reaches for it as text is measuring the wrong pair against a floor that will not hold.
+
+**Deviation, deliberate, and against us — now in both appearances.** `--on-accent` on `--accent`
+measures **3.23:1 in dark** and **3.52:1 in light**, under the 4.5:1 a 13pt semibold label wants.
+The light figure is new and is a consequence of taking the platform's published blue rather than a
+darkened one. Every native filled accent control on macOS carries a white label, and this
+document's own precedence says the kit wins where it and this document disagree — so white stands,
+recorded with its measurement rather than hidden.
+
+**The resolution exists and is not yet applied.** On `--accent-ink`, the fill the design of record
+actually puts under a white label, `--on-accent` measures **4.70:1 light** and **4.93:1 dark**. M21
+authored that token and moved no call site; choosing which surfaces take it is M16–M22's work, per
+surface. Until then the pairing above is what ships, and
+`LightAppearanceTests.darkOnAccentDeviationIsPinned` measures it every run rather than letting it
+drift further. Exposure is bounded by §3 rule 4 — one prominent accent-filled action per view — and
+that control is distinguished by shape and position too, never by colour alone.
+
+### Increased contrast
+
+The nine tokens the system's increased-contrast setting re-solves, and the only nine. Every other
+token takes its base value in that context, from an explicit arm rather than by inheriting, so
+nothing is resolved by a rule nobody watches.
+`DesignTokenParityTests.contrastOverlayNameSetsMatchExactly` holds this table's row set and the set
+of `ColorToken` cases whose contrast value differs from their base to be the same set, in both
+directions: a token that starts overriding without a row here is red, and a row here that overrides
+nothing is red too.
+
+An overlay table rather than two more columns on the three tables above, because 31 of 40 rows
+would repeat their base value twice — and a repeated cell is a cell that drifts. As an overlay,
+*which* tokens override is itself the assertion.
+
+| Token | Dark | Light | Why this one re-solves |
+|---|---|---|---|
+| `--t2` | `#F2F2F5` | `#2A2A30` | the two middle tiers collapse onto one value: tier separation is the gradation the request is asking to stop paying for |
+| `--t3` | `#F2F2F5` | `#2A2A30` | the same value as `--t2`, deliberately — hierarchy still reads from weight and position |
+| `--line` | `#FFF` @30% | `#000` @30% | a white-on-graphite hairline cannot raise contrast by changing hue, only by covering more ground |
+| `--line-strong` | `#FFF` @48% | `#000` @46% | the same, one step firmer, so a bezel stays distinguishable from a divider |
+| `--accent-text` | `#9CCDFF` | `#004E9E` | 8.13:1 light and 10.20:1 dark on `--ground`, against 6.05 and 7.95 at the base value |
+| `--live-ink` | `#6BE38B` | `#0F4F24` | 9.70:1 light and 10.52:1 dark on `--ground` |
+| `--attn-ink` | `#FFB566` | `#6B3E00` | 9.07:1 light and 9.77:1 dark on `--ground` |
+| `--fail-ink` | `#FF8A8C` | `#9E0C24` | 8.29:1 light and 7.51:1 dark on `--ground` |
+| `--shield-good` | `#166B31` | `#0E4F23` | a fill, so it darkens rather than lightens: 9.72:1 light and 6.60:1 dark under `--on-accent` |
+
+**What is specified here and not measured.** No engine available to this project applies
+`prefers-contrast`, so these two contexts have never been rendered. Every ratio above is computed
+from the values by the same arithmetic the app uses, and the values are the design of record's own
+— but nothing has photographed them. That is stated rather than waived: an increased-contrast
+screenshot is a real gap, and it needs a real browser or a built app.
 
 ### Type — SF Pro, `-apple-system` stack, never bundled
 
@@ -138,9 +268,13 @@ leaks into prose.
 
 | Element | Value |
 |---|---|
+| Grid unit | 8pt |
 | Titlebar | 33pt |
 | Unified toolbar | 52pt (8 + 36 XL controls + 8) |
+| Compact toolbar | 40pt (4 + 32 regular controls + 4) |
 | Sidebar | 256pt; rows 24/32/40 |
+| Sidebar row medium | 32pt |
+| Sidebar row large | 40pt |
 | Control mini | 16pt |
 | Control small | 20pt |
 | Control regular | 24pt |
@@ -149,9 +283,12 @@ leaks into prose.
 | Sidebar selection radius | 8pt |
 | Sidebar selection inset | 4pt |
 | Focus ring | 2pt |
-| Popover radius | 20 · card radius 10–14 · concentric children |
+| Popover radius | 20pt · concentric children |
+| Card radius | 10pt |
 | Table rows | 24–28pt for dense lists |
 | Servers row | 56pt (4 + 48 breaker housing + 4) |
+| Jack lane | 44pt |
+| Scrollbar | 12pt |
 
 Selection is an inset rounded fill at the radius and side inset above. The control ladder
 and the selection fill used to be written as prose in one cell each — unreadable to the
@@ -160,7 +297,17 @@ system builds controls from them. The Servers board's 56pt row is a row of its o
 same reason: the loading skeleton has to match the populated row's height exactly or the
 board jumps when data lands, and a height buried in another cell's prose cannot be checked.
 
-Concentric corners throughout: child radius = parent radius − padding.
+**`Card radius` used to live inside the popover cell**, written as `card radius 10–14` beside the
+popover's own number. That is the same defect one size down — a value in a cell no parser reads,
+next to a value one does — so it is a row now and the popover cell states only its own radius.
+
+**Two of these rows are authored ahead of the surfaces that draw them.** `Jack lane` is the Signal
+Path's (M16) and `Scrollbar` is the shared one; `no-raw-design-values.sh` forbids a geometry
+literal anywhere under `Boards/`, so a board arriving before its token would have to bring the
+token with it — which would put a design decision in a board's diff.
+
+Concentric corners throughout: child radius = parent radius − padding. Everything above is a
+multiple of the grid unit or a documented exception to it.
 
 ### The sidebar foot `(specified)`
 
@@ -234,6 +381,12 @@ divergence in the same element; it is a type and density decision rather than a 
 it converts under `M23`'s mock-to-SwiftUI contract with the rest of the board, not in passing.
 
 ### Breaker geometry `(specified)`
+
+**This table documents the outgoing signature and retires under M16**, together with the breaker
+column itself and `BreakerGeometryParityTests`. It is left byte-identical here on purpose: M21
+authors the token layer and moves no surface, so the app still draws levers, and a table removed
+before the element it specifies would turn the parity test's oracle into a parse error — a red gate
+that reads as a broken parser rather than as a retired element.
 
 The signature element's construction, recorded value by value. It is here rather than in
 prose because two prototype rounds failed on *construction* — the lever covering its own
@@ -428,17 +581,24 @@ Two applications that are load-bearing here:
 
 Recorded here rather than in a report, because it is the next design work:
 
-- **A second subject-mined element.** The breaker is the only one. A board whose other
+- **A second subject-mined element.** The Signal Path is the only one. A board whose other
   surfaces are stock tables has one signature and eight defaults.
 - **Density is inconsistent** — 56px table rows against 120px featured cards holding
   three short lines. The cards are the emptiest thing on the busiest surface.
-- **Two contrast shortfalls in the dark palette, measured and not yet resolved.** As text
-  on `--raised`, `--fail` is 4.06:1 and `--accent` is 4.31:1 — both under AA. They pass on
-  `--ground` (4.86:1 and 5.16:1); it is the raised control surface where they fall short.
-  Changing a shipped dark value affects every surface, so it is recorded here rather than
-  altered in passing.
-- **The prototype uses two indicator colours decoratively.** Its phone Discover list paints
-  trend deltas in `--live` and `--fail` (`+218%`, `−8%`), which §2 forbids — those hues mean
-  "a child process is running" and "failed or tripped", and nothing else. The prototype is
-  stale here; the surfaces that ship Discover own the fix.
+- **The palette clears the floor; the call sites have not moved yet.** Every surface now has a
+  text-safe token to reach for and no surface has been made to reach for it. A board still drawing
+  a 13pt label in `--accent` on `--ground` ships 3.52:1, and nothing in the token layer catches
+  that: `ContrastFloorTests` proves the palette *can* clear the floor, not that each call site
+  does. `ShellAppearanceTests.noUndeclaredIndicatorUse` is the shape that would close it app-wide
+  and it reaches the shell only. M16–M22 own the per-surface work; this is the largest thing this
+  document currently asks for and does not yet enforce.
+- **The two dark shortfalls this section used to carry are closed.** As text on `--raised`,
+  `--fail` measured 4.06:1 and `--accent` 4.31:1 under the previous direction. The split resolves
+  both: `--fail-ink` is 4.56:1 on dark `--raised` and `--accent-text` is 6.51:1. They are recorded
+  as closed rather than deleted, because the pairing that replaced them is the one a reader will
+  ask about.
+- **The superseded prototype used two indicator colours decoratively.** `design/mocks/prototype.html`'s
+  phone Discover list paints trend deltas in `--live` and `--fail` (`+218%`, `−8%`), which §2
+  forbids. The console mock does not draw that surface at all, so nothing has replaced the
+  judgement yet; the surfaces that ship phone Discover own the fix.
 

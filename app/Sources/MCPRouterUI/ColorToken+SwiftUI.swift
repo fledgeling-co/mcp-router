@@ -7,33 +7,45 @@
 import MCPRouterKit
 import SwiftUI
 
-/// Binds the token values to a SwiftUI `Color` that follows the system appearance.
+/// Binds the token values to a SwiftUI `Color` that follows the system appearance **and** the
+/// system's increased-contrast setting.
 ///
 /// **This file and `TypeToken+SwiftUI.swift` are the only two places in the product allowed to
 /// write a raw colour component or a raw size.** `scripts/lint/no-raw-design-values.sh` exempts
 /// them by explicit path, so the exemption is visible in the gate rather than implied — everywhere
-/// else, a literal fails the build.
+/// else, a literal fails the build. The exemption list did not grow when the palette did.
 ///
 /// The colour is built with a dynamic provider rather than read from an asset catalogue. A
-/// catalogue would keep the light values in JSON that `DesignTokenParityTests` never opens, so the
-/// light half of the system would drift unwatched — which is the single failure the parity suite
-/// exists to prevent. A dynamic provider is what a catalogue compiles down to anyway, and it keeps
-/// the values in the one place the check can read.
+/// catalogue would keep the other three contexts in JSON that `DesignTokenParityTests` never
+/// opens, so three quarters of the system would drift unwatched — which is the single failure the
+/// parity suite exists to prevent. A dynamic provider is what a catalogue compiles down to anyway,
+/// and it keeps the values in the one place the check can read.
 public extension ColorToken {
-    /// The token as a colour that resolves per appearance.
+    /// The token as a colour that resolves per appearance and per contrast setting.
     var color: Color {
         #if canImport(AppKit)
             return Color(nsColor: NSColor(name: nil) { appearance in
-                let isDark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-                return isDark
-                    ? NSColor(hex: hex, alpha: opacity)
-                    : NSColor(hex: lightHex, alpha: lightOpacity)
+                // Four names rather than two. `bestMatch` answers with the closest of the names it
+                // is offered, so offering only `.aqua` and `.darkAqua` resolves a
+                // high-contrast appearance to the ordinary one and the increased-contrast half of
+                // the palette never reaches the screen — a value that is authored, tested and
+                // unreachable, which reads exactly like a value that works.
+                let matched = appearance.bestMatch(from: [
+                    .aqua, .darkAqua, .accessibilityHighContrastAqua, .accessibilityHighContrastDarkAqua
+                ])
+                let isDark = matched == .darkAqua || matched == .accessibilityHighContrastDarkAqua
+                let isHighContrast = matched == .accessibilityHighContrastAqua
+                    || matched == .accessibilityHighContrastDarkAqua
+                let value = self.value(dark: isDark, increasedContrast: isHighContrast)
+                return NSColor(hex: value.hex, alpha: value.opacity)
             })
         #elseif canImport(UIKit)
             return Color(uiColor: UIColor { traits in
-                traits.userInterfaceStyle == .dark
-                    ? UIColor(hex: hex, alpha: opacity)
-                    : UIColor(hex: lightHex, alpha: lightOpacity)
+                let value = self.value(
+                    dark: traits.userInterfaceStyle == .dark,
+                    increasedContrast: traits.accessibilityContrast == .high
+                )
+                return UIColor(hex: value.hex, alpha: value.opacity)
             })
         #else
             return .clear
@@ -43,9 +55,14 @@ public extension ColorToken {
     /// The value that will actually be drawn in a named appearance.
     ///
     /// Exposed so a test or the acceptance harness can assert what *should* appear on screen
-    /// without having to resolve a dynamic colour against a live trait collection.
-    func components(for scheme: ColorScheme) -> (hex: String, opacity: Double) {
-        scheme == .dark ? (hex, opacity) : (lightHex, lightOpacity)
+    /// without having to resolve a dynamic colour against a live trait collection. The contrast
+    /// axis defaults to off because that is the ordinary case, and because a defaulted argument
+    /// keeps the existing call sites reading as the base appearance they mean.
+    func components(
+        for scheme: ColorScheme,
+        increasedContrast: Bool = false
+    ) -> (hex: String, opacity: Double) {
+        value(dark: scheme == .dark, increasedContrast: increasedContrast)
     }
 }
 

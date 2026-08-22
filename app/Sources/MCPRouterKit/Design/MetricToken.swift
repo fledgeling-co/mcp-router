@@ -14,9 +14,38 @@ import Foundation
 public enum MetricToken: String, CaseIterable, Sendable {
     case titlebar = "Titlebar"
     case unifiedToolbar = "Unified toolbar"
+
+    /// The toolbar a secondary window wears — Settings, the GFM viewer. Shorter than the unified
+    /// toolbar because it carries no extra-large controls, and its own row because a window that
+    /// borrows the 52pt figure lays out a band of empty chrome above its first control.
+    case compactToolbar = "Compact toolbar"
+
     case sidebar = "Sidebar"
+
+    /// The two sidebar row heights the destinations actually use. `Sidebar` above carries the
+    /// width and names the ladder in prose (`rows 24/32/40`); a height buried in another cell's
+    /// prose cannot be checked, which is the reason the Servers row and the control ladder are
+    /// rows of their own too.
+    case sidebarRowMedium = "Sidebar row medium"
+    case sidebarRowLarge = "Sidebar row large"
+
     case popoverRadius = "Popover radius"
+
+    /// A card's own corner. Split out of the popover cell, which used to carry `card radius 10–14`
+    /// as prose beside the popover's own number — the same value in two places, one of them
+    /// unreadable to the check.
+    case cardRadius = "Card radius"
+
     case tableRows = "Table rows"
+
+    /// The spacing unit the whole layout is a multiple of.
+    case gridUnit = "Grid unit"
+
+    /// The Signal Path's lane (M16) and the scrollbar's track. Authored here rather than by the
+    /// items that draw them, because `no-raw-design-values.sh` forbids a geometry literal under
+    /// `Boards/` — so a board that arrived before its token would have to bring the token with it.
+    case jackLane = "Jack lane"
+    case scrollbar = "Scrollbar"
 
     /// The Servers board's row. Its own row in the document rather than prose inside `Table rows`,
     /// because the loading skeleton has to reproduce it exactly — a skeleton at a different height
@@ -40,9 +69,16 @@ public enum MetricToken: String, CaseIterable, Sendable {
         switch self {
         case .titlebar: 33
         case .unifiedToolbar: 52
+        case .compactToolbar: 40
         case .sidebar: 256
+        case .sidebarRowMedium: 32
+        case .sidebarRowLarge: 40
         case .popoverRadius: 20
+        case .cardRadius: 10
         case .tableRows: 24
+        case .gridUnit: 8
+        case .jackLane: 44
+        case .scrollbar: 12
         case .serversRow: 56
         case .controlMini: 16
         case .controlSmall: 20

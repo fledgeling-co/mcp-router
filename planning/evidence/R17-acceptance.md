@@ -111,11 +111,11 @@ the only account left standing.
 
 **The route account is kept, on two things this correction does not touch.** It is the only one of
 the two that explains the *asymmetry* — why `lifeline` kept a row and `namecheap` did not, when both
-failed identically — and R19's window is indifferent to whether a server is staged. And it is the
-account that made a **pre-registered prediction and had it confirmed**: stage `lifeline` as well and
-its row starts disappearing too. The verifier ran exactly that. With `namecheap` staged and
-`lifeline` not, pre-fix `watch` leaves `lifeline` only; stage `lifeline` too and it leaves **no rows
-at all**. With the fix, both survive, on node and on Swift.
+failed identically — which is the pairing an R19-only world predicts in reverse, three paragraphs
+up. And it is the account that made a **pre-registered prediction and had it confirmed**: stage
+`lifeline` as well and its row starts disappearing too. The verifier ran exactly that. With
+`namecheap` staged and `lifeline` not, pre-fix `watch` leaves `lifeline` only; stage `lifeline` too
+and it leaves **no rows at all**. With the fix, both survive, on node and on Swift.
 
 The owner's live machine corroborates it read-only: **14 upstreams, 13 manifest rows, and the one
 missing row is `namecheap`** — the only configured upstream that is also staged. `lifeline` is
@@ -313,8 +313,10 @@ wrong instrument for a records pass to reach for.
 
 **What the declaration covers, and what it does not.** It is scoped to the watch save alone —
 `src/watch.ts:292` against `WatchIndexing.swift:187`. It does **not** cover the other four
-`saveManifest` call sites: `src/index.ts:146` and `:186` on the `index` verb, and `src/control.ts:262`
-and `:432` on the control API. None is declared and none is measured.
+`saveManifest` call sites: `src/index.ts:146` on the `import` verb, `src/index.ts:186` on `index`,
+and `src/control.ts:262` and `:432` on the control API. None is declared and none is measured. With
+the two uncovered `ManifestIO.save` sites named below, that is **six** uncovered sites and not four
+pairs.
 
 **"Five" is the reference's count, and the two inventories are not a pairing.** node has five
 `saveManifest` call sites; this router has **three** `ManifestIO.save` sites — `AuthRoutes.swift:120`,
@@ -323,8 +325,8 @@ one of three, and the remaining four and two are uncovered on their own terms ra
 twins. The second reader caught the count being quoted as though it spanned both. The repo already has this guard for the config writer and states it
 in those words — `ImportConfigWriterLockTests.swift`'s *W11 — the read happens inside the lock, so a
 concurrent write is not clobbered* — and `manifest.json` has no equivalent. **R19 owns the policy
-over all five sites**, and its acceptance 2 is the overlapping scenario this lane cannot grow on its
-own.
+over both inventories** — the reference's five and this router's three — and its acceptance 2 is the
+overlapping scenario this lane cannot grow on its own.
 
 ## One surface R17 makes newly wrong
 

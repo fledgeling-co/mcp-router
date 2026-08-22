@@ -15,7 +15,7 @@ every state change, before acting on that change.
 | Pipeline root | **`planning/`**, not `docs/` — `docs/` is the live GitHub Pages source for mcp-router.fledgeling.app and Jekyll would publish every spec to the public site |
 | Specs · plans · briefs | `planning/specs/spec-<ID>.md` · `planning/plans/plan-<ID>.md` · `planning/features-to-triage/` |
 | Practices | `planning/practices/` — inherited from bella-team-files. **They are TypeScript/Next.js and carry no Swift guidance.** F1 owes `SWIFT_PRACTICES.md`; until it lands, Swift runners have no house style to conform to |
-| Design authority | `DESIGN.md` at the root. Reference implementation `design/mocks/prototype.html` (interactive, deep-linkable) |
+| Design authority | `DESIGN.md` at the root. Reference implementation `design/mcp-router-console.html` — the design of record settled 2026-08-22, which M21 re-authored `DESIGN.md` §1–2 against. `design/mocks/prototype.html` is the superseded prototype and is cited only for surfaces not yet converted |
 | Worktrees | `.worktrees/<ID>` on `ai/<id>` |
 | External model CLIs | **On** (no opt-out marker in this repo) but **the codex lane is UNAVAILABLE — do not probe it.** See below |
 | Concurrency | ≤8 slots; the DAG peaks at 5 |

@@ -82,6 +82,34 @@
             #expect(standard.labelColour(isEnabled: false, role: nil) == .t4)
         }
 
+        /// The other half of the destructive treatment: the label was moved to the role by M18 and
+        /// the **fill** was left, so the control still painted `--raised` behind it — in the light
+        /// appearance `#FFFFFF` on a `--panel` sheet ground, a second filled button on a surface the
+        /// brief allows one on. `MockButtonFidelityTests` is what ties the `nil` here to
+        /// `.btn.destructive{…background:none…}` in the mock rather than to a reading of it.
+        @Test("a live destructive button is unfilled, and every other standard button is not")
+        func destructiveIsUnfilled() {
+            #expect(standard.fill(role: .destructive, isPressed: false) == nil)
+            #expect(standard.fill(role: nil, isPressed: false) == .raised)
+        }
+
+        /// Pressed is `--f1` for the destructive control — the mock's own `:hover` fill, standing in
+        /// for a press a `ButtonStyle` cannot observe. Asserted as a *difference* rather than as two
+        /// values, for `theTwoStatesAreDistinguishable`'s reason: a press with no visible change is
+        /// the defect, not a particular token.
+        @Test("a pressed button changes its fill in every role")
+        func pressedChangesTheFill() {
+            for role in [ButtonRole.destructive, nil] {
+                let named = role.map(String.init(describing:)) ?? "plain"
+                #expect(
+                    standard.fill(role: role, isPressed: true) != standard.fill(role: role, isPressed: false),
+                    "a pressed \(named) button paints what a resting one does"
+                )
+            }
+            #expect(standard.fill(role: .destructive, isPressed: true) == .f1)
+            #expect(standard.fill(role: nil, isPressed: true) == .raised2)
+        }
+
         @Test("a live destructive label is the text-safe ink, never the indicator hue")
         func destructiveUsesTheInk() {
             #expect(standard.labelColour(isEnabled: true, role: .destructive) == .failInk)

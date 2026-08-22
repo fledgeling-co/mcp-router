@@ -90,3 +90,56 @@ about what scope this product works in.
 Nothing to undo. Adding `proctor` directly to Claude Code was the correct move and stays correct:
 a per-project profile is exactly what the router cannot currently express through adoption, and
 three profiles under one name is exactly what it must not flatten.
+
+---
+
+## Triage — 2026-08-22
+
+**Verdict: To Do.** Standard tier, scoped to shape 2. Not blocked, but it must not reach shape 1
+before the scope decision `R7` owes.
+
+### Both halves of the finding confirmed at HEAD
+
+`cmdImport` at `src/index.ts:85` reads `src.mcpServers` and nothing else, so `projects` is never
+enumerated. And the model really is already there: `projects?: string[]` on both config shapes
+(`src/config.ts:21`, `:126`), carried through resolution at `:164` and `:189`, and **editable
+through the control API PATCH** at `src/control.ts:450`. So today an owner can hand-scope an
+upstream to a project and the router will honour it — it simply cannot learn that scoping from the
+harness it adopts from. The gap is the reader, exactly as the brief says.
+
+### One thing the brief did not know, and it shrinks the item
+
+**The reporting channel criterion 3 asks for is already built.** `cmdImport` collects `skipped`
+(`src/index.ts:93`) and prints it as `not adoptable:` at `:153-155`, with a per-server reason.
+Today it only ever holds servers `parseServer` refused. Nothing needs inventing for criterion 3 —
+project-scoped and collision cases go into the list that already exists and already prints.
+
+So the work is enumeration plus the collision decision, not enumeration plus a new report.
+
+### Scope: shape 2, and shape 1 is not deferred by preference
+
+Shape 2 — adopt only where a name resolves to one command across every project that declares it,
+and report the rest as unadoptable with the collision named — is the floor this brief states, and
+the floor is not a choice. The only open question was whether to take shape 1 (adopt per-project,
+serve by caller cwd) in the same item.
+
+It cannot be taken here, and the reason is not cost. Shape 1 decides what scope this product works
+in, and `D-r7-i` records `HarnessesVerb` printing `"Global scope only"` while reading a
+project-scoped file — the mirror image of this defect. The brief's own closing line says both
+should be settled with one decision, and that decision is not made. Building shape 1 now would make
+it by implication, from the side with less evidence.
+
+Filed as **R16-C1** in the deferred register: *adopt project-scoped upstreams and serve them by
+caller cwd*, blocked on the same scope decision as `D-r7-i`. The information it needs is present at
+call time — `CallerIdentity` carries cwd and `usage` already reports per-project call counts — so
+it is a decision problem rather than a plumbing one.
+
+Shape 3 (disambiguated names like `proctor@proctor-mcp`) stays refused for the reason the brief
+gives: it changes the tool namespace the model sees, so it changes prompts that name a tool.
+
+### What the owner sees when this lands
+
+`proctor` stays exactly where they put it, by hand, in Claude Code — which was and remains the
+correct move. What changes is that `import` stops being silent about it: three declarations, one
+name, three different argument sets, reported as unadoptable with the collision named. The count
+that reads `13` today gains a reason for every absence.

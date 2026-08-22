@@ -72,3 +72,55 @@ looks identical.
 All of it is free once a timing test keeps its sample vector instead of reducing to `worst` and
 `mean` and discarding the samples. None of it is available before that. This bears directly on
 `G3`, whose subject is the only wall-clock assertion in this suite.
+
+---
+
+## Triage — 2026-08-22
+
+**Verdict: Ready for AI.** Standard tier. Harness-only; depends on nothing.
+
+### The open question is answered, and the answer is that the mapping is *not* mechanisable
+
+This brief was Untriaged because it could not say whether name → quantity could be derived without
+annotation. Referred to the Google lane (`agy`, `gemini-3.7-flash-high`) with all eight instances
+and the three options. Verdict on the question as asked:
+
+> No. Heuristic or NLP mapping from test identifiers to arbitrary in-scope constants yields
+> ambiguous bindings and false positives on auxiliary constants, directly violating your
+> zero-false-finding doctrine.
+
+So **option B is refused on the repository's own detector-defects doctrine**, which is what this
+brief suspected and could not settle. Option A is honest and starts at zero coverage; option C
+holds no line. None of the three is worth building.
+
+### The shape that replaces them
+
+The lane declined the framing rather than the question, and the substitute is better because it
+does not need to know the quantity at all. Two mechanisms:
+
+1. **Raw-input accounting as a structural invariant.** Every reader, parser and matcher returns
+   `(matched, dropped)`, and `dropped` must be empty unless a skip is declared explicitly. This is
+   not a new idea here — `ledger-reconcile.py` already *prints* `examined N` and a skip list, and
+   that printed line is the only reason instances 1, 4 and 5 were ever found. The work is turning a
+   convention that one script follows into a contract every reader satisfies and a gate that fails
+   when it does not.
+
+2. **A null-run gate.** Execute each assertion against an empty fixture, an inverted state, or
+   poisoned input. **An assertion that passes on a null or poisoned input is provably vacuous**, and
+   that is a deterministic property of the assertion rather than an inference about its name.
+
+Between them these reach instances 1, 4, 5 and 6 — every silent-drop and partial-match case in the
+table — with no annotation, no name parsing, and no class of false finding on correct code. That
+last property is the one that made the original three options unbuildable here.
+
+### What the shape does not reach, stated rather than implied
+
+Instances 2, 3, 7 and the `egress` one are not silent-drop defects: each reads a real quantity that
+is the wrong one, and each would survive both mechanisms. Half of this brief's own table is
+therefore out of scope for its own fix. That is worth building anyway — four of eight, mechanically
+and permanently, beats eight of eight by vigilance — but the item must not be reported as closing
+the class.
+
+`G1` keeps the soft-assertion findings at lane level (`D-r6-h`, `D-m27-b`, `D-r7-j`, `D-r7-k`).
+This stays a separate item: G1 owns assertions that are too weak, and this owns readers that cannot
+account for their own input. Those want different gates.

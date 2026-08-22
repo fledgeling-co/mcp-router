@@ -46,3 +46,59 @@ it runs the binaries **sequentially**. Whatever is decided here has to be declar
    detected and retried — decided as a policy over all five call sites, not one.
 2. A scenario that **overlaps** a writer, since a sequential lane is structurally blind to this.
 3. The Swift and node behaviours either converge or the divergence is declared.
+
+---
+
+## Triage — 2026-08-22
+
+**Verdict: Ready for AI.** Standard tier. Depends on nothing; `R17` merging first is convenient
+(its `watch.ts` line numbers move) but not required.
+
+### The precondition question is settled, and the answer is neither option this brief listed
+
+The brief asked whether the manifest wants the treatment `servers.json` already has, and framed it
+as lock-versus-no-lock. Referred to the Google lane (`agy`, `gemini-3.7-flash-high`) with the
+write-site census, the `ConfigMutationLock` source and both options in full. It returned a third
+shape and it is right:
+
+> Perform long-running child indexing in memory with **no lock held**. Once the indexed row is
+> ready, acquire the lock strictly around the commit phase: read current disk state, merge the
+> single server row, write to temp, and rename. Lock duration drops from seconds to <1ms.
+
+**The policy, over all eight sites:** `withExclusiveLock { load; merge the rows this path owns;
+save }`. The load moves *inside* the lock, adjacent to the merge — it is the stale read that
+clobbers, not the write. Everything expensive stays outside.
+
+This is not the lock this brief feared. Option A held the lock across the read-then-index window,
+which for `cmdWatch` is seconds and would have made a concurrent control-API PATCH fail at the
+2000 ms daemon bound — a new user-visible failure. Commit-phase-only has no such window, so the
+daemon's fail-fast timeout is never reached and the objection that made this a fork dissolves.
+
+The two shapes the lane was asked about explicitly and rejected, recorded so they are not
+rediscovered: a `manifest.d/*.json` split ("orphan cleanup bugs on delete/rename, migration churn
+for a single small config"), and optimistic versioning with CAS retry ("unnecessary — a <1 ms
+locked mutation lets `flock(2)` queue writes with zero retries").
+
+### What this makes of `VER-R17-2`
+
+Swift's re-load-per-entry was the right instinct implemented without exclusion. The fix upgrades
+it rather than reverting it, and the two implementations converge by construction rather than by
+a declaration in `surface.tsv`. Convergence is therefore the expected outcome and a declaration is
+the fallback, which inverts what this brief assumed.
+
+### The component is already built
+
+`ConfigMutationLock` (`app/Sources/RouterCore/Config/ConfigMutationLock.swift`) is generic over the
+path, not specific to `servers.json`. It already solves the sidecar-versus-inode problem, the
+`O_CLOEXEC` inheritance problem, thread-local reentrancy, path standardisation, and the
+`ENOTSUP` filesystem that has no advisory locking. Its two timeout constants and the reasoning
+behind each apply unchanged. Node has no counterpart and needs one; that is the larger half of
+the work.
+
+### Sizing
+
+Eight call sites — node `watch.ts:253`, `index.ts:146`, `index.ts:186`, `control.ts:262`,
+`control.ts:432`; Swift `AuthRoutes.swift:120`, `ServicePorts.swift:391`, `WatchIndexing.swift:150`
+— a node lock module, and one overlapping-writer scenario. The scenario is the part with no
+precedent in this repo: `parity-cli.sh` runs the binaries sequentially, so it is structurally
+blind here and a new lane is needed rather than a new row in an existing one.

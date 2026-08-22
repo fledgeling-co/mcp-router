@@ -30,9 +30,12 @@
         /// The reset dialog's provenance, or `.none` when there is nothing to date.
         ///
         /// `.none` covers two different absences and neither wants a sentence: no reading has landed
-        /// at all — the header's `Reset history…` is reachable while the board is still loading — or
-        /// a fresh reading whose `usageSummary()` threw, where the consequence already says the
-        /// router has not stated how many and there is no figure a date could belong to.
+        /// at all — which no reader reaches, because `CleanupBoard` disables the header's `Reset
+        /// history…` while `state.reading` is nil, and `.loading` and `.failed` are exactly the two
+        /// states where it is (anchor `.disabled(board.state.reading == nil)`, `CleanupBoard.swift`
+        /// at `0f5f118`, line 179) — or a fresh reading whose `usageSummary()` threw, where the
+        /// consequence already says the router has not stated how many and there is no figure a date
+        /// could belong to. The first branch is defensive rather than a state the dialog opens in.
         var resetFigureProvenance: CleanupPresentation.Provenance {
             guard let reading = state.reading else { return .none }
             return CleanupPresentation.resetFigureProvenance(

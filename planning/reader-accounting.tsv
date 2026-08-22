@@ -1,0 +1,43 @@
+# planning/reader-accounting.tsv — what each raw-input reader drops, and why that is not its subject.
+#
+# rows: 18
+#
+# `reader-accounting.py` finds every reader in planning/ and scripts/ that decomposes raw input and
+# discards part of it without recording what it discarded. A reader appears here when the drop is
+# deliberate; the alternative is to record it, which is what `input_accounting.Tally` is for and
+# what `table_ids`, `describes` and `status_rows` in ledger-reconcile.py now do.
+#
+# The census this file was opened on, 2026-08-22: 19 raw-input readers over 27 discarding
+# iterations and 50 drop sites. Three readers recorded every drop, all three converted for G4. The
+# other sixteen are below.
+#
+# The pinned `# rows:` count is checked by the gate. A row that vanishes shrinks the denominator and
+# the gate reports better, which is the failure this whole item is about — move the pin in the same
+# change as the row.
+#
+# Columns, tab-separated:
+#   reader       <path>::<function>, or <path>::<module> for a top-level reader
+#   disposition  declared — the drop is by design and the reason below says why
+#                gap      — the drop is silent and nothing else covers it. Recorded, not fixed;
+#                           the gate prints these on every run so a green cannot absorb them
+#   reason       one line. What is dropped, and what reads it instead, or why nothing needs to
+#
+# ---------------------------------------------------------------------------------------------
+planning/ledger-reconcile.py::content_words	declared	Check F's stopword and length filter. A word dropped here is dropped from a comparison of two description cells, never from the file: F asks whether two rows sharing an id share ANY content word, so dropping a word can only make agreement harder to claim, and the bar is deliberately low for that reason.
+planning/ledger-reconcile.py::expand_range	declared	A pair whose two series differ (`M9-R12`) and a span wider than 40 are not allocation ranges — they are a commit range or a line reference. Dropping them is what stops check D expanding a four-digit line span into a hundred false ids; both conditions predate G4 and are stated in the docstring.
+planning/ledger-reconcile.py::main	gap	Checks J and K, six drops. J drops a non-table line (check L reads those), the first row of each table (consumed as the header) and the separator rule. K drops a non-table line, a row with fewer than three cells, and a first cell that is not a `D-<parent>-<letter>` id. K's short-row drop is a real hole: a register row with fewer cells than its header is read by K not at all, by J not at all (J reads only the other direction) and by H only inside a grouped count, so it would be invisible in all three. Measured 2026-08-22: 0 such rows in either file today. Recorded rather than fixed, because the fix is another check and not a declaration.
+planning/reader-accounting.py::analyse_file	declared	An iteration that discards nothing is not this gate's subject. It is counted in the `iterations` total printed on every run, and naming the 194 non-discarding iterations individually would bury the 92 that do discard.
+planning/reader-accounting.py::main	declared	The file census excludes anything under `node_modules`: a vendored reader is not this repository's to hold to a contract. The surviving file count is printed on every run, so a filter that began excluding too much shows as a falling denominator rather than as a quieter gate.
+planning/reader-accounting.py::read_registry	declared	Blank lines and `#` comments in this file are not rows. Every other line is either parsed into a declaration or named in the malformed list, which is what makes a mistyped row a red rather than a shorter denominator.
+planning/reader-accounting.py::seed_params	declared	The taint seed reads call sites only. A node that is not a call, or is a call to something this module does not define, cannot bind a parameter, so dropping it changes no seed and no classification.
+planning/set-status.py::main	declared	Every `data-id` in the SVG is scanned and a node whose id was not named on the command line is left alone — setting the status of the ids it was given is the tool's whole subject. The opposite direction is checked and loud: an id given on the command line and not found in the SVG exits non-zero naming it.
+planning/test-campaign/bin/arm-pipeline.py::glass	declared	Reads two named lines out of a subprocess's combined output — `  FAIL ` rows and the `checked=` tally — and discards the progress text around them. The verdict does not rest on either: the subprocess's exit code is returned alongside, so output whose shape moved yields an empty tally next to a return code that still discriminates.
+planning/test-campaign/bin/arm-suites.py::run	declared	Picks the first `error:` line and the first `✘` line out of a swift-test log for the human-readable `detail` field. The verdict rests on neither: it is decided by `RUN_LINE`'s test count and the `failed after` marker, and a log carrying neither line yields an empty detail beside a verdict that still separates red, green, ran-nothing and build-failed.
+planning/test-campaign/bin/record-glass-arms.py::main	declared	Picks named marker lines (`checked=`, `compared`, `  FAIL `, `FAILED`) out of subprocess output. All four sit behind an exit-code refusal that is evaluated first, so output whose shape moved refuses to record anything rather than recording an empty set as an arm.
+planning/test-campaign/bin/vocab-differential.py::ax_controls	declared	An accessibility dump row with fewer than seven columns, or a role outside `CONTROL_ROLES`, is not a control — the role filter is this reader's subject. A malformed row lost here removes a control from the build side, and the differential reports that as a control the design specifies and the build never drew, so the drop surfaces as a finding rather than as agreement.
+planning/test-campaign/bin/vocab-differential.py::mock_controls	declared	Takes the last line of the browser eval beginning with `[`, because Obscura prints progress ahead of the value. A run producing no such line returns an empty set, and an empty mock side cannot read as agreement: every control on the build side then lands in the in-build-not-design column.
+scripts/acceptance/mock_fidelity.py::Context.load	declared	Blank lines and `#` comments in the pairing manifest are not rows, and every other malformed line raises `Inconclusive` rather than being skipped — `seen == 0` is a refusal. The second drop is a `node == "-"` row with no citation, which is intentionally a no-op; the row's purpose is the citation it did not carry.
+scripts/acceptance/mock_fidelity.py::layer_literals	declared	Reads the one `no-raw-design-values: scanning` line out of the lint's output and raises `Inconclusive` when it is absent. That is the opposite of a silent drop: the layer refuses to report rather than reporting over an output it could not read.
+scripts/acceptance/mock_fidelity.py::layer_tokens	declared	Reads two named markers (`MOCK-FIDELITY-TOKENS:` and `MOCK-FIDELITY-MOCK-LITERALS:`) out of the suite's output and raises `Inconclusive` when either is absent, on the stated grounds that a check printing nothing cannot be told from one that did not run.
+planning/null-run-gate.py::<module>	declared	The ACC-pin arm removes one declaration row from a scratch registry by filtering it out, which is the mutation the arm is named for. What it dropped is the poison; recording it would be recording the arm's own plant.
+planning/null-run-gate.py::accounting_tree	declared	The scratch registry keeps only the rows naming readers the scratch tree actually holds. Copying the whole registry would leave fifteen rows pointing at absent files, and every accounting arm would then be measuring the stale-row check instead of the one it is named for.

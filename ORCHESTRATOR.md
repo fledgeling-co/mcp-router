@@ -166,6 +166,41 @@ than barriering on whole waves, so the real overlap is greater than the table im
 > when this session began. Do not `git add -A` here — that mistake has already swept a third
 > session's work into a commit twice in this repo.
 
+### MERGE ORDER — M18, M19 AND M22 SHARE A FILE THAT EXISTS ON ONLY ONE OF THEM
+
+`app/Sources/MCPRouterKit/Shell/RouterSheet.swift` exists on **`ai/m18` only**. `ai/m19` and
+`ai/m22` were both cut from `87e16dc` and neither has it, so neither can line up with it now and
+neither should be asked to.
+
+**Two things are NOT the same and were confused once already.** `RouterSheet` is what the app can
+present — seven board groups. `RouterSheet.Kind` is a separate inventory compared against the
+mock's `sh-*` ids, and **a `Kind` row carrying an owner is a record of a deliberate hole, not a
+slot to fill**. Hosting one would redden *M18's* tests, not the owner's: the test named *"every
+kind is either presentable or has an owner — never neither"* and its companion pinning the four
+unhosted kinds both live in `app/Tests/MCPRouterKitTests/RouterSheetTests.swift`.
+
+**The landmine, and it is silent.** That companion test asserts
+`RouterSheet.Kind.readme.owner == "M19"` as a literal. `owner` documents itself as *"Who closes
+this sheet"*. M19 has built the sheet's **contents**; the entry point is M18's and the document
+source is `M30`. So merging `ai/m19` makes the claim false **while the test goes on passing** —
+filed as `G4`'s twenty-third instance. Decide what `owner` means before both land, and prefer
+asserting the property over the literal.
+
+**Sequencing fact for whichever of `m18`/`m22` merges second**: `M22` holds a local
+`HarnessesBoardModel.Sheet` with `.reconcile(harness:)` and `.explainShim(harness:)` and has
+recorded the migration onto `RouterSheet` as a merge-time obligation in
+`planning/progress/M22.md` rather than inventing the enum's shape from a description. The second
+merge collapses that local enum. `M22` does not present `.reconcile` at all — both controls that
+would open it are drawn **disabled with the reason in their help tag**, because the panel is
+M18's.
+
+**The convention that makes the collapse possible**, measured: the mock's `sh-*` set is exactly
+**13** ids and `Kind` has **16** cases. The three extra — `registryDetail`, `resetHistory`,
+`skillProvenance` — carry **leading-hyphen** raw values, and the doc comment says why: a leading
+`-` is not a legal HTML id fragment in that file, so it cannot collide. The 13 unhyphenated match
+the 13 mock ids one for one. `M22`'s `.explainShim` has no mock id, so the hyphen convention is a
+**third option** at merge rather than local-or-nothing.
+
 ### DISPATCH — `make lint` CANNOT RUN IN A FRESH WORKTREE, AND THREE RUNNERS HAVE PAID FOR IT
 
 `make lint` depends on the `tools` target, which wants `node_modules` and `dist/index.js`. A

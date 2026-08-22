@@ -54,7 +54,7 @@ not exist at `72958de` either, so all fifteen readers dropped silently and said 
 | …naming what they dropped | 7 | **2** |
 | Dropping silently and saying nothing | 19 | **15** |
 
-The verifier's three figures are the three in bold. The other four moved the same way and for the
+The verifier's three figures are the three in bold. The other five moved the same way and for the
 same reason, so the whole column is restated rather than three cells of it — a column where six of
 nine numbers came from one measurement and three from another is not repairable by patching the
 three that were noticed. The file count is the one figure that was already right.
@@ -266,7 +266,263 @@ the correction, and the two artefacts those commits produced now carry it in the
 
 ## 6 · Gates, measured on this branch today
 
-GATES_PLACEHOLDER
+One `make all` on `ai/g4` at `27417a9`, 2026-08-22, its own timestamps running 15:41 to 15:44.
+`make all` does not call the reconciler, so that is a second run from this worktree. Both are pasted
+below; every elision is marked and cuts repetition only.
+
+```
+$ make all                                    # stopped at parity-selftest; nothing before it red
+tools: Version: 2.45.4 · swiftlint 0.65.0 · swiftformat 0.62.1
+Running SwiftFormat...
+(lint mode - no files will be changed.)
+Ignoring config file at /Users/lukerhodes/Dev/mcp-router/.swiftformat
+SwiftFormat completed in 0.21s.
+0/537 files require formatting, 252 files skipped.
+…
+Done linting! Found 0 violations, 0 serious in 530 files.
+no-raw-design-values: scanning 118 files
+no-raw-design-values: 77 files under the geometry and boundary rules
+no-raw-design-values: clean
+…
+􁁛  Test run with 1684 tests in 209 suites passed after 5.324 seconds.
+executed 1684 tests
+test-ios: simulator A105F476-9B39-43A4-B37F-9A739C5C5930 (MCPRouter-Unit)
+…
+** TEST SUCCEEDED **
+test-ios-glass: simulator 995BEF6F-101F-4D8A-ACE5-38724A13689A (MCPRouter-Glass)
+…
+** TEST SUCCEEDED **
+…
+parity: 358 vector cases compared (floor 358)
+./scripts/acceptance/parity-manifest-selftest.sh
+parity-manifest-selftest — can the manifest check fail?
+
+  green the unmutated tree                                             exit 0
+…                       (22 cases across cli, mcp and cited row ids, each `red … exit 1`)
+
+the pinned census — the deletion neither derivation nor the lanes can see
+  WRONG REASON  a blocked row deleted: div-r1-d3 (exit 1)
+                wanted a message containing: holds 82 rows and pins itself at 83
+                got:   a note cites "div-r1-d3", which is not a row id in this manifest.     Either the row it names was deleted, or the word is not an id and belongs in KNOWN_NON_IDS. 
+  WRONG REASON  a blocked row deleted: install-claude-json (exit 1)
+                wanted a message containing: holds 82 rows and pins itself at 83
+                got:   the manifest holds 91 rows and pins itself at 92.     A row was added or removed. If that was deliberate, move the pin in the same change and 
+  WRONG REASON  a blocked row deleted: install-import-servers (exit 1)
+                wanted a message containing: holds 82 rows and pins itself at 83
+                got:   the manifest holds 91 rows and pins itself at 92.     A row was added or removed. If that was deliberate, move the pin in the same change and 
+  WRONG REASON  a blocked row deleted: install-rollback (exit 1)
+                wanted a message containing: holds 82 rows and pins itself at 83
+                got:   the manifest holds 91 rows and pins itself at 92.     A row was added or removed. If that was deliberate, move the pin in the same change and 
+  WRONG REASON  a duplicate blocked twin ADDED (exit 1)
+                wanted a message containing: holds 84 rows and pins itself at 83
+                got:   the manifest holds 93 rows and pins itself at 92.     A row was added or removed. If that was deliberate, move the pin in the same change and 
+  red   the pin removed from the manifest                              exit 1
+
+dispatch shapes that used to be silent
+…                       (7 dispatch-shape cases, each `red … exit 1`)
+
+───────────────────────────────────────────────────────────────────────
+manifest selftest: 31 behaved, 5 did not
+
+A case that stays green is a mutation the manifest check cannot see, which means the
+coverage fraction can be moved without the gate noticing. That is the finding.
+make: *** [parity-selftest] Error 1
+```
+
+```
+$ /opt/homebrew/bin/python3 planning/ledger-reconcile.py                      # exit 0
+LEDGER         91 rows,  94 named
+ORCHESTRATOR   91 rows, 102 named
+merged ai/*    27 branches
+  table row scan read 299 items of LEDGER.md; kept 91; dropped 208 (not a table row 206; first cell is not an allocation id 2)
+  table row scan read 1464 items of ORCHESTRATOR.md; kept 96; dropped 1368 (not a table row 1076; first cell is not an allocation id 292)
+
+  description scan read 299 items of LEDGER; kept 91; dropped 208 (not a table row 206; first cell is not an allocation id 2)
+  description scan read 1464 items of ORCHESTRATOR; kept 96; dropped 1368 (not a table row 1076; first cell is not an allocation id 292)
+
+H examined 85 rows with a status cell; skipped 21 with fewer cells than their header (#, CUTOVER TARGET, D-i4-a, D-i4-b, D-i5-a, D-i5-b, D-i6-a, D-i6-b, D-i6-c, D-i6-d, D-i6-e, D-i6-f, D-p5-a, D-p5-b RESOLVED — the gateway was pointed at a dead upstream, D-p6-a, D-p6-b, D-p6-c, D-p6-d, D-p6-e, D-p6-f, RULE)
+  status row scan read 1464 items of ORCHESTRATOR.md; kept 85; dropped 1379 (not a row of a table with a Status column 1349; fewer cells than its header 21; a header rule, read for its column names rather than as a row 7; first cell is not an allocation id 2)
+
+I examined 85 ids present in both files; LEDGER skipped 0 rows with fewer cells than their header
+  status row scan read 299 items of LEDGER.md; kept 91; dropped 208 (not a row of a table with a Status column 206; a header rule, read for its column names rather than as a row 1; first cell is not an allocation id 1)
+J examined 470 table rows in both files
+K examined 213 deferred-register rows in both files
+L examined 1761 lines in both files
+
+reconciled — no findings across A, B, B-range, C, D, E, F, G, H, I, J, K, L
+```
+
+`make lint` is **0 violations, 0 serious in 530 files** with **0/537** requiring formatting.
+`make test` is **1684 tests in 209 suites passed**, and both simulator lanes reach
+`** TEST SUCCEEDED **`. The reconciler is **0 across A–L, exit 0**: check E now has nothing to
+report, and no tracker file changed to make that so — which is `D-g4-b` in §7.
+
+The one red is `parity-selftest`, and it is the base's. The first verification established that by
+reconstructing `72958de` and the second confirmed it; this gap-fix touched no gate, no fixture and
+no manifest, and it still holds unchanged — `manifest selftest: 31 behaved, 5 did not`, the five
+being the pinned-census cases pasted above. Each of the five does exit 1; each exits 1 for a reason
+its fixture does not recognise, because the counts it expects (82 rows pinned at 83, 84 pinned at
+83) are the manifest as it was, where the tree holds 91 pinned at 92. That is a stale fixture in a
+gate this item was told not to touch, it is red identically at the base, and it is not re-litigated
+here.
+
+### The sweep for this gap-fix's own two corrections
+
+R17's `planning/claim-sweep.py` is the wrap-tolerant reader in this repository, and it is not on
+this branch — it merged into `main` after `72958de`. So it is loaded from `main` and its `normalise`
+used as it stands, hard wraps and blockquote markers and all, rather than copied into a second
+instrument nobody has armed. Two properties its docstrings ask for are bought differently here:
+
+* **Every pattern is armed against a bearer derived from the pattern itself**, so a matcher broken
+  by its own escaping prints `DEAD` instead of a clean sheet. §4 got this from the CORPUS control;
+  this gets it per pattern, including the presence controls. The bearer is derived rather than
+  typed, because a synthetic residue written into the script would put the withdrawn claim back
+  into the corpus the script scans.
+* **Each pattern separates its words with `\s+`**, so no pattern matches its own text once
+  whitespace is collapsed. That is what keeps the script and its result a fixed point when they are
+  pasted into the file they scan. `claim-sweep.py` buys the same property by refusing to scan its
+  record files; that is not available here, because the corrected figures live in the scanned file
+  and the presence controls have to be able to see them.
+
+```python
+#!/usr/bin/env python3
+"""Gap-fix 2's two corrections, swept with R17's reader rather than a second copy of it.
+
+`planning/claim-sweep.py` is not on this branch — it landed on `main` at R17's merge — so it is
+loaded from `main` and its `normalise` used as it stands. That buys the wrap tolerance its
+docstring describes and the blockquote handling underneath it, on an instrument someone else
+already armed, instead of a fresh one nobody has.
+
+Every pattern separates its words with `\\s+`, so no pattern matches its own text once whitespace
+is collapsed. That is what makes this a fixed point when it is pasted into the file it scans, and
+it has to be bought this way rather than by claim-sweep.py's exclusion list, because the corrected
+figures live in the scanned file and a presence control has to be able to see them. The bearer each
+pattern is armed against is derived from the pattern at run time for the same reason: a synthetic
+residue typed out here would put the withdrawn claim back in the corpus.
+"""
+import re
+import subprocess
+import sys
+import types
+
+src = subprocess.run(["git", "show", "main:planning/claim-sweep.py"],
+                     capture_output=True, text=True, check=True).stdout
+cs = types.ModuleType("claim_sweep")
+exec(compile(src, "main:planning/claim-sweep.py", "exec"), cs.__dict__)
+
+WITHDRAWN = [
+    ("W1  §1's count of the rows that moved", r"other\s+four\s+moved\s+the\s+same\s+way"),
+    ("W2  D-g4-b's exit-1 claim",             r"is\s+now\s+the\s+sole\s+reason"),
+    ("W3  D-g4-b's citation of §6",           r"records\s+it\s+doing\s+more\s+than\s+moving"),
+    ("W4  the superseded branch count",       r"measures\s+it\s+at\s+\*\*26\*\*"),
+]
+PRESENT = [
+    ("P1  §1, corrected",         r"other\s+five\s+moved\s+the\s+same\s+way"),
+    ("P2  §6 pastes the count",   r"merged\s+ai/\*\s+27\s+branches"),
+    ("P3  D-g4-b, corrected",     r"reads\s+it\s+at\s+\*\*27\*\*"),
+]
+FILE = "planning/progress/G4-gapfix.md"
+
+
+def bearer(pat):
+    """A string the pattern must match, built from the pattern so the phrase is never typed here."""
+    return pat.replace(r"\s+", " ").replace("\\", "")
+
+
+tracked = subprocess.run(["git", "ls-files", "-z"], capture_output=True,
+                         check=True).stdout.decode().split("\0")
+tracked = [f for f in tracked if f]
+
+corpus, skipped = {}, 0
+for f in tracked:
+    try:
+        with open(f, encoding="utf-8") as fh:
+            raw = fh.read()
+    except (UnicodeDecodeError, IsADirectoryError, FileNotFoundError, OSError):
+        skipped += 1
+        continue
+    corpus[f] = (raw, cs.normalise(raw))
+
+print("CORPUS  %d tracked files read, %d skipped as non-text, normalised by "
+      "main:planning/claim-sweep.py" % (len(corpus), skipped))
+
+ok = True
+print("\nARMED   every pattern against a bearer derived from itself:")
+for name, pat in WITHDRAWN + [(n, p) for n, p in PRESENT]:
+    fires = bool(re.search(pat, bearer(pat), re.I))
+    print("  %-7s %s" % ("fires" if fires else "DEAD", name))
+    ok &= fires
+
+w1 = bearer(WITHDRAWN[0][1]).split()
+half = len(w1) // 2
+wrap = " ".join(w1[:half]) + "\n" + " ".join(w1[half:])
+quoted = "> " + " ".join(w1[:half]) + "\n> " + " ".join(w1[half:])
+pat = WITHDRAWN[0][1]
+for label, probe in (("WRAP  ", wrap), ("QUOTE ", quoted)):
+    across = bool(re.search(pat, cs.normalise(probe)[0], re.I))
+    by_line = any(re.search(pat, ln, re.I) for ln in probe.splitlines())
+    print("%s  normalised match across the break: %s; line-anchored match: %s"
+          % (label, across, by_line))
+    ok &= across and not by_line
+
+print("\nPRESENT the corrected figures, where they were written:")
+for name, pat in PRESENT:
+    found = bool(re.search(pat, corpus[FILE][1][0], re.I))
+    print("  %-7s %-26s %s: %s" % ("found" if found else "MISSING", name, FILE, pat))
+    ok &= found
+
+print("\nRESIDUE every surviving hit on a withdrawn claim, anywhere in the corpus:")
+total = 0
+for name, pat in WITHDRAWN:
+    hits = []
+    for f, (raw, (norm, offsets)) in corpus.items():
+        for m in re.finditer(pat, norm, re.I):
+            hits.append((f, raw.count("\n", 0, offsets[m.start()]) + 1,
+                         re.sub(r"\s+", " ", m.group(0))))
+    print("  %-38s  %d hit(s)" % (name, len(hits)))
+    for f, line, txt in hits:
+        print("        %s:%d   %s" % (f, line, txt))
+    total += len(hits)
+
+print("\n%d surviving hit(s). Controls %s." % (total, "all passed" if ok else "DID NOT PASS"))
+sys.exit(0 if ok and not total else 2)
+```
+
+Result, exit 0:
+
+```
+CORPUS  1118 tracked files read, 157 skipped as non-text, normalised by main:planning/claim-sweep.py
+
+ARMED   every pattern against a bearer derived from itself:
+  fires   W1  §1's count of the rows that moved
+  fires   W2  D-g4-b's exit-1 claim
+  fires   W3  D-g4-b's citation of §6
+  fires   W4  the superseded branch count
+  fires   P1  §1, corrected
+  fires   P2  §6 pastes the count
+  fires   P3  D-g4-b, corrected
+WRAP    normalised match across the break: True; line-anchored match: False
+QUOTE   normalised match across the break: True; line-anchored match: False
+
+PRESENT the corrected figures, where they were written:
+  found   P1  §1, corrected          planning/progress/G4-gapfix.md: other\s+five\s+moved\s+the\s+same\s+way
+  found   P2  §6 pastes the count    planning/progress/G4-gapfix.md: merged\s+ai/\*\s+27\s+branches
+  found   P3  D-g4-b, corrected      planning/progress/G4-gapfix.md: reads\s+it\s+at\s+\*\*27\*\*
+
+RESIDUE every surviving hit on a withdrawn claim, anywhere in the corpus:
+  W1  §1's count of the rows that moved   0 hit(s)
+  W2  D-g4-b's exit-1 claim               0 hit(s)
+  W3  D-g4-b's citation of §6             0 hit(s)
+  W4  the superseded branch count         0 hit(s)
+
+0 surviving hit(s). Controls all passed.
+```
+
+Three presence controls found, four withdrawn patterns at zero hits across the 1118 tracked files
+the reader could decode — with the 157 it could not counted and named as skipped rather than
+dropped — and all seven proved able to fire before any of it was believed. Re-run after this section
+was pasted into the file: byte-identical output, exit 0, which is the fixed-point property measured
+rather than argued.
 
 ## 7 · Registered, not fixed
 
@@ -284,8 +540,15 @@ tracker edit for the same reason. Whoever merges this owns moving them into the 
   (On this branch the two agree — the suite prints `MOCK-FIDELITY-TOKENS: rows=89 matched=25
   pending=64 uncited=0`, which is why the drift is invisible from inside `ai/g4`.)
 * **`D-g4-b`** — the reconciler's `merged ai/*` line reads a live `git branch --merged main` count,
-  so it moves without any file changing. §6 records it doing more than moving: it is now the sole
-  reason `ledger-reconcile.py` exits 1.
+  so it moves without any file changing. §6 reads it at **27**, with the reconciler at **exit 0**,
+  and the verdict is what moved rather than the count: `G4.md` §3 records **27** for the run that
+  exited 1, against **29** for the run before it, and every other number in §6's paste is identical
+  to the one pasted there. What fired check E was `ai/g5` sitting merged into `main` with no row; `ai/g5` has since
+  committed twice past that merge point (`2fbe062` → `3cd45c6`, `64e1631`), so it is no longer an
+  ancestor of `main` and check E cannot see it. Three readings, two of them the same number under
+  opposite verdicts, and neither tracker file edited between any of them. Each was right when it was
+  taken, which is why this is registered rather than fixed: the finding was never a property of the
+  two files, so there is nothing in them to correct.
 * **`D-g4-c`** — `make test` failed twice standalone on `AuthorizationURLBoxTests / "a waiter that is
   cancelled is resumed rather than stranded"` (`OAuthWireTests.swift:263`, a 3-second wall-clock
   budget), then passed inside `make all` and in isolation in 3.164 s, at load 900–945. Attributable

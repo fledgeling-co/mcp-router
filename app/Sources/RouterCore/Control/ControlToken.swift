@@ -16,6 +16,16 @@ public enum ControlPaths {
             || pathname == "/usage"
             || pathname.hasPrefix("/usage/")
             || pathname.hasPrefix("/registry/")
+            // M22's two. **Exact match, with no prefix arm**, unlike `/servers` and `/usage`:
+            // neither has a sub-path, so `/harnesses/x` is not a route this router answers and
+            // claiming it would turn a typo into a 405 that reads as "the method is wrong".
+            // `/harnessesx` and `/insightsy` share a prefix with an owned path and are not owned,
+            // which is the negative the `hasPrefix` arms above have to be careful about.
+            //
+            // Both diverge from `src/control.ts`, which answers them 404, and both are declared
+            // as divergences in `planning/parity/surface.tsv` rather than left to be discovered.
+            || pathname == "/harnesses"
+            || pathname == "/insights"
     }
 }
 

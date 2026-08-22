@@ -65,7 +65,7 @@ public struct ControlHandler: Sendable {
             }
         }
 
-        if let response = routeUsage(path, request, deps) { return response }
+        if let response = await routeReading(path, request, deps) { return response }
         if path == "/registry/search", request.method == "GET" {
             return await registrySearch(request, deps)
         }
@@ -366,6 +366,26 @@ public struct ControlHandler: Sendable {
 /// Split out of the main type so the dispatch table does not count against its body length —
 /// `private` still resolves, because these are same-file extensions.
 extension ControlHandler {
+    /// The read-only reports: the usage family, and M22's two boards.
+    ///
+    /// One arm in `handle` rather than four, and that is a constraint rather than a preference —
+    /// `handle` sits at cyclomatic complexity 10 against a cap of 10, which is why the auth family
+    /// was split out of `dispatchServer` too. Adding the two routes inline took it to 12.
+    ///
+    /// Both of M22's are GETs, and any other method falls through to `handle`'s 405 rather than to
+    /// a 404: `isControlPath` claims the path, so "the method is wrong" is the true answer and "no
+    /// such route" is not.
+    func routeReading(
+        _ path: String, _ request: ControlAPIRequest, _ deps: ControlDeps
+    ) async -> ControlAPIResponse? {
+        if let response = routeUsage(path, request, deps) { return response }
+        switch (path, request.method) {
+        case ("/harnesses", "GET"): return harnessesResponse(deps)
+        case ("/insights", "GET"): return await insightsResponse(deps)
+        default: return nil
+        }
+    }
+
     private func routeUsage(
         _ path: String, _ request: ControlAPIRequest, _ deps: ControlDeps
     ) -> ControlAPIResponse? {

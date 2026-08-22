@@ -83,6 +83,7 @@ public extension UpstreamPool {
         handle.endWatcher?.cancel()
 
         let aliveMs = clock.nowMilliseconds - handle.startedAtMilliseconds
+        recordAlive(name: name, since: handle.startedAtMilliseconds)
         let kind: PoolLogEvent.Kind = (upstreams[name]?.isStdio ?? true) ? .child : .connection
         await log?.record(PoolLogEvent.closingIdle(
             server: name,

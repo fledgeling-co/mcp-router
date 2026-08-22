@@ -19,8 +19,13 @@ here rather than a courtesy: a gate that steals the screen fails itself.
 
 | Screen | How verified | Commit | Result |
 |---|---|---|---|
+| `mcp-router harnesses --json` (CLI, not a screen) | `scripts/acceptance/r7-harness-reconciliation.sh` — 2026-08-22, exit 0. Included because M22 **refactored the encoder behind it**: `HarnessesVerb.json` now delegates to `HarnessReportJSON`, which `GET /harnesses` shares, so the CLI's output was at risk of moving under a route it does not use. Every assertion in R7's own lane still passes, including the two-spellings-disagree and stale-endpoint arms | `1f5c3a4` | pass |
+| Harnesses (board) | — | — | **not yet driven** |
+| Insights (board) | — | — | **not yet driven** |
 
-*(rows appended by the run — see below)*
+Rows two and three are deliberately present and empty rather than absent. An evidence file whose
+missing rows are invisible reads as a file with nothing left to do, which is the failure this
+ledger exists to prevent; a row saying *not yet driven* is a measurement of the gap.
 
 ---
 

@@ -226,6 +226,28 @@ m22 session meant, or a replacement for it — I can't distinguish those from in
 armada conductor two round trips to establish that no second writer existed. A line naming the
 dispatching session closes it.
 
+### SEVEN INSTRUMENTS THAT COULD NOT FAIL, IN ONE DAY, ACROSS SEVEN MECHANISMS
+
+The armada conductor is carrying this count because it is what the whole night was about. **An
+instrument that cannot fail reports exactly like one that passed.**
+
+| # | instrument | why it could not fail |
+|---|---|---|
+| 1 | a `pf` anchor (another project) | its positive control could never resolve |
+| 2 | `capture-lineage` (another project) | exited 0 over an empty population |
+| 3 | `reckon check` | compares `summary` against `rows`, **never reads `headline`** |
+| 4 | `nonfailing-assertions.py` (another project) | blind to `XCTAssertEqual(a, b)` where both names hold one value |
+| 5 | G5's guard | `\binstalled\b` cannot match inside `_installed_` — `_` is a word character |
+| 6 | `mock-fidelity` | no opinion on what the build adds, and **no opinion reads like agreement** (`M32`) |
+| 7 | a verify stage on the only lane left | **the agent that cannot execute reports like one that did** |
+
+Number 3 is the one to sit with: it is the tool the fleet uses to count its own remaining work, in
+the same failure class as the things it measures. Three sessions quoted a generated headline that
+disagreed with the rows beneath it, this one included — its figures were corrected from 167/152/13
+to **171/155/14** off `ledger.json`. **Read ledgers, not reports.**
+
+Number 7 is why the verify stage is split. See the VERIFY rule above.
+
 ### SIX VERIFICATIONS, SIX `Needs More Work`, AND THE DEFECTS ARE NOT WHERE THE WORK IS
 
 Measured 2026-08-23 across M16, M18, M19 (pending), M20, R19 and G5. **Every verdict came back

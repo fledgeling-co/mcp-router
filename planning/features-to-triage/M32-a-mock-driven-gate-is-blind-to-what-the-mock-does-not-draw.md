@@ -105,3 +105,47 @@ And a seventh, which is the one worth pausing on because it is the tool that mea
 Three sessions tonight quoted a generated headline that disagreed with the rows beneath it. That is
 this same class inside the instrument the fleet uses to count its own remaining work — filed
 against `reckon` rather than left as three sessions' folklore.
+
+## A third route, and it is the sharper one — three screens, two wrong, one a false positive
+
+Found by **`m16v-15`** (M16's verifier), 2026-08-23. Independently verified by the orchestrator
+before recording, because the load-bearing claim is a false positive and those are the ones worth
+checking twice.
+
+The question *"does my surface expose the `callout` role?"* has three available screens and **only
+one matches the code**:
+
+| screen | verdict on Servers | why |
+|---|---|---|
+| *does it touch the same keys* | — | a conflict test, and the wrong question |
+| *does the new kind appear in my mock census* | **exposed** — and that is **false** | the census names a callout affordance |
+| *does it introduce a role my surface already uses* | **not exposed** — correct | the quota rule keys on `node["role"]` |
+
+The affordance that produces the false positive, read off `ai/m16`'s own committed pairing file:
+`v-ideal/callout/four-more-upstreams-are-dormant-and-cost-nothing`, unpaired. **Verified here**:
+`planning/fidelity/servers.pairing.tsv` names `callout` once; `planning/fidelity/servers.layers.json`,
+which holds the build nodes, names it **zero** times. So the kind-screen says exposed and the
+role-screen says not, and the role-screen is the one `mock_fidelity.py` implements.
+
+> **The risk is not only inheriting an empty result. It is getting a non-empty one from the wrong
+> screen and believing it.**
+
+That is the sentence to keep, and the reason it matters: **a non-empty answer reads as evidence in a
+way an empty one does not.** An inherited zero at least looks like something that should be
+re-checked. A wrong non-zero looks like work already done.
+
+**Why the zero on Servers is measured rather than blind.** `m16v-15` patched `VOUCHED_CONTROLS` to
+the `ai/m16` + `ai/m19` + `ai/m22` union and re-ran the gate — every layer identical, unclassified
+holding at 8. Then a **presence control**: vouching `indicator`, a role Servers *does* use, moved
+`covered-by-pair` **24→20** and `extra` **10→14**. File restored, blob verified back to
+`e5fa6560b044`.
+
+**And M22's side, read from `ai/m22`'s own committed pairing file rather than from another branch's
+account of it**: one callout affordance,
+`v-error/callout/nothing-was-written-a-file-this-app-cannot-read-`, **paired** to
+`harnesses.error/…/unreadable-note`, and **zero unpaired rows of that role**. Non-empty exposure,
+harmless in the event, exactly as recorded — and now sourced rather than relayed.
+
+Two facts for whoever picks up M22: it has advanced to **`6bd8385`**, and its `mock_fidelity.py`
+blob is still **`67342e135acf`**, byte-identical to main's, so the zero diff on that file holds at
+the new tip.

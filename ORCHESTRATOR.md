@@ -118,7 +118,34 @@ than barriering on whole waves, so the real overlap is greater than the table im
 | 5 | M5 · M7 · M8 · I3 | 4 | — |
 | 6 | M6 | 1 | Phone → Mac inbox round-trip works end to end |
 
-### In flight — 2026-08-22 ~18:2x, nine dispatched · two staged and deliberately held
+
+> **THE TERMINAL DIED AT 08:55:13Z AND KILLED EIGHT DISPATCHES.** Nothing was lost — every one of
+> the eight has its work committed on its `ai/<item>` branch, `main` is intact at `78a27e7`, the
+> reconciler is clean across A–L, and no worktree carries an `index.lock`. One commit that looked
+> lost had landed: M22 was cut *during* `git commit` and `8952a5b` is on the branch.
+>
+> **Do not re-dispatch M12, M16, M18, M19, M20, M22, R19V or G5V2.** A separate recovery session
+> (`lukerhodes-2f`) is resuming all eight **by session id**, so they come back holding the context
+> they had. Relaunching one from its original prompt throws that away, and two processes on one
+> worktree is worse than a cold start. Wait for each to report in.
+>
+> **The uncommitted work is the part a cold start would destroy.** `ai/m20` carries **17**
+> uncommitted paths including `KeyChord.swift`, `MenuCommandAvailability.swift` and
+> `MenuCommandRuleTests.swift` — new source that exists nowhere else — and it *finished its turn*
+> at 08:10 owing that commit rather than being cut. `ai/m19` carries **11**, including a whole
+> `app/Sources/MCPRouterUI/Document/` directory and three `planning/fidelity/` artifacts.
+>
+> **Neither verifier produced a verdict.** `R19V` and `G5V2` each hold only a `SCRATCH: merge main`
+> commit and no file under `planning/verification/`, so **R19 and G5 gap-fix 3 are both still
+> unverified and neither may merge.** Their sessions hold the measurements they had already taken,
+> which is the whole reason to resume rather than restart them.
+>
+> **`main`'s checkout has 21 dirty paths and none of them are this fleet's.** They are another
+> session's test-campaign witness work and the marketing store page, and they were already there
+> when this session began. Do not `git add -A` here — that mistake has already swept a third
+> session's work into a commit twice in this repo.
+
+### In flight — 2026-08-23, after the 08:55:13Z crash · eight held for session-id recovery
 
 Recorded so a fresh session resumes the fleet from this file rather than from a transcript.
 Each runner is a detached `claude -p` in its own worktree; confirm liveness with
@@ -127,17 +154,18 @@ never the harness's own cwd notice.
 
 | Item | Worktree | Branch | Base | Dispatched | Stop rules |
 |---|---|---|---|---|---|
-| R19-INT **verify** | `.worktrees/R19V` | detached `eb3e42c` | `ai/r19` tip | 17:5x | verdict only — merging `main` itself and re-gating, because R19 gated against `adfa923` |
-| ~~G5 gap-fix 2~~ | — | `ai/g5` | — | — | **Verified NMW `1335ec2`** — the vendor checksum reproduces three ways; BL-3 re-numbered a moving reference one section after deriving the rule against it |
-| G5 gap-fix 3 | `.worktrees/G5` | `ai/g5` | `a9603e5` | 18:2x | before verify, before merge — withdraw the cache-version claim rather than re-number it to `0.9.8` |
-| M22 | `.worktrees/M22` | `ai/m22` | `87e16dc` | 17:5x | before verify, before merge — **absorbs R7-C1**; board and `GET /harnesses` ship together. **M17 waits on this merging** |
-| M12 | `.worktrees/M12` | `ai/m12` | `87e16dc` | 17:5x | before verify, before merge — no brief and no spec; intake owns that gap |
-| M16 | `.worktrees/M16` | `ai/m16` | `87e16dc` | 17:5x | before verify, before merge |
-| M18 | `.worktrees/M18` | `ai/m18` | `87e16dc` | 17:5x | before verify, before merge — thirteen sheets measured, not the brief's twelve |
-| M19 | `.worktrees/M19` | `ai/m19` | `87e16dc` | 17:5x | before verify, before merge — no Markdown rendering exists anywhere in the app |
-| M20 | `.worktrees/M20` | `ai/m20` | `87e16dc` | 17:5x | before verify, before merge |
-| M17 | `.worktrees/M17` | `ai/m17` | staged | **not dispatched** | Work order written and waiting. **Blocked on M22 merging**, not on capacity — its first instruction is to stop if `main` carries no M22 merge |
-| G2 | `.worktrees/G2` | `ai/g2` | staged | **not dispatched** | **Blocked on the wave draining**, by its own recorded deferral: it restructures the two files all nine runners are reading. First item out after the last runner reports |
+| M12 | `.worktrees/M12` | `ai/m12` | 9 commits, `cbe60bc` | **cut 08:55** | held for recovery — was polling a governor exit |
+| M16 | `.worktrees/M16` | `ai/m16` | 2 commits, `a9d1bf9` | **cut 08:55** | held for recovery — cut inside `make lint`; `JackPresentation.swift` and its test are untracked |
+| M18 | `.worktrees/M18` | `ai/m18` | 8 commits, `6b620b3` | **cut 08:55** | held for recovery. Its **gap-fix never began** — the only dirt is the two brief files. `GAPFIX-BRIEF.md` is in the worktree and still the work to do: `swift build` exits 1 at `Controls.swift:111` |
+| M19 | `.worktrees/M19` | `ai/m19` | 2 commits, `9b13a49` | **cut 08:55** | held for recovery — **11 uncommitted paths**, cut inside `mock-fidelity-gate.sh` |
+| M20 | `.worktrees/M20` | `ai/m20` | 1 commit, `f3cc64d` | finished 08:10 | held for recovery — **17 uncommitted paths**; it ended its turn owing the commit, which is the documented DISPATCH hazard biting again |
+| M22 | `.worktrees/M22` | `ai/m22` | 3 commits, `8952a5b` | **cut 08:55** | held for recovery — the mid-flight commit landed. **M17 unblocks when this merges** |
+| R19-INT **verify** | `.worktrees/R19V` | detached `b3234ed` | — | **cut 08:55** | held for recovery — **no verdict written**; only a SCRATCH merge of `ed37a30` |
+| G5 gap-fix 3 **verify** | `.worktrees/G5V2` | detached `c49d674` | — | **cut 08:55** | held for recovery — **no verdict written**; only a SCRATCH merge of `28d0528` |
+| R19 | `.worktrees/R19` | `ai/r19` | 7 commits, `eb3e42c` | done | work complete, **blocked on R19V's verdict** |
+| G5 | `.worktrees/G5` | `ai/g5` | 5 commits, `43b44a2` | done | gap-fix 3 complete, **blocked on G5V2's verdict** |
+| M17 | `.worktrees/M17` | `ai/m17` | staged | not dispatched | work order written. Blocked on M22 merging |
+| G2 | `.worktrees/G2` | `ai/g2` | staged | not dispatched | blocked on the wave draining — it restructures the two files every recovered runner reads |
 
 **Both verifiers are a logged in-family downgrade.** `codex` is down until 27 August on a usage
 limit and the `grok` balance is exhausted (`402 … usage balance exhausted`, re-confirmed

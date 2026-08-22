@@ -58,3 +58,20 @@ first.
 
 **Do not fix this by renumbering to the current revision.** A number chased forward is correct
 until the next edit and carries no way for a reader to tell — which is the defect, restated.
+
+## The form: anchor AND tree AND line, because each covers the others' failure
+
+M16's refinement, 2026-08-23, and it settles the "what form" question in §Scope:
+
+- **The anchor** (the phrase relied on) survives a line shift but **not a re-wrap**.
+- **The line** survives a re-wrap but **not a shift**.
+- **The tree** (a commit SHA) is what makes either of the other two checkable at all.
+
+Three coordinates for three distinct failure modes rather than redundancy. Any two leave a hole
+the third closes.
+
+M16 applied it to three frame-dependent citations in its own note at `5ef14ef` —
+`mock_fidelity.py:808`, `DesignDocParser.swift:327`, `ServersBoardRow.swift:46` — and flags that
+**two of the three were the dangerous variety: they landed on plausible wrong text rather than on
+nothing.** A citation into nothing announces itself. A citation onto a line that reads plausibly
+is believed.

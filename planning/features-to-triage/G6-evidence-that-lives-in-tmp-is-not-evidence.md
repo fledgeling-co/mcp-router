@@ -72,6 +72,13 @@ this fleet hours earlier rather than inherited — `GAPFIX-BRIEF.md:64` (`/tmp/m
 and `VERIFY-BRIEF.md:29` (`/tmp/g5gf3/sweep3.py`). Neither was a stale inheritance; both were
 fresh.
 
+**This section DESCRIBES a defect. It does not prescribe the practice.** A runner read it as the
+latter on 2026-08-23 and reported that *"`main`'s tip says briefs go inside the tree they are
+about"*, which is the opposite of what this item holds. It took the reversible option and left
+its briefs untracked, which was right — but it had to guess, and a record that can be read as
+documenting current practice is a record that will be. **The rule this item argues for is
+"beside the work, not in it"**, stated in full below.
+
 Then the opposite error, measured 2026-08-23 across every worktree. The dispatch artifacts this
 orchestrator wrote — `WORK-ORDER.md`, `GAPFIX-BRIEF.md`, `VERIFY-BRIEF.md` — went **inside the
 tree under test**, and are now inconsistently handled:
@@ -124,3 +131,31 @@ every writer applies every time. Folding them would put a third, uncoupled axis 
 that already says its two coupled halves must be settled together.
 
 Argument and test both from `lukerhodes-2f`, 2026-08-23.
+## Committing the instrument is necessary and is not sufficient
+
+Measured 2026-08-23. **Five sweeps ran over one phrase in one file and returned four different
+answers. None of the first four was right.**
+
+| instrument | count |
+|---|---|
+| line-anchored `grep` (orchestrator) | **0** |
+| `[\s#]+ → space` (recovery session) | **2** |
+| comment-joining normaliser (M16) | **2**, a *different* two |
+| per-line scan for a shorter substring (M16) | **2**, a third subset |
+| letters-and-space only (orchestrator, fifth) | **3** — lines 44, 284, 861 |
+
+Each failure is specific and none is careless. The line-anchored sweep cannot span a hard wrap.
+`[\s#]+` joins both prose wraps but leaves quote characters, and `:861` splits the phrase across
+**two adjacent f-string fragments**, so `" "` sits mid-phrase. The per-line scan missed `:44`
+because `:44` and `:284` wrap at **different words**.
+
+**The number is only known because three parties disagreed loudly enough to go and look.**
+
+That is this item's premise, refined by M16 and worth stating as a limit on it: **a sweep that
+returns a count nobody cross-checks is a measurement with no witness.** Committing the instrument
+makes a sweep re-runnable, which is necessary — a re-runnable sweep would still have produced
+exactly one of the four wrong numbers above, and nobody would have questioned it.
+
+So the missing half is that **a sweep should report which normalisation produced its count**, so
+that two runs are comparable rather than merely both being numbers. A bare integer from an
+unnamed reader is not evidence; it is an assertion wearing a measurement's clothes.

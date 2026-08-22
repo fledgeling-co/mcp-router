@@ -1,7 +1,8 @@
 # M19 acceptance — a renderer measured headless, and the pass that could not be driven
 
-Branch `ai/m19`, worktree `.worktrees/M19`, cut from `main` at `87e16dc` and merged with `main` at
-`9d4da76` for the gap-fix, giving `1e43252`. Every figure below was re-measured on that tree.
+Branch `ai/m19`, worktree `.worktrees/M19`, cut from `main` at `87e16dc`, and merged with `main` twice
+during the gap-fix — at `9d4da76`, then again at `fd4438e` when it moved mid-run. Every figure below
+was re-measured after the second merge.
 
 **This file covers two runs.** The first was verified **Needs More Work** at `54bb0aa` — the verdict
 is `planning/verification/M19-verdict.md` in `.worktrees/M19V`. Nothing it measured about the
@@ -116,7 +117,7 @@ thing that surfaces it.
   `td`, so the mock's four body rows never enter the inventory, and `MarkdownTableView` instruments
   header cells only — a body cell takes no node at all, for the reason written at the call site. So
   **no finding is possible about the content of any table in any document this panel will show**,
-  on a surface whose ledger reports clean on four of eight layers. The rows do render, established
+  on a surface whose ledger reports clean on five of its eight layers. The rows do render, established
   from geometry rather than from the census: `block-5-table` measures 115pt, a header cell is 15pt
   of text with 4pt of padding above and below, and 115 / 23 is 5 rows exactly — the header plus
   four. `readme.layers.json` carries the same declaration.

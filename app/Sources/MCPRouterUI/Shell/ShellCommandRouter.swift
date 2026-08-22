@@ -59,8 +59,10 @@
             /// Open the `Settings` scene — `⌘,` and `MCP Router ▸ Settings…`.
             ///
             /// **Not a no-op, and the distinction is the whole reason this case exists.** The menu
-            /// item is a `SettingsLink`, which performs the actuation itself; a case whose `perform`
-            /// arm did nothing would make the mapping grep-testable and nothing more, and would leave
+            /// item is the platform's — declaring the `Settings` scene contributes it, and macOS
+            /// performs the actuation, so the app declares no item and no `SettingsLink` for it at
+            /// all; a case whose `perform` arm did nothing would make the mapping grep-testable and
+            /// nothing more, and would leave
             /// this router structurally unable to open Settings from anywhere else — the menu-bar
             /// popover, an error banner, a future onboarding path. So the arm calls an opener the
             /// window injects, and the clause is behaviourally testable.
@@ -111,7 +113,8 @@
         private static func shellOperation(for command: MenuCommand) -> Operation {
             switch command {
             case let .selectDestination(destination): .select(destination)
-            // `SettingsLink` is what actuates this from the menu; the operation is what makes the
+            // macOS is what actuates this from the app menu — the item belongs to the `Settings`
+            // scene and the app declares none of its own; the operation is what makes the
             // mapping assertable and what lets anything else in the app open the window. M8 shipped
             // this as `.select(.settings)`, when Settings was a sidebar destination, and named this
             // as the line that would change.

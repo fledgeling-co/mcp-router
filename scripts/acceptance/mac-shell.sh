@@ -494,6 +494,81 @@ done < "$WORK/items.tsv"
 [ "$EXTRAS" -eq 0 ] || fail "$EXTRAS menu item(s) are in the menu bar and in neither the inventory nor the named system list"
 pass "no command in the menu bar is unaccounted for"
 
+# ---------------------------------------------------------------- A19b · counted, not matched
+
+# **Both loops above ask "is this item accounted for?", and a second identical item answers that
+# question exactly as the first one does.** M15 measured a build whose app menu carried **two**
+# `Settings…` items — declaring the `Settings` scene contributes one and
+# `CommandGroup(replacing: .appSettings)` added another, both reporting `AXMenuItemCmdChar` `,` —
+# and every check above passed on it. The inventory loop found its row satisfied, the extras loop
+# found each item matched, and the shortcut loop below reads the **first** item with a given title
+# and never looks for a second. Three checks over the running menu bar, and the defect was found by
+# hand instead.
+#
+# A gate that matches cannot see a duplicate; only one that counts can. So this counts, twice, and
+# the two fail independently because they catch different mistakes: one command declared twice (an
+# identical title inside one menu) and two commands claiming one chord (`⌘,` on `Settings…` and on
+# anything else). The duplicate M15 removed trips both.
+#
+# `AXMenuItemCmdChar` is read **before** control characters are stripped, so `⌘⌫` — whose key has no
+# printable glyph and arrives as U+0008 — is a chord here rather than an absence, and two items on
+# it would be caught. What this cannot see is an item macOS keys through `AXMenuItemCmdVirtualKey`
+# alone: the walk does not collect that attribute, so such an item reports no command character and
+# is counted out loud as skipped rather than folded into the pass.
+if ! python3 - "$WORK/items.tsv" > "$WORK/counted.txt" <<'PY'
+import collections
+import sys
+
+rows = []
+for line in open(sys.argv[1]):
+    line = line.rstrip("\n")
+    if not line:
+        continue
+    cells = line.split("\t")
+    cells += [""] * (6 - len(cells))
+    rows.append(cells)
+
+# One command, declared twice. Keyed on (menu, title): the same word in two different menus is two
+# different commands, and `Settings…` beside the Window menu's `Settings` window entry is the case
+# that must stay legal.
+titles = collections.Counter((row[0], row[1]) for row in rows)
+repeated = sorted(key for key, count in titles.items() if count > 1)
+
+# Two commands, one chord.
+chords = collections.defaultdict(list)
+skipped = 0
+for menu, title, _enabled, _help, char, mods in rows:
+    if char == "":
+        skipped += 1
+        continue
+    bits = int(mods) if mods.strip().isdigit() else 0
+    key = "".join(c if c.isprintable() else "U+%04X" % ord(c) for c in char)
+    chord = "".join([
+        "⌃" if bits & 4 else "", "⌥" if bits & 2 else "",
+        "⇧" if bits & 1 else "", "" if bits & 8 else "⌘", key,
+    ])
+    chords[chord].append("%s / %s" % (menu, title))
+shared = sorted((chord, names) for chord, names in chords.items() if len(names) > 1)
+
+for menu, title in repeated:
+    print("  declared %d times: %s / %s" % (titles[(menu, title)], menu, title), file=sys.stderr)
+for chord, names in shared:
+    print("  %s is on %d items: %s" % (chord, len(names), ", ".join(names)), file=sys.stderr)
+
+print("%d %d %d %d" % (len(rows), len(titles), len(chords), skipped))
+sys.exit(1 if repeated or shared else 0)
+PY
+then
+    fail "the menu bar declares one command twice, or gives one chord to two commands"
+fi
+read -r COUNTED_ITEMS COUNTED_TITLES COUNTED_CHORDS COUNTED_NOKEY < "$WORK/counted.txt"
+# The denominators, so a reader can see the check had something to count. A walk that collapsed to
+# one item would satisfy both assertions above while measuring nothing.
+[ "$COUNTED_ITEMS" -ge 30 ] || fail "the menu walk yielded $COUNTED_ITEMS items — too few to count duplicates over"
+[ "$COUNTED_CHORDS" -ge 15 ] || fail "only $COUNTED_CHORDS distinct chords were read — the command-character walk looks wrong"
+pass "all $COUNTED_ITEMS menu items carry $COUNTED_TITLES distinct menu/title pairs — none is declared twice"
+pass "the $COUNTED_CHORDS chords read are on one item each ($COUNTED_NOKEY item(s) carry no command character)"
+
 # ---------------------------------------------------------------- A20 · the shortcuts actually bind
 
 # AXMenuItemCmdModifiers is a bitmask: 1 shift, 2 option, 4 control, 8 "no command key".

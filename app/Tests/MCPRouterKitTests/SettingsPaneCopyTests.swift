@@ -97,9 +97,18 @@ struct SettingsPaneCopyTests {
     /// **The test that fails if a later runner re-adds the mock's rows from the mock.**
     ///
     /// `spec-M15.md`'s fifth assumption is that a control naming a capability this product does not
-    /// have is not built, even where the mock draws it. Thirteen of the mock's thirty rows are
-    /// therefore absent, and each one's label is forbidden here by name — not by a vague pattern,
-    /// because a vague pattern is what gets narrowed until it matches nothing.
+    /// have is not built, even where the mock draws it. **Twenty-two of the mock's thirty rows are
+    /// therefore absent** — the eight built are Endpoint, Idle window, Warm set, Control token,
+    /// Paired devices, Show in the menu bar, Router log and Configuration, three of them drawn as
+    /// observed facts with the mock's own control left off — and each absent row's label is
+    /// forbidden here by name, not by a vague pattern, because a vague pattern is what gets narrowed
+    /// until it matches nothing.
+    ///
+    /// The count was **thirteen here and in three other places** until M15's gap-fix counted the
+    /// mock's `.form-row` elements directly; the list below was sixteen entries and covered fifteen
+    /// of the twenty-two, so the sentence and the rule under it disagreed and neither could see it.
+    /// Twenty-three entries now: the twenty-two row labels plus `Rotate`, which is a control inside
+    /// a row that *is* built.
     ///
     /// Each label is paired with the artifact that already recorded the absence, so the reason
     /// travels with the rule rather than living in a plan nobody reads next year.
@@ -109,12 +118,19 @@ struct SettingsPaneCopyTests {
             ("Start at login", "no login-item mechanism exists in either target"),
             ("Child PATH", "/servers carries no PATH field — Models.swift:114-121"),
             ("Adopt new servers automatically", "no harnesses endpoint — ControlToken.swift:13-19"),
+            ("Warn about duplicates", "no harnesses endpoint — ControlToken.swift:13-19"),
             ("Reconcile without asking", "RouterCore and CLI-driven, not a preference"),
+            ("Check for drift", "no harnesses endpoint to read an interval from"),
             ("Analyse my sessions", "the product has no analyst in any form"),
             ("Primary model", "no model is ever called on the user's behalf"),
             ("Fallback model", "no model is ever called on the user's behalf"),
+            ("Harnesses to read", "the product has no analyst in any form"),
+            ("Frequency", "there is no analyst run to schedule"),
+            ("Notify me about findings", "nothing generates a finding to notify about"),
             ("Check for skill updates", "no update checking exists"),
             ("Install updates automatically", "no update checking exists"),
+            ("Hold a version that wants more", "no update checking exists"),
+            ("Update the app itself", "no update checking exists"),
             ("Rotate", "there is no rotate endpoint — SettingsWindowModel.forget()"),
             ("Hold schema changes", "the behaviour ships; the setting does not"),
             ("Keep call history for", "no retention window exists"),

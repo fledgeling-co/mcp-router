@@ -99,6 +99,16 @@
         @ObservationIgnored public private(set) lazy var cleanupBoard: CleanupBoardModel =
             .init(client: client)
 
+        /// The Harnesses board's state. `forApp` rather than `init` because this one has a
+        /// system-facing closure — revealing a config path the *router* supplied, which is not a
+        /// second channel to anything.
+        @ObservationIgnored public private(set) lazy var harnessesBoard: HarnessesBoardModel =
+            .forApp(client: client)
+
+        /// The Insights board's state.
+        @ObservationIgnored public private(set) lazy var insightsBoard: InsightsBoardModel =
+            .init(client: client)
+
         /// The Inbox board's state, and the pairing session hanging off it.
         ///
         /// Owned here for the reasons every board model is — a menu command reaches a window through

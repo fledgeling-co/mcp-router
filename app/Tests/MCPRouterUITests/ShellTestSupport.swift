@@ -325,7 +325,18 @@
             "app/Sources/MCPRouterUI/Boards/CleanupBoardModel.swift",
             "app/Sources/MCPRouterUI/Boards/CleanupBoardRow.swift",
             "app/Sources/MCPRouterUI/Boards/CleanupSheets.swift",
-            "app/Sources/MCPRouterUI/Boards/M7BoardMetrics.swift"
+            "app/Sources/MCPRouterUI/Boards/M7BoardMetrics.swift",
+            // M22's Harnesses and Insights. Enrolled in the same commit that created them, for
+            // the reason this list exists: a board file nobody listed is a board file the
+            // one-channel grep, the raw-design-value scan and the indicator-hue declaration are
+            // all blind to, and `boardFileListIsComplete` is what turns that into a red.
+            "app/Sources/MCPRouterUI/Boards/HarnessesBoard.swift",
+            "app/Sources/MCPRouterUI/Boards/HarnessesBoardModel.swift",
+            "app/Sources/MCPRouterUI/Boards/HarnessesBoardRow.swift",
+            "app/Sources/MCPRouterUI/Boards/InsightsBoard.swift",
+            "app/Sources/MCPRouterUI/Boards/InsightsBoardModel.swift",
+            "app/Sources/MCPRouterUI/Boards/InsightsBoardCharts.swift",
+            "app/Sources/MCPRouterUI/Boards/M22BoardMetrics.swift"
         ]
 
         /// M15's Settings window, listed for the same reason `boardFiles` is — and enrolled in the

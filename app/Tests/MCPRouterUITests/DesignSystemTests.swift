@@ -25,12 +25,21 @@ struct IconTests {
     /// M8's popover draws the same mark and arrived with its own case for it. A bare `== 22` could
     /// not tell that apart from the one addition this comment justifies, which is the argument for
     /// spelling the sum out: the duplicate was removed and the popover reuses `frost`.
+    ///
+    /// M22 adds the second named term. The console mock draws two destinations the prototype's
+    /// sprite never had — Harnesses and Insights — so their glyphs are additions to the *sprite*
+    /// rather than to the unicode replacements, and giving them their own term keeps the sum
+    /// readable as a claim: 21 from one source, 1 replacing a character, 2 from the other.
     @Test("the set is the prototype's 21-symbol sprite plus the marks the document required drawn")
     func inventoryMatchesTheSprite() {
         let spriteSymbols = 21
         let drawnReplacementsForUnicode = 1 // frost, replacing the prototype's ❄
-        #expect(Icon.allCases.count == spriteSymbols + drawnReplacementsForUnicode)
+        let consoleMockDestinations = 2 // harness and insights, which the sprite never carried
+        #expect(Icon.allCases.count
+            == spriteSymbols + drawnReplacementsForUnicode + consoleMockDestinations)
         #expect(Icon.allCases.contains(.frost))
+        #expect(Icon.allCases.contains(.harness))
+        #expect(Icon.allCases.contains(.insights))
     }
 
     @Test("every system icon resolves to a symbol that actually draws")

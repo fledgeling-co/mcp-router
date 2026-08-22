@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | ID | M20 |
-| Status | **Developer Review** — gap-fix 1 ready to verify, `ai/m20` `8aecd90`, 2026-08-23 |
+| Status | **Developer Review** — gap-fix 1 ready to verify on `ai/m20`; gated at `8aecd90`, records committed after it, 2026-08-23 |
 | Category | mac · mock conversion |
 | Depends on | M1 ✓ · M8 ✓ · M11 ✓ · M14 ✓ · I6 ✓ · M23 ✓ · M22 (the View menu's nine boards) · M15 (Settings leaving the View menu for the app menu) |
 | Related | M15 (Settings leaves the View menu for the app menu) |

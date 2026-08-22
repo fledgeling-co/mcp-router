@@ -81,6 +81,33 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+
+## Two more from R17's gap-fix 4, and the second one is a technique rather than a defect
+
+**Sixteenth — a total that disagrees with the table beneath it.** R17's fourth verification reported
+*"368 gate invocations"* over a table summing to **408**: 368 is the concurrent subtotal
+(80+96+96+96) and the serial 40 sits outside it. Both figures are right about different populations,
+and neither says which. That is how the next pass inherits a wrong denominator — the same route by
+which `D-r17-d` inherited three successive rates. The row now states 408 and names what 368 counts.
+
+**And a technique worth more than the instance: a report that echoes what it matched becomes a
+corpus hit.** Run without exclusions, gap-fix 3's absence sweep reds **8 times inside gap-fix 3's
+own document**, three of them on its pasted pattern labels. So an absence sweep whose output is
+filed alongside the corpus it sweeps *creates the very hits it reports*, and every subsequent run
+disagrees with the one before it — which is exactly why that criterion's evidence never reproduced
+across three passes.
+
+The fix generalises and is checkable rather than argued. `planning/claim-sweep.py` excludes the
+records of a withdrawn claim **by name, with no counts**, which makes its output a **fixed point
+under being pasted into one of them** — verified with `cmp`. That is the property an absence sweep
+over a documented corpus needs, and it is testable in three steps: run, paste the output into an
+excluded document, run again, compare.
+
+Its own authoring surfaced the same defect one layer in: **a blockquote `>` separates two words
+exactly as a hard wrap does**, so the correction's own quotation was invisible to it until fixed.
+List markers and table pipes are named as unhandled rather than silently absent — which is the
+accounting discipline this whole item is about, applied to itself.
+
 ## A fifteenth instance — this item's own progress note, and the orchestrator put it there
 
 `planning/progress/G4-gapfix.md:269` shipped as the literal string **`GATES_PLACEHOLDER`**, under a

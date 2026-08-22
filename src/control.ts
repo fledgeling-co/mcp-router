@@ -20,11 +20,13 @@ import { UpstreamPool } from './pool.js';
 import {
   buildManifest,
   loadManifest,
+  manifestCommitter,
   saveManifest,
   diffTools,
   placardFor,
   type ManifestStore,
 } from './manifest.js';
+import { withExclusiveLock, lockTimeoutMs, DAEMON_TIMEOUT_MS } from './lock.js';
 import { searchRegistries } from './registry.js';
 import { UsageStore, projectOf } from './usage.js';
 import {
@@ -257,15 +259,33 @@ async function indexOne(
 ): Promise<{ tools: number; error?: string }> {
   const pool = new UpstreamPool(new Map([[u.name, u]]), 0, cfg.startupTimeoutMs);
   try {
-    const manifest = loadManifest(cfg.manifestPath);
-    const { failed } = await buildManifest([u], pool, manifest, { force: true });
-    saveManifest(cfg.manifestPath, manifest);
+    /*
+     * R19 — the manifest is loaded inside the lock, immediately before the save.
+     *
+     * `buildManifest` spawns a child and waits for it, which is seconds; the snapshot below is only
+     * what decides staleness, and the row it produces is merged into whatever is on disk when the
+     * commit runs. The daemon's bound rather than the one-shot's: this runs inside an async control
+     * handler, so a contended write should fail fast and visibly rather than stall the control API.
+     *
+     * A lock that could not be taken is reported as the index's own error. Nothing was changed, and
+     * that is what the message says — `POST /servers` answers 422 with it and adds nothing, which
+     * is the same answer it already gives for a server that would not start.
+     */
+    const snapshot = loadManifest(cfg.manifestPath);
+    const { manifest, failed } = await buildManifest([u], pool, snapshot, {
+      force: true,
+      commit: manifestCommitter(cfg.manifestPath, lockTimeoutMs(DAEMON_TIMEOUT_MS)),
+    });
     const entry = manifest.servers[u.name];
     const error = failed.length ? entry?.error : undefined;
     // Whatever the scratch pool learned, hand over. `buildManifest` is what noticed the
     // refusal and it wrote the warning already, so this transfers rather than re-announces.
     if (live) for (const entryPending of pool.pending()) live.adoptPending(entryPending);
     return { tools: entry?.tools.length ?? 0, error };
+  } catch (err) {
+    const message = (err as Error).message;
+    log.error(`could not record the index of "${u.name}": ${message}`);
+    return { tools: 0, error: message };
   } finally {
     await pool.shutdown();
   }
@@ -416,22 +436,45 @@ export async function handleControl(
     }
 
     if (sub === '/approve' && req.method === 'POST') {
-      const manifest = loadManifest(deps.cfg.manifestPath);
-      const entry = manifest.servers[name];
-      if (!entry?.pending) {
-        json(res, 409, { error: `no pending change for "${name}"` });
+      /*
+       * R19 — the read is inside the lock, so a re-index landing between it and the write is not
+       * clobbered. That matters most here: this route promotes a surface the user has just looked
+       * at, and the alternative to the lock is that the promotion is silently undone by whatever
+       * re-indexed the same server a moment later.
+       *
+       * A lock that could not be taken is a 500 carrying the lock's own sentence, which says what
+       * happened and that nothing was changed. It is not a 409: 409 asserts there was no pending
+       * change, and a run that never read the manifest does not know that.
+       */
+      let outcome: { status: number; body: unknown };
+      try {
+        outcome = withExclusiveLock(deps.cfg.manifestPath, lockTimeoutMs(DAEMON_TIMEOUT_MS), () => {
+          const manifest = loadManifest(deps.cfg.manifestPath);
+          const entry = manifest.servers[name];
+          if (!entry?.pending) {
+            return { status: 409, body: { error: `no pending change for "${name}"` } };
+          }
+          const approved = entry.pending.tools.length;
+          manifest.servers[name] = {
+            ...entry,
+            tools: entry.pending.tools,
+            digest: entry.pending.digest,
+            builtAt: new Date().toISOString(),
+            pending: undefined,
+          };
+          saveManifest(deps.cfg.manifestPath, manifest);
+          return { status: 200, body: { server: name, approved } };
+        });
+      } catch (err) {
+        json(res, 500, { error: (err as Error).message });
         return true;
       }
-      manifest.servers[name] = {
-        ...entry,
-        tools: entry.pending.tools,
-        digest: entry.pending.digest,
-        builtAt: new Date().toISOString(),
-        pending: undefined,
-      };
-      saveManifest(deps.cfg.manifestPath, manifest);
-      log.info(`approved "${name}"'s new tool surface (${entry.pending.tools.length} tools)`);
-      json(res, 200, { server: name, approved: entry.pending.tools.length });
+      if (outcome.status === 200) {
+        log.info(
+          `approved "${name}"'s new tool surface (${(outcome.body as { approved: number }).approved} tools)`
+        );
+      }
+      json(res, outcome.status, outcome.body);
       return true;
     }
 

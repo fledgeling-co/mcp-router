@@ -40,7 +40,15 @@ import {
   type UpstreamConfig,
 } from './config.js';
 import { UpstreamPool } from './pool.js';
-import { buildManifest, loadManifest, saveManifest, isStale, type Manifest } from './manifest.js';
+import {
+  buildManifest,
+  loadManifest,
+  saveManifest,
+  isStale,
+  type Manifest,
+  type ManifestCommit,
+} from './manifest.js';
+import { withExclusiveLock, lockTimeoutMs, WATCHER_TIMEOUT_MS } from './lock.js';
 
 const CLAUDE_JSON = join(homedir(), '.claude.json');
 const STATE_PATH = join(ROUTER_HOME, 'watch-state.json');
@@ -235,13 +243,35 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
       (routerCfg.startupTimeoutMs as number) ?? 60_000
     );
     try {
-      const { manifest: next, built, failed } = await buildManifest(toIndex, pool, manifest);
+      /*
+       * R19 — the manifest is re-read inside the lock, immediately before each save.
+       *
+       * This used to be one load at the top of the run and one save at the bottom, with seconds of
+       * spawning and indexing in between, so a row the daemon or `index --force` wrote in that
+       * window was erased by a snapshot taken before it existed. The load moves in here; the
+       * indexing above stays outside, which is what keeps the hold sub-millisecond.
+       *
+       * The failure deletion is inside the same locked span as the write that produced it rather
+       * than in a second pass afterwards. Dropping the error record is deliberate — retry policy
+       * lives in this watcher's own backoff, not in a manifest entry that would look indexed to the
+       * next reader — and doing it in a second window would publish, for that window, exactly the
+       * row this watcher has decided not to keep.
+       */
+      const commit: ManifestCommit = (apply) =>
+        withExclusiveLock(manifestPath, lockTimeoutMs(WATCHER_TIMEOUT_MS), () => {
+          const current = loadManifest(manifestPath);
+          const outcome = apply(current);
+          if (outcome.failed) delete current.servers[outcome.name];
+          saveManifest(manifestPath, current);
+          return outcome;
+        });
+
+      const { manifest: next, built, failed } = await buildManifest(toIndex, pool, manifest, {
+        commit,
+      });
       for (const f of failed) {
         const name = f.slice(0, f.indexOf(':'));
         const entry = toIndex.find((u) => u.name === name);
-        // Drop the error record rather than caching it: retry policy lives in this
-        // watcher's own backoff, not in a manifest entry that would look indexed.
-        delete next.servers[name];
         watchLog(`failed to index "${f}"; left in ~/.claude.json, will retry`);
         if (entry) failures[name] = { hash: upstreamHash(entry), at: now, error: f };
       }
@@ -250,7 +280,6 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
         delete failures[b.slice(0, b.indexOf(' '))];
       }
       manifest = next;
-      saveManifest(manifestPath, manifest);
     } finally {
       await pool.shutdown();
     }

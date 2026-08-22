@@ -13,7 +13,7 @@ whatever version happens to be installed on the machine.
 | Upstream | `https://github.com/fledgeling-co/fledgeling-plugins` |
 | Commit | `28ecd6753386ff6d480a98d6646a5b73c62dc299` — 2026-08-20, *"fix(test-campaign): 0.9.2 — the blind-mutation check was measuring itself"* |
 | Vendored | 2026-08-22, from `plugins/test-campaign/` at that commit, unmodified |
-| Size | 85 files, 9.0 MB. `assets/` is 8.2 MB of it: the plugin's own icon and audit imagery, which no gate reads. `skills/` — the scripts and references the gates use — is 456 KB. |
+| Size | 85 files, 9.0 MB. The plugin-root `assets/` is 8.2 MB of it — the plugin's own icon and audit imagery, which no gate reads, and not to be confused with `skills/test-campaign/assets/`, which the gates do. `skills/` as a whole is 456 KB. |
 | Tree checksum | `b9acf61682d9757616c6e0cc15924e4137c5839c13d6a749d8093e3065977ce9` |
 
 Nothing under `vendor/test-campaign/` is edited here. A change to the instrument belongs upstream,

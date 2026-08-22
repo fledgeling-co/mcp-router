@@ -94,6 +94,69 @@
             #expect(SurfaceState.allCases.count == 9)
         }
 
+        // MARK: - M16 · one selection, three representations
+
+        /// The band, the table and the inspector read **one** property.
+        ///
+        /// This is the half of the brief that a structure dump cannot reach: the harness renders a
+        /// board with nothing selected, so "selecting a jack selects that server in the table below
+        /// and in the inspector, and the reverse holds" is a claim about a mechanism rather than
+        /// about a frame. The mechanism is `board.selection` — the jack sets it and reads it, the
+        /// row sets it and reads it, and the inspector is drawn from it — so what is worth asserting
+        /// is that nothing along that path filters or copies.
+        @MainActor
+        @Test("M16 — a jack, a row and the inspector resolve one selection to one server")
+        func oneSelectionReachesAllThree() throws {
+            let board = Self.board()
+            let servers = try [Self.server("alpha", state: .running), Self.server("beta", state: .idle)]
+            let state = ServerStateTracker.TrackerState(load: .loaded(servers), stream: .notConfigured)
+
+            board.selection = "beta"
+            #expect(board.selectedServer(in: state)?.name == "beta")
+            // `Esc` clears it, and the inspector goes with it (`DESIGN.md` §8).
+            board.escape()
+            #expect(board.selectedServer(in: state) == nil)
+        }
+
+        /// **A jack the filter hides still opens the inspector**, which is the consequence of the
+        /// band drawing every declared server while the table draws a filtered view.
+        ///
+        /// Without this the band would be offering a selection the rest of the board could not
+        /// honour — a control that does something invisible, which is worse than one that dims.
+        @MainActor
+        @Test("M16 — the band is unfiltered, and a jack outside the filter still resolves")
+        func theBandIsUnfilteredAndItsSelectionStillResolves() throws {
+            let board = Self.board()
+            let servers = try [Self.server("alpha", state: .running), Self.server("beta", state: .idle)]
+            let state = ServerStateTracker.TrackerState(load: .loaded(servers), stream: .notConfigured)
+
+            board.filter = .running
+            #expect(board.rows(from: state).map(\.id) == ["alpha"], "the table is filtered")
+            #expect(
+                board.bandRows(from: state).map(\.id) == ["alpha", "beta"],
+                "the band shrank with the segmented control, so it contradicts its own topology line"
+            )
+            board.selection = "beta"
+            #expect(
+                board.selectedServer(in: state)?.name == "beta",
+                "a jack the filter hides selected nothing, so the band offered an invisible action"
+            )
+        }
+
+        /// The band and the row draw one computation of one server's state.
+        @MainActor
+        @Test("M16 — the band's row model and the table's agree about every server")
+        func theBandAndTheTableAgree() throws {
+            let board = Self.board()
+            let servers = try [Self.server("alpha", state: .running), Self.server("beta", state: .idle)]
+            let state = ServerStateTracker.TrackerState(load: .loaded(servers), stream: .notConfigured)
+            let band = Dictionary(uniqueKeysWithValues: board.bandRows(from: state).map { ($0.id, $0) })
+            for row in board.rows(from: state) {
+                #expect(band[row.id]?.jack == row.jack)
+                #expect(band[row.id]?.condition == row.condition)
+            }
+        }
+
         // MARK: - A29's second half, and A23's, which are source-level claims
 
         /// The board renders the **indicator**, and never a control that offers to start or stop a

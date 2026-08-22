@@ -230,6 +230,11 @@ which the strict regex cannot see. Population: **22 citations**, of which six we
 | `spec-M12.md` §out of scope 1 | `src/control.ts:495` | `records: deps.usage.recent({` | `:496`, anchor `limit: Number(url.searchParams.get('limit') ?? 200)` |
 | brief ×2, progress ×2 | `ORCHESTRATOR.md:522`, `LEDGER.md:110` | a register heading; M32's row | the line numbers are gone — both files are appended to hourly |
 
+**The `Was` column above is six pointers that do not resolve, kept on purpose.** A sweep over this
+file will find them; they are the record of what was wrong, each one sitting beside the text it
+actually lands on, and there is no way to describe a broken citation without writing it down. Nothing
+outside that column cites those numbers.
+
 `CleanupBoard.swift` is blob `2ce0d71` at `87e16dc` and at `0f5f118` alike, so `:79` and `:34` were
 **wrong when written**, not drifted. `CheckCopy.ownerChanged` sat at `:241` at `87e16dc` and `7a2f1e0`
 and moved to `:255` at `4952afb`, this branch's own commit — so `:232` was wrong when written and

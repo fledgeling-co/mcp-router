@@ -380,6 +380,42 @@ numeral over `of N declared`, and the build draws a label-left / value-right row
 divergence in the same element; it is a type and density decision rather than a missing element, so
 it converts under `M23`'s mock-to-SwiftUI contract with the rest of the board, not in passing.
 
+### Signal Path geometry `(specified)`
+
+The signature element's construction, recorded value by value. It is here rather than in prose
+for the reason the outgoing signature's table gave: a dimension no check can read is a dimension
+free to drift back, and this element's two hardest numbers were **measured** rather than picked —
+a single-column field ran the band 500pt deep at eleven upstreams and pushed the table off the
+board, and a label column too narrow for `3:41 left` clips the only part of the label that was
+carrying information.
+
+| Element | Value |
+|---|---|
+| Signal Path padding | 12pt |
+| Jack minimum width | 132pt |
+| Jack inset | 10pt |
+| Jack gap | 9pt |
+| Jack plug diameter | 16pt |
+| Jack plug ring | 3pt |
+| Row plug diameter | 8pt |
+| Hub width | 76pt |
+| Flow arrow width | 20pt |
+| Plug transition | 0.2s |
+
+The lane a jack sits on is **not** a row here. It is `Jack lane` in the chrome table above,
+because it is the one dimension of this element the mock publishes in its own metrics block, and
+a value stated twice is the defect `Card radius` was split out to end.
+
+The jack field is a grid of tracks that packs to the width available — `repeat(auto-fill,
+minmax(132px, 1fr))` in the mock, `GridItem(.adaptive(minimum:))` in SwiftUI — never a fixed
+column count. **The invariants that make it read as a patchbay:** the plug plus both sides of its
+ring fits inside the lane, so nothing clips against the track above; the label column is the
+larger half of the jack, so the condition is legible rather than truncated; and the ring is
+thinner than the plug's own radius, so it reads as a halo rather than as a second plug.
+
+`Plug transition` is a duration and a curve rather than a spring, and it is the one place in this
+document that is. §7 says why.
+
 ### Breaker geometry `(specified)`
 
 **This table documents the outgoing signature and retires under M16**, together with the breaker

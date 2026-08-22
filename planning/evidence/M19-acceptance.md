@@ -1,8 +1,8 @@
 # M19 acceptance — a renderer measured headless, and the pass that could not be driven
 
-Branch `ai/m19`, worktree `.worktrees/M19`, cut from `main` at `87e16dc`, and merged with `main` three times
-during the gap-fix as it moved under the run — `9d4da76`, `fd4438e`, `9dd4018`. Every figure below
-was re-measured after a merge rather than carried across one.
+Branch `ai/m19`, worktree `.worktrees/M19`, cut from `main` at `87e16dc`, then merged with `main`
+three times during the gap-fix as it moved under the run — `9d4da76`, `fd4438e`, `9dd4018`. Every
+figure below was re-measured after a merge rather than carried across one.
 
 **This file covers two runs.** The first was verified **Needs More Work** at `54bb0aa` — the verdict
 is `planning/verification/M19-verdict.md` in `.worktrees/M19V`. Nothing it measured about the

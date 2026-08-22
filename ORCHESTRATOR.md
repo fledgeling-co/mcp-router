@@ -432,6 +432,53 @@ was caught by re-measuring rather than by anyone correcting it, which is the **t
 failure this session has committed today and the first it caught itself. **A zero from a scoped
 probe is a candidate, not a result.**
 
+### RELEASE IS A COORDINATION PROBLEM, NOT A MEASUREMENT ONE
+
+The correction that matters from tonight's two opposite mistakes, from `Google Drive Fixes` via the
+armada conductor, and **it applies to this session as much as to the conductor**:
+
+> **The number you measure is invalidated by the act of acting on it**, because the load you are
+> clearing against does not include the sessions you are about to start. Five idle sessions at
+> 13.91 are not five sessions' worth of headroom — they are five sessions that will each fan out.
+
+So no sampling window fixes this. Not a longer window, not `max(1m, 5m)`, not watching the ratio.
+**The fix is to stagger: release one, let it spin up, re-measure.**
+
+**Measured, 2026-08-23.** This session read 0.75/core flat and dispatched **five** gap-fixes at once.
+Load then went 2.47 → 28.75 per core, with the conductor's samples climbing 401 → 442 → 475 on the
+minute. Five of the sessions in that number are this fleet's, started on a reading taken before they
+existed. **The conductor made the fleet-wide version of the same error six minutes earlier and this
+session repeated it locally within the hour.**
+
+The two mistakes were opposite and the same: **holding five sessions on a thermal flap** (a flap
+defers timing-sensitive work — mutation sampling, wall-clock benchmarks — and nothing else), then
+**releasing seven at once** to correct it.
+
+### DISK — `.worktrees` IS 39 GB AND NINE ARE REMOVABLE, BUT NOT WHILE RUNNERS ARE LIVE
+
+Measured 2026-08-23: data volume **90% used, 192 GiB free**, down from 256 GiB two hours earlier.
+`.worktrees/` is **39 GB across 36 worktrees**.
+
+**Nine have zero commits ahead of `main` and are idle** — `G2`, `G4`, `G4B`, `M15`, `M17`, `M21`,
+`M27`, `R17`, `R7` — so removing them destroys no unique work. `G2` and `M17` are staged-but-never-
+dispatched rather than merged; both are equally safe, having nothing in them.
+
+**Deliberately not done now.** Five runners are doing IO on a machine at 28.75 per core, and
+worktree removal is more IO. It is queued for when load clears, not skipped — and it is recorded
+here rather than left as an intention, because a cleanup nobody wrote down is a cleanup nobody does.
+
+### VERIFICATION — TWO RULES, AND THE SECOND BITES THE FIRST
+
+From `Egress`, for the wave when it resumes:
+
+- **One mutation proves one property.** Egress's `DEF-252` arming would have recorded **nine
+  assertions as proven when one refusal row was exercised**. Now per-row: 8 legs, 8 pass.
+- **A harness that requires every mutation to apply can never pass its own control**, because the
+  control is the leg that must *not* mutate. The obvious repair is an exemption — and **an exempted
+  control proves nothing; it is excused from the rule rather than satisfying it.** Egress's control
+  now asserts the *opposite* property: digest unchanged **and** the tool still exits 1. **It is a
+  control because it is asserted to be one, not because it is skipped.**
+
 ### STAND DOWN — NO NEW RUNNERS UNTIL THE 5-MINUTE LOAD CLEARS
 
 2026-08-23, armada-wide. **Start nothing new.** Existing runners finish; they are not to be killed,

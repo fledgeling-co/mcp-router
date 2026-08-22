@@ -159,3 +159,37 @@ exactly one of the four wrong numbers above, and nobody would have questioned it
 So the missing half is that **a sweep should report which normalisation produced its count**, so
 that two runs are comparable rather than merely both being numbers. A bare integer from an
 unnamed reader is not evidence; it is an assertion wearing a measurement's clothes.
+
+## The second direction has landed three times, and one predates this fleet
+
+Recorded 2026-08-23 after R19's gap-fix 3 surfaced it and the orchestrator measured it.
+
+This item recorded the dispatch-artifact problem as a **state** — *tracked in 4 of 12 worktrees*. The
+commit history says it is worse than a state: `git log --all --diff-filter=A` shows a dispatch
+artifact **added in three commits**:
+
+| commit | item |
+|---|---|
+| `bcc69dd` | M20's work order — *kept as the dispatch record* |
+| `9b13a49` | M19, inside a feature commit |
+| `30f639d` | an earlier item, **before this session wrote any of these briefs** |
+
+So the hazard is **older than this fleet** and this session inherited it rather than introducing it.
+`bcc69dd` is the only one that handled it deliberately — isolating the file so it can be dropped
+before merge — and even that is a per-runner workaround for a dispatcher's choice.
+
+**The correction to this item's framing**: *4 of 12 tracked* understated it. Tracked-in-a-worktree is
+recoverable by not committing; **committed into a branch is already shipped**, and three have been.
+Whatever triage decides about where working material lives, it also owes a sweep of what has already
+landed.
+
+## And a wrong actionable message worth its own note
+
+`parity-manifest-check.sh` went red **once in 12 runs** on an unchanged tree, naming a fixture that
+was tracked and present throughout. A fork-starvation hypothesis did not reproduce in **200**
+attempts, so **the cause is unidentified and is recorded as unidentified.**
+
+What makes it worth recording rather than shrugging at: **the message it prints is *stale manifest*,
+which is actionable and wrong.** A flaky gate that prints nothing costs a re-run. A flaky gate that
+names a plausible cause costs whoever believes it — and this one names a condition a reader can
+"fix", which is the expensive kind of wrong.

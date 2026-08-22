@@ -281,7 +281,7 @@ and the Swift run in the same minute is what rules load out as the cause. This i
 fixture *refuses* the list rather than dying in it: a faithful reproduction of the owner's
 `Connection closed` would cost this lane a minute on every gate run.
 
-## The third divergence, declared rather than found
+## The third divergence, declared rather than lane-held
 
 **The lane is structurally blind to it, so it is declared in `surface.tsv` rather than lane-held.**
 It *was* measured — once, by the verifier, out of lane. What no scenario in this harness can do is

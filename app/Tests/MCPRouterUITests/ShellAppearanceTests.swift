@@ -63,7 +63,7 @@
             let indicators: [ColorToken] = [.accent, .live, .attention, .fail]
             for file in ShellTestSupport.gatedFiles {
                 let source = try ShellTestSupport.repoFile(file)
-                for token in indicators where source.contains("ColorToken.\(tokenCaseName(token))") {
+                for token in indicators where Self.names(token, in: source) {
                     #expect(
                         declared.contains(token),
                         "\(file) draws \(token.rawValue) but ShellChrome does not justify it"
@@ -81,7 +81,28 @@
             }
         }
 
-        private func tokenCaseName(_ token: ColorToken) -> String {
+        /// Whether the source names this exact token, rather than one whose case name starts with
+        /// it.
+        ///
+        /// `contains("ColorToken.accent")` was true of `ColorToken.accentInk` and
+        /// `ColorToken.accentText` the moment M21 added them, so a surface reaching for the
+        /// text-safe fill would have been reported as a use of `--accent` — the wrong token named
+        /// in the failure message, and a justification demanded for a use that never happened. The
+        /// match now ends at a non-identifier character.
+        static func names(_ token: ColorToken, in source: String) -> Bool {
+            let needle = "ColorToken." + caseName(token)
+            var searchRange = source.startIndex ..< source.endIndex
+            while let found = source.range(of: needle, range: searchRange) {
+                let next = found.upperBound
+                let boundary = next == source.endIndex
+                    || !(source[next].isLetter || source[next].isNumber || source[next] == "_")
+                if boundary { return true }
+                searchRange = next ..< source.endIndex
+            }
+            return false
+        }
+
+        static func caseName(_ token: ColorToken) -> String {
             switch token {
             case .accent: "accent"
             case .live: "live"

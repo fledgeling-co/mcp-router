@@ -107,7 +107,7 @@ public extension MenuCommand {
              .updateAllSkills, .runDoctor, .runAllChecks,
              .minimise, .zoom, .bringAllToFront,
              .help, .whatTheRouterDoes, .reportIssue:
-            nil
+            return nil
         }
     }
 

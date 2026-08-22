@@ -75,6 +75,30 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+
+## An eleventh instance — this item's own census, found by its own verifier
+
+The census that is this item's headline deliverable counted **the instrument into its own
+denominator**. Run the shipped detector against `git archive 72958de` with the gate placed outside
+`planning/` and `scripts/`, and the base tree reads **15 readers over 22 discarding iterations and
+34 drop sites** — not the 19/27/48 reported. Copy `reader-accounting.py` into that base tree and
+the reported column reappears exactly, which is what proves the mechanism rather than merely
+suggesting it: the four readers and fourteen drop sites the gate itself contributes were counted as
+pre-existing.
+
+*"Nineteen readers in this repository"* is commit `5a9569c`'s subject line and §1's headline. The
+quantity in its name is **readers that existed before this item**; the quantity it reads is
+**readers present when the detector ran**, which includes the detector.
+
+Unlike the ninth and tenth, this one **is** on the reachable side — and the after column caught it
+without being asked: `unresolved 67` is the verifier's measured 55 plus the 12 the three new files
+contribute, with the per-file breakdown identical across both runs for the other eighteen files.
+The accounting was sound; the *baseline* it was compared against was not.
+
+Which is the general lesson worth keeping: a before-and-after census is two measurements, and the
+gate only governs one of them. **Measure the base with the instrument outside the tree**, or the
+improvement includes the improver.
+
 ## A tenth instance, found 2026-08-22 by R17's third verification
 
 An absence sweep named for *"this claim survives nowhere in the corpus"* that reads *"this claim

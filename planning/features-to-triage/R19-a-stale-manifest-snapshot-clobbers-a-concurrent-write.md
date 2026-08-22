@@ -5,9 +5,13 @@
 
 ## The finding
 
-`cmdWatch` snapshots the manifest at `src/watch.ts:212` and saves that snapshot at `:273`. Anything
+`cmdWatch` snapshots the manifest at `src/watch.ts:212` and saves that snapshot at `:285`. Anything
 written to `manifest.json` in the window between is clobbered — **with no delete statement anywhere
 in the code path.**
+
+*(The save was at `:273` when this was filed. R17's gap-fix pass grew the comment block above it by
+twelve lines on 2026-08-22; the code did not move. Re-cited here rather than left to rot, because a
+line citation that no longer lands is how a finding gets read as already fixed.)*
 
 Demonstrated in a sandbox against the **fixed** node watcher: a `watch` fire held open six seconds
 on a staged failing server, with `index --force` writing unstaged `lifeline`'s row at t+2s. The
@@ -39,6 +43,13 @@ saving; node loads once per run. On the same fixture Swift keeps both rows and n
 the two implementations already disagree on the property, and `parity-cli.sh` cannot see it because
 it runs the binaries **sequentially**. Whatever is decided here has to be declared in
 `surface.tsv` or covered by a scenario that overlaps a writer.
+
+**Declared 2026-08-22 by R17's gap-fix pass**, in `surface.tsv`'s `cli-watch` note and at the head
+of `WatchIndexing.swift`. The declaration is scoped to the **watch save alone** — `src/watch.ts:285`
+against `WatchIndexing.swift:177` — and covers none of the other four `saveManifest` sites
+(`src/index.ts:146` and `:186`, `src/control.ts:262` and `:432`). Those four still carry the same
+read-then-save window on both sides, undeclared and unmeasured. Acceptance 2 below is unchanged:
+declaring the divergence is not seeing it, and only a scenario that overlaps a writer can.
 
 ## Acceptance
 

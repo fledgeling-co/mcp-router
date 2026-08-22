@@ -259,6 +259,18 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
          * hand and discarded. The reason survived only in watch-state.json, which no surface
          * reads.
          *
+         * That account is SUFFICIENT and not EXCLUSIVE — R19. A second mechanism erases a
+         * freshly-written row after this fix, with no delete statement anywhere in its path:
+         * `cmdWatch` loads the manifest once, spends seconds spawning and indexing children,
+         * and saves that same object at the `saveManifest` a few lines below, so a row another
+         * path writes inside that window is clobbered. Demonstrated against the FIXED code by
+         * holding a fire open six seconds while `index --force` wrote a second server's row.
+         * The owner's measurement came from a timeline where the launchd watch agent and an
+         * `index --force` were both live, so what was seen is consistent with either. The route
+         * account above is kept because it is what explains the ASYMMETRY between the two
+         * servers, and because its pre-registered prediction held: stage `lifeline` as well and
+         * its row starts disappearing too.
+         *
          * The backoff below is untouched. It is the retry policy; the manifest row is the
          * record. They answer different questions and neither substitutes for the other.
          */

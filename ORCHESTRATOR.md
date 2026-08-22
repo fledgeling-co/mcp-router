@@ -226,6 +226,24 @@ m22 session meant, or a replacement for it — I can't distinguish those from in
 armada conductor two round trips to establish that no second writer existed. A line naming the
 dispatching session closes it.
 
+### DISPATCH — DO NOT CITE THIS FILE BY LINE NUMBER; THE ORCHESTRATOR IS WRITING IT
+
+Measured 2026-08-23 by M16's gap-fix runner, and the cause is this session's own bookkeeping.
+
+It cited `ORCHESTRATOR.md:219-232`. `main` moved to `1f5ad55` while it worked and the text is now at
+**`:350` — 131 lines off, landing on another item's verdict line.** Its own words: *that is the
+defect I was fixing, arriving on schedule.*
+
+**This file is appended to after every state change**, which is what makes it useful as memory and
+useless as a line-addressable citation target. A runner's citation into it is stale before the
+runner finishes.
+
+So: **cite this file by anchor and tree, never by line.** The anchor survives; the line does not,
+and it does not fail loudly — 131 lines off lands on another item's text, which reads plausibly.
+`G7`'s dangerous variety, produced by the orchestrator rather than by any runner.
+
+The same applies to `planning/features-to-triage/LEDGER.md`, for the same reason.
+
 ### MERGE — SWEEP EVERY VERDICT FOR FINDINGS OUTSIDE THE AC SET BEFORE MERGING IT
 
 From `sidetone` via the armada conductor, and **it has already bitten this session.** This fleet has

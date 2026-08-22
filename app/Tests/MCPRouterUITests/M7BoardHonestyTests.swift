@@ -67,12 +67,21 @@
         }
 
         /// An irreversible action is never offered without the consequence that justifies it.
+        ///
+        /// **M12 moved the decision and this assertion moved with it, without weakening.** The sheet
+        /// used to read `.disabled(candidate == nil)` inline; it now asks the model
+        /// `removalRefusalReason(for:)`, which is the same condition and can be exercised rather than
+        /// only read. The behavioural half is `CleanupProvenanceModelTests.aGoneCandidateStillRefuses`
+        /// — a real board, a name no candidate carries, and the refusal it returns — which is a
+        /// stronger claim than any substring. What is left here is that the sheet actually consults
+        /// it, because a model property no view reads refuses nothing.
         @Test("removal is disabled when its consequence cannot be stated")
         func removalWithoutAConsequenceIsDisabled() throws {
             let source = try ShellTestSupport.repoFile(
                 "app/Sources/MCPRouterUI/Boards/CleanupSheets.swift"
             )
-            #expect(source.contains(".disabled(candidate == nil)"))
+            #expect(source.contains("board.removalRefusalReason(for: name)"))
+            #expect(source.contains(".disabled(refusal != nil)"))
             #expect(source.contains("CleanupPresentation.consequenceUnavailable"))
         }
 

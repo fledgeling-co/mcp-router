@@ -322,8 +322,10 @@
             "app/Sources/MCPRouterUI/Boards/EvalsBoardRow.swift",
             "app/Sources/MCPRouterUI/Boards/EvalsInspector.swift",
             "app/Sources/MCPRouterUI/Boards/CleanupBoard.swift",
+            "app/Sources/MCPRouterUI/Boards/CleanupBoardModel+Provenance.swift",
             "app/Sources/MCPRouterUI/Boards/CleanupBoardModel.swift",
             "app/Sources/MCPRouterUI/Boards/CleanupBoardRow.swift",
+            "app/Sources/MCPRouterUI/Boards/CleanupBoardState.swift",
             "app/Sources/MCPRouterUI/Boards/CleanupSheets.swift",
             "app/Sources/MCPRouterUI/Boards/M7BoardMetrics.swift"
         ]

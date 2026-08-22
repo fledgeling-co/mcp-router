@@ -66,8 +66,16 @@ applied to the tree, run, and reverted with `git checkout --`. The suite is
 | M3 | the stale treatment returns `.quiet` rather than `.marked` | **RED**, 2 issues | `aStaleReadingIsMarked`, `aStaleReadingKeepsItsStamp` |
 | M4 | `load()` restamps `observedAt` on the `.stale` path | **RED**, 1 issue | `aStaleReadingKeepsItsStamp` — a stale reading dated to the poll that failed |
 | M5 | `removalRefusalReason` returns the refusal when `isStale` | **RED**, 1 issue | `aStaleReadingDoesNotRefuse` |
-| M6 | `asOfLabel` returns `shortAgo(...) + " ago"` — the relative form the plan review killed | *see below* | |
-| M7 | the reset sheet drops its `ProvenanceNote` call | *see below* | |
+| M6 | `asOfLabel` returns `shortAgo(...) + " ago"` — the relative form the plan review killed | **RED**, 3 issues | `theStampIsAbsoluteRatherThanElapsed`, `anotherDayCarriesItsDate`, and the sentence assertions that name `taken at` |
+| M7 | the reset sheet drops its `ProvenanceNote` call | **RED**, 3 issues | `bothSheetsRenderTheNote` |
+
+**One mutation escaped into a commit, and the pass is what caught it.** A `git add -A` issued
+between M3's apply and its revert committed the mutation as `eaf4352`; the script's own
+`git checkout --` then restored the file to the state it had just been told was HEAD, and the
+baseline that follows the table came back **red with exactly M3's two issues** on a working tree
+`git status` called clean. Reverted in `3ab6fa7`, and the baseline is green there: **18 tests in 2
+suites passed**. Recorded rather than re-run and quietly re-reported — a mutation pass whose log
+reads red-then-green either way is exactly the shape this discipline exists to catch.
 
 ## The rendered evidence
 

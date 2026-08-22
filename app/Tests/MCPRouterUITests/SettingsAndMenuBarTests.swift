@@ -14,9 +14,15 @@
         /// **Re-pointed at M15 rather than deleted, so M8's clause keeps an evidence lane in its new
         /// form.** It read `BoardRegistry.installed.contains(.settings)`, which was the line between
         /// "the view compiles" and "the item shipped" while Settings was a board. There is no such
-        /// destination now, so the equivalent line is the scene being declared and the app-menu item
-        /// being the one control that can open it.
-        @Test("Settings ships as a scene, and the app menu opens it through a SettingsLink")
+        /// destination now, so the equivalent line is the scene being declared.
+        ///
+        /// **And the app declares no Settings command, which is a measurement.** Declaring the scene
+        /// makes macOS contribute `Settings…` at `⌘,` by itself; with a `SettingsLink` also declared
+        /// in `CommandGroup(replacing: .appSettings)` the running menu bar carried **two** items with
+        /// one spelling and one chord — read over the accessibility plane on 2026-08-22, both
+        /// reporting `AXMenuItemCmdChar` `,`. So the block went, and `isSystemProvided` records that
+        /// the item belongs to the platform now, exactly as Hide and Quit do.
+        @Test("Settings ships as a scene, and the app declares no second item for it")
         func settingsShipsAsAScene() throws {
             let app = try ShellTestSupport.repoFile("app/MCPRouter/MCPRouterApp.swift")
             #expect(
@@ -24,21 +30,17 @@
                 "no `Settings` scene is declared — ⌘, would open nothing"
             )
             #expect(app.contains("SettingsWindow(model: model, buildIdentity:"))
+            // The declaration, not the paragraph explaining why there is none: this file argues
+            // about `.appSettings` at length, and a whole-file grep for the name would be satisfied
+            // by the comment that says it is absent.
             #expect(
-                app.contains("SettingsCommandItem(.settings)"),
-                "the app-menu item is not the SettingsLink wrapper"
+                !app.contains("CommandGroup(replacing: .appSettings) {"),
+                "the app declares a second Settings item beside the one the scene contributes"
             )
-
-            // The half a grep cannot see: the actuation is a `SettingsLink`, which is the one
-            // supported route from a `Commands` builder to a `Settings` scene.
-            let item = try ShellTestSupport.repoFile(
-                "app/Sources/MCPRouterUI/Shell/SettingsCommandItem.swift"
-            )
-            #expect(item.contains("SettingsLink {"))
-            #expect(
-                !item.contains("Button(command.title"),
-                "a hand-rolled button cannot open a Settings scene from outside a scene"
-            )
+            #expect(MenuCommand.settings.isSystemProvided)
+            #expect(!MenuCommand.appDeclared.contains(.settings))
+            // The chord is still the document's, and still on exactly one item.
+            #expect(MenuCommand.settings.shortcut?.display == "⌘,")
         }
 
         /// And the destination is gone in both directions, which is what proves the removal was

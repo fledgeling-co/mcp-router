@@ -263,11 +263,7 @@
             "app/Sources/MCPRouterUI/Shell/ShellModelInbox.swift",
             "app/Sources/MCPRouterUI/Shell/ArrivalNotifierFactory.swift",
             "app/Sources/MCPRouterUI/Shell/InboxNotificationDelegate.swift",
-            "app/Sources/MCPRouterUI/Shell/MenuBarInboxBand.swift",
-            // M15's app-menu item. Enrolled here rather than merely added to the directory because
-            // it is the one view in the app whose body must stay a `SettingsLink`: a hand-rolled
-            // button compiles, looks identical in the menu, and opens nothing.
-            "app/Sources/MCPRouterUI/Shell/SettingsCommandItem.swift"
+            "app/Sources/MCPRouterUI/Shell/MenuBarInboxBand.swift"
         ]
 
         /// The board files, held separately because a completeness test pins `shellFiles` to the

@@ -50,13 +50,19 @@
     "rise, and Context.__init__ exits 3 for a floor below 1 or non-integer. A floor lowered later to",
     "make a run green is the failure this shape has to be watched for: a shrunken denominator raises",
     "reported coverage while measuring less, which planning/evidence/P4-acceptance.md records four",
-    "separate times."
+    "separate times.",
+    "",
+    "`lintFiles` was written 126 and corrected to 125 INSIDE this item, and the correction is",
+    "recorded rather than quietly applied because it is the shape the paragraph above warns about.",
+    "The first structurally-clean run happened before the run that measured two Settings items in",
+    "the app menu; removing the duplicate deleted SettingsCommandItem.swift, and the lint's scan",
+    "count genuinely fell by one. The ratchet against main is intact either way: main scans 118."
   ],
   "floors": {
     "tokenRows": 89,
     "dumpNodes": 53,
     "affordances": 56,
-    "lintFiles": 126
+    "lintFiles": 125
   },
 
   "layers": [

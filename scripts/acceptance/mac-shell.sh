@@ -256,7 +256,20 @@ fi
 DEST_ROW="$(awk -F'\t' '$2 == "AXRow" && $16 > 0 { c[$16]++ } END { m = 0; for (h in c) if (c[h] > m) { m = c[h]; best = h } print best }' "$WORK/window.tsv")"
 [ -n "$DEST_ROW" ] || fail "no sidebar rows in the accessibility tree"
 DEST_ROW_COUNT="$(awk -F'\t' -v h="$DEST_ROW" '$2 == "AXRow" && $16 == h { n++ } END { print n + 0 }' "$WORK/window.tsv")"
-[ "$DEST_ROW_COUNT" -ge 8 ] || fail "only $DEST_ROW_COUNT rows share the modal height — the sidebar is not one row size"
+# **Derived rather than pinned, since M15.** The literal was 8, which was the destination count while
+# Settings was one of them; it is a window now and the sidebar draws seven. A pinned number here
+# would have to be edited by every item that adds or removes a destination, and the one that forgot
+# would get a red gate for a correct app. `Destination.swift` is the same oracle `$DEST_TOTAL` reads
+# further down.
+DEST_EXPECTED="$(awk '
+    /^public enum Destination:/ { inside = 1; next }
+    inside && /^}/             { inside = 0 }
+    inside && /^ +case [a-z]/  { n++ }
+    END { print n + 0 }
+' "$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift")"
+[ "$DEST_EXPECTED" -gt 0 ] || blocked "counted zero destinations — the parse is wrong, not the code"
+[ "$DEST_ROW_COUNT" -ge "$DEST_EXPECTED" ] \
+  || fail "only $DEST_ROW_COUNT rows share the modal height, against $DEST_EXPECTED destinations — the sidebar is not one row size"
 
 IN_DOC=0
 for size in $DOC_ROWS; do
@@ -273,11 +286,20 @@ WINDOW_TEXT="$(cut -f4,5,6 "$WORK/window.tsv" | tr '\t' '\n' | grep -v '^$' || t
 # Destinations are matched as a **prefix**, not exactly, because a row that carries a badge
 # announces it as part of one sentence — "Servers, 1 need attention" rather than "Servers" and a
 # loose number. That is the point of the label, so the assertion has to allow for it.
-for needle in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
+# Settings left this list at M15: it is a `Settings` scene now, not a destination, so a row for it
+# in the console's tree would be the removal having been partial.
+for needle in Activity Servers Skills Discover Inbox Checks Cleanup; do
     printf '%s\n' "$WINDOW_TEXT" | grep -qE "^$needle(,|$)" \
       || fail "the accessibility tree does not carry a row for '$needle'"
 done
-pass "all eight destinations are in the accessibility tree"
+pass "all seven destinations are in the accessibility tree"
+
+# The other direction, which is what makes the removal checkable rather than merely unbroken: the
+# console must not carry a Settings row at all.
+if printf '%s\n' "$WINDOW_TEXT" | grep -qE "^Settings(,|$)"; then
+    fail "the console still carries a 'Settings' row — M15 moved it to a window of its own"
+fi
+pass "the console's navigation list carries no Settings row"
 
 for needle in Running Library; do
     printf '%s\n' "$WINDOW_TEXT" | grep -qxF "$needle" \
@@ -321,7 +343,10 @@ pass "the readout announces its counts as a sentence"
 
 TITLE="$("$AXKIT" title "$PID")"
 case "$TITLE" in
-    Activity|Servers|Skills|Discover|Inbox|Checks|Cleanup|Settings) ;;
+    Activity|Servers|Skills|Discover|Inbox|Checks|Cleanup) ;;
+    # `Settings` is deliberately absent: the console's title is a destination's, and Settings is no
+    # longer one. The Settings *window* carries that title, and `m8-settings-menubar.sh` reads it
+    # there.
     *) fail "the window title is '$TITLE', which is not a destination name (§3.7 forbids the app's name)" ;;
 esac
 pass "window title is '$TITLE' — the view, not the app"
@@ -413,6 +438,13 @@ pass "every one of the $INVENTORY_ROWS inventoried commands is in the menu bar"
 # The other direction, over the commands the **app declares**. macOS contributes a great many items
 # the inventory does not list; each is excluded by name here rather than by a tolerance, so adding
 # one to the app is a failure and adding one to macOS is a one-line, visible edit.
+#
+# **`Settings` joins that list at M15, and the ellipsis is what makes it safe.** Declaring a
+# `Settings` scene makes macOS list the window in the Window menu under its own title, exactly as it
+# does for the debug `Design system` window — measured on the running build on 2026-08-22, where the
+# Window menu carried `Checks`, `Design system` and `Settings` once the window was open. The app's
+# own item is `Settings…`, so this exclusion matches the system's window entry and never the
+# command; and the app declares no Settings command at all now, because the scene contributes it.
 cat > "$WORK/system-items.txt" <<'EOF'
 Services
 Quit and Keep Windows
@@ -438,6 +470,7 @@ Show Next Tab
 Move Tab to New Window
 Merge All Windows
 Design system
+Settings
 EOF
 
 EXTRAS=0
@@ -715,7 +748,9 @@ select_and_check() {
 
 select_and_check Servers
 select_and_check Discover
-select_and_check Settings
+# Skills rather than Settings since M15 — the block still exercises four destinations, and Settings
+# is not one of them any more.
+select_and_check Skills
 select_and_check Activity
 
 # The fourth link: macOS dispatches a ⌘-chord to this process at all. `⌘H` is the one command in the
@@ -835,7 +870,7 @@ check_invisible "the focus-ring assertion"
 
 # ------------------------------------------------- D1, D2, D3 · every board, top-aligned and single-scrolled
 #
-# One walk of all eight destinations inside the launch that is already open. Three claims, and each
+# One walk of all seven destinations inside the launch that is already open. Three claims, and each
 # was a defect that had been patched locally instead of fixed at the shell.
 #
 # **D1 — the board starts at the top of the content zone.** `ContentZone.outerScroll` hands every
@@ -1010,7 +1045,7 @@ capture_evidence() {
 }
 
 : > "$WORK/all-panes.tsv"
-for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
+for dest in Activity Servers Skills Discover Inbox Checks Cleanup; do
     "$AXKIT" select "$PID" "$dest" >/dev/null || fail "could not select $dest"
     sleep 1.2
     dump_window
@@ -1083,7 +1118,7 @@ for dest in Activity Servers Skills Discover Inbox Checks Cleanup Settings; do
 
     # Held BELOW the card it is the foot of, so "last in the sidebar" is measured rather than
     # assumed. Without a y bound the foot could be moved above the destination list, keep its x, and
-    # pass on all eight boards.
+    # pass on all seven boards.
     FOOT="$(sidebar_address "$WORK/window.tsv" "$SIDE_L" "$SIDE_R" "$LABEL_Y")"
     [ -n "$FOOT" ] \
       || fail "$dest: the sidebar foot carries no loopback readout below the count card — it is in the shared wrapper, so it belongs on every board (M27)"
@@ -1120,12 +1155,12 @@ done
 # deep-link slug stay `evals` and are invisible here — they are identifiers, and §6 governs words a
 # user reads.
 if grep -qw "Evals" "$WORK/all-panes.tsv"; then
-    fail "'Evals' is still rendered somewhere: $(grep -ohw "Evals" "$WORK/all-panes.tsv" | wc -l | tr -d ' ') occurrence(s) across the eight panes"
+    fail "'Evals' is still rendered somewhere: $(grep -ohw "Evals" "$WORK/all-panes.tsv" | wc -l | tr -d ' ') occurrence(s) across the seven panes"
 fi
 if grep -qw "Evals" "$WORK/menu.tsv"; then
     fail "'Evals' is still in the menu bar — the View menu and the sidebar disagree"
 fi
-pass "'Evals' appears in neither the eight panes nor the menu bar; the sidebar, the title and the pane heading all read 'Checks'"
+pass "'Evals' appears in neither the seven panes nor the menu bar; the sidebar, the title and the pane heading all read 'Checks'"
 check_invisible "the board-alignment and rename assertions"
 
 # ---------------------------------------------------------------- A34 · the scroll edge, rendered
@@ -1153,9 +1188,14 @@ echo "the scroll edge"
 # `boardsThatScrollThemselves`, nesting one scroller inside another — the thing M2's B41 said would
 # not happen. **That is fixed rather than outstanding**, and this paragraph used to say otherwise
 # four lines below the walk that disproves it: D2 removed the inner scroll view, and the D2
-# assertion above now measures exactly one content-zone scroll area on all eight panes, Settings
+# assertion above measured exactly one content-zone scroll area on all eight panes, Settings
 # included. An out-of-family critic caught the contradiction — a stale defect report sitting
 # immediately after the assertion that retired it is how the next reader re-opens a closed finding.
+#
+# **M15 takes Settings out of that claim entirely**, and the claim is narrower rather than weaker:
+# the walk covers seven panes now, and the Settings *window* does own a `ScrollView` of its own —
+# correctly, because there is no shell around it to nest inside. That inversion is asserted by
+# `SettingsWindowTests.theWindowOwnsOneScroll`, not here; this walk says nothing about it.
 "$AXKIT" select "$PID" Servers >/dev/null
 sleep 1
 dump_window
@@ -1391,7 +1431,7 @@ for state in offline unauthorized; do
     # And the count card's label goes with its numbers. The failure form replaces the counts form
     # rather than emptying it, so a readout still headed `Child processes` under an error message
     # would be a card describing a metric it is no longer showing. Asked here because the presence
-    # side of this pair is asserted on all eight boards above, and a label is exactly the kind of
+    # side of this pair is asserted on all seven boards above, and a label is exactly the kind of
     # chrome that survives a state change nobody checked.
     STATE_LABEL="$(awk -F'\t' -v l="$STATE_SIDE_L" -v r="$STATE_SIDE_R" '
         $13 >= l && $13 < r {

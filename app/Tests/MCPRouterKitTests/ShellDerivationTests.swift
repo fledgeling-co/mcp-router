@@ -124,6 +124,12 @@ struct ShellDerivationTests {
         let system = Set(MenuCommand.allCases.filter(\.isSystemProvided).map(\.title))
         let expected: Set = [
             "Hide MCP Router", "Hide Others", "Show All", "Quit MCP Router",
+            // **`Settings…` joined at M15, and it is a reading rather than a reclassification.**
+            // Declaring a `Settings` scene makes macOS contribute the item at `⌘,` on its own; the
+            // app also declaring one put two items with one spelling and one chord in the app menu,
+            // measured over the accessibility plane on the running build on 2026-08-22. So the app
+            // declares none, and this is where that fact is pinned.
+            "Settings…",
             "Close",
             "Undo", "Redo", "Cut", "Copy", "Paste", "Select All",
             "Minimize", "Zoom", "Bring All to Front"

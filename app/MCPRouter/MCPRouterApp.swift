@@ -110,15 +110,14 @@ struct ShellCommands: Commands {
             item(.about)
         }
 
-        CommandGroup(replacing: .appSettings) {
-            // A `SettingsLink` rather than the generic item, because opening a `Settings` scene from
-            // a `Commands` builder has exactly one supported route: `EnvironmentValues.openSettings`
-            // needs a view inside a scene and a menu is outside every scene. The title, the shortcut
-            // and the disabled reason still come from `MenuCommand`, so this file still names no
-            // operation — `ShellCommandRouter.Operation.openSettingsScene` is what everything else
-            // in the app opens the window through, and what a test asserts the mapping against.
-            SettingsCommandItem(.settings)
-        }
+        // **No `CommandGroup(replacing: .appSettings)`, and that is a measurement rather than a
+        // preference.** Declaring the `Settings` scene above makes macOS contribute `Settings…` at
+        // `⌘,` by itself. With a `SettingsLink` also declared here, the running app's menu bar
+        // carried **two** `Settings…` items bound to the same chord — measured over the
+        // accessibility plane on 2026-08-22, `AXMenuItemCmdChar` `,` on both. Two items with one
+        // spelling and one chord is exactly what this file's own note says re-declaring a system
+        // item produces, so the app declares none and `MenuCommand.settings.isSystemProvided`
+        // records that the item is the platform's now.
 
         CommandGroup(replacing: .newItem) {
             item(.addServer)

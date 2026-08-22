@@ -25,6 +25,8 @@
         @State private var pane: SettingsPane
         private let buildIdentity: BuildIdentity
         private let store: ShellRestoration
+        /// Closes this window. In a `Settings` scene it is the window that goes, not the app.
+        @Environment(\.dismiss) private var dismiss
 
         /// **Exactly one initializer**, so the scene and the measurement harness construct this the
         /// same way and differ only in the store they pass. `MeasureDump` is an unsigned SwiftPM
@@ -68,6 +70,15 @@
                 detail
             }
             .navigationTitle(SettingsPresentation.paneTitle)
+            // **Escape, and it ships because the platform does not provide it.** Measured on the
+            // running build on 2026-08-22: with the Settings window open, a keycode-53 event posted
+            // to the process left it open, so the `Settings` scene does not close on Escape by
+            // itself. The brief asks for it, `DESIGN.md` §8 gives `Esc` to dismissing, and this is
+            // the fallback D3's measurement table named for exactly this reading.
+            //
+            // No conflict with `keysReservedForContent`: that rule governs *menu commands*, and this
+            // is a window-root handler on a window with no rows, no default action and no sheet.
+            .onExitCommand { dismiss() }
             .task { await model.load(unauthorized: offlineError == .unauthorized) }
             .onChange(of: offlineError) { _, new in
                 Task { await model.load(unauthorized: new == .unauthorized) }

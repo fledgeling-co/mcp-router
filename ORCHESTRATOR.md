@@ -166,6 +166,35 @@ than barriering on whole waves, so the real overlap is greater than the table im
 > when this session began. Do not `git add -A` here — that mistake has already swept a third
 > session's work into a commit twice in this repo.
 
+### SIX VERIFICATIONS, SIX `Needs More Work`, AND THE DEFECTS ARE NOT WHERE THE WORK IS
+
+Measured 2026-08-23 across M16, M18, M19 (pending), M20, R19 and G5. **Every verdict came back
+`Needs More Work`, and only two blocked on the product**: M20 does not compile, and M18 moved
+`.keyboardShortcut(.cancelAction)` onto a destructive button so Escape removes an installed
+capability. **The other four blocked entirely on records** — a claim that reads true and is false at
+a level nobody had looked at.
+
+That is a finding about how this fleet works rather than about these six items. The builds are
+largely sound; **what is wrong is what was written about them**, and every instance was invisible to
+a static read and visible to a measurement:
+
+- R19's *replacement* claim was false thirteen lines above a sentence predicting it.
+- G5's guard could not match `_installed_`, because `_` is a word character.
+- M16 filed a three-versus-four enum defect against `spec-M22.md` **and then committed it in its own
+  note**.
+- M20's plan promised seven names that exist only in the plan.
+
+**What follows for the next wave's briefs.** An acceptance file that instructs a reader to accept a
+row *in place of* re-running the check makes a false row worse than a typo — it is an instruction to
+believe something untrue. So a record's claims need the same arming its assertions get: the
+normaliser named, the citation carrying anchor and tree and line, and every count re-derived on the
+tree that ships rather than the tree it was measured on.
+
+**And the verifiers earned their cost.** Five of six overrode or lacked an out-of-family lane and
+said so rather than passing silently; three found defects in their own predecessors' figures; one
+settled a cross-branch rule by execution and then refined it; one re-derived a dead session's
+548-line draft rather than inheriting six wrong numbers.
+
 ### DISPATCH — A PID OBTAINED FROM A PATTERN IS NOT YOURS TO KILL
 
 Reported 2026-08-23 by the armada conductor, from another project: a runner killed **a third

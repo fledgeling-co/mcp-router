@@ -570,10 +570,42 @@ def main() -> int:
               "A gate that never ran is not a gate that passed.", file=sys.stderr)
         return 2
 
+    # ---- L: an unresolved merge-conflict marker in a tracker file --------------------------
+    #
+    # Found 2026-08-22 by R17's second verifier, in ORCHESTRATOR.md, on main, committed. Two blocks
+    # had been sitting in the memory of record since the R7 merge — the file every fleet slot
+    # schedules from — and ten checks passed over them, because a marker line does not begin with
+    # `|` so no table reader sees it.
+    #
+    # The orchestrator put them there: it resolved LEDGER.md with a script, checked THAT file for
+    # markers, then confirmed `git status` showed no unmerged paths and committed with --no-edit.
+    # `git status` reports unmerged paths, not markers a resolution left behind, and the file it
+    # did not check is the one that kept them.
+    #
+    # This is the cheapest possible check and it guards the most expensive file.
+    l_findings: list[str] = []
+    l_examined = 0
+    marker = re.compile(r"^(<<<<<<< |=======$|>>>>>>> )")
+    for label, text in (("ORCHESTRATOR", orch), ("LEDGER", ledger)):
+        for n, line in enumerate(text.splitlines(), 1):
+            l_examined += 1
+            if marker.match(line):
+                l_findings.append(f"{label}:{n} is a merge-conflict marker: {line[:40]!r}")
+    if l_findings:
+        findings.append(("L", "a tracker file carries an unresolved merge-conflict marker — the "
+                              "memory of record contains a conflict nobody resolved, and every "
+                              "table check passes over it because the line is not a row",
+                         l_findings))
+    print(f"L examined {l_examined} lines in both files")
+    if l_examined == 0:
+        print("usage error: check L examined 0 lines. A gate that never ran is not a gate that "
+              "passed.", file=sys.stderr)
+        return 2
+
     print()
 
     if not findings:
-        print("reconciled — no findings across A, B, B-range, C, D, E, F, G, H, I, J, K")
+        print("reconciled — no findings across A, B, B-range, C, D, E, F, G, H, I, J, K, L")
         return 0
     for code, why, ids in findings:
         print(f"{code}. {why}")

@@ -76,6 +76,36 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+
+## A twelfth instance — the reconciler's check E, found the same afternoon
+
+Check E is named *"a branch merged into main with no row in either file"*. It reads **refs that
+are ancestors of `main`, compared against whatever ledger files this particular checkout happens
+to hold**. Two independent gaps between the name and the reading, and on 2026-08-22 they fired
+together:
+
+1. **A branch with no commits is an ancestor of main**, so `git branch --merged main` lists it the
+   instant it is created. `ai/g5` was cut from `2fbe062` and had committed nothing; `git rev-parse`
+   confirms its tip *is* a main commit. Nothing merged, and E called it merged.
+2. **It mixes live repository state with branch-local file state.** The `G5` row exists on `main`
+   and in no worktree, because every worktree is on an older base. So E read a *global, current*
+   branch list against a *local, stale* ledger and reported the disagreement as a defect.
+
+Reproduced deliberately: the reconciler exits 0 from `main` and exits 1 on `E — G5 (ai/g5)` from
+`.worktrees/R17`, on the same commit of the script, at the same moment.
+
+**This is the instance with the widest blast radius, because every runner runs the reconciler from
+a worktree.** R17's gap-fix 3 runner hit it, and its diagnosis — *another session merged `ai/g5`
+into main* — was the natural reading and wrong. It then did the right thing anyway: restored
+`ORCHESTRATOR.md` to `HEAD`, re-ran, got the identical finding, and proved the edit was not the
+cause. A check whose false positive reads as *somebody else broke main* costs more than one whose
+false positive reads as noise.
+
+Direction is false-RED, so it costs attention rather than correctness — the same direction as
+`D-r17-d`, and the same underlying error as the ninth instance: **a figure read from one scope and
+named for another.** Registered as `D-g4-b`, widened from the live-count half the G4 verifier
+first found. Not fixed here: five runners are reading that file.
+
 ## An eleventh instance — this item's own census, found by its own verifier
 
 The census that is this item's headline deliverable counted **the instrument into its own

@@ -264,9 +264,11 @@
                 // disagree.** M18's whole reason for touching the shortcuts on that sheet was that
                 // this dialog and that sheet gave two answers to "what does a key do here"; fixing
                 // only the sheet would have left the pair disagreeing in the other direction.
-                // Escape had no path on this dialog before — one of the eight the M18 verdict
-                // enumerates — and Return dismissed it. Now Escape dismisses and nothing is the
-                // default, which is the reasoning `Boards/CleanupSheets.swift` carries in full.
+                // Escape had no path on this dialog before — one of the sheets the M18 verdict
+                // lists as having none — and Return dismissed it. Now Escape dismisses and nothing
+                // is the default, which is the reasoning `Boards/CleanupSheets.swift` carries in
+                // full. (That verdict's list is nine of fifteen rather than the eight of fourteen
+                // it states; `SheetShortcutGuardTests` carries the correction and the population.)
                 Button("Cancel") { board.sheet = nil }
                     .buttonStyle(ProminentButtonStyle())
                     .keyboardShortcut(.cancelAction)

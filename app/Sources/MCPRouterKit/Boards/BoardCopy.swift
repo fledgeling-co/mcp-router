@@ -12,10 +12,16 @@ public enum HarnessBoardCopy {
     """
 
     public static let sectionDetected = "Detected on this Mac"
-    public static let rescan = "Check again"
+    /// The design of record's own word. It read `Check again` for one draft, which is a
+    /// second spelling of a control the mock already names — exactly what §6's "one name per
+    /// state, taken from one source" rules out, and the fidelity ledger read it as a
+    /// divergence rather than as a preference.
+    public static let rescan = "Rescan"
     public static let openConfig = "Reveal config in Finder"
     public static let reconcile = "Reconcile…"
     public static let explainShim = "Why a shim?"
+
+    public static let reconcileAll = "Reconcile all…"
 
     /// What "reconcile" opens, said before it opens. `…` because it opens a further view (§3.4),
     /// and the sentence because a diff of somebody's live configuration is not a click you make
@@ -23,6 +29,20 @@ public enum HarnessBoardCopy {
     public static let reconcileHelp = """
     Shows the difference against the real file. Nothing is written until you say so.
     """
+
+    /// Why the reconcile controls are dim.
+    ///
+    /// **Dim rather than absent**, per `DESIGN.md` §3.4: a disabled control dims in place with a
+    /// discoverable reason and never disappears. The panel is M18's — this board is one of the two
+    /// surfaces it opens from — and a button that set a state nothing presented was the worse of
+    /// the two options, because it looked like it worked.
+    public static let reconcileUnavailable = """
+    The panel that shows the difference isn't built yet, so nothing here can be reconciled \
+    from this board. Your configuration is untouched either way.
+    """
+
+    public static let shimSheetTitle = "Why a shim?"
+    public static let shimSheetDismiss = "Done"
 
     /// The shim explanation. An explanation rather than a fix, because there is no fix on this
     /// side: the transport is the harness's, and this router cannot change it.
@@ -122,6 +142,15 @@ public enum InsightsBoardCopy {
     public static let callsPerHour = "Calls per hour, last 24 hours"
     public static let dutyCycle = "Duty cycle, per server"
     public static let analyst = "The analyst"
+    public static let analyseNow = "Analyse now"
+
+    /// Why the analyst's one action is dim. `PRD.md` §6 specifies a session analyst and nothing in
+    /// `app/Sources` implements one, so this is `featureUnbuilt` rather than a surface missing from
+    /// this build — and saying which is the difference `CommandAvailability` exists to keep.
+    public static let analyseUnavailable = """
+    Nothing reads your session logs yet, so there is nothing to run. When something does, \
+    this says which model judged and what it found.
+    """
 
     /// The caption under the duty-cycle chart.
     ///

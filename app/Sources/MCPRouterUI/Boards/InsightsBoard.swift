@@ -33,7 +33,12 @@
             .padding(M22BoardMetrics.panePadding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .task { await board.load() }
-            .measureSurface("insights")
+            // The board marks its own root and nothing more. `measureSurface` belongs to
+            // the measurement harness, which wraps the surface and names it
+            // `<surface>.<state>`; calling it here installed a second coordinate space and
+            // a second preference reader, and the dump came back rooted at `insights`
+            // rather than at the state that was asked for.
+            .measured("board-column", role: "board-column", kind: .vstack, alignment: "leading")
         }
 
         private var header: some View {
@@ -235,6 +240,18 @@
                             "analyst-body", role: "analyst-body", kind: .text,
                             tokens: ["foreground": .t2], type: .body,
                             text: InsightsBoardCopy.analystAbsentBody
+                        )
+                    // Dim rather than absent (§3.4), and `featureUnbuilt` rather than a surface
+                    // missing from this build: `PRD.md` §6 specifies a session analyst and nothing
+                    // in app/Sources implements one, so there is nothing to run anywhere.
+                    Button(InsightsBoardCopy.analyseNow) {}
+                        .buttonStyle(StandardButtonStyle())
+                        .disabled(true)
+                        .help(InsightsBoardCopy.analyseUnavailable)
+                        .accessibilityHint(InsightsBoardCopy.analyseUnavailable)
+                        .measured(
+                            "analyse-now", role: "board-action", type: .body,
+                            text: InsightsBoardCopy.analyseNow
                         )
                 }
                 .measured("analyst-empty", role: "analyst-panel", kind: .vstack)

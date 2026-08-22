@@ -33,14 +33,60 @@
             .padding(M22BoardMetrics.panePadding)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .task { await board.load() }
+            .sheet(item: $board.sheet) { sheet in
+                HarnessSheetHost(board: board, sheet: sheet)
+            }
             .onKeyPress(.escape) {
                 board.escape()
                 return .handled
             }
-            .measureSurface("harnesses")
+            // The board marks its own root and nothing more. `measureSurface` belongs to
+            // the measurement harness, which wraps the surface and names it
+            // `<surface>.<state>`; calling it here installed a second coordinate space and
+            // a second preference reader, and the dump came back rooted at `harnesses`
+            // rather than at the state that was asked for.
+            .measured("board-column", role: "board-column", kind: .vstack, alignment: "leading")
         }
 
         private var header: some View {
+            HStack(alignment: .top, spacing: M22BoardMetrics.gap) {
+                titleBlock
+                Spacer(minLength: 0)
+                actions
+            }
+            .measured("board-header", role: "board-header", kind: .hstack)
+        }
+
+        /// The board's own two controls.
+        ///
+        /// `Check again` re-runs the read, and it earns its place rather than mirroring the mock:
+        /// these counts are read from files on a drift interval, the footer says how old they are,
+        /// and the brief's own words are that a stale reading here is worse than no reading — so a
+        /// board that can only be refreshed by leaving it is a board that shows a stale number with
+        /// no way to move it.
+        private var actions: some View {
+            HStack(spacing: M22BoardMetrics.tightGap) {
+                Button(HarnessBoardCopy.rescan) {
+                    Task { await board.load() }
+                }
+                .buttonStyle(StandardButtonStyle())
+                .measured(
+                    "rescan", role: "board-action", type: .body, text: HarnessBoardCopy.rescan
+                )
+                Button(HarnessBoardCopy.reconcileAll) {}
+                    .buttonStyle(StandardButtonStyle())
+                    .disabled(true)
+                    .help(HarnessBoardCopy.reconcileUnavailable)
+                    .accessibilityHint(HarnessBoardCopy.reconcileUnavailable)
+                    .measured(
+                        "reconcile-all", role: "board-action", type: .body,
+                        text: HarnessBoardCopy.reconcileAll
+                    )
+            }
+            .measured("board-actions", role: "board-actions", kind: .hstack)
+        }
+
+        private var titleBlock: some View {
             VStack(alignment: .leading, spacing: M22BoardMetrics.labelGap) {
                 Text(HarnessBoardCopy.title)
                     .typeRole(.title1)
@@ -71,7 +117,7 @@
         private var content: some View {
             switch board.state {
             case .loading:
-                SkeletonRows(count: 3)
+                HarnessSkeleton()
                     .measured("harnesses-loading", role: "loading", kind: .vstack)
             case let .failed(error):
                 MessageState(
@@ -105,7 +151,9 @@
                 if let error = board.state.error { staleBanner(error) }
                 if let finding = board.finding { findingBand(finding) }
                 list
-                if !board.unreadable.isEmpty { unreadableSection }
+                if !board.unreadable.isEmpty {
+                    HarnessUnreadableSection(rows: board.unreadable, board: board)
+                }
                 footer
             }
             .measured("harnesses-populated", role: "board-body", kind: .vstack)
@@ -130,6 +178,18 @@
                         tokens: ["foreground": .t1], type: .body, text: finding
                     )
                 Spacer(minLength: 0)
+                // The brief gives the finding an action that opens the diff of the real file. That
+                // panel is M18's, so the control is here and dim rather than absent, with the
+                // reason in its help tag.
+                Button(HarnessBoardCopy.reconcile) {}
+                    .buttonStyle(StandardButtonStyle())
+                    .disabled(true)
+                    .help(HarnessBoardCopy.reconcileUnavailable)
+                    .accessibilityHint(HarnessBoardCopy.reconcileUnavailable)
+                    .measured(
+                        "finding-action", role: "finding-action", type: .body,
+                        text: HarnessBoardCopy.reconcile
+                    )
             }
             .padding(M22BoardMetrics.cardPadding)
             .background(
@@ -158,78 +218,12 @@
 
         private var list: some View {
             VStack(alignment: .leading, spacing: M22BoardMetrics.gap) {
-                sectionHeader(HarnessBoardCopy.sectionDetected, id: "section-detected")
+                HarnessSectionHeader(title: HarnessBoardCopy.sectionDetected, id: "section-detected")
                 ForEach(board.readable) { row in
                     HarnessCard(row: row, board: board)
                 }
             }
             .measured("harness-list", role: "harness-list", kind: .vstack)
-        }
-
-        private var unreadableSection: some View {
-            VStack(alignment: .leading, spacing: M22BoardMetrics.gap) {
-                sectionHeader("Could not be read", id: "section-unreadable")
-                ForEach(board.unreadable) { row in
-                    unreadableCard(row)
-                }
-                Text(HarnessBoardCopy.unreadableNote)
-                    .typeRole(.callout)
-                    .foregroundStyle(ColorToken.t2.color)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .measured(
-                        "unreadable-note", role: "callout", kind: .text,
-                        tokens: ["foreground": .t2], type: .callout,
-                        text: HarnessBoardCopy.unreadableNote
-                    )
-            }
-            .measured("unreadable-section", role: "unreadable-list", kind: .vstack)
-        }
-
-        /// A harness whose configuration would not parse.
-        ///
-        /// Drawn as its own card with **no counts on it at all**, because the row arrives as the
-        /// empty report: every figure on it reads 0 and its state reads not-wired, which is
-        /// identical to a clean unwired harness. Showing those figures would be showing numbers
-        /// nobody counted.
-        private func unreadableCard(_ row: DetectedHarness) -> some View {
-            VStack(alignment: .leading, spacing: M22BoardMetrics.labelGap) {
-                Text(row.displayName)
-                    .typeRole(.title3)
-                    .foregroundStyle(ColorToken.t1.color)
-                    .measured(
-                        "unreadable-name-\(row.harness)", role: "harness-name", kind: .text,
-                        tokens: ["foreground": .t1], type: .title3, text: row.displayName
-                    )
-                Text(row.unreadable ?? "")
-                    .typeRole(.caption)
-                    .monospaced()
-                    .foregroundStyle(ColorToken.failInk.color)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .measured(
-                        "unreadable-reason-\(row.harness)", role: "read-failure", kind: .text,
-                        tokens: ["foreground": .failInk], type: .caption, text: row.unreadable ?? ""
-                    )
-                Button(HarnessBoardCopy.openConfig) { board.reveal(row.path) }
-                    .buttonStyle(StandardButtonStyle())
-                    .measured(
-                        "unreadable-open-\(row.harness)", role: "row-action", type: .body,
-                        text: HarnessBoardCopy.openConfig
-                    )
-            }
-            .padding(M22BoardMetrics.cardPadding)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: M22BoardMetrics.cardRadius)
-                    .fill(ColorToken.raised.color)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: M22BoardMetrics.cardRadius)
-                            .strokeBorder(ColorToken.line.color, lineWidth: M22BoardMetrics.hairline)
-                    )
-            )
-            .measured(
-                "unreadable-card-\(row.harness)", role: "harness-card", kind: .vstack,
-                tokens: ["background": .raised, "border": .line]
-            )
         }
 
         /// When the files were read, and what was not read at all.
@@ -255,18 +249,6 @@
                     )
             }
             .measured("harnesses-footer", role: "board-footer", kind: .vstack)
-        }
-
-        private func sectionHeader(_ title: String, id: String) -> some View {
-            // Sentence case, system font, secondary colour. Tracked uppercase is the loudest web
-            // tell and §3.2 says to remove it rather than tune it.
-            Text(title)
-                .typeRole(.subheadline)
-                .foregroundStyle(ColorToken.t3.color)
-                .measured(
-                    id, role: "section-header", kind: .text,
-                    tokens: ["foreground": .t3], type: .subheadline, text: title
-                )
         }
     }
 #endif

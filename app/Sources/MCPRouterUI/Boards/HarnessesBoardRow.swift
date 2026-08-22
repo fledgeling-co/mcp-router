@@ -152,15 +152,19 @@
                         text: HarnessBoardCopy.openConfig
                     )
                 if row.duplicateCount > 0 {
-                    Button(HarnessBoardCopy.reconcile) {
-                        board.sheet = .reconcile(harness: row.harness)
-                    }
-                    .buttonStyle(StandardButtonStyle())
-                    .help(HarnessBoardCopy.reconcileHelp)
-                    .measured(
-                        "reconcile", role: "row-action", type: .body,
-                        text: HarnessBoardCopy.reconcile
-                    )
+                    // **Dim, not absent** (§3.4). The panel that draws the diff is M18's, and this
+                    // board is one of the two surfaces it opens from. It was an enabled button
+                    // setting a state nothing presented, which is the worse of the two failures:
+                    // it looked like it worked.
+                    Button(HarnessBoardCopy.reconcile) {}
+                        .buttonStyle(StandardButtonStyle())
+                        .disabled(true)
+                        .help(HarnessBoardCopy.reconcileUnavailable)
+                        .accessibilityHint(HarnessBoardCopy.reconcileUnavailable)
+                        .measured(
+                            "reconcile", role: "row-action", type: .body,
+                            text: HarnessBoardCopy.reconcile
+                        )
                 }
                 // An explanation rather than a fix, because there is no fix on this side.
                 if case .routedViaShim = status {
@@ -176,6 +180,132 @@
                 Spacer(minLength: 0)
             }
             .measured("harness-actions", role: "card-actions", kind: .hstack)
+        }
+    }
+
+    /// A section title on this board.
+    ///
+    /// Sentence case, system font, secondary colour — §3.2, where the fix for tracked
+    /// uppercase is to remove it rather than tune its tracking. Shared by the two sections
+    /// rather than written twice, so a change of tier moves both.
+    struct HarnessSectionHeader: View {
+        let title: String
+        let id: String
+
+        var body: some View {
+            Text(title)
+                .typeRole(.subheadline)
+                .foregroundStyle(ColorToken.t3.color)
+                .measured(
+                    id, role: "section-header", kind: .text,
+                    tokens: ["foreground": .t3], type: .subheadline, text: title
+                )
+        }
+    }
+
+    /// The harnesses whose configuration would not parse, drawn apart from the readings.
+    ///
+    /// **Its own section and its own card, with no counts on either.** An unreadable row
+    /// arrives as the EMPTY report — every figure on it is 0 and its state says not-wired,
+    /// which is byte-identical to a clean unwired harness — so drawing it among the readings
+    /// would put a row on the board that is a lie about the machine.
+    ///
+    /// A view rather than a method on the board, because the board's type body reached this
+    /// repository's 250-line cap and this is the real seam: a reading and a failure to read.
+    struct HarnessUnreadableSection: View {
+        let rows: [DetectedHarness]
+        let board: HarnessesBoardModel
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: M22BoardMetrics.gap) {
+                HarnessSectionHeader(title: "Could not be read", id: "section-unreadable")
+                ForEach(rows) { row in
+                    unreadableCard(row)
+                }
+                Text(HarnessBoardCopy.unreadableNote)
+                    .typeRole(.callout)
+                    .foregroundStyle(ColorToken.t2.color)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .measured(
+                        "unreadable-note", role: "callout", kind: .text,
+                        tokens: ["foreground": .t2], type: .callout,
+                        text: HarnessBoardCopy.unreadableNote
+                    )
+            }
+            .measured("unreadable-section", role: "unreadable-list", kind: .vstack)
+        }
+
+        /// A harness whose configuration would not parse.
+        ///
+        /// Drawn as its own card with **no counts on it at all**, because the row arrives as the
+        /// empty report: every figure on it reads 0 and its state reads not-wired, which is
+        /// identical to a clean unwired harness. Showing those figures would be showing numbers
+        /// nobody counted.
+        private func unreadableCard(_ row: DetectedHarness) -> some View {
+            VStack(alignment: .leading, spacing: M22BoardMetrics.labelGap) {
+                Text(row.displayName)
+                    .typeRole(.title3)
+                    .foregroundStyle(ColorToken.t1.color)
+                    .measured(
+                        "unreadable-name-\(row.harness)", role: "harness-name", kind: .text,
+                        tokens: ["foreground": .t1], type: .title3, text: row.displayName
+                    )
+                Text(row.unreadable ?? "")
+                    .typeRole(.caption)
+                    .monospaced()
+                    .foregroundStyle(ColorToken.failInk.color)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .measured(
+                        "unreadable-reason-\(row.harness)", role: "read-failure", kind: .text,
+                        tokens: ["foreground": .failInk], type: .caption, text: row.unreadable ?? ""
+                    )
+                Button(HarnessBoardCopy.openConfig) { board.reveal(row.path) }
+                    .buttonStyle(StandardButtonStyle())
+                    .measured(
+                        "unreadable-open-\(row.harness)", role: "row-action", type: .body,
+                        text: HarnessBoardCopy.openConfig
+                    )
+            }
+            .padding(M22BoardMetrics.cardPadding)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: M22BoardMetrics.cardRadius)
+                    .fill(ColorToken.raised.color)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: M22BoardMetrics.cardRadius)
+                            .strokeBorder(ColorToken.line.color, lineWidth: M22BoardMetrics.hairline)
+                    )
+            )
+            .measured(
+                "unreadable-card-\(row.harness)", role: "harness-card", kind: .vstack,
+                tokens: ["background": .raised, "border": .line]
+            )
+        }
+    }
+
+    /// The loading frame: cards at the geometry the real ones will land at.
+    ///
+    /// `SkeletonRows` stands in at `MetricToken.serversRow`, which is the Servers board's 56pt row
+    /// and not this board's card — a placeholder at the wrong height makes the list jump when the
+    /// read completes, which is the one thing `DESIGN.md` §5 says a skeleton exists to avoid. The
+    /// mock draws two; `M22BoardMetrics.harnessSkeletonHeight` is what a card actually rests at.
+    struct HarnessSkeleton: View {
+        var count = 2
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: M22BoardMetrics.gap) {
+                ForEach(0 ..< count, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: M22BoardMetrics.cardRadius)
+                        .fill(ColorToken.f3.color)
+                        .frame(height: M22BoardMetrics.harnessSkeletonHeight)
+                        .measured(
+                            "skeleton-card-\(index)", role: "skeleton-card",
+                            tokens: ["background": .f3]
+                        )
+                }
+            }
+            .measured("harness-skeleton", role: "skeleton", kind: .vstack)
+            .accessibilityHidden(true)
         }
     }
 

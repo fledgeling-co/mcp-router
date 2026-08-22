@@ -333,6 +333,7 @@
             "app/Sources/MCPRouterUI/Boards/HarnessesBoard.swift",
             "app/Sources/MCPRouterUI/Boards/HarnessesBoardModel.swift",
             "app/Sources/MCPRouterUI/Boards/HarnessesBoardRow.swift",
+            "app/Sources/MCPRouterUI/Boards/HarnessSheets.swift",
             "app/Sources/MCPRouterUI/Boards/InsightsBoard.swift",
             "app/Sources/MCPRouterUI/Boards/InsightsBoardModel.swift",
             "app/Sources/MCPRouterUI/Boards/InsightsBoardCharts.swift",

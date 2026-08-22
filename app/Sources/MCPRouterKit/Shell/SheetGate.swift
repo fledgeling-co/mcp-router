@@ -58,7 +58,9 @@ public enum SheetGate {
             }
         }
 
-        public static func < (lhs: Self, rhs: Self) -> Bool { lhs.reach < rhs.reach }
+        public static func < (lhs: Self, rhs: Self) -> Bool {
+            lhs.reach < rhs.reach
+        }
     }
 
     /// The four gate shapes the brief's table actually uses.

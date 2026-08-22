@@ -129,6 +129,7 @@
             }
             return sheet
         }
+
         public private(set) var focusSearchRequests: Int = 0
         public private(set) var writeError: ControlAPIError?
 

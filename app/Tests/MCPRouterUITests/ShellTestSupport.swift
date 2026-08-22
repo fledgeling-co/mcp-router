@@ -280,6 +280,7 @@
             "app/Sources/MCPRouterUI/Boards/InboxBoard.swift",
             "app/Sources/MCPRouterUI/Boards/InboxBoardRow.swift",
             "app/Sources/MCPRouterUI/Boards/InboxBoardModel.swift",
+            "app/Sources/MCPRouterUI/Boards/InboxBoardModel+Sheet.swift",
             // I6's arrival half, on the same board.
             "app/Sources/MCPRouterUI/Boards/InboxBoardModel+Arrivals.swift",
             "app/Sources/MCPRouterUI/Boards/InboxBoardMetrics.swift",

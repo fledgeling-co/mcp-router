@@ -54,7 +54,9 @@
             #expect(
                 headerBody.contains("model.request(.resetCallHistory)"),
                 """
-                the header's reset action opens nothing. M18 routed it through SheetGate rather                 than assigning the sheet directly, so this reads the request; the sheet it opens                 is asserted at the model seam in SheetGateRoutingTests
+                the header's reset action opens nothing. M18 routed it through SheetGate \
+                rather than assigning the sheet directly, so this reads the request; the \
+                sheet it opens is asserted at the model seam in SheetGateRoutingTests
                 """
             )
         }

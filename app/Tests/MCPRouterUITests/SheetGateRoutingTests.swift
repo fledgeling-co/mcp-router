@@ -22,7 +22,7 @@
         // MARK: - Accept held schema changes → quarantine
 
         @Test("accepting held changes opens the sheet the gate names, on the server it names")
-        func acceptHeldChangesOpensQuarantine() async {
+        func acceptHeldChangesOpensQuarantine() {
             let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
             let board = ServersBoardModel(client: FixtureControlAPIClient(.populated), tracker: tracker)
 
@@ -37,7 +37,7 @@
         // MARK: - Remove an installed capability → confirm-remove, on both its hosts
 
         @Test("removing a server from Servers opens confirm-remove")
-        func removeFromServersOpensConfirmRemove() async {
+        func removeFromServersOpensConfirmRemove() {
             let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
             let board = ServersBoardModel(client: FixtureControlAPIClient(.populated), tracker: tracker)
 
@@ -49,7 +49,7 @@
         }
 
         @Test("removing a capability from Cleanup opens confirm-remove too — one kind, two hosts")
-        func removeFromCleanupOpensConfirmRemove() async {
+        func removeFromCleanupOpensConfirmRemove() {
             let board = CleanupBoardModel(client: FixtureControlAPIClient(.populated))
 
             board.request(.removeInstalledCapability, subject: "ai-elements")
@@ -82,14 +82,14 @@
         // MARK: - Reset the call history → reset-history, on both its hosts
 
         @Test("resetting the call history opens its sheet from Cleanup")
-        func resetHistoryFromCleanup() async {
+        func resetHistoryFromCleanup() {
             let board = CleanupBoardModel(client: FixtureControlAPIClient(.populated))
             board.request(.resetCallHistory)
             #expect(board.sheet == .resetHistory)
         }
 
         @Test("resetting the call history opens its sheet from Activity")
-        func resetHistoryFromActivity() async {
+        func resetHistoryFromActivity() {
             let model = ActivityModel(
                 client: FixtureControlAPIClient(.populated),
                 source: nil,
@@ -102,7 +102,7 @@
         // MARK: - The rows whose gate is not a sheet
 
         @Test("the reversible action opens nothing — undo over confirm, not a dialog")
-        func tripBreakerOpensNothing() async {
+        func tripBreakerOpensNothing() {
             let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
             let board = ServersBoardModel(client: FixtureControlAPIClient(.populated), tracker: tracker)
 
@@ -111,7 +111,7 @@
         }
 
         @Test("an open sheet survives a request whose gate is not a sheet")
-        func ungatedRequestDoesNotCloseAnOpenSheet() async {
+        func ungatedRequestDoesNotCloseAnOpenSheet() {
             let tracker = ServerStateTracker(client: FixtureControlAPIClient(.populated))
             let board = ServersBoardModel(client: FixtureControlAPIClient(.populated), tracker: tracker)
 
@@ -135,7 +135,7 @@
         // MARK: - The sheet a board can hold
 
         @Test("Discover's official sheet opens without a row, because it is a definition")
-        func officialMarkNeedsNoSubject() async {
+        func officialMarkNeedsNoSubject() {
             let board = DiscoverBoardModel(client: FixtureControlAPIClient(.populated))
 
             board.sheet = .officialMark
@@ -146,7 +146,7 @@
         }
 
         @Test("closing a Discover sheet clears both the mark and the entry, so neither leaks")
-        func closingDiscoverClearsBoth() async {
+        func closingDiscoverClearsBoth() {
             let board = DiscoverBoardModel(client: FixtureControlAPIClient(.populated))
 
             board.sheet = .registryEntry(id: "github")
@@ -157,7 +157,7 @@
         }
 
         @Test("closing the pairing sheet stops the ticker rather than only clearing a flag")
-        func closingPairingStopsTheTicker() async {
+        func closingPairingStopsTheTicker() {
             let board = InboxBoardModel(
                 client: FixtureControlAPIClient(.populated),
                 service: FixtureInboxService(.paired)

@@ -19,7 +19,8 @@ import Foundation
 /// manifest holding only what the fire had in hand. The line number moved from `:253` to `:292`
 /// when R17's comment block below grew; the code did not move.
 ///
-/// **The divergence this creates is declared, not measured.** On a fixture that overlaps a second
+/// **The divergence this creates is declared, not lane-held.** It was measured once, by R17's
+/// verifier and outside any lane. On a fixture that overlaps a second
 /// writer this indexer keeps both rows and the reference keeps one. `scripts/acceptance/parity-cli.sh`
 /// runs the two binaries sequentially over separate scratch homes, so no scenario it can hold
 /// reaches the property; it is declared in `planning/parity/surface.tsv`'s `cli-watch` note, scoped

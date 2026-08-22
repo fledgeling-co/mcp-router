@@ -46,7 +46,7 @@ it runs the binaries **sequentially**. Whatever is decided here has to be declar
 
 **Declared 2026-08-22 by R17's gap-fix pass**, in `surface.tsv`'s `cli-watch` note and at the head
 of `WatchIndexing.swift`. The declaration is scoped to the **watch save alone** — `src/watch.ts:292`
-against `WatchIndexing.swift:186` — and covers none of the other four `saveManifest` sites
+against `WatchIndexing.swift:187` — and covers none of the other four `saveManifest` sites
 (`src/index.ts:146` and `:186`, `src/control.ts:262` and `:432`). Those four still carry the same
 read-then-save window on both sides, undeclared and unmeasured. Acceptance 2 below is unchanged:
 declaring the divergence is not seeing it, and only a scenario that overlaps a writer can.

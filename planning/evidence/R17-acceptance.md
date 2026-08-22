@@ -312,13 +312,13 @@ genuinely *did* overlap a writer would redden this row on a divergence older tha
 wrong instrument for a records pass to reach for.
 
 **What the declaration covers, and what it does not.** It is scoped to the watch save alone —
-`src/watch.ts:292` against `WatchIndexing.swift:186`. It does **not** cover the other four
+`src/watch.ts:292` against `WatchIndexing.swift:187`. It does **not** cover the other four
 `saveManifest` call sites: `src/index.ts:146` and `:186` on the `index` verb, and `src/control.ts:262`
 and `:432` on the control API. None is declared and none is measured.
 
 **"Five" is the reference's count, and the two inventories are not a pairing.** node has five
 `saveManifest` call sites; this router has **three** `ManifestIO.save` sites — `AuthRoutes.swift:120`,
-`ServicePorts.swift:391` and `WatchIndexing.swift:186` — so the declared pair is one of five against
+`ServicePorts.swift:391` and `WatchIndexing.swift:187` — so the declared pair is one of five against
 one of three, and the remaining four and two are uncovered on their own terms rather than as
 twins. The second reader caught the count being quoted as though it spanned both. The repo already has this guard for the config writer and states it
 in those words — `ImportConfigWriterLockTests.swift`'s *W11 — the read happens inside the lock, so a
@@ -404,7 +404,7 @@ cited rather than filed. Its cause is F1's, and R18 is where the fix argument li
 
 **F3 — four paths that still leave no record.** Acceptance criterion 1 is unmet for each:
 `watch.ts:200`'s unguarded `JSON.parse` of `servers.json`; a staged entry `parseServer` rejects,
-which gets a `watchLog` line and never reaches `buildManifest`; `WatchIndexing.swift:186`'s
+which gets a `watchLog` line and never reaches `buildManifest`; `WatchIndexing.swift:187`'s
 `try? ManifestIO.save`, which swallows a save failure while the backoff still records one; and
 `watch.ts:292`, where a throwing `saveManifest` propagates before `saveState`, so the backoff is
 never persisted and the next fire retries immediately.
@@ -515,6 +515,7 @@ read `tail` rather than the gate. Logs under `/tmp/r17gf/logs/`.
 | `make test`, run 1 | 0 | 1686 tests in 210 suites | `z-make-test-1.log` |
 | `make test`, run 2 | **2** | **one known flake, see below** | `z-make-test-2.log` |
 | `make test`, run 2 re-run | 0 | 1686 tests in 210 suites | `z-make-test-2b.log` |
+| `make test`, after the last wording edit | 0 | 1686 tests in 210 suites | `y-make-test.log` |
 | `make lint` | 0 | 0 violations, 0 serious in 531 files | `z-make-lint.log` |
 | `make parity` | 0 | 358 vector cases compared (floor 358) | `z-make-parity.log` |
 | `make acceptance-r6` | 0 | examined=6 failures=0 | `z-acceptance-r6.log` |

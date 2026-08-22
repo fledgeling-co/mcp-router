@@ -82,6 +82,32 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+
+## A seventeenth — the control itself becoming a corpus hit, found by G5's gap-fix
+
+R17's gap-fix 4 established that **a report echoing what it matched becomes a corpus hit**. G5's
+gap-fix hit the same shape one layer in, and it is worse because it defeats the thing that catches
+the first:
+
+> its wrap control was **quoted, unwrapped, in the very document it guarded**, so `grep -Fc` found
+> it and the control collapsed.
+
+A wrap control exists to prove the sweep can see a phrase split across a line break. Quote that
+control's text — unwrapped — inside the document being swept, and the naive matcher finds the
+quotation instead of the wrapped instance. The control then passes for the wrong reason, and it
+passes *silently*, because a control that fires is indistinguishable from a control that fired on
+the wrong thing.
+
+**Two failing runs before it was honest**, and neither was caught by the sweep's own result — the
+same finding as G4's gap-fix and R17's gap-fix 3 before it. What caught it was checking the control
+**two ways**: `grep -Fc` must return **0** on each wrap control while the sweep returns **1**. A
+control asserted to work is not a control; a control shown to fail the naive matcher and pass the
+real one is.
+
+That pairing is the generalisable part and it is cheap: **every control over a text corpus needs a
+negative half, and the negative half has to be run.** Three of this table's seventeen instances
+would have been caught on their first run by it.
+
 ## Two more from R17's gap-fix 4, and the second one is a technique rather than a defect
 
 **Sixteenth — a total that disagrees with the table beneath it.** R17's fourth verification reported

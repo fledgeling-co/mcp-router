@@ -69,7 +69,8 @@ public struct FixtureCapabilityDocumentSource: CapabilityDocumentSource {
                 version: "1.4.2",
                 publisher: "Fledgeling",
                 publisherIsVerified: true,
-                pitch: "Mine your own past agent sessions for evidence about what happened."
+                pitch: "Mine your own past agent sessions for evidence about what happened.",
+                repository: URL(string: "https://github.com/fledgeling-co/fledgeling-plugins")
             ),
             // The mock's five cells. Every one of them is a fact about the *package*, which is
             // what a document source would have to serve alongside the files — they are here for

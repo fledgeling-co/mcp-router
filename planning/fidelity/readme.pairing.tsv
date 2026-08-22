@@ -1,0 +1,80 @@
+# planning/fidelity/readme.pairing.tsv — which build node answers which mock affordance.
+#
+# Four tab-separated columns:  state <TAB> affordance <TAB> node <TAB> citation
+#
+# This file declares ONLY the pairing. `present`, `divergent`, `absent` and `unclassified` are
+# computed by scripts/acceptance/mock_fidelity.py from the two artifacts on every run, which is
+# what makes `present` earned by measuring rather than asserted. Deleting a line here does not
+# delete a row from the ledger: the mock side is derived from the mock every run, so an affordance
+# with no line becomes `absent`, which is a finding.
+#
+#   node = -            the affordance has no counterpart in this run
+#   affordance = +path  a BUILD node with no mock peer, and the citation saying why
+#
+# EVERY CITATION OPENS WITH `Dn · `, naming the divergence in readme.layers.json it falls under —
+# settings.pairing.tsv's rule, adopted here for its reason: an allowance list that does not
+# adjudicate its own findings teaches the next reader that it is not authoritative. The numbers
+# reach the generated ledger's citation column, so the split is countable off the run's own
+# artifact rather than off this file.
+#
+# THE SINGLE FACT THAT DECIDES MOST OF THIS FILE: the mock keeps the read me, the changelog and the
+# capability list in the DOM at once and toggles `hidden`, so the census inventories all three; a
+# tab renders one. Twenty-four rows below are the changelog's and the capability list's, and every
+# one of them cites D1.
+
+ideal	sh-readme/button/read-me	readme.ideal/readme-sheet/sheet-titlebar/tab-readMe
+ideal	sh-readme/button/changelog	readme.ideal/readme-sheet/sheet-titlebar/tab-changelog
+ideal	sh-readme/button/capabilities	readme.ideal/readme-sheet/sheet-titlebar/tab-capabilities
+ideal	sh-readme/icon/unlabelled	readme.ideal/readme-sheet/product-header/verified-mark
+ideal	sh-readme/button/what-changed	-	D2 · planning/features-to-triage/M18-sheets-and-gates.md owns the sheet inventory and the install flow; CapabilityDocumentSheet.actions is the seam and the measured render supplies none, because a press that does nothing is the honesty rule pointed outward
+ideal	sh-readme/button/install	-	D2 · planning/features-to-triage/M18-sheets-and-gates.md owns the sheet inventory and the install flow; CapabilityDocumentSheet.actions is the seam and the measured render supplies none, because a press that does nothing is the honesty rule pointed outward
+ideal	sh-readme/badge/marketplace-fledgeling	readme.ideal/readme-sheet/sheet-body/block-0-shields/badge-0
+ideal	sh-readme/badge/version-1-4-2	readme.ideal/readme-sheet/sheet-body/block-0-shields/badge-1
+ideal	sh-readme/badge/checks-12-of-12	readme.ideal/readme-sheet/sheet-body/block-0-shields/badge-2
+ideal	sh-readme/badge/licence-mit	readme.ideal/readme-sheet/sheet-body/block-0-shields/badge-3
+ideal	sh-readme/heading/trawl	readme.ideal/readme-sheet/sheet-body/block-1-heading1
+ideal	sh-readme/sentence/mine-your-own-past-agent-sessions-for-evidence-a	readme.ideal/readme-sheet/sheet-body/block-2-paragraph
+ideal	sh-readme/callout/built-because-i-know-i-asked-for-this-three-week	readme.ideal/readme-sheet/sheet-body/block-3-blockquote
+ideal	sh-readme/heading/what-it-reads	readme.ideal/readme-sheet/sheet-body/block-4-heading2
+ideal	sh-readme/column-header/harness	readme.ideal/readme-sheet/sheet-body/block-5-table/column-0
+ideal	sh-readme/column-header/store	readme.ideal/readme-sheet/sheet-body/block-5-table/column-1
+ideal	sh-readme/column-header/format	readme.ideal/readme-sheet/sheet-body/block-5-table/column-2
+ideal	sh-readme/heading/use	readme.ideal/readme-sheet/sheet-body/block-6-heading2
+ideal	sh-readme/codeblock/trawl-parity-gate-since-2026-08-01-harness-claud	readme.ideal/readme-sheet/sheet-body/block-7-codeFence
+ideal	sh-readme/heading/flags-worth-knowing	readme.ideal/readme-sheet/sheet-body/block-8-heading3
+ideal	sh-readme/row/decisions-only-turns-where-something-was-settled	readme.ideal/readme-sheet/sheet-body/block-9-unorderedList/item-0
+ideal	sh-readme/row/verbatim-return-the-original-text-rather-than-a-	readme.ideal/readme-sheet/sheet-body/block-9-unorderedList/item-1
+ideal	sh-readme/row/since-until-dates-are-read-in-your-own-timezone	readme.ideal/readme-sheet/sheet-body/block-9-unorderedList/item-2
+ideal	sh-readme/heading/what-it-will-not-do	readme.ideal/readme-sheet/sheet-body/block-10-heading2
+ideal	sh-readme/row/read-a-session-store-outside-the-paths-listed-ab	readme.ideal/readme-sheet/sheet-body/block-11-orderedList/item-0
+ideal	sh-readme/row/write-to-any-of-them	readme.ideal/readme-sheet/sheet-body/block-11-orderedList/item-1
+ideal	sh-readme/row/send-an-excerpt-anywhere-summarising-runs-throug	readme.ideal/readme-sheet/sheet-body/block-11-orderedList/item-2
+ideal	sh-readme/sentence/mit-licensed-attribution-appreciated-not-require	readme.ideal/readme-sheet/sheet-body/block-14-paragraph
+ideal	sh-readme/heading/changelog	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/heading/1-5-0-18-aug-2026-available	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/row/reads-codex-s-sqlite-store-directly-rather-than-	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/row/decisions-now-recognises-a-decision-recorded-as-	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/row/fixes-a-crash-on-a-truncated-final-line-which-ha	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/sentence/capability-change-none-this-version-promotes-its	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/heading/1-4-2-17-aug-2026-installed	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/row/date-filters-honour-the-local-timezone-instead-o	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/row/zero-matches-is-reported-as-zero-rather-than-as-	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/heading/1-4-0-9-aug-2026	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/row/grok-session-store-added	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/row/check-suite-grew-from-11-to-12	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/heading/1-3-6-28-jul-2026	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/row/first-release-with-a-check-suite	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/heading/capabilities	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/sentence/what-this-skill-can-reach-in-plain-language-befo	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/column-header/capability	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/column-header/scope	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/column-header/changed-at	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/callout/a-capability-table-is-the-thing-trust-decays-aga	-	D1 · design/mcp-router-console.html:4029-4071 — the mock keeps all three tab bodies in the DOM with `hidden` deciding which is visible; a tab renders the selected document only, so this run measures the tab the titlebar has selected
+ideal	sh-readme/button/open-on-github	readme.ideal/readme-sheet/sheet-foot/open-repository	D7 · the destination is whatever the capability declared and this app has not checked that it is GitHub; CapabilityDocumentSheet.openLabel says what it does instead
+ideal	sh-readme/button/close	readme.ideal/readme-sheet/sheet-foot/close
+ideal	sh-readme/button/update-to-1-5-0	-	D2 · planning/features-to-triage/M18-sheets-and-gates.md owns the sheet inventory and the install flow; CapabilityDocumentSheet.actions is the seam and the measured render supplies none, because a press that does nothing is the honesty rule pointed outward
+ideal	+readme.ideal/readme-sheet/product-header	-	D5 · the product header arrived in the mock at 6c513b0 as a `.prodhead` of spans and buttons; the census classifies none of them, so the header the build draws answers no affordance while reproducing the mock exactly
+ideal	+readme.ideal/readme-sheet/product-facts	-	D5 · the five-cell `.prodfacts` strip is divs, which the census does not classify; spec-M19.md §2's second assumption gives it to this item
+ideal	+readme.ideal/readme-sheet/sheet-body/block-12-image	-	D4 · design/mcp-router-console.html:4013-4018 draws a hand-authored <polyline>; a Markdown document cannot express one, and the brief resolves an image from inside the package
+ideal	+readme.ideal/readme-sheet/sheet-body/block-13-rule	-	D6 · the mock draws `<hr>`, which is not one of the M23 brief's declared affordance words, so the census classifies neither side
+ideal	+readme.ideal/readme-sheet/sheet-body/block-3-blockquote/block-300-paragraph	-	D3 · the mock's blockquote is one element carrying its text; the build parses the quote's contents as blocks in their own right, so its paragraph is a node the mock has no peer for

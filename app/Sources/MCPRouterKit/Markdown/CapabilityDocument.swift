@@ -55,19 +55,27 @@ public struct CapabilityDocument: Equatable, Sendable {
         /// Whether the marketplace this came from marks the publisher as official.
         public var publisherIsVerified: Bool
         public var pitch: String
+        /// Where the capability says it lives, and only when it is `https`.
+        ///
+        /// Filtered at construction rather than at the press, so no view holds a URL this app would
+        /// not open — the same rule `MarkdownInline` applies to a link inside the body, and the same
+        /// one `DiscoverDetailSheet` applies to a registry entry's repository.
+        public let repository: URL?
 
         public init(
             name: String,
             version: String? = nil,
             publisher: String,
             publisherIsVerified: Bool = false,
-            pitch: String
+            pitch: String,
+            repository: URL? = nil
         ) {
             self.name = name
             self.version = version
             self.publisher = publisher
             self.publisherIsVerified = publisherIsVerified
             self.pitch = pitch
+            self.repository = repository.flatMap { MarkdownInline.isPermittedLink($0) ? $0 : nil }
         }
     }
 

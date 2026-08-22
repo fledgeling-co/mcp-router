@@ -60,15 +60,27 @@ ALLOWED_OPTIONAL = {"font-weight-face"}
 # It covers the six mock kinds the one filled ledger pairs. The other eleven the census can derive
 # have no entry, so the first surface to pair one reads it as a finding until the pairing is
 # vouched — `D-m23-h` in ORCHESTRATOR.md's deferred register.
+# M19 is the first surface to pair five of the eleven, which is the case `D-m23-h` names: a
+# pairing this table has never seen reads `unclassified` until somebody adds it deliberately. The
+# additions are a document's own vocabulary — a heading answered by a heading, a `<li>` answered by
+# a list item, a `<th>` by a column header, a `<pre>` by a scrolling code block, a `<blockquote>` by
+# a quote, and a `<span class="shield">` by the badge the app re-draws from it. Each is a mock kind
+# and a build role that genuinely do the same job, and none of them lets a build role vouch for
+# itself by spelling the mock's kind — `heading`/`heading` is listed because the ROLE and the
+# structural KIND together are what the table constrains, and a `heading` that reported itself an
+# `hstack` still reads unclassified.
 VOUCHED_CONTROLS: dict[str, set[tuple[str, str]]] = {
-    "heading": {("board-title", "text"), ("state-title", "text")},
-    "sentence": {("board-subtitle", "text"), ("state-detail", "text")},
-    "button": {("primary-action", "leaf"), ("state-action", "leaf")},
+    "heading": {("board-title", "text"), ("state-title", "text"), ("heading", "text")},
+    "sentence": {("board-subtitle", "text"), ("state-detail", "text"), ("sentence", "text")},
+    "button": {("primary-action", "leaf"), ("state-action", "leaf"), ("tab", "leaf")},
     "card": {("table", "vstack")},
-    "icon": {("state-illustration", "leaf")},
-    "row": {("table-row", "hstack")},
+    "icon": {("state-illustration", "leaf"), ("verified-mark", "leaf")},
+    "row": {("table-row", "hstack"), ("list-item", "hstack")},
     "column-header": {("column-header", "text")},
     "skeleton-row": {("skeleton-row", "hstack")},
+    "badge": {("badge", "hstack")},
+    "codeblock": {("codeblock", "scroll")},
+    "callout": {("callout", "hstack")},
 }
 
 # The same table read backwards: which mock kinds a build role may be answering. It is what lets the
@@ -1060,6 +1072,17 @@ class Context:
         self.extra_allowed: dict[str, dict[str, str]] = {}
         self.breadth_rows: list[tuple] = []
 
+    def frame(self, state: str) -> str:
+        """Which element inside the section holds this state, as `mock-affordances.py` selects it.
+
+        `v-<state>` by default, which is every board and the Settings window. A manifest may
+        override per state with `stateFrames`, and a value beginning with `#` is an id rather than
+        a class. The override exists because a SHEET has no `.v-*` frame: `#sh-readme` carries its
+        whole state in one element, so without it the census exits 3 and the surface cannot be
+        measured at all. Manifests carrying no `stateFrames` are byte-identical in behaviour.
+        """
+        return self.manifest.get("stateFrames", {}).get(state, f"v-{state}")
+
     def load(self) -> None:
         for state in self.states:
             path = os.path.join(self.dump_dir, f"{self.surface}.{state}.json")
@@ -1069,7 +1092,7 @@ class Context:
 
             result = run([
                 sys.executable, os.path.join(ROOT, "scripts/acceptance/mock-affordances.py"),
-                os.path.join(ROOT, self.manifest["mock"]), self.section, f"v-{state}",
+                os.path.join(ROOT, self.manifest["mock"]), self.section, self.frame(state),
             ])
             if result.returncode != 0:
                 raise Inconclusive(f"inventory[{state}]: {result.stderr.strip() or result.stdout.strip()}")

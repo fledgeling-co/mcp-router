@@ -23,6 +23,9 @@ import Foundation
     enum Surface: String, CaseIterable {
         case servers
         case settings
+        /// M19's capability document panel. Rendered from the fixture package, because nothing
+        /// serves a document — see `CapabilityDocumentSource`.
+        case readme
     }
 
     /// The drawn state to render it in.
@@ -188,6 +191,19 @@ import Foundation
                     ServersBoard(
                         shell: shell,
                         board: ServersBoardModel(client: client, tracker: shell.tracker)
+                    )
+                case .readme:
+                    // Rendered from the fixture package rather than from the shell's client: this
+                    // panel's content does not come over the control API at all, because the
+                    // control API serves no document. `FixtureCapabilityDocumentSource.build()`
+                    // returns nil only when the resource bundle is missing its files, which is a
+                    // packaging failure — reported as the unavailable state rather than as a
+                    // capability that published nothing, so a broken build cannot read as a
+                    // product state.
+                    CapabilityDocumentSheet(
+                        content: FixtureCapabilityDocumentSource.build()
+                            .map(CapabilityDocumentSheet.Content.document)
+                            ?? .unavailable(.notFound(capability: "trawl"))
                     )
                 case .settings:
                     // The **in-memory** token store, not the default keychain one: this is an

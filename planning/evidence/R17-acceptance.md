@@ -469,11 +469,11 @@ durable and merely unread — both comment blocks now say that instead.
   absent key left blank — a wrong reason on `/servers` under a name collision — and that is R20,
   which this document files as a regression rather than defends.
 - *"Scoping the declaration to the watch save leaves `index.ts` — the writer in R19's own
-  reproduction — undeclared."* Correct as a fact and already stated: the declaration names all four
-  uncovered sites, `src/index.ts` among them. It is the right scope for this row because
-  `cli-watch` speaks for the `watch` verb, and in the demonstrated race `index.ts` is the writer
-  that gets **clobbered** while `watch.ts` is the one that clobbers. Declaring the clobberer under
-  the verb that owns it, and naming the rest as uncovered, is what R19 is for.
+  reproduction — undeclared."* Correct as a fact and already stated: the declaration names all six uncovered sites, `src/index.ts` among them.
+  It is the right scope for this row because `cli-watch` speaks for the `watch` verb, and in the
+  demonstrated race `index.ts` is the writer that gets **clobbered** while `watch.ts` is the one
+  that clobbers. Declaring the clobberer under the verb that owns it, and naming the rest as
+  uncovered, is what R19 is for.
 
 **The second reader then broke the corrections themselves.** Nine findings; six taken and folded
 above, and they are the sharper half of this pass:
@@ -644,8 +644,8 @@ so the merge does not owe the ledger anything.
   alike. Only agy is genuinely out of family; the Fable lane is a second Claude. Codex is down until
   27 August and the grok balance is exhausted, which is why.
 - **BL-2 is declared, not covered.** Nothing in this repository measures the Swift/node manifest
-  read window, and the declaration says which one save it covers and which four it does not. A
-  verifier who wants it measured needs a scenario that overlaps a writer, which is R19's
+  read window, and the declaration says which one save on each side it covers and which six it does not.
+  A verifier who wants it measured needs a scenario that overlaps a writer, which is R19's
   acceptance 2 and would redden `cli-watch` on a divergence older than R17.
 - **VER-R17-7: the node row-keep has no unit test, and the repo has nowhere to put one.**
   `package.json` carries `build`, `start` and `dev` and nothing else — there is **no TypeScript test

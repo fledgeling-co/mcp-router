@@ -34,12 +34,51 @@
             }
         }
 
-        @Test("⌘, selects Settings — the destination, not a further view")
-        func settingsSelectsTheDestination() {
-            #expect(ShellCommandRouter.operation(for: .settings) == .select(.settings))
-            // §3.4: no ellipsis means the command commits now. The two must agree, and this is the
+        /// **M8's clause, re-pointed rather than deleted.** It read `⌘, selects Settings — the
+        /// destination, not a further view`, and `ShellCommandRouter`'s own comment named this as the
+        /// line M8 would change. M15 changed it: Settings is a scene, so the command opens a further
+        /// view and the title carries the ellipsis §3.4 requires for one.
+        @Test("⌘, opens the Settings scene, and its title promises a further view")
+        func settingsOpensTheScene() {
+            #expect(ShellCommandRouter.operation(for: .settings) == .openSettingsScene)
+            #expect(MenuCommand.settings.title == "Settings…")
+            // §3.4: the ellipsis means "opens a further view". The two must agree, and this is the
             // one command where they could plausibly disagree.
-            #expect(MenuCommand.settings.opensAFurtherView == false)
+            #expect(MenuCommand.settings.opensAFurtherView)
+        }
+
+        /// **The arm is not a no-op, and this is what proves it.**
+        ///
+        /// An earlier draft of this item made `perform(.settings, …)` do nothing, on the reasoning
+        /// that `SettingsLink` performs the actuation and the operation need only keep the mapping
+        /// falsifiable. An arm that does nothing cannot fail, and the test over it would assert that
+        /// a command maps to inaction — so the opener is injected instead, from the one place that
+        /// can reach `@Environment(\.openSettings)`, and the clause is behavioural.
+        @Test("performing the settings command fires the opener the window installed")
+        func performOpensTheSettingsScene() throws {
+            let opened = Recorder()
+            ShellCommandRouter.provideSettingsOpener { opened.fire() }
+            defer { ShellCommandRouter.provideSettingsOpener {} }
+
+            ShellCommandRouter.perform(.settings, on: nil)
+            #expect(opened.count == 1, "⌘, reached an arm that does nothing")
+
+            // It does not need a focused window, which is the point: the scene is the app's, not one
+            // window's, and a settings window that only opened while the console had focus would be
+            // unreachable from the menu-bar popover.
+            let model = try ShellTestSupport.model(.populated)
+            ShellCommandRouter.perform(.settings, on: model)
+            #expect(opened.count == 2)
+            #expect(model.selection == .activity, "opening Settings moved the console's selection")
+        }
+
+        /// A counter a closure can bump. `@MainActor` throughout, so no lock is needed.
+        @MainActor
+        final class Recorder {
+            private(set) var count = 0
+            func fire() {
+                count += 1
+            }
         }
 
         @Test("⌃⌘S toggles the sidebar rather than selecting anything")
@@ -148,8 +187,8 @@
             // what the toolbar shows. The running app's half of A23 checks the rendered string.
             #expect(model.selection.title == "Servers")
 
-            ShellCommandRouter.perform(.settings, on: model)
-            #expect(model.selection == .settings)
+            // `.settings` is deliberately absent here now: it opens a scene rather than moving a
+            // selection, and `performOpensTheSettingsScene` above is where that is asserted.
         }
 
         @Test("performing the sidebar command toggles visibility both ways")

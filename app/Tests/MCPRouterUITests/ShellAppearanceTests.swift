@@ -275,8 +275,13 @@
                 }
                 // And nothing else: a second `ForEach` over something dynamic would sit under the
                 // same exemption and inherit a pass it has not earned.
+                //
+                // **The count is `iterated.count` now and was `iterated.count + 1`.** The extra one
+                // was the ungrouped tail's `ForEach(Destination.inGroup(nil))`, which M15 deleted
+                // along with the Settings destination it held; `Destination.inGroup(` is still
+                // iterated, once, inside the group section.
                 #expect(
-                    source.components(separatedBy: "ForEach(").count - 1 == iterated.count + 1,
+                    source.components(separatedBy: "ForEach(").count - 1 == iterated.count,
                     "\(file) gained a ForEach the exemption does not account for"
                 )
             }

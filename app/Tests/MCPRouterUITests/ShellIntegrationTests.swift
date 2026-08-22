@@ -223,6 +223,36 @@
             )
         }
 
+        /// The same pin for M15's `Settings/`, and it reads **two** directories.
+        ///
+        /// `contentsOfDirectory` is not recursive and the seven panes have a subdirectory of their
+        /// own, so a pin over `Settings/` alone would have reported the directory covered while
+        /// `Settings/Panes/` sat outside the one-channel grep, the raw-design-value scan, the
+        /// indicator-hue declaration and the entry-motion guard — the same escape this file's other
+        /// two pins were written about, one level down.
+        @Test("the settings file list this suite scans is the whole of what is on disk")
+        func settingsFileListIsComplete() throws {
+            let root = try ShellTestSupport.repoRoot()
+            var onDisk: [String] = []
+            for directory in ["Settings", "Settings/Panes"] {
+                let url = root.appendingPathComponent("app/Sources/MCPRouterUI/\(directory)")
+                onDisk += try FileManager.default
+                    .contentsOfDirectory(atPath: url.path)
+                    .filter { $0.hasSuffix(".swift") }
+            }
+            let listed = ShellTestSupport.settingsFiles
+                .map { URL(fileURLWithPath: $0).lastPathComponent }
+            #expect(
+                onDisk.sorted() == listed.sorted(),
+                """
+                a settings file exists that the source-level gates never look at: \
+                \(onDisk.sorted()) vs \(listed.sorted())
+                """
+            )
+            // An empty read is a broken pin, never an empty directory: this window is ten files.
+            #expect(onDisk.count >= 10)
+        }
+
         /// The same pin for `Activity/`, and it is the one that was actually missing.
         ///
         /// `activityFiles` did not exist at all: `Activity/` was outside every source-level gate,

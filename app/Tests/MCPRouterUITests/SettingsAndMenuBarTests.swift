@@ -9,18 +9,46 @@
     @MainActor
     @Suite("M8 — settings, menu bar, quarantine route")
     struct SettingsAndMenuBarTests {
-        // MARK: - A1 · the board is installed
+        // MARK: - A1 · the surface exists — as a scene now, not as a board
 
-        /// A board that exists but is not registered still shows the user a placeholder, so this is
-        /// the line between "the view compiles" and "the item shipped".
-        @Test("Settings has a board")
-        func settingsIsInstalled() {
-            #expect(BoardRegistry.installed.contains(.settings))
-            #expect(BoardRegistry.hasBoard(.settings))
-            // The `ScaffoldedDestination(.settings) == nil` line that used to sit here went with the
-            // type, which M6 deleted when the last board landed. The complement below is what
-            // survives of it and is still capable of being false.
-            #expect(!BoardRegistry.scaffolded.contains(.settings))
+        /// **Re-pointed at M15 rather than deleted, so M8's clause keeps an evidence lane in its new
+        /// form.** It read `BoardRegistry.installed.contains(.settings)`, which was the line between
+        /// "the view compiles" and "the item shipped" while Settings was a board. There is no such
+        /// destination now, so the equivalent line is the scene being declared and the app-menu item
+        /// being the one control that can open it.
+        @Test("Settings ships as a scene, and the app menu opens it through a SettingsLink")
+        func settingsShipsAsAScene() throws {
+            let app = try ShellTestSupport.repoFile("app/MCPRouter/MCPRouterApp.swift")
+            #expect(
+                app.contains("Settings {"),
+                "no `Settings` scene is declared — ⌘, would open nothing"
+            )
+            #expect(app.contains("SettingsWindow(model: model, buildIdentity:"))
+            #expect(
+                app.contains("SettingsCommandItem(.settings)"),
+                "the app-menu item is not the SettingsLink wrapper"
+            )
+
+            // The half a grep cannot see: the actuation is a `SettingsLink`, which is the one
+            // supported route from a `Commands` builder to a `Settings` scene.
+            let item = try ShellTestSupport.repoFile(
+                "app/Sources/MCPRouterUI/Shell/SettingsCommandItem.swift"
+            )
+            #expect(item.contains("SettingsLink {"))
+            #expect(
+                !item.contains("Button(command.title"),
+                "a hand-rolled button cannot open a Settings scene from outside a scene"
+            )
+        }
+
+        /// And the destination is gone in both directions, which is what proves the removal was
+        /// complete rather than partial.
+        @Test("no destination and no board is named Settings any more")
+        func settingsIsNoLongerADestination() {
+            #expect(!Destination.allCases.contains { $0.title == "Settings" })
+            #expect(!Destination.allCases.contains { $0.rawValue == "settings" })
+            #expect(BoardRegistry.installed == Set(Destination.allCases))
+            #expect(BoardRegistry.installed.count == 7)
         }
 
         // MARK: - A15 · the menu-bar preference survives a relaunch
@@ -158,7 +186,7 @@
         @Test("home is derived from the token file's directory, not from the response")
         func homeComesFromTheTokenFile() {
             let file = RouterTokenFile(url: URL(fileURLWithPath: "/tmp/scratch-home/control.token"))
-            let model = SettingsBoardModel(store: InMemoryTokenStore(), file: file)
+            let model = SettingsWindowModel(store: InMemoryTokenStore(), file: file)
             #expect(model.routerHome.path == "/tmp/scratch-home")
         }
 
@@ -167,7 +195,7 @@
         @Test("a stored token reads as stored, and its value never leaves the store")
         func storedTokenIsReportedWithoutItsValue() async {
             let secret = "sk-live-never-render-this"
-            let model = SettingsBoardModel(store: InMemoryTokenStore(secret))
+            let model = SettingsWindowModel(store: InMemoryTokenStore(secret))
             await model.load(unauthorized: false)
 
             #expect(model.status == .stored)
@@ -178,7 +206,7 @@
 
         @Test("no stored token disables forget, with the reason")
         func absentTokenDisablesForget() async {
-            let model = SettingsBoardModel(store: InMemoryTokenStore())
+            let model = SettingsWindowModel(store: InMemoryTokenStore())
             await model.load(unauthorized: false)
 
             #expect(model.status == .absent)
@@ -188,7 +216,7 @@
 
         @Test("a rejected token is distinguished from an absent one, and forget becomes prominent")
         func rejectedTokenIsItsOwnState() async {
-            let model = SettingsBoardModel(store: InMemoryTokenStore("stale-token"))
+            let model = SettingsWindowModel(store: InMemoryTokenStore("stale-token"))
             await model.load(unauthorized: true)
 
             #expect(model.status == .rejected)
@@ -201,7 +229,7 @@
         @Test("forget deletes the stored token and asks the router for nothing")
         func forgetOnlyDeletesLocally() async throws {
             let store = InMemoryTokenStore("a-token")
-            let model = SettingsBoardModel(store: store)
+            let model = SettingsWindowModel(store: store)
             await model.load(unauthorized: false)
             #expect(model.status == .stored)
 
@@ -213,188 +241,10 @@
 
         @Test("forget does nothing when there is nothing to forget")
         func forgetIsInertWhenAbsent() async {
-            let model = SettingsBoardModel(store: InMemoryTokenStore())
+            let model = SettingsWindowModel(store: InMemoryTokenStore())
             await model.load(unauthorized: false)
             await model.forget()
             #expect(model.status == .absent)
-        }
-
-        // MARK: - A28 · offline loses the router's facts and nothing else
-
-        /// The lines of the group stack in `body`, stripped and without blanks.
-        ///
-        /// The stack is found by its own spacing token rather than by line number, so an edit above
-        /// it does not silently make this read a different block.
-        ///
-        /// **Its closing brace is found at the opener's own indentation, computed rather than
-        /// written down.** This used to search for a literal `"\n" + 20 spaces + "}"`, which made
-        /// the helper robust to edits *above* the stack — as the paragraph above claims — and
-        /// brittle to a change in the stack's own nesting depth, which the claim does not cover.
-        /// D2 removed the redundant `ScrollView` that wrapped this stack; the four groups were
-        /// unchanged, the assertion was still true, and the helper dedented by four spaces, missed
-        /// its terminator, ran on to the next 20-space brace and returned **thirty-six** lines of
-        /// the rest of the file. A28 failed while the property it guards held perfectly.
-        ///
-        /// A slice terminator that encodes how deeply nested the code happens to be today is a
-        /// second, invisible assertion about nesting that nobody wrote and nobody wants.
-        private static func groupStackBody(in source: String) throws -> [String] {
-            let opener = "VStack(alignment: .leading, spacing: SettingsMetrics.groupGap) {"
-            let after = try #require(
-                source.range(of: opener),
-                "the settings pane no longer composes its groups in a groupGap stack"
-            )
-            // The whitespace between the previous newline and the opener — the depth this stack is
-            // written at, whatever that happens to be.
-            let lineStart = source[..<after.lowerBound].lastIndex(of: "\n")
-                .map { source.index(after: $0) } ?? source.startIndex
-            let indent = String(source[lineStart ..< after.lowerBound])
-            let rest = source[after.upperBound...]
-            let close = try #require(rest.range(of: "\n" + indent + "}"), "the stack never closes")
-            return rest[..<close.lowerBound]
-                .components(separatedBy: "\n")
-                .map { $0.trimmingCharacters(in: .whitespaces) }
-                .filter { !$0.isEmpty }
-        }
-
-        /// A28 was true and asserted nowhere, for the same reason A29 was: the four groups sit
-        /// unconditionally in `body`, so an offline router can only empty the *Router* group and can
-        /// never remove Menu bar or Control token. "True by construction" is precisely the property
-        /// a later edit removes without anything objecting — wrapping the token group in
-        /// `if facts != nil` to "tidy up the offline pane" is a one-line change that reads as
-        /// reasonable and silently deletes the only surface for forgetting a rejected credential.
-        ///
-        /// Textual, deliberately, and for the reason A29 gives: this is a claim about how the view
-        /// is *built*. A rendered assertion that the two groups appear while offline cannot tell
-        /// "they are unconditional" from "they happen to be reachable in the one state I drove".
-        @Test("A28 — every group but Router is unconditional, so offline cannot remove one")
-        func offlineKeepsEveryOtherGroup() throws {
-            let source = try ShellTestSupport.repoFile(
-                "app/Sources/MCPRouterUI/Boards/SettingsBoard.swift"
-            )
-            let lines = try Self.groupStackBody(in: source)
-            #expect(
-                lines == ["routerGroup", "menuBarGroup", "warmSetGroup", "tokenGroup"],
-                """
-                The pane's four groups must be four bare properties in spec order. Found: \(lines). \
-                Anything else — an `if`, a `guard`, a group moved inside another — means a router \
-                that is down can take a group with it, which is the partial rule A28 states.
-                """
-            )
-        }
-
-        /// A28's second half: the pane never shows a router value it does not have.
-        ///
-        /// `routerGroup` must test the error **before** the facts, so the two cannot both render.
-        /// Reversing the branches compiles, passes every other test, and draws stale endpoint rows
-        /// beside a banner saying the router never answered.
-        @Test("A28 — the offline branch precedes the facts branch, so neither renders beside the other")
-        func offlineBranchPrecedesFacts() throws {
-            let source = try ShellTestSupport.repoFile(
-                "app/Sources/MCPRouterUI/Boards/SettingsBoard.swift"
-            )
-            let error = try #require(source.range(of: "if let error = offlineError {"))
-            let facts = try #require(source.range(of: "} else if let facts {"))
-            #expect(
-                error.upperBound < facts.lowerBound,
-                "the facts branch must be the `else` of the offline branch, not the other way round"
-            )
-            // And there is exactly one place facts are read, so a second, unguarded one cannot hide
-            // further down the file.
-            #expect(source.components(separatedBy: "else if let facts {").count - 1 == 1)
-        }
-
-        /// The A28 guards' own red-green, kept rather than performed once by hand.
-        @Test("A28's guards can fail")
-        func groupStackGuardCanFail() throws {
-            // **Opener and terminator come from one indent**, the only relationship
-            // `groupStackBody` relies on. This fixture put the opener at column zero and its closer
-            // at a literal depth 20 — consistent only while the helper looked for a fixed brace.
-            let indent = String(repeating: " ", count: 20)
-            let wrapped = indent + "VStack(alignment: .leading, spacing: SettingsMetrics.groupGap) {\n"
-                + indent + "    routerGroup\n"
-                + indent + "    if facts != nil { tokenGroup }\n"
-                + indent + "}"
-            let lines = try Self.groupStackBody(in: wrapped)
-            #expect(lines == ["routerGroup", "if facts != nil { tokenGroup }"])
-            #expect(lines != ["routerGroup", "menuBarGroup", "warmSetGroup", "tokenGroup"])
-
-            // The indent is load-bearing, so it gets its own red-green: the same stack at another
-            // depth must still read correctly — the case the fixed terminator could not survive.
-            let deeper = String(repeating: " ", count: 8)
-            let nested = deeper + "VStack(alignment: .leading, spacing: SettingsMetrics.groupGap) {\n"
-                + deeper + "    routerGroup\n"
-                + deeper + "}"
-            #expect(try Self.groupStackBody(in: nested) == ["routerGroup"])
-
-            // The ordering half: a reversed pair puts `facts` first, and the comparison flips.
-            let reversed = "} else if let facts {\nif let error = offlineError {"
-            let error = try #require(reversed.range(of: "if let error = offlineError {"))
-            let factsRange = try #require(reversed.range(of: "} else if let facts {"))
-            #expect(!(error.upperBound < factsRange.lowerBound))
-        }
-
-        // MARK: - A29 · the skeleton and the populated row are the same height
-
-        /// Every `minHeight:` in a file, as written.
-        ///
-        /// Deliberately textual. A29 is a claim about *how the view is built* — that one frame
-        /// governs both states — and a rendered-height assertion cannot distinguish "both states
-        /// are 32pt because one modifier sets them" from "both states are 32pt today because two
-        /// modifiers happen to agree". The second passes until someone edits one of them.
-        private static func minHeights(in source: String) -> [String] {
-            source
-                .components(separatedBy: "minHeight:")
-                .dropFirst()
-                .map { fragment in
-                    fragment
-                        .prefix { $0 != ")" && $0 != "," && $0 != "\n" }
-                        .trimmingCharacters(in: .whitespaces)
-                }
-        }
-
-        /// A29 was asserted nowhere. It was *true* — `SettingsRow` puts its `.frame(minHeight:)`
-        /// outside the branch that chooses between a value and a skeleton, so the two cannot
-        /// disagree — but "true by construction" is exactly the property that a later edit removes
-        /// without anything objecting, and the clause is typed **T**.
-        ///
-        /// The guard is the count as much as the value: a second `minHeight` in this file is how a
-        /// separate skeleton height would arrive, and it fails here before it can make the pane
-        /// jump at the moment values land.
-        @Test("A29 — one row height governs both the skeleton and the populated row")
-        func skeletonAndPopulatedRowShareOneHeight() throws {
-            let parts = try ShellTestSupport.repoFile(
-                "app/Sources/MCPRouterUI/Boards/SettingsBoardParts.swift"
-            )
-            let heights = Self.minHeights(in: parts)
-            #expect(
-                heights == ["SettingsMetrics.rowHeight"],
-                """
-                SettingsRow must set exactly one row height, from the shared constant. \
-                Found \(heights.count): \(heights). A second one means the skeleton and the \
-                populated row can drift, which is the resize A29 exists to prevent.
-                """
-            )
-
-            // The value the constant carries is derived from tokens, not a literal — the same rule
-            // A31 holds the views to, checked here because this is the one number A29 is about.
-            #expect(
-                SettingsMetrics.rowHeight
-                    == MetricToken.tableRows.leadingScalar + MetricToken.selectionInset.leadingScalar * 2
-            )
-        }
-
-        /// The guard's own red-green, kept as a permanent test rather than performed once by hand.
-        /// A guard that has never been seen to fail is a decoration.
-        @Test("A29's guard can fail")
-        func rowHeightGuardCanFail() {
-            let diverged = """
-            .frame(minHeight: SettingsMetrics.rowHeight)
-            .frame(minHeight: 24)
-            """
-            #expect(Self.minHeights(in: diverged) == ["SettingsMetrics.rowHeight", "24"])
-
-            let single = ".frame(minHeight: SettingsMetrics.rowHeight)"
-            #expect(Self.minHeights(in: single) == ["SettingsMetrics.rowHeight"])
         }
     }
 #endif

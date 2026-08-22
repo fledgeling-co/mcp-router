@@ -9,13 +9,15 @@ struct ShellDestinationTests {
     func groupsAreCorrect() {
         #expect(Destination.inGroup(.running) == [.activity, .servers, .skills])
         #expect(Destination.inGroup(.library) == [.discover, .inbox, .evals, .cleanup])
-        #expect(Destination.inGroup(nil) == [.settings])
-        // Declaration order is sidebar order, and the groups partition it exactly — a destination
-        // in no group and not the tail would silently never render.
+        // Declaration order is sidebar order, and the two groups partition it **exactly**. There is
+        // no ungrouped tail any more — it held Settings alone, and Settings is a window — so this is
+        // now a total partition rather than a partition plus a remainder, which is why `group` is
+        // no longer optional.
         #expect(
-            Destination.inGroup(.running) + Destination.inGroup(.library) + Destination.inGroup(nil)
-                == Destination.ordered
+            Destination.inGroup(.running) + Destination.inGroup(.library) == Destination.ordered
         )
+        #expect(DestinationGroup.allCases.flatMap(Destination.inGroup).count
+            == Destination.allCases.count)
     }
 
     /// `DESIGN.md` §3.2 — sentence case, and the fix for tracked uppercase is to remove it.
@@ -51,7 +53,7 @@ struct ShellDestinationTests {
 
         #expect(Destination.skills.badgeSource == nil, "the control API exposes no skills endpoint")
 
-        for destination in [Destination.activity, .discover, .evals, .settings] {
+        for destination in [Destination.activity, .discover, .evals] {
             #expect(destination.badgeSource == nil, "\(destination.title) has no observed source")
         }
     }
@@ -60,9 +62,22 @@ struct ShellDestinationTests {
     func selectionDigitsAreContiguous() {
         let digits = Destination.ordered.compactMap(\.selectionDigit)
         #expect(digits == [1, 2, 3, 4, 5, 6, 7])
-        // Settings is reached by ⌘, and must not also carry a digit: two shortcuts for one command
-        // teaches two habits for the same thing.
-        #expect(Destination.settings.selectionDigit == nil)
+        // Every destination carries one now, because the one that did not was Settings and Settings
+        // is a window. The digit stays optional on the type so the filter that keeps a digit-less
+        // destination out of the View menu survives; what is asserted here is that nothing is
+        // currently being filtered out silently.
+        #expect(digits.count == Destination.allCases.count)
+    }
+
+    /// **The observation this makes flips at M15 without a line of `restoring` moving**, which is
+    /// what that path was written for. At `4de2080` a stored `"settings"` restored to the Settings
+    /// board, because the case existed; the same stored value now restores to Activity, because the
+    /// `guard let` fails. Anyone who had the Settings board selected when they last quit gets
+    /// Activity, not a blank pane.
+    @Test("a UserDefaults domain holding the retired Settings destination restores to Activity")
+    func retiredSettingsDestinationRestoresToActivity() {
+        #expect(Destination.restoring("settings") == .activity)
+        #expect(!Destination.allCases.contains { $0.rawValue == "settings" })
     }
 
     @Test("a stored destination this build no longer has falls back rather than blanking")

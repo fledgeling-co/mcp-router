@@ -141,26 +141,58 @@ struct SettingsPresentationTests {
         #expect(SettingsPresentation.TokenStatus.unavailable(status: -25300).banner != nil)
     }
 
-    // MARK: - the pane's shape
+    // MARK: - the window's group headers
 
-    @Test("the four groups are the spec's four, in order, in sentence case")
-    func groupsAreTheSpecsFour() {
-        #expect(SettingsPresentation.Group.allCases.map(\.rawValue)
-            == ["Router", "Menu bar", "Warm set", "Control token"])
+    /// **`SettingsPresentation.Group` is gone and this is what replaced it.**
+    ///
+    /// The enum was the Settings *board's* complete inventory of groups, and a window of seven panes
+    /// has no such closed set — the headers now sit on `SettingsPaneCopy` beside the rest of each
+    /// pane's copy. What is still capable of being false, and is what M8's clause was actually
+    /// about, is that all four headers survived the re-housing and are still sentence case.
+    @Test("M8's four group headers all survive the move into the window, in sentence case")
+    func groupHeadersSurviveTheMove() {
+        let headers = [
+            SettingsPaneCopy.routerGroup,
+            SettingsPaneCopy.menuBarGroup,
+            SettingsPaneCopy.warmSetGroup,
+            SettingsPaneCopy.controlTokenGroup
+        ]
+        #expect(headers == ["Router", "Menu bar", "Warm set", "Control token"])
 
         // Sentence case, per §3.2 — the loudest web tell is a tracked upper-case header, and the
         // fix is to remove it rather than re-track it. Asserted as: the first character is
-        // upper-case and no word after the first begins with one.
-        for group in SettingsPresentation.Group.allCases {
-            let words = group.rawValue.split(separator: " ")
-            #expect(words[0].first?.isUppercase == true, "\(group.rawValue) does not start capitalised")
+        // upper-case and no word after the first begins with one. Every header this window draws,
+        // not only M8's four.
+        for header in headers + [SettingsPaneCopy.pairedDevicesGroup, SettingsPaneCopy.filesGroup] {
+            let words = header.split(separator: " ")
+            #expect(words[0].first?.isUppercase == true, "\(header) does not start capitalised")
             for word in words.dropFirst() {
                 #expect(
                     word.first?.isLowercase == true,
-                    "\(group.rawValue) is title case; §3.2 asks for sentence case"
+                    "\(header) is title case; §3.2 asks for sentence case"
                 )
             }
         }
+    }
+
+    /// The Advanced pane's two paths, derived from the token file's own directory so the paths
+    /// shown are the paths used.
+    @Test("the router's two files are named off the resolved home, with no size beside either")
+    func routerFilesDeriveFromTheHome() {
+        let files = SettingsPresentation.RouterFiles(
+            home: URL(fileURLWithPath: "/scratch/home/.claude/mcp-router")
+        )
+        #expect(files.logPath(homeDirectory: "/scratch/home") == "~/.claude/mcp-router/router.log")
+        #expect(
+            files.configurationPath(homeDirectory: "/scratch/home")
+                == "~/.claude/mcp-router/servers.json"
+        )
+        // Outside this user's home the full path is kept rather than mangled.
+        #expect(files.logPath(homeDirectory: "/somewhere/else")
+            == "/scratch/home/.claude/mcp-router/router.log")
+        // There is no field a byte figure could occupy, which is the enforcement rather than a
+        // convention — the same shape `TokenStatus` uses for the token itself.
+        #expect(!files.logPath(homeDirectory: "/scratch/home").contains("MB"))
     }
 
     @Test("the menu bar item is shown by default")
@@ -194,9 +226,18 @@ struct SettingsPresentationTests {
             "Sources/MCPRouterKit/Shell/MenuBarPresentation.swift",
             "Sources/MCPRouterKit/Shell/PopoverContent.swift",
             "Sources/MCPRouterKit/Shell/SchemaDiff.swift",
-            "Sources/MCPRouterUI/Boards/SettingsBoard.swift",
-            "Sources/MCPRouterUI/Boards/SettingsBoardParts.swift",
-            "Sources/MCPRouterUI/Boards/SettingsBoardModel.swift",
+            // M15 re-housed M8's three board files as the Settings window, and this guard follows
+            // them: it is about the copy, and the copy moved. The four pane files join for the same
+            // reason — they are where a megabyte figure would actually be typed now.
+            "Sources/MCPRouterKit/Shell/SettingsPaneCopy.swift",
+            "Sources/MCPRouterUI/Settings/SettingsWindow.swift",
+            "Sources/MCPRouterUI/Settings/SettingsParts.swift",
+            "Sources/MCPRouterUI/Settings/SettingsWindowModel.swift",
+            "Sources/MCPRouterUI/Settings/Panes/RouterPane.swift",
+            "Sources/MCPRouterUI/Settings/Panes/SecurityPane.swift",
+            "Sources/MCPRouterUI/Settings/Panes/MenuBarPane.swift",
+            "Sources/MCPRouterUI/Settings/Panes/AdvancedPane.swift",
+            "Sources/MCPRouterUI/Settings/Panes/GovernedElsewherePane.swift",
             "Sources/MCPRouterUI/Shell/MenuBarPopover.swift",
             "Sources/MCPRouterUI/Shell/MenuBarStatusItem.swift"
         ]

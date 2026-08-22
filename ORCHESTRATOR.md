@@ -331,6 +331,47 @@ independent confirmation that it is claim accounting rather than load measuremen
 Disk is the tightest axis at **13.7% free** (254 GiB absolute, 234 GiB clear of the hard gate) —
 graded healthy, so watch rather than worry.
 
+### STAND DOWN — NO NEW RUNNERS UNTIL THE 5-MINUTE LOAD CLEARS
+
+2026-08-23, armada-wide. **Start nothing new.** Existing runners finish; they are not to be killed,
+because killing them loses their work and they are the whole verification wave.
+
+Measured here rather than taken on report — and the shape matters more than the level:
+
+```
+  1m  125.86  (7.87/core)     ← climbing
+  5m   79.29  (4.96/core)     ← the figure to gate on
+  15m  38.52
+  CPU 73.47% user, 25.4% sys, 1.48% idle
+```
+
+**Load is rising across the window, not settling.** The armada conductor's own reading was 138/151/140
+with `berths.py` collapsed from a ceiling of 10 to 3, `in_use 10`, `available 0`, cpu pressure
+**critical** — after it cleared eleven idle sessions and fanned out on a single **1-minute** reading
+of 3.67.
+
+**So gate on the 5-minute figure, never the 1-minute one.** A 1-minute load is a snapshot that a
+fan-out invalidates the moment it lands; this fleet's own eight verifiers are part of the number
+above. Resume when `berths.py` reports `available > 0` against a 5-minute figure — and note
+separately that **`berths.py` is claim accounting, not load measurement**: it reported `in_use 0`
+with five Opus runners live, because workflow-inner agents never register as claimants. Read
+`pressure.py` and thermal directly alongside it.
+
+### PRECONDITION — INVOKE `reckon` BY EXPLICIT PATH, NEVER BY NAME
+
+From `Graft`. **Both `1.0.0` and `1.1.0` sit in the plugin cache and both look installed**, and
+nobody has established which one the loader picks on a bare skill invocation.
+
+So `grep -c unjoined` is the right test **and it must be run against the copy that will actually
+run**. Invoke by explicit path, or the test measures the copy you assume will run rather than the one
+that does — *the same postmortem-versus-precondition shape as checking a remote after ordering a
+push rather than before.*
+
+This session's corrected run is clean on that: it used
+`…/reckon/1.1.0/skills/reckon/scripts/reckon.py` explicitly and confirmed the resolution afterwards.
+`1.1.0` landed in the cache at **23:38:28**, so any cache measurement taken before that is **stale
+rather than wrong** — re-take rather than trusting a note.
+
 ### THE REMAINING-WORK FIGURES WERE WRONG BY A FACTOR OF THREE — RE-RUN BEFORE PLANNING
 
 Corrected 2026-08-23 after `Google Drive Fixes` found the classifier defect and the armada conductor

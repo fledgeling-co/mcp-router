@@ -273,6 +273,11 @@ open_sheet() {
     "$AXKIT" press "$PID" "$1" >/dev/null || fail "could not press '$1' through the accessibility API"
     sleep 2
     dump
+    # Checked here as well as at close, so a run that takes the screen names the step that took it.
+    # Without this the whole open-assert-close sequence is one suspect: the first run of this section
+    # failed the invariant at the removal dialog's Cancel, and could not say whether pressing a ROW
+    # button (which selects the row) or dismissing the sheet was what activated the app.
+    check_invisible "opening a sheet with '$1'"
 }
 
 # Cancel, never Escape. `axkit key` posts a CGEvent to the pid and a sheet's Escape handling runs

@@ -248,17 +248,20 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
          * blocks down, `isStale` returns true for it, `unionTools` skips a zero-tool entry,
          * and `describe` and `reportUpstreams` exist precisely to surface it. What the
          * delete actually did was erase the attempt from the one file those readers join
-         * through. `watch-state.json` kept the reason the whole time, durably, and nothing
-         * reads it — which is a record nobody can reach rather than no record at all.
+         * through. `watch-state.json` kept the reason the whole time, durably, and this
+         * watcher reads that file every fire — for the backoff, never to show anyone. So it
+         * is a record no reader can reach rather than no record at all.
          *
          * Measured on the owner's machine, 2026-08-21: `namecheap` and `lifeline` both fail
          * `MCP error -32000: Connection closed`. `lifeline` is not staged in ~/.claude.json,
          * so this loop never ran over it and the row `index` wrote survived. `namecheap` is
-         * staged, so every fire past the backoff re-indexed it and deleted the row again —
-         * including the row `index --force` had just written. `/servers` then reported
-         * `error: None, tools: 0, state: idle` for a server whose reason this process had in
-         * hand and discarded. The reason survived only in watch-state.json, which no surface
-         * reads.
+         * staged, so every fire past the backoff re-indexed it and deleted the row again, and
+         * the row `index --force` had just written was gone again too — by this delete or by
+         * the stale save R19 describes, whichever fire it fell into, because a row written
+         * AFTER a fire's load is not in `next` for this delete to reach. `/servers` then
+         * reported `error: None, tools: 0, state: idle` for a server whose reason this process
+         * had in hand and discarded. The reason survived only in watch-state.json, and nothing
+         * reads it back to any surface.
          *
          * That account is SUFFICIENT and not EXCLUSIVE — R19. A second mechanism erases a
          * freshly-written row after this fix, with no delete statement anywhere in its path:
@@ -268,9 +271,12 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
          * holding a fire open six seconds while `index --force` wrote a second server's row.
          * The owner's measurement came from a timeline where the launchd watch agent and an
          * `index --force` were both live, so what was seen is consistent with either. The route
-         * account above is kept because it is what explains the ASYMMETRY between the two
-         * servers, and because its pre-registered prediction held: stage `lifeline` as well and
-         * its row starts disappearing too.
+         * account above is kept for the ASYMMETRY between the two servers, and it is stronger
+         * there than "better fit": a stale save can only erase a row written by SOMEONE ELSE
+         * during the window, and a staged server is in every fire's own hand, so an R19-only
+         * world predicts `namecheap` KEEPS its row and unstaged `lifeline` loses one. That is
+         * the opposite of what was measured. The pre-registered prediction held as well: stage
+         * `lifeline` too and its row starts disappearing.
          *
          * The backoff below is untouched. It is the retry policy; the manifest row is the
          * record. They answer different questions and neither substitutes for the other.

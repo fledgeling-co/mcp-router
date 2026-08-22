@@ -61,9 +61,12 @@ implementations:
 `lifeline` is not staged in `~/.claude.json`, so the watcher's failed loop never ran over it and
 the row `index --force` wrote survived. `namecheap` is staged as a global entry as well as being a
 router upstream, so every watch fire past the five-minute backoff re-indexed it and deleted the row
-again — including the row `index --force` had just written. `/servers` then reported `error: None,
-tools: 0, state: idle` for a server whose reason the same process had held and discarded, and
-`watch-state.json` kept that reason in a file no surface reads.
+again; the row `index --force` had just written was gone again too, **by this delete or by the
+stale save R19 describes, whichever fire it fell into** — a row written *after* a fire's load at
+`src/watch.ts:212` is not in `next` for the delete to reach at all. `/servers` then reported
+`error: None, tools: 0, state: idle` for a server whose reason the same process had held and
+discarded, and `watch-state.json` kept that reason in a file the watcher reads every fire for the
+backoff and never reads back to any surface.
 
 The reasoning the deletion rested on does not survive contact with the readers. The watcher's own
 adoption gate rejects `entry.error`; `isStale` returns true for an entry carrying one; `unionTools`
@@ -74,7 +77,7 @@ an error row as indexed.
 
 **A second mechanism produces the same observable, and it survives the fix.** `cmdWatch` loads the
 manifest once at `src/watch.ts:212`, spends seconds spawning and indexing children, and saves that
-same object at `:286`, so a row another path writes inside the window is clobbered — **with no
+same object at `:292`, so a row another path writes inside the window is clobbered — **with no
 delete statement anywhere in the path**. The verifier demonstrated it against the *fixed* node
 watcher: a `watch` fire held open six seconds on a staged failing server, with `index --force`
 writing unstaged `lifeline`'s row at t+2s, leaves a manifest holding the staged server only.
@@ -86,13 +89,25 @@ one. Filed as **R19**; it is cited here rather than absorbed, because the fix fo
 over five `saveManifest` call sites and not a change to this loop.
 
 **What is under-determined, and what is not.** The correction is bounded in the other direction
-too. A *single* observation — `namecheap` having no row at a moment when both an `index --force`
-and the watch agent had run — is consistent with either mechanism, and that is the claim being
-withdrawn. The **standing partition** is not: R19's window is indifferent to whether a server is
-staged, so it cannot select 1 of 14 upstreams, hold that selection across five-minute watch cycles,
-and leave an identically-failing unstaged server's row intact. Nothing about R19 predicts which
-server loses its row. The out-of-family lane made exactly this point against an earlier draft of
-this section, and it is right: for the partition, the deleted row is not merely sufficient.
+too, and the two bounds are about different observables.
+
+*Under-determined:* a **single** disappearance — `namecheap` having no row at a moment when both an
+`index --force` and the watch agent had run. Either mechanism produces it, and which one did depends
+on whether the row was written before or after that fire's load. That is the claim being withdrawn.
+
+*Not under-determined:* the **standing partition** — 13 rows over 14 upstreams, the missing one
+being the only configured upstream that is also staged. R19 cannot produce it, and the reason is
+sharper than indifference. A stale save can only erase a row written by **someone else** during its
+window; a row the fire itself wrote is in the object being saved. A staged failing server is in
+every fire's own hand, so an R19-only world predicts `namecheap` **keeps** its row — written afresh
+each cycle — and predicts the erasure victims are the *unstaged* servers whose rows come from
+another writer, which is `lifeline`, whose row was observed intact. **R19 does not merely fail to
+predict the observed partition; it predicts its inverse.**
+
+Both review lanes pushed on this paragraph. The out-of-family lane broke an earlier draft that
+called the partition under-determined; the second reader broke the redraft for saying R19 was
+merely *indifferent* to staging when it is *anti-correlated*. For the partition, the deleted row is
+the only account left standing.
 
 **The route account is kept, on two things this correction does not touch.** It is the only one of
 the two that explains the *asymmetry* — why `lifeline` kept a row and `namecheap` did not, when both
@@ -158,9 +173,12 @@ every operational endpoint iterates `config.upstreams` rather than `Object.keys(
 and fable by noticing that a staged-only name now gets a permanent row belonging to no router
 config. The record exists and is durable; what is missing is a reader.
 
-This is **strictly better than pre-fix**, which had no row at all for that server and therefore
-nothing for a future reader to join to. Recorded as the criterion's bound rather than claimed as
-the criterion.
+**One carve-out, and it is R20.** When the staged-only name *collides* with a configured upstream,
+the row is reported after all — joined to the wrong server, carrying the staged definition's error.
+So "no surface reports it" holds for a staged-only name that is unique, and fails for one that is
+not; and this is **better than pre-fix for every shape except that collision**, where pre-fix showed
+nothing and this shows a wrong reason. Recorded as the criterion's bound rather than claimed as the
+criterion.
 
 **2 — `namecheap` specifically shows its reason.** **Not directly evidenced, and it cannot be from
 here.** Proving it against the owner's real `namecheap` means running the watcher against the real
@@ -265,9 +283,12 @@ fixture *refuses* the list rather than dying in it: a faithful reproduction of t
 
 ## The third divergence, declared rather than found
 
-**The lane is structurally blind to it, so it is declared in `surface.tsv` instead of measured.**
+**The lane is structurally blind to it, so it is declared in `surface.tsv` rather than lane-held.**
+It *was* measured — once, by the verifier, out of lane. What no scenario in this harness can do is
+reproduce it, and a declaration of blindness that says "not measured" when its own evidence sentence
+says "measured" is the one wobble such a declaration cannot afford.
 The two implementations disagree on *when* the manifest is read. `cmdWatch` loads it once per run
-(`src/watch.ts:212`) and saves that same object at `:286`. `WatchIndexer.apply` re-loads it per
+(`src/watch.ts:212`) and saves that same object at `:292`. `WatchIndexer.apply` re-loads it per
 entry, immediately before each save — a property `WatchIndexing.swift`'s own header has documented
 since X4b, citing this exact window in the reference. On a fixture that overlaps a second writer,
 Swift keeps both rows and node keeps one; the verifier measured that on 2026-08-22.
@@ -291,10 +312,15 @@ genuinely *did* overlap a writer would redden this row on a divergence older tha
 wrong instrument for a records pass to reach for.
 
 **What the declaration covers, and what it does not.** It is scoped to the watch save alone —
-`src/watch.ts:286` against `WatchIndexing.swift:180`. It does **not** cover the other four
+`src/watch.ts:292` against `WatchIndexing.swift:186`. It does **not** cover the other four
 `saveManifest` call sites: `src/index.ts:146` and `:186` on the `index` verb, and `src/control.ts:262`
-and `:432` on the control API. All four carry the same read-then-save window on both sides, none is
-declared, and none is measured. The repo already has this guard for the config writer and states it
+and `:432` on the control API. None is declared and none is measured.
+
+**"Five" is the reference's count, and the two inventories are not a pairing.** node has five
+`saveManifest` call sites; this router has **three** `ManifestIO.save` sites — `AuthRoutes.swift:120`,
+`ServicePorts.swift:391` and `WatchIndexing.swift:186` — so the declared pair is one of five against
+one of three, and the remaining four and two are uncovered on their own terms rather than as
+twins. The second reader caught the count being quoted as though it spanned both. The repo already has this guard for the config writer and states it
 in those words — `ImportConfigWriterLockTests.swift`'s *W11 — the read happens inside the lock, so a
 concurrent write is not clobbered* — and `manifest.json` has no equivalent. **R19 owns the policy
 over all five sites**, and its acceptance 2 is the overlapping scenario this lane cannot grow on its
@@ -378,9 +404,9 @@ cited rather than filed. Its cause is F1's, and R18 is where the fix argument li
 
 **F3 — four paths that still leave no record.** Acceptance criterion 1 is unmet for each:
 `watch.ts:200`'s unguarded `JSON.parse` of `servers.json`; a staged entry `parseServer` rejects,
-which gets a `watchLog` line and never reaches `buildManifest`; `WatchIndexing.swift:180`'s
+which gets a `watchLog` line and never reaches `buildManifest`; `WatchIndexing.swift:186`'s
 `try? ManifestIO.save`, which swallows a save failure while the backoff still records one; and
-`watch.ts:286`, where a throwing `saveManifest` propagates before `saveState`, so the backoff is
+`watch.ts:292`, where a throwing `saveManifest` propagates before `saveState`, so the backoff is
 never persisted and the next fire retries immediately.
 
 The first was checked empirically, twice — once by the runner and once again on 2026-08-22 for the
@@ -410,34 +436,71 @@ Recorded, not fixed.
 
 ## The gap-fix pass's review lane
 
-**One lane, and it is the out-of-family one.** `agy --model gemini-3.7-flash-high`, run from
-`/tmp` on 2026-08-22 against a copy, with the whole packet inlined because agy's headless runs get
-a tool permission auto-denied. Codex is down until 27 August and the grok balance is exhausted, so
-`claude-fable-5` was the only other reachable lane and it is a second Claude rather than a third
-family. The prompt asked it to break the corrected claims and to say explicitly where a claim was
-now *under*-claimed, which is the failure mode a correction pass is most exposed to.
+**Two lanes ran, and only one is out of family.** `agy --model gemini-3.7-flash-high` is the
+out-of-family one, run from `/tmp` on 2026-08-22 against a copy, with the whole packet inlined
+because agy's headless runs get a tool permission auto-denied. `claude --model claude-fable-5
+--effort high` then read the *corrected* text as a second reader — a second Claude, not a third
+family, and recorded as that. Codex is down until 27 August and the grok balance is exhausted,
+which is why there is no third family. Both prompts asked for breakage rather than review, and
+asked explicitly where a claim was now *under*-claimed, which is the failure mode a correction pass
+is most exposed to.
 
-**Four findings taken, and they are in the text above.** The partition is not under-determined even
+*(These are the gap-fix pass's lanes. The delivery run's two lanes are a different pair, recorded
+under "What the review lanes found" below, and the two passes are not one panel.)*
+
+**agy: four findings taken, and they are in the text above.** The partition is not under-determined even
 though a single observation is; Swift narrows R19's window rather than closing it; "no surface reads
 a staged-only row" is false for the watcher's own adoption gate and is now "no surface reports it";
 and "the only durable record" contradicted the sentence after it, because `watch-state.json` is
 durable and merely unread — both comment blocks now say that instead.
 
-**Two findings not taken, with the reason.**
+**agy: two findings not taken, with the reason.**
 
 - *"A persistent error row is not equivalent to an absent key, so R20's tool loss IS a regression."*
   It is not, and the reason is `isStale`, which returns true for an absent entry **and** for an
   entry carrying a non-empty error, on both implementations — `ToolUnion.isStale` guards `entry ==
   nil` before returning `entry.hasError`, and the reference's is `!entry || entry.hash !== ... ||
   !!entry.error`. Both shapes re-index on the next fire past the backoff, and the backoff is keyed
-  in `watch-state.json` either way. There is no state the error row pins that the absent key left
-  open.
+  in `watch-state.json` either way. **Scoped to what the challenge claimed**: tool availability and
+  retry behaviour are equivalent between the two shapes. The error row *does* pin one thing the
+  absent key left blank — a wrong reason on `/servers` under a name collision — and that is R20,
+  which this document files as a regression rather than defends.
 - *"Scoping the declaration to the watch save leaves `index.ts` — the writer in R19's own
   reproduction — undeclared."* Correct as a fact and already stated: the declaration names all four
   uncovered sites, `src/index.ts` among them. It is the right scope for this row because
   `cli-watch` speaks for the `watch` verb, and in the demonstrated race `index.ts` is the writer
   that gets **clobbered** while `watch.ts` is the one that clobbers. Declaring the clobberer under
   the verb that owns it, and naming the rest as uncovered, is what R19 is for.
+
+**The second reader then broke the corrections themselves.** Nine findings; six taken and folded
+above, and they are the sharper half of this pass:
+
+- The clause *"deleted the row again — including the row `index --force` had just written"* survived
+  the very correction it contradicts. A row written **after** a fire's load is not in `next` for the
+  delete to reach, so that specific row is R19's or the delete's depending on the fire it fell into.
+  Corrected in the cause section and in the node comment block.
+- Criterion 1's *no surface reports it* and *strictly better than pre-fix* are both false for the
+  name-collision subclass this same document files as R20. Both now carry the carve-out.
+- *Declared rather than measured* was contradicted two sentences later by *measured by the
+  verifier*. It is now **declared rather than lane-held**, which is what is actually true.
+- The five `saveManifest` sites are the **reference's** count. This router has three
+  `ManifestIO.save` sites, so the declaration is one of five against one of three and the two
+  inventories are not a pairing. Stated.
+- The `isStale` rebuttal's closing generalisation over-reached: the error row *does* pin one thing
+  the absent key left blank, which is R20. Scoped to what the challenge actually claimed.
+- **Two fixtures carry these two failure points, and this document had not said so.** The Swift
+  suite stages `deadcommand` + `dieslisting`, whose second server *exits* during `tools/list`; the
+  parity lane stages `deadcommand` + `refuseslist`, whose second server *refuses* it, for the
+  60-second reason the lane header gives. That is why the transcripts here and the mutation output
+  in `surface.tsv` name different second servers, and why the node/Swift texts in the pre-fix
+  transcripts differ in code as well as message — a dying upstream is diagnosed differently on each
+  side, which `fold_rpc_code` could not reconcile and which is why the lane's fixture refuses
+  instead.
+
+**Two of its nine not taken.** Its *"F3 is a label with no referent"* is an artefact of the packet:
+F3 is defined in *What the review lanes found* below and was outside the excerpt it was given. And
+its reading that the lane count contradicts itself was half right — corrected above by saying which
+pass each lane belongs to, rather than by dropping either.
 
 ## Gates
 
@@ -447,19 +510,34 @@ read `tail` rather than the gate. Logs under `/tmp/r17gf/logs/`.
 
 | Gate | Exit | Result | Log |
 |---|---|---|---|
-| `make test`, run 1 | 0 | 1686 tests in 210 suites | `make-test-1.log` |
-| `make test`, run 2 | 0 | 1686 tests in 210 suites | `make-test-2.log` |
-| `make lint` | 0 | 0 violations, 0 serious in 531 files | `make-lint.log` |
-| `make parity` | 0 | 358 vector cases compared (floor 358) | `make-parity.log` |
-| `make acceptance-r6` | 0 | examined=6 failures=0 | `acceptance-r6.log` |
-| `scripts/acceptance/r7-harness-reconciliation.sh` | 0 | pass | `r7-lane.log` |
-| `scripts/acceptance/parity-cli.sh` | 0 | 18 verbs agreed, 0 did not | `parity-cli.log` |
-| `scripts/acceptance/parity-manifest-check.sh` | 0 | 92 rows, every cited test, script and row id resolves | `parity-manifest-check.log` |
-| `python3 planning/ledger-reconcile.py` | 0 | reconciled — no findings across A…K, 85 ids compared | `reconcile.log` |
-| `npm run build` (tsc) | 0 | — | `tsc.log` |
+| `npm run build` (tsc) | 0 | — | `z-tsc.log` |
+| `make test`, run 1 | 0 | 1686 tests in 210 suites | `z-make-test-1.log` |
+| `make test`, run 2 | **2** | **one known flake, see below** | `z-make-test-2.log` |
+| `make test`, run 2 re-run | 0 | 1686 tests in 210 suites | `z-make-test-2b.log` |
+| `make lint` | 0 | 0 violations, 0 serious in 531 files | `z-make-lint.log` |
+| `make parity` | 0 | 358 vector cases compared (floor 358) | `z-make-parity.log` |
+| `make acceptance-r6` | 0 | examined=6 failures=0 | `z-acceptance-r6.log` |
+| `scripts/acceptance/r7-harness-reconciliation.sh` | 0 | pass | `z-r7-lane.log` |
+| `scripts/acceptance/parity-cli.sh` | 0 | 18 verbs agreed, 0 did not | `z-parity-cli.log` |
+| `scripts/acceptance/parity-manifest-check.sh` | 0 | 92 rows, every cited test, script and row id resolves | `z-manifest-check.log` |
+| `python3 planning/ledger-reconcile.py` | 0 | reconciled — no findings across A…K, 85 ids compared | `z-reconcile.log` |
 
-Nothing moved. The manifest check is included because this pass edits `surface.tsv`: it is what
-proves the note's citations still resolve and the census pin still matches, and the census is
+**The red, named rather than rolled away.** `make test`'s second run exited 2 with one issue:
+`CallbackLifecycleTests.swift:238`, *"a listener binds once — reuse is refused rather than quietly
+racing"*, throwing **the callback listener was cancelled before it bound**. That is this
+repository's registered flake, not a finding: it has its own deferred row, **`D-r7-x`** — *it binds
+a real loopback port at `port: 0`, stops, then rebinds the port it was handed, so a port the OS has
+not finished releasing fails the second bind for a reason the test reads as the bug it guards* —
+and it is `D-g3-s`'s fifth-and-later measured instance. This pass touches no file in that path, and
+the whole change is comment text. The re-run passed at 1686/210. Recorded because G3's own standard
+is that a gate green on the second run is only a gate if the first run's red is named.
+
+An earlier full pass over the same tree, before the review lanes' corrections were folded in, ran
+`make test` twice at exit 0 (`f-make-test-1.log`, `f-make-test-2.log`) with everything else
+identical, which is what rules this pass's edits out as the cause.
+
+Nothing else moved. The manifest check is included because this pass edits `surface.tsv`: it is
+what proves the note's citations still resolve and the census pin still matches, and the census is
 unchanged at 92 because the declaration went into the existing `cli-watch` note rather than into a
 new row.
 

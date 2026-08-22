@@ -17,22 +17,40 @@ struct MarkdownParserTests {
     }
 
     /// `DESIGN.md`'s ladder has three heading roles above body and the mock draws exactly those
-    /// three, so a fourth level has nothing to render at. It stays visible as its own text rather
-    /// than being invented a size or dropped — `spec-M19.md` §2's first assumption.
-    @Test("a fourth heading level stays visible as text rather than being drawn or dropped")
+    /// three, so a fourth level has nothing to render at. It falls back to `plainText` and draws in
+    /// the instrument voice — `spec-M19.md` §2's first assumption.
+    ///
+    /// **This is the presence control for `CapabilityDocumentFixtureTests.nothingFallsBack`.** That
+    /// test filters a document's blocks for this kind and expects none, which is a claim about the
+    /// documents rather than about the filter only while something can produce one. It could not
+    /// before: `plainText` was constructed nowhere in the app, so the filter was empty for every
+    /// input and the assertion passed unconditionally.
+    @Test("a fourth heading level falls back to plain text rather than being drawn or dropped")
     func fourthLevelFallsBackVisibly() throws {
         let blocks = MarkdownParser.blocks(from: "#### deeper")
-        #expect(blocks.map(\.kind) == [.paragraph])
-        guard case let .paragraph(inline) = try #require(blocks.first) else {
-            Issue.record("expected a paragraph")
+        #expect(blocks.map(\.kind) == [.plainText])
+        guard case let .plainText(text) = try #require(blocks.first) else {
+            Issue.record("expected the fallback kind")
             return
         }
-        #expect(inline.text == "#### deeper")
+        #expect(text == "#### deeper")
     }
 
-    @Test("a hash with no space is not a heading")
+    /// The negative half of the same distinction. Hashes with no space after them are prose, not a
+    /// heading the renderer failed to draw, so this must NOT reach the fallback — a fallback that
+    /// fires on ordinary text is worse than one that never fires, because a non-empty answer reads
+    /// as evidence in a way an empty one does not.
+    @Test("a hash with no space is prose rather than a heading or a fallback")
     func hashtagIsNotAHeading() {
         #expect(kinds("#hashtag") == [.paragraph])
+        #expect(kinds("####hashtag") == [.paragraph])
+    }
+
+    /// A fallback is a block in its own right, so a paragraph above it ends where it begins. Left
+    /// joined to the run, the line would be swallowed into prose and the fallback would never fire.
+    @Test("a level off the ladder ends the paragraph above it rather than joining it")
+    func fallbackInterruptsAParagraph() {
+        #expect(kinds("prose\n#### deeper\nmore prose") == [.paragraph, .plainText, .paragraph])
     }
 
     @Test("a fence keeps its language and its body verbatim")

@@ -20,10 +20,11 @@ extension MarkdownParser {
             let trimmed = lines[cursor].trimmingCharacters(in: .whitespaces)
             if trimmed.isEmpty { break }
             // A paragraph ends where a block that is not a paragraph begins, so a heading directly
-            // under a line of prose is still a heading.
+            // under a line of prose is still a heading — and so is a heading level the ladder
+            // cannot draw, which is a block of its own here rather than more of this paragraph.
             if cursor > index,
                fenceMarker(trimmed) != nil || isThematicBreak(trimmed)
-               || heading(trimmed) != nil || trimmed.hasPrefix(">") || listMarker(trimmed) != nil
+               || hashLine(trimmed).startsABlock || trimmed.hasPrefix(">") || listMarker(trimmed) != nil
             {
                 break
             }

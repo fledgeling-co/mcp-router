@@ -44,10 +44,16 @@ public struct MarkdownLimits: Equatable, Sendable {
 /// what `spec-M19.md` §3.6 settles and tells the planner not to re-open.
 ///
 /// It is line-based rather than a full CommonMark implementation, and the boundary is stated: it
-/// recognises the kinds `design/mcp-router-console.html`'s `sh-readme` sheet draws, and anything
-/// else becomes `MarkdownBlock.plainText`, visible as its own source. `spec-M19.md` §2's first
-/// assumption is that rule — a block that fell back can be seen and reported; a block that was
-/// dropped cannot.
+/// recognises the kinds `design/mcp-router-console.html`'s `sh-readme` sheet draws, and nothing it
+/// cannot type is dropped. `spec-M19.md` §2's first assumption is that rule — a block that fell
+/// back can be seen and reported; a block that was dropped cannot.
+///
+/// **Two things happen to a construct outside the list, and they are not the same.** A heading at a
+/// level off the ladder becomes `MarkdownBlock.plainText` and draws in the instrument voice, which
+/// is a reader being told the renderer did not understand a line. Anything else — inline HTML, a
+/// footnote, a setext underline — stays inside a paragraph carrying its own source text, which is
+/// visible but says nothing about itself. Stated because the second half used to be written here as
+/// though it were the first.
 ///
 /// Nothing in here reaches the network, the filesystem or a process. It is a pure function from a
 /// string to values, which is what makes the whole of it testable without a running app.
@@ -105,9 +111,18 @@ public enum MarkdownParser {
             blocks.append(.rule)
             return 1
         }
-        if let heading = heading(trimmed) {
+        switch hashLine(trimmed) {
+        case let .drawn(heading):
             blocks.append(heading)
             return 1
+        case .undrawableLevel:
+            // The one place in this parser that constructs the visible fallback. A heading level
+            // off the ladder has nothing to render as, so the line arrives as its own source text
+            // in the instrument voice rather than being invented a size or quietly read as prose.
+            blocks.append(.plainText(trimmed))
+            return 1
+        case .notAHeading:
+            break
         }
         if trimmed.hasPrefix(">") {
             return readQuote(lines, from: index, limits: limits, into: &blocks)
@@ -123,27 +138,48 @@ public enum MarkdownParser {
 
     // MARK: - Headings and rules
 
-    /// An ATX heading at level 1, 2 or 3.
+    /// What a line opening with hashes turns out to be.
     ///
-    /// Four hashes or more returns nil and lands in a paragraph as its own text. `DESIGN.md`'s type
-    /// ladder has three heading roles above body and the mock draws exactly those three, so a
-    /// fourth level has nothing to render as — and inventing one would be a size off the ladder.
-    static func heading(_ trimmed: String) -> MarkdownBlock? {
+    /// Three outcomes rather than an optional, because the two that are not headings are not the
+    /// same thing. `#hashtag` is prose. `#### deeper` is a construct with no role on `DESIGN.md`'s
+    /// three-heading ladder, which is what `MarkdownBlock.plainText` exists for. Collapsing both to
+    /// nil is what left that case unconstructed anywhere in the app — and an assertion that no
+    /// block falls back cannot fail while nothing can produce one.
+    enum HashLine: Equatable {
+        /// An ATX heading at a level this renderer draws.
+        case drawn(MarkdownBlock)
+        /// Hashes and a space, at a level the ladder has no size for.
+        case undrawableLevel
+        /// Not a heading: no space after the hashes, or no hashes to begin with.
+        case notAHeading
+
+        /// Whether the line opens a block of its own, so a paragraph run above it has to stop.
+        var startsABlock: Bool { self != .notAHeading }
+    }
+
+    /// An ATX heading at level 1, 2 or 3, or the reason the line is not one.
+    ///
+    /// `DESIGN.md`'s type ladder has three heading roles above body and the mock draws exactly
+    /// those three, so a fourth level has nothing to render as — and inventing one would be a size
+    /// off the ladder. It stays visible as its own source instead.
+    static func hashLine(_ trimmed: String) -> HashLine {
         var level = 0
         var index = trimmed.startIndex
         while index < trimmed.endIndex, trimmed[index] == "#", level < 4 {
             level += 1
             index = trimmed.index(after: index)
         }
-        guard (1 ... 3).contains(level) else { return nil }
+        guard level > 0 else { return .notAHeading }
         // A space after the hashes is required by CommonMark, and requiring it is what keeps a
-        // `#hashtag` at the start of a line from becoming a heading.
-        guard index < trimmed.endIndex, trimmed[index] == " " else { return nil }
+        // `#hashtag` at the start of a line from becoming a heading. Tested before the level is,
+        // so `####hashtag` stays prose rather than becoming a fallback.
+        guard index < trimmed.endIndex, trimmed[index] == " " else { return .notAHeading }
+        guard (1 ... 3).contains(level) else { return .undrawableLevel }
         let content = trimmed[index...].trimmingCharacters(in: .whitespaces)
         // A closing run of hashes is decoration, not content.
         let text = String(content.reversed().drop { $0 == "#" }.reversed())
             .trimmingCharacters(in: .whitespaces)
-        return .heading(level: level, content: MarkdownInline(markdown: text))
+        return .drawn(.heading(level: level, content: MarkdownInline(markdown: text)))
     }
 
     /// `---`, `***` or `___`, three or more, nothing else on the line.

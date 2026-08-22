@@ -46,6 +46,17 @@ struct CapabilityDocumentFixtureTests {
         }
     }
 
+    /// The presence control for the check above, kept beside it rather than only in the parser's
+    /// own suite. An absence check cannot detect its own blindness: this one read zero for every
+    /// possible input while `plainText` was constructed nowhere in the app, and nothing said so.
+    /// Here the same filter over a document that does fall back returns the block, so the zero
+    /// above is a measurement of the fixture rather than a property of the filter.
+    @Test("the filter that check uses returns a block when a document does fall back")
+    func theFallbackFilterCanReturnABlock() {
+        let blocks = MarkdownParser.blocks(from: "# drawn\n\n#### off the ladder")
+        #expect(blocks.filter { $0.kind == .plainText }.count == 1)
+    }
+
     @Test("all three tabs are published, and the mock's five facts are carried")
     func tabsAndFacts() throws {
         let document = try document()

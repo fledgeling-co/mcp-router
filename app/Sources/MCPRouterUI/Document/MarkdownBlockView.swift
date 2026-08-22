@@ -24,8 +24,13 @@
         var body: some View {
             switch block {
             case let .heading(level, content):
+                // The instrument sits inside the lead, for the reason `MarkdownTableView` gives at
+                // its own cell: the type-metrics layer reads a text node's frame as a line box, and
+                // a node wrapping the padding reports the lead as type. Measured outside it, the
+                // three heading roles came back 42/36/35pt against ladder line heights of 26/22/20
+                // — clean only because the lead is near-constant across the three, which is a check
+                // holding by luck. The lead is the block's, not the type's.
                 MarkdownInlineText(inline: content, role: headingRole(level), tint: .t1)
-                    .padding(.top, DocumentMetrics.headingLead)
                     .measured(
                         nodeID,
                         role: "heading",
@@ -33,6 +38,7 @@
                         type: headingRole(level),
                         text: content.text
                     )
+                    .padding(.top, DocumentMetrics.headingLead)
 
             case let .paragraph(content):
                 MarkdownInlineText(inline: content, role: .body, tint: .t1)

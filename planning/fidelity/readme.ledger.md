@@ -13,7 +13,7 @@ finding disappear.
 | `literals` | clean | scanning 132 files |
 | `structure` | clean | 42 nodes across 1 states · 7 declared axis/axes corroborated against child geometry |
 | `geometry` | clean | 42 frames |
-| `type-metrics` | clean | 9 per-role comparison(s) over 11 text nodes · 5 roles · Callout=15pt Body=16pt Title3=35pt Title2=36pt Title1=42pt · 2 multi-line node(s) excluded from the per-role check |
+| `type-metrics` | clean | 9 per-role comparison(s) over 11 text nodes · 5 roles · Callout=15pt Body=16pt Title3=19pt Title2=20pt Title1=26pt · 2 multi-line node(s) excluded from the per-role check |
 | `copy` | 1 finding(s) | 27 paired strings |
 | `breadth` | 29 finding(s) | absent 23 · divergent 1 · extra-cited 4 · present 26 · structure-unpaired 9 · unclassified 1 |
 | `font-weight-face` | inconclusive (substituted) | font-weight-face: String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face |

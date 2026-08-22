@@ -3,11 +3,12 @@
 | | |
 |---|---|
 | ID | M15 |
-| Status | To Do |
+| Status | **Ready for AI** |
 | Category | mac · mock conversion |
 | Depends on | M1 ✓ · M8 ✓ · M23 ✓ |
 | Related | M17 (the Settings window is the tenth surface in its state count) · M18 (a sheet opened from a pane attaches here) |
 | Brief | `planning/features-to-triage/M15-settings-window.md` |
+| Plan | `planning/plans/plan-M15.md` — **Plan committed 2026-08-22.** Its out-of-family review ran and returned **REJECT** — all seven sections failed, nine findings — of which eight were dispositioned before the planning session died. The remainder is recorded open in the plan's §14 rather than folded in. `agy`/`gemini-3.7-flash-high` was the only lane that answered; `claude-fable-5` never returned, so the gate stands on one family. Note this file lists **nine** assumptions at :23-31, not the eight its own gate record and the plan both count. |
 | Source mock | `design/mcp-router-console.html` — which document is the design authority is M21's open question, recorded in §3.1 |
 | Triage | 2026-08-22 · §2 is owner-facing · §3 is the pipeline record |
 

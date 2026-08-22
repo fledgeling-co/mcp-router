@@ -678,6 +678,82 @@ requirement 17. Assumption 9 (M17 owns the state count) is decision 22.
   markup at `design/mcp-router-console.html:1511-1745`.
 - **Mechanical path check.** Every backtick-quoted path verified present, except those marked
   *create*.
-- **Out-of-family review.** Recorded below once run. `codex` / `gpt-5.6-sol` is down until
-  2026-08-27; `grok-4.6`'s balance is exhausted; `agy` / `gemini-3.7-flash-high` is the lane, with
-  `claude --model claude-fable-5 --effort high` as a second reading rather than as the gate.
+- **Out-of-family review.** Ran on one lane and is recorded in §14 with its disposition.
+  `codex` / `gpt-5.6-sol` is down until 2026-08-27 and was not attempted; `grok-4.6`'s balance is
+  exhausted and it was not attempted; `agy` / `gemini-3.7-flash-high` answered. `claude
+  --model claude-fable-5 --effort high` was started in parallel as a second reading and never
+  returned, so the gate stands on a single family and has no second reading behind it.
+
+## 14 · Out-of-family review — record and disposition
+
+`agy` / `gemini-3.7-flash-high` was handed the brief, the spec and this plan in `/tmp/m15`, briefed
+adversarially over seven questions — completeness, silent shrinkage, testability, ordering, parity,
+technical soundness, and the better approach it would take — and told that finding nothing is a
+failed review. It returned 14,833 bytes. Every one of the seven sections came back **FAILED**, and
+the overall verdict was **REJECT**, with nine numbered findings.
+
+The in-family second reading, `claude-fable-5` at high effort, was launched against the same packet
+at the same moment and was still running with a zero-byte output when the planning session ended. It
+contributed nothing and is not part of this record.
+
+**The planning session ended mid-disposition.** Findings 1–6, 8 and 9 were dispositioned into the
+plan above; the planner's next step was §11's narrowings, §8's parity rows and this record, and it
+did not reach them. So §11 and §8 are as they were before the review, and the second list below is
+what a runner still has to treat as open.
+
+### Dispositioned into the plan
+
+| # | Severity | Finding | Disposition |
+|---|---|---|---|
+| 1 | Critical | Deleting `Boards/SettingsBoard.swift` in B6 breaks `ShellWindow.swift` for all of B and C, until R5 lands in D1 | **Accepted.** B6 became additive — `Settings/SettingsParts.swift` is *copied* and the original stays — and every deletion moved into the new **D0**, one atomic step whose error list is §5's table |
+| 2 | Critical | Deleting `SettingsPresentation.Group` in A3 breaks `SettingsBoard.swift` immediately, before B6 removes it | **Accepted.** A3 is now *modify, additively*; `Group` goes with its last caller in D0 |
+| 3 | High | `perform(.openSettingsScene)` as a documented no-op leaves the router structurally unable to open Settings, and a test over it asserts a command maps to inaction | **Accepted for the no-op, overruled on the remedy.** The arm now calls an opener injected by `ShellWindow` from `@Environment(\.openSettings)`, beside the `ShellMenuReasons.provideContext` line already at `:74-78`, and the clause is behaviourally testable. The review's `NSApp.sendAction(Selector(("showSettingsWindow:")))` is **not** taken: it is an undocumented selector spelled `showPreferencesWindow:` two releases ago, and `SWIFT_PRACTICES.md` §6 forbids a symbol present in neither this repo nor a pinned dependency |
+| 4 | High | Acceptance criterion 3 accepts exit 1; E3's floors are calibrated after the first run; E4's omitted rows cite this plan's own §4 | **Accepted, in three parts.** Criterion 3 now allows exit 1 only where **every** finding is a divergence the manifest's `note` already declares. E3 states that the floors are a recorded ratchet taken from the first structurally-clean run, names the failure mode (a floor lowered later to make a run green), and points at `servers.layers.json`'s own note for the precedent. E4's citations move to external, pre-existing artifacts — `ControlToken.swift:13-19`, `Models.swift:114-121`, `SettingsBoardModel.swift:71-72`, `SettingsPresentation.swift:100-105`, `DESIGN.md` §6 — with an absence admissible only when the search that established it is named |
+| 5 | Medium | 256pt source list against the brief's 200 is a 28% distortion, and citing the fidelity manifest to ratify it corrupts the gate | **Overruled, with the reason rewritten into decision 18.** A settings source list is a sidebar, `DESIGN.md` §2 specifies `Sidebar 256pt`, and the mock's own `mac-craft:metrics` block carries `sidebar 256px` and no 200 of any name — so the mock disagrees with itself. The review's third option, `.navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)`, was weighed and loses twice: three geometry literals where `no-raw-design-values.sh` permits none, and a range is three numbers picked by eye where the complaint was one. The 56pt gap is declared in the manifest `note` and reported on every run |
+| 6 | Medium | `@State` selection resets the pane to Router on every `⌘,`, a regression against the board | **Accepted.** The pane persists through `ShellRestoration` — `settingsPaneKey = "shell.settingsPane"`, `restoredSettingsPane()` falling back to `.router`, `save(settingsPane:)` — which also gives it the `ShellTestSupport.scratchStore()` evidence lane a scene-local `@State` has none of |
+| 7 | Medium | "The five panes §4 empties" contradicts §4, which empties three; and four undeclared narrowings | **Accepted in part.** The count is corrected to three at all three sites. The four §11 declarations were the planner's next step and were never written — see below |
+| 8 | Low | C1 constructs `SettingsWindow(model:buildIdentity:)` while E1 constructs `SettingsWindow(model:store:)` | **Accepted.** C1 now declares one initializer, `init(model:buildIdentity:store: (any ControlTokenStore)? = nil)`, and E1 renders `SettingsWindow(model: shell, buildIdentity: .measured, store: InMemoryTokenStore())` |
+| 9 | Low | Criterion 8 already passes at `8863264`, so it proves nothing | **Accepted, and the row was wrong rather than the criterion.** R8 now records that at `8863264` a stored `"settings"` restores to `.settings` because the case exists, and after R1 the same value restores to `.activity` because `restoring`'s `guard let` fails. The observation flips without a line of `ShellRestoration` moving |
+
+Three unnumbered findings were also taken. **Arrow-key traversal**, which the brief asks for in the
+same sentence as independent selection, gained a paragraph at B2 and a fourth row in D3's
+measurement table, because `List(selection:)` providing it is expected rather than measured.
+**Repeated keychain reads** on a window destroyed at close are recorded at B5 as matching the
+board's own behaviour rather than as a regression. And the review's third suggested approach, an
+environment-injected store for pane selection, is taken in the shape this repo already uses —
+`ShellRestoration` rather than a new environment value.
+
+### Findings that stand, un-acted
+
+Recorded rather than folded in, because the planner did not reach them and this is a record of what
+the review found rather than a second planning pass.
+
+- **§11 never gained the four narrowings the review asked for.** It still reads *"Three
+  narrowings"*. The four are: `Form { Section }` with `.formStyle(.grouped)` is refused at B4 with
+  reasons but is not declared as a departure from the brief; `SettingsPaneRow` duplicates rather
+  than shares the console's row view, reasoned at B3 and undeclared; functional requirement 11
+  (sheet attachment) is untestable because no sheets are built, and §12 assigns the sheets to M18
+  while §11 carries no line for the dropped requirement; and §11 says *"the eight triage
+  assumptions"* where **`spec-M15.md:23-31` lists nine** — verified here, and `spec-M15.md:227`
+  repeats the miscount, so both files are wrong by one.
+- **Three §8 parity rows the review named are still missing.** Router · Endpoint's **Copy**
+  affordance, which §4 builds and §8 does not inventory; `forget()`'s async transition, disabled
+  state and failure presentation, where §8 tracks only `TokenStatus.forgetIsProminent`; and the
+  window's initial accessibility focus, which has no replacement for the dropped sidebar-selection
+  announcement.
+- **Security · Paired devices crosses a window boundary and §8 does not say so.** §4 builds
+  `Manage…` routing to Inbox (`data-act="board:inbox"`); §8 inventories the crossing for `Show in
+  Servers` alone.
+- **Two §4 omissions the review called unforced, left as they were.** Advanced · Router log's
+  `4.2 MB` — the review's position is that reading the app's own log file needs no sandbox escape,
+  against §4's A36 and §6 reasoning. And Security · Hold schema changes, omitted as a control while
+  `pendingChange` and `heldChanges` ship, with no §11 line.
+- **Two §9 tests the review called vacuous are unchanged.** `SettingsHonestyTests` asserts only the
+  absence of forbidden strings, which an empty view passes; `SettingsPaneCopyTests` asserts a
+  length above twelve characters and nothing about meaning.
+- **The menu-architecture half of finding 3 was answered only in part.** The review's claim is that
+  a `SettingsLink` inside `CommandGroup(replacing: .appSettings)` breaks native `NSMenuItem`
+  target-action validation, highlighting and key-equivalent dispatch. The plan keeps
+  `SettingsCommandItem` and adds a C3 note to *measure* whether `⌘,` arrives implicitly before
+  applying it a second time, which addresses double-binding but not validation. D3's lane is where
+  a reading would settle it.

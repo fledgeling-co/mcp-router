@@ -503,5 +503,107 @@ other items are about to rewrite.
 
 ## Gate note
 
-*(Mechanical path check and out-of-family review recorded here before the status moves to Ready
-for Work.)*
+**Mechanical path check.** Every backtick-quoted path in this plan resolves. Nine citations are
+written as bare basenames and were resolved by search — `Breaker.swift`, `BreakerGeometry.swift`,
+`BreakerGeometryTests.swift`, `BreakerParityTests.swift`, `campaign.json`, `Contrast.swift`,
+`mock_fidelity.py`, `mock-fidelity-selftest.sh`, `PhoneIndicatorTests.swift` — and one,
+`app/Tests/MCPRouterKitTests/ContrastFloorTests.swift`, is absent because this item creates it. The
+`ColorToken.swift` line citation was corrected from `:19-24` to `:18-21` during the check.
+
+## Out-of-family review — record and disposition
+
+### The gate did not run during planning
+
+Recorded first because it is the reason this section arrives separately from the plan above. The
+planning session attempted the review three times on 2026-08-22 and got nothing back from any of
+them:
+
+| Lane | Attempt | Result |
+|---|---|---|
+| `agy` / `gemini-3.7-flash-high` | 08:04, plain `-p` | Zero-byte report. `Error: permission check failed for command "pwd; ls -la": user denied permission to run command` |
+| `agy` / `gemini-3.7-flash-high` | 08:06, `--sandbox --dangerously-skip-permissions --print-timeout 13m` | Zero-byte report. `Error: timeout waiting for response` |
+| `claude-fable-5` at high effort | 08:04, in parallel as the second reading | Zero-byte report and zero-byte log; still running when the session ended |
+
+`codex` / `gpt-5.6-sol` is recorded down until 2026-08-27 and was not attempted; `grok-4.6`'s
+balance is exhausted and it was not attempted.
+
+The gate was run afterwards, on 2026-08-22, against the same `/tmp/m21-review` packet — the plan
+copy is byte-identical to the committed file, and the packet's own `BEFORE.sha` guard re-verified
+clean after both lanes finished. **Both lanes answered this time**, so the review stands on two
+families rather than one.
+
+One process note. `ORCHESTRATOR.md`'s rule at `:296` requires a `-p` lane asked to break something
+to get a read-only sandbox or a throwaway copy. The packet was a throwaway copy, but `agy` ran under
+`--dangerously-skip-permissions` and its citations resolve to paths in the live worktree, so it read
+the real tree rather than only the copy. It wrote nothing: the sha guard is clean and `git status`
+shows no change to any file this item touches.
+
+### Verdict: AMEND, from both lanes
+
+Eight questions each. `agy` / `gemini-3.7-flash-high` returned OK on four and DEFECT on four;
+`claude-fable-5` returned OK on two, DEFECT on five and a QUESTION on the eighth.
+
+| # | Question | gemini | fable | What it found |
+|---|---|---|---|---|
+| 1 | Completeness | DEFECT | OK | Both name spec assumption 4 (*a word beside every colour*) as touched by no AC. They differ on whether that matters: fable reads it as covered by the plan's own declared narrowing, gemini as a narrowing with no validating gate. **Both independently name the same undeclared omission** — the brief's non-native-cursor prohibition at `spec-M21.md:72-74` has no AC, no seam and no out-of-scope line |
+| 2 | Silent shrinkage | DEFECT | DEFECT | gemini: the five composite shadow rows — `--shadow-card --shadow-pop --shadow-sheet --shadow-tile --shadow-window` — all carry `citation: "M21-owns-the-mock-token-block"`, and the plan neither models nor declares them. fable: the cursor omission again, plus that nothing asserts the mock's mirror blocks *stay* mirrors except the register fingerprint |
+| 3 | Analogues | OK | DEFECT | Both opened the files and confirmed all four cited claims: `colorRows` resolves columns by header name; `DesignTokenParityTests` asserts symmetric-difference equality in both directions; `BreakerGeometryParityTests` reads `Breaker geometry` and nothing else; `theNameMapCoversTheWholePalette` requires every `ColorToken` case in `colorNameMap.values`. fable contradicted a claim the plan makes about itself — see the census finding below |
+| 4 | Ordering | OK | OK | **M21 before M16 is confirmed by both**, on the plan's own reasoning plus one gemini adds: M16 landing first would have to author `--jack-off`, `--jack-ring` and `jack-lane` in `ColorToken`, which reddens two-way parity against `DESIGN.md` immediately. fable found a red gate inside M21's *own* first run that the plan does not predict — see below |
+| 5 | Decision D2 | OK | OK | The overlay table is right, and both name the same advantage the column form would have had: a token's whole story in one row, no cross-reference, one parsing pass. fable adds that the plan's *stated* reason is wrong on its own terms — `colorsDocumentToCode` compares every value column against code, so a drifted repeated cell goes red either way. The decision survives; the reason should become the one the plan also gives, that the override set becomes assertable |
+| 6 | Decision D6/D3 | DEFECT | DEFECT | Both recomputed the contrast arithmetic independently and both found it correct, so the three-token split stands. **They then named two different fourth problems, and both are real** — below |
+| 7 | The parity inventory | DEFECT | DEFECT | **The strongest agreement in the review, reached independently.** The 3.23:1 pin must be *ported*, not replaced. `--accent` dark stays `#0091FF`, M21 migrates no call sites, so white-on-accent keeps shipping until M16–M22 move them, and deleting `darkOnAccentDeviationIsPinned` removes the only automated measurement of the live pairing during exactly that window |
+| 8 | The option not listed | OK | QUESTION | Both proposed the same shape: make the role data a declared, parity-checked contract rather than knowledge private to a test file. fable would add a Role column to §2's tables or a declared pairing map in `ColorToken`; gemini would rename to a three-tier taxonomy (`-ui` / `-fill` / `-text`) across every hue |
+
+### The three findings that are checkable, and were checked
+
+Verified against this repository rather than taken on the lanes' word.
+
+- **The census in the plan's opening paragraph is wrong: 50 rows carry an `M21-*` citation, not
+  45.** `token-register.json` splits them 38 colour, 7 metric and **5 composite** — the shadow rows
+  gemini named — under `M21-direction-split` (16), `M21-ink-twins` (7),
+  `M21-owns-the-mock-token-block` (20) and `M21-metric-rows` (7). The plan's *"45 carry an `M21-*`
+  citation — 38 colour rows and 7 metric rows"* omits the composites, and §"Out of scope" does not
+  declare them either.
+- **Five tokens carry only `mock.light`, so the register is not an oracle for their dark values.**
+  `--accent-wash`, `--accent-wash-line`, `--tl-close`, `--tl-min` and `--tl-zoom` each have
+  `observed` keys `mock.light` and `swift` and nothing else, because the mock authors them once in
+  `:root`. The plan's rule that *"values come from `planning/fidelity/token-register.json`, not from
+  the HTML"* has five rows it cannot satisfy, and inventing their dark values is the second parse
+  with no oracle the plan forbids itself.
+- **`LightAppearanceTests.lightIsAuthored` will redden on those same five tokens.** It iterates
+  `ColorToken.allCases where token != .onAccent` and expects each to differ between appearances
+  (`LightAppearanceTests.swift:35-40`). Growing `ColorToken` to 40 cases brings in tokens that are
+  identical in both by design, so the exemption list has to widen **by name** — which is what that
+  test's own docstring argues for, calling a blanket exemption *"a hole waiting for the value that
+  walks into it"*. This is the red gate finding 4 says the plan did not predict.
+
+### The fourth problem in D3, where the lanes disagree
+
+Both accept the three-token split and the measurement behind it. Neither problem is the other's.
+
+- **fable — a missing rung.** The role table has two floors where the WCAG ladder has three. There
+  is no 3:1 non-text rung (1.4.11), so `--accent` used as a ring or a dot measures **3.12:1 on light
+  `--chrome`** with nothing holding it there, and `--focus` at 3.52:1 falls under no role at all. A
+  small accent drift then ships a real non-text failure that `ContrastFloorTests` cannot see.
+- **gemini — an inverted suffix.** `--accent-ink` is a background *fill* carrying white text, while
+  `--live-ink`, `--attn-ink` and `--fail-ink` are *text* colours sitting on ground surfaces. The
+  same suffix means opposite things across the palette, so a developer reaching for `--accent-ink`
+  as text by analogy with the status twins ships a contrast failure by following the naming.
+
+Each lane's own nomination for the single most important change differs accordingly: fable's is
+porting the 3.23:1 pin, gemini's is disambiguating `--accent-ink`'s role.
+
+### Disposition: none yet, and that is deliberate
+
+**Nothing in this review is dispositioned into the plan body above.** These verdicts arrived after
+the planning session ended, and this record is the handover rather than a second planning pass. The
+plan is unchanged, including the 45-row census that finding 2 shows is 50.
+
+What a runner picks up, in the order the review weighted it: port `darkOnAccentDeviationIsPinned`
+rather than replacing it, and drop the compensating assertion fable showed is unenforceable —
+`ColorToken.swift` declares values only, with no fill/label pairing for it to read; widen
+`lightIsAuthored`'s exemption list by name before growing the palette; decide the dark values for
+the five light-only tokens as a recorded decision rather than a derivation; declare or model the
+five composite shadow rows and correct the census; add the 3:1 non-text rung, or say why the role
+table stops at two; and settle whether `--accent-ink` keeps a suffix that means the opposite of
+every other `-ink`. The cursor prohibition needs an out-of-scope line either way.

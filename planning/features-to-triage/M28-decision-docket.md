@@ -253,6 +253,15 @@ submodule uninitialised.
 So "vendor what the campaign actually runs" is available at 8.9 MB with none of that hazard,
 which is a different proposition from the 546 MB bump the docket was weighing.
 
+### 4b · DEF-057 — answered by the owner, 2026-08-22
+
+**Vendor `test-campaign` only**, over bumping the whole submodule or dropping the reproducibility
+claim. Filed as **G5**, with the two rejected options recorded in it so they are not rediscovered.
+
+That closes the last of this docket's questions. **M28 is done as a docket**: DEF-042 and DEF-049
+were answered by work that had already landed, DEF-008 by the orchestrator, DEF-057 by the owner,
+and DEF-033 needs nothing. What each answer became — R21 and G5 — is ordinary work in the ledger.
+
 ### 5 · DEF-033 — unchanged
 
 Stays open and unexplained on purpose. Nothing to decide, nothing proposed.

@@ -443,7 +443,8 @@ because agy's headless runs get a tool permission auto-denied. `claude --model c
 family, and recorded as that. Codex is down until 27 August and the grok balance is exhausted,
 which is why there is no third family. Both prompts asked for breakage rather than review, and
 asked explicitly where a claim was now *under*-claimed, which is the failure mode a correction pass
-is most exposed to.
+is most exposed to. Both outputs are preserved verbatim, at `R17-gapfix-review-agy.md` and
+`R17-gapfix-review-fable.md`.
 
 *(These are the gap-fix pass's lanes. The delivery run's two lanes are a different pair, recorded
 under "What the review lanes found" below, and the two passes are not one panel.)*

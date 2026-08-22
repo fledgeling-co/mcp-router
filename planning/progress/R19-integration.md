@@ -14,10 +14,12 @@ for the first time.
 R19's commit closure carried the base's `delete next.servers[name]` forward into the locked span. It
 never chose that against R17; R19's base predates R17's merge, so it inherited the delete along with
 everything else. R17 is the later decision, it reverses that delete, and two instruments behind it
-settle the merge without any judgement of mine — **one instrument per side, not both instruments
-for both sides.** Which one guards which half is the useful thing to write down, and it is what
-this paragraph now says. *(It said something else, and something false, until gap-fix 1; the
-withdrawn sentence and how it was disproved are in the closing section of this note.)*
+settle the merge without any judgement of mine — **each side is pinned by at least one instrument,
+and `parity-cli.sh` catches both.** Which instrument reaches which half is the useful thing to
+write down, and it is what this paragraph now says. *(It has said something false twice, once
+before gap-fix 1 and again before gap-fix 2, both times about instrument coverage rather than about
+the resolution. Both withdrawn sentences and how each was disproved are in the two closing sections
+of this note.)*
 
 **`parity-cli.sh` pins the node side.** Its fourth `cli-watch` scenario compares the manifest's
 *shape* between the two binaries, `reason=yes` included. Put `delete next.servers[name]` back into
@@ -28,16 +30,42 @@ driving `WatchWorld.runner` and `ManifestIO` — and no path through it executes
 all.
 
 **`IndexFailureRecordTests` pins the Swift side.** Restore the effect of R19's `removeEntry` call
-inside `WatchIndexing.swift`'s locked span and the suite fails with 11 issues. `parity-cli.sh` is
-not what catches that one.
+inside `WatchIndexing.swift`'s locked span and the suite fails with 11 issues.
 
-So the delete goes on **both** sides and the lock stays, each side held by the instrument that can
-see it. The two are **complementary rather than redundant**, which is the argument for carrying
-both: `parity-cli.sh` is differential — it diffs node's streams, exit code and files against
-Swift's — so it reddens on a one-sided regression and would stay **green** if both sides regressed
-together, because the two would still agree. `IndexFailureRecordTests` is absolute on the Swift
-side and blind to node, so it cannot be fooled by agreement. Between them the both-at-once case
-that the differential lane structurally cannot see is still caught.
+**`parity-cli.sh` reddens on that arm as well.** Of the two instruments, it is the one that reaches
+the node half — `IndexFailureRecordTests` never executes `src/watch.ts` — and it reaches the Swift
+half too, being differential: a one-sided regression is a disagreement whichever side it is on, and
+the Swift arm produces the exact mirror of the node arm's diff on the same scenario row. What
+`IndexFailureRecordTests` uniquely holds is the **both-sides-at-once** case, where the two binaries
+still agree and the differential lane goes green. That is the argument for carrying both, and it
+does not need an exclusivity that is not there.
+
+**The 2×2, every cell measured** — arms restored from R19's own code at `a27fd52`, each removed
+afterwards and each removal confirmed by blob hash rather than by eye:
+
+| arm | `parity-cli.sh` | `IndexFailureRecordTests` |
+|---|---|---|
+| none | green — 18 verbs agreed, 0 did not, exit 0 | green — 2 tests in 1 suite |
+| node delete, `src/watch.ts:265` | **RED** — 17 agreed, 1 did not, exit 1 | green — 2 tests in 1 suite |
+| Swift `removeEntry` effect, `app/Sources/RouterCore/Watch/WatchIndexing.swift:209` | **RED** — 17 agreed, 1 did not, exit 1 | **RED** — 11 issues |
+| both arms removed | green — 18 verbs agreed, 0 did not, exit 0 | green — 2 tests in 1 suite |
+
+Both reds land on the same `cli-watch` scenario and name the same two servers, in opposite
+directions. The node arm reads `manifest:[0a1,2 > deadcommand tools=0 reason=yes > refuseslist
+tools=0 reason=yes]` — `diff` adding the Swift side's two rows, because node lost them. The Swift
+arm reads `manifest:[1,2d0 < deadcommand tools=0 reason=yes < refuseslist tools=0 reason=yes]` —
+`diff` deleting node's two rows, because Swift lost them. **The mirror image is what proves it is
+the arm rather than the machine**, and it is also why that cell could never have been green: a
+differential harness cannot do anything else with a one-sided regression.
+
+So the delete goes on **both** sides and the lock stays, and each side is held by at least one
+instrument that can see it. The pair is still worth carrying, and the reason is the both-at-once
+case rather than a division of labour: `parity-cli.sh` is differential — it diffs node's streams,
+exit code and files against Swift's — so it reddens on a one-sided regression from either side and
+would stay **green** if both sides regressed together, because the two would still agree.
+`IndexFailureRecordTests` is absolute on the Swift side and blind to node, so it cannot be fooled
+by agreement. Between them the both-at-once case that the differential lane structurally cannot
+see is still caught.
 
 R17's ~40-line comment is placed where the delete used to be, above the `failed` loop, with one
 paragraph rewritten. The paragraph arguing R19 as a live alternative mechanism is now history: R19
@@ -272,6 +300,13 @@ the working tree holds only the two intended files.
   citations are worth resolving is somebody's to price; the class has now rotted once, and the
   correction in gap-fix 1 gives that row's Swift sites their paths and the rotted one its call text
   so a phrase search finds it when the line moves again.
+- **`planning/features-to-triage/LEDGER.md`'s R19 row says *thirteen lines* for a distance measured
+  here as four**, carrying gap-fix 1's verdict figure forward. That file is the orchestrator's and is
+  being written concurrently, so it is not edited from this branch; the correction is in the gap-fix 2
+  section below with the measurement behind it. The figures in that row this gap-fix did re-measure —
+  lint 0/552, `make test` 1728/216, `parity-cli` 18/0, `parity-overlap` 2/2, `claim-sweep` 11 — all
+  hold. Its R19-branch-era numbers and its load averages were not re-measured and are not vouched for
+  here.
 
 ## Gap-fix 1 — four record corrections, no code
 
@@ -302,15 +337,19 @@ test; nothing in it executes `src/watch.ts`. The verifier then ran the negative 
 Swift-side deletion's effect inside `WatchIndexing.swift`'s locked span, and that suite failed with
 11 issues — so it is not merely insensitive, it is sensitive to the *other* side.
 
-The rewritten paragraph is not a hedge and is stronger than what it replaces: it names which
-instrument pins which side, and why the pair is needed rather than either alone — `parity-cli.sh`
-is differential and would stay green under a simultaneous both-side regression, and
-`IndexFailureRecordTests` is the absolute check that catches exactly that case on the Swift side.
-Read on this tree rather than taken on report:
+Gap-fix 1's own account of what it wrote, kept as the record of what it claimed: *not a hedge and
+stronger than what it replaces — it names which instrument pins which side, and why the pair is
+needed rather than either alone.* `parity-cli.sh` is differential and would stay green under a
+simultaneous both-side regression, and `IndexFailureRecordTests` is the absolute check that catches
+exactly that case on the Swift side. Read on this tree rather than taken on report:
 `app/Tests/RouterCoreTests/IndexFailureRecordTests.swift` opens `@testable import RouterCore` and
 drives `WatchWorld.runner` and `ManifestIO`, and
 `scripts/acceptance/parity-cli.sh` runs both binaries into separate `MCP_ROUTER_HOME`s and `diff`s
 the results, which is what makes it blind to a regression both sides share.
+
+**The half of that which said *which* instrument pins which side was itself false, and gap-fix 2
+withdrew it.** Read on this tree meant read: nothing was armed, and the exclusivity was reasoned
+from the same differential property that refutes it. The section below carries the arm.
 
 The tree's own declarations already had this right, which is the sting: `surface.tsv`'s
 `overlap-watch-index` row records the node arm as producing a **disagreement between the binaries**
@@ -403,3 +442,184 @@ survived the move; the reconciler's `E` finding is what did not, and it is recor
 main's rather than this branch's. The moving target is a dispatch property rather than any runner's
 problem — this is the third consecutive item to log it, and a gap-fix asked to gate the tree
 nobody will merge cannot win the race by running faster either.
+
+## Gap-fix 2 — the replacement claim was false too, and a static read is what let it through
+
+**2026-08-22, on `ai/r19` at `8294df4`**, after a second **Needs More Work** verdict from a
+fresh-context verifier in `.worktrees/R19V2` (`planning/verification/R19-verdict.md` there, written
+against `f3a14b6`). Documents only again, and this time one file: this one.
+
+**The verdict's three findings, and which were in scope.** **F1** is the blocking one and is the
+whole of this pass: the false sentence at `8294df4:31-32`, replaced above with the matrix behind it.
+**F2** — the worktree handed over dirty, a previous verifier's arming mutation live in it — is the
+harness rather than this item: inherited rather than introduced, cleared by the verifier that found
+it, and recorded below rather than chased. **F3** — a brief living untracked inside the tree it is
+about — is recorded and left as it was, untracked and outside this commit. Neither non-blocking
+finding names anything on this branch to change, which is why both are recorded rather than actioned,
+and F2's remedy is a line in a brief rather than a line in this repository.
+
+### The withdrawn sentence, with anchor, tree and line
+
+- **Anchor:** `` `parity-cli.sh` is not what catches that one. `` — and, for the general form of the
+  same mistake, `one instrument per side, not both instruments for both sides.`
+- **Tree:** `8294df4`, where this file is blob `af1dcb98fcfeff3bf2ae95b348da74a69bb37f3f`. Re-read
+  here rather than taken from the verdict; the blob is identical on the verifier's merged tree and on
+  mine before this edit, so the finding survived both merges.
+- **Line:** `:31-32` for the first anchor and `:17-18` for the second, both on `8294df4`. The
+  corrected text is at `:32-68` above, with the matrix at `:46-51`.
+
+The verifier ran the cell nobody had run: R19's Swift `removeEntry` effect restored inside
+`WatchIndexing.swift`'s locked span, measured against **`parity-cli.sh`** rather than only against
+`IndexFailureRecordTests`. It is red — 17 verbs agreed, 1 did not, exit 1 — on the same `cli-watch`
+scenario the node arm reddens, carrying the mirror image of the node arm's diff. So the Swift side is
+pinned by two instruments, `parity-cli.sh` catches both sides, and the sentence gap-fix 1 wrote to
+replace a false one was false in the same way about the other half.
+
+**The document already contained its own refutation.** The falsifying clause sat at `8294df4:36-37`
+— *`parity-cli.sh` is differential … so it reddens on a one-sided regression* — and the Swift arm is
+a one-sided regression. One clause predicted the measurement, the sentence above it denied the
+measurement, and the half that was right was the half already written down.
+
+**That distance is four lines, and I measured it rather than transcribing it.** The verdict states it
+twice and the two disagree: its opening paragraph says *four lines below*, its F1 says *thirteen*,
+and this gap-fix's brief carried thirteen forward. On `8294df4` the false sentence ends at `:32` and
+the falsifying clause opens at `:36` — four lines, or five counted from the false sentence's first
+line at `:31`. Neither reading reaches thirteen. Recorded rather than quietly corrected, because a
+figure nobody re-derived is this repository's `G4` class, and a gap-fix dispatched for an unarmed
+claim is the wrong document to paste one into.
+
+**A static read is what let a false claim through twice.**
+`planning/features-to-triage/LEDGER.md`'s R19 row records gap-fix 1's replacement as verified
+*statically* — read on the tree rather than taken on report, which is better than report and is not
+arming. The first false sentence was disproved by an arm. The second was *reasoned* from the very
+differential property that refutes it, with no arm run against it, so the reasoning ran the wrong way
+and nothing was in place to stop it. **The matrix is what settled it**, and it settled it in one
+session: the cell that had never been measured is the cell that carried the answer, and completing
+the 2×2 cost less than either static read that preceded it.
+
+**One thing scoped down rather than pasted.** The verdict's ready-to-paste text says `parity-cli.sh`
+pins the node side *and it is the only instrument that does*. What was measured is that the node arm
+leaves `IndexFailureRecordTests` green, which establishes exclusivity **between these two
+instruments** and not against `make test`'s 1728, which no arm was run against. So the text above
+reads *of the two instruments, it is the one that reaches the node half*, and the general form at
+`:17-18` now says **at least** one instrument per side. Writing an exclusivity nobody measured is how
+this paragraph got here twice, and inheriting one from a verdict would be the same move with a better
+provenance.
+
+**The error under-claims, which is why this is a correction rather than an alarm.** The record said
+the Swift side had one guard; it has two. Nothing on this tree is less guarded than the note claimed
+and no merge decision turned on the sentence. What it would have cost is a reader acting on it —
+weakening `parity-cli.sh` to a node-only guard, or adding a third Swift instrument to close a
+coverage gap that is not there — in the document whose whole subject is which instrument reaches
+which half.
+
+### What the verifier confirmed, and what it declined
+
+**The records-only promise held at tree-hash exactness.** `src/`, `app/`, `scripts/` and `Makefile`
+were compared as git tree objects between `eb3e42c` and `8294df4` — byte-identity for a whole
+directory in one value — and all four matched. **Both instruments carried a presence control**, the
+working tree's live arming mutation, and both fired: the diff instrument reported `Makefile` and
+`WatchIndexing.swift` modified, the tree-hash instrument reported `app` differing. An absence check
+with no control is an assertion, and this one was not. Re-run here after merging `main`, the same
+three directories are still byte-identical to `eb3e42c` and `Makefile` is the only code-path delta.
+
+**`scripts/acceptance/parity-gate.sh` was not run, and that trade is inherited deliberately.** It is
+the instrument that would produce a fifth rate for the `control POST /servers/:name/auth` cell — the
+gate runs `parity-oauth.sh` twice with a `fail` winning between the copies, DEF-033 — and that cell
+has now had four successive measurements each contradict the rate published before it. The verifier
+declined it and stated the cost; this gap-fix states the same cost rather than quietly buying the
+figure: **no whole-parity coverage number of its own.** The row census comes from
+`parity-manifest-check.sh` instead, and the two lanes this note's claims actually turn on,
+`parity-cli.sh` and `parity-overlap.sh`, are run directly and green below. **No rate for arm 4 is
+stated here either.** Gate and machine are confounded in both datasets; the confounding is still the
+finding.
+
+**All three of gap-fix 1's corrections to the first verdict were re-measured by the verifier and all
+three hold** —
+the sweep count of **7** with the normaliser named and all eleven hits listed by site, the
+reconciler's check-E exit 1 as `main`'s branch staleness clearing on merge, and `make lint` running
+whole rather than failing at `tools`. The verifier planted five instances in a
+`git ls-files`-visible file to control the sweep, one of them split across a hard wrap to exercise
+the normaliser's whole reason for existing, and got +5 exactly with the wrapped instance counted.
+Nothing in that half of gap-fix 1 is disturbed, and neither is any gate figure.
+
+### The handover was clean this time, and it is recorded rather than assumed
+
+The previous verifier inherited this worktree **dirty** — an earlier session's Swift arming mutation
+live and uncommitted in `app/Sources/RouterCore/Watch/WatchIndexing.swift`, which would have reddened
+any gate run there for a reason nothing in the tree recorded. It pasted the patch into its verdict and
+cleared it before gating, which is the right handling and the only reason the hazard is knowable.
+
+Checked at the start of this session rather than at the end of it:
+
+```
+$ git status --porcelain          # before the merge, before any edit
+?? GAPFIX-2-BRIEF.md
+?? GAPFIX-BRIEF.md
+?? VERIFY-BRIEF.md
+```
+
+Nothing tracked was modified and nothing was absorbed into this item's diff. The three untracked
+files are briefs — the shape `planning/features-to-triage/G6-evidence-that-lives-in-tmp-is-not-evidence.md`
+filed as its other half, a brief living inside the tree it is about. Left untracked and out of this
+commit, as the previous verifier left the first of them. **This session introduced no leftover and
+inherited none**; what it inherited was the three briefs. But two verifier worktrees have now carried
+arming mutations between sessions, and a `git status` assertion at the top of a brief costs nothing —
+the second consecutive note to say so, which is the argument for it being in the brief template
+rather than in each note that noticed.
+
+### The dissent that said ship it, recorded because it was close
+
+The verifier's severity call went out of session. Two lanes were down — `codex`/`gpt-5.6-sol` on a
+usage limit to Aug 27, `grok`/`grok-4.6` on an exhausted balance, both with no output file — so the
+only out-of-family lane that answered was `agy`/`gemini-3.7-flash-high`, and **it said Done** with a
+non-blocking erratum, on the ground that an under-claim leaves the tree strictly safer than stated
+and no downstream decision turns on the sentence. The in-family `claude-fable-5` lane independently
+said Needs More Work. The verifier reported that split the unflattering way round — the lane that
+agreed with it was the in-family one — and took the red anyway, because an erratum in a verification
+file does not change *this* file, and this file is what merges to `main` and becomes the standing
+answer to *will `parity-cli.sh` catch a Swift-side regression here?* Nothing in the measurement was
+disputed by either read; only the severity was.
+
+### Gates after this gap-fix
+
+Measured on the merge of this branch with `main` at `01b6ef9` — *M20 and R19 both Needs More Work;
+two gap-fixes dispatched*, which is this item's own verdict as a subject line. The merge resolved
+nothing by hand: `git diff-tree --cc --name-only -r` prints no files for it, against the control of
+`327f38f`, this item's own merge, which prints the four it really did resolve. The only code-path
+delta the merge carries is **`Makefile`**, twelve lines from main's `50f3e8f`, adding
+`reader-accounting.py` and `null-run-gate.py` to the `lint` recipe — so `lint`'s gate count moved and
+`src/`, `app/` and `scripts/` did not.
+
+| gate | result |
+|---|---|
+| `make lint` | **exit 0** — 0 violations, 0 serious in **552 files**. `tools:` printed its version line, so the prerequisite passed rather than being skipped. Main's two new gates ran on this branch for the first time and both are green: `reader-accounting.py` at **20 raw-input readers over 28 discarding iterations, 51 drop sites**, 3 recording their drops, 16 declaring them and **1 recorded as a known gap rather than fixed**; `null-run-gate.py` at **28 assertions armed, 28 changed verdict** under a poisoned or null input, **0 held green** |
+| `make test` | **exit 0** — 1728 tests in 216 suites passed, 10.4s. Unchanged from the pre-merge figure, which is what a merge carrying no code but `Makefile` should do |
+| `scripts/acceptance/parity-cli.sh` | **exit 0** — 18 verbs agreed, 0 did not; all four `cli-watch` scenarios green, the fourth included. This is the matrix's **none** row re-measured here rather than inherited from the verdict |
+| `scripts/acceptance/parity-overlap.sh` | **exit 0** — 2 agreed, 0 did not; `overlap-watch-index` at `rows=lifeline,slowfail`, neither binary rewrote `servers.json` |
+| `scripts/acceptance/parity-manifest-check.sh` | **exit 0** — 94 rows, consistent with `control.ts`, `index.ts`, `router.ts` and the fixture directory; every cited test, script and row id resolves |
+| `planning/ledger-reconcile.py` | **exit 0** — *reconciled, no findings across A–L*; 103 rows in each file, 32 merged `ai/*`. The `E — G4-B (ai/g4b)` finding this branch reads pre-merge is gone, exactly as the brief predicted: branch staleness, cleared by the merge |
+| `planning/claim-sweep.py` | **exit 1** — 11 blocking hits, A1×5 + A2×5 + A3×1, in the same four files, none of which this branch writes |
+| `scripts/acceptance/parity-gate.sh` | **not run — deliberately.** Reasons and cost above |
+
+Every gate ran twice. The first pass piped its output and lost the exit codes — `zsh` does not
+populate `PIPESTATUS` — so each was re-run without a pipe. The two passes agree on every figure, and
+the exit codes above come from the pass that could report them, not from reading a summary line and
+inferring what the script must have returned.
+
+**The claim sweep's output is byte-identical before and after this edit but for one line number** —
+this file's own pre-existing non-blocking `A5` hit moving from `:82` to `:110` as the text above it
+grew. Zero new hits in any class, blocking or not, from a rewrite that had to quote two withdrawn
+sentences: `diff` over the two runs prints that single line and nothing else, and every
+re-run after the later edits is byte-identical to the first post-edit one. Same check gap-fix 1 ran, same reason — a correction
+that has to quote a withdrawn sentence must not become a fresh instance of one.
+
+### Where `main` was, for the next reader
+
+`main` read **`01b6ef9`** when this gap-fix started, three commits on from the `e8935f2` the second
+verifier merged. The tips this item's records **name** are `54666f7`, `43e4199`, `adfa923`,
+`bc39aa1`, `87f6f2e`, `4a56120`, `e8935f2` and this one, each confirmed here as an ancestor of
+`01b6ef9`; the first verifier logged two more without naming them, so eight is a floor rather than a
+census. **R16, R18 and R21 wait on this merging**, which
+is why a second false record here would have cost three items rather than one, and why two false
+sentences were worth a pass each rather than an erratum.

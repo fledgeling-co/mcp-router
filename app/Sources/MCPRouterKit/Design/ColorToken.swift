@@ -8,147 +8,125 @@ import Foundation
 /// here without the test seeing it. A hand-maintained `all` array would let a constant drift in
 /// unnoticed, which is exactly the failure the test exists to catch.
 ///
-/// **Two appearances, both authored.** Each token carries a dark pair and a light pair. The light
-/// values are not derived from the dark ones — the design item measured every dark indicator hue on
-/// a light ground and found all four between 1.71:1 and 2.91:1 against the 4.5:1 a label needs, so
-/// an inversion is not merely inelegant here, it is unreadable. What light reproduces instead is
-/// dark's **measured contrast ratio** per token, which is why the alphas differ (`--t2` is 55% in
-/// dark and 62% in light) while the perceived separation matches.
+/// **Four appearance contexts, all four authored.** Light, dark, and each of those again under
+/// `prefers-contrast: more`. The values live in `ColorToken+Appearance.swift` and
+/// `ColorToken+IncreasedContrast.swift`; nine tokens re-solve for increased contrast and the other
+/// thirty-one return their base from an explicit arm rather than by inheriting. The reason light is
+/// authored rather than derived is measured: every dark indicator hue placed unchanged on the light
+/// ground lands between 2.2:1 and 3.6:1 against the 4.5:1 a label needs. The reason increased
+/// contrast is authored **per appearance** is the same failure one level in — a single
+/// scheme-agnostic override paints dark ink on a graphite ground in whichever appearance it was not
+/// written for.
 ///
 /// The values deliberately live here rather than in an asset catalogue. A catalogue keeps its
-/// colours in JSON that `DesignTokenParityTests` does not read, so the light half of the system
+/// colours in JSON that `DesignTokenParityTests` does not read, so three quarters of the system
 /// would drift unwatched — the one failure this whole file exists to prevent. The SwiftUI layer
-/// builds a dynamic colour from these pairs, which is what a catalogue compiles to anyway.
+/// builds a dynamic colour from these four pairs, which is what a catalogue compiles to anyway.
 ///
 /// Values only. Binding these to SwiftUI lives in `MCPRouterUI`; this layer stays importable by
 /// anything, including the router's tests, which have no UI framework.
 public enum ColorToken: String, CaseIterable, Sendable {
-    // Grounds and lines.
+    // Grounds: the tonal ladder a window is built from, plus what sits behind and under it.
+    case desktop = "--desktop"
     case ground = "--ground"
+    case chrome = "--chrome"
+    case menubar = "--menubar"
     case panel = "--panel"
     case raised = "--raised"
     case raised2 = "--raised2"
-    case line = "--line"
-    case lineStrong = "--lineS"
+    case sunken = "--sunken"
+    case scrim = "--scrim"
 
-    // Label tiers.
+    // Lines and fills. Semi-transparent, so their contrast is a property of the pair.
+    case line = "--line"
+    case lineStrong = "--line-strong"
+    case f1 = "--f1"
+    case f2 = "--f2"
+    case f3 = "--f3"
+
+    /// The signature element's own two values — a jack with nothing plugged, and its ring.
+    /// M16 draws the Signal Path from them; this item authors them so M16 does not have to.
+    case jackOff = "--jack-off"
+    case jackRing = "--jack-ring"
+
+    // The window's three buttons at their system hues, and the fourth value all three take when
+    // the window is not key. Same in both appearances, as they are on the platform itself.
+    case trafficClose = "--tl-close"
+    case trafficMinimise = "--tl-min"
+    case trafficZoom = "--tl-zoom"
+    case trafficOff = "--tl-off"
+
+    // Focus, and the accent used as a wash behind a mark rather than as a control.
+    case focus = "--focus"
+    case focusHalo = "--focus-halo"
+    case accentWash = "--accent-wash"
+    case accentWashLine = "--accent-wash-line"
+
+    // Label tiers. Solid hexes in this direction, not an alpha over the ground.
     case t1 = "--t1"
     case t2 = "--t2"
     case t3 = "--t3"
     case t4 = "--t4"
 
-    // Fills — bezels, tracks, inactive fills.
-    case f1 = "--f1"
-    case f2 = "--f2"
-    case f3 = "--f3"
-
-    // The four exclusive meanings.
+    // The four exclusive meanings, at the platform's own published hues.
     case accent = "--accent"
     case live = "--live"
     case attention = "--attn"
     case fail = "--fail"
 
+    /// The accent as a **fill** that carries `--on-accent`, never as text.
+    ///
+    /// The suffix is the mock's and it means the opposite of the three status inks below: those are
+    /// text colours that sit on a ground, this is a background that sits under white. The
+    /// measurement is why the distinction is load-bearing rather than pedantic — used as text,
+    /// `--accent-ink` measures 4.17:1 on `--chrome` and 4.39:1 on `--panel` in light, both under the
+    /// floor, which is what `--accent-text` exists for. `ContrastRole` states which job each has and
+    /// `ContrastFloorTests` measures the pair that job implies, so reaching for the wrong one by
+    /// analogy with the naming is a red gate rather than a shipped failure.
+    case accentInk = "--accent-ink"
+
+    /// The accent as text on a ground. The token the split exists for: `--accent` itself measures
+    /// 3.52:1 on the light ground, and a 13pt label wants 4.5:1.
+    case accentText = "--accent-text"
+
+    // The status hues re-solved as text. Dark `--live-ink` and `--attn-ink` equal their base hue
+    // deliberately — on a graphite ground those already clear the floor, and moving them would
+    // spend a second value to fix a problem light has and dark does not.
+    case liveInk = "--live-ink"
+    case attentionInk = "--attn-ink"
+    case failInk = "--fail-ink"
+
+    // The two filled badges that carry `--on-accent`.
+    case shieldGood = "--shield-good"
+    case badgeBackground = "--badge-bg"
+
     /// The label drawn on an accent fill.
     ///
-    /// White in both appearances. In dark that measures 3.23:1 on `--accent`, under the 4.5:1 a
-    /// 13pt semibold label wants, and near-black would give 6.49:1 — but every native filled accent
-    /// control on macOS carries a white label, and `DESIGN.md` is explicit that where it and the
-    /// macOS 27 kit disagree, **the kit wins**. So this is a deviation that is recorded and
-    /// measured rather than hidden, and its exposure is bounded by §3.4's one-prominent-action rule.
-    case onAccent = "--onAccent"
-
-    // MARK: - Dark (the shipped appearance)
-
-    /// The base colour in the dark appearance, always in canonical six-digit upper-case form.
-    ///
-    /// `DESIGN.md` writes the label tiers and lines as `#FFF`; three-digit and six-digit forms are
-    /// the same colour, so the parity test expands both before comparing rather than treating
-    /// `#FFF` and `#FFFFFF` as a drift.
-    public var hex: String {
-        switch self {
-        case .ground: "#1E1E1E"
-        case .panel: "#232326"
-        case .raised: "#2C2C2E"
-        case .raised2: "#3A3A3C"
-        case .line, .lineStrong, .t1, .t2, .t3, .t4, .f1, .f2, .f3, .onAccent: "#FFFFFF"
-        case .accent: "#0091FF"
-        case .live: "#30D158"
-        case .attention: "#FF9230"
-        case .fail: "#FF4245"
-        }
-    }
-
-    /// Alpha as a fraction in the dark appearance. `DESIGN.md` states these as percentages (`@7.5%`).
-    public var opacity: Double {
-        switch self {
-        case .line: 0.075
-        case .lineStrong: 0.14
-        case .t1: 1.0
-        case .t2: 0.55
-        case .t3: 0.50
-        case .t4: 0.25
-        case .f1: 0.10
-        case .f2: 0.08
-        case .f3: 0.05
-        default: 1.0
-        }
-    }
-
-    // MARK: - Light (authored, never derived)
-
-    /// The base colour in the light appearance.
-    ///
-    /// The four hues are re-solved rather than reused: held in OKLCH so the hue angle survives the
-    /// darkening, because solving in HSL swings amber to brown before it reaches the ratio. Amber
-    /// is additionally pulled toward yellow — solved on hue alone it lands 21.5° from red at the
-    /// same lightness, which is the region protan and deuteran vision compresses, and those two
-    /// tokens mean "wants a decision" and "failed". The shipped pair sits 39.8° apart.
-    public var lightHex: String {
-        switch self {
-        case .ground: "#ECECEE"
-        case .panel: "#F5F5F7"
-        case .raised: "#FFFFFF"
-        // The one direction reversal in the whole system. Emphasis moves *away* from the ground;
-        // in light the resting surface is already white, so the only direction left is darker.
-        case .raised2: "#E0E0E4"
-        case .line, .lineStrong, .t1, .t2, .t3, .t4, .f1, .f2, .f3: "#000000"
-        case .onAccent: "#FFFFFF"
-        case .accent: "#0069CF"
-        case .live: "#1B7B3C"
-        case .attention: "#9F5A00"
-        case .fail: "#CD2738"
-        }
-    }
-
-    /// Alpha as a fraction in the light appearance.
-    ///
-    /// These are **not** the dark alphas. A dark hairline on a light ground and a light hairline on
-    /// a dark ground are not equally visible at the same opacity, so each value is the one that
-    /// reproduces its dark counterpart's measured ratio: `--line` moves 7.5% → 10%, `--t2` 55% →
-    /// 62%, `--t4` 25% → 33%.
-    public var lightOpacity: Double {
-        switch self {
-        case .line: 0.10
-        case .lineStrong: 0.19
-        case .t1: 0.95
-        case .t2: 0.62
-        case .t3: 0.58
-        case .t4: 0.33
-        case .f1: 0.13
-        case .f2: 0.10
-        case .f3: 0.06
-        default: 1.0
-        }
-    }
+    /// White in every context, which is why it is exempt from the authored-per-appearance rule by
+    /// name. Every native filled accent control on macOS carries a white label and `DESIGN.md` is
+    /// explicit that where it and the macOS 27 kit disagree, **the kit wins**. On `--accent-ink`,
+    /// the fill the design of record actually puts under it, that measures 4.70:1 light and 4.93:1
+    /// dark. On `--accent`, which is what this app still draws until M16–M22 move the call sites, it
+    /// measures 3.52:1 light and 3.23:1 dark — a live shortfall, pinned by
+    /// `LightAppearanceTests.darkOnAccentDeviationIsPinned` rather than hidden.
+    case onAccent = "--on-accent"
 
     /// Whether this colour may be used for anything other than its one stated meaning.
     ///
     /// The four indicator hues are exclusive by design: one amber dot in a menu bar only means
     /// something because nothing else in the app is allowed to be amber. Surfaces can assert
     /// against this rather than relying on review to catch a decorative use.
+    ///
+    /// **The ink twins are covered too.** An ink is the same exclusive meaning at a different
+    /// lightness, so leaving `--live-ink` unreserved would open a hole in the exclusivity rule
+    /// exactly the size of the new tokens — a decorative green would simply be spelled with the
+    /// other green. `--accent-ink`, `--accent-text` and the two filled badges carry the same
+    /// meanings as the hues they are solved from and are reserved for the same reason.
     public var isReservedMeaning: Bool {
         switch self {
         case .accent, .live, .attention, .fail: true
+        case .accentInk, .accentText, .liveInk, .attentionInk, .failInk: true
+        case .shieldGood, .badgeBackground: true
         default: false
         }
     }

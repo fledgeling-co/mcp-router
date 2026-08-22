@@ -57,15 +57,21 @@ struct MockTokenParityTests {
         }
     }
 
-    /// The eleven metric rows that agree today, named individually.
+    /// The eighteen metric rows that agree today, named individually.
     ///
     /// This is the ratchet under the register. Without it, a runner could satisfy "every row is
     /// classified" by reclassifying every matched row as pending and adding a citation — which is
     /// exactly the motivated classification the brief warns about, one level up. A named floor
     /// means downgrading any of these is a test edit somebody has to justify in a diff.
+    ///
+    /// **The ratchet extends and never shrinks.** It held eleven names while M21 was open; the
+    /// seven the mock declared and Swift had no case for became `MetricToken` cases in that item,
+    /// so they join. Extending is the ratchet's stated intent.
     static let mustMatchMetrics = [
-        "titlebar", "unified-toolbar", "control-mini", "control-small", "control-regular",
-        "control-large", "control-xl", "body-type", "sidebar", "selection-radius", "popover-radius"
+        "titlebar", "unified-toolbar", "toolbar-compact", "control-mini", "control-small",
+        "control-regular", "control-large", "control-xl", "body-type", "sidebar",
+        "sidebar-row-medium", "sidebar-row-large", "selection-radius", "popover-radius",
+        "card-radius", "grid-unit", "jack-lane", "scrollbar"
     ]
 
     @Test("the metric rows that agree today are still agreeing")
@@ -121,15 +127,29 @@ struct MockTokenParityTests {
         }
     }
 
-    /// The two colours the two documents already agree on.
+    /// The forty colours the two documents agree on.
     ///
     /// A floor for the same reason `mustMatchMetrics` is one: without it, "every token is
-    /// classified" is satisfiable by moving every matched row to `pending` and pointing at M21 —
-    /// motivated classification, one level up from the thing the brief warns about. These two
-    /// cannot become pending without somebody editing this list in a diff.
-    static let mustMatchColors = ["--raised", "--on-accent"]
+    /// classified" is satisfiable by moving every matched row to `pending` and pointing at an open
+    /// item — motivated classification, one level up from the thing the brief warns about. None of
+    /// these can become pending without somebody editing this list in a diff.
+    ///
+    /// **It held two names before M21 and holds the whole palette after it.** That is the item's
+    /// result stated as a ratchet: `DESIGN.md` §1–2 was re-authored against the design of record,
+    /// so every colour the mock declares now has a `ColorToken` carrying the same value in every
+    /// context the mock authors. What is deliberately *not* here is the five composite shadow rows
+    /// and the fourteen embedded assets, which keep their citations — see
+    /// `MockTokenCitations.swift`.
+    static let mustMatchColors = [
+        "--desktop", "--ground", "--chrome", "--menubar", "--panel", "--raised", "--raised2",
+        "--sunken", "--scrim", "--line", "--line-strong", "--f1", "--f2", "--f3", "--jack-off",
+        "--jack-ring", "--tl-close", "--tl-min", "--tl-zoom", "--tl-off", "--focus", "--focus-halo",
+        "--accent-wash", "--accent-wash-line", "--t1", "--t2", "--t3", "--t4", "--accent", "--live",
+        "--attn", "--fail", "--accent-ink", "--accent-text", "--live-ink", "--attn-ink",
+        "--fail-ink", "--shield-good", "--badge-bg", "--on-accent"
+    ]
 
-    @Test("the two colours the two documents already agree on are still agreeing")
+    @Test("every colour on the matched floor is still matched")
     func theMatchedColourFloorHolds() throws {
         let live = try MockTokenRegister.live(from: Self.mockText())
         for name in Self.mustMatchColors {

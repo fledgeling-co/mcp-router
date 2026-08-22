@@ -212,8 +212,9 @@ of it is implemented; each carries a triage brief under `planning/features-to-tr
   tabs, shields, tables, fenced code, blockquotes and inline figures. Delivers §7.2.
 - **Menu bar, status item and notification banner (`M20`).** Nine menus with accelerators, the
   popover's fast-approval band, and the banner's three actions with a reachable live region.
-- **The token layer and the split accent (`M21`).** 89 tokens, six appearance contexts, and the
-  reconciliation of `DESIGN.md` with the direction §9.1 records.
+- **The token layer and the split accent (`M21`).** Forty colour tokens over four resolved
+  appearance contexts, twenty-one metrics, and the re-authoring of `DESIGN.md` §1–2 against the
+  direction §9.1 records. The tokens only — which surface takes which is per-surface work.
 - **The Harnesses and Insights boards (`M22`).** Two surfaces with no prior brief: the harness
   reconciliation surface R7 argues for, and the counted-usage board §8.2 specifies.
 
@@ -462,9 +463,12 @@ user could paste into a terminal: commands, paths, tool names, durations, hashes
 display face. An app that rewrites `~/.claude.json` earns trust by looking like the system.
 
 **This supersedes the *Instrument Panel* direction** recorded in `DESIGN.md` — Terminal Dark
-with a Breaker Column signature. The two documents now disagree, and `DESIGN.md` has not been
-re-authored; until it is, the mock and this section are the authority and `DESIGN.md` is
-historical. Resolving that is tracked as M21.
+with a Breaker Column signature. **M21 re-authored `DESIGN.md` §1 and §2 against this mock**, so
+the two documents now agree and `DESIGN.md` is the spec again rather than a historical record.
+What M21 delivered is the token layer: forty colour tokens across four appearance contexts,
+twenty-one metrics, and the split accent. It moved no call site, so a surface still drawing a
+label in `--accent` rather than `--accent-text` ships the shortfall until M16–M22 move it — that
+residue is recorded in `DESIGN.md` §10 rather than here.
 
 The runner-up direction was *Blueprint Graphite*, a dark technical drawing with hairline rules
 and a cyan annotation layer. It was set aside because the prior direction was already dark
@@ -601,11 +605,20 @@ text and the buttons become unreachable.
 
 ### 9.9 Colour and type tokens
 
-Every colour lives in a custom property; there are 89 in the token block and no colour literal
-outside it. Six appearance contexts are authored: light, dark, an explicit light and dark
-override for the in-app switch, and **two separate increased-contrast blocks**, because one
-scheme-agnostic `prefers-contrast` block paints dark ink on a graphite ground in whichever of
-the two it was not written for.
+Every colour lives in a custom property and no colour literal appears outside the token block.
+**89 is the parsed row count**, not a `:root` count: it is what `planning/fidelity/token-register.json`
+records across metric rows and colour rows in every context. The `:root` block itself holds 45
+custom properties, and the file holds 59 distinct names across 188 declarations. Six appearance
+contexts are authored — light, dark, an explicit light and dark override for the in-app switch,
+and **two separate increased-contrast blocks**, because one scheme-agnostic `prefers-contrast`
+block paints dark ink on a graphite ground in whichever of the two it was not written for. The
+six resolve to four distinct value sets, since each override block mirrors the media block it
+stands in for.
+
+The Swift side carries all forty colour tokens across those four contexts as of M21, and the
+register reports **89 rows, 70 matched, 19 pending, 0 uncited** — the nineteen being five
+composite shadow values and fourteen embedded marketplace assets, neither of which a colour
+token models.
 
 The accent is split, and the reason is measured. Apple's published system Blue `#0088FF`
 gives 3.52:1 against white, below the 4.5:1 floor for 13px text. `--accent` therefore stays
@@ -616,9 +629,11 @@ grounds, plus `--shield-good` and `--badge-bg` for the two filled badges that ca
 
 ### 9.10 Accessibility floor
 
-- Contrast is gated across all four appearance contexts. The current measurement is
-  **5,788 pairs, 0 failures, 0 unresolved**; disabled-tier text is exempt under WCAG 1.4.3
-  incidental.
+- Contrast is gated across all four appearance contexts. The mock's own gate reports
+  **6,548 pairs, 0 failures, 0 unresolved** (M24, `6c513b0`); the 5,788 figure quoted in earlier
+  briefs predates that change. Disabled-tier text is exempt under WCAG 1.4.3 incidental, and on
+  the Swift side that exemption is a named `ContrastRole` case carrying its clause rather than a
+  pair the check skips.
 - `:focus` is reset once and replaced by a `:focus-visible` ring bound to the accent, inset on
   rows and jacks so it reads inside a selection fill.
 - Every control is a real `<button>` or carries a role, `tabindex` and key handling; there are
@@ -632,8 +647,6 @@ grounds, plus `--shield-good` and `--badge-bg` for the two filled badges that ca
 
 ### 9.11 What the mock does not settle
 
-- **`DESIGN.md` still describes the superseded direction.** Until it is re-authored the two
-  disagree, and any implementer reading `DESIGN.md` alone will build the wrong thing.
 - **Motion is specified, not measured.** The jack transitions, sheet entry, banner slide and
   skeleton shimmer have durations and easings in the file; no rendering engine available here
   executes CSS animation, so none has been observed.
@@ -682,8 +695,8 @@ measurement rather than preference:
 
 The repo already has most of the token layer: `DesignDocParser` reads token tables out of a
 document and `DesignTokenParityTests` compares them to the Swift types. That machinery is correct
-and stays; it needs re-keying from `DESIGN.md` to the mock, which is the open decision in §9.11 and
-`M21`.
+and stays, and `M21` re-keyed the document it reads rather than the parser itself — `DESIGN.md`
+§1–2 now states the mock's values, so the two checks point at one direction instead of two.
 
 The method is not invented here. It is `mockup-fidelity`, vendored into this repo as a git
 submodule at `.claude/plugins/fledgeling-plugins` so a runner working in this tree can read it at a

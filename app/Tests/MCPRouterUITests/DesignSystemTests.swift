@@ -105,6 +105,38 @@ struct ColorBindingTests {
         }
     }
 
+    /// The second axis, which the binding gained when the palette did.
+    ///
+    /// The four contexts are authored in the kit and the nine overriding tokens are checked there;
+    /// what is checked here is the *selection* — that asking for increased contrast returns the
+    /// increased-contrast pair rather than the base one. A binding that quietly ignored the
+    /// argument would leave the accessibility half of the palette authored, tested and unreachable,
+    /// which reads on screen exactly like a palette that has no such half.
+    @Test("the increased-contrast axis selects the authored contrast pair, not the base one")
+    func componentsFollowTheContrastSetting() {
+        for token in ColorToken.allCases {
+            #expect(token.components(for: .dark, increasedContrast: true).hex == token.contrastHex)
+            #expect(
+                token.components(for: .dark, increasedContrast: true).opacity == token.contrastOpacity
+            )
+            #expect(
+                token.components(for: .light, increasedContrast: true).hex == token.lightContrastHex
+            )
+            #expect(
+                token.components(for: .light, increasedContrast: true).opacity
+                    == token.lightContrastOpacity
+            )
+        }
+        // And the axis actually moves something: at least one token must differ, or this whole
+        // test would pass against a binding that returned the base pair for every argument.
+        let moved = ColorToken.allCases.filter {
+            $0.components(for: .dark, increasedContrast: true).hex != $0.components(for: .dark).hex
+                || $0.components(for: .dark, increasedContrast: true).opacity
+                != $0.components(for: .dark).opacity
+        }
+        #expect(moved.count == 9, "\(moved.count) tokens move under increased contrast, expected 9")
+    }
+
     @Test("hex decoding handles both cases and rejects malformed input")
     func hexDecoding() {
         let white = rgbChannels(of: "#FFFFFF")

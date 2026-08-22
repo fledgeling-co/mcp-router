@@ -46,13 +46,27 @@ pass() { echo "  ok — $*"; }
 # Read the token from source. An unreadable token is a harness failure, not a passing test: without
 # it there is nothing to compare against, and defaulting to a literal would assert a stale copy.
 #
-# Scoped to the `hex` property's own switch. `ColorToken` now carries two appearances, so a bare
-# grep for `case .ground:` matches the dark value AND the light one and yields a two-line string
-# that can never equal a sampled pixel — a harness that fails against every colour it is given.
-EXPECTED_HEX="$(sed -n '/var hex: String/,/^    }/p' \
-  "$APP_DIR/Sources/MCPRouterKit/Design/ColorToken.swift" \
-  | grep -oE 'case \.ground: *"#[0-9A-Fa-f]{6}"' \
-  | grep -oE '#[0-9A-Fa-f]{6}' | tr '[:lower:]' '[:upper:]' || true)"
+# Scoped to the `hex` property's own switch. `ColorToken` carries four appearance contexts, so a
+# bare grep for `case .ground:` matches several values at once and yields a multi-line string that
+# can never equal a sampled pixel — a harness that fails against every colour it is given.
+#
+# **The values live in `ColorToken+Appearance.swift`, not `ColorToken.swift`.** M21 split them out
+# when the palette reached forty tokens; the enum file now declares the cases and nothing else, so
+# a reader pointed at it finds no hex at all and `blocked`s. Recorded here because "the file the
+# gate reads got smaller" is the kind of move that looks harmless in a diff.
+#
+# The case list may be shared — light `--ground` sits in `case .ground, .raised, .onAccent:` — so
+# the match allows other cases either side of `.ground` rather than requiring it to be alone.
+TOKEN_VALUES="$APP_DIR/Sources/MCPRouterKit/Design/ColorToken+Appearance.swift"
+[ -f "$TOKEN_VALUES" ] || blocked "no $TOKEN_VALUES — the token values moved and this gate did not follow"
+
+read_ground() { # $1 = the property whose switch to read
+  sed -n "/var $1: String/,/^    }/p" "$TOKEN_VALUES" \
+    | grep -E '^[[:space:]]*case ([^:]*, )?\.ground(,|:)' \
+    | grep -oE '"#[0-9A-Fa-f]{6}"' | tr -d '"' | tr '[:lower:]' '[:upper:]' || true
+}
+
+EXPECTED_HEX="$(read_ground hex)"
 [ -n "$EXPECTED_HEX" ] || blocked "could not read ColorToken.ground from source — nothing to assert against"
 [ "$(printf '%s' "$EXPECTED_HEX" | wc -l)" -eq 0 ] \
   || blocked "ColorToken.ground read as more than one value — the extraction is ambiguous"
@@ -297,11 +311,10 @@ echo "design gallery"
 
 # Read the light ground out of the token, for the same reason the dark one is read: a literal here
 # would be a second copy of a design value, free to drift from the one the suite checks.
-EXPECTED_LIGHT="$(sed -n '/var lightHex: String/,/^    }/p' \
-  "$APP_DIR/Sources/MCPRouterKit/Design/ColorToken.swift" \
-  | grep -oE 'case \.ground: *"#[0-9A-Fa-f]{6}"' \
-  | grep -oE '#[0-9A-Fa-f]{6}' | tr '[:lower:]' '[:upper:]' || true)"
+EXPECTED_LIGHT="$(read_ground lightHex)"
 [ -n "$EXPECTED_LIGHT" ] || blocked "could not read ColorToken.ground's light value from source"
+[ "$(printf '%s' "$EXPECTED_LIGHT" | wc -l)" -eq 0 ] \
+  || blocked "ColorToken.ground's light value read as more than one — the extraction is ambiguous"
 echo "expecting light ColorToken.ground = $EXPECTED_LIGHT"
 
 # Launch Debug with the gallery forced into its light appearance, then open the window.

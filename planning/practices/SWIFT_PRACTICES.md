@@ -99,8 +99,16 @@ boundary, and the shape can change under you when the router is upgraded indepen
   both directions and fails on drift, so a hardcoded literal is invisible to the one check that
   would have caught it being wrong.
 - The four indicator colours (`--accent`, `--live`, `--attn`, `--fail`) are **exclusive to their
-  meanings**. One amber dot in a menu bar only means something because nothing else is allowed to
-  be amber. Never use one decoratively.
+  meanings**, and so are their text-safe twins (`--accent-ink`, `--accent-text`, `--live-ink`,
+  `--attn-ink`, `--fail-ink`, `--shield-good`, `--badge-bg`). One amber dot in a menu bar only
+  means something because nothing else is allowed to be amber, and an ink is the same meaning at a
+  different lightness — a decorative green spelled `--live-ink` is the same defect.
+  `isReservedMeaning` on `ColorToken` covers all eleven.
+- **Read the token's `contrastRole` before you pick between a hue and its ink.** A `text` token
+  goes on a ground, a `fill` token goes *under* `--on-accent`, and a `nonText` token is a ring, a
+  plug or a dot and never carries a label. The suffix does not tell you which: `--accent-ink` is a
+  **fill** while `--live-ink` is **text**, so reaching for `--accent-ink` as a label by analogy
+  measures 4.17:1 on `--chrome`. `DESIGN.md` §2's Role column states each one.
 - Nothing renders off the eight-role type ladder. 13pt body is the single loudest
   native-versus-web discriminator.
 - **No number is displayed that the router does not observe.** There is no fabricated memory saving

@@ -16,9 +16,29 @@ struct DesignTokenParityTests {
 
     // MARK: - Colour
 
-    @Test("every colour token in DESIGN.md has a constant with the same value, in both appearances")
+    /// The four contexts, composed from the two tables that state them.
+    ///
+    /// A base row gives light and dark; the overlay gives the two increased-contrast values for the
+    /// nine tokens that re-solve, and a token with no overlay row takes its base in that context.
+    /// Composing here rather than in the parser is what lets a failure name which table it read the
+    /// losing value from.
+    private static func documentedValue(
+        base: DesignDocParser.ColorRow,
+        overlay: DesignDocParser.ColorRow?,
+        dark: Bool,
+        increasedContrast: Bool
+    ) -> (hex: String, opacity: Double) {
+        let source = increasedContrast ? (overlay ?? base) : base
+        return dark ? (source.hex, source.opacity) : (source.lightHex, source.lightOpacity)
+    }
+
+    @Test("every colour token in DESIGN.md has a constant with the same value, in all four contexts")
     func colorsDocumentToCode() throws {
-        let rows = try DesignDocParser.colorRows(in: Self.documentText())
+        let text = try Self.documentText()
+        let rows = try DesignDocParser.colorRows(in: text)
+        let overlay = try Dictionary(
+            uniqueKeysWithValues: DesignDocParser.contrastRows(in: text).map { ($0.name, $0) }
+        )
         #expect(!rows.isEmpty, "parsed no colour rows — the parser or the document changed shape")
 
         for row in rows {
@@ -26,20 +46,57 @@ struct DesignTokenParityTests {
                 Issue.record("DESIGN.md documents \(row.name) but no ColorToken case defines it")
                 continue
             }
-            #expect(token.hex == row.hex, "\(row.name) dark: code \(token.hex) vs document \(row.hex)")
             #expect(
-                abs(token.opacity - row.opacity) < 0.0001,
-                "\(row.name) dark opacity: code \(token.opacity) vs document \(row.opacity)"
+                token.contrastRole.rawValue == row.role,
+                "\(row.name) role: code \(token.contrastRole.rawValue) vs document \(row.role ?? "—")"
             )
-            #expect(
-                token.lightHex == row.lightHex,
-                "\(row.name) light: code \(token.lightHex) vs document \(row.lightHex)"
-            )
-            #expect(
-                abs(token.lightOpacity - row.lightOpacity) < 0.0001,
-                "\(row.name) light opacity: code \(token.lightOpacity) vs document \(row.lightOpacity)"
-            )
+            for dark in [true, false] {
+                for contrast in [false, true] {
+                    let documented = Self.documentedValue(
+                        base: row, overlay: overlay[row.name], dark: dark, increasedContrast: contrast
+                    )
+                    let code = token.value(dark: dark, increasedContrast: contrast)
+                    let context = "\(dark ? "dark" : "light")\(contrast ? "+contrast" : "")"
+                    #expect(
+                        code.hex == documented.hex,
+                        "\(row.name) \(context): code \(code.hex) vs document \(documented.hex)"
+                    )
+                    #expect(
+                        abs(code.opacity - documented.opacity) < 0.0001,
+                        """
+                        \(row.name) \(context) opacity: code \(code.opacity) vs \
+                        document \(documented.opacity)
+                        """
+                    )
+                }
+            }
         }
+    }
+
+    /// The overlay's row set and the set of tokens that actually override, held equal.
+    ///
+    /// This is what stops the two halves of the increased-contrast claim from drifting apart in
+    /// either direction: a token that starts re-solving in code with no documented row, and a
+    /// documented row for a token that re-solves nothing. Both read as green to a per-row loop, and
+    /// the second is the one that ships — a row somebody added in good faith that the code never
+    /// implemented.
+    @Test("the increased-contrast overlay documents exactly the tokens that override")
+    func contrastOverlayNameSetsMatchExactly() throws {
+        let documented = try Set(DesignDocParser.contrastRows(in: Self.documentText()).map(\.name))
+        let inCode = Set(
+            ColorToken.allCases.filter(\.overridesForIncreasedContrast).map(\.rawValue)
+        )
+        #expect(
+            documented.symmetricDifference(inCode).isEmpty,
+            """
+            the increased-contrast overlay and the code disagree on which tokens re-solve: \
+            \(documented.symmetricDifference(inCode).sorted())
+            """
+        )
+        #expect(
+            documented.count == 9,
+            "expected 9 overriding tokens, the document carries \(documented.count)"
+        )
     }
 
     @Test("every ColorToken case traces back to a row in DESIGN.md")

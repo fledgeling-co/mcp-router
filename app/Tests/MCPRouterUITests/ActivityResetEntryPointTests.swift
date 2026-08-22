@@ -52,8 +52,10 @@
                 """
             )
             #expect(
-                headerBody.contains("model.sheet = .resetHistory"),
-                "the header's reset action opens nothing"
+                headerBody.contains("model.request(.resetCallHistory)"),
+                """
+                the header's reset action opens nothing. M18 routed it through SheetGate rather                 than assigning the sheet directly, so this reads the request; the sheet it opens                 is asserted at the model seam in SheetGateRoutingTests
+                """
             )
         }
 
@@ -112,7 +114,7 @@
 
             // Read out of the actor before asserting: `#expect`'s condition is an autoclosure that
             // does not support concurrency, so `await client.resets` inside it does not compile.
-            subject.sheet = ActivityModel.Sheet.resetHistory
+            subject.sheet = RouterSheet.Activity.resetHistory
             var resets = await client.resets
             #expect(resets == 0, "opening the dialog already reset the history")
 

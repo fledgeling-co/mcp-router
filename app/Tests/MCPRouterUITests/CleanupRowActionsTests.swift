@@ -108,9 +108,9 @@
             let board = CleanupBoardModel(client: client)
             await board.load()
 
-            board.sheet = .removeServer(name: "alpha")
+            board.sheet = .removeCandidate(name: "alpha")
             #expect(
-                board.sheet == .removeServer(name: "alpha"),
+                board.sheet == .removeCandidate(name: "alpha"),
                 "the row's removal did not open the dialog"
             )
             #expect(

@@ -18,8 +18,13 @@
         @MainActor
         final class TestClock {
             var now: Date
-            init(_ start: Date) { now = start }
-            func advance(_ seconds: TimeInterval) { now = now.addingTimeInterval(seconds) }
+            init(_ start: Date) {
+                now = start
+            }
+
+            func advance(_ seconds: TimeInterval) {
+                now = now.addingTimeInterval(seconds)
+            }
         }
 
         @MainActor

@@ -11,8 +11,8 @@
     /// `Reading` is the thing every figure on the board and in both of its destructive dialogs is
     /// read out of. Somebody checking whether a number on screen is one the router actually reported
     /// is reading this file.
-    extension CleanupBoardModel {
-        public enum LoadState: Sendable {
+    public extension CleanupBoardModel {
+        enum LoadState: Sendable {
             case loading
             case loaded(Reading)
             case stale(Reading, ControlAPIError)
@@ -33,7 +33,7 @@
             }
         }
 
-        public struct Reading: Sendable {
+        struct Reading: Sendable {
             /// When this reading was taken, from the model's own clock.
             ///
             /// **Stamped where the reading is constructed** — the instant `servers()` returns, before

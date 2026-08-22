@@ -14,7 +14,9 @@ struct CleanupProvenanceTests {
     /// A fixed pair of instants. Nothing here sleeps, and nothing reads the wall clock: a test that
     /// has to wait to reach a boundary is a test that proves nothing (`SWIFT_PRACTICES.md` §7).
     static let now = Date(timeIntervalSince1970: 1_755_000_000)
-    static func earlier(by seconds: TimeInterval) -> Date { now.addingTimeInterval(-seconds) }
+    static func earlier(by seconds: TimeInterval) -> Date {
+        now.addingTimeInterval(-seconds)
+    }
 
     // MARK: - The stamp
 
@@ -56,7 +58,7 @@ struct CleanupProvenanceTests {
     // MARK: - The reset dialog
 
     @Test("a current reading is dated quietly, and says the figure is a floor")
-    func aCurrentReadingIsDatedQuietly() throws {
+    func aCurrentReadingIsDatedQuietly() {
         let provenance = CleanupPresentation.resetFigureProvenance(
             observedAt: Self.earlier(by: 180),
             isStale: false,
@@ -76,7 +78,7 @@ struct CleanupProvenanceTests {
 
     /// Finding 4. The marker is the board's own sentence, not a second phrasing for the modal.
     @Test("a stale reading is marked, in the words the board already uses")
-    func aStaleReadingIsMarked() throws {
+    func aStaleReadingIsMarked() {
         let provenance = CleanupPresentation.resetFigureProvenance(
             observedAt: Self.earlier(by: 180),
             isStale: true,
@@ -170,7 +172,7 @@ struct CleanupProvenanceTests {
     }
 
     @Test("the removal dialog dates its reading, and marks it when it is stale")
-    func theRemovalDialogDatesItsReading() throws {
+    func theRemovalDialogDatesItsReading() {
         let observed = Self.earlier(by: 180)
         let stamp = CleanupPresentation.asOfLabel(observed, now: Self.now)
 

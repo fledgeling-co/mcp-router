@@ -625,8 +625,9 @@ def main() -> int:
               f"{'is a recorded gap' if n_gap == 1 else 'are recorded gaps'}.")
         print("This gate reaches the SILENT drop in Python only. A reader that reads a real "
               "quantity that is the")
-        print("wrong one drops nothing and passes here; so do all 66 shell readers under "
-              "planning/ and scripts/.")
+        print("wrong one drops nothing and passes here, and so does every reader inside the 66 "
+              "shell files under")
+        print("planning/ and scripts/, whose syntax an AST pass cannot resolve.")
         return 0
     for p in problems:
         print(f"  {p}\n")

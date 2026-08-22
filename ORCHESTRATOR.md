@@ -117,7 +117,7 @@ than barriering on whole waves, so the real overlap is greater than the table im
 | 5 | M5 · M7 · M8 · I3 | 4 | — |
 | 6 | M6 | 1 | Phone → Mac inbox round-trip works end to end |
 
-### In flight — 2026-08-22, updated after G4-B merged
+### In flight — 2026-08-22 ~17:5x, eight dispatched at the owner's go-ahead to run wide
 
 Recorded so a fresh session resumes the fleet from this file rather than from a transcript.
 Each runner is a detached `claude -p` in its own worktree; confirm liveness with
@@ -126,9 +126,15 @@ never the harness's own cwd notice.
 
 | Item | Worktree | Branch | Base | Dispatched | Stop rules |
 |---|---|---|---|---|---|
-| R19-INT | `.worktrees/R19` | `ai/r19` | `72958de` + main | 12:26 | **ready to verify** — 7 commits, `eb3e42c`; merge of main resolved three records by hand |
-| ~~G4-B~~ | — | `ai/g4b` | — | — | **MERGED `92a348d`** — verified Done `bc41e13`; cleared main's lint red |
-| G5 gap-fix 2 | `.worktrees/G5` | `ai/g5` | `2fbe062` | 15:0x | **ready to verify** — 4 commits, `a9603e5`, tree clean |
+| R19-INT **verify** | `.worktrees/R19V` | detached `eb3e42c` | `ai/r19` tip | 17:5x | verdict only — **must merge `87e16dc` and re-gate**: R19 gated against `adfa923`, which is two merges stale |
+| G5 gap-fix 2 **verify** | `.worktrees/G5V` | detached `a9603e5` | `ai/g5` tip | 17:5x | verdict only — the byte-identical vendor checksum is the arm that matters, because X7/X8's decision rests on it |
+| M22 | `.worktrees/M22` | `ai/m22` | `87e16dc` | 17:5x | before verify, before merge — **absorbs R7-C1**; board and `GET /harnesses` ship together or neither does. **M17 waits on this** |
+| M12 | `.worktrees/M12` | `ai/m12` | `87e16dc` | 17:5x | before verify, before merge — **no brief and no spec**; intake and triage own that gap before plan |
+| M16 | `.worktrees/M16` | `ai/m16` | `87e16dc` | 17:5x | before verify, before merge — its one essential question was M21, now merged |
+| M18 | `.worktrees/M18` | `ai/m18` | `87e16dc` | 17:5x | before verify, before merge — thirteen sheets measured in the mock, not the brief's twelve |
+| M19 | `.worktrees/M19` | `ai/m19` | `87e16dc` | 17:5x | before verify, before merge — no Markdown rendering exists anywhere in the app |
+| M20 | `.worktrees/M20` | `ai/m20` | `87e16dc` | 17:5x | before verify, before merge — six command groups today, no Router or Library menu |
+| *queued* | — | — | — | — | **M17** (needs M22 merged) and **G2** refill the first two free slots |
 
 **Both verifiers are a logged in-family downgrade.** `codex` is down until 27 August on a usage
 limit and the `grok` balance is exhausted (`402 … usage balance exhausted`, re-confirmed

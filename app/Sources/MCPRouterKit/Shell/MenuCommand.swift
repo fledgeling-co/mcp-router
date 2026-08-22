@@ -175,7 +175,10 @@ public enum MenuCommand: Hashable, Sendable {
     public var title: String {
         switch self {
         case .about: "About MCP Router"
-        case .settings: "Settings"
+        // `…` because it opens a window now (§3.4). M8 shipped it without one, correctly, while
+        // Settings was a sidebar destination and `⌘,` moved the selection; M15 makes that false.
+        // `opensAFurtherView` is derived from this string, so it follows for free.
+        case .settings: "Settings…"
         case .hide: "Hide MCP Router"
         case .hideOthers: "Hide Others"
         case .showAll: "Show All"
@@ -226,12 +229,18 @@ public enum MenuCommand: Hashable, Sendable {
     /// precedence rule settles it: where the document and the macOS kit disagree, the kit wins.
     public var isSystemProvided: Bool {
         switch self {
+        // `settings` joined at M15, and it is a reading rather than a reclassification. Declaring a
+        // `Settings` scene makes macOS contribute `Settings…` at `⌘,` on its own; the app also
+        // declaring one put **two** items with one spelling and one chord in the app menu, measured
+        // on the running build on 2026-08-22. So the item is the platform's, exactly as Hide and
+        // Quit are, and the app builds none.
         case .hide, .hideOthers, .showAll, .quit,
              .closeWindow,
+             .settings,
              .undo, .redo, .cut, .copy, .paste, .selectAll,
              .minimise, .zoom, .bringAllToFront:
             true
-        case .about, .settings,
+        case .about,
              .addServer, .addMarketplace, .pairPhone, .exportLibrary,
              .find, .resetServer, .removeServer,
              .selectDestination, .showSidebar,

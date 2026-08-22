@@ -9,8 +9,8 @@ import SwiftUI
 /// can be reached by `swift test` — which means anything with a decision in it would be a clause
 /// with no possible red-green evidence. The navigation model, the command inventory, the readout
 /// derivation, the shell's views and **which control client it talks to** all live in
-/// `MCPRouterKit` and `MCPRouterUI` for that reason, and what is left here is a `Scene` and six menu
-/// builders whose *contents* come from the model.
+/// `MCPRouterKit` and `MCPRouterUI` for that reason, and what is left here is four `Scene`s and six
+/// menu builders whose *contents* come from the model.
 @main
 @MainActor
 struct MCPRouterApp: App {
@@ -33,6 +33,20 @@ struct MCPRouterApp: App {
                 )
         }
         .commands { ShellCommands() }
+
+        // The fourth scene, and SwiftUI's `Settings` rather than a hand-built `Window`.
+        //
+        // On macOS the standard settings window is what carries the **disabled minimise and zoom**,
+        // the titlebar height and the `⌘,` binding; building those by hand reproduces something the
+        // platform already gives, and reproduces it slightly wrong. It is also why no Window-menu
+        // item is declared here: whatever macOS contributes is macOS's, and a second Settings
+        // command would put two items with two spellings in two menus.
+        //
+        // `BuildIdentity` is constructed here because this file is the one permitted to name
+        // `Bundle` (A36), and it travels in as a value rather than being read inside the window.
+        Settings {
+            SettingsWindow(model: model, buildIdentity: BuildIdentity(bundle: .main))
+        }
 
         // The glanceable instrument. `isInserted` is the gating API — `SceneBuilder` has no
         // `buildOptional`, so `if flag { MenuBarExtra(…) }` does not compile, and this is the only
@@ -96,12 +110,14 @@ struct ShellCommands: Commands {
             item(.about)
         }
 
-        CommandGroup(replacing: .appSettings) {
-            // No ellipsis: Settings is a sidebar destination in this build, so `⌘,` selects a pane
-            // rather than opening a further view. §3.4 makes that distinction the ellipsis's whole
-            // job, so writing one here would be a false promise about what the key does.
-            item(.settings)
-        }
+        // **No `CommandGroup(replacing: .appSettings)`, and that is a measurement rather than a
+        // preference.** Declaring the `Settings` scene above makes macOS contribute `Settings…` at
+        // `⌘,` by itself. With a `SettingsLink` also declared here, the running app's menu bar
+        // carried **two** `Settings…` items bound to the same chord — measured over the
+        // accessibility plane on 2026-08-22, `AXMenuItemCmdChar` `,` on both. Two items with one
+        // spelling and one chord is exactly what this file's own note says re-declaring a system
+        // item produces, so the app declares none and `MenuCommand.settings.isSystemProvided`
+        // records that the item is the platform's now.
 
         CommandGroup(replacing: .newItem) {
             item(.addServer)

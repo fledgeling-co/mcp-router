@@ -23,6 +23,9 @@
         public static let destinationKey = "shell.selectedDestination"
         public static let sidebarVisibleKey = "shell.sidebarVisible"
         public static let windowFrameKey = "shell.windowFrame"
+        /// Which pane the Settings window was last showing. Named here beside the destination for
+        /// the same reason: two windows, two selections, and neither may reach into the other.
+        public static let settingsPaneKey = "shell.settingsPane"
         /// Whether the menu-bar status item is shown. Named on `SettingsPresentation` so the pane
         /// and the store cannot disagree about which key they mean.
         public static let menuBarVisibleKey = SettingsPresentation.menuBarVisibleKey
@@ -72,6 +75,26 @@
 
         public func save(menuBarVisible: Bool) {
             defaults.set(menuBarVisible, forKey: Self.menuBarVisibleKey)
+        }
+
+        /// Which Settings pane was last looked at.
+        ///
+        /// **A `Settings` scene destroys its window on close**, so a scene-local `@State` would
+        /// reset the pane to Router on every `⌘,` — which is not how a settings window behaves on
+        /// this platform, and is a regression against the Settings board, whose selected destination
+        /// survived precisely because this type held it. So the pane is stored the way the
+        /// destination is, and gains the same evidence lane: restoration across a process boundary,
+        /// assertable against a scratch defaults domain.
+        ///
+        /// An absent or unknown value falls back rather than failing, exactly as
+        /// `Destination.restoring` does — a pane name this build no longer has must land somewhere
+        /// real rather than rendering nothing.
+        public func restoredSettingsPane() -> SettingsPane {
+            SettingsPane.restoring(defaults.string(forKey: Self.settingsPaneKey))
+        }
+
+        public func save(settingsPane: SettingsPane) {
+            defaults.set(settingsPane.rawValue, forKey: Self.settingsPaneKey)
         }
 
         /// The window frame this app last had, or nil if it has never stored a usable one.

@@ -106,6 +106,24 @@ func standardWindow(_ app: AXUIElement) -> AXUIElement? {
     return windows.first { string($0, kAXSubroleAttribute as String) == "AXStandardWindow" } ?? windows.first
 }
 
+/// One named window, or nil.
+///
+/// **This exists because M15 gave the app a second window.** Every verb below resolved its subject
+/// with `standardWindow`, which takes the first window the app reports — correct while there was
+/// one, and a silent lottery the moment there are two. A gate that dumped "the window" and read the
+/// Settings pane out of the console, or the console's title off the settings window, would report a
+/// confident verdict about a surface it never looked at.
+func namedWindow(_ app: AXUIElement, _ title: String) -> AXUIElement? {
+    let windows = (attr(app, kAXWindowsAttribute as String) as? [AXUIElement]) ?? []
+    return windows.first { string($0, kAXTitleAttribute as String) == title }
+}
+
+/// The window a verb should act on: the named one where a name was given, the first otherwise.
+func subjectWindow(_ app: AXUIElement, _ title: String?) -> AXUIElement? {
+    guard let title, !title.isEmpty else { return standardWindow(app) }
+    return namedWindow(app, title)
+}
+
 func firstElement(in root: AXUIElement, role: String, last: Bool = false) -> AXUIElement? {
     var found: AXUIElement?
     func walk(_ e: AXUIElement, _ d: Int) {
@@ -145,8 +163,42 @@ case "front":
     // The guard the whole gate rests on: if this ever answers "MCP Router", the run took the screen.
     print(NSWorkspace.shared.frontmostApplication?.localizedName ?? "?")
 
+case "windows":
+    // Every window this app has, by title — the reading a second window makes necessary. Printed
+    // rather than asserted: which windows are open is the fact a caller is trying to establish.
+    let (_, windowsApp) = application(args[2])
+    for window in (attr(windowsApp, kAXWindowsAttribute as String) as? [AXUIElement]) ?? [] {
+        let pos = pair(window, kAXPositionAttribute as String) ?? (-1, -1)
+        let size = pair(window, kAXSizeAttribute as String) ?? (-1, -1)
+        print([
+            string(window, kAXTitleAttribute as String),
+            string(window, kAXSubroleAttribute as String),
+            String(format: "%.0f,%.0f,%.0f,%.0f", pos.0, pos.1, size.0, size.1)
+        ].joined(separator: "\t"))
+    }
+
+case "buttons":
+    // The window's own titlebar controls, with the one fact this item needs about each: whether it
+    // is enabled. A settings window on this platform dims minimise and zoom **in place** and keeps
+    // close live, and `DESIGN.md` §3.4 is explicit that a disabled control dims rather than
+    // disappears — so an absent button and a disabled one are opposite answers and are printed as
+    // such rather than folded into one.
+    guard args.count >= 4 else { die("usage: axkit buttons <pid> <window title>") }
+    let (_, buttonsApp) = application(args[2])
+    guard let buttonsWindow = namedWindow(buttonsApp, args[3])
+    else { die("no window titled '\(args[3])'", 1) }
+    for attribute in ["AXCloseButton", "AXMinimizeButton", "AXZoomButton"] {
+        guard let raw = attr(buttonsWindow, attribute) else {
+            print("\(attribute)\tabsent\t-")
+            continue
+        }
+        // swiftlint:disable:next force_cast
+        let button = raw as! AXUIElement
+        print("\(attribute)\tpresent\t\(boolField(button, kAXEnabledAttribute as String))")
+    }
+
 case "dump":
-    guard args.count >= 4 else { die("usage: axkit dump <pid> window|menu") }
+    guard args.count >= 4 else { die("usage: axkit dump <pid> window|menu [window title]") }
     guard AXIsProcessTrusted() else { die("not trusted for accessibility") }
     let (_, app) = application(args[2])
     var rows = 0
@@ -182,7 +234,12 @@ case "dump":
     }
     switch args[3] {
     case "window":
-        guard let window = standardWindow(app) else { die("no windows") }
+        // The fourth argument names WHICH window, and is optional so every existing call site keeps
+        // its meaning. With two windows open, "the window" is a lottery rather than a subject.
+        let wanted = args.count >= 5 ? args[4] : nil
+        guard let window = subjectWindow(app, wanted) else {
+            die(wanted.map { "no window titled '\($0)'" } ?? "no windows", 1)
+        }
         emit(window, depth: 0)
     case "menu":
         guard let bar = attr(app, "AXMenuBar") else { die("no menu bar") }
@@ -207,6 +264,18 @@ case "title":
     let (_, app) = application(args[2])
     guard let window = standardWindow(app) else { die("no window") }
     print(string(window, kAXTitleAttribute as String))
+
+case "close":
+    // Closes one named window through its own close button, which is what a person does and what
+    // `Esc` is supposed to do. Background-safe: `AXPress` on a window control is process-directed.
+    guard args.count >= 4 else { die("usage: axkit close <pid> <window title>") }
+    let (_, closeApp) = application(args[2])
+    guard let closeWindow = namedWindow(closeApp, args[3]) else { die("no window titled '\(args[3])'", 1) }
+    guard let raw = attr(closeWindow, "AXCloseButton") else { die("that window has no close button", 1) }
+    // swiftlint:disable:next force_cast
+    let result = AXUIElementPerformAction(raw as! AXUIElement, kAXPressAction as CFString)
+    print(result == .success ? "OK" : "ERR \(result.rawValue)")
+    if result != .success { exit(1) }
 
 case "frame":
     let (_, app) = application(args[2])
@@ -236,9 +305,16 @@ case "winid":
 case "select":
     // Moves the sidebar selection by setting the row's own `AXSelected`. Background-safe, and it
     // is the same attribute a screen-reader user's selection sets.
-    guard args.count >= 4 else { die("usage: axkit select <pid> <row prefix>") }
+    guard args.count >= 4 else { die("usage: axkit select <pid> <row prefix> [window title]") }
     let (_, app) = application(args[2])
-    guard let window = standardWindow(app), let outline = firstElement(in: window, role: "AXOutline") else {
+    // The fifth argument names WHICH window's list, and is optional so every existing call site
+    // keeps its meaning. M15 gave this app a second window with a source list of its own, and a
+    // verb that always drove "the window" would move whichever list the app happened to report
+    // first — which is the console's selection changing while a gate believes it moved the
+    // Settings pane.
+    guard let window = subjectWindow(app, args.count >= 5 ? args[4] : nil),
+          let outline = firstElement(in: window, role: "AXOutline")
+    else {
         die("no sidebar outline")
     }
     let rows = children(outline).filter { string($0, kAXRoleAttribute as String) == "AXRow" }

@@ -92,35 +92,104 @@ sleep 1.5
 cleanup_app() { "$AXKIT" terminate "$PID" >/dev/null 2>&1 || kill "$PID" 2>/dev/null || true; }
 trap 'cleanup_app; rm -rf "$WORK"' EXIT
 
-# ---------------------------------------------------------------- A2, A30 · the Settings pane
+# ---------------------------------------------------------------- A1, A2, A30 · the Settings window
 #
-# Selected by pressing the sidebar's own row, **not** by the menu — and that is a measurement rather
-# than a preference. Driving `MCP Router ▸ Settings` through System Events succeeds (the menu item
-# is found and clicked) and changes nothing, because `ShellCommands` reaches the model through
-# `@FocusedValue(\.shellModel)`, and a backgrounded app with no key window has no focused value. The
-# router then runs `perform(command, on: nil)`, which is deliberately a safe no-op —
-# `ShellCommandRouterTests.performWithoutAModelIsSafe` asserts exactly that.
+# **M15 moved this pane out of the console and into a `Settings` scene**, so the checks below read a
+# second window rather than a board. Two things changed about how they are driven and both are
+# measurements rather than preferences.
 #
-# So a menu-driven check of a background app would be measuring focus, not the pane. `axkit select`
-# performs `AXPress` on the row, which is process-directed and needs no focus at all.
-"$AXKIT" select "$PID" "Settings" >/dev/null 2>&1 \
-  || fail "could not press the Settings row in the sidebar"
-sleep 1.5
+# It is opened by posting `⌘,` to the process, not by pressing a sidebar row — there is no such row
+# any more — and not through System Events, which activates the app. This works on a *backgrounded*
+# app where the old menu route could not: `ShellCommands` reached the model through
+# `@FocusedValue(\.shellModel)`, which is nil with no key window, whereas a `Settings` scene's item
+# is dispatched by macOS itself. Measured on 2026-08-22: `axkit key <pid> 43 cmd` against a
+# background app produced a window titled `Settings`, with Ghostty frontmost throughout.
+#
+# And every read below NAMES the window. `axkit dump <pid> window` takes the first window the app
+# reports, which was unambiguous while there was one and is a lottery with two — a gate that read
+# the Settings pane out of the console, or the console's title off the settings window, would report
+# a confident verdict about a surface it never looked at.
 
-"$AXKIT" dump "$PID" window > "$WORK/settings.txt" 2>/dev/null || blocked "could not read the window"
+"$AXKIT" key "$PID" 43 cmd >/dev/null || fail "could not post ⌘, to the app"
+sleep 2
 
-if grep -q "isn't built yet" "$WORK/settings.txt"; then
-    fail "A2 · Settings still renders the scaffold placeholder"
+if "$AXKIT" windows "$PID" | awk -F'\t' '$1 == "Settings" { found = 1 } END { exit !found }'; then
+    pass "A1 · ⌘, opened a second window titled 'Settings' on a backgrounded app"
 else
-    pass "A2 · Settings renders a board, not the placeholder"
+    blocked "⌘, opened no window titled 'Settings' — every check below would read the console"
 fi
 
-for group in "Router" "Menu bar" "Warm set" "Control token"; do
-    if grep -q "$group" "$WORK/settings.txt"; then
-        pass "A30 · the '$group' group is on screen"
-    else
-        fail "A30 · the '$group' group is missing from the pane"
+# The tell that identifies a macOS settings window at a glance, and the brief asks for it as
+# *disabled* controls that dim in place rather than hidden ones — §3.4's rule, and the reason an
+# absent button and a disabled one are opposite answers here.
+BUTTONS="$("$AXKIT" buttons "$PID" Settings)"
+check_button() {
+    local attribute="$1" want_enabled="$2" line
+    line="$(printf '%s\n' "$BUTTONS" | awk -F'\t' -v a="$attribute" '$1 == a { print; exit }')"
+    if [ -z "$line" ]; then
+        fail "A1 · the window reports no $attribute at all"
+        return
     fi
+    local presence enabled
+    presence="$(printf '%s' "$line" | awk -F'\t' '{ print $2 }')"
+    enabled="$(printf '%s' "$line" | awk -F'\t' '{ print $3 }')"
+    if [ "$presence" != "present" ]; then
+        fail "A1 · $attribute is $presence — §3.4 dims a control in place, never hides it"
+    elif [ "$enabled" = "$want_enabled" ]; then
+        pass "A1 · $attribute is present and AXEnabled $enabled"
+    else
+        fail "A1 · $attribute reports AXEnabled $enabled, expected $want_enabled"
+    fi
+}
+check_button AXCloseButton 1
+check_button AXMinimizeButton 0
+check_button AXZoomButton 0
+
+# The window title says what you are looking at (§3.7). Read off the named window rather than off
+# "the window", which is now two of them.
+STITLE="$("$AXKIT" windows "$PID" | awk -F'\t' '$1 == "Settings" { print $1; exit }')"
+[ "$STITLE" = "Settings" ] \
+  && pass "§3.7 · the Settings window's title is 'Settings'" \
+  || fail "§3.7 · no window titled 'Settings'"
+
+# And the console kept its own title, which is the half that proves the two windows are separate.
+CONSOLE_TITLE="$("$AXKIT" windows "$PID" | awk -F'\t' '$1 != "Settings" { print $1; exit }')"
+case "$CONSOLE_TITLE" in
+    Settings|"") fail "the console window's title is '$CONSOLE_TITLE' — the two windows are confused" ;;
+    *)           pass "the console window kept its own title, '$CONSOLE_TITLE'" ;;
+esac
+
+# One pane selected, seven rows. The brief's own acceptance line, over the accessibility plane.
+"$AXKIT" dump "$PID" window Settings > "$WORK/settings.txt" 2>/dev/null \
+  || blocked "could not read the Settings window"
+
+PANE_ROWS="$(awk -F'\t' '$2 == "AXRow" { n++ } END { print n + 0 }' "$WORK/settings.txt")"
+[ "$PANE_ROWS" = "7" ] \
+  && pass "A2 · the source list carries seven pane rows" \
+  || fail "A2 · the source list carries $PANE_ROWS pane rows, not 7"
+
+for pane in Router Harnesses "Session analyst" Updates Security "Menu bar" Advanced; do
+    grep -qF "$pane" "$WORK/settings.txt" \
+      && pass "A2 · the '$pane' pane is in the source list" \
+      || fail "A2 · the '$pane' pane is missing from the source list"
+done
+
+# **The four groups are on three panes now**, so each is read off the pane that draws it rather than
+# off one dump. A single dump would find one of the four and report the other three missing on a
+# correct window.
+dump_pane() {
+    "$AXKIT" select "$PID" "$1" Settings >/dev/null 2>&1 \
+      || { fail "could not select the '$1' pane"; return 1; }
+    sleep 1.2
+    "$AXKIT" dump "$PID" window Settings > "$WORK/settings.txt" 2>/dev/null \
+      || { fail "could not read the Settings window on '$1'"; return 1; }
+}
+
+dump_pane Router || true
+for group in "Router" "Warm set"; do
+    grep -q "$group" "$WORK/settings.txt" \
+      && pass "A30 · the '$group' group is on the Router pane" \
+      || fail "A30 · the '$group' group is missing from the Router pane"
 done
 
 for row in "Endpoint" "Home" "Idle reaper" "Counting since"; do
@@ -136,56 +205,42 @@ else
     fail "A6 · no composed endpoint on screen"
 fi
 
-# A5 — no memory figure, measured on what is actually rendered rather than only in source.
-if grep -qE '[0-9]+ ?(MB|KB|GB)' "$WORK/settings.txt"; then
-    fail "A5 · a memory figure is on screen; the router observes none"
-else
-    pass "A5 · no memory figure anywhere in the rendered pane"
-fi
+# The empty warm set says what happens instead, rather than 'No items' (§5).
+grep -q "None of .* servers" "$WORK/settings.txt" \
+  && pass "§5 · the empty warm set states the count rather than 'No items'" \
+  || fail "§5 · no warm-set summary on screen"
 
-# The token's value is never rendered. The fixture build stores no real token, so this asserts the
-# shape: the row says what it says and shows nothing that looks like a credential.
-if grep -qE 'sk-|Bearer |[A-Za-z0-9]{32,}' "$WORK/settings.txt"; then
-    fail "A7 · something credential-shaped is on screen"
-else
-    pass "A7 · nothing credential-shaped is rendered"
-fi
+: > "$WORK/all-panes.txt"
+cat "$WORK/settings.txt" >> "$WORK/all-panes.txt"
 
-# The window title says what you are looking at (§3.7).
-TITLE="$("$AXKIT" title "$PID" 2>/dev/null || true)"
-[ "$TITLE" = "Settings" ] \
-  && pass "§3.7 · the window title is 'Settings'" \
-  || fail "§3.7 · the window title is '$TITLE', not 'Settings'"
+dump_pane "Menu bar" || true
+grep -q "Menu bar" "$WORK/settings.txt" \
+  && pass "A30 · the 'Menu bar' group is on the Menu bar pane" \
+  || fail "A30 · the 'Menu bar' group is missing from the Menu bar pane"
+grep -q "Show MCP Router in the menu bar" "$WORK/settings.txt" \
+  && pass "the menu-bar checkbox is on screen with its label" \
+  || fail "the menu-bar checkbox is missing"
+cat "$WORK/settings.txt" >> "$WORK/all-panes.txt"
+
+dump_pane Security || true
+grep -q "Control token" "$WORK/settings.txt" \
+  && pass "A30 · the 'Control token' group is on the Security pane" \
+  || fail "A30 · the 'Control token' group is missing from the Security pane"
+cat "$WORK/settings.txt" >> "$WORK/all-panes.txt"
 
 # A9 — the disabled control dims **in place** and carries its reason, rather than disappearing.
 #
 # This asserts the PAIRING §3.4 actually specifies — "disabled dims in place with a discoverable
 # reason" — rather than the presence of one string. The difference is not academic; the old form
-# was:
+# demanded the reason **unconditionally**, of a control that is only sometimes disabled, and
+# `SettingsPresentation.TokenStatus.canForget` is true for `.stored` and `.rejected`, where the
+# button is correctly ENABLED and correctly carries no reason.
 #
-#     grep -q "Forget the stored token"      -> pass
-#     grep -q "There is no stored token…"    -> pass, else FAIL "carries no reason"
-#
-# which demands the reason **unconditionally**, of a control that is only sometimes disabled.
-# `SettingsPresentation.TokenStatus.canForget` is true for `.stored` and `.rejected`, and in those
-# two states the button is correctly ENABLED and correctly carries no reason — §3.4 asks for a
-# reason on a disabled control, not on every control. So the old check failed a correct app.
-#
-# **And it was self-poisoning, which is why it looked intermittent.** Measured here, same tree,
-# same binary, same scenario, back to back:
-#
-#     run 1, keychain clean   -> 21 passed, 0 failed, exit 0
-#     run 2, keychain primed  -> 20 passed, 1 failed, exit 1   (this assertion alone)
-#
-# The app's first run reads the router's token file and stores the token in this Mac's keychain, so
-# the status moves `.absent` -> `.stored`, `canForget` flips false -> true, and the button becomes
-# legitimately enabled. **Running this script once changes the machine state that decides its own
-# next verdict.** That is the whole of the 19/2 -> 20/1 -> 21/0 drift across G1 and D2; it was never
-# flaky, and it was never a product defect. `SettingsBoard.forgetButton` has always set
-# `.disabled()`, `.help()` and `.accessibilityHint()` together.
-#
-# The form below is true in both states and stronger in both directions: a disabled control with no
-# reason fails, and so does an enabled control that carries one.
+# **And it was self-poisoning, which is why it looked intermittent.** The app's first run reads the
+# router's token file and stores the token in this Mac's keychain, so the status moves `.absent` ->
+# `.stored`, `canForget` flips false -> true, and the button becomes legitimately enabled. Running
+# this script once changes the machine state that decides its own next verdict. The form below is
+# true in both states and stronger in both directions.
 FORGET_ROW="$(awk -F'\t' '$6 == "Forget the stored token" { print; exit }' "$WORK/settings.txt")"
 if [ -z "$FORGET_ROW" ]; then
     fail "A9 · the forget control disappeared instead of dimming in place"
@@ -208,15 +263,40 @@ else
     fi
 fi
 
-# The empty warm set says what happens instead, rather than 'No items' (§5).
-grep -q "None of .* servers" "$WORK/settings.txt" \
-  && pass "§5 · the empty warm set states the count rather than 'No items'" \
-  || fail "§5 · no warm-set summary on screen"
+# A5 and A7 are asked over EVERY pane this run visited rather than over one, because the honesty
+# rules they encode are properties of the window and not of the pane that happens to be showing.
+if grep -qE '[0-9]+ ?(MB|KB|GB)' "$WORK/all-panes.txt"; then
+    fail "A5 · a memory figure is on screen; the router observes none"
+else
+    pass "A5 · no memory figure anywhere in the panes this run rendered"
+fi
 
-# The menu-bar checkbox is a real control, checked by default.
-grep -q "Show MCP Router in the menu bar" "$WORK/settings.txt" \
-  && pass "the menu-bar checkbox is on screen with its label" \
-  || fail "the menu-bar checkbox is missing"
+if grep -qE 'sk-|Bearer |[A-Za-z0-9]{32,}' "$WORK/all-panes.txt"; then
+    fail "A7 · something credential-shaped is on screen"
+else
+    pass "A7 · nothing credential-shaped is rendered"
+fi
+
+# Close is live, and it is the one titlebar control that is. Pressed rather than assumed: an
+# `AXEnabled 1` on a button nobody drove is a reading of an attribute, not of a behaviour.
+"$AXKIT" close "$PID" Settings >/dev/null || fail "the Settings window's close button did not press"
+sleep 1.5
+if "$AXKIT" windows "$PID" | awk -F'\t' '$1 == "Settings" { found = 1 } END { exit !found }'; then
+    fail "the Settings window is still open after its close button was pressed"
+else
+    pass "close is live — the Settings window went, and the console stayed"
+fi
+"$AXKIT" windows "$PID" | awk -F'\t' 'NF { n++ } END { exit !(n >= 1) }' \
+  && pass "the console window outlived the Settings window" \
+  || fail "closing Settings took the console with it"
+
+# **Escape is NOT asserted here, and the reason is a measured limitation rather than an omission.**
+# `SettingsWindow` installs `.onExitCommand`, which needs the window to hold the keyboard; this
+# harness never activates the app, so a keycode-53 event posted to a background process reaches no
+# first responder. Driven on 2026-08-22 the window stayed open both before and after the handler
+# existed, which makes the reading insensitive to the thing it would be testing.
+# `planning/practices/UI_VERIFICATION.md` rule 1 forbids the activation that would settle it, so
+# this is recorded as unmeasured rather than asserted either way.
 
 # ---------------------------------------------------------------- the status item
 # A menu-bar extra is an AXMenuBarItem owned by the app, in the system menu bar's *extras* bar.

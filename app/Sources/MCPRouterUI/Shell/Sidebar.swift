@@ -75,7 +75,7 @@
         }
     }
 
-    /// The sidebar: two named groups, an ungrouped tail, and the at-rest readout beneath them.
+    /// The sidebar: two named groups and the at-rest readout beneath them.
     /// When the sidebar shows a focus ring, as a decision rather than a modifier chain.
     ///
     /// **A24 was measured unmet before this existed.** Driven on 2026-08-14: keyboard focus was moved
@@ -113,12 +113,6 @@
                             ForEach(Destination.inGroup(group)) { destination in
                                 row(destination)
                             }
-                        }
-                    }
-                    // The ungrouped tail: Settings, with no header above it.
-                    Section {
-                        ForEach(Destination.inGroup(nil)) { destination in
-                            row(destination)
                         }
                     }
                 }

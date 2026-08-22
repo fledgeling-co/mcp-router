@@ -58,7 +58,7 @@ what exists and what it is bound to, the model for what it can do right now.
 | Menu | Command | Shortcut | Availability in M1 (`CommandContext.none`) |
 |---|---|---|---|
 | MCP Router | About MCP Router | — | enabled |
-| MCP Router | Settings | ⌘, | enabled |
+| MCP Router | Settings… | ⌘, | enabled |
 | MCP Router | Hide MCP Router | ⌘H | enabled |
 | MCP Router | Hide Others | ⌥⌘H | enabled |
 | MCP Router | Show All | — | enabled |

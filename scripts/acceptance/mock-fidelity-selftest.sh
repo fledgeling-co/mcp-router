@@ -1594,9 +1594,14 @@ LINT_ROOT="$SCRATCH/lintprobe"
 # that matched nothing must not read as a clean pass — so the scratch root has to carry the whole
 # shape, and a directory added to the real script's list makes the control below go red here rather
 # than making these cases quietly meaningless.
+# M15's `Settings` directory joins here in the same change that adds it to GEOMETRY_DIRS, and the
+# comment above is why it has to: the control case below went red the moment the real script gained
+# a directory this tree did not carry, which is the guard working rather than a defect. Leaving it
+# out would have turned every spelling case below into a case measuring nothing.
 mkdir -p "$LINT_ROOT/scripts/lint" "$LINT_ROOT/app/Sources/MCPRouterUI" \
          "$LINT_ROOT/app/Sources/MCPRouterUI/Shell" "$LINT_ROOT/app/Sources/MCPRouterUI/Activity" \
          "$LINT_ROOT/app/Sources/MCPRouterUI/Boards" \
+         "$LINT_ROOT/app/Sources/MCPRouterUI/Settings" \
          "$LINT_ROOT/app/Sources/MCPRouterKit" \
          "$LINT_ROOT/app/MCPRouter" "$LINT_ROOT/app/MCPRouterIOS"
 ln -sf "$LINT_REAL" "$LINT_ROOT/scripts/lint/no-raw-design-values.sh"

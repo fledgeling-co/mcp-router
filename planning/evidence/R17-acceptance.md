@@ -1,17 +1,17 @@
 # R17 — acceptance evidence
 
-Branch `ai/r17`, three commits, branched from `main` at `7b730ee`. Brief
+Branch `ai/r17`. The delivery run put three commits on it, branched from `main` at `7b730ee`; the
+gap-fix pass added five more and merged `main` in again, so the branch now carries the verifier's
+own commit and R19 rather than citing a file it does not have. Brief
 `planning/features-to-triage/R17-a-failed-index-can-leave-no-trace.md`. There is no spec or plan
 for this item; it went straight to a runner off the brief.
 
-`main` has since moved four commits ahead, all of them under `planning/` and `ORCHESTRATOR.md`
-(the M15-M22 specs and plans, and `ledger-reconcile.py`'s new lifecycle state). None of them
-touches a file this branch changes, so the branch is behind but not conflicted.
-
 Everything below was taken on the author's machine on 2026-08-21 and 2026-08-22. Every router run
 was sandboxed with its own `HOME` and `MCP_ROUTER_HOME` under `mktemp -d`. No harness config was
-written, and `~/.claude.json`, `~/.claude/mcp-router/` and `~/.local/share/mcp-router/` were not
-touched at any point.
+written by anything either pass ran. The gap-fix pass started no router at all — its lanes sandbox
+themselves and everything else it ran was a build, a test or a lint — so `~/.claude.json`,
+`~/.claude/mcp-router/`, `~/.local/share/mcp-router/` and `~/.gemini/` carry only the writes the
+owner's own launchd agents make while a session is open.
 
 Two gate results here were recovered from the runner's own transcript after its turn ended on an
 API timeout, rather than re-run. Each line says which.

@@ -86,6 +86,103 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+
+## A twenty-third — an assertion that will keep passing after its claim becomes false
+
+Found 2026-08-23 by `lukerhodes-2f` at merge planning, verified here. It is the sharpest form of
+this item's subject yet, because **nothing goes red at any point.**
+
+`RouterSheet.Kind.owner` on `ai/m18` documents itself as *"Who closes this sheet, for the four
+the mock draws and this app cannot host yet"* — who closes the hole, not who last worked on it.
+`.readme` returns `"M19"`. And `app/Tests/MCPRouterKitTests/RouterSheetTests.swift` asserts, in
+the test named *"the four unhosted kinds are the four triage named, with their owners"*:
+
+```swift
+#expect(RouterSheet.Kind.readme.owner == "M19")
+```
+
+M19 has now built that sheet's contents — parser, shields, images, three tabs, header and facts
+strip, measured under `M23` at `planning/fidelity/readme.ledger.md`. What remains missing is the
+**entry point**, which is M18's, and a **document source**, filed as `M30`. So the moment
+`ai/m19` merges, `"M19"` stops naming who closes the hole and starts naming who used to be
+working near it.
+
+**The test goes on passing.** The string still equals the string. The assertion reads a literal
+against a literal and is structurally incapable of noticing that the literal's *meaning* expired
+— which is this item's whole subject, arriving without a number attached. Every prior instance
+was a count that a measurement could contradict; this one is a claim no measurement in the suite
+can reach, guarded by a test whose green is evidence of nothing.
+
+It is also invisible on either branch alone. `ai/m18` is correct as it stands, `ai/m19` never
+touches the file, and `RouterSheet.swift` does not exist on `ai/m19` or `ai/m22` at all — both
+were cut from `87e16dc`. The falsity is created by the merge and by nothing else, so no gate
+either branch runs can see it.
+
+The remedy is not to update the string to `"M18 + M30"`, which would be true until the next
+merge and equally unable to say so. Either derive the owner from something the suite can check —
+a reference to the item id that a missing item invalidates — or stop asserting the literal and
+assert the property the test is named for: that every unhosted kind has *an* owner, which
+`:80`'s companion test already does correctly.
+
+## A twenty-second — the instrument's own suite count, stale in the gate built to catch stale counts
+
+Found 2026-08-22 by the orchestrator while reading `null-run-gate.py`'s output on the merged tree
+that fixed instances 13 and the enumeration boundary.
+
+`planning/null-run-gate.py:395` names one of its four not-armed populations as **"the Swift suite
+(1684 tests)"**. `main` is at **1725 tests in 215 suites** and has been since M15 merged at
+`29d5111`. The literal was true when it was written and rotted three merges later, which is this
+item's whole shape.
+
+It gates nothing. The string is descriptive output in a list of populations the gate deliberately
+does not arm, so no verdict turns on it and no arm reads it. That is exactly why it is worth
+recording rather than fixing in passing: it is the **benign** form of the defect, and the benign
+form is how the class survives review. A reader checking whether the gate's coverage claim is
+current has one number to check and it is wrong.
+
+The remedy is the same sentence this item keeps writing. Either derive the count — the suite size
+is available from `swift test --list-tests` or from the last recorded gate run — or stop naming a
+quantity the note does not need, because "the Swift suite" alone carries the whole meaning of the
+row and cannot rot.
+
+Filed, not fixed, because the fix belongs with whoever next touches that file's population list and
+a drive-by edit to a gate wired into `make lint` costs more review than the defect costs a reader.
+
+## A twenty-first — a glob that matched a different project, and it nearly wrote a verdict
+
+Caught before it landed, by the orchestrator, on the orchestrator.
+
+A verifier's `-p` output came back as 383 bytes reading *"verification stands at Done"* with the
+report itself in an earlier turn. To recover the evidence rather than record an unread verdict, the
+orchestrator looked up the agent's transcript with:
+
+```
+ls -d ~/.claude/projects/*G4* | head -1
+```
+
+That glob matches **twelve** directories. Eleven are `…-T-diolog-bench-*` temp dirs whose random
+suffixes happen to contain `G4` — `5mnG4w`, `A8L4G4`, `b01G44`, `BpG4Cs`, `fljeG4`, `G44iiF`,
+`G4SUab`, `gIhgG4`, `ifWUG4`, `P3uhG4`, `TrocG4` — and one is the worktree. `head -1` took the
+first alphabetically, which is a benchmark run about a React showcase component.
+
+**The extracted "verdict" was a coherent, detailed engineering report about a completely different
+codebase**, and nothing in its shape said so. Only reading it caught it.
+
+The named quantity is *this item's verifier transcript*; the read quantity is *the first path whose
+name contains the substring `G4`*. An item id is two characters, and two characters match anything.
+That is the whole defect, and it is the table's shape arriving through a filesystem glob rather
+than an assertion.
+
+**What makes it the worst instance here is the failure mode**: it does not produce a wrong number,
+it produces a *fabricated verdict* — plausible, specific, and about someone else's work — into a
+ledger whose whole purpose is being auditable later. Every other instance in this table degrades a
+measurement. This one manufactures one.
+
+Remedy, and it is one character: **anchor the path.** `~/.claude/projects/-Users-lukerhodes-Dev-mcp-router--worktrees-G4`
+is exact and cannot match a temp directory. More generally, a lookup keyed on a short id must be
+anchored at both ends, and a transcript must be confirmed to belong to the run being reported —
+the cheapest check is that its first user message is the brief that was dispatched.
+
 ## A twentieth — the measurement technique that removed its own record
 
 G5's gap-fix moved `planning/progress/G5-gapfix.md` out of the tree to isolate whether that one

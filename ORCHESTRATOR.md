@@ -226,6 +226,74 @@ m22 session meant, or a replacement for it — I can't distinguish those from in
 armada conductor two round trips to establish that no second writer existed. A line naming the
 dispatching session closes it.
 
+### MERGE — SWEEP EVERY VERDICT FOR FINDINGS OUTSIDE THE AC SET BEFORE MERGING IT
+
+From `sidetone` via the armada conductor, and **it has already bitten this session.** This fleet has
+the largest merge queue in the armada, so it lands here hardest.
+
+**The gap.** Gap-fix takes failures; merge takes passes. **A finding attached to a pass falls between
+the two stages with nothing looking for it.** `sidetone` found it on an already-merged item: a
+genuine `Done` at 10 of 10 whose verdict also carried **five findings outside the AC set**, none of
+which its Done-and-merge path captured. Three were holes in the integrity gate that repo had just
+adopted — the sharpest being that **a silent deletion passes all five passes**, a check written to
+catch silent writes with a silent-write hole in it.
+
+This is the ninth instance of the day's shape and **the first that is a gap *between* stages rather
+than inside an instrument**, which is why no gate here can see it: both stages are behaving
+correctly.
+
+**The rule.** Before any merge, sweep the verdict for findings outside the AC set and give each one a
+destination — **a ledger row, a brief, or a recorded decline.** A `Needs More Work` verdict is safe
+by construction, because a failure has somewhere to go. It is `Done` that loses them, so **M22 and
+anything else returning `Done` is where this applies.**
+
+**Measured on this session's own work, 2026-08-23.** M20's verdict carries **seven** findings. The
+gap-fix brief carried **five** — F1, F2, F3, F6, F7 — and **F4 and F5 had no destination at all**:
+not in the brief, not in a ledger row, not in a filed item. They are now `M34` and `M33`, and `M33`
+turns out to be the mechanism behind M18's recurrence, so a finding with no home was holding the
+explanation for a second item's failure.
+
+### THE CITATION RULE ROUTES CONDITIONALLY — COUNT THE CITATIONS FIRST
+
+`sidetone` measured that the two verdict shapes fail in **opposite** directions, which resolves the
+tension between this session's refinement and the original rule:
+
+| verdict shape | example | the risk | the half to apply |
+|---|---|---|---|
+| **citation-dense** | M16 at 20 distinct `file:line`, R19 at 12 — almost none a defect site | a runner treats measurements as a work list | say explicitly that the other citations are **not** a work list |
+| **prose-dense** | `sidetone`'s at 0, 0 and 5 | findings living only in prose headings get **under-counted** | itemise **from the findings section**, exhaustively |
+
+Its own evidence for the second: `SDT-044`'s brief carried five of six findings, and **the missing one
+held four frames that were part of the gate count the same brief asked the runner to raise.** It
+removed a cause of the number it asked for.
+
+**So count the citations first, then apply the matching half.** This session's M16 fix was the right
+half for M16; a prose-dense verdict needs the other one, and M20's omission of F4/F5 was that other
+failure arriving here.
+
+### DISPATCH — THE ADDENDUM ROUTE IS A PROPERTY OF HOW THIS FLEET LAUNCHES, NOT A GENERAL PRACTICE
+
+This session can append a marked addendum to a live runner's brief **because its runners are
+sessions**. `sidetone`'s are workflow-inner agents: `SendMessage` cannot revive them and
+`ListAgents` does not show them — ship-fleet's scheduling reference records that, and that the
+handover doc is their only pause artifact. Its substitute is to carry the correction forward to the
+verifier and **attribute the omission to itself rather than to the runner.**
+
+Do not assume another fleet can be corrected mid-flight the way this one can.
+
+### MACHINE — LOAD AND THERMAL DISAGREED, AND THERMAL BOUND
+
+`proctor-mcp` sampled thermal three times in forty seconds: `not_limited` held 364s → `not_limited`
+held 395s → **`limited` with `held_for_sec: 0`**, P0 busy at 100% while spending **0.8%** of active
+time near its 4512 MHz ladder top, load flat at 0.38–0.47 per core across all three samples. It went
+to one runner instead of two on the thermal reading rather than the load one.
+
+`berths.py` reported `in_use 0` while it had two Opus runners building Swift — **the third
+independent confirmation that it is claim accounting rather than load measurement.**
+
+Disk is the tightest axis at **13.7% free** (254 GiB absolute, 234 GiB clear of the hard gate) —
+graded healthy, so watch rather than worry.
+
 ### SEVEN INSTRUMENTS THAT COULD NOT FAIL, IN ONE DAY, ACROSS SEVEN MECHANISMS
 
 The armada conductor is carrying this count because it is what the whole night was about. **An
@@ -662,6 +730,8 @@ does **not** change what any check reads, and must not be described as though it
 | M30 | Where a capability document actually comes from | mac + router | M19 | — | — | **Untriaged** | — | Filed 2026-08-23 by M19's runner as M19's real exposure. Allocated `M29` and renumbered on the orchestrator's collision. **The renumber avoided a trap worth carrying**: four other `M29`s in this tree are **mutation ids in red-green tables** — same spelling, different namespace — and a tree-wide `sed` would have corrupted one with **nothing going red**, because those tables are prose to every gate. See the LEDGER row. |
 | M31 | The design of record cannot draw a disabled primary | design | — | `design/mcp-router-console.html` | — | **Untriaged** | — | Raised by `lukerhodes-2f` from M18's gap-fix, verified independently. `.btn:disabled` and `.btn.primary` are both specificity 0-2-0 with `.primary` second, so a disabled primary keeps its accent fill and label and differs from a live one only by losing its shadow — **drawn as though enabled**, which is the failure `DESIGN.md` names. **Inverts the instrument too**: `mock-fidelity` compares a build to the mock, so a build that correctly dims would be reported as a divergence. Reaches M18, M19 and M22; none owns it. |
 | M32 | A mock-driven gate is blind to what the mock does not draw | harness + design | — | — | — | **Untriaged** | — | Filed 2026-08-23 from M22 driving the shipped app. `mock-fidelity` has no opinion on what the build adds beyond the mock, and **no opinion reads exactly like agreement** — so *clean over N nodes* means *nothing the mock draws diverges*, not *the surface is right*. An `extra` needs an oracle rather than only a citation. See the LEDGER row. |
+| M33 | `swift build` exits 0 and silent where `xcodebuild` is fatal | harness | — | — | — | **Untriaged** | — | M20 verifier F5. `Package.swift` has no target at `MCPRouter/`; `project.yml` does. **The mechanism behind M18's recurrence**, and the widest-blast-radius entry in the instrument-that-cannot-fail register. |
+| M34 | The menu badge is unmeasurable by any lane we have | evidence | — | — | — | **Untriaged** | — | M20 verifier F4, rescued from a verdict with no destination. Four lanes closed and measured; a grep for `badge` in the acceptance lane returns nine hits and none is this. |
 | R4-C1 | The installer points at Swift; the TypeScript tree stays | router | — | — | Opus | **Done** (ai/r4c) | — | Recorded in LEDGER.md; see `R4-C1-installer-points-at-swift.md`. |
 | R4-C2 | Retire `src/*.ts` — held, and what it waits on | router | — | — | Opus | Held (owner: not on a green streak) | — | Held by owner decision: the TypeScript reference stays until several consecutive whole-gates pass, including a cold port-reuse path. Not a green-streak call. |
 | R9 | The SDK drops an upstream's message on -32603; the router reads it off the wire | router | — | — | Opus | **Done** (ai/r9 → main; DEF-047 closed, 7 tests armed 5-of-7 red, parity 82/83 0 diverged) | `ai/r9` | Recorded in LEDGER.md; see `R9-sdk-drops-upstream-message.md`. |

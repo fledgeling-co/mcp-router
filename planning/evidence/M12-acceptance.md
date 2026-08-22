@@ -32,7 +32,16 @@ would have made the dialog read as better disclosed than it is.
 
 ## The unit evidence
 
-`swift test --filter CleanupProvenance`, 18 tests in 2 suites, **passed**, at `eaf4352`.
+`swift test --filter CleanupProvenance`, 18 tests in 2 suites, **passed**, re-measured at
+`876dc20` — `Test run with 18 tests in 2 suites passed`.
+
+**This row used to be stamped `eaf4352`, and those 18 tests are red at that SHA.** `eaf4352` is
+the commit that swept up the live M3 mutation (the section below tells that story and reverts it
+in `3ab6fa7`), so `CleanupProvenance.swift:109` reads `.quiet` there and `aStaleReadingIsMarked`
+and `aStaleReadingKeepsItsStamp` both fail. The stamp was left behind by the accident rather than
+being a claim the item did not know was wrong, and the SHA is load-bearing here: this file's own
+opening rule tells a later reader to skip a check when `git diff <that SHA>..HEAD` does not touch
+the files behind the row.
 
 | # | Clause | Test | Result |
 |---|---|---|---|
@@ -92,7 +101,7 @@ launched with `open -g`, every read an accessibility query by pid. **Green twice
 | A15c | the reset dialog opens from the pane header, backgrounded | `axkit press` on `Reset history`, then the window dump speaks `Reset the recorded call history` | pass |
 | A15c · C2 | it names when its figure was read | the dump speaks `reading taken at` | pass |
 | A15c · C2 | the figure is disclosed as a floor | the dump speaks `recorded after that is discarded as well` | pass |
-| A15c · C7 | the stamp is absolute, so it cannot decay while the dialog sits open | none of `just now`, `s ago`, `m ago`, `h ago`, `d ago`, `mo ago` follows `reading taken` | pass |
+| A15c · C7 | the stamp is absolute, so it cannot decay while the dialog sits open | none of `just now`, `s ago`, `m ago`, `h ago`, `d ago`, `mo ago` follows `reading taken` | **VACUOUS — the row could not fail. Replaced in gap-fix 1, below** |
 | A15c · C8 | the shared consequence is still on screen beside the provenance line | one of the three consequence sentences is spoken | pass |
 | A15c | the removal dialog opens from a row, backgrounded | `axkit press` on `Remove…`, then the dump speaks `Keep its recorded calls` | pass |
 | A15c · C3 | it names when its tool count and key names were read | the dump speaks `was read at` | pass |
@@ -144,3 +153,148 @@ the same argument applies here. Recorded as follow-on rather than claimed.
 
 **The rendered pass covers the fresh treatment only**, which is the state a reader meets in every
 run where the router is answering.
+
+---
+
+# Gap-fix 1 — 2026-08-23
+
+Verified **Needs More Work** at `3367f72` (`planning/verification/M12-verdict.md` in `.worktrees/M12W`).
+Five findings, all in the record layer: the product was not broken and no line of `app/Sources`
+behaviour changed here. Every figure below came from a command run in this session on `ai/m12` after
+`main` was merged at `9d4da76`; nothing is carried forward from the verdict or from the runner's log.
+
+Base for this pass: merge commit `37fac85`, then `ed549b9` (the assertion) and `876dc20` (the doc
+comment). `git diff --stat 87e16dc 9d4da76 -- app/ src/ scripts/ Makefile` is empty, so the merge
+brought no code and the gates below are statements about the branch's code as well as the merged
+tree's.
+
+## Finding 1 — the A15c row that could not fail
+
+The C7 row published *the as-of stamp is absolute, so it cannot decay while the dialog sits open*
+and swept six relative shapes as `reading taken $shape`. It could match none of them: the sentence
+hardcodes `at ` after `taken`, and `shortAgo` puts a digit where the pattern wanted the unit.
+
+**Replaced, then armed by planting.** The row now extracts the text after `reading taken at ` and
+requires a clock time, with a non-empty check above it so an empty extraction cannot read as
+agreement.
+
+| Tree | `asOfLabel` returns | The row reads | Gate |
+|---|---|---|---|
+| clean | `formatter.string(from: date)` | `'1:09 am'` | `25 passed, 0 failed`, exit 0 |
+| planted | `shortAgo(date, from: now) + " ago"` | `'now ago'` | `FAIL: … states no clock time`, **exit 1** |
+| reverted | `formatter.string(from: date)` | `'1:11 am'` | `25 passed, 0 failed`, exit 0 |
+
+The plant was `CleanupProvenance.swift` line 65, anchor `return formatter.string(from: date)`. The
+file is sha256 `44bc6250b28f73ab24daa32d3b3142c7ed784972713254f1c7a82c3019333628` before the plant
+and again after the revert, and `git diff -- app/Sources/MCPRouterKit/Cleanup/CleanupProvenance.swift`
+is empty — the mutation was reverted before anything was committed, which is the hazard `eaf4352`
+recorded on this branch.
+
+**The comparison, on the same text.** Both forms were run against the sentence the planted app
+actually spoke, `This figure is from the reading taken at now ago.`:
+
+```
+the form that stood here   no shape matched -> the assertion PASSES with the regression live
+the form now committed     stamp read: "now ago" -> FAILS
+on the correct sentence    stamp read: "1:09 am" -> PASSES, so it is not a blanket refusal
+```
+
+**What this row still does not cover, said rather than implied.** The removal dialog's stamp keeps
+its presence assertion (`was read at`) and gains no absoluteness assertion, because `fail` exits and
+one plant can therefore arm one row; a second assertion added here would be one nobody had seen fail,
+which is the defect being fixed. `asOfLabel` is the single source of both stamps and it is armed at
+the unit layer by mutation M6.
+
+## Finding 2 — a green unit run stamped to a tree where it is red
+
+Restamped in *The unit evidence* above, with the contamination stated in the row rather than left to
+the section below it. Re-measured rather than re-stamped from the verdict: `CleanupProvenance.swift`
+line 109 reads `return .quiet(…)` at `eaf4352` and `return .marked(…)` at `3ab6fa7` and at `876dc20`,
+and `aStaleReadingIsMarked` requires `case let .marked(text)` — so the 18 tests are red at the SHA
+the row used to carry.
+
+## Finding 3 — three citations landing on plausible wrong text
+
+Swept with the regex
+`` `([A-Za-z0-9_+./-]+\.(?:swift|ts|sh|py|md|yml|yaml|json))[:]([0-9]+)(?:\s*[-–—]\s*([0-9]+))?` ``
+over the five M12 documents, resolving each basename through `git ls-files` and reading the cited
+line. A second pass with a looser grep (`\.(swift|ts|sh|py|md|yml|json):[0-9]+|line [0-9]+`) is the
+control on the first, and found only the two elided continuations `` `:317` `` and `` `:335` ``,
+which the strict regex cannot see. Population: **22 citations**, of which six were wrong.
+
+| Site | Was | Landed on | Now |
+|---|---|---|---|
+| `spec-M12.md` §what is wrong | `CleanupBoard.swift:79` | `case let .stale(_, error):` | `:95`, anchor `StaleReadingBanner(error: staleError)` |
+| `spec-M12.md` §what is wrong | `CleanupBoard.swift:34` | `.task { await board.load() }` | `:35`, anchor `.sheet(item: $board.sheet)` |
+| `spec-M12.md` §out of scope 2 | `CleanupSheets.swift:232` | `.buttonStyle(StandardButtonStyle())` | `:255`, anchor `CheckCopy.ownerChanged(` |
+| `spec-M12.md` §out of scope 1 | `src/control.ts:495` | `records: deps.usage.recent({` | `:496`, anchor `limit: Number(url.searchParams.get('limit') ?? 200)` |
+| brief ×2, progress ×2 | `ORCHESTRATOR.md:522`, `LEDGER.md:110` | a register heading; M32's row | the line numbers are gone — both files are appended to hourly |
+
+`CleanupBoard.swift` is blob `2ce0d71` at `87e16dc` and at `0f5f118` alike, so `:79` and `:34` were
+**wrong when written**, not drifted. `CheckCopy.ownerChanged` sat at `:241` at `87e16dc` and `7a2f1e0`
+and moved to `:255` at `4952afb`, this branch's own commit — so `:232` was wrong when written and
+then drifted further. `src/control.ts` reads `limit: Number(…?? 200)` at `:496` at `87e16dc` too.
+
+Every repointed citation now carries **anchor, tree and line**, which is `G7`'s form: the anchor
+survives a line shift but not a re-wrap, the line survives a re-wrap but not a shift, and the tree
+makes either checkable. The M7-acceptance citations `:313`, `:317` and `:335` resolve exactly and
+keep their numbers, with their anchors and tree added.
+
+## Finding 4 — a state the product cannot be in
+
+Both places corrected: `spec-M12.md`'s state-matrix row and the shipped doc comment on
+`CleanupBoardModel+Provenance.resetFigureProvenance` (`876dc20`). `CleanupBoard.swift:179` disables
+the only button that opens the sheet while `state.reading` is nil, and `state.reading` is nil in
+exactly `.loading` and `.failed` (`CleanupBoardState.swift:21-26`).
+
+`grep -rn "\.resetHistory" app/Sources app/Tests --include="*.swift"` returns **13** matches: four
+assign the case — `CleanupBoard.swift:177` (the disabled button), `ActivityBoard.swift:102` (the other
+board's sheet), and `ActivityResetEntryPointTests.swift:115` and `M7ExercisedRequestTests.swift:274`,
+which set it from a test rather than from a view — four call `resetHistory()`, three are `switch`
+arms, one is a doc comment and one is a string inside a test assertion. The `guard` itself is
+unchanged and still exercised by `aBoardWithNoReadingDatesNothing`.
+
+## Finding 5 — a route default of 200 written as 500
+
+`src/control.ts:496` reads `limit: Number(url.searchParams.get('limit') ?? 200)` and `src/usage.ts:259`
+slices `-(opts.limit ?? 200)`. The 500 is the board's: `ActivityModel.swift:162` passes
+`limit: ActivityRecords.capacity`, and `ActivityRecords.swift:18` sets `capacity = 500`, matched to
+`RING_SIZE` at `src/usage.ts:52`. The argument built on it is unchanged, because the ring holds 500
+either way.
+
+## The gates, re-run
+
+| Gate | Command | Result |
+|---|---|---|
+| Suite | `make test` | exit 0 — `Test run with 1743 tests in 217 suites passed`, `executed 1743 tests` |
+| Scoped suite | `swift test --filter CleanupProvenance` | `Test run with 18 tests in 2 suites passed` |
+| Lint | `make lint` | exit 0 — **as one target**, which the verifier's worktree could not do |
+| ├ swiftformat | inside `make lint` | `0/561 files require formatting, 298 files skipped` |
+| ├ swiftlint | inside `make lint` | `Found 0 violations, 0 serious in 554 files` |
+| ├ raw design values | inside `make lint` | `scanning 127 files` … `clean` |
+| ├ wire codable | inside `make lint` | `clean over` four directories, `2 exemption(s) recorded` |
+| ├ harness config writes | inside `make lint` | `340 file(s) examined, 8 name a harness config, 22 write a file, 8 in the seam — none writes one` |
+| ├ its selftest | inside `make lint` | `27 case(s) held` — 24 `P`-numbered plants each at its declared exit, `P10` the declared blind spot among them, plus 3 unnumbered cases (a clean tree, and two that must exit 2) |
+| ├ reader accounting | inside `make lint` | `1351 paths` enumerated, `22 Python files, 0 unparsed`, `unaccounted 0` |
+| └ null-run gate | inside `make lint` | `armed 28 assertions, 28 changed verdict`, `held green 0`, `blocked 0`, `not armed 4 populations` |
+| Mac build | `make build-mac` | `** BUILD SUCCEEDED **`, freshness stamped, `build_freshness_check Debug` exit 0 |
+| Rendered | `scripts/acceptance/m7-evals-cleanup.sh` | `25 passed, 0 failed`, exit 0, **twice**; one run in three blocked |
+| Reconciler | `python3 planning/ledger-reconcile.py` | exit 0 — `no findings across A, B, B-range, C, D, E, F, G, H, I, J, K, L` |
+
+**`make lint` and `make build-mac` both run here as composed targets.** `node_modules` and
+`dist/index.js` are present in this worktree, so the `tools` prerequisite that blocked the verifier
+is satisfied. That closes the composition the verdict left explicitly unproven.
+
+`app/Package.resolved` did not move across four builds — `git diff --stat -- app/Package.resolved` is
+empty at each — so the float recorded under *A dependency bump this item refused to carry* did not
+recur.
+
+**The intermittent block reproduced once in three runs**, and it is the same shape the verdict
+attributed: `BLOCKED: LaunchServices refused to open this bundle (open exited 1) … error -609`, at
+the relaunch for the `partial` scenario, **after** the whole A15c section had passed in that run. Not
+chased: the verdict already measured the cause of the frontmost-collision family with a pid-aware
+readback, and the machine's load average was between 321 and 452 across this pass.
+
+**Not run:** `make all` (the brief forbids it), `make parity`, `make test-ios`, `make test-ios-glass`
+— no file under `app/MCPRouterIOS*`, no token and no `DESIGN.md` value moved in this pass, and the
+only source change is a documentation comment.

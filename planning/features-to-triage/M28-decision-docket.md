@@ -125,3 +125,134 @@ an unreproduced failure is a claim nobody can support.
 
 An answer to 1, 2, 3 and 4. Each answer then becomes a small ordinary change with a clear
 shape, filed at that point. 5 needs nothing.
+
+---
+
+## Re-measured 2026-08-22 — three of the five no longer need an answer
+
+The docket was written 20–21 August. The design of record moved on the 22nd and two of its
+questions moved with it. Each finding below is measured, and the command is given so it can be
+re-run rather than believed.
+
+### 1 · DEF-042 is resolved, and by neither of the two options offered
+
+The docket asked to re-cut the mock or shelve `prototype.html` as a historical artifact. The
+owner settled the design of record on 2026-08-22 as `design/mcp-router-console.html`, which
+supersedes the prototype — and **the console mock had already answered the substance, by a third
+route the docket did not consider: it re-sourced the numbers rather than deleting or keeping
+them.**
+
+Counted with `grep -ioc <term> <file>`, console against prototype:
+
+| Term | console | prototype |
+|---|---|---|
+| `install velocity` | **0** | 2 |
+| `eval` | 2 | 29 |
+| `trend` | 2 | 7 |
+| `last run` | 1 | 2 |
+| `runs` | 14 | 29 |
+
+And every survivor is observable, read in context rather than counted:
+
+- Both `trend` hits are one section, `:3138`, headed **"Why there is no 'trending' band"** — the
+  honesty guardrail itself, not the defect.
+- Both `eval` hits, `:3614` and `:3692`, are about a browser engine's `browser_evaluate` and have
+  nothing to do with the boards.
+- `Last run` at `:3474` and `Runs` at `:3470` are the **session analyst's own** cadence and last
+  run — `41 min ago · 12,400 lines · 3 findings`. The router schedules and runs it, so it observes
+  both directly.
+- The Skills table's `Runs` column at `:2576` is sourced, and the mock says where: `:2772` —
+  *"Every run records the version that was live at the time, so a check result never outlives the
+  thing it tested."* That is the session analyst grepping sessions, which is a PRD feature the
+  owner asked for by name, not the router observing an invocation it never sees.
+
+`install velocity` is gone outright. So the mock kept the numbers that acquired a source and
+deleted the ones that could not have one — which is exactly what the no-fabricated-numbers rule
+asks for, arrived at without this docket.
+
+**What remains is ordinary work, not a decision.** The build still drops the Skills runs column,
+because the session analyst is not built; that is per-surface work under M17 and M20. And
+`campaign.json`'s `designOfRecord` still names the prototype, so SURF-006 and SURF-011 fail
+against a reference that is no longer the reference — already recorded in `ORCHESTRATOR.md` as
+belonging to the campaign's own session.
+
+### 3 · DEF-008 — accepted and closed by the orchestrator
+
+Nothing needs the identifier: `MCPRouterIOSUITests` queries the tab bar by label and passes, and
+both positions SwiftUI offers for the modifier were measured **clearing** the identifier rather
+than setting it. The one untried route is UIKit introspection for a value nothing reads.
+
+Naming what the losing option would be better at, which is the test for whose call this is: it is
+better at nothing here. So the call is taken rather than asked — closed as a characterised
+platform limitation, recorded at `PhoneShell.swift:121-129` so the two runs are not spent again.
+
+### 2 · DEF-049 — the contract question is already answered, in the code, with its reason
+
+**The CLI half is fixed.** The docket names `ManifestIndexer.record` calling `try? ManifestIO.save`
+at `ServicePorts.swift:341`. That call is now a `do`/`catch` at `:388-394` returning a
+`cacheFailure`, which propagates through `IndexOutcome` (`:320`, `:343`), reaches
+`ControlPorts.swift:95`, and drives `cached` at `:108`. The self-contradicting output the docket
+asked to fix has a consumer at `:348`.
+
+**And the contract question was decided by whoever fixed it**, in the comment above the function:
+
+> The error is reported, not thrown. Propagating it would change the CLI's exit code and the
+> control API's status for a manifest that failed to write, and both are contracts this repo has
+> taken a decision on elsewhere (`ControlApproveDispatchTests.swift:114-118`); moving either is its
+> own item.
+
+That is the docket's own smaller option, taken, with the precedent cited. Nothing to ask.
+
+### 2b · The "unverified lead" is refuted, and the way it nearly passed is the finding
+
+The docket recorded, as a lead it had not measured, that a *successful* approve leaves a recorded
+refusal on screen because the approve path never removes `error`. The first half measures true:
+`grep -n 'remove("error")' app/Sources/RouterCore/Auth/AuthRoutes.swift` returns **nothing**, and
+`:108-114` removes only `pending`.
+
+**It is still not a defect, because the state it needs cannot exist.** Approve is reachable only
+for an entry carrying `pending`, and both implementations clear `error` when they stage one —
+node at `src/manifest.ts:246` (`{ ...prev, hash, error: undefined, pending }`) and Swift at
+`ManifestBookkeeping.swift:83` (`entry.remove("error")`). So `entry.member("error")` is `nil`, the
+`guard case let .string(text)?` at `Describe.swift:208` fails, `rejection` is `nil`, and the
+suppression guard at `:218` never runs. The two implementations agree, so it is not a parity
+divergence either.
+
+**Worth recording as an instrument finding rather than a product one.** This document, an hour
+ago, said the lead was *verified* — on the strength of the grep above, which is true and
+insufficient. "Approve never removes `error`" is not the quantity the claim rests on; "an entry
+can carry `error` and `pending` at once" is, and it is false. That is `G4`'s shape exactly,
+committed by the orchestrator, inside the docket that was re-measuring somebody else's claims.
+
+### 2c · What is left of DEF-049 is real, dispatchable, and not what the docket describes
+
+`AuthRoutes.swift:120` is still `try? ManifestIO.save(...)` — the last of the three call sites.
+The docket's stated harm does not follow from it, for the reachability reason above. The harm that
+does: **approve answers `200` with `approved: N` while the write is discarded**, so the manifest
+still holds `pending`, the tool surface is still held, and the user has been told it was approved.
+
+Same class as the CLI half, so the fix shape is already established here — carry the failure into
+the response the way `cacheFailure` carries it into `IndexOutcome`, rather than changing what the
+route returns. Filed as **R21**, as ordinary work.
+
+### 4 · DEF-057 — a third option, measured, that the docket did not have
+
+The docket offered bump-and-re-run or drop-the-claim. Measured today:
+
+- `.claude/plugins/fledgeling-plugins` is **546 MB**, of which `plugins/` is 540 MB.
+- **`plugins/test-campaign` alone is 8.9 MB** — 1.6% of the whole.
+- Vendored `plugin.json` says `0.5.0`; the installed cache says `0.9.2`. Four minor versions, as
+  recorded.
+
+And a cost the docket could not have known, because it was measured this morning: **populating
+this submodule in a worktree breaks every runner dispatched into it.** 546 MB of plugin skills
+land where Claude Code loads them and the runner dies on context. It is now recorded as a
+dispatch hazard in `ORCHESTRATOR.md`, and it is the reason every worktree here leaves the
+submodule uninitialised.
+
+So "vendor what the campaign actually runs" is available at 8.9 MB with none of that hazard,
+which is a different proposition from the 546 MB bump the docket was weighing.
+
+### 5 · DEF-033 — unchanged
+
+Stays open and unexplained on purpose. Nothing to decide, nothing proposed.

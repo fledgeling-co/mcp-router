@@ -85,6 +85,34 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+
+## A twentieth — the measurement technique that removed its own record
+
+G5's gap-fix moved `planning/progress/G5-gapfix.md` out of the tree to isolate whether that one
+file explained a `swiftformat` skip count moving 284 → 285. **That is good practice**, and the
+isolation is why the figure is trustworthy.
+
+**It never moved back.** `git status` shows the file deleted; the commit holds it, the working tree
+does not, and both `ORCHESTRATOR.md` and `LEDGER.md` point a reader at a path that is not on disk.
+Every gate the item ran afterwards ran on a tree missing its own record, and the item's sweep
+crashes on it.
+
+The shape is the table's, one turn further round: **an instrument that perturbs its subject to
+measure it, and does not restore the subject.** The reading it bought is correct — 285 is right, and
+it is right *because* of the move — and the cost was the artifact the reading was written into.
+
+Distinct from every other instance here, because nothing was misread and no number is wrong. The
+defect is that **the measurement had a side effect on the thing being measured, and no step checked
+the side effect had been undone.** A mutation arm in this repository is required to restore what it
+mutated and prove it with `git diff --quiet`; a move-aside for a denominator is the same operation
+and carries no such rule.
+
+Cheap remedy, and it is the mutation discipline extended one category: **any perturbation of the
+tree, for a measurement rather than for a change, ends with `git status` clean and that fact
+stated.** M21's arms already do this — nine mutations, each restored with `git checkout --` and
+confirmed by `git diff --quiet`. The gap is that a file move for a count was never thought of as a
+mutation.
+
 ## A nineteenth — a guard whose comment claims more than its instrument can see
 
 M15 built a regression guard for the duplicate `Settings…` it found by hand, replacing a matcher

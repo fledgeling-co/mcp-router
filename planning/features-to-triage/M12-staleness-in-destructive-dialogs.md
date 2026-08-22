@@ -1,9 +1,14 @@
 # M12 — Staleness and an as-of time inside a destructive dialog
 
 **Source:** M7's Phase D critic, findings 4 and 8, both graded VALID and deferred rather than fixed
-(`planning/evidence/M7-acceptance.md:313`, `:317`, `:335`). Written on 2026-08-22 because the item
-was allocated with no brief: `ORCHESTRATOR.md:522` and `planning/features-to-triage/LEDGER.md:110`
-are its whole record.
+(`planning/evidence/M7-acceptance.md:313`, `:317`, `:335` at `0f5f118`, where the anchors are the
+rows opening *"| 4 | A .stale reading is shown in the dialog"* and *"| 8 | No as-of time"* and the
+paragraph opening *"M12 — Staleness and as-of time"*; that file is unchanged since `87e16dc`).
+Written on 2026-08-22 because the item was allocated with no brief: its rows in `ORCHESTRATOR.md`
+and `planning/features-to-triage/LEDGER.md` are its whole record. **Neither tracker is cited by
+line here.** Every runner in the fleet appends to both every hour, and the two line numbers this
+brief used to carry (522 in the orchestrator, 110 in the ledger) had drifted onto a register heading
+and onto M32's row within a day of being written.
 
 ## What is wrong
 
@@ -22,9 +27,10 @@ succeeded. Two things are unsaid:
 - **Finding 8 — no as-of time.** Calls recorded between the load and the `POST /usage/reset` are
   discarded too and are not in the figure. So the number is a lower bound presented as a count.
 
-**`RemoveServerSheet`** has the same shape and is what `ORCHESTRATOR.md:522` names when it says the
-item is still open, measured 2026-08-21: it draws `Remove <name>?` with the candidate's tool count
-and its env and header **key names**, all from the same reading, with no marker and no as-of.
+**`RemoveServerSheet`** has the same shape and is what `ORCHESTRATOR.md`'s M12 row names when it
+says the item is still open, measured 2026-08-21: it draws `Remove <name>?` with the candidate's
+tool count and its env and header **key names**, all from the same reading, with no marker and no
+as-of.
 
 ## Why it was deferred rather than fixed under M7
 

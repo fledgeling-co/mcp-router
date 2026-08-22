@@ -37,10 +37,13 @@ public var reading: Reading? {
 }
 ```
 
-`CleanupBoard.boardColumn` draws `StaleReadingBanner` above the table for `.stale`
-(`CleanupBoard.swift:79`). The sheet is presented by `.sheet(item:)` on the same view
-(`CleanupBoard.swift:34`) and inherits none of it — a modal covers the banner it would otherwise sit
-under.
+`CleanupBoard.boardColumn` draws `StaleReadingBanner` above the table for `.stale` — anchor
+`StaleReadingBanner(error: staleError)`, `CleanupBoard.swift:95` at `0f5f118`. The sheet is
+presented by `.sheet(item:)` on the same view (anchor `.sheet(item: $board.sheet)`, `:35`) and
+inherits none of it — a modal covers the banner it would otherwise sit under. This branch does not
+touch that file: it is blob `2ce0d71` at `87e16dc` and at `0f5f118` alike, so both anchors sat where
+they sit now when this spec was written, and the `:79` and `:34` it used to carry were wrong rather
+than drifted.
 
 **`Reading` carries no timestamp.** Its four fields are `servers`, `skills`, `since` and
 `recordedCalls`. So the as-of time finding 8 asks for cannot be stated today at all; nothing stamps
@@ -142,7 +145,7 @@ dialogs — which is what the item changes.
 | Loaded, count **not** observed (`usageSummary()` threw) | the consequence drops the number ("the router has not said how many"); **no provenance line** — there is no figure to date | still dated: the tool count and key names come from `servers()`, which answered. The two dialogs read different responses and this is the state where that shows |
 | **Stale**, count observed | `Banner(.warn, .attention)`: *"This is the last reading the router gave, taken at 14:32, and nothing about it is current. Whatever the router has recorded after that is discarded as well."* | `Banner(.warn, .attention)`: *"This is the last reading the router gave, taken at 14:32, and nothing about it is current. What removing it takes with it may have changed."* |
 | **Stale**, count not observed | `Banner`: *"… and nothing about it is current. It carried no call count."* — its own sentence, because the marker alone would sit under "the router has not said how many" and read as a claim about the count | as above |
-| No reading at all (`.loading` / `.failed`) | the header's `Reset history…` is reachable in `.loading`; the consequence drops the number and there is no provenance line | the sheet opens from a row, so there is no reading-free path to it |
+| No reading at all (`.loading` / `.failed`) | **unreachable, and the model's guard is defensive**: `CleanupBoard` disables the header's `Reset history…` while `state.reading` is nil, which is exactly these two states (anchor `.disabled(board.state.reading == nil)`, `CleanupBoard.swift:179` at `0f5f118`). `grep -rn "\.resetHistory" app/Sources app/Tests --include="*.swift"` returns **13** matches at `0f5f118`: four assign the case (`CleanupBoard.swift:177`, the disabled button; `ActivityBoard.swift:102`, the other board's own sheet; and `ActivityResetEntryPointTests.swift:115` and `M7ExercisedRequestTests.swift:274`, which set it from a test rather than from a view), four call `resetHistory()`, three are `switch` arms, one is a doc comment and one is a string inside a test assertion. So `CleanupBoard.swift:177` is the whole of this board's reader path to the sheet, and it is disabled two lines below. Were it reached, the consequence drops the number and there is no provenance line | the sheet opens from a row, so there is no reading-free path to it |
 | Candidate gone from the list | n/a | `consequenceUnavailable`, `Remove` dimmed — unchanged by this item, and asserted unchanged |
 | Taken on an earlier day | the stamp carries the date as well as the time, so a reading from yesterday cannot read as one from this afternoon | the same |
 | The dialog is left open | the stamp does not move, because it is a clock time rather than an elapsed age | the same |
@@ -159,11 +162,19 @@ that it belongs in this item. Measuring the figure it passes says otherwise:
 CleanupPresentation.resetConsequence(calls: model.records?.count, window: nil)
 ```
 
-`records` is `ActivityRecords`, whose `capacity` is **500** — matched deliberately to the router's
-`RING_SIZE` (`src/usage.ts:52`), and `GET /usage` returns `recent({ limit: 500 })`, which slices the
-ring (`src/control.ts:495`, `src/usage.ts:259`). But `usage.reset()` clears the ring **and** the
-unbounded per-server tallies **and** the two on-disk log files (`src/usage.ts:281–293`), while
-`summary()` counts those tallies with no cap (`src/usage.ts:262`).
+`records` is `ActivityRecords`, whose `capacity` is **500** (anchor `public static let capacity =
+500`, `ActivityRecords.swift:18`) — matched deliberately to the router's `RING_SIZE` (anchor `const
+RING_SIZE = 500`, `src/usage.ts:52`).
+
+**The 500 is the caller's, not the route's.** `GET /usage` defaults to **200** (anchor `limit:
+Number(url.searchParams.get('limit') ?? 200)`, `src/control.ts:496`) and `recent()` slices to the
+same default (anchor `out.slice(-(opts.limit ?? 200))`, `src/usage.ts:259`); what asks for 500 is the
+board, passing `limit: ActivityRecords.capacity` (`ActivityModel.swift:162`). The window Activity
+draws is therefore 500 because the board and the ring agree on that number, not because the endpoint
+imposes it — which changes nothing below, since the ring holds 500 either way. But `usage.reset()`
+clears the ring **and** the unbounded per-server tallies **and** the two on-disk log files
+(`src/usage.ts:281–293`), while `summary()` counts those tallies with no cap (`src/usage.ts:262`).
+Every `src/` line here resolves at `0f5f118`, where `src/` is byte-identical to `87e16dc`.
 
 So on a router that has recorded 812 calls since `since`, Cleanup's dialog says **812** and
 Activity's says **500**, for the same button, against the same endpoint. Activity's figure is a lower
@@ -180,7 +191,10 @@ Activity and this item does not take that recommendation**; the disposition tabl
 the measurement above is the whole of the reason.
 
 **2 · `SkillProvenanceSheet` renders `CheckCopy.ownerChanged` as body text in `ColorToken.attention`**
-(`CleanupSheets.swift:232`). `ColorToken+Role.swift:95` declares `--attn` as `pairedWithAWord`, whose
+(anchor `CheckCopy.ownerChanged(`, `CleanupSheets.swift:255` at `0f5f118` — `:241` at `87e16dc`,
+moved down by this branch's own `4952afb`, so `:232` was wrong when written and then drifted
+further). `ColorToken+Role.swift:95` at `0f5f118` (anchor `case .live, .attention, .fail:
+.pairedWithAWord`) declares `--attn` as `pairedWithAWord`, whose
 claim is *"never the only carrier of its meaning"* and whose recorded ratio on the light ground is
 **2.31:1** — a fine dot and an unreadable label. `--attn-ink` is the `text`-role twin that exists for
 this. Found while choosing the tint for C5; it is M7's line, it is not a destructive dialog, and

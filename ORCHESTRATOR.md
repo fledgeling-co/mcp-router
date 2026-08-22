@@ -19,6 +19,7 @@ every state change, before acting on that change.
 | Worktrees | `.worktrees/<ID>` on `ai/<id>` |
 | External model CLIs | **On** (no opt-out marker in this repo) but **the codex lane is UNAVAILABLE — do not probe it.** See below |
 | Concurrency | ≤8 slots; the DAG peaks at 5 |
+| Baseline on `main` | Measured at `6dc6007`, 2026-08-22 ~18:2x: `make test` **1725 tests in 215 suites** exit 0 · `make lint` exit 0, swiftlint 0 violations over 549 files · `ledger-reconcile.py` 0 across A–L · `reader-accounting.py` 0 · `null-run-gate.py` 0 with **28 armed, 0 held**. Re-measure before quoting — four briefs in this fleet have already carried a figure belonging to another branch |
 | Merges | **Serialized by the orchestrator.** Runners stop at ready-to-merge |
 
 ### Two standing decisions, taken with the user at preflight
@@ -117,7 +118,7 @@ than barriering on whole waves, so the real overlap is greater than the table im
 | 5 | M5 · M7 · M8 · I3 | 4 | — |
 | 6 | M6 | 1 | Phone → Mac inbox round-trip works end to end |
 
-### In flight — 2026-08-22 ~17:5x, eight dispatched at the owner's go-ahead to run wide
+### In flight — 2026-08-22 ~18:2x, nine dispatched · two staged and deliberately held
 
 Recorded so a fresh session resumes the fleet from this file rather than from a transcript.
 Each runner is a detached `claude -p` in its own worktree; confirm liveness with
@@ -126,15 +127,17 @@ never the harness's own cwd notice.
 
 | Item | Worktree | Branch | Base | Dispatched | Stop rules |
 |---|---|---|---|---|---|
-| R19-INT **verify** | `.worktrees/R19V` | detached `eb3e42c` | `ai/r19` tip | 17:5x | verdict only — **must merge `87e16dc` and re-gate**: R19 gated against `adfa923`, which is two merges stale |
-| G5 gap-fix 2 **verify** | `.worktrees/G5V` | detached `a9603e5` | `ai/g5` tip | 17:5x | verdict only — the byte-identical vendor checksum is the arm that matters, because X7/X8's decision rests on it |
-| M22 | `.worktrees/M22` | `ai/m22` | `87e16dc` | 17:5x | before verify, before merge — **absorbs R7-C1**; board and `GET /harnesses` ship together or neither does. **M17 waits on this** |
-| M12 | `.worktrees/M12` | `ai/m12` | `87e16dc` | 17:5x | before verify, before merge — **no brief and no spec**; intake and triage own that gap before plan |
-| M16 | `.worktrees/M16` | `ai/m16` | `87e16dc` | 17:5x | before verify, before merge — its one essential question was M21, now merged |
-| M18 | `.worktrees/M18` | `ai/m18` | `87e16dc` | 17:5x | before verify, before merge — thirteen sheets measured in the mock, not the brief's twelve |
+| R19-INT **verify** | `.worktrees/R19V` | detached `eb3e42c` | `ai/r19` tip | 17:5x | verdict only — merging `main` itself and re-gating, because R19 gated against `adfa923` |
+| ~~G5 gap-fix 2~~ | — | `ai/g5` | — | — | **Verified NMW `1335ec2`** — the vendor checksum reproduces three ways; BL-3 re-numbered a moving reference one section after deriving the rule against it |
+| G5 gap-fix 3 | `.worktrees/G5` | `ai/g5` | `a9603e5` | 18:2x | before verify, before merge — withdraw the cache-version claim rather than re-number it to `0.9.8` |
+| M22 | `.worktrees/M22` | `ai/m22` | `87e16dc` | 17:5x | before verify, before merge — **absorbs R7-C1**; board and `GET /harnesses` ship together. **M17 waits on this merging** |
+| M12 | `.worktrees/M12` | `ai/m12` | `87e16dc` | 17:5x | before verify, before merge — no brief and no spec; intake owns that gap |
+| M16 | `.worktrees/M16` | `ai/m16` | `87e16dc` | 17:5x | before verify, before merge |
+| M18 | `.worktrees/M18` | `ai/m18` | `87e16dc` | 17:5x | before verify, before merge — thirteen sheets measured, not the brief's twelve |
 | M19 | `.worktrees/M19` | `ai/m19` | `87e16dc` | 17:5x | before verify, before merge — no Markdown rendering exists anywhere in the app |
-| M20 | `.worktrees/M20` | `ai/m20` | `87e16dc` | 17:5x | before verify, before merge — six command groups today, no Router or Library menu |
-| *queued* | — | — | — | — | **M17** (needs M22 merged) and **G2** refill the first two free slots |
+| M20 | `.worktrees/M20` | `ai/m20` | `87e16dc` | 17:5x | before verify, before merge |
+| M17 | `.worktrees/M17` | `ai/m17` | staged | **not dispatched** | Work order written and waiting. **Blocked on M22 merging**, not on capacity — its first instruction is to stop if `main` carries no M22 merge |
+| G2 | `.worktrees/G2` | `ai/g2` | staged | **not dispatched** | **Blocked on the wave draining**, by its own recorded deferral: it restructures the two files all nine runners are reading. First item out after the last runner reports |
 
 **Both verifiers are a logged in-family downgrade.** `codex` is down until 27 August on a usage
 limit and the `grok` balance is exhausted (`402 … usage balance exhausted`, re-confirmed

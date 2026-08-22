@@ -94,26 +94,99 @@
             #expect(SurfaceState.allCases.count == 9)
         }
 
+        // MARK: - M16 · one selection, three representations
+
+        /// The band, the table and the inspector read **one** property.
+        ///
+        /// This is the half of the brief that a structure dump cannot reach: the harness renders a
+        /// board with nothing selected, so "selecting a jack selects that server in the table below
+        /// and in the inspector, and the reverse holds" is a claim about a mechanism rather than
+        /// about a frame. The mechanism is `board.selection` — the jack sets it and reads it, the
+        /// row sets it and reads it, and the inspector is drawn from it — so what is worth asserting
+        /// is that nothing along that path filters or copies.
+        @MainActor
+        @Test("M16 — a jack, a row and the inspector resolve one selection to one server")
+        func oneSelectionReachesAllThree() throws {
+            let board = Self.board()
+            let servers = try [Self.server("alpha", state: .running), Self.server("beta", state: .idle)]
+            let state = ServerStateTracker.TrackerState(load: .loaded(servers), stream: .notConfigured)
+
+            board.selection = "beta"
+            #expect(board.selectedServer(in: state)?.name == "beta")
+            // `Esc` clears it, and the inspector goes with it (`DESIGN.md` §8).
+            board.escape()
+            #expect(board.selectedServer(in: state) == nil)
+        }
+
+        /// **A jack the filter hides still opens the inspector**, which is the consequence of the
+        /// band drawing every declared server while the table draws a filtered view.
+        ///
+        /// Without this the band would be offering a selection the rest of the board could not
+        /// honour — a control that does something invisible, which is worse than one that dims.
+        @MainActor
+        @Test("M16 — the band is unfiltered, and a jack outside the filter still resolves")
+        func theBandIsUnfilteredAndItsSelectionStillResolves() throws {
+            let board = Self.board()
+            let servers = try [Self.server("alpha", state: .running), Self.server("beta", state: .idle)]
+            let state = ServerStateTracker.TrackerState(load: .loaded(servers), stream: .notConfigured)
+
+            board.filter = .running
+            #expect(board.rows(from: state).map(\.id) == ["alpha"], "the table is filtered")
+            #expect(
+                board.bandRows(from: state).map(\.id) == ["alpha", "beta"],
+                "the band shrank with the segmented control, so it contradicts its own topology line"
+            )
+            board.selection = "beta"
+            #expect(
+                board.selectedServer(in: state)?.name == "beta",
+                "a jack the filter hides selected nothing, so the band offered an invisible action"
+            )
+        }
+
+        /// The band and the row draw one computation of one server's state.
+        @MainActor
+        @Test("M16 — the band's row model and the table's agree about every server")
+        func theBandAndTheTableAgree() throws {
+            let board = Self.board()
+            let servers = try [Self.server("alpha", state: .running), Self.server("beta", state: .idle)]
+            let state = ServerStateTracker.TrackerState(load: .loaded(servers), stream: .notConfigured)
+            let band = Dictionary(uniqueKeysWithValues: board.bandRows(from: state).map { ($0.id, $0) })
+            for row in board.rows(from: state) {
+                #expect(band[row.id]?.jack == row.jack)
+                #expect(band[row.id]?.condition == row.condition)
+            }
+        }
+
         // MARK: - A29's second half, and A23's, which are source-level claims
 
-        /// The board renders the **indicator**, not `BreakerToggle`.
+        /// The board renders the **indicator**, and never a control that offers to start or stop a
+        /// server.
         ///
-        /// `BreakerToggle`'s accessibility hint says it "toggles the server between dormant and
-        /// running", and there is no start operation and no stop operation on `ControlAPIClient` —
-        /// so using it here would be shipping a control that claims something the API cannot do.
-        @Test("A29 — the board draws Breaker and never BreakerToggle")
+        /// There is no start operation and no stop operation on `ControlAPIClient`, so a control
+        /// offering one would be claiming something the API cannot do. That was `BreakerToggle`
+        /// under the outgoing signature; under the Signal Path a jack **selects** rather than
+        /// switches, which is why `JackView`'s button is allowed where a toggle is not.
+        ///
+        /// The forbidden symbol is still named rather than dropped with the type. A retirement that
+        /// deletes both the element and the assertion about it leaves nothing to stop the same
+        /// control being reintroduced, and this gate costs one string.
+        @Test("A29 — the board draws a state plug and never a control that offers start or stop")
         func theBoardDrawsTheIndicatorNotAToggle() throws {
-            var sawBreaker = false
+            var sawPlug = false
             for file in ShellTestSupport.boardFiles {
                 let source = try ShellTestSupport.repoFile(file)
                 #expect(
                     !source.contains("BreakerToggle("),
                     "\(file) uses a control that offers an operation the control API does not have"
                 )
-                if source.contains("Breaker(state:") { sawBreaker = true }
+                #expect(
+                    !source.contains("Breaker(state:"),
+                    "\(file) draws the retired signature element"
+                )
+                if source.contains("StatePlug(state:") { sawPlug = true }
             }
-            // A negative assertion alone would also pass on a board that drew no breaker at all.
-            #expect(sawBreaker, "no board file draws a breaker, so the negative assertion proves nothing")
+            // A negative assertion alone would also pass on a board that drew no indicator at all.
+            #expect(sawPlug, "no board file draws a state plug, so the negative assertions prove nothing")
         }
 
         /// A23's two halves that a value can carry: the row keeps the whole name, and the row's

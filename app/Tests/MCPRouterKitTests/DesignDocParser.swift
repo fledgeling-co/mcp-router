@@ -208,7 +208,10 @@ enum DesignDocParser {
     // MARK: - Extraction
 
     /// The lines of the table that follows the given `###` sub-heading inside §2.
-    private static func tableLines(in text: String, under heading: String) throws -> [String] {
+    /// Internal rather than private since M16: the increased-contrast reader moved to
+    /// `DesignDocParser+Contrast.swift` when this file crossed the 400-line limit, and `private` in
+    /// Swift reaches extensions in the same file only. Nothing outside these two files calls it.
+    static func tableLines(in text: String, under heading: String) throws -> [String] {
         let lines = text.components(separatedBy: .newlines)
         guard let start = lines.firstIndex(where: {
             $0.trimmingCharacters(in: .whitespaces).lowercased().hasPrefix("### " + heading.lowercased())
@@ -321,74 +324,18 @@ enum DesignDocParser {
         return rows
     }
 
-    /// The breaker's construction, one row per dimension.
+    /// The Signal Path's construction, one row per dimension.
     ///
     /// A separate table from chrome geometry because it is component construction rather than app
-    /// chrome, and because mixing nineteen breaker rows into the chrome ladder would bury the four
-    /// values a window actually lays out with. Same shape, so the same row rules apply.
-    static func breakerRows(in text: String) throws -> [MetricRow] {
+    /// chrome, and the four values a window actually lays out with should not be buried under a
+    /// signature element's dimensions. The outgoing signature's own table made the same argument
+    /// with nineteen rows; this is the same seam with a different element on it.
+    static func signalPathRows(in text: String) throws -> [MetricRow] {
         var rows: [MetricRow] = []
-        for line in try tableLines(in: text, under: "Breaker geometry") {
+        for line in try tableLines(in: text, under: "Signal Path geometry") {
             guard let c = cells(of: line), c.count >= 2 else { continue }
             if c[0] == "Element" { continue }
             rows.append(MetricRow(element: c[0], leadingScalar: leadingScalar(c[1])))
-        }
-        return rows
-    }
-}
-
-/// The increased-contrast overlay, read out of its own table.
-///
-/// An extension rather than another member of the enum above, because that type body is at
-/// SwiftLint's 250-line ceiling and this is the seam that splits most naturally: everything in the
-/// type reads a table that states values for the two base appearances, and everything here reads
-/// the one table that states what a third and fourth context change.
-extension DesignDocParser {
-    /// The increased-contrast overlay: the tokens `prefers-contrast: more` re-solves, and only
-    /// those.
-    ///
-    /// Returned as rows in their own right rather than merged into `colorRows`. Merging inside the
-    /// parser would make a value's provenance unrecoverable — a base value and an override would
-    /// arrive indistinguishable, and the whole point of the overlay is that *which* tokens
-    /// override is the assertion. The parity test composes the two and can therefore say which
-    /// table it disagreed with.
-    static func contrastRows(in text: String) throws -> [ColorRow] {
-        var rows: [ColorRow] = []
-        var columns: [String: Int]?
-        for line in try tableLines(in: text, under: "Increased contrast") {
-            guard let c = cells(of: line) else { continue }
-            guard c.first?.hasPrefix("--") == true else {
-                columns = try headerIndices(c)
-                continue
-            }
-            guard let columns else { throw ParseError.headerMissing("Increased contrast") }
-
-            func cell(_ name: String) throws -> String {
-                guard let i = columns[name] else {
-                    throw ParseError.columnMissing(name, "Increased contrast")
-                }
-                guard i < c.count else { throw ParseError.rowTooShort(row: line, want: name) }
-                return c[i]
-            }
-
-            let dark = try cell("dark")
-            let light = try cell("light")
-            guard let darkHex = canonicalHex(dark) else {
-                throw ParseError.unparsableCell(row: line, cell: dark)
-            }
-            guard let lightHex = canonicalHex(light) else {
-                throw ParseError.unparsableCell(row: line, cell: light)
-            }
-            rows.append(ColorRow(
-                name: c[0],
-                role: nil,
-                hex: darkHex,
-                opacity: opacity(in: dark) ?? 1.0,
-                lightHex: lightHex,
-                lightOpacity: opacity(in: light) ?? 1.0,
-                documentedDarkContrast: nil,
-                documentedLightContrast: nil
-            ))
         }
         return rows
     }

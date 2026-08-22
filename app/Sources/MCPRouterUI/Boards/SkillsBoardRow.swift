@@ -181,7 +181,7 @@
 
     /// The loading state, at this board's row height.
     ///
-    /// A separate type from the shared `SkeletonRows`, which is built on the breaker housing and so
+    /// A separate type from the shared `SkeletonRows`, which stands in for the Servers row and so
     /// is the Servers board's 56pt row. A skeleton at the wrong height is worse than none: the board
     /// visibly jumps at the moment the data arrives, which reads as a glitch in the data.
     struct SkillSkeletonRows: View {

@@ -6,8 +6,8 @@
     /// The design system, rendered.
     ///
     /// Debug-only, and deliberately: it is a reference surface for whoever is building the next
-    /// screen, not a feature. `DESIGN.md` §10 records that the breaker's motion has never been
-    /// observed running — the prototype animates nothing — so the breaker section carries a real
+    /// screen, not a feature. `DESIGN.md` §10 records that the signature element's motion has never
+    /// been observed running — no mock in this repository animates — so its section carries a real
     /// toggle, and the appearance switch exists because "light is authored" is a claim nobody could
     /// check without changing their machine's setting.
     ///
@@ -23,7 +23,7 @@
             case type = "Type"
             case icons = "Icons"
             case controls = "Controls"
-            case breaker = "Breaker"
+            case signalPath = "Signal Path"
             case states = "States"
 
             public var id: String { rawValue }
@@ -34,7 +34,7 @@
                 case .type: .book
                 case .icons: .compass
                 case .controls: .settings
-                case .breaker: .bolt
+                case .signalPath: .bolt
                 case .states: .list
                 }
             }
@@ -162,7 +162,7 @@
                 case .type: TypeSection()
                 case .icons: IconSection()
                 case .controls: ControlSection()
-                case .breaker: BreakerSection()
+                case .signalPath: SignalPathSection()
                 case .states: StateSection()
                 }
             }

@@ -28,6 +28,14 @@ public enum Icon: String, CaseIterable, Sendable {
     /// one and the popover uses it.
     case frost
 
+    /// The rail's flow arrow, between the hub and the jack field.
+    ///
+    /// The console mock's sprite carries `#i-arrow-r` and the prototype's twenty-one did not, so
+    /// this is an addition rather than a symbol that arrived without a reason. The Signal Path reads
+    /// left to right and the arrows are what say so; `chev` is the disclosure mark and means
+    /// something else, which is why this is not that.
+    case flow
+
     /// The SF Symbol that carries this icon, or nil when it is authored here instead.
     ///
     /// Every name is asserted at runtime by `IconTests` — an unknown symbol name renders as nothing
@@ -59,6 +67,7 @@ public enum Icon: String, CaseIterable, Sendable {
         case .layers: "square.3.layers.3d"
         case .conduit: nil
         case .frost: "snowflake"
+        case .flow: "arrow.right"
         }
     }
 

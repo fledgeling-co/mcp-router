@@ -5,8 +5,9 @@ import Testing
 /// The Servers board's rules, exercised without a host.
 ///
 /// The brief names state correctness as the thing that failed twice in the prototype, so these are
-/// not decorative tests: `warmNeverShowsACountdown` and `breakerNeverLiesAboutTheLever` are the two
-/// that encode the actual defects, and both are written as **cross products** rather than as
+/// not decorative tests: `warmNeverShowsACountdown` here and `plugNeverLiesAboutTheChild` in
+/// `JackPresentationTests` are the two that encode the actual defects, and both are written as
+/// **cross products** rather than as
 /// examples. An example test proves a branch works for the input someone thought of; the prototype's
 /// bug was in an input nobody thought of — a warm server that the router had not yet brought up.
 @Suite("Servers board — presentation rules")
@@ -216,49 +217,14 @@ struct ServerPresentationTests {
         }
     }
 
-    // MARK: - A7 · the lever never lies
+    // MARK: - A7 · the indicator never lies
 
-    /// The lever's whole meaning is "a child process is up". Raising it for a server that is not
-    /// running, or lowering it for one that is, is the only way this control can be wrong — so the
-    /// mapping is asserted against `state` across everything else that could tempt it.
-    @Test("A7 — the lever is raised exactly when the server is running")
-    func breakerNeverLiesAboutTheLever() throws {
-        let placard = Placard(reason: "boom", substitute: nil, until: nil)
-        let held = PendingChange(seenAt: "x", count: 1)
-        for state in ServerState.allCases {
-            for placardValue in [nil, placard] {
-                for pending in [nil, held] {
-                    for authorized in [true, false] {
-                        let s = try Self.server(
-                            state: state, placard: placardValue, pendingChange: pending,
-                            authSupported: true, authorized: authorized
-                        )
-                        let breaker = BreakerState.forServer(s)
-                        #expect(
-                            breaker.isRaised == (state == .running),
-                            "lever disagreed with state \(state): \(breaker)"
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    @Test("A7 — the lamp: running, then tripped, then wants-you, then dormant")
-    func breakerColours() throws {
-        let placard = Placard(reason: "boom", substitute: nil, until: nil)
-        let held = PendingChange(seenAt: "x", count: 1)
-        // Running wins even while holding a change — the attention is carried by the subtitle,
-        // the action and the filter, never by colour alone.
-        #expect(try BreakerState.forServer(Self.server(state: .running, pendingChange: held)) == .running)
-        #expect(try BreakerState.forServer(Self.server(placard: placard)) == .tripped)
-        #expect(try BreakerState.forServer(Self.server(pendingChange: held)) == .wantsYou)
-        #expect(
-            try BreakerState.forServer(Self.server(authSupported: true, authorized: false)) == .wantsYou
-        )
-        #expect(try BreakerState.forServer(Self.server(indexError: "no such file")) == .wantsYou)
-        #expect(try BreakerState.forServer(Self.server()) == .dormant)
-    }
+    // `breakerNeverLiesAboutTheLever` and `breakerColours` stood here until M16 retired the lever.
+    // They are not deleted so much as **moved**: `JackPresentationTests.plugNeverLiesAboutTheChild`
+    // is the same cross product over the same inputs, asserting the same thing about the mark that
+    // replaced it, and `statePrecedence` carries the second. A retirement that dropped the
+    // invariant with the element would have removed the one assertion this board's signature has
+    // ever needed.
 
     // MARK: - A11 · Reset resolves to the operation that actually clears the mark
 

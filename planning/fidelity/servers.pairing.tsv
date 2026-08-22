@@ -25,29 +25,29 @@ ideal	v-ideal/heading/servers	servers.ideal/board-column/board-header/title-bloc
 ideal	v-ideal/sentence/every-mcp-server-your-agents-can-reach-a-jack-li	servers.ideal/board-column/board-header/title-block/subtitle	planning/features-to-triage/M16-signal-path.md — "A jack carries a plug, the server name, and its condition in words"; the mock's board subtitle introduces the jack lane the build has no counterpart for
 ideal	v-ideal/button/add-server	servers.ideal/board-column/board-header/primary-action
 ideal	v-ideal/button/reap-idle	-	planning/features-to-triage/M7-evals-cleanup.md owns the reap/cleanup verbs
-ideal	v-ideal/card/signal-path-5-harnesses-1-endpoint-11-upstreams-	-	planning/features-to-triage/M16-signal-path.md — "Three parts on one rail: Harnesses / The hub / The jacks"
+ideal	v-ideal/card/signal-path-5-harnesses-1-endpoint-11-upstreams-	servers.ideal/board-column/signal-path	planning/features-to-triage/M16-signal-path.md — "Three parts on one rail: Harnesses / The hub / The jacks". Two of the three are built; the harness column needs a reading the app cannot reach and lands with M22's GET /harnesses route, so the labels differ by that leg
 ideal	v-ideal/icon/unlabelled	-	planning/features-to-triage/M16-signal-path.md
 ideal	v-ideal/icon/unlabelled#2	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled	-	planning/features-to-triage/M16-signal-path.md — the harness state dots
-ideal	v-ideal/indicator/unlabelled#2	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#3	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#4	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#5	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#6	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#7	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#8	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#9	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/jack/obscura-3-41-left	-	planning/features-to-triage/M16-signal-path.md — the jack lane
-ideal	v-ideal/jack/dossier-0-58-left	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/jack/docker-mcp-tripped	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/jack/mobbin-2-held-changes	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/jack/google-search-dormant	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/jack/ref-tools-mcp-dormant	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/jack/yt-transcript-dormant	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/jack/lifeline-dormant	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/jack/media-gen-pro-dormant	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/jack/ai-elements-dormant	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/jack/pocketsmith-needs-sign-in	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled	-	planning/features-to-triage/M16-signal-path.md — a harness state dot. The reading behind it is HarnessState in RouterCore, which neither app links, and no control route serves it; M22 absorbs R7-C1 and the column lands with that route
+ideal	v-ideal/indicator/unlabelled#2	-	planning/features-to-triage/M16-signal-path.md — a harness state dot. The reading behind it is HarnessState in RouterCore, which neither app links, and no control route serves it; M22 absorbs R7-C1 and the column lands with that route
+ideal	v-ideal/indicator/unlabelled#3	-	planning/features-to-triage/M16-signal-path.md — a harness state dot. The reading behind it is HarnessState in RouterCore, which neither app links, and no control route serves it; M22 absorbs R7-C1 and the column lands with that route
+ideal	v-ideal/indicator/unlabelled#4	-	planning/features-to-triage/M16-signal-path.md — a harness state dot. The reading behind it is HarnessState in RouterCore, which neither app links, and no control route serves it; M22 absorbs R7-C1 and the column lands with that route
+ideal	v-ideal/indicator/unlabelled#5	-	planning/features-to-triage/M16-signal-path.md — a harness state dot. The reading behind it is HarnessState in RouterCore, which neither app links, and no control route serves it; M22 absorbs R7-C1 and the column lands with that route
+ideal	v-ideal/indicator/unlabelled#6	-	planning/features-to-triage/M16-signal-path.md — a harness state dot. The reading behind it is HarnessState in RouterCore, which neither app links, and no control route serves it; M22 absorbs R7-C1 and the column lands with that route
+ideal	v-ideal/indicator/unlabelled#7	-	planning/features-to-triage/M16-signal-path.md — a harness state dot. The reading behind it is HarnessState in RouterCore, which neither app links, and no control route serves it; M22 absorbs R7-C1 and the column lands with that route
+ideal	v-ideal/indicator/unlabelled#8	-	planning/features-to-triage/M16-signal-path.md — a harness state dot. The reading behind it is HarnessState in RouterCore, which neither app links, and no control route serves it; M22 absorbs R7-C1 and the column lands with that route
+ideal	v-ideal/indicator/unlabelled#9	-	planning/features-to-triage/M16-signal-path.md — a harness state dot. The reading behind it is HarnessState in RouterCore, which neither app links, and no control route serves it; M22 absorbs R7-C1 and the column lands with that route
+ideal	v-ideal/jack/obscura-3-41-left	servers.ideal/board-column/signal-path/signal-path-rail/jacks/jack-fixture-stdio	planning/features-to-triage/M16-signal-path.md — the jack lane. The mock draws eleven upstreams and the recorded fixture declares four, so four of its jacks pair and seven do not; the same population difference the eight table rows already carry
+ideal	v-ideal/jack/dossier-0-58-left	servers.ideal/board-column/signal-path/signal-path-rail/jacks/jack-fixture-http	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/jack/docker-mcp-tripped	servers.ideal/board-column/signal-path/signal-path-rail/jacks/jack-fixture-tools	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/jack/mobbin-2-held-changes	servers.ideal/board-column/signal-path/signal-path-rail/jacks/jack-fixture-oauth	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/jack/google-search-dormant	-	planning/features-to-triage/M16-signal-path.md — the mock draws eleven upstreams; the recorded fixture declares four, so this jack has no server to answer it
+ideal	v-ideal/jack/ref-tools-mcp-dormant	-	planning/features-to-triage/M16-signal-path.md — the mock draws eleven upstreams; the recorded fixture declares four, so this jack has no server to answer it
+ideal	v-ideal/jack/yt-transcript-dormant	-	planning/features-to-triage/M16-signal-path.md — the mock draws eleven upstreams; the recorded fixture declares four, so this jack has no server to answer it
+ideal	v-ideal/jack/lifeline-dormant	-	planning/features-to-triage/M16-signal-path.md — the mock draws eleven upstreams; the recorded fixture declares four, so this jack has no server to answer it
+ideal	v-ideal/jack/media-gen-pro-dormant	-	planning/features-to-triage/M16-signal-path.md — the mock draws eleven upstreams; the recorded fixture declares four, so this jack has no server to answer it
+ideal	v-ideal/jack/ai-elements-dormant	-	planning/features-to-triage/M16-signal-path.md — the mock draws eleven upstreams; the recorded fixture declares four, so this jack has no server to answer it
+ideal	v-ideal/jack/pocketsmith-needs-sign-in	-	planning/features-to-triage/M16-signal-path.md — the mock draws eleven upstreams; the recorded fixture declares four, so this jack has no server to answer it
 ideal	v-ideal/banner/two-tools-on-mobbin-changed-their-input-schema-h	-	planning/features-to-triage/M18-sheets-and-gates.md owns the held-changes review gate
 ideal	v-ideal/icon/unlabelled#3	-	planning/features-to-triage/M18-sheets-and-gates.md
 ideal	v-ideal/button/review-changes	-	planning/features-to-triage/M18-sheets-and-gates.md
@@ -69,22 +69,22 @@ ideal	v-ideal/row/google-search-stdio-1-dormant-142-12-s-ago	-
 ideal	v-ideal/row/ref-tools-mcp-stdio-2-dormant-27-38-min-ago	-
 ideal	v-ideal/row/pocketsmith-stdio-oauth-2-needs-sign-in-0-never	-
 ideal	v-ideal/row/sift-stdio-disabled-by-you-0-4-d-ago	-
-ideal	v-ideal/indicator/unlabelled#10	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug, superseded in the build by the breaker
-ideal	v-ideal/indicator/unlabelled#11	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#12	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#13	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#14	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#15	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#16	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#17	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#18	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#19	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#20	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#21	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#22	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#23	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#24	-	planning/features-to-triage/M16-signal-path.md
-ideal	v-ideal/indicator/unlabelled#25	-	planning/features-to-triage/M16-signal-path.md
+ideal	v-ideal/indicator/unlabelled#10	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#11	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#12	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#13	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#14	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#15	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#16	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#17	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#18	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#19	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#20	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#21	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#22	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#23	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#24	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
+ideal	v-ideal/indicator/unlabelled#25	-	planning/features-to-triage/M16-signal-path.md — the mock's row plug. The build draws this mark now: ServerRowView leads with StatePlug. It stays unpaired because the harness records no text for an indicator, so a pairing fails readable() on both sides and lands unclassified — agreement between two absences. Vouching the kind would also reclassify the build's own plugs as extra. Tracked under D-m23-h
 ideal	v-ideal/indicator/unlabelled#26	-
 ideal	v-ideal/callout/four-more-upstreams-are-dormant-and-cost-nothing	-
 ideal	v-ideal/button/hide-inspector	-	planning/features-to-triage/M16-signal-path.md — "Selecting a jack selects that server in the table below and in the inspector"

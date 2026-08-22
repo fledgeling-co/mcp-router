@@ -197,7 +197,7 @@
     /// The loading state: the same row, at the same height, with nothing in it.
     ///
     /// `SkeletonRows` in `StateContainer.swift` is the *servers* board's skeleton, built around a
-    /// 48pt breaker housing. This is the log's, and the height it reads is the same token
+    /// two-line name block. This is the log's, and the height it reads is the same token
     /// `ActivityRow` reads — which is what B5 compares, and what stops the board jumping when the
     /// backfill lands.
     struct ActivitySkeletonRows: View {

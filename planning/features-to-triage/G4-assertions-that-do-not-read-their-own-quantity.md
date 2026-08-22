@@ -77,6 +77,26 @@ All of it is free once a timing test keeps its sample vector instead of reducing
 
 
 
+
+## A thirteenth instance — M15's arm 6b, and this one was found on purpose
+
+`no-raw-design-values.sh` is named for *no raw geometry literal survives in the design surfaces*.
+It reads *no raw geometry literal survives in the directories currently listed in `GEOMETRY_DIRS`*.
+
+M15's runner armed exactly that gap rather than stumbling into it: remove `Settings/` from
+`GEOMETRY_DIRS`, and the same literal the rule exists to catch **passes clean**, while the scanned
+count silently drops **84 → 74**. The gate prints its denominator, which is the only reason the
+drop is visible at all — and nothing asserts that the denominator did not move.
+
+This is the same shape as the ninth and twelfth, and it is the first found by somebody deliberately
+aiming at it. It is also the cheapest to close of any instance in this table: a gate that prints a
+count is one assertion away from a gate that defends it. **A scanned-file count that can fall
+without failing is a coverage figure nobody is holding.**
+
+Worth pairing with the eleventh when this item's gap-fix runs, because they are the same fix from
+opposite directions — the census measured its base with the instrument inside the tree, and this
+gate measures its subject with the tree adjustable underneath the instrument.
+
 ## A twelfth instance — the reconciler's check E, found the same afternoon
 
 Check E is named *"a branch merged into main with no row in either file"*. It reads **refs that

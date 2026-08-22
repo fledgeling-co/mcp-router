@@ -95,35 +95,32 @@ Whoever triages this should settle **both** directions at once. Fixing only the 
 moves the briefs into worktrees and makes the tracked-artifact problem universal instead of a
 third of the time.
 
-## The third axis: a citation that resolved when written and not where it is read
+## A neighbouring defect, deliberately NOT folded in — see `G7`
 
-Found 2026-08-23 by `lukerhodes-2f`, which had made the error itself and reported it unprompted.
+`G7` covers a citation that resolved when written and does not resolve where it is read — a bare
+line number that was correct against the revision its author had. It shares this item's root and
+is **not** part of it, and the test that separates them is this item's own coupling argument.
 
-`/tmp` paths rot **in time**. Bare line numbers rot **across revisions**, and the failure looks
-identical to whoever lands on them: a pointer into nothing, indistinguishable from evidence that
-was never gathered.
+`G6`'s two halves are coupled because each fix displaces the other's problem: move a brief out of
+`/tmp` and it lands in a tree under test. That displacement is what makes them one item.
 
-The measurement. Gap-fix 3's verdict cites its blocker as `G5.md:159`. That is **correct at
-`a9603e5`**, the base gap-fix 3 worked from and the frame `D-g5-d`'s own ten citations use. It
-becomes `:170` at `43b44a2` and stays there. Both the recovery session and this orchestrator
-independently declared it "not revision drift" after checking `43b44a2`, `3e63811` and the
-worktree — **three frames, all on the same side of the edit.** Three concordant readings from
-one side of a change are one reading, and ruling out drift on that basis is an absence check
-with no presence control, which is a guard this document set already ships.
+`G7` has no such relationship in either direction. Fix `G6` completely — every artifact
+committed, every brief citing a repo path — and `planning/progress/G5.md` still rots at `:159`,
+because that file already satisfies `G6`'s rule perfectly: committed, durable, repo-pathed, and
+the exact artifact the defect lives in. Carry the frame on every citation and not one `/tmp` file
+comes back. Neither fix moves the other's problem and neither helps.
 
-It is systemic rather than incidental: **six of `D-g5-d`'s ten citations fail the same way**, and
-gap-fix 3's own verdict carries `:159` bare in its opening sentence, its arm-4 paragraph and its
-work order — the three places a reader acts.
+So they are orthogonal rather than nested. **`G6` is about whether the artifact survives; `G7` is
+about whether the pointer resolves.** A durable artifact with an imprecise pointer fails, and a
+precise pointer to a dead artifact fails. Both must be fixed and neither implies the other, which
+is the property that makes something its own item.
 
-**The fix is not renumbering, which would hide it.** A number chased to the current revision is
-correct until the next edit and carries no way to tell. Carry the frame — `G5.md:159` at
-`a9603e5` — and the pointer stays checkable from either side. Where a frame is impractical, quote
-the phrase relied on, which this repo already requires of cross-file citations for exactly this
-reason.
-
-So this item now has three axes and one root: **a record's pointer must resolve where it is
-read, not merely where it was written.** `/tmp` fails it in time, a bare line number fails it
+The shared root is real and worth stating once: **a record's pointer must resolve where it is
+read, not merely where it was written.** `/tmp` fails that in time, a bare line number fails it
 across revisions, and a dispatch artifact written into the subject fails it by changing what it
-points at. A guard for the first two is mechanical and cheap; the argument for building it is
-that two independent agents hit the third axis within an hour of writing the item about the
-first.
+points at. But an abstraction shared is not a remedy shared, and these remedies have nothing in
+common — `G6`'s is a location decision a dispatcher makes once, `G7`'s is a citation discipline
+every writer applies every time. Folding them would put a third, uncoupled axis into an item
+that already says its two coupled halves must be settled together.
+
+Argument and test both from `lukerhodes-2f`, 2026-08-23.

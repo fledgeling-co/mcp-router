@@ -22,6 +22,7 @@ import Foundation
     /// A surface this tool knows how to render.
     enum Surface: String, CaseIterable {
         case servers
+        case settings
     }
 
     /// The drawn state to render it in.
@@ -36,12 +37,22 @@ import Foundation
         case loading
         case error
 
-        var fixture: FixtureControlAPIClient.Scenario {
-            switch self {
-            case .ideal: .populated
-            case .empty: .empty
-            case .loading: .loading
-            case .error: .offline
+        /// The scenario that produces this drawn state **on this surface**.
+        ///
+        /// Surface-aware since M15, and the reason is a real divergence rather than tidiness. A
+        /// state name identifies the mock's own frame — `v-empty`, `v-error` — and the mock draws
+        /// different *conditions* under the same frame name on different surfaces. The Servers
+        /// board's empty frame is a router that answered with nothing declared; the Settings
+        /// window's empty frame is `Settings are unavailable while the router is stopped`, which is
+        /// the offline condition. One shared mapping would have rendered a live window under the
+        /// name of the stopped one and reported it as a measurement of the stopped one.
+        func fixture(for surface: Surface) -> FixtureControlAPIClient.Scenario {
+            switch (surface, self) {
+            case (.settings, .empty): .offline
+            case (_, .ideal): .populated
+            case (_, .empty): .empty
+            case (_, .loading): .loading
+            case (_, .error): .offline
             }
         }
 
@@ -156,26 +167,51 @@ import Foundation
     }
 
     /// The rendered surface, wrapped in the harness's coordinate space.
+    ///
+    /// **Each surface builds its own model inside its own arm.** `board: ServersBoardModel` used to
+    /// be a stored property, which made every surface pay for the Servers board's model and made a
+    /// second surface impossible to add without constructing one it does not use. What is stored now
+    /// is the shell, which every surface genuinely shares because it is the poll they all read.
     @MainActor
     struct MeasuredSurface: View {
         let surface: Surface
         let surfaceName: String
         let size: CGSize
         let shell: ShellModel
-        let board: ServersBoardModel
+        let client: any ControlAPIClient
         let appearance: ColorScheme
 
         var body: some View {
             Group {
                 switch surface {
                 case .servers:
-                    ServersBoard(shell: shell, board: board)
+                    ServersBoard(
+                        shell: shell,
+                        board: ServersBoardModel(client: client, tracker: shell.tracker)
+                    )
+                case .settings:
+                    // The **in-memory** token store, not the default keychain one: this is an
+                    // unsigned SwiftPM executable with no keychain access group, where
+                    // `SecItemCopyMatching` returns -34018 rather than errSecItemNotFound. The
+                    // Makefile already documents that for the iOS lane; here it would render the
+                    // keychain-refused state on every run and report it as the ideal frame.
+                    SettingsWindow(
+                        model: shell,
+                        buildIdentity: .measured,
+                        store: InMemoryTokenStore(),
+                        restoration: ShellRestoration(defaults: Self.scratchDefaults)
+                    )
                 }
             }
             .frame(width: size.width, height: size.height, alignment: .topLeading)
             .environment(\.colorScheme, appearance)
             .measureSurface(surfaceName)
         }
+
+        /// A scratch defaults domain, so the pane the *developer* last looked at cannot decide which
+        /// pane this run measures. A dump whose contents depend on the machine it ran on is not a
+        /// measurement of the surface.
+        static let scratchDefaults = UserDefaults(suiteName: "mcprouter.measure") ?? .standard
     }
 
     @MainActor
@@ -197,11 +233,10 @@ import Foundation
         // never take the key window from whatever the person at the machine is actually doing.
         NSApplication.shared.setActivationPolicy(.prohibited)
 
-        let client = FixtureControlAPIClient(args.state.fixture)
+        let client = FixtureControlAPIClient(args.state.fixture(for: args.surface))
         let shell = ShellModel(client: client)
         if args.state.polls { await shell.refresh(at: Date()) }
-        let board = ServersBoardModel(client: client, tracker: shell.tracker)
-        return render(args, shell: shell, board: board)
+        return render(args, shell: shell, client: client)
     }
 
     /// Hosts the surface, lets the layout settle, and writes the dump.
@@ -210,7 +245,7 @@ import Foundation
     /// alternative — blocking a thread on a semaphore around a `Task` — is forbidden outright by
     /// `SWIFT_PRACTICES.md` §1 because it deadlocks the cooperative pool.
     @MainActor
-    func render(_ args: Arguments, shell: ShellModel, board: ServersBoardModel) -> Int32 {
+    func render(_ args: Arguments, shell: ShellModel, client: any ControlAPIClient) -> Int32 {
         SurfaceRecorder.shared.reset()
 
         let size = NSSize(width: args.width, height: args.height)
@@ -221,7 +256,7 @@ import Foundation
         let host = NSHostingView(rootView: MeasuredSurface(
             surface: args.surface,
             surfaceName: "\(args.surface.rawValue).\(args.state.rawValue)",
-            size: size, shell: shell, board: board, appearance: args.appearance
+            size: size, shell: shell, client: client, appearance: args.appearance
         ))
         host.frame = NSRect(origin: .zero, size: size)
         window.contentView = host

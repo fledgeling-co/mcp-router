@@ -22,20 +22,37 @@
 
         var body: some View {
             VStack(alignment: .leading, spacing: SettingsMetrics.tightGap) {
+                // **`.measured` sits inside the padding, not outside it**, and the order is
+                // load-bearing rather than stylistic. Measured the other way round, this node's
+                // frame included the 4pt bottom gap and the type-metrics layer read an 11pt
+                // Subheadline as 18pt — taller than the 12pt Callout beside it, which is exactly
+                // what a substituted type role looks like to that layer. The instrument was
+                // reporting the padding as type.
                 Text(title)
                     .typeRole(.subheadline)
                     .foregroundStyle(ColorToken.t3.color)
-                    .padding(.bottom, SettingsMetrics.tightGap)
                     .measured(
                         "group-title", role: "group-title", kind: .text,
                         tokens: ["foreground": .t3], type: .subheadline, text: title
                     )
+                    .padding(.bottom, SettingsMetrics.tightGap)
                 content
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .contain)
             .accessibilityLabel(title)
-            .measured("group", role: "settings-group", kind: .vstack, alignment: "leading")
+            .measured(Self.nodeID(for: title), role: "settings-group", kind: .vstack, alignment: "leading")
+        }
+
+        /// A node id derived from the header, so two groups on one pane are two nodes in the dump.
+        ///
+        /// A fixed `"group"` collapsed them: `MeasureTree.assemble` keeps the first record for a
+        /// repeated path, so the Router card, its help sentence and the Warm set card all landed
+        /// under one node and the Router group's own header vanished from the tree. A dump that
+        /// quietly loses a subtree is the shape of failure the whole harness is written against, so
+        /// the id follows the one thing that is already unique per pane.
+        static func nodeID(for title: String) -> String {
+            "group-" + title.lowercased().split(separator: " ").joined(separator: "-")
         }
     }
 
@@ -124,15 +141,17 @@
         }
 
         var body: some View {
+            // Inside the padding, for the reason `SettingsGroup`'s header records: a measured frame
+            // that includes a gap is a type reading of the gap.
             Text(text)
                 .typeRole(.subheadline)
                 .foregroundStyle(ColorToken.t3.color)
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.top, SettingsMetrics.tightGap)
                 .measured(
                     id, role: "state-detail", kind: .text,
                     tokens: ["foreground": .t3], type: .subheadline, text: text
                 )
+                .padding(.top, SettingsMetrics.tightGap)
         }
     }
 

@@ -111,14 +111,31 @@ Run on this worktree with the working tree in its committed state.
 
 **The one warning is pre-existing and its parity is unchanged.** The reconciler still says
 `LEDGER.md odd number of backtick quotes (1205)`. `LEDGER.md` reads **1205** backticks now against
-**1193** both at the delivered tip `64e1631` and on current `main` — this gap-fix adds 12, an even
-number, so it cannot have changed whether the count is odd.
+**1193** at the delivered tip `64e1631` — this gap-fix adds 12, an even number, so it cannot have
+changed whether the count is odd. **The argument stands on `64e1631` alone**, and the clause that
+also claimed it of `main` is withdrawn. That clause went stale rather than being wrong when written:
+`main` did read 1193, at `41fe42f` (15:25), and it has been committed to eight times since by another
+session — **1128** at `a6fd1e6`, **1147** at `43e4199`, **1161** at `adfa923` by 16:09. A parity claim
+names what a branch adds to its own base, so the base is the only figure it needs, and a branch tip
+that moves three times in nine minutes is not a fixed point to argue from. **The number is withdrawn;
+the argument is untouched.** Corrected at gap-fix 2.
 
 **One denominator moved by exactly one, and it is this document.** swiftformat reports **285 files
 skipped** against **284** at the delivered tip. Isolated rather than assumed: with
 `planning/progress/G5-gapfix.md` moved aside the same command reads **284**, and with it back,
 **285**. swiftformat counts every non-Swift file it walks past, and this commit adds one markdown
 file. The Swift population is unchanged at **542 considered, 535 linted, 0 requiring formatting**.
+
+**And that isolation lost the file it was isolating.** The move-aside never moved back:
+`planning/progress/G5-gapfix.md` is committed, but `git status` at the start of gap-fix 2 reported it
+**deleted from the working tree**, and the sweep reads all four documents from disk, so it raises
+`FileNotFoundError` rather than a failing assertion in that state. `git checkout --` restored it and
+the restored file is byte-identical to the commit — `sha256 bbe4530f21949391a73b70bc2976e452ab66fb9a`
+both ways — so nothing was lost but the file's presence. **No reading in the table above is affected**:
+all five saved `make lint` captures under `/tmp/g5gf/` — 15:31, 15:37, 15:43, 15:48 and 15:52 — read
+**285 files skipped**, so every gate recorded here ran with the file present, and the 284 probe saved
+no capture and ran after the last of them. Recorded rather than fixed quietly, because an item whose
+subject is records that misdescribe their evidence lost its own record to a measurement technique.
 
 **No campaign data touched.** `git status planning/test-campaign/` is empty; all four version
 readings were taken against the `/tmp` copy.

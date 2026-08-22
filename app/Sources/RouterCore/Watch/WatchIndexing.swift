@@ -8,7 +8,7 @@ import Foundation
 /// reappears nowhere.
 ///
 /// **The manifest is re-read for every entry (X4b).** The reference loads it once (`watch.ts:212`),
-/// spends seconds spawning and indexing children, and saves the stale object at `:285` — so a user
+/// spends seconds spawning and indexing children, and saves the stale object at `:286` — so a user
 /// who approves a held tool-change in the Mac app mid-adoption has that approval erased. That is
 /// W10's own argument applied to the file W10 did not name. Re-reading per entry shrinks the window
 /// from seconds to the same microseconds the daemon's own manifest writers already have; closing it
@@ -16,7 +16,7 @@ import Foundation
 ///
 /// That save is now an item of its own — **R19**, demonstrated against the fixed code rather than
 /// argued: a fire held open six seconds while `index --force` wrote another server's row leaves the
-/// manifest holding only what the fire had in hand. The line number moved from `:253` to `:285`
+/// manifest holding only what the fire had in hand. The line number moved from `:253` to `:286`
 /// when R17's comment block below grew; the code did not move.
 ///
 /// **The divergence this creates is declared, not measured.** On a fixture that overlaps a second
@@ -58,7 +58,7 @@ public struct WatchIndexer: Sendable {
     /// Index every upstream in `toIndex`, writing each result as it arrives.
     ///
     /// One pool for the whole set, `idleMs` 60 000, torn down on every path — the reference's shape
-    /// at `watch.ts:232-288`, where the teardown is a `finally`. Not a `defer`, because `defer`
+    /// at `watch.ts:232-289`, where the teardown is a `finally`. Not a `defer`, because `defer`
     /// cannot await and a fire-and-forget teardown would leave children alive after this returns.
     public func index(_ toIndex: [UpstreamConfig]) async -> Report {
         guard !toIndex.isEmpty else { return Report() }
@@ -158,8 +158,9 @@ public struct WatchIndexer: Sendable {
         // *looks* indexed to the next reader. No reader reads it that way: `WatchAdoption`'s own
         // gate rejects an entry with an error, `ToolUnion.isStale` returns true for it,
         // `ToolUnion.union` skips a zero-tool entry, and `UpstreamStateReport` reads `error` as the
-        // `detail` it puts in front of the user. Deleting it erased the only durable record that
-        // the router had tried the server at all — measured on the owner's machine on 2026-08-21,
+        // `detail` it puts in front of the user. Deleting it erased the attempt from the one file
+        // those readers join through; `watch-state.json` kept the reason, and nothing reads it —
+        // measured on the owner's machine on 2026-08-21,
         // where `namecheap` failed `Connection closed` every five minutes and `/servers` reported
         // `error: None, tools: 0, state: idle`, the reason surviving only in watch-state.json.
         //
@@ -170,8 +171,10 @@ public struct WatchIndexer: Sendable {
         // `index --force` were both live, so what was seen is consistent with either. The route
         // account is kept because it is what explains the ASYMMETRY between the two servers, and
         // because its pre-registered prediction held — stage `lifeline` as well and its row starts
-        // disappearing too. This type re-reads per entry (X4b above) and so does not have R19's
-        // window; that difference is a declared divergence rather than a proven agreement.
+        // disappearing too. This type re-reads per entry (X4b above), which NARROWS R19's window
+        // to the microseconds the header describes rather than closing it — there is no lock on
+        // `manifest.json`, and closing it entirely is D-w3. That difference is a declared
+        // divergence rather than a proven agreement.
         //
         // The backoff is untouched: it is the retry policy, and this row is the record.
         try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)

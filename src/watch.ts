@@ -247,8 +247,9 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
          * reads it that way: this watcher's own adoption gate rejects `entry.error` a few
          * blocks down, `isStale` returns true for it, `unionTools` skips a zero-tool entry,
          * and `describe` and `reportUpstreams` exist precisely to surface it. What the
-         * delete actually did was erase the only durable record that this server had been
-         * tried at all.
+         * delete actually did was erase the attempt from the one file those readers join
+         * through. `watch-state.json` kept the reason the whole time, durably, and nothing
+         * reads it — which is a record nobody can reach rather than no record at all.
          *
          * Measured on the owner's machine, 2026-08-21: `namecheap` and `lifeline` both fail
          * `MCP error -32000: Connection closed`. `lifeline` is not staged in ~/.claude.json,

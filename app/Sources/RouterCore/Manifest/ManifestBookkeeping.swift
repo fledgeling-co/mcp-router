@@ -52,11 +52,17 @@ public enum ManifestBookkeeping {
 
         switch observation {
         case let .failure(message):
-            var entry = CachedServer(members: [])
+            // R18: Preserve the previous digest across failure so that subsequent
+            // re-indexing can compare against the previously approved surface rather
+            // than auto-approving a changed/tampered surface on first sight.
+            var entry = previous ?? CachedServer(members: [])
             entry.set("hash", .string(JSString(configHash)))
             entry.set("builtAt", .string(timestamp))
             entry.set("tools", .array([]))
             entry.set("error", .string(JSString(message)))
+            if let prevDigest = previous?.digest {
+                entry.set("digest", .string(prevDigest))
+            }
             return Step(entry: entry, outcome: .failed(message: message))
 
         case let .tools(tools):

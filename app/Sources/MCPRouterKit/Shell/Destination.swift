@@ -124,8 +124,8 @@ public enum Destination: String, CaseIterable, Sendable, Identifiable {
     ///
     /// **Settings is not here and does not get `⌘0`.** `DESIGN.md` §8 binds it to `⌘,`; giving it a
     /// digit too would put two shortcuts on one command, which is how a menu bar starts teaching two
-    /// different habits for the same thing. M20 owns the accelerator map and is where a second
-    /// chord would be granted, in the document rather than in a `switch`.
+    /// different habits for the same thing. M20 owns the accelerator map and granted exactly one new
+    /// chord — `⌃W` — in `DESIGN.md` §8 rather than in a `switch`.
     public var selectionDigit: Int? {
         switch self {
         case .activity: 1

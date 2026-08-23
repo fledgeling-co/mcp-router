@@ -24,6 +24,9 @@
         /// not a constant in a second place.
         static var bandEdgeAlpha: Double { 0.28 }
         static var gap: Double { inset }
+        /// Between the header's count cells. Wider than `gap`, because each cell is two stacked lines
+        /// and the mock spaces them further apart than it spaces anything in a row (`gap:18px`).
+        static var countGap: Double { inset * 3 }
         static var rowPadding: Double { inset * 2.5 }
         static var hairline: Double { MetricToken.focusRing.leadingScalar / 2 }
         static var dot: Double { inset + 1 }
@@ -53,7 +56,12 @@
             PopoverContent.make(
                 trackerState: shell.trackerState,
                 records: records,
-                inbox: shell.inboxBoard.bandZone(),
+                // The preference is read here rather than by the board, because it is the shell's
+                // and the board must not reach into the shell. `false` is what an unthreaded call
+                // gets, so a band that forgets it draws no install control.
+                inbox: shell.inboxBoard.bandZone(
+                    approveFromPopover: shell.isApproveFromPopoverEnabled
+                ),
                 now: Date()
             )
         }
@@ -93,20 +101,19 @@
 
         // MARK: - Header
 
+        /// The three counts, label above value, in the mock's own shape and vocabulary.
+        ///
+        /// **Three cells where the mock draws four.** `Resident 214 MB` does not ship, and the reason
+        /// is `MenuBarPresentation.CountLabel`'s: the router never observes the figure, so drawing one
+        /// would be inventing it. The grid does not stretch to fill the gap either — a fourth cell
+        /// carrying `inFlight` (0 almost always) or `held` (the band directly beneath it says the same
+        /// thing) would be a quantity chosen because a layout has four slots.
         private var header: some View {
-            HStack(spacing: PopoverMetrics.gap) {
+            HStack(alignment: .top, spacing: PopoverMetrics.countGap) {
                 if let counts = content.counts {
-                    Text("\(counts.running) running")
-                        .typeRole(.callout)
-                        .foregroundStyle(ColorToken.t1.color)
-                    separator
-                    Text("\(counts.idle) idle")
-                        .typeRole(.callout)
-                        .foregroundStyle(ColorToken.t2.color)
-                    separator
-                    Text("\(counts.tools) tools")
-                        .typeRole(.callout)
-                        .foregroundStyle(ColorToken.t2.color)
+                    countCell(MenuBarPresentation.CountLabel.running, counts.running, emphasis: true)
+                    countCell(MenuBarPresentation.CountLabel.declared, counts.declared)
+                    countCell(MenuBarPresentation.CountLabel.tools, counts.tools)
                 } else {
                     // Nobody answered, and zero is an answer. A skeleton rather than three noughts.
                     RoundedRectangle(cornerRadius: PopoverMetrics.hairline * 4, style: .continuous)
@@ -120,8 +127,30 @@
             .padding(.top, PopoverMetrics.gap)
         }
 
-        private var separator: some View {
-            Text("·").typeRole(.callout).foregroundStyle(ColorToken.t4.color)
+        /// One cell. Label above value, the label quiet and the value in the reading size — the
+        /// mock's `small muted` over a 17px semibold `mono`.
+        ///
+        /// The two are one accessibility element carrying `"11 declared"`, because a label and a bare
+        /// number read as two unrelated announcements when they are the same fact.
+        private func countCell(_ label: String, _ value: Int, emphasis: Bool = false) -> some View {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(label)
+                    .typeRole(.subheadline)
+                    .foregroundStyle(ColorToken.t3.color)
+                Text("\(value)")
+                    .typeRole(.title2, monospaced: true)
+                    .foregroundStyle((emphasis ? ColorToken.t1 : ColorToken.t2).color)
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(value) \(label)")
+            // The label is what the copy layer reads and the value is what criterion 5 is about —
+            // every one of the three comes off `servers()`, and the mock's fourth cell has no field
+            // on `Counts` to come off at all.
+            .measured(
+                "count-\(label.lowercased().replacingOccurrences(of: " ", with: "-"))",
+                role: "footer-counts", kind: .vstack, alignment: "leading",
+                type: .title2, text: "\(label) \(value)"
+            )
         }
 
         // MARK: - Stale, band, message

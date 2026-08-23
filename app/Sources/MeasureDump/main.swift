@@ -23,31 +23,21 @@ import Foundation
     enum Surface: String, CaseIterable {
         case servers
         case settings
+        /// The menu-bar popover (M20).
+        /// Hosts in NSHostingView under .prohibited to measure without activating.
+        case popover
         case harnesses
         case insights
     }
 
     /// The drawn state to render it in.
-    ///
-    /// Four rather than one, because the mock draws four Servers frames and `DESIGN.md` §5 is that
-    /// a populated-only screen is a third of a design. A breadth ledger filled against the ideal
-    /// frame alone would report the three unhappy states as neither present nor absent, which is
-    /// the omission the M23 brief calls an unaudited surface rather than a passed one.
     enum State: String, CaseIterable {
         case ideal
         case empty
         case loading
         case error
 
-        /// The scenario that produces this drawn state **on this surface**.
-        ///
-        /// Surface-aware since M15, and the reason is a real divergence rather than tidiness. A
-        /// state name identifies the mock's own frame — `v-empty`, `v-error` — and the mock draws
-        /// different *conditions* under the same frame name on different surfaces. The Servers
-        /// board's empty frame is a router that answered with nothing declared; the Settings
-        /// window's empty frame is `Settings are unavailable while the router is stopped`, which is
-        /// the offline condition. One shared mapping would have rendered a live window under the
-        /// name of the stopped one and reported it as a measurement of the stopped one.
+        /// The scenario that produces this drawn state on this surface.
         func fixture(for surface: Surface) -> FixtureControlAPIClient.Scenario {
             switch (surface, self) {
             case (.settings, .empty): .offline
@@ -60,6 +50,17 @@ import Foundation
             case (_, .empty): .empty
             case (_, .loading): .loading
             case (_, .error): .offline
+            }
+        }
+
+        /// The inbox this state renders the popover against (nil for non-popover).
+        func inbox(for surface: Surface) -> (any InboxService)? {
+            guard surface == .popover else { return nil }
+            switch self {
+            case .ideal: return FixtureInboxService(.paired)
+            case .empty: return FixtureInboxService(.pairedEmpty)
+            case .loading: return FixtureInboxService(.loading)
+            case .error: return FixtureInboxService(.failed)
             }
         }
 
@@ -204,7 +205,7 @@ import Foundation
             switch surface {
             case .harnesses: await harnesses.load()
             case .insights: await insights.load()
-            case .servers, .settings: break
+            case .servers, .settings, .popover: break
             }
         }
     }
@@ -227,6 +228,11 @@ import Foundation
                         shell: shell,
                         board: ServersBoardModel(client: client, tracker: shell.tracker)
                     )
+                case .popover:
+                    // The popover sets its own width from `PopoverMetrics`, so the frame below only
+                    // bounds it. It is drawn top-leading in that frame, which is where the geometry
+                    // layer expects a surface's origin.
+                    MenuBarPopover(shell: shell)
                 case .harnesses:
                     HarnessesBoard(board: boards.harnesses)
                 case .insights:
@@ -276,10 +282,20 @@ import Foundation
         NSApplication.shared.setActivationPolicy(.prohibited)
 
         let client = FixtureControlAPIClient(args.state.fixture(for: args.surface))
-        let shell = ShellModel(client: client)
+        // **The scratch domain, not the developer's own preferences.** `MeasuredSurface` already
+        // hands the Settings window a scratch `ShellRestoration` for this reason; the popover reads a
+        // preference off the *model* — whether the band may draw its `Approve` — so the model needs
+        // the same treatment or the dump depends on which machine it ran on, which is not a
+        // measurement of the surface.
+        let shell = ShellModel(
+            client: client,
+            store: ShellRestoration(defaults: MeasuredSurface.scratchDefaults),
+            inboxService: args.state.inbox(for: args.surface)
+        )
         let boards = PreparedBoards(client: client)
         if args.state.polls {
             await shell.refresh(at: Date())
+            if args.surface == .popover { await shell.inboxBoard.load() }
             await boards.read(args.surface)
         }
         return render(args, shell: shell, client: client, boards: boards)

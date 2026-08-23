@@ -17,13 +17,20 @@
         /// and `ShellModel.swift` is at its length budget. `ShellPairingFactory` is what decides a
         /// Release build gets `NoTransportInboxService`, and keeping that call here means the rule
         /// and its one caller are read together.
+        /// - Parameter service: the inbox to read. `nil` takes `ShellPairingFactory`'s choice, which
+        ///   is what the app always passes. It is injectable for exactly one reason: `D1` — *no path
+        ///   outside the window installs anything except popover `Approve`* — has to be driven through
+        ///   `approveFromOutside` with something genuinely waiting, and the factory's Debug default is
+        ///   the empty scenario. A clause that cannot reach the method it is about is the failure
+        ///   `InboxNotificationRoute` was extracted from the delegate to fix.
         static func makeInboxBoard(
             client: any ControlAPIClient,
-            notifier: any ArrivalNotifier
+            notifier: any ArrivalNotifier,
+            service: (any InboxService)? = nil
         ) -> InboxBoardModel {
             InboxBoardModel(
                 client: client,
-                service: ShellPairingFactory.makeService(),
+                service: service ?? ShellPairingFactory.makeService(),
                 notifier: notifier
             )
         }
@@ -81,6 +88,37 @@
         /// and does not activate the app — which is the whole point of it being available here.
         func declineFromOutside(itemID: String) {
             inboxBoard.decline(itemID: itemID)
+        }
+
+        /// Install a queued item from the popover's band, without opening the window.
+        ///
+        /// **The one path outside the window that declares code on this Mac**, and every condition on
+        /// it is re-checked here rather than assumed from the button having been drawn:
+        ///
+        /// 1. ``isApproveFromPopoverEnabled`` — the Settings preference. Re-read at the press, so
+        ///    turning it off while the popover is open cannot be raced.
+        /// 2. `AcceptableInboxItem(_:)` returns `nil` for an item whose registry entry this Mac could
+        ///    not read, so an unresolved item cannot reach the installer at all — the type enforces
+        ///    it rather than a check somebody has to remember.
+        /// 3. `InboxBand.canApprove` — nothing the entry asks for is still blank. The band has no
+        ///    fields, and `RegistryCapability.declaration(for:values:)` drops empty values rather than
+        ///    refusing them, so without this a press here would send a credential-less declaration.
+        ///
+        /// Checking them twice is deliberate. The band's `isApprovable` decides what is *drawn*, and
+        /// this decides what *happens* — one is a presentation rule and the other is the gate. A guard
+        /// that exists only in the view is a guard a second call site removes silently, and
+        /// `InboxBoundaryTests.nothingOutsideTheWindowInstalls` drives this method rather than the view.
+        ///
+        /// It goes through `InboxBoardModel.accept(_:)` — **the board's existing install path, not a
+        /// second one.** `requirementValues` is whatever the sheet last held, which is empty on this
+        /// route, and condition 3 is what makes that safe.
+        func approveFromOutside(itemID: String) async {
+            guard isApproveFromPopoverEnabled,
+                  let item = inboxBoard.rows.first(where: { $0.id == itemID }),
+                  InboxBand.canApprove(item),
+                  let acceptable = AcceptableInboxItem(item)
+            else { return }
+            await inboxBoard.accept(acceptable)
         }
     }
 #endif

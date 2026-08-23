@@ -138,22 +138,69 @@ struct ShellDerivationTests {
         #expect(MenuCommand.appDeclared.count == MenuCommand.allCases.count - expected.count)
     }
 
-    /// The six titles that are title case are exactly the system's, and no app-declared command
-    /// borrowed the spelling. §6's sentence case still governs everything the app writes.
-    @Test("no command the app declares is title case except where it names the product")
-    func appDeclaredCommandsAreSentenceCase() {
-        for command in MenuCommand.appDeclared {
-            let words = command.title.split(separator: " ").dropFirst()
-            for word in words {
-                let first = word.first.map(String.init) ?? ""
-                let isProductName = ["MCP", "Router", "iPhone"].contains(String(word))
-                    || word.hasPrefix("Router")
-                #expect(
-                    first == first.lowercased() || isProductName,
-                    "\(command.title) capitalises '\(word)' mid-sentence"
-                )
+    /// **Every menu item is Title Case, and this used to assert the opposite.**
+    ///
+    /// It read *"no command the app declares is title case except where it names the product"*, and
+    /// it was green while the menu bar carried `Hide Others` directly above `Add server…` — because
+    /// it only ever looked at the app's thirteen and the kit's fourteen were exempted by
+    /// `appDeclared`. The exemption was the evidence: `DESIGN.md`'s header says the macOS 27 kit
+    /// wins where it and the document disagree, Apple's HIG specifies title-style capitalization
+    /// for menu items, and six titles were already spelled the kit's way because the app cannot
+    /// rename them. M20 converted the rest and §6 records the menu bar as its one named exception.
+    ///
+    /// This is inverted rather than deleted, and it is **stricter** than what it replaced: the old
+    /// form only caught a capital where it wanted lower case, so `Add server…` and `Add SERVER…`
+    /// were equally fine. This catches both directions — a word that should be capitalised and is
+    /// not, and a minor word that should not be and is.
+    ///
+    /// It runs over `allCases` rather than `appDeclared`, so the kit's own strings are held to the
+    /// same rule they are the evidence for. If one of them ever fails here, the kit has changed and
+    /// the measurement in `spec-M1.md` is what needs re-taking — not this list.
+    @Test("every menu item is Title Case, including the ones macOS spells")
+    func menuTitlesAreTitleCase() {
+        // The words title case leaves lower unless they lead or close: articles, coordinating
+        // conjunctions and short prepositions. Apple's own menus follow this — `Bring All to
+        // Front`, `Paste and Match Style`.
+        let minor: Set = [
+            "a", "an", "and", "as", "at", "but", "by", "for", "from", "in", "nor",
+            "of", "on", "or", "the", "to", "with"
+        ]
+        // Spelled by their owner rather than by the rule. `iPhone` is Apple's and starts lower.
+        let literal: Set = ["iPhone"]
+
+        for command in MenuCommand.allCases {
+            let words = command.title.split(separator: " ").map(String.init)
+            for (index, word) in words.enumerated() {
+                let bare = word.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+                guard !bare.isEmpty, !literal.contains(bare) else { continue }
+                let first = String(bare.prefix(1))
+                let leadsOrCloses = index == 0 || index == words.count - 1
+                if !leadsOrCloses, minor.contains(bare.lowercased()) {
+                    #expect(
+                        first == first.lowercased(),
+                        "\(command.title) capitalises the minor word '\(bare)'"
+                    )
+                } else {
+                    #expect(
+                        first == first.uppercased(),
+                        "\(command.title) leaves '\(bare)' lower case"
+                    )
+                }
             }
         }
+    }
+
+    /// The menu bar is the **only** surface that takes Title Case.
+    ///
+    /// §6's exception is named and bounded, so this is the boundary: a button that says the same
+    /// words as a menu item stays sentence case. `Add Marketplace…` is the worked example — it was
+    /// one literal shared between the menu item and two Skills buttons until M20, and one string
+    /// could not be both once the menu moved.
+    @Test("a button saying a menu item's words keeps sentence case")
+    func buttonsDidNotFollowTheMenuIntoTitleCase() {
+        #expect(SkillPresentation.marketplacesAction == "Add marketplace…")
+        #expect(MenuCommand.addMarketplace.title == "Add Marketplace…")
+        #expect(MenuCommand.addMarketplace.title != SkillPresentation.marketplacesAction)
     }
 
     /// The Help command carries no shortcut, and that is a measurement rather than an omission:

@@ -9,8 +9,8 @@ import SwiftUI
 /// can be reached by `swift test` — which means anything with a decision in it would be a clause
 /// with no possible red-green evidence. The navigation model, the command inventory, the readout
 /// derivation, the shell's views and **which control client it talks to** all live in
-/// `MCPRouterKit` and `MCPRouterUI` for that reason, and what is left here is four `Scene`s and six
-/// menu builders whose *contents* come from the model.
+/// `MCPRouterKit` and `MCPRouterUI` for that reason, and what is left here is four `Scene`s and
+/// eight menu builders whose *contents* come from the model.
 @main
 @MainActor
 struct MCPRouterApp: App {
@@ -81,10 +81,16 @@ struct MCPRouterApp: App {
 
 /// The complete command surface, per `DESIGN.md` §3.9.
 ///
-/// Six explicit builders rather than a loop, because SwiftUI's `CommandsBuilder` cannot iterate
-/// top-level menus — command groups are *positions* in a menu macOS already owns, not a list. What
-/// is driven by the model is every item's title, shortcut, enabled state and disabled reason, which
-/// is the part A19 and A20 actually check.
+/// Eight explicit builders rather than a loop, because SwiftUI's `CommandsBuilder` cannot iterate
+/// top-level menus — a `CommandGroup` is a *position* in a menu macOS already owns and a
+/// `CommandMenu` is a whole menu of the app's, and neither is a list. What is driven by the model
+/// is every item's title, shortcut, enabled state and disabled reason, which is the part A19 and
+/// A20 actually check.
+///
+/// **Six until M20**, which adds the mock's Router and Library menus as the two `CommandMenu`s
+/// below. They are declared last because SwiftUI places a `CommandMenu` immediately before the
+/// Window menu regardless of declaration order, and grouping them at the end is the only way this
+/// file's reading order matches the bar's.
 ///
 /// **No item names its own operation.** Each action is the same generic line — hand the command to
 /// `ShellCommandRouter` — because nothing in this file can be reached by `swift test`, and a
@@ -119,12 +125,13 @@ struct ShellCommands: Commands {
         // item produces, so the app declares none and `MenuCommand.settings.isSystemProvided`
         // records that the item is the platform's now.
 
+        // `Export Library…` left this group at M20. The mock draws it in the Library menu and the
+        // command model moved with it; leaving the item declared here as well would put one command
+        // in two menus, which is the two-`Settings…` defect above with a different title.
         CommandGroup(replacing: .newItem) {
             item(.addServer)
             item(.addMarketplace)
             item(.pairPhone)
-            Divider()
-            item(.exportLibrary)
         }
 
         CommandGroup(after: .pasteboard) {
@@ -136,12 +143,45 @@ struct ShellCommands: Commands {
 
         // Replacing `.sidebar` puts these in the View menu and removes the system's own sidebar
         // toggle, so there is one command for showing the sidebar rather than two.
+        //
+        // `MenuCommand.allCases` orders the destinations by accelerator digit since M20, so this
+        // `ForEach` reads the menu the mock draws — `⌘1` first — rather than sidebar order.
         CommandGroup(replacing: .sidebar) {
-            ForEach(Destination.ordered.filter { $0.selectionDigit != nil }, id: \.self) { target in
-                item(.selectDestination(target))
+            ForEach(MenuCommand.inMenu(.view).filter(\.isDestinationSelection), id: \.self) { target in
+                item(target)
             }
             Divider()
             item(.showSidebar)
+        }
+
+        // The two menus M20 adds. `CommandMenu` rather than `CommandGroup`, because these are whole
+        // top-level menus the app declares rather than positions in a menu macOS already owns — and
+        // SwiftUI places a `CommandMenu` before the Window menu, which is where the mock draws both.
+        //
+        // Their **contents** come from `MenuCommand.inMenu(_:)` exactly as the six groups above do,
+        // so the dividers are the only thing written here. The divider positions are the mock's own
+        // and are the one thing in this file that is a layout decision; they carry no behaviour, and
+        // A19's walk reads items rather than separators.
+        CommandMenu(MenuBarMenu.router.rawValue) {
+            item(.reindexManifest)
+            item(.restartRouter)
+            Divider()
+            item(.wakeServer)
+            item(.tripBreaker)
+            item(.reapChildren)
+            Divider()
+            item(.reviewHeldChanges)
+            item(.revealRouterLog)
+            Divider()
+            item(.stopRouter)
+        }
+
+        CommandMenu(MenuBarMenu.library.rawValue) {
+            item(.updateAllSkills)
+            item(.runDoctor)
+            Divider()
+            item(.runAllChecks)
+            item(.exportLibrary)
         }
 
         CommandGroup(replacing: .help) {

@@ -104,31 +104,6 @@ public struct ServerSubtitle: Equatable, Sendable {
     }
 }
 
-// MARK: - The breaker
-
-public extension BreakerState {
-    /// Which lever a server shows.
-    ///
-    /// **Running is checked first, and that is the invariant.** The lever's whole meaning is "a
-    /// child process is up" — `isRaised` is `self == .running` — so raising it for a server that is
-    /// not running, or lowering it for one that is, is the only way this control can tell a lie.
-    /// Attention therefore loses to running rather than the reverse: a running server that is also
-    /// holding a tool description shows green, and its attention is carried by the subtitle, by the
-    /// row's action and by the *Needs you* count. Colour is never the only signal (`DESIGN.md` §3
-    /// rule 10), so nothing is lost that only colour was carrying.
-    ///
-    /// The state this cannot express is "running **and** wants a decision", because `BreakerState`
-    /// is one enum and the lamp is not separable from the lever. That is recorded as a wanted
-    /// shared-surface change in `spec-M3.md` rather than made here — `BreakerState` is a merged base
-    /// element that F2's gallery also draws.
-    static func forServer(_ server: MCPServer) -> BreakerState {
-        if server.state == .running { return .running }
-        if server.placard != nil { return .tripped }
-        if server.needsAttention { return .wantsYou }
-        return .dormant
-    }
-}
-
 // MARK: - The row's action
 
 /// What `Reset` has to do, which depends on where the placard came from.
@@ -353,7 +328,13 @@ public struct ServerRowModel: Equatable, Sendable, Identifiable {
     public let id: String
     public let name: String
     public let subtitle: ServerSubtitle
-    public let breaker: BreakerState
+    /// What the Signal Path's jack and this row's plug both draw. **The same value in both**, so
+    /// the band and the table cannot disagree about one server — which is the whole of the brief's
+    /// *"one selection, three representations"* applied to state rather than to selection.
+    public let jack: JackState
+    /// The jack's word, in full and contracted. Carried on the row model rather than derived in the
+    /// band, so the two surfaces read one computation of one server's condition.
+    public let condition: JackCondition
     public let transport: String
     public let tools: Int
     /// Lifetime calls from the usage log — **not** `callsServed`, which is the current child
@@ -368,7 +349,8 @@ public struct ServerRowModel: Equatable, Sendable, Identifiable {
         id = server.name
         name = server.name
         subtitle = ServerSubtitle.forServer(server, idleMs: idleMs)
-        breaker = BreakerState.forServer(server)
+        jack = JackState.forServer(server)
+        condition = JackCondition.forServer(server, idleMs: idleMs)
         transport = server.transport.rawValue
         tools = server.tools
         calls = server.usage.calls

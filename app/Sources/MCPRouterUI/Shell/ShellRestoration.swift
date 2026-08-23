@@ -29,6 +29,9 @@
         /// Whether the menu-bar status item is shown. Named on `SettingsPresentation` so the pane
         /// and the store cannot disagree about which key they mean.
         public static let menuBarVisibleKey = SettingsPresentation.menuBarVisibleKey
+        /// Whether the popover's band may install. Named on `SettingsPresentation` for the same
+        /// reason, and read by `InboxBoardModel.bandZone` rather than by the view.
+        public static let approveFromPopoverKey = SettingsPresentation.approveFromPopoverKey
 
         private let defaults: UserDefaults
 
@@ -75,6 +78,24 @@
 
         public func save(menuBarVisible: Bool) {
             defaults.set(menuBarVisible, forKey: Self.menuBarVisibleKey)
+        }
+
+        /// Whether a queued item may be installed from the popover's band.
+        ///
+        /// **On by default, so an absent key must read as `true`** — `bool(forKey:)` returns `false`
+        /// for a key nobody has written, which would ship the preference silently off and make the
+        /// design of record's own switch state unreachable until someone toggled it twice.
+        ///
+        /// Read through the store rather than as `@AppStorage` in the scene for the reason
+        /// `restoredMenuBarVisible` is: `app/MCPRouter` is not a SwiftPM target, so a preference read
+        /// straight from a `Scene` is a preference no test can drive — and this one gates an install.
+        public func restoredApproveFromPopover() -> Bool {
+            defaults.object(forKey: Self.approveFromPopoverKey) as? Bool
+                ?? SettingsPresentation.approveFromPopoverDefault
+        }
+
+        public func save(approveFromPopover: Bool) {
+            defaults.set(approveFromPopover, forKey: Self.approveFromPopoverKey)
         }
 
         /// Which Settings pane was last looked at.

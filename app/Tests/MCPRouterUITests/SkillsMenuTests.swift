@@ -133,7 +133,7 @@
 
     /// The board's keyboard, and the one key it deliberately leaves alone.
     ///
-    /// `DESIGN.md` §8 gives `Space` the selected row's breaker. A skill has no breaker, so this
+    /// `DESIGN.md` §8 gives `Space` the selected row's **Keep warm**. A skill has no such lever, so
     /// board must not rebind it — two habits for one key is worse than one key doing nothing here.
     @Suite("The Skills board's keyboard")
     @MainActor

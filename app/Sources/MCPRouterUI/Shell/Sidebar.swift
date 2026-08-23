@@ -10,10 +10,14 @@
     /// body is a decision no test can reach — which is how "honours Reduce Motion" becomes a claim
     /// rather than a fact.
     ///
-    /// The spring values are the breaker's documented rise, read from `BreakerGeometry` rather than
-    /// invented here. A badge ticking up and a breaker snapping up are the same event — something
-    /// just happened — and inventing a second spring for it would put an undocumented number in the
-    /// design system.
+    /// The timing is the signature element's, read from `SignalPathGeometry` rather than invented
+    /// here. A badge ticking up and a plug lighting are the same event — something just happened —
+    /// and inventing a second number for it would put an undocumented value in the design system.
+    ///
+    /// It was the breaker's documented rise until M16 retired that element. The argument did not
+    /// change, only which element the document specifies: `DESIGN.md` §7 now authors this moment as
+    /// a duration and a curve because the design of record does, and the badge follows the
+    /// signature rather than keeping a spring the document no longer carries.
     public enum ShellMotion {
         /// Row selection. **Always nil**, and not merely under Reduce Motion: §7 says the selection
         /// fill has no transition at all, because a selection that fades is a selection you have to
@@ -24,9 +28,9 @@
 
         /// A badge whose count changed. Transform only — a scale bump, never a colour flash.
         public static func badgeBump(reduceMotion: Bool) -> Animation? {
-            guard !reduceMotion else { return nil }
-            let spring = BreakerGeometry.standard
-            return .spring(response: spring.riseResponse, dampingFraction: spring.riseDamping)
+            guard let seconds = SignalPathGeometry.standard.plugTransition(reduceMotion: reduceMotion)
+            else { return nil }
+            return .easeOut(duration: seconds)
         }
 
         /// How much a badge grows at the peak of its bump.
@@ -38,10 +42,10 @@
 
         /// How long the badge stays at its peak before settling.
         ///
-        /// The breaker's documented rise, again: holding for the length of the spring that got it
+        /// The documented transition, again: holding for the length of the movement that got it
         /// there is what makes the bump read as one movement rather than two.
         public static let badgeBumpHold = Duration.milliseconds(
-            Int(BreakerGeometry.standard.riseResponse * 1000)
+            Int(SignalPathGeometry.standard.plugTransitionSeconds * 1000)
         )
     }
 

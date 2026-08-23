@@ -64,25 +64,136 @@
             )
         }
 
-        @Test("every registered category offers nothing that installs")
+        /// C2 · every registered category, in **both** families, offers exactly what its value says.
+        ///
+        /// Two things are asserted per category and they are different claims: that every button
+        /// macOS is handed resolves back to a case of the enum the delegate switches over, and that
+        /// the *list* matches the Kit's own statement of it. The first stops a button existing with
+        /// no branch behind it; the second stops the two lists drifting, which is the failure
+        /// `InboxNotificationCategory` was added to close.
+        ///
+        /// **The registered set is checked against the sum of both families rather than against a
+        /// literal 4.** A count written by hand goes stale the moment a category is added, and the
+        /// staleness reads as a pass.
+        @Test("every registered category offers nothing that installs, across both families")
         func categoriesRegisterNoInstall() throws {
             let categories = UserNotificationArrivalNotifier.categories()
-            #expect(categories.count == InboxNotificationCategory.allCases.count)
+            #expect(
+                categories.count
+                    == InboxNotificationCategory.allCases.count + FindingNotificationCategory.allCases.count
+            )
+            #expect(
+                Set(categories.map(\.identifier)).count == categories.count,
+                "two categories share an identifier, so one of them draws the other's buttons"
+            )
 
+            var seenArrival = 0
+            var seenFinding = 0
             for category in categories {
                 let identifiers = category.actions.map(\.identifier)
-                // The closed set is the enforcement: every registered button must resolve back to a
-                // case of the enum the delegate switches over, so a button macOS draws and a branch
-                // the app has cannot drift apart.
-                for identifier in identifiers {
-                    #expect(InboxNotificationAction(rawValue: identifier) != nil)
+
+                if let declared = InboxNotificationCategory(rawValue: category.identifier) {
+                    seenArrival += 1
+                    for identifier in identifiers {
+                        #expect(InboxNotificationAction(rawValue: identifier) != nil)
+                    }
+                    #expect(identifiers == declared.actions.map(\.rawValue))
+                } else if let declared = FindingNotificationCategory(rawValue: category.identifier) {
+                    seenFinding += 1
+                    for identifier in identifiers {
+                        #expect(FindingNotificationAction(rawValue: identifier) != nil)
+                        // The other family's set must not resolve it. The two identifier spaces are
+                        // disjoint today and the delegate picks a family by category, so a shared raw
+                        // value would make one family's press readable as the other's.
+                        #expect(
+                            InboxNotificationAction(rawValue: identifier) == nil,
+                            "\(identifier) resolves in both families"
+                        )
+                    }
+                    #expect(identifiers == declared.actions.map(\.rawValue))
+                    // `install` is registered and installs nothing: the route is what proves it.
+                    for identifier in identifiers {
+                        let action = try #require(FindingNotificationAction(rawValue: identifier))
+                        #expect(!FindingNotificationRoute.route(action, identifier: "f-1").installs)
+                    }
+                } else {
+                    Issue.record(
+                        "a category is registered that neither family declares: \(category.identifier)"
+                    )
                 }
-                let declared = try #require(
-                    InboxNotificationCategory(rawValue: category.identifier),
-                    "a category is registered that the Kit does not declare"
-                )
-                #expect(identifiers == declared.actions.map(\.rawValue))
             }
+            // Both arms were entered, so a family silently dropped from `categories()` fails here
+            // rather than passing on a loop that never ran.
+            #expect(seenArrival == InboxNotificationCategory.allCases.count)
+            #expect(seenFinding == FindingNotificationCategory.allCases.count)
+        }
+
+        /// C2's other half for the finding family: the buttons macOS draws are the buttons the
+        /// announcement promises, walked over every announcement `make` can build.
+        @Test("the buttons macOS draws on a finding are the buttons the finding offers")
+        func drawnButtonsMatchTheFinding() throws {
+            let one = try #require(FindingAnnouncement.make(findings: [Self.finding(id: "f-1")]))
+            let many = try #require(
+                FindingAnnouncement.make(
+                    findings: [Self.finding(id: "f-1"), Self.finding(id: "f-2")]
+                )
+            )
+
+            for announcement in [one, many] {
+                let declared = try #require(
+                    announcement.category,
+                    "no category draws \(announcement.actions)"
+                )
+                let drawn = UserNotificationArrivalNotifier.category(declared)
+                #expect(drawn.actions.map(\.identifier) == announcement.actions.map(\.rawValue))
+                #expect(
+                    UserNotificationArrivalNotifier.content(for: announcement).categoryIdentifier
+                        == declared.rawValue,
+                    "the banner would be posted under a category that draws different buttons"
+                )
+            }
+
+            // The forbidden button, asserted where it is decided rather than on the value alone.
+            let manyDrawn = UserNotificationArrivalNotifier.category(FindingNotificationCategory.many)
+            #expect(
+                manyDrawn.actions.contains {
+                    $0.identifier == FindingNotificationAction.install.rawValue
+                } == false,
+                "a banner naming several findings drew an Install for an entry it does not name"
+            )
+        }
+
+        /// `Install…` comes forward because the board it opens is a window; `Dismiss` must not,
+        /// because it opens nothing at all.
+        @Test("a finding's Install comes forward and its Dismiss stays where you are")
+        func findingActionOptionsMatchTheirDestinations() throws {
+            let category = UserNotificationArrivalNotifier.category(FindingNotificationCategory.single)
+            let byID = Dictionary(
+                uniqueKeysWithValues: category.actions.map { ($0.identifier, $0) }
+            )
+            let install = try #require(byID[FindingNotificationAction.install.rawValue])
+            let details = try #require(byID[FindingNotificationAction.details.rawValue])
+            let dismiss = try #require(byID[FindingNotificationAction.dismiss.rawValue])
+
+            #expect(install.options.contains(.foreground))
+            #expect(details.options.contains(.foreground))
+            #expect(dismiss.options.contains(.foreground) == false)
+            // None is destructive. Dismissing a suggestion destroys nothing, and marking it
+            // destructive would tell the user that it does.
+            for action in [install, details, dismiss] {
+                #expect(action.options.contains(.destructive) == false)
+            }
+        }
+
+        /// A finding, built here for the reason `item(id:)` is built here.
+        static func finding(id: String) -> AnalystFinding {
+            AnalystFinding(
+                id: id,
+                entryID: "docker-mcp",
+                subject: "docker-mcp",
+                sentence: "You ran docker logs by hand 14 times this week.",
+                evidenceCount: 14
+            )
         }
 
         /// **The button the spec forbade, asserted where it is actually decided.**
@@ -140,7 +251,9 @@
         /// here rather than only in the pane.
         @Test("review comes forward and decline stays where you are")
         func actionOptionsMatchTheirDestinations() throws {
-            let category = UserNotificationArrivalNotifier.category(.single)
+            // Named rather than inferred: M20 adds a second family whose category enum also has a
+            // `single`, so a bare `.single` no longer says which one this clause is about.
+            let category = UserNotificationArrivalNotifier.category(InboxNotificationCategory.single)
             let review = try #require(
                 category.actions.first { $0.identifier == InboxNotificationAction.review.rawValue }
             )

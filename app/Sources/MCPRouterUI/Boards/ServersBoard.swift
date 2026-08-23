@@ -116,6 +116,7 @@
                     .padding(.bottom, ServersBoardMetrics.gap)
             }
 
+            signalPath
             controls
             columnHeaders
 
@@ -173,6 +174,26 @@
 
         // How long ago the stale reading was taken is **not** shown, because nothing observes it.
         // See `ServersBoardHeader.subtitle()` for the measurement behind that.
+
+        // MARK: - The signature
+
+        /// The Signal Path, above the controls row.
+        ///
+        /// Drawn on a populated board and on a stale one, and on neither of the other three. That is
+        /// not a styling choice per state: a rail of jacks is a statement about child processes, so
+        /// on `loading` it would be four dormant plugs for servers nothing has reported yet, and on
+        /// `empty` or `failed` there is nothing plugged in to draw. `DESIGN.md` §5's skeleton rule
+        /// covers the first of those — the board already stands a skeleton at the real row geometry
+        /// — and a band of fabricated plugs above it would undo exactly what the skeleton is for.
+        private var signalPath: some View {
+            SignalPath(
+                rows: board.bandRows(from: state),
+                header: board.header(from: state),
+                port: state.port,
+                selection: $board.selection
+            )
+            .padding(.bottom, ServersBoardMetrics.gap)
+        }
 
         // MARK: - Search and filter
 

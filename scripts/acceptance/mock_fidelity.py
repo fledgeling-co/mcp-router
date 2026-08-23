@@ -64,7 +64,24 @@ VOUCHED_CONTROLS: dict[str, set[tuple[str, str]]] = {
     "heading": {("board-title", "text"), ("state-title", "text")},
     "sentence": {("board-subtitle", "text"), ("state-detail", "text")},
     "button": {("primary-action", "leaf"), ("state-action", "leaf")},
-    "card": {("table", "vstack")},
+    # `signature` joins `card` under M16. The mock draws the Signal Path as a card and the build
+    # answers it with a vstack whose role says what it is rather than what shape it is, which is the
+    # distinction this table exists to make: a build that renamed `signature` to something else
+    # would need an edit here rather than earning its own pass.
+    "card": {("table", "vstack"), ("signature", "vstack")},
+    # M16's jack. The mock's `jack` kind had no entry, so the first surface to pair one would have
+    # read `unclassified` until somebody vouched for it — which is the intended behaviour of the
+    # nine unnamed kinds (`D-m23-h`) and is why this is an edit rather than an inference.
+    #
+    # `indicator` is deliberately still absent, and that is a decision rather than an omission.
+    # Vouching it would put `indicator` into MOCK_KINDS_FOR_ROLE, and the quota rule below would
+    # then reclassify every unpaired build node of that role from `covered-by-pair` to `extra` — the
+    # build's own row plugs sit inside paired rows and are exactly that population. It would also
+    # measure nothing: the harness records no text for a dot, so both sides fail `readable()` and the
+    # pairing lands `unclassified`, which is this file's own phrase for agreement between two
+    # absences. The mock's indicator affordances therefore stay `absent` with a citation naming what
+    # the instrument cannot do, which is the honest status for a comparison nobody can make.
+    "jack": {("jack", "hstack")},
     "icon": {("state-illustration", "leaf")},
     "row": {("table-row", "hstack")},
     "column-header": {("column-header", "text")},

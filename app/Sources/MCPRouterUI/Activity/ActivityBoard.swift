@@ -204,7 +204,7 @@
                         proxy.scrollTo(new, anchor: .center)
                     }
                 }
-                // §8. `Space` is deliberately absent: it toggles a breaker, this board has none,
+                // §8. `Space` is deliberately absent: it toggles Keep warm, this board has none,
                 // and claiming a key to do nothing is how a shortcut stops being learnable.
                 .onKeyPress(.upArrow) { model.moveSelection(by: -1); return .handled }
                 .onKeyPress(.downArrow) { model.moveSelection(by: 1); return .handled }

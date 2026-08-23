@@ -346,6 +346,130 @@ else
 fi
 echo
 
+# ---------------------------------------------------------------------------------------------
+# M22 — two routes this router answers that the reference does not.
+#
+# `GET /harnesses` and `GET /insights` are Swift-only surface. The reference has no such paths, so
+# `isControlPath` never claims them, the dispatch ladder falls through, and it answers the MCP
+# endpoint's 404. This router answers 200 with the board's own envelope.
+#
+# **Declared here rather than left to be discovered.** `parity-manifest-check.sh` derives the
+# `control` group from `src/control.ts` in BOTH directions, so a control row for a route the
+# reference does not answer is a red — which means a Swift-only route demands no row at all and
+# would silently shrink nothing while being counted nowhere. These two rows are what stop the
+# addition being invisible to the census, and this arm is what stops the rows being paperwork.
+#
+# Asserted in BOTH directions, like every row in this lane: the reference must really 404, and
+# Swift must really serve. A one-sided assertion goes green the day the reference grows the route.
+#
+# **HOME is a scratch directory**, and that is load-bearing rather than tidiness: the harness
+# inventory reads whatever `$HOME` names, and a lane pointed at the developer's own home would
+# report a different body on every machine — and would put somebody's real `~/.claude.json` inside
+# a gate run. With a scratch home the answer is an empty harness list, which is exactly what the
+# assertions below are written against: the SHAPE of the envelope and its fixed members, never a
+# row's contents.
+echo "M22 — /harnesses and /insights are answered here and 404 at the reference"
+m22home="$WORK/m22"
+mkdir -p "$m22home/router" "$m22home/home"
+cat > "$m22home/router/servers.json" <<'JSON'
+{
+  "port": 8879,
+  "host": "127.0.0.1",
+  "idleMs": 300000,
+  "mcpServers": {}
+}
+JSON
+
+# One side at a time on the same port, because this harness never shares one.
+m22probe() { # side binary...
+  local side="$1"; shift
+  local out="$m22home/$side.out"
+  HOME="$m22home/home" MCP_ROUTER_HOME="$m22home/router" \
+    "$@" serve --port "$PORT" >"$out" 2>&1 &
+  local pid=$!
+  local up=""
+  for _ in $(seq 1 60); do
+    curl -fsS -m 2 "http://127.0.0.1:$PORT/health" >/dev/null 2>&1 && { up=ok; break; }
+    kill -0 "$pid" 2>/dev/null || break
+    sleep 0.2
+  done
+  if [ "$up" != ok ]; then
+    kill "$pid" 2>/dev/null || true
+    printf 'nostart|nostart'
+    return 0
+  fi
+  # `-o /dev/null` is deliberately NOT used: a status with the wrong bytes is still a divergence,
+  # and on the Swift side the envelope is the whole of what this row claims.
+  local h i
+  h="$(curl -s -m 5 -w '\n%{http_code}' "http://127.0.0.1:$PORT/harnesses" 2>/dev/null | tr -d '\r')"
+  i="$(curl -s -m 5 -w '\n%{http_code}' "http://127.0.0.1:$PORT/insights" 2>/dev/null | tr -d '\r')"
+  kill "$pid" 2>/dev/null || true
+  wait "$pid" 2>/dev/null || true
+  printf '%s|%s' "$h" "$i"
+}
+
+status_of() { printf '%s' "$1" | tail -1; }
+body_of()   { printf '%s' "$1" | sed '$d'; }
+
+m22_ts="$(m22probe ts node "$REPO_ROOT/dist/index.js")"
+m22_swift="$(m22probe swift "$SWIFT_CLI")"
+
+ts_h="${m22_ts%%|*}";       ts_i="${m22_ts##*|}"
+swift_h="${m22_swift%%|*}"; swift_i="${m22_swift##*|}"
+
+echo "  reference: /harnesses $(status_of "$ts_h")  /insights $(status_of "$ts_i")"
+echo "  swift:     /harnesses $(status_of "$swift_h")  /insights $(status_of "$swift_i")"
+
+# The reference's 404 is the MCP endpoint's, not a control refusal — the path was never claimed.
+# Matching its body as well as its status is what tells those two apart.
+m22_ts_ok=0
+if [ "$(status_of "$ts_h")" = 404 ] && [ "$(status_of "$ts_i")" = 404 ]; then
+  case "$(body_of "$ts_h")" in *'MCP endpoint is /mcp'*) m22_ts_ok=1 ;; esac
+fi
+
+# Swift: 200, and the envelope's own fixed members. Asserted rather than "not 404", because a
+# router answering 200 with an empty body would pass the weaker test and serve nothing.
+m22_swift_h_ok=0
+if [ "$(status_of "$swift_h")" = 200 ]; then
+  case "$(body_of "$swift_h")" in
+    *'"scope":"global"'*'"harnesses":['*) m22_swift_h_ok=1 ;;
+  esac
+fi
+m22_swift_i_ok=0
+if [ "$(status_of "$swift_i")" = 200 ]; then
+  # `windowHours` and `dutyCycle` together, because the first is the window this route is fixed to
+  # and the second is the reading only a pool can take — a body carrying one and not the other is
+  # a route that answered without the dependency it exists to expose.
+  case "$(body_of "$swift_i")" in
+    *'"windowHours":24'*'"dutyCycle"'*) m22_swift_i_ok=1 ;;
+  esac
+fi
+
+if [ "$m22_ts_ok" = 1 ] && [ "$m22_swift_h_ok" = 1 ]; then
+  pass=$((pass + 1))
+  echo "  ok   the reference 404s /harnesses; this router serves the envelope"
+  record div-m22-harnesses ok \
+    "reference $(status_of "$ts_h") (MCP 404), swift $(status_of "$swift_h") with scope+harnesses"
+else
+  fail=$((fail + 1))
+  echo "  STALE the declared divergence no longer describes both sides"
+  record div-m22-harnesses fail \
+    "stale: reference $(status_of "$ts_h"), swift $(status_of "$swift_h") — expected 404 vs 200+envelope"
+fi
+
+if [ "$m22_ts_ok" = 1 ] && [ "$m22_swift_i_ok" = 1 ]; then
+  pass=$((pass + 1))
+  echo "  ok   the reference 404s /insights; this router serves the counted board"
+  record div-m22-insights ok \
+    "reference $(status_of "$ts_i") (MCP 404), swift $(status_of "$swift_i") with windowHours+dutyCycle"
+else
+  fail=$((fail + 1))
+  echo "  STALE the declared divergence no longer describes both sides"
+  record div-m22-insights fail \
+    "stale: reference $(status_of "$ts_i"), swift $(status_of "$swift_i") — expected 404 vs 200+body"
+fi
+echo
+
 echo "divergences: $pass as declared, $fail stale"
 [ "$fail" -gt 0 ] && exit 1
 exit 0

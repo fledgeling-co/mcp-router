@@ -42,9 +42,14 @@
                     // The indicator, not a switch: there is no start or stop operation on the
                     // control API, so a control offering one would be offering something that
                     // cannot happen. `Space` on the selected row toggles Keep warm instead, which is
-                    // the lever the router actually has.
-                    Breaker(state: row.breaker)
-                        .measured("breaker", role: "row-indicator", kind: .leaf)
+                    // the only lever the router actually has.
+                    //
+                    // The same mark the band's jack draws, at the size a table row takes it, and
+                    // from the same value — `row.jack` is computed once per server, so the two
+                    // pictures of one server cannot disagree.
+                    StatePlug(state: row.jack)
+                        .frame(width: ServersBoardMetrics.indicatorColumn)
+                        .measured("state-plug", role: "row-indicator", kind: .leaf)
 
                     VStack(alignment: .leading, spacing: 0) {
                         Text(row.name)

@@ -179,11 +179,14 @@ public struct SkeletonRows: View {
         VStack(spacing: 1) {
             ForEach(0 ..< count, id: \.self) { index in
                 HStack(spacing: MetricToken.selectionRadius.leadingScalar) {
-                    RoundedRectangle(cornerRadius: BreakerGeometry.standard.housingRadius)
+                    // The row's state mark, unlit. It stood at the breaker's 30 × 48 housing until
+                    // M16 retired the lever; what the skeleton has to reproduce is the row it stands
+                    // in for, and that row now leads with a plug.
+                    Circle()
                         .fill(ColorToken.f2.color)
                         .frame(
-                            width: BreakerGeometry.standard.housingWidth,
-                            height: BreakerGeometry.standard.housingHeight
+                            width: SignalPathGeometry.standard.rowPlugDiameter,
+                            height: SignalPathGeometry.standard.rowPlugDiameter
                         )
                     VStack(alignment: .leading, spacing: MetricToken.selectionInset.leadingScalar) {
                         RoundedRectangle(cornerRadius: MetricToken.focusRing.leadingScalar)
@@ -212,23 +215,23 @@ public struct SkeletonRows: View {
 /// is the failure this state exists to rule out.
 public struct OverflowRow: View {
     private let name: String
-    private let state: BreakerState
+    private let state: JackState
 
-    public init(name: String = ServersBoardCopy.longServerName, state: BreakerState = .running) {
+    public init(name: String = ServersBoardCopy.longServerName, state: JackState = .live) {
         self.name = name
         self.state = state
     }
 
     public var body: some View {
         HStack(spacing: MetricToken.selectionRadius.leadingScalar) {
-            Breaker(state: state)
+            StatePlug(state: state)
             VStack(alignment: .leading, spacing: 0) {
                 Text(name)
                     .typeRole(.body)
                     .foregroundStyle(ColorToken.t1.color)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                Text(state.accessibilityDescription)
+                Text(state.word)
                     .typeRole(.caption, monospaced: true)
                     .foregroundStyle(ColorToken.t2.color)
             }
@@ -247,7 +250,7 @@ public struct PopulatedBoard: View {
 
     public var body: some View {
         VStack(spacing: 1) {
-            OverflowRow(name: "filesystem", state: .running)
+            OverflowRow(name: "filesystem", state: .live)
             OverflowRow(name: "github", state: .dormant)
             OverflowRow(name: "sentry", state: .tripped)
         }
@@ -286,8 +289,8 @@ public struct StateContainer: View {
         case .error:
             MessageState(ServersBoardCopy.error, icon: .bang, tint: .fail, action: action)
         case .success:
-            // §5: the change happens in place — the lever rises, the subtitle changes. No toast.
-            OverflowRow(name: "filesystem", state: .running)
+            // §5: the change happens in place — the plug lights, the word changes. No toast.
+            OverflowRow(name: "filesystem", state: .live)
                 .background(ColorToken.panel.color)
         case .offline:
             MessageState(ServersBoardCopy.offline, icon: .bolt, tint: .attention, action: action)

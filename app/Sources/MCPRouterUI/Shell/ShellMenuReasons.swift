@@ -36,7 +36,7 @@
                 // erase** — which is why the clearing below is inside this binding rather than
                 // beside it.
                 if let command = command(titled: item.title) {
-                    let reason = command.availability(in: context).reason
+                    let reason = command.reason(in: context)
                     // Both, and for different readers. `toolTip` is what a person sees when they
                     // rest on the item; `setAccessibilityHelp` is what VoiceOver reads and what
                     // `AXHelp` returns. Setting only the tool tip leaves the reason invisible to
@@ -62,6 +62,26 @@
                     // any other — including, as this comment first did, in prose.
                     if item.toolTip != reason { item.toolTip = reason }
                     if item.accessibilityHelp() != reason { item.setAccessibilityHelp(reason) }
+                    // The short form, in the shortcut column, under the same write-only-when-changed
+                    // discipline and for the same measured reason.
+                    //
+                    // **This is what puts the reason where the brief asks for it.** The brief and
+                    // `PRD.md` §9.8 both say a disabled item is dimmed in place *with the reason in
+                    // the shortcut column* — `Install Command-Line Tool · Installed` is the pattern
+                    // — and a tool tip needs a second of hover, so until now the reason was
+                    // discoverable to a pointer that waited and to VoiceOver, and invisible to a
+                    // person reading the menu. `NSMenuItemBadge` is the platform's own right-aligned
+                    // trailing text and is available from macOS 14; the deployment target is 15.0.
+                    //
+                    // Compared through `stringValue` rather than by identity, because
+                    // `NSMenuItemBadge` is an `NSObject` without value equality and two badges
+                    // carrying one word are not `==`. `stringValue` is documented as "the string
+                    // representation of the badge as it would appear when the badge is displayed",
+                    // which is exactly what this walker is keeping in step.
+                    let badge = command.availability(in: context).badge
+                    if item.badge?.stringValue != badge {
+                        item.badge = badge.map { NSMenuItemBadge(string: $0) }
+                    }
                     // Counted where the item *has* a reason, which is the number a test can use to
                     // tell "applied correctly" from "matched nothing". Note this is a count of
                     // owned items **currently carrying a reason**, not of items owned and not of

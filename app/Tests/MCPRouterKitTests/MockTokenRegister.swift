@@ -156,8 +156,9 @@ enum MockTokenRegister {
     /// takes when it stops being checked. `MockTokenParityTests` re-reads the mock and fails if any
     /// of them turns out to be declared after all, so the list cannot outlive its reason.
     ///
-    /// - `Table rows` and `Servers row` are `DESIGN.md`'s own, and the Servers row is the breaker
-    ///   housing plus its padding — a construction the console mock retires.
+    /// - `Table rows` and `Servers row` are `DESIGN.md`'s own. The Servers row was the breaker
+    ///   housing plus its padding until M16 retired that element; the value stayed and the
+    ///   derivation went, and the mock publishes no figure for either.
     /// - `Sidebar selection inset` and `Focus ring` are drawn in the mock's stylesheet rather than
     ///   summarised in its metrics comment, so there is no `name value tier` row to compare against.
     static let metricsTheMockDoesNotDeclare: [MetricToken] = [

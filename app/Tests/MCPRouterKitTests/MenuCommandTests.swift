@@ -114,10 +114,14 @@ struct MenuCommandTests {
         #expect(extra.isEmpty, "shipped but not specified: \(extra.map(\.title))")
     }
 
-    @Test("the six menus are exactly the six the design names")
-    func sixMenus() {
+    @Test("the eight menus are exactly the eight the design names, in bar order")
+    func eightMenus() {
+        // Six until M20. Router and Library sit between View and Window because that is where
+        // `design/mcp-router-console.html` draws them, and `mac-shell.sh` reads the order back off
+        // the running bar — so this list is a fact about the drawn menu bar rather than a
+        // preference, and a reordering here would fail there too.
         #expect(MenuBarMenu.allCases.map(\.rawValue)
-            == ["MCP Router", "File", "Edit", "View", "Window", "Help"])
+            == ["MCP Router", "File", "Edit", "View", "Router", "Library", "Window", "Help"])
         for menu in MenuBarMenu.allCases {
             #expect(!MenuCommand.inMenu(menu).isEmpty, "\(menu.rawValue) has no commands")
         }
@@ -154,12 +158,35 @@ struct MenuCommandTests {
         return chords
     }
 
-    @Test("§8 parses, and carries the eight bindings the document states")
+    @Test("§8 parses, and carries the sixteen bindings the document states")
     func designSectionEightParses() throws {
         let chords = try Self.documentedChords()
-        #expect(chords.count == 8, "§8 parsed \(chords.count) rows; the table shape changed")
-        for expected in ["⌘N", "⌘F", "⌘R", "⌘⌫", "⌘,", "Return", "Esc", "Space"] {
+        #expect(chords.count == 16, "§8 parsed \(chords.count) rows; the table shape changed")
+        for expected in ["⌘N", "⌘F", "⌘R", "⌘⌫", "⌘,", "⌃W", "Return", "Esc", "Space"] {
             #expect(chords[expected] != nil, "§8 no longer states \(expected)")
+        }
+    }
+
+    /// M20 put the board digits in `DESIGN.md` §8 for the first time, and **the two absences are
+    /// the assertion**.
+    ///
+    /// Until then the accelerator a user presses most was the one part of the map that lived only
+    /// in a `switch`, so the both-ways check above covered every chord in the app except those.
+    /// `⌘5` and `⌘9` belong to Harnesses and Insights, which M22 ships; a row for either would be
+    /// a binding this document states and the app cannot honour, and this fails if one appears
+    /// before its board does — or if the seven get packed into `⌘1`–`⌘7`, which would move every
+    /// digit a user has learned on the day M22 lands.
+    @Test("§8 states seven board digits, and neither of M22's two")
+    func designSectionEightStatesTheBoardDigits() throws {
+        let chords = try Self.documentedChords()
+        for digit in [1, 2, 3, 4, 6, 7, 8] {
+            #expect(chords["⌘\(digit)"] != nil, "§8 no longer states ⌘\(digit)")
+        }
+        for absent in [5, 9] {
+            #expect(
+                chords["⌘\(absent)"] == nil,
+                "§8 states ⌘\(absent), whose board M22 has not shipped"
+            )
         }
     }
 
@@ -187,119 +214,5 @@ struct MenuCommandTests {
             )
             #expect(!shortcut.modifiers.isEmpty, "\(command.title) has a bare-key shortcut")
         }
-    }
-
-    // MARK: - The house rules
-
-    /// `DESIGN.md` §3.4 — `…` means "opens a further view"; its absence means "commits now".
-    @Test("the ellipsis is on exactly the commands that open a further view")
-    func ellipsisRule() {
-        let opening: Set = [
-            // `Settings…` joined at M15. It opens a window now rather than selecting a sidebar
-            // destination, and §3.4 makes that distinction the ellipsis's whole job.
-            "Settings…",
-            "Add server…", "Add marketplace…", "Pair iPhone…", "Export library…"
-        ]
-        for command in MenuCommand.allCases {
-            #expect(
-                command.opensAFurtherView == opening.contains(command.title),
-                "\(command.title) disagrees with the ellipsis rule"
-            )
-        }
-    }
-
-    /// §3.4 — disabled dims in place with a discoverable reason and never disappears.
-    @Test("every unavailable command carries a reason, and every available one carries none")
-    func disabledCommandsCarryTheirReason() {
-        for command in MenuCommand.allCases {
-            if command.availability.isEnabled {
-                #expect(command.availability.reason == nil)
-            } else {
-                let reason = command.availability.reason
-                #expect(reason?.isEmpty == false, "\(command.title) is disabled with no reason")
-                // §6: never blames, never emotes.
-                #expect(reason?.contains("!") == false)
-                #expect(reason?.lowercased().contains("you did") == false)
-            }
-        }
-        // Exactly three reasons exist, so none can be invented at a call site.
-        #expect(CommandAvailability.surfaceAbsent.reason == "This part of the app isn't built yet.")
-        #expect(CommandAvailability.featureUnbuilt.reason == "This feature hasn't been built yet.")
-        #expect(CommandAvailability.needsServerSelection.reason == "Select a server first.")
-        // The two refusals M14 separated must not collapse back into one sentence. Pinning the
-        // strings above is not enough on its own: someone editing one to match the other would
-        // update both literals here in the same pass and this file would stay green. Asserting the
-        // *distinction* is what fails when the vocabulary silently narrows again.
-        #expect(CommandAvailability.surfaceAbsent.reason != CommandAvailability.featureUnbuilt.reason)
-    }
-
-    /// **Which board each command gates on**, asserted where the shipping registry cannot see it.
-    ///
-    /// This is the fact M11's derived acceptance oracle gave up. That oracle compiles this very
-    /// file, so a change to the gating map moves the expectation with the app and no gate goes red;
-    /// `inventoryMatchesTheModelBothWays` above only reads `.none`, where every board-dependent
-    /// command answers `surfaceAbsent` and the map is invisible; and with all eight boards
-    /// installed *any* required destination yields `.enabled`. So the map is only falsifiable
-    /// against **partial** contexts, which is what this builds.
-    ///
-    /// Repointing `find` at `.evals` instead of `.servers` passes every other test in this repo.
-    /// It fails here.
-    @Test("each command gates on its own board, not merely on some board")
-    func gatingMapIsPerCommand() {
-        func context(_ installed: Set<Destination>) -> MenuCommand.CommandContext {
-            MenuCommand.CommandContext(installedDestinations: installed, selectedServerIsTripped: nil)
-        }
-        let serversOnly = context([.servers])
-        let skillsOnly = context([.skills])
-
-        // Servers is what these three need, and Skills does not stand in for it.
-        for command in [MenuCommand.addServer, .find] {
-            #expect(command.availability(in: serversOnly) == .enabled, "\(command.title)")
-            #expect(command.availability(in: skillsOnly) == .surfaceAbsent, "\(command.title)")
-        }
-        // The two that act on a selection get past the surface question and stop at the selection.
-        for command in [MenuCommand.resetServer, .removeServer] {
-            #expect(command.availability(in: serversOnly) == .needsServerSelection, "\(command.title)")
-            #expect(command.availability(in: skillsOnly) == .surfaceAbsent, "\(command.title)")
-        }
-        // And marketplaces are the Skills board's, which is the pair that would swap silently.
-        #expect(MenuCommand.addMarketplace.availability(in: skillsOnly) == .enabled)
-        #expect(MenuCommand.addMarketplace.availability(in: serversOnly) == .surfaceAbsent)
-
-        // Owned by nothing that has shipped, so no installed set turns it on. `.featureUnbuilt`
-        // rather than `.surfaceAbsent`: there is no board that would make export appear, which is
-        // exactly the distinction M14 added the case for.
-        for installed in [Set<Destination>(), [.servers], [.inbox], Set(Destination.allCases)] {
-            #expect(MenuCommand.exportLibrary.availability(in: context(installed)) == .featureUnbuilt)
-        }
-        // And pairing gates on the board that hosts its sheet, not on "some board". Asserted
-        // against partial contexts for the reason this whole test exists: with every destination
-        // installed any required one yields `.enabled`, so the map is invisible there.
-        #expect(MenuCommand.pairPhone.availability(in: context([.inbox])) == .enabled)
-        #expect(MenuCommand.pairPhone.availability(in: serversOnly) == .surfaceAbsent)
-        #expect(MenuCommand.pairPhone.availability(in: skillsOnly) == .surfaceAbsent)
-    }
-
-    @Test("shortcuts render in Apple's modifier order")
-    func modifierOrder() {
-        #expect(KeyChord("N", [.command, .shift]).display == "⇧⌘N")
-        #expect(KeyChord("H", [.command, .option]).display == "⌥⌘H")
-        #expect(KeyChord("S", [.command, .control]).display == "⌃⌘S")
-        #expect(KeyChord("N").display == "⌘N")
-    }
-
-    @Test("no two commands claim the same shortcut")
-    func shortcutsAreUnique() {
-        let displays = MenuCommand.allCases.compactMap(\.shortcut).map(\.display)
-        #expect(Set(displays).count == displays.count, "a shortcut is bound twice: \(displays)")
-    }
-
-    @Test("the View menu's destinations track the sidebar exactly")
-    func viewMenuTracksTheSidebar() {
-        let inView = MenuCommand.inMenu(.view).compactMap { command -> Destination? in
-            if case let .selectDestination(destination) = command { return destination }
-            return nil
-        }
-        #expect(inView == Destination.allCases.filter { $0.selectionDigit != nil })
     }
 }

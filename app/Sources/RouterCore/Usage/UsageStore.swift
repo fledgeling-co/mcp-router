@@ -209,6 +209,37 @@ public final class UsageStore: @unchecked Sendable {
         return Array(out[index...]).reversed()
     }
 
+    /// The call log folded into a window — the three counted charts on the Insights board.
+    ///
+    /// Reads the log from **disk** rather than the in-memory ring, and the difference is the point:
+    /// the ring holds 500 records, so a day of traffic on a busy machine sits entirely outside it
+    /// and a per-hour chart built from it would draw the wrong shape at the wrong height while
+    /// looking perfectly plausible.
+    ///
+    /// A missing or unreadable log yields an empty window rather than throwing. That is the same
+    /// judgement `readTail` makes, for the same reason: a board that cannot draw a chart is a far
+    /// better outcome than a control endpoint that fails, and the empty window is distinguishable
+    /// from a busy one because ``UsageInsights/horizon`` is nil.
+    public func insights(nowMilliseconds: Double, windowHours: Int = 24) -> UsageInsights {
+        guard fileSystem.fileExists(atPath: logPath),
+              let data = try? fileSystem.readFile(atPath: logPath)
+        else {
+            return UsageInsights.over(
+                lines: [], nowMilliseconds: nowMilliseconds, windowHours: windowHours
+            )
+        }
+        // Lossy, matching `readTail`: a log carrying one invalid byte must not cost the whole
+        // window, and the line that carries it is counted as unreadable rather than dropped
+        // silently.
+        // swiftlint:disable:next optional_data_string_conversion
+        let text = String(decoding: data, as: UTF8.self)
+        return UsageInsights.over(
+            lines: text.split(separator: "\n").lazy.map(String.init),
+            nowMilliseconds: nowMilliseconds,
+            windowHours: windowHours
+        )
+    }
+
     public func summarySince() -> String {
         lock.lock(); defer { lock.unlock() }
         return since

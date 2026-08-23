@@ -143,6 +143,19 @@
                 }
         }
 
+        /// The Signal Path's rows: **every declared server**, in the router's order, unfiltered.
+        ///
+        /// Deliberately not `rows(from:)`. The band is the whole signal path — what is wired to the
+        /// router right now — and a band that shrank with the segmented control would contradict the
+        /// topology line drawn beside it, which counts what is declared. Selecting a jack whose row
+        /// the filter hides still opens the inspector, because `selectedServer(in:)` reads the
+        /// servers rather than the rows.
+        public func bandRows(from state: ServerStateTracker.TrackerState) -> [ServerRowModel] {
+            state.servers.map {
+                ServerRowModel(server: $0, idleMs: state.idleMs, pendingAuth: state.pendingAuth)
+            }
+        }
+
         /// Counts for the segmented control. Taken before the search, so switching filters while
         /// searching does not show a count that contradicts the rows.
         ///

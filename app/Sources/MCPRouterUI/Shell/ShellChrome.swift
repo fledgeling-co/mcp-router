@@ -61,12 +61,12 @@
             // reviewer reads to learn every element in the Mac app allowed to be an indicator
             // colour — which is the only way the exclusivity in §2 is checkable at all.
             IndicatorUse(
-                element: "the Servers board's breaker lamp and slot, while a process is up",
+                element: "the Signal Path's plug and a server row's, while a process is up",
                 token: .live,
                 justification: "a child process is running"
             ),
             IndicatorUse(
-                element: "a server row's subtitle and breaker, while it is tripped or placarded",
+                element: "a server row's subtitle and its plug, while it is tripped or placarded",
                 token: .fail,
                 justification: "failed or tripped"
             ),
@@ -81,7 +81,7 @@
                 justification: "failed or tripped"
             ),
             IndicatorUse(
-                element: "a server row's subtitle and breaker, while it holds a change or needs authorising",
+                element: "a server row's subtitle and its plug, while it holds a change or needs authorising",
                 token: .attention,
                 justification: "wants a human decision"
             ),

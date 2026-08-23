@@ -50,7 +50,7 @@
             #expect(!Destination.allCases.contains { $0.title == "Settings" })
             #expect(!Destination.allCases.contains { $0.rawValue == "settings" })
             #expect(BoardRegistry.installed == Set(Destination.allCases))
-            #expect(BoardRegistry.installed.count == 7)
+            #expect(BoardRegistry.installed.count == 9, "seven, plus M22's Harnesses and Insights")
         }
 
         // MARK: - A15 · the menu-bar preference survives a relaunch
@@ -79,6 +79,43 @@
         @Test("the pane and the store name the same defaults key")
         func preferenceKeyIsShared() {
             #expect(ShellRestoration.menuBarVisibleKey == SettingsPresentation.menuBarVisibleKey)
+            #expect(ShellRestoration.approveFromPopoverKey == SettingsPresentation.approveFromPopoverKey)
+            #expect(
+                SettingsPresentation.menuBarVisibleKey != SettingsPresentation.approveFromPopoverKey,
+                "two preferences sharing a key is one preference wearing two labels"
+            )
+        }
+
+        // MARK: - B4 · the popover's install preference survives a relaunch
+
+        /// The same clause `menuBarPreferenceRestores` makes, on the one preference in this app that
+        /// governs an install rather than what is drawn.
+        ///
+        /// The default is asserted **before** any model exists, on a domain nobody has written, which
+        /// is the case `bool(forKey:)` gets wrong: it answers `false` for an absent key, which would
+        /// ship the design of record's own switch state unreachable until somebody toggled it twice.
+        @Test("approving from the popover is on by default, and the choice survives a new model")
+        func approvalPreferenceRestores() throws {
+            let scratch = try ShellTestSupport.scratchStore()
+            defer { scratch.tearDown() }
+
+            #expect(scratch.store.restoredApproveFromPopover())
+            #expect(SettingsPresentation.approveFromPopoverDefault)
+
+            let first = ShellModel(client: FixtureControlAPIClient(.populated), store: scratch.store)
+            #expect(first.isApproveFromPopoverEnabled)
+            first.isApproveFromPopoverEnabled = false
+
+            let second = ShellModel(client: FixtureControlAPIClient(.populated), store: scratch.store)
+            #expect(!second.isApproveFromPopoverEnabled, "the approval preference did not survive")
+
+            second.isApproveFromPopoverEnabled = true
+            #expect(scratch.store.restoredApproveFromPopover())
+
+            // The two preferences are independent: setting one must not move the other.
+            second.isMenuBarVisible = false
+            #expect(second.isApproveFromPopoverEnabled)
+            #expect(scratch.store.restoredApproveFromPopover())
         }
 
         // MARK: - A24, A25 · the route into the quarantine sheet

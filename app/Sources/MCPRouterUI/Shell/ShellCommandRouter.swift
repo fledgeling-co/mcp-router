@@ -67,6 +67,17 @@
             /// popover, an error banner, a future onboarding path. So the arm calls an opener the
             /// window injects, and the clause is behaviourally testable.
             case openSettingsScene
+            /// Keep the selected server resident — `Router ▸ Wake Selected Server`, `⌃W`.
+            ///
+            /// The one Router verb the control API can perform. `warm: true` is the only lever it
+            /// offers over whether a child process stays up, and `ServersBoardWrites.setWarm`
+            /// already owns the call and its asymmetry, so this routes there rather than issuing a
+            /// second `patch` of its own.
+            case wakeSelectedServer
+            /// Open the held-change sheet for the selected server — `Router ▸ Review Held Changes…`.
+            case reviewSelectedHeldChanges
+            /// Show the router's log file in the Finder — `Router ▸ Reveal Router Log in Finder`.
+            case revealRouterLog
         }
 
         /// The whole mapping, exhaustive over `MenuCommand` so a new command cannot be added
@@ -99,11 +110,16 @@
             case .removeServer: .removeSelectedServer
             case .addMarketplace: .showMarketplaces
             case .pairPhone: .openPairing
+            case .wakeServer: .wakeSelectedServer
+            case .reviewHeldChanges: .reviewSelectedHeldChanges
             case .selectDestination, .settings, .showSidebar, .about,
                  .hide, .hideOthers, .showAll, .quit, .closeWindow,
                  .undo, .redo, .cut, .copy, .paste, .selectAll,
                  .minimise, .zoom, .bringAllToFront,
                  .exportLibrary,
+                 .reindexManifest, .restartRouter, .tripBreaker, .reapChildren,
+                 .revealRouterLog, .stopRouter,
+                 .updateAllSkills, .runDoctor, .runAllChecks,
                  .help, .whatTheRouterDoes, .reportIssue:
                 nil
             }
@@ -121,11 +137,19 @@
             case .settings: .openSettingsScene
             case .showSidebar: .toggleSidebar
             case .about: .aboutPanel
+            case .revealRouterLog: .revealRouterLog
+            // Seven of these are `.featureUnbuilt` in every context, so the item is dimmed and
+            // unreachable and `.none` is the honest mapping rather than a placeholder: inventing an
+            // operation for a route the control API does not serve is how a menu item comes to lie
+            // about being available, which is the defect M14 was raised for.
             case .addServer, .find, .resetServer, .removeServer, .addMarketplace, .pairPhone,
+                 .wakeServer, .reviewHeldChanges,
                  .hide, .hideOthers, .showAll, .quit, .closeWindow,
                  .undo, .redo, .cut, .copy, .paste, .selectAll,
                  .minimise, .zoom, .bringAllToFront,
                  .exportLibrary,
+                 .reindexManifest, .restartRouter, .tripBreaker, .reapChildren, .stopRouter,
+                 .updateAllSkills, .runDoctor, .runAllChecks,
                  .help, .whatTheRouterDoes, .reportIssue:
                 .none
             }
@@ -155,7 +179,8 @@
                 // sheet never opens over an unrelated pane.
                 model?.select(.skills)
                 model?.skillsBoard.sheet = .marketplaces
-            case .resetSelectedServer, .removeSelectedServer:
+            case .resetSelectedServer, .removeSelectedServer,
+                 .wakeSelectedServer, .reviewSelectedHeldChanges:
                 performServerOperation(operation(for: command), on: model)
             case .openPairing:
                 // Same rule as `addServer` and `showMarketplaces`: land on the board the sheet
@@ -163,8 +188,23 @@
                 // from the File menu from anywhere, which is what §3.9 asks for.
                 model?.select(.inbox)
                 model?.inboxBoard.pairing.open()
-            case .openSettingsScene: openSettings()
+            // The two that reach neither the model nor a board, split out together to keep this
+            // switch under the complexity limit after M20's three arms. Grouped by that fact
+            // rather than by subject: both are things the *app* does, and neither can fail for
+            // want of a focused window.
+            case .revealRouterLog, .openSettingsScene:
+                performAppOperation(operation(for: command))
             case .none: break
+            }
+        }
+
+        /// The operations that need no window and no board.
+        @MainActor
+        private static func performAppOperation(_ operation: Operation) {
+            switch operation {
+            case .revealRouterLog: revealRouterLogInFinder()
+            case .openSettingsScene: openSettings()
+            default: break
             }
         }
 
@@ -222,6 +262,13 @@
 
         /// The two commands that act on the *selected* server, split out to keep `perform` under the
         /// complexity limit.
+        ///
+        /// **Four since M20**, and the two Router verbs join here rather than getting a function of
+        /// their own because they answer the same question: is there a selection to act on. Each
+        /// routes to an operation the board already owns rather than issuing its own request —
+        /// `setWarm` carries the `warm: true` asymmetry and `reveal` carries the activation the
+        /// sheet needs, and a second implementation of either would be a second place for them to
+        /// be wrong.
         @MainActor
         private static func performServerOperation(_ operation: Operation, on model: ShellModel?) {
             switch operation {
@@ -233,8 +280,35 @@
             case .removeSelectedServer:
                 guard let model, let selection = model.serversBoard.selection else { return }
                 model.serversBoard.request(.removeInstalledCapability, subject: selection)
+            case .wakeSelectedServer:
+                guard let model, let selection = model.serversBoard.selection else { return }
+                Task { await model.serversBoard.setWarm(selection, to: true) }
+            case .reviewSelectedHeldChanges:
+                guard let model, let selection = model.serversBoard.selection else { return }
+                Task { await model.reveal(server: selection, openingHeldChange: true) }
             default: break
             }
+        }
+
+        /// Show the router's log in the Finder.
+        ///
+        /// The directory is the one `RouterTokenFile` resolves, which is the same directory the
+        /// client already resolves to find its token — so the file revealed is the file used rather
+        /// than a second guess at where the router keeps things. `SettingsPresentation.RouterFiles`
+        /// owns the file name, so the Advanced pane's row and this command cannot name two
+        /// different logs.
+        ///
+        /// **It reveals rather than opens**, and that is the honest verb: the app does not read the
+        /// log, has no viewer for it, and handing a possibly-large text file to whatever is
+        /// registered for `.log` is a decision belonging to the user's own Finder rather than to
+        /// this menu item. `selectFile` also succeeds visibly when the file does not exist yet — it
+        /// opens the containing directory — which is the right outcome for a router that has not
+        /// written a line yet.
+        @MainActor
+        private static func revealRouterLogInFinder() {
+            let home = RouterTokenFile().url.deletingLastPathComponent()
+            let log = home.appendingPathComponent(SettingsPresentation.RouterFiles.logFileName)
+            NSWorkspace.shared.selectFile(log.path, inFileViewerRootedAtPath: home.path)
         }
     }
 #endif

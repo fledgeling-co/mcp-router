@@ -119,6 +119,7 @@
         /// M5's lesson: a copy taken when the sheet opened goes stale the moment the row does, and
         /// the sheet's action then disagrees with the board about what has already happened.
         public var sheetItemID: String?
+
         public var selection: String?
 
         /// Values typed into the review sheet's requirement fields, keyed as
@@ -317,7 +318,7 @@
             }
             routeReport = nil
             selection = itemID
-            sheetItemID = itemID
+            request(.approveQueuedInstall, subject: itemID)
             acceptState = .idle
             requirementsRevealed = false
             return true
@@ -347,7 +348,7 @@
         /// rather than silently swallowed.
         public func commitDefaultAction() -> Bool {
             guard let item = selectedItem() else { return false }
-            sheetItemID = item.id
+            request(.approveQueuedInstall, subject: item.id)
             acceptState = .idle
             requirementsRevealed = false
             return true

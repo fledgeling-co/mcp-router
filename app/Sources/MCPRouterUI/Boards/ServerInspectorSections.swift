@@ -151,13 +151,14 @@
 
         var danger: some View {
             section("Danger") {
-                Button("Remove this server…") {
-                    board.sheet = .removeServer(server: server.name)
+                Button("Remove this server…", role: .destructive) {
+                    board.request(.removeInstalledCapability, subject: server.name)
                 }
                 // Destructive, and never the default (§3.4). It is a standard control rather than a
-                // filled one; the view's single prominent action is `Add server…`.
+                // filled one; the view's single prominent action is `Add server…`. The tier now
+                // comes from the role rather than a colour named here, so it is `--fail-ink` on
+                // `--raised` rather than the indicator hue.
                 .buttonStyle(StandardButtonStyle(scale: .small))
-                .foregroundStyle(ColorToken.fail.color)
             }
         }
     }

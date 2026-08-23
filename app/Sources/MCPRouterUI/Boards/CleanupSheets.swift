@@ -11,11 +11,11 @@
     /// *names*, never values. An app that cannot read a secret cannot restore an entry carrying one.
     struct CleanupSheetHost: View {
         @Bindable var board: CleanupBoardModel
-        let sheet: CleanupBoardModel.Sheet
+        let sheet: RouterSheet.Cleanup
 
         var body: some View {
             switch sheet {
-            case let .removeServer(name):
+            case let .removeCandidate(name):
                 RemoveServerSheet(board: board, name: name)
             case .resetHistory:
                 ResetHistorySheet(board: board)
@@ -90,11 +90,47 @@
 
                 HStack {
                     Spacer(minLength: 0)
-                    // Cancel leads, and the destructive button is never the default (§9).
+                    // **Escape dismisses, and no key reaches Remove.**
+                    //
+                    // M18 shipped this row with the two keys swapped: `.cancelAction` on the
+                    // destructive button and `.defaultAction` on Cancel, so Escape performed the
+                    // removal and Return dismissed — against the spec's *"Return activates the
+                    // default; Escape cancels"*, against §9's *"never the default button"*, and
+                    // against the comment that used to sit on this line. It is measured rather
+                    // than reasoned: `planning/evidence/M18-gapfix-2/escape-shortcut-probe.swift`
+                    // builds both shapes and posts a keycode 53, and the shipped one reports
+                    // `REMOVE` where the shape below reports `CANCEL`.
+                    //
+                    // **Cancel is drawn plain, and §3.4 is the reason rather than the exception
+                    // to it.** `DESIGN.md`:441 reads *"One prominent accent-filled action per
+                    // view, trailing. Cancel leads. Destructive is never the default."* — the
+                    // accent fill belongs to a trailing affirmative, Cancel is the leading
+                    // control and so is never it, and a confirmation whose only affirmative act
+                    // is destructive has no candidate for the fill at all. The clause is a
+                    // ceiling, not a quota.
+                    //
+                    // M18 filled this Cancel at `4c320a8` and gap-fix 2 kept it under a comment
+                    // citing §3.4 as the *reason* for the fill — the clause cited forbids the
+                    // shape it was cited for, and a comment is what the next reader takes as
+                    // settled. Plain here agrees with `ResetHistorySheet` and
+                    // `ActivityResetHistorySheet` below, with `RemoveServerDialog`, and with the
+                    // mock's own `sh-confirm-remove`, which draws Cancel as a bare `.btn`. So the
+                    // disagreement M18 set out to close is closed rather than moved.
+                    // `SheetShortcutGuardTests.noCancelControlIsAccentFilled` holds it.
+                    //
+                    // Cancel carries Escape rather than Return, which is the shape every other
+                    // dismissing control in this tree already uses.
+                    //
+                    // **Nothing here is the default, deliberately.** The same probe measures that
+                    // one control cannot hold both shortcuts: SwiftUI keeps the innermost
+                    // `.keyboardShortcut` and silently drops the other, both ways round. A sheet
+                    // whose only affirmative act is destructive should have no default button, so
+                    // Return doing nothing is the correct end of that trade rather than a
+                    // casualty of it.
                     Button("Cancel") { board.sheet = nil }
                         .buttonStyle(StandardButtonStyle())
                         .keyboardShortcut(.cancelAction)
-                    Button("Remove") {
+                    Button("Remove", role: .destructive) {
                         Task { await board.remove(name, keepHistory: keepHistory) }
                     }
                     .buttonStyle(StandardButtonStyle())
@@ -309,7 +345,7 @@
                 switch candidate.kind {
                 case .server:
                     Button("Remove…") {
-                        board.sheet = .removeServer(name: candidate.key.id)
+                        board.request(.removeInstalledCapability, subject: candidate.key.id)
                     }
                     .buttonStyle(StandardButtonStyle())
                 case .skill:

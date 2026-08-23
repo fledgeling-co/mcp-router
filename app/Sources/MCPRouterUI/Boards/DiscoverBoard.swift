@@ -29,9 +29,17 @@
                 // would otherwise leave a debounce to fire, issue two third-party requests, and
                 // mutate a board nobody is looking at.
                 .onDisappear { board.cancelPending() }
-                .sheet(isPresented: sheetPresented) {
-                    if let entry = board.sheetEntry() {
-                        DiscoverDetailSheet(board: board, entry: entry)
+                // `.sheet(item:)` over the inventory's own type. `sheetEntry()` still does the
+                // lookup, so the sheet sees a completed install rather than the row as it was when
+                // it opened.
+                .sheet(item: $board.sheet) { sheet in
+                    switch sheet {
+                    case .registryEntry:
+                        if let entry = board.sheetEntry() {
+                            DiscoverDetailSheet(board: board, entry: entry)
+                        }
+                    case .officialMark:
+                        OfficialMarkSheet(board: board)
                     }
                 }
                 .onKeyPress(.escape) {
@@ -54,15 +62,6 @@
                     board.moveSelection(by: 1) ? .handled : .ignored
                 }
                 .onChange(of: board.focusSearchRequests) { _, _ in isSearchFocused = true }
-        }
-
-        /// Bound rather than stored: the model holds the sheet's entry **by id**, so the sheet reads
-        /// the same row the board does and sees a completed install.
-        private var sheetPresented: Binding<Bool> {
-            Binding(
-                get: { board.sheetEntryID != nil },
-                set: { if !$0 { board.sheetEntryID = nil } }
-            )
         }
 
         private var boardColumn: some View {
@@ -205,6 +204,13 @@
                     .focused($isSearchFocused)
                     .onChange(of: board.search) { _, _ in board.queryChanged() }
                     .onSubmit { board.submitSearch() }
+
+                // The mock's own quiet control (`data-act="sheet:official"`), and the one entry
+                // point to the definition behind the mark this board draws on every row. Quiet
+                // rather than prominent: this board's one prominent action is elsewhere (§3.4),
+                // and opening a definition commits nothing.
+                Button(DiscoverCopy.officialMarkAction) { board.sheet = .officialMark }
+                    .buttonStyle(StandardButtonStyle())
 
                 Spacer(minLength: 0)
             }

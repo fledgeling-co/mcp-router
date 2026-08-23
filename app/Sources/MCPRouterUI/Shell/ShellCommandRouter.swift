@@ -279,7 +279,7 @@
                 Task { await model.serversBoard.reset(selected) }
             case .removeSelectedServer:
                 guard let model, let selection = model.serversBoard.selection else { return }
-                model.serversBoard.sheet = .removeServer(server: selection)
+                model.serversBoard.request(.removeInstalledCapability, subject: selection)
             case .wakeSelectedServer:
                 guard let model, let selection = model.serversBoard.selection else { return }
                 Task { await model.serversBoard.setWarm(selection, to: true) }

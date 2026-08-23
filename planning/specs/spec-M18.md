@@ -3,13 +3,14 @@
 | | |
 |---|---|
 | ID | M18 |
-| Status | To Do |
+| Status | Ready for AI |
 | Category | mac · mock conversion |
 | Depends on | M1 ✓ · M8 ✓ · M23 ✓ · M15 · M19 · M22 — five of the thirteen panels have no host surface until those three land |
 | Related | M15 (a sheet opened from a Settings pane attaches to that window) · M19 (owns the readme sheet's contents) · M22 (owns the reconcile sheet's board) · DEF-001 (the pairing transport the pair sheet needs) |
 | Brief | `planning/features-to-triage/M18-sheets-and-gates.md` |
 | Source mock | `design/mcp-router-console.html` — the design-authority question is M21's, recorded in §3.1 |
 | Triage | 2026-08-22 · §2 is owner-facing · §3 is the pipeline record |
+| Plan | `planning/plans/plan-M18.md` (committed: `706cefb`, tier: Large) |
 
 ---
 

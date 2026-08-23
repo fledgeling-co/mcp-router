@@ -6,7 +6,7 @@
     struct ServerSheetHost: View {
         @Bindable var shell: ShellModel
         @Bindable var board: ServersBoardModel
-        let sheet: ServersBoardModel.Sheet
+        let sheet: RouterSheet.Servers
 
         private var servers: [MCPServer] { shell.trackerState?.servers ?? [] }
 
@@ -177,11 +177,10 @@
                     }
                 }
             } actions: {
-                Button("Remove \(serverName)") {
-                    board.sheet = .removeServer(server: serverName)
+                Button("Remove \(serverName)", role: .destructive) {
+                    board.request(.removeInstalledCapability, subject: serverName)
                 }
                 .buttonStyle(StandardButtonStyle())
-                .foregroundStyle(ColorToken.fail.color)
 
                 // Cancel leads, and its label says what it actually does: closing this sheet sends
                 // no request, because the router is already serving the approved text and the change
@@ -259,17 +258,30 @@
                     .fixedSize(horizontal: false, vertical: true)
                 }
             } actions: {
-                // Cancel leads and is the default; the destructive action is never the default
-                // button (§3.4).
+                // Cancel leads and takes Escape; the destructive action takes no key at all (§3.4).
+                //
+                // **This is `RemoveServerSheet`'s row, and it is here because the two must not
+                // disagree.** M18's whole reason for touching the shortcuts on that sheet was that
+                // this dialog and that sheet gave two answers to "what does a key do here"; fixing
+                // only the sheet would have left the pair disagreeing in the other direction.
+                // Escape had no path on this dialog before — one of the sheets the M18 verdict
+                // lists as having none — and Return dismissed it. Now Escape dismisses and nothing
+                // is the default, which is the reasoning `Boards/CleanupSheets.swift` carries in
+                // full. (That verdict's list is nine of fifteen rather than the eight of fourteen
+                // it states; `SheetShortcutGuardTests` carries the correction and the population.)
+                //
+                // Cancel is drawn plain for the same reason, and that half predates M18: `589ab2e`
+                // filled it in M3. §3.4 puts the accent fill on a *trailing* affirmative and Cancel
+                // leads, so on a confirmation whose only affirmative act is destructive nothing
+                // takes the fill. `SheetShortcutGuardTests.noCancelControlIsAccentFilled` holds it.
                 Button("Cancel") { board.sheet = nil }
-                    .buttonStyle(ProminentButtonStyle())
-                    .keyboardShortcut(.defaultAction)
+                    .buttonStyle(StandardButtonStyle())
+                    .keyboardShortcut(.cancelAction)
 
-                Button("Remove") {
+                Button("Remove", role: .destructive) {
                     Task { await board.remove(server.name, keepHistory: keepHistory) }
                 }
                 .buttonStyle(StandardButtonStyle())
-                .foregroundStyle(ColorToken.fail.color)
             }
         }
     }

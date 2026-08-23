@@ -50,12 +50,6 @@
             public var skillsError: ControlAPIError?
         }
 
-        public enum Sheet: Equatable, Sendable, Identifiable {
-            case recheckAll
-
-            public var id: String { "recheck-all" }
-        }
-
         @ObservationIgnored public let client: any ControlAPIClient
         @ObservationIgnored public let store: CheckHistoryStore
 
@@ -63,7 +57,6 @@
         public var selection: String?
         public var filter: CheckPresentation.Filter = .all
         public var search: String = ""
-        public var sheet: Sheet?
         public private(set) var focusSearchRequests: Int = 0
         /// Set while a re-check is in flight, so the control can say so rather than looking inert.
         public private(set) var recheckingSubject: String?
@@ -168,13 +161,15 @@
             selectedSubject() != nil
         }
 
-        /// `Esc` dismisses the sheet first, then clears the selection — never both at once.
+        /// `Esc` clears the selection.
+        ///
+        /// **No sheet branch, because this board presents no sheet.** It used to carry a
+        /// `Sheet.recheckAll` case that was never assigned and never presented — `EvalsBoard` has
+        /// no `.sheet(` modifier at all — so the first arm of this method was unreachable and the
+        /// board advertised a sheet it did not have. M18 deleted the enum; this is the reader that
+        /// went with it.
         public func escape() {
-            if sheet != nil {
-                sheet = nil
-            } else {
-                selection = nil
-            }
+            selection = nil
         }
 
         public func requestSearchFocus() {

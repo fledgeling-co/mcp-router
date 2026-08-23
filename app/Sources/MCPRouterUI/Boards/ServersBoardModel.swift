@@ -22,24 +22,6 @@
     @MainActor
     @Observable
     public final class ServersBoardModel {
-        /// Which further view is open, if any.
-        ///
-        /// `Identifiable` so `.sheet(item:)` can drive it: SwiftUI needs an identity to know that
-        /// one sheet has been replaced by another rather than merely changed.
-        public enum Sheet: Equatable, Sendable, Identifiable {
-            case addServer
-            case heldChange(server: String)
-            case removeServer(server: String)
-
-            public var id: String {
-                switch self {
-                case .addServer: "add"
-                case let .heldChange(server): "held:\(server)"
-                case let .removeServer(server): "remove:\(server)"
-                }
-            }
-        }
-
         @ObservationIgnored public let client: any ControlAPIClient
         /// The shell's tracker — the one reader of the control API, and now also the place a write's
         /// answer is handed back to. A `PATCH` reply is the router's own statement about that server,
@@ -59,7 +41,7 @@
         public var selection: String?
         public var searchQuery: String = ""
         public var filter: ServerFilter = .all
-        public var sheet: Sheet?
+        public var sheet: RouterSheet.Servers?
 
         /// Bumped by `⌘F`. A counter rather than a flag, because two consecutive requests to focus
         /// the search field must both be observable — a `Bool` set true twice changes nothing the
@@ -312,6 +294,33 @@
         }
 
         // MARK: - Selection and keys
+
+        // MARK: - The gate
+
+        /// Opens the gate `SheetGate` declares for an action, rather than opening a sheet by hand.
+        ///
+        /// **This is what stops the gate table being decorative.** A destructive path that assigns
+        /// `sheet` directly would compile, pass every test in `SheetGateTests`, and be un-gated —
+        /// so the call sites ask for the *action* and this decides what friction it gets. Returns
+        /// the sheet it opened, or nil when the gate is `ungated` and the caller should simply do
+        /// the thing (`DESIGN.md` §9: reversible actions are not confirmed).
+        ///
+        /// The non-sheet gates leave `sheet` alone rather than clearing it: an ungated action is
+        /// one this type has no friction to add, not a reason to shut a sheet the user opened.
+        @discardableResult
+        public func request(_ action: SheetGate.Action, subject: String = "") -> RouterSheet.Servers? {
+            switch SheetGate.gate(for: action) {
+            case .ungated, .quietDestructiveControl, .menuItem:
+                return nil
+            case let .sheet(kind):
+                switch kind {
+                case .quarantine: sheet = .heldChange(server: subject)
+                case .confirmRemove: sheet = .removeServer(server: subject)
+                default: return nil
+                }
+                return sheet
+            }
+        }
 
         /// `Esc`: dismisses the sheet first, then clears the selection (`DESIGN.md` §8).
         public func escape() {

@@ -18,6 +18,9 @@
         @Bindable var shell: ShellModel
         let routerHome: URL
         let buildIdentity: BuildIdentity
+        /// Opens the child-PATH sheet on the Settings window. A closure rather than a model, so
+        /// this pane still renders without one.
+        var onShowChildPath: () -> Void = {}
 
         private var files: SettingsPresentation.RouterFiles {
             .init(home: routerHome)
@@ -45,6 +48,11 @@
                     )
                 }
                 SettingsHelp(SettingsPaneCopy.filesHelp, id: "files-help")
+
+                // `…` because it opens a further view (§3.4). Quiet, because reading where the
+                // router looks for a binary commits nothing.
+                Button(SettingsPaneCopy.childPathAction, action: onShowChildPath)
+                    .buttonStyle(StandardButtonStyle())
             }
         }
 

@@ -75,6 +75,39 @@
         /// sends a second declaration for a server that now exists. Holding the id and looking the
         /// entry up each render means the sheet sees the same row the board does.
         public var sheetEntryID: String?
+
+        /// The board's one open sheet, as the inventory's own type.
+        ///
+        /// Computed from the id for `InboxBoardModel.sheet`'s reason: the entry has to be looked up
+        /// fresh on every render so the sheet sees a completed install, so the id is the storage
+        /// and a stored enum beside it would be a second answer to the same question.
+        ///
+        /// `officialMark` has no subject — it is a definition rather than a decision about a row —
+        /// so it is the one case here that is genuinely a flag.
+        public var sheet: RouterSheet.Discover? {
+            get {
+                if showsOfficialMark { return .officialMark }
+                if let sheetEntryID { return .registryEntry(id: sheetEntryID) }
+                return nil
+            }
+            set {
+                switch newValue {
+                case .officialMark:
+                    showsOfficialMark = true
+                case let .registryEntry(id):
+                    sheetEntryID = id
+                case nil:
+                    showsOfficialMark = false
+                    sheetEntryID = nil
+                }
+            }
+        }
+
+        /// Whether the "what does official mean" sheet is open.
+        ///
+        /// Storage for `sheet`'s `officialMark` case. Not `public`: the sheet is opened through
+        /// `sheet` like every other, and a second public way in is a second thing to keep in step.
+        var showsOfficialMark = false
         public var selection: String?
         public private(set) var installState: InstallState = .idle
         public private(set) var focusSearchRequests: Int = 0

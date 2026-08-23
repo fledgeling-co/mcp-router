@@ -39,7 +39,7 @@ from input_accounting import Tally  # noqa: E402  — the sys.path line above ha
 
 # The id series this pipeline allocates. `D-<parent>-<letter>` deferred children and
 # `R1-D3`-style defect ids are NOT allocations and are excluded below.
-SERIES = r"(?:F|R|M|I|P|D|G|V|X)"
+SERIES = r"(?:F|R|M|I|P|D|G|V|X|W)"
 ID = re.compile(rf"(?<![A-Za-z0-9])({SERIES}\d+(?:-[A-Z]\d*)?)(?![0-9])")
 RANGE = re.compile(rf"({SERIES})(\d+)\s*[–—-]\s*({SERIES})?(\d+)")
 

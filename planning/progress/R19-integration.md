@@ -52,9 +52,9 @@ instrument catches:
   `swift:` clause and **no `disagree:` clause** — the two binaries agree there and it fails them
   both anyway. Its own comment at `:187-188` says so: *asserting it here means a watcher that went
   back to deleting it reddens this row too.*
-- **`make test` catches none of these arms** and structurally cannot: it is `swift test` run in
-  `app/` and executes no node code, so the node arm leaves it at **1728 tests in 216 suites,
-  exit 0**.
+- **`make test` (the `app/` test suite) executes no node code**, so the node arm leaves it at
+  **1728 tests in 216 suites, exit 0**; on the Swift arm and the both-sides arm, `IndexFailureRecordTests`
+  is run as part of the suite and reports the same 11 issues.
 
 That is the argument for carrying `parity-cli.sh` and `IndexFailureRecordTests` together: between
 them every armed row below is red on at least one, the both-sides row included. It is not an argument

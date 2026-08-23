@@ -15,8 +15,15 @@ icon, list row and call to action". Each rule below maps to one of those words, 
 matching none of them is not inventoried — which the summary reports as a count, so the exclusion
 is visible rather than silent.
 
-Usage:  mock-affordances.py <mock.html> <section-id> <state-class>
+Usage:  mock-affordances.py <mock.html> <section-id> <frame>
 Writes the inventory as JSON on stdout.
+
+`frame` names the element inside the section that holds one drawn state. A bare word is a CLASS,
+which is what every board and the Settings window use (`v-ideal`, `v-empty`); a leading `#` is an
+ID. The id form exists because a SHEET has no `.v-*` frame at all — `#sh-readme` carries its whole
+state in one element — and without it the census exits 3 at "has no `.v-ideal` block" and the
+surface cannot be measured. The affordance ids it emits are prefixed with the selector minus its
+`#`, so an existing pairing file keyed on `v-ideal/...` is unchanged.
 """
 from __future__ import annotations
 
@@ -29,7 +36,8 @@ from html.parser import HTMLParser
 # Order matters: the first rule that matches owns the element.
 RULES = [
     ("heading", lambda tag, cls, attrs: tag in ("h1", "h2", "h3")),
-    ("row", lambda tag, cls, attrs: "trow" in cls),
+    # "list row" is the brief's own word; `.trow` is the boards' spelling and `<li>` a document's.
+    ("row", lambda tag, cls, attrs: "trow" in cls or tag == "li"),
     ("jack", lambda tag, cls, attrs: "jack" in cls),
     ("button", lambda tag, cls, attrs: tag == "button"),
     ("search-field", lambda tag, cls, attrs: tag == "input" and attrs.get("type") in ("search", "text")),
@@ -37,12 +45,20 @@ RULES = [
     # A column header is a `.c` cell inside the `.thead` row. It needs the ancestor because the
     # same `.c` class is what every body cell uses; matching on the class alone would inventory
     # every cell of every row as a column header.
-    ("column-header", lambda tag, cls, attrs: "c" in cls and "thead" in attrs.get("_ancestors", ())),
+    ("column-header",
+     lambda tag, cls, attrs: tag == "th"
+     or ("c" in cls and "thead" in attrs.get("_ancestors", ()))),
     ("banner", lambda tag, cls, attrs: "band" in cls),
+    # `badge` is one of the brief's own words and had no rule until a surface drew one. The mock
+    # spells the two-part shields `<span class="shield">`.
+    ("badge", lambda tag, cls, attrs: "shield" in cls),
     ("card", lambda tag, cls, attrs: "card" in cls or "tablecard" in cls or "signalpath" in cls),
     ("field", lambda tag, cls, attrs: "kv" in cls),
-    ("callout", lambda tag, cls, attrs: "callout" in cls),
-    ("codeblock", lambda tag, cls, attrs: "codeblock" in cls),
+    # Three kinds that already existed and only knew one spelling each. A Markdown document writes
+    # them as elements rather than as classes, so the same affordance was invisible to the census
+    # depending on which surface drew it — `.callout` counted and `<blockquote>` did not.
+    ("callout", lambda tag, cls, attrs: "callout" in cls or tag == "blockquote"),
+    ("codeblock", lambda tag, cls, attrs: "codeblock" in cls or tag == "pre"),
     ("progress", lambda tag, cls, attrs: "progress" in cls),
     ("skeleton-row", lambda tag, cls, attrs: "skel-row" in cls),
     ("indicator", lambda tag, cls, attrs: "dot" in cls),
@@ -174,7 +190,7 @@ def main() -> int:
     if len(sys.argv) != 4:
         sys.stderr.write(__doc__ + "\n")
         return 2
-    path, section_id, state_class = sys.argv[1], sys.argv[2], sys.argv[3]
+    path, section_id, frame = sys.argv[1], sys.argv[2], sys.argv[3]
     with open(path, encoding="utf-8") as handle:
         html = handle.read()
 
@@ -182,17 +198,32 @@ def main() -> int:
     if section is None:
         sys.stderr.write(f"error: the mock has no element with id '{section_id}'\n")
         return 3
-    fragment = slice_element(section, lambda tag, a: state_class in (a.get("class") or "").split())
+    if frame == f"#{section_id}":
+        # The frame IS the section — a sheet carries its whole state in one element. Taken
+        # directly rather than re-sliced, because `slice_element` returns the fragment WITHOUT its
+        # own closing tag, so feeding it back in leaves the outer element never closed and the
+        # slicer returns None. That reads as "the mock has no such element", which would be false.
+        fragment, described = section, f"element with id '{section_id}'"
+    else:
+        if frame.startswith("#"):
+            frame_id = frame[1:]
+            match = lambda tag, a: a.get("id") == frame_id                   # noqa: E731
+            described = f"element with id '{frame_id}'"
+        else:
+            match = lambda tag, a: frame in (a.get("class") or "").split()   # noqa: E731
+            described = f"'.{frame}' block"
+        fragment = slice_element(section, match)
     if fragment is None:
-        sys.stderr.write(f"error: #{section_id} has no '.{state_class}' block\n")
+        sys.stderr.write(f"error: #{section_id} has no {described}\n")
         return 3
+    prefix = frame.lstrip("#")
 
     parser = SurfaceParser()
     parser.feed(fragment)
 
     if not parser.found:
         sys.stderr.write(
-            f"error: no affordances found in #{section_id} .{state_class}. An empty inventory and a\n"
+            f"error: no affordances found in #{section_id} {described}. An empty inventory and a\n"
             f"       surface with nothing on it are the same JSON, so this is a failure rather than\n"
             f"       a clean read.\n"
         )
@@ -202,7 +233,7 @@ def main() -> int:
     inventory = []
     for record in parser.found:
         label = record["text"] or record["attrs"].get("aria-label") or record["attrs"].get("data-server") or ""
-        base = f"{state_class}/{record['kind']}/{slug(label)}"
+        base = f"{prefix}/{record['kind']}/{slug(label)}"
         seen[base] = seen.get(base, 0) + 1
         ident = base if seen[base] == 1 else f"{base}#{seen[base]}"
         inventory.append({
@@ -217,7 +248,7 @@ def main() -> int:
     json.dump({
         "mock": path,
         "section": section_id,
-        "state": state_class,
+        "state": prefix,
         "count": len(inventory),
         "unclassifiedElements": parser.unclassified,
         "affordances": inventory,

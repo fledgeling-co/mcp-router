@@ -60,32 +60,40 @@ ALLOWED_OPTIONAL = {"font-weight-face"}
 # It covers the six mock kinds the one filled ledger pairs. The other eleven the census can derive
 # have no entry, so the first surface to pair one reads it as a finding until the pairing is
 # vouched — `D-m23-h` in ORCHESTRATOR.md's deferred register.
+# M19 ADDED EIGHT PAIRINGS AND REMOVED NONE, which is the case `D-m23-h` names: a pairing this table
+# has never seen reads `unclassified` until somebody adds it deliberately, and every addition
+# therefore weakens this gate by one classification. Three of the eight are keys the table did not
+# hold — `badge`, `callout`, `codeblock` — and five sit under keys it already had. All eight, as
+# mock-kind <- (build-role, structural-kind): badge<-(badge, hstack), button<-(tab, leaf),
+# callout<-(callout, hstack), codeblock<-(codeblock, scroll), heading<-(heading, text),
+# icon<-(verified-mark, leaf), row<-(list-item, hstack), sentence<-(sentence, text). Measured by
+# ast.literal_eval of this dict at 87e16dc and here, flattened to pairs: 11 before, 19 after.
+#
+# They are a document's own vocabulary — a heading answered by a heading, a `<li>` by a list item, a
+# `<pre>` by a scrolling code block, a `<blockquote>` by a quote, a `<span class="shield">` by the
+# badge the app re-draws from it, and the sheet's tabs by the buttons that do the same job. Each is
+# a mock kind and a build role that genuinely do the same job, and none of them lets a build role
+# vouch for itself by spelling the mock's kind — `heading`/`heading` is listed because the ROLE and
+# the structural KIND together are what the table constrains, and a `heading` that reported itself
+# an `hstack` still reads unclassified.
+#
+# This said "the first surface to pair five of the eleven" until M19's gap-fix. Five is the number
+# of EXISTING KEYS that gained a pairing, which is a real quantity attached to the wrong noun, and
+# the enumeration under it named `<th>` by a column header — a pairing that was already here and is
+# not one of M19's additions.
 VOUCHED_CONTROLS: dict[str, set[tuple[str, str]]] = {
-    "heading": {("board-title", "text"), ("state-title", "text")},
-    "sentence": {("board-subtitle", "text"), ("state-detail", "text")},
-    "button": {("primary-action", "leaf"), ("state-action", "leaf")},
-    # `signature` joins `card` under M16. The mock draws the Signal Path as a card and the build
-    # answers it with a vstack whose role says what it is rather than what shape it is, which is the
-    # distinction this table exists to make: a build that renamed `signature` to something else
-    # would need an edit here rather than earning its own pass.
+    "heading": {("board-title", "text"), ("state-title", "text"), ("heading", "text")},
+    "sentence": {("board-subtitle", "text"), ("state-detail", "text"), ("sentence", "text")},
+    "button": {("primary-action", "leaf"), ("state-action", "leaf"), ("tab", "leaf")},
     "card": {("table", "vstack"), ("signature", "vstack")},
-    # M16's jack. The mock's `jack` kind had no entry, so the first surface to pair one would have
-    # read `unclassified` until somebody vouched for it — which is the intended behaviour of the
-    # nine unnamed kinds (`D-m23-h`) and is why this is an edit rather than an inference.
-    #
-    # `indicator` is deliberately still absent, and that is a decision rather than an omission.
-    # Vouching it would put `indicator` into MOCK_KINDS_FOR_ROLE, and the quota rule below would
-    # then reclassify every unpaired build node of that role from `covered-by-pair` to `extra` — the
-    # build's own row plugs sit inside paired rows and are exactly that population. It would also
-    # measure nothing: the harness records no text for a dot, so both sides fail `readable()` and the
-    # pairing lands `unclassified`, which is this file's own phrase for agreement between two
-    # absences. The mock's indicator affordances therefore stay `absent` with a citation naming what
-    # the instrument cannot do, which is the honest status for a comparison nobody can make.
     "jack": {("jack", "hstack")},
-    "icon": {("state-illustration", "leaf")},
-    "row": {("table-row", "hstack")},
+    "icon": {("state-illustration", "leaf"), ("verified-mark", "leaf")},
+    "row": {("table-row", "hstack"), ("list-item", "hstack")},
     "column-header": {("column-header", "text")},
     "skeleton-row": {("skeleton-row", "hstack")},
+    "badge": {("badge", "hstack")},
+    "codeblock": {("codeblock", "scroll")},
+    "callout": {("callout", "hstack")},
 }
 
 # The same table read backwards: which mock kinds a build role may be answering. It is what lets the
@@ -1077,6 +1085,17 @@ class Context:
         self.extra_allowed: dict[str, dict[str, str]] = {}
         self.breadth_rows: list[tuple] = []
 
+    def frame(self, state: str) -> str:
+        """Which element inside the section holds this state, as `mock-affordances.py` selects it.
+
+        `v-<state>` by default, which is every board and the Settings window. A manifest may
+        override per state with `stateFrames`, and a value beginning with `#` is an id rather than
+        a class. The override exists because a SHEET has no `.v-*` frame: `#sh-readme` carries its
+        whole state in one element, so without it the census exits 3 and the surface cannot be
+        measured at all. Manifests carrying no `stateFrames` are byte-identical in behaviour.
+        """
+        return self.manifest.get("stateFrames", {}).get(state, f"v-{state}")
+
     def load(self) -> None:
         for state in self.states:
             path = os.path.join(self.dump_dir, f"{self.surface}.{state}.json")
@@ -1086,7 +1105,7 @@ class Context:
 
             result = run([
                 sys.executable, os.path.join(ROOT, "scripts/acceptance/mock-affordances.py"),
-                os.path.join(ROOT, self.manifest["mock"]), self.section, f"v-{state}",
+                os.path.join(ROOT, self.manifest["mock"]), self.section, self.frame(state),
             ])
             if result.returncode != 0:
                 raise Inconclusive(f"inventory[{state}]: {result.stderr.strip() or result.stdout.strip()}")

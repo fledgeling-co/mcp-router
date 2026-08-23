@@ -132,11 +132,17 @@ done
 # directory that is missing, so a directory nobody listed is invisible to it. The comment above
 # already said "each board directory joins as it ships"; this is that, and the file count printed
 # below is what proves the directory was scanned rather than merely named.
+# M19's document viewer joins for the reason M15's Settings window did, and it is worth restating
+# because the failure is silent in both directions: the `[ -d "$dir" ]` guard below fires for a
+# LISTED directory that is missing, so a directory nobody listed is invisible to it. A new UI
+# directory that is not here is simply outside the geometry rule and outside A36, and nothing says
+# so. The file count printed below is what proves it was scanned rather than merely named.
 GEOMETRY_DIRS=(
   "$ROOT/app/Sources/MCPRouterUI/Shell"
   "$ROOT/app/Sources/MCPRouterUI/Activity"
   "$ROOT/app/Sources/MCPRouterUI/Boards"
   "$ROOT/app/Sources/MCPRouterUI/Settings"
+  "$ROOT/app/Sources/MCPRouterUI/Document"
 )
 
 # M3 brings the boards under the same two rules. They were scoped to the shell so that a merged gate

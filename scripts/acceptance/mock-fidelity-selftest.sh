@@ -1598,10 +1598,16 @@ LINT_ROOT="$SCRATCH/lintprobe"
 # comment above is why it has to: the control case below went red the moment the real script gained
 # a directory this tree did not carry, which is the guard working rather than a defect. Leaving it
 # out would have turned every spelling case below into a case measuring nothing.
+#
+# M19's `Document` directory joins on the same terms, and it went red here first — observed, not
+# anticipated. That is the whole value of the control case: the coupling between the real script's
+# directory list and this scratch tree is invisible in both files, and the only thing that surfaces
+# it is a clean tree failing to come back clean.
 mkdir -p "$LINT_ROOT/scripts/lint" "$LINT_ROOT/app/Sources/MCPRouterUI" \
          "$LINT_ROOT/app/Sources/MCPRouterUI/Shell" "$LINT_ROOT/app/Sources/MCPRouterUI/Activity" \
          "$LINT_ROOT/app/Sources/MCPRouterUI/Boards" \
          "$LINT_ROOT/app/Sources/MCPRouterUI/Settings" \
+         "$LINT_ROOT/app/Sources/MCPRouterUI/Document" \
          "$LINT_ROOT/app/Sources/MCPRouterKit" \
          "$LINT_ROOT/app/MCPRouter" "$LINT_ROOT/app/MCPRouterIOS"
 ln -sf "$LINT_REAL" "$LINT_ROOT/scripts/lint/no-raw-design-values.sh"

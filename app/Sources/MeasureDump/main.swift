@@ -23,6 +23,7 @@ import Foundation
     enum Surface: String, CaseIterable {
         case servers
         case settings
+        case readme
         /// The menu-bar popover (M20).
         /// Hosts in NSHostingView under .prohibited to measure without activating.
         case popover
@@ -228,10 +229,13 @@ import Foundation
                         shell: shell,
                         board: ServersBoardModel(client: client, tracker: shell.tracker)
                     )
+                case .readme:
+                    CapabilityDocumentSheet(
+                        content: FixtureCapabilityDocumentSource.build()
+                            .map(CapabilityDocumentSheet.Content.document)
+                            ?? .unavailable(.notFound(capability: "trawl"))
+                    )
                 case .popover:
-                    // The popover sets its own width from `PopoverMetrics`, so the frame below only
-                    // bounds it. It is drawn top-leading in that frame, which is where the geometry
-                    // layer expects a surface's origin.
                     MenuBarPopover(shell: shell)
                 case .harnesses:
                     HarnessesBoard(board: boards.harnesses)

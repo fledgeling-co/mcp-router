@@ -58,7 +58,6 @@ struct ShellDestinationTests {
         }
     }
 
-
     /// **Contiguous *and* in sidebar order**, which is the half M22 made load-bearing. The View
     /// menu lists destinations in declaration order and labels each with its digit, so a digit that
     /// does not follow the list prints `⌘1 ⌘2 ⌘3 ⌘8 ⌘4 …` down one menu. Comparing against a
@@ -73,7 +72,6 @@ struct ShellDestinationTests {
         // destination out of the View menu survives; what is asserted here is that nothing is
         // currently being filtered out silently.
         #expect(digits.count == Destination.allCases.count)
-
     }
 
     /// **The observation this makes flips at M15 without a line of `restoring` moving**, which is

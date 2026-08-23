@@ -3,37 +3,11 @@
     import MCPRouterKit
     import Observation
 
-    /// The shell's state, and the one place it talks to the router.
+    /// The shell's state, and the one place it talks to the router via `ServerStateTracker`.
     ///
-    /// **The router's state comes from `ServerStateTracker`, which is now the only thing here that
-    /// reads a poll.** An earlier revision polled `ControlAPIClient` directly, because the tracker's
-    /// `pollLoop()` was `if let response = try? await client.servers()` — every typed
-    /// `ControlAPIError` discarded — and with no event stream its phase never left `.disconnected`.
-    /// A shell built on that could not tell loading from a successful zero-server poll from offline
-    /// from unauthorised, which is precisely what A18, A26 and A28 require it to tell apart.
-    ///
-    /// F4 fixed both. `LoadState` is now `.loading` / `.loaded` / `.failed` / `.stale`, the typed
-    /// error survives the catch, and a stream-less tracker reports `.notConfigured` rather than
-    /// claiming a stream that dropped. The reason for the bypass is gone, and the bypass with it:
-    /// two independent poll loops against one router is the duplication the tracker exists to
-    /// remove, and the boards that come next have to agree with the shell about what is running.
-    ///
-    /// **What this type adds on top of the tracker is one judgment**, and it is the product's
-    /// central honesty rule rather than a detail. On `.stale` the tracker holds real servers behind
-    /// a live error, and the two halves are treated differently:
-    ///
-    /// - the **badges keep those servers** — "needs attention" and "never used" are properties of
-    ///   the declared configuration, and they were genuinely observed;
-    /// - the **readout counts go absent**, because "3 running" is a present-tense claim about a
-    ///   router that is not currently answering. Showing the last known figure as though it were
-    ///   current is a quieter lie than a zero, but the same kind, and A18 forbids it.
-    ///
-    /// This stays inside A36: the tracker speaks the same loopback control API through F3's client,
-    /// and this type opens no socket, no file and no process of its own.
-    ///
-    /// The clock is injected for the same reason `ReadoutModel`'s is — the 60-second trace window has
-    /// a boundary, and a boundary tested against wall-clock time is a test that sleeps for a minute
-    /// or proves nothing.
+    /// On `.stale` the tracker holds real servers behind a live error:
+    /// - badges keep declared servers;
+    /// - readout counts go absent to prevent presenting stale counts as live.
     @MainActor
     @Observable
     public final class ShellModel {

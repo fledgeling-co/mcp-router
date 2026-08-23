@@ -23,42 +23,21 @@ import Foundation
     enum Surface: String, CaseIterable {
         case servers
         case settings
-        /// The menu-bar popover.
-        ///
-        /// **This is the only route to M20's acceptance criterion 4** — *"a structure dump of the
-        /// popover shows three separately focusable controls in the queued-item band"* — and the
-        /// reason is structural rather than a matter of convenience. `SURF-009` carries three `n/a`
-        /// cases with one stated reason: *"NSStatusItem is not an AXPress target while MCPRouter is
-        /// backgrounded; this campaign never activates, so the popover cannot be opened or
-        /// photographed."* The accessibility plane cannot reach this surface at all. This tool hosts
-        /// it in an `NSHostingView` under `.prohibited`, so it is measured without the app ever
-        /// coming forward and without `UI_VERIFICATION.md` rule 1 being broken.
+        /// The menu-bar popover (M20).
+        /// Hosts in NSHostingView under .prohibited to measure without activating.
         case popover
         case harnesses
         case insights
     }
 
     /// The drawn state to render it in.
-    ///
-    /// Four rather than one, because the mock draws four Servers frames and `DESIGN.md` §5 is that
-    /// a populated-only screen is a third of a design. A breadth ledger filled against the ideal
-    /// frame alone would report the three unhappy states as neither present nor absent, which is
-    /// the omission the M23 brief calls an unaudited surface rather than a passed one.
     enum State: String, CaseIterable {
         case ideal
         case empty
         case loading
         case error
 
-        /// The scenario that produces this drawn state **on this surface**.
-        ///
-        /// Surface-aware since M15, and the reason is a real divergence rather than tidiness. A
-        /// state name identifies the mock's own frame — `v-empty`, `v-error` — and the mock draws
-        /// different *conditions* under the same frame name on different surfaces. The Servers
-        /// board's empty frame is a router that answered with nothing declared; the Settings
-        /// window's empty frame is `Settings are unavailable while the router is stopped`, which is
-        /// the offline condition. One shared mapping would have rendered a live window under the
-        /// name of the stopped one and reported it as a measurement of the stopped one.
+        /// The scenario that produces this drawn state on this surface.
         func fixture(for surface: Surface) -> FixtureControlAPIClient.Scenario {
             switch (surface, self) {
             case (.settings, .empty): .offline
@@ -74,13 +53,7 @@ import Foundation
             }
         }
 
-        /// The inbox this state renders the popover against.
-        ///
-        /// `nil` for every surface but the popover, which is the only one that draws the queue. The
-        /// popover's ideal frame needs `.paired` rather than the factory's Debug default of `.none`,
-        /// because an empty queue draws no band — and a band with no rows draws no controls, so a dump
-        /// taken against it would report criterion 4's three controls as absent while measuring a
-        /// surface that was never asked to draw them.
+        /// The inbox this state renders the popover against (nil for non-popover).
         func inbox(for surface: Surface) -> (any InboxService)? {
             guard surface == .popover else { return nil }
             switch self {

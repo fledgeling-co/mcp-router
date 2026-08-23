@@ -110,14 +110,12 @@ struct ControlApproveDispatchTests {
         fileSystem.memory.fail("moveItem")
         var deps = try Support.makeDeps(fileSystem: fileSystem, manifestPath: path)
 
-        let (status, _) = await Support.answer("/servers/p1-stdio/approve", &deps)
+        let (status, body) = await Support.answer("/servers/p1-stdio/approve", &deps)
 
-        // MEASURED, not chosen. `AuthRoutes.approve` uses `try? ManifestIO.save` and answers 200
-        // whether or not the bytes landed; the reference's own `saveManifest` throws. That is a
-        // real divergence, it is R5's shipped behaviour, and P1 does not move a wire status outside
-        // its remit — so it is pinned here rather than left undiscovered. The day someone changes
-        // it, this test makes the change deliberate. Registered in spec-P1 §8.
-        #expect(status == 200, "documenting `try?`: the route reports success it did not achieve")
+        // R21: when the manifest write is refused, the route answers 500 rather than
+        // claiming success it did not achieve on disk.
+        #expect(status == 500, "the route reports 500 when the write fails")
+        #expect(body.contains("failed to write manifest"), "surfacing the write failure reason")
         let onDisk = try #require(fileSystem.memory.contents(atPath: path))
         #expect(onDisk.contains("\"pending\""), "and the pending change is genuinely still there")
     }

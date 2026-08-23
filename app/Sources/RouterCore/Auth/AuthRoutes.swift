@@ -170,7 +170,14 @@ public enum AuthRoutes {
         // comparison stays code-unit based — B80's substance survives the boundary, and the name
         // gate keeps the round-trip lossless.
         manifest.setEntry(server.string, updated)
-        try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)
+        do {
+            try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)
+        } catch {
+            let msg = "failed to write manifest: \(error.localizedDescription)"
+            return Promotion(status: 500, body: .object([
+                JSONMember(key: "error", value: .string(JSString(msg)))
+            ]), approved: 0)
+        }
 
         return Promotion(status: 200, body: .object([
             JSONMember(key: "server", value: .string(server)),

@@ -26,6 +26,7 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
     /// afterwards is found at the next restart, which is what `spec-R6.md` §2 claims and what the
     /// watcher's `launchctl kickstart -k` delivers on every adoption.
     private let childEnvironment: [String: String]
+    private let secretResolver: any SecretResolver
 
     public init(
         log: RouterLog? = nil,
@@ -33,12 +34,14 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
         clientVersion: String = "0.1.0",
         terminationGraceNanoseconds: UInt64 = 2_000_000_000,
         environment: [String: String] = ProcessInfo.processInfo.environment,
-        probe: any DirectoryProbing = RealDirectoryProbe()
+        probe: any DirectoryProbing = RealDirectoryProbe(),
+        secretResolver: any SecretResolver = WardenSecretResolver()
     ) {
         self.log = log
         self.clientName = clientName
         self.clientVersion = clientVersion
         self.terminationGraceNanoseconds = terminationGraceNanoseconds
+        self.secretResolver = secretResolver
         childEnvironment = ChildPath.augmentedEnvironment(environment, probe: probe)
     }
 
@@ -54,7 +57,7 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
         _ upstream: UpstreamConfig,
         timeoutMilliseconds: Int
     ) async throws -> any UpstreamSession {
-        let child = try spawn(upstream)
+        let child = try await spawn(upstream)
 
         // Wrapped in a `TappingTransport` so the raw bytes of every response survive the SDK's
         // decode. `MCP.Value`'s object case is an unordered dictionary, so a `tools/call` result
@@ -104,7 +107,7 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
 
     /// Everything between a command line in `~/.claude.json` and a running child with its stderr
     /// being drained — the half of `open` that has nothing to do with MCP.
-    private func spawn(_ upstream: UpstreamConfig) throws -> Child {
+    private func spawn(_ upstream: UpstreamConfig) async throws -> Child {
         guard upstream.isStdio else {
             throw PoolError.spawnFailed(name: upstream.name, reason: "not a stdio upstream")
         }
@@ -124,7 +127,7 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
         // It resolves against the environment the CHILD is about to get, not the router's own. A
         // pre-check searching a narrower PATH than the child would reject a command `/usr/bin/env`
         // would have found — R6's defect rebuilt inside the fix for it.
-        let spawnEnvironment = mergedEnvironment(upstream)
+        let spawnEnvironment = try await mergedEnvironment(upstream)
         guard Self.resolve(command, environment: spawnEnvironment) != nil else {
             throw PoolError.commandNotFound(
                 name: upstream.name,
@@ -182,10 +185,12 @@ public struct StdioUpstreamTransport: UpstreamTransporting {
     /// reference's order, and it matters: a server that sets `PATH` must win over ours, not be
     /// silently ignored. That override is R6's escape hatch for a prefix ``ChildPath`` does not
     /// find, so it stays last.
-    private func mergedEnvironment(_ upstream: UpstreamConfig) -> [String: String] {
+    private func mergedEnvironment(_ upstream: UpstreamConfig) async throws -> [String: String] {
         var merged = childEnvironment
+        let reason = "Spawn upstream MCP server '\(upstream.name)'"
         for pair in upstream.env {
-            merged[pair.key.string] = pair.value.string
+            let resolved = try await secretResolver.resolve(pair.value.string, reason: reason)
+            merged[pair.key.string] = resolved
         }
         return merged
     }

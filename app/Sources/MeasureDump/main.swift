@@ -23,39 +23,45 @@ import Foundation
     enum Surface: String, CaseIterable {
         case servers
         case settings
-        /// M19's capability document panel. Rendered from the fixture package, because nothing
-        /// serves a document — see `CapabilityDocumentSource`.
         case readme
+        /// The menu-bar popover (M20).
+        /// Hosts in NSHostingView under .prohibited to measure without activating.
+        case popover
+        case harnesses
+        case insights
     }
 
     /// The drawn state to render it in.
-    ///
-    /// Four rather than one, because the mock draws four Servers frames and `DESIGN.md` §5 is that
-    /// a populated-only screen is a third of a design. A breadth ledger filled against the ideal
-    /// frame alone would report the three unhappy states as neither present nor absent, which is
-    /// the omission the M23 brief calls an unaudited surface rather than a passed one.
     enum State: String, CaseIterable {
         case ideal
         case empty
         case loading
         case error
 
-        /// The scenario that produces this drawn state **on this surface**.
-        ///
-        /// Surface-aware since M15, and the reason is a real divergence rather than tidiness. A
-        /// state name identifies the mock's own frame — `v-empty`, `v-error` — and the mock draws
-        /// different *conditions* under the same frame name on different surfaces. The Servers
-        /// board's empty frame is a router that answered with nothing declared; the Settings
-        /// window's empty frame is `Settings are unavailable while the router is stopped`, which is
-        /// the offline condition. One shared mapping would have rendered a live window under the
-        /// name of the stopped one and reported it as a measurement of the stopped one.
+        /// The scenario that produces this drawn state on this surface.
         func fixture(for surface: Surface) -> FixtureControlAPIClient.Scenario {
             switch (surface, self) {
             case (.settings, .empty): .offline
+            // The Harnesses board's error frame in the mock is a configuration that would not
+            // parse — which is a PARTIAL read, not a failed one: the other five harnesses were
+            // read normally and are still drawn above the failure. `.offline` here would render
+            // the router-not-running pane and report it as a measurement of the mock's frame.
+            case (.harnesses, .error): .partial
             case (_, .ideal): .populated
             case (_, .empty): .empty
             case (_, .loading): .loading
             case (_, .error): .offline
+            }
+        }
+
+        /// The inbox this state renders the popover against (nil for non-popover).
+        func inbox(for surface: Surface) -> (any InboxService)? {
+            guard surface == .popover else { return nil }
+            switch self {
+            case .ideal: return FixtureInboxService(.paired)
+            case .empty: return FixtureInboxService(.pairedEmpty)
+            case .loading: return FixtureInboxService(.loading)
+            case .error: return FixtureInboxService(.failed)
             }
         }
 
@@ -175,6 +181,36 @@ import Foundation
     /// be a stored property, which made every surface pay for the Servers board's model and made a
     /// second surface impossible to add without constructing one it does not use. What is stored now
     /// is the shell, which every surface genuinely shares because it is the poll they all read.
+    /// The board models M22's two surfaces are rendered from, built and **read** before the view
+    /// exists.
+    ///
+    /// Their own load runs from `.task`, and a hosting view in a window that is never ordered in
+    /// does not reliably fire one — the first run of this measured nine nodes, which is the header
+    /// and a loading skeleton, and wrote it out as the ideal frame. The Servers surface never had
+    /// the problem because `ShellModel.refresh` is awaited in `run()` before anything renders; this
+    /// is the same arrangement for boards that own their own read.
+    ///
+    /// `loading` is deliberately **not** pre-read: its whole subject is the frame before an answer,
+    /// and the fixture for it never returns.
+    @MainActor
+    struct PreparedBoards {
+        var harnesses: HarnessesBoardModel
+        var insights: InsightsBoardModel
+
+        init(client: any ControlAPIClient) {
+            harnesses = HarnessesBoardModel(client: client)
+            insights = InsightsBoardModel(client: client)
+        }
+
+        func read(_ surface: Surface) async {
+            switch surface {
+            case .harnesses: await harnesses.load()
+            case .insights: await insights.load()
+            case .servers, .settings, .popover: break
+            }
+        }
+    }
+
     @MainActor
     struct MeasuredSurface: View {
         let surface: Surface
@@ -183,6 +219,7 @@ import Foundation
         let shell: ShellModel
         let client: any ControlAPIClient
         let appearance: ColorScheme
+        let boards: PreparedBoards
 
         var body: some View {
             Group {
@@ -193,18 +230,17 @@ import Foundation
                         board: ServersBoardModel(client: client, tracker: shell.tracker)
                     )
                 case .readme:
-                    // Rendered from the fixture package rather than from the shell's client: this
-                    // panel's content does not come over the control API at all, because the
-                    // control API serves no document. `FixtureCapabilityDocumentSource.build()`
-                    // returns nil only when the resource bundle is missing its files, which is a
-                    // packaging failure — reported as the unavailable state rather than as a
-                    // capability that published nothing, so a broken build cannot read as a
-                    // product state.
                     CapabilityDocumentSheet(
                         content: FixtureCapabilityDocumentSource.build()
                             .map(CapabilityDocumentSheet.Content.document)
                             ?? .unavailable(.notFound(capability: "trawl"))
                     )
+                case .popover:
+                    MenuBarPopover(shell: shell)
+                case .harnesses:
+                    HarnessesBoard(board: boards.harnesses)
+                case .insights:
+                    InsightsBoard(board: boards.insights)
                 case .settings:
                     // The **in-memory** token store, not the default keychain one: this is an
                     // unsigned SwiftPM executable with no keychain access group, where
@@ -250,9 +286,23 @@ import Foundation
         NSApplication.shared.setActivationPolicy(.prohibited)
 
         let client = FixtureControlAPIClient(args.state.fixture(for: args.surface))
-        let shell = ShellModel(client: client)
-        if args.state.polls { await shell.refresh(at: Date()) }
-        return render(args, shell: shell, client: client)
+        // **The scratch domain, not the developer's own preferences.** `MeasuredSurface` already
+        // hands the Settings window a scratch `ShellRestoration` for this reason; the popover reads a
+        // preference off the *model* — whether the band may draw its `Approve` — so the model needs
+        // the same treatment or the dump depends on which machine it ran on, which is not a
+        // measurement of the surface.
+        let shell = ShellModel(
+            client: client,
+            store: ShellRestoration(defaults: MeasuredSurface.scratchDefaults),
+            inboxService: args.state.inbox(for: args.surface)
+        )
+        let boards = PreparedBoards(client: client)
+        if args.state.polls {
+            await shell.refresh(at: Date())
+            if args.surface == .popover { await shell.inboxBoard.load() }
+            await boards.read(args.surface)
+        }
+        return render(args, shell: shell, client: client, boards: boards)
     }
 
     /// Hosts the surface, lets the layout settle, and writes the dump.
@@ -261,7 +311,9 @@ import Foundation
     /// alternative — blocking a thread on a semaphore around a `Task` — is forbidden outright by
     /// `SWIFT_PRACTICES.md` §1 because it deadlocks the cooperative pool.
     @MainActor
-    func render(_ args: Arguments, shell: ShellModel, client: any ControlAPIClient) -> Int32 {
+    func render(
+        _ args: Arguments, shell: ShellModel, client: any ControlAPIClient, boards: PreparedBoards
+    ) -> Int32 {
         SurfaceRecorder.shared.reset()
 
         let size = NSSize(width: args.width, height: args.height)
@@ -272,7 +324,7 @@ import Foundation
         let host = NSHostingView(rootView: MeasuredSurface(
             surface: args.surface,
             surfaceName: "\(args.surface.rawValue).\(args.state.rawValue)",
-            size: size, shell: shell, client: client, appearance: args.appearance
+            size: size, shell: shell, client: client, appearance: args.appearance, boards: boards
         ))
         host.frame = NSRect(origin: .zero, size: size)
         window.contentView = host

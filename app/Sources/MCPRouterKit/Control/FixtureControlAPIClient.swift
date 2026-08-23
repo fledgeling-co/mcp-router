@@ -384,7 +384,7 @@ public struct FixtureControlAPIClient: ControlAPIClient {
     /// The refusal matters. Falling out of the wait and returning the populated response would mean
     /// a cancelled load quietly delivers data — so a surface that navigated away, or a test that
     /// gave up waiting, would still receive an answer it no longer has anywhere to put.
-    private static func forever() async throws(ControlAPIError) -> Never {
+    static func forever() async throws(ControlAPIError) -> Never {
         while !Task.isCancelled {
             try? await Task.sleep(for: .seconds(3600))
         }

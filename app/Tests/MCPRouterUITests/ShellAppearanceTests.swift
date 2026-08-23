@@ -195,13 +195,18 @@
             #expect(ShellMotion.badgeBumpScale < 1.2)
         }
 
-        /// The spring is the breaker's documented rise rather than a second one invented here.
-        @Test("the bump reuses the design document's own spring")
-        func bumpUsesTheDocumentedSpring() {
-            #expect(BreakerGeometry.standard.riseDamping < 1)
-            #expect(ShellMotion.badgeBumpHold == .milliseconds(
-                Int(BreakerGeometry.standard.riseResponse * 1000)
-            ))
+        /// The timing is the signature element's documented transition rather than a second one
+        /// invented here — the breaker's rise until M16 retired it, the plug's since. A badge
+        /// ticking up and a plug lighting are the same event, so a second number for it would be an
+        /// undocumented value in the design system.
+        @Test("the bump reuses the design document's own timing")
+        func bumpUsesTheDocumentedTiming() {
+            let seconds = SignalPathGeometry.standard.plugTransitionSeconds
+            #expect(seconds > 0)
+            #expect(ShellMotion.badgeBumpHold == .milliseconds(Int(seconds * 1000)))
+            // Reduce Motion removes the animation and never the count: the badge still changes.
+            #expect(ShellMotion.badgeBump(reduceMotion: true) == nil)
+            #expect(ShellMotion.badgeBump(reduceMotion: false) != nil)
         }
 
         @Test("no surface file animates opacity from zero on entry")

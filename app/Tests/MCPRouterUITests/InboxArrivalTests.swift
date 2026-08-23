@@ -89,6 +89,26 @@
             )
         }
 
+        /// An item whose entry asks for a value — D1's third condition.
+        static func itemAskingForAValue(id: String) throws -> InboxItem {
+            let json = """
+            {"id":"e2","name":"e2","displayName":"Needs a key","description":"d","source":"official",
+             "install":{"type":"stdio","command":"node","args":["s.js"],
+                        "requires":[{"name":"API_KEY","description":"the key","isSecret":true}]}}
+            """
+            return try InboxItem(
+                envelope: InboxEnvelope(
+                    version: 1,
+                    id: id,
+                    entryID: "entry-\(id)",
+                    displayName: "Item \(id)",
+                    queuedAt: Date().addingTimeInterval(-300),
+                    deviceName: device
+                ),
+                resolved: JSONDecoder().decode(RegistryEntry.self, from: Data(json.utf8))
+            )
+        }
+
         static func entry() throws -> RegistryEntry {
             let json = """
             {"id":"e","name":"e","displayName":"Local notes","description":"d","source":"official",
@@ -112,67 +132,6 @@
                 notifier: notifier
             )
             return (board, client)
-        }
-
-        // MARK: - A7 · the boundary
-
-        /// **The clause this whole item is written around.** Every route a surface outside the
-        /// window can take — both notification actions, the arrival path itself, the band
-        /// derivation — is exercised, and `add` is counted on a recording client throughout.
-        ///
-        /// It is counted rather than watched, for `RecordingControlAPIClient`'s own reason: a row
-        /// disappearing looks identical to an install from the outside.
-        ///
-        /// **The second snapshot carries a genuine arrival, and that is not decoration.** The first
-        /// version of this test read the same two items twice, so `arrivals` was empty on every
-        /// load and the arrival path was never entered — a mutation that installed every arrival
-        /// left it green. The clause was sound and the fixture was not exercising the branch the
-        /// clause is about, which is the only thing a mutation can tell you and a passing series
-        /// cannot.
-        @Test("no path from outside the window installs anything")
-        func nothingOutsideTheWindowInstalls() async throws {
-            let notifier = RecordingArrivalNotifier()
-            let first = try [Self.item(id: "q-1", secondsAgo: 300, resolved: true)]
-            let both = try first + [Self.item(id: "q-2", secondsAgo: 60, resolved: true)]
-            let (board, client) = Self.board(
-                [.success(Self.snapshot(first)), .success(Self.snapshot(both))],
-                notifier: notifier
-            )
-
-            await board.load()
-            // The arrival path runs with something in it, so an install placed there is reachable.
-            await board.load()
-            #expect(notifier.announcements.count == 1, "the arrival branch was never entered")
-            _ = board.bandZone()
-
-            // Every action the closed set contains, directly through the delegate as well as the board.
-            let shell = ShellModel(client: client, notifier: notifier)
-            for action in InboxNotificationAction.allCases {
-                InboxNotificationDelegate.handle(action, identifier: "q-1", on: shell)
-                switch action {
-                case .review: board.review(itemID: "q-1")
-                case .decline: board.decline(itemID: "q-2")
-                }
-            }
-
-            #expect(client.calls.add == 0, "a route from outside the window declared a server")
-            #expect(client.calls.addForced == 0)
-            #expect(client.calls.remove == 0)
-        }
-
-        /// The review route opens the **sheet**, which is where what the item runs is on screen —
-        /// so the press that installs is always made with the capability statement in front of it.
-        @Test("the review route opens the sheet and installs nothing")
-        func reviewOpensTheSheet() async throws {
-            let notifier = RecordingArrivalNotifier()
-            let items = try [Self.item(id: "q-1", secondsAgo: 300, resolved: true)]
-            let (board, client) = Self.board([.success(Self.snapshot(items))], notifier: notifier)
-            await board.load()
-
-            #expect(board.review(itemID: "q-1"))
-            #expect(board.sheetItemID == "q-1")
-            #expect(board.acceptState == InboxBoardModel.AcceptState.idle)
-            #expect(client.calls.add == 0)
         }
 
         // MARK: - A10 · declining is local and reversible

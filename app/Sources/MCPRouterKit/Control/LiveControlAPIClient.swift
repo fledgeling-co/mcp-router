@@ -71,7 +71,7 @@ public actor LiveControlAPIClient: ControlAPIClient {
 
     // MARK: - The one request path
 
-    private enum Method: String {
+    enum Method: String {
         case get = "GET"
         case post = "POST"
         case patch = "PATCH"
@@ -103,7 +103,7 @@ public actor LiveControlAPIClient: ControlAPIClient {
             ?? raw
     }
 
-    private func send<Response: Decodable>(
+    func send<Response: Decodable>(
         _ method: Method,
         _ path: String,
         query: [URLQueryItem] = [],
@@ -243,37 +243,6 @@ public actor LiveControlAPIClient: ControlAPIClient {
 
     public func usageSummary() async throws(ControlAPIError) -> UsageSummary {
         try await send(.get, "usage/summary", as: UsageSummary.self)
-    }
-
-    public func skills() async throws(ControlAPIError) -> SkillsResponse {
-        try await skillsRead("skills", as: SkillsResponse.self)
-    }
-
-    public func marketplaces() async throws(ControlAPIError) -> MarketplacesResponse {
-        try await skillsRead("marketplaces", as: MarketplacesResponse.self)
-    }
-
-    /// A read whose 404 means "this router predates the feature" rather than "not found".
-    ///
-    /// Every other path on this client treats a non-2xx as `server(status:message:hint:)`, whose
-    /// headline is "The router couldn't complete that". For these two endpoints that is the wrong
-    /// sentence: the TypeScript router is the installed default and one built before M4 has no
-    /// skills route at all, so 404 is the *expected* answer from an older daemon and the honest
-    /// reading of it is version skew. `malformedResponse` already carries exactly that wording —
-    /// "The router may be newer or older than this app" — and it is the state the board is designed
-    /// around. Without this mapping the board would render a copy that its own spec never allows.
-    private func skillsRead<T: Decodable>(
-        _ path: String,
-        as type: T.Type
-    ) async throws(ControlAPIError) -> T {
-        do {
-            return try await send(.get, path, as: type)
-        } catch {
-            if case let .server(status, _, _) = error, status == 404 {
-                throw ControlAPIError.malformedResponse(detail: "this router has no /\(path) endpoint")
-            }
-            throw error
-        }
     }
 
     public func heldChanges(for name: String) async throws(ControlAPIError) -> HeldChanges {

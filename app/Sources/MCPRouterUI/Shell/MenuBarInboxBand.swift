@@ -9,10 +9,22 @@
     /// nothing — the ordering, the cap, the overflow arithmetic and every sentence were settled in
     /// `MCPRouterKit`, where a test calls them.
     ///
-    /// **Two actions, and the asymmetry between them is the whole design.** Pressing a row opens the
-    /// *review* — which activates the app, because the sheet is a window and what the item runs has
-    /// to be on screen when the install is pressed. `Decline` acts here, with no window and no
-    /// activation, because declining costs a resend and is reversible in one press.
+    /// **Three actions, and the asymmetry between them is the whole design.** `Review…` opens the
+    /// sheet — which activates the app, because what the item runs has to be on screen when an
+    /// install is pressed from *there*. `Not now` acts here, with no window and no activation, because
+    /// declining costs a resend and is reversible in one press. And `Approve` acts here too, which is
+    /// the one place in this product where something a remote device asked for is installed without
+    /// the window opening.
+    ///
+    /// **That third one is a deliberate exception with three conditions, not a relaxation.**
+    /// `InboxBand.Row.isApprovable` holds them — the entry resolved, the Settings preference on, and
+    /// nothing the entry asks for left blank — and `ShellModel.approveFromOutside` re-checks all three
+    /// rather than trusting that the button was only drawn where it should be. `plan-M20.md` §3.1
+    /// records why the argument against it does not transfer: the recorded doctrine against a
+    /// one-press install is `InboxArrival.swift`'s and it is about a *notification*, *"the least
+    /// deliberate press available on a Mac … it appears over whatever the user was doing,
+    /// unrequested."* A popover the user opened, prompted by a dot that appears only while something
+    /// wants a decision, is the opposite case.
     struct MenuBarInboxBand: View {
         let zone: PopoverContent.InboxZone
         @Bindable var shell: ShellModel
@@ -56,6 +68,11 @@
                 )
                 if let report = band.report { reportRow(report) }
             }
+            .measured(
+                "inbox-band", role: "banner", kind: .vstack, alignment: "leading",
+                tokens: ["border": .attention, "background": .f3], type: .subheadline,
+                text: band.headline
+            )
         }
 
         /// One queued item.
@@ -88,24 +105,95 @@
                         .accessibilityValue(row.title)
                 }
 
-                Button(InboxCopy.declineAction) { shell.declineFromOutside(itemID: row.id) }
-                    .buttonStyle(StandardButtonStyle())
+                controls(for: row)
             }
             .padding(.horizontal, PopoverMetrics.rowPadding)
             .frame(minHeight: PopoverMetrics.inboxRow)
+            // **The row's id is in the measured id, and it has to be.** `MeasureTree.assemble` keys
+            // nodes by path and resolves a collision with `uniquingKeysWith: { first, _ in first }`, so
+            // two rows whose controls carry the same id at the same path drop the second row's
+            // controls silently — measured here: a two-item queue dumped three controls, not six, and
+            // nothing said so. Scoping the row rather than the controls keeps the control ids stable
+            // for `popover.pairing.tsv` while making every path unique.
+            .measured(
+                "inbox-row-\(row.id)", role: "table-row", kind: .hstack,
+                type: .callout, text: row.title
+            )
             .accessibilityElement(children: .contain)
             .accessibilityLabel("\(row.title), \(row.provenance)")
             .accessibilityActions {
                 // Named only where it does something. A VoiceOver action that opens a review which
                 // cannot install is the same lie as the button, said to a user who cannot see that
-                // the button is gone.
+                // the button is gone — and the same is true of an approval that could not construct
+                // a declaration.
+                if row.isApprovable {
+                    Button(InboxCopy.Band.approveAction) { approve(row) }
+                }
                 if row.isReviewable {
                     Button(InboxCopy.reviewAction) {
                         MenuBarRouter.revealInbox(itemID: row.id, on: shell)
                     }
                 }
-                Button(InboxCopy.declineAction) { shell.declineFromOutside(itemID: row.id) }
+                Button(InboxCopy.Band.declineAction) { shell.declineFromOutside(itemID: row.id) }
             }
+        }
+
+        /// The row's controls, in the mock's order: `Approve`, `Review…`, `Not now`.
+        ///
+        /// Three separate `Button`s rather than a menu or a segmented control, because
+        /// `spec-M20.md`'s acceptance line is that *"a structure dump of the popover shows three
+        /// separately focusable controls in the queued-item band"* — a control that has to be opened
+        /// before its options are reachable is one focusable thing, not three.
+        ///
+        /// `Approve` is absent rather than disabled where the row is not approvable, which is the
+        /// same rule the row's own `Review` affordance follows: this band has no room for a
+        /// disabled-reason line beside a button, and `DESIGN.md`'s Disabled state asks for the reason
+        /// to be readable where the control is. A row that cannot be approved still carries
+        /// `Review…`, which is where the requirement fields and the full statement are.
+        ///
+        /// **`Approve` leads but is not accent-filled, and that is a declared divergence from the
+        /// mock rather than an oversight.** The mock draws it `btn primary` (`:1486`) and
+        /// `plan-M20.md` step 13 says *"(prominent)"*. `ProminentButtonStyle` here would put between
+        /// two and four accent-filled controls in the smallest surface in the app — the band caps at
+        /// `MenuBarPresentation.inboxBandLimit` rows and the footer's `Open MCP Router` already holds
+        /// this view's prominent slot — and `DESIGN.md:212` binds that budget to a live accessibility
+        /// deviation rather than to taste: `--on-accent` on `--accent` is a recorded contrast
+        /// shortfall that `LightAppearanceTests.darkOnAccentDeviationIsPinned` measures every run,
+        /// and *"exposure is bounded by §3 rule 4 — one prominent accent-filled action per view."*
+        /// The same passage names the way out: *"that control is distinguished by shape and position
+        /// too, never by colour alone."* So the emphasis is the mock's own leading position, and the
+        /// fill divergence is declared in `planning/fidelity/popover.pairing.tsv` where the gate
+        /// reads it.
+        @ViewBuilder
+        private func controls(for row: InboxBand.Row) -> some View {
+            if row.isApprovable {
+                Button(InboxCopy.Band.approveAction) { approve(row) }
+                    .buttonStyle(StandardButtonStyle())
+                    .measured(
+                        "inbox-approve", role: "primary-action", kind: .leaf,
+                        type: .body, text: InboxCopy.Band.approveAction
+                    )
+            }
+            if row.isReviewable {
+                Button(InboxCopy.reviewAction) { MenuBarRouter.revealInbox(itemID: row.id, on: shell) }
+                    .buttonStyle(StandardButtonStyle())
+                    .measured(
+                        "inbox-review", role: "state-action", kind: .leaf,
+                        type: .body, text: InboxCopy.reviewAction
+                    )
+            }
+            Button(InboxCopy.Band.declineAction) { shell.declineFromOutside(itemID: row.id) }
+                .buttonStyle(StandardButtonStyle())
+                .measured(
+                    "inbox-decline", role: "state-action", kind: .leaf,
+                    type: .body, text: InboxCopy.Band.declineAction
+                )
+        }
+
+        /// Approving is `async` on the model and a `Button` action is not, so it crosses a task
+        /// boundary here. `MenuBarRouter` is not involved: nothing is revealed and nothing activates.
+        private func approve(_ row: InboxBand.Row) {
+            Task { await shell.approveFromOutside(itemID: row.id) }
         }
 
         /// The three lines of a row. Shared so the reviewable and unreviewable shapes cannot say

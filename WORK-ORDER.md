@@ -1,6 +1,6 @@
-# Work order — M19
+# Work order — M20
 
-Invoke **`ship-feature`** on M19 and take it as far as the two stop rules allow.
+Invoke **`ship-feature`** on M20 and take it as far as the two stop rules allow.
 
 ## Stop rules — both are hard
 
@@ -12,7 +12,7 @@ Invoke **`ship-feature`** on M19 and take it as far as the two stop rules allow.
 
 ## Where you are
 
-Worktree `/Users/lukerhodes/Dev/mcp-router/.worktrees/M19`, branch `ai/m19`, cut from `main` at `87e16dc`.
+Worktree `/Users/lukerhodes/Dev/mcp-router/.worktrees/M20`, branch `ai/m20`, cut from `main` at `87e16dc`.
 
 `.claude/plugins/fledgeling-plugins` is a submodule and it is **uninitialised on purpose**. Do
 not run `git submodule update --init` — it puts 546 MB of plugin skills where Claude Code loads
@@ -21,8 +21,8 @@ plugin cache instead.
 
 ## Read these in full before writing anything
 
-- `planning/features-to-triage/M19-gfm-viewer.md` — the brief
-- `planning/specs/spec-M19.md` — the spec
+- `planning/features-to-triage/M20-menubar-status-notification.md` — the brief
+- `planning/specs/spec-M20.md` — the spec
 - `DESIGN.md` — design authority
 - `design/mcp-router-console.html` — **the design of record**, settled 2026-08-22. Not
   `design/mocks/prototype.html`, which is the superseded prototype and is cited only for
@@ -59,14 +59,14 @@ numbers.
   and `borderRadius` return `0px` where the CSS sets real values, while `paddingTop` and
   friends are correct.
 
-## Triage findings already on file for M19
+## Triage findings already on file for M20
 
 These came out of triage and are not yours to rediscover:
 
-To Do — triaged 2026-08-22. No Markdown rendering of any kind exists in the app and nothing in the campaign measures this feature at all, so M23's gate is the only thing that will catch drift. The mock's readme sheet gained a product header and a facts strip after the brief was written. One acceptance line waits on M21 for the badge colour — a dependency, not an owner question. Eight assumptions, no essential question
+To Do — triaged 2026-08-22. The app declares six command groups with no Router or Library menu and `⌘1`-`⌘7` over seven destinations; the mock wants nine, which waits on M22 and M15. The accelerator map disagrees three ways and the mock wins, recorded as an assumption. The status item has never been measured — `SURF-009` carries three `n/a` cases on a structural limit — and M23's harness is the route that reaches it. Eight assumptions, no essential question
 
 ## Deliver
 
-Commit incrementally on `ai/m19`. Write your progress note to `planning/progress/M19.md`. When
+Commit incrementally on `ai/m20`. Write your progress note to `planning/progress/M20.md`. When
 you stop, say in a few lines what landed, what you measured, and anything you could not settle
 — a parked item with a reason is worth more than a green nobody checked.

@@ -115,6 +115,31 @@ expect_red() {
   printf '  red   %-62s exit %s\n' "$label" "$status"
 }
 
+# expect_red_any <label> <dir> <substring> <substring> — red for EITHER of two reasons.
+#
+# Used where more than one guard legitimately catches the same mutation and which one fires first
+# is not the property under test. It is deliberately not the default: a case that will accept any
+# red is a case that cannot tell the right failure from a coincidental one.
+expect_red_any() {
+  local label="$1" dir="$2" first="$3" second="$4" status
+  status="$(check "$dir")"
+  if [ "$status" = 0 ]; then
+    fail=$((fail + 1))
+    printf '  STAYED GREEN  %s\n' "$label"
+    printf '                the mutation was applied and the check exited 0\n'
+    return
+  fi
+  if ! grep -qF "$first" "$WORK/out.txt" && ! grep -qF "$second" "$WORK/out.txt"; then
+    fail=$((fail + 1))
+    printf '  WRONG REASON  %s (exit %s)\n' "$label" "$status"
+    printf '                wanted either: %s | %s\n' "$first" "$second"
+    printf '                got: %s\n' "$(grep -m2 '^  ' "$WORK/out.txt" | tr '\n' ' ')"
+    return
+  fi
+  pass=$((pass + 1))
+  printf '  red   %-62s exit %s\n' "$label" "$status"
+}
+
 echo "parity-manifest-selftest — can the manifest check fail?"
 echo
 
@@ -343,11 +368,23 @@ echo
 # which is the whole of D-n.
 echo "the pinned census — the deletion neither derivation nor the lanes can see"
 
+# The wanted substring is the check's REASON, not its arithmetic.
+#
+# These four read `holds 82 rows and pins itself at 83` until M22, and all four had been reporting
+# WRONG REASON since the census outgrew 83 — the check was going red, with the correct finding, and
+# the selftest was comparing it against a sentence from an earlier size. A selftest that fails
+# whenever a row is legitimately added is a selftest that gets read as noise, which is how the one
+# case that matters would go unnoticed.
+#
+# `div-r1-d3` additionally trips the citation check first, because `div-r1-d3-control`'s note names
+# it — a stronger guard than the pin, and one that fires for a better reason. So each row is
+# accepted on EITHER finding rather than on one spelling of one of them: what this case asserts is
+# that deleting a blocked row cannot pass, not which of the two guards catches it.
 for row in div-r1-d3 install-claude-json install-import-servers install-rollback; do
   dir="$(scratch)"
   delete_row "$dir/planning/parity/surface.tsv" "$row" || true
-  expect_red "a blocked row deleted: $row" "$dir" \
-    'holds 82 rows and pins itself at 83'
+  expect_red_any "a blocked row deleted: $row" "$dir" \
+    'A row was added or removed' 'which is not a row id in this manifest'
 done
 
 # Addition is gated by the same number, and needs to be: a duplicate blocked twin sharing an
@@ -356,7 +393,7 @@ dir="$(scratch)"
 printf 'cli\tcli-auth-2\tauth\tblocked\tD-x\ta twin sharing an existing subject\n' \
   >> "$dir/planning/parity/surface.tsv"
 expect_red "a duplicate blocked twin ADDED" "$dir" \
-  'holds 84 rows and pins itself at 83'
+  'A row was added or removed'
 
 # And the pin itself has to be there.
 dir="$(scratch)"

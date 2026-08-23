@@ -173,7 +173,7 @@ struct InboxBandTests {
             )
         )
         let content = PopoverContent(
-            counts: MenuBarPresentation.Counts(running: 1, idle: 0, tools: 2),
+            counts: MenuBarPresentation.Counts(running: 1, idle: 0, tools: 2, declared: 1),
             band: [MenuBarPresentation.AttentionRow(server: "s", cause: .heldChange)],
             inbox: .band(band)
         )

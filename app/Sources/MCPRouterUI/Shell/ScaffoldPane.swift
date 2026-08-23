@@ -51,7 +51,8 @@
         /// above sits deliberately **before** the declaration rather than between it and its
         /// closing bracket, where a stray `[` would be swept into the collected line.
         public static let installed: Set<Destination> = [
-            .servers, .skills, .activity, .discover, .evals, .cleanup, .inbox
+            .servers, .skills, .activity, .discover, .evals, .cleanup, .inbox,
+            .harnesses, .insights
         ]
 
         public static func hasBoard(_ destination: Destination) -> Bool {

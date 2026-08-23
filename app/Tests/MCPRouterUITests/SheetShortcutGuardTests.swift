@@ -25,7 +25,7 @@
         /// Escape path* was 9 of 15 — the conclusion it drew is unchanged and its population was one
         /// short, which is why this list is asserted rather than described.
         static let sheetViews: Set<String> = [
-            "ActivityResetHistorySheet", "AddServerSheet", "ChildPathSheet", "DiscoverDetailSheet",
+            "ActivityResetHistorySheet", "AddServerSheet", "CapabilityDocumentSheet", "ChildPathSheet", "DiscoverDetailSheet",
             "HeldChangeSheet", "HeldVersionSheet", "InboxReviewSheet", "MarketplacesSheet",
             "MissingSubjectSheet", "OfficialMarkSheet", "PairingSheet", "RemoveServerDialog",
             "RemoveServerSheet", "ResetHistorySheet", "ShimExplanationSheet", "SkillProvenanceSheet"

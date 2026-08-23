@@ -84,12 +84,43 @@ enum WatchStaging {
         return (remove, stillPending)
     }
 
-    /// The `mcpServers` object of a parsed `~/.claude.json`, or an empty one.
+    /// The `mcpServers` object of a parsed `~/.claude.json`, including project-scoped servers (R16).
     static func stagedServers(of parsed: JSONValue) -> [JSONMember] {
-        guard let root = parsed.asObjectMembers,
-              case let .object(members)? = root
-              .first(where: { $0.key == JSString("mcpServers") })?.value
-        else { return [] }
+        guard let root = parsed.asObjectMembers else { return [] }
+        var members: [JSONMember] = []
+
+        if case let .object(globals)? = root
+            .first(where: { $0.key == JSString("mcpServers") })?.value
+        {
+            members.append(contentsOf: globals)
+        }
+
+        if case let .object(projects)? = root
+            .first(where: { $0.key == JSString("projects") })?.value
+        {
+            for proj in projects {
+                let projectPath = proj.key.string
+                guard case let .object(projMembers) = proj.value,
+                      case let .object(projServers)? = projMembers
+                      .first(where: { $0.key == JSString("mcpServers") })?.value
+                else { continue }
+
+                for server in projServers {
+                    if case var .object(serverMembers) = server.value {
+                        let projectsKey = JSString("projects")
+                        if !serverMembers.contains(where: { $0.key == projectsKey }) {
+                            serverMembers.append(JSONMember(
+                                key: projectsKey,
+                                value: .array([.string(JSString(projectPath))])
+                            ))
+                        }
+                        members.append(JSONMember(key: server.key, value: .object(serverMembers)))
+                    } else {
+                        members.append(server)
+                    }
+                }
+            }
+        }
         return members
     }
 

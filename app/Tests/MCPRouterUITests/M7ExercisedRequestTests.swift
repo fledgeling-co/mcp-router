@@ -67,6 +67,17 @@
 
         var serversToServe: [MCPServer] = []
         var skillsToServe = SkillsResponse()
+        var summaryToServe = UsageSummary(since: "", servers: [])
+
+        /// Set to make the next `servers()` throw. Added for M12, which has to reach
+        /// `CleanupBoardModel.LoadState.stale` — the state where a poll failed and the previous
+        /// reading is kept — and that state is unreachable against a double that always answers.
+        var serversFailure: ControlAPIError?
+
+        /// The same, for `usageSummary()`. It fails independently of `servers()` in the real client
+        /// and the board handles it in its own `catch`, so a double that could only fail both at once
+        /// would leave the branch that drops the call count untested.
+        var summaryFailure: ControlAPIError?
 
         var calls: [String] {
             lock.lock(); defer { lock.unlock() }
@@ -95,6 +106,7 @@
 
         func servers() async throws(ControlAPIError) -> ServersResponse {
             record("servers")
+            if let serversFailure { throw serversFailure }
             return ServersResponse(
                 port: 1,
                 idleMs: 300_000,
@@ -123,7 +135,8 @@
 
         func usageSummary() async throws(ControlAPIError) -> UsageSummary {
             record("usageSummary")
-            return UsageSummary(since: "", servers: [])
+            if let summaryFailure { throw summaryFailure }
+            return summaryToServe
         }
 
         func heldChanges(for name: String) async throws(ControlAPIError) -> HeldChanges {

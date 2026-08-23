@@ -258,6 +258,107 @@ pass "A16: no enabled skill-removal control anywhere in the Cleanup pane"
 
 echo
 echo "=============================================================="
+echo "A15c / M12 — a destructive dialog dates the figures it states"
+echo "=============================================================="
+# M7's Phase D critic raised two findings against these dialogs and deferred both to M12: a figure
+# from the last successful poll shown in the present tense, and no as-of time for what accrues
+# between the poll and the POST. Neither dialog had ANY rendered coverage before this section — the
+# gate walked the board and never opened a sheet, so every claim about either was a source read.
+#
+# The stamp is asserted as a **clock time that does not move**, because that is the property the
+# design turns on. A relative age would freeze at whatever it said when the sheet opened, and a
+# dialog is exactly the surface that sits still.
+
+open_sheet() {
+    "$AXKIT" press "$PID" "$1" >/dev/null || fail "could not press '$1' through the accessibility API"
+    sleep 2
+    dump
+    # Checked here as well as at close, so a run that takes the screen names the step that took it.
+    # Without this the whole open-assert-close sequence is one suspect: the first run of this section
+    # failed the invariant at the removal dialog's Cancel, and could not say whether pressing a ROW
+    # button (which selects the row) or dismissing the sheet was what activated the app.
+    check_invisible "opening a sheet with '$1'"
+}
+
+# Cancel, never Escape. `axkit key` posts a CGEvent to the pid and a sheet's Escape handling runs
+# through the key window, which an inactive app does not reliably have — so a dismissal that way
+# would be a step whose failure looks like a passing one. The button is an AXButton and AXPress on
+# it runs the action on the element itself, which is the same reason `open_sheet` is safe.
+close_sheet() {
+    "$AXKIT" press "$PID" "Cancel" >/dev/null || fail "could not dismiss $1"
+    sleep 1
+    dump
+    if spoken | grep -qi "Keep its recorded calls\|Reset the recorded call history"; then
+        fail "$1 is still on screen after Cancel — the next assertions would read the wrong surface"
+    fi
+    check_invisible "$1"
+}
+
+# --- the reset dialog, from the pane header
+open_pane Cleanup
+open_sheet "Reset history"
+
+spoken | grep -qi "Reset the recorded call history" \
+  || fail "pressing 'Reset history…' did not open the reset dialog"
+pass "A15c: the reset dialog opened, backgrounded"
+
+spoken | grep -q "reading taken at" \
+  || fail "the reset dialog states no time for the figure it draws from the last poll (M12, finding 8)"
+pass "A15c: the reset dialog names when its figure was read"
+
+spoken | grep -qi "recorded after that is discarded as well" \
+  || fail "the reset dialog does not say that what accrues after the reading is discarded too"
+pass "A15c: the figure is disclosed as a floor, not as the whole of what is lost"
+
+# It is a clock time, not an elapsed age, and this row has to be able to read it as one.
+#
+# What stood here swept six relative shapes as `reading taken $shape` and could match none of them.
+# The sentence hardcodes `at ` after `taken`, and `shortAgo` puts a digit where that pattern wanted
+# the unit — so `reading taken at 3m ago`, the regression the plan review killed and the one this
+# design decision exists to prevent, passed the row claiming to prove it absent. M12's verification
+# proved that by planting it: the defect live in the app, `24 passed, 0 failed`, exit 0.
+#
+# It reads the text that actually follows the phrase now, and asserts a clock time is present rather
+# than that a relative phrase is absent. `shortAgo`'s whole vocabulary — `now`, `12s`, `3m`, `5h`,
+# `2d`, `3mo` — carries no colon, so the relative form is what this cannot match.
+STAMP="$(spoken | grep -oE 'reading taken at [^.]+' | head -1 | sed 's/^reading taken at //' || true)"
+[ -n "$STAMP" ] \
+  || fail "nothing follows 'reading taken at' in the reset dialog — the stamp assertion below would read an empty string and pass"
+pass "A15c: the reset dialog's as-of stamp is on screen and non-empty — '$STAMP'"
+
+printf '%s\n' "$STAMP" | grep -qE '[0-9]{1,2}:[0-9]{2}' \
+  || fail "the reset dialog's as-of stamp is '$STAMP', which states no clock time — a relative age freezes at whatever it read when the sheet opened"
+pass "A15c: the as-of stamp is a clock time, so it cannot decay while the dialog sits open"
+
+# And the sheet did not quietly acquire a second wording for the consequence it shares with Activity.
+spoken | grep -qi "no way to bring them back\|nothing to discard\|has not said how many" \
+  || fail "the reset dialog draws none of the three consequence sentences it is supposed to"
+pass "A15c: the shared consequence is still on screen beside the provenance line"
+
+close_sheet "the reset dialog"
+
+# --- the removal dialog, from a server row
+open_sheet "Remove…"
+
+# Identified by the two things only this dialog draws: its toggle, and the consequence M3 wrote.
+spoken | grep -qi "Keep its recorded calls" \
+  || fail "pressing a row's 'Remove…' did not open the removal dialog"
+pass "A15c: the removal dialog opened, backgrounded"
+
+spoken | grep -q "was read at" \
+  || fail "the removal dialog states no time for the tool count and key names it draws"
+pass "A15c: the removal dialog names when its figures were read"
+
+# §9: the disclosure is still there. A provenance line that had replaced the consequence would be
+# a worse dialog than the one this item started from.
+spoken | grep -qi "leave every session's tool list\|leave the sessions it is scoped to" \
+  || fail "the removal dialog no longer states what removing the server takes with it"
+pass "A15c: the named consequence is still on screen beside the provenance line"
+
+close_sheet "the removal dialog"
+
+echo
+echo "=============================================================="
 echo "The unhappy paths, in the same launch"
 echo "=============================================================="
 launch offline

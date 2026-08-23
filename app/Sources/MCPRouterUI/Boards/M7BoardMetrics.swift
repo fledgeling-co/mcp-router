@@ -95,7 +95,11 @@
             case .populated: "LoadState.loaded with candidates — the proposal"
             case .empty: "nothing is a candidate — CleanupPresentation.emptyTitle, and no action"
             case .loading: "LoadState.loading — M7SkeletonRows at M7BoardMetrics.rowHeight"
-            case .partial: "an unreadable client holds every skill out — CleanupPresentation.heldOutBanner"
+            case .partial:
+                // Two conditions, not one. The second is M12: a destructive dialog covers the
+                // board's own StaleReadingBanner, so it carries the same marker itself.
+                "an unreadable client holds every skill out — CleanupPresentation.heldOutBanner; a "
+                    + "destructive dialog over LoadState.stale — CleanupPresentation.Provenance.marked"
             case .error: "a refused removal leaves the row in place, with the router's own message"
             case .success: "the row leaves, counts decrement, and nothing is tallied as reclaimed"
             case .offline: "ControlAPIError.routerNotRunning, in either failed or stale"

@@ -35,9 +35,12 @@
         let name: String
         @State private var keepHistory = false
 
-        private var candidate: CleanupBoardModel.Candidate? {
-            board.candidates.first { $0.kind == .server && $0.key.id == name }
-        }
+        /// Looked up on the model rather than filtered here, so the removal dialog's two decisions
+        /// — what it may disclose and whether it may act — are the same lookup and are both
+        /// assertable without a host.
+        private var candidate: CleanupBoardModel.Candidate? { board.candidate(named: name) }
+
+        private var refusal: String? { board.removalRefusalReason(for: name) }
 
         var body: some View {
             VStack(alignment: .leading, spacing: M7BoardMetrics.gap * 2) {
@@ -65,6 +68,12 @@
                     .typeRole(.body)
                     .foregroundStyle(ColorToken.t2.color)
                     .fixedSize(horizontal: false, vertical: true)
+
+                    // When the two paragraphs above were read, and whether that reading is still the
+                    // router's current answer. M7's Phase D findings 4 and 8: a figure drawn from the
+                    // last successful poll, in the present tense, inside a dialog that covers the
+                    // board's own stale banner.
+                    ProvenanceNote(board.removeFigureProvenance)
                 } else {
                     // The row left the list while its dialog was open — a poll landed and the server
                     // is no longer a candidate. Without a candidate there are no tools and no key
@@ -134,8 +143,9 @@
                         Task { await board.remove(name, keepHistory: keepHistory) }
                     }
                     .buttonStyle(StandardButtonStyle())
-                    .disabled(candidate == nil)
-                    .help(candidate == nil ? CleanupPresentation.consequenceUnavailable : "")
+                    // A stale reading is deliberately not a refusal — see `removalRefusalReason`.
+                    .disabled(refusal != nil)
+                    .help(refusal ?? "")
                 }
             }
             .padding(M7BoardMetrics.panePadding)
@@ -168,6 +178,10 @@
                 .typeRole(.body)
                 .foregroundStyle(ColorToken.t2.color)
                 .fixedSize(horizontal: false, vertical: true)
+
+                // When that count was read, and that it is a floor: calls recorded between the poll
+                // and this POST are discarded too and are not in it. M7's Phase D finding 8.
+                ProvenanceNote(board.resetFigureProvenance)
 
                 if let error = board.writeError {
                     Text(error.userFacingDescription)
@@ -303,6 +317,42 @@
                     .fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityElement(children: .combine)
+        }
+    }
+
+    /// Where a destructive dialog's figures came from, drawn at the volume the state earns.
+    ///
+    /// **The branch is not here.** The view switches over a `CleanupPresentation.Provenance` the
+    /// model already decided, so "a stale reading is marked and a current one is quiet" is a claim a
+    /// test can make against a value rather than against a rendered tree. A `if board.isStale` written
+    /// into each of the two sheets would put the whole of M12 in the one layer this repo cannot
+    /// assert on, and would let the two dialogs drift into different treatments of one state.
+    ///
+    /// The two treatments differ **structurally** and not only in hue — a bordered banner with a glyph
+    /// against a bare caption — so the distinction survives `accessibilityDifferentiateWithoutColor`.
+    /// `Banner` is the component `StaleReadingBanner` and `PartialIndexNote` already use, which keeps
+    /// `--attn` on the glyph in its declared `pairedWithAWord` role and the sentence itself at `--t2`.
+    struct ProvenanceNote: View {
+        private let provenance: CleanupPresentation.Provenance
+
+        init(_ provenance: CleanupPresentation.Provenance) {
+            self.provenance = provenance
+        }
+
+        var body: some View {
+            switch provenance {
+            case .none:
+                // Nothing observed to date, so nothing is said. An empty `Text` would draw a gap
+                // where a reader expects a sentence, which is a different claim from silence.
+                EmptyView()
+            case let .quiet(text):
+                Text(text)
+                    .typeRole(.caption)
+                    .foregroundStyle(ColorToken.t3.color)
+                    .fixedSize(horizontal: false, vertical: true)
+            case let .marked(text):
+                Banner(icon: .warn, tint: .attention) { Text(text) }
+            }
         }
     }
 

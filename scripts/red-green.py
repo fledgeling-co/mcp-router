@@ -769,5 +769,79 @@ def main() -> int:
     return 1 if bad else 0
 
 
+# ---------------------------------------------------------------- M20's drift guards (A3 A4 B2 C1 D1)
+#
+# `plan-M20.md` §6 promised that each of these five is broken deliberately and seen red before it is
+# trusted, and the promise was not kept: no evidence ledger existed, and none of the 53 mutations
+# above names a menu command, a band control or a notification family. Worse, this file's own `"M20"`
+# reads like the item id and is not — it is the twentieth mutation in the M01…M59 namespace, on
+# `ServerStateTracker.swift`, present unchanged at M20's branch point. A grep for the item id would
+# have reported these guards armed.
+#
+# So they are armed here, with ids outside that namespace so the collision cannot recur. The paths
+# reach outside `SRC` (which is Control/) because M20's decisions live in Shell/ and Inbox/ —
+# `Mutation.path` is absolute, so the constant was a convenience rather than a boundary.
+
+SHELL = APP / "Sources" / "MCPRouterKit" / "Shell"
+INBOX = APP / "Sources" / "MCPRouterKit" / "Inbox"
+UI_SHELL = APP / "Sources" / "MCPRouterUI" / "Shell"
+
+mut(
+    "M20-A3", "A3", "every unbuilt command says what is unbuilt, in words of its own",
+    SHELL / "MenuCommandAvailability.swift",
+    'case .runAllChecks: "Running every check at once"',
+    'case .runAllChecks: "Updating every skill at once"',
+    "every unbuilt command says what is unbuilt, in words of its own",
+)
+
+mut(
+    "M20-A4", "A4", "a command that can never fire claims no shortcut",
+    SHELL / "MenuCommand.swift",
+    "        case .wakeServer: KeyChord(\"W\", [.control])",
+    "        case .wakeServer: KeyChord(\"W\", [.control])\n"
+    "        case .stopRouter: KeyChord(\"K\", [.control, .option])",
+    "a command that can never fire claims no shortcut",
+)
+
+# B2's three conditions collapse to two, which is the shape a later edit would actually take: the
+# requirement check is the one with no precedent in this file, so it is the one worth arming.
+mut(
+    "M20-B2", "B2", "a row asking for a value it cannot be given is not approvable",
+    INBOX / "InboxBand.swift",
+    "        guard let entry = item.resolved else { return false }\n"
+    "        return RegistryCapability.missingRequirements(for: entry, values: [:]).isEmpty",
+    "        return item.resolved != nil",
+    [
+        "a row is approvable only when the entry resolved, the preference is on and nothing is blank",
+        "canApprove refuses an unread entry and one with a value still blank",
+    ],
+)
+
+mut(
+    "M20-C1", "C1", "no route of either notification family installs anything",
+    INBOX / "FindingArrival.swift",
+    "        case .reviewCapability, .explainFinding, .dismiss, .openInbox: false",
+    "        case .reviewCapability: true\n"
+    "        case .explainFinding, .dismiss, .openInbox: false",
+    [
+        "no route of either notification family installs anything, over every case",
+        "every registered category offers nothing that installs, across both families",
+    ],
+)
+
+# D1's exception, mutated at the gate rather than at the button: dropping the preference check is the
+# edit that ships an install path nobody asked for, and the band's own `isApprovable` would still
+# hide the control — so a clause reading only the view would stay green.
+mut(
+    "M20-D1", "D1", "the popover's install path re-checks every condition rather than trusting the view",
+    UI_SHELL / "ShellModelInbox.swift",
+    "            guard isApproveFromPopoverEnabled,\n"
+    "                  let item = inboxBoard.rows.first(where: { $0.id == itemID }),\n"
+    "                  InboxBand.canApprove(item),",
+    "            guard let item = inboxBoard.rows.first(where: { $0.id == itemID }),",
+    "approving from the popover installs exactly once, and only under all three conditions",
+)
+
+
 if __name__ == "__main__":
     sys.exit(main())

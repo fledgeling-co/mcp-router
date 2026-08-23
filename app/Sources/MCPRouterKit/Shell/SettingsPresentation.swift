@@ -95,6 +95,28 @@ public enum SettingsPresentation {
     /// whose main feature is undiscoverable.
     public static let menuBarVisibleDefault = true
 
+    public static let approveFromPopoverLabel = "Approve from the popover"
+    public static let approveFromPopoverHelp = """
+    On, a queued item can be installed from the menu bar without opening this window. The Mac still \
+    reads the entry itself and still shows what it would run beside the button. Off, the popover \
+    offers Review… only, and every install is made in the window with the command line on screen.
+    """
+
+    /// Where the preference lives. Not a secret, so `UserDefaults` is correct for it — the same
+    /// reading `menuBarVisibleKey` records.
+    public static let approveFromPopoverKey = "shell.approveFromPopover"
+
+    /// **On by default, as the design of record draws it** — the mock's switch is
+    /// `aria-checked="true"` (`design/mcp-router-console.html:1685`), and its switch states are
+    /// deliberate rather than uniform: 17 are drawn on and 2 off, and one of the two off is
+    /// `Reconcile without asking`, the mock's other gate-removing switch.
+    ///
+    /// `plan-M20.md` §3.1 records why defaulting it off buys nothing it appears to buy: accepting is
+    /// irreversible on both paths, so an extra click does not make it reversible — it adds disclosure
+    /// before the same irreversible press. The control that does work is enablement on a resolved
+    /// item, and that ships whatever this default is. Flipping it is this one constant.
+    public static let approveFromPopoverDefault = true
+
     // MARK: - The warm set
 
     /// How many servers are kept resident, and which.

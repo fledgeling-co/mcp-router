@@ -374,17 +374,28 @@ dump_menu
 sleep 1.5
 dump_menu
 
-# ---------------------------------------------------------------- A19 · the six menus
+# ---------------------------------------------------------------- A19 · the eight menus
 
 # The Apple menu is macOS's and is excluded by name, the same way the Window menu's list of open
-# windows is. Six is the count of menus the app is responsible for.
+# windows is. Eight is the count of menus the app is responsible for.
+#
+# Six until M20, which adds the mock's Router and Library. They are declared as `CommandMenu`s
+# rather than `CommandGroup`s — a whole menu of the app's rather than a position in one macOS
+# already owns — and SwiftUI places a `CommandMenu` immediately before the Window menu, which is
+# where the mock draws both. **The order below is read back off the running bar**, so if SwiftUI
+# ever places them elsewhere this is what says so rather than the app quietly drawing a menu bar
+# nobody specified.
 MENUS="$(awk -F'\t' '$1 == 1 && $2 == "AXMenuBarItem" { print $4 }' "$WORK/menu.tsv" | grep -v '^Apple$' || true)"
 MENU_COUNT="$(printf '%s\n' "$MENUS" | grep -c . || true)"
-[ "$MENU_COUNT" -eq 6 ] || fail "the menu bar carries $MENU_COUNT app menus, expected 6: $(printf '%s ' $MENUS)"
-for want in "MCP Router" File Edit View Window Help; do
+[ "$MENU_COUNT" -eq 8 ] || fail "the menu bar carries $MENU_COUNT app menus, expected 8: $(printf '%s ' $MENUS)"
+for want in "MCP Router" File Edit View Router Library Window Help; do
     printf '%s\n' "$MENUS" | grep -qxF "$want" || fail "the menu bar has no '$want' menu"
 done
-pass "exactly six app menus: $(printf '%s' "$MENUS" | paste -sd'|' -)"
+EXPECTED_ORDER="MCP Router|File|Edit|View|Router|Library|Window|Help"
+ACTUAL_ORDER="$(printf '%s' "$MENUS" | paste -sd'|' -)"
+[ "$ACTUAL_ORDER" = "$EXPECTED_ORDER" ] \
+    || fail "the menu bar's order is $ACTUAL_ORDER, expected $EXPECTED_ORDER"
+pass "exactly eight app menus, in bar order: $ACTUAL_ORDER"
 
 # Every menu item title, with its menu, its enabled state and its help tag.
 #

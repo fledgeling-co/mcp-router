@@ -224,6 +224,13 @@ public struct ControlDeps: Sendable {
     /// Starting a browser authorization. The daemon supplies ``OAuthFlowStarter``; `ControlDiff`
     /// supplies none. See ``AuthFlowStarting`` for what an absence means on the wire.
     public var authFlow: (any AuthFlowStarting)?
+    /// Where `GET /harnesses` reads from. Optional for the reason ``registry`` is: `ControlDiff`
+    /// is an in-process oracle for the routes the reference answers, and this is not one of them —
+    /// giving it a real one would put every developer's own `$HOME` inside a parity run.
+    public var harnesses: (any HarnessInventorySource)?
+    /// Where `GET /insights` gets the two figures only the pool holds. Optional for the same
+    /// reason, and with a stronger one: `ControlDiff` has no pool at all.
+    public var insights: (any InsightsSource)?
 
     public init(
         config: RouterConfig,
@@ -240,7 +247,9 @@ public struct ControlDeps: Sendable {
         configPath: String,
         registry: RegistryDeps? = nil,
         log: RouterLog? = nil,
-        authFlow: (any AuthFlowStarting)? = nil
+        authFlow: (any AuthFlowStarting)? = nil,
+        harnesses: (any HarnessInventorySource)? = nil,
+        insights: (any InsightsSource)? = nil
     ) {
         self.config = config
         self.upstreams = upstreams
@@ -257,6 +266,8 @@ public struct ControlDeps: Sendable {
         self.registry = registry
         self.log = log
         self.authFlow = authFlow
+        self.harnesses = harnesses
+        self.insights = insights
     }
 
     /// Lookup by JavaScript string identity — a composed key does not match a decomposed request,

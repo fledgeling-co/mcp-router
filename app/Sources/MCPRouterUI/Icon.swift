@@ -14,6 +14,7 @@ import SwiftUI
 /// it by actually drawing the thing.
 public enum Icon: String, CaseIterable, Sendable {
     case activity, servers, skills, discover, inbox, evals, cleanup, settings
+    case harness, insights
     case search, chev, check, warn, bang, shield, bolt, tray, book, list, compass, layers
     case conduit
     /// The cold-start mark, on a call row and on a popover call row alike.
@@ -27,6 +28,14 @@ public enum Icon: String, CaseIterable, Sendable {
     /// duplicate that the count assertion cannot see (22 is 22 either way), so the merge keeps this
     /// one and the popover uses it.
     case frost
+
+    /// The rail's flow arrow, between the hub and the jack field.
+    ///
+    /// The console mock's sprite carries `#i-arrow-r` and the prototype's twenty-one did not, so
+    /// this is an addition rather than a symbol that arrived without a reason. The Signal Path reads
+    /// left to right and the arrows are what say so; `chev` is the disclosure mark and means
+    /// something else, which is why this is not that.
+    case flow
 
     /// The SF Symbol that carries this icon, or nil when it is authored here instead.
     ///
@@ -44,6 +53,10 @@ public enum Icon: String, CaseIterable, Sendable {
         // Deliberately NOT a bin or a trash can. `DESIGN.md` §9: a never-used server was never
         // deleted, so Cleanup does not use a trash metaphor.
         case .cleanup: "arrow.down.circle"
+        // The mock draws a drawn harness glyph and a bar-chart glyph; these are the SF
+        // Symbols nearest each at the same 1.4-ish stroke weight, per §4.
+        case .harness: "point.3.connected.trianglepath.dotted"
+        case .insights: "chart.bar"
         case .settings: "gearshape"
         case .search: "magnifyingglass"
         case .chev: "chevron.right"
@@ -59,6 +72,7 @@ public enum Icon: String, CaseIterable, Sendable {
         case .layers: "square.3.layers.3d"
         case .conduit: nil
         case .frost: "snowflake"
+        case .flow: "arrow.right"
         }
     }
 

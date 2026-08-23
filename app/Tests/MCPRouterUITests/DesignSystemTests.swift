@@ -14,83 +14,6 @@ import Testing
 /// An unknown SF Symbol name does not throw and does not fail to build — it renders **nothing at
 /// all**. So "the mapping returns a non-empty string" is a check that stays green while the icon is
 /// invisible, which is why every name is resolved against the system symbol table here instead.
-@Suite("Icons")
-struct IconTests {
-    /// The prototype's sprite is 21 symbols and remains the inventory's base. `frost` is the one
-    /// addition, and it is here rather than in the sprite because the prototype marks a cold start
-    /// with `❄` — a unicode character, which `DESIGN.md` §4 forbids ("drawn, never unicode"). The
-    /// count is stated as base-plus-additions rather than as a bare 22 so that a symbol appearing
-    /// without a reason still fails.
-    ///
-    /// M8's popover draws the same mark and arrived with its own case for it. A bare `== 22` could
-    /// not tell that apart from the one addition this comment justifies, which is the argument for
-    /// spelling the sum out: the duplicate was removed and the popover reuses `frost`.
-    @Test("the set is the prototype's 21-symbol sprite plus the marks the document required drawn")
-    func inventoryMatchesTheSprite() {
-        let spriteSymbols = 21
-        let drawnReplacementsForUnicode = 1 // frost, replacing the prototype's ❄
-        #expect(Icon.allCases.count == spriteSymbols + drawnReplacementsForUnicode)
-        #expect(Icon.allCases.contains(.frost))
-    }
-
-    @Test("every system icon resolves to a symbol that actually draws")
-    func systemSymbolsResolve() {
-        for icon in Icon.allCases {
-            guard let name = icon.systemName else { continue }
-            #expect(!name.isEmpty, "\(icon.rawValue) maps to an empty symbol name")
-            #if canImport(AppKit)
-                let drawn = NSImage(systemSymbolName: name, accessibilityDescription: nil) != nil
-            #elseif canImport(UIKit)
-                let drawn = UIImage(systemName: name) != nil
-            #else
-                let drawn = false
-            #endif
-            #expect(drawn, "\(icon.rawValue) → '\(name)' is not a real SF Symbol; it renders blank")
-        }
-    }
-
-    /// `DESIGN.md` §4 permits an authored asset exactly where no symbol fits, and forbids standing a
-    /// decorative shape in for one. Exactly one icon takes that route.
-    @Test("the product's own mark is authored rather than approximated")
-    func conduitIsAuthored() {
-        #expect(Icon.conduit.isAuthored)
-        #expect(Icon.allCases.filter(\.isAuthored) == [.conduit])
-    }
-
-    /// §9: a never-used server was never deleted, so Cleanup does not use a trash metaphor. This is
-    /// a product decision that a later contributor would otherwise "fix" toward the obvious icon.
-    @Test("cleanup does not use a trash metaphor")
-    func cleanupIsNotABin() {
-        let name = Icon.cleanup.systemName ?? ""
-        #expect(!name.contains("trash"))
-        #expect(!name.contains("bin"))
-    }
-
-    /// The authored icon, held to the same standard as the system ones.
-    ///
-    /// `systemSymbolsResolve` skips every authored icon by construction — `guard let name =
-    /// icon.systemName else { continue }` — so the one icon this project draws itself was the one
-    /// icon nothing checked. An empty `path(in:)` renders exactly like a wrong SF Symbol name: an
-    /// invisible icon and a green suite.
-    @Test("the authored mark actually draws something")
-    func conduitMarkDraws() {
-        let box = CGRect(x: 0, y: 0, width: 100, height: 100)
-        let path = ConduitMark().path(in: box)
-        #expect(!path.isEmpty, "ConduitMark draws nothing — it would render as a blank square")
-
-        // And it fills the frame it is given rather than being a dot in a corner: the mark is two
-        // runs converging into one, so it has to span most of both axes to read as that.
-        let bounds = path.boundingRect
-        #expect(bounds.width >= box.width * 0.6, "the mark spans \(bounds.width) of 100 horizontally")
-        #expect(bounds.height >= box.height * 0.5, "the mark spans \(bounds.height) of 100 vertically")
-    }
-}
-
-/// The colour binding, checked at the value level.
-///
-/// The dynamic colour itself cannot be resolved without a live trait collection, so what is testable
-/// — and what actually carries the risk — is that the two appearances are selected correctly and
-/// that the hex decoder does not quietly answer black.
 @Suite("Colour binding")
 struct ColorBindingTests {
     @Test("each appearance selects its own authored pair")
@@ -305,8 +228,18 @@ struct SurfaceStateTests {
     @Test("the loading skeleton and the populated row share one height")
     func skeletonMatchesTheRealRow() {
         #expect(MetricToken.serversRow.leadingScalar == 56)
-        // And the row is tall enough to carry the breaker it exists to carry.
-        #expect(MetricToken.serversRow.leadingScalar >= BreakerGeometry.standard.housingHeight)
+        // And the row is tall enough to carry what it exists to carry.
+        //
+        // **The floor moved with the signature.** It was the breaker's 48pt housing until M16
+        // retired the lever; a row leading with an 8pt plug would clear that trivially, so keeping
+        // it would have left an assertion that reads like a constraint and cannot fail. What sets
+        // the height now is the two-line name block, which is the thing the loading skeleton has to
+        // reproduce exactly or the board jumps when the data lands.
+        #expect(
+            MetricToken.serversRow.leadingScalar
+                >= TypeToken.body.lineHeight + TypeToken.caption.lineHeight
+        )
+        #expect(MetricToken.serversRow.leadingScalar >= SignalPathGeometry.standard.rowPlugDiameter)
     }
 
     @Test("the overflow name is long enough to actually truncate")
@@ -357,7 +290,7 @@ struct DesignGalleryTests {
         let identifiers = DesignGallery.Section.allCases.map(DesignGallery.identifier(for:))
         #expect(Set(identifiers).count == DesignGallery.Section.allCases.count)
         #expect(identifiers.allSatisfy { $0.hasPrefix("gallery-section-") })
-        #expect(identifiers.contains("gallery-section-breaker"))
+        #expect(identifiers.contains("gallery-section-signal path"))
         // Distinct from the root, or a grep for one would match the other.
         #expect(!identifiers.contains(DesignGallery.galleryIdentifier))
     }

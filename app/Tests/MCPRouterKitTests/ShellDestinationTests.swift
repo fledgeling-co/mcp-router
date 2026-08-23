@@ -7,8 +7,8 @@ import Testing
 struct ShellDestinationTests {
     @Test("the two groups carry exactly the destinations the design specifies, in order")
     func groupsAreCorrect() {
-        #expect(Destination.inGroup(.running) == [.activity, .servers, .skills])
-        #expect(Destination.inGroup(.library) == [.discover, .inbox, .evals, .cleanup])
+        #expect(Destination.inGroup(.running) == [.activity, .servers, .skills, .harnesses])
+        #expect(Destination.inGroup(.library) == [.discover, .inbox, .evals, .cleanup, .insights])
         // Declaration order is sidebar order, and the two groups partition it **exactly**. There is
         // no ungrouped tail any more — it held Settings alone, and Settings is a window — so this is
         // now a total partition rather than a partition plus a remainder, which is why `group` is
@@ -58,10 +58,15 @@ struct ShellDestinationTests {
         }
     }
 
-    @Test("exactly seven destinations carry a selection digit, numbered 1 through 7")
+    /// **Contiguous *and* in sidebar order**, which is the half M22 made load-bearing. The View
+    /// menu lists destinations in declaration order and labels each with its digit, so a digit that
+    /// does not follow the list prints `⌘1 ⌘2 ⌘3 ⌘8 ⌘4 …` down one menu. Comparing against a
+    /// literal sequence catches a renumbering; comparing `digits` against `1...count` would not
+    /// catch a *permutation*, which is the mistake actually available here.
+    @Test("exactly nine destinations carry a selection digit, numbered 1 through 9 in sidebar order")
     func selectionDigitsAreContiguous() {
         let digits = Destination.ordered.compactMap(\.selectionDigit)
-        #expect(digits == [1, 2, 3, 4, 5, 6, 7])
+        #expect(digits == [1, 2, 3, 4, 5, 6, 7, 8, 9])
         // Every destination carries one now, because the one that did not was Settings and Settings
         // is a window. The digit stays optional on the type so the filter that keeps a digit-less
         // destination out of the View menu survives; what is asserted here is that nothing is

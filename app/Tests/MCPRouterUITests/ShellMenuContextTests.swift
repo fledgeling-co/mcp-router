@@ -40,9 +40,17 @@
             // because every disabled command happened to share a single string. M14 gave export a
             // different one, and the old form could not have told a walker writing the *right*
             // reason from one writing *a* reason.
+            //
+            // It reads `reason(in:)` rather than `availability.reason` since M20, which is the
+            // whole of `D-m14-a`: nine commands carry `.featureUnbuilt` now, so the availability's
+            // own sentence is the generic fallback and the per-command one is what the menu shows.
+            // Comparing against the fallback here would have passed a walker that wrote the
+            // generic sentence onto all nine.
             for (item, command) in zip(menu.items, disabled) {
-                #expect(item.toolTip == command.availability.reason, "\(command.title)")
-                #expect(item.accessibilityHelp() == command.availability.reason, "\(command.title)")
+                #expect(item.toolTip == command.reason(), "\(command.title)")
+                #expect(item.accessibilityHelp() == command.reason(), "\(command.title)")
+                // The short form, which is what a person reading the menu actually sees.
+                #expect(item.badge?.stringValue == command.availability.badge, "\(command.title)")
             }
             #expect(foreign.toolTip == nil, "the walker touched an item macOS owns")
         }

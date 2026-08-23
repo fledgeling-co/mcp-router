@@ -472,6 +472,46 @@ and an empty narrative is structurally perfect.
 worth splitting. And **the read-back has to be a length or content comparison, not a re-read**: this
 session did re-read the file, saw well-formed rows, and moved on.
 
+### A CAVEAT THAT LIVES WHERE THE CONSUMER CANNOT READ IT HAS NOT BEEN GIVEN
+
+From `harbourmaster`'s `berths.py` via the armada conductor, and it generalises past that repo
+because **this one has the same exposure in two places.**
+
+Its `occupants` array expanded one claim into N rows, so `sum(o['weight'] for o in occupants)`
+returned **68 against a machine capacity of 12**. A comment directly above the line said *"summing
+the field would count it three times over."* **The JSON did not.** And **the consumer of a script is
+whatever parses its stdout, never whatever opens its source.**
+
+**Where this fleet is exposed:**
+
+- **Gates print their reasoning to stdout and no consumer parses it.** `null-run-gate.py` explains
+  which populations it does not arm and why; `reader-accounting.py` states the limits of an AST
+  pass. Both are read by a human who happens to look, and by no caller.
+- **`LEDGER.md` carries its reasoning in the cell the status column shares** — which is exactly how
+  this session destroyed ≈55,000 characters of it, by editing that cell for its status alone. The
+  warning now sits in `LEDGER.md`'s own header, **where an editor of the cell will meet it**, rather
+  than only here.
+
+### BEFORE REMOVING A WORKTREE, CHECK ITS HEAD IS REACHABLE
+
+**The transferable part of a cleanup is the check, not the cleanup.** 2026-08-23, reclaiming disk
+from 36 worktrees: **seventeen verdict commits existed only as detached HEADs inside the
+directories about to be removed**, reachable from no branch and no tag. Every `Done`, every `Needs
+More Work`, every finding of a whole verification wave, one `git worktree remove` from unreachable.
+
+The check that caught it:
+
+```
+git for-each-ref --contains <worktree-HEAD> refs/heads refs/tags
+```
+
+Empty output means **nothing else in the repository can reach that commit.** All seventeen are now
+tagged `verdict/<worktree>`. Removal then freed 232 → **245 GiB**.
+
+**"The verifier committed it" sounds like durability and is not** — a commit on a detached HEAD in a
+worktree is as transient as the worktree. Third instance of `G6`'s shape: evidence living somewhere
+that does not survive the ordinary operation about to be performed on it.
+
 ### DISPATCH — THE RESUME CONDITION, AND WHY A THRESHOLD ALONE IS NOT ONE
 
 Written down here because it is load-bearing and had been living in a message.

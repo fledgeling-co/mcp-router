@@ -3,6 +3,18 @@
 Allocation is a read-modify-write on this file: **one triage at a time**, and any runner
 creating a child spec takes the ledger lock first.
 
+**The status and the narrative share the last cell. Editing one destroys the other.**
+On 2026-08-23 a script advancing the status fields did `cells[6] = <new status>` — a
+replacement — and removed the entire record from eight rows at once: **≈55,000 characters**,
+every verdict, finding and measurement from a whole verification wave. M12 went 5,026
+characters to 62; M20 8,029 to 53. It was caught by a runner hitting the conflict while
+merging forward, **not by the session that did it**, and restored from the commit before.
+Two things follow. **Append to that cell; never assign it** — and if you must rewrite it,
+**compare lengths before and after**, because re-reading the file shows eight well-formed
+rows either way. And no gate covers this: `ledger-reconcile.py` checks structure and
+agreement, and **a row with a correct id, a correct status and an empty narrative is
+structurally perfect.**
+
 **This file is not the only allocator, and a scan of its table is not a free-id check.**
 It said "ids are allocated here and nowhere else" until 2026-08-21, and that sentence
 produced two near-misses from two sessions inside one hour — one session reached for I6

@@ -2,13 +2,8 @@
     import MCPRouterKit
     import SwiftUI
 
-    /// Cleanup's three sheets: two named-consequence dialogs, both with Cancel leading, and one
-    /// that asks for nothing at all.
-    ///
-    /// `DESIGN.md` §8 says removal is "undoable, never confirmed" — and §9's escalation clause
-    /// governs here instead, because neither of these is undoable and M3 already measured why for the
-    /// first: `describe()` in `src/control.ts` sends `envKeys: Object.keys(u.env).sort()` — key
-    /// *names*, never values. An app that cannot read a secret cannot restore an entry carrying one.
+    /// Cleanup's three sheets: removal, reset history, and skill provenance.
+    /// Named-consequence dialogs with Cancel leading per DESIGN.md §9.
     struct CleanupSheetHost: View {
         @Bindable var board: CleanupBoardModel
         let sheet: RouterSheet.Cleanup
@@ -25,11 +20,7 @@
         }
     }
 
-    /// Removing a server, with the consequence M3 already wrote.
-    ///
-    /// **The two strings come from `ServersBoardModel` by call, never by copy.** One wording per state
-    /// across the app (§6): duplicating the literals here would be the Servers board and this board
-    /// telling the user different things about the same act.
+    /// Removing a server, with consequence strings from `ServersBoardModel`.
     struct RemoveServerSheet: View {
         @Bindable var board: CleanupBoardModel
         let name: String
@@ -218,10 +209,7 @@
     /// is the least interesting thing about it, and one click from that row to a removal dialog is
     /// the click nobody should have.
     ///
-    /// **Removal is dimmed here, not absent.** The control API is read-only for skills, so this
-    /// dialog could not remove one even if the reader decided to — and §3.4 dims a control in place
-    /// with a discoverable reason rather than hiding it. The prototype's `Remove it` button would
-    /// have been a control that does nothing.
+    /// Removal is dimmed here per §3.4 because control API is read-only for skills.
     struct SkillProvenanceSheet: View {
         @Bindable var board: CleanupBoardModel
         let skillPath: String

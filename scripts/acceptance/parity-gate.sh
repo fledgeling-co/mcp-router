@@ -34,7 +34,7 @@ MANIFEST="${PARITY_MANIFEST:-$REPO_ROOT/planning/parity/surface.tsv}"
 # listed produces no results, no environment failure and no complaint — its rows simply stay
 # blocked under whatever note they carry. `stream` sat on disk in exactly that state from R2-R
 # until P3: written, executable, passing when run by hand, and dispatched by nothing.
-LANES="${PARITY_LANES:-control fixture divergence pool suite mcp cli install state log stream registry oauth authserver}"
+LANES="${PARITY_LANES:-control fixture divergence pool suite mcp cli install state log stream registry oauth authserver overlap}"
 WORK="$(mktemp -d -t parity-gate)"
 RESULTS="$WORK/results.tsv"
 : > "$RESULTS"
@@ -307,14 +307,21 @@ fi
 echo "───────────────────────────────────────────────────────────────────────"
 if [ -s "$WORK/bygroup.txt" ]; then
   echo "coverage by group — these are not all the same claim:"
+  # `order` is a PREFERENCE, not the population. It used to be the population, and a group missing
+  # from it was skipped here while still counting in the totals below — so `authserver`'s eight rows
+  # and, when R19 added it, `overlap`'s two were scored and never printed. That is this gate's own
+  # worst failure mode wearing a different hat: a reader checking the breakdown against the fraction
+  # cannot see the rows that make up the difference. Every group seen is printed; the ones named
+  # here are printed first, and anything else follows in the order the manifest lists it.
   awk -F'\t' '
-    { seen[$1]++; state[$1"/"$2]++ }
+    { if (!($1 in seen)) rank[++groups_found] = $1; seen[$1]++; state[$1"/"$2]++ }
     END {
       order = "control fixture divergence pool mcp cli install state log"
-      n = split(order, groups, " ")
-      for (i = 1; i <= n; i++) {
-        g = groups[i]
-        if (!(g in seen)) continue
+      n = split(order, preferred, " ")
+      for (i = 1; i <= n; i++) if (preferred[i] in seen) { queue[++q] = preferred[i]; named[preferred[i]] = 1 }
+      for (i = 1; i <= groups_found; i++) if (!(rank[i] in named)) queue[++q] = rank[i]
+      for (i = 1; i <= q; i++) {
+        g = queue[i]
         printf "  %-11s %2d of %2d proven", g, state[g"/proven"] + state[g"/by-suite"], seen[g]
         if (state[g"/by-suite"]) printf " (%d by suite only)", state[g"/by-suite"]
         if (state[g"/blocked"])  printf ", %d blocked", state[g"/blocked"]

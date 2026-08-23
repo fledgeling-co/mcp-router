@@ -6,6 +6,7 @@ import type { UpstreamConfig } from './config.js';
 import { upstreamHash } from './config.js';
 import { UpstreamPool } from './pool.js';
 import { isAuthFailure } from './auth.js';
+import { withExclusiveLock } from './lock.js';
 import { log } from './log.js';
 
 /** Separator between the server namespace and the upstream's own tool name. */
@@ -140,6 +141,120 @@ export function saveManifest(path: string, manifest: Manifest): void {
   renameSync(tmp, path);
 }
 
+/** What indexing one upstream produced, and how it should be reported. */
+export interface EntryOutcome {
+  name: string;
+  /** The `built` report line, when a row was written. */
+  built?: string;
+  /** The `failed` report line, when the index failed. */
+  failed?: string;
+  /** Tools listed, when the surface was approved outright. */
+  tools?: number;
+  /** Changes held, when the surface moved and is waiting for approval. */
+  changes?: number;
+}
+
+/**
+ * How a row reaches disk: it applies the mutation to a manifest and returns what the mutation
+ * reported.
+ *
+ * A function rather than a path, so a caller needing something extra inside the critical section can
+ * supply it rather than doing that work in a second window. The watcher was that caller until R17
+ * kept the failure row it used to drop; its closure is now this same policy, written out.
+ */
+export type ManifestCommit = (apply: (current: Manifest) => EntryOutcome) => EntryOutcome;
+
+/**
+ * The commit policy for `manifest.json`: **load, merge the rows this path owns, save — all three
+ * inside the lock.**
+ *
+ * R19. It is the stale *read* that clobbers, not the write, so a lock around `saveManifest` alone
+ * would change nothing: `cmdWatch` used to load the manifest once, spend seconds spawning and
+ * indexing children, and save that same object — so a row another process wrote in between was
+ * erased, with no delete statement anywhere in the code path. Measured against the fixed watcher:
+ * a `watch` fire held open six seconds with `index --force` writing an unrelated server's row at
+ * t+2s left the final manifest holding one of the two.
+ *
+ * Everything expensive stays outside. Spawning and indexing a child is the seconds-long half and it
+ * happens before this is ever called, which is what keeps the hold sub-millisecond and is why a
+ * concurrent control-API request never reaches the daemon's own 2000 ms bound.
+ *
+ * The lock is `ConfigMutationLock`'s, on the same sidecar the Swift router takes, so the two
+ * implementations exclude each other rather than each excluding only itself.
+ */
+export function manifestCommitter(path: string, timeoutMs: number): ManifestCommit {
+  return (apply) =>
+    withExclusiveLock(path, timeoutMs, () => {
+      const current = loadManifest(path);
+      const outcome = apply(current);
+      saveManifest(path, current);
+      return outcome;
+    });
+}
+
+/** What one upstream answered when it was asked for its tools. */
+type Observation = { tools: Tool[] } | { error: string };
+
+/**
+ * Write one observation into `manifest` and say what it produced.
+ *
+ * Called with the lock held, against a manifest loaded inside it — so `prev`, which decides whether
+ * a surface is served or held for approval, is the row that is on disk now rather than the one that
+ * was there before this server was spawned.
+ */
+function applyObservation(
+  manifest: Manifest,
+  u: UpstreamConfig,
+  observation: Observation
+): EntryOutcome {
+  if ('error' in observation) {
+    manifest.servers[u.name] = {
+      hash: upstreamHash(u),
+      builtAt: new Date().toISOString(),
+      tools: [],
+      error: observation.error,
+    };
+    return { name: u.name, failed: `${u.name}: ${observation.error}` };
+  }
+
+  const digest = toolsDigest(observation.tools);
+  const prev = manifest.servers[u.name];
+
+  /*
+   * First sight of a server approves it: there is nothing to compare against,
+   * and refusing to serve a brand-new server's tools until the user approves a
+   * diff against nothing would make installation a two-step ritual for no gain.
+   * Afterwards a changed surface is held as `pending` rather than served, so the
+   * approved bytes keep going out while the user decides.
+   */
+  if (!prev?.digest || prev.digest === digest) {
+    manifest.servers[u.name] = {
+      hash: upstreamHash(u),
+      builtAt: new Date().toISOString(),
+      tools: observation.tools,
+      digest,
+    };
+    return {
+      name: u.name,
+      built: `${u.name} (${observation.tools.length} tools)`,
+      tools: observation.tools.length,
+    };
+  }
+
+  manifest.servers[u.name] = {
+    ...prev,
+    hash: upstreamHash(u),
+    error: undefined,
+    pending: { tools: observation.tools, digest, seenAt: new Date().toISOString() },
+  };
+  const changes = diffTools(prev.tools, observation.tools).length;
+  return {
+    name: u.name,
+    built: `${u.name} (${changes} change(s) held for approval)`,
+    changes,
+  };
+}
+
 /**
  * Serves the manifest to a long-lived `serve` process, re-reading it when the file
  * on disk changes.
@@ -205,65 +320,43 @@ export function isStale(manifest: Manifest, u: UpstreamConfig): boolean {
  * Returns the updated manifest. A server that fails here is recorded with its error
  * rather than dropped, so `status` can show why it is missing instead of silently
  * offering fewer tools.
+ *
+ * **The two halves are deliberately on opposite sides of the lock (R19).** Spawning a child and
+ * waiting for it to answer `tools/list` takes seconds and is done here, holding nothing; deciding
+ * what the row should be and writing it is `opts.commit`'s, which loads the manifest fresh, merges
+ * this one row and saves, all under `ConfigMutationLock`. `manifest` is therefore only read for the
+ * staleness decision — the row that is written is merged into whatever is on disk at commit time,
+ * not into this snapshot.
+ *
+ * `commit` is required rather than optional: a caller that could omit it would index a server and
+ * mutate an object nobody writes, which is the silent half of the defect this argument exists to
+ * close.
  */
 export async function buildManifest(
   upstreams: UpstreamConfig[],
   pool: UpstreamPool,
   manifest: Manifest,
-  opts: { force?: boolean } = {}
+  opts: { force?: boolean; commit: ManifestCommit }
 ): Promise<{ manifest: Manifest; built: string[]; failed: string[] }> {
   const built: string[] = [];
   const failed: string[] = [];
+  /** The freshest manifest any commit has seen; the caller reads the rows back out of it. */
+  let latest = manifest;
 
   for (const u of upstreams) {
     if (!opts.force && !isStale(manifest, u)) {
       log.debug(`manifest for "${u.name}" is current; not spawning`);
       continue;
     }
+
+    let observation: Observation;
     try {
       const handle = await pool.acquire(u.name);
       const res = await handle.client.listTools();
-      const digest = toolsDigest(res.tools);
-      const prev = manifest.servers[u.name];
-
-      /*
-       * First sight of a server approves it: there is nothing to compare against,
-       * and refusing to serve a brand-new server's tools until the user approves a
-       * diff against nothing would make installation a two-step ritual for no gain.
-       * Afterwards a changed surface is held as `pending` rather than served, so the
-       * approved bytes keep going out while the user decides.
-       */
-      if (!prev?.digest || prev.digest === digest) {
-        manifest.servers[u.name] = {
-          hash: upstreamHash(u),
-          builtAt: new Date().toISOString(),
-          tools: res.tools,
-          digest,
-        };
-        built.push(`${u.name} (${res.tools.length} tools)`);
-        log.info(`indexed "${u.name}": ${res.tools.length} tools`);
-      } else {
-        manifest.servers[u.name] = {
-          ...prev,
-          hash: upstreamHash(u),
-          error: undefined,
-          pending: { tools: res.tools, digest, seenAt: new Date().toISOString() },
-        };
-        const changes = diffTools(prev.tools, res.tools);
-        built.push(`${u.name} (${changes.length} change(s) held for approval)`);
-        log.warn(
-          `"${u.name}" changed its tool surface (${changes.length} change(s)); serving the approved one until it is accepted`
-        );
-      }
+      observation = { tools: res.tools };
     } catch (err) {
       const message = (err as Error).message;
-      manifest.servers[u.name] = {
-        hash: upstreamHash(u),
-        builtAt: new Date().toISOString(),
-        tools: [],
-        error: message,
-      };
-      failed.push(`${u.name}: ${message}`);
+      observation = { error: message };
       log.error(`failed to index "${u.name}": ${message}`);
       /*
        * An index that fails because the upstream refused our credentials is the one
@@ -277,9 +370,26 @@ export async function buildManifest(
        */
       if (isAuthFailure(message)) pool.noteAuthFailure(u.name, message);
     }
+
+    const outcome = opts.commit((current) => {
+      latest = current;
+      return applyObservation(current, u, observation);
+    });
+
+    // Reported out here rather than from inside the commit: a log line is a file append, and the
+    // critical section is supposed to hold nothing but the load, the merge and the save.
+    if (outcome.failed) failed.push(outcome.failed);
+    if (outcome.built) built.push(outcome.built);
+    if (outcome.changes !== undefined) {
+      log.warn(
+        `"${u.name}" changed its tool surface (${outcome.changes} change(s)); serving the approved one until it is accepted`
+      );
+    } else if (outcome.tools !== undefined) {
+      log.info(`indexed "${u.name}": ${outcome.tools} tools`);
+    }
   }
 
-  return { manifest, built, failed };
+  return { manifest: latest, built, failed };
 }
 
 /** True when the caller's directory is inside one of a server's allowed projects. */

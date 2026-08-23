@@ -17,11 +17,12 @@ import { UpstreamPool } from './pool.js';
 import {
   buildManifest,
   loadManifest,
-  saveManifest,
+  manifestCommitter,
   unionTools,
   isStale,
   ManifestStore,
 } from './manifest.js';
+import { lockTimeoutMs, WATCHER_TIMEOUT_MS } from './lock.js';
 import { startRouter } from './router.js';
 import { UsageStore } from './usage.js';
 import { controlToken, TOKEN_PATH } from './control.js';
@@ -98,7 +99,17 @@ async function cmdImport(): Promise<void> {
   process.stdout.write(`checking ${candidates.length} server(s) before adopting any\n`);
 
   const manifestPath = join(ROUTER_HOME, 'manifest.json');
-  const manifest = loadManifest(manifestPath);
+  /*
+   * R19 — the snapshot below decides staleness and nothing else. Each indexed row is committed by
+   * `manifestCommitter`, which re-reads the manifest under the lock immediately before saving, so a
+   * row the daemon or the watcher wrote while this verb was spawning children survives.
+   *
+   * The one-shot's timeout rather than the daemon's: `import` is a CLI invocation with nothing
+   * waiting on it, so it can afford to wait out a control-API burst rather than abandon an index it
+   * has already paid for.
+   */
+  const commit = manifestCommitter(manifestPath, lockTimeoutMs(WATCHER_TIMEOUT_MS));
+  let manifest = loadManifest(manifestPath);
   const pool = new UpstreamPool(
     new Map(candidates.map((c) => [c.upstream.name, c.upstream])),
     0,
@@ -109,7 +120,11 @@ async function cmdImport(): Promise<void> {
   const failed: string[] = [];
   try {
     for (const { raw, upstream } of candidates) {
-      const { failed: bad } = await buildManifest([upstream], pool, manifest, { force: true });
+      const { manifest: next, failed: bad } = await buildManifest([upstream], pool, manifest, {
+        force: true,
+        commit,
+      });
+      manifest = next;
       const entry = manifest.servers[upstream.name];
       // Was `/not authorized|unauthorized|401/i` inline here. That missed the string a
       // live server actually rejects a stale refresh with — `Authentication required` —
@@ -143,7 +158,6 @@ async function cmdImport(): Promise<void> {
     JSON.stringify({ port, host: '127.0.0.1', idleMs: 300_000, mcpServers: adopt }, null, 2),
     { mode: 0o600 }
   );
-  saveManifest(manifestPath, manifest);
 
   process.stdout.write(`\nadopted ${Object.keys(adopt).length} server(s) -> ${DEFAULT_CONFIG_PATH}\n`);
   if (failed.length) {
@@ -180,10 +194,14 @@ async function cmdIndex(): Promise<void> {
       `${upstreams.length} upstreams, ${stale.length} need indexing${has('force') ? ' (forced: all)' : ''}\n`
     );
 
+    // R19 — each row is written under the lock against a manifest loaded there, so this verb
+    // running beside a live watch fire no longer erases whichever row the other one wrote. A run
+    // with nothing stale now writes nothing at all, where it used to rewrite the file it had just
+    // read; that is what the Swift router already does, which indexes per upstream and saves there.
     const { manifest: next, built, failed } = await buildManifest(upstreams, pool, manifest, {
       force: has('force'),
+      commit: manifestCommitter(manifestPath, lockTimeoutMs(WATCHER_TIMEOUT_MS)),
     });
-    saveManifest(manifestPath, next);
 
     for (const b of built) process.stdout.write(`  ok    ${b}\n`);
     for (const f of failed) process.stdout.write(`  FAIL  ${f}\n`);

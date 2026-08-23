@@ -77,13 +77,66 @@ public enum AuthRoutes {
     /// Reads the manifest **fresh from disk** — `/changes`, two blocks above it in the reference,
     /// uses the cached one, and a port that shares the cache here diverges whenever the cache is
     /// stale (B88). A corrupt manifest degrades to empty, so this answers 409 rather than throwing.
+    ///
+    /// **That read is inside ``ConfigMutationLock`` (R19)**, and this is the route where it matters
+    /// most: it promotes a surface the user has just looked at, and without exclusion the promotion
+    /// is silently undone by whatever re-indexes the same server a moment later. A refused lock is a
+    /// 500 carrying the lock's own sentence — never a 409, because 409 asserts there was no pending
+    /// change and a run that never read the manifest does not know that.
     public static func approve(
         server: JSString,
         manifestPath: String,
         fileSystem: any FileSystem = RealFileSystem(),
         nowMilliseconds: Double,
-        log: RouterLog? = nil
+        log: RouterLog? = nil,
+        lockTimeoutMs: Int = ConfigMutationLock.timeoutMilliseconds(
+            default: ConfigMutationLock.daemonTimeoutMs
+        )
     ) async -> (status: Int, body: JSONValue) {
+        let outcome: Promotion
+        do {
+            outcome = try ConfigMutationLock.withExclusiveLock(
+                forConfigAt: manifestPath, timeoutMs: lockTimeoutMs
+            ) {
+                promote(
+                    server: server, manifestPath: manifestPath,
+                    fileSystem: fileSystem, nowMilliseconds: nowMilliseconds
+                )
+            }
+        } catch {
+            let reason = (error as? ConfigMutationLock.LockProblem)?.description
+                ?? error.localizedDescription
+            return (500, .object([JSONMember(key: "error", value: .string(JSString(reason)))]))
+        }
+        if outcome.status == 200 {
+            await log?.log(.toolSurfaceApproved(server: server.string, toolCount: outcome.approved))
+        }
+        return (outcome.status, outcome.body)
+    }
+
+    /// What ``promote(server:manifestPath:fileSystem:nowMilliseconds:)`` decided.
+    ///
+    /// `approved` travels beside the answer rather than being read back out of it: the caller logs
+    /// that count, and parsing it out of the body would make a log line depend on the shape of a
+    /// message.
+    private struct Promotion {
+        let status: Int
+        let body: JSONValue
+        let approved: Int
+    }
+
+    /// The load, the merge and the save — called with the lock held.
+    ///
+    /// Synchronous, and separate from `approve` for that reason:
+    /// ``ConfigMutationLock/withExclusiveLock(forConfigAt:timeoutMs:_:)`` takes a synchronous body,
+    /// and the log line the caller emits is `async`. Logging inside the lock would need a suspension
+    /// point in the middle of the critical section, which is the shape `SWIFT_PRACTICES` §1 refuses.
+    private static func promote(
+        server: JSString,
+        manifestPath: String,
+        fileSystem: any FileSystem,
+        nowMilliseconds: Double
+    ) -> Promotion {
         var manifest = ManifestIO.load(path: manifestPath, fileSystem: fileSystem).manifest
 
         guard
@@ -91,12 +144,12 @@ public enum AuthRoutes {
             let pending = entry.pending,
             pending.isTruthy
         else {
-            return (409, .object([
+            return Promotion(status: 409, body: .object([
                 JSONMember(
                     key: "error",
                     value: .string(JSString("no pending change for \"\(server.string)\""))
                 )
-            ]))
+            ]), approved: 0)
         }
 
         // `entry.pending.tools.length`, counted BEFORE the write.
@@ -118,11 +171,10 @@ public enum AuthRoutes {
         // gate keeps the round-trip lossless.
         manifest.setEntry(server.string, updated)
         try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)
-        await log?.log(.toolSurfaceApproved(server: server.string, toolCount: approved))
 
-        return (200, .object([
+        return Promotion(status: 200, body: .object([
             JSONMember(key: "server", value: .string(server)),
             JSONMember(key: "approved", value: .number(Double(approved)))
-        ]))
+        ]), approved: approved)
     }
 }

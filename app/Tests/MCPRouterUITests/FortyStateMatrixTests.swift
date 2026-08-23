@@ -1,7 +1,7 @@
 import Foundation
+import Testing
 @testable import MCPRouterKit
 @testable import MCPRouterUI
-import Testing
 
 /// M17: The 40-state matrix — 10 surfaces × 4 states (Ideal, Empty, Loading, Error).
 ///

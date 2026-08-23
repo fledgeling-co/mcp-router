@@ -161,12 +161,13 @@
 
     /// Which index said this — drawn, because it is the board's central fact.
     ///
-    /// `DESIGN.md` §10 records that the breaker is the app's only subject-mined element and that a
-    /// board of stock tables has "one signature and eight defaults". A merged catalogue whose
-    /// provenance is a grey text pill is a merged catalogue pretending to be one list, so this is a
-    /// two-cell plate: left for the official registry, right for Smithery, each **filled** when that
-    /// index supplied the row and drawn as an **empty recess** when it did not — the breaker slot's
-    /// established vocabulary for "a place where a thing would be".
+    /// `DESIGN.md` §10 records that the app has one subject-mined element and that a board of stock
+    /// tables has "one signature and eight defaults". A merged catalogue whose provenance is a grey
+    /// text pill is a merged catalogue pretending to be one list, so this is a two-cell plate: left
+    /// for the official registry, right for Smithery, each **filled** when that index supplied the
+    /// row and drawn as an **empty recess** when it did not — the signature element's established
+    /// vocabulary for "a place where a thing would be", which the Signal Path's unplugged jack
+    /// carries now that the breaker's slot has retired.
     ///
     /// A `both` row is the only shape with both cells filled. Built entirely from existing tokens:
     /// no new shared token, no new colour, no change to any shared component.

@@ -209,15 +209,57 @@ struct MenuBarPresentationTests {
         #expect(MenuBarPresentation.age(of: record, now: Date()) == "—")
     }
 
-    // MARK: - A17 · there is no skills count, structurally
+    // MARK: - A17 · there is no skills count, and B1 · no memory count either
 
-    /// `Counts` has three fields and none of them is skills. The prototype's popover shows a skills
-    /// figure and `ControlAPIClient` has no skills endpoint, so the number would be invented.
+    /// `Counts` has four fields and none of them is skills or memory. The prototype's popover shows
+    /// a skills figure and `ControlAPIClient` has no skills endpoint; the mock's popover shows
+    /// `Resident 214 MB` and `residentMb()` has zero callers in `src/pool.ts`, so it never reaches
+    /// `describe()` and never reaches the wire. Either number would be invented.
+    ///
     /// Asserted as a reflection over the type because that is what survives someone adding a field.
-    @Test("the header's counts type carries running, idle and tools, and nothing else")
+    /// An equality against the whole set rather than a `!contains` per forbidden word, so a field
+    /// named something nobody thought to forbid still fails.
+    @Test("the header's counts type carries running, idle, tools and declared, and nothing else")
     func headerHasNoSkillsField() {
-        let counts = MenuBarPresentation.Counts(running: 1, idle: 2, tools: 3)
+        let counts = MenuBarPresentation.Counts(running: 1, idle: 2, tools: 3, declared: 3)
         let fields = Mirror(reflecting: counts).children.compactMap(\.label).sorted()
-        #expect(fields == ["idle", "running", "tools"])
+        #expect(fields == ["declared", "idle", "running", "tools"])
+    }
+
+    /// B1 · `declared` is every server the router named, running or not.
+    ///
+    /// The mock's second header cell. Checked against the list's own length rather than against
+    /// `running + idle`, because those two are derived from the same list and would agree with each
+    /// other while all three disagreed with reality.
+    @Test("declared is the number of servers the router reported")
+    func declaredIsTheServerCount() async throws {
+        var servers: [MCPServer] = []
+        for index in 0 ..< 11 {
+            try await servers.append(Self.server(named: "s\(index)", running: index < 2, tools: 4))
+        }
+        let counts = MenuBarPresentation.counts(from: servers)
+        #expect(counts.declared == 11)
+        #expect(counts.declared == servers.count)
+        #expect(counts.running == 2)
+        #expect(counts.idle == 9, "idle is kept, because ReadoutModel and the subtitle still use it")
+        #expect(MenuBarPresentation.counts(from: []).declared == 0)
+    }
+
+    /// The three labels the header draws, and the fourth cell the mock draws that does not ship.
+    ///
+    /// The mock's own words — `Running now`, `Declared`, `Tools`, `Resident` — read off
+    /// `design/mcp-router-console.html:1458-1470`. The first three are asserted present and in
+    /// order; `Resident` is asserted **absent from every label the type carries**, which is the
+    /// structural half of the same claim `headerHasNoSkillsField` makes about the fields.
+    @Test("the header's labels are the mock's three, and Resident is not among them")
+    func headerLabelsAreTheMocksThree() {
+        #expect(MenuBarPresentation.CountLabel.all == ["Running now", "Declared", "Tools"])
+        #expect(MenuBarPresentation.CountLabel.all.count == 3)
+        for label in MenuBarPresentation.CountLabel.all {
+            #expect(
+                !label.lowercased().contains("resident"),
+                "the mock's fourth cell is a number the router does not observe"
+            )
+        }
     }
 }

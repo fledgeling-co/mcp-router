@@ -46,6 +46,11 @@ public actor UpstreamPool {
     /// The one in-flight shutdown, awaited by every later caller so shutdown is a real barrier.
     var shutdownFlight: Task<Void, Never>?
 
+    /// Alive milliseconds per upstream across every **closed** incarnation, and when this pool
+    /// started. ``PoolDutyCycle`` reads both and says why they are kept.
+    var closedAliveMilliseconds: [String: Double] = [:]
+    let startedAtMilliseconds: Double
+
     var startIDs = IdentitySequence()
     var handleIDs = IdentitySequence()
     var epochIDs = IdentitySequence()
@@ -69,6 +74,7 @@ public actor UpstreamPool {
         self.transporting = transporting
         self.clock = clock
         self.log = log
+        startedAtMilliseconds = clock.nowMilliseconds
     }
 
     // MARK: - Leasing
@@ -375,17 +381,13 @@ public actor UpstreamPool {
         entry.activeLeases.removeAll()
         entries[name] = entry
 
+        // The *other* way an incarnation ends. A duty cycle counted only at the reaper would
+        // under-report exactly the servers that fall over.
+        recordAlive(name: name, since: live.startedAtMilliseconds)
+
         // Release what we still hold. Idempotent, and the watcher that brought us here has already
         // finished, so this cannot re-enter.
         await live.session.shutdown()
         await log?.record(PoolLogEvent.closedItself(server: name))
     }
-}
-
-/// JavaScript's `Math.round`: half rounds toward +∞, which differs from Swift's `rounded()`
-/// (half away from zero) for negative halves. Durations here are non-negative, but the router's
-/// status fields are diffed against the reference byte for byte, so the semantics are matched
-/// rather than assumed equivalent.
-func jsRound(_ value: Double) -> Int {
-    Int((value + 0.5).rounded(.down))
 }

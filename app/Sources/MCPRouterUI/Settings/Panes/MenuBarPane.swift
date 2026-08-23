@@ -8,9 +8,10 @@
     /// `v-empty` frame does: this pane reads nothing from the router, so it stays live and editable
     /// while everything else says it cannot be known.
     ///
-    /// `Show the Dock icon` and `Approve from the popover` are not built. There is no
-    /// activation-policy control anywhere in the app, and the popover ships while the preference
-    /// governing it does not.
+    /// `Show the Dock icon` is not built: there is no activation-policy control anywhere in the app.
+    /// `Approve from the popover` ships at M20, and it is the one preference in this product that
+    /// opens an install path rather than changing what is drawn — which is why it is a row of its own
+    /// under its own label rather than a second checkbox beneath the status item's.
     struct MenuBarPane: View {
         @Bindable var shell: ShellModel
 
@@ -36,6 +37,29 @@
                     type: .body, text: SettingsPaneCopy.statusItemLabel
                 )
                 SettingsHelp(SettingsPresentation.menuBarHelp, id: "menu-bar-help")
+                HStack(spacing: SettingsMetrics.gap) {
+                    Text(SettingsPaneCopy.popoverApprovalLabel)
+                        .typeRole(.body)
+                        .foregroundStyle(ColorToken.t2.color)
+                        .frame(width: SettingsMetrics.labelColumn, alignment: .leading)
+                    Spacer(minLength: 0)
+                    Toggle(
+                        SettingsPresentation.approveFromPopoverLabel,
+                        isOn: $shell.isApproveFromPopoverEnabled
+                    )
+                    .toggleStyle(.checkbox)
+                    .typeRole(.body)
+                    .measured(
+                        "popover-approval-toggle", role: "state-action", kind: .leaf,
+                        type: .body, text: SettingsPresentation.approveFromPopoverLabel
+                    )
+                }
+                .frame(minHeight: SettingsMetrics.rowHeight)
+                .measured(
+                    "row-\(SettingsPaneCopy.popoverApprovalLabel)", role: "table-row", kind: .hstack,
+                    type: .body, text: SettingsPaneCopy.popoverApprovalLabel
+                )
+                SettingsHelp(SettingsPresentation.approveFromPopoverHelp, id: "popover-approval-help")
             }
         }
     }

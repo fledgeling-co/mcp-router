@@ -164,11 +164,18 @@ public enum MenuBarPresentation {
         public let running: Int
         public let idle: Int
         public let tools: Int
+        /// Every server the router has declared, running or not. The mock's second cell.
+        ///
+        /// A sibling of `idle` rather than a replacement for it. The header draws `declared`, and
+        /// `ReadoutModel`'s toolbar subtitle still derives from `idle` — dropping the field to keep
+        /// the type minimal would move that arithmetic to a call site, which is where it drifts.
+        public let declared: Int
 
-        public init(running: Int, idle: Int, tools: Int) {
+        public init(running: Int, idle: Int, tools: Int, declared: Int) {
             self.running = running
             self.idle = idle
             self.tools = tools
+            self.declared = declared
         }
     }
 
@@ -179,8 +186,31 @@ public enum MenuBarPresentation {
         return Counts(
             running: running,
             idle: servers.count - running,
-            tools: servers.reduce(0) { $0 + $1.tools }
+            tools: servers.reduce(0) { $0 + $1.tools },
+            declared: servers.count
         )
+    }
+
+    /// The labels above the header's three values, in the mock's own vocabulary.
+    ///
+    /// **Three, and the fourth cell the mock draws is `Resident 214 MB`, which does not ship.**
+    /// `SettingsPresentation.WarmSet` already carries the reason and it is quoted rather than
+    /// re-derived: `residentMb()` exists in `src/pool.ts` and has zero callers, so it never reaches
+    /// `describe()` and never reaches the wire. `DESIGN.md` §6 forbids a number this product did not
+    /// observe, and the two candidates for filling the empty grid cell are worse than an empty
+    /// grid cell — `inFlight` reads 0 almost always, and `held` duplicates the attention band
+    /// directly beneath it. A quantity chosen because a layout has four cells is the fabricated
+    /// metric the house rule names.
+    ///
+    /// Held as constants rather than written in the view because the copy layer of the conversion
+    /// gate reads Swift-side strings, and a label built inside a `body` is one no test can call.
+    public enum CountLabel {
+        public static let running = "Running now"
+        public static let declared = "Declared"
+        public static let tools = "Tools"
+
+        /// The three, in the order the header draws them left to right.
+        public static let all = [running, declared, tools]
     }
 
     // MARK: - The call log

@@ -61,13 +61,33 @@
             )
         }
 
-        /// Every category this app registers.
+        /// The category a finding banner is posted under. `FindingNotificationCategory`'s own action
+        /// list, for the same reason: the buttons macOS draws and the buttons the value promises are
+        /// one statement rather than two that can drift.
+        public static func category(
+            _ category: FindingNotificationCategory
+        ) -> UNNotificationCategory {
+            UNNotificationCategory(
+                identifier: category.rawValue,
+                actions: category.actions.map(action(for:)),
+                intentIdentifiers: [],
+                options: []
+            )
+        }
+
+        /// Every category this app registers — **both families**.
         ///
-        /// **`InboxNotificationAction` has no install case**, so no case of
-        /// `InboxNotificationCategory` can list one. That is the enforcement: not a comment asking
-        /// nobody to add an Install button, but an action set with nothing in it to register.
+        /// **Neither action set has a case that installs**, so no category of either family can list
+        /// one. That is the enforcement: not a comment asking nobody to add an Install button, but an
+        /// action set with nothing in it to register. `FindingNotificationAction.install` is not a
+        /// counter-example — `plan-M20.md` §3.3 settles that its `Install…` opens the board where the
+        /// entry is on screen, and `FindingNotificationRoute.installs` is `false` in every arm.
+        ///
+        /// Built by mapping each family's `allCases` rather than by listing four identifiers, so a
+        /// category added to either enum is registered without anyone remembering to come here.
         public static func categories() -> [UNNotificationCategory] {
             InboxNotificationCategory.allCases.map(category)
+                + FindingNotificationCategory.allCases.map(category)
         }
 
         /// One `UNNotificationAction` per case of the closed set, so a button on screen and a branch
@@ -93,6 +113,19 @@
             }
         }
 
+        /// One `UNNotificationAction` per case of the finding set.
+        ///
+        /// `Install…` is `.foreground` because the board it opens is a window, and a board behind an
+        /// unactivated app is a board nobody can reach — the same reasoning `review` carries.
+        /// `Dismiss` needs no window: it lets the banner go and does nothing else.
+        static func action(for action: FindingNotificationAction) -> UNNotificationAction {
+            UNNotificationAction(
+                identifier: action.rawValue,
+                title: FindingCopy.action(action),
+                options: action == .dismiss ? [] : [.foreground]
+            )
+        }
+
         /// The content of one banner, built without touching the notification centre so a test can
         /// read the category identifier a banner would actually be posted under.
         public static func content(for announcement: InboxAnnouncement) -> UNMutableNotificationContent {
@@ -104,6 +137,20 @@
             // buttons. `make` builds no such set — the walk over everything it can build asserts
             // that — and the degradation is the safe one: with no buttons the only press left is the
             // default, which is `Review`.
+            content.categoryIdentifier = announcement.category?.rawValue ?? ""
+            return content
+        }
+
+        /// A finding banner's content. `InboxAnnouncement`'s treatment, and the same degradation for
+        /// an action set no category draws: no category means a banner with no buttons, which leaves
+        /// only the default press.
+        public static func content(
+            for announcement: FindingAnnouncement
+        ) -> UNMutableNotificationContent {
+            let content = UNMutableNotificationContent()
+            content.title = announcement.title
+            content.subtitle = announcement.subtitle
+            content.body = announcement.body
             content.categoryIdentifier = announcement.category?.rawValue ?? ""
             return content
         }

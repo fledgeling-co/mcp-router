@@ -178,31 +178,44 @@
         }
     }
 
-    // MARK: - Breaker
+    // MARK: - Signal Path
 
     /// The signature element, and the one surface where its motion can actually be watched.
-    struct BreakerSection: View {
-        @State private var live: BreakerState = .dormant
+    ///
+    /// `DESIGN.md` §10 made this argument for the breaker: the mock animates nothing, so a
+    /// transition specified in a document had never been observed running. It holds one element
+    /// later — the plug's 0.2s ease-out is a spec to implement rather than a measurement to match,
+    /// because the console mock's own capture engine could not execute motion either.
+    struct SignalPathSection: View {
+        @State private var live: JackState = .dormant
 
         var body: some View {
             VStack(alignment: .leading, spacing: 0) {
-                GalleryGroup(title: "One dormant state, three lit") {
+                GalleryGroup(title: "One dormant state, four marked") {
                     HStack(spacing: MetricToken.selectionRadius.leadingScalar * 2) {
-                        ForEach(BreakerState.allCases, id: \.self) { state in
+                        ForEach(JackState.allCases, id: \.self) { state in
                             VStack(spacing: MetricToken.selectionInset.leadingScalar) {
-                                Breaker(state: state)
-                                Text(state.rawValue)
+                                StatePlug(state: state, ringed: true)
+                                Text(state.word)
                                     .typeRole(.caption, monospaced: true)
                                     .foregroundStyle(ColorToken.t3.color)
                             }
                         }
                     }
                 }
-                GalleryGroup(title: "Flick it — fast with overshoot up, slow and settling down") {
+                GalleryGroup(title: "Light it — ease-out, 0.2s, on the fill and the ring") {
                     HStack(spacing: MetricToken.selectionRadius.leadingScalar * 2) {
-                        BreakerToggle(state: $live)
-                            .accessibilityIdentifier("gallery-breaker-toggle")
-                        Text(live.accessibilityDescription)
+                        Button {
+                            live = live == .live ? .dormant : .live
+                        } label: {
+                            StatePlug(state: live, ringed: true)
+                        }
+                        .buttonStyle(.plain)
+                        .animation(.easeOut(duration: plugSeconds), value: live)
+                        .accessibilityIdentifier("gallery-plug-toggle")
+                        .accessibilityLabel("Plug")
+                        .accessibilityValue(live.word)
+                        Text(live.word)
                             .typeRole(.body, monospaced: true)
                             .foregroundStyle(ColorToken.t2.color)
                     }
@@ -213,6 +226,11 @@
                 }
             }
         }
+
+        /// The documented duration, read rather than retyped. Reduce Motion is not consulted here:
+        /// this control exists **to** be watched, and a gallery that silently drew nothing would
+        /// answer the question it was opened to answer with a blank.
+        private var plugSeconds: Double { SignalPathGeometry.standard.plugTransitionSeconds }
     }
 
     // MARK: - States

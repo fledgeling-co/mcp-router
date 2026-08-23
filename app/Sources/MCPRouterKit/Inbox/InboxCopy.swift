@@ -142,6 +142,31 @@ public enum InboxCopy {
         /// paragraph, and it says the same thing: nothing about what it runs can be shown, so
         /// nothing can be accepted.
         public static let partialCapability = "This entry could not be read"
+
+        /// The band's install control. **No ellipsis**, because it commits here and now —
+        /// `DESIGN.md` §3.4's grammar read the way the rest of the app reads it.
+        public static let approveAction = "Approve"
+
+        /// The band's decline control, and **the reason it is a second string rather than a
+        /// re-spelling of `InboxCopy.declineAction`.**
+        ///
+        /// `DESIGN.md` §6 asks for one wording per state, and the design of record spells this state
+        /// three ways across three surfaces: `Not now` in the menu-bar popover
+        /// (`design/mcp-router-console.html:1488`), `Not for me` on the Inbox board's own row
+        /// (`:3274`), and `Not now` again in the recommendation sheet (`:4197`). So the divergence is
+        /// the design of record's rather than this item's, and the choice was between matching it on
+        /// one surface or re-wording two surfaces this item does not own.
+        ///
+        /// Re-spelling the shared constant would have changed the board's row and the review sheet's
+        /// footer to `Not now` — which is neither what they say today nor what the mock draws for
+        /// them. `plan-M20.md` step 13 states this fork and this condition on it: *"a second string
+        /// if the board's own button must keep `Decline`; the board is checked before choosing."* It
+        /// was checked — `InboxBoardRow.swift:121`, `InboxReviewSheet.swift:198` and
+        /// `InboxConformanceTests.swift:243` all read the shared one — so this is the second string.
+        ///
+        /// The board's own move to `Not for me` is a re-wording of the board, which belongs with
+        /// whichever item converts that surface.
+        public static let declineAction = "Not now"
     }
 
     // MARK: - The arrival notification

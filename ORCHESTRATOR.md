@@ -379,7 +379,130 @@ that blocks does not dispatch its own successor. Either dispatch on receipt or m
 explicit enough that the next dispatch reads it — the ledger row said it and the dispatcher did not
 look.
 
-### R19'S PARAGRAPH HAS FAILED THREE PASSES, EACH TIME BY A NEW EXCLUSIVITY CLAIM
+### DISPATCH — WRAP THE GATES IN `governor-run`. THIS FLEET NEVER HAS.
+
+**Disclosed 2026-08-23 after twenty minutes of measuring everyone else's instruments.** Zero briefs
+this session dispatched mention `governor-run`. Two verifications compiled for twenty minutes while
+`berths.py` showed one claim that was not theirs — so the armada's load readings included this
+fleet's consumption while its claims list did not, and admission was being cleared for other
+projects against a board missing a fleet.
+
+**It is the inverse of the residency defect.** An observation server is *a claim that is not work*.
+This fleet was *work that does not claim*. Both make `in_use` mean something other than what a reader
+takes from it — and **this direction makes the machine look emptier than it is**, which is the one
+that causes over-admission.
+
+**The invocation, with the path explicit** because a `find` inside a spawned agent comes back empty:
+
+```
+export HARBOURMASTER_SCRIPTS=/Users/lukerhodes/Dev/fledgeling-plugins/plugins/harbourmaster/skills/harbourmaster/scripts
+$HARBOURMASTER_SCRIPTS/governor-run --weight 4 --project mcp-router --label "<item> gate" -- make lint test
+```
+
+**Weight 4, and declare for the stage rather than its cheapest leg.** The scale is
+`harbourmaster/SKILL.md:85` — *roughly the cores the job will want; a single test is 1, a
+`-j`-parallel build is 4-8*. Measured here, `make lint` is **0.94 cores for 74 seconds**, which is a
+**1**. But a verification runs lint *and* test, and `make test` triggers a Swift build underneath,
+which is the 4-8 band. **Declaring 2 and then compiling is the defection** — anvil declares 6 because
+a full gate needs 6, including in the minutes when it does not. Exit 64 is a weight above machine
+capacity, so 4 is safely inside.
+
+**Wrap the gates inside the runner, not the `claude -p` dispatch.** Wrapping the dispatch claims a
+berth for the agent's thinking time — idle-waiting on an API at near-zero CPU, held for the whole
+turn. **That is the residency shape**, and it would put every verification in the same category as a
+dev server. The governor meters work that finishes; a `claude -p` turn is a wait with a compile
+inside it.
+
+**Every brief must tell the runner what exit 75 means**, or it reads a refusal as a failure:
+**re-read berths, wait, retry — and if still not admitted, report `blockedReason` rather than running
+unwrapped.** Errand's runners handled 17 exit-75 refusals correctly on exactly that instruction.
+
+**The residual risk this creates, named rather than left**: moving the wrap inside the runner means a
+runner that forgets it, or gets the path wrong, runs unwrapped **silently** — the same failure this
+entry exists to fix, one level down. There is no check that a runner claimed. Until there is, the
+brief carrying the export and the weight is the whole mechanism.
+
+### TWO MERGE-ONLY BREAKS PENDING, BOTH FROM THE M22 MERGE, BOTH CAUGHT IN ADVANCE
+
+For the first time this fleet has merge-only breaks **predicted rather than repaired**, and both come
+from the same commit — `6595362`, the M22 merge.
+
+| branch | what reds on the union | why neither parent is red |
+|---|---|---|
+| `ai/r19` | `parity-manifest-check.sh` — 96 rows against `surface.tsv:3`'s `# rows: 94` pin | `main` contributes two `div-m22-*` rows, the branch two `overlap` rows |
+| `ai/m18` | `thePopulationIsTheFifteenNamed`, `everySheetOutsideTheGapCarriesAnEscapePath` — 4 runs of 4 | `HarnessSheets.swift` absent at `453a124`; `SheetShortcutGuardTests.swift` absent on `main` |
+
+**Both merges must carry their own fix.** Moving R19's row pin on either parent reds that parent
+against its own count; adding M18's two sheet entries on `main` names a test file that does not
+exist there. So the repair belongs **in the merge commit**, which is only possible because both were
+measured before merging.
+
+**The pattern to carry**: M22 added surfaces, and every branch holding a *complete-population*
+assertion over surfaces breaks against it — while both sides stay green because each population is
+defined in a file the other does not have. `M18`'s guard and `R19`'s row pin are the two found; **no
+sweep has been run for a third.**
+
+**And a warning about the ShellTestSupport conflict specifically**: the verifier reports that
+resolving it naively **drops two of M18's gate enrolments**, and proved `boardFileListIsComplete`
+catches that. This orchestrator split that file into an extension at `5f98e6c` — so the conflict a
+merge will now present is different in shape from the one it measured, and the enrolments are the
+thing to check after resolving it.
+
+### MERGE — `surface.tsv`'s ROW PIN BREAKS ON THE R19 UNION, AND BOTH PARENTS ARE GREEN
+
+Predicted **before** the merge rather than found after it, by R19's fourth verifier — the first
+merge-only break this fleet has caught in advance.
+
+The union of `ai/r19` with today's `main` puts **96 rows** against `planning/parity/surface.tsv:3`'s
+`# rows: 94` pin, so **`parity-manifest-check.sh` exits 1 on the merged tree while both parents exit
+0.** `main` contributes the two `div-m22-*` rows — from the M22 merge — and the branch contributes
+two `overlap` rows.
+
+**The pin and `PARITY_CUTOVER_TARGET` move in the merge commit**, not before and not after: moving
+them on either parent reds that parent against its own row count. This is the same shape as G4's
+merge-only break and M22's file-length break, with one difference that matters — **it was measured
+in advance, so the merge can carry its own fix instead of `main` going red and being repaired.**
+
+**R16, R18 and R21 all wait on that merge.**
+
+Note the target figure is the owner's: `PARITY_CUTOVER_TARGET` is held at **82** by decision
+2026-08-23, and the derived census is a **reported drift**, not a correction. Moving the pin is
+bookkeeping; moving the target is not, and is not this fleet's to do.
+
+### R19'S PARAGRAPH HAS FAILED FOUR PASSES, AND THE FOURTH SURVIVED THE FIX FOR THE FIRST THREE
+
+Four verifications, four false claims, and the fourth is **the bullet the register change added**:
+
+1. *a node-side delete would have failed **both*** — false.
+2. *`parity-cli.sh` is **not what catches** that one* — false.
+3. *what `IndexFailureRecordTests` **uniquely** holds…* — false, written four lines below the
+   sentence the same pass narrowed for exactly this reason.
+4. *`make test` catches none of these arms and **structurally cannot**.* — false. `make test` is an
+   unfiltered `swift test` in `app/`, `RouterCoreTests` is a test target, and
+   `IndexFailureRecordTests` lives in it, so `make test` is a **strict superset** of the instrument
+   the same paragraph says goes red at 11 issues. Measured **14** on arms B and A+B.
+
+The brief for pass four asked for a **change of register** — state what each instrument *does*
+catch, claim uniqueness for none. It did that. And the verifier's sentence is the finding:
+
+> **The register changed and the failure mode survived it: exclusivity claims went, a universal
+> negative arrived.**
+
+*Only X catches this* and *X catches none of this* are the same claim shape. **Both are
+unfalsifiable without enumerating the instrument set, and nobody has enumerated it.** The stated
+reason — *executes no node code* — rules out the **node** arm only, and was generalised to three.
+
+**The three issues above eleven are `WatchAdoptionTests`, named nowhere in either R19 record** — the
+**fourth previously-unnamed instrument in four passes**, and it sits *inside* the instrument the
+paragraph declares blind.
+
+**So the next brief does not ask for better wording.** The paragraph cannot be written until the
+instrument set is enumerated, because every register available to it quantifies over that set. **The
+work is the enumeration**: which instruments exist, which reach node, which reach Swift, which are
+supersets of which. Four passes have each discovered one member by accident. A fifth asked for prose
+will find a fifth.
+
+### R19'S PARAGRAPH — THE ORIGINAL THREE
 
 Three verifications, three `Needs More Work`, and **each pass removed one exclusivity claim and wrote
 another**:
@@ -431,6 +554,168 @@ returned **0**, because the bundles sit at depth 5. That zero was reported as no
 was caught by re-measuring rather than by anyone correcting it, which is the **third** wrong-scope
 failure this session has committed today and the first it caught itself. **A zero from a scoped
 probe is a candidate, not a result.**
+
+### DESTRUCTIVE EDIT BY THIS SESSION — 55,000 CHARACTERS OF LEDGER NARRATIVE, RESTORED
+
+**2026-08-23, commit `9d4da76`.** Advancing the stale status fields, this session's script did
+`cells[6] = <new status>` — a **replacement**. In `LEDGER.md` the status and the narrative **share
+that one cell**, so every row it touched lost its entire record:
+
+| row | before | after |
+|---|---|---|
+| M12 | 5,026 | **62** |
+| M20 | 8,029 | **53** |
+| M22 | 6,417 | **53** |
+| M19 | 6,439 | **62** |
+| G5 | 9,763 | **62** |
+| M16 | 6,626 | 2,112 |
+| M18 | 12,469 | 2,429 |
+| R19 | 12,705 | 2,455 |
+
+Four rows were reduced to the status lead alone. **That is the verification record for the entire
+wave** — every verdict, every finding, every measurement.
+
+**It was caught by a runner, not by this session.** M12's gap-fix hit the conflict while merging and
+reported it: *"the commit that made status fields lead replaced M12's ledger cell … and nothing after
+the dash."* It restored M12's from `1ae288f` on its own branch and **flagged that the same commit
+may have done it to other rows.** It had.
+
+**Restored from `9d4da76^`**, with each row now carrying the new status lead, the full prior
+narrative, and anything appended since — read back against pre-edit lengths, all eight at or above,
+reconciler clean A–L.
+
+**The rule this broke is one this session has written into every brief it dispatched tonight:** *read
+the file back once after patching — a patch has two success conditions, the string matched and the
+result still reads, and only the first is checkable by the tool that patched.* The script reported
+eight rows edited and eight rows were edited. Nothing failed. **No gate covers this**, because
+`ledger-reconcile.py` checks structure and agreement, and a row with a correct id, a correct status
+and an empty narrative is structurally perfect.
+
+**Two things follow.** A cell that holds two things is a cell where editing one destroys the other —
+worth splitting. And **the read-back has to be a length or content comparison, not a re-read**: this
+session did re-read the file, saw well-formed rows, and moved on.
+
+### A CAVEAT THAT LIVES WHERE THE CONSUMER CANNOT READ IT HAS NOT BEEN GIVEN
+
+From `harbourmaster`'s `berths.py` via the armada conductor, and it generalises past that repo
+because **this one has the same exposure in two places.**
+
+Its `occupants` array expanded one claim into N rows, so `sum(o['weight'] for o in occupants)`
+returned **68 against a machine capacity of 12**. A comment directly above the line said *"summing
+the field would count it three times over."* **The JSON did not.** And **the consumer of a script is
+whatever parses its stdout, never whatever opens its source.**
+
+**Where this fleet is exposed:**
+
+- **Gates print their reasoning to stdout and no consumer parses it.** `null-run-gate.py` explains
+  which populations it does not arm and why; `reader-accounting.py` states the limits of an AST
+  pass. Both are read by a human who happens to look, and by no caller.
+- **`LEDGER.md` carries its reasoning in the cell the status column shares** — which is exactly how
+  this session destroyed ≈55,000 characters of it, by editing that cell for its status alone. The
+  warning now sits in `LEDGER.md`'s own header, **where an editor of the cell will meet it**, rather
+  than only here.
+
+### BEFORE REMOVING A WORKTREE, CHECK ITS HEAD IS REACHABLE
+
+**The transferable part of a cleanup is the check, not the cleanup.** 2026-08-23, reclaiming disk
+from 36 worktrees: **seventeen verdict commits existed only as detached HEADs inside the
+directories about to be removed**, reachable from no branch and no tag. Every `Done`, every `Needs
+More Work`, every finding of a whole verification wave, one `git worktree remove` from unreachable.
+
+The check that caught it:
+
+```
+git for-each-ref --contains <worktree-HEAD> refs/heads refs/tags
+```
+
+Empty output means **nothing else in the repository can reach that commit.** All seventeen are now
+tagged `verdict/<worktree>`. Removal then freed 232 → **245 GiB**.
+
+**"The verifier committed it" sounds like durability and is not** — a commit on a detached HEAD in a
+worktree is as transient as the worktree. Third instance of `G6`'s shape: evidence living somewhere
+that does not survive the ordinary operation about to be performed on it.
+
+### DISPATCH — THE RESUME CONDITION, AND WHY A THRESHOLD ALONE IS NOT ONE
+
+Written down here because it is load-bearing and had been living in a message.
+
+**Resume when `berths` reports `available > 0` against a 5-minute load figure that is FLAT OR
+FALLING.** The direction is half the condition, and omitting it is how a hold gets lifted early: a
+rising 5-minute figure crosses any threshold on its way **up** as well as on its way down, and only
+one of those is safe.
+
+**And the threshold is not sufficient even with the direction**, because of the finding underneath it:
+
+> **A release is a coordination problem, not a measurement one. The number you measure is invalidated
+> by the act of acting on it**, since the load you are clearing against does not include the sessions
+> you are about to start.
+
+So no sampling window fixes it — not a longer one, not `max(1m, 5m)`, not watching the ratio. **Five
+idle sessions at 0.87 per core are not five sessions' worth of headroom; they are five sessions that
+will each fan out.** The remedy is procedural: **release one, let it spin up, re-measure, then
+release the next.**
+
+Both halves were paid for tonight, in opposite directions and within an hour of each other. The
+armada conductor held five sessions on a **thermal flap** — which defers timing-sensitive work
+(mutation sampling, wall-clock benchmarks) and nothing else — then released seven at once to correct
+it. This session read 0.75 per core flat and dispatched **five** gap-fixes together; load went to
+28.75 per core, and five of the sessions in that number were its own, started against a reading taken
+before they existed.
+
+**Two instruments that will not tell you any of this**, both measured:
+
+- **`berths.py` is claim accounting, not load measurement.** It reported `in_use 0` with five Opus
+  runners live, because workflow-inner agents never register as claimants.
+- **`pressure.py` reports `"claude": 0` in its workload family counts while twenty claude sessions
+  are live.** Its classifier is missing them, which is a defect in the thing everyone reads for
+  machine state. Reported to the conductor; not this repo's to fix.
+
+### RELEASE IS A COORDINATION PROBLEM, NOT A MEASUREMENT ONE
+
+The correction that matters from tonight's two opposite mistakes, from `Google Drive Fixes` via the
+armada conductor, and **it applies to this session as much as to the conductor**:
+
+> **The number you measure is invalidated by the act of acting on it**, because the load you are
+> clearing against does not include the sessions you are about to start. Five idle sessions at
+> 13.91 are not five sessions' worth of headroom — they are five sessions that will each fan out.
+
+So no sampling window fixes this. Not a longer window, not `max(1m, 5m)`, not watching the ratio.
+**The fix is to stagger: release one, let it spin up, re-measure.**
+
+**Measured, 2026-08-23.** This session read 0.75/core flat and dispatched **five** gap-fixes at once.
+Load then went 2.47 → 28.75 per core, with the conductor's samples climbing 401 → 442 → 475 on the
+minute. Five of the sessions in that number are this fleet's, started on a reading taken before they
+existed. **The conductor made the fleet-wide version of the same error six minutes earlier and this
+session repeated it locally within the hour.**
+
+The two mistakes were opposite and the same: **holding five sessions on a thermal flap** (a flap
+defers timing-sensitive work — mutation sampling, wall-clock benchmarks — and nothing else), then
+**releasing seven at once** to correct it.
+
+### DISK — `.worktrees` IS 39 GB AND NINE ARE REMOVABLE, BUT NOT WHILE RUNNERS ARE LIVE
+
+Measured 2026-08-23: data volume **90% used, 192 GiB free**, down from 256 GiB two hours earlier.
+`.worktrees/` is **39 GB across 36 worktrees**.
+
+**Nine have zero commits ahead of `main` and are idle** — `G2`, `G4`, `G4B`, `M15`, `M17`, `M21`,
+`M27`, `R17`, `R7` — so removing them destroys no unique work. `G2` and `M17` are staged-but-never-
+dispatched rather than merged; both are equally safe, having nothing in them.
+
+**Deliberately not done now.** Five runners are doing IO on a machine at 28.75 per core, and
+worktree removal is more IO. It is queued for when load clears, not skipped — and it is recorded
+here rather than left as an intention, because a cleanup nobody wrote down is a cleanup nobody does.
+
+### VERIFICATION — TWO RULES, AND THE SECOND BITES THE FIRST
+
+From `Egress`, for the wave when it resumes:
+
+- **One mutation proves one property.** Egress's `DEF-252` arming would have recorded **nine
+  assertions as proven when one refusal row was exercised**. Now per-row: 8 legs, 8 pass.
+- **A harness that requires every mutation to apply can never pass its own control**, because the
+  control is the leg that must *not* mutate. The obvious repair is an exemption — and **an exempted
+  control proves nothing; it is excused from the rule rather than satisfying it.** Egress's control
+  now asserts the *opposite* property: digest unchanged **and** the tool still exits 1. **It is a
+  control because it is asserted to be one, not because it is skipped.**
 
 ### STAND DOWN — NO NEW RUNNERS UNTIL THE 5-MINUTE LOAD CLEARS
 
@@ -997,6 +1282,7 @@ does **not** change what any check reads, and must not be described as though it
 | G8 | A question answered at the wrong scope returns a clean answer | harness | — | — | — | **Untriaged** | — | Filed 2026-08-23 beside `G7`. Three occurrences in one evening, plus a fourth by a line-anchored grep. **M16's reduction is the positive form and belongs in `mock_fidelity.py`'s header**, where it retires the three-way merge hazard rather than answering it once. |
 | G9 | Two gates `cd` into a worktree that no longer exists | harness | — | — | — | **Untriaged** | — | `.worktrees/R2` is gone; both scripts exit 90 forever, and `spec-R2.md` cites one as runnable. Mitigated by `\|\| exit 90` — not destructive, but a spec asserting an instrument that cannot run. |
 | G10 | `make acceptance` dies at its first lane | harness | — | — | — | **Untriaged** | — | `shells.sh` is red on `main` and inherited, so **every lane enrolled into `acceptance` is inert** — enrolment has stopped being a way to make a lane run while still reading like one. Found in a `Done` residual sweep. |
+| W1 | Secrets-at-rest inventory, and what Warden could serve | security | — | — | — | **Untriaged** | — | 9 of 21 upstreams hold 15 credential entries at 0600. **Warden could serve none of them as things stand** — it grants per *agent session*, lock-revoked; the consumer is a launch agent that reads on every lazy spawn. Inventory only; rotation is the owner's. |
 | M23 | The mock-to-SwiftUI conversion contract | mac | — | `design/mcp-router-console.html` | Opus | **Merged** `6d54ce2` | `ai/m23` `3e0b6b8` | **Merged 2026-08-21 at `6d54ce2`.** **Verified 2026-08-21 at `effect-witness`; verdict DONE.** No blocking findings, after eight bounces. Every load-bearing assertion is a live-process measurement rather than a reading: two full suite runs under the verifier's own `sitecustomize.py`, a `sys.settrace` line-trace of both emission sites with caller chains off live frames, a real `python3 -` process whose `argv[0]` and `ps` line were read directly, gate A driven end to end against the real MEASURE build, and `make test` run three times with the failing suite isolated three times. **The trace was rebuilt from `git archive` at `9bb2a2e` and every figure reproduces exactly**: 145 processes, 52 engine runs, 10 with `--report`, 8 emissions at 5 and 3, R1 at zero. **And `53` turns out to be recoverable** — it is the count of processes whose command line *mentions* the engine: the 52 runs plus case 46's heredoc reader. The row says *not recoverable* and then names case 46 as the one thing that would produce it, and the trace shows that thing produces precisely 53 — **so the row is honest and now under-claims rather than over-claims**. `D-m23-bk`'s revision sweep holds over all twelve blobs; `D-m23-bm` is exact, and the fifth statement in the earlier count was the `ExceptHandler`, which is not an `ast.stmt`. Gates: selftest 0 twice at 68, lint 0 over 521 files, gate A exit 1 at 132 with the ledger and all four dumps sha256-identical **to a baseline taken before anything ran**, gate B exit 3, reconciler 0 across A-K over 206 register rows. `make test` green on 2 of 3 with the one failure at `OAuthWireTests.swift:263` at 0.0% idle, and the suite alone passing 3/3 at equal or worse contention — the discrimination confirmed. **The machine was pathological: load 1009 with 648 runnable on 16 cores, and a three-line bash stub unscheduled for over three minutes.** **The merge was resolved against the standing union rule, with a reason**: both conflicts were the same M23 row diverging, so a literal union would have put two M23 rows in each table and tripped checks H and K; main's newer row was taken. **Why Done rather than another cycle** — the verifier found one genuinely false sentence (`D-m23-bn`) and did not block, drawing the distinction exactly: gap-fix 8 set three criteria and all three are met and independently re-measured, where the eighth verification's block was an **acceptance failure** — four sites asked for, three delivered. This is a rebuttal sentence whose substantive point is correct and on which no figure rests, *which is what the register exists to carry*. Follow-ups `D-m23-bn`...`D-m23-bq`, including **`D-m23-bq`: `swift test --filter` reports a zero-match filter as a pass** — `make test` guards exactly that and a direct `--filter` does not, so a verifier doing contention discrimination can record three green isolation runs that executed no test. G4's class, met in the verification path rather than the product. |
 | R10 | `index` prints two counts that disagree, and neither is checked | router | R9 ✓ | — | Opus | **Merged** `8241e0f` | `ai/r10` `f810870` | **Verified 2026-08-21 at `effect-witness`.** The verifier ran the rebuilt CLI as a separate process against a real `0o500` home and asserted the kernel's refusal from outside the product — `manifest.json` genuinely absent, the refusal in the router's own log — rather than that stdout stopped saying `ok`. 8 gates; two arms red (restoring `try? ManifestIO.save` and adding an `exit(1)` both turn the suite red, so the fix and the held exit-code contract are each pinned). codex failed twice for harness reasons — once *Not inside a trusted directory*, once an 880s SIGALRM with an empty `-o` — **logged as lane-down and substituted with agy/gemini-3.7-flash-high**, which found no blocking defect. Three follow-ups `D-r10-a`…`D-r10-c`. Two bundle claims refuted. |
 | R14 | A client's Authenticate action succeeds, and says which upstreams still need authorising | router | — | — | Opus | **Merged** `2481e05` | `ai/r14` `0ecf7b4` | **Merged 2026-08-21 at `2481e05`, on the owner's decision.** **Verified 2026-08-21 at `raster-visual`; verdict Done.** The load-bearing security and behaviour assertions sat at **`effect-witness`** — raw-socket reads of the 302's terminating chunk, `stat` on the issuer key, and real process kill and restart to prove token survival. **The symptom is fixed**, driven independently against built instances of **both** routers on spare ports under `MCP_ROUTER_HOME` sandboxes: discovery 200 plus the RFC 9728 suffixed form, `POST /register` **201 and idempotent**, `/authorize` 200 with `X-Frame-Options: DENY` and `frame-ancestors 'none'`, `/token` 200, code replay refused, refresh validated, garbage refresh refused. `/mcp` returned 200 bare, with a valid bearer, with a garbage bearer and with an empty header — **`401` appears nowhere in either implementation**. **The four-state report's discriminator was proved on the verifier's own fixtures rather than trusted**: on a synthetic set `auth.authorized` read `true` for 3 of 5 silent upstreams **and `false` for 3 of 8 healthy ones**, so it fails in both directions — and the page ignored it, giving `mobbin` *not an authorisation problem* with **no command box**, confirmed in the raster. **The bypass is closed and the class is clean**: consent ticket as code, ticket as refresh, access as refresh, refresh as code, `client_id` as code and access token as `client_id` are all refused on both routers. Also verified on both: `Origin: null` and cross-origin refused on all three POST routes, `/register` 415 unless `application/json`, loopback-only `redirect_uri` at registration *and* authorize with userinfo and suffix tricks refused, PKCE S256 mandatory, 64 KB cap, issuer key 0600 in a 0700 dir, tokens and `client_id` surviving a real restart. **The Swift 302 genuinely completes** — chunked with the terminating zero-length chunk, read off a raw socket, identical to the reference. Gates: `swift test` 1595/199 exit 0 with both new suites executed, `parity-authserver.sh` **94 checks 0 failed**, `parity-manifest-check` 0 at 92 rows, `make lint` 0. **Blocking for the merge, not for these items**: `parity-gate.sh` exits 1 on one row, `control / POST /servers/:name/auth`, which R14 cannot have caused — it changed **no file** under `Control/` — and which the verifier measured as a coin flip, **5 green and 4 red over nine runs of the identical binary**, uncorrelated with the gate wrapper. Registered `D-r14-f`. **The runner's lint claim is half right**: four steps not six is correct, but `D-r7-af` stands — the only mentions of `node_modules` and `dist` in the lint configuration are *exclusions*, so no step reads either path and `lint: tools` is a genuine false dependency; the runner answered *is lint blocked* while `D-r7-af` asked *does lint need node*. **The R7 refusal was right** and is not a gap. Lanes: gemini attacked from a malicious page's position and found **no working attack**, naming the stopping control for each of seven vectors and matching the verifier's own results independently; grok exited 0 after ~30 minutes with 303 bytes of preamble and no findings, reported as not delivered rather than retried. **Disclosed by the verifier**: running the CLI without `MCP_ROUTER_HOME` read the owner's live config and minted `~/.claude/mcp-router/auth/issuer.key` before dying on `EADDRINUSE`; it created exactly that one file, removed it, and the orchestrator independently confirmed the directory is intact — key absent, `mobbin.json` and `control.token` unchanged. Follow-ups `D-r14-a`...`D-r14-g`. |

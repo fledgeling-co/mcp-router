@@ -53,7 +53,11 @@
 
         private var header: some View {
             HStack(alignment: .top, spacing: ServersBoardMetrics.gap) {
-                Breaker(state: BreakerState.forServer(server))
+                // The third picture of one state, drawn from the same value as the band's jack and
+                // the table's row. Aligned to the title's first line rather than to the block, so a
+                // wrapped long name does not leave the mark floating beside its second line.
+                StatePlug(state: JackState.forServer(server))
+                    .padding(.top, ServersBoardMetrics.tightGap)
                 VStack(alignment: .leading, spacing: 0) {
                     // The full name, wrapping rather than truncating: §5's Overflow rule sends the
                     // long value here precisely so it can be read somewhere.

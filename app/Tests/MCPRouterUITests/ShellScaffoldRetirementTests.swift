@@ -46,10 +46,14 @@
         func installedIsTheShippedSet() {
             #expect(
                 BoardRegistry.installed
-                    == [.servers, .activity, .skills, .discover, .evals, .cleanup, .inbox],
+                    == [
+                        .servers, .activity, .skills, .harnesses,
+                        .discover, .evals, .cleanup, .inbox, .insights
+                    ],
                 """
                 M2 Activity, M3 Servers, M4 Skills, M5 Discover, M7 Evals + Cleanup, M6 Inbox — \
-                and M15 took M8's Settings board back out, into a Settings scene
+                M15 took M8's Settings board back out, into a Settings scene, and M22 added \
+                Harnesses and Insights
                 """
             )
             // `isEmpty` rather than `count == 0`, which the linter prefers and which says the same

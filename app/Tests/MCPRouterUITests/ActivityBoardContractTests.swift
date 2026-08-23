@@ -187,10 +187,14 @@
             // M2, then M4, M8, M5, M7, and M6 — which closed the set at eight. **M15 took one back
             // out**: Settings is a `Settings` scene now, so it is not a destination and has no
             // board. The `allCases` invariant below is untouched, and it is what proves that
-            // removal was complete rather than partial.
+            // removal was complete rather than partial. **M22 put two back**: Harnesses and
+            // Insights, which the console mock draws and which had no brief before it.
             #expect(
                 BoardRegistry.installed
-                    == [.servers, .activity, .skills, .discover, .evals, .cleanup, .inbox]
+                    == [
+                        .servers, .activity, .skills, .harnesses,
+                        .discover, .evals, .cleanup, .inbox, .insights
+                    ]
             )
             #expect(BoardRegistry.scaffolded.isEmpty)
 

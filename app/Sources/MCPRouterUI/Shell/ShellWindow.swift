@@ -222,6 +222,13 @@
                 CleanupBoard(board: model.cleanupBoard)
             case .inbox:
                 InboxBoard(board: model.inboxBoard)
+            case .harnesses:
+                HarnessesBoard(board: model.harnessesBoard)
+            case .insights:
+                // The empty state's one action moves the selection rather than opening anything —
+                // "watch the live log instead" is a destination, and the shell is what owns
+                // selection.
+                InsightsBoard(board: model.insightsBoard) { model.selection = .activity }
             }
         }
     }

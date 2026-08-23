@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | ID | M22 |
-| Status | To Do |
+| Status | **Developer Review** — built on `ai/m22`, gated, not verified. A runner cannot verify its own build; `planning/progress/M22.md` carries what landed, what was measured and what is open |
 | Category | mac · mock conversion · new surfaces |
 | Depends on | M1 ✓ · R6 ✓ · R7 ✓ · M23 ✓ · M21 (the bar-fill colours, and only those) |
 | Absorbs | R7-C1 — the Harnesses board and the route behind it. See §3.4: R7-C1 waits on M22 and M22 needs R7-C1, so this item takes both halves |
@@ -150,7 +150,28 @@ board as a subject. These are genuinely new surfaces with no prior measurement b
 ### 3.3 R7 shipped the engine and a command-line verb, not a route
 
 - `app/Sources/MCPRouterCLI/HarnessesVerb.swift` implements `mcp-router harnesses [--json] [--port] [--config] [--host]`, dispatched from `MCPRouterCLI.swift:61`. It reads harness configuration files off disk through `ClientConfigs.inventory` and `HarnessReconciliation.reportAll` and prints text or `{"harnesses":[…]}` to standard output. **It never talks to a running router.**
-- `app/Sources/RouterCore/Discovery/HarnessReconciliation.swift` already models the readings: `HarnessState` with `.notWired`, `.wired(route:)` and `.wiredWithDuplicates(route:count:)`, plus `DuplicateEntry`. `HarnessWiring.swift` carries `HarnessDialect` for the per-client spellings.
+- `app/Sources/RouterCore/Discovery/HarnessReconciliation.swift` already models the readings: `HarnessState` with `.notWired(overlapping:)`, `.wiredViaHTTP`, `.wiredViaShim(bridge:)` and `.wiredWithDuplicates(route:count:)`, plus `Duplicate`. `HarnessWiring.swift` carries `HarnessDialect` for the per-client spellings.
+
+  > **This line was wrong when triage wrote it, and is corrected here rather than silently
+  > rewritten.** It read `.notWired`, `.wired(route:)` and `.wiredWithDuplicates(route:count:)`,
+  > *plus `DuplicateEntry`* — three cases where the source declares **four**, dropping
+  > `notWired`'s `overlapping: Int` payload, collapsing `.wiredViaHTTP` and
+  > `.wiredViaShim(bridge:)` into a `.wired(route:)` that does not exist, and naming a
+  > `DuplicateEntry` type that does not exist either (it is `Duplicate`).
+  >
+  > It matters beyond tidiness because the paragraph below draws a conclusion from the count: it
+  > says three of the brief's four readings exist and the fourth is new modelling. **The
+  > opposite is true** — all four exist, and the type's own doc comment names the brief in those
+  > words: *"The brief's four answers, derived from the report rather than stored."* A route
+  > built to the names above would be unable to express two of the readings it exists to carry,
+  > because the shim's bridge and the unwired overlap count would have nowhere to live.
+  >
+  > `M22` built against the source rather than against this line and its plan records the same
+  > finding independently (`planning/plans/plan-M22.md` §2.1), so `GET /harnesses` switches
+  > exhaustively over all four and `HarnessReading` on the app side is a closed four-case enum.
+  > Corrected on 2026-08-22 after `M16` reported it, verified against the declaration; recorded
+  > because `M16`'s rail reads this route and a second reader would otherwise re-derive the
+  > wrong shape from the same sentence.
 - **There is no `GET /harnesses`.** `RouterCore/Service/RouterServiceDispatch.swift` has no harness case, and `src/` — the TypeScript reference — contains no occurrence of the string at all.
 
 So three of the brief's four readings exist in the model and one does not: *routed but still declaring

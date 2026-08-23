@@ -41,6 +41,37 @@ public struct ServersBoardHeader: Equatable, Sendable {
     /// count that makes that sentence sayable.
     public let unindexed: Int
 
+    /// Child processes that stay up when nothing is calling — what the Signal Path's hub reads as
+    /// `N at rest`, and the product's central claim as a live number rather than a slogan.
+    ///
+    /// **It is the warm set with a child actually up, not the warm flag.** `src/pool.ts` is the
+    /// oracle for both halves: the reaper returns early on `if (u?.warm)`, so a warm server is
+    /// exactly one that survives going idle; and `warmUp()` pre-opens the warm set at startup with
+    /// *"Failures are logged and swallowed"*, so a warm server that would not start carries
+    /// `warm == true` while its process is not on the machine. Counting the flag alone would put a
+    /// child in this readout that is not there, which is the one thing this figure exists not to do.
+    ///
+    /// `nil` on a reading that is not current, for the same reason as `running` above: a count of
+    /// live child processes is a present-tense claim, and a router that has stopped answering
+    /// cannot support one.
+    public let atRest: Int?
+
+    /// The rail's topology, as the count of what is wired to what.
+    ///
+    /// `1 endpoint` because there is one router; the upstream count is what is **declared**, which
+    /// is configuration and survives a failed refresh — the same distinction that lets `servers`
+    /// above be stated on a stale reading while `running` is withheld.
+    ///
+    /// The mock reads `5 harnesses → 1 endpoint → 11 upstreams`. The harness leg is absent here and
+    /// that is a measurement rather than an omission: the control API serves no harness reading at
+    /// all, `HarnessReconciliation` lives in `RouterCore` which neither app links, and A36 forbids a
+    /// board reading a harness config file itself. M22 owns the route; until it lands, a number here
+    /// would be one nothing observes.
+    public var topology: String {
+        let noun = servers == 1 ? "upstream" : "upstreams"
+        return "1 endpoint → \(servers) \(noun)"
+    }
+
     public let reading: Reading
 
     public init(servers list: [MCPServer], reading: Reading) {
@@ -48,6 +79,9 @@ public struct ServersBoardHeader: Equatable, Sendable {
         tools = list.reduce(0) { $0 + $1.tools }
         servers = list.count
         running = reading == .current ? list.filter { $0.state == .running }.count : nil
+        atRest = reading == .current
+            ? list.filter { $0.warm && $0.state == .running }.count
+            : nil
         unindexed = list.filter { $0.indexError != nil }.count
     }
 

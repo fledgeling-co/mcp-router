@@ -233,6 +233,6 @@ struct MenuCommandRuleTests {
         }
         #expect(Set(inView) == Set(Destination.allCases.filter { $0.selectionDigit != nil }))
         #expect(inView == inView.sorted { ($0.selectionDigit ?? 0) < ($1.selectionDigit ?? 0) })
-        #expect(inView.map(\.selectionDigit) == [1, 2, 3, 4, 6, 7, 8])
+        #expect(inView.map(\.selectionDigit) == [1, 2, 3, 4, 5, 6, 7, 8, 9])
     }
 }

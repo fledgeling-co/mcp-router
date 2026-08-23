@@ -38,12 +38,8 @@ section is stated for both.
 server, showing what is plugged into the router right now. It is a literal rendering of
 the mechanism the product exists for, and it is the only loud thing in the app. Everything
 else stays quiet so it can be. `--jack-off`, `--jack-ring` and the `Jack lane` metric are
-its values and are authored in §2; **M16 draws it.**
-
-**The outgoing signature, recorded rather than deleted:** the breaker column — one lever
-per declared server, snapping up the instant an agent calls it. `### Breaker geometry`
-below still specifies it value by value and the app still draws it, because M21 authors
-the token layer and moves no surface. M16 retires both together.
+its values and are authored in §2, and its construction is `### Signal Path geometry`
+below. **M16 draws it**, and retired the breaker column it replaces in the same change.
 
 **The known weakness, stated rather than hidden:** the previous direction's weakness was
 that Terminal Dark is one of the two looks a model defaults to on any brief. This one
@@ -286,7 +282,7 @@ leaks into prose.
 | Popover radius | 20pt · concentric children |
 | Card radius | 10pt |
 | Table rows | 24–28pt for dense lists |
-| Servers row | 56pt (4 + 48 breaker housing + 4) |
+| Servers row | 56pt |
 | Jack lane | 44pt |
 | Scrollbar | 12pt |
 
@@ -296,6 +292,12 @@ parity check, and therefore free to drift. They are individual rows now because 
 system builds controls from them. The Servers board's 56pt row is a row of its own for the
 same reason: the loading skeleton has to match the populated row's height exactly or the
 board jumps when data lands, and a height buried in another cell's prose cannot be checked.
+
+**That cell used to read `56pt (4 + 48 breaker housing + 4)`.** The derivation retired with the
+lever under M16 and the value did not move, because the table's own conversion is another item's
+and a row height changed here would move the skeleton, the column headers and the inspector's
+neighbour in a diff nobody asked for. What sets it now is the two-line name block the row draws.
+The console mock's own table row is 36pt; §10 records that as owed.
 
 **`Card radius` used to live inside the popover cell**, written as `card radius 10–14` beside the
 popover's own number. That is the same defect one size down — a value in a cell no parser reads,
@@ -380,51 +382,41 @@ numeral over `of N declared`, and the build draws a label-left / value-right row
 divergence in the same element; it is a type and density decision rather than a missing element, so
 it converts under `M23`'s mock-to-SwiftUI contract with the rest of the board, not in passing.
 
-### Breaker geometry `(specified)`
+### Signal Path geometry `(specified)`
 
-**This table documents the outgoing signature and retires under M16**, together with the breaker
-column itself and `BreakerGeometryParityTests`. It is left byte-identical here on purpose: M21
-authors the token layer and moves no surface, so the app still draws levers, and a table removed
-before the element it specifies would turn the parity test's oracle into a parse error — a red gate
-that reads as a broken parser rather than as a retired element.
-
-The signature element's construction, recorded value by value. It is here rather than in
-prose because two prototype rounds failed on *construction* — the lever covering its own
-track, the housing reading as a hole, the lamp drawn outside the housing and clipped — and
-a dimension no check can read is a dimension free to drift back.
+The signature element's construction, recorded value by value. It is here rather than in prose
+for the reason the outgoing signature's table gave: a dimension no check can read is a dimension
+free to drift back, and this element's two hardest numbers were **measured** rather than picked —
+a single-column field ran the band 500pt deep at eleven upstreams and pushed the table off the
+board, and a label column too narrow for `3:41 left` clips the only part of the label that was
+carrying information.
 
 | Element | Value |
 |---|---|
-| Breaker housing width | 30pt |
-| Breaker housing height | 48pt |
-| Breaker housing radius | 5pt |
-| Breaker lamp boss | 8pt |
-| Breaker lamp diameter | 6pt |
-| Breaker slot inset leading | 4pt |
-| Breaker slot inset top | 11pt |
-| Breaker slot inset trailing | 4pt |
-| Breaker slot inset bottom | 3pt |
-| Breaker slot radius | 3pt |
-| Breaker toggle inset horizontal | 4pt |
-| Breaker toggle height | 15pt |
-| Breaker toggle radius | 2.5pt |
-| Breaker toggle resting offset | 4pt |
-| Breaker toggle raised offset | 19pt |
-| Breaker rise response | 0.18s |
-| Breaker rise damping | 0.62 |
-| Breaker fall response | 0.6s |
-| Breaker fall damping | 1.0 |
+| Signal Path padding | 12pt |
+| Jack minimum width | 132pt |
+| Jack inset | 10pt |
+| Jack gap | 9pt |
+| Jack plug diameter | 16pt |
+| Jack plug ring | 3pt |
+| Row plug diameter | 8pt |
+| Hub width | 76pt |
+| Flow arrow width | 20pt |
+| Plug transition | 0.2s |
 
-The slot is 22 × 34 and the toggle 22 × 15, both derived from the insets above. **The slot
-is at least as wide as the toggle and strictly taller** — that is what leaves a recess
-visible above the lever when it is down and below it when up, lit or not, and it is the
-invariant a dormant row depends on. The lamp boss (8pt) is mounted on the plate inside the
-housing, never overhanging it.
+The lane a jack sits on is **not** a row here. It is `Jack lane` in the chrome table above,
+because it is the one dimension of this element the mock publishes in its own metrics block, and
+a value stated twice is the defect `Card radius` was split out to end.
 
-The two springs are §7's, given here as the numbers the code actually uses: rising is fast
-and overshoots (damping below 1), falling is slow and settles (damping at 1). Reduce Motion
-removes the animation and never the state change.
+The jack field is a grid of tracks that packs to the width available — `repeat(auto-fill,
+minmax(132px, 1fr))` in the mock, `GridItem(.adaptive(minimum:))` in SwiftUI — never a fixed
+column count. **The invariants that make it read as a patchbay:** the plug plus both sides of its
+ring fits inside the lane, so nothing clips against the track above; the label column is the
+larger half of the jack, so the condition is legible rather than truncated; and the ring is
+thinner than the plug's own radius, so it reads as a halo rather than as a second plug.
 
+`Plug transition` is a duration and a curve rather than a spring, and it is the one place in this
+document that is. §7 says why.
 
 ---
 
@@ -531,15 +523,22 @@ failures.
 
 ## 7 · Motion
 
-Springs, not durations. Interruptible. Transform and opacity only.
+Springs where this document authors the motion; a duration and a curve where the design of
+record does, which is the Signal Path and nothing else so far. Interruptible either way.
+Transform and opacity only.
+
+**The distinction is provenance rather than taste.** A spring is what you reach for when you are
+deciding how a thing should feel; `design/mcp-router-console.html` had already decided this one
+and states it as `200ms cubic-bezier(0.2,0,0,1)`, so restating it as a spring here would be
+re-authoring a value the design of record already carries. The two breaker rows this table used to
+open with were the app's own, and they retired with the element under M16.
 
 | Moment | Feel |
 |---|---|
-| Breaker snapping up | fast spring, ~0.18s, slight overshoot — the call already happened |
-| Breaker easing down | slow ease, ~0.6s, no overshoot — the reaper is unhurried |
+| Plug lighting or going dark | ease-out, 0.2s, on the fill and the ring — the call has already happened. `### Signal Path geometry` carries the number |
 | Sheet / popover entry | materialize from its anchor, never a centre fade |
 | Row selection | immediate; no transition on the selection fill |
-| Badge count change | a small scale bump, never a colour flash |
+| Badge count change | a small scale bump, never a colour flash — the plug's timing, because a badge ticking up and a plug lighting are the same event |
 | Commit bar entry | rise on transform only |
 
 `prefers-reduced-motion`, `prefers-reduced-transparency` and `prefers-contrast` are
@@ -572,7 +571,7 @@ Named in every spec, not discovered later.
 | `⌘8` | Inbox |
 | `Return` | commits the view's one default action |
 | `Esc` | dismisses the sheet, then clears selection |
-| `Space` | toggles the selected row's breaker |
+| `Space` | toggles the selected row's **Keep warm** |
 
 Focus rings are visible, accent-bound, 2px. Tab order runs sidebar → table → inspector.
 
@@ -654,7 +653,17 @@ Recorded here rather than in a report, because it is the next design work:
 - **A second subject-mined element.** The Signal Path is the only one. A board whose other
   surfaces are stock tables has one signature and eight defaults.
 - **Density is inconsistent** — 56px table rows against 120px featured cards holding
-  three short lines. The cards are the emptiest thing on the busiest surface.
+  three short lines. The cards are the emptiest thing on the busiest surface. The Servers row is
+  now the sharper case of it: 56pt was `4 + 48 breaker housing + 4`, and with the lever retired
+  under M16 the row leads with an 8pt plug while the design of record draws its table row at 36pt.
+  The value did not move with the derivation, because the table's conversion is not the signature
+  element's item.
+- **The Signal Path's harness column is specified and not drawn.** The brief's rail is harnesses →
+  hub → jacks, and the first of those needs a reading the app cannot reach: `HarnessState` lives in
+  `RouterCore`, which neither app target links, and derives from harness config files rather than
+  from the control API, which serves no harness route at all. §3 rule A36 forbids a board going
+  round it. M22 absorbs `R7-C1` and the route, and the column lands with it. Until then the rail
+  reads hub → jacks, which is honest and incomplete rather than either alone.
 - **The palette clears the floor; the call sites have not moved yet.** Every surface now has a
   text-safe token to reach for and no surface has been made to reach for it. A board still drawing
   a 13pt label in `--accent` on `--ground` ships 3.52:1, and nothing in the token layer catches

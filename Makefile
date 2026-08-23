@@ -502,6 +502,7 @@ acceptance: build-mac build-mac-release
 	./scripts/acceptance/p1-auth-routes.sh
 	./scripts/acceptance/mac-shell.sh
 	./scripts/acceptance/r7-harness-reconciliation.sh
+	./scripts/acceptance/m22-boards.sh
 
 ## M23's mock-to-SwiftUI conversion gate. Renders a surface through the measurement harness and
 ## diffs it against `design/mcp-router-console.html` on eight layers.

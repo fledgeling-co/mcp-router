@@ -28,7 +28,7 @@
             "ActivityResetHistorySheet", "AddServerSheet", "ChildPathSheet", "DiscoverDetailSheet",
             "HeldChangeSheet", "HeldVersionSheet", "InboxReviewSheet", "MarketplacesSheet",
             "MissingSubjectSheet", "OfficialMarkSheet", "PairingSheet", "RemoveServerDialog",
-            "RemoveServerSheet", "ResetHistorySheet", "SkillProvenanceSheet"
+            "RemoveServerSheet", "ResetHistorySheet", "ShimExplanationSheet", "SkillProvenanceSheet"
         ]
 
         /// The sheets with no Escape path, each with why it was left rather than fixed.
@@ -46,6 +46,7 @@
             "HeldVersionSheet": "one Done control, holding Return",
             "MarketplacesSheet": "one Done control, holding Return",
             "MissingSubjectSheet": "one Done control, holding Return",
+            "ShimExplanationSheet": "one Done control, holding Return",
             "PairingSheet": "Done closes the session and stops the ticker; it holds Return"
         ]
 

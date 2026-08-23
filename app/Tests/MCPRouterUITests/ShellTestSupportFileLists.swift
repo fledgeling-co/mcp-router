@@ -67,6 +67,7 @@
             "app/Sources/MCPRouterUI/Boards/InboxBoardModel.swift",
             // I6's arrival half, on the same board.
             "app/Sources/MCPRouterUI/Boards/InboxBoardModel+Arrivals.swift",
+            "app/Sources/MCPRouterUI/Boards/InboxBoardModel+Sheet.swift",
             "app/Sources/MCPRouterUI/Boards/InboxBoardMetrics.swift",
             "app/Sources/MCPRouterUI/Boards/InboxReviewSheet.swift",
             "app/Sources/MCPRouterUI/Boards/PairingSheet.swift",
@@ -116,6 +117,7 @@
             "app/Sources/MCPRouterUI/Boards/CleanupBoardRow.swift",
             "app/Sources/MCPRouterUI/Boards/CleanupSheets.swift",
             "app/Sources/MCPRouterUI/Boards/M7BoardMetrics.swift",
+            "app/Sources/MCPRouterUI/Boards/OfficialMarkSheet.swift",
             // M22's Harnesses and Insights. Enrolled in the same commit that created them, for
             // the reason this list exists: a board file nobody listed is a board file the
             // one-channel grep, the raw-design-value scan and the indicator-hue declaration are

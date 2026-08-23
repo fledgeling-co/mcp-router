@@ -379,7 +379,61 @@ that blocks does not dispatch its own successor. Either dispatch on receipt or m
 explicit enough that the next dispatch reads it — the ledger row said it and the dispatcher did not
 look.
 
-### R19'S PARAGRAPH HAS FAILED THREE PASSES, EACH TIME BY A NEW EXCLUSIVITY CLAIM
+### MERGE — `surface.tsv`'s ROW PIN BREAKS ON THE R19 UNION, AND BOTH PARENTS ARE GREEN
+
+Predicted **before** the merge rather than found after it, by R19's fourth verifier — the first
+merge-only break this fleet has caught in advance.
+
+The union of `ai/r19` with today's `main` puts **96 rows** against `planning/parity/surface.tsv:3`'s
+`# rows: 94` pin, so **`parity-manifest-check.sh` exits 1 on the merged tree while both parents exit
+0.** `main` contributes the two `div-m22-*` rows — from the M22 merge — and the branch contributes
+two `overlap` rows.
+
+**The pin and `PARITY_CUTOVER_TARGET` move in the merge commit**, not before and not after: moving
+them on either parent reds that parent against its own row count. This is the same shape as G4's
+merge-only break and M22's file-length break, with one difference that matters — **it was measured
+in advance, so the merge can carry its own fix instead of `main` going red and being repaired.**
+
+**R16, R18 and R21 all wait on that merge.**
+
+Note the target figure is the owner's: `PARITY_CUTOVER_TARGET` is held at **82** by decision
+2026-08-23, and the derived census is a **reported drift**, not a correction. Moving the pin is
+bookkeeping; moving the target is not, and is not this fleet's to do.
+
+### R19'S PARAGRAPH HAS FAILED FOUR PASSES, AND THE FOURTH SURVIVED THE FIX FOR THE FIRST THREE
+
+Four verifications, four false claims, and the fourth is **the bullet the register change added**:
+
+1. *a node-side delete would have failed **both*** — false.
+2. *`parity-cli.sh` is **not what catches** that one* — false.
+3. *what `IndexFailureRecordTests` **uniquely** holds…* — false, written four lines below the
+   sentence the same pass narrowed for exactly this reason.
+4. *`make test` catches none of these arms and **structurally cannot**.* — false. `make test` is an
+   unfiltered `swift test` in `app/`, `RouterCoreTests` is a test target, and
+   `IndexFailureRecordTests` lives in it, so `make test` is a **strict superset** of the instrument
+   the same paragraph says goes red at 11 issues. Measured **14** on arms B and A+B.
+
+The brief for pass four asked for a **change of register** — state what each instrument *does*
+catch, claim uniqueness for none. It did that. And the verifier's sentence is the finding:
+
+> **The register changed and the failure mode survived it: exclusivity claims went, a universal
+> negative arrived.**
+
+*Only X catches this* and *X catches none of this* are the same claim shape. **Both are
+unfalsifiable without enumerating the instrument set, and nobody has enumerated it.** The stated
+reason — *executes no node code* — rules out the **node** arm only, and was generalised to three.
+
+**The three issues above eleven are `WatchAdoptionTests`, named nowhere in either R19 record** — the
+**fourth previously-unnamed instrument in four passes**, and it sits *inside* the instrument the
+paragraph declares blind.
+
+**So the next brief does not ask for better wording.** The paragraph cannot be written until the
+instrument set is enumerated, because every register available to it quantifies over that set. **The
+work is the enumeration**: which instruments exist, which reach node, which reach Swift, which are
+supersets of which. Four passes have each discovered one member by accident. A fifth asked for prose
+will find a fifth.
+
+### R19'S PARAGRAPH — THE ORIGINAL THREE
 
 Three verifications, three `Needs More Work`, and **each pass removed one exclusivity claim and wrote
 another**:

@@ -379,6 +379,49 @@ that blocks does not dispatch its own successor. Either dispatch on receipt or m
 explicit enough that the next dispatch reads it — the ledger row said it and the dispatcher did not
 look.
 
+### DISPATCH — WRAP THE GATES IN `governor-run`. THIS FLEET NEVER HAS.
+
+**Disclosed 2026-08-23 after twenty minutes of measuring everyone else's instruments.** Zero briefs
+this session dispatched mention `governor-run`. Two verifications compiled for twenty minutes while
+`berths.py` showed one claim that was not theirs — so the armada's load readings included this
+fleet's consumption while its claims list did not, and admission was being cleared for other
+projects against a board missing a fleet.
+
+**It is the inverse of the residency defect.** An observation server is *a claim that is not work*.
+This fleet was *work that does not claim*. Both make `in_use` mean something other than what a reader
+takes from it — and **this direction makes the machine look emptier than it is**, which is the one
+that causes over-admission.
+
+**The invocation, with the path explicit** because a `find` inside a spawned agent comes back empty:
+
+```
+export HARBOURMASTER_SCRIPTS=/Users/lukerhodes/Dev/fledgeling-plugins/plugins/harbourmaster/skills/harbourmaster/scripts
+$HARBOURMASTER_SCRIPTS/governor-run --weight 4 --project mcp-router --label "<item> gate" -- make lint test
+```
+
+**Weight 4, and declare for the stage rather than its cheapest leg.** The scale is
+`harbourmaster/SKILL.md:85` — *roughly the cores the job will want; a single test is 1, a
+`-j`-parallel build is 4-8*. Measured here, `make lint` is **0.94 cores for 74 seconds**, which is a
+**1**. But a verification runs lint *and* test, and `make test` triggers a Swift build underneath,
+which is the 4-8 band. **Declaring 2 and then compiling is the defection** — anvil declares 6 because
+a full gate needs 6, including in the minutes when it does not. Exit 64 is a weight above machine
+capacity, so 4 is safely inside.
+
+**Wrap the gates inside the runner, not the `claude -p` dispatch.** Wrapping the dispatch claims a
+berth for the agent's thinking time — idle-waiting on an API at near-zero CPU, held for the whole
+turn. **That is the residency shape**, and it would put every verification in the same category as a
+dev server. The governor meters work that finishes; a `claude -p` turn is a wait with a compile
+inside it.
+
+**Every brief must tell the runner what exit 75 means**, or it reads a refusal as a failure:
+**re-read berths, wait, retry — and if still not admitted, report `blockedReason` rather than running
+unwrapped.** Errand's runners handled 17 exit-75 refusals correctly on exactly that instruction.
+
+**The residual risk this creates, named rather than left**: moving the wrap inside the runner means a
+runner that forgets it, or gets the path wrong, runs unwrapped **silently** — the same failure this
+entry exists to fix, one level down. There is no check that a runner claimed. Until there is, the
+brief carrying the export and the weight is the whole mechanism.
+
 ### TWO MERGE-ONLY BREAKS PENDING, BOTH FROM THE M22 MERGE, BOTH CAUGHT IN ADVANCE
 
 For the first time this fleet has merge-only breaks **predicted rather than repaired**, and both come

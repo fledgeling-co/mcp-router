@@ -379,6 +379,32 @@ that blocks does not dispatch its own successor. Either dispatch on receipt or m
 explicit enough that the next dispatch reads it — the ledger row said it and the dispatcher did not
 look.
 
+### TWO MERGE-ONLY BREAKS PENDING, BOTH FROM THE M22 MERGE, BOTH CAUGHT IN ADVANCE
+
+For the first time this fleet has merge-only breaks **predicted rather than repaired**, and both come
+from the same commit — `6595362`, the M22 merge.
+
+| branch | what reds on the union | why neither parent is red |
+|---|---|---|
+| `ai/r19` | `parity-manifest-check.sh` — 96 rows against `surface.tsv:3`'s `# rows: 94` pin | `main` contributes two `div-m22-*` rows, the branch two `overlap` rows |
+| `ai/m18` | `thePopulationIsTheFifteenNamed`, `everySheetOutsideTheGapCarriesAnEscapePath` — 4 runs of 4 | `HarnessSheets.swift` absent at `453a124`; `SheetShortcutGuardTests.swift` absent on `main` |
+
+**Both merges must carry their own fix.** Moving R19's row pin on either parent reds that parent
+against its own count; adding M18's two sheet entries on `main` names a test file that does not
+exist there. So the repair belongs **in the merge commit**, which is only possible because both were
+measured before merging.
+
+**The pattern to carry**: M22 added surfaces, and every branch holding a *complete-population*
+assertion over surfaces breaks against it — while both sides stay green because each population is
+defined in a file the other does not have. `M18`'s guard and `R19`'s row pin are the two found; **no
+sweep has been run for a third.**
+
+**And a warning about the ShellTestSupport conflict specifically**: the verifier reports that
+resolving it naively **drops two of M18's gate enrolments**, and proved `boardFileListIsComplete`
+catches that. This orchestrator split that file into an extension at `5f98e6c` — so the conflict a
+merge will now present is different in shape from the one it measured, and the enrolments are the
+thing to check after resolving it.
+
 ### MERGE — `surface.tsv`'s ROW PIN BREAKS ON THE R19 UNION, AND BOTH PARENTS ARE GREEN
 
 Predicted **before** the merge rather than found after it, by R19's fourth verifier — the first

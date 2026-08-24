@@ -34,6 +34,13 @@ function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);
   return i >= 0 ? process.argv[i + 1] : undefined;
 }
+/*
+ * The outer bound on a graceful shutdown. Comfortably past router.ts's own
+ * connection grace period, so the ordinary path finishes well inside it and this
+ * only fires when something is genuinely stuck.
+ */
+const SHUTDOWN_DEADLINE_MS = 15_000;
+
 const has = (name: string): boolean => process.argv.includes(`--${name}`);
 
 function usage(): void {
@@ -246,7 +253,32 @@ async function cmdServe(): Promise<void> {
     if (closing) return;
     closing = true;
     log.info(`${sig} received; closing upstreams`);
-    void close().then(() => process.exit(0));
+    /*
+     * The deadline is the invariant, and `close()` resolving is not. A shutdown
+     * that stalls leaves the listener closed and the process alive, which is the
+     * one failure state nothing supervises: launchd's KeepAlive watches for an
+     * exit, and a hung process never produces one. Measured 24 Aug 2026 — the
+     * router sat in exactly that state for 96 minutes, refusing every new session
+     * while serving the eleven already attached. router.ts's close() carries the
+     * mechanism that caused it; this is the backstop for the next one, wherever
+     * it turns out to be.
+     *
+     * The forced exit is non-zero on purpose: the launchd job restarts on an
+     * unsuccessful exit, so a router that could not shut down cleanly comes back
+     * rather than staying down.
+     */
+    const deadline = setTimeout(() => {
+      log.warn(`shutdown did not finish within ${SHUTDOWN_DEADLINE_MS}ms; exiting anyway`);
+      process.exit(1);
+    }, SHUTDOWN_DEADLINE_MS);
+    deadline.unref();
+    void close().then(
+      () => process.exit(0),
+      (err) => {
+        log.warn(`shutdown failed: ${err instanceof Error ? err.message : String(err)}`);
+        process.exit(1);
+      }
+    );
   };
   process.on('SIGINT', () => shutdown('SIGINT'));
   process.on('SIGTERM', () => shutdown('SIGTERM'));

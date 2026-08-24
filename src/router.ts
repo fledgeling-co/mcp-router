@@ -16,6 +16,13 @@ import { log } from './log.js';
 
 const MCP_PATH = '/mcp';
 
+/*
+ * How long a shutdown waits for in-flight connections before destroying them.
+ * Long enough for a tool call mid-flight to finish and its client to notice the
+ * response; short enough that a restart is a restart rather than a hang.
+ */
+const SHUTDOWN_GRACE_MS = 5_000;
+
 function readBody(req: IncomingMessage): Promise<unknown> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
@@ -441,7 +448,37 @@ export async function startRouter(
   return {
     close: async () => {
       usage.flush();
-      await new Promise<void>((resolve) => http.close(() => resolve()));
+      /*
+       * `http.close(cb)` stops the listener accepting immediately and calls back
+       * only once every EXISTING connection has ended. An MCP client holds its
+       * connection for the whole session, so on a machine with sessions attached
+       * that callback never fires.
+       *
+       * Measured 24 Aug 2026. The router took a SIGTERM at 06:34, logged
+       * "closing upstreams", closed its listening socket, and then stayed alive
+       * for 96 minutes with 11 established connections and zero LISTEN sockets —
+       * serving every session that had connected before the signal and refusing
+       * every new one with ECONNREFUSED. `process.exit(0)` was downstream of this
+       * await and never ran, so launchd's KeepAlive never fired either: the
+       * process had not exited, so there was nothing for it to notice.
+       *
+       * A shutdown that cannot complete is worse than an abrupt one, because a
+       * half-closed router is indistinguishable from a healthy one to everybody
+       * already attached. So: let the idle connections go immediately, give the
+       * active ones a bounded grace period, then destroy what is left.
+       */
+      const closed = new Promise<void>((resolve) => http.close(() => resolve()));
+      http.closeIdleConnections();
+      const force = setTimeout(() => {
+        log.warn(
+          `connections still open after ${SHUTDOWN_GRACE_MS}ms; closing them so the process can exit`
+        );
+        http.closeAllConnections();
+      }, SHUTDOWN_GRACE_MS);
+      // Never let the grace timer be the thing keeping the process alive.
+      force.unref();
+      await closed;
+      clearTimeout(force);
       await pool.shutdown();
     },
   };

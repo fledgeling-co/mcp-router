@@ -279,7 +279,8 @@ func stdioUpstream(
     _ name: String,
     idleMs: Int? = nil,
     warm: Bool? = nil,
-    startupTimeoutMs: Int? = nil
+    startupTimeoutMs: Int? = nil,
+    disabled: Bool? = nil
 ) -> UpstreamConfig {
     UpstreamConfig(
         name: name,
@@ -290,6 +291,7 @@ func stdioUpstream(
         projects: nil,
         warm: warm,
         placard: nil,
+        disabled: disabled,
         command: "/bin/echo",
         args: [name],
         env: [],

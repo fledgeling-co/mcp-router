@@ -195,7 +195,9 @@ struct VectorRegistryTests {
     /// or from the engine whose semantics the Swift reimplements.
     /// R5 adds the six auth-page vectors, so the floor rises again to 358: the ratchet is the
     /// point — a floor left at 352 would let the auth corpus be deleted without failing.
-    static let executedFloor = 358
+    /// M29 adds nine — four `union-tools`, four `parse-server` and one `upstream-hash` — for a
+    /// server that is declared and not served, so the floor rises to 367 for the same reason.
+    static let executedFloor = 367
 
     /// B81. A bare total is satisfied by any unrelated vectors, so the auth corpus is asserted
     /// **by name** as well as by count — the substitute out-of-family gate found that a floor alone

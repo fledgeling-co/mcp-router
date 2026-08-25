@@ -38,13 +38,16 @@ struct ControlContractTests {
     }
 
     /// The shape is checked against the router's own handler rather than against itself: the
-    /// TypeScript `PATCH /servers/:name` reads `projects`, `warm`, `idleMs` and `placard`, and
+    /// TypeScript `PATCH /servers/:name` reads `projects`, `warm`, `idleMs`, `placard` and `disabled`, and
     /// silently ignores anything else. A field here that the router does not read produces a call
     /// that returns 200 and changes nothing, which is worse than a failure.
     @Test("a fully-populated patch encodes exactly the keys the router reads")
     func patchKeysAreExactlyThePermittedOnes() throws {
         let data = try JSONEncoder().encode(
-            ServerPatch(projects: [], warm: false, idleMs: 0, placard: .set(Placard(reason: "x")))
+            ServerPatch(
+                projects: [], warm: false, idleMs: 0, placard: .set(Placard(reason: "x")),
+                disabled: false
+            )
         )
         let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
         #expect(Set(object.keys) == ServerPatch.permittedWireKeys)
@@ -269,7 +272,7 @@ struct ControlContractTests {
         let json = Data(
             """
             {"name":"x","transport":"stdio","state":"idle","inFlight":0,"callsServed":0,
-             "idleSec":0,"tools":0,"toolNames":[],"projects":[],"warm":false,
+             "idleSec":0,"tools":0,"toolNames":[],"projects":[],"warm":false,"disabled":false,
              "auth":{"supported":false,"authorized":true},
              "usage":{"calls":0,"errors":0,"projects":{}}}
             """.utf8

@@ -541,6 +541,14 @@ echo "R4 — mutating routes, each side against the same pre-mutation snapshot"
 compare_mutating control-server-patch "PATCH sets a placard"         PATCH "/servers/diff-stdio" '{"placard":"held"}'
 compare_mutating control-server-patch "PATCH rejects a command edit" PATCH "/servers/diff-stdio" '{"command":"/bin/sh"}'
 compare_mutating control-server-patch "PATCH rejects an env edit"    PATCH "/servers/diff-stdio" '{"env":{"X":"1"}}'
+# M29 — the switch, both ways and malformed. `true` writes the member, `false` REMOVES it rather
+# than writing `false`, so turning a server back on has to leave the config exactly as it found it;
+# that is why the cleared case is compared as bytes rather than as a status. The truthy string is
+# here because both sides coerce with JavaScript truthiness rather than reading a typed Bool, and a
+# port that tightened that would diverge only on an input like this one.
+compare_mutating control-server-patch "PATCH disables a server"      PATCH "/servers/diff-stdio" '{"disabled":true}'
+compare_mutating control-server-patch "PATCH clears disabled"        PATCH "/servers/diff-stdio" '{"disabled":false}'
+compare_mutating control-server-patch "PATCH disabled truthy string" PATCH "/servers/diff-stdio" '{"disabled":"yes"}'
 compare_mutating control-servers-post "POST refuses a duplicate"     POST  "/servers" '{"name":"diff-stdio","command":"/bin/echo"}'
 compare_mutating control-server-delete "DELETE removes a server"     DELETE "/servers/diff-warm" ''
 compare_mutating control-server-delete "DELETE an unknown server"    DELETE "/servers/nope" ''

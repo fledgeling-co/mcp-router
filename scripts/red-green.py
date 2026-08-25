@@ -621,6 +621,89 @@ mut(
     "a placard can be set, cleared, or left alone",
 )
 
+# ---------------------------------------------------------------- M29: declared and not served
+#
+# Ids are DIS-*, not M29-*, deliberately: this table's ids are a mutation index in their own
+# namespace, and it already carries an "M20" that means a mutation rather than a ledger item. Two
+# things spelled the same in one file is how the earlier confusion started.
+#
+# Every arm targets the SWIFT implementation, because the suite this harness runs is the Swift one.
+# The TypeScript reference is held to the same behaviour by the vector corpus, which is generated
+# from it — so an arm that mutated the reference would change the expectation and the port together
+# and prove nothing.
+
+ROUTER_CORE = APP / "Sources" / "RouterCore"
+KIT_SERVERS = APP / "Sources" / "MCPRouterKit" / "Servers"
+
+mut(
+    "DIS-1", "M29", "unionTools asks whether the server is served, not only whether it is in scope",
+    ROUTER_CORE / "Manifest" / "ToolUnion.swift",
+    "        upstream.disabled != true && visibleTo(upstream, cwd: cwd)",
+    "        visibleTo(upstream, cwd: cwd)",
+    "the served union matches the reference",
+)
+
+mut(
+    "DIS-2", "M29", "a warm upstream that is disabled is still armed for reaping",
+    ROUTER_CORE / "Pool" / "UpstreamPoolReaping.swift",
+    "        if config.warm == true, config.disabled != true { return }",
+    "        if config.warm == true { return }",
+    "a warm upstream that is disabled IS armed for reaping",
+)
+
+mut(
+    "DIS-3", "M29", "the switch stays outside the hash material, so the digest does not move",
+    ROUTER_CORE / "Config" / "UpstreamHash.swift",
+    "    public static func hash(_ upstream: UpstreamConfig) -> String {",
+    "    public static func hash(_ upstream: UpstreamConfig) -> String {\n"
+    "        if upstream.disabled == true { return \"0000000000000000\" }",
+    # NOT "fields outside the hash material do not change the hash": that test reads the hashes
+    # RECORDED in the vector file and compares them to each other, so it pins the reference's
+    # exclusion rule and cannot see a mutation of the Swift port at all. The corpus comparison is
+    # the test that actually computes a hash here. Found by this arm reporting WRONG-TEST.
+    "the config hash matches the reference over the whole adversarial corpus",
+)
+
+mut(
+    "DIS-4", "M29", "the disabled subtitle outranks the held change rather than sitting below it",
+    KIT_SERVERS / "ServerPresentation.swift",
+    "        if server.disabled {\n"
+    "            return ServerSubtitle(text: \"disabled by you\", tint: .t3)\n"
+    "        }\n"
+    "        if server.inFlight > 0 {",
+    "        if server.inFlight > 0 {",
+    "a disabled server reads 'disabled by you' whichever else is true of it",
+)
+
+mut(
+    "DIS-5", "M29", "the PATCH allow-list still refuses a command line",
+    SRC / "ServerPatch.swift",
+    '        "projects", "warm", "idleMs", "placard", "disabled"',
+    '        "projects", "warm", "idleMs", "placard", "disabled", "command"',
+    "a fully-populated patch encodes exactly the keys the router reads",
+)
+
+mut(
+    "DIS-6", "M29", "a disabled server summons nobody, at the shared seam rather than in the board",
+    SRC / "Models.swift",
+    "        guard !disabled else { return false }\n",
+    "",
+    # One test, not two. The plan expected this single mutation to redden the board filter as well,
+    # and it does not: `ServerFilter.needsYou` carries its own `!server.disabled` term because the
+    # `placard` limb sits outside `needsAttention`. The two guards are independent, so proving both
+    # takes two arms — which is what DIS-7 below is for. Found by this arm reporting PARTIAL.
+    "a disabled server contributes zero to needsAttention",
+)
+
+mut(
+    "DIS-7", "M29", "the board filter carries its own guard, since the placard limb sits outside",
+    KIT_SERVERS / "ServerPresentation.swift",
+    "        case .needsYou: !server.disabled && (server.needsAttention || server.placard != nil)",
+    "        case .needsYou: server.needsAttention || server.placard != nil",
+    "each route into Needs you is closed by the switch on its own",
+)
+
+
 RESULTS = []
 
 

@@ -76,7 +76,13 @@
                     .measured("name-block", role: "row-name-block", kind: .vstack, alignment: "leading")
 
                     cell(row.transport, width: ServersBoardMetrics.transportColumn, tint: .t2)
-                    cell("\(row.tools)", width: ServersBoardMetrics.toolsColumn, tint: .t2)
+                    // An em-dash where the count is withheld, and `--t3` on it — the dimmer tier
+                    // says "there is no figure here" without the cell claiming to be a disabled
+                    // control, which is what `--t4` would claim (`DESIGN.md`:138).
+                    cell(
+                        toolsText, width: ServersBoardMetrics.toolsColumn,
+                        tint: row.tools == nil ? .t3 : .t2
+                    )
                     callsCell
                     cell(
                         row.lastUsed.map { shortAgo($0) } ?? "Never",
@@ -98,9 +104,21 @@
             // The full name reaches assistive technology even when the label truncates.
             .accessibilityElement(children: .contain)
             .accessibilityLabel(row.name)
-            .accessibilityValue(subtitleText)
+            // The withheld count reaches a screen reader as words rather than as a dash it would
+            // read out as punctuation or skip. The mock marks `aria-disabled` on the row and on
+            // every cell; the app's analogue is what is spoken, not `.disabled(true)`, which would
+            // make the row unselectable and strand the `Enable` action sitting on it.
+            .accessibilityValue(
+                row.tools == nil ? "\(subtitleText), tools withheld" : subtitleText
+            )
             .measured("row-\(row.id)", role: "table-row", kind: .hstack, text: rowText)
         }
+
+        /// The tools cell's text: the count, or an em-dash when it is withheld.
+        ///
+        /// One computation read by the drawn cell, by `rowText` and by the accessibility value
+        /// below, so the three cannot disagree about one row.
+        private var toolsText: String { row.tools.map(String.init) ?? "—" }
 
         /// Every string this row draws, in draw order.
         ///
@@ -110,7 +128,7 @@
         /// row into a real comparison, and it is a concatenation of the cells above rather than a
         /// second spelling of them: change a cell and this changes with it.
         private var rowText: String {
-            var parts = [row.name, subtitleText, row.transport, "\(row.tools)", "\(row.calls)"]
+            var parts = [row.name, subtitleText, row.transport, toolsText, "\(row.calls)"]
             if row.errors > 0 { parts.append("\(row.errors)") }
             parts.append(row.lastUsed.map { shortAgo($0) } ?? "Never")
             if let action = row.action { parts.append(action.label) }

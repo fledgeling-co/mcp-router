@@ -20,6 +20,26 @@ public enum ToolUnion {
         }
     }
 
+    /// Whether this server is served to a caller in `cwd` at all.
+    ///
+    /// The one predicate every site that decides "does this server run" asks, rather than a test
+    /// repeated at each of them. There are five: `unionTools` below, the `tools/call` guard in
+    /// `MCPEndpointToolCall`, `warmUp` and the reap arm in `UpstreamPoolReaping`, and the automatic
+    /// index sweeps.
+    ///
+    /// **`disabled` is tested first, and the order is the message rather than an optimisation.** A
+    /// server that is both disabled and out of the caller's project is refused as *disabled*;
+    /// refusing it as *not available in this project* would be a true sentence sending the reader
+    /// to fix the wrong thing.
+    ///
+    /// Deliberately not folded into the manifest checks in `unionTools`. That function already
+    /// skips an absent entry and an empty tool list, and since a failed index began preserving its
+    /// digest, that one expression carries three meanings while reading nothing but the shape of
+    /// the data. Adding a fourth to it is how that defect got there.
+    public static func isServed(_ upstream: UpstreamConfig, cwd: String?) -> Bool {
+        upstream.disabled != true && visibleTo(upstream, cwd: cwd)
+    }
+
     /// The reason a server's tools are listed but will not run, if there is one.
     ///
     /// A declared placard outranks an entry error, and an `error: ""` produces nothing because the
@@ -61,7 +81,7 @@ public enum ToolUnion {
     ) -> [CachedTool] {
         var out: [CachedTool] = []
         for upstream in upstreams {
-            guard visibleTo(upstream, cwd: cwd) else { continue }
+            guard isServed(upstream, cwd: cwd) else { continue }
             guard let entry = manifest.entry(named: upstream.name) else { continue }
             let tools = entry.tools
             guard !tools.isEmpty else { continue }

@@ -140,7 +140,10 @@ public actor RouterService {
         // order is part of what `parity-log.sh` diffs — a log whose lines are individually correct
         // and collectively out of order is a log nobody can diff.
         let current = await manifest.current()
-        let stale = config.upstreams.filter { ToolUnion.isStale(current, $0) }
+        // Disabled servers are excluded from this warning rather than from the manifest. Their
+        // tools are not "missing until index runs" — they are withheld on purpose, and naming them
+        // here would send the reader to run a command that would change nothing.
+        let stale = config.upstreams.filter { $0.disabled != true && ToolUnion.isStale(current, $0) }
         if !stale.isEmpty {
             await log.record(ServiceLogEvent.notInManifest(
                 count: stale.count, names: stale.map(\.name)

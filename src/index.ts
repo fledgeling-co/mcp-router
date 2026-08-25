@@ -196,16 +196,30 @@ async function withPool<T>(
 async function cmdIndex(): Promise<void> {
   await withPool(async (pool, upstreams, manifestPath) => {
     const manifest = loadManifest(manifestPath);
-    const stale = upstreams.filter((u) => isStale(manifest, u));
+    /*
+     * A disabled server is not indexed by this verb, and the count says so rather than
+     * quietly shrinking. Indexing means spawning the child process, which is the one
+     * thing disabling is for; and there is nothing to gain, because disabling leaves the
+     * manifest row, the digest and the approved tool surface exactly where they were.
+     *
+     * `POST /servers/:name/reindex` is deliberately still allowed on a disabled server:
+     * that route names one server and is the user asking, where this verb sweeps the whole
+     * list and is the router deciding. Someone who wants to see what a disabled upstream
+     * offers before switching it back on has a way to ask.
+     */
+    const servable = upstreams.filter((u) => !u.disabled);
+    const off = upstreams.length - servable.length;
+    const stale = servable.filter((u) => isStale(manifest, u));
     process.stdout.write(
-      `${upstreams.length} upstreams, ${stale.length} need indexing${has('force') ? ' (forced: all)' : ''}\n`
+      `${upstreams.length} upstreams, ${stale.length} need indexing${has('force') ? ' (forced: all)' : ''}` +
+        `${off ? `, ${off} disabled and not indexed` : ''}\n`
     );
 
     // R19 — each row is written under the lock against a manifest loaded there, so this verb
     // running beside a live watch fire no longer erases whichever row the other one wrote. A run
     // with nothing stale now writes nothing at all, where it used to rewrite the file it had just
     // read; that is what the Swift router already does, which indexes per upstream and saves there.
-    const { manifest: next, built, failed } = await buildManifest(upstreams, pool, manifest, {
+    const { manifest: next, built, failed } = await buildManifest(servable, pool, manifest, {
       force: has('force'),
       commit: manifestCommitter(manifestPath, lockTimeoutMs(WATCHER_TIMEOUT_MS)),
     });
@@ -225,7 +239,12 @@ async function cmdServe(): Promise<void> {
 
   const store = new ManifestStore(config.manifestPath);
   const manifest = store.current();
-  const stale = config.upstreams.filter((u) => isStale(manifest, u));
+  /*
+   * Disabled servers are excluded from this warning rather than from the manifest. Their
+   * tools are not "missing until index runs" — they are withheld on purpose, and naming
+   * them here would send the reader to run a command that would not change anything.
+   */
+  const stale = config.upstreams.filter((u) => !u.disabled && isStale(manifest, u));
   if (stale.length) {
     log.warn(
       `${stale.length} upstream(s) not in the manifest (${stale.map((s) => s.name).join(', ')}); ` +

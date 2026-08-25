@@ -325,7 +325,12 @@ public struct ControlHandler: Sendable {
                     }
                 }
 
-                // The fixed order `projects, warm, idleMs, placard`, each gated on key presence.
+                // The fixed order `projects, warm, idleMs, placard, disabled`, each gated on key
+                // presence. `disabled` is LAST and the position is load-bearing twice: this order
+                // is the order members are appended to the user's `servers.json`, which is diffed
+                // byte for byte against the reference; and the 400 body for a non-object PATCH
+                // names whichever key is tested first, so moving `disabled` above `projects` would
+                // change a message that has nothing to do with it.
                 if let projects = supplied("projects") {
                     // `b.projects?.length ? b.projects : undefined` — the raw value is stored when
                     // its `length` reads truthy, so a string survives (B42). An `asArray` test here
@@ -342,6 +347,12 @@ public struct ControlHandler: Sendable {
                 }
                 if let placard = supplied("placard") {
                     set("placard", placard)
+                }
+                if let disabled = supplied("disabled") {
+                    // Shaped like `warm` rather than like `idleMs`: a falsy value removes the
+                    // member instead of writing `false`, so turning a server back on leaves the
+                    // config as it found it.
+                    set("disabled", (disabled?.isTruthy ?? false) ? disabled : nil)
                 }
                 servers[index] = JSONMember(key: name, value: .object(entry))
             }

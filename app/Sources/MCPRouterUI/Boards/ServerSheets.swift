@@ -15,7 +15,15 @@
             case .addServer:
                 AddServerSheet(board: board)
             case let .heldChange(name):
-                HeldChangeSheet(board: board, serverName: name)
+                // Looked up fresh on every render rather than captured when the sheet opened —
+                // M5's rule, and the reason the sheet holds the name rather than the row: a copy
+                // taken at open time goes stale the moment the board does, and this sheet's own
+                // action is what changes the value.
+                HeldChangeSheet(
+                    board: board,
+                    serverName: name,
+                    isDisabled: servers.first(where: { $0.name == name })?.disabled ?? false
+                )
             case let .removeServer(name):
                 if let server = servers.first(where: { $0.name == name }) {
                     RemoveServerDialog(board: board, server: server)
@@ -134,12 +142,24 @@
     struct HeldChangeSheet: View {
         @Bindable var board: ServersBoardModel
         let serverName: String
+        /// Whether this server is already switched off, so `Disable` dims rather than re-sending a
+        /// request that would change nothing.
+        let isDisabled: Bool
 
         /// Why `Accept the new text` is dimmed, or `nil` when it is live.
         ///
         /// Loading, failed and empty are three different situations and the old
         /// `.disabled(board.heldChanges?.changes.isEmpty ?? true)` said none of them — so during the
         /// sheet's own load the user saw a dead prominent button and no explanation at all.
+        /// The destructive button's label. It names the action and the subject (`DESIGN.md` §6).
+        private var disableLabel: String { "Disable \(serverName)" }
+
+        /// Why `Disable` is dimmed, or `nil` when it is live. Dims in place with the reason
+        /// readable, per `DESIGN.md` §3.4 — it never disappears.
+        private var disableReason: String? {
+            isDisabled ? "This server is already disabled." : nil
+        }
+
         private var acceptReason: String? {
             if board.isLoadingHeldChanges { return "Reading the held descriptions…" }
             if board.heldChangesError != nil { return "The held descriptions could not be read." }
@@ -177,10 +197,24 @@
                     }
                 }
             } actions: {
-                Button("Remove \(serverName)", role: .destructive) {
-                    board.request(.removeInstalledCapability, subject: serverName)
+                // **`Disable`, which is what the design of record draws here** — a quiet
+                // destructive text button, never the primary (`design/mcp-router-console.html`:3945,
+                // and M18's gate table: *"Disable a server | one server stops answering | quiet
+                // destructive-red text button, never the primary"*).
+                //
+                // This shipped as `Remove <server>` only because disabling did not exist. Remove is
+                // a strictly larger blast radius on the same sheet — it deletes the entry from the
+                // user's config file along with credential values this app can never read back, so
+                // its undo restores a row that looks recovered and does not work — and it stays
+                // reachable from the inspector and the Router menu, which is where a decision that
+                // size belongs.
+                Button(disableLabel, role: .destructive) {
+                    Task { await board.setDisabled(serverName, to: true) }
                 }
                 .buttonStyle(StandardButtonStyle())
+                .disabled(disableReason != nil)
+                .help(disableReason ?? "")
+                .accessibilityHint(disableReason ?? "")
 
                 // Cancel leads, and its label says what it actually does: closing this sheet sends
                 // no request, because the router is already serving the approved text and the change

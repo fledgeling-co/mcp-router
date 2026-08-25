@@ -53,6 +53,17 @@ public struct UpstreamConfig: Sendable, Hashable {
     public var projects: [String]?
     public var warm: Bool?
     public var placard: Placard?
+    /// Declared and not served — the third state, between adopted and removed.
+    ///
+    /// Distinct from `placard`, which keeps the tools listed and answering with a reason. A
+    /// disabled server contributes nothing to `tools/list`, cannot be called by name, is never
+    /// spawned to be warmed or indexed, and is reaped if it happens to be up — while its manifest
+    /// row, digest and approved surface survive untouched, so re-enabling cannot launder an
+    /// approval the user refused by disabling.
+    ///
+    /// Absent from `UpstreamHash` for the reason `projects`, `warm` and `placard` are: none of them
+    /// changes what the upstream advertises.
+    public var disabled: Bool?
 
     // stdio.
     public var command: String?

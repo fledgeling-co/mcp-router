@@ -49,6 +49,19 @@ public struct ServerSubtitle: Equatable, Sendable {
     /// a parameter's clothes, counting a row down against a number the router never sent. There is
     /// no default now; see `runningSubtitle` for what an unknown horizon renders instead.
     public static func forServer(_ server: MCPServer, idleMs: Int?) -> ServerSubtitle {
+        // **First, above everything, and the position is the rule rather than a convenience.** A
+        // disabled server can simultaneously be holding a schema change, be unauthorised, carry an
+        // index error and be marked warm — the held-change sheet's own action is *disable this
+        // server*, so `disabled` and `pendingChange` together is the ordinary case rather than a
+        // corner. Every one of those lines describes something about a server that is serving
+        // nobody, and the line a person needs first is the one that says so.
+        //
+        // `--t3`, not `--t4`: `DESIGN.md`:138 reserves `--t4` for disabled *controls* and never for
+        // live text, and this is a subtitle a reader is meant to read. The row-level dim the mock
+        // draws is the view's job, not this value's.
+        if server.disabled {
+            return ServerSubtitle(text: "disabled by you", tint: .t3)
+        }
         if server.inFlight > 0 {
             return ServerSubtitle(text: "\(server.inFlight) in flight", tint: .t2)
         }
@@ -122,6 +135,14 @@ public enum ResetKind: Equatable, Sendable {
 
 /// The one action a row offers, or none.
 public enum ServerRowAction: Equatable, Sendable {
+    /// Start serving this server again.
+    ///
+    /// The design of record draws the disable — a destructive text button on the held-change sheet
+    /// — and draws no way back. Shipping it that way would make the only reversal hand-editing
+    /// `servers.json`, which is a defect rather than a design decision, so this is an addition to
+    /// the mock recorded as one (`spec-M29.md` D8) rather than a reading of it. It takes the row's
+    /// existing action slot, in the same shape as `reset`.
+    case enable
     case reset(ResetKind)
     case reviewHeldChange
     case beginAuthorization
@@ -133,6 +154,7 @@ public enum ServerRowAction: Equatable, Sendable {
     /// Verb-first, and naming the action (`DESIGN.md` §6). `…` means it opens a further view.
     public var label: String {
         switch self {
+        case .enable: "Enable"
         case .reset: "Reset"
         case .reviewHeldChange: "Review…"
         case .beginAuthorization: "Sign in…"
@@ -146,6 +168,11 @@ public enum ServerRowAction: Equatable, Sendable {
     /// `not evaluated`; there is no eval field on a server anywhere in the control API and no `eval`
     /// in `src/control.ts`, so that chip has nothing behind it and §6 rules it out. Evals are M7's.
     public static func forServer(_ server: MCPServer, pendingAuth: PendingAuth?) -> ServerRowAction? {
+        // First, for the reason the subtitle is: every action below asks the user to do something
+        // about a server that is not serving anyone, and each would send a different request than
+        // the one they want. `Review…` on a disabled server opens a sheet whose own destructive
+        // action is *disable this server*, which is already done.
+        if server.disabled { return .enable }
         if server.placard != nil {
             return .reset(server.indexError != nil ? .reindex : .clearPlacard)
         }
@@ -200,7 +227,10 @@ public enum ServerFilter: String, CaseIterable, Sendable, Identifiable {
         case .all: true
         case .running: server.state == .running
         case .idle: server.state != .running
-        case .needsYou: server.needsAttention || server.placard != nil
+        // `needsAttention` already carries its own `!disabled` term, but the `placard` limb sits
+        // outside it, so this filter needs the guard as well: a user who marks a server inoperative
+        // and then switches it off has made both decisions and is being asked about neither.
+        case .needsYou: !server.disabled && (server.needsAttention || server.placard != nil)
         }
     }
 
@@ -336,7 +366,28 @@ public struct ServerRowModel: Equatable, Sendable, Identifiable {
     /// band, so the two surfaces read one computation of one server's condition.
     public let condition: JackCondition
     public let transport: String
-    public let tools: Int
+    /// How many tools this server is serving, or `nil` when it is serving none by the user's own
+    /// decision and the figure is therefore withheld rather than reported as zero.
+    ///
+    /// The design of record draws this cell as an em-dash on the disabled row (`2069`) while the
+    /// row two above it — an unauthorised server with no working tools at all — reads `2`. So the
+    /// em-dash is not a zero, and it cannot be: the router still knows the count, because disabling
+    /// leaves the manifest row intact. A number would claim a served capability and a `0` would
+    /// claim the server has no tools. An absent value claims neither, and that is the only honest
+    /// reading of the three.
+    public let tools: Int?
+    /// How many tools the router has cached for this server, whether or not it is serving them.
+    ///
+    /// **A different question from `tools` above, which is why it is a different field.** `tools`
+    /// answers *what is this server serving*, and is withheld when the answer is "nothing, because
+    /// you switched it off". This answers *what does the router hold for it*, and disabling does not
+    /// change that by design — the manifest row, the digest and the approved surface all survive.
+    ///
+    /// The board's footer reads this one, because its sentence is `… tools indexed`. That word was
+    /// chosen deliberately over an earlier `tools in every session's tool list`, which scoping had
+    /// already made false; dropping a disabled server's tools out of an *indexed* count would make
+    /// it false again in the other direction.
+    public let indexedTools: Int
     /// Lifetime calls from the usage log — **not** `callsServed`, which is the current child
     /// process's own counter and resets to zero every time the reaper closes it. A column that
     /// dropped to zero whenever a server went idle would read as "this has never been used".
@@ -352,7 +403,8 @@ public struct ServerRowModel: Equatable, Sendable, Identifiable {
         jack = JackState.forServer(server)
         condition = JackCondition.forServer(server, idleMs: idleMs)
         transport = server.transport.rawValue
-        tools = server.tools
+        tools = server.disabled ? nil : server.tools
+        indexedTools = server.tools
         calls = server.usage.calls
         errors = server.usage.errors
         lastUsed = server.usage.lastUsed?.asControlAPIDate

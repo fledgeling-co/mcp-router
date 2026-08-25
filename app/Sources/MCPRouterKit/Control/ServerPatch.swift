@@ -3,7 +3,7 @@ import Foundation
 /// The only shape the app may send to the control API's PATCH.
 ///
 /// The fields mirror what the router actually accepts on
-/// `PATCH /servers/:name` — `projects`, `warm`, `idleMs` and `placard`. Anything else it
+/// `PATCH /servers/:name` — `projects`, `warm`, `idleMs`, `placard` and `disabled`. Anything else it
 /// silently ignores, so inventing a field here would produce a call that appears to work and
 /// changes nothing. Approving a held tool-surface change is **not** part of this shape: it is a
 /// separate `POST /servers/:name/approve`, and it is modelled as its own operation on
@@ -46,21 +46,35 @@ public struct ServerPatch: Codable, Hashable, Sendable {
     public var idleMs: Int?
     /// Mark the server inoperative with a reason, or clear the mark.
     public var placard: PlacardEdit?
+    /// Stop serving this server entirely, or start again.
+    ///
+    /// Not a placard. A placard leaves the tools listed and answering with a reason; this removes
+    /// them from `tools/list` and refuses them by name, while the manifest row, the digest and the
+    /// approved surface all survive — so switching a server back on cannot launder an approval the
+    /// user refused by switching it off.
+    ///
+    /// A plain optional rather than the three-state `PlacardEdit` beside it, because the router
+    /// reads this one with `'disabled' in b` and then plain truthiness: `false` and `null` both
+    /// remove the member, so "off" and "clear it" are the same request and there is no third state
+    /// to express.
+    public var disabled: Bool?
 
     public init(
         projects: [String]? = nil,
         warm: Bool? = nil,
         idleMs: Int? = nil,
-        placard: PlacardEdit? = nil
+        placard: PlacardEdit? = nil,
+        disabled: Bool? = nil
     ) {
         self.projects = projects
         self.warm = warm
         self.idleMs = idleMs
         self.placard = placard
+        self.disabled = disabled
     }
 
     private enum CodingKeys: String, CodingKey {
-        case projects, warm, idleMs, placard
+        case projects, warm, idleMs, placard, disabled
     }
 
     /// Written by hand for one reason: `encodeNil` is the only way to put an explicit `null` on
@@ -75,6 +89,7 @@ public struct ServerPatch: Codable, Hashable, Sendable {
         case .clear: try container.encodeNil(forKey: .placard)
         case let .set(placard): try container.encode(placard, forKey: .placard)
         }
+        try container.encodeIfPresent(disabled, forKey: .disabled)
     }
 
     public init(from decoder: any Decoder) throws {
@@ -89,6 +104,7 @@ public struct ServerPatch: Codable, Hashable, Sendable {
         } else {
             placard = nil
         }
+        disabled = try container.decodeIfPresent(Bool.self, forKey: .disabled)
     }
 
     /// The fields the control API will never accept, named so the tests can assert on them and so
@@ -97,7 +113,9 @@ public struct ServerPatch: Codable, Hashable, Sendable {
 
     /// Exactly the keys this type is allowed to put on the wire. `encodedBody()` enforces this at
     /// runtime, so a new field cannot reach the router without a deliberate edit here.
-    public static let permittedWireKeys: Set<String> = ["projects", "warm", "idleMs", "placard"]
+    public static let permittedWireKeys: Set<String> = [
+        "projects", "warm", "idleMs", "placard", "disabled"
+    ]
 
     /// Why serialising a patch is a function on the type rather than something each caller does
     /// with its own `JSONEncoder`.

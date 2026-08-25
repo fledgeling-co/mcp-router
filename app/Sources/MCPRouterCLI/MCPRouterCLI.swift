@@ -146,14 +146,22 @@ struct MCPRouterCLI {
         let manifest = ManifestIO.load(
             path: loaded.config.manifestPath, fileSystem: RealFileSystem()
         ).manifest
-        let stale = loaded.config.upstreams.filter { ToolUnion.isStale(manifest, $0) }
+        // A disabled server is not indexed by this verb, and the count says so rather than quietly
+        // shrinking. Indexing spawns the child process, which is the one thing disabling is for,
+        // and there is nothing to gain: disabling leaves the manifest row, the digest and the
+        // approved surface exactly where they were. `POST /servers/:name/reindex` names one server
+        // and is the user asking, so it stays available on a disabled upstream.
+        let servable = loaded.config.upstreams.filter { $0.disabled != true }
+        let off = loaded.config.upstreams.count - servable.count
+        let stale = servable.filter { ToolUnion.isStale(manifest, $0) }
         Out.print(
             "\(loaded.config.upstreams.count) upstreams, \(stale.count) need indexing"
-                + (force ? " (forced: all)" : "") + "\n"
+                + (force ? " (forced: all)" : "")
+                + (off > 0 ? ", \(off) disabled and not indexed" : "") + "\n"
         )
 
         var report = IndexReport()
-        for upstream in loaded.config.upstreams where force || ToolUnion.isStale(manifest, upstream) {
+        for upstream in servable where force || ToolUnion.isStale(manifest, upstream) {
             let outcome = await indexer.index(upstream)
             report.add(upstream, outcome)
         }

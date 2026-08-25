@@ -400,6 +400,30 @@ export function visibleTo(u: UpstreamConfig, cwd: string | undefined): boolean {
 }
 
 /**
+ * Whether this server is served to a caller in `cwd` at all.
+ *
+ * The one predicate every site that decides "does this server run" asks, rather than a
+ * test repeated at each of them. There are five such sites and a disable that covers
+ * only the first is a disable in name: `unionTools` below, the `tools/call` guard in
+ * `router.ts`, `warmUp` and the reap skip in `pool.ts`, and the automatic index sweeps
+ * in `index.ts` and `watch.ts`.
+ *
+ * **`disabled` is tested first, and the order is the message rather than an
+ * optimisation.** A server that is both disabled and out of the caller's project is
+ * refused as *disabled*; refusing it as *not available in this project* would be a true
+ * sentence that sends the reader to fix the wrong thing.
+ *
+ * Deliberately NOT folded into the manifest checks below it. `unionTools` already skips
+ * a server whose entry is absent or whose tool list is empty, and since a failed index
+ * began preserving its digest that one expression carries three different meanings —
+ * never indexed, index failed, serves nothing — while reading nothing but the shape of
+ * the data. Adding a fourth meaning to it is how that defect got there.
+ */
+export function isServed(u: UpstreamConfig, cwd: string | undefined): boolean {
+  return !u.disabled && visibleTo(u, cwd);
+}
+
+/**
  * The reason a server's tools are listed but will not run, if there is one.
  *
  * A broken server keeps its tools on the list rather than losing them. Removing them
@@ -431,7 +455,7 @@ export function unionTools(
 ): Tool[] {
   const out: Tool[] = [];
   for (const u of upstreams) {
-    if (!visibleTo(u, opts.cwd)) continue;
+    if (!isServed(u, opts.cwd)) continue;
     const entry = manifest.servers[u.name];
     if (!entry || entry.tools.length === 0) continue;
 

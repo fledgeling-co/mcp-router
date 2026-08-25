@@ -432,7 +432,12 @@ export class UpstreamPool {
     const u = this.upstreams.get(serverName);
     // A warm server is one the user has committed to paying for. Reaping it would
     // undo the only thing it was kept open to buy.
-    if (u?.warm) return;
+    // A DISABLED server is reaped even when it is warm, and this is the one place the
+    // two settings meet. `warm` says "keep paying for this"; `disabled` says "this
+    // serves nobody". Without the second term a warm server, once disabled, keeps a
+    // resident child process forever with no route to it — the opposite of what the
+    // switch is for.
+    if (u?.warm && !u.disabled) return;
 
     const idleMs = u?.idleMs ?? this.defaultIdleMs;
     if (idleMs <= 0) return; // 0 disables reaping for this server
@@ -450,7 +455,7 @@ export class UpstreamPool {
    * problem to report, never a reason the router does not come up.
    */
   async warmUp(): Promise<void> {
-    const warm = [...this.upstreams.values()].filter((u) => u.warm);
+    const warm = [...this.upstreams.values()].filter((u) => u.warm && !u.disabled);
     if (!warm.length) return;
     log.info(`pre-opening ${warm.length} warm upstream(s): ${warm.map((u) => u.name).join(', ')}`);
     await Promise.all(

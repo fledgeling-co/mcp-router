@@ -68,6 +68,7 @@ enum ManifestVectors {
             projects: value.member("projects")?.asArray.map { $0.compactMap { text($0) } },
             warm: value.member("warm")?.asBool,
             placard: placard,
+            disabled: value.member("disabled")?.asBool,
             command: text(value.member("command")),
             args: value.member("args")?.asArray?.compactMap { text($0) } ?? [],
             env: value.member("env")?.objectEntries ?? [],

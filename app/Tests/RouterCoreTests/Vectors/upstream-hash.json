@@ -197,6 +197,18 @@
       "hash": "580d0f895bc321a8"
     },
     {
+      "id": "excluded-disabled",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {},
+        "disabled": true
+      },
+      "hash": "580d0f895bc321a8"
+    },
+    {
       "id": "http-transport",
       "upstream": {
         "transport": "http",

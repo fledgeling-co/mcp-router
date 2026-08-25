@@ -164,7 +164,8 @@ public struct WatchRunner: Sendable {
             // watcher is an automatic sweep — the router deciding rather than the user asking — and
             // spawning a child for a server that serves nobody is what the switch prevents.
             if candidate.upstream.disabled != true,
-               ToolUnion.isStale(manifest, candidate.upstream) {
+               ToolUnion.isStale(manifest, candidate.upstream)
+            {
                 toIndex.append(candidate.upstream)
             }
         }

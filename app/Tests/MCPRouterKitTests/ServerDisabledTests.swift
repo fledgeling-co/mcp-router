@@ -108,7 +108,10 @@ struct ServerDisabledTests {
     func theActionIsEnable() throws {
         for (label, server) in try Self.disabledServers() {
             let action = ServerRowAction.forServer(server, pendingAuth: nil)
-            #expect(action == .enable, "a disabled server that is \(label) offered \(String(describing: action))")
+            #expect(
+                action == .enable,
+                "a disabled server that is \(label) offered \(String(describing: action))"
+            )
         }
         #expect(ServerRowAction.enable.label == "Enable")
     }
@@ -163,7 +166,10 @@ struct ServerDisabledTests {
 
             var off = try ServerPresentationTests.server(disabled: true)
             apply(&off)
-            #expect(!ServerFilter.needsYou.matches(off), "\(label) still summoned the user with the switch off")
+            #expect(
+                !ServerFilter.needsYou.matches(off),
+                "\(label) still summoned the user with the switch off"
+            )
         }
     }
 
@@ -207,6 +213,7 @@ struct ServerDisabledTests {
         // process and false about the product.
         let running = try ServerPresentationTests.server(state: .running, disabled: true)
         #expect(JackState.forServer(running) == .dormant)
-        #expect(JackState.forServer(try ServerPresentationTests.server(state: .running)) == .live)
+        let live = try ServerPresentationTests.server(state: .running)
+        #expect(JackState.forServer(live) == .live)
     }
 }

@@ -357,13 +357,13 @@ struct TrackerStateMatrixTests {
         // No recording moved: the ordinary case, and nothing further to check.
         guard !changed.isEmpty else { return }
 
-        // Which recordings carry a server row, read from the files rather than listed here, so a
-        // recording added later is covered without anyone remembering to add it.
-        //
-        // `transport` is the marker rather than the presence of a `servers` key, because
-        // `usage-summary` also has one and its rows are usage totals per server name — no wire
-        // field of `MCPServer` on them, so a change to `MCPServer` does not reach that file and
-        // requiring it to move would fail a branch that behaved correctly.
+        /// Which recordings carry a server row, read from the files rather than listed here, so a
+        /// recording added later is covered without anyone remembering to add it.
+        ///
+        /// `transport` is the marker rather than the presence of a `servers` key, because
+        /// `usage-summary` also has one and its rows are usage totals per server name — no wire
+        /// field of `MCPServer` on them, so a change to `MCPServer` does not reach that file and
+        /// requiring it to move would fail a branch that behaved correctly.
         func carriesServerRow(_ object: Any) -> Bool {
             if let one = object as? [String: Any] {
                 if one["transport"] != nil { return true }
@@ -377,7 +377,8 @@ struct TrackerStateMatrixTests {
         var serverBearing: Set<String> = []
         for entry in ControlFixtureTests.expected {
             let fixture = try FixtureControlAPIClient.fixtureData(entry.name)
-            if carriesServerRow(try JSONSerialization.jsonObject(with: fixture)) {
+            let decoded = try JSONSerialization.jsonObject(with: fixture)
+            if carriesServerRow(decoded) {
                 serverBearing.insert(entry.name)
             }
         }

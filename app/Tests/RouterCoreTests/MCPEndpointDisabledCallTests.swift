@@ -67,7 +67,8 @@ struct MCPEndpointDisabledCallTests {
             JSONMember(key: JSString("name"), value: .string(JSString(tool))),
             JSONMember(key: JSString("arguments"), value: .object([]))
         ])
-        return refusalText(await endpoint.callTool(params))
+        let result = await endpoint.callTool(params)
+        return refusalText(result)
     }
 
     @Test("a disabled server's tools are refused, and the refusal says disabled")

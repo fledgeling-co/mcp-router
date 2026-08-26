@@ -65,6 +65,14 @@ mac_shell__cleanup() {
         done
         if kill -0 "$PID" 2>/dev/null; then
             kill "$PID" 2>/dev/null || true
+            # And SIGKILL last, because a hung app ignores SIGTERM and the point of this cleanup is
+            # that the instance is GONE rather than that it was asked. Raised by the out-of-family
+            # review: an escalation that stops at TERM leaves exactly the leak it was written for.
+            for _ in 1 2 3 4 5; do
+                kill -0 "$PID" 2>/dev/null || break
+                sleep 0.3
+            done
+            if kill -0 "$PID" 2>/dev/null; then kill -9 "$PID" 2>/dev/null || true; fi
         fi
     fi
     rm -rf "$WORK"

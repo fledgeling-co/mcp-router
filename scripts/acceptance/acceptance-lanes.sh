@@ -77,8 +77,11 @@ trap lanes__cleanup EXIT
 # `grep -c` prints 0 and exits 1 when nothing matches, which is a count rather than an error here.
 lane_assertions() {
     local transcript="$1" declared count
-    declared="$(grep -E '^ACCEPTANCE-ASSERTIONS:[[:space:]]*[0-9]+' "$transcript" 2>/dev/null \
-        | tail -1 | tr -dc '0-9')"
+    # `sed`, not `tr -dc '0-9'`. The out-of-family review pointed out that stripping non-digits
+    # from the whole line reads `ACCEPTANCE-ASSERTIONS: 5 # suite 2` as 52 — a lane declaring five
+    # assertions credited with fifty-two, in the one field that is supposed to be authoritative.
+    declared="$(sed -nE 's/^ACCEPTANCE-ASSERTIONS:[[:space:]]*([0-9]+).*/\1/p' "$transcript" \
+        2>/dev/null | tail -1)"
     if [ -n "$declared" ]; then
         printf '%s' "$declared"
         return 0

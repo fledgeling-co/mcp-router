@@ -74,6 +74,22 @@ PARITY_LOCK_HELD_BY=""
 # caller's — a different value on every call, and a guard that never matched. Called as a bare
 # command a shell function does not fork, so the substitution inside it forks from the caller.
 PARITY_LOCK_SELF_PID=""
+
+# On bash 3.2, an INHERITED `BASHPID` has to be cleared before the fallback can be reached.
+#
+# Raised by the out-of-family review. `BASHPID` is a dynamic variable in bash 4+, but nothing stops
+# an outer shell exporting it — and a bash 3.2 that inherits it from the environment treats it as an
+# ordinary variable: set, never updated, and identical in every subshell. `${BASHPID:-…}` would then
+# find it non-empty, skip the fallback entirely, and hand the release guard a value that cannot
+# distinguish a subshell from its parent. That is the exact failure the guard exists to prevent,
+# arriving through the door built to avoid it.
+#
+# Guarded on the version rather than on the value, because a stale inherited pid is indistinguishable
+# from a correct one by inspection.
+if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ]; then
+    unset BASHPID 2>/dev/null || true
+fi
+
 parity_lock__set_self() {
     PARITY_LOCK_SELF_PID="${BASHPID:-$(exec sh -c 'echo $PPID')}"
 }

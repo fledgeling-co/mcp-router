@@ -460,8 +460,9 @@ opposite is worse than a state left undrawn. It is this:
 | Bezel | none — the live prominent control is a flat fill | `--line` |
 
 The control keeps its height, its padding, its position and its label; nothing moves and the accent
-leaves. **The accent fill is not tinted.** `--t4` has no measured ratio on `--accent-ink` anywhere
-in §2, and inventing one to license a tint would be a fabricated number in a palette's clothes. So a
+leaves. **The accent fill is not tinted.** §2 publishes no ratio for `--t4` on `--accent-ink`, and
+inventing one to license a tint would be a fabricated number in a palette's clothes; measured
+below, the pairing turns out to be unreadable rather than merely unpublished. So a
 disabled prominent control lands on the same disabled surface as every other disabled control —
 which is also what makes it read as *unavailable* rather than as *a second kind of available*.
 
@@ -473,6 +474,30 @@ column gives `--t4` the `disabled` role, `ContrastRole.disabled` carries `floor 
 paragraph is the pairing that role is claimed for. These two figures are *not* §2's Contrast
 columns, which measure `--t4` over `--ground` at 3.37:1 / 2.79:1; a disabled label is never drawn on
 a bare ground, so the column is a number about a pairing nothing paints.
+
+**Every control that resolves an accent fill, not only the button.** The table above is written
+for the prominent button because that is the control M31 was filed for, but the cascade accident it
+describes belongs to the fill rather than to the button. The design of record paints `--accent-ink`
+on five controls, and when M31 was filed four of them lost the same argument. `.tb-btn.on` and
+`.segmented .seg[aria-pressed="true"]` kept the fill outright. `.trow[aria-selected="true"]` was
+worse: its disabled rule won the label and not the fill, so a disabled selected row drew a dimmed
+label on a live accent. `.switch` carried a correct dimming rule spelled `:disabled` while the one
+disabled switch in the page spells the state `class="switch disabled"`, so the rule never applied
+to it and the control drew at full accent with nothing marking it unavailable. All five now take
+the row above: `--t4` on `--f3`, with a `--line` bezel on the controls that carry one.
+
+**What the refusal above costs, stated as a number.** Declining to tint the accent is only a
+position until the alternative is measured, so: `--t4` on `--accent-ink` is **1.68:1 in light and
+1.02:1 in dark**, computed from the same tokens and the same float compositing that reproduce §2's
+published columns. In dark that is a label the same luminance as the fill behind it. A rule that
+dims a label and leaves the accent under it does not produce a dimmer control, it produces an
+invisible one, which is why the fill and the label move together or not at all.
+
+**A switch dims its track and its knob, and keeps the knob where it is.** A switch has no label, so
+the mapping is one step removed: the track is the fill and the knob is the foreground, which puts a
+disabled switch on `--t4` over `--f3` like everything else. The knob keeps its travel, so on and
+off stay distinguishable while the control is unavailable — the state is carried by position rather
+than by the accent, and dropping the accent therefore costs no information.
 
 **A disabled control changes no cursor.** Rule 8 governs and admits no exception here: macOS paints
 the arrow over an unavailable control, `not-allowed` is a web-content cursor with no counterpart in

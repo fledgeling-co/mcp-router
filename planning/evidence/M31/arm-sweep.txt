@@ -1,0 +1,65 @@
+=== BASELINE ===  failures=0  exit=0
+  design/mcp-router-console.html  c6b000bddce69841
+  docs/mcp-router-store.html  617cce184eeab555
+  app/Sources/MCPRouterUI/Controls.swift  8fc9dc6dab09c8fd
+
+ARM 1 DRAWS-AS-ENABLED — un-enumerate .tb-btn so .on wins the cascade again
+    planted   design/mcp-router-console.html  c6b000bddce69841 -> 42a78eb1092241ae
+    failures  0 -> 1  WENT RED
+    verdicts that changed:
+      <  DIMS .tb-btn.on unreachable
+      >  DRAWS-AS-ENABLED .tb-btn.on unreachable
+    restored  c6b000bddce69841  IDENTICAL
+
+ARM 2 UNREADABLE (descendant) — drop the .trow.disabled descendant block, leaving --on-accent on --f3
+    planted   design/mcp-router-console.html  c6b000bddce69841 -> a519c5d05deff636
+    failures  0 -> 1  WENT RED
+    verdicts that changed:
+      <  DIMS .trow[aria-selected="true"] reachable
+      >  UNREADABLE .trow[aria-selected="true"] reachable
+    restored  c6b000bddce69841  IDENTICAL
+
+ARM 3 DRAWS-AS-ENABLED (row) — take the fill back off .trow.disabled
+    planted   design/mcp-router-console.html  c6b000bddce69841 -> 27c8a6174e04e851
+    failures  0 -> 1  WENT RED
+    verdicts that changed:
+      <  DIMS .trow[aria-selected="true"] reachable
+      >  DRAWS-AS-ENABLED .trow[aria-selected="true"] reachable
+    restored  c6b000bddce69841  IDENTICAL
+
+ARM 4 MARKER-MISMATCH — respell the switch rule for :disabled only, as it was
+    planted   design/mcp-router-console.html  c6b000bddce69841 -> 0b1d39e76e072b72
+    failures  0 -> 1  WENT RED
+    verdicts that changed:
+      <  DIMS .switch[aria-checked="true"] reachable
+      >  MARKER-MISMATCH .switch[aria-checked="true"] reachable
+    restored  c6b000bddce69841  IDENTICAL
+
+ARM 5 UNDRAWN(reachable) — delete the store page's disabled rule entirely
+    planted   docs/mcp-router-store.html  617cce184eeab555 -> 2b1a54792a433d75
+    failures  0 -> 1  WENT RED
+    verdicts that changed:
+      <  DIMS .btn reachable
+      >  UNDRAWN .btn reachable
+    restored  617cce184eeab555  IDENTICAL
+
+ARM 6 DRAWS-AS-ENABLED via background-color — the shorthand/longhand hide
+    planted   design/mcp-router-console.html  c6b000bddce69841 -> f0f3c32106fe212c
+    failures  0 -> 1  WENT RED
+    verdicts that changed:
+      <  DIMS .tb-btn.on unreachable
+      >  DRAWS-AS-ENABLED .tb-btn.on unreachable
+    restored  c6b000bddce69841  IDENTICAL
+
+ARM 7 Swift FAIL — paint the prominent fill unconditionally, the M18 defect shape
+    planted   app/Sources/MCPRouterUI/Controls.swift  8fc9dc6dab09c8fd -> 76e613cfb6656480
+    failures  0 -> 1  WENT RED
+    verdicts that changed:
+      >  FAIL app/Sources/MCPRouterUI/Controls.swift [ProminentButtonStyle] — paints the accent fill unconditionally — ['ColorToken.accent.color']
+    restored  8fc9dc6dab09c8fd  IDENTICAL
+
+=== RESTORED ===  failures=0  exit=0
+  design/mcp-router-console.html  c6b000bddce69841
+  docs/mcp-router-store.html  617cce184eeab555
+  app/Sources/MCPRouterUI/Controls.swift  8fc9dc6dab09c8fd
+  verdict table identical to baseline

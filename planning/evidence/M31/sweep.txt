@@ -1,0 +1,61 @@
+Swift surfaces with a primary action: examined=23 call-sites=31 disableable=10 failures=0 unproven=13
+  ProminentButtonStyle         sites=20 disableable=6
+  PhoneProminentButtonStyle    sites=11 disableable=4
+  UNPROVEN app/Sources/MCPRouterUI/Phone/ConnectionBanner.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/ConnectionBanner.swift [PhoneProminentButtonStyle] — dims only if SwiftUI installs @Environment on a ButtonStyle
+  UNPROVEN app/Sources/MCPRouterUI/Phone/Discover/DiscoverBandSection.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/Discover/QueueCommitBar.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/Discover/QueueCommitBar.swift [PhoneProminentButtonStyle] — dims only if SwiftUI installs @Environment on a ButtonStyle
+  UNPROVEN app/Sources/MCPRouterUI/Phone/PairedMacSettingsView.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/PairingResultSurfaces.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/PairingResultSurfaces.swift [PhoneProminentButtonStyle] — makeBody called directly at :23, so SwiftUI never installs the style's dynamic properties
+  UNPROVEN app/Sources/MCPRouterUI/Phone/PairingSurfaces.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/Triage/TriageComponents.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/Triage/TriageComponents.swift [PhoneProminentButtonStyle] — dims only if SwiftUI installs @Environment on a ButtonStyle
+  UNPROVEN app/Sources/MCPRouterUI/Phone/TypedEntryView.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/TypedEntryView.swift [PhoneProminentButtonStyle] — dims only if SwiftUI installs @Environment on a ButtonStyle
+HTML surfaces: examined=4 accent-filled controls=12 html-failures=0
+  design/mcp-router-console.html
+      UNDRAWN        .menu-title[aria-expanded="true"]          unreachable
+          resolves an accent fill and no rule dims it (DESIGN.md rule 4 requires a disabled state of every control)
+      DIMS           .menu-item:hover:not(.disabled)            reachable
+          [class] DIMS fill=none label=var(--t4) bezel=None {}
+      DIMS           .tb-btn.on                                 unreachable
+          [attr] DIMS fill=var(--f3) label=var(--t4) bezel=var(--line) {'light': 2.62, 'dark': 2.94}
+          [class] DIMS fill=var(--f3) label=var(--t4) bezel=var(--line) {'light': 2.62, 'dark': 2.94}
+      DIMS           .segmented .seg[aria-pressed="true"]       unreachable
+          [attr] DIMS fill=var(--f3) label=var(--t4) bezel=None {'light': 2.62, 'dark': 2.94}
+          [class] DIMS fill=var(--f3) label=var(--t4) bezel=None {'light': 2.62, 'dark': 2.94}
+      UNDRAWN        .side-row[aria-selected="true"]            unreachable
+          resolves an accent fill and no rule dims it (DESIGN.md rule 4 requires a disabled state of every control)
+      DIMS           .trow[aria-selected="true"]                reachable
+          [class] DIMS fill=var(--f3) label=var(--t4) bezel=None {'light': 2.62, 'dark': 2.94}
+      DIMS           .btn.primary                               unreachable
+          [attr] DIMS fill=var(--f3) label=var(--t4) bezel=var(--line) {'light': 2.62, 'dark': 2.94}
+          [class] DIMS fill=var(--f3) label=var(--t4) bezel=var(--line) {'light': 2.62, 'dark': 2.94}
+      DIMS           .switch[aria-checked="true"]               reachable
+          [attr] DIMS fill=var(--f3) label=None bezel=var(--line) {}
+          [class] DIMS fill=var(--f3) label=None bezel=var(--line) {}
+      UNDRAWN        .check[aria-checked="true"]                unreachable
+          resolves an accent fill and no rule dims it (DESIGN.md rule 4 requires a disabled state of every control)
+      UNDRAWN        .check[aria-checked="mixed"]               unreachable
+          resolves an accent fill and no rule dims it (DESIGN.md rule 4 requires a disabled state of every control)
+      not-a-control  .progress .bar                             not drawn on a control in this page's markup
+      not-a-control  .bartrack .fill                            not drawn on a control in this page's markup
+      not-a-control  .md .shield i                              not drawn on a control in this page's markup
+      not-a-control  .notif-icon                                not drawn on a control in this page's markup
+  docs/mcp-router-store.html
+      DIMS           .btn                                       reachable
+          [attr] DIMS fill=var(--f3) label=var(--t4) bezel=var(--line) {'light': 2.62, 'dark': 2.94}
+          [class] DIMS fill=var(--f3) label=var(--t4) bezel=var(--line) {'light': 2.62, 'dark': 2.94}
+      UNDRAWN        .chip[aria-pressed="true"]                 unreachable
+          resolves an accent fill and no rule dims it (DESIGN.md rule 4 requires a disabled state of every control)
+  docs/index.html
+      (no control resolves var(--accent-ink))
+  design/banner.html
+      (no control resolves var(--accent-ink))
+TOTAL failures=0
+  dark   --t4 on --ground  computed 3.3665 -> 3.37  published 3.37  OK
+  light  --t4 on --ground  computed 2.7933 -> 2.79  published 2.79  OK
+  dark   --t4 on --f3  computed 2.9367 -> 2.94  published 2.94  OK
+  light  --t4 on --f3  computed 2.6154 -> 2.62  published 2.62  OK

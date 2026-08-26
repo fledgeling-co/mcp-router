@@ -36,7 +36,7 @@ fix the record, not the code.
 
 ## Five non-blocking, and the load-bearing one is in `DESIGN.md`
 
-`DESIGN.md:589` refuses `⌥⌘Q` under a rule that does not reach it: *Review Held Changes…* **can**
+`DESIGN.md:623` refuses `⌥⌘Q` under a rule that does not reach it: *Review Held Changes…* **can**
 fire. And *"eight of their ten commands"* is **nine of twelve**, repeated wrongly in three further
 places — while the same source file gets the same arithmetic **right** twice. Correct the count and
 say which of the two the rule actually needs.

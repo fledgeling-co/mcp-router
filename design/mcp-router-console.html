@@ -436,7 +436,7 @@ body{
 }
 .tb-btn:hover{background:var(--raised2);}
 .tb-btn:active{background:var(--raised2);filter:brightness(0.96);}
-.tb-btn.disabled,.tb-btn:disabled{color:var(--t4);background:var(--f3);box-shadow:none;}
+.tb-btn.disabled,.tb-btn:disabled,.tb-btn.on.disabled,.tb-btn.on:disabled{color:var(--t4);background:var(--f3);box-shadow:none;border-color:var(--line);}
 .tb-btn.on{background:var(--accent-ink);color:var(--on-accent);border-color:var(--accent-ink);}
 
 .segmented{display:inline-flex;border:1px solid var(--line-strong);border-radius:7px;overflow:hidden;background:var(--raised);}
@@ -447,6 +447,7 @@ body{
 .segmented .seg:last-child{border-right:0;}
 .segmented .seg:hover{background:var(--f1);}
 .segmented .seg[aria-pressed="true"]{background:var(--accent-ink);color:var(--on-accent);}
+.segmented .seg.disabled,.segmented .seg:disabled{background:var(--f3);color:var(--t4);}
 
 .searchfield{
   height:24px;width:220px;
@@ -646,7 +647,10 @@ body{
 /* The verified glyph too: on the accent fill its own accent ink is nearly the ground it sits on. */
 .trow[aria-selected="true"] .pub .vf{color:var(--on-accent);}
 .trow[aria-selected="true"] .pill,.trow[aria-selected="true"] .btn{background:var(--raised);color:var(--t1);}
-.trow.disabled{color:var(--t4);}
+.trow.disabled{color:var(--t4);background:var(--f3);}
+.trow.disabled .c-sub,.trow.disabled .mono,.trow.disabled .state-cell,.trow.disabled .small,
+.trow.disabled .tert,.trow.disabled .muted,.trow.disabled .pub,
+.trow.disabled .pub .vf{color:var(--t4);}
 .c{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .c{min-width:0;overflow:hidden;text-overflow:ellipsis;}
 .c-name{flex:1 1 150px;max-width:260px;display:flex;align-items:center;gap:8px;font-weight:500;}
@@ -676,7 +680,7 @@ body{
 }
 .btn:hover{background:var(--raised2);}
 .btn:active{filter:brightness(0.95);}
-.btn:disabled,.btn.disabled,.btn.primary:disabled,.btn.primary.disabled{color:var(--t4);background:var(--f3);box-shadow:none;border-color:var(--line);cursor:not-allowed;}
+.btn:disabled,.btn.disabled,.btn.primary:disabled,.btn.primary.disabled{color:var(--t4);background:var(--f3);box-shadow:none;border-color:var(--line);}
 .btn.primary{background:var(--accent-ink);border-color:var(--accent-ink);color:var(--on-accent);}
 .btn.primary:hover{filter:brightness(1.06);}
 .btn.destructive{color:var(--fail-ink);background:none;box-shadow:none;}
@@ -702,7 +706,8 @@ body{
 }
 .switch[aria-checked="true"]{background:var(--accent-ink);border-color:var(--accent-ink);}
 .switch[aria-checked="true"] .knob{transform:translateX(20px);}
-.switch:disabled{opacity:0.45;}
+.switch.disabled,.switch:disabled{background:var(--f3);border-color:var(--line);}
+.switch.disabled .knob,.switch:disabled .knob{background:var(--t4);box-shadow:none;}
 
 /* checkbox */
 .check{

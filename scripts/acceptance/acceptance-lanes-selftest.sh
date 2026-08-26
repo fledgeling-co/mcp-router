@@ -22,12 +22,55 @@ FAILURES=0
 note_fail() { echo "  SELFTEST FAIL: $*" >&2; FAILURES=$((FAILURES + 1)); }
 note_pass() { echo "  ok — $*"; }
 
-# Plant a lane that prints a recognisable line and exits with a given code.
+# Plant a lane that prints a recognisable line, makes one assertion, and exits with a given code.
+#
+# The `ok` line is not decoration. A real lane says what it checked, and since arm 8 the runner
+# refuses to call a silent exit 0 a pass — so a planted lane that only echoed "ran a.sh" would
+# model a lane that proves nothing rather than a lane that passes, and every green arm below would
+# be measuring the wrong thing.
 plant() { # $1 = name, $2 = exit code
     cat > "$WORK/$1" <<PLANT
 #!/bin/bash
 echo "ran $1"
+echo "  ok — $1 asserted something"
 exit $2
+PLANT
+    chmod +x "$WORK/$1"
+}
+
+# The lane this item was written about: it exits 0 and asserts nothing.
+plant_vacuous() { # $1 = name
+    cat > "$WORK/$1" <<PLANT
+#!/bin/bash
+echo "ran $1"
+exit 0
+PLANT
+    chmod +x "$WORK/$1"
+}
+
+# The same thing in the shape it was actually FOUND in, rather than in the shape that is easy to
+# write. `control-client.sh` did not choose to exit 0: it died on `set -u` while sourcing
+# parity-lock.sh, and bash 3.2 let its EXIT trap's successful `rm -rf` become the script's status.
+# A synthetic `exit 0` proves the runner counts; this proves it catches the thing that happened.
+plant_laundered() { # $1 = name
+    cat > "$WORK/$1" <<'PLANT'
+#!/bin/bash
+set -euo pipefail
+scratch="$(mktemp -d)"
+trap 'rm -rf "$scratch"' EXIT
+echo "$NOTHING_EVER_SETS_THIS"
+echo "  ok — never reached, because the line above killed the shell"
+PLANT
+    chmod +x "$WORK/$1"
+}
+
+# A lane that speaks a vocabulary of its own and declares its count instead.
+plant_declaring() { # $1 = name, $2 = declared count
+    cat > "$WORK/$1" <<PLANT
+#!/bin/bash
+echo "ran $1 — this lane's output is not prose"
+echo "ACCEPTANCE-ASSERTIONS: $2"
+exit 0
 PLANT
     chmod +x "$WORK/$1"
 }
@@ -134,9 +177,73 @@ done
 echo "$OUT" | grep -q "enrolled: 3   run: 3" || note_fail "enrolled/run counts are not both 3"
 note_pass "3 enrolled, 3 rows, one each"
 
+# ------------------------------------------------- arm 8: exit 0 with nothing behind it is not a pass
+#
+# The third failure mode, and the only one of the three that was found by running the target rather
+# than by reasoning about it. `control-client.sh` on `main` printed one unbound-variable line and
+# exited 0 with none of its three checks run, and this runner wrote PASS beside it — a lane
+# dispatched, a claim recorded, and no work done anywhere in between.
+echo "arm 8 — a lane that exits 0 having asserted nothing is not called a pass"
+plant a.sh 0; plant_vacuous b.sh; plant c.sh 0
+run_lanes "a.sh b.sh c.sh"
+[ "$CODE" -eq 1 ] || note_fail "a set containing a vacuous lane exited $CODE, expected 1"
+echo "$OUT" | grep -qE '^b\.sh +0 +VACUOUS' \
+    || note_fail "b.sh is not classed VACUOUS in the table at exit 0"
+echo "$OUT" | grep -q "pass: 2   fail: 0   blocked: 0   vacuous: 1" \
+    || note_fail "the counts do not hold the vacuous lane out of the pass count"
+echo "$OUT" | grep -q "ACCEPTANCE PASSED" && note_fail "a run with a vacuous lane printed ACCEPTANCE PASSED"
+echo "$OUT" | grep -q "exited 0 having asserted nothing" \
+    || note_fail "the verdict line does not say what was wrong with the vacuous lane"
+[ "$CODE" -eq 1 ] && note_pass "a lane at exit 0 with 0 assertions -> VACUOUS, held out of pass, exit 1"
+
+# ------------------------------------------------------------- arm 9: the presence control for arm 8
+#
+# Arm 8 is satisfiable by a runner that reds every exit 0, which would make the aggregate useless in
+# the opposite direction. So the same lane runs again with ONE line added — the assertion — and has
+# to come back a pass. The two lanes differ by that line and nothing else.
+echo "arm 9 — the same lane with one assertion added is a pass again"
+plant a.sh 0; plant b.sh 0; plant c.sh 0
+run_lanes "a.sh b.sh c.sh"
+[ "$CODE" -eq 0 ] || note_fail "three asserting lanes exited $CODE, expected 0"
+echo "$OUT" | grep -qE '^b\.sh +0 +PASS' || note_fail "b.sh is not a PASS once it asserts"
+echo "$OUT" | grep -q "vacuous: 0" || note_fail "the vacuous count is not 0 when every lane asserted"
+[ "$CODE" -eq 0 ] && note_pass "one added assertion turns the same lane from VACUOUS back to PASS"
+
+# ------------------------------------------- arm 10: the shape it was found in, not the shape written
+#
+# A lane that dies on `set -u` and whose EXIT trap launders the status. On macOS's `/bin/bash` 3.2
+# that lands as exit 0 with no assertions, which is exactly what was measured; on bash 4+ the death
+# keeps its 1. The assertion is written to the invariant both share — this lane is never a PASS and
+# the aggregate is never green — rather than to the code, so the arm measures the runner instead of
+# measuring which bash is first on PATH.
+echo "arm 10 — a lane killed by set -u, its status laundered by its own EXIT trap"
+plant a.sh 0; plant_laundered b.sh; plant c.sh 0
+run_lanes "a.sh b.sh c.sh"
+[ "$CODE" -ne 0 ] || note_fail "a set containing a shell that died mid-script exited 0"
+echo "$OUT" | grep -qE '^b\.sh +[0-9]+ +PASS' && note_fail "a lane that died on set -u was called a PASS"
+echo "$OUT" | grep -q "ACCEPTANCE PASSED" && note_fail "a run containing a dead lane printed ACCEPTANCE PASSED"
+b_row="$(echo "$OUT" | grep -E '^b\.sh +[0-9]+ ' | head -1)"
+[ "$CODE" -ne 0 ] && note_pass "set -u death -> exit $CODE, and b.sh reads: ${b_row:-<no row>}"
+
+# ------------------------------------------------- arm 11: a lane may state its own count instead
+#
+# Not every lane's output is prose, and a runner that only recognises one vocabulary would push the
+# next lane into printing `ok` lines it does not mean. A declared count is authoritative — including
+# a declared ZERO, which is a lane admitting it checked nothing and must be treated as such.
+echo "arm 11 — a declared assertion count is honoured, in both directions"
+plant a.sh 0; plant_declaring b.sh 4; plant c.sh 0
+run_lanes "a.sh b.sh c.sh"
+[ "$CODE" -eq 0 ] || note_fail "a lane declaring 4 assertions exited $CODE, expected 0"
+echo "$OUT" | grep -qE '^b\.sh +0 +PASS +4$' || note_fail "the declared count of 4 is not in b.sh's row"
+plant_declaring b.sh 0
+run_lanes "a.sh b.sh c.sh"
+[ "$CODE" -eq 1 ] || note_fail "a lane declaring 0 assertions exited $CODE, expected 1"
+echo "$OUT" | grep -qE '^b\.sh +0 +VACUOUS' || note_fail "a declared 0 is not classed VACUOUS"
+note_pass "declared 4 -> PASS carrying 4; declared 0 -> VACUOUS"
+
 echo
 if [ "$FAILURES" -eq 0 ]; then
-    echo "acceptance-lanes selftest: 8 arms, all held."
+    echo "acceptance-lanes selftest: 12 arms, all held."
     exit 0
 fi
 echo "acceptance-lanes selftest: $FAILURES assertion(s) failed." >&2

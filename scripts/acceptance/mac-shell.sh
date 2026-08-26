@@ -731,9 +731,31 @@ SWIFT
 # A file list that has to be maintained by hand alongside a module is the shape of the defect; it is
 # left as a list rather than replaced with the built module here, because swapping the oracle's
 # build strategy is a change to M1's evidence lane rather than to this one.
+# **Two files were added on 2026-08-26, and the drift they fix had been live for four days.**
+# `KeyChord.swift` landed at `0bdfcbe` on 2026-08-22 with M20's menu bar, `MenuCommand.swift` began
+# referring to `KeyChord` in the same change, and this list did not follow — so every run of this
+# script since blocked at "could not build the availability oracle" with
+# `MenuCommand.swift:285:26: error: cannot find type 'KeyChord' in scope`.
+#
+# **Nobody saw it, and that is G10's point rather than this lane's.** `make acceptance` ran
+# `shells.sh` first and stopped there, so this lane was not reached at all between 2026-08-22 and
+# 2026-08-26 — a lane enrolled in the gate, blocked for four days, and silent. The target now runs
+# every lane and aggregates, which is how this was found.
+#
+# `MenuCommandAvailability.swift` is the second, and it is the same shape one layer down: the list
+# names `MenuCommand.swift`, but `CommandContext` and `availability(in:)` live in that extension
+# file, so the oracle's own driver failed next with "type 'MenuCommand' has no member
+# 'CommandContext'". Two files missing from a five-file list is what a hand-picked list does.
+#
+# The list is still hand-picked rather than replaced with the built module, for the reason given
+# above: swapping the oracle's build strategy is a change to M1's evidence lane rather than a repair
+# to it. That leaves this list free to drift a fourth time, and the thing that will catch it now is
+# the lane actually being dispatched.
 swiftc -O -o "$WORK/menu-oracle" \
   "$APP_DIR/Sources/MCPRouterKit/Shell/MenuCommand.swift" \
   "$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift" \
+  "$APP_DIR/Sources/MCPRouterKit/Shell/KeyChord.swift" \
+  "$APP_DIR/Sources/MCPRouterKit/Shell/MenuCommandAvailability.swift" \
   "$APP_DIR/Sources/MCPRouterKit/Skills/SkillPresentation.swift" \
   "$APP_DIR/Sources/MCPRouterKit/Control/SkillModels.swift" \
   "$WORK/main.swift" 2>"$WORK/oracle.log" \

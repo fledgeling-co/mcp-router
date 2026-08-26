@@ -25,6 +25,8 @@ a build that never ran the guard proves nothing about it.
 
 The tests themselves are never edited — a mutation that edits a test proves nothing.
 """
+from __future__ import annotations  # `X | None` is evaluated at def time on 3.9; gates run under /usr/bin/python3
+
 import pathlib
 import re
 import subprocess

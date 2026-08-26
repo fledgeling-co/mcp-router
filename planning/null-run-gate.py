@@ -39,6 +39,8 @@ What this does NOT reach, stated rather than implied:
 
 Exit 0 when every arm bit; 1 when one did not; 2 when the gate could not run one.
 """
+from __future__ import annotations  # `X | None` is evaluated at def time on 3.9; the gates run under /usr/bin/python3
+
 
 import re
 import shutil

@@ -216,40 +216,76 @@ the source rather than on the icons.
 ## The row that certified over something it had not read
 
 The gate row above used to read *"**inherited** — `blocking 0`, ratchet only, 3 files above
-baseline and all three are M29's"*. Every clause of it was false at the tree this record was
-committed at, and the way it was false is this item's own subject: a lane reporting clean over
-something it did not look at.
+baseline and all three are M29's"*. Every clause of it was false at the tree that committed it, and
+the way it was false is this item's own subject: a lane reporting clean over something it did not
+look at.
 
-**Re-derived, not restated.** Run in this worktree at `be48f5a`, whose base is `main` at
-`570910a`:
+**Re-derived, and the derivation is printed rather than described.** An earlier draft of this
+section named a command and asserted corrected numbers beside it, which is the same defect one
+layer out — an out-of-family reviewer called it *"restates post-fix numbers against a pre-fix
+tree"* and was right. So here is the output. Run in this worktree at `141394c`, whose base is `main`
+at `bbe8df1`:
 
 ```
-cd .worktrees/M33 && python3 planning/citation-gate.py; echo "exit $?"
+$ python3 planning/citation-gate.py | grep -E '^exit:|^ratchet: [0-9]+ file'
+ratchet: 10 file(s) hold more bare citations than the baseline allows:
+exit: control 0 · blocking 1 · ratchet 1
+
+$ python3 planning/citation-gate.py | sed -n '/^ratchet: [0-9]* file/,/A bare citation/p'
+ratchet: 10 file(s) hold more bare citations than the baseline allows:
+  ORCHESTRATOR.md  69, baseline 68
+  planning/evidence/M29-decisions-grok.md  1, baseline 0
+  planning/goals/tests-reader-control.sh  1, baseline 0
+  planning/plans/plan-G6.md  1, baseline 0
+  planning/plans/plan-M29.md  23, baseline 0
+  planning/progress/G6.md  3, baseline 0
+  planning/specs/spec-M29.md  6, baseline 0
+  planning/tailings-2/crossref.json  3, baseline 0
+  planning/tailings-2/worklist.json  4, baseline 0
+  planning/verification/G6-shared-ledger-withdrawals.py  1, baseline 0
+  A bare citation is unfalsifiable; carry anchor and tree.
 ```
 
-and read three separate lines of its output — the `exit:` summary line, the `ratchet: N file(s)`
-header, and the file list under it. The counting was done by reading that list, not by recalling a
-number.
+`planning/evidence/M33-acceptance.md` is not in that list. It was, before the `:94` fix below. The
+ten are `main`'s own at `bbe8df1`, and the tenth — `planning/goals/tests-reader-control.sh` — landed
+on `main` after this section was first written, which is why the file list is printed rather than
+the count: a count is what the original row was.
 
-| clause | what the gate actually says at `be48f5a` |
+| clause | what the gate actually says at `141394c` |
 |---|---|
-| `blocking 0` | **`blocking 1`.** Anchor `` `swift build` exits 0 and silent on a fault ``, `planning/features-to-triage/LEDGER.md:124` at `570910a`, cites `planning/evidence/M33-acceptance.md:214` at `b5f2227` with an anchor whose pipes are backslash-escaped, because the citing row is itself a markdown table row. The cited line's pipes are not escaped, so the anchor cannot match and the gate classes it `ABSENT` — a stated frame that does not hold — and marks it `DANGEROUS`, because the line it landed on reads perfectly well. |
-| `ratchet only` | Not only. The ratchet is 1 and blocking is 1, and blocking is the class that means a *false* claim rather than an unfalsifiable one. |
-| `3 files above baseline` | **9**, and at the unrebased tip it was 4. Three is the count of the M29 files alone. |
-| `all three are M29's` | Three of the nine are M29's — `planning/evidence/M29-decisions-grok.md`, `planning/plans/plan-M29.md`, `planning/specs/spec-M29.md`. The other six are `ORCHESTRATOR.md`, `planning/plans/plan-G6.md`, `planning/progress/G6.md`, `planning/tailings-2/crossref.json`, `planning/tailings-2/worklist.json` and `planning/verification/G6-shared-ledger-withdrawals.py`. **And at the tree this record was written, a tenth was `planning/evidence/M33-acceptance.md` — this file.** It carried one bare citation at `:94` — anchor `- path: MCPRouter`, `app/project.yml:43` at `570910a`, quoted inside gate output with no anchor and no tree at the time. So the row certified that every file above baseline belonged to another item while the file making the certification was one of them. |
+| `blocking 0` | **`blocking 1`** — the `exit:` line's third field, not a file count. Anchor "exits 0 and silent on a fault", `planning/features-to-triage/LEDGER.md:124` at `bbe8df1`, cites this file's `:214` at `b5f2227` with an anchor whose pipes are backslash-escaped, because the citing row is itself a markdown table row. The cited line's pipes are not escaped, so the anchor cannot match and the gate classes it `ABSENT` — a stated frame that does not hold — and marks it `DANGEROUS`, because the line it landed on reads perfectly well. |
+| `ratchet only` | Not only. The `exit:` line reads `blocking 1 · ratchet 1`, and both those 1s are exit-field flags rather than counts. Blocking is the class that means a *false* claim; the ratchet class means an unfalsifiable one. |
+| `3 files above baseline` | **10** at `141394c`, 9 before `main` added its own, and 4 at the tree that made the claim. Three is the count of the M29 files alone. |
+| `all three are M29's` | Three of the ten are M29's — `planning/evidence/M29-decisions-grok.md`, `planning/plans/plan-M29.md`, `planning/specs/spec-M29.md`. The other seven are listed above and none is M29's. **And at the tree this record was written, one of them was `planning/evidence/M33-acceptance.md` — this file.** It carried one bare citation at `:94`. So the row certified that every file above baseline belonged to another item, while the file making the certification was one of them. |
 
 **The bare citation at `:94` is fixed rather than absorbed.** It now carries anchor `- path:
 MCPRouter` and the tree `570910a`, per `planning/practices/CITATIONS.md` — *"a citation must resolve
 where it is **read**, not merely where it was written."* The ratchet baseline in
 `planning/citation-ratchet.json` is untouched: the rule is that counts may only fall, and absorbing
-debt is an owner decision. `planning/evidence/M33-acceptance.md` is no longer on the over-baseline
-list, and the list is back to the nine files `main` carries at `570910a`.
+debt is an owner decision.
 
-**`blocking 1` is not this branch's to close and is reported rather than fixed.** The failing
-citation lives in `planning/features-to-triage/LEDGER.md`, which this runner may not write. It is
-also *latent on `main`*: the cited path does not exist there, so the citation drops out of the
-gate's resolvable denominator and the gate reads `blocking 0`. It becomes checkable — and fails —
-the moment this branch lands. Two ways to close it, both the owner's: unescape the anchor's pipes
-in the LEDGER row, or teach `citation-gate.py` to unescape `\|` when the citing line is a table
-row. Note that correcting `:214` above, which was the instruction, moves the text that citation
-points at, so the row needs rewriting either way.
+**`blocking 1` is not this branch's to close, and correcting `:214` does not move it.** An earlier
+draft of this paragraph said that correcting the row moved the text the LEDGER points at. It does
+not: the LEDGER cites `:214` **at `b5f2227`**, a frozen blob, and editing this file at `HEAD` leaves
+that blob exactly where it is. The citation was already `ABSENT` before this gap-fix and is
+`ABSENT` after it, for the same reason both times — escaped pipes in the anchor against an
+unescaped cited line. The one fix available from this branch is to unescape them in
+`planning/features-to-triage/LEDGER.md`, which this runner may not write, or to teach
+`citation-gate.py` to unescape `\|` when the citing line is a table row — and that second one
+reclassifies every table-row citation in the corpus, which is an owner's call and not a side effect
+of this item.
+
+**Two things about that blocking row are worth stating precisely, because both were nearly claimed
+wrongly.**
+
+* It is **latent on `main`**, and the mechanism is checked rather than assumed:
+  `git cat-file -e main:planning/evidence/M33-acceptance.md` fails and `git ls-tree` is empty for
+  that path at `bbe8df1`, so the cited path is not resolvable there, the citation drops out of the
+  gate's N5 denominator, and `main` reads `blocking 0`. It becomes checkable the moment this branch
+  lands.
+* **`b5f2227` is dangling.** `git name-rev b5f2227` answers `undefined`: it was this branch's tip
+  before the rebases and is an ancestor of nothing now. The object survives in this repository, so
+  the gate resolves it and blocks. In a clone that never received it, the same citation classes
+  `NOTREE`, which does not block. So whether merging this branch turns the finding red depends on
+  the object database rather than on the tree — which is another way of saying the LEDGER row needs
+  rewriting whatever else happens.

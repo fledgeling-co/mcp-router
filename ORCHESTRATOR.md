@@ -3067,3 +3067,40 @@ G10 and M31 alone, since both are substantive) plus the two items that had never
 (owner-authorised: serve real capability documents from both router implementations, with parity
 vectors) and M32 (make the mock-fidelity census total, so a node matching no rule is a reported
 class rather than a silent drop).
+
+### The lint gate's two defects, and why the first control missed both
+
+Worth carrying, because the sequence is more instructive than either bug.
+
+On 2026-08-26 this orchestrator briefed G10's gap-fix runner about `control-client.sh` — a lane
+that exits 0 having run no assertions because `BASHPID` does not exist in macOS `/bin/bash` 3.2.
+In the same turn it shipped a goal gate built on `mapfile`, which is bash 4+. Under the guard's
+shell the gate died with `mapfile: command not found`, then `STEPS: unbound variable`, and
+**exited 1** — reporting *"lint failed on a step that is not the citation ratchet"* when the truth
+was that lint had never run. An environment failure wearing a findings failure's exit code, which
+is the distinction this same session criticised G8's gate for collapsing.
+
+The replacement was worse and lasted one run: `printf '%s' "$STEPS" | while read`. A piped
+while-loop runs in a **subshell**, so the failure flags never reached the parent and the gate
+printed **`lint: clean`** while the citation gate was exiting 1 underneath it. A fail-open,
+reintroduced inside the fix for a fail-open.
+
+**Neither defect is visible to the control that was written for this gate.** That control compared
+the *old and new logic* — the grep-four-patterns rule against the read-exit-codes rule — in
+isolation, and it passed, correctly, because both defects are in the script rather than in the
+rule. A control that models the instrument instead of running it can only ever check the part you
+already understood. The gate is armed against itself now: a step planted into the real Makefile
+recipe, failing with text matching none of the old patterns, makes the real script exit 1 and name
+the step, with the Makefile restored byte-identically at sha256 `ad3e973c3300c3c9` both sides.
+
+Three rules this leaves behind, all cheap:
+
+1. **Run the artifact, not a model of it.** An isolated logic control is a useful second arm and
+   never the first one.
+2. **`/bin/bash` is 3.2 on this machine and is what hooks, gates and `make` recipes get.** An
+   interactive shell resolving to Homebrew's bash 5.3 will run a script the guard cannot. Sweep
+   for `mapfile`, `readarray`, `declare -A`, `${x^^}` and `&>>` before shipping one.
+3. **A piped `while` loop cannot report anything to its caller.** Use a here-string.
+
+The other four goal scripts were swept and run under `/bin/bash` after this: `worklist-check`,
+`tests-check`, `citations-blocking-check` and `liveness-check`, 0 errors each.

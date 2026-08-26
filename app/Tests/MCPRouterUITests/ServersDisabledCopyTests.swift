@@ -136,6 +136,52 @@
                 == "\(ControlAPIError.routerNotRunning.headline), tools withheld")
         }
 
+        /// Oracle 18's **binding**, which the three tests above do not state.
+        ///
+        /// `accessibilityValueText` returning the right sentence proves nothing if `body` stopped
+        /// publishing it. A fresh-context verifier ran exactly that mutation — the single
+        /// `.accessibilityValue(accessibilityValueText)` line deleted from `body` — and **all 1977
+        /// tests stayed green**: every assertion above reads the property directly,
+        /// `grep -rn 'accessibilityValue(' app/Tests/` returned nothing, and `.measured(…)` captures
+        /// id, role, kind, frame, tokens, type and text but no accessibility value, so nothing else
+        /// in the suite could have observed the loss. There is no accessor for a SwiftUI view's
+        /// accessibility value on this host, so — exactly as for oracle 12's button label above —
+        /// the binding is a fact about the source, and the source is what gets read. `DIS-17` is its
+        /// red-green arm.
+        @Test("the row publishes that value from body rather than only computing it")
+        func theRowPublishesWhatItComputes() throws {
+            let source = try ShellTestSupport.repoFile(
+                "app/Sources/MCPRouterUI/Boards/ServersBoardRow.swift"
+            )
+            // Two hops, because that file declares three views and `var body: some View` is
+            // therefore ambiguous in it — `declarationBody` throws on an ambiguous marker rather
+            // than picking one — while it is unambiguous inside this one struct.
+            let view = try ShellTestSupport.declarationBody(of: "struct ServerRowView: View", in: source)
+            let body = try ShellTestSupport.declarationBody(of: "var body: some View", in: view)
+
+            // Exactly one publication, and it reads the named property rather than a second copy of
+            // the sentence. Written as an equality on the whole population rather than a
+            // `contains`: an inlined `row.tools == nil ? … : subtitleText` would render identically
+            // and leave every assertion above green, which is the drift `DIS-16` guards one surface
+            // over, and a `contains` would not see a second publication disagreeing with the first.
+            let published = body.components(separatedBy: .newlines)
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { $0.hasPrefix(".accessibilityValue(") }
+            #expect(
+                published == [".accessibilityValue(accessibilityValueText)"],
+                "body stopped publishing accessibilityValueText: oracle 18 reaches no screen reader"
+            )
+
+            // The scoping has to actually scope, or the assertion above passes on the wrong text —
+            // an empty extraction would satisfy an equality against an empty population too.
+            #expect(body.contains("StatePlug(state: row.jack)"), "the extracted body starts short")
+            #expect(body.contains("role: \"table-row\""), "the extracted body stops short")
+            #expect(
+                !body.contains("var accessibilityValueText"),
+                "the extraction ran past body's end and is reading the property's own declaration"
+            )
+        }
+
         @MainActor
         private static func row(_ model: ServerRowModel) -> ServerRowView {
             ServerRowView(

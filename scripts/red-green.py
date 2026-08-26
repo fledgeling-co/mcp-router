@@ -806,6 +806,19 @@ mut(
 )
 
 mut(
+    "DIS-17", "M29", "the row publishes its spoken value from body, not only computes it",
+    UI_BOARDS / "ServersBoardRow.swift",
+    "            .accessibilityValue(accessibilityValueText)\n",
+    "",
+    # DIS-13 mutates what the property RETURNS; this one removes the line that publishes it. The
+    # two are different exposures and only the second is invisible to every runtime assertion:
+    # `.measured(...)` captures id, role, kind, frame, tokens, type and text and no accessibility
+    # value, so with this line gone the row computes the right sentence and speaks nothing. A
+    # fresh-context verifier ran this deletion and all 1977 tests stayed green.
+    "the row publishes that value from body rather than only computing it",
+)
+
+mut(
     "DIS-15", "M29", "a refused write reaches the row in the router's own words",
     UI_BOARDS / "ServersBoardWrites.swift",
     "            } catch {\n"

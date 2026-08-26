@@ -353,13 +353,19 @@ def main():
 
     got, bad = control()
     print("presence control (a throwaway repo; nothing is planted here)")
+    # The TABLE decides the exit code, not `bad` alone. `bad` and `got` are two derivations of
+    # one fact, and a future path that returns a partial reading with an empty `bad` would
+    # otherwise print MISS rows and fall through to a verdict — the same defect as the guard
+    # below, one step further on (`grok-4.6`, 2026-08-26). `.get` keeps a missing key out of the
+    # exception path that already chose the wrong code once; `missed` makes it choose 2.
+    missed = []
     for name, (_, expected) in PLANTS.items():
-        # `.get`, not `[]`: an arm that reports a broken control must not be reachable only
-        # through an exception that has already chosen the wrong exit code for it.
         reading = got.get(name, "NOT ASSESSED")
         mark = "ok  " if reading == expected else "MISS"
+        if mark == "MISS":
+            missed.append(name)
         print(f"  {mark}  {name:<18} expected {expected:<13} read {reading}")
-    if bad:
+    if bad or missed:
         print("\nCONTROL DID NOT FIRE — the classifier missed a planted instance.")
         print("The verdict below would be an absence this instrument cannot see, so none is printed.")
         return 2

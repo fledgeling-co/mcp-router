@@ -251,7 +251,7 @@ public struct StandardButtonStyle: ButtonStyle {
     /// than a value chosen here. **Hover is not press, and the substitution is deliberate rather
     /// than an oversight**: a `ButtonStyle` cannot observe hover at all, `--f1` is the only
     /// interaction fill the mock gives this control, and shipping no press feedback would fail
-    /// `DESIGN.md`:491's state list in the other direction.
+    /// `DESIGN.md`:517's state list in the other direction.
     ///
     /// A **disabled** destructive control is unfilled too, and that is what the mock's cascade
     /// actually produces: `.btn:disabled` (:679) and `.btn.destructive` (:682) are both 0-2-0 and

@@ -445,6 +445,40 @@ violation is a defect rather than a variation.
 9. The menu bar is the complete command surface — every command reachable from it.
 10. Motion animates transform and opacity only, honours Reduce Motion.
 
+**What "dims in place" means for an accent-filled control.** Rule 4 requires a disabled state of
+every control and says it dims in place; §5 requires the same of every surface. Neither says what
+dimming *is* for the one control whose resting state is an accent fill, and until M31 the design of
+record could not draw it — `.btn:disabled` and `.btn.primary` sat at equal specificity with
+`.primary` declared second, so a disabled primary kept its fill, its border and its label and
+differed from a live one only by losing its shadow. A state drawn as though it were its own
+opposite is worse than a state left undrawn. It is this:
+
+| | Live | Disabled |
+|---|---|---|
+| Label | `--on-accent` | `--t4` |
+| Fill | `--accent-ink` | `--f3` |
+| Bezel | none — the live prominent control is a flat fill | `--line` |
+
+The control keeps its height, its padding, its position and its label; nothing moves and the accent
+leaves. **The accent fill is not tinted.** `--t4` has no measured ratio on `--accent-ink` anywhere
+in §2, and inventing one to license a tint would be a fabricated number in a palette's clothes. So a
+disabled prominent control lands on the same disabled surface as every other disabled control —
+which is also what makes it read as *unavailable* rather than as *a second kind of available*.
+
+**The ratio, stated rather than implied.** `--t4` on `--f3` measures **2.94:1 in dark and 2.62:1 in
+light** — below the 4.5:1 body floor and below 3:1. That is claimed as exempt under **WCAG 1.4.3**,
+which excepts "text or images of text that are part of an inactive user interface component", and
+the claim is made here by name rather than by a check that quietly skips the pairing: §2's Role
+column gives `--t4` the `disabled` role, `ContrastRole.disabled` carries `floor == nil`, and this
+paragraph is the pairing that role is claimed for. These two figures are *not* §2's Contrast
+columns, which measure `--t4` over `--ground` at 3.37:1 / 2.79:1; a disabled label is never drawn on
+a bare ground, so the column is a number about a pairing nothing paints.
+
+**A disabled control changes no cursor.** Rule 8 governs and admits no exception here: macOS paints
+the arrow over an unavailable control, `not-allowed` is a web-content cursor with no counterpart in
+the palette and no SF Symbol to map to, and a `cursor` property appears nowhere else in the design
+of record. Unavailability is carried by the dimming and by §5's discoverable reason.
+
 ---
 
 ## 4 · Icons

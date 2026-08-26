@@ -6,7 +6,7 @@
 
     /// The two button styles' state palettes, asserted without a render.
     ///
-    /// `DESIGN.md`:491 — *"Every control additionally carries default / hover / focus-visible /
+    /// `DESIGN.md`:517 — *"Every control additionally carries default / hover / focus-visible /
     /// active / disabled"* — and :443 — *"Disabled dims in place and never disappears"*. The
     /// prominent style shipped with **no disabled treatment at all**: it painted `--on-accent` on an
     /// unconditional `--accent` fill, so a disabled primary was pixel-identical to a live one. That

@@ -82,10 +82,35 @@ trap 'cleanup; rm -f "$OUT"' EXIT
 echo "parity-lock selftest — $(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 echo
 
+# ------------------------------------------------------------- L0 the self-pid the guards rest on
+#
+# This runs first because L3 and `parity_lock_release` are only meaningful if the value they compare
+# actually distinguishes a subshell from the shell that acquired the lock. On bash 5 that value is
+# `BASHPID`; on macOS's `/bin/bash` 3.2 there is no such variable, and reading it under `set -u`
+# killed `control-client.sh` mid-source — after which its EXIT trap laundered the death into exit 0
+# and the lane reported a pass having asserted nothing.
+#
+# Two directions, because only one of them can be got right by accident: in this shell the answer
+# must EQUAL `$$`, and inside a `( … )` it must DIFFER from it. A helper that returned `$$` passes
+# the first and fails the second; one that forked on every call fails the first.
+parity_lock__set_self
+if [ "$PARITY_LOCK_SELF_PID" = "$$" ]; then
+    ok "L0 the self-pid equals \$\$ in the shell that would acquire the lock"
+else
+    bad "L0 the self-pid read $PARITY_LOCK_SELF_PID in a shell whose \$\$ is $$"
+fi
+sub_self="$( parity_lock__set_self; printf '%s' "$PARITY_LOCK_SELF_PID" )"
+if [ -n "$sub_self" ] && [ "$sub_self" != "$$" ]; then
+    ok "L0 the self-pid changes inside a subshell ($sub_self is not $$), which \$\$ cannot do"
+else
+    bad "L0 the self-pid read '$sub_self' inside a subshell where \$\$ is $$ — release cannot guard on it"
+fi
+
 # ------------------------------------------------------------------------------------ L1 acquire
 reset_lock
 ( parity_lock_acquire "selftest-L1" ) >/dev/null 2>&1
-PARITY_LOCK_HELD_BY="$BASHPID"   # L3 tests release; this shell is the notional owner
+parity_lock__set_self
+PARITY_LOCK_HELD_BY="$PARITY_LOCK_SELF_PID"   # L3 tests release; this shell is the notional owner
 if [ -d "$PARITY_LOCK_DIR" ] && [ "$(cat "$PARITY_LOCK_DIR/pid" 2>/dev/null)" = "$$" ]; then
     ok "L1 a clean acquire creates the lock and records this pid"
 else
@@ -222,7 +247,7 @@ fi
 drop_holder
 
 echo
-echo "parity-lock selftest: $pass held, $fail did not"
+echo "parity-lock selftest: $pass held, $fail did not (bash $BASH_VERSION)"
 if [ "$fail" != 0 ]; then
     for f in "${failures[@]}"; do echo "  - $f"; done
     echo

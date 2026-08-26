@@ -49,6 +49,35 @@ PARITY_LOCK_CMDFILE="$PARITY_LOCK_DIR/cmd"
 # port while a second one came up underneath it.
 PARITY_LOCK_HELD_BY=""
 
+# The acquiring shell's own pid, in a form macOS's `/bin/bash` can actually produce.
+#
+# **`BASHPID` is bash 4.0+ and macOS ships 3.2.57 as `/bin/bash`.** The lanes that source this file
+# carry both shebangs — `#!/usr/bin/env bash` finds Homebrew's bash 5 where it is installed,
+# `#!/bin/bash` is always 3.2 — so this file is read into both, under the `set -u` every lane sets.
+# Under `-u` an undefined `BASHPID` is not a missing convenience, it is the death of the shell.
+#
+# Measured on `main` at `520fed38`, and it is why this is being written now: `control-client.sh`
+# (`#!/bin/bash`) emitted `parity-lock.sh: line 205: BASHPID: unbound variable` and **exited 0
+# having run none of its three checks**. Bash 3.2 preserves the status of an explicit `exit 1` and
+# of a `set -e` death, and loses it for a `set -u` death — the EXIT trap's last command
+# (`rm -rf "$HOME_DIR"`) succeeded, and its 0 became the script's. So the lane read as a pass while
+# proving nothing, inside the one target this repository dispatches to find out what is true.
+#
+# The substitute keeps the single property `BASHPID` is used for here: a value that CHANGES inside a
+# subshell, where `$$` does not. `$(exec sh -c 'echo $PPID')` has it — a command substitution always
+# forks, `exec` replaces that fork with `sh`, and `sh`'s parent is therefore the shell that forked
+# it. In the acquiring shell that equals `$$`; inside `$( … )` or `( … )` it is the subshell's own
+# pid, which is the case the release guard exists to refuse.
+#
+# **Assigns a global rather than printing one**, and that is not a style choice. `x="$(self)"` would
+# fork before the helper ran, so the helper would answer with the pid of that fork instead of the
+# caller's — a different value on every call, and a guard that never matched. Called as a bare
+# command a shell function does not fork, so the substitution inside it forks from the caller.
+PARITY_LOCK_SELF_PID=""
+parity_lock__set_self() {
+    PARITY_LOCK_SELF_PID="${BASHPID:-$(exec sh -c 'echo $PPID')}"
+}
+
 # How long to wait for a winner that created the directory but has not yet written its pid.
 # Bounded, because an unbounded wait turns a crashed writer into a hang.
 PARITY_LOCK_PID_WAIT_TENTHS="${PARITY_LOCK_PID_WAIT_TENTHS:-20}"
@@ -202,7 +231,8 @@ parity_lock_acquire() {
                 echo "             outcome this lock exists to prevent."
                 exit 2
             fi
-            PARITY_LOCK_HELD_BY="$BASHPID"
+            parity_lock__set_self
+            PARITY_LOCK_HELD_BY="$PARITY_LOCK_SELF_PID"
             return 0
         fi
 
@@ -236,7 +266,8 @@ parity_lock_acquire() {
 # is running the same EXIT trap.
 parity_lock_release() {
     [ -n "$PARITY_LOCK_HELD_BY" ] || return 0
-    [ "$BASHPID" = "$PARITY_LOCK_HELD_BY" ] || return 0
+    parity_lock__set_self
+    [ "$PARITY_LOCK_SELF_PID" = "$PARITY_LOCK_HELD_BY" ] || return 0
     rm -rf "$PARITY_LOCK_DIR"
     PARITY_LOCK_HELD_BY=""
 }

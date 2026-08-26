@@ -40,7 +40,7 @@ The cost of leaving it is equally plain: a feature that is complete, tested and 
 | **A** | Leave it. `cwd` or nothing. | No new surface. The trust boundary is exactly where the spec put it. | The panel is unreachable for every real upstream until somebody hand-edits a config. |
 | **B** | An explicit optional `packageRoot` member per server, honoured only when declared. | Reachability without inference: the root is still declared rather than guessed, and the owner opts in per server. | A new config member in both implementations, its own parity vectors, and a second path that must be refused the same way `cwd` is (escape, absolute, unreadable). |
 | **C** | Derive from `args[0]`'s dirname when it names an existing file. | Costs the user nothing. | Wrong for both real shapes: a flag for `npx`, the build directory for `node dist/index.js`. Would need a climb to the nearest `package.json`, which is a packaging convention by another name. |
-| **D** | Resolve an `npx`/global package specifier to its installed location. | Would cover the eleven `npx` upstreams. | Reads a package manager's cache layout, which is neither observed nor stable, and installs nothing — so it answers for whatever version happens to be cached. |
+| **D** | Resolve an `npx`/global package specifier to its installed location. | Would cover the **six** `npx` upstreams — 6 of 21. | Reads a package manager's cache layout, which is neither observed nor stable, and installs nothing — so it answers for whatever version happens to be cached. |
 
 **Recommendation: B.** It is the only option that makes the route reachable without the router
 inferring anything: the root stays a thing a human declared, which is the property §1 was protecting,
@@ -49,6 +49,25 @@ if the panel is meant for packages the router installed itself, in which case th
 to have the installer record the root it installed to — that is a fifth option and a bigger item.
 
 C and D are recommended against on the evidence above rather than on taste.
+
+## A corrected number, and which way it cuts
+
+This brief first said D would cover *"the eleven `npx` upstreams"*. Re-derived from the live
+`~/.claude/mcp-router/servers.json` on 2026-08-27, the count is **six**. The whole of D's appeal is
+that number, and it was wrong in the sentence the brief rests its authority on — so it is corrected
+here rather than left as an editorial detail.
+
+Every other figure in the brief was re-derived the same way rather than assumed sound, and each
+holds: 21 upstreams; 14 stdio, all declaring no `cwd`; 7 http. The 14 stdio break down as **6
+`npx`**, **4 `node /…/dist/index.js`**, **4 native binaries**. `scripts/acceptance/m30-reach.mjs`
+re-run against that config on 2026-08-27 reproduces `SERVED 0 of 21` and
+`{"404 noPackageDirectory":21}` unchanged from `planning/evidence/M30-reach.txt`.
+
+The correction **strengthens** the recommendation rather than weakening it. At six, D covers 6 of
+21 and leaves 15 upstreams unserved — the 4 `node dist` paths, the 4 native binaries and the 7 http
+upstreams — where the inflated figure made D look like coverage of half the machine. The
+out-of-family review (grok-4.6 at xhigh, answering on subject) judged **B** sound, found nothing
+outside A–D that beats it, and read the error as weakening D's case only. B still stands.
 
 ## What triage needs to settle
 

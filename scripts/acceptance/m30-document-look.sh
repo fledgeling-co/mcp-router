@@ -177,17 +177,41 @@ PYEOF
 #
 # One launch, one pass. `.prohibited`, no window ordered in, the picture taken off the view's own
 # backing store.
-run_measure() {
-  local server="$1" name="$2"
+# **A present binary built without MEASURE is a blocked run, not a red one.** The check at the top
+# of this file catches a *missing* `MeasureDump`; this is the same condition one step further in.
+# Any plain `swift build` against this worktree — `make build`, `make test`, an editor's build on
+# save — overwrites `app/.build/debug/MeasureDump` with a non-MEASURE binary: executable, correct,
+# and unable to measure anything. (`app/.build` is per-worktree rather than shared: the MeasureDump
+# under `.worktrees/M30` and the one under `.worktrees/M32` were measured on 2026-08-27 as separate
+# inodes, so the cause is a build in THIS worktree rather than a neighbouring one.) It says so
+# itself and exits **3**,
+# and folding that into `fail` would report the product broken when only the instrument could not
+# run. Observed on 2026-08-27: this harness exited 1 with "the harness could not render the served
+# document" over a MeasureDump that was reporting 3/inconclusive exactly as designed.
+#
+# So exit 3 from the harness becomes exit 2 here — blocked, with the build to run — and every other
+# non-zero stays a failure.
+render() {
+  local server="$1" name="$2" what="$3" status=0
   MCP_ROUTER_HOME="$HOME_DIR" "$MEASURE_BIN" \
     --surface readme --state ideal --appearance dark \
     --width 900 --height 700 --settle 2.0 \
     --document-from "http://127.0.0.1:$PORT" --document-server "$server" \
-    --png "$OUT/$name.png" --out "$OUT/$name.dump.json"
+    --png "$OUT/$name.png" --out "$OUT/$name.dump.json" || status=$?
+  case $status in
+    0) return 0 ;;
+    3) blocked "the measurement harness at $MEASURE_BIN exited 3 (inconclusive): it is present but was
+              built without MEASURE, so the in-view harness is not compiled in and it measured
+              nothing. Any plain \"swift build\" in this worktree (make build, make test) leaves it
+              in this state. Rebuild it with:
+                  (cd \"$ROOT/app\" && MCP_ROUTER_MEASURE=1 swift build --product MeasureDump)
+              then run this again. Nothing about $what has been measured either way." ;;
+    *) fail "the harness could not render $what (MeasureDump exited $status)" ;;
+  esac
 }
 
-run_measure m30-look   readme.served  || fail "the harness could not render the served document"
-run_measure m30-no-cwd readme.refused || fail "the harness could not render the refusal"
+render m30-look   readme.served  "the served document"
+render m30-no-cwd readme.refused "the refusal"
 
 # ---------------------------------------------------------------- what landed on the screen
 python3 - "$OUT/readme.served.dump.json" "$OUT/readme.refused.dump.json" <<'PYEOF' || exit 1

@@ -3136,3 +3136,39 @@ effects.
 
 The general rule, cheap and worth applying before anything is wired into a gate: **run it under
 `/bin/bash` and `/usr/bin/python3` explicitly, not under the shell you are typing into.**
+
+### The goal harness disarmed as `stuck`, and the diagnosis is a clock mismatch
+
+`ship-remaining-work` ended at iteration 25 with `end_reason: stuck`, on
+`[branches, worklist]` failing identically four times after the escalation. That is the mechanism
+working exactly as designed, and the work it was gating **was not stuck** — three fresh-context
+verifiers were running at the moment it disarmed, and had been writing continuously.
+
+**The cause is that those two gates move on a different clock from the loop that reads them.**
+`branches` is *no unmerged `ai/*` branch*, and `worklist` is *every item terminal*. Both can only
+change at the instant a branch merges. A merge requires a fresh-context verdict; a verdict takes a
+verifier roughly forty minutes. The Stop hook evaluates every turn, which here was every four to
+six minutes. So between two merges there are eight or ten turns during which the correct output of
+both gates is byte-identical — not because nothing is happening, but because the thing that would
+change them happens on an hourly cadence while they are sampled on a five-minute one.
+
+The `stuck` detector fingerprints the failing set and its output. Against a slow-clock gate that
+fingerprint is *supposed* to repeat, so the detector fires on healthy progress. Every intervening
+turn in this run did real work — six gate defects found and fixed, four of them fail-open — and
+none of it could move either gate, because neither gate is a function of anything a turn does
+except a merge.
+
+**What would have made this honest without weakening the stop.** The signal the loop needed was
+never `branches`, it was *are the verdicts arriving*. A gate reading the delivery record
+(`planning/goals/delivered.tsv`, added this session for the liveness gate) would have changed on
+the turn each runner returned, and a `verdicts` gate counting graded items would change on each
+verdict — both on the loop's own clock, both still red until the work is genuinely done. The
+lesson generalises past this repo: **a gate whose subject changes on an hourly cadence cannot be
+the thing a five-minute loop is judged against**, and pairing it with a faster gate measuring the
+same progress is the fix rather than raising `stuck_after`, which only delays the same wrong stop.
+
+Recorded rather than worked around: the harness is not re-armed here. Re-arming an identical goal
+would trip the same detector on the same schedule, and re-arming with `stuck_after` raised would
+suppress a detector that is correct in every case it was built for. The run continues in-session —
+three verifiers are out over all seven branches, and merging is serialized behind their verdicts
+exactly as before.

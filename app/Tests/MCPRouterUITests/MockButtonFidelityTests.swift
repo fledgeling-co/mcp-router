@@ -73,14 +73,98 @@
             #expect(sites.count(where: \.beginsBtnPrimary) == 29, "class attributes beginning `btn primary`")
         }
 
-        /// The conclusion the count exists to support, asserted at the **widest** reading, so it
-        /// cannot be satisfied by a normaliser that happens to exclude a disabled one.
-        @Test("the design of record properly dims disabled primary buttons (M31)")
-        func theMockCannotSettleTheDisabledPrimary() throws {
+        /// The body of a CSS rule, by a selector the rule's list contains. Returns `nil` rather
+        /// than the empty string when no rule matches, so a missing rule and an empty one are
+        /// distinguishable.
+        static func ruleBody(containingSelector needle: String, in css: String) -> String? {
+            for block in css.split(separator: "}") {
+                guard let brace = block.firstIndex(of: "{") else { continue }
+                let selectors = String(block[block.startIndex ..< brace])
+                guard selectors.split(separator: ",").contains(where: {
+                    $0.trimmingCharacters(in: .whitespacesAndNewlines) == needle
+                }) else { continue }
+                return String(block[block.index(after: brace)...])
+            }
+            return nil
+        }
+
+        /// The property names a rule body declares.
+        static func properties(of body: String) -> Set<String> {
+            Set(body.split(separator: ";").compactMap { declaration in
+                guard let colon = declaration.firstIndex(of: ":") else { return nil }
+                let name = declaration[declaration.startIndex ..< colon]
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                return name.isEmpty ? nil : name
+            })
+        }
+
+        /// **The cascade, not the selector.** The first version of this test asserted only that the
+        /// source contained the string `.btn.primary:disabled`, which is satisfied by a rule that
+        /// exists and loses — the exact defect M31 was filed for, since `.btn:disabled` also existed
+        /// and lost to `.btn.primary` on declaration order. So this reads the rule's body and holds
+        /// it to the triple `DESIGN.md` §3 now states, in both spellings a mock can say "off" in.
+        @Test("the design of record dims a disabled primary in every slot the accent rule fills")
+        func theMockDimsTheDisabledPrimary() throws {
             let source = try Self.mock()
+            for selector in [".btn.primary:disabled", ".btn.primary.disabled"] {
+                guard let body = Self.ruleBody(containingSelector: selector, in: source) else {
+                    Issue.record("no rule in the design of record carries the selector \(selector)")
+                    continue
+                }
+                #expect(body.contains("color:var(--t4)"), "\(selector) labels with --t4")
+                #expect(body.contains("background:var(--f3)"), "\(selector) fills with --f3")
+                #expect(body.contains("border-color:var(--line)"), "\(selector) bezels with --line")
+            }
+
+            // The cascade guard proper: every property the accent rule sets must also be set by the
+            // disabled rule, or that slot survives into the disabled state. This is what catches a
+            // *new* declaration added to `.btn.primary` later — the way the original defect arrived.
+            guard let live = Self.ruleBody(containingSelector: ".btn.primary", in: source),
+                  let off = Self.ruleBody(containingSelector: ".btn.primary:disabled", in: source)
+            else {
+                Issue.record("the design of record is missing .btn.primary or its disabled rule")
+                return
+            }
+            let unclaimed = Self.properties(of: live).subtracting(Self.properties(of: off))
             #expect(
-                source.contains(".btn.primary:disabled"),
-                "the mock has a rule that dims a primary button when disabled (M31)"
+                unclaimed.isEmpty,
+                "a disabled primary keeps its live \(unclaimed.sorted().joined(separator: ", "))"
+            )
+        }
+
+        /// The `cursor:not-allowed` decision, recorded as a test because it was landed unratified
+        /// and then removed.
+        ///
+        /// `DESIGN.md` §3 rule 8 — *"Arrow cursor everywhere in app chrome"* — and macOS paints no
+        /// `not-allowed` cursor over an unavailable control, so there is nothing for one to map to
+        /// on the Swift side. It was also the only `cursor` declaration in the whole design of
+        /// record, so the file is held at zero rather than at "not that one".
+        @Test("the design of record declares no cursor at all (§3 rule 8)")
+        func theMockDeclaresNoCursor() throws {
+            let source = try Self.mock()
+            let declarations = source.components(separatedBy: "cursor:").count - 1
+            #expect(declarations == 0, "the design of record declares \(declarations) cursor(s)")
+        }
+
+        /// **The deliverable M31 exists for**: the semantics live in the design authority, not only
+        /// in a stylesheet and a doc comment. A stylesheet can be edited into agreement with a
+        /// build; `DESIGN.md` is what the build is measured against.
+        @Test("DESIGN.md states the disabled-primary treatment, its ratio and its exemption")
+        func theDesignAuthorityStatesTheSemantics() throws {
+            let url = try SheetShortcutScan.repoRoot().appendingPathComponent("DESIGN.md")
+            let design = try String(contentsOf: url, encoding: .utf8)
+
+            #expect(design.contains("| Label | `--on-accent` | `--t4` |"), "the label row")
+            #expect(design.contains("| Fill | `--accent-ink` | `--f3` |"), "the fill row")
+            #expect(design.contains("| `--line` |"), "the bezel row names --line")
+
+            // The measured pairing, which is deliberately not §2's --t4-over-ground column.
+            #expect(design.contains("2.94:1"), "--t4 on --f3 in dark")
+            #expect(design.contains("2.62:1"), "--t4 on --f3 in light")
+            #expect(design.contains("WCAG 1.4.3"), "the exemption is claimed by name")
+            #expect(
+                design.contains("inactive user interface component"),
+                "the clause is quoted rather than only cited by number"
             )
         }
 

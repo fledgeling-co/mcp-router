@@ -164,7 +164,10 @@ struct ManifestBookkeepingParityTests {
         let recorded = try #require(ManifestVectors.text(failure.member("manifest")))
         #expect(recorded.contains("\"tools\":[]"), "the reference itself empties them")
         #expect(recorded.contains("\"error\":\"spawn failed\""))
-        #expect(!recorded.contains("\"digest\""), "the digest goes with them, so the entry is stale again")
+        #expect(
+            recorded.contains("\"digest\":\"dd\""),
+            "R18 preserves digest across index failure so modified surfaces stay held"
+        )
     }
 
     /// A26's spread branch: a member the reference does not model survives a held-for-approval

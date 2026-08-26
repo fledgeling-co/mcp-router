@@ -192,6 +192,22 @@ build-ios: generate
 ## enumerate thirty tests and run none of them, whether disabled or skipped. The gating number is
 ## therefore read from the xUnit report — an artifact of what actually ran — with skipped
 ## subtracted, rather than inferred from human-readable output whose format is free to change.
+##
+## And execution is not coverage, which is the gap the third block closes (M33). `app/` carries TWO
+## build descriptions of the same tree — `Package.swift` for this lane and `project.yml` for
+## `xcodebuild` — and they disagreed about `MCPRouter/`: SwiftPM declared no target there, so this
+## target compiled nothing under the directory the Mac app's assembly lives in and still exited 0,
+## while `xcodebuild` called a planted fault in that same directory fatal. Adding the target closed
+## the hole. It did not close the item, because the defect was never that a lane was missing — it
+## was that the missing lane REPORTED SUCCESS, and a reader of a green here still could not tell
+## which of the two descriptions had run.
+##
+## So this target now says what it compiled, and the saying is a gate rather than an `echo`: an
+## `echo` asserting "SwiftPM compiled the app" while nothing checks whether it did is the same
+## unfalsifiable green one level up. `build-description-report.py` stands its claims on object
+## files, runs its own poison arms first so a green here has just watched the report go red on
+## demand, and the `grep` afterwards means an absent report line fails this target instead of
+## passing quietly — which is the property the whole item is about.
 enum-layout-stamp:
 	@python3 $(APP_DIR)/Scripts/enum-layout-stamp.py $(APP_DIR)
 
@@ -231,6 +247,16 @@ test: enum-layout-stamp
 	  echo "executed $$ran tests"; \
 	  if [ "$$ran" -eq 0 ]; then \
 	    echo "error: zero tests executed — a suite can discover tests, skip every one, and still exit 0"; \
+	    exit 1; \
+	  fi
+	@set -eu -o pipefail; \
+	  python3 scripts/build-description-report.py --selftest; \
+	  out="$$(mktemp -t mcprouter-builddesc)"; \
+	  trap 'rm -f "$$out"' EXIT; \
+	  python3 scripts/build-description-report.py | tee "$$out"; \
+	  if ! grep -q '^build-description: ' "$$out"; then \
+	    echo "error: this target compiled a tree and did not say which description it compiled."; \
+	    echo "error: that is M33 exactly — the green would be silent about a directory rather than clean over it."; \
 	    exit 1; \
 	  fi
 

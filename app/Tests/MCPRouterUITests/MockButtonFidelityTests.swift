@@ -132,6 +132,117 @@
             )
         }
 
+        /// **The other four accent-filled controls.** M31 was filed against `.btn.primary`, but the
+        /// cascade accident belongs to the fill: any rule painting `var(--accent-ink)` that is
+        /// declared after, or at higher specificity than, the rule meant to dim it produces the same
+        /// defect. Four more controls in the design of record did, and each failed differently —
+        /// which is why each is asserted rather than covered by one loop over a token list.
+        @Test("the design of record dims every control that resolves an accent fill")
+        func theMockDimsEveryAccentFilledControl() throws {
+            let source = try Self.mock()
+
+            // `.tb-btn.on` (0-2-0) was declared after `.tb-btn.disabled` (0-2-0) and won the whole
+            // cascade, so a disabled toolbar button was byte-identical to a live one. Enumerating
+            // the accent-carrying combinations puts the disabled rule at 0-3-0.
+            for selector in [".tb-btn.on.disabled", ".tb-btn.on:disabled"] {
+                guard let body = Self.ruleBody(containingSelector: selector, in: source) else {
+                    Issue.record("no rule in the design of record carries the selector \(selector)")
+                    continue
+                }
+                #expect(body.contains("background:var(--f3)"), "\(selector) fills with --f3")
+                #expect(body.contains("color:var(--t4)"), "\(selector) labels with --t4")
+                #expect(body.contains("border-color:var(--line)"), "\(selector) bezels with --line")
+            }
+
+            // `.trow.disabled` won `color` on declaration order but never the fill, so a disabled
+            // selected row drew --t4 on --accent-ink: 1.68:1 light, 1.02:1 dark. The fill has to
+            // come off with the label, and the selected-row descendants have to come with it.
+            guard let row = Self.ruleBody(containingSelector: ".trow.disabled", in: source) else {
+                Issue.record("the design of record has no .trow.disabled rule")
+                return
+            }
+            #expect(row.contains("background:var(--f3)"), ".trow.disabled takes the fill off the accent")
+            #expect(row.contains("color:var(--t4)"), ".trow.disabled labels with --t4")
+            #expect(
+                Self.ruleBody(containingSelector: ".trow.disabled .c-sub", in: source) != nil,
+                "the selected-row descendants are brought off --on-accent too"
+            )
+
+            // `.switch` carried a correct rule spelled for a marker the markup does not use: the
+            // sheet said `:disabled`, the one disabled switch in the page says `class="switch
+            // disabled"`, and the rule therefore never applied to it. Both spellings now.
+            guard let track = Self.ruleBody(containingSelector: ".switch.disabled", in: source) else {
+                Issue.record("the design of record dims no .switch.disabled — the class spelling the markup uses")
+                return
+            }
+            #expect(track.contains("background:var(--f3)"), ".switch.disabled drops the accent track")
+            #expect(
+                Self.ruleBody(containingSelector: ".switch.disabled .knob", in: source) != nil,
+                "the knob is dimmed too, so the control has a foreground as well as a fill"
+            )
+
+            // `.segmented .seg[aria-pressed="true"]` had no disabled rule at all (DESIGN.md rule 4).
+            #expect(
+                Self.ruleBody(containingSelector: ".segmented .seg.disabled", in: source) != nil,
+                "the segmented control carries a disabled state at all"
+            )
+        }
+
+        /// The store page reproduced M31 on a shipped surface: its bare `.btn` **is** the
+        /// accent-filled control, and `.btn[disabled]` dimmed it with `opacity:.45`, which keeps the
+        /// accent under a tint — the treatment §3 refuses — and carried the `cursor:not-allowed`
+        /// that §3 rule 8 does not license either.
+        @Test("the store page dims its disabled primary to the ratified triple, and sets no cursor")
+        func theStorePageDimsItsDisabledPrimary() throws {
+            let url = try SheetShortcutScan.repoRoot()
+                .appendingPathComponent("docs/mcp-router-store.html")
+            let source = try String(contentsOf: url, encoding: .utf8)
+
+            guard let body = Self.ruleBody(containingSelector: ".btn[disabled]", in: source) else {
+                Issue.record("the store page has no .btn[disabled] rule")
+                return
+            }
+            #expect(body.contains("background:var(--f3)"), "the store page's disabled .btn drops the accent")
+            #expect(body.contains("color:var(--t4)"), "the store page's disabled .btn labels with --t4")
+            #expect(!body.contains("opacity"), "a tinted accent is not the ratified treatment")
+            #expect(!body.contains("cursor"), "§3 rule 8: a disabled control changes no cursor")
+        }
+
+        /// The sweep, run rather than described.
+        ///
+        /// The Swift assertions above name four controls each. This one has no list: it resolves
+        /// every rule in both HTML surfaces that paints `var(--accent-ink)` and fails on any whose
+        /// disabled state does not dim, so a *new* accent-filled control added later is covered
+        /// without anybody remembering to add a case here.
+        ///
+        /// `planning/evidence/M31/arm-sweep.sh` is its presence control: six planted defects, one
+        /// per failure verdict, each restored byte-identically by sha256.
+        @Test("no surface in the repository draws a disabled control as though it were enabled")
+        func theSweepFindsNoSurfaceDrawingADisabledAccentFill() throws {
+            let root = try SheetShortcutScan.repoRoot()
+            let sweep = root.appendingPathComponent("planning/evidence/M31/sweep-prominent-disabled.py")
+            guard FileManager.default.fileExists(atPath: sweep.path) else {
+                Issue.record("the M31 sweep is missing at \(sweep.path)")
+                return
+            }
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+            process.arguments = ["python3", sweep.path]
+            process.currentDirectoryURL = root
+            let pipe = Pipe()
+            process.standardOutput = pipe
+            process.standardError = pipe
+            try process.run()
+            let output = String(
+                data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8
+            ) ?? ""
+            process.waitUntilExit()
+            #expect(
+                process.terminationStatus == 0,
+                "sweep-prominent-disabled.py exited \(process.terminationStatus):\n\(output)"
+            )
+        }
+
         /// The `cursor:not-allowed` decision, recorded as a test because it was landed unratified
         /// and then removed.
         ///
@@ -165,6 +276,18 @@
             #expect(
                 design.contains("inactive user interface component"),
                 "the clause is quoted rather than only cited by number"
+            )
+
+            // §3 refuses to tint the accent. A refusal with no number behind it is a position, so
+            // the measured cost of the alternative is stated: --t4 on --accent-ink, both themes.
+            #expect(design.contains("1.68:1 in light"), "--t4 on --accent-ink in light")
+            #expect(design.contains("1.02:1 in dark"), "--t4 on --accent-ink in dark")
+
+            // The rule binds the fill rather than the button, which is what makes the other four
+            // accent-filled controls conformance failures rather than separate items.
+            #expect(
+                design.contains("Every control that resolves an accent fill"),
+                "§3 generalises the treatment past the prominent button"
             )
         }
 

@@ -229,30 +229,40 @@ done
 sleep 1  # settle: let SwiftUI finish its first paint before sampling
 pass "window appeared (AXStandardWindow)"
 
-# Walk the tree. `entire contents` is bound to a variable first: iterating it inline yields zero
-# elements where the bound form yields the full set, and both spellings look correct.
-AX_TEXT="$(osascript <<'APPLESCRIPT' 2>/dev/null || true
-tell application "System Events" to tell process "MCPRouter"
-    set out to ""
-    set c to entire contents of window 1
-    repeat with e in c
-        try
-            set v to value of e as text
-            if v is not "" and v is not "missing value" then set out to out & v & linefeed
-        end try
-        try
-            set d to description of e as text
-            if d is not "" and d is not "missing value" then set out to out & d & linefeed
-        end try
-        try
-            set t to title of e as text
-            if t is not "" and t is not "missing value" then set out to out & t & linefeed
-        end try
-    end repeat
-    return out
-end tell
-APPLESCRIPT
-)"
+# Walk the tree with `axkit`, not with System Events.
+#
+# G10, second defect. The first repair here added `description` and `title` alongside `value`,
+# because the shell puts its labels in the accessibility description — and that was necessary and
+# not sufficient. Run against the app afterwards, this lane was still red at
+# "the macOS window's accessibility tree does not carry 'Activity'" while `mac-shell.sh` asserted
+# the same seven destination labels and passed. So the attribute was never the whole story: the
+# **walk** was wrong too, and fixing only the attribute left a lane that still could not see the
+# sidebar.
+#
+# `mac-shell.sh:66` had already written down why, for its own first version, which failed the same
+# way against a perfectly good window: `entire contents` binds a SNAPSHOT of a tree this app mutates
+# every two seconds as it polls, and reading a property off an element that has since been rebuilt
+# raises -1728. Every read above sat inside a `try`, so each -1728 was swallowed and the element
+# simply vanished from the output — indistinguishable from an element that was never there. Measured
+# here on 2026-08-26 against the same running window: the System Events walk returned 61 lines and
+# neither `Activity` nor `Running`; `axkit dump` returned 104 rows carrying both.
+#
+# So this uses the toolkit the sibling lanes use. It reads through the raw AX API, re-resolving
+# children as it descends rather than iterating a bound snapshot, and it needs no activation —
+# which is also what keeps this walk inside UI_VERIFICATION rule 1.
+AXKIT="$WORK/axkit"
+swiftc -O -o "$AXKIT" "$ROOT/scripts/acceptance/axkit.swift" 2>"$WORK/axkit.log" \
+  || { cat "$WORK/axkit.log" >&2; blocked "could not build the accessibility toolkit"; }
+
+MAC_PID="$(pgrep -f 'MCPRouter.app/Contents/MacOS/MCPRouter' | head -1)"
+[ -n "$MAC_PID" ] || blocked "the launched app has no pid — nothing to walk"
+
+"$AXKIT" dump "$MAC_PID" window > "$WORK/window.tsv" 2>/dev/null \
+  || blocked "the window walk failed — harness or permission problem, not an assertion failure"
+
+# Columns 4, 5 and 6 are title, value and description. Same three attributes the AppleScript walk
+# was asking for; the difference is entirely in how the tree is reached.
+AX_TEXT="$(cut -f4,5,6 "$WORK/window.tsv" | tr '\t' '\n' | grep -v '^$' || true)"
 
 # Zero-count guard: fail ONCE as an unreadable tree rather than once per expected string. N false
 # failures read as a broken app; one reads as a broken harness, which is what it would be.
@@ -285,46 +295,94 @@ done
 # `-l <windowid>` captures the window's own backing store, so occlusion, focus and stacking stop
 # being inputs to a colour measurement. There is deliberately no region fallback: a fallback here
 # would restore exactly the failure mode above, and silently.
-window_id() {
+# G10, third defect. This used to ask for the window whose title is exactly "MCP Router", and there
+# has never been one: the console titles its window after the SELECTED DESTINATION, so the name
+# CGWindowList reports is "Activity", or "Cleanup", or whichever board the app restored into.
+# The lookup therefore returned nothing every time, and the call site reported that as
+# "Screen Recording permission, or the window is off-screen" — an environment answer for a harness
+# defect, which is the exact confusion the 1-vs-2 split exists to prevent. Measured here on
+# 2026-08-26: Screen Recording IS granted (34 of 35 on-screen windows report a name) and the app's
+# layer-0 window was named "Cleanup".
+#
+# Two changes. The owner is matched by PID rather than by display name, so a rename cannot silently
+# empty the result set. And the title argument is a PREFIX with an exclusion: the gallery announces
+# itself as "Design system – Colour" rather than "Design system", so an exact match would have
+# failed there next for the same reason; and the main window is asked for as "not the gallery"
+# rather than by a name it does not have.
+window_id() { # $1 = "" for the main window, or a title prefix
     cat > "$WORK/winid.swift" <<'SWIFT'
 import CoreGraphics
 import Foundation
+let wantPID = Int(CommandLine.arguments[1]) ?? -1
+let prefix = CommandLine.arguments.count > 2 ? CommandLine.arguments[2] : ""
 let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
-let windows = (info as? [[String: Any]]) ?? []
-for w in windows {
-    // The AX process is "MCPRouter"; CGWindowList reports the bundle's display name, "MCP Router".
-    // Accepting both is what keeps this from depending on which of the two names a future rename
-    // touches.
-    let owner = (w[kCGWindowOwnerName as String] as? String) ?? ""
-    guard owner == "MCP Router" || owner == "MCPRouter",
+for w in (info as? [[String: Any]]) ?? [] {
+    guard (w[kCGWindowOwnerPID as String] as? Int) == wantPID,
           (w[kCGWindowLayer as String] as? Int) == 0,
           let bounds = w[kCGWindowBounds as String] as? [String: Any],
           let height = bounds["Height"] as? Double, height > 100,
           let id = w[kCGWindowNumber as String] as? Int else { continue }
-    // Match the window by its title so the gallery and the main window stay distinguishable.
     let name = (w[kCGWindowName as String] as? String) ?? ""
-    if CommandLine.arguments.count > 1, !CommandLine.arguments[1].isEmpty {
-        guard name == CommandLine.arguments[1] else { continue }
+    if prefix.isEmpty {
+        // The main window: any board window, but never the gallery.
+        guard !name.hasPrefix("Design system") else { continue }
+    } else {
+        guard name.hasPrefix(prefix) else { continue }
     }
     print(id)
     exit(0)
 }
 exit(1)
 SWIFT
-    swift "$WORK/winid.swift" "${1:-}" 2>/dev/null
+    swift "$WORK/winid.swift" "$MAC_PID" "${1:-}" 2>/dev/null
 }
 
 BOUNDS="$(osascript -e 'tell application "System Events" to tell process "MCPRouter" to get {position, size} of window 1')"
+WW="$(echo "$BOUNDS" | cut -d, -f3 | tr -d ' ')"
 WH="$(echo "$BOUNDS" | cut -d, -f4 | tr -d ' ')"
 
-MAC_WIN_ID="$(window_id "MCP Router" || true)"
-[ -n "$MAC_WIN_ID" ] || blocked "could not resolve the main window's id — Screen Recording permission, or the window is off-screen"
+# The sidebar's width, read from the token rather than pinned here, because the sample point below
+# has to be clear of it and "clear of it" is a fact about `MetricToken.sidebar` rather than about
+# any number this file could hold.
+# Read the same way `mac-shell.sh:144` reads it — out of `leadingScalar`'s own switch, where the
+# numbers live. `MetricToken`'s cases carry display names ("Sidebar"), not values, so a reader
+# pointed at the case list finds no number at all.
+SIDEBAR_PT="$(sed -n '/var leadingScalar: Double/,/^    }/p' \
+  "$APP_DIR/Sources/MCPRouterKit/Design/MetricToken.swift" 2>/dev/null \
+  | grep -oE 'case \.sidebar: *[0-9.]+' | grep -oE '[0-9.]+$' || true)"
+
+MAC_WIN_ID="$(window_id "" || true)"
+[ -n "$MAC_WIN_ID" ] || blocked "could not resolve the main window's id — no layer-0 window over 100pt for pid $MAC_PID that is not the gallery. Screen Recording permission, or the window is off-screen."
 screencapture -o -x -l "$MAC_WIN_ID" "$WORK/mac.png"
 [ -s "$WORK/mac.png" ] || blocked "screencapture produced no image — grant Screen Recording to this terminal"
 
 # Sampled in image pixels; the capture is 2x on a Retina display, so this is the lower-middle of
 # the window either way — clear of the title and the copy.
-GOT="$(sample_pixel "$WORK/mac.png" 200 "$((WH * 3 / 2))")"
+# G10, fourth defect. This sampled x=200 IMAGE pixels, which on a 2x display is 100pt — and the
+# console's sidebar is `MetricToken.sidebar` = 264pt wide. So the point sat inside the sidebar's
+# translucent material for the whole life of the M1 shell, and the lane reported
+# "macOS background rendered #28282A, expected ColorToken.ground #1C1C1E" as a product defect.
+#
+# It is not one. Measured here on 2026-08-26 across one capture of the running window, 1960x1240:
+# (200,930) reads #28282A, and (600,930), (1200,930), (1600,930) and (1200,1150) all read #1C1C1E,
+# which is ColorToken.ground exactly. The app paints the ground correctly; the harness was pointed
+# at the wrong zone. x=200 was right when F1's scaffold view had no sidebar, and nothing moved it
+# when M1 put one there — the same class as the attribute and the walk above.
+#
+# Derived from the window rather than pinned, so it cannot drift out of the content zone again: 3/4
+# across and 3/4 down, in points, doubled for the 2x capture. The sidebar is 264 of 980 points, so
+# 3/4 across is clear of it by construction and the assertion below states that rather than
+# assuming it.
+SAMPLE_X=$(( WW * 3 / 2 ))
+SAMPLE_Y=$(( WH * 3 / 2 ))
+if [ -n "$SIDEBAR_PT" ]; then
+    [ "$SAMPLE_X" -gt "$(( ${SIDEBAR_PT%%.*} * 2 ))" ] \
+      || blocked "the sample point x=${SAMPLE_X}px sits inside the ${SIDEBAR_PT}pt sidebar — this would measure the sidebar's material, not ColorToken.ground"
+    echo "  sampling (${SAMPLE_X}, ${SAMPLE_Y}) image px — clear of the ${SIDEBAR_PT}pt sidebar"
+else
+    echo "  sampling (${SAMPLE_X}, ${SAMPLE_Y}) image px — MetricToken.sidebar unreadable, clearance unchecked"
+fi
+GOT="$(sample_pixel "$WORK/mac.png" "$SAMPLE_X" "$SAMPLE_Y")"
 [ "$GOT" = "$EXPECTED_HEX" ] \
   || fail "macOS background rendered $GOT, expected ColorToken.ground $EXPECTED_HEX"
 pass "rendered background = $GOT = ColorToken.ground"
@@ -358,6 +416,12 @@ echo "expecting light ColorToken.ground = $EXPECTED_LIGHT"
 # does not require it to be frontmost.
 open -g -n "$MAC_APP" --args --gallery-appearance light
 sleep 2
+
+# A NEW instance, so the pid the window lookup filters on has to be re-read. The first one was quit
+# a few lines above; keeping its pid here would have made `window_id` search an owner that no longer
+# exists and report it as a missing window.
+MAC_PID="$(pgrep -f 'MCPRouter.app/Contents/MacOS/MCPRouter' | head -1)"
+[ -n "$MAC_PID" ] || blocked "the gallery instance has no pid — nothing to walk"
 
 if ! osascript -e 'tell application "System Events" to tell process "MCPRouter" to click menu item "Design system" of menu "Window" of menu bar 1' >/dev/null 2>&1; then
     blocked "could not reach the Design system item in the Window menu"

@@ -46,6 +46,11 @@ ALLOWED_OPTIONAL = {"font-weight-face"}
 #      including surfaces that edited nothing in mock_fidelity.py.
 #   3. Establish the full set before answering about members of it.
 #
+# This comment is not the check. `planning/role-intersection-gate.py` is — `make role-intersection`
+# — and it derives the union across every active branch, walks every surface's ledger against it,
+# and prints what it could not read. These three lines record the rule; that script is what makes
+# it a call rather than a standard, which is the distinction G8 exists over.
+#
 # Which build (role, kind) may answer which mock affordance kind.
 #
 # `PRESENT` is earned by measuring, and the measurement behind "these two are the same control" is

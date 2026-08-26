@@ -704,6 +704,110 @@ mut(
 )
 
 
+# ---------------------------------------------------------------- M29 gap-fix: eight arms for the
+# eight assertions the verifier found had no oracle.
+#
+# DIS-1..7 above proved the *implementation* of the switch. These prove the assertions added after
+# the verdict, and the shape of each is taken from what the verdict actually measured: DIS-9, DIS-10,
+# DIS-11 and DIS-15 are the exact deletions that left all 1960 tests passing, so an arm that reports
+# SURVIVED here means the gap-fix restated a clause without giving it a witness.
+
+KIT_SHELL = APP / "Sources" / "MCPRouterKit" / "Shell"
+UI_BOARDS = APP / "Sources" / "MCPRouterUI" / "Boards"
+
+mut(
+    "DIS-8", "M29", "the band consults the switch, not only the three fields under it",
+    KIT_SHELL / "MenuBarPresentation.swift",
+    "            guard !server.disabled else { return [] }\n",
+    "",
+    # Three suites, because the defect was one term missing from one of two expressions that are
+    # supposed to be the same condition, and the call site maps the unfiltered list.
+    [
+        "a disabled server holding a change draws no band row and lights no dot",
+        "the band and the dot never disagree about one server, over the cross product",
+        "a disabled server holding a change contributes no band row to the popover",
+    ],
+)
+
+mut(
+    "DIS-9", "M29", "the in-flight mark is SET during a write, not merely absent after one",
+    UI_BOARDS / "ServersBoardWrites.swift",
+    "            writesInFlight.insert(name)\n"
+    "            rowErrors[name] = nil\n"
+    "            defer { writesInFlight.remove(name) }\n",
+    "            rowErrors[name] = nil\n",
+    # The verdict's own probe: this deletion removed the whole mechanism and left 1960 tests green.
+    "the in-flight mark is set while the write runs, and it dims the row's action",
+)
+
+mut(
+    "DIS-10", "M29", "the serving process's stale warning does not name a disabled server",
+    ROUTER_CORE / "Service" / "RouterService.swift",
+    "        let stale = upstreams.filter { $0.disabled != true && ToolUnion.isStale(manifest, $0) }",
+    "        let stale = upstreams.filter { ToolUnion.isStale(manifest, $0) }",
+    [
+        "the startup warning names a stale server and never a disabled one",
+        "a router whose only stale servers are disabled warns about nothing",
+    ],
+)
+
+mut(
+    "DIS-11", "M29", "the watcher's sweep spawns no child for a server that serves nobody",
+    ROUTER_CORE / "Watch" / "WatchRun.swift",
+    "            if candidate.upstream.disabled != true,\n"
+    "               ToolUnion.isStale(manifest, candidate.upstream)\n"
+    "            {\n"
+    "                toIndex.append(candidate.upstream)\n"
+    "            }\n",
+    "            if ToolUnion.isStale(manifest, candidate.upstream) {\n"
+    "                toIndex.append(candidate.upstream)\n"
+    "            }\n",
+    "a disabled staged entry is never spawned to be indexed",
+)
+
+mut(
+    "DIS-12", "M29", "reindex is the user asking, so the switch does not stop it",
+    ROUTER_CORE / "Control" / "ControlHandler.swift",
+    '        case ("/reindex", "POST"):\n'
+    "            let outcome = await deps.indexer.index(upstream)",
+    '        case ("/reindex", "POST"):\n'
+    "            if upstream.disabled == true { return .json(200, .object([])) }\n"
+    "            let outcome = await deps.indexer.index(upstream)",
+    # An ADDED guard rather than a removed one: this is the tidy-up the route is exposed to, and
+    # the half of oracle 5 that a sweep-only test would have let through.
+    "a disabled server can still be reindexed, by the user asking for it",
+)
+
+mut(
+    "DIS-13", "M29", "the withheld count reaches a screen reader as words",
+    UI_BOARDS / "ServersBoardRow.swift",
+    '            row.tools == nil ? "\\(subtitleText), tools withheld" : subtitleText',
+    "            subtitleText",
+    "a disabled row speaks 'disabled by you' and 'tools withheld'",
+)
+
+mut(
+    "DIS-14", "M29", "the sheet's destructive button is Disable, not the Remove it shipped as",
+    UI_BOARDS / "ServerSheets.swift",
+    '        static func disableLabel(_ serverName: String) -> String { "Disable \\(serverName)" }',
+    '        static func disableLabel(_ serverName: String) -> String { "Remove \\(serverName)" }',
+    "the sheet's destructive button names the action and the server",
+)
+
+mut(
+    "DIS-15", "M29", "a refused write reaches the row in the router's own words",
+    UI_BOARDS / "ServersBoardWrites.swift",
+    "            } catch {\n"
+    "                rowErrors[name] = error\n"
+    "            }\n",
+    "            } catch {\n"
+    '                rowErrors[name] = .malformedResponse(detail: "the write did not complete")\n'
+    "            }\n",
+    # The assertion this kills used to compare a payload-free case to itself and could not fail.
+    "a refused enable renders ControlAPIError's own wording, not a new sentence",
+)
+
+
 RESULTS = []
 
 

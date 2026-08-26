@@ -59,15 +59,25 @@ takes with `TREE_ONLY`.
 What this reading does buy: it reproduces M22's exposure exactly. `callout` on `unreadable-note`
 is a paired node, so it is in the ledger, and this gate reddens on it.
 
-## Exit codes, and why three
+## Exit codes, and why four
 
-They mirror `mock_fidelity.py` deliberately, and the third is the reason this is not a diff:
+They mirror `mock_fidelity.py` deliberately, and the last two are the reason this is not a diff:
 
     0   no surface's recorded measurement uses a role the union adds
     1   at least one does — a call to make, not yet a defect
     3   inconclusive — a branch's table or a surface's ledger could not be read, and the
         verdict depended on it
+    4   the control failed, so nothing this run printed is evidence of anything
     2   usage
+
+**3 and 4 were one code until 2026-08-26, and collapsing them lost the distinction that matters
+most.** A 3 says *the instrument works and the corpus has a hole in it* — today, `popover`, and the
+right response is to measure `popover`. A 4 says *the instrument is not known to work*, and the
+right response is to fix the gate before reading a single line of its output. Answering both with
+one number means a broken gate and a true inconclusive verdict are indistinguishable to anything
+downstream, which is this item's own subject wearing a different hat. `runnable-path-gate.py` on
+`ai/g9` separates them the same way; it uses 2 for the control, which is not available here because
+`argparse` already owns 2 and `make` collapses every failing recipe to 2 as well.
 
 Exit 1 is what makes this a call rather than a standard. A ten-line header comment recording this
 rule landed in `mock_fidelity.py` with nothing downstream depending on it, which reads as a standard
@@ -129,6 +139,7 @@ import re
 import shutil
 import subprocess
 import sys
+import traceback
 import tempfile
 
 FIDELITY_DIR = "planning/fidelity"
@@ -387,6 +398,10 @@ def read_surfaces(git: Git, refs: list[str]) -> tuple[list[SurfaceRead], list[st
 
 
 # ------------------------------------------------------------------------------ the verdict
+
+CONTROL_FAILED = 4
+INCONCLUSIVE_CODE = 3
+
 
 class Inconclusive(Exception):
     """A verdict could not be reached. Raised so it exits 3 rather than 1.
@@ -744,17 +759,41 @@ def hermetic_control() -> tuple[bool, list[str]]:
 
 # --------------------------------------------------------------------------------- the report
 
+def guarded(label: str, run) -> tuple[bool, list[str]]:
+    """Run a control, and turn anything it throws into a failed control rather than a traceback.
+
+    Measured 2026-08-26 with a `git` on PATH that exits 128 for every invocation: the ref walk
+    broke, `measure` raised `Inconclusive` from inside `hermetic_control`, nothing caught it, and
+    the process died with a traceback and Python's default exit **1** — which in this gate means
+    FINDINGS. That is precisely the confusion `Inconclusive`'s own docstring was written to prevent,
+    reintroduced one frame further out: the control path had no handler at all, so a gate that could
+    not test itself reported exposure it had never looked for.
+
+    An exception here is never a verdict about the corpus. It is the instrument failing, so it takes
+    the control code and prints the exception rather than swallowing it.
+    """
+    try:
+        return run()
+    except Exception as error:  # noqa: BLE001 — a control that throws is a control that failed
+        detail = traceback.format_exc().strip().splitlines()
+        return False, [f"  CONTROL FAILED  the {label} raised {type(error).__name__}: {error}",
+                       f"                  at {detail[-3].strip() if len(detail) >= 3 else '?'}",
+                       "                  Nothing below this line was tested, so nothing below it "
+                       "is evidence."]
+
+
 def report(verdict: Verdict, git: Git, base: str, run_live: bool) -> int:
     print("role-intersection gate — the union of every active branch's roles, per surface\n")
 
-    ok_hermetic, hermetic_lines = hermetic_control()
+    ok_hermetic, hermetic_lines = guarded("hermetic control", hermetic_control)
     print("Hermetic control (a throwaway repository, every answer planted and required exactly):")
     print("\n".join(hermetic_lines))
     print(f"  => {'the instrument answers all five planted cases' if ok_hermetic else 'CONTROL FAILED'}\n")
 
     ok_live = True
     if run_live:
-        ok_live, live_lines = live_control(git, base, verdict)
+        ok_live, live_lines = guarded("live control",
+                                      lambda: live_control(git, base, verdict))
         print("Live presence control (planted onto a real branch of a throwaway clone):")
         print("\n".join(live_lines))
         print(f"  => {'a zero below is measured' if ok_live else 'CONTROL FAILED — a zero below is unproved'}\n")
@@ -844,8 +883,10 @@ def report(verdict: Verdict, git: Git, base: str, run_live: bool) -> int:
 
     code = verdict.code()
     if not ok_hermetic or (run_live and not ok_live):
-        print("INCONCLUSIVE role-intersection: a control failed, so nothing below it is evidence.")
-        return 3
+        print(f"CONTROL-FAILED role-intersection: a control failed, so nothing below it is "
+              f"evidence. This is exit {CONTROL_FAILED} and not {INCONCLUSIVE_CODE}: the corpus "
+              f"was not measured badly, the instrument is not known to work.")
+        return CONTROL_FAILED
     verdicts = {CLEAR: "clean", EXPOSED: "exposed", INCONCLUSIVE: "inconclusive"}
     tally = collections.Counter(verdicts[s] for _, s in code_rows)
     summary = " · ".join(f"{v} {k}" for k, v in sorted(tally.items()))
@@ -876,11 +917,11 @@ def main() -> int:
     args = parser.parse_args()
 
     if args.control_only:
-        ok, lines = hermetic_control()
+        ok, lines = guarded("hermetic control", hermetic_control)
         print("Hermetic control:")
         print("\n".join(lines))
         print(f"  => {'ok' if ok else 'CONTROL FAILED'}")
-        return 0 if ok else 3
+        return 0 if ok else CONTROL_FAILED
 
     git = Git(os.path.abspath(args.repo))
     try:
@@ -888,7 +929,7 @@ def main() -> int:
     except Inconclusive as error:
         print(f"INCONCLUSIVE role-intersection: {error}")
         print("      The baseline could not be established, so nothing could be measured against it.")
-        return 3
+        return INCONCLUSIVE_CODE
     return report(verdict, git, args.base, run_live=not args.no_live_control)
 
 

@@ -81,7 +81,20 @@ never this corpus:
 That third one is the one that matters. A control-runner that cannot report a failing control is a
 decoration, and this gate's whole value over the written rule is that it executes.
 
-Exit `0` clean, `1` findings, `2` usage, `3` the control failed and nothing here is evidence.
+## Exit codes
+
+    0   every discovered sweep is disposed and every declared control passed
+    1   findings — a new undisposed sweep, a rotted control, a stale or mislabelled row
+    3   inconclusive — the registry is missing or unreadable, or `git ls-files` returned no
+        script at all, so the corpus this gate would answer about does not exist
+    4   the control failed, so nothing this run printed is evidence of anything
+    2   usage
+
+**3 and 4 were one code until 2026-08-26.** They answer opposite questions. A 3 means the
+instrument works and there is nothing to point it at; a 4 means the instrument is not known to work
+and its output should not be read. Collapsing them makes a broken gate and an empty corpus
+indistinguishable downstream, which is a gate that cannot report its own blindness — this file's
+subject, one layer up. `role-intersection-gate.py` splits them the same way and for the same reason.
 """
 
 from __future__ import annotations
@@ -95,6 +108,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import traceback
 
 REGISTRY = "planning/sweep-controls.json"
 CONTROL_TIMEOUT = 120
@@ -119,28 +133,102 @@ THRESHOLD = 2
 
 DISPOSITIONS = ("control", "grandfathered", "not-a-sweep", "waived")
 
+CONTROL_FAILED = 4
+INCONCLUSIVE_CODE = 3
 
-def tracked_scripts(root: str) -> list[str]:
+
+SHEBANG = re.compile(r"^#!.*\b(?:sh|bash|zsh|python3?|node|perl|ruby)\b")
+
+#: The two reasons a tracked path does not reach discovery, named so the count can be printed
+#: beside the corpus rather than described in prose next to it.
+DISCARDS = ("vendor/", "no .py or .sh extension")
+
+
+def is_shebang_script(root: str, relative: str) -> bool:
+    """Whether a path with no script extension is nonetheless a script, by its first line.
+
+    This is the half of the extension filter that is a real hole rather than a scope: a tracked
+    `planning/hooks/pre-commit` is a shell script that discovery never opens. Naming it costs one
+    `read(2)` per extensionless path and turns an unexamined set into a listed one.
+    """
+    if "." in os.path.basename(relative):
+        return False
+    try:
+        with open(os.path.join(root, relative), encoding="utf-8") as handle:
+            return bool(SHEBANG.match(handle.readline()))
+    except (OSError, UnicodeDecodeError):
+        return False
+
+
+def tracked_scripts(root: str) -> tuple[list[str], dict[str, list[str]], list[str]]:
+    """Every tracked `.py`/`.sh` outside `vendor/`, and everything this reader threw away to get it.
+
+    The filter here narrows 1662 tracked paths to 114, and a narrowing nobody counts is this item's
+    own subject one layer down. It used to be a comprehension, which `reader-accounting.py` classes
+    as silent by shape — a filtered item leaves no trace by construction — so the drop could only
+    ever be *declared* in `reader-accounting.tsv`. A declaration would have hidden a real hole:
+    two tracked shell scripts carry no `.sh` and were outside every figure this gate prints. So the
+    discards come back with the corpus and are printed with it, which is what the gate demands of
+    every other reader in the tree.
+    """
     out = subprocess.run(["git", "ls-files"], capture_output=True, text=True, cwd=root)
-    return [f for f in out.stdout.split("\n")
-            if f.endswith((".py", ".sh")) and not f.startswith("vendor/")]
+    kept: list[str] = []
+    discarded: dict[str, list[str]] = {reason: [] for reason in DISCARDS}
+    shebang: list[str] = []
+    # `splitlines` rather than `split("\n")` so the trailing empty field is never produced, and
+    # this loop has no drop site that is not a real path.
+    for path in out.stdout.splitlines():
+        if path.startswith("vendor/"):
+            discarded["vendor/"].append(path)
+            continue
+        if not path.endswith((".py", ".sh")):
+            discarded["no .py or .sh extension"].append(path)
+            if is_shebang_script(root, path):
+                shebang.append(path)
+            continue
+        kept.append(path)
+    return kept, discarded, shebang
 
 
 def markers_for(text: str) -> list[str]:
     return [name for name, pattern in MARKERS.items() if pattern.search(text)]
 
 
-def discover(root: str) -> tuple[dict[str, list[str]], dict[int, int], int, list[str]]:
+class Corpus:
+    """What discovery found, and everything it did not look at, carried together on purpose.
+
+    An earlier shape returned the four figures the report prints and left the filter's discards
+    unreturned, so `reader-accounting.py` classed `tracked_scripts` as a silent drop. Binding the
+    discards to the corpus is what makes them printable, and printing them is the difference
+    between a scope and a blind spot.
+    """
+
+    def __init__(self, hits, by_level, files, undecodable, discarded, shebang):
+        self.hits = hits
+        self.by_level = by_level
+        self.files = files
+        self.size = len(files)
+        self.undecodable = undecodable
+        self.discarded = discarded
+        self.shebang = shebang
+
+    @property
+    def considered(self) -> int:
+        return self.size + sum(len(v) for v in self.discarded.values())
+
+
+def discover(root: str) -> Corpus:
     """Every tracked script, with the markers that fired on it.
 
-    Returns the discovered set, the count at each threshold, the corpus size, and the files that
+    Returns the discovered set, the count at each threshold, the corpus size, the files that
     could not be decoded — reported rather than skipped in silence, because a file this reader
-    could not open is a file it has said nothing about.
+    could not open is a file it has said nothing about — and the tracked paths the extension
+    filter threw away before any of that.
     """
     hits: dict[str, list[str]] = {}
     by_level: dict[int, int] = {1: 0, 2: 0, 3: 0, 4: 0}
     undecodable: list[str] = []
-    files = tracked_scripts(root)
+    files, discarded, shebang = tracked_scripts(root)
     for relative in files:
         path = os.path.join(root, relative)
         try:
@@ -154,7 +242,7 @@ def discover(root: str) -> tuple[dict[str, list[str]], dict[int, int], int, list
             by_level[level] = by_level.get(level, 0) + 1
         if len(found) >= THRESHOLD:
             hits[relative] = found
-    return hits, by_level, len(files), undecodable
+    return Corpus(hits, by_level, files, undecodable, discarded, shebang)
 
 
 def load_registry(root: str) -> tuple[dict[str, dict], str | None]:
@@ -210,6 +298,28 @@ def add(a, b):
     return a + b
 """
 
+# A tracked script with no script extension. D0 does not reach it and the X block must say so; the
+# X block is an absence claim ("nothing else is being dropped") and gets a planted instance like
+# every other absence claim here.
+HOOK_FIXTURE = """#!/bin/sh
+echo hook
+"""
+
+
+def guarded(run) -> tuple[bool, list[str]]:
+    """Run the control, and turn anything it throws into a failed control rather than a traceback.
+
+    An uncaught exception exits **1**, which in this gate means FINDINGS — so a control that could
+    not run at all would have reported undisposed sweeps it never looked for. Measured on the sister
+    gate 2026-08-26 with a `git` that exits 128: traceback, exit 1, no verdict line.
+    """
+    try:
+        return run()
+    except Exception as error:  # noqa: BLE001 — a control that throws is a control that failed
+        detail = traceback.format_exc().strip().splitlines()
+        return False, [f"  CONTROL FAILED  the control raised {type(error).__name__}: {error}",
+                       f"                  at {detail[-3].strip() if len(detail) >= 3 else '?'}"]
+
 
 def self_control(root: str) -> tuple[bool, list[str]]:
     """Plant a sweep, a non-sweep, and a control that fails. Require all three answers.
@@ -224,13 +334,15 @@ def self_control(root: str) -> tuple[bool, list[str]]:
     try:
         git = ["git", "-c", "user.email=c@x", "-c", "user.name=c", "-c", "commit.gpgsign=false"]
         subprocess.run(["git", "init", "-q", "-b", "main", temp], capture_output=True)
-        for name, body in (("planted_sweep.py", SWEEP_FIXTURE), ("planted_quiet.py", QUIET_FIXTURE)):
+        for name, body in (("planted_sweep.py", SWEEP_FIXTURE), ("planted_quiet.py", QUIET_FIXTURE),
+                           ("planted_hook", HOOK_FIXTURE), ("planted_notes.md", "# not a script\n")):
             with open(os.path.join(temp, name), "w", encoding="utf-8") as handle:
                 handle.write(body)
         subprocess.run(["git", "add", "-A"], capture_output=True, cwd=temp)
         subprocess.run(git + ["commit", "-q", "-m", "fixture"], capture_output=True, cwd=temp)
 
-        found, _, _, _ = discover(temp)
+        corpus = discover(temp)
+        found = corpus.hits
         saw_sweep = "planted_sweep.py" in found
         saw_quiet = "planted_quiet.py" in found
         ok = ok and saw_sweep and not saw_quiet
@@ -238,6 +350,22 @@ def self_control(root: str) -> tuple[bool, list[str]]:
                      f"({'markers ' + ','.join(found.get('planted_sweep.py', [])) if saw_sweep else 'not found'})")
         lines.append(f"  {'quiet' if not saw_quiet else 'FALSE'} a planted non-sweep is not "
                      f"discovered, so discovery is not automatic")
+
+        # The discard census, armed both ways. `planted_hook` is a script D0 cannot see and the
+        # census must name it; `planted_notes.md` is a drop the census must NOT call a script, so a
+        # census that simply listed every extensionless-or-otherwise drop would fail here.
+        saw_hook = "planted_hook" in corpus.shebang
+        saw_notes = "planted_notes.md" in corpus.shebang
+        counted = corpus.considered == corpus.size + sum(len(v) for v in corpus.discarded.values())
+        ok = ok and saw_hook and not saw_notes and counted
+        lines.append(f"  {'sees ' if saw_hook else 'BLIND'} a tracked script with no script "
+                     f"extension is named by the discard census "
+                     f"({'planted_hook' if saw_hook else 'not named — D0 drops it in silence'})")
+        lines.append(f"  {'quiet' if not saw_notes else 'FALSE'} a planted non-script drop is not "
+                     f"called a script, so the census is a reading and not a list of everything")
+        lines.append(f"  {'ok   ' if counted else 'FAIL '} kept + discarded accounts for every path "
+                     f"`git ls-files` returned ({corpus.size} + "
+                     f"{sum(len(v) for v in corpus.discarded.values())} = {corpus.considered})")
 
         failing = {"path": "planted_sweep.py", "disposition": "control",
                    "control": ["python3", "-c", "import sys; sys.exit(1)"]}
@@ -262,15 +390,18 @@ def self_control(root: str) -> tuple[bool, list[str]]:
 def report(root: str) -> int:
     print("sweep-control gate — every absence sweep must carry a presence control\n")
 
-    ok, control_lines = self_control(root)
+    ok, control_lines = guarded(lambda: self_control(root))
     print("Control (planted in a temp directory, never in this corpus):")
     print("\n".join(control_lines))
     print(f"  => {'the instrument fires and can report a failure' if ok else 'CONTROL FAILED'}\n")
     if not ok:
-        print("INCONCLUSIVE sweep-control: the control failed, so nothing below it is evidence.")
-        return 3
+        print(f"CONTROL-FAILED sweep-control: the control failed, so nothing below it is evidence. "
+              f"This is exit {CONTROL_FAILED} and not {INCONCLUSIVE_CODE} — the corpus is fine and "
+              f"the instrument is not known to be.")
+        return CONTROL_FAILED
 
-    found, by_level, corpus, undecodable = discover(root)
+    census = discover(root)
+    found, by_level, corpus, undecodable = census.hits, census.by_level, census.size, census.undecodable
     print("Discovery — four readers, each named, over the whole tracked script corpus:")
     print(f"  D0  {corpus:4d}  tracked .py/.sh files, vendor/ excluded")
     for level in sorted(by_level):
@@ -285,14 +416,34 @@ def report(root: str) -> int:
               f"above: {undecodable}")
     print()
 
+    # The filter that produces D0 is itself a reader discarding raw input, and until 2026-08-26 it
+    # discarded silently — `reader-accounting.py` found it and exited 1 on this gate alone. The
+    # counts below are that reader reporting rather than being declared, and they are printed as
+    # their own figures rather than folded into D0.
+    print("What the D0 filter discarded, counted rather than described:")
+    print(f"  X0  {census.considered:4d}  paths returned by `git ls-files`, before any filter")
+    for reason in DISCARDS:
+        print(f"  X-  {len(census.discarded[reason]):4d}  dropped: {reason}")
+    print(f"  X+  {len(census.shebang):4d}  of those drops are scripts by shebang with no script "
+          f"extension —")
+    if census.shebang:
+        for path in census.shebang:
+            print(f"            {path}")
+        print("        outside D0 and therefore outside every figure above. Named here because a")
+        print("        script this gate never opens is a script it has said nothing about.")
+    else:
+        print("        none today, so the extension filter drops no script it can recognise.")
+    print()
+
     if corpus == 0:
         print("INCONCLUSIVE sweep-control: `git ls-files` returned no script at all. A clean")
         print("      verdict over an empty corpus is a pass because nothing was measured.")
-        return 3
+        return INCONCLUSIVE_CODE
 
     print("What discovery does NOT reach, printed rather than implied:")
     print("  * files that are not `.py` or `.sh` — an extensionless executable, `.zsh`, a node")
     print("    script. They are outside D0 entirely, so they are outside every figure above.")
+    print("    The X block above counts them, and names the ones that are scripts by shebang.")
     print("  * idiomatic absence checks these four readers do not spell: `if not results:`,")
     print("    `assert not errors`, a bare `if count == 0:` with no other marker. They fall below")
     print("    the threshold and are not discovered.")
@@ -306,7 +457,7 @@ def report(root: str) -> int:
         print(f"INCONCLUSIVE sweep-control: {registry_error}")
         print("      Without it, every discovered sweep is undisposed and the number below would")
         print("      be a property of the missing file rather than of the corpus.")
-        return 3
+        return INCONCLUSIVE_CODE
 
     findings: list[str] = []
 
@@ -317,6 +468,15 @@ def report(root: str) -> int:
     # gate refuses" was false for it (`gemini-3.7-flash-high`, 2026-08-26, File 2 finding d1).
     mislabelled = sorted(path for path, entry in entries.items()
                          if entry.get("disposition") not in DISPOSITIONS)
+    # A registered row whose file is still in the tree but which discovery no longer matches had no
+    # class at all: not `unregistered` (it is in the registry), not `stale` (the file exists), not
+    # `mislabelled` (its word is one of the four). It was counted in the grandfathered tally and
+    # nowhere else, so the backlog figure was one larger than the set discovery claims. That is a
+    # hole in the classifier rather than a defect in the corpus, so it is printed rather than
+    # failed: the two ways to close it — drop the row, or widen the readers — are both owner calls,
+    # and dropping a row to make an inventory agree inverts the check this gate is.
+    undiscovered = sorted(path for path in entries
+                          if path not in found and os.path.exists(os.path.join(root, path)))
     tally = {kind: 0 for kind in DISPOSITIONS}
     for path, entry in entries.items():
         if entry.get("disposition") in tally:
@@ -327,6 +487,18 @@ def report(root: str) -> int:
         print(f"  {tally[kind]:4d}  {kind}")
     print(f"  {len(unregistered):4d}  UNDISPOSED — discovered and absent from {REGISTRY}")
     print(f"  {len(mislabelled):4d}  MISLABELLED — an entry whose disposition is not one of the four")
+    print(f"  {len(undiscovered):4d}  UNDISCOVERED — registered, still in the tree, and no longer "
+          f"matched by the four readers")
+    for path in undiscovered:
+        now = markers_for(open(os.path.join(root, path), encoding="utf-8", errors="replace").read())
+        print(f"        {path} — disposition {entries[path].get('disposition')!r}, markers now "
+              f"{','.join(now) if now else '(none)'}, below the threshold of {THRESHOLD}")
+    if undiscovered:
+        print(f"        So {len(undiscovered)} of the {tally['grandfathered']} grandfathered rows "
+              f"names a file discovery does not claim.")
+        print(f"        The live grandfathered backlog is "
+              f"{tally['grandfathered'] - sum(1 for p in undiscovered if entries[p].get('disposition') == 'grandfathered')}"
+              f"; the registry figure above is the registry's, and they are not the same number.")
     print()
 
     print("Declared controls, run rather than believed:")
@@ -380,7 +552,7 @@ def report(root: str) -> int:
 
 def write_registry(root: str) -> int:
     """Seed the registry from a discovery run. Everything grandfathered; controls added by hand."""
-    found, _, _, _ = discover(root)
+    found = discover(root).hits
     entries = [{"path": path, "disposition": "grandfathered",
                 "markers": markers,
                 "reason": "predates this gate; carries no control this gate can run",
@@ -413,11 +585,11 @@ def main() -> int:
     root = os.path.abspath(args.repo)
 
     if args.control_only:
-        ok, lines = self_control(root)
+        ok, lines = guarded(lambda: self_control(root))
         print("Control:")
         print("\n".join(lines))
         print(f"  => {'ok' if ok else 'CONTROL FAILED'}")
-        return 0 if ok else 3
+        return 0 if ok else CONTROL_FAILED
     if args.write_registry:
         return write_registry(root)
     return report(root)

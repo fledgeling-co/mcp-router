@@ -71,7 +71,9 @@ SURFACE    ?= servers
 ## `planning/sweep-controls.json` — so a control rotted into a no-op reddens. What exists today is
 ## grandfathered by name and printed as a backlog with a number on it; the gate blocks on a NEW
 ## undisposed sweep. Eight seconds, hermetic, and its own control plants a control that exits 1 and
-## requires it to be reported failing.
+## requires it to be reported failing. Its codes are 0 clean · 1 findings · 3 inconclusive (no
+## registry, or an empty corpus) · 4 the control failed · 2 usage. `lint` treats every non-zero the
+## same, which is right for a lint step and is why the codes have to be readable on their own.
 ##
 ## `role-intersection-gate.py` (`G8`) is deliberately NOT in `lint` or in `all`, and the reason is
 ## its own subject. It exits **3** on this tree today: `planning/fidelity/popover.ledger.md` is an
@@ -80,7 +82,9 @@ SURFACE    ?= servers
 ## wiring a permanent 3 into `all` would mean softening it to 0 within a week. It joins `all` when
 ## `popover` produces a table. Run it before any merge that touches `VOUCHED_CONTROLS`, and read
 ## the exit as: 0 no surface uses a role the union adds, 1 one does and it is a call to make, 3 a
-## surface or a branch could not be read — which is not a clean surface.
+## surface or a branch could not be read — which is not a clean surface — and 4 a control failed,
+## so nothing it printed is evidence. 3 and 4 were one code until 2026-08-26; the standing verdict
+## on this tree is 3, and a 4 here means fix the gate before reading its table.
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
 ## `test-ios-glass` is in this list because `X2-ios-on-glass.md` said it would be: "The target
@@ -594,7 +598,7 @@ lint: tools
 ## table, so the zero it reports today is a measurement rather than a blind spot.
 role-intersection:
 	@python3 planning/role-intersection-gate.py; ec=$$?; \
-	echo "role-intersection: exit $$ec  (0 clean · 1 findings · 3 inconclusive · 2 usage)"; \
+	echo "role-intersection: exit $$ec  (0 clean · 1 findings · 3 inconclusive · 4 control failed · 2 usage)"; \
 	echo "  make collapses ANY failing recipe to its own exit 2, which collides with this"; \
 	echo "  gate's usage code. The line above is the verdict; make's status is not."; \
 	exit $$ec

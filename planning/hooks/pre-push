@@ -16,6 +16,11 @@ if [ "$MCPR_ORCHESTRATOR" = "1" ]; then
     exit 0
 fi
 
+# Unset for the same reason as pre-commit, where the argument is written out in full (G9): a hook
+# runs with these clear so nothing it invokes inherits a git dir into a directory it walks into.
+# This hook reads no git state today; the invariant is for whatever it is asked to check next.
+unset GIT_DIR GIT_WORK_TREE
+
 cat >&2 <<'EOF'
 
   push refused — this repo is mid-fleet and pushing is not yours to do.

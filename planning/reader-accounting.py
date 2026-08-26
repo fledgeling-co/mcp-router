@@ -43,6 +43,8 @@ reach is the defect wearing the fix's clothes:
 Exit 0 when every raw-input reader is accounted, declared or a recorded gap; 1 on a reader that
 drops silently and says nothing; 2 when the gate measured nothing, which is not a pass.
 """
+from __future__ import annotations  # `X | None` is evaluated at def time on 3.9; the gates run under /usr/bin/python3
+
 
 import ast
 import subprocess

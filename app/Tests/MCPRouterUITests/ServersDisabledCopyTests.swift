@@ -46,6 +46,46 @@
             )
         }
 
+        /// The binding, which the two tests above do not state on their own.
+        ///
+        /// A static that returns the right string proves nothing if `body` stopped calling it — the
+        /// button could carry its own literal and both assertions would still pass. There is no
+        /// accessor for a `Button`'s label on this host, so the binding is a fact about the source,
+        /// and it is read the way `SheetShortcutGuardTests` reads a keyboard shortcut for the same
+        /// reason. An out-of-family reviewer named this gap on the gap-fix diff.
+        @Test("the sheet's destructive button is drawn from those two functions, not a literal")
+        func theButtonIsWiredToThem() throws {
+            let scanned = try SheetShortcutScan.allSheetViews()
+            let sheet = try #require(
+                scanned.first { $0.name == "HeldChangeSheet" },
+                "HeldChangeSheet is no longer a scanned sheet view; this guard sees nothing"
+            )
+            let candidates = sheet.controls.filter(\.isDestructive)
+            let destructive = try #require(
+                candidates.first,
+                "the held-change sheet has no destructive control"
+            )
+            #expect(
+                destructive.declaration.contains("Self.disableLabel(serverName)"),
+                "the Disable button stopped reading its label from disableLabel"
+            )
+            #expect(
+                destructive.label.isEmpty,
+                "the Disable button carries a literal label, which is the drift this guards"
+            )
+            // The dimmed reason reaches all three carriers — the dim itself, the visible help tag
+            // and the spoken hint — from the one function, so none of them can word it separately.
+            for carrier in ["disabled(", "help(", "accessibilityHint("] {
+                #expect(
+                    destructive.modifiers.contains { modifier in
+                        modifier.contains(carrier)
+                            && modifier.contains("Self.disableReason(alreadyDisabled: isDisabled)")
+                    },
+                    "\(carrier) on the Disable button does not read disableReason"
+                )
+            }
+        }
+
         // MARK: - Oracle 18 · what the row says out loud
 
         @MainActor

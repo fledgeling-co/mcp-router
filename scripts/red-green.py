@@ -795,6 +795,17 @@ mut(
 )
 
 mut(
+    "DIS-16", "M29", "the Disable button reads its label from the function, not a second literal",
+    UI_BOARDS / "ServerSheets.swift",
+    "                Button(Self.disableLabel(serverName), role: .destructive) {",
+    '                Button("Disable \\(serverName)", role: .destructive) {',
+    # The mutant produces the SAME rendered label, so every assertion on the returned string stays
+    # green: this arm exists because an out-of-family reviewer pointed out that a static returning
+    # the right text says nothing if `body` stopped calling it.
+    "the sheet's destructive button is drawn from those two functions, not a literal",
+)
+
+mut(
     "DIS-15", "M29", "a refused write reaches the row in the router's own words",
     UI_BOARDS / "ServersBoardWrites.swift",
     "            } catch {\n"

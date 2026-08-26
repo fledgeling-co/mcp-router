@@ -143,9 +143,20 @@
             #expect(rendered.contains(message), "the board dropped the router's own sentence")
             #expect(rendered.contains(hint), "the board dropped the router's next step")
             #expect(rendered.contains("409"), "the board dropped the status the router refused with")
-            // And the row renders the same two strings the pane would, rather than a second
-            // wording composed for this surface.
-            #expect(rendered == "\(recorded.headline). \(recorded.advice)")
+
+            // And the **row** carries the same words, which is where a second wording would be
+            // composed if one were. `userFacingDescription` is literally `headline` and `advice`
+            // joined, so comparing the two is a value against itself; the row is a different
+            // object reading the stored error, and it is what a person sees.
+            let model = try ServerRowModel(
+                server: Self.server(disabled: true), idleMs: 300_000, pendingAuth: nil
+            )
+            let row = ServerRowView(
+                row: model, isSelected: false, isWriting: false, canWrite: true,
+                error: recorded, select: {}, act: { _ in }
+            )
+            #expect(row.accessibilityValueText == "\(recorded.headline), tools withheld")
+            #expect(row.accessibilityValueText.hasPrefix(recorded.headline))
 
             // The control: a *different* refusal renders different words, so the assertions above
             // measure the payload rather than a sentence that happens to contain them.

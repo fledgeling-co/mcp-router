@@ -214,7 +214,15 @@ tell application "System Events" to tell process "MCPRouter"
     repeat with e in c
         try
             set v to value of e as text
-            if v is not "" then set out to out & v & linefeed
+            if v is not "" and v is not "missing value" then set out to out & v & linefeed
+        end try
+        try
+            set d to description of e as text
+            if d is not "" and d is not "missing value" then set out to out & d & linefeed
+        end try
+        try
+            set t to title of e as text
+            if t is not "" and t is not "missing value" then set out to out & t & linefeed
         end try
     end repeat
     return out

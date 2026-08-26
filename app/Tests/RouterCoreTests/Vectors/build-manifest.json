@@ -141,7 +141,7 @@
         "error": "spawn failed"
       },
       "builtAtMs": 1755100000123,
-      "manifest": "{\"version\":1,\"servers\":{\"a\":{\"hash\":\"580d0f895bc321a8\",\"builtAt\":\"2025-08-13T15:46:40.123Z\",\"tools\":[],\"error\":\"spawn failed\"}}}",
+      "manifest": "{\"version\":1,\"servers\":{\"a\":{\"hash\":\"580d0f895bc321a8\",\"builtAt\":\"2025-08-13T15:46:40.123Z\",\"tools\":[],\"digest\":\"dd\",\"error\":\"spawn failed\"}}}",
       "built": [],
       "failed": [
         "a: spawn failed"

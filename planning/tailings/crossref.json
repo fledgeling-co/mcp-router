@@ -1,0 +1,426 @@
+{
+ "schema": 1,
+ "repo": "/Users/lukerhodes/Dev/mcp-router",
+ "window": {
+  "since": null,
+  "until": null,
+  "commits": 940
+ },
+ "uncommitted_paths": 48,
+ "findings": [
+  {
+   "probe": "R10",
+   "title": "app/Sources/MCPRouterKit/Discover/DiscoverCopyControls.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep DiscoverCopyControls \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Sources/MCPRouterKit/Discover/DiscoverCopyControls.swift",
+   "referenced_by": [
+    "planning/test-campaign/bin/arm-headless.py",
+    "planning/test-campaign/bin/arm-suites.py",
+    "planning/test-campaign/cases.json"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Sources/MCPRouterKit/Registry/RegistryPresentation+Notes.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep RegistryPresentation+Notes \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Sources/MCPRouterKit/Registry/RegistryPresentation+Notes.swift",
+   "referenced_by": [
+    "app/Tests/MCPRouterKitTests/RegistryCopyTests.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Sources/MCPRouterKit/Registry/RegistryPresentation+Row.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep RegistryPresentation+Row \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Sources/MCPRouterKit/Registry/RegistryPresentation+Row.swift",
+   "referenced_by": [
+    "app/Tests/MCPRouterKitTests/RegistryCopyTests.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Sources/MCPRouterUI/Boards/InboxBoardModel+Sheet.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep InboxBoardModel+Sheet \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Sources/MCPRouterUI/Boards/InboxBoardModel+Sheet.swift",
+   "referenced_by": [
+    "app/Tests/MCPRouterUITests/ShellTestSupportFileLists.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Sources/MCPRouterUI/Boards/ServerInspectorControls.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep ServerInspectorControls \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Sources/MCPRouterUI/Boards/ServerInspectorControls.swift",
+   "referenced_by": [
+    "app/Tests/MCPRouterUITests/ShellTestSupportFileLists.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Sources/MCPRouterUI/Boards/ServersBoardBanners.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep ServersBoardBanners \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Sources/MCPRouterUI/Boards/ServersBoardBanners.swift",
+   "referenced_by": [
+    "app/Tests/MCPRouterUITests/ShellTestSupportFileLists.swift",
+    "planning/specs/spec-M4.md"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Sources/MCPRouterUI/Phone/PairingSurfaces.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep PairingSurfaces \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Sources/MCPRouterUI/Phone/PairingSurfaces.swift",
+   "referenced_by": [
+    "app/Tests/MCPRouterUITests/PhoneIndicatorTests.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Sources/RouterCore/Control/ControlRegistry.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep ControlRegistry \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Sources/RouterCore/Control/ControlRegistry.swift",
+   "referenced_by": [
+    "planning/specs/spec-P3.md"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Sources/RouterCore/JSON/ECMAKeyOrder.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep ECMAKeyOrder \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Sources/RouterCore/JSON/ECMAKeyOrder.swift",
+   "referenced_by": [
+    "planning/specs/spec-M4.md"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Tests/MCPRouterKitTests/CheckFixtures.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep CheckFixtures \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Tests/MCPRouterKitTests/CheckFixtures.swift",
+   "referenced_by": [
+    "app/Tests/MCPRouterKitTests/CheckTests.swift",
+    "app/Tests/MCPRouterKitTests/CleanupPresentationTests.swift",
+    "app/Tests/MCPRouterKitTests/TriageCopyManifestTests.swift",
+    "app/Tests/MCPRouterKitTests/TriageSpecimens.swift",
+    "app/Tests/MCPRouterUITests/M7ExercisedRequestTests.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Tests/MCPRouterKitTests/DesignDocParser+Contrast.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep DesignDocParser+Contrast \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Tests/MCPRouterKitTests/DesignDocParser+Contrast.swift",
+   "referenced_by": [
+    "app/Tests/MCPRouterKitTests/DesignDocParser.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Tests/MCPRouterKitTests/DiscoverSpecimens.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep DiscoverSpecimens \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Tests/MCPRouterKitTests/DiscoverSpecimens.swift",
+   "referenced_by": [
+    "app/Tests/MCPRouterKitTests/DiscoverHonestyTests.swift",
+    "app/Tests/MCPRouterKitTests/DiscoverStateTests.swift",
+    "app/Tests/MCPRouterKitTests/TriageSpecimens.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Tests/MCPRouterKitTests/MockTokenCitations.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep MockTokenCitations \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Tests/MCPRouterKitTests/MockTokenCitations.swift",
+   "referenced_by": [
+    "app/Tests/MCPRouterKitTests/MockTokenParityTests.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Tests/MCPRouterKitTests/TriageSpecimens.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep TriageSpecimens \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Tests/MCPRouterKitTests/TriageSpecimens.swift",
+   "referenced_by": [
+    "app/Tests/MCPRouterKitTests/DismissalStoreTests.swift",
+    "app/Tests/MCPRouterKitTests/TriageBucketTests.swift",
+    "app/Tests/MCPRouterUITests/TriageFailureTests.swift",
+    "app/Tests/MCPRouterUITests/TriageModelTests.swift",
+    "app/Tests/MCPRouterUITests/TriageUISpecimens.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Tests/MCPRouterUITests/DiscoverRecordingClient.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep DiscoverRecordingClient \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Tests/MCPRouterUITests/DiscoverRecordingClient.swift",
+   "referenced_by": [
+    "app/Tests/MCPRouterUITests/DiscoverBoardTests.swift",
+    "app/Tests/MCPRouterUITests/PhoneDiscoverTests.swift",
+    "app/Tests/MCPRouterUITests/TriageModelTests.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Tests/MCPRouterUITests/ServersBoardRecordingClient.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep ServersBoardRecordingClient \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Tests/MCPRouterUITests/ServersBoardRecordingClient.swift",
+   "referenced_by": [
+    "app/Tests/MCPRouterUITests/M7ExercisedRequestTests.swift",
+    "app/Tests/MCPRouterUITests/ServersBoardOutcomeTests.swift",
+    "app/Tests/MCPRouterUITests/ServersBoardWriteTests.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Tests/RouterCoreTests/PoolAwaitBoundScan.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep PoolAwaitBoundScan \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Tests/RouterCoreTests/PoolAwaitBoundScan.swift",
+   "referenced_by": [
+    "app/Tests/RouterCoreTests/PoolAwaitBoundStatements.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Tests/RouterCoreTests/StubServer.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep StubServer \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Tests/RouterCoreTests/StubServer.swift",
+   "referenced_by": [
+    "app/Tests/RouterCoreTests/ChildPathSpawnTests.swift",
+    "app/Tests/RouterCoreTests/RealProcessTests.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "app/Tests/RouterCoreTests/VectorRegistryControlFiles.swift is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep VectorRegistryControlFiles \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "app/Tests/RouterCoreTests/VectorRegistryControlFiles.swift",
+   "referenced_by": [
+    "app/Tests/RouterCoreTests/VectorRegistryFiles.swift"
+   ]
+  },
+  {
+   "probe": "R10",
+   "title": "planning/test-campaign/bin/req017-honesty.py is referenced only by its own test \u2014 check for an existing module doing this",
+   "band": 2,
+   "confidence": "strong-inference",
+   "remedy": "git grep req017-honesty \u2014 if a routed equivalent exists, this is a duplicate",
+   "path": "planning/test-campaign/bin/req017-honesty.py",
+   "referenced_by": [
+    "planning/test-campaign/bin/record-glass-arms.py",
+    "planning/test-campaign/cases.json",
+    "planning/test-campaign/evidence.html"
+   ]
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/MCPRouterIOS/QRScannerView.swift:130",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/MCPRouterIOS/QRScannerView.swift",
+   "line": 130,
+   "quote": "func updateUIViewController(_: QRScannerController, context _: Context) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/ControlDiff/main.swift:188",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/ControlDiff/main.swift",
+   "line": 188,
+   "quote": "func warmUp() {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/ControlDiff/main.swift:189",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/ControlDiff/main.swift",
+   "line": 189,
+   "quote": "func clearPending(_: JSString) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/MCPRouterKit/Control/ControlTokenStore.swift:26",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/MCPRouterKit/Control/ControlTokenStore.swift",
+   "line": 26,
+   "quote": "func write(_: ControlLogLevel, _: String) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "SwiftUI button with an empty action: app/Sources/MCPRouterUI/Gallery/GallerySections.swift:151",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/MCPRouterUI/Gallery/GallerySections.swift",
+   "line": 151,
+   "quote": "Button(\"Start\") {}"
+  },
+  {
+   "probe": "R9",
+   "title": "SwiftUI button with an empty action: app/Sources/MCPRouterUI/Gallery/GallerySections.swift:152",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/MCPRouterUI/Gallery/GallerySections.swift",
+   "line": 152,
+   "quote": "Button(\"Inspect\") {}"
+  },
+  {
+   "probe": "R9",
+   "title": "SwiftUI button with an empty action: app/Sources/MCPRouterUI/Gallery/GallerySections.swift:169",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/MCPRouterUI/Gallery/GallerySections.swift",
+   "line": 169,
+   "quote": "Button(\"Add server\u2026\") {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/MCPRouterUI/Shell/ShellWindow.swift:266",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/MCPRouterUI/Shell/ShellWindow.swift",
+   "line": 266,
+   "quote": "func updateNSView(_: KeyClaimView, context _: Context) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/MCPRouterUI/Shell/ShellWindowFrame.swift:42",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/MCPRouterUI/Shell/ShellWindowFrame.swift",
+   "line": 42,
+   "quote": "func updateNSView(_: NSView, context _: Context) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/RouterCore/Seams/RouterSeams.swift:160",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/RouterCore/Seams/RouterSeams.swift",
+   "line": 160,
+   "quote": "func prefetch(_ connection: ConnectionDescriptor) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/RouterCore/Seams/RouterSeams.swift:222",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/RouterCore/Seams/RouterSeams.swift",
+   "line": 222,
+   "quote": "func record(_ event: CallEvent) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Sources/RouterCore/Seams/RouterSeams.swift:251",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Sources/RouterCore/Seams/RouterSeams.swift",
+   "line": 251,
+   "quote": "func challenge(upstreamName: String, url: String) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Tests/RouterCoreTests/ControlAuthSupport.swift:60",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Tests/RouterCoreTests/ControlAuthSupport.swift",
+   "line": 60,
+   "quote": "func warmUp() {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Tests/RouterCoreTests/PortIdentityTests.swift:63",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Tests/RouterCoreTests/PortIdentityTests.swift",
+   "line": 63,
+   "quote": "func warmUp() {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Tests/RouterCoreTests/PortIdentityTests.swift:64",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Tests/RouterCoreTests/PortIdentityTests.swift",
+   "line": 64,
+   "quote": "func clearPending(_: JSString) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "function body is empty: app/Tests/RouterCoreTests/SeamTests.swift:166",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "app/Tests/RouterCoreTests/SeamTests.swift",
+   "line": 166,
+   "quote": "func challenge(upstreamName: String, url: String) {}"
+  },
+  {
+   "probe": "R9",
+   "title": "script reports success with no failing path: planning/test-campaign/bin/r14-authserver-probe.sh:1",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "planning/test-campaign/bin/r14-authserver-probe.sh",
+   "line": 1,
+   "quote": "no `set -e`, no non-zero exit"
+  }
+ ],
+ "notes": [
+  "R4: no capture directory found; capture identity unchecked"
+ ],
+ "probes_that_could_not_run": []
+}

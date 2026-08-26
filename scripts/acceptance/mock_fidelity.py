@@ -36,6 +36,16 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 # anything else optional is itself inconclusive.
 ALLOWED_OPTIONAL = {"font-weight-face"}
 
+# The Cross-Branch Role-Intersection and Scope-Completeness Invariant (G8 / M16):
+#
+# When merging or reconciling multi-branch additions to VOUCHED_CONTROLS:
+#   1. Zero diff on mock_fidelity.py means no merge conflict; it does NOT mean no exposure.
+#      A branch that never edits this file can still have its nodes reclassified by another
+#      branch's additions to MOCK_KINDS_FOR_ROLE because the quota rule keys on the build node's role.
+#   2. The check is per-surface, and must be derived across the union of all active branches,
+#      including surfaces that edited nothing in mock_fidelity.py.
+#   3. Establish the full set before answering about members of it.
+#
 # Which build (role, kind) may answer which mock affordance kind.
 #
 # `PRESENT` is earned by measuring, and the measurement behind "these two are the same control" is

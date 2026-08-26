@@ -143,7 +143,9 @@
                     // Invalidated evidence dims to `--t3`, never `--t4`: §2 binds `--t4` to disabled
                     // controls only, and a history row is live text.
                     .foregroundStyle(state.isInvalidated ? ColorToken.t3.color : ColorToken.t2.color)
-                Text("\(state.label(for: subject.kind)) · \(shortAgo(run.ranAt)) ago")
+                let ago = shortAgo(run.ranAt)
+                let elapsed = ago == "now" ? "just now" : "\(ago) ago"
+                Text("\(state.label(for: subject.kind)) · \(elapsed)")
                     .typeRole(.caption)
                     .monospaced()
                     .foregroundStyle(ColorToken.t3.color)

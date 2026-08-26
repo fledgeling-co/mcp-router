@@ -413,7 +413,7 @@ config watcher remains with **R2-W**.
 | `make test` | `Test run with 279 tests in 44 suites passed` / `executed 279 tests` |
 | `make lint` | `Found 0 violations, 0 serious in 95 files` · `no-raw-design-values: clean` |
 | `make parity` | `parity: 224 vector cases compared (floor 224)` |
-| `app/Scripts/pool-mutation-gate.sh` | `MUTATION GATE: all thirteen guards proved load-bearing` |
+| `app/Scripts/pool-mutation-gate.sh` | **Superseded 2026-08-25.** The gate was unrunnable when this row was written — it `cd`'d into a deleted worktree and exited 90 on every invocation (G9), so the row records a verdict nobody could have obtained. Re-run on the repaired gate: exit 1, `MUTATION GATE: FAILED`, **11 OK / 1 HOLE / 1 SKIP**. The HOLE is P8b *evict before suspending* — `endedSessionIsEvictedBeforeAnySuspension` ran and still passed with the guard removed. The SKIP is E0 SIGKILL escalation, whose mutation no longer applies because the source moved. Filed as a brief. |
 
 ### E0 — which clauses have real-resource evidence
 

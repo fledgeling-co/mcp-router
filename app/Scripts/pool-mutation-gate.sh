@@ -12,7 +12,8 @@
 #   * A mutation that deadlocks the suite is not a failure either; it is a timeout, and it is
 #     reported separately so nobody reads a hang as a proof.
 set -u
-cd /Users/lukerhodes/Dev/mcp-router/.worktrees/R2/app || exit 90
+REPO_ROOT="$(git -C "$(dirname "$0")" rev-parse --show-toplevel 2>/dev/null || echo ".")"
+cd "$REPO_ROOT/app" || exit 90
 
 # The actor is split across two files (file-length limit), so both are mutated and both restored.
 CORE=Sources/RouterCore/Pool/UpstreamPool.swift

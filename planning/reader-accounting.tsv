@@ -1,6 +1,6 @@
 # planning/reader-accounting.tsv — what each raw-input reader drops, and why that is not its subject.
 #
-# rows: 17
+# rows: 18
 #
 # `reader-accounting.py` finds every reader in planning/ and scripts/ that decomposes raw input and
 # discards part of it without recording what it discarded. A reader appears here when the drop is
@@ -51,3 +51,4 @@ scripts/acceptance/mock_fidelity.py::layer_literals	declared	Reads the one `no-r
 scripts/acceptance/mock_fidelity.py::layer_tokens	declared	Reads two named markers (`MOCK-FIDELITY-TOKENS:` and `MOCK-FIDELITY-MOCK-LITERALS:`) out of the suite's output and raises `Inconclusive` when either is absent, on the stated grounds that a check printing nothing cannot be told from one that did not run.
 planning/null-run-gate.py::<module>	declared	The ACC-pin arm removes one declaration row from a scratch registry by filtering it out, which is the mutation the arm is named for. What it dropped is the poison; recording it would be recording the arm's own plant.
 planning/null-run-gate.py::accounting_tree	declared	The scratch registry keeps only the rows naming readers the scratch tree actually holds. Copying the whole registry would leave fifteen rows pointing at absent files, and every accounting arm would then be measuring the stale-row check instead of the one it is named for.
+planning/citation-gate.py::anchor_lines_line_anchored	declared	The deliberately naive comparator, used only by the hermetic control. Its whole subject is the lines a line-anchored reader CAN see, so the lines it drops are the ones the control exists to prove are invisible: the run fails when this returns a line for the wrapped fixture, because a wrap-tolerant reader that would have answered the same either way has demonstrated nothing. Recording the drop here would record the fixture's other four lines and nothing about the property.

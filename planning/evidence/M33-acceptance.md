@@ -404,3 +404,137 @@ wrongly.**
   `NOTREE`, which does not block. So whether merging this branch turns the finding red depends on
   the object database rather than on the tree — which is another way of saying the LEDGER row needs
   rewriting whatever else happens.
+
+---
+
+## 4. Gap-fix: the staleness oracle was measuring a quantity SwiftPM does not maintain
+
+The transcript in section 1 above is **superseded from `cb18ebb` onward**, and should be read as
+what the gate printed at `b394eac`. The arm it lists as
+"object older than its source -> stale-object", `planning/evidence/M33-acceptance.md:27` at
+`b394eac`, no longer exists, because the condition it named is not evidence of anything. The
+selftest now runs thirteen arms rather than ten.
+
+### What went wrong
+
+`make test` exited 2 on this branch over `Sources/MCPRouterUI/Controls.swift`, reporting
+`MCPRouterUI 141/142 sources <-- NOT COMPILED` and `[stale-object] … The green describes a previous
+tree`. The object was not stale. `nm` on
+`app/.build/arm64-apple-macosx/debug/MCPRouterUI.build/Controls.swift.o` found 30 `Palette`
+symbols — `Palette` being the public struct M31 had just added to that file — so the object was
+current in content. What was older was only its mtime.
+
+This is a false alarm rather than a false pass, which is the safer of the two directions and still
+wrong: a gate that goes red over a correct tree is a gate that gets switched off.
+
+### The mechanism, measured rather than reasoned
+
+The reading first reached for was the shared `.build`: `.worktrees/M31` compiled that source at
+19:21 on 26 Aug, merging M31 to `main` stamped main's *source* at 00:00 on 27 Aug, and the object
+is content-current and mtime-older in every other worktree. That reading is true but it is the
+special case. The general law is one level down, and a single worktree reproduces it:
+
+* **Append a comment to the source and rebuild.** `swift build` prints
+  `[4/8] Compiling MCPRouterUI Controls.swift`, so the compile really happened. Source mtime
+  1787781918; object mtime 1787781815, unmoved, and object sha256 `c31902c414343e26`, unchanged.
+  The object is left 103 seconds older than the source it perfectly describes.
+* **Append a real declaration instead and rebuild.** Object mtime moves to 1787781790 and its
+  sha256 changes to `7a24aa4f9233196e`, and `nm` finds the planted symbol.
+
+So an object's mtime tracks changes to the object's **content**, not the occurrence of a compile.
+The frontend writes the file only when the bytes differ. Anything that stamps a source without
+changing its meaning — a comment, a re-wrap, a `git checkout`, a merge — strands the object in the
+past permanently, and no rebuild will move it. The shared-`.build` case is one instance of that
+law, and in this repository it is the routine one.
+
+Two further measurements settle that llbuild does not share the gate's opinion. `swift build` run
+three times over the reported state compiled nothing on every run — 3.47s, 0.14s, 0.15s, each
+ending `Build complete!` with no `Compiling` line — while `Controls.swift.o` sat mtime-older than
+its source throughout. llbuild considered the tree up to date and it was right.
+
+### Why the replacement is not another file's mtime
+
+The sibling artifacts of the same frontend job looked like an easy substitute, because two of them
+plainly move when the object does not. On the comment-only recompile above, against a source at
+1787781918:
+
+| output | mtime after the recompile | moved? |
+| --- | --- | --- |
+| `Controls.dia` | 1787781919 | yes |
+| `Controls.d` | 1787781919 | yes |
+| `Controls.swift.o` | 1787781815 | no |
+| `Controls.swiftdeps` | 1787781815 | no |
+
+`.swiftdeps` is written only-if-changed exactly as the object is, and nothing in the shape of the
+four says which two behave which way — a priori `.swiftdeps` was the *more* plausible compile stamp
+of the pair, being the driver's own incremental state. Resting the gate on `.dia` and `.d` would be
+resting it on an undocumented accident that a toolchain bump could reverse silently, in the
+direction of reading clean.
+
+llbuild's own build database at `app/.build/build.db` would answer the question directly, and was
+rejected for a different reason: its per-rule results are a custom binary encoding, and a misparse
+would read as clean. That is the one failure mode this file may not have.
+
+### What it asks instead
+
+`probe_remaining_work`, `scripts/build-description-report.py:321` at `cb18ebb`, asks SwiftPM
+whether the build that just ran left anything undone, by running the build again and requiring it
+to do nothing. A build that compiles nothing is a build with nothing left to compile.
+
+Three details are load-bearing:
+
+* **`--build-tests` rather than a bare `swift build`.** `make test` runs `swift test`, which plans
+  test targets as well as products; a bare `swift build` plans only products, and both write the
+  same `.build/<config>.yaml`. The probe would therefore replace the build plan this same report
+  reads two steps later with a narrower one, and every test source would report as absent from it —
+  the instrument breaking its own second layer. Measured: after `swift test list` compiled nothing,
+  `swift build --build-tests` also compiled nothing and returned in 0.73s, so
+  "so the two are a fixed point", `scripts/build-description-report.py:336` at `cb18ebb`.
+* **The probe runs before the plan is read**, because it may rewrite that plan and the plan this
+  report describes must be the one in force when it is read.
+* **An unrecognised build step counts as work, not as clean.** The step list is a whitelist —
+  `"^(?:Write\b|Planning build\b|Copying\b)"`, `scripts/build-description-report.py:315` at
+  `cb18ebb` — because a blacklist would let an unrecognised compile step read as clean, which is
+  the defect this whole file exists to refuse. Unattributable work raises `build-work-remaining`
+  rather than being folded into a source.
+
+The probe repairs what it reports, because SwiftPM has no dry-run flag —
+`swift build --help` offers none. That is stated in the docstring rather than hidden:
+"The probe repairs what it reports", `scripts/build-description-report.py:338` at `cb18ebb`. The
+finding stays true after the repair, because it says the suite ran against a tree that was not the
+current one, and the next run is green because it genuinely tested the current tree rather than
+because the evidence was tidied away.
+
+### Armed in both directions, and over the case it must not fire on
+
+All three runs were made against `Sources/MCPRouterUI/Controls.swift` at sha256
+`8fc9dc6dab09c8fd58b90eef211627cdb8553ce37658d07d34e68a0b00e4cf6d`, which is the committed
+content, and the file was restored to that sha and to a clean `git status` afterwards.
+
+| # | state planted | source sha256 (first 16) | gate exit | what it said |
+| --- | --- | --- | --- | --- |
+| A | a real declaration appended, **no build run** | `12667e73b1bc5508` | **1** | RED, 12 findings; `MCPRouterUI 28/142 <-- NOT COMPILED`, `stale-object` naming the recompiled sources, and the cascade into `MCPRouterApp` and `MCPRouterUITests` |
+| B | the same tree, gate run a second time | `12667e73b1bc5508` | **0** | `MCPRouterUI 142/142`, verdict OK |
+| C | source `touch`ed — content identical, mtime new — then built once so llbuild settles | `8fc9dc6dab09c8fd` | **0** | `MCPRouterUI 142/142`, verdict OK |
+
+Arm C is the reproduction of the reported defect, and it is the row that matters. After it,
+`Controls.swift` had mtime 1787782253 and `Controls.swift.o` had mtime 1787781815 — the object 438
+seconds older than its source, sha unchanged at `c31902c414343e26`. The old oracle's comparison
+over that same state reads `RED (obj older than source)`; the new gate exits 0. A `touch` is not a
+contrivance here: it is precisely what `git checkout` and `git merge` do to a file whose content
+they leave alone, which is how the shared `.build` produces this state in the first place.
+
+Arm A also demonstrates that the check still bites where it should, and bites wider than before:
+the mtime oracle would have flagged `Controls.swift` alone, while llbuild's answer names every
+dependent whose object was built against the previous module — 12 findings across three targets.
+
+### Gates
+
+`make test` exit 0 — `discovered 1985 test ids`, `executed 1985 tests`,
+`Test run with 1985 tests in 252 suites passed after 10.533 seconds`, `selftest: 13/13 arms bit`,
+`build-description-verdict: OK`. `planning/ledger-reconcile.py` exit 0, reconciled across A–L.
+`planning/py39-annotation-gate.py` exit 0, 48 files swept, control held.
+`planning/citation-gate.py` exit 1 on the ratchet, **inherited**: `main` reads `BARE 1328` and this
+branch reads `BARE 1319` against a baseline of 1291, and the ten files above their baseline are all
+inherited. Removing this section's own edit and re-running gives `BARE 1319` unchanged, so this
+gap-fix adds no bare citation and the baseline is untouched.

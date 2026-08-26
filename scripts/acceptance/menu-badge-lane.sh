@@ -50,6 +50,38 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 blocked() { echo "BLOCKED: $*" >&2; exit 2; }
 pass() { echo "  ok — $*"; }
 
+title_of() { awk -F'\t' -v want="$1" '$4 == "AXTitle" && index($5, want) == 1 { print $5; exit }' "$2"; }
+attr_of()  { awk -F'\t' -v want="$1" -v a="$2" '$3 ~ ("^" want) && $4 == a { print $5; exit }' "$3"; }
+
+
+# The two limit tripwires, as functions over a dump, so `menu-badge-lane-selftest.sh` can hand each
+# one a doctored dump and require it to fire. An assertion nobody has ever seen fail is a claim
+# about the platform AND a claim about itself, and only one of the two is being tested by a green
+# run. These resisted every attempt to provoke them by mutating the fixture — AppKit would not fold
+# a badge into any title inside a SwiftUI app's menu bar, which is the finding, and also the reason
+# the failure path needed proving some other way.
+check_swiftui_badge_unexposed() {
+    grep -q "BADGESWIFTUI" "$1" && fail "a SwiftUI-built item's badge now REACHES the accessibility plane.
+This lane has OPENED: the acceptance assertion M34 could not write is now writable, in
+scripts/acceptance/mac-shell.sh. Note that mac-shell.sh matches menu item titles EXACTLY against the
+spec inventory, and a folded badge makes that title 'Command, Badge' — so the gate that would first
+report this good news would report it as thirty missing commands."
+    return 0
+}
+
+check_swiftui_help_unexposed() {
+    [ -n "$(attr_of "SwiftUI Help Only" AXHelp "$1")" ] && fail "SwiftUI's .help() now reaches a menu item's AXHelp.
+ShellMenuReasons' help-tag half may be redundant — and, more importantly, the app's correct help
+tags can no longer be used as evidence that the walker reached the real menu, which is the load
+bearing step in M34's chain."
+    return 0
+}
+
+# Everything above is a definition. `menu-badge-lane-selftest.sh` sources this file to reach the
+# two tripwires below and hand each a doctored dump, so the point it stops reading is marked here
+# rather than guessed at from the outside by a `sed` range that any edit would silently break.
+if [ -n "${MENU_BADGE_LANE_SOURCE_ONLY:-}" ]; then return 0; fi
+
 # The frontmost application, recorded before anything is launched and asserted unchanged at the end.
 # A fixture is bound by rule 1 exactly as hard as the app is: neither of these processes activates,
 # and this is what says so rather than a comment claiming it.
@@ -88,9 +120,6 @@ APPKIT_PID="$(launch "$WORK/fixture" "$WORK/appkit.pid")"
 perl -e 'select undef, undef, undef, 1.5'
 "$WORK/axattrs" "$APPKIT_PID" > "$WORK/appkit.tsv" 2>&1 || blocked "the AppKit fixture's menu bar could not be read"
 
-title_of() { awk -F'\t' -v want="$1" '$4 == "AXTitle" && index($5, want) == 1 { print $5; exit }' "$2"; }
-attr_of()  { awk -F'\t' -v want="$1" -v a="$2" '$3 ~ ("^" want) && $4 == a { print $5; exit }' "$3"; }
-
 # The controls first. A run that cannot read a help tag or a chord back has measured nothing about
 # badges, and must not be allowed to report an absence.
 [ "$(attr_of "Neither" AXHelp "$WORK/appkit.tsv")" = "help for Neither" ] \
@@ -100,6 +129,8 @@ attr_of()  { awk -F'\t' -v want="$1" -v a="$2" '$3 ~ ("^" want) && $4 == a { pri
 [ "$(title_of "Neither" "$WORK/appkit.tsv")" = "Neither" ] \
   || fail "an unbadged item's title is not its title — the probe is reading the wrong thing"
 pass "help, chord and an unbadged title all read back — the probe works"
+
+
 
 for pair in "Badge Only:BADGEONLY" "Both:BADGEBOTH" "Disabled Badge:BADGEDISABLED" \
             "Disabled Both:BADGEDISABOTH" "Late Badge:BADGELATE" "Late Both:BADGELATEBOTH"; do
@@ -129,22 +160,21 @@ pass "the SwiftUI-built items are in the tree, so their annotations are measurab
 
 # And the second control, which is the one that makes this an AX limit rather than a lost badge:
 # SwiftUI is still HOLDING the badge, read back in-process on the fixture's own poll.
-awk -F'\t' '$1 == "readback" && $2 == "SwiftUI Badged" && $3 == "BADGESWIFTUI" { found = 1 } END { exit !found }' "$WORK/swiftui.pid" \
+#
+# **The item is matched by prefix, and that is not tidiness.** With an exact match, the very change
+# this lane is watching for — a badge folded into the title — renames the item, so this control
+# fails one line before the tripwire below can fire, and the day the lane OPENS gets reported as
+# "SwiftUI dropped the badge". A control that fails first on the event it is controlling for is
+# worse than no control, because it answers with a diagnosis rather than with nothing. Found by
+# mutating the fixture to fold the badge and watching this line, not the tripwire, be the one to go.
+awk -F'\t' '$1 == "readback" && index($2, "SwiftUI Badged") == 1 && $3 == "BADGESWIFTUI" { found = 1 } END { exit !found }' "$WORK/swiftui.pid" \
   || fail "SwiftUI dropped the badge in-process — this is no longer an accessibility limit but a lost badge"
 pass "SwiftUI holds the badge in-process — what follows is the plane's limit, not a lost badge"
 
-if grep -q "BADGESWIFTUI" "$WORK/swiftui.tsv"; then
-    fail "a SwiftUI-built item's badge now REACHES the accessibility plane. This lane has OPENED:
-the acceptance assertion M34 could not write is now writable, in scripts/acceptance/mac-shell.sh.
-Note that mac-shell.sh matches menu item titles EXACTLY against the spec inventory, and a folded
-badge makes that title 'Command, Badge' — so that gate needs the badge stripped before it matches."
-fi
+check_swiftui_badge_unexposed "$WORK/swiftui.tsv"
 pass "a SwiftUI-built item's badge does not reach the accessibility plane — the limit still stands"
 
-if [ -n "$(attr_of "SwiftUI Help Only" AXHelp "$WORK/swiftui.tsv")" ]; then
-    fail "SwiftUI's .help() now reaches a menu item's AXHelp. ShellMenuReasons' help-tag half may be
-redundant — and the app's correct help tags can no longer be used as evidence that the walker ran."
-fi
+check_swiftui_help_unexposed "$WORK/swiftui.tsv"
 pass "SwiftUI's .help() still does not reach a menu item — the app's AXHelp can only be the walker's"
 
 # ---------------------------------------------------------------- 3 · rule 1

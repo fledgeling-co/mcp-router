@@ -17,6 +17,7 @@ guard args.count >= 2, let pid = Int32(args[1]) else {
     FileHandle.standardError.write(Data("usage: axattrs <pid>\n".utf8))
     exit(2)
 }
+
 guard AXIsProcessTrusted() else {
     FileHandle.standardError.write(Data("axattrs: not trusted for accessibility\n".utf8))
     exit(2)
@@ -54,7 +55,13 @@ func describe(_ value: CFTypeRef?) -> String {
         case .cgRect:
             var rect = CGRect.zero
             AXValueGetValue(axValue, .cgRect, &rect)
-            return String(format: "%.1f,%.1f %.1fx%.1f", rect.origin.x, rect.origin.y, rect.width, rect.height)
+            return String(
+                format: "%.1f,%.1f %.1fx%.1f",
+                rect.origin.x,
+                rect.origin.y,
+                rect.width,
+                rect.height
+            )
         default: return "<axvalue>"
         }
     }
@@ -78,16 +85,21 @@ func walk(_ element: AXUIElement, depth: Int) {
         // Children are walked rather than printed as `<array N>`, and skipping the name here keeps
         // the row count honest about how many *annotations* an item carries.
         if name == kAXChildrenAttribute as String { continue }
-        print("\(depth)\t\(clean(role))\t\(clean(title))\t\(name)\t\(clean(describe(copy(element, name as String))))")
+        print(
+            "\(depth)\t\(clean(role))\t\(clean(title))\t\(name)\t\(clean(describe(copy(element, name as String))))"
+        )
     }
     guard depth < 12 else { return }
     let children = (copy(element, kAXChildrenAttribute as String) as? [AXUIElement]) ?? []
-    for child in children { walk(child, depth: depth + 1) }
+    for child in children {
+        walk(child, depth: depth + 1)
+    }
 }
 
 guard let bar = copy(app, "AXMenuBar") else {
     FileHandle.standardError.write(Data("axattrs: no menu bar for pid \(pid)\n".utf8))
     exit(1)
 }
+
 // swiftlint:disable:next force_cast
 walk(bar as! AXUIElement, depth: 0)

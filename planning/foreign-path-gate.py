@@ -579,9 +579,25 @@ def run_control(verbose=True):
 # ---------------------------------------------------------------------------------------- the corpus
 
 def tracked_files():
+    """Return `(kept, dropped)` — every tracked path, and the ones this gate excludes from its own
+    corpus, handed back rather than filtered away.
+
+    The first cut filtered `SELF` out in a comprehension and `planning/reader-accounting.py` blocked
+    on it, correctly: a reader that discards part of its input and records nothing is how a sweep
+    reports a zero it never earned, and a self-exclusion is the most self-serving drop of the lot.
+    The dropped list is printed under COUNTS on every run."""
     out = subprocess.run(["git", "-C", str(ROOT), "ls-files"],
                          capture_output=True, text=True, check=True).stdout
-    return [p for p in out.splitlines() if p and p not in SELF]
+    kept, dropped = [], []
+    for path in out.splitlines():
+        if not path:
+            # `git ls-files` should never emit one, so this drops nothing today. It is recorded
+            # rather than skipped because a guard that silently eats input is the same shape as the
+            # self-exclusion above, and a defensive branch is exactly where nobody looks.
+            dropped.append("%r (blank line from git ls-files)" % path)
+            continue
+        (dropped if path in SELF else kept).append(path)
+    return kept, dropped
 
 
 def read(path):
@@ -611,7 +627,7 @@ def main():
         print("REFUSING TO REPORT: the presence control did not fire, so a zero here means nothing.")
         return 2
 
-    files = tracked_files()
+    files, dropped = tracked_files()
     n1 = n2 = 0
     occurrences, undecodable, machine_files = [], [], []
 
@@ -649,7 +665,9 @@ def main():
         tally[h["class"]] += 1
 
     print("COUNTS — five readings of one corpus, each answering a different question")
-    print("  files scanned (git ls-files, minus this file)        %5d" % len(files))
+    print("  files scanned (git ls-files)                         %5d" % len(files))
+    print("  files this gate excludes from its own corpus         %5d   %s"
+          % (len(dropped), ", ".join(dropped) if dropped else "none"))
     print("  N1  occurrences, line-anchored regex                 %5d" % n1)
     print("  N2  occurrences, wrap-tolerant reader                %5d" % n2)
     print("  N3  N2 deduplicated by (citing file, token)          %5d" % len(n3))

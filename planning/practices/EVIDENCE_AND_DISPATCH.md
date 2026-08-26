@@ -30,11 +30,12 @@ So:
   the same shape of problem and only one is still evidence.
 - **A record may keep a dead path only by marking it**, and the marker must be **closed**:
 
-  | form | example |
-  |---|---|
-  | parenthesised, marker word first | `` `/tmp/sweep.py` (gone) `` · `` `/tmp/g-*.log` (not retained) `` |
-  | a table cell holding only the marker | `` \| `/tmp/sweep.py` \| gap-fix 1's \| gone \| `` |
-  | bold and closed | `` `/tmp/sweep.py` **gone** `` |
+  ```
+  parenthesised, marker word first    `/tmp/g5gf/sweep.py` (gone)
+                                      `/tmp/g-*.log` (not retained)
+  a cell holding only the marker      | `/tmp/g5gf2/sweep2.py` | gap-fix 2's | gone |
+  bold and closed                     `/tmp/g5gf3/sweep3.py` **gone**
+  ```
 
   Vocabulary: *gone, unrecoverable, not recovered, not recoverable, no longer exists, does not
   exist, not retained, never retained, withdrawn, deleted, reconstructed, recovered*. An

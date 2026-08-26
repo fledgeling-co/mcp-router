@@ -9,12 +9,13 @@ finding disappear.
 
 | Layer | Result | Detail |
 |---|---|---|
-| `tokens` | clean | 25 matched, 64 pending, of 89 rows |
-| `literals` | clean | scanning 125 files |
+| `tokens` | clean | 70 matched, 19 pending, of 89 rows |
+| `literals` | clean | scanning 146 files |
 | `structure` | clean | 53 nodes across 2 states · 13 declared axis/axes corroborated against child geometry |
 | `geometry` | clean | 53 frames |
 | `type-metrics` | clean | 9 per-role comparison(s) over 12 text nodes · 3 roles · Subheadline=14pt Callout=15pt Title1=26pt · 3 multi-line node(s) excluded from the per-role check |
 | `copy` | clean | 3 paired strings |
+| `census` | 64 finding(s) | 263 mock element(s) across 2 state(s) · 64 outside every derivation rule, 0 of them waived |
 | `breadth` | 97 finding(s) | absent 53 · extra-cited 44 · present 3 · structure-unpaired 4 |
 | `font-weight-face` | inconclusive (substituted) | font-weight-face: String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face |
 

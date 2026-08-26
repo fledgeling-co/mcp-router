@@ -30,14 +30,61 @@ those two fail, and the unfixed engine returns **0** where the case expects **1*
 over an oracle reading the implementation. Restored, the suite is 87 cases with all three exits
 observed, up from 85.
 
-## The committed ledgers described an earlier run
+## The committed ledgers described an earlier run — and the count of them was wrong
 
-All five surfaces were regenerated from the delivered gate on this tree, each surface its own
-invocation. The servers table had carried **no census row at all** and `breadth 116 ·
-covered-by-pair 24`; the fresh run writes `census 8 finding(s)` and `breadth 128 · covered-by-pair
-13 · covered-unoracled 11`, which is the figure the verifier measured independently. servers,
-insights, harnesses and readme changed; popover did not, because it exits 3 before it measures
-anything and its ledger already carried that refusal instead of a table.
+**There are six fidelity surfaces, not five, and the record's own count is what hid the sixth.**
+The earlier version of this section said "All five surfaces were regenerated", then named
+servers, insights, harnesses and readme as changed and popover as unchanged — five named, five
+accounted for, denominator satisfied. `settings` was never in the sentence, so it was never in the
+denominator either, and nothing in the paragraph could notice. That is the same failure family the
+oracle-root fix above is about: a check whose scope is its own list cannot report what the list
+omits. The surface set is derived here from the manifests on disk rather than from prose:
+
+```
+$ ls planning/fidelity/*.layers.json | sed 's#.*/##; s#\.layers\.json##'
+harnesses  insights  popover  readme  servers  settings
+```
+
+**Why the omission was this item's own defect rather than bookkeeping.** This branch added
+`census: required` to `planning/fidelity/settings.layers.json` (`553da1d`). The committed
+`settings.ledger.md` was last written at `f7ee25e`, which predates this branch — so it described a
+run under a manifest that no longer exists, and carried **no census row at all**. That is exactly
+the condition the gap-fix was raised to close on `servers`, left standing on `settings`.
+
+**The run.** Every one of the six was re-run on this tree after the rebase onto `main`
+(2026-08-27), each surface its own invocation of
+`./scripts/acceptance/mock-fidelity-gate.sh <surface>`. Exit codes as observed:
+
+| Surface | Exit | Changed by this run |
+|---|---|---|
+| `harnesses` | 1 | no — byte-identical to the committed ledger |
+| `insights` | 1 | no — byte-identical |
+| `popover` | 3 | no — exits 3 at inventory before it measures anything; its ledger is that refusal, not a table |
+| `readme` | 1 | no — byte-identical |
+| `servers` | 1 | no — byte-identical |
+| `settings` | 1 | **yes — the only ledger this run rewrote** |
+
+Five reproducing byte-identically is the evidence that the earlier regeneration of those four was
+sound and that `settings` was the whole of the gap. `settings` moved as follows:
+
+```
+- | `tokens`   | clean | 25 matched, 64 pending, of 89 rows |
++ | `tokens`   | clean | 70 matched, 19 pending, of 89 rows |
+- | `literals` | clean | scanning 125 files |
++ | `literals` | clean | scanning 146 files |
++ | `census`   | 64 finding(s) | 263 mock element(s) across 2 state(s) · 64 outside every derivation rule, 0 of them waived |
+```
+
+The census row is new because the layer is new to this branch's manifest. The tokens and literals
+rows moving — 25 matched becoming 70, 125 files scanned becoming 146 — are the independent
+evidence that the committed table described an older tree rather than merely an older manifest.
+The gate's own line for the run is `mock-fidelity: EXIT 1 — 161 finding(s)`, which is the 64
+census findings plus the 97 breadth findings the table already carried; the "64" is the census
+row, not the total.
+
+The servers figures from the earlier regeneration stand unchanged on re-run: `census 8 finding(s)`
+and `breadth 128 · covered-by-pair 13 · covered-unoracled 11`, against the `breadth 116 ·
+covered-by-pair 24` and absent census row it had carried before.
 
 ## Two things this branch added that nothing can exercise
 

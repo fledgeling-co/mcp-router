@@ -31,7 +31,54 @@ APP_DIR="$ROOT/app"
 MAC_APP="$APP_DIR/.derived/Build/Products/Debug/MCPRouter.app"
 REL_APP="$APP_DIR/.derived/Build/Products/Release/MCPRouter.app"
 WORK="$(mktemp -d)"
-trap 'rm -rf "$WORK"' EXIT
+
+# The cleanup runs on EVERY exit, not only the successful one.
+#
+# What stood here removed `$WORK` and nothing else, while the app this lane launches was quit by a
+# `terminate` on the last line of the script. So a run that ended at any `fail` — which is every
+# `fail`, since `fail` exits — left an MCPRouter instance running: measured on 2026-08-26, the
+# isolated re-run after the oracle repair failed at an assertion and left one behind, briefly
+# frontmost, which then had to be quit by hand. That is this lane leaking into the machine it is
+# measuring, and the next lane to launch the same bundle inherits it.
+#
+# `mac_app_wait_gone` at the next launch would eventually clear it, but only for a run that comes
+# next in the same bundle; nothing clears it for a person, and rule 1 is about what is on their
+# screen. Terminating here costs nothing on a green run — the app is already gone by then and
+# `kill -0` says so.
+#
+# The trap RETURNS the status it was entered with. Bash 3.2 lets an EXIT trap's last command
+# overwrite the exit status of a shell killed by `set -u`, which is how `control-client.sh` came to
+# report exit 0 having asserted nothing; a cleanup that can rewrite this lane's verdict from FAIL to
+# PASS is worse than no cleanup at all.
+mac_shell__cleanup() {
+    local status=$?
+    if [ -n "${PID:-}" ] && kill -0 "$PID" 2>/dev/null; then
+        if [ -n "${AXKIT:-}" ] && [ -x "${AXKIT:-}" ]; then
+            "$AXKIT" terminate "$PID" >/dev/null 2>&1 || true
+        fi
+        # Asked, then waited for, then insisted. A `terminate` that returns is not an app that has
+        # exited, and reporting a clean-up that did not happen is the shape of defect this file
+        # already carries five notes about.
+        for _ in 1 2 3 4 5 6 7 8 9 10; do
+            kill -0 "$PID" 2>/dev/null || break
+            sleep 0.3
+        done
+        if kill -0 "$PID" 2>/dev/null; then
+            kill "$PID" 2>/dev/null || true
+            # And SIGKILL last, because a hung app ignores SIGTERM and the point of this cleanup is
+            # that the instance is GONE rather than that it was asked. Raised by the out-of-family
+            # review: an escalation that stops at TERM leaves exactly the leak it was written for.
+            for _ in 1 2 3 4 5; do
+                kill -0 "$PID" 2>/dev/null || break
+                sleep 0.3
+            done
+            if kill -0 "$PID" 2>/dev/null; then kill -9 "$PID" 2>/dev/null || true; fi
+        fi
+    fi
+    rm -rf "$WORK"
+    return $status
+}
+trap mac_shell__cleanup EXIT
 
 fail() { echo "FAIL: $*" >&2; exit 1; }
 blocked() { echo "BLOCKED: $*" >&2; exit 2; }
@@ -700,12 +747,30 @@ for command in MenuCommand.allCases {
     case .featureUnbuilt: "featureUnbuilt"
     case .needsServerSelection: "needsServerSelection"
     }
+    // **The reason comes from `reason(in:)`, which is the function the running app calls.**
+    //
+    // This read `availability.reason` — `CommandAvailability`'s generic sentence — and that was
+    // the wrong question by one hop. `ShellMenuReasons.apply(to:context:)` writes
+    // `command.reason(in: context)` into `AXHelp`, and `reason(in:)` specialises `.featureUnbuilt`
+    // per command on purpose: D-m14-a's resolution, taken because one command carried that answer
+    // when the sentence was written and nine carry it now, so the generic line would appear nine
+    // times across two menus and name none of the nine features.
+    //
+    // So the app said `Re-indexing the whole manifest hasn't been built yet.`, this oracle expected
+    // `This feature hasn't been built yet.`, and the lane reported a FAIL naming the product. It is
+    // the defect `set v to value of e as text`, `shells.sh:216` at `03c34c3` carried exactly — an
+    // instrument asking a neighbouring question and reporting the difference as the app's fault —
+    // and it is the fifth time in this item that the harness was wrong about an app that was right.
+    //
+    // The assertion gets STRONGER for the change: the lane now requires the specific sentence for
+    // each of the nine unbuilt commands rather than one generic string shared between them, so a
+    // command that starts returning `.featureUnbuilt` without naming its subject fails here.
     print([
         command.menu.rawValue,
         command.title,
         command.isSystemProvided ? "system" : "app",
         token,
-        availability.reason ?? ""
+        command.reason(in: context) ?? ""
     ].joined(separator: "\t"))
 }
 SWIFT
@@ -731,9 +796,32 @@ SWIFT
 # A file list that has to be maintained by hand alongside a module is the shape of the defect; it is
 # left as a list rather than replaced with the built module here, because swapping the oracle's
 # build strategy is a change to M1's evidence lane rather than to this one.
+# **Two files were added on 2026-08-26, and the drift they fix had been live for four days.**
+# `KeyChord.swift` landed at `0bdfcbe` on 2026-08-22 with M20's menu bar, `MenuCommand.swift` began
+# referring to `KeyChord` in the same change, and this list did not follow — so every run of this
+# script since blocked at "could not build the availability oracle" with
+# `error: cannot find type 'KeyChord' in scope`, raised against `public var shortcut: KeyChord? {`,
+# `MenuCommand.swift:285` at `03c34c3`.
+#
+# **Nobody saw it, and that is G10's point rather than this lane's.** `make acceptance` ran
+# `shells.sh` first and stopped there, so this lane was not reached at all between 2026-08-22 and
+# 2026-08-26 — a lane enrolled in the gate, blocked for four days, and silent. The target now runs
+# every lane and aggregates, which is how this was found.
+#
+# `MenuCommandAvailability.swift` is the second, and it is the same shape one layer down: the list
+# names `MenuCommand.swift`, but `CommandContext` and `availability(in:)` live in that extension
+# file, so the oracle's own driver failed next with "type 'MenuCommand' has no member
+# 'CommandContext'". Two files missing from a five-file list is what a hand-picked list does.
+#
+# The list is still hand-picked rather than replaced with the built module, for the reason given
+# above: swapping the oracle's build strategy is a change to M1's evidence lane rather than a repair
+# to it. That leaves this list free to drift a fourth time, and the thing that will catch it now is
+# the lane actually being dispatched.
 swiftc -O -o "$WORK/menu-oracle" \
   "$APP_DIR/Sources/MCPRouterKit/Shell/MenuCommand.swift" \
   "$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift" \
+  "$APP_DIR/Sources/MCPRouterKit/Shell/KeyChord.swift" \
+  "$APP_DIR/Sources/MCPRouterKit/Shell/MenuCommandAvailability.swift" \
   "$APP_DIR/Sources/MCPRouterKit/Skills/SkillPresentation.swift" \
   "$APP_DIR/Sources/MCPRouterKit/Control/SkillModels.swift" \
   "$WORK/main.swift" 2>"$WORK/oracle.log" \

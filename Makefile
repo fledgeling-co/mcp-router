@@ -44,7 +44,7 @@ MAC_DEST   ?= platform=macOS
 ## M15-M22 add theirs by writing planning/fidelity/<surface>.layers.json beside this one.
 SURFACE    ?= servers
 
-.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default
+.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default
 
 ## G4's two harness gates run inside `lint` rather than as a stage of their own. Both are
 ## hermetic and finish in under ten seconds, and `lint` is where the other four script gates
@@ -110,7 +110,7 @@ SURFACE    ?= servers
 ## runs since. It costs roughly two minutes and adds no new requirement — `test-ios` already needs
 ## a booted simulator — and it is the only stage here that proves the app runs rather than that its
 ## views construct.
-all: tools lint build test test-ios test-ios-glass parity parity-selftest mock-fidelity-selftest install-default
+all: tools lint build test test-ios test-ios-glass parity parity-selftest mock-fidelity-selftest acceptance-lanes-selftest install-default
 
 ## Fail loudly and specifically when a required tool is missing, rather than skipping the gate.
 ## A silently-skipped lint step is worse than no lint step: it reports success.
@@ -543,15 +543,37 @@ parity-watch-mutations:
 ##
 ## It distinguishes its outcomes: 1 is a failed assertion, 2 is an environment that could not run
 ## the check. Collapsing those is how "no Accessibility permission" gets reported as a broken app.
+## G10: the lanes are dispatched by `acceptance-lanes.sh`, which runs ALL of them and aggregates.
+##
+## They used to be eight recipe lines. make stops a target at the first line that fails, `shells.sh`
+## is first, and it was red on `main` for long enough that the blob was byte-identical across three
+## branches — so the seven lanes behind it had not been reached at all, and a lane that has never run
+## is not known to pass. The cost was not one red gate: enrolling a lane here had stopped being a way
+## to make that lane run, while still reading like one in the commit message that did the enrolling.
+##
+## Not fixed by reordering. That makes one lane run and leaves the ordering as the thing deciding
+## what gets measured. The runner keeps going past a red lane and prints a per-lane table with every
+## lane's own exit code, so the risk continuing carries — a green summary over a red lane — is what
+## `acceptance-lanes-selftest.sh` arms rather than what this target hopes to avoid.
+##
+## It preserves the 1-vs-2 distinction this target has always drawn, at the aggregate: 1 means a lane
+## failed an assertion, 2 means no lane failed but at least one could not run. make itself collapses
+## both to 2, so run the script directly when the caller needs to tell them apart.
 acceptance: build-mac build-mac-release
-	./scripts/acceptance/shells.sh
-	./scripts/acceptance/control-client.sh
-	./scripts/acceptance/p1-auth-routes.sh
-	./scripts/acceptance/mac-shell.sh
-	./scripts/acceptance/r7-harness-reconciliation.sh
-	./scripts/acceptance/m22-boards.sh
-	./scripts/acceptance/menu-badge-lane.sh
-	./scripts/acceptance/menu-badge-lane-selftest.sh
+	./scripts/acceptance/acceptance-lanes.sh
+
+## Proves the aggregation above can go red, and that a red lane cannot hide inside a green total.
+##
+## In `all` deliberately, and this is the item's own lesson applied to its own repair: a script that
+## appears in no Makefile target is dispatched by nothing, passes by hand forever, and reads as
+## covered work — `parity-stream.sh` sat executable and unrun from R2-R until P3. A selftest for a
+## summary is worth exactly as much as the odds anything runs it.
+##
+## It needs no build, no GUI session, no Accessibility grant and no simulator — it runs against
+## planted scratch lanes with known exits in about a second, which is why it can sit in `all` where
+## `acceptance` itself cannot.
+acceptance-lanes-selftest:
+	./scripts/acceptance/acceptance-lanes-selftest.sh
 
 ## M23's mock-to-SwiftUI conversion gate. Renders a surface through the measurement harness and
 ## diffs it against `design/mcp-router-console.html` on eight layers.

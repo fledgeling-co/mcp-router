@@ -41,6 +41,26 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 blocked() { echo "BLOCKED: $*" >&2; exit 2; }
 pass() { echo "  ok — $*"; }
 
+# G10, fifth defect — and the one this file was already written to prevent, in the half it forgot.
+#
+# Every assertion below judges a RUNNING app, so a bundle older than the tree turns each one into a
+# statement about a build nobody is looking at. `build-freshness.sh` exists for exactly that, opens
+# by saying the harness "has been reporting STALE BUILDS AS PRODUCT DEFECTS", and `mac-shell.sh`
+# requires it. This lane never did.
+#
+# Measured here on 2026-08-26: the iOS half failed with "iOS dark background rendered #1E1E1E,
+# expected ColorToken.ground #1C1C1E". `.ground` was #1E1E1E until c920afb on 2026-08-22, and the
+# simulator bundle on disk was built 2026-08-20 — so the phone was faithfully painting the token it
+# was compiled with, and the lane called the app broken. `make acceptance` builds `build-mac` and
+# `build-mac-release` and no iOS target at all, so the iOS half has only ever asserted against
+# whatever bundle happened to be lying around.
+#
+# A stale bundle is an environment this check could not run in, not a product that is wrong, so it
+# exits 2 and names the build that would fix it. That is the same misattribution as the window
+# lookup above, and the same repair.
+# shellcheck source=scripts/acceptance/build-freshness.sh
+source "$ROOT/scripts/acceptance/build-freshness.sh"
+
 # ---------------------------------------------------------------- expected value
 
 # Read the token from source. An unreadable token is a harness failure, not a passing test: without
@@ -109,6 +129,9 @@ sample_pixel() { swift "$WORK/sample.swift" "$1" "$2" "$3"; }
 #
 # Checked against the built binaries rather than the source: `#if DEBUG` around the wrong brace
 # still compiles, and grepping the source would agree with itself.
+
+build_freshness_require Debug "$ROOT"
+build_freshness_require Release "$ROOT"
 
 echo
 echo "the gallery is compiled into Debug only"
@@ -190,7 +213,31 @@ if ! osascript -e 'tell application "System Events" to get name of first process
     blocked "no Accessibility permission for this terminal — System Settings > Privacy & Security > Accessibility"
 fi
 
-open "$MAC_APP"
+# The frontmost application, recorded before anything is launched and asserted unchanged at the end.
+#
+# `-g` is the mechanism; this is the check that the mechanism worked. Without it the launch flag is
+# an intention, and a lane that quietly starts taking the user's screen looks exactly like one that
+# does not. The invariant is "**this app** never comes to the front", not "the frontmost app never
+# changes" — a human clicking something else mid-run is their business, so the assertion below is
+# about MCP Router specifically.
+FRONT_BEFORE="$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true' 2>/dev/null)" \
+  || blocked "could not read the frontmost application — System Events is not answering"
+echo "frontmost at start: $FRONT_BEFORE"
+case "$FRONT_BEFORE" in
+    "MCP Router"|MCPRouter)
+        blocked "MCP Router is already frontmost — this gate cannot prove it never took the screen" ;;
+esac
+
+# `open -g`, never a bare `open`. UI_VERIFICATION rule 1: the developer loop must be invisible, and
+# a bare `open` activates. This lane read `open` for its whole life while `mac-shell.sh`,
+# `m22-boards.sh` and `menu-badge-lane.sh` — the three siblings that drive the same app — all use
+# `-g` and assert the frontmost application unchanged at the end.
+#
+# The comment further down claiming "`open` does not make our app frontmost when the terminal
+# running this script keeps focus" was wrong, and it is corrected there: `open` without `-g`
+# activates. What that paragraph actually observed was a region capture photographing the wrong
+# window, which is a separate defect it fixed separately by capturing by window id.
+open -g "$MAC_APP"
 
 # Poll for a real standard window. A non-activating panel can enumerate before the main window
 # exists, so "a window exists" can be true too early.
@@ -205,30 +252,41 @@ done
 sleep 1  # settle: let SwiftUI finish its first paint before sampling
 pass "window appeared (AXStandardWindow)"
 
-# Walk the tree. `entire contents` is bound to a variable first: iterating it inline yields zero
-# elements where the bound form yields the full set, and both spellings look correct.
-AX_TEXT="$(osascript <<'APPLESCRIPT' 2>/dev/null || true
-tell application "System Events" to tell process "MCPRouter"
-    set out to ""
-    set c to entire contents of window 1
-    repeat with e in c
-        try
-            set v to value of e as text
-            if v is not "" and v is not "missing value" then set out to out & v & linefeed
-        end try
-        try
-            set d to description of e as text
-            if d is not "" and d is not "missing value" then set out to out & d & linefeed
-        end try
-        try
-            set t to title of e as text
-            if t is not "" and t is not "missing value" then set out to out & t & linefeed
-        end try
-    end repeat
-    return out
-end tell
-APPLESCRIPT
-)"
+# Walk the tree with `axkit`, not with System Events.
+#
+# G10, second defect. The first repair here added `description` and `title` alongside `value`,
+# because the shell puts its labels in the accessibility description — and that was necessary and
+# not sufficient. Run against the app afterwards, this lane was still red at
+# "the macOS window's accessibility tree does not carry 'Activity'" while `mac-shell.sh` asserted
+# the same seven destination labels and passed. So the attribute was never the whole story: the
+# **walk** was wrong too, and fixing only the attribute left a lane that still could not see the
+# sidebar.
+#
+# `in AppleScript binds a snapshot of a tree this app`, `mac-shell.sh:66` at `03c34c3` had
+# already written down why, for its own first version, which failed the same
+# way against a perfectly good window: `entire contents` binds a SNAPSHOT of a tree this app mutates
+# every two seconds as it polls, and reading a property off an element that has since been rebuilt
+# raises -1728. Every read above sat inside a `try`, so each -1728 was swallowed and the element
+# simply vanished from the output — indistinguishable from an element that was never there. Measured
+# here on 2026-08-26 against the same running window: the System Events walk returned 61 lines and
+# neither `Activity` nor `Running`; `axkit dump` returned 104 rows carrying both.
+#
+# So this uses the toolkit the sibling lanes use. It reads through the raw AX API, re-resolving
+# children as it descends rather than iterating a bound snapshot, and it needs no activation —
+# which is also what keeps this walk inside UI_VERIFICATION rule 1.
+AXKIT="$WORK/axkit"
+swiftc -O -o "$AXKIT" "$ROOT/scripts/acceptance/axkit.swift" 2>"$WORK/axkit.log" \
+  || { cat "$WORK/axkit.log" >&2; blocked "could not build the accessibility toolkit"; }
+
+MAC_PID="$(pgrep -f 'MCPRouter.app/Contents/MacOS/MCPRouter' | head -1)"
+[ -n "$MAC_PID" ] || blocked "the launched app has no pid — nothing to walk"
+
+"$AXKIT" dump "$MAC_PID" window > "$WORK/window.tsv" 2>/dev/null \
+  || blocked "the window walk failed — harness or permission problem, not an assertion failure"
+
+# Columns 4, 5 and 6 are title, value and description. Same three attributes the AppleScript walk
+# was asking for; the difference is entirely in how the tree is reached.
+AX_TEXT="$(cut -f4,5,6 "$WORK/window.tsv" | tr '\t' '\n' | grep -v '^$' || true)"
 
 # Zero-count guard: fail ONCE as an unreadable tree rather than once per expected string. N false
 # failures read as a broken app; one reads as a broken harness, which is what it would be.
@@ -249,8 +307,11 @@ done
 # The render assertion. Sample well inside the window, below the text block.
 #
 # Captured by WINDOW ID, never by screen region. `screencapture -R <rect>` photographs whatever the
-# compositor has at those coordinates, so it measures the frontmost window there rather than ours —
-# and `open` does not make our app frontmost when the terminal running this script keeps focus.
+# compositor has at those coordinates, so it measures the frontmost window there rather than ours.
+# (This paragraph used to add "and `open` does not make our app frontmost when the terminal running
+# this script keeps focus", which is not true — `open` without `-g` activates, which is why both
+# launches in this file now pass `-g`. The region-capture defect below is real and is what the
+# observation was actually of.)
 # Observed here: a run that reported the background as #292C33, which is the terminal's colour; the
 # capture contained a terminal and a keychain dialog and no part of the app. Every AX assertion
 # above passed in the same run, because the accessibility tree does not care what is on top.
@@ -258,46 +319,95 @@ done
 # `-l <windowid>` captures the window's own backing store, so occlusion, focus and stacking stop
 # being inputs to a colour measurement. There is deliberately no region fallback: a fallback here
 # would restore exactly the failure mode above, and silently.
-window_id() {
+# G10, third defect. This used to ask for the window whose title is exactly "MCP Router", and there
+# has never been one: the console titles its window after the SELECTED DESTINATION, so the name
+# CGWindowList reports is "Activity", or "Cleanup", or whichever board the app restored into.
+# The lookup therefore returned nothing every time, and the call site reported that as
+# "Screen Recording permission, or the window is off-screen" — an environment answer for a harness
+# defect, which is the exact confusion the 1-vs-2 split exists to prevent. Measured here on
+# 2026-08-26: Screen Recording IS granted (34 of 35 on-screen windows report a name) and the app's
+# layer-0 window was named "Cleanup".
+#
+# Two changes. The owner is matched by PID rather than by display name, so a rename cannot silently
+# empty the result set. And the title argument is a PREFIX with an exclusion: the gallery announces
+# itself as "Design system – Colour" rather than "Design system", so an exact match would have
+# failed there next for the same reason; and the main window is asked for as "not the gallery"
+# rather than by a name it does not have.
+window_id() { # $1 = "" for the main window, or a title prefix
     cat > "$WORK/winid.swift" <<'SWIFT'
 import CoreGraphics
 import Foundation
+let wantPID = Int(CommandLine.arguments[1]) ?? -1
+let prefix = CommandLine.arguments.count > 2 ? CommandLine.arguments[2] : ""
 let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
-let windows = (info as? [[String: Any]]) ?? []
-for w in windows {
-    // The AX process is "MCPRouter"; CGWindowList reports the bundle's display name, "MCP Router".
-    // Accepting both is what keeps this from depending on which of the two names a future rename
-    // touches.
-    let owner = (w[kCGWindowOwnerName as String] as? String) ?? ""
-    guard owner == "MCP Router" || owner == "MCPRouter",
+for w in (info as? [[String: Any]]) ?? [] {
+    guard (w[kCGWindowOwnerPID as String] as? Int) == wantPID,
           (w[kCGWindowLayer as String] as? Int) == 0,
           let bounds = w[kCGWindowBounds as String] as? [String: Any],
           let height = bounds["Height"] as? Double, height > 100,
           let id = w[kCGWindowNumber as String] as? Int else { continue }
-    // Match the window by its title so the gallery and the main window stay distinguishable.
     let name = (w[kCGWindowName as String] as? String) ?? ""
-    if CommandLine.arguments.count > 1, !CommandLine.arguments[1].isEmpty {
-        guard name == CommandLine.arguments[1] else { continue }
+    if prefix.isEmpty {
+        // The main window: any board window, but never the gallery.
+        guard !name.hasPrefix("Design system") else { continue }
+    } else {
+        guard name.hasPrefix(prefix) else { continue }
     }
     print(id)
     exit(0)
 }
 exit(1)
 SWIFT
-    swift "$WORK/winid.swift" "${1:-}" 2>/dev/null
+    swift "$WORK/winid.swift" "$MAC_PID" "${1:-}" 2>/dev/null
 }
 
 BOUNDS="$(osascript -e 'tell application "System Events" to tell process "MCPRouter" to get {position, size} of window 1')"
+WW="$(echo "$BOUNDS" | cut -d, -f3 | tr -d ' ')"
 WH="$(echo "$BOUNDS" | cut -d, -f4 | tr -d ' ')"
 
-MAC_WIN_ID="$(window_id "MCP Router" || true)"
-[ -n "$MAC_WIN_ID" ] || blocked "could not resolve the main window's id — Screen Recording permission, or the window is off-screen"
+# The sidebar's width, read from the token rather than pinned here, because the sample point below
+# has to be clear of it and "clear of it" is a fact about `MetricToken.sidebar` rather than about
+# any number this file could hold.
+# Read the same way `metric() {`, `mac-shell.sh:144` at `03c34c3` reads it — out of
+# `leadingScalar`'s own switch, where the
+# numbers live. `MetricToken`'s cases carry display names ("Sidebar"), not values, so a reader
+# pointed at the case list finds no number at all.
+SIDEBAR_PT="$(sed -n '/var leadingScalar: Double/,/^    }/p' \
+  "$APP_DIR/Sources/MCPRouterKit/Design/MetricToken.swift" 2>/dev/null \
+  | grep -oE 'case \.sidebar: *[0-9.]+' | grep -oE '[0-9.]+$' || true)"
+
+MAC_WIN_ID="$(window_id "" || true)"
+[ -n "$MAC_WIN_ID" ] || blocked "could not resolve the main window's id — no layer-0 window over 100pt for pid $MAC_PID that is not the gallery. Screen Recording permission, or the window is off-screen."
 screencapture -o -x -l "$MAC_WIN_ID" "$WORK/mac.png"
 [ -s "$WORK/mac.png" ] || blocked "screencapture produced no image — grant Screen Recording to this terminal"
 
 # Sampled in image pixels; the capture is 2x on a Retina display, so this is the lower-middle of
 # the window either way — clear of the title and the copy.
-GOT="$(sample_pixel "$WORK/mac.png" 200 "$((WH * 3 / 2))")"
+# G10, fourth defect. This sampled x=200 IMAGE pixels, which on a 2x display is 100pt — and the
+# console's sidebar is `MetricToken.sidebar` = 264pt wide. So the point sat inside the sidebar's
+# translucent material for the whole life of the M1 shell, and the lane reported
+# "macOS background rendered #28282A, expected ColorToken.ground #1C1C1E" as a product defect.
+#
+# It is not one. Measured here on 2026-08-26 across one capture of the running window, 1960x1240:
+# (200,930) reads #28282A, and (600,930), (1200,930), (1600,930) and (1200,1150) all read #1C1C1E,
+# which is ColorToken.ground exactly. The app paints the ground correctly; the harness was pointed
+# at the wrong zone. x=200 was right when F1's scaffold view had no sidebar, and nothing moved it
+# when M1 put one there — the same class as the attribute and the walk above.
+#
+# Derived from the window rather than pinned, so it cannot drift out of the content zone again: 3/4
+# across and 3/4 down, in points, doubled for the 2x capture. The sidebar is 264 of 980 points, so
+# 3/4 across is clear of it by construction and the assertion below states that rather than
+# assuming it.
+SAMPLE_X=$(( WW * 3 / 2 ))
+SAMPLE_Y=$(( WH * 3 / 2 ))
+if [ -n "$SIDEBAR_PT" ]; then
+    [ "$SAMPLE_X" -gt "$(( ${SIDEBAR_PT%%.*} * 2 ))" ] \
+      || blocked "the sample point x=${SAMPLE_X}px sits inside the ${SIDEBAR_PT}pt sidebar — this would measure the sidebar's material, not ColorToken.ground"
+    echo "  sampling (${SAMPLE_X}, ${SAMPLE_Y}) image px — clear of the ${SIDEBAR_PT}pt sidebar"
+else
+    echo "  sampling (${SAMPLE_X}, ${SAMPLE_Y}) image px — MetricToken.sidebar unreadable, clearance unchecked"
+fi
+GOT="$(sample_pixel "$WORK/mac.png" "$SAMPLE_X" "$SAMPLE_Y")"
 [ "$GOT" = "$EXPECTED_HEX" ] \
   || fail "macOS background rendered $GOT, expected ColorToken.ground $EXPECTED_HEX"
 pass "rendered background = $GOT = ColorToken.ground"
@@ -326,8 +436,17 @@ EXPECTED_LIGHT="$(read_ground lightHex)"
 echo "expecting light ColorToken.ground = $EXPECTED_LIGHT"
 
 # Launch Debug with the gallery forced into its light appearance, then open the window.
-open -n "$MAC_APP" --args --gallery-appearance light
+# `-g` for the same reason as the first launch; `-n` because this needs a second instance carrying
+# the gallery argument. The menu click below reaches the process by pid through System Events, which
+# does not require it to be frontmost.
+open -g -n "$MAC_APP" --args --gallery-appearance light
 sleep 2
+
+# A NEW instance, so the pid the window lookup filters on has to be re-read. The first one was quit
+# a few lines above; keeping its pid here would have made `window_id` search an owner that no longer
+# exists and report it as a missing window.
+MAC_PID="$(pgrep -f 'MCPRouter.app/Contents/MacOS/MCPRouter' | head -1)"
+[ -n "$MAC_PID" ] || blocked "the gallery instance has no pid — nothing to walk"
 
 if ! osascript -e 'tell application "System Events" to tell process "MCPRouter" to click menu item "Design system" of menu "Window" of menu bar 1' >/dev/null 2>&1; then
     blocked "could not reach the Design system item in the Window menu"
@@ -372,6 +491,8 @@ osascript -e "tell application id \"$MAC_BUNDLE_ID\" to quit" >/dev/null 2>&1 ||
 
 echo
 echo "iOS shell"
+
+build_freshness_require Debug-iphonesimulator "$ROOT"
 
 SIM_ID="$(xcrun simctl list devices available | grep -E 'iPhone' | head -1 | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/' || true)"
 [ -n "$SIM_ID" ] || blocked "no iPhone simulator available"
@@ -421,6 +542,18 @@ ios_ground_is dark "$EXPECTED_HEX"
 ios_ground_is light "$EXPECTED_LIGHT"
 
 xcrun simctl terminate "$SIM_ID" "$IOS_BUNDLE_ID" >/dev/null 2>&1 || true
+
+# ---------------------------------------------------------------- rule 1
+
+# Both macOS launches used `-g` and every read went through the accessibility plane by pid, so MCP
+# Router should never have been frontmost. Asserted rather than assumed, and a violation FAILS: this
+# lane taking the screen is a defect in the lane, not an environment it could not run in.
+FRONT_AFTER="$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true' 2>/dev/null)"
+case "$FRONT_AFTER" in
+    "MCP Router"|MCPRouter)
+        fail "this lane took the user's screen: MCP Router is frontmost at the end (was '$FRONT_BEFORE')" ;;
+esac
+pass "MCP Router never became frontmost — '$FRONT_BEFORE' at the start, '$FRONT_AFTER' at the end"
 
 echo
 echo "acceptance: both shells render ColorToken.ground — dark $EXPECTED_HEX, and the phone light $EXPECTED_LIGHT"

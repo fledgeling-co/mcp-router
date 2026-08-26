@@ -1,0 +1,60 @@
+{
+  "slug": "ship-remaining-work",
+  "brief": "planning/goals/goal-ship-remaining-work.md",
+  "ledger": "planning/goals/ledger-ship-remaining-work.jsonl",
+  "armed": true,
+  "session_id": "8246a1a7-1bab-4277-8a8f-3191bffbff7f",
+  "iteration": 14,
+  "max_iterations": 60,
+  "deadline": "2026-08-28T09:00:00Z",
+  "stuck_after": 3,
+  "verify": [
+    {
+      "name": "tests",
+      "cmd": "bash planning/goals/tests-check.sh",
+      "timeout": 900
+    },
+    {
+      "name": "lint",
+      "cmd": "bash planning/goals/lint-except-citation-ratchet.sh",
+      "timeout": 900
+    },
+    {
+      "name": "ledger",
+      "cmd": "python3 planning/ledger-reconcile.py",
+      "timeout": 180
+    },
+    {
+      "name": "citations",
+      "cmd": "bash planning/goals/citations-blocking-check.sh",
+      "timeout": 300
+    },
+    {
+      "name": "reckon",
+      "cmd": "python3 /Users/lukerhodes/.claude/plugins/cache/fledgeling-plugins/reckon/1.7.0/skills/reckon/scripts/reckon.py check planning/reckoning/2026-08-26/ledger.json",
+      "timeout": 300
+    },
+    {
+      "name": "branches",
+      "cmd": "test -z \"$(git branch --list 'ai/*' --no-merged main)\"",
+      "timeout": 60
+    },
+    {
+      "name": "worklist",
+      "cmd": "bash planning/goals/worklist-check.sh",
+      "timeout": 120
+    },
+    {
+      "name": "liveness",
+      "cmd": "bash planning/goals/liveness-check.sh",
+      "timeout": 120
+    }
+  ],
+  "started_at": "2026-08-26T10:34:44Z",
+  "cwd": "/Users/lukerhodes/Dev/mcp-router",
+  "repeat_count": 1,
+  "escalated": false,
+  "last_fingerprint": "a6f00edf4b72",
+  "last_failing": "tests, branches, worklist",
+  "prior_block_cap": ""
+}

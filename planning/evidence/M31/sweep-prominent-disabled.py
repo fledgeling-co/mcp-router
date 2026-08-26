@@ -287,6 +287,29 @@ def resolve(rules, chain, prop):
     return best[1] if best else None
 
 
+def resolve_background(rules, chain):
+    """The winning background colour, letting the cascade choose between shorthand and longhand.
+
+    `background:` and `background-color:` both set the background colour, so the winner is whichever
+    DECLARATION wins by (specificity, source order) across both property names. Trying one property
+    and falling back to the other — which this did first — hides a real defect in one direction: an
+    accent rule spelled `background-color:` that legitimately wins the cascade is invisible behind a
+    disabled rule spelled `background:` that loses, and the sweep reports DIMS over a control that
+    draws its accent. Found by an out-of-family review of this file.
+    """
+    best = None
+    for rule in rules:
+        for prop in ("background", "background-color"):
+            if prop not in rule["decls"] or not matches(rule["selector"], chain):
+                continue
+            key = (specificity(rule["selector"]), rule["order"])
+            if best is None or key > best[0]:
+                best = (key, rule, prop)
+    if best is None:
+        return None, None
+    return best[1], best[1]["decls"][best[2]]
+
+
 def resolve_descendants(rules, chain, prop):
     """Winning `prop` per descendant compound, for elements nested inside the chain's element."""
     leaves = set()
@@ -380,8 +403,8 @@ def sweep_html():
 
         accent_rules = [
             r for r in rules
-            if token_of(r["decls"].get("background") or r["decls"].get("background-color"))
-            == "--accent-ink"
+            if "--accent-ink" in (token_of(r["decls"].get("background")),
+                                  token_of(r["decls"].get("background-color")))
         ]
         controls, skipped = [], []
         for rule in accent_rules:
@@ -430,12 +453,10 @@ def sweep_html():
             verdict = "DIMS"
             for fam in sorted(offered):
                 probe = chain_prefix + [leaf | set(MARKER_FAMILIES[fam])]
-                fill = resolve(rules, probe, "background") or resolve(rules, probe,
-                                                                     "background-color")
+                fill, fill_v = resolve_background(rules, probe)
                 label = resolve(rules, probe, "color")
                 bezel = resolve(rules, probe, "border-color")
                 get = lambda r, *k: next((r["decls"][x] for x in k if r and x in r["decls"]), None)
-                fill_v = get(fill, "background", "background-color")
                 label_v = get(label, "color")
                 bezel_v = get(bezel, "border-color")
                 state = {"family": fam, "resolved_fill": fill_v, "resolved_label": label_v,

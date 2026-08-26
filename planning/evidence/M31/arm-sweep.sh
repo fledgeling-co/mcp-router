@@ -67,7 +67,14 @@ arm "4 MARKER-MISMATCH — respell the switch rule for :disabled only, as it was
 arm "5 UNDRAWN(reachable) — delete the store page's disabled rule entirely" \
     "$STORE" '/^\.btn\[disabled\],\.btn\.disabled{/d'
 
-arm "6 Swift FAIL — paint the prominent fill unconditionally, the M18 defect shape" \
+# The shorthand/longhand hide, found by an out-of-family review. The accent rule is respelled
+# `background-color` and the disabled rule is un-enumerated so the accent legitimately wins. The
+# resolver's first form tried `background` first and fell back, so it read the LOSING disabled
+# `background` and reported DIMS over a control drawing its accent. This arm is the regression.
+arm "6 DRAWS-AS-ENABLED via background-color — the shorthand/longhand hide" \
+    "$MOCK" 's|\.tb-btn\.on{background:var(--accent-ink);|.tb-btn.on{background-color:var(--accent-ink);|; s|\.tb-btn\.disabled,\.tb-btn:disabled,\.tb-btn\.on\.disabled,\.tb-btn\.on:disabled|.tb-btn.disabled,.tb-btn:disabled|'
+
+arm "7 Swift FAIL — paint the prominent fill unconditionally, the M18 defect shape" \
     "$SWIFT" 's|\.fill(tokens\.fill\.color)|.fill(ColorToken.accent.color)|'
 
 echo "=== RESTORED ===  failures=$(fails)  exit=$(python3 "$SWEEP" >/dev/null 2>&1; echo $?)"

@@ -43,7 +43,15 @@ ARM 5 UNDRAWN(reachable) — delete the store page's disabled rule entirely
       >  UNDRAWN .btn reachable
     restored  617cce184eeab555  IDENTICAL
 
-ARM 6 Swift FAIL — paint the prominent fill unconditionally, the M18 defect shape
+ARM 6 DRAWS-AS-ENABLED via background-color — the shorthand/longhand hide
+    planted   design/mcp-router-console.html  c6b000bddce69841 -> f0f3c32106fe212c
+    failures  0 -> 1  WENT RED
+    verdicts that changed:
+      <  DIMS .tb-btn.on unreachable
+      >  DRAWS-AS-ENABLED .tb-btn.on unreachable
+    restored  c6b000bddce69841  IDENTICAL
+
+ARM 7 Swift FAIL — paint the prominent fill unconditionally, the M18 defect shape
     planted   app/Sources/MCPRouterUI/Controls.swift  8fc9dc6dab09c8fd -> 76e613cfb6656480
     failures  0 -> 1  WENT RED
     verdicts that changed:
@@ -55,5 +63,3 @@ ARM 6 Swift FAIL — paint the prominent fill unconditionally, the M18 defect sh
   docs/mcp-router-store.html  617cce184eeab555
   app/Sources/MCPRouterUI/Controls.swift  8fc9dc6dab09c8fd
   verdict table identical to baseline
-  git:  M design/mcp-router-console.html
-  git:  M docs/mcp-router-store.html

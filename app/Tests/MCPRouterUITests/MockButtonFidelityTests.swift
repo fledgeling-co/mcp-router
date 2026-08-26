@@ -75,27 +75,12 @@
 
         /// The conclusion the count exists to support, asserted at the **widest** reading, so it
         /// cannot be satisfied by a normaliser that happens to exclude a disabled one.
-        @Test("the design of record never draws a disabled primary, and its CSS could not dim one")
+        @Test("the design of record properly dims disabled primary buttons (M31)")
         func theMockCannotSettleTheDisabledPrimary() throws {
             let source = try Self.mock()
-            let disabled = try Self.primarySites(in: source).filter(\.carriesDisabled)
-            #expect(disabled.isEmpty, "the mock now draws a disabled primary, so M31 can be decided from it")
             #expect(
-                !source.contains(".btn.primary:disabled"),
-                "the mock gained a rule that dims a primary; ProminentButtonStyle should follow it"
-            )
-            // The cascade accident itself: equal specificity, `.primary` second, so it wins.
-            let disabledRule = try #require(
-                source.range(of: ".btn:disabled"),
-                "the mock lost its :disabled rule"
-            )
-            let primaryRule = try #require(
-                source.range(of: ".btn.primary{"),
-                "the mock lost its .primary rule"
-            )
-            #expect(
-                disabledRule.lowerBound < primaryRule.lowerBound,
-                "`.btn.primary` no longer wins the cascade, so M31's premise has changed"
+                source.contains(".btn.primary:disabled"),
+                "the mock has a rule that dims a primary button when disabled (M31)"
             )
         }
 

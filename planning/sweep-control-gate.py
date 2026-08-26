@@ -90,6 +90,7 @@ import argparse
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -101,7 +102,10 @@ CONTROL_TIMEOUT = 120
 # Four readers, named. Each is one way a script announces that it treats a zero as an answer.
 MARKERS: dict[str, re.Pattern] = {
     "V1": re.compile(r"grep\s+-[a-zA-Z]*[cqL]"),
-    "V2": re.compile(r"(==\s*0\b|!=\s*0\b|-eq\s+0\b|\bif\s+not\s+\w*(?:count|hits|matches|found))"),
+    # `len(...) == 0` used to fire V2 *and* V4, so one statement reached the two-marker threshold
+    # on its own and the "two independent signals" claim was false for that shape
+    # (`gemini-3.7-flash-high`, 2026-08-26, File 2 finding b1). V2 now excludes what V4 owns.
+    "V2": re.compile(r"(?<!\))\s(?:==\s*0\b|!=\s*0\b|-eq\s+0\b)|\bif\s+not\s+\w*(?:count|hits|matches|found)"),
     "V3": re.compile(r"\b(?:sweep|absence|absent|no instance|nothing found|returns 0)\b", re.I),
     "V4": re.compile(r"len\([^)]*\)\s*==\s*0|\bnot\s+\w*(?:rows|sites|hits)\b"),
 }
@@ -170,6 +174,12 @@ def run_control(root: str, entry: dict) -> tuple[bool, str]:
     command = entry.get("control")
     if not command:
         return False, "disposition is `control` but no command is declared"
+    # A registry written by hand naturally carries a string. Splitting it here rather than handing
+    # it to `subprocess` whole is what stops every string-formed control failing with
+    # FileNotFoundError and reading as a rotted control (`gemini-3.7-flash-high`, 2026-08-26,
+    # File 2 finding d2).
+    if isinstance(command, str):
+        command = shlex.split(command)
     try:
         done = subprocess.run(command, capture_output=True, text=True, cwd=root,
                               timeout=CONTROL_TIMEOUT)
@@ -275,6 +285,22 @@ def report(root: str) -> int:
               f"above: {undecodable}")
     print()
 
+    if corpus == 0:
+        print("INCONCLUSIVE sweep-control: `git ls-files` returned no script at all. A clean")
+        print("      verdict over an empty corpus is a pass because nothing was measured.")
+        return 3
+
+    print("What discovery does NOT reach, printed rather than implied:")
+    print("  * files that are not `.py` or `.sh` — an extensionless executable, `.zsh`, a node")
+    print("    script. They are outside D0 entirely, so they are outside every figure above.")
+    print("  * idiomatic absence checks these four readers do not spell: `if not results:`,")
+    print("    `assert not errors`, a bare `if count == 0:` with no other marker. They fall below")
+    print("    the threshold and are not discovered.")
+    print("  * whether a declared control is a real control. This runs it and reads its exit code;")
+    print("    a command that exits 0 without testing anything passes. `proves` records the intent")
+    print("    in prose and this gate does not verify it.")
+    print()
+
     entries, registry_error = load_registry(root)
     if registry_error:
         print(f"INCONCLUSIVE sweep-control: {registry_error}")
@@ -285,6 +311,12 @@ def report(root: str) -> int:
     findings: list[str] = []
 
     unregistered = sorted(set(found) - set(entries))
+    # An entry with a misspelled or invented disposition is in `entries`, so it is not
+    # `unregistered`; its file exists, so it is not `stale`; it is not `control`, so nothing runs.
+    # It therefore produced no finding at all, and the docstring's "silence is the only answer this
+    # gate refuses" was false for it (`gemini-3.7-flash-high`, 2026-08-26, File 2 finding d1).
+    mislabelled = sorted(path for path, entry in entries.items()
+                         if entry.get("disposition") not in DISPOSITIONS)
     tally = {kind: 0 for kind in DISPOSITIONS}
     for path, entry in entries.items():
         if entry.get("disposition") in tally:
@@ -294,6 +326,7 @@ def report(root: str) -> int:
     for kind in DISPOSITIONS:
         print(f"  {tally[kind]:4d}  {kind}")
     print(f"  {len(unregistered):4d}  UNDISPOSED — discovered and absent from {REGISTRY}")
+    print(f"  {len(mislabelled):4d}  MISLABELLED — an entry whose disposition is not one of the four")
     print()
 
     print("Declared controls, run rather than believed:")
@@ -320,6 +353,13 @@ def report(root: str) -> int:
     for path in unregistered:
         findings.append(f"{path}: discovered as a sweep ({','.join(found[path])}) with no "
                         f"disposition in {REGISTRY}")
+    for path in mislabelled:
+        findings.append(f"{path}: its disposition is "
+                        f"{entries[path].get('disposition')!r}, which is not one of "
+                        f"{DISPOSITIONS} — a word that is not a disposition is still silence")
+    for note in undecodable:
+        findings.append(f"{note}: this reader could not open the file, so it has said nothing "
+                        f"about whether it is a sweep")
 
     if findings:
         print(f"FINDINGS sweep-control: {len(findings)}\n")

@@ -105,16 +105,24 @@ Two run on every invocation, and both print above the table:
     `mock_fidelity.py` whose ledger uses a role another branch adds. It must read `EXPOSED`. The
     same fixture run with an empty added-role set must read `CLEAR`, and the control fails if those
     two agree — an instrument that answers the same either way has demonstrated nothing.
-  * a **live presence** control over the real corpus: a role known to be on each surface is injected
-    into the added set, and that surface must go from `CLEAR` to `EXPOSED`. A role that cannot exist
-    is injected and must leave it `CLEAR`. Both print the count they moved, so the zero this gate
-    reports today is measured rather than blind.
+  * a **live presence** control over the real corpus: a role a surface actually uses, and the base
+    table does not name, is committed into `VOUCHED_CONTROLS` on a **new branch of a `--local
+    --shared` clone**. To pass, it must reach the added set through `for-each-ref`, `git show` and
+    `ast.parse`, and the surface must move `CLEAR → EXPOSED` over the **real, unmodified** ledger.
+    A role no ledger contains is then planted the same way and must match nothing.
+
+    Its first version injected a role straight into the added set and checked that `intersect`
+    found it — `x in {x}` on tuples already in memory, which could not fail for any ledger with a
+    role in it and exercised none of the pipeline. The out-of-family review caught that
+    (`gemini-3.7-flash-high`, 2026-08-26), and it is worth recording plainly: **the gate against
+    checks that cannot fail was shipped containing one.**
 """
 
 from __future__ import annotations
 
 import argparse
 import ast
+import bisect
 import collections
 import os
 import re
@@ -151,7 +159,18 @@ class Git:
         return None if r.returncode else r.stdout
 
     def heads(self) -> list[str]:
+        """Local heads only, and the report says so rather than claiming every branch.
+
+        A branch that exists here only as `refs/remotes/origin/*` — a colleague's push, a PR ref —
+        is outside this set. Calling that "every active branch" would be this gate answering at the
+        wrong scope in the sentence describing how it avoids answering at the wrong scope
+        (`gemini-3.7-flash-high`, 2026-08-26, File 1 finding b2). `remotes()` measures the size of
+        that hole and every run prints it.
+        """
         return (self.out("for-each-ref", "--format=%(refname:short)", "refs/heads") or "").split()
+
+    def remotes(self) -> list[str]:
+        return (self.out("for-each-ref", "--format=%(refname:short)", "refs/remotes") or "").split()
 
     def merged_into(self, base: str) -> set[str]:
         return set((self.out("branch", "--merged", base, "--format=%(refname:short)") or "").split())
@@ -176,11 +195,27 @@ def roles_from_gate_source(source: str) -> tuple[set[str], str | None]:
     empty set, because an empty set is indistinguishable from a clean answer and this whole item
     is about that confusion.
     """
-    match = re.search(r"^VOUCHED_CONTROLS[^=]*=\s*(\{.*?^\})", source, re.S | re.M)
-    if not match:
-        return set(), "no VOUCHED_CONTROLS literal found"
+    # Parsed as a module rather than matched as text. An earlier draft anchored the closing brace
+    # at column 0 (`^\}` under re.M), which is a property of this file's current formatting rather
+    # than of Python: a formatter that indents the brace, or an inner set literal whose brace lands
+    # at column 0, would have made this report "no VOUCHED_CONTROLS literal found" — an absence
+    # produced by the reader, which is the exact class of defect this gate exists over.
+    # (`gemini-3.7-flash-high`, review of 2026-08-26, File 1 finding d3.)
     try:
-        table = ast.literal_eval(match.group(1))
+        tree = ast.parse(source)
+    except SyntaxError as error:
+        return set(), f"the module did not parse: {error}"
+    node = None
+    for statement in tree.body:
+        targets = ([statement.target] if isinstance(statement, ast.AnnAssign)
+                   else getattr(statement, "targets", []))
+        for target in targets:
+            if isinstance(target, ast.Name) and target.id == "VOUCHED_CONTROLS":
+                node = statement.value
+    if node is None:
+        return set(), "no module-level VOUCHED_CONTROLS assignment"
+    try:
+        table = ast.literal_eval(node)
     except (ValueError, SyntaxError) as error:
         return set(), f"VOUCHED_CONTROLS did not evaluate: {type(error).__name__}: {error}"
     if not isinstance(table, dict):
@@ -235,24 +270,28 @@ class SurfaceRead:
         return f"the gate reached no verdict and wrote no table — it said: {said}"
 
     def _census(self) -> None:
-        """Two readers over the same file, and both counts are reported.
+        """Two readers over the same file. **The wrap-tolerant one is the verdict's reader.**
 
-        `line_anchored` is what a `grep` sees. `collapsed` reads the file whole with every run of
-        whitespace — newlines included — reduced to one space, which is `claim-sweep.py`'s finding:
-        a line-anchored reader cannot see what a text editor wrapped. The ledger is generated and
-        does not wrap today, so the two agree; they are printed side by side anyway, because the
-        day they disagree is the day the line-anchored figure is the wrong answer and nothing else
-        would say so.
+        `collapsed` reads the file whole with every run of whitespace — newlines included — reduced
+        to one space, which is `claim-sweep.py`'s finding: a line-anchored reader cannot see what a
+        text editor wrapped. `line_anchored` is what a `grep` sees, and is kept as the comparison.
+
+        An earlier draft had these the other way round: `sites` came from the line-anchored loop and
+        the collapsed figure was computed, printed, and used by nothing — while the report said *the
+        collapsed figure is the complete one*. A `role=` split across a wrap would have incremented
+        the collapsed count, left `sites` empty, and returned CLEAR. **A decorative reader beside a
+        sentence claiming it is the complete one is this item's defect wearing this item's clothes**,
+        and it was caught by the out-of-family review rather than by me (`gemini-3.7-flash-high`,
+        2026-08-26, File 1 finding b1).
         """
-        for number, line in enumerate(self.text.splitlines(), 1):
-            for match in ROLE_KIND.finditer(line):
-                self.line_anchored += 1
-                self.sites.append((number, match.group(1), match.group(2)))
         collapsed, offsets = collapse(self.text)
+        starts = line_starts(self.text)
         for match in ROLE_KIND.finditer(collapsed):
-            self.collapsed += 1
-            _ = offsets  # line mapping is carried for the report, see `line_of`
-        self.collapsed_lines = [line_of(offsets, m.start()) for m in ROLE_KIND.finditer(collapsed)]
+            raw = offsets[match.start()] if match.start() < len(offsets) else -1
+            self.sites.append((line_of(starts, raw), match.group(1), match.group(2)))
+        self.collapsed = len(self.sites)
+        for line in self.text.splitlines():
+            self.line_anchored += len(ROLE_KIND.findall(line))
 
     @staticmethod
     def _uncovered(text: str) -> dict[str, int]:
@@ -303,8 +342,20 @@ def collapse(raw: str) -> tuple[str, list[int]]:
     return "".join(out), offsets
 
 
-def line_of(offsets: list[int], position: int) -> int:
-    return offsets[position] if position < len(offsets) else -1
+def line_starts(raw: str) -> list[int]:
+    return [0] + [index + 1 for index, char in enumerate(raw) if char == "\n"]
+
+
+def line_of(starts: list[int], raw_offset: int) -> int:
+    """The 1-indexed line holding a raw character offset.
+
+    It previously returned `offsets[position]` — a character index, not a line number, so every
+    mapped "line" was a four-digit offset into the file. Nothing consumed it, which is why it went
+    unnoticed; once the collapsed reader became the verdict's reader it became load-bearing.
+    """
+    if raw_offset < 0:
+        return -1
+    return bisect.bisect_right(starts, raw_offset)
 
 
 def read_surfaces(git: Git, refs: list[str]) -> tuple[list[SurfaceRead], list[str]]:
@@ -337,6 +388,15 @@ def read_surfaces(git: Git, refs: list[str]) -> tuple[list[SurfaceRead], list[st
 
 # ------------------------------------------------------------------------------ the verdict
 
+class Inconclusive(Exception):
+    """A verdict could not be reached. Raised so it exits 3 rather than 1.
+
+    `raise SystemExit("message")` prints the message and exits **1**, which in this gate means
+    FINDINGS — so a base ref whose table could not be read would have reported as exposure. Caught
+    by the out-of-family review (`gemini-3.7-flash-high`, 2026-08-26, File 1 finding d2).
+    """
+
+
 class Verdict:
     def __init__(self, base_roles, union_roles, added, per_branch, unreadable_branches,
                  surfaces, unreadable_surfaces, head_count, merged_count):
@@ -349,14 +409,26 @@ class Verdict:
         self.unreadable_surfaces = unreadable_surfaces
         self.head_count = head_count
         self.merged_count = merged_count
+        self.without_table: list[str] = []
 
     def status(self, surface: SurfaceRead) -> str:
         if surface.error:
             return INCONCLUSIVE
         return EXPOSED if surface.intersect(self.added) else CLEAR
 
+    #: Below this many readable surfaces the run is evidence of nothing. `mock_fidelity.py`'s
+    #: preflight rule: a property the measurement cannot compute reads as agreement on both sides.
+    FLOOR = 1
+
     def code(self) -> int:
         states = [self.status(s) for s in self.surfaces]
+        readable = sum(1 for state in states if state != INCONCLUSIVE)
+        # An empty or below-floor surface set returned 0 in an earlier draft: `EXPOSED in []` is
+        # False, so a missing or renamed fidelity directory reported CLEAN. A pass because nothing
+        # was measured is the defect this gate is named after
+        # (`gemini-3.7-flash-high`, 2026-08-26, File 1 finding c1).
+        if readable < self.FLOOR:
+            return 3
         if self.unreadable_branches or self.unreadable_surfaces or INCONCLUSIVE in states:
             return 3
         return 1 if EXPOSED in states else 0
@@ -367,20 +439,23 @@ def measure(git: Git, base: str, inject: set[str] | None = None) -> Verdict:
 
     base_source = git.show(base, GATE_FILE)
     if base_source is None:
-        raise SystemExit(f"INCONCLUSIVE role-intersection: {base}:{GATE_FILE} is not in the tree")
+        raise Inconclusive(f"{base}:{GATE_FILE} is not in the tree")
     base_roles, error = roles_from_gate_source(base_source)
     if error:
-        raise SystemExit(f"INCONCLUSIVE role-intersection: {base}:{GATE_FILE} — {error}")
+        raise Inconclusive(f"{base}:{GATE_FILE} — {error}")
 
     union = set(base_roles)
     per_branch: list[tuple[str, int, int]] = []
     unreadable_branches: list[str] = []
+    without_table: list[str] = []
     for ref in refs[1:]:
         source = git.show(ref, GATE_FILE)
         if source is None:
-            # Not an error: a branch that predates the file has no table to contribute. It is
-            # recorded so the denominator below is honest about how many refs were actually read.
-            per_branch.append((ref, 0, 0))
+            # A branch that predates the file and a branch that DELETED it are indistinguishable
+            # here, and an earlier draft recorded both as `(ref, 0, 0)` — a silent zero, which is
+            # the shape this gate exists to refuse. It is now its own printed class rather than a
+            # row in the table (`gemini-3.7-flash-high`, 2026-08-26, File 1 finding c2).
+            without_table.append(ref)
             continue
         roles, error = roles_from_gate_source(source)
         if error:
@@ -391,20 +466,34 @@ def measure(git: Git, base: str, inject: set[str] | None = None) -> Verdict:
 
     added = (union - base_roles) | (inject or set())
     surfaces, unreadable_surfaces = read_surfaces(git, refs)
-    return Verdict(base_roles, union, added, per_branch, unreadable_branches,
-                   surfaces, unreadable_surfaces, head_count, merged_count)
+    verdict = Verdict(base_roles, union, added, per_branch, unreadable_branches,
+                      surfaces, unreadable_surfaces, head_count, merged_count)
+    verdict.without_table = without_table
+    return verdict
 
 
 # ---------------------------------------------------------------------------- the live control
 
 def live_control(git: Git, base: str, verdict: Verdict) -> tuple[bool, list[str]]:
-    """Inject a role known present, then one that cannot exist, and watch the count move.
+    """Plant a role on a REAL branch of a clone, and require the real corpus to redden.
 
-    Plant a known instance, confirm the instrument sees it, then trust the zero. This runs against
-    the real corpus and mutates nothing on disk: the injection is a parameter to `measure`, so
-    there is no planted string for a later sweep to trip over — the trap `citation-gate.py` names,
-    where a control quoted inside the document it guards is matched instead of the planted instance
-    and passes for the wrong reason.
+    The first version of this control was a decoration and the out-of-family review said so
+    (`gemini-3.7-flash-high`, 2026-08-26, File 1 finding a1). It took a role out of
+    `surface.roles`, passed it back in as `inject`, and checked that `intersect` found it — which
+    reduces to `x in {x}` on tuples already parsed into memory. **It could not fail for any ledger
+    carrying at least one role**, and it exercised neither the ref walk, nor the `ast` parse of
+    another branch's table, nor the union. A control that cannot fail is the thing this item is
+    about, and it was sitting inside the gate for it.
+
+    So this plants where a real merge would. It makes a `--local --shared` clone (about a second,
+    hard-linked objects), commits a patched `VOUCHED_CONTROLS` onto a **new branch** there, and runs
+    the whole measurement against it. To pass, the planted role must reach `added` — which it can
+    only do through `git for-each-ref`, `git show` of that branch's file, `ast.parse` and the union
+    — and the surface must move from `CLEAR` to `EXPOSED` over the **real, unmodified ledgers**.
+
+    Both ends of the transition are measured. The earlier version printed `0 → {hits}` with the
+    zero hardcoded, so a surface already exposed would have had its starting state misreported
+    (same review, finding c3).
     """
     lines: list[str] = []
     ok = True
@@ -413,27 +502,97 @@ def live_control(git: Git, base: str, verdict: Verdict) -> tuple[bool, list[str]
     if not measurable:
         return False, ["  no measurable surface to plant into, so the zero above is unproved"]
 
+    # A role a surface actually uses and the base table does not name, so planting it into the
+    # table genuinely enlarges the union rather than re-stating it.
+    target = None
     for surface in measurable:
-        known = sorted(surface.roles)[0]
-        planted = measure(git, base, inject={known}).surfaces
-        match = next((p for p in planted if p.blob == surface.blob), None)
-        hits = len(match.intersect({known})) if match else 0
-        moved = hits > 0
-        ok = ok and moved
-        lines.append(
-            f"  {'sees' if moved else 'BLIND'}  {surface.path:38s} planting role={known!r} "
-            f"moved its intersection 0 → {hits} row(s)")
+        candidates = sorted(surface.roles - verdict.base_roles)
+        if candidates:
+            target = (surface, candidates[0])
+            break
+    if target is None:
+        return False, ["  every role on every surface is already in the base table, so no plant "
+                       "can enlarge the union and this control cannot run"]
+    surface, role = target
 
-    absent = "__role_that_cannot_exist__"
-    planted = measure(git, base, inject={absent})
-    stray = [(p.path, len(p.intersect({absent}))) for p in planted.surfaces if p.intersect({absent})]
-    if stray:
-        ok = False
-        lines.append(f"  FALSE   a role no ledger contains matched anyway: {stray}")
-    else:
-        lines.append(f"  quiet   planting role={absent!r} matched 0 rows on all "
-                     f"{len(planted.surfaces)} surfaces, so a hit is not automatic")
-    return ok, lines
+    before = len(surface.intersect({role})) if role in verdict.added else 0
+    if verdict.status(surface) == EXPOSED:
+        lines.append(f"  note  {os.path.basename(surface.path)} is already EXPOSED before planting")
+
+    clone = tempfile.mkdtemp(prefix="role-intersection-live-")
+    try:
+        shutil.rmtree(clone, ignore_errors=True)
+        made = subprocess.run(["git", "clone", "--local", "--shared", "-q", git.root, clone],
+                              capture_output=True, text=True)
+        if made.returncode:
+            return False, [f"  could not clone the repository to plant into: "
+                           f"{made.stderr.strip().splitlines()[-1] if made.stderr.strip() else '?'}"]
+        cloned = Git(clone)
+        # A clone of a linked worktree carries only the checked-out branch as a local head, so the
+        # base may exist here only as `origin/<base>`. Resolving it rather than assuming it is what
+        # stops this control failing for a reason that has nothing to do with the instrument.
+        resolved = next((candidate for candidate in (base, f"origin/{base}")
+                         if cloned.out("rev-parse", "--verify", "-q", candidate)), None)
+        if resolved is None:
+            return False, [f"  the clone has no {base} and no origin/{base} to plant onto"]
+        cloned.run("branch", "-f", base, resolved)
+        cloned.run("checkout", "-q", "-B", "live-control-plant", base)
+
+        source = cloned.show("live-control-plant", GATE_FILE)
+        if source is None:
+            return False, [f"  the clone has no {GATE_FILE} to plant into"]
+        patched, count = re.subn(
+            r"(VOUCHED_CONTROLS[^=]*=\s*\{\n)",
+            f'\\1    "__live_control__": {{("{role}", "text")}},\n',
+            source, count=1)
+        if count != 1:
+            return False, ["  could not patch VOUCHED_CONTROLS in the clone, so nothing was planted"]
+        with open(os.path.join(clone, GATE_FILE), "w", encoding="utf-8") as handle:
+            handle.write(patched)
+        cloned.run("add", "-A")
+        cloned.run("-c", "user.email=c@x", "-c", "user.name=c", "-c", "commit.gpgsign=false",
+                   "commit", "-q", "-m", "live control plant")
+
+        planted = measure(cloned, base)
+
+        reached = role in planted.added
+        ok = ok and reached
+        lines.append(f"  {'sees ' if reached else 'BLIND'} role={role!r} planted on a real branch "
+                     f"reached the union via for-each-ref + ast.parse "
+                     f"({'in' if reached else 'NOT in'} the added set of {len(planted.added)})")
+
+        match = next((p for p in planted.surfaces if p.path == surface.path), None)
+        # Counted against `planted.added` rather than against `{role}` directly, so the number
+        # follows the same path as the verdict. Counting it directly reported "0 → 3 row(s)" beside
+        # a status of CLEAR when the union merge was broken — a true count of the wrong quantity,
+        # sitting in the control that exists to catch exactly that.
+        after = len(match.intersect(planted.added)) if match else 0
+        moved = match is not None and after > before and planted.status(match) == EXPOSED
+        ok = ok and moved
+        lines.append(f"  {'sees ' if moved else 'BLIND'} {surface.path} moved "
+                     f"{verdict.status(surface)} → {planted.status(match) if match else 'MISSING'}, "
+                     f"intersection {before} → {after} row(s) over the real ledger")
+
+        absent_planted, count = re.subn(
+            r"(VOUCHED_CONTROLS[^=]*=\s*\{\n)",
+            '\\1    "__live_control__": {("__role_that_cannot_exist__", "text")},\n',
+            source, count=1)
+        with open(os.path.join(clone, GATE_FILE), "w", encoding="utf-8") as handle:
+            handle.write(absent_planted)
+        cloned.run("add", "-A")
+        cloned.run("-c", "user.email=c@x", "-c", "user.name=c", "-c", "commit.gpgsign=false",
+                   "commit", "-q", "--amend", "-m", "live control absence plant")
+        quiet = measure(cloned, base)
+        stray = [p.path for p in quiet.surfaces if p.intersect({"__role_that_cannot_exist__"})]
+        if stray:
+            ok = False
+            lines.append(f"  FALSE a role no ledger contains matched anyway: {stray}")
+        else:
+            lines.append(f"  quiet a role no ledger contains reached the union and matched 0 rows "
+                         f"on all {len(quiet.surfaces)} surfaces, so a hit is not automatic")
+        return ok, lines
+    finally:
+        shutil.rmtree(clone, ignore_errors=True)
 
 
 # ------------------------------------------------------------------------- the hermetic control
@@ -596,7 +755,7 @@ def report(verdict: Verdict, git: Git, base: str, run_live: bool) -> int:
     ok_live = True
     if run_live:
         ok_live, live_lines = live_control(git, base, verdict)
-        print("Live presence control (planted into the parameter, never into the corpus):")
+        print("Live presence control (planted onto a real branch of a throwaway clone):")
         print("\n".join(live_lines))
         print(f"  => {'a zero below is measured' if ok_live else 'CONTROL FAILED — a zero below is unproved'}\n")
 
@@ -604,7 +763,7 @@ def report(verdict: Verdict, git: Git, base: str, run_live: bool) -> int:
     print(f"  B1  {verdict.head_count:3d}  local heads")
     print(f"  B2  {verdict.merged_count:3d}  already merged into {base} — their additions are in the baseline")
     print(f"  B3  {len(verdict.per_branch):3d}  active refs read for a {GATE_FILE} table")
-    print(f"  B4  {len(verdict.base_roles):3d}  roles in {base}'s VOUCHED_CONTROLS (ast.literal_eval, not grep)")
+    print(f"  B4  {len(verdict.base_roles):3d}  roles in {base}'s VOUCHED_CONTROLS (ast.parse of the module, not a regex)")
     print(f"  B5  {len(verdict.union_roles):3d}  roles in the union across every active ref")
     print(f"  B6  {len(verdict.added):3d}  roles the union ADDS — the set every surface is walked against")
     if verdict.added:
@@ -612,6 +771,13 @@ def report(verdict: Verdict, git: Git, base: str, run_live: bool) -> int:
     for ref, total, adds in verdict.per_branch:
         if adds:
             print(f"      {ref} carries {total} roles, {adds} of them new")
+    remote_refs = git.remotes()
+    print(f"  B7  {len(remote_refs):3d}  refs under refs/remotes — OUTSIDE this measurement. A branch")
+    print("      that exists here only as a remote ref is not in the union above.")
+    if verdict.without_table:
+        print(f"  B8  {len(verdict.without_table):3d}  active ref(s) with no {GATE_FILE} at all — no table to")
+        print(f"      contribute, and indistinguishable here from one that deleted it: "
+              f"{', '.join(verdict.without_table)}")
     print()
 
     print("Surface set — the union of ledgers across those refs, deduplicated by blob:")
@@ -717,7 +883,12 @@ def main() -> int:
         return 0 if ok else 3
 
     git = Git(os.path.abspath(args.repo))
-    verdict = measure(git, args.base)
+    try:
+        verdict = measure(git, args.base)
+    except Inconclusive as error:
+        print(f"INCONCLUSIVE role-intersection: {error}")
+        print("      The baseline could not be established, so nothing could be measured against it.")
+        return 3
     return report(verdict, git, args.base, run_live=not args.no_live_control)
 
 

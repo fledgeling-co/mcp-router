@@ -53,18 +53,18 @@ believing the registry at `planning/sweep-controls.json`.
 ```
 D0   108  tracked .py/.sh files, vendor/ excluded
 D1    85  carrying 1+ marker(s)
-D2    58  carrying 2+ marker(s)  <= the threshold
+D2    57  carrying 2+ marker(s)  <= the threshold
 D3    18  carrying 3+ marker(s)
 D4     1  carrying 4+ marker(s)
-D5    58  discovered as absence sweeps
+D5    57  discovered as absence sweeps
 ```
 
 The count at every threshold is printed so the choice of two is visible rather than buried — one
 marker alone catches 85 of 108 and would mean nothing.
 
-The registry is a **ratchet**, for `citation-gate.py`'s reason: demanding all 58 grow a runnable
+The registry is a **ratchet**, for `citation-gate.py`'s reason: demanding all 57 grow a runnable
 control this week either never goes green or gets softened until it means nothing. So **3 control ·
-55 grandfathered · 0 undisposed**, never blended into one figure, and the gate blocks on what is new.
+54 grandfathered · 0 undisposed · 0 mislabelled**, never blended into one figure, and the gate blocks on what is new.
 **Grandfathered is a backlog with a number on it, not a pass, and the gate says so on every run.**
 
 Three controls are declared and run: `citation-gate.py --control`, `role-intersection-gate.py
@@ -117,21 +117,74 @@ ok    exit 0 / 1 / 3 are each reachable
 adds. It must read EXPOSED. The fail-if-agree row is what stops the fixture proving nothing — an
 instrument that answers the same with and without the union has demonstrated nothing.
 
-**Role gate — live presence control**, planted into the parameter rather than into the corpus, so no
-string is left for a later sweep to trip over:
+**Role gate — live presence control**, planted onto a real branch of a `--local --shared` clone:
 
 ```
-sees  harnesses  planting role='board-action'   moved its intersection 0 → 3 row(s)
-sees  insights   planting role='analyst-panel'  moved its intersection 0 → 1 row(s)
-sees  readme     planting role='badge'          moved its intersection 0 → 4 row(s)
-sees  servers    planting role='board-subtitle' moved its intersection 0 → 2 row(s)
-sees  settings   planting role='board-subtitle' moved its intersection 0 → 1 row(s)
-quiet planting role='__role_that_cannot_exist__' matched 0 rows on all 6 surfaces
+sees  role='board-action' planted on a real branch reached the union via for-each-ref + ast.parse
+sees  harnesses.ledger.md moved CLEAR → EXPOSED, intersection 0 → 3 row(s) over the real ledger
+quiet a role no ledger contains reached the union and matched 0 rows on all 6 surfaces
 ```
 
 This is what makes today's headline zero a measurement. `B6` is **0** on this tree because M16, M19
 and M22 are all merged — the gate's answer is an absence, and an absence check cannot detect its own
 blindness.
+
+## The out-of-family review, and the control that could not fail
+
+`gemini-3.7-flash-high` via `agy --new-project`, 2026-08-26, on-subject and adversarial. `grok-4.6`
+was dispatched to the same prompt and **stalled at 263 bytes with no verdict**, so it is recorded as
+a lane that did not answer rather than as agreement. That is one family, not two.
+
+**Its first finding is the one worth recording plainly: the gate against checks that cannot fail was
+shipped containing one.** The original live presence control took a role out of `surface.roles`,
+passed it back as `inject`, and checked that `intersect` found it — `x in {x}` on tuples already
+parsed into memory. It could not return `False` for any ledger carrying a single role, and it
+exercised neither the ref walk, nor the `ast` parse of another branch's table, nor the union. It
+looked exactly like a presence control and measured nothing.
+
+**Its second is worse in kind**, because it was an overclaim rather than an omission: the collapsed,
+wrap-tolerant reader computed a count that fed nothing. `sites`, `roles`, `intersect`, `status` and
+`code` all read the **line-anchored** list, so a `role=` split across a wrap would have incremented
+the collapsed figure, left `sites` empty and returned `CLEAR` — while the report printed *the
+collapsed figure is the complete one*. The wrap-tolerant reader is now the verdict's reader and the
+line-anchored count is the comparison.
+
+Everything acted on, each traceable in the source at the line that names the finding:
+
+| # | finding | what changed |
+|---|---|---|
+| F1a-1 | live control was `x in {x}` and could not fail | replaced with a plant onto a real branch of a clone; must reach `added` through `for-each-ref` + `ast.parse` |
+| F1b-1 | collapsed reader decorative while claimed complete | collapsed reader is now the verdict's reader |
+| F1d-1 | `line_of` returned a character offset, not a line | rewritten over line starts with `bisect` |
+| F1d-2 | `raise SystemExit(str)` exits **1**, which here means FINDINGS | `Inconclusive` exception routed to 3 |
+| F1d-3 | `^\}` anchored the closing brace at column 0 | `ast.parse` of the module, no regex |
+| F1c-1 | an empty surface set returned **0** | `FLOOR = 1` readable surface; below it, 3 |
+| F1c-2 | a branch with no gate file was a silent `(ref, 0, 0)` | its own printed class `B8` |
+| F1c-3 | `0 → {hits}` hardcoded the starting state | both ends measured |
+| F1b-2 | `refs/heads` only, called "every active branch" | `B7` prints the remote-ref count as outside the measurement |
+| F2d-1 | a misspelled disposition produced **no finding at all** | `MISLABELLED` class; the docstring's claim is now true |
+| F2d-2 | a string `control` crashed with `FileNotFoundError` | `shlex.split` |
+| F2b-1 | `len(x) == 0` fired V2 **and** V4, reaching the threshold alone | V2 and V4 made disjoint; D2 fell 58 → 57 |
+| F2c-1 | undecodable files were a warning, not a finding | they are findings |
+| F2c-2 | an empty corpus returned **0** | exits 3 |
+| F2a/b | no-op controls, non-`.py`/`.sh` files, idiomatic `if not results:` | printed as a named uncovered set on every run |
+
+One finding was **not** acted on and is recorded rather than argued away: `run_control` verifies an
+exit code and cannot tell a real control from `true`. `proves` records the intent in prose and this
+gate does not verify it. That limit is printed on every run.
+
+## The second red-green round, on what the review changed
+
+| # | plant | result | restored |
+|---|---|---|---|
+| C | one registry disposition misspelled `grandfather` | **exit 1**, `1 MISLABELLED`, named with the four legal words | `sweep-controls.json` byte-identical |
+| D | `ROLE_KIND` altered so the verdict's reader matches nothing | **exit 3**, `CONTROL FAILED — a zero below is unproved` | gate byte-identical |
+| E | `union \|= roles` removed — **only** the cross-branch merge broken | **exit 3**, live control `BLIND … NOT in the added set of 0` | gate byte-identical |
+
+**E is the decisive one.** It breaks nothing except the union derivation, leaves every ledger and
+every parse intact, and the *old* injection-based control would have reported `sees` on all five
+surfaces. The new one goes blind. That is the difference between a control that watches the
+instrument and one that watches itself.
 
 **Sweep gate — its own control** plants a sweep that must be discovered, a non-sweep that must not,
 and a control command that exits 1 that must be reported failing. That third one is the one that
@@ -145,7 +198,7 @@ only advantage over the written rule.
   `make mock-fidelity SURFACE=servers` exits 3 today (known-inherited).
 * **`popover` has never been measured.** Until it produces a table the role gate stands at 3 and
   stays out of `make all` — wiring a permanent 3 into `all` would mean softening it within the week.
-* **55 grandfathered sweeps.** A visible backlog with a count that may fall, not an amnesty.
+* **54 grandfathered sweeps.** A visible backlog with a count that may fall, not an amnesty.
 
 ## Hashes at the close
 

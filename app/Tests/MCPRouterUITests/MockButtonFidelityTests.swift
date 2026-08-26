@@ -172,7 +172,10 @@
             // sheet said `:disabled`, the one disabled switch in the page says `class="switch
             // disabled"`, and the rule therefore never applied to it. Both spellings now.
             guard let track = Self.ruleBody(containingSelector: ".switch.disabled", in: source) else {
-                Issue.record("the design of record dims no .switch.disabled — the class spelling the markup uses")
+                Issue
+                    .record(
+                        "the design of record dims no .switch.disabled — the class spelling the markup uses"
+                    )
                 return
             }
             #expect(track.contains("background:var(--f3)"), ".switch.disabled drops the accent track")

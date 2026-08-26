@@ -176,7 +176,7 @@ import Foundation
             case "--settle":
                 settle = take("a non-negative number", Self.nonNegative) ?? settle
             case "--document-from":
-                documentFrom = take("a URL", { URL(string: $0) }) ?? documentFrom
+                documentFrom = take("a URL") { URL(string: $0) } ?? documentFrom
             case "--document-server":
                 documentServer = take("a name", Self.nonEmpty) ?? documentServer
             case "--png":
@@ -343,7 +343,7 @@ import Foundation
             if args.surface == .popover { await shell.inboxBoard.load() }
             await boards.read(args.surface)
         }
-        return render(args, shell: shell, client: client, boards: boards, readme: await readme(args))
+        return await render(args, shell: shell, client: client, boards: boards, readme: readme(args))
     }
 
     /// What the `.readme` surface draws, and the one place this tool will talk to a real router.
@@ -375,7 +375,7 @@ import Foundation
             )
         )
         do {
-            return .document(try await source.document(for: args.documentServer))
+            return try await .document(source.document(for: args.documentServer))
         } catch {
             return .unavailable(error)
         }

@@ -14,6 +14,13 @@
 #       count alone.
 #   v4  a worktree with no commits is only dead if it is also QUIET. Age plus inactivity, not either.
 #   v5  skip a MERGED branch: merged-and-uncleaned looks identical to died-before-committing.
+#   v7  SIXTH way of being wrong: a worktree whose runner FINISHED is quiet forever, and
+#       quiet-because-done cannot be told from quiet-because-dead by any reading of the
+#       filesystem. It called `ai/m32` stalled at exactly 35m while M32 sat complete, reported and
+#       waiting to be verified. Delivery is now RECORDED in planning/goals/delivered.tsv rather
+#       than inferred, because only the orchestrator knows a runner returned — and each row names
+#       the tip it was delivered at, so a branch that moves past it is in flight again and the
+#       exemption lapses on its own.
 #   v6  TWO defects, both found 2026-08-26 while seven runners were live.
 #       (a) BLIND TO EVERY COMMITTED BRANCH. `n > 0 && continue` meant a runner that commits and
 #           then dies is invisible — which is v1's recorded failure, reintroduced by v3-v5's
@@ -88,7 +95,20 @@ if [ "$ctl_fail" -ne 0 ]; then
   echo "liveness: INCONCLUSIVE at exit 2, no count printed, because the count would be one this instrument cannot see."
   exit 2
 fi
-echo "liveness: control HELD (old=silent, fresh=alive, both age readings correct); reader agreement checked per worktree below"
+# Third arm: the delivered exemption must be tip-bound. A row naming the WRONG tip must not exempt.
+_dfile=planning/goals/delivered.tsv
+if [ -f "$_dfile" ]; then
+  _rows=$(grep -cv '^#' "$_dfile" 2>/dev/null || echo 0)
+  _bad=$(grep -v '^#' "$_dfile" | awk -F'\t' 'NF<2 {c++} END {print c+0}')
+  if [ "${_bad:-0}" -ne 0 ]; then
+    echo "liveness: $_bad malformed row(s) in $_dfile — a row without a tip would exempt unconditionally."
+    echo "liveness: INCONCLUSIVE at exit 2, no count printed."
+    exit 2
+  fi
+  echo "liveness: control HELD (old=silent, fresh=alive, both age readings correct); $_rows delivery row(s), all tip-bound"
+else
+  echo "liveness: control HELD (old=silent, fresh=alive, both age readings correct); no delivery file"
+fi
 
 while read -r path _ br; do
   case "$path" in *".worktrees/"*) ;; *) continue;; esac
@@ -96,6 +116,17 @@ while read -r path _ br; do
   seen=$((seen+1))
   if git branch --merged main --list "$b" | grep -q .; then
     echo "liveness: $b merged — worktree is cleanup, not a corpse"; continue
+  fi
+  # Delivered? Then quiet is the expected state, not evidence of death.
+  drow=$(grep -v '^#' planning/goals/delivered.tsv 2>/dev/null | awk -v b="$b" -F'\t' '$1==b {print $2"\t"$3}')
+  if [ -n "$drow" ]; then
+    dtip=$(printf '%s' "$drow" | cut -f1)
+    cur=$(git rev-parse --short "$b" 2>/dev/null)
+    if [ "$cur" = "$dtip" ]; then
+      echo "liveness: $b — delivered at $dtip, quiet is expected: not a corpse"
+      continue
+    fi
+    echo "liveness: $b — delivered at $dtip but tip is now $cur; exemption lapsed, work is in flight again"
   fi
   n=$(git log --oneline "main..$b" 2>/dev/null | wc -l | tr -d ' ')
   if [ "${n:-0}" -gt 0 ]; then thresh=$QUIET_COMMITTED_MIN; state="$n commit(s)"

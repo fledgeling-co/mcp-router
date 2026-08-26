@@ -1,0 +1,23 @@
+# Branches whose runner has RETURNED a result. Written by the orchestrator only.
+#
+# liveness-check.sh infers "is an agent working here" from file writes, because it cannot see
+# agents. That inference is wrong in one direction it cannot fix by itself: a worktree whose runner
+# FINISHED is quiet forever, and quiet-because-done is indistinguishable from quiet-because-dead by
+# any reading of the filesystem. On 2026-08-26 it called `ai/m32` stalled at exactly 35m; M32 had
+# returned a complete report and was waiting to be verified.
+#
+# So delivery is recorded rather than inferred, and only the orchestrator knows it.
+#
+# THE EXEMPTION EXPIRES BY CONSTRUCTION. Each row names the tip the branch was delivered at. If the
+# branch has moved past that tip, work is in flight again and the row stops exempting anything —
+# so this file cannot be used to silence the gate for a branch that is genuinely being worked on,
+# and a stale row degrades to no row rather than to a permanent pass.
+#
+# branch<TAB>tip-at-delivery<TAB>note
+ai/g8	b6fa962	gap-fix returned DONE; awaiting fresh-context verify
+ai/g9	30b474c	gap-fix returned DONE; awaiting fresh-context verify
+ai/g10	e619e67	gap-fix returned complete; awaiting fresh-context re-verify
+ai/m31	e6a61fb	gap-fix returned complete (4 gaps + a 5th defect); awaiting fresh-context re-verify
+ai/m32	dd43d74	built and returned; awaiting fresh-context verify
+ai/m33	1832dba	gap-fix returned, blocker since cleared on main; awaiting fresh-context verify
+ai/m30	b1c77ee	built and returned; brief renamed off a colliding id by the orchestrator

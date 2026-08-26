@@ -57,3 +57,65 @@ could not run in. The three sibling Mac lanes already did this; this one did not
 
 Measured across every run in this item: frontmost was `ghostty` at the start and at the end, and MCP
 Router never took it.
+
+## Every lane enrolled in `make acceptance`, run
+
+Eight lanes, from `Makefile:484` on `main`. The list is unchanged and in its original order — the
+brief forbids closing this by reordering, and the aggregator's `LANES` array is the same eight in
+the same sequence as the recipe it replaced.
+
+Aggregate exit **2**, `enrolled: 8  run: 8  pass: 5  fail: 0  blocked: 3`.
+
+| Lane | Exit | Verdict | What it means |
+|---|---|---|---|
+| `shells.sh` | 0 | PASS | the item's own lane, green end-to-end after five repairs — both AX needles, `#1C1C1E` on the Mac, `#FFFFFF` in the gallery, `#1C1C1E`/`#FFFFFF` on the phone |
+| `control-client.sh` | 0 | PASS | first dispatch since `shells.sh` went red |
+| `p1-auth-routes.sh` | 2 | BLOCKED | `no MCPRouterCLI at app/.build/debug/MCPRouterCLI (run: make build or swift build --package-path app)` |
+| `mac-shell.sh` | 2 | BLOCKED | `could not build the availability oracle` — two files missing from its hand-picked list; repaired, see below |
+| `r7-harness-reconciliation.sh` | 2 | BLOCKED | `no router binary at app/.build/debug/MCPRouterCLI` |
+| `m22-boards.sh` | 0 | PASS | **the enrolment M22 made deliberately, dispatched by the gate for the first time** |
+| `menu-badge-lane.sh` | 0 | PASS | first dispatch since `shells.sh` went red |
+| `menu-badge-lane-selftest.sh` | 0 | PASS | both tripwires fire, neither fires on today's dump |
+
+### What running them found that halting had hidden
+
+**`mac-shell.sh` had been blocked for four days and nothing had reached it.** Its menu availability
+oracle is built from a hand-picked five-file list, and two files it needs were missing:
+`KeyChord.swift`, which landed at `0bdfcbe` on 2026-08-22 with M20's menu bar in the same change
+that made `MenuCommand.swift` refer to `KeyChord`; and `MenuCommandAvailability.swift`, where
+`CommandContext` and `availability(in:)` actually live. The lane's own comment records this exact
+failure happening on 2026-08-21 for a different file and predicts the recurrence. What it could not
+predict is that nobody would see it, because `make acceptance` stopped at `shells.sh` four lanes
+earlier.
+
+That is the item's thesis, measured: **a lane enrolled in the gate, blocked for four days, silent.**
+
+With both files added the oracle builds, and the lane runs 11 assertions before reaching a genuine
+red:
+
+    FAIL: the window title is 'Insights', which is not a destination name (§3.7 forbids the app's name)
+
+**Reported, not fixed, and deliberately.** `Insights` is a real destination — M22 shipped the
+Harnesses and Insights boards — so §3.7 is satisfied and the lane's seven-name allow-list at
+`mac-shell.sh:346` is stale by two. The lane contradicts itself in the same run: it passes
+*9 destination rows share one height* and then *all seven destinations are in the accessibility
+tree*. Whether nine destinations is the intended set is M22's question and the allow-list is M1's
+lane, so extending it here would be changing what another item's gate asserts rather than repairing
+a broken instrument. The line taken throughout: **clear what prevents measurement, report what
+measurement finds.**
+
+`p1-auth-routes.sh` and `r7-harness-reconciliation.sh` both want `app/.build/debug/MCPRouterCLI`,
+which `make acceptance` never builds — its prerequisites are `build-mac` and `build-mac-release`
+only. Same shape as the iOS bundle in defect 5: a lane asserting against an artifact the target does
+not produce.
+
+### Rule 1 across the sweep
+
+`FRONT_BEFORE_SWEEP=ghostty`, `FRONT_AFTER_SWEEP=ghostty`. `shells.sh` asserts it itself and reports
+*MCP Router never became frontmost — 'ghostty' at the start, 'ghostty' at the end*.
+
+One exception, recorded rather than smoothed over: the **isolated** re-run of `mac-shell.sh` after
+the oracle repair read `FRONT_AFTER=MCPRouter`. That lane `fail`ed at the title assertion above,
+which sits before its own frontmost check and before its cleanup, so it left the app running and
+momentarily frontmost. Frontmost was `ghostty` again when next read, and the leftover instance was
+quit by hand. Nothing in the eight-lane sweep did this.

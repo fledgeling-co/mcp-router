@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Fail any file the repository can RUN that names a path under /Users/ or /Volumes/.
+"""Fail any file the repository can RUN that names a path under /Users or /Volumes.
 
 ## The defect this exists for
 
 `G9`. `app/Scripts/pool-mutation-gate.sh` and `planning/run-gate.sh` each began by `cd`-ing into
-`/Users/lukerhodes/Dev/mcp-router/.worktrees/R2`, guarded with `|| exit 90`. `.worktrees/R2` was
+`<home>/Dev/mcp-router/.worktrees/R2` — a literal home path, written out — guarded with `|| exit 90`. `.worktrees/R2` was
 deleted in a routine cleanup. Both scripts were 0755, both were therefore permanently dead — every
 invocation exited 90 before reaching a single check — and `planning/specs/spec-R2.md` went on
 citing one of them as a mutation gate that had run. Nothing went red, because nothing invoked them.
@@ -32,7 +32,7 @@ argument to get wrong.
 
 ## What blocks, and what is counted and let through
 
-**BLOCKS — `/Users/…` and `/Volumes/…` in a runnable file.** These name one person's home or one
+**BLOCKS — a `/Users` or `/Volumes` path in a runnable file.** These name one person's home or one
 mounted volume. No other checkout has them, and a script is the one artifact that *acts* on a path
 rather than describing one, so the failure is silent execution against nothing rather than a reader
 being confused.
@@ -51,7 +51,7 @@ being confused.
              not the decay G9 is about.
   SCRATCH    `/tmp`, `/private/tmp`, `/var/folders`, `$TMPDIR`. **`planning/foreign-path-gate.py`
              owns this axis** and is deliberately not duplicated here — see below.
-  RECORD     a `/Users/…` or `/Volumes/…` in a file that is NOT runnable. 40 tracked files at the
+  RECORD     the same, in a file that is NOT runnable. 40 tracked files at the
              commit G9 was filed against, 44 today. Most are legitimate and rewriting them would
              falsify evidence, so the figure is printed as a diagnostic and blocks nothing. The
              per-file adjudication lives in `planning/progress/G9.md`.
@@ -115,7 +115,18 @@ BLOCK = re.compile(r"(?<![A-Za-z0-9_~.-])(?P<path>/(?:Users|Volumes)/[A-Za-z0-9_
 HOME_REL = re.compile(r"(?<![A-Za-z0-9_~.-])~/[A-Za-z0-9_.]")
 SYSTEM = re.compile(r"(?<![A-Za-z0-9_~.-])/(?:Applications|opt|usr/local|Library)/")
 SCRATCH = re.compile(r"(?<![A-Za-z0-9_~.-])(?:(?:/private)?/tmp/|/var/folders/|\$TMPDIR/)")
-WAIVER = re.compile(r"path-gate:\s*ok\s*[—-]\s*(?P<reason>\S.*)")
+# The marker only; the reason is whatever follows the RIGHTMOST marker on the line. A single
+# regex with a greedy reason cannot do this: the first match swallows the rest of the line, so
+# finditer returns one hit and "the last marker" and "the first marker" are the same object.
+WAIVER = re.compile(r"path-gate:\s*ok\s*[—-]\s*")
+
+
+def waiver_reason(line):
+    """The reason after the rightmost marker, or "" when there is no marker or no reason."""
+    last = None
+    for m in WAIVER.finditer(line):
+        last = m
+    return line[last.end():].strip() if last else ""
 
 RUN_SUFFIX = frozenset(".sh .bash .zsh .py .js .mjs .cjs .rb .pl .command".split())
 
@@ -162,10 +173,13 @@ def scan(root):
         except OSError:
             continue
         for lineno, line in enumerate(text.splitlines(), 1):
+            # The RIGHTMOST marker wins: a waiver is a trailing comment, and this file's own plant
+            # strings carry marker text as data. Reading the first match let a fixture's inner
+            # marker supply the reason and printed nonsense beside a legitimate waiver.
+            reason = waiver_reason(line)
             for m in BLOCK.finditer(line):
-                w = WAIVER.search(line)
                 findings.append({"file": name, "line": lineno, "path": m.group("path"),
-                                 "waived": bool(w), "reason": w.group("reason").strip() if w else ""})
+                                 "waived": bool(reason), "reason": reason})
             if HOME_REL.search(line):
                 counts["HOME_REL"] += 1
             if SYSTEM.search(line):
@@ -193,15 +207,15 @@ def record_diagnostic(root):
 # ---------------------------------------------------------------------------- the presence control
 
 PLANTS = {
-    "block_sh": ("#!/bin/sh\ncd /Users/someone/Dev/thing || exit 90\n", "BLOCK"),
-    "block_py": ("#!/usr/bin/env python3\nP = '/Volumes/Scratch/out.png'\n", "BLOCK"),
-    "waived.sh": ("#!/bin/sh\nREF=/Users/ci/fixture  # path-gate: ok — the fixture the CI box mounts\n", "WAIVED"),
-    "bare_marker.sh": ("#!/bin/sh\nREF=/Users/ci/fixture  # path-gate: ok —\n", "BLOCK"),
+    "block_sh": ("#!/bin/sh\ncd /Users/someone/Dev/thing || exit 90\n", "BLOCK"),  # path-gate: ok — a planted fixture for the presence control; the string is the subject under test
+    "block_py": ("#!/usr/bin/env python3\nP = '/Volumes/Scratch/out.png'\n", "BLOCK"),  # path-gate: ok — a planted fixture for the presence control; the string is the subject under test
+    "waived.sh": ("#!/bin/sh\nREF=/Users/ci/fixture  # path-gate: ok — the fixture the CI box mounts\n", "WAIVED"),  # path-gate: ok — a planted fixture; its inner marker is data, not this line's waiver
+    "bare_marker.sh": ("#!/bin/sh\nREF=/Users/ci/fixture  # path-gate: ok —\n", "BLOCK"),  # path-gate: ok — a planted fixture: a bare marker with no reason, which must NOT waive
     "home_rel.sh": ("#!/bin/sh\nls ~/.claude/projects\n", "CLEAN"),
     "system.sh": ("#!/bin/sh\nexec /opt/homebrew/bin/thing\n", "CLEAN"),
     "scratch.sh": ("#!/bin/sh\necho hi > /tmp/out.log\n", "CLEAN"),
-    "notrunnable.md": ("A record citing /Users/someone/Dev/thing/evidence.png\n", "NOT_RUNNABLE"),
-    "extensionless": ("#!/bin/bash\ncd /Users/someone/x\n", "BLOCK"),
+    "notrunnable.md": ("A record citing /Users/someone/Dev/thing/evidence.png\n", "NOT_RUNNABLE"),  # path-gate: ok — a planted fixture for the presence control; the string is the subject under test
+    "extensionless": ("#!/bin/bash\ncd /Users/someone/x\n", "BLOCK"),  # path-gate: ok — a planted fixture for the presence control; the string is the subject under test
 }
 
 

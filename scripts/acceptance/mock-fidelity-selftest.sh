@@ -531,6 +531,18 @@ elif EXTRA_TEXT == "selfassert":
     open(os.path.join(root, "app/Sources/Fixture/Footer.swift"), "w").write(
         'Text("Read now ago")\n')
     pairing += "ideal\t!fixture.ideal/freshness\tapp/Sources/Fixture/Footer.swift\tgolden copy\n"
+elif EXTRA_TEXT in ("traverse", "dottraverse"):
+    # The same bypass wearing a test root's name. `app/Tests/../../app/Sources/...` satisfied a
+    # `startswith` test on the spelling while `open` landed on the implementation, and the verifier
+    # drove it through the guard that was added to close the `selfassert` case above. The `./`
+    # prefix is the second spelling, because the first draft stripped it with `lstrip("./")`.
+    os.makedirs(os.path.join(root, "app/Sources/Fixture"), exist_ok=True)
+    os.makedirs(os.path.join(root, "app/Tests"), exist_ok=True)
+    open(os.path.join(root, "app/Sources/Fixture/Footer.swift"), "w").write(
+        'Text("Read now ago")\n')
+    prefix = "./" if EXTRA_TEXT == "dottraverse" else ""
+    pairing += ("ideal\t!fixture.ideal/freshness\t"
+                + prefix + "app/Tests/../../app/Sources/Fixture/Footer.swift\tgolden copy\n")
 elif EXTRA_TEXT == "unquoted":
     # The string is in the file and is not an assertion about copy — the shape a Swift identifier
     # or a comment has.
@@ -770,6 +782,21 @@ expect "a covered-by-pair node drawing an uncompared string returns 1, not 0" 1 
 root=$SCRATCH/extra-selfassert; FIXTURE_EXTRA_TEXT=selfassert build "$root"
 expect "an oracle pointing at the implementation returns 1, not 0" 1 "$root" \
   "An oracle inside the implementation is the build asserting against its own string"
+
+# The verifier's own bypass of the guard directly above, as two cases. The `selfassert` case alone
+# plants the naive spelling, so it could never fail on a traversal: the guard tested the string and
+# `open` read the resolved path, and only one of those two was ever checked.
+root=$SCRATCH/extra-traverse; FIXTURE_EXTRA_TEXT=traverse build "$root"
+expect "an oracle reaching the implementation through .. returns 1, not 0" 1 "$root" \
+  "An oracle inside the implementation is the build asserting against its own string" \
+  "resolves to app/Sources/Fixture/Footer.swift" \
+  "!asserted as a quoted literal"
+
+root=$SCRATCH/extra-dottraverse; FIXTURE_EXTRA_TEXT=dottraverse build "$root"
+expect "the same traversal spelled with a leading ./ returns 1, not 0" 1 "$root" \
+  "An oracle inside the implementation is the build asserting against its own string" \
+  "resolves to app/Sources/Fixture/Footer.swift" \
+  "!asserted as a quoted literal"
 
 root=$SCRATCH/extra-unquoted; FIXTURE_EXTRA_TEXT=unquoted build "$root"
 expect "an oracle matching outside a quoted literal returns 1, not 0" 1 "$root" \

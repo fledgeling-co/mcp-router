@@ -1150,14 +1150,26 @@ def oracle_verdict(ctx, state: str, path: str, text: str) -> tuple[bool, str]:
         return False, "nothing asserts what it says"
     reference, _note = declared
     target = reference.split("::", 1)[0]
-    normalised = target.lstrip("./")
-    if not any(normalised.startswith(root) for root in TEST_ROOTS):
+    # Resolve the path BEFORE testing it, because the spelling and the file it opens are not the
+    # same fact. `app/Tests/../../app/Sources/MCPRouterKit/Shell/MenuCommand.swift` satisfied a
+    # `startswith` test against the raw string while `open` landed on the implementation — the
+    # third way of pointing an oracle at the file that draws the literal, and the one that wore a
+    # test root's name while doing it. `./`-prefixing did the same. Both are closed by checking the
+    # resolved path, so the root a reader sees and the bytes that are read agree by construction.
+    absolute = os.path.realpath(target if os.path.isabs(target) else os.path.join(ROOT, target))
+    relative = os.path.relpath(absolute, os.path.realpath(ROOT))
+    if relative == os.pardir or relative.startswith(os.pardir + os.sep):
         return False, (
-            f"its oracle names {reference}, which is not under {', '.join(sorted(TEST_ROOTS))}. An "
+            f"its oracle names {reference}, which resolves outside this repository entirely, to "
+            f"{absolute} — an oracle nobody reviewing this tree can read"
+        )
+    if not any(relative.startswith(root) for root in TEST_ROOTS):
+        return False, (
+            f"its oracle names {reference}, which resolves to {relative} and is not under "
+            f"{', '.join(sorted(TEST_ROOTS))}. An "
             "oracle inside the implementation is the build asserting against its own string: the "
             "file carries the literal because the file is what draws it"
         )
-    absolute = target if os.path.isabs(target) else os.path.join(ROOT, target)
     if not os.path.exists(absolute):
         return False, f"its oracle names {reference}, and there is no file at {target}"
     try:

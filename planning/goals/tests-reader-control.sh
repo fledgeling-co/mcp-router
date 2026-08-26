@@ -8,6 +8,12 @@
 #
 # Second arm: a real swift-testing issue line MUST match, so the fixture cannot be satisfied by a
 # pattern that matches nothing at all.
+#
+# The fixture names FixtureOnlyTests.swift, which is not a file in this tree, and that is
+# deliberate. The first version used a real tracked test file, and `planning/citation-gate.py`
+# correctly read the synthetic log line as a citation into the repository — adding a bare-citation
+# row to the ratchet for a pointer that was never a claim about anything. Fixture data that looks
+# like a citation IS a citation to every reader that cannot ask what it was for.
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 2
 # The pattern is EXTRACTED from tests-check.sh, never copied. A copied pattern passes this control
@@ -32,9 +38,9 @@ green=$(cat <<'LINES'
 LINES
 )
 red=$(cat <<'LINES'
-✘  Test "the one that broke" recorded an issue at CallbackLifecycleTests.swift:238: Expectation failed
+✘  Test "the one that broke" recorded an issue at FixtureOnlyTests.swift:238: Expectation failed
 􀢄  Test run with 1980 tests in 252 suites failed after 10.627 seconds with 1 issue.
-Foo.swift:12:5: error: cannot find 'Bar' in scope
+FixtureOnly.swift:12:5: error: cannot find 'Bar' in scope
 LINES
 )
 

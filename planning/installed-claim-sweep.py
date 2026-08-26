@@ -105,6 +105,12 @@ RECORDS = (
 # blocking. `planning/verification/` holds nothing on this branch yet; the glob is what makes a
 # verdict landing there report as `record` on the day it lands.
 QUOTING = (
+    # `G7`'s note quotes the text at "`installed_plugins.json` records",
+    # `planning/progress/G5.md:159` at `a9603e5`, in order to record which phrase a citation relied
+    # on. It asserts nothing about what the cache holds — the point of the quotation is that the
+    # sentence is NOT in the file any more — so it belongs here for the same reason the gap-fix
+    # notes below do. Added 2026-08-25 with the note.
+    "planning/progress/G7.md",
     "planning/progress/G5-gapfix-2.md",
     "planning/progress/G5-gapfix-3.md",
     "planning/progress/G5-gapfix-4.md",

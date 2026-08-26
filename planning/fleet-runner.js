@@ -13,7 +13,7 @@ if (a.items.length > 8)
 
 // The repo root is DERIVED, never pinned (G9). This module runs from the checkout it dispatches
 // for, so cwd is the anchor; `args.repoRoot` overrides when the caller knows better. A literal
-// /Users/... here was correct on one machine and silently wrong on every other — and a runner
+// a hardcoded home path here was correct on one machine and silently wrong on every other, and a
 // prompt is the worst carrier for one, because a runner obeys the path it is given rather than
 // checking that it still exists.
 const REPO_ROOT = a.repoRoot || (typeof process !== 'undefined' && process.cwd ? process.cwd() : '.')

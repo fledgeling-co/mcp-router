@@ -17,7 +17,7 @@ import websockets
 BROWSER = "ws://127.0.0.1:9334/devtools/browser"
 
 # Derived, never pinned: this file sits at planning/test-campaign/evidence/runs/, so the
-# repository root is four parents up. A literal /Users/... path here is correct only on the
+# repository root is four parents up. A hardcoded home path here is correct only on the
 # machine that wrote it, and says nothing when it stops being — see G9.
 ROOT = Path(__file__).resolve().parents[4]
 if not (ROOT / "design" / "mocks" / "prototype.html").exists():

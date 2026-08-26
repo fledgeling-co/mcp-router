@@ -66,7 +66,7 @@ case_is() {
   fi
 }
 
-REPO='/Users/someone/Dev/mcp-router'
+REPO='/Users/someone/Dev/mcp-router'  # path-gate: ok — a fictitious cwd fed to the normaliser under test; nothing opens it
 
 # build <out> <cwd> <project>  — one record, cwd and project as given
 build() {

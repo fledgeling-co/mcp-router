@@ -1,7 +1,7 @@
 # M23 — out-of-family review, gpt-5.6-sol at high effort
 
 Lane: `codex exec -m gpt-5.6-sol -c model_reasoning_effort=high -s read-only`, run 2026-08-21 from
-the M23 worktree against `/tmp/m23.diff` (5518 lines) plus the spec and brief. The reviewer was
+the M23 worktree against `/tmp/m23.diff` (gone) (5518 lines) plus the spec and brief. The reviewer was
 briefed adversarially — told to refute, and told that finding nothing is a failed review.
 
 ORCHESTRATOR.md recorded this lane as unavailable until 2026-08-20. It is back: the `-o` file came

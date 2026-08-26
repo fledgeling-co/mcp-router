@@ -163,7 +163,7 @@ quiet descope. A packaging follow-on is reported to the orchestrator.
 ## Gap-fix — 2026-08-14
 
 Closes the findings from the Phase D out-of-family completeness critic (`gpt-5.6-sol`, `max`
-effort, read-only, wire-verified — `/tmp/gate-F1-critic.md`), whose verdict on the first
+effort, read-only, wire-verified — `/tmp/gate-F1-critic.md` (gone)), whose verdict on the first
 implementation was **MATERIAL DEFECTS**. Every finding below is resolved in code on `ai/f1`, with
 the evidence that was actually run.
 

@@ -281,7 +281,7 @@ P6 and P7 follow P5. Cap: three concurrent implementation agents, none of which 
 ## Codex cross-family plan review — 2026-08-14
 
 Reviewer: `gpt-5.6-sol`, read-only, `max` effort, one call over the spec, this plan and all four
-reference files — `/tmp/gate-R3-plan.md`. **Wire header captured and verified**
+reference files — `/tmp/gate-R3-plan.md` (gone). **Wire header captured and verified**
 (`model: gpt-5.6-sol`, `reasoning effort: max`, workdir `.worktrees/R3`); 12,739 bytes returned.
 **Verdict: MATERIAL DEFECTS — 29 findings.**
 
@@ -333,7 +333,7 @@ specify even where the handler implements it. The ones that are genuinely undone
 ### Phase D completeness critic — LANE FAILURE, downgraded in-family
 
 Two attempts, both `gpt-5.6-sol` at `max`, both with the wire header verified and both returning
-**no `-o` file**: `/tmp/gate-R3-phaseD{,2}.log`. The cause is diagnosed rather than guessed — the
+**no `-o` file**: `/tmp/gate-R3-phaseD{,2}.log` (gone). The cause is diagnosed rather than guessed — the
 model announced *"I'm using the code-review skill"* and emitted that skill's own workflow
 documentation instead of the audit. The second attempt prefixed an explicit instruction to ignore
 every `AGENTS.md`, `CLAUDE.md` and skill file in the repository, and it was hijacked the same way.

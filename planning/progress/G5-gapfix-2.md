@@ -28,7 +28,7 @@ tip — by moving the new document out of the tree and running the same command 
 right technique, and it is why the 285 figure is trustworthy. The document never came back.
 
 **No reading in gap-fix 1's gate table is affected, and that is measured rather than assumed.** All
-five saved `make lint` captures under `/tmp/g5gf/` — 15:31, 15:37, 15:43, 15:48 and 15:52 — read
+five saved `make lint` captures under `/tmp/g5gf/` (gone) — 15:31, 15:37, 15:43, 15:48 and 15:52 — read
 `0/542 files require formatting, 285 files skipped`. Every gate whose output that table records ran
 with the file present; the 284 probe saved no capture and ran after the last of them. So the window
 in which the tree was missing its own record contains no recorded gate.
@@ -69,7 +69,7 @@ The **DISPATCH — WORKTREE SUBMODULE** hazard row said *"the pin's 0.5.0 and th
 read 58 of 76"*. The measurement is right and the tense is not: 0.9.1 is a version the cache once held,
 not what the cache holds.
 
-Measured here against a `cp -R` copy of the registry under `/tmp/g5gf2/`, so the campaign directory was
+Measured here against a `cp -R` copy of the registry under `/tmp/g5gf2/` (gone), so the campaign directory was
 never the target:
 
 | cache tree | `.claude-plugin/plugin.json` | `strict-check.py` on today's registry |
@@ -119,12 +119,12 @@ fourth was found here.
 
 ## The sweep
 
-Gap-fix 1's sweep at `/tmp/g5gf/sweep.py` is **unchanged and re-run against the edited tree** — 27
+Gap-fix 1's sweep at `/tmp/g5gf/sweep.py` (gone) is **unchanged and re-run against the edited tree** — 27
 present, 2 absent, 11 controls, exit 0. Leaving it alone is deliberate: its note describes it by those
 counts, and editing it would make that description stale while removing the evidence that this pass did
 not break gap-fix 1's corrections.
 
-This pass has its own at `/tmp/g5gf2/sweep2.py`, same shape, over the three corrections and the four
+This pass has its own at `/tmp/g5gf2/sweep2.py` (gone), same shape, over the three corrections and the four
 register rows: **14 present, 2 absent, 8 controls, exit 0.**
 
 **Armed in both directions rather than asserted.** `grep -Fc` returns **0** on all three wrap controls
@@ -153,7 +153,7 @@ strongest evidence back in question for no reading it could change.
 |---|---|---|
 | `planning/ledger-reconcile.py` | **reconciled — no findings across A–L**, exit 0 | 0 across A–L ✔ |
 | `/tmp/g5gf/sweep.py` — gap-fix 1's, unchanged | 27 present, 2 absent, 11 controls, **exit 0** | exit 0 ✔ |
-| `/tmp/g5gf2/sweep2.py` — this pass's | 14 present, 2 absent, 8 controls, **exit 0** | exit 0 ✔ |
+| `/tmp/g5gf2/sweep2.py` (gone) — this pass's | 14 present, 2 absent, 8 controls, **exit 0** | exit 0 ✔ |
 
 **Every denominator the reconciler moved is accounted for by the four register rows.** Against gap-fix
 1's saved capture at 15:52:

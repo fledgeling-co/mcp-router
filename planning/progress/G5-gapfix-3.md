@@ -187,7 +187,7 @@ Measured on this branch tip at load 156–191, so no timing here is representati
 | `make lint` — `no-harness-config-writes` | 327 examined, 8 name a config, 22 write, 8 in the seam, none writes one | — |
 | `make lint` — selftest | **27 case(s) held** | held ✔ |
 | `planning/ledger-reconcile.py` | **exit 1** — check E, `G4-B (ai/g4b)` | pre-existing, see below |
-| `/tmp/g5gf3/sweep3.py` | 22 present, 9 absent, 5 controls, **exit 0**; 7 planted faults give 10 `FAIL` | exit 0 ✔ |
+| `/tmp/g5gf3/sweep3.py` (gone) | 22 present, 9 absent, 5 controls, **exit 0**; 7 planted faults give 10 `FAIL` | exit 0 ✔ |
 | `vendor/test-campaign` checksum | `b9acf616…`, three ways | matches ✔ |
 
 **The reconciler's exit 1 is not this pass's.** Run against a detached worktree at `a9603e5` and
@@ -217,7 +217,7 @@ under this concurrency; not re-run.
 
 ## The sweep
 
-`/tmp/g5gf3/sweep3.py` — **22 present, 9 absent, 5 controls, exit 0** against the tree. Needles are
+`/tmp/g5gf3/sweep3.py` (gone) — **22 present, 9 absent, 5 controls, exit 0** against the tree. Needles are
 matched with runs of whitespace collapsed to one space, so a claim that hard-wraps mid-sentence is
 still found.
 
@@ -230,7 +230,7 @@ gap-fix 2's correction block, so an over-eager absent row cannot pass by deletin
 was withdrawn. Each control is keyed to one file — `D-g5-b`'s limit, and still true here.
 
 **A fixture proves only the faults it carries**, so the sweep was run against a mutated copy at
-`/tmp/g5gf3/mut/` with seven faults planted. Seven faults, **ten `FAIL` rows, exit 1**, every other
+`/tmp/g5gf3/mut/` (gone) with seven faults planted. Seven faults, **ten `FAIL` rows, exit 1**, every other
 row `ok` — and all five controls still `ok`, which is what distinguishes a control from noise:
 
 | planted | rows it fired |

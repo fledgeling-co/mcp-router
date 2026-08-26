@@ -24,7 +24,7 @@ Three of the brief's figures were re-measured on `0e5ff49` before planning, and 
   `/Users/lukerhodes/Dev/mcp-router/.worktrees/M20` — one machine's absolute path, in a public
   repository.
 - **Some `/tmp` instruments in the G5 family survived and one is already committed.**
-  `planning/installed-claim-sweep.py` is the committed successor of the `/tmp/g5-mut*.py` family.
+  `planning/installed-claim-sweep.py` is the committed successor of the `g5-mut` scratch family.
   So the R17 precedent was followed later in the same item's life, which is why the fix is
   *unenforced* rather than *unknown*.
 

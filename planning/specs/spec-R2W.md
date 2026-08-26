@@ -353,7 +353,7 @@ Logged as `codex: usage limit -> claude (downgrade)`. The review below is in-fam
 evidence** — not a pass, and not a reason to have skipped the review.
 
 **Verdict on the first draft: REJECT** — 2 critical, 3 high, 6 medium, 2 low. Report at
-`/tmp/r2w-plan-review.md`. Every finding is dispositioned; none is silent. The spec and plan above
+`/tmp/r2w-plan-review.md` (gone). Every finding is dispositioned; none is silent. The spec and plan above
 are the rewrite.
 
 | # | Finding | Disposition |
@@ -379,7 +379,7 @@ really do make the nested acquire block (C1).
 ### Phase D completeness critic — in-family (logged downgrade), verdict ACCEPT
 
 Same measured codex unavailability, same `codex: usage limit -> claude (downgrade)` line. Report at
-`/tmp/r2w-phased.md`. **No critical and no high finding.** The critic executed the suites itself
+`/tmp/r2w-phased.md` (gone). **No critical and no high finding.** The critic executed the suites itself
 (33 tests, 6 suites) and looked specifically for a path that could damage a real machine, finding
 none. Every finding is dispositioned; four changed code.
 

@@ -40,7 +40,7 @@ Both runs below are the **identical tree** (`main` at `317d957`), the same gate,
 The worktree needed `npm install && npm run build` first: `dist/` and `node_modules/` are
 gitignored, so a fresh worktree has no reference to compare against and all ten lanes exit 2.
 
-Logs: `/tmp/p4-before-root.txt`, `/tmp/p4-before-worktree.txt`.
+Logs: `/tmp/p4-before-root.txt` (gone), `/tmp/p4-before-worktree.txt` (gone).
 
 | | repo root `mcp-router` | worktree `.worktrees/P4` |
 |---|---|---|
@@ -82,8 +82,8 @@ the cutover decision gets taken.
 D6 asserts five concurrent callers share one lease, so `callsServed` reads 1. A reading of 4 means
 four of the five acquired separately. Measured rather than assumed: **the pool lane run in
 isolation, four times from the repo root and four times from the worktree — 8 of 8 read
-`callsServed=1`, exit 0, from both directories** (`/tmp/p4-pool-root-{1..4}.log`,
-`/tmp/p4-pool-wt-{1..4}.log`). The `4` was read inside a full gate run, with nine other lanes and a
+`callsServed=1`, exit 0, from both directories** (`/tmp/p4-pool-root-{1..4}.log` (gone),
+`/tmp/p4-pool-wt-{1..4}.log` (gone)). The `4` was read inside a full gate run, with nine other lanes and a
 second runner's worktree live on the machine.
 
 So it is contention-sensitive, not directory-sensitive, and it is **not filed as flaky** — that
@@ -297,8 +297,8 @@ than at the census.
 
 Lane: `grok --model grok-4.6 -p` (out-of-family; codex is account-limited to 2026-08-20 and was not
 probed). Smoke-tested before use, because grok exits 0 when session init fails — the probe returned
-real content, not an error payload. Prompt `/tmp/p4-spec-review-prompt.txt`, response
-`/tmp/p4-spec-review.txt`. Verdict **AMEND**, 6 findings.
+real content, not an error payload. Prompt `/tmp/p4-spec-review-prompt.txt` (gone), response
+`/tmp/p4-spec-review.txt` (gone). Verdict **AMEND**, 6 findings.
 
 | # | Finding | Disposition |
 |---|---|---|

@@ -493,7 +493,7 @@ yet record the two windows a delta needs. A later item that wants one must first
 **Codex cross-family spec review — 2026-08-14**
 
 Reviewer: `gpt-5.6-sol`, read-only, `max` effort, in three scope-narrowed calls —
-`/tmp/gate-R3-spec-{1,2,3}.md`. **Wire header captured and verified on every call**
+`/tmp/gate-R3-spec-{1,2,3}.md` (gone). **Wire header captured and verified on every call**
 (`model: gpt-5.6-sol`, `reasoning effort: max`).
 **Verdict: MATERIAL DEFECTS — 86 findings. The clause table above is the rewrite.**
 

@@ -206,7 +206,13 @@ import Foundation
             switch surface {
             case .harnesses: await harnesses.load()
             case .insights: await insights.load()
-            case .servers, .settings, .popover: break
+            // `.readme` joins these rather than loading: `CapabilityDocumentSheet` is built from
+            // `FixtureCapabilityDocumentSource` synchronously in `body`, so there is no board model
+            // to poll. It was added to `Surface` without being added here, and because every other
+            // switch in this file uses a wildcard, this one was the only place the omission could
+            // surface — as `switch must be exhaustive`, which took the whole MCP_ROUTER_MEASURE
+            // build down and with it every rung that depends on a dump.
+            case .servers, .settings, .popover, .readme: break
             }
         }
     }

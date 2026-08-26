@@ -78,15 +78,27 @@ to the line of its *first* character in the original.
 `G4`'s seventeenth item: a wrap control **quoted, unwrapped, inside the document it guards** is
 found by the naive matcher instead of the wrapped instance, and the control then passes for the
 wrong reason and passes silently. So nothing is planted in this corpus. `--control` builds a
-throwaway git repository in a temp directory with two commits and eight planted citations, one per
-answer, runs the real classifier over it, and requires each planted answer exactly.
+throwaway git repository in a temp directory with two commits and twelve planted citations, one per
+answer, runs the real classifier over it, and requires each planted answer exactly. The printed
+count is `len(rows)`, so it cannot drift from what was actually planted.
 
-Two of the eight are the ones that matter. The **wrap** row plants an anchor that is hard-wrapped
+Two of the twelve are the ones that matter. The **wrap** row plants an anchor that is hard-wrapped
 across a newline at its target: it must classify `RESOLVES` here **and** `ABSENT` under a
 line-anchored reading of the same fixture, and the run fails if those two agree — a wrap-tolerant
 reader that would have answered the same either way has demonstrated nothing. The **plausible**
 row plants a citation whose cited line at the newer tree holds *different, plausible* text: it must
 classify `DRIFTED` rather than `ABSENT`, which is the distinction the whole item turns on.
+
+Those twelve are all one unwrapped line each, so they say nothing about the **citing** side of a
+wrap. Two further checks run beside them, and they are what the N1/N2 identity below rests on:
+
+  * a wrapped citation **token** (`a.md:` / `2` across a newline) must be found by *neither*
+    reader. `normalise` replaces a whitespace run with a single space and `CITATION` admits no
+    space, so a split token is `a.md: 2` in the collapsed view and matches nothing. The unwrapped
+    form of the same string must be found, or the check proves nothing about wrapping.
+  * a wrapped **frame** — the anchor on the line above its citation — must classify `RESOLVES`
+    read whole and something else read a line at a time. That is the citing-side wrap this half
+    actually buys, and it is why the reader takes whole files.
 
 The control runs on every invocation and prints above the table rather than behind a flag.
 
@@ -97,7 +109,7 @@ five sweeps over one phrase in one file once returned four different answers and
 four was right. Each is a different question:
 
   N1  every occurrence, line-anchored regex — what a `grep` sees
-  N2  every occurrence, wrap-tolerant — N1 plus the ones a wrap hid
+  N2  every occurrence, read from the whole file collapsed — the same tokens, by construction
   N3  N2 deduplicated by (citing file, cited path, cited line, frame)
   N4  N3 with generated files excluded — those are regenerated, not maintained
   N5  N4 whose cited path resolves to a tracked file — the checkable set
@@ -354,8 +366,18 @@ def _trim_tick(s, is_prefix):
 
 
 def citations_in(text):
-    """Every citation in one file's collapsed view, with its window. Wrap-tolerant by construction:
-    a citation split across a newline is one token here and two to a line-anchored reader."""
+    """Every citation in one file's collapsed view, with its window.
+
+    **What the collapsed view buys, and what it does not.** It does not recover a citation the wrap
+    split: `normalise` turns a whitespace run into a single space and `CITATION` admits no space, so
+    a token broken across a newline reads `a.md: 2` here and is invisible to this reader exactly as
+    it is to a line-anchored one. That is why N1 and N2 are equal by construction rather than as a
+    finding about the corpus.
+
+    What it buys is the **window**. `prefix` and `suffix` are taken from the collapsed text, so an
+    anchor phrase or a tree sha that a wrap separated from its citation is adjacent to it here and
+    is read as its frame. A line-anchored reader would call the same citation `BARE`. Both halves
+    of this are planted in `control()`."""
     norm, offsets = normalise(text)
     found = []
     for m in CITATION.finditer(norm):
@@ -511,8 +533,9 @@ def build_control_repo(d):
 
 
 def control():
-    """Eight planted citations, one per answer, through the real classifier. Nothing is planted in
-    the corpus this gate guards; see the module docstring."""
+    """Twelve planted citations, one per answer, through the real classifier, plus the two
+    citing-side wrap checks the twelve do not reach. Nothing is planted in the corpus this gate
+    guards; see the module docstring."""
     with tempfile.TemporaryDirectory() as d:
         old, new = build_control_repo(d)
         tree = Tree(d)
@@ -588,8 +611,54 @@ def control():
             failures.append("wrap negative control: the line-anchored reader found it too, so the "
                             "fixture is not actually wrapped")
 
+        # ---- the citing side, which none of the rows above reaches ----
+        #
+        # Every row above is a single unwrapped line, so the twelve say nothing about a citation a
+        # text editor has wrapped. Two different things happen there and they point opposite ways.
+
+        # A wrapped citation TOKEN is invisible to BOTH readers, by construction rather than by
+        # luck: `normalise` replaces a whitespace run with a single space and `CITATION` admits no
+        # space, so the collapsed view holds `a.md: 2` and matches nothing. This is what warrants
+        # the record's reading of `N2 == N1` as a structural identity rather than as a measurement
+        # of the corpus — and it fails here the day either of those two facts stops holding, at
+        # which point that reading has to be earned again.
+        split_token = "see `a.md:\n2` for the detail"
+        if citations_in(split_token)[0]:
+            failures.append("citing-side wrap: the collapsed reader found a wrapped citation "
+                            "token, so N2 == N1 is no longer an identity and the record is stale")
+        if CITATION.findall(split_token):
+            failures.append("citing-side wrap: the line-anchored reader found a wrapped citation "
+                            "token, which the tokeniser does not permit")
+        if len(citations_in(split_token.replace("\n", ""))[0]) != 1:
+            failures.append("citing-side wrap: the unwrapped form of the same string is not found "
+                            "either, so the two checks above prove nothing about wrapping")
+
+        # A wrapped FRAME is the citing-side wrap that does matter, and the whole reason this half
+        # reads whole files. The anchor sits on the line before its citation; collapsed, the two are
+        # adjacent and the citation resolves. Read a line at a time — which is what a line-anchored
+        # reader gets — the same citation has no anchor at all.
+        wrapped_frame = "anchor `records the version it finds`,\n`a.md:2` at `%s`" % old
+        whole = citations_in(wrapped_frame)[0]
+        one_line = citations_in(wrapped_frame.split("\n")[1])[0]
+        if not whole or not one_line:
+            failures.append("wrapped frame: the reader found no citation in the fixture at all")
+            got_whole = got_line = "—"
+        else:
+            got_whole = classify(whole[0], tree,
+                                 resolve_path(whole[0]["path"], tracked, by_base)[0])[0]
+            got_line = classify(one_line[0], tree,
+                                resolve_path(one_line[0]["path"], tracked, by_base)[0])[0]
+            if got_whole != "RESOLVES":
+                failures.append("wrapped frame: read whole, got %s, want RESOLVES" % got_whole)
+            if got_line == got_whole:
+                failures.append("wrapped frame: a line-at-a-time reader answered %s as well, so "
+                                "reading whole files has demonstrated nothing here" % got_line)
+
         print("control: %d planted citation(s) over %d classes, in a throwaway repo at %s"
               % (len(rows), len(set(r[2] for r in rows)), d))
+        print("control: citing-side wrap — a split token is invisible to both readers, so N2 == N1 "
+              "is an identity; a frame across a wrap reads %s whole, %s a line at a time"
+              % (got_whole, got_line))
         print("control: wrapped anchor reads line %s wrap-tolerant, %s line-anchored"
               % (tol or "—", naive or "— (invisible, as required)"))
         for f in failures:

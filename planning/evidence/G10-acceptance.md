@@ -119,3 +119,20 @@ the oracle repair read `FRONT_AFTER=MCPRouter`. That lane `fail`ed at the title 
 which sits before its own frontmost check and before its cleanup, so it left the app running and
 momentarily frontmost. Frontmost was `ghostty` again when next read, and the leftover instance was
 quit by hand. Nothing in the eight-lane sweep did this.
+
+### The two lanes that stayed blocked, and why
+
+`p1-auth-routes.sh` and `r7-harness-reconciliation.sh` both need
+`app/.build/debug/MCPRouterCLI`. Building it was attempted three times over roughly twenty minutes
+and refused each time by harbourmaster:
+
+    swift build --package-path app --product MCPRouterCLI
+    {"status": "REFUSED", "reason": "no berth available", "weight_wanted": 2,
+     "available": 0, "ceiling": 3, "in_use": 6,
+     "pressure": {"cpu": "critical", "memory": "tight", "overall": "critical"}}
+
+A different fleet's `.worktrees/M33` was compiling `MCPRouterKitTests`, `RouterCore` and
+`MCPRouterApp` throughout, at a load average of 78 on 16 cores. Exit 75 is scheduling information
+rather than a failing gate, so it was not looped on. **Both lanes remain BLOCKED, with the exact
+command above as the thing that would settle them** — recorded as a result, not as a pass and not as
+a failure.

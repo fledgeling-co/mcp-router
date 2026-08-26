@@ -62,7 +62,7 @@ project has now recorded three times.
 
 **What changed, and what deliberately did not.** `citations` now judges the **blocking** classes —
 `DRIFTED` and `ABSENT`, the pointers that resolve to the *wrong* text, which "the dangerous variety",
-`planning/features-to-triage/G7-a-citation-that-does-not-resolve-where-it-is-read.md:24` at `afd823a`
+`planning/features-to-triage/G7-a-citation-that-does-not-resolve-where-it-is-read.md:75` at `afd823a`
 names as the kind a reader believes. `lint` runs the whole of `make lint` and tolerates **only** the
 citation ratchet's veto. The ratchet baseline is **untouched**, `make lint` by hand still shows the
 debt, and it stays filed as owed work.

@@ -128,7 +128,25 @@ enum VectorRegistry {
         NamedVector("A25", "is-stale", "current-missing-digest"),
         NamedVector("A25", "is-stale", "current-empty-tools"),
         NamedVector("A25", "is-stale", "current-with-pending"),
-        NamedVector("A25", "is-stale", "current-empty-error")
+        NamedVector("A25", "is-stale", "current-empty-error"),
+        // M29 — a server that is declared and not served. Named rather than merely present,
+        // because a corpus that kept the count and dropped these four would still pass the floor
+        // while proving nothing about the switch.
+        //
+        // The union cases are the three ways a disabled server could leak — a fully populated
+        // manifest entry, a declared placard that normally keeps a server listed, and a caller
+        // standing inside the server's own project — plus the negative control that says the
+        // predicate is not simply refusing everything.
+        NamedVector("M29", "union-tools", "disabled-withholds-populated-tools"),
+        NamedVector("M29", "union-tools", "disabled-outranks-declared-placard"),
+        NamedVector("M29", "union-tools", "disabled-inside-its-own-project"),
+        NamedVector("M29", "union-tools", "disabled-false-still-serves"),
+        // The digest must not move when the switch does, or re-enabling re-spawns the process the
+        // user turned off to learn what the router already knew.
+        NamedVector("M29", "upstream-hash", "excluded-disabled"),
+        NamedVector("M29", "parse-server", "stdio-disabled"),
+        NamedVector("M29", "parse-server", "http-disabled"),
+        NamedVector("M29", "parse-server", "disabled-truthy-string-uncoerced")
     ]
 
     /// What a named vector must actually CONTAIN.
@@ -140,7 +158,12 @@ enum VectorRegistry {
         PinnedInput("split-tool-name", "split-1", "input", "a__b__c"), // N4, first separator
         PinnedInput("split-tool-name", "split-2", "input", "a____b"), // N4, tool is __b
         PinnedInput("visible-to", "trailing-slash-project", "cwd", "/a/b/c"), // N5
-        PinnedInput("visible-to", "prefix-needs-separator", "cwd", "/a/bc") // N5, must NOT match
+        PinnedInput("visible-to", "prefix-needs-separator", "cwd", "/a/bc"), // N5, must NOT match
+        // M29 — the case is only worth naming if it still carries the uncoerced value. `parseServer`
+        // copies `disabled` through as written, which is why `describe()` reports `!!u.disabled`
+        // rather than reading the typed field; a case quietly rewritten to `true` would agree with
+        // a port that coerced on the way in.
+        PinnedInput("parse-server", "disabled-truthy-string-uncoerced", "name", "a")
     ]
 }
 
@@ -172,7 +195,9 @@ struct VectorRegistryTests {
     /// or from the engine whose semantics the Swift reimplements.
     /// R5 adds the six auth-page vectors, so the floor rises again to 358: the ratchet is the
     /// point — a floor left at 352 would let the auth corpus be deleted without failing.
-    static let executedFloor = 358
+    /// M29 adds nine — four `union-tools`, four `parse-server` and one `upstream-hash` — for a
+    /// server that is declared and not served, so the floor rises to 367 for the same reason.
+    static let executedFloor = 367
 
     /// B81. A bare total is satisfied by any unrelated vectors, so the auth corpus is asserted
     /// **by name** as well as by count — the substitute out-of-family gate found that a floor alone

@@ -27,6 +27,20 @@
         var patchResponse: MCPServer?
         var addFailure: ControlAPIError?
         var reindexError: String?
+        /// A refusal for `patch` to throw, **carrying its own payload**.
+        ///
+        /// `patchResponse = nil` throws `.routerNotRunning`, which has no associated values — so a
+        /// test asserting that the board passes the router's own words through has nothing the
+        /// board could have dropped, and cannot fail. A `.server(status:message:hint:)` set here
+        /// does.
+        var patchFailure: ControlAPIError?
+        /// Run inside `patch`, before it answers, so a caller can observe the board **mid-write**.
+        ///
+        /// The in-flight mark is inserted before the operation and removed in a `defer` after it,
+        /// so every assertion made once `patch` has returned sees the cleared state — which is
+        /// equally true of a mechanism that never sets the mark at all. This is the only seam from
+        /// which the set state is observable.
+        var duringPatch: (@Sendable () async -> Void)?
 
         var calls: [Recorded] {
             lock.lock(); defer { lock.unlock() }
@@ -128,6 +142,8 @@
                 throw ControlAPIError.malformedResponse(detail: "\(error)")
             }
             record(Recorded(operation: "patch", server: name, body: encoded))
+            if let duringPatch { await duringPatch() }
+            if let patchFailure { throw patchFailure }
             guard let patchResponse else { throw ControlAPIError.routerNotRunning }
             return patchResponse
         }

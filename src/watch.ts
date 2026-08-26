@@ -230,7 +230,11 @@ export async function cmdWatch(opts: { verbose?: boolean } = {}): Promise<void> 
       continue;
     }
     live.push({ name, server, upstream });
-    if (isStale(manifest, upstream)) toIndex.push(upstream);
+    // A disabled server is adopted into the list and never spawned to be indexed. The
+    // watcher is an automatic sweep, so it is the router deciding rather than the user
+    // asking, and spawning a child for a server that serves nobody is what the switch
+    // exists to prevent.
+    if (!upstream.disabled && isStale(manifest, upstream)) toIndex.push(upstream);
   }
 
   // Index before adopting. A server is only written into the router's own list once it

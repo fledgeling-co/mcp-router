@@ -84,6 +84,7 @@ public enum ServerParser {
             projects: raw.member("projects")?.asArray?.map(\.jsDisplayString),
             warm: raw.member("warm")?.asBool,
             placard: placard(from: raw.member("placard")),
+            disabled: raw.member("disabled")?.asBool,
             command: nil,
             args: [],
             env: [],

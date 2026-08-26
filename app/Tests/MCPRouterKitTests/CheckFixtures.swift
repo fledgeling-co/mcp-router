@@ -19,7 +19,8 @@ enum CheckFixtures {
         authSupported: Bool = false,
         authAuthorized: Bool = false,
         placard: Placard? = nil,
-        pendingChange: PendingChange? = nil
+        pendingChange: PendingChange? = nil,
+        disabled: Bool = false
     ) -> MCPServer {
         MCPServer(
             name: name,
@@ -41,6 +42,7 @@ enum CheckFixtures {
             indexError: indexError,
             projects: [],
             warm: false,
+            disabled: disabled,
             placard: placard,
             pendingChange: pendingChange,
             auth: ServerAuth(supported: authSupported, authorized: authAuthorized),

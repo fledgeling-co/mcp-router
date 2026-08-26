@@ -25,7 +25,12 @@ public extension UpstreamPool {
 
         // A warm server is one the user has committed to paying for. Reaping it would undo the only
         // thing it was kept open to buy.
-        if config.warm == true { return }
+        //
+        // A DISABLED server is reaped even when it is warm, and this is the one place the two
+        // settings meet. `warm` says "keep paying for this"; `disabled` says "this serves nobody".
+        // Without the second term a warm server, once disabled, keeps a resident child process
+        // forever with no route to it — the opposite of what the switch is for.
+        if config.warm == true, config.disabled != true { return }
 
         let idleMs = config.idleMs ?? defaultIdleMs
         if idleMs <= 0 { return } // 0 disables reaping for this server
@@ -101,7 +106,7 @@ public extension UpstreamPool {
     /// Failures are logged and swallowed: a warm server that will not start is a problem to report,
     /// never a reason the router does not come up.
     func warmUp() async {
-        let warm = orderedNames.compactMap { upstreams[$0] }.filter { $0.warm == true }
+        let warm = orderedNames.compactMap { upstreams[$0] }.filter { $0.warm == true && $0.disabled != true }
         guard !warm.isEmpty else { return }
         await log?.record(PoolLogEvent.preOpeningWarm(count: warm.count, names: warm.map(\.name)))
         await withTaskGroup(of: Void.self) { group in

@@ -296,7 +296,12 @@
         /// not, and this board ships the control that creates the discrepancy.
         private func footer(shown: Int) -> some View {
             let header = board.header(from: state)
-            let tools = board.rows(from: state).reduce(0) { $0 + $1.tools }
+            // `indexedTools`, not `tools`. The sentence below says *indexed*, and a disabled
+            // server's tools still are: switching one off is a serving decision that never touches
+            // the manifest. Summing the served count here would report that disabling a server
+            // un-indexed it, which is the same kind of untrue claim the wording above records
+            // fixing.
+            let tools = board.rows(from: state).reduce(0) { $0 + $1.indexedTools }
             let scoped = state.servers.filter { !$0.projects.isEmpty }.count
             return VStack(alignment: .leading, spacing: ServersBoardMetrics.tightGap) {
                 Text("\(shown) of \(header.servers) servers · \(tools) tools indexed")

@@ -91,6 +91,13 @@ public struct MCPServer: Codable, Hashable, Sendable, Identifiable {
     public var indexError: String?
     public var projects: [String]
     public var warm: Bool
+    /// Declared and not served.
+    ///
+    /// **Non-optional, like `warm` and unlike `placard`.** The router reports it for every server,
+    /// so a response that omits it is a router this app should refuse to read rather than one it
+    /// should assume is fine: defaulting a missing key to `false` would draw a disabled server as
+    /// live, which is the exact class of claim `DESIGN.md` §6 forbids.
+    public var disabled: Bool
     public var placard: Placard?
     public var pendingChange: PendingChange?
     public var auth: ServerAuth
@@ -106,8 +113,18 @@ public struct MCPServer: Codable, Hashable, Sendable, Identifiable {
 
     /// Whether this server wants a human decision. Exactly the states the attention colour is
     /// allowed to mark.
+    /// **A disabled server summons nobody, and that term is the whole of M29's D11.** The three
+    /// conditions below all stay true of a server that has been switched off — a held schema change
+    /// especially, since disabling is what the held-change sheet offers — and this property is read
+    /// by the Servers filter, the sidebar badge, the menu-bar band and the readout. Without the
+    /// term, switching a server off would leave a count on the menu bar for a decision nothing can
+    /// act on and nothing is exposed to.
+    ///
+    /// The record survives and only the summons is dropped: `pendingChange` and `indexError` are
+    /// still carried, still decoded, and still shown in the inspector.
     public var needsAttention: Bool {
-        pendingChange != nil || (auth.supported && !auth.authorized) || indexError != nil
+        guard !disabled else { return false }
+        return pendingChange != nil || (auth.supported && !auth.authorized) || indexError != nil
     }
 }
 

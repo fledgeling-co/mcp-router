@@ -145,7 +145,8 @@ const projectUpstream = (u) => ({
   startupTimeoutMs: u.startupTimeoutMs ?? null,
   projects: u.projects ?? null,
   warm: u.warm ?? null,
-  placard: u.placard ?? null
+  placard: u.placard ?? null,
+  disabled: u.disabled ?? null
 });
 
 const serverCases = [
@@ -180,7 +181,15 @@ const serverCases = [
     idleMs: 5, projects: [], warm: false } },
   { id: 'stdio-defaults-empty-collections', name: 'a', raw: { command: 'x' } },
   { id: 'http-defaults-empty-headers', name: 'a', raw: { type: 'http', url: 'http://x' } },
-  { id: 'unknown-fields-ignored', name: 'a', raw: { command: 'x', nonsense: 1, alsoNonsense: { q: 2 } } }
+  { id: 'unknown-fields-ignored', name: 'a', raw: { command: 'x', nonsense: 1, alsoNonsense: { q: 2 } } },
+
+  // M29 — `disabled` reaches the upstream from both transport branches, and reaches it as
+  // written. `parseServer` copies the raw value rather than coercing it, which is why
+  // `describe()` reports `!!u.disabled` instead of reading the typed field.
+  { id: 'stdio-disabled', name: 'a', raw: { command: 'x', disabled: true } },
+  { id: 'http-disabled', name: 'a', raw: { type: 'http', url: 'https://e.com', disabled: true } },
+  { id: 'disabled-false-is-carried', name: 'a', raw: { command: 'x', disabled: false } },
+  { id: 'disabled-truthy-string-uncoerced', name: 'a', raw: { command: 'x', disabled: 'yes' } }
 ];
 
 write('parse-server', {
@@ -218,6 +227,9 @@ const hashCases = [
   { id: 'excluded-idle', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: {}, idleMs: 99 } },
   { id: 'excluded-projects', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: {}, projects: ['/x'] } },
   { id: 'excluded-placard', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: {}, placard: { reason: 'r' } } },
+  // M29 — the fourth member of the family. Disabling must not move the digest, or the toggle
+  // invalidates the cache and re-indexing re-spawns the process the user just switched off.
+  { id: 'excluded-disabled', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: {}, disabled: true } },
   // http and sse must differ even with an identical url.
   { id: 'http-transport', u: { transport: 'http', name: 'a', url: 'https://e.com', headers: {} } },
   { id: 'sse-transport', u: { transport: 'sse', name: 'a', url: 'https://e.com', headers: {} } },
@@ -440,6 +452,13 @@ const unionCases = [
   { id: 'empty-error-no-placard', servers: { a: { hash: 'h', builtAt: 't', tools: [{ name: 'one', description: 'd' }], error: '' } }, upstreams: [{ transport: 'stdio', name: 'a' }], cwd: undefined },
   { id: 'absent-entry-skipped', servers: {}, upstreams: [{ transport: 'stdio', name: 'a' }], cwd: undefined },
   { id: 'scoped-out', servers: { a: { hash: 'h', builtAt: 't', tools: [{ name: 'one' }] } }, upstreams: [{ transport: 'stdio', name: 'a', projects: ['/other'] }], cwd: '/here' },
+  // M29 — a disabled server serves nothing, and the three cases are the three ways a reader
+  // might expect it to leak: the entry is fully populated, the placard would normally keep a
+  // server listed, and the caller is inside the server's own project.
+  { id: 'disabled-withholds-populated-tools', servers: { a: { hash: 'h', builtAt: 't', tools: [{ name: 'one', description: 'd' }] } }, upstreams: [{ transport: 'stdio', name: 'a', disabled: true }], cwd: undefined },
+  { id: 'disabled-outranks-declared-placard', servers: { a: { hash: 'h', builtAt: 't', tools: [{ name: 'one', description: 'd' }] } }, upstreams: [{ transport: 'stdio', name: 'a', disabled: true, placard: { reason: 'under repair', substitute: 'other-server' } }], cwd: undefined },
+  { id: 'disabled-inside-its-own-project', servers: { a: { hash: 'h', builtAt: 't', tools: [{ name: 'one' }] } }, upstreams: [{ transport: 'stdio', name: 'a', disabled: true, projects: ['/here'] }], cwd: '/here' },
+  { id: 'disabled-false-still-serves', servers: { a: { hash: 'h', builtAt: 't', tools: [{ name: 'one', description: 'd' }] } }, upstreams: [{ transport: 'stdio', name: 'a', disabled: false }], cwd: undefined },
   { id: 'two-servers-keep-upstream-order', servers: { b: { hash: 'h', builtAt: 't', tools: [{ name: 'x' }] }, a: { hash: 'h', builtAt: 't', tools: [{ name: 'y' }] } }, upstreams: [{ transport: 'stdio', name: 'a' }, { transport: 'stdio', name: 'b' }], cwd: undefined }
 ];
 

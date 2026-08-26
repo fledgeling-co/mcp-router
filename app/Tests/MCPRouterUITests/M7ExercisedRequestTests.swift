@@ -16,7 +16,7 @@
                 idleSec: 0, command: "node", args: ["server.js"], cwd: nil, url: nil,
                 envKeys: nil, headerKeys: nil, hash: "abc123", tools: 3, toolNames: [],
                 indexedAt: "2026-08-01T10:00:00Z", indexError: nil, projects: [], warm: false,
-                placard: nil, pendingChange: nil,
+                disabled: false, placard: nil, pendingChange: nil,
                 auth: ServerAuth(supported: false, authorized: false),
                 usage: ServerUsage(calls: calls, errors: 0)
             )

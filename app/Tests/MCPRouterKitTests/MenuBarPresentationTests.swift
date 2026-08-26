@@ -21,7 +21,8 @@ struct MenuBarPresentationTests {
         indexError: String? = nil,
         running: Bool = false,
         warm: Bool = false,
-        tools: Int = 0
+        tools: Int = 0,
+        disabled: Bool = false
     ) async throws -> MCPServer {
         let source = try await FixtureControlAPIClient(.populated).servers().servers
         #expect(!source.isEmpty, "the populated fixture is empty; the recording changed")
@@ -38,6 +39,7 @@ struct MenuBarPresentationTests {
         server.state = running ? .running : .idle
         server.warm = warm
         server.tools = tools
+        server.disabled = disabled
         return server
     }
 
@@ -151,6 +153,82 @@ struct MenuBarPresentationTests {
     func quietServersAreAbsentFromTheBand() async throws {
         let quiet = try await Self.server(named: "quiet")
         #expect(MenuBarPresentation.attentionRows(from: [quiet]).isEmpty)
+    }
+
+    // MARK: - M29 oracle 15 · the band is silent about a server nobody can act on
+
+    /// The defect this guards, stated as it was measured: `causes(for:)` read `pendingChange`,
+    /// `auth` and `indexError` and never `disabled`, while `MCPServer.needsAttention` did carry the
+    /// term. So a disabled server holding a schema change produced `needsAttention == false` and
+    /// `attentionRows == ["sift|heldChange"]` at the same instant — a band row under a dot that was
+    /// not lit, opening a sheet whose `Disable` button was already dimmed. The row was a dead end
+    /// and the two figures were of different things.
+    @Test("a disabled server holding a change draws no band row and lights no dot")
+    func aDisabledServerIsNotSummonedToTheBand() async throws {
+        let off = try await Self.server(
+            named: "sift",
+            held: true,
+            authSupported: true,
+            authorized: false,
+            indexError: "spawn ENOENT",
+            disabled: true
+        )
+
+        #expect(MenuBarPresentation.AttentionCause.causes(for: off).isEmpty)
+        #expect(
+            MenuBarPresentation.attentionRows(from: [off]).map(\.id) == [],
+            "a switched-off server was drawn a band row it cannot act on"
+        )
+        #expect(!MenuBarPresentation.statusItemNeedsAttention([off]))
+        #expect(MenuBarPresentation.statusItemLabel([off]) == "MCP Router")
+
+        // The control, in the same test: the same server switched back on is one row, so the
+        // assertions above measure the switch rather than a fixture that never had a cause.
+        var on = off
+        on.disabled = false
+        #expect(MenuBarPresentation.attentionRows(from: [on]).map(\.id) == ["sift|heldChange"])
+        #expect(MenuBarPresentation.statusItemNeedsAttention([on]))
+    }
+
+    /// The invariant underneath the case above: the band lists things to look at and the dot says
+    /// whether there are any, so *for one server* they can never disagree. Asserted over the whole
+    /// cross product rather than on examples, because the defect was a term missing from one of two
+    /// expressions that are supposed to be the same condition — and only the combination
+    /// `disabled` × *a cause* exposed it.
+    @Test("the band and the dot never disagree about one server, over the cross product")
+    func theBandAndTheDotAgree() async throws {
+        var checked = 0
+        for disabled in [false, true] {
+            for held in [false, true] {
+                for unauthorised in [false, true] {
+                    for broken in [false, true] {
+                        let server = try await Self.server(
+                            named: "s",
+                            held: held,
+                            authSupported: unauthorised,
+                            authorized: !unauthorised,
+                            indexError: broken ? "spawn ENOENT" : nil,
+                            disabled: disabled
+                        )
+                        let rows = MenuBarPresentation.attentionRows(from: [server])
+                        let dot = MenuBarPresentation.statusItemNeedsAttention([server])
+                        let arm = "disabled=\(disabled) held=\(held) "
+                            + "auth=\(unauthorised) index=\(broken)"
+                        #expect(
+                            rows.isEmpty == !dot,
+                            "\(arm): band \(rows.count) rows, dot \(dot)"
+                        )
+                        #expect(
+                            (MenuBarPresentation.statusItemLabel([server]) == "MCP Router")
+                                == rows.isEmpty,
+                            "the spoken label counts a server the band does not list"
+                        )
+                        checked += 1
+                    }
+                }
+            }
+        }
+        #expect(checked == 16, "the cross product shrank")
     }
 
     /// A25's half of the routing rule, asserted on the value rather than on the view.

@@ -188,11 +188,28 @@ function buildMcpServer(
     const { server: serverName, tool } = split;
     const upstream = cfg.upstreams.find((u) => u.name === serverName);
 
-    // A scoped server is not merely hidden from the list — it does not run for a
-    // caller outside its projects. Hiding alone would leave it callable by any agent
+    // A scoped or disabled server is not merely hidden from the list — it does not run
+    // for a caller who cannot see it. Hiding alone would leave it callable by any agent
     // that learned the name from somewhere else.
+    //
+    // Two branches rather than one `isServed`, because the two refusals send the reader
+    // to different places and a single message would be true and misleading. Disabled is
+    // asked first for the same reason `isServed` asks it first: a server that is both
+    // disabled and out of scope is disabled, and telling its caller about the project
+    // would have them fix a scope that is not what stopped them.
     if (upstream) {
       const who = await identify().catch(() => ({}) as { cwd?: string });
+      if (upstream.disabled) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: 'text',
+              text: `Upstream "${serverName}" is disabled. Enable it in MCP Router to use its tools.`,
+            },
+          ],
+        };
+      }
       if (!visibleTo(upstream, who.cwd)) {
         return {
           isError: true,

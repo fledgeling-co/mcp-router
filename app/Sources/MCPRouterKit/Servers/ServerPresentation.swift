@@ -49,6 +49,19 @@ public struct ServerSubtitle: Equatable, Sendable {
     /// a parameter's clothes, counting a row down against a number the router never sent. There is
     /// no default now; see `runningSubtitle` for what an unknown horizon renders instead.
     public static func forServer(_ server: MCPServer, idleMs: Int?) -> ServerSubtitle {
+        // **First, above everything, and the position is the rule rather than a convenience.** A
+        // disabled server can simultaneously be holding a schema change, be unauthorised, carry an
+        // index error and be marked warm — the held-change sheet's own action is *disable this
+        // server*, so `disabled` and `pendingChange` together is the ordinary case rather than a
+        // corner. Every one of those lines describes something about a server that is serving
+        // nobody, and the line a person needs first is the one that says so.
+        //
+        // `--t3`, not `--t4`: `DESIGN.md`:138 reserves `--t4` for disabled *controls* and never for
+        // live text, and this is a subtitle a reader is meant to read. The row-level dim the mock
+        // draws is the view's job, not this value's.
+        if server.disabled {
+            return ServerSubtitle(text: "disabled by you", tint: .t3)
+        }
         if server.inFlight > 0 {
             return ServerSubtitle(text: "\(server.inFlight) in flight", tint: .t2)
         }
@@ -66,6 +79,17 @@ public struct ServerSubtitle: Equatable, Sendable {
         if server.warm {
             return ServerSubtitle(text: "warm · never reaped", tint: .t2)
         }
+        return restingSubtitle(server, idleMs: idleMs)
+    }
+
+    /// What a server says once nothing above it has claimed the line: its transport state, then its
+    /// scope, then the plain fact that it is not running.
+    ///
+    /// Split from `forServer` to bring that chain back under the complexity limit when M29 added a
+    /// branch to it. The cut is where the chain stops asking *is something wrong or waiting* and
+    /// starts describing an ordinary server, so the two halves are separately readable rather than
+    /// one list broken at an arbitrary point.
+    private static func restingSubtitle(_ server: MCPServer, idleMs: Int?) -> ServerSubtitle {
         switch server.state {
         case .running:
             return runningSubtitle(server, idleMs: idleMs)
@@ -122,6 +146,14 @@ public enum ResetKind: Equatable, Sendable {
 
 /// The one action a row offers, or none.
 public enum ServerRowAction: Equatable, Sendable {
+    /// Start serving this server again.
+    ///
+    /// The design of record draws the disable — a destructive text button on the held-change sheet
+    /// — and draws no way back. Shipping it that way would make the only reversal hand-editing
+    /// `servers.json`, which is a defect rather than a design decision, so this is an addition to
+    /// the mock recorded as one (`spec-M29.md` D8) rather than a reading of it. It takes the row's
+    /// existing action slot, in the same shape as `reset`.
+    case enable
     case reset(ResetKind)
     case reviewHeldChange
     case beginAuthorization
@@ -133,6 +165,7 @@ public enum ServerRowAction: Equatable, Sendable {
     /// Verb-first, and naming the action (`DESIGN.md` §6). `…` means it opens a further view.
     public var label: String {
         switch self {
+        case .enable: "Enable"
         case .reset: "Reset"
         case .reviewHeldChange: "Review…"
         case .beginAuthorization: "Sign in…"
@@ -146,6 +179,11 @@ public enum ServerRowAction: Equatable, Sendable {
     /// `not evaluated`; there is no eval field on a server anywhere in the control API and no `eval`
     /// in `src/control.ts`, so that chip has nothing behind it and §6 rules it out. Evals are M7's.
     public static func forServer(_ server: MCPServer, pendingAuth: PendingAuth?) -> ServerRowAction? {
+        // First, for the reason the subtitle is: every action below asks the user to do something
+        // about a server that is not serving anyone, and each would send a different request than
+        // the one they want. `Review…` on a disabled server opens a sheet whose own destructive
+        // action is *disable this server*, which is already done.
+        if server.disabled { return .enable }
         if server.placard != nil {
             return .reset(server.indexError != nil ? .reindex : .clearPlacard)
         }
@@ -200,7 +238,10 @@ public enum ServerFilter: String, CaseIterable, Sendable, Identifiable {
         case .all: true
         case .running: server.state == .running
         case .idle: server.state != .running
-        case .needsYou: server.needsAttention || server.placard != nil
+        // `needsAttention` already carries its own `!disabled` term, but the `placard` limb sits
+        // outside it, so this filter needs the guard as well: a user who marks a server inoperative
+        // and then switches it off has made both decisions and is being asked about neither.
+        case .needsYou: !server.disabled && (server.needsAttention || server.placard != nil)
         }
     }
 
@@ -314,48 +355,5 @@ public enum ServerSearch {
 
     private static func contains(_ haystack: String, _ needle: String) -> Bool {
         haystack.range(of: needle, options: [.caseInsensitive, .diacriticInsensitive]) != nil
-    }
-}
-
-// MARK: - The row
-
-/// One row of the board, fully resolved.
-///
-/// Identity is the server's **name**, never its index. This product's list reorders constantly as
-/// servers start and stop, and index identity bleeds state between rows when it does
-/// (`SWIFT_PRACTICES.md` §4).
-public struct ServerRowModel: Equatable, Sendable, Identifiable {
-    public let id: String
-    public let name: String
-    public let subtitle: ServerSubtitle
-    /// What the Signal Path's jack and this row's plug both draw. **The same value in both**, so
-    /// the band and the table cannot disagree about one server — which is the whole of the brief's
-    /// *"one selection, three representations"* applied to state rather than to selection.
-    public let jack: JackState
-    /// The jack's word, in full and contracted. Carried on the row model rather than derived in the
-    /// band, so the two surfaces read one computation of one server's condition.
-    public let condition: JackCondition
-    public let transport: String
-    public let tools: Int
-    /// Lifetime calls from the usage log — **not** `callsServed`, which is the current child
-    /// process's own counter and resets to zero every time the reaper closes it. A column that
-    /// dropped to zero whenever a server went idle would read as "this has never been used".
-    public let calls: Int
-    public let errors: Int
-    public let lastUsed: Date?
-    public let action: ServerRowAction?
-
-    public init(server: MCPServer, idleMs: Int?, pendingAuth: PendingAuth?) {
-        id = server.name
-        name = server.name
-        subtitle = ServerSubtitle.forServer(server, idleMs: idleMs)
-        jack = JackState.forServer(server)
-        condition = JackCondition.forServer(server, idleMs: idleMs)
-        transport = server.transport.rawValue
-        tools = server.tools
-        calls = server.usage.calls
-        errors = server.usage.errors
-        lastUsed = server.usage.lastUsed?.asControlAPIDate
-        action = ServerRowAction.forServer(server, pendingAuth: pendingAuth)
     }
 }

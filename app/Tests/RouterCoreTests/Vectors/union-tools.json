@@ -259,6 +259,108 @@
       "union": "[]"
     },
     {
+      "id": "disabled-withholds-populated-tools",
+      "servers": {
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "one",
+              "description": "d"
+            }
+          ]
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a",
+          "disabled": true
+        }
+      ],
+      "cwd": null,
+      "union": "[]"
+    },
+    {
+      "id": "disabled-outranks-declared-placard",
+      "servers": {
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "one",
+              "description": "d"
+            }
+          ]
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a",
+          "disabled": true,
+          "placard": {
+            "reason": "under repair",
+            "substitute": "other-server"
+          }
+        }
+      ],
+      "cwd": null,
+      "union": "[]"
+    },
+    {
+      "id": "disabled-inside-its-own-project",
+      "servers": {
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "one"
+            }
+          ]
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a",
+          "disabled": true,
+          "projects": [
+            "/here"
+          ]
+        }
+      ],
+      "cwd": "/here",
+      "union": "[]"
+    },
+    {
+      "id": "disabled-false-still-serves",
+      "servers": {
+        "a": {
+          "hash": "h",
+          "builtAt": "t",
+          "tools": [
+            {
+              "name": "one",
+              "description": "d"
+            }
+          ]
+        }
+      },
+      "upstreams": [
+        {
+          "transport": "stdio",
+          "name": "a",
+          "disabled": false
+        }
+      ],
+      "cwd": null,
+      "union": "[{\"name\":\"a__one\",\"description\":\"[a] d\"}]"
+    },
+    {
       "id": "two-servers-keep-upstream-order",
       "servers": {
         "b": {

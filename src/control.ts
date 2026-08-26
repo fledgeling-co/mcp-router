@@ -219,6 +219,21 @@ function describe(u: UpstreamConfig, deps: ControlDeps) {
     indexError: entry?.error,
     projects: u.projects ?? [],
     warm: !!u.warm,
+    /*
+     * `!!u.disabled`, matching `warm` above rather than reading the typed field, because
+     * `parseServer` copies the raw value through and a config saying `"disabled": "yes"`
+     * must report the same truthiness both routers' JavaScript semantics would give it.
+     *
+     * Reported for EVERY server, never omitted when false. The app decodes this as a
+     * non-optional Bool precisely so that a router which stopped sending it fails loudly
+     * instead of drawing a disabled server as live.
+     *
+     * A flat fact rather than a derived status. The app already resolves seven conditions
+     * into one row state in its own precedence chain, and a server can be disabled AND
+     * holding a schema change at once — which is the ordinary case, since disabling is
+     * what the held-change sheet offers — so an enum here could not encode it.
+     */
+    disabled: !!u.disabled,
     placard: placardFor(u, entry),
     pendingChange: entry?.pending
       ? { seenAt: entry.pending.seenAt, count: diffTools(entry.tools, entry.pending.tools).length }
@@ -486,7 +501,13 @@ export async function handleControl(
      * where that is what you mean.
      */
     if (!sub && req.method === 'PATCH') {
-      const b = (body ?? {}) as { projects?: string[]; warm?: boolean; placard?: unknown; idleMs?: number };
+      const b = (body ?? {}) as {
+        projects?: string[];
+        warm?: boolean;
+        placard?: unknown;
+        idleMs?: number;
+        disabled?: boolean;
+      };
       editConfigFile((servers) => {
         const s = servers[name];
         if (!s) return;
@@ -494,6 +515,18 @@ export async function handleControl(
         if ('warm' in b) s.warm = b.warm || undefined;
         if ('idleMs' in b) s.idleMs = b.idleMs;
         if ('placard' in b) s.placard = b.placard as RawServer['placard'];
+        /*
+         * LAST, and the position is load-bearing twice over. This object's key order is the
+         * order members are appended to the user's `servers.json`, and the Swift port is
+         * diffed against this one byte for byte; and the 400 body for a non-object PATCH
+         * names whichever key is tested first — "Cannot use 'in' operator to search for
+         * 'projects' in …" — so moving `disabled` above it would change a message that has
+         * nothing to do with this feature.
+         *
+         * Shaped like `warm` rather than like `idleMs`: falsy removes the member instead of
+         * writing `false`, so turning a server back on leaves the config as it found it.
+         */
+        if ('disabled' in b) s.disabled = b.disabled || undefined;
       });
       reload(deps);
       if (b.warm) void deps.pool.warmUp();

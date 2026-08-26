@@ -29,9 +29,21 @@
 
         /// What the menu bar needs to know to enable or dim its items.
         ///
-        /// Computed rather than stored, so it cannot disagree with the board it describes. The
-        /// tripped question is asked of the selected server's own placard, which is the same fact
-        /// the row's Reset action branches on — one source, two readers.
+        /// Computed rather than stored, so it cannot disagree with the board it describes.
+        ///
+        /// **"One source, two readers" is what this comment used to claim, and M29 ended it.** The
+        /// tripped question is still asked of the selected server's own placard alone, while
+        /// `ServerRowAction.forServer` now short-circuits on the switch above the placard
+        /// (`spec-M29.md` 11), so a tripped server the user has disabled offers `Reset Server` in
+        /// the menu bar while its own row offers `Enable`. Recorded rather than closed here, and
+        /// deliberately: `spec-M29.md` D3 decides that `MenuCommand` is untouched by that item
+        /// because the design of record draws the Router menu without a disable command and
+        /// changing it would redden M20's counted menu assertions on a surface M29 does not own;
+        /// `DEF-M29-b` carries the menu half. Dimming this one predicate would also close the
+        /// user-asked reindex route that oracle 5 deliberately keeps open for a disabled server —
+        /// `.reset` resolves to `.reindex` whenever `indexError` is set — while leaving
+        /// `Review Held Changes` live on the same selection, which `forServer` calls a dead end.
+        /// The menu bar's whole disabled behaviour is one decision, and it is not this one's.
         var menuContext: MenuCommand.CommandContext {
             let selected: Bool? = serversBoard.selection.flatMap { name in
                 guard let state = trackerState,

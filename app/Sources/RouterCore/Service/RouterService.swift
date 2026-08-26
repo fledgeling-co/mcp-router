@@ -134,17 +134,34 @@ public actor RouterService {
 
     // MARK: - Lifecycle
 
+    /// The startup warning about upstreams the manifest has no usable entry for, or `nil` when
+    /// there are none.
+    ///
+    /// **A function rather than four lines inside `start()`, so the rule is reachable.** The clause
+    /// it carries is M29's oracle line 5 — *the automatic index sweeps skip a disabled server* —
+    /// and `start()` binds a port and spawns a server, so nothing in the Swift suite could state
+    /// anything about the filter while it lived there: deleting the `disabled` term left every test
+    /// passing.
+    ///
+    /// Disabled servers are excluded from the warning rather than from the manifest. Their tools
+    /// are not "missing until index runs" — they are withheld on purpose, and naming them here
+    /// would send the reader to run `mcp-router index`, which would change nothing.
+    nonisolated static func staleManifestWarning(
+        _ manifest: Manifest, upstreams: [UpstreamConfig]
+    ) -> ServiceLogEvent? {
+        let stale = upstreams.filter { $0.disabled != true && ToolUnion.isStale(manifest, $0) }
+        guard !stale.isEmpty else { return nil }
+        return .notInManifest(count: stale.count, names: stale.map(\.name))
+    }
+
     public func start() async throws {
         // The stale-manifest warning comes **before** the token line, because the reference emits it
         // in `cmdServe` while the token is minted later inside `startRouter`. Measured, and the
         // order is part of what `parity-log.sh` diffs — a log whose lines are individually correct
         // and collectively out of order is a log nobody can diff.
         let current = await manifest.current()
-        let stale = config.upstreams.filter { ToolUnion.isStale(current, $0) }
-        if !stale.isEmpty {
-            await log.record(ServiceLogEvent.notInManifest(
-                count: stale.count, names: stale.map(\.name)
-            ))
+        if let warning = Self.staleManifestWarning(current, upstreams: config.upstreams) {
+            await log.record(warning)
         }
         if wroteToken {
             await log.record(ServiceLogEvent.wroteControlToken(path: tokenPath))

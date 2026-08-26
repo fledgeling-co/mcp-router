@@ -35,7 +35,8 @@ struct ServerPresentationTests {
         tools: Int = 0,
         toolNames: [String] = [],
         calls: Int = 0,
-        errors: Int = 0
+        errors: Int = 0,
+        disabled: Bool = false
     ) throws -> MCPServer {
         var s = try base()
         s.name = name
@@ -56,6 +57,7 @@ struct ServerPresentationTests {
         s.tools = tools
         s.toolNames = toolNames
         s.usage = ServerUsage(calls: calls, errors: errors)
+        s.disabled = disabled
         return s
     }
 

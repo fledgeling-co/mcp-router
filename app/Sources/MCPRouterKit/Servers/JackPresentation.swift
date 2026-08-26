@@ -77,6 +77,12 @@ public enum JackState: String, CaseIterable, Sendable {
     /// carrying a placard and the `.tripped` arm below catches it. `JackPresentationTests` asserts
     /// that over the cross product rather than asserting this comment.
     public static func forServer(_ server: MCPServer) -> JackState {
+        // **Above `running`, and it is the one thing that outranks it.** The plug's invariant is
+        // that it lights when a child is up — but a disabled server that happens to still have a
+        // child is being served to nobody, and the reaper is on its way to close it, so a lit plug
+        // would be telling the truth about the process and a lie about the product. Nothing else
+        // moved: the four arms below keep their order exactly.
+        if server.disabled { return .dormant }
         if server.state == .running { return .live }
         if server.placard != nil { return .tripped }
         if server.pendingChange != nil { return .held }
@@ -125,6 +131,14 @@ public struct JackCondition: Equatable, Sendable {
     /// with `warm == true`.
     public static func forServer(_ server: MCPServer, idleMs: Int?) -> JackCondition {
         let state = JackState.forServer(server)
+        // Ahead of the switch, because `disabled` is a fact about the whole server rather than a
+        // refinement of one jack state, and every arm below would otherwise need the same guard. A
+        // disabled server's plug is `.dormant` — no child, nothing lit — and its word says which
+        // kind of dormant, which is the distinction the design of record draws by giving the row
+        // `Disabled by you` where its neighbour reads `Dormant`.
+        if server.disabled {
+            return JackCondition(state: state, word: "disabled by you", contracted: "disabled")
+        }
         switch state {
         case .live:
             guard !server.warm else {

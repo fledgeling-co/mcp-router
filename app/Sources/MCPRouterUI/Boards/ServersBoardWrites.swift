@@ -66,6 +66,20 @@
             }
         }
 
+        /// Stop serving a server entirely, or start serving it again.
+        ///
+        /// One PATCH, in the same shape as `setWarm`, and deliberately **not** confirmed: it is
+        /// reversible in one press by the row's own `Enable` action and the state is visible on the
+        /// row, which is `DESIGN.md` §9's test for what needs a gate. What the router does with it
+        /// is a serving decision only — the manifest row, the digest and the approved tool surface
+        /// all survive — so nothing here is destructive in the sense that `remove` is.
+        func setDisabled(_ name: String, to disabled: Bool) async {
+            await write(name) { [client, tracker] () async throws(ControlAPIError) in
+                let updated = try await client.patch(server: name, ServerPatch(disabled: disabled))
+                await tracker.apply(updated: updated)
+            }
+        }
+
         /// Restrict a server to a set of project directories, or clear the restriction.
         ///
         /// An empty array clears it; omitting the field would leave it unchanged, which is why the
@@ -118,6 +132,8 @@
         /// Performs a row's own action, whichever it is.
         func perform(_ action: ServerRowAction, on server: MCPServer) async {
             switch action {
+            case .enable:
+                await setDisabled(server.name, to: false)
             case .reset:
                 await reset(server)
             case .reviewHeldChange:

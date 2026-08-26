@@ -54,9 +54,21 @@ extension MCPEndpoint {
             return nil
         }
 
-        // A scoped server is not merely hidden from the list — it does not run for a caller outside
-        // its projects. Hiding alone would leave it callable by any agent that learned the name.
+        // A scoped or disabled server is not merely hidden from the list — it does not run for a
+        // caller who cannot see it. Hiding alone would leave it callable by any agent that learned
+        // the name from somewhere else.
+        //
+        // Two branches rather than one `isServed`, because the refusals send the reader to
+        // different places and one message would be true and misleading. Disabled is asked first
+        // for the reason `isServed` asks it first: a server that is both disabled and out of scope
+        // is disabled, and naming the project would have its caller fix a scope that is not what
+        // stopped them.
         let identity = await currentIdentity()
+        if upstream.disabled == true {
+            return Self.toolError(
+                "Upstream \"\(serverName)\" is disabled. Enable it in MCP Router to use its tools."
+            )
+        }
         if !ToolUnion.visibleTo(upstream, cwd: identity.cwd) {
             let location = identity.cwd.map { " (\($0))" } ?? ""
             return Self.toolError(

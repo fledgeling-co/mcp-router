@@ -621,6 +621,217 @@ mut(
     "a placard can be set, cleared, or left alone",
 )
 
+# ---------------------------------------------------------------- M29: declared and not served
+#
+# Ids are DIS-*, not M29-*, deliberately: this table's ids are a mutation index in their own
+# namespace, and it already carries an "M20" that means a mutation rather than a ledger item. Two
+# things spelled the same in one file is how the earlier confusion started.
+#
+# Every arm targets the SWIFT implementation, because the suite this harness runs is the Swift one.
+# The TypeScript reference is held to the same behaviour by the vector corpus, which is generated
+# from it — so an arm that mutated the reference would change the expectation and the port together
+# and prove nothing.
+
+ROUTER_CORE = APP / "Sources" / "RouterCore"
+KIT_SERVERS = APP / "Sources" / "MCPRouterKit" / "Servers"
+
+mut(
+    "DIS-1", "M29", "unionTools asks whether the server is served, not only whether it is in scope",
+    ROUTER_CORE / "Manifest" / "ToolUnion.swift",
+    "        upstream.disabled != true && visibleTo(upstream, cwd: cwd)",
+    "        visibleTo(upstream, cwd: cwd)",
+    "the served union matches the reference",
+)
+
+mut(
+    "DIS-2", "M29", "a warm upstream that is disabled is still armed for reaping",
+    ROUTER_CORE / "Pool" / "UpstreamPoolReaping.swift",
+    "        if config.warm == true, config.disabled != true { return }",
+    "        if config.warm == true { return }",
+    "a warm upstream that is disabled IS armed for reaping",
+)
+
+mut(
+    "DIS-3", "M29", "the switch stays outside the hash material, so the digest does not move",
+    ROUTER_CORE / "Config" / "UpstreamHash.swift",
+    "    public static func hash(_ upstream: UpstreamConfig) -> String {",
+    "    public static func hash(_ upstream: UpstreamConfig) -> String {\n"
+    "        if upstream.disabled == true { return \"0000000000000000\" }",
+    # NOT "fields outside the hash material do not change the hash": that test reads the hashes
+    # RECORDED in the vector file and compares them to each other, so it pins the reference's
+    # exclusion rule and cannot see a mutation of the Swift port at all. The corpus comparison is
+    # the test that actually computes a hash here. Found by this arm reporting WRONG-TEST.
+    "the config hash matches the reference over the whole adversarial corpus",
+)
+
+mut(
+    "DIS-4", "M29", "the disabled subtitle outranks the held change rather than sitting below it",
+    KIT_SERVERS / "ServerPresentation.swift",
+    "        if server.disabled {\n"
+    "            return ServerSubtitle(text: \"disabled by you\", tint: .t3)\n"
+    "        }\n"
+    "        if server.inFlight > 0 {",
+    "        if server.inFlight > 0 {",
+    "a disabled server reads 'disabled by you' whichever else is true of it",
+)
+
+mut(
+    "DIS-5", "M29", "the PATCH allow-list still refuses a command line",
+    SRC / "ServerPatch.swift",
+    '        "projects", "warm", "idleMs", "placard", "disabled"',
+    '        "projects", "warm", "idleMs", "placard", "disabled", "command"',
+    "a fully-populated patch encodes exactly the keys the router reads",
+)
+
+mut(
+    "DIS-6", "M29", "a disabled server summons nobody, at the shared seam rather than in the board",
+    SRC / "Models.swift",
+    "        guard !disabled else { return false }\n",
+    "",
+    # One test, not two. The plan expected this single mutation to redden the board filter as well,
+    # and it does not: `ServerFilter.needsYou` carries its own `!server.disabled` term because the
+    # `placard` limb sits outside `needsAttention`. The two guards are independent, so proving both
+    # takes two arms — which is what DIS-7 below is for. Found by this arm reporting PARTIAL.
+    "a disabled server contributes zero to needsAttention",
+)
+
+mut(
+    "DIS-7", "M29", "the board filter carries its own guard, since the placard limb sits outside",
+    KIT_SERVERS / "ServerPresentation.swift",
+    "        case .needsYou: !server.disabled && (server.needsAttention || server.placard != nil)",
+    "        case .needsYou: server.needsAttention || server.placard != nil",
+    "each route into Needs you is closed by the switch on its own",
+)
+
+
+# ---------------------------------------------------------------- M29 gap-fix: eight arms for the
+# eight assertions the verifier found had no oracle.
+#
+# DIS-1..7 above proved the *implementation* of the switch. These prove the assertions added after
+# the verdict, and the shape of each is taken from what the verdict actually measured: DIS-9, DIS-10,
+# DIS-11 and DIS-15 are the exact deletions that left all 1960 tests passing, so an arm that reports
+# SURVIVED here means the gap-fix restated a clause without giving it a witness.
+
+KIT_SHELL = APP / "Sources" / "MCPRouterKit" / "Shell"
+UI_BOARDS = APP / "Sources" / "MCPRouterUI" / "Boards"
+
+mut(
+    "DIS-8", "M29", "the band consults the switch, not only the three fields under it",
+    KIT_SHELL / "MenuBarPresentation.swift",
+    "            guard !server.disabled else { return [] }\n",
+    "",
+    # Three suites, because the defect was one term missing from one of two expressions that are
+    # supposed to be the same condition, and the call site maps the unfiltered list.
+    [
+        "a disabled server holding a change draws no band row and lights no dot",
+        "the band and the dot never disagree about one server, over the cross product",
+        "a disabled server holding a change contributes no band row to the popover",
+    ],
+)
+
+mut(
+    "DIS-9", "M29", "the in-flight mark is SET during a write, not merely absent after one",
+    UI_BOARDS / "ServersBoardWrites.swift",
+    "            writesInFlight.insert(name)\n"
+    "            rowErrors[name] = nil\n"
+    "            defer { writesInFlight.remove(name) }\n",
+    "            rowErrors[name] = nil\n",
+    # The verdict's own probe: this deletion removed the whole mechanism and left 1960 tests green.
+    "the in-flight mark is set while the write runs, and it dims the row's action",
+)
+
+mut(
+    "DIS-10", "M29", "the serving process's stale warning does not name a disabled server",
+    ROUTER_CORE / "Service" / "RouterService.swift",
+    "        let stale = upstreams.filter { $0.disabled != true && ToolUnion.isStale(manifest, $0) }",
+    "        let stale = upstreams.filter { ToolUnion.isStale(manifest, $0) }",
+    [
+        "the startup warning names a stale server and never a disabled one",
+        "a router whose only stale servers are disabled warns about nothing",
+    ],
+)
+
+mut(
+    "DIS-11", "M29", "the watcher's sweep spawns no child for a server that serves nobody",
+    ROUTER_CORE / "Watch" / "WatchRun.swift",
+    "            if candidate.upstream.disabled != true,\n"
+    "               ToolUnion.isStale(manifest, candidate.upstream)\n"
+    "            {\n"
+    "                toIndex.append(candidate.upstream)\n"
+    "            }\n",
+    "            if ToolUnion.isStale(manifest, candidate.upstream) {\n"
+    "                toIndex.append(candidate.upstream)\n"
+    "            }\n",
+    "a disabled staged entry is never spawned to be indexed",
+)
+
+mut(
+    "DIS-12", "M29", "reindex is the user asking, so the switch does not stop it",
+    ROUTER_CORE / "Control" / "ControlHandler.swift",
+    '        case ("/reindex", "POST"):\n'
+    "            let outcome = await deps.indexer.index(upstream)",
+    '        case ("/reindex", "POST"):\n'
+    "            if upstream.disabled == true { return .json(200, .object([])) }\n"
+    "            let outcome = await deps.indexer.index(upstream)",
+    # An ADDED guard rather than a removed one: this is the tidy-up the route is exposed to, and
+    # the half of oracle 5 that a sweep-only test would have let through.
+    "a disabled server can still be reindexed, by the user asking for it",
+)
+
+mut(
+    "DIS-13", "M29", "the withheld count reaches a screen reader as words",
+    UI_BOARDS / "ServersBoardRow.swift",
+    '            row.tools == nil ? "\\(subtitleText), tools withheld" : subtitleText',
+    "            subtitleText",
+    "a disabled row speaks 'disabled by you' and 'tools withheld'",
+)
+
+mut(
+    "DIS-14", "M29", "the sheet's destructive button is Disable, not the Remove it shipped as",
+    UI_BOARDS / "ServerSheets.swift",
+    '            "Disable \\(serverName)"',
+    '            "Remove \\(serverName)"',
+    "the sheet's destructive button names the action and the server",
+)
+
+mut(
+    "DIS-16", "M29", "the Disable button reads its label from the function, not a second literal",
+    UI_BOARDS / "ServerSheets.swift",
+    "                Button(Self.disableLabel(serverName), role: .destructive) {",
+    '                Button("Disable \\(serverName)", role: .destructive) {',
+    # The mutant produces the SAME rendered label, so every assertion on the returned string stays
+    # green: this arm exists because an out-of-family reviewer pointed out that a static returning
+    # the right text says nothing if `body` stopped calling it.
+    "the sheet's destructive button is drawn from those two functions, not a literal",
+)
+
+mut(
+    "DIS-17", "M29", "the row publishes its spoken value from body, not only computes it",
+    UI_BOARDS / "ServersBoardRow.swift",
+    "            .accessibilityValue(accessibilityValueText)\n",
+    "",
+    # DIS-13 mutates what the property RETURNS; this one removes the line that publishes it. The
+    # two are different exposures and only the second is invisible to every runtime assertion:
+    # `.measured(...)` captures id, role, kind, frame, tokens, type and text and no accessibility
+    # value, so with this line gone the row computes the right sentence and speaks nothing. A
+    # fresh-context verifier ran this deletion and all 1977 tests stayed green.
+    "the row publishes that value from body rather than only computing it",
+)
+
+mut(
+    "DIS-15", "M29", "a refused write reaches the row in the router's own words",
+    UI_BOARDS / "ServersBoardWrites.swift",
+    "            } catch {\n"
+    "                rowErrors[name] = error\n"
+    "            }\n",
+    "            } catch {\n"
+    '                rowErrors[name] = .malformedResponse(detail: "the write did not complete")\n'
+    "            }\n",
+    # The assertion this kills used to compare a payload-free case to itself and could not fail.
+    "a refused enable renders ControlAPIError's own wording, not a new sentence",
+)
+
+
 RESULTS = []
 
 

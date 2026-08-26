@@ -127,7 +127,8 @@
         "startupTimeoutMs": null,
         "projects": null,
         "warm": null,
-        "placard": null
+        "placard": null,
+        "disabled": null
       },
       "hash": "1ec004b8c0c735d8"
     },
@@ -152,7 +153,8 @@
         "startupTimeoutMs": null,
         "projects": null,
         "warm": null,
-        "placard": null
+        "placard": null,
+        "disabled": null
       },
       "hash": "1dc92aff671aa519"
     },
@@ -178,7 +180,8 @@
         "startupTimeoutMs": null,
         "projects": null,
         "warm": null,
-        "placard": null
+        "placard": null,
+        "disabled": null
       },
       "hash": "580d0f895bc321a8"
     },
@@ -204,7 +207,8 @@
         "startupTimeoutMs": null,
         "projects": null,
         "warm": null,
-        "placard": null
+        "placard": null,
+        "disabled": null
       },
       "hash": "aa8008fe69d60ac7"
     },
@@ -230,7 +234,8 @@
         "startupTimeoutMs": null,
         "projects": null,
         "warm": null,
-        "placard": null
+        "placard": null,
+        "disabled": null
       },
       "hash": "92e203f1d1fe65e3"
     },
@@ -256,7 +261,8 @@
         "startupTimeoutMs": null,
         "projects": null,
         "warm": null,
-        "placard": null
+        "placard": null,
+        "disabled": null
       },
       "hash": "ca4426dc6ab2fd95"
     },
@@ -281,7 +287,8 @@
         "startupTimeoutMs": null,
         "projects": null,
         "warm": null,
-        "placard": null
+        "placard": null,
+        "disabled": null
       },
       "hash": "f1d3db345da5a0bd"
     },
@@ -338,7 +345,8 @@
           "reason": "broken",
           "substitute": "other",
           "until": "2026-01-01"
-        }
+        },
+        "disabled": null
       },
       "hash": "8c80029f614831f8"
     },
@@ -375,7 +383,8 @@
         "startupTimeoutMs": null,
         "projects": [],
         "warm": false,
-        "placard": null
+        "placard": null,
+        "disabled": null
       },
       "hash": "f43a0f25558f4b30"
     },
@@ -400,7 +409,8 @@
         "startupTimeoutMs": null,
         "projects": null,
         "warm": null,
-        "placard": null
+        "placard": null,
+        "disabled": null
       },
       "hash": "580d0f895bc321a8"
     },
@@ -426,7 +436,8 @@
         "startupTimeoutMs": null,
         "projects": null,
         "warm": null,
-        "placard": null
+        "placard": null,
+        "disabled": null
       },
       "hash": "91facf1233cb8a71"
     },
@@ -455,7 +466,117 @@
         "startupTimeoutMs": null,
         "projects": null,
         "warm": null,
-        "placard": null
+        "placard": null,
+        "disabled": null
+      },
+      "hash": "580d0f895bc321a8"
+    },
+    {
+      "id": "stdio-disabled",
+      "name": "a",
+      "raw": {
+        "command": "x",
+        "disabled": true
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {},
+        "cwd": null,
+        "url": null,
+        "headers": null,
+        "oauth": null,
+        "idleMs": null,
+        "startupTimeoutMs": null,
+        "projects": null,
+        "warm": null,
+        "placard": null,
+        "disabled": true
+      },
+      "hash": "580d0f895bc321a8"
+    },
+    {
+      "id": "http-disabled",
+      "name": "a",
+      "raw": {
+        "type": "http",
+        "url": "https://e.com",
+        "disabled": true
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "http",
+        "name": "a",
+        "command": null,
+        "args": null,
+        "env": null,
+        "cwd": null,
+        "url": "https://e.com",
+        "headers": {},
+        "oauth": null,
+        "idleMs": null,
+        "startupTimeoutMs": null,
+        "projects": null,
+        "warm": null,
+        "placard": null,
+        "disabled": true
+      },
+      "hash": "92e203f1d1fe65e3"
+    },
+    {
+      "id": "disabled-false-is-carried",
+      "name": "a",
+      "raw": {
+        "command": "x",
+        "disabled": false
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {},
+        "cwd": null,
+        "url": null,
+        "headers": null,
+        "oauth": null,
+        "idleMs": null,
+        "startupTimeoutMs": null,
+        "projects": null,
+        "warm": null,
+        "placard": null,
+        "disabled": false
+      },
+      "hash": "580d0f895bc321a8"
+    },
+    {
+      "id": "disabled-truthy-string-uncoerced",
+      "name": "a",
+      "raw": {
+        "command": "x",
+        "disabled": "yes"
+      },
+      "reason": null,
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {},
+        "cwd": null,
+        "url": null,
+        "headers": null,
+        "oauth": null,
+        "idleMs": null,
+        "startupTimeoutMs": null,
+        "projects": null,
+        "warm": null,
+        "placard": null,
+        "disabled": "yes"
       },
       "hash": "580d0f895bc321a8"
     }

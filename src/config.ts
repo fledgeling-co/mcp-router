@@ -31,6 +31,27 @@ interface UpstreamBase {
    * running, so an agent reroutes on the first attempt rather than losing a turn.
    */
   placard?: { reason: string; substitute?: string; until?: string };
+  /**
+   * Declared and not served. The third state, between adopted and removed.
+   *
+   * Distinct from `placard`, which keeps a server's tools LISTED and answering with a
+   * reason: a disabled server contributes nothing to `tools/list` at all, cannot be
+   * called by name, is never spawned to be warmed or indexed, and is reaped if it
+   * happens to be up. The router still knows everything it knew — the manifest row,
+   * the digest and the approved tool surface all survive untouched — so re-enabling
+   * costs nothing and, more importantly, cannot launder an approval: a surface the
+   * user refused by disabling the server does not come back as a first sight.
+   *
+   * Absent from `upstreamHash` for the same reason `projects`, `warm` and `placard`
+   * are. None of them changes what the upstream advertises, and hashing this one
+   * would invalidate the cache on a toggle and re-spawn the process it turned off.
+   *
+   * Global, not per-project. `projects` is the allow-list that already says "live in
+   * this repo and not that one"; this is the switch, and the surfaces that set it —
+   * a whole-router table and a "this server changed under me" kill switch — are both
+   * global. See planning/specs/spec-M29.md §3.3.
+   */
+  disabled?: boolean;
 }
 
 export interface StdioUpstream extends UpstreamBase {
@@ -126,6 +147,7 @@ export interface RawServer {
   projects?: string[];
   warm?: boolean;
   placard?: { reason: string; substitute?: string; until?: string };
+  disabled?: boolean;
 }
 
 /**
@@ -164,6 +186,7 @@ export function parseServer(name: string, s: RawServer): { upstream: UpstreamCon
         projects: s.projects,
         warm: s.warm,
         placard: s.placard,
+        disabled: s.disabled,
       },
     };
   }
@@ -189,6 +212,7 @@ export function parseServer(name: string, s: RawServer): { upstream: UpstreamCon
         projects: s.projects,
         warm: s.warm,
         placard: s.placard,
+        disabled: s.disabled,
       },
     };
   }

@@ -12,7 +12,8 @@ struct PopoverContentTests {
         state: ServerState = .idle,
         held: Bool = false,
         indexError: String? = nil,
-        tools: Int = 0
+        tools: Int = 0,
+        disabled: Bool = false
     ) throws -> MCPServer {
         var decoded = try FixtureControlAPIClient.decodeFixture("server-stdio", as: MCPServer.self)
         decoded.name = name
@@ -21,6 +22,7 @@ struct PopoverContentTests {
         decoded.pendingChange = held ? PendingChange(seenAt: "2026-08-14T09:00:00Z", count: 1) : nil
         decoded.indexError = indexError
         decoded.auth = ServerAuth(supported: false, authorized: true, authorizedAt: nil, pendingURL: nil)
+        decoded.disabled = disabled
         return decoded
     }
 
@@ -66,6 +68,41 @@ struct PopoverContentTests {
         #expect(content.band?.count == 1)
         #expect(content.band?.first?.server == "held")
         #expect(content.band?.first?.cause == .heldChange)
+    }
+
+    /// M29 oracle 15, at the call site rather than at the value. `populated` maps **every** server
+    /// it is handed, so a guard that lived only in the band-row helper's caller would leave this
+    /// surface drawing the row anyway. A switched-off server holding a change is the case: it is
+    /// the ordinary one, because disabling is what the held-change sheet offers.
+    @Test("a disabled server holding a change contributes no band row to the popover")
+    func aDisabledServerContributesNoBandRow() throws {
+        let content = try PopoverContent.make(
+            trackerState: .init(
+                load: .loaded([
+                    Self.server("quiet"),
+                    Self.server("sift", held: true, disabled: true)
+                ]),
+                stream: .notConfigured
+            ),
+            records: [Self.record("quiet", secondsAgo: 2)],
+            now: Self.now
+        )
+        #expect(content.band == nil, "the popover drew a band row for a server nobody can act on")
+
+        // The control: the same two servers with the switch off produce the row, so the assertion
+        // above is measuring `disabled` and not a fixture that never held a change.
+        let live = try PopoverContent.make(
+            trackerState: .init(
+                load: .loaded([
+                    Self.server("quiet"),
+                    Self.server("sift", held: true, disabled: false)
+                ]),
+                stream: .notConfigured
+            ),
+            records: [Self.record("quiet", secondsAgo: 2)],
+            now: Self.now
+        )
+        #expect(live.band?.map(\.id) == ["sift|heldChange"])
     }
 
     // MARK: - A16b · the two buckets always sum

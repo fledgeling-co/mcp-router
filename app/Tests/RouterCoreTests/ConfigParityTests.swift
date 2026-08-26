@@ -222,7 +222,13 @@ struct ConfigParityTests {
             "excluded-warm",
             "excluded-idle",
             "excluded-projects",
-            "excluded-placard"
+            "excluded-placard",
+            // M29. The switch is the fourth member of this family for the same reason as the other
+            // three: it changes whether the router serves the upstream, never what the upstream
+            // advertises. Inside the material, disabling would invalidate the cache, and
+            // re-enabling would spawn the process the user turned off to re-learn what the router
+            // already knew.
+            "excluded-disabled"
         ] {
             #expect(byID["cwd-absent"] == byID[excluded], "\(excluded) must not change the hash")
         }

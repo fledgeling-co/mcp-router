@@ -298,8 +298,29 @@ struct TrackerStateMatrixTests {
     /// Swift router against. F4 wraps `StreamPhase` rather than widening it precisely so that
     /// contract does not move, and this is what keeps the promise after the branch merges — a
     /// later edit to a fixture is otherwise caught by nothing.
-    @Test("F3's recorded fixtures are untouched by this branch")
-    func fixturesAreUnmodified() throws {
+    ///
+    /// **What this asserted until M29, and why it could not keep asserting it.** The original form
+    /// required the diff against `main` to be *empty*: no branch may modify a recording at all.
+    /// That invariant holds only while the wire shape is frozen, and M29 widens it deliberately —
+    /// `GET /servers` gains a non-optional `disabled`, so every recording that carries a server row
+    /// must gain the key or stop decoding (`spec-M29.md` D1). The premise was falsified by a change
+    /// the product wanted, not by a branch misbehaving, and an assertion that a correct branch
+    /// cannot satisfy stops being a gate.
+    ///
+    /// **What it asserts instead, and why that is still worth having.** The hazard the empty-diff
+    /// form actually caught is a *hand-patched* fixture: one file edited to make one suite go green
+    /// while the rest of the directory goes stale. That is now stated directly — recordings move as
+    /// a set or not at all. A re-recording through `scripts/capture-control-fixtures.sh` runs the
+    /// reference router over every response and therefore rewrites all of them together; a hand
+    /// edit reaches for the one file whose suite is red.
+    ///
+    /// The two halves the empty-diff form also covered are held elsewhere, and are not re-asserted
+    /// here: that each recording still decodes, and that its keys and the model's fields correspond
+    /// in both directions, are `ControlFixtureTests`' three tests; that the recordings match what
+    /// the reference router actually emits is `scripts/acceptance/parity-control.sh`, which diffs
+    /// two live routers rather than two files.
+    @Test("F3's recorded fixtures move as a set or not at all")
+    func fixturesMoveAsASet() throws {
         var dir = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         var root: URL?
         for _ in 0 ..< 8 {
@@ -314,7 +335,7 @@ struct TrackerStateMatrixTests {
         let git = Process()
         git.executableURL = URL(fileURLWithPath: "/usr/bin/env")
         git.arguments = [
-            "git", "-C", repo.path, "diff", "--stat", "main...HEAD", "--",
+            "git", "-C", repo.path, "diff", "--name-only", "main...HEAD", "--",
             "app/Sources/MCPRouterKit/Control/Fixtures/"
         ]
         let pipe = Pipe()
@@ -328,9 +349,52 @@ struct TrackerStateMatrixTests {
         // A git failure is not a pass. If the command could not run the criterion is unverified,
         // and reporting that as clean is how a gate starts lying.
         #expect(git.terminationStatus == 0, "git could not compare the fixtures directory")
+
+        let changed = Set(
+            out.split(separator: "\n")
+                .map { URL(fileURLWithPath: String($0)).deletingPathExtension().lastPathComponent }
+        )
+        // No recording moved: the ordinary case, and nothing further to check.
+        guard !changed.isEmpty else { return }
+
+        /// Which recordings carry a server row, read from the files rather than listed here, so a
+        /// recording added later is covered without anyone remembering to add it.
+        ///
+        /// `transport` is the marker rather than the presence of a `servers` key, because
+        /// `usage-summary` also has one and its rows are usage totals per server name — no wire
+        /// field of `MCPServer` on them, so a change to `MCPServer` does not reach that file and
+        /// requiring it to move would fail a branch that behaved correctly.
+        func carriesServerRow(_ object: Any) -> Bool {
+            if let one = object as? [String: Any] {
+                if one["transport"] != nil { return true }
+                if let rows = one["servers"] as? [Any] {
+                    return rows.contains { ($0 as? [String: Any])?["transport"] != nil }
+                }
+            }
+            return false
+        }
+
+        var serverBearing: Set<String> = []
+        for entry in ControlFixtureTests.expected {
+            let fixture = try FixtureControlAPIClient.fixtureData(entry.name)
+            let decoded = try JSONSerialization.jsonObject(with: fixture)
+            if carriesServerRow(decoded) {
+                serverBearing.insert(entry.name)
+            }
+        }
+
+        // The recordings that moved must be exactly the ones the wire change reaches. A branch that
+        // re-records through the capture script rewrites all of them; a branch that hand-patches
+        // one file to quiet one suite moves a strict subset, and that is what fails here.
+        let stale = serverBearing.subtracting(changed)
         #expect(
-            out.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-            "this branch modified F3's recorded fixtures, which R4 diffs the Swift router against:\n\(out)"
+            stale.isEmpty,
+            """
+            this branch moved some recordings and left others stale: changed \
+            \(changed.sorted()), but these carry a server row and did not move: \(stale.sorted()). \
+            Re-record them together with scripts/capture-control-fixtures.sh rather than editing \
+            one file by hand.
+            """
         )
     }
 }

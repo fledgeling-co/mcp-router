@@ -120,8 +120,8 @@ public enum Describe {
         return members
     }
 
-    /// `projects` and `warm` — one nullish default and one truthiness coercion, deliberately
-    /// asymmetric because the reference is.
+    /// `projects`, `warm` and `disabled` — one nullish default and two truthiness coercions,
+    /// deliberately asymmetric because the reference is.
     private static func scopeMembers(_ upstream: UpstreamConfig) -> [JSONMember] {
         [
             // `projects: u.projects ?? []`, and `u.projects` is `s.projects` verbatim. The `??` is
@@ -131,6 +131,14 @@ public enum Describe {
             JSONMember(key: "projects", value: rawOrEmptyArray(upstream.raw.member("projects"))),
             JSONMember(
                 key: "warm", value: .bool(upstream.raw.member("warm")?.isTruthy ?? false)
+            ),
+            // `disabled: !!u.disabled` — read from `raw` like `warm` rather than from the typed
+            // field, so a config saying `"disabled": "yes"` reports the truthiness the reference's
+            // JavaScript gives it. Emitted for every server and never omitted when false: the app
+            // decodes it as a non-optional Bool precisely so a router that stopped sending it fails
+            // loudly rather than drawing a disabled server as live.
+            JSONMember(
+                key: "disabled", value: .bool(upstream.raw.member("disabled")?.isTruthy ?? false)
             )
         ]
     }

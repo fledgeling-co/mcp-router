@@ -83,3 +83,30 @@ that hole. Writing a frame in one of the three spellings above is what keeps a c
 Quote the phrase the citation relies on. A bare `§6` is unfalsifiable; `§6's "the reconciler exits
 1"` is a claim a grep can break. Recorded as G4's eighteenth item, after `planning/progress/G4.md`
 cited a section that was later corrected truthfully and broke the sentence pointing at it.
+
+## An anchor that quotes a table row cannot live inside a table
+
+Measured 2026-08-26, and it blocked an item for a full iteration.
+
+`LEDGER.md`'s rows put a status and its narrative in one cell, so a citation written there sits
+inside a markdown table row. When the cited line is *itself* a table row, its pipes re-split the
+citing row: the ledger renders wrong and every reader splitting on the pipe reads it wrong, which
+`ledger-reconcile`'s check J catches by cell count.
+
+Escaping them fixes the table and breaks the citation. The anchor then reads `\| ... \|` while the
+cited line reads `| ... |`, so it can never match, and `citation-gate.py` correctly classes it
+`ABSENT` — which is the **dangerous** class, a pointer a reader believes. Two gates, each right,
+each undoing the other's fix.
+
+Neither escaping nor unescaping is the answer, and neither is teaching the gate to unescape `\|`
+(that reclassifies every table-row citation in the corpus at once). **Cut the anchor from a
+pipe-free fragment of the cited line instead.** A cited table row always has one — the text between
+two pipes — and it is usually the most distinctive part anyway:
+
+```
+  bad   "\| `planning/citation-gate.py` \| 1 \| **inherited** —", `path/to/file.md:214` at `b5f2227`
+  good  "ratchet only, 3 files above baseline and all three are M29's", `path/to/file.md:214` at `b5f2227`
+```
+
+The same applies to any anchor carrying a character the *citing* file gives structural meaning to.
+The anchor's job is to be findable in the cited file; it is never required to be the whole line.

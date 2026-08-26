@@ -63,3 +63,12 @@ Worth doing in the same change: give `parity-regen` a path into a target that ru
 `parity-selftest` that announces its absence loudly, so the next break is visible rather than
 silent. `parity-lane-selftest` already carries that pattern — it prints `SKIPPED — this is a skip,
 not a pass` rather than exiting 0 quietly.
+
+---
+
+*Filed by M30's runner as `M31-parity-regen-is-broken.md` and **renamed by the orchestrator**: `M31`
+is allocated to *The design of record cannot draw a disabled primary*, a live item with its own
+ledger row and branch. Untriaged briefs carry no id — allocation is a serialized ledger write that
+belongs to triage — so the prefix was a label rather than a claim, and it collided with a real one.
+This is the same hazard M30's own ledger row records happening to M30, which was allocated `M29`
+and renumbered when `M29` landed on `main` during the crash window.*

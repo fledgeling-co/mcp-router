@@ -71,7 +71,17 @@ public enum MenuBarPresentation {
         public var opensHeldChangeSheet: Bool { self == .heldChange }
 
         /// The causes this server is in, in precedence order. Empty when it wants nothing.
+        ///
+        /// **A disabled server is in none of them, and that guard is the same term
+        /// `MCPServer.needsAttention` carries.** All three conditions below stay true of a server
+        /// the user has switched off — a held schema change especially, since disabling is what the
+        /// held-change sheet offers — so without it the band drew a row for a server the dot was
+        /// already silent about: `statusItemNeedsAttention` reported nothing to decide while this
+        /// returned `heldChange`, and pressing that row opened a sheet whose only action was
+        /// already done. The band and the dot read one condition, so they are computed from one
+        /// term.
         public static func causes(for server: MCPServer) -> [AttentionCause] {
+            guard !server.disabled else { return [] }
             var found: [AttentionCause] = []
             if server.pendingChange != nil { found.append(.heldChange) }
             if server.auth.supported, !server.auth.authorized { found.append(.needsAuthorization) }

@@ -789,8 +789,8 @@ mut(
 mut(
     "DIS-14", "M29", "the sheet's destructive button is Disable, not the Remove it shipped as",
     UI_BOARDS / "ServerSheets.swift",
-    '        static func disableLabel(_ serverName: String) -> String { "Disable \\(serverName)" }',
-    '        static func disableLabel(_ serverName: String) -> String { "Remove \\(serverName)" }',
+    '            "Disable \\(serverName)"',
+    '            "Remove \\(serverName)"',
     "the sheet's destructive button names the action and the server",
 )
 

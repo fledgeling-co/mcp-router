@@ -159,7 +159,9 @@
         /// acceptance line 12. The lane that would otherwise read it off a render —
         /// `make mock-fidelity SURFACE=servers` — exits 3 on an inherited break, so a unit-reachable
         /// value is the only route to the claim.
-        static func disableLabel(_ serverName: String) -> String { "Disable \(serverName)" }
+        static func disableLabel(_ serverName: String) -> String {
+            "Disable \(serverName)"
+        }
 
         /// Why `Disable` is dimmed, or `nil` when it is live. Dims in place with the reason
         /// readable, per `DESIGN.md` §3.4 — it never disappears. Static for the same reason as the

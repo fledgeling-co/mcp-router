@@ -241,9 +241,33 @@ run_lanes "a.sh b.sh c.sh"
 echo "$OUT" | grep -qE '^b\.sh +0 +VACUOUS' || note_fail "a declared 0 is not classed VACUOUS"
 note_pass "declared 4 -> PASS carrying 4; declared 0 -> VACUOUS"
 
+# ------------------------------------------ arm 12: the table carries the conditions it was got in
+#
+# The arm that exists because a verifier re-ran these eight lanes on this commit and five rows came
+# out differently — two BLOCKED rows passed because a shared `.build` already held `MCPRouterCLI`,
+# three GUI rows blocked because that session could not composite a window. Neither table was
+# wrong; the record that could not say which environment produced it was.
+#
+# So both facts are required, in the preamble AND under the table — a stamp that appears only above
+# a long run is one that gets lost the moment somebody pastes the summary.
+echo "arm 12 — every table states whether the CLI was built and whether windows composite"
+plant a.sh 0; plant b.sh 0
+run_lanes "a.sh b.sh"
+env_lines="$(echo "$OUT" | grep -c '^ACCEPTANCE-ENV: ')"
+[ "$env_lines" -eq 4 ] || note_fail "expected 4 ACCEPTANCE-ENV lines (2 facts x preamble+footer), saw $env_lines"
+echo "$OUT" | grep -q '^ACCEPTANCE-ENV: MCPRouterCLI in .build: ' \
+    || note_fail "no ACCEPTANCE-ENV line names whether MCPRouterCLI was built"
+echo "$OUT" | grep -q '^ACCEPTANCE-ENV: window plane composites: ' \
+    || note_fail "no ACCEPTANCE-ENV line names whether the session composites windows"
+# The footer copy is the one that travels; require it AFTER the counts line, not merely present.
+tail_env="$(echo "$OUT" | sed -n '/^enrolled: /,$p' | grep -c '^ACCEPTANCE-ENV: ')"
+[ "$tail_env" -eq 2 ] || note_fail "the counts line is not followed by both ACCEPTANCE-ENV facts, saw $tail_env"
+[ "$env_lines" -eq 4 ] && [ "$tail_env" -eq 2 ] \
+    && note_pass "both conditions stated twice, and the pair under the counts line: $(echo "$OUT" | sed -n '/^enrolled: /,$p' | grep '^ACCEPTANCE-ENV: ' | head -1 | cut -c1-72)…"
+
 echo
 if [ "$FAILURES" -eq 0 ]; then
-    echo "acceptance-lanes selftest: 12 arms, all held."
+    echo "acceptance-lanes selftest: 13 arms, all held."
     exit 0
 fi
 echo "acceptance-lanes selftest: $FAILURES assertion(s) failed." >&2

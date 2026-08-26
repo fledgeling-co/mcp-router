@@ -119,10 +119,53 @@ if [ -n "${ACCEPTANCE_LANES:-}" ]; then
     read -r -a LANES <<< "$ACCEPTANCE_LANES"
 fi
 
+# ── The conditions this table was measured under ──────────────────────────────────────────────
+#
+# Five of these eight rows are decided by facts about the machine rather than about the tree, and
+# a verifier re-running the same eight lanes on the same commit got five different rows because of
+# it: two lanes this branch recorded BLOCKED passed for them because `MCPRouterCLI` was already
+# sitting in a shared `.build`, and three GUI lanes blocked for them because their session could
+# not composite a window.
+#
+# Neither run was wrong. A per-lane table with no environment beside it is the defect one level up
+# — a measurement whose conditions are unrecoverable, which cannot be compared with any other run
+# and so cannot be a ledger. These two lines are printed before the lanes and again under the
+# table, so a pasted table carries them.
+STAMP_CLI="app/.build/debug/MCPRouterCLI"
+environment_stamp() {
+    local cli_line plane_line probe
+    if [ -x "$ROOT/$STAMP_CLI" ]; then
+        cli_line="present — $STAMP_CLI, built $(date -r "$ROOT/$STAMP_CLI" '+%Y-%m-%d %H:%M:%S' 2>/dev/null || echo 'mtime unreadable')"
+    else
+        cli_line="absent — no $STAMP_CLI (p1-auth-routes.sh and r7-harness-reconciliation.sh block on this alone)"
+    fi
+    probe="$LANES_WORK/window-plane"
+    plane_line="unknown — swiftc unavailable, so the window plane was never probed"
+    if command -v swiftc >/dev/null 2>&1         && swiftc -O -o "$probe" "$ROOT/scripts/acceptance/window-plane.swift" 2>/dev/null; then
+        local counts total named
+        counts="$("$probe" 2>/dev/null || echo "")"
+        total="${counts%% *}"; named="${counts##* }"
+        if [ -z "$counts" ]; then
+            plane_line="unknown — the probe built but returned nothing"
+        elif [ "${total:-0}" -eq 0 ]; then
+            plane_line="NO — 0 on-screen windows; shells.sh, mac-shell.sh and menu-badge-lane.sh cannot see a window in this session"
+        else
+            plane_line="yes — $total on-screen windows, $named named"
+        fi
+    fi
+    echo "ACCEPTANCE-ENV: MCPRouterCLI in .build: $cli_line"
+    echo "ACCEPTANCE-ENV: window plane composites: $plane_line"
+}
+
 ENROLLED=${#LANES[@]}
 names=()
 codes=()
 asserts=()
+
+echo "══════════════════════════════════════════════════════════════════════"
+echo "make acceptance — the environment these lanes are about to be measured in"
+echo "══════════════════════════════════════════════════════════════════════"
+environment_stamp
 
 for lane in "${LANES[@]}"; do
     echo
@@ -185,6 +228,7 @@ done
 
 echo "----------------------------------------------------------------------"
 echo "enrolled: $ENROLLED   run: $RUN   pass: $passes   fail: $fails   blocked: $blocked   vacuous: $vacuous"
+environment_stamp
 
 # The count check. If these disagree, a lane left the run without leaving a row, and no verdict
 # computed from the rows can be trusted — so this is red on its own terms.

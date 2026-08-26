@@ -68,7 +68,7 @@ written here, and `GAPFIX-BRIEF.md:64` is mine.
 
 `lukerhodes-2f` supplied the rule that pairs with "load-bearing instruments get committed":
 **a brief cites a repo path or it cites nothing.** Two briefs failed it today, both written by
-this fleet hours earlier rather than inherited — `GAPFIX-BRIEF.md:64` (`/tmp/m18-build2.log`)
+this fleet hours earlier rather than inherited — `GAPFIX-BRIEF.md:64`, citing `/tmp/m18-build2.log` (gone),
 and `VERIFY-BRIEF.md:29` (`/tmp/g5gf3/sweep3.py` (gone)). Neither was a stale inheritance; both were
 fresh.
 

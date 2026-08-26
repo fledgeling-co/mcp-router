@@ -152,7 +152,7 @@ strongest evidence back in question for no reading it could change.
 | Gate | Read | Acceptance |
 |---|---|---|
 | `planning/ledger-reconcile.py` | **reconciled — no findings across A–L**, exit 0 | 0 across A–L ✔ |
-| `/tmp/g5gf/sweep.py` — gap-fix 1's, unchanged | 27 present, 2 absent, 11 controls, **exit 0** | exit 0 ✔ |
+| `/tmp/g5gf/sweep.py` (gone) — gap-fix 1's, unchanged | 27 present, 2 absent, 11 controls, **exit 0** | exit 0 ✔ |
 | `/tmp/g5gf2/sweep2.py` (gone) — this pass's | 14 present, 2 absent, 8 controls, **exit 0** | exit 0 ✔ |
 
 **Every denominator the reconciler moved is accounted for by the four register rows.** Against gap-fix

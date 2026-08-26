@@ -188,10 +188,10 @@ nothing, and the reconciler's own summary line stops at K. *0 across A–L* is u
 not claimed.
 
 Two method notes. `make test` was run twice — once before the `ORCHESTRATOR.md` edit and once after
-everything, and the table reports the second. And the first gate chain wrote to `/tmp/g-*.log` (not retained, and the glob now
-resolves to unrelated files — a scratch path that still answers is worse evidence than one that does
-not, because it resolves to something that is not what was measured), which another session on this
-machine already uses: `/tmp/g-gate.log` (gone) held a different repo's build output. That chain was
+everything, and the table reports the second. And the first gate chain wrote to `/tmp/g-*.log` (not retained). The glob now
+resolves to unrelated files, and a scratch path that still answers is worse evidence than one that
+does not, because it resolves to something that is not what was measured. Another session on this
+machine already uses that name: `/tmp/g-gate.log` (gone) held a different repo's build output. That chain was
 killed and re-run into `/tmp/r17gf3/` (gone), so no figure above shares a path with anything outside
 this worktree.
 

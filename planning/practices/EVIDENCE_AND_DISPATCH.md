@@ -28,10 +28,30 @@ So:
   a record cites its result, it lives in the repository. `planning/claim-sweep.py` is the
   precedent and it survived the same crash that took the others; they were written days apart for
   the same shape of problem and only one is still evidence.
-- **A record may keep a dead path only by marking it.** `(gone)`, `(unrecoverable)`,
-  `(reconstructed as …)`, `(recovered as …)`. The marker is what restores the distinction the
-  defect destroys: *the evidence is unrecoverable* now reads differently from *the evidence was
-  never gathered*.
+- **A record may keep a dead path only by marking it**, and the marker must be **closed**:
+
+  | form | example |
+  |---|---|
+  | parenthesised, marker word first | `` `/tmp/sweep.py` (gone) `` · `` `/tmp/g-*.log` (not retained) `` |
+  | a table cell holding only the marker | `` \| `/tmp/sweep.py` \| gap-fix 1's \| gone \| `` |
+  | bold and closed | `` `/tmp/sweep.py` **gone** `` |
+
+  Vocabulary: *gone, unrecoverable, not recovered, not recoverable, no longer exists, does not
+  exist, not retained, never retained, withdrawn, deleted, reconstructed, recovered*. An
+  explanation may follow the marker word inside the same parentheses.
+
+  The closing side is load-bearing. A looser grammar that accepted any of `(`, `|`, `*` or a dash
+  before one of those words was broken three ways in a single out-of-family review: a table cell
+  reading `| recovered 40 items |`, a next bullet reading `* deleted the old cache`, and prose
+  reading *the runner \*recovered\* state* each satisfied it while withdrawing nothing. All three
+  are now negative controls in the gate.
+
+  The marker is what restores the distinction the defect destroys: *the evidence is unrecoverable*
+  now reads differently from *the evidence was never gathered*.
+- **One marker per citation.** The gate's window stops at the next scratch path, so a single
+  trailing *(both gone)* withdraws only the second of two. A marker shared between pointers is a
+  marker whose subject a reader has to work out, and working it out is the labour the form exists
+  to remove.
 - **A rebuilt instrument is not the one whose results were recorded.** Say *reconstructed* and
   never *recovered*, and be suspicious of a reconstruction whose report survives only as counts —
   an instrument rebuilt to return the recorded numbers is an instrument constructed to agree.

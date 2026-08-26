@@ -115,6 +115,14 @@ honest; exit 0 with nothing behind it is a lane making a claim it did not earn.
 The `ASSERTIONS` column in the table above is that count. It is also why the two BLOCKED rows
 reading 0 are not flagged — they said so in their exit code.
 
+**The count is a presence test, not a tally.** `control-client.sh` makes three checks and the table
+credits it with four, because it echoes its probe's output and one of those lines is `OK`. That
+direction is harmless: a spurious match can only push a count above zero, and zero is the only value
+the gate acts on. The direction that is not harmless is a lane asserting nothing that happens to
+echo a subprocess line beginning `ok` — it would pass. That hole is named here and in the runner's
+header rather than covered by a claim that the number is exact, and `ACCEPTANCE-ASSERTIONS:` is the
+way a lane states its count precisely.
+
 Presence control, `acceptance-lanes-selftest.sh`, 12 arms all held. Arm 8 plants a silent exit 0 and
 requires VACUOUS; **arm 9 is its control** — the same lane with one `ok` line added must be a PASS
 again, so the check cannot be satisfied by reddening every zero; arm 10 plants the shape this was

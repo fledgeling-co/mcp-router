@@ -48,6 +48,15 @@
 # exists. Exit 0 with nothing behind it is a lane making a claim it did not earn, and that is the
 # thing this whole item is about.
 #
+# **The count is a presence test, not a tally, and the difference is printed rather than implied.**
+# Measured on the first real run: control-client.sh makes three checks and was credited with four,
+# because it echoes its probe's output and one of those lines is `OK`. That direction is harmless —
+# a spurious match can only push a count above zero, and zero is the only value this gate acts on.
+# The direction that is NOT harmless is a lane which asserts nothing and happens to echo a
+# subprocess line beginning `ok`, and that lane would pass. So the number sits in the table where it
+# can be read against what the lane claims to do, `ACCEPTANCE-ASSERTIONS:` exists for a lane that
+# wants to be counted exactly, and this paragraph is here instead of a claim that the count is one.
+#
 # Exit codes, kept distinct for the reason the Makefile has always given: collapsing them is how "no
 # Accessibility permission" gets reported as a broken app.
 #

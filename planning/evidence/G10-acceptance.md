@@ -119,12 +119,24 @@ is for.
 
 ### `control-client.sh` was not passing. It was dying.
 
-Recorded PASS in the first version of this table. Run on its own, on `main` at `520fed38`, it prints
-one line and nothing else:
+Recorded PASS in the first version of this table. Run on its own on `main`, it prints one line and
+nothing else:
 
     parity-lock.sh: line 205: BASHPID: unbound variable
 
-and exits 0 having run **none of its three checks**. `BASHPID` arrived in bash 4.0; macOS ships
+and exits 0 having run **none of its three checks**.
+
+> **The tree this was measured on, corrected 2026-08-27.** The line above cited `main` at
+> `520fed38`. That is not a commit: no commit on any ref in this repository begins `520fed`, and
+> `git cat-file -t 520fed38` answers `blob` — an accidental prefix collision with a file object, so
+> the anchor named nothing a reader could check out. It is the same defect as the stale restoration
+> hash below, and it survived that sweep because a hash that *resolves to something* passes an
+> existence check.
+>
+> The finding itself is unaffected and is re-anchored by reading rather than by re-running: the bare
+> `BASHPID` stands at `scripts/acceptance/parity-lock.sh:205` on `03c34c3`, the tree this item
+> started from, and still on `main` at `82753e0` today — verified in both with `git show
+> <tree>:scripts/acceptance/parity-lock.sh`. The repair is on this branch only. `BASHPID` arrived in bash 4.0; macOS ships
 3.2.57 as `/bin/bash`; the lane is `#!/bin/bash` and sets `-u`. Measured on this machine, bash 3.2
 preserves the status of an explicit `exit 1` and of a `set -e` death, and **loses** it for a `set -u`
 death — the EXIT trap's last command supplies the status instead, and that trap ends in a `rm -rf`

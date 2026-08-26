@@ -190,7 +190,31 @@ if ! osascript -e 'tell application "System Events" to get name of first process
     blocked "no Accessibility permission for this terminal — System Settings > Privacy & Security > Accessibility"
 fi
 
-open "$MAC_APP"
+# The frontmost application, recorded before anything is launched and asserted unchanged at the end.
+#
+# `-g` is the mechanism; this is the check that the mechanism worked. Without it the launch flag is
+# an intention, and a lane that quietly starts taking the user's screen looks exactly like one that
+# does not. The invariant is "**this app** never comes to the front", not "the frontmost app never
+# changes" — a human clicking something else mid-run is their business, so the assertion below is
+# about MCP Router specifically.
+FRONT_BEFORE="$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true' 2>/dev/null)" \
+  || blocked "could not read the frontmost application — System Events is not answering"
+echo "frontmost at start: $FRONT_BEFORE"
+case "$FRONT_BEFORE" in
+    "MCP Router"|MCPRouter)
+        blocked "MCP Router is already frontmost — this gate cannot prove it never took the screen" ;;
+esac
+
+# `open -g`, never a bare `open`. UI_VERIFICATION rule 1: the developer loop must be invisible, and
+# a bare `open` activates. This lane read `open` for its whole life while `mac-shell.sh`,
+# `m22-boards.sh` and `menu-badge-lane.sh` — the three siblings that drive the same app — all use
+# `-g` and assert the frontmost application unchanged at the end.
+#
+# The comment further down claiming "`open` does not make our app frontmost when the terminal
+# running this script keeps focus" was wrong, and it is corrected there: `open` without `-g`
+# activates. What that paragraph actually observed was a region capture photographing the wrong
+# window, which is a separate defect it fixed separately by capturing by window id.
+open -g "$MAC_APP"
 
 # Poll for a real standard window. A non-activating panel can enumerate before the main window
 # exists, so "a window exists" can be true too early.
@@ -249,8 +273,11 @@ done
 # The render assertion. Sample well inside the window, below the text block.
 #
 # Captured by WINDOW ID, never by screen region. `screencapture -R <rect>` photographs whatever the
-# compositor has at those coordinates, so it measures the frontmost window there rather than ours —
-# and `open` does not make our app frontmost when the terminal running this script keeps focus.
+# compositor has at those coordinates, so it measures the frontmost window there rather than ours.
+# (This paragraph used to add "and `open` does not make our app frontmost when the terminal running
+# this script keeps focus", which is not true — `open` without `-g` activates, which is why both
+# launches in this file now pass `-g`. The region-capture defect below is real and is what the
+# observation was actually of.)
 # Observed here: a run that reported the background as #292C33, which is the terminal's colour; the
 # capture contained a terminal and a keychain dialog and no part of the app. Every AX assertion
 # above passed in the same run, because the accessibility tree does not care what is on top.
@@ -326,7 +353,10 @@ EXPECTED_LIGHT="$(read_ground lightHex)"
 echo "expecting light ColorToken.ground = $EXPECTED_LIGHT"
 
 # Launch Debug with the gallery forced into its light appearance, then open the window.
-open -n "$MAC_APP" --args --gallery-appearance light
+# `-g` for the same reason as the first launch; `-n` because this needs a second instance carrying
+# the gallery argument. The menu click below reaches the process by pid through System Events, which
+# does not require it to be frontmost.
+open -g -n "$MAC_APP" --args --gallery-appearance light
 sleep 2
 
 if ! osascript -e 'tell application "System Events" to tell process "MCPRouter" to click menu item "Design system" of menu "Window" of menu bar 1' >/dev/null 2>&1; then
@@ -421,6 +451,18 @@ ios_ground_is dark "$EXPECTED_HEX"
 ios_ground_is light "$EXPECTED_LIGHT"
 
 xcrun simctl terminate "$SIM_ID" "$IOS_BUNDLE_ID" >/dev/null 2>&1 || true
+
+# ---------------------------------------------------------------- rule 1
+
+# Both macOS launches used `-g` and every read went through the accessibility plane by pid, so MCP
+# Router should never have been frontmost. Asserted rather than assumed, and a violation FAILS: this
+# lane taking the screen is a defect in the lane, not an environment it could not run in.
+FRONT_AFTER="$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true' 2>/dev/null)"
+case "$FRONT_AFTER" in
+    "MCP Router"|MCPRouter)
+        fail "this lane took the user's screen: MCP Router is frontmost at the end (was '$FRONT_BEFORE')" ;;
+esac
+pass "MCP Router never became frontmost — '$FRONT_BEFORE' at the start, '$FRONT_AFTER' at the end"
 
 echo
 echo "acceptance: both shells render ColorToken.ground — dark $EXPECTED_HEX, and the phone light $EXPECTED_LIGHT"

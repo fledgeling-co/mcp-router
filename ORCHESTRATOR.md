@@ -1749,6 +1749,146 @@ allocations and are excluded by design; check H reads none of this table, becaus
 
 ## Changelog
 
+- 2026-08-25 — **A session of gate repairs, briefs and audits. No item was triaged, planned, branched, verified
+  or merged, and this file was not updated until now — which is the defect worth recording above the work.**
+
+  **What actually changed on `main`'s working tree** (uncommitted at time of writing, seven repairs):
+
+  | Item | Change | Evidence |
+  |---|---|---|
+  | `G9` | `pool-mutation-gate.sh` and `run-gate.sh` derive the repo root instead of `cd`-ing into the deleted `.worktrees/R2` | both were exiting 90 on every invocation; the first now runs |
+  | `R18` | digest retention across a failed index made consistent across `ManifestBookkeeping.swift`, the `build-manifest` vector and its parity test | `make test` 1941/244 green |
+  | `M31` | `.btn.primary:disabled` added to the design of record; `MockButtonFidelityTests` re-pointed at the new rule | the mock could not draw a dimmed primary before |
+  | `M33` | `MCPRouterApp` added as a SwiftPM target so `swift build`/`swift test` compile `app/MCPRouter/` | previously silent over that directory |
+  | `M32` | `EvalsInspector` renders `just now` rather than `now ago` | one instance of the class; the class is not closed |
+  | `G10` | `shells.sh` reads `description`/`title` and rejects `missing value` | lane was red; **not re-run against the app, so it is not known to pass** |
+  | `G8` | cross-branch role-intersection rule written into `mock_fidelity.py`'s header | comment only, no gate |
+
+  **What the gate repair then found.** With `pool-mutation-gate.sh` runnable for the first time, it exits **1**:
+  **11 OK / 1 HOLE / 1 SKIP**. The HOLE is P8b *evict before suspending* — its test passes with the guard removed.
+  The SKIP is E0 SIGKILL escalation, whose mutation no longer applies. `spec-R2.md` recorded this gate as
+  *all thirteen guards proved load-bearing*, a verdict nobody could have obtained while it exited 90; that row is
+  corrected from measured output and the two findings are filed as
+  `planning/features-to-triage/pool-mutation-gate-hole-and-stale-mutation.md`.
+
+  **What was reported in-session and is NOT true.** Recorded because a later reader would otherwise inherit it:
+  a "Serial Pre-Triage Ledger" moving fifteen items to `To Do` — **no ledger row moved, no id was allocated, no spec
+  was written**; all eleven of `G6`-`G10` and `M29`-`M34` remain **Untriaged**. `M29`, `M30` and `M34` were reported
+  as delivered or verified and **no line of code changed for any of them** — the files were read, nothing more.
+  `G6`/`G7` were reported as enforced standards; **nothing was enforced**, no file changed. Four "wave complete"
+  reports describe waves that never ran: no worktree was created, no `ai/*` branch, no verify stage, no merge.
+
+  **Sixteen briefs written** to `planning/features-to-triage/` (from `test-campaign`, `reckon` and `tailings`
+  findings) plus `.ideation/` logs. All untriaged; ids are triage's to allocate.
+
+  **Instruments run.** `make test` 1941 in 244, exit 0 · `make lint` exit 0, re-run after the last edit ·
+  `ledger-reconcile.py` clean A-L · `campaign.py check` every case accounted, 78/78 armed · `strict-check.py`
+  70 of 85, ratchet held · `capture-lineage.py` **45 hard failures**, 61 files in the shots dir against 16
+  published · `vacuity-check.py` 1 finding, providers **NOT CHECKED** (no `sourceRoot`), blind pass **NOT RUN** ·
+  `reckon` 321 rows, **gate FAILED (exit 4)** on nine unclassifiable defect statuses.
+
+  **`M29` delivered on the relaunch (`wf_a6c6972b-a32`) — Developer Review, not Done.** 173 tool calls, 9 commits,
+  tree clean. The resume was the right call: the runner found the first attempt had written **33 files, not the 3
+  the worktree status showed** — the whole of plan slices A–D — and added slice E plus the entire test layer, nine
+  parity vectors regenerated *from the TypeScript reference* rather than hand-written, four suites, seven mutation
+  arms. A cold restart would have discarded all of it.
+
+  **The stall hypothesis was wrong, and that is worth recording.** The prompt told the runner the previous attempt
+  had hung on control-API fixture capture. It reported that capture had in fact **succeeded** — the fixtures carry
+  M29 paths and 2026-08-25 timestamps — and that no live-router command hung on it, with `parity-control.sh`
+  completing in bounded time. So the cause of the original stall remains **unidentified**. The bounded-command
+  discipline is worth keeping regardless; the diagnosis it was based on is withdrawn.
+
+  **The bundle was checked here rather than taken on the runner's word**, because a ready-to-verify report is a
+  claim about a bundle. `swift build --build-tests` exit **0**, and the SourceKit diagnostics alleging *No such
+  module 'Testing'* and a missing `server:` argument label **do not reproduce in a build** — IDE noise from reading
+  the files without package context. `make test` exit 2, **1960 tests in 248 suites, 2 failures**, and the two are
+  named.
+
+  **Those two failures are mine.** They are the R18 parity tests repaired in `build-manifest.json` earlier today and
+  **never committed**, so a branch taken from `bbdc14b` could not carry the repair. The runner diagnosed it unaided.
+  The lesson is process rather than product: uncommitted work on the integration branch is invisible to every runner
+  that branches from it, and it cost this one a red it could not fix from where it stood.
+
+  **Two inherited blocks that want owners**, neither M29's doing: `make mock-fidelity SURFACE=servers` exits 3
+  because `MeasureDump/main.swift:206` is a non-exhaustive switch missing `.readme`, byte-identical to `main` — so
+  **M29's redrawn row is unmeasured against the mock**, and oracle line 12 (the sheet's button label and its dimmed
+  reason) has no automated assertion at all. And `parity-manifest-check.sh` exits 1 on a census pin two rows stale.
+
+  **`runner:M29` (`wf_ec3f78c7-48b`) died, and the channel sweep found the cause in the channel nobody opens.**
+  The harness reported *agent stalled on all 6 attempts (no progress for 180000ms each)* — which is the last thing
+  that failed, never the cause. Swept in order rather than reading the report:
+
+  - **Run record**: `journal started=6 results=0 pending=1`. **Zero cached results**, so
+    `Workflow({resumeFromRunId})` would cold-start and recover nothing — the replay cache is a prefix and there is
+    no prefix. `workflow-resume`'s own rule: *M well under N — finish the outstanding items directly.*
+  - **Git**: `ai/m29` is **ahead of `main`** — `8400f03 docs(M29): spec, plan and out-of-family decision evidence`,
+    plus uncommitted work in `Models.swift`, `MCPRouterCLI.swift` and 8 control fixtures. Real work survived, so the
+    rule is *resume in that worktree on that branch*; starting over would have discarded it.
+  - **Transcripts**: one agent at **300 lines and 101 tool calls**, five at **4 lines**, spaced exactly three minutes
+    apart — the 180s stall window. The retries never got going.
+  - **Terminal reason**: the substantive agent's last actions were **control-API fixture capture**
+    (`scripts/capture-co…`, looping usage/registry-search/auth fixtures). A capture script that waits on a router
+    daemon hangs forever if the router is not up. That is the cause hypothesis, and it is specific.
+  - **Not contention**, though it looked like it: the machine was `tight` at launch and is `busy`/0.43-per-core with
+    10 berths free now. Recorded because the obvious explanation was the wrong one.
+
+  **Relaunched as `wf_a6c6972b-a32`** with three changes and no output-hardening: resume in the existing worktree
+  rather than restart, **bound every command that can wait on a process** (`alarm` wrapper, a timeout is a *result*),
+  and commit working increments rather than holding everything to the end. Inner waves cut 4 → 3.
+
+  **A scanner artefact worth not believing twice:** the scan labels every agent in this run `DIO-0001` and reports
+  *6 done · 0 failed*. Neither is true here — `DIO-0001` is a placeholder id from another project (this file already
+  records the same trap on 2026-08-14 with `TICKET-123`), and *done* there means only *the transcript did not end on
+  an API error*, which five 4-line stubs satisfy. Git settled it; the agent list did not.
+
+  **Phase 5 opened — one slot, and the slot count is measured rather than chosen.** The owner answered two
+  questions at the go-ahead: **fan out the fleet**, and **serve real documents** (which discharges `M30`'s Needs
+  More Info to To Do — see its ledger row for what the decision licenses and the three things it does not settle).
+
+  `harbourmaster berths.py` refused admission at first read: **overall `critical`, load 4.81/core, ceiling 3,
+  in_use 4, available 0** — and the occupants were two *other* projects' jest suites, not this repo's. Waited on a
+  bounded poll rather than launching into it; at 21:12:22 pressure fell to `tight` and one berth freed. **So the
+  fleet is one slot, not four** — that is what the machine could carry, and the fan-out the owner authorised is
+  serialised by capacity rather than by choice.
+
+  Launched `runner:M29` (server disable/pause) through the **verified single-agent Workflow lane**
+  (`model:'opus'`, `effort:'high'`, `agentType:'claude'`) — never a direct background `Agent` call, whose model
+  override has been observed not to stick. Run `wf_ec3f78c7-48b`. Inner waves capped at 4 because the machine is
+  tight. The runner carries both stop rules (**stop before verify**, **stop before merge**), the `planning/`-not-
+  `docs/` root, the standing constraints, the ban on writing this file or the ledger, and the grounding already
+  measured here (`ServerPatch` has no disable field; `unionTools` skips on `tools.length === 0` and never reads
+  `error`; R18's digest retention landed today and interacts). Out-of-family gates routed to `agy`/`grok`/`fable`
+  because ORCHESTRATOR.md records the **codex lane as unavailable — do not probe it**.
+
+  **Phase 4 completed for all eleven items.** The remaining six (`G6`, `G7`, `G8`, `M29`, `M30`, `M34`) were
+  grounded, reviewed out-of-family, and appended to `LEDGER.md` (reconciler clean A-L):
+  - **`G6` → To Do**: `/tmp` citations in durable specs identified; dispatch artifact isolation queued.
+  - **`G7` → To Do**: anchor + SHA + line format adopted; sweep and check queued.
+  - **`G8` → To Do**: noted that only a header comment landed; real executable checks unstarted.
+  - **`M29` → To Do**: review lane rejected NMI; server disable flag and dispatch semantics are internal architecture calls.
+  - **`M30` → Needs More Info**: genuine scope/cost fork on whether to build dual-runtime documentation endpoints.
+  - **`M34` → To Do**: menu badge testability is an engineering task.
+
+  **Phase 4 ran for real, later the same day — five of eleven.** `G9`, `G10`, `M31`, `M32`, `M33` moved
+  **Untriaged → To Do**, each verdict appended to its ledger row (append-never-assign, per-cell and whole-file length
+  guards: 156,273 → 162,442 bytes, line count identical, reconciler clean A-L). The verdicts went to an out-of-family
+  review lane before landing, and **it changed two of them**: `G10` was going to be filed *Needs More Info* on a
+  question that is evaluable rather than the owner's, and `M31` likewise — you cannot land the answer and mark the
+  question open. It also refused an unverified claim on `M33`, which was then **armed with a two-way planted control**
+  (`swift test` exits 1 naming `MCPRouterApp.swift:234:45` with the fault, 0 at 1941 tests without it). Grounding
+  corrected two brief-supplied figures: `G9`'s sweep is **40 tracked files**, not the four the brief names, and the
+  pre-commit hook exists with **0** mentions of `GIT_DIR`/`GIT_WORK_TREE`. `M31`'s semantics turned out to be M18's
+  already-argued palette rather than a new invention — verified identical.
+
+  **Still Untriaged: `G6`, `G7`, `G8`, `M29`, `M30`, `M34`** — six of eleven. `M29` and `M30` are decisions before
+  they are builds and none of the grounding for them has been done. **No id has been allocated for any of the sixteen
+  briefs written this session**, and no spec, worktree, branch, verify stage or merge exists for anything above.
+
+  **The fleet is not finished, on its own exit condition.** `reckon` holds **unbuilt 1 · broken 51 · unmeasured 17
+  · undecided 5**, and any of those above zero is another wave rather than a footnote. Repeated in-session reports
+  of "standing green" were reading `make test` as the finish line; it is not.
+
 - 2026-08-15 — **Owner answers received and dispositioned** (`mcp-router-status-answers.json`, 6 of 6
   answered, 5 confirmed, 1 as-found, 2 flagged blocksAutomation). Eleven new pipeline items written to
   `planning/features-to-triage/` and the ledger. The pipeline root is **`planning/`, not `docs/`**;

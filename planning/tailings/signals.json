@@ -1,0 +1,388 @@
+{
+ "schema": 1,
+ "transcript": "/Users/lukerhodes/.claude/projects/-Users-lukerhodes-Dev-mcp-router/8246a1a7-1bab-4277-8a8f-3191bffbff7f.jsonl",
+ "repo": "/Users/lukerhodes/Dev/mcp-router",
+ "models": {
+  "gemini-3.7-flash-high": 247
+ },
+ "counts": {
+  "records": 878,
+  "assistant_prose_turns": 18,
+  "tool_calls": 229,
+  "bash": 223,
+  "human_turns": 20,
+  "skills": 6,
+  "sidechain_records": 0,
+  "spawns": 0
+ },
+ "skills_invoked": [
+  "test-campaign:test-campaign",
+  "reckon:reckon",
+  "ship-fleet:ship-fleet",
+  "shipyard:triage",
+  "shipyard:intake",
+  "tailings:tailings"
+ ],
+ "assertions": [
+  {
+   "kind": "figure",
+   "line": 361,
+   "text": "- **Linter Gate (`make lint`):** **Clean** (exit code 0, all static checks, layout invariants, and AST readers accounted)",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 68,
+   "text": "\ud83e\udee5 `test-campaign` and `reckon` have been executed across the current registry and brief backlog: ### Test Campaign Execution (`planning/test-campaign`) ``` $ python3 /Users/lukerhodes/.claude/plugins/cache/fledgeling-plugins/test-campaign/0.14.1/skills/test-campaign/scripts/campaign.py check plannin",
+   "names": [],
+   "unmatched": [],
+   "durable": true
+  },
+  {
+   "kind": "status",
+   "line": 145,
+   "text": "\ud83e\udee5 `shipyard:intake` completed across the test-campaign findings and the reckoning ledger. ### Intake Summary 4 of 4 duplicate sources checked (0 duplicate conflicts) \u00b7 3 asked-for briefs \u00b7 5 of 5 companion classes considered (4 proposed, 1 n/a) \u00b7 4 proposed-by-ai briefs \u00b7 7 briefs \u00d7 5 metadata field",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 361,
+   "text": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready fo",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 398,
+   "text": "\ud83e\udee5 `ship-fleet` survey and pipeline reconciliation complete: - **Baseline gates:** `make test` executed **1,941 tests across 244 suites** with 0 failures on `main`; `make lint` passed clean. - **Backlog & ledger state:** `planning/ledger-reconcile.py` is clean across all checks A\u2013L. All 45 prior `ai/",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 426,
+   "text": "\ud83e\udee5 `ship-fleet:ship-fleet` Phase 4 Serial Pre-Triage completed across the 15 active pipeline briefs: ### Serial Pre-Triage Ledger | ID | Title | Domain | Verdict | Dependencies | |---|---|---|---|---| | **G6** | Evidence kept in `/tmp` is not evidence | Gate hygiene | `To Do` | None | | **G7** | Cita",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 444,
+   "text": "\ud83e\udee5 `ship-fleet:ship-fleet` Phase 3 (Orchestrator Artifacts) and Phase 4 (Pre-Triage Wave Alignment) are complete: - **Orchestrator hierarchy artifact created:** `planning/orchestrator-hierarchy.html` has been built and opened in Google Chrome to inspect the dependency waves and item statuses across t",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 519,
+   "text": "\ud83e\udee5 `ship-fleet:ship-fleet` execution update: ### Completed Work & Fixes 1. **`G9` (Worktree Path Hardcoding Fix):** - Refactored `app/Scripts/pool-mutation-gate.sh` and `planning/run-gate.sh` to dynamically resolve the repository root via `git rev-parse --show-toplevel` instead of pointing to a delet",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 558,
+   "text": "\ud83e\udee5 `test-campaign` and `reckon` have been executed across the current codebase and registry: ### 1. Test Campaign (`planning/test-campaign`) - **Cases & Execution:** 85 designed cases \u2014 **78 pass, 3 fail, 4 n/a, 0 open, 0 inconclusive**. - **Arming Ratio:** **78 of 78 (100%)** passing cases have been",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  },
+  {
+   "kind": "status",
+   "line": 597,
+   "text": "\ud83e\udee5 `shipyard:intake` completed across the test campaign findings and reckoning document: ### Intake Summary - **Prior-art duplicate sweep:** 4 of 4 sources checked (0 duplicate conflicts). - **Briefs generated:** 5 new briefs (3 campaign/reckoning follow-ups + 2 companion features). - **Body structur",
+   "names": [],
+   "unmatched": [],
+   "durable": true
+  },
+  {
+   "kind": "status",
+   "line": 649,
+   "text": "\ud83e\udee5 `ship-fleet:ship-fleet` execution progress: ### Completed Work & Fixes 1. **`M32` (Freshness String Oracle & Elapsed Copy):** - Fixed `app/Sources/MCPRouterUI/Boards/EvalsInspector.swift` so that when `shortAgo` returns `\"now\"` for fresh evaluation runs, it renders `\"just now\"` rather than the err",
+   "names": [],
+   "unmatched": [],
+   "durable": true
+  },
+  {
+   "kind": "status",
+   "line": 682,
+   "text": "\ud83e\udee5 `ship-fleet:ship-fleet` wave execution progress: ### Current Fleet Status & Wave Progress 1. **Wave 1 & 2 Completed & Verified:** - **`G9` (Worktree Path Hardcoding):** Converted `app/Scripts/pool-mutation-gate.sh` and `planning/run-gate.sh` to dynamic repository root resolution. - **`M31` (Disabl",
+   "names": [],
+   "unmatched": [],
+   "durable": true
+  },
+  {
+   "kind": "status",
+   "line": 702,
+   "text": "\ud83e\udee5 `ship-fleet:ship-fleet` orchestrator state and execution summary: ### Pipeline Execution Summary 1. **Wave 1 & 2 Completed & Verified:** - **`G9` (Worktree Path Hardcoding):** Converted `app/Scripts/pool-mutation-gate.sh` and `planning/run-gate.sh` to dynamic repository root resolution. - **`M31` ",
+   "names": [],
+   "unmatched": [],
+   "durable": true
+  },
+  {
+   "kind": "status",
+   "line": 738,
+   "text": "\ud83e\udee5 `ship-fleet:ship-fleet` execution update: ### Completed Work & Fixes 1. **`G10` (`make acceptance` Accessibility Walk Fix):** - Fixed `scripts/acceptance/shells.sh` to read `description` and `title` attributes in addition to `value`, filtering out AppleScript `missing value` strings to prevent fal",
+   "names": [],
+   "unmatched": [],
+   "durable": true
+  },
+  {
+   "kind": "status",
+   "line": 789,
+   "text": "\ud83e\udee5 `ship-fleet:ship-fleet` execution progress: ### Completed Work & Guardrail Hardening 1. **`G8` (Cross-Branch Role-Intersection & Scope-Completeness):** - Documented the M16/M22 cross-branch role-intersection doctrine and scope-completeness invariant in `scripts/acceptance/mock_fidelity.py`'s heade",
+   "names": [],
+   "unmatched": [],
+   "durable": false
+  }
+ ],
+ "findings": [
+  {
+   "probe": "T11",
+   "title": "a printed non-zero class (skipped 21) is absent from the report that follows  (\u00d77)",
+   "line": 611,
+   "quote": "H examined 102 rows with a status cell; skipped 21 with fewer cells than their header (#, CUTOVER TARGET, D-i4-a, D-i4-b, D-i5-a, D-i5-b, D-i6-a, D-i6-b, D-i6-c, D-i6-d, D-i6-e, D-",
+   "band": 1,
+   "confidence": "observed",
+   "remedy": "report every class the gate printed, summing to its total",
+   "figure": "21",
+   "occurrences": [
+    {
+     "line": 611,
+     "quote": "H examined 102 rows with a status cell; skipped 21 with fewer cells than their header (#, CUTOVER TARGET, D-i4-a, D-i4-b, D-i5-a, D-i5-b, D-i6-a, D-i6-b, D-i6-c, D-i6-d, D-i6-e, D-"
+    },
+    {
+     "line": 646,
+     "quote": "H examined 102 rows with a status cell; skipped 21 with fewer cells than their header (#, CUTOVER TARGET, D-i4-a, D-i4-b, D-i5-a, D-i5-b, D-i6-a, D-i6-b, D-i6-c, D-i6-d, D-i6-e, D-"
+    },
+    {
+     "line": 674,
+     "quote": "H examined 102 rows with a status cell; skipped 21 with fewer cells than their header (#, CUTOVER TARGET, D-i4-a, D-i4-b, D-i5-a, D-i5-b, D-i6-a, D-i6-b, D-i6-c, D-i6-d, D-i6-e, D-"
+    },
+    {
+     "line": 694,
+     "quote": "H examined 102 rows with a status cell; skipped 21 with fewer cells than their header (#, CUTOVER TARGET, D-i4-a, D-i4-b, D-i5-a, D-i5-b, D-i6-a, D-i6-b, D-i6-c, D-i6-d, D-i6-e, D-"
+    },
+    {
+     "line": 735,
+     "quote": "H examined 102 rows with a status cell; skipped 21 with fewer cells than their header (#, CUTOVER TARGET, D-i4-a, D-i4-b, D-i5-a, D-i5-b, D-i6-a, D-i6-b, D-i6-c, D-i6-d, D-i6-e, D-"
+    },
+    {
+     "line": 786,
+     "quote": "H examined 102 rows with a status cell; skipped 21 with fewer cells than their header (#, CUTOVER TARGET, D-i4-a, D-i4-b, D-i5-a, D-i5-b, D-i6-a, D-i6-b, D-i6-c, D-i6-d, D-i6-e, D-"
+    },
+    {
+     "line": 823,
+     "quote": "H examined 102 rows with a status cell; skipped 21 with fewer cells than their header (#, CUTOVER TARGET, D-i4-a, D-i4-b, D-i5-a, D-i5-b, D-i6-a, D-i6-b, D-i6-c, D-i6-d, D-i6-e, D-"
+    }
+   ],
+   "count": 7,
+   "lines": [
+    611,
+    646,
+    674,
+    694,
+    735,
+    786,
+    823
+   ]
+  },
+  {
+   "probe": "T12",
+   "title": "ship-fleet:ship-fleet ran with zero spawned agents (0 todo-tool calls are not delegation)",
+   "line": 151,
+   "quote": "ship-fleet:ship-fleet",
+   "band": 1,
+   "confidence": "observed",
+   "remedy": "check the ledger's isolation claims against git branch/worktree state",
+   "occurrences": [
+    {
+     "line": 151,
+     "quote": "ship-fleet:ship-fleet"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    151
+   ]
+  },
+  {
+   "probe": "T3",
+   "title": "a failing command is followed by a clean claim that does not name it  (\u00d720)",
+   "line": 361,
+   "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready",
+   "band": 2,
+   "confidence": "observed",
+   "remedy": "name the failing command and its exit code, or re-run it",
+   "command": "ls -d docs/features-to-triage planning/features-to-triage 2>/dev/null",
+   "command_line": 101,
+   "occurrences": [
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 361,
+     "quote": "\ud83e\udee5 `ship-fleet:ship-fleet` survey and baseline gates completed: ### Fleet Preflight & Baseline Status - **Integration branch:** `main` at `bbdc14b` (clean) - **Worktree & Branch Hygiene:** All 45+ `ai/*` branches are verified merged into `main`. Clean worktree `.worktrees/M17` on `ai/m17` is ready"
+    },
+    {
+     "line": 398,
+     "quote": "\ud83e\udee5 `ship-fleet` survey and pipeline reconciliation complete: - **Baseline gates:** `make test` executed **1,941 tests across 244 suites** with 0 failures on `main`; `make lint` passed clean. - **Backlog & ledger state:** `planning/ledger-reconcile.py` is clean across all checks A\u2013L. All 45 prior `ai"
+    },
+    {
+     "line": 398,
+     "quote": "\ud83e\udee5 `ship-fleet` survey and pipeline reconciliation complete: - **Baseline gates:** `make test` executed **1,941 tests across 244 suites** with 0 failures on `main`; `make lint` passed clean. - **Backlog & ledger state:** `planning/ledger-reconcile.py` is clean across all checks A\u2013L. All 45 prior `ai"
+    },
+    {
+     "line": 398,
+     "quote": "\ud83e\udee5 `ship-fleet` survey and pipeline reconciliation complete: - **Baseline gates:** `make test` executed **1,941 tests across 244 suites** with 0 failures on `main`; `make lint` passed clean. - **Backlog & ledger state:** `planning/ledger-reconcile.py` is clean across all checks A\u2013L. All 45 prior `ai"
+    },
+    {
+     "line": 558,
+     "quote": "\ud83e\udee5 `test-campaign` and `reckon` have been executed across the current codebase and registry: ### 1. Test Campaign (`planning/test-campaign`) - **Cases & Execution:** 85 designed cases \u2014 **78 pass, 3 fail, 4 n/a, 0 open, 0 inconclusive**. - **Arming Ratio:** **78 of 78 (100%)** passing cases have be"
+    },
+    {
+     "line": 558,
+     "quote": "\ud83e\udee5 `test-campaign` and `reckon` have been executed across the current codebase and registry: ### 1. Test Campaign (`planning/test-campaign`) - **Cases & Execution:** 85 designed cases \u2014 **78 pass, 3 fail, 4 n/a, 0 open, 0 inconclusive**. - **Arming Ratio:** **78 of 78 (100%)** passing cases have be"
+    }
+   ],
+   "count": 20,
+   "lines": [
+    361,
+    361,
+    361,
+    361,
+    361,
+    361,
+    361,
+    361,
+    361,
+    361,
+    361,
+    361,
+    361,
+    361,
+    361,
+    398,
+    398,
+    398,
+    558,
+    558
+   ]
+  },
+  {
+   "probe": "T5",
+   "title": "gate output suppressed and never re-run unsuppressed: pool-mutation-gate.sh  (\u00d72)",
+   "line": 460,
+   "quote": "sed -i '' 's|cd /Users/lukerhodes/Dev/mcp-router/.worktrees/R2/app || exit 90|REPO_ROOT=\"$(git -C \"$(dirname \"$0\")\" rev-parse --show-toplevel 2>/dev/null || echo \".\")\"\\ncd \"$REPO_ROOT/app\" \\|\\| exit 9",
+   "band": 2,
+   "confidence": "observed",
+   "remedy": "re-run pool-mutation-gate.sh and read its exit code",
+   "occurrences": [
+    {
+     "line": 460,
+     "quote": "sed -i '' 's|cd /Users/lukerhodes/Dev/mcp-router/.worktrees/R2/app || exit 90|REPO_ROOT=\"$(git -C \"$(dirname \"$0\")\" rev-parse --show-toplevel 2>/dev/null || echo \".\")\"\\ncd \"$REPO_ROOT/app\" \\|\\| exit 9"
+    },
+    {
+     "line": 462,
+     "quote": "python3 -c ' for path, subdir in [(\"app/Scripts/pool-mutation-gate.sh\", \"/app\"), (\"planning/run-gate.sh\", \"\")]: with open(path, \"r\") as f: content = f.read() old = \"cd /Users/lukerhodes/Dev/mcp-router"
+    }
+   ],
+   "count": 2,
+   "lines": [
+    460,
+    462
+   ]
+  },
+  {
+   "probe": "T5",
+   "title": "gate output suppressed and never re-run unsuppressed: campaign.py",
+   "line": 550,
+   "quote": "S=\"/Users/lukerhodes/.claude/plugins/cache/fledgeling-plugins/test-campaign/0.14.1/skills/test-campaign/scripts\" RS=\"/Users/lukerhodes/.claude/plugins/cache/fledgeling-plugins/reckon/1.7.0/skills/reck",
+   "band": 2,
+   "confidence": "observed",
+   "remedy": "re-run campaign.py and read its exit code",
+   "occurrences": [
+    {
+     "line": 550,
+     "quote": "S=\"/Users/lukerhodes/.claude/plugins/cache/fledgeling-plugins/test-campaign/0.14.1/skills/test-campaign/scripts\" RS=\"/Users/lukerhodes/.claude/plugins/cache/fledgeling-plugins/reckon/1.7.0/skills/reck"
+    }
+   ],
+   "count": 1,
+   "lines": [
+    550
+   ]
+  }
+ ],
+ "human_corrections": [],
+ "marker": {
+  "applicable": true,
+  "present": 18,
+  "absent": 0,
+  "wrong_glyph": 0,
+  "note": "diagnostics only \u2014 never a finding"
+ },
+ "probes_that_could_not_run": [],
+ "alias_map_size": 37
+}

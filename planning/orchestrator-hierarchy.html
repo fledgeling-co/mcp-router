@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MCP Router — Fleet Orchestrator Hierarchy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-heading: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --merged: #238636;
+      --merged-text: #3fb950;
+      --todo: #1f6feb;
+      --todo-text: #79c0ff;
+      --review: #d29922;
+      --review-text: #e3b341;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #f6f8fa;
+        --card-bg: #ffffff;
+        --border: #d0d7de;
+        --text: #24292f;
+        --text-heading: #1f2328;
+        --text-muted: #57606a;
+        --accent: #0969da;
+        --merged: #dafbe1;
+        --merged-text: #1a7f37;
+        --todo: #ddf4ff;
+        --todo-text: #0969da;
+        --review: #fff8c5;
+        --review-text: #9a6700;
+      }
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      margin: 0;
+      padding: 32px 24px;
+      line-height: 1.5;
+    }
+    .header {
+      max-width: 1200px;
+      margin: 0 auto 32px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+    }
+    h1 {
+      margin: 0 0 8px 0;
+      color: var(--text-heading);
+      font-size: 24px;
+    }
+    .meta {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    .stats {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .stat-badge {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+    .wave-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .wave-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .wave-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-heading);
+      margin: 0;
+    }
+    .wave-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-id {
+      font-weight: 700;
+      color: var(--text-heading);
+      font-size: 15px;
+    }
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+    }
+    .badge.merged {
+      background: var(--merged);
+      color: var(--merged-text);
+    }
+    .badge.todo {
+      background: var(--todo);
+      color: var(--todo-text);
+    }
+    .badge.review {
+      background: var(--review);
+      color: var(--review-text);
+    }
+    .card-title {
+      font-size: 13px;
+      color: var(--text);
+      margin: 0;
+      flex-grow: 1;
+    }
+    .card-deps {
+      font-size: 11px;
+      color: var(--text-muted);
+      border-top: 1px dashed var(--border);
+      padding-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>MCP Router — Fleet Orchestrator Hierarchy</h1>
+    <div class="meta">Integration branch: <code>main</code> · Updated: 2026-08-25 · Suite: 1,941 tests clean (exit 0)</div>
+    <div class="stats">
+      <div class="stat-badge"><strong>48</strong> Merged / Done</div>
+      <div class="stat-badge"><strong>15</strong> Active Triaged Backlog</div>
+      <div class="stat-badge"><strong>7</strong> New Intake Briefs</div>
+      <div class="stat-badge"><strong>4</strong> Active Execution Waves</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Wave 1 -->
+    <div class="wave-section">
+      <div class="wave-header">
+        <h2 class="wave-title">Wave 1: Independent Gate & Harness Integrity</h2>
+        <span class="wave-meta">Concurrency: 4 slots · Dependencies: None</span>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">G6</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">Evidence kept in /tmp is not evidence</p>
+          <div class="card-deps">Deps: None · Branch: ai/g6</div>
+        </div>
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">G8</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">Sweep search scope completeness</p>
+          <div class="card-deps">Deps: None · Branch: ai/g8</div>
+        </div>
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">G9</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">Fix hardcoded worktree paths in gate scripts</p>
+          <div class="card-deps">Deps: None · Branch: ai/g9</div>
+        </div>
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">M31</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">Design of record CSS specificity fix for disabled primary buttons</p>
+          <div class="card-deps">Deps: None · Branch: ai/m31</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wave 2 -->
+    <div class="wave-section">
+      <div class="wave-header">
+        <h2 class="wave-title">Wave 2: Build Verification & Fidelity Guardrails</h2>
+        <span class="wave-meta">Concurrency: 4 slots · Dependencies: Wave 1</span>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">G7</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">Citation verification across git revisions</p>
+          <div class="card-deps">Deps: G6 · Branch: ai/g7</div>
+        </div>
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">G10</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">Make acceptance test runner report unattached permissions gracefully</p>
+          <div class="card-deps">Deps: None · Branch: ai/g10</div>
+        </div>
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">M32</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">Mock fidelity oracle enforcement for un-mocked additions</p>
+          <div class="card-deps">Deps: M23 · Branch: ai/m32</div>
+        </div>
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">M33</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">App target compilation gating alongside SwiftPM</p>
+          <div class="card-deps">Deps: None · Branch: ai/m33</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wave 3 -->
+    <div class="wave-section">
+      <div class="wave-header">
+        <h2 class="wave-title">Wave 3: Mac Shell & Router Capabilities</h2>
+        <span class="wave-meta">Concurrency: 3 slots · Dependencies: Core Router</span>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">M29</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">Upstream server disable action and toggle state in control API</p>
+          <div class="card-deps">Deps: R3, F3 · Branch: ai/m29</div>
+        </div>
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">M30</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">Capability document local source resolver</p>
+          <div class="card-deps">Deps: M19 · Branch: ai/m30</div>
+        </div>
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">M34</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">Menu item badge accessibility attribute exposure</p>
+          <div class="card-deps">Deps: M1, M20 · Branch: ai/m34</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wave 4 -->
+    <div class="wave-section">
+      <div class="wave-header">
+        <h2 class="wave-title">Wave 4: Skill Ecosystem & Marketplace Telemetry</h2>
+        <span class="wave-meta">Concurrency: 3 slots · Dependencies: M4, M22</span>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">F5</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">Cross-harness skill and plugin profile synchronization</p>
+          <div class="card-deps">Deps: M4, R7 · Branch: ai/f5</div>
+        </div>
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">F6</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">Marketplace auto-update checker and changelog preview</p>
+          <div class="card-deps">Deps: M4 · Branch: ai/f6</div>
+        </div>
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">F8</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">Skill version usage history and Insights telemetry</p>
+          <div class="card-deps">Deps: M22 · Branch: ai/f8</div>
+        </div>
+        <div class="card">
+          <div class="card-top">
+            <span class="card-id">F7</span>
+            <span class="badge todo">To Do</span>
+          </div>
+          <p class="card-title">Session analyzer and skill recommender</p>
+          <div class="card-deps">Deps: M4, F8 · Branch: ai/f7</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Merged Historical Foundation -->
+    <div class="wave-section">
+      <div class="wave-header">
+        <h2 class="wave-title">Completed Foundation (48 items merged to main)</h2>
+        <span class="wave-meta">All ai/* branches verified merged</span>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <div class="card-top"><span class="card-id">F1–F4</span><span class="badge merged">Merged</span></div>
+          <p class="card-title">Swift workspace, kit, control client & state tracker</p>
+        </div>
+        <div class="card">
+          <div class="card-top"><span class="card-id">R1–R5, R4-C1</span><span class="badge merged">Merged</span></div>
+          <p class="card-title">RouterCore, pool relay, control registry, OAuth & parity harness</p>
+        </div>
+        <div class="card">
+          <div class="card-top"><span class="card-id">M1–M8, M12–M27</span><span class="badge merged">Merged</span></div>
+          <p class="card-title">Mac shell, Activity, Servers, Skills, Discover, Settings, Markdown, 40-State matrix</p>
+        </div>
+        <div class="card">
+          <div class="card-top"><span class="card-id">I1–I6, W1, X1–X6</span><span class="badge merged">Merged</span></div>
+          <p class="card-title">iOS companion, secrets broker, accessibility test harness & on-glass verification</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

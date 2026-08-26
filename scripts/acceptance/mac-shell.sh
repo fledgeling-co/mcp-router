@@ -31,7 +31,46 @@ APP_DIR="$ROOT/app"
 MAC_APP="$APP_DIR/.derived/Build/Products/Debug/MCPRouter.app"
 REL_APP="$APP_DIR/.derived/Build/Products/Release/MCPRouter.app"
 WORK="$(mktemp -d)"
-trap 'rm -rf "$WORK"' EXIT
+
+# The cleanup runs on EVERY exit, not only the successful one.
+#
+# What stood here removed `$WORK` and nothing else, while the app this lane launches was quit by a
+# `terminate` on the last line of the script. So a run that ended at any `fail` — which is every
+# `fail`, since `fail` exits — left an MCPRouter instance running: measured on 2026-08-26, the
+# isolated re-run after the oracle repair failed at an assertion and left one behind, briefly
+# frontmost, which then had to be quit by hand. That is this lane leaking into the machine it is
+# measuring, and the next lane to launch the same bundle inherits it.
+#
+# `mac_app_wait_gone` at the next launch would eventually clear it, but only for a run that comes
+# next in the same bundle; nothing clears it for a person, and rule 1 is about what is on their
+# screen. Terminating here costs nothing on a green run — the app is already gone by then and
+# `kill -0` says so.
+#
+# The trap RETURNS the status it was entered with. Bash 3.2 lets an EXIT trap's last command
+# overwrite the exit status of a shell killed by `set -u`, which is how `control-client.sh` came to
+# report exit 0 having asserted nothing; a cleanup that can rewrite this lane's verdict from FAIL to
+# PASS is worse than no cleanup at all.
+mac_shell__cleanup() {
+    local status=$?
+    if [ -n "${PID:-}" ] && kill -0 "$PID" 2>/dev/null; then
+        if [ -n "${AXKIT:-}" ] && [ -x "${AXKIT:-}" ]; then
+            "$AXKIT" terminate "$PID" >/dev/null 2>&1 || true
+        fi
+        # Asked, then waited for, then insisted. A `terminate` that returns is not an app that has
+        # exited, and reporting a clean-up that did not happen is the shape of defect this file
+        # already carries five notes about.
+        for _ in 1 2 3 4 5 6 7 8 9 10; do
+            kill -0 "$PID" 2>/dev/null || break
+            sleep 0.3
+        done
+        if kill -0 "$PID" 2>/dev/null; then
+            kill "$PID" 2>/dev/null || true
+        fi
+    fi
+    rm -rf "$WORK"
+    return $status
+}
+trap mac_shell__cleanup EXIT
 
 fail() { echo "FAIL: $*" >&2; exit 1; }
 blocked() { echo "BLOCKED: $*" >&2; exit 2; }
@@ -700,12 +739,30 @@ for command in MenuCommand.allCases {
     case .featureUnbuilt: "featureUnbuilt"
     case .needsServerSelection: "needsServerSelection"
     }
+    // **The reason comes from `reason(in:)`, which is the function the running app calls.**
+    //
+    // This read `availability.reason` — `CommandAvailability`'s generic sentence — and that was
+    // the wrong question by one hop. `ShellMenuReasons.apply(to:context:)` writes
+    // `command.reason(in: context)` into `AXHelp`, and `reason(in:)` specialises `.featureUnbuilt`
+    // per command on purpose: D-m14-a's resolution, taken because one command carried that answer
+    // when the sentence was written and nine carry it now, so the generic line would appear nine
+    // times across two menus and name none of the nine features.
+    //
+    // So the app said `Re-indexing the whole manifest hasn't been built yet.`, this oracle expected
+    // `This feature hasn't been built yet.`, and the lane reported a FAIL naming the product. It is
+    // `shells.sh:216`'s defect exactly — an instrument asking a neighbouring question and reporting
+    // the difference as the app's fault — and it is the fifth time in this item that the harness was
+    // wrong about an app that was right.
+    //
+    // The assertion gets STRONGER for the change: the lane now requires the specific sentence for
+    // each of the nine unbuilt commands rather than one generic string shared between them, so a
+    // command that starts returning `.featureUnbuilt` without naming its subject fails here.
     print([
         command.menu.rawValue,
         command.title,
         command.isSystemProvided ? "system" : "app",
         token,
-        availability.reason ?? ""
+        command.reason(in: context) ?? ""
     ].joined(separator: "\t"))
 }
 SWIFT

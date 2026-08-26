@@ -221,6 +221,23 @@
             return ShellModel(client: FixtureControlAPIClient(scenario), store: scratch.store, clock: { now })
         }
 
+        /// Every Swift file in the measurement harness, joined, so a test can read the target
+        /// rather than one of its files.
+        ///
+        /// An empty directory throws rather than returning "", because a harness that had been
+        /// moved or renamed would otherwise satisfy every `!contains` assertion written against it
+        /// and report a surface nobody had read.
+        static func measureDumpSources(from filePath: String = #filePath) throws -> String {
+            let dir = try repoRoot(from: filePath).appendingPathComponent("app/Sources/MeasureDump")
+            let names = try FileManager.default.contentsOfDirectory(atPath: dir.path)
+                .filter { $0.hasSuffix(".swift") }
+                .sorted()
+            guard !names.isEmpty else { throw OracleError.fileNotFound("app/Sources/MeasureDump") }
+            return try names
+                .map { try String(contentsOf: dir.appendingPathComponent($0), encoding: .utf8) }
+                .joined(separator: "\n")
+        }
+
         /// Everything the boundary gates scan.
         static var gatedFiles: [String] {
             shellFiles + boardFiles + activityFiles + settingsFiles

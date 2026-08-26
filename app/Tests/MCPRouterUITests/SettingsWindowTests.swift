@@ -143,10 +143,12 @@
             )
             #expect(source.components(separatedBy: "public init(").count - 1 == 1)
 
-            let measure = try ShellTestSupport.repoFile("app/Sources/MeasureDump/main.swift")
-            #expect(measure.contains("store: InMemoryTokenStore()"))
+            // The whole harness target rather than `main.swift`: which of its files draws the
+            // Settings arm has already moved once, and this read stopped covering it silently.
+            let harness = try ShellTestSupport.measureDumpSources()
+            #expect(harness.contains("store: InMemoryTokenStore()"), "no in-memory store anywhere")
             #expect(
-                !measure.contains("KeychainTokenStore()"),
+                !harness.contains("KeychainTokenStore()"),
                 "the harness would read a keychain it has no access group for (-34018)"
             )
         }

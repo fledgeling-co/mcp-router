@@ -10,6 +10,10 @@
 //  that renders, and the activation policy below is what makes it true rather than hoped for: the
 //  process is `.prohibited`, the window is never ordered front, and nothing is activated.
 //
+//  The vocabulary (`Surface`, `State`, `Appearance`), the command line (`Arguments`) and the view
+//  (`MeasuredSurface`, `PreparedBoards`) sit in their own files beside this one. What is left here
+//  is the run itself: parse, poll, host, settle, write.
+//
 import Foundation
 
 #if MEASURE && os(macOS)
@@ -18,294 +22,6 @@ import Foundation
     import MCPRouterKit
     import MCPRouterUI
     import SwiftUI
-
-    /// A surface this tool knows how to render.
-    enum Surface: String, CaseIterable {
-        case servers
-        case settings
-        case readme
-        /// The menu-bar popover (M20).
-        /// Hosts in NSHostingView under .prohibited to measure without activating.
-        case popover
-        case harnesses
-        case insights
-    }
-
-    /// The drawn state to render it in.
-    enum State: String, CaseIterable {
-        case ideal
-        case empty
-        case loading
-        case error
-
-        /// The scenario that produces this drawn state on this surface.
-        func fixture(for surface: Surface) -> FixtureControlAPIClient.Scenario {
-            switch (surface, self) {
-            case (.settings, .empty): .offline
-            // The Harnesses board's error frame in the mock is a configuration that would not
-            // parse — which is a PARTIAL read, not a failed one: the other five harnesses were
-            // read normally and are still drawn above the failure. `.offline` here would render
-            // the router-not-running pane and report it as a measurement of the mock's frame.
-            case (.harnesses, .error): .partial
-            case (_, .ideal): .populated
-            case (_, .empty): .empty
-            case (_, .loading): .loading
-            case (_, .error): .offline
-            }
-        }
-
-        /// The inbox this state renders the popover against (nil for non-popover).
-        func inbox(for surface: Surface) -> (any InboxService)? {
-            guard surface == .popover else { return nil }
-            switch self {
-            case .ideal: return FixtureInboxService(.paired)
-            case .empty: return FixtureInboxService(.pairedEmpty)
-            case .loading: return FixtureInboxService(.loading)
-            case .error: return FixtureInboxService(.failed)
-            }
-        }
-
-        /// Whether to poll before rendering.
-        ///
-        /// `loading` deliberately does not: its fixture is a request that never returns, so awaiting
-        /// it would hang the tool rather than render the placeholder. The board reads a nil tracker
-        /// state as loading, which is the state this frame is for.
-        var polls: Bool { self != .loading }
-    }
-
-    struct Arguments {
-        var surface: Surface = .servers
-        var state: State = .ideal
-        var appearance: ColorScheme = .dark
-        var appearanceName = "dark"
-        var width = 1280.0
-        var height = 820.0
-        var output = "planning/fidelity/servers.dump.json"
-        /// How long the run loop is spun for the layout to settle, in seconds.
-        var settle = 1.5
-        /// The base URL of a **running** router to fetch `.readme`'s content from, instead of
-        /// M19's fixture.
-        ///
-        /// M30 added a second implementation of `CapabilityDocumentSource` that reads a real
-        /// package through the control API, and nothing rendered it: the `.readme` arm below builds
-        /// `FixtureCapabilityDocumentSource`, so every dump and every capture of that panel — M23's
-        /// included — is a picture of a JSON file in this repository. That is a measurement of the
-        /// *layout* and it was never anything else, but it means no one had seen the panel draw a
-        /// document a router actually served.
-        ///
-        /// Naming a URL here swaps the fixture for `ControlAPICapabilityDocumentSource` against
-        /// that router. It is opt-in and it is never a default, because a harness that silently
-        /// reached for the network would make M23's fidelity dumps depend on whether a daemon
-        /// happened to be up.
-        var documentFrom: URL?
-        /// Which server on that router to ask for. Only read when `documentFrom` is set.
-        var documentServer = "m30-look"
-        /// Where to write a PNG of the hosted view, if anywhere.
-        ///
-        /// Rendered off the hosting view with `cacheDisplay(in:to:)` rather than photographed off
-        /// the screen. `UI_VERIFICATION.md` rule 1 forbids taking the user's display, and a
-        /// `screencapture` of a region photographs whatever is on top of it rather than the window
-        /// meant — this path needs no visible window at all, so there is nothing to steal and
-        /// nothing to occlude the subject.
-        var png: String?
-        /// Every argument this could not honour, in the words it would report them in.
-        ///
-        /// Collected rather than defaulted away. An unreadable `--surface` used to fall back to the
-        /// only surface there is and an unreadable `--state` to `ideal`, so `--state loadng` wrote a
-        /// dump of the ideal frame into `servers.loadng.json` and the tool exited 0 — a measurement
-        /// of a surface nobody asked for, reported as a success. That is the same shape as a layer
-        /// that could not run reading as agreement, one level below the gate, and the fix is the
-        /// same: say what could not be honoured and exit 3.
-        var rejected: [String] = []
-
-        /// A number a frame can actually be laid out at.
-        private static func positive(_ text: String) -> Double? {
-            guard let value = Double(text), value > 0 else { return nil }
-            return value
-        }
-
-        /// A duration. Zero is allowed: it means "read whatever one layout pass produced".
-        private static func nonNegative(_ text: String) -> Double? {
-            guard let value = Double(text), value >= 0 else { return nil }
-            return value
-        }
-
-        static func parse(_ argv: [String]) -> Arguments {
-            var out = Arguments()
-            var i = 0
-            while i < argv.count {
-                let key = argv[i]
-                let value = i + 1 < argv.count ? argv[i + 1] : nil
-                i += out.apply(key, value) ? 2 : 1
-            }
-            return out
-        }
-
-        /// Applies one argument, or records why it could not be.
-        ///
-        /// - Returns: whether `value` was consumed, so the caller knows how far to step.
-        private mutating func apply(_ key: String, _ value: String?) -> Bool {
-            /// Reads `value` through `convert`, or records why it could not be and returns nil.
-            func take<T>(_ expected: String, _ convert: (String) -> T?) -> T? {
-                guard let value else {
-                    rejected.append("\(key) was given no value")
-                    return nil
-                }
-                guard let converted = convert(value) else {
-                    rejected.append("\(key) '\(value)' is not \(expected)")
-                    return nil
-                }
-                return converted
-            }
-
-            switch key {
-            case "--surface":
-                surface = take(Self.oneOf(Surface.allCases), Surface.init(rawValue:)) ?? surface
-            case "--state":
-                state = take(Self.oneOf(State.allCases), State.init(rawValue:)) ?? state
-            case "--appearance":
-                let parsed = take(Self.oneOf(Appearance.allCases), Appearance.init(rawValue:))
-                appearance = parsed.map { $0 == .light ? .light : .dark } ?? appearance
-                appearanceName = parsed?.rawValue ?? appearanceName
-            case "--width":
-                width = take("a positive number", Self.positive) ?? width
-            case "--height":
-                height = take("a positive number", Self.positive) ?? height
-            case "--out":
-                output = take("a path", Self.nonEmpty) ?? output
-            case "--settle":
-                settle = take("a non-negative number", Self.nonNegative) ?? settle
-            case "--document-from":
-                documentFrom = take("a URL") { URL(string: $0) } ?? documentFrom
-            case "--document-server":
-                documentServer = take("a name", Self.nonEmpty) ?? documentServer
-            case "--png":
-                png = take("a path", Self.nonEmpty) ?? png
-            default:
-                rejected.append("'\(key)' is not an argument this tool takes")
-                return false
-            }
-            return true
-        }
-
-        /// A path. The empty string is refused rather than treated as "wherever the default was".
-        private static func nonEmpty(_ text: String) -> String? {
-            text.isEmpty ? nil : text
-        }
-
-        /// The values an enum-backed argument accepts, in the words the refusal prints them in.
-        private static func oneOf(_ cases: some Collection<some RawRepresentable<String>>) -> String {
-            "one of " + cases.map(\.rawValue).joined(separator: ", ")
-        }
-    }
-
-    /// The appearance to resolve every dynamic colour in. Named rather than compared as a string so
-    /// an unreadable value is refused by the same path every other argument is.
-    enum Appearance: String, CaseIterable {
-        case light
-        case dark
-    }
-
-    /// The rendered surface, wrapped in the harness's coordinate space.
-    ///
-    /// **Each surface builds its own model inside its own arm.** `board: ServersBoardModel` used to
-    /// be a stored property, which made every surface pay for the Servers board's model and made a
-    /// second surface impossible to add without constructing one it does not use. What is stored now
-    /// is the shell, which every surface genuinely shares because it is the poll they all read.
-    /// The board models M22's two surfaces are rendered from, built and **read** before the view
-    /// exists.
-    ///
-    /// Their own load runs from `.task`, and a hosting view in a window that is never ordered in
-    /// does not reliably fire one — the first run of this measured nine nodes, which is the header
-    /// and a loading skeleton, and wrote it out as the ideal frame. The Servers surface never had
-    /// the problem because `ShellModel.refresh` is awaited in `run()` before anything renders; this
-    /// is the same arrangement for boards that own their own read.
-    ///
-    /// `loading` is deliberately **not** pre-read: its whole subject is the frame before an answer,
-    /// and the fixture for it never returns.
-    @MainActor
-    struct PreparedBoards {
-        var harnesses: HarnessesBoardModel
-        var insights: InsightsBoardModel
-
-        init(client: any ControlAPIClient) {
-            harnesses = HarnessesBoardModel(client: client)
-            insights = InsightsBoardModel(client: client)
-        }
-
-        func read(_ surface: Surface) async {
-            switch surface {
-            case .harnesses: await harnesses.load()
-            case .insights: await insights.load()
-            // `.readme` joins these rather than loading: `CapabilityDocumentSheet` is built from
-            // `FixtureCapabilityDocumentSource` synchronously in `body`, so there is no board model
-            // to poll. It was added to `Surface` without being added here, and because every other
-            // switch in this file uses a wildcard, this one was the only place the omission could
-            // surface — as `switch must be exhaustive`, which took the whole MCP_ROUTER_MEASURE
-            // build down and with it every rung that depends on a dump.
-            case .servers, .settings, .popover, .readme: break
-            }
-        }
-    }
-
-    @MainActor
-    struct MeasuredSurface: View {
-        let surface: Surface
-        let surfaceName: String
-        let size: CGSize
-        let shell: ShellModel
-        let client: any ControlAPIClient
-        let appearance: ColorScheme
-        let boards: PreparedBoards
-        /// What the `.readme` arm draws.
-        ///
-        /// Resolved in `run()` rather than here, because the live source is an `await` and a view's
-        /// `body` cannot make one — and because a `.task` on a hosting view in a window that is
-        /// never ordered in does not reliably fire, which is the same trap `PreparedBoards` above
-        /// exists to avoid. It defaults to M19's fixture, so every existing invocation renders
-        /// exactly what it rendered before.
-        let readme: CapabilityDocumentSheet.Content
-
-        var body: some View {
-            Group {
-                switch surface {
-                case .servers:
-                    ServersBoard(
-                        shell: shell,
-                        board: ServersBoardModel(client: client, tracker: shell.tracker)
-                    )
-                case .readme:
-                    CapabilityDocumentSheet(content: readme)
-                case .popover:
-                    MenuBarPopover(shell: shell)
-                case .harnesses:
-                    HarnessesBoard(board: boards.harnesses)
-                case .insights:
-                    InsightsBoard(board: boards.insights)
-                case .settings:
-                    // The **in-memory** token store, not the default keychain one: this is an
-                    // unsigned SwiftPM executable with no keychain access group, where
-                    // `SecItemCopyMatching` returns -34018 rather than errSecItemNotFound. The
-                    // Makefile already documents that for the iOS lane; here it would render the
-                    // keychain-refused state on every run and report it as the ideal frame.
-                    SettingsWindow(
-                        model: shell,
-                        buildIdentity: .measured,
-                        store: InMemoryTokenStore(),
-                        restoration: ShellRestoration(defaults: Self.scratchDefaults)
-                    )
-                }
-            }
-            .frame(width: size.width, height: size.height, alignment: .topLeading)
-            .environment(\.colorScheme, appearance)
-            .measureSurface(surfaceName)
-        }
-
-        /// A scratch defaults domain, so the pane the *developer* last looked at cannot decide which
-        /// pane this run measures. A dump whose contents depend on the machine it ran on is not a
-        /// measurement of the surface.
-        static let scratchDefaults = UserDefaults(suiteName: "mcprouter.measure") ?? .standard
-    }
 
     @MainActor
     func run() async -> Int32 {
@@ -388,7 +104,10 @@ import Foundation
     /// `SWIFT_PRACTICES.md` §1 because it deadlocks the cooperative pool.
     @MainActor
     func render(
-        _ args: Arguments, shell: ShellModel, client: any ControlAPIClient, boards: PreparedBoards,
+        _ args: Arguments,
+        shell: ShellModel,
+        client: any ControlAPIClient,
+        boards: PreparedBoards,
         readme: CapabilityDocumentSheet.Content
     ) -> Int32 {
         SurfaceRecorder.shared.reset()
@@ -419,38 +138,8 @@ import Foundation
 
         // The picture, before the node dump, because a run that renders nothing measurable should
         // still hand back what it drew — that image is how somebody sees *why* the recorder found
-        // nothing. Written off the view's own backing store: no window is ever ordered in, so
-        // there is no screen to take and nothing on top of the subject to photograph by mistake.
-        if let path = args.png {
-            if let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) {
-                host.cacheDisplay(in: host.bounds, to: rep)
-                if let data = rep.representation(using: .png, properties: [:]) {
-                    let url = URL(fileURLWithPath: path)
-                    do {
-                        try FileManager.default.createDirectory(
-                            at: url.deletingLastPathComponent(), withIntermediateDirectories: true
-                        )
-                        try data.write(to: url)
-                        print("measure-dump: wrote \(rep.pixelsWide)x\(rep.pixelsHigh) to \(url.path)")
-                    } catch {
-                        FileHandle.standardError.write(
-                            Data("measure-dump: could not write \(url.path): \(error)\n".utf8)
-                        )
-                        return 3
-                    }
-                } else {
-                    FileHandle.standardError.write(
-                        Data("measure-dump: the view's backing store would not encode as PNG\n".utf8)
-                    )
-                    return 3
-                }
-            } else {
-                FileHandle.standardError.write(
-                    Data("measure-dump: the hosting view offered no backing store to capture\n".utf8)
-                )
-                return 3
-            }
-        }
+        // nothing.
+        if let path = args.png, let failure = capture(host, to: path) { return failure }
 
         guard let dump = SurfaceRecorder.shared.dump(
             surface: "\(args.surface.rawValue).\(args.state.rawValue)",
@@ -465,24 +154,74 @@ import Foundation
             return 3
         }
 
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
         let url = URL(fileURLWithPath: args.output)
-        do {
-            try FileManager.default.createDirectory(
-                at: url.deletingLastPathComponent(), withIntermediateDirectories: true
-            )
-            try encoder.encode(dump).write(to: url)
-        } catch {
-            FileHandle.standardError.write(Data("measure-dump: could not write \(url.path): \(error)\n".utf8))
-            return 3
-        }
+        if let failure = writeDump(dump, to: url) { return failure }
 
         print("measure-dump: \(dump.allNodes.count) nodes, \(args.appearanceName), \(url.path)")
         for layer in dump.inconclusive {
             print("measure-dump: INCONCLUSIVE \(layer.layer) — \(layer.evidence)")
         }
         return 0
+    }
+
+    /// Writes a PNG of what the hosting view drew, and reports the exit code if it could not.
+    ///
+    /// Written off the view's own backing store: no window is ever ordered in, so there is no screen
+    /// to take and nothing on top of the subject to photograph by mistake.
+    ///
+    /// - Returns: nil when the picture was written, or the code to exit with when it was not.
+    @MainActor
+    func capture(_ host: NSView, to path: String) -> Int32? {
+        guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else {
+            FileHandle.standardError.write(
+                Data("measure-dump: the hosting view offered no backing store to capture\n".utf8)
+            )
+            return 3
+        }
+        host.cacheDisplay(in: host.bounds, to: rep)
+        guard let data = rep.representation(using: .png, properties: [:]) else {
+            FileHandle.standardError.write(
+                Data("measure-dump: the view's backing store would not encode as PNG\n".utf8)
+            )
+            return 3
+        }
+        let url = URL(fileURLWithPath: path)
+        do {
+            try FileManager.default.createDirectory(
+                at: url.deletingLastPathComponent(), withIntermediateDirectories: true
+            )
+            try data.write(to: url)
+            print("measure-dump: wrote \(rep.pixelsWide)x\(rep.pixelsHigh) to \(url.path)")
+        } catch {
+            FileHandle.standardError.write(
+                Data("measure-dump: could not write \(url.path): \(error)\n".utf8)
+            )
+            return 3
+        }
+        return nil
+    }
+
+    /// Encodes the dump and writes it, and reports the exit code if it could not.
+    ///
+    /// The formatting is part of the artifact rather than a preference: the gate diffs these files,
+    /// and sorted keys are what make two runs of the same surface comparable line by line.
+    ///
+    /// - Returns: nil when the dump was written, or the code to exit with when it was not.
+    func writeDump(_ dump: some Encodable, to url: URL) -> Int32? {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+        do {
+            try FileManager.default.createDirectory(
+                at: url.deletingLastPathComponent(), withIntermediateDirectories: true
+            )
+            try encoder.encode(dump).write(to: url)
+        } catch {
+            FileHandle.standardError.write(
+                Data("measure-dump: could not write \(url.path): \(error)\n".utf8)
+            )
+            return 3
+        }
+        return nil
     }
 
     await exit(run())

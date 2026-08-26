@@ -31,12 +31,20 @@ public enum RouterSheet: Equatable, Sendable {
         case addServer
         case heldChange(server: String)
         case removeServer(server: String)
+        /// The capability document panel, for the package a server is declared with.
+        ///
+        /// Held **by server name**, never as a captured document, for the reason `Inbox.queuedItem`
+        /// and `Discover.registryEntry` are held by id: the panel re-asks the router on every open,
+        /// and a value captured when the sheet opened would go stale against a package that has
+        /// been re-installed underneath it.
+        case document(server: String)
 
         public var id: String {
             switch self {
             case .addServer: "add"
             case let .heldChange(server): "held:\(server)"
             case let .removeServer(server): "remove:\(server)"
+            case let .document(server): "document:\(server)"
             }
         }
     }
@@ -172,7 +180,12 @@ public extension RouterSheet {
         public var owner: String? {
             switch self {
             case .reconcile, .recommendation, .analyzer: "M22"
-            case .readme: "M19"
+            // `readme` was M19's for the reason its own note gave: the mock drew the sheet and
+            // nothing in the build could present it, because nothing served a document. M30 serves
+            // one — `GET /servers/:name/document` — so the kind is hosted and this row is gone
+            // rather than reassigned. A kind kept in this list after acquiring a host would make
+            // `RouterSheetTests`' "presentable but declares an owner" arm fail, which is the check
+            // doing its job.
             default: nil
             }
         }
@@ -189,6 +202,7 @@ public extension RouterSheet {
             case .addServer: .addServer
             case .heldChange: .quarantine
             case .removeServer: .confirmRemove
+            case .document: .readme
             }
         case let .skills(sheet):
             switch sheet {
@@ -240,6 +254,7 @@ public extension RouterSheet {
             .servers(.addServer),
             .servers(.heldChange(server: "s")),
             .servers(.removeServer(server: "s")),
+            .servers(.document(server: "s")),
             .skills(.heldVersion(skillID: "k")),
             .skills(.marketplaces),
             .cleanup(.removeCandidate(name: "s")),

@@ -14,6 +14,16 @@ import Foundation
 ///
 /// The response carries bytes and never a path, so nothing the app receives can be opened.
 extension ControlHandler {
+    /// One image that resolved and was read, before the shared budget has been spent on it.
+    ///
+    /// A named type rather than a three-member tuple: the three are all strings-and-bytes and a
+    /// call site that transposed two of them would compile.
+    struct ReadableImage {
+        let reference: String
+        let data: Data
+        let media: String
+    }
+
     func documentResponse(
         upstream: UpstreamConfig,
         name: JSString,
@@ -40,10 +50,11 @@ extension ControlHandler {
             if DocumentPackage.documentOverCap(data.count) {
                 return tooLarge(name, file: entry.file, actual: data.count)
             }
-            // Lossy, matching `readFileSync(path, 'utf8')`. A strict decode would return nil on the
-            // first malformed byte and drop a document the reference happily serves with a
-            // replacement character in it — a divergence visible only on a package nobody thought
-            // to test.
+            // Lossy on purpose, matching `readFileSync(path, 'utf8')`. A strict decode returns nil
+            // on the first malformed byte and would drop a document the reference happily serves
+            // with a replacement character in it — a divergence visible only on a package nobody
+            // thought to test.
+            // swiftlint:disable:next optional_data_string_conversion
             let text = String(decoding: data, as: UTF8.self)
             documents.append(JSONMember(key: JSString(entry.tab), value: .string(JSString(text))))
         }
@@ -79,12 +90,14 @@ extension ControlHandler {
         deps: ControlDeps
     ) -> (images: [JSONValue], refused: [JSONValue]) {
         var refused: [JSONValue] = []
-        var readable: [(reference: String, data: Data, media: String)] = []
+        var readable: [ReadableImage] = []
         var seen: Set<String> = []
 
         for document in documents {
             guard case let .string(text) = document.value else { continue }
-            for reference in DocumentPackage.imageReferences(in: text.string) where !seen.contains(reference) {
+            for reference in DocumentPackage.imageReferences(in: text.string)
+                where !seen.contains(reference)
+            {
                 seen.insert(reference)
                 switch DocumentPackage.resolve(reference, inPackageAt: root, fileSystem: deps.fileSystem) {
                 case let .refused(refusal):
@@ -98,7 +111,7 @@ extension ControlHandler {
                         refused.append(Self.refusedImage(reference, .notInPackage))
                         continue
                     }
-                    readable.append((reference: reference, data: data, media: media))
+                    readable.append(ReadableImage(reference: reference, data: data, media: media))
                 }
             }
         }
@@ -177,7 +190,12 @@ extension ControlHandler {
     /// Both, and not one or the other. A 404 with no `reason` is what an older router answers for a
     /// route it has never heard of, and the app reads that as version skew — so this route's own
     /// 404s must be tellable apart from it, and the `reason` member is the thing that tells them.
-    private func refusal(_ status: Int, _ reason: String, _ name: JSString, _ message: String) -> ControlAPIResponse {
+    private func refusal(
+        _ status: Int,
+        _ reason: String,
+        _ name: JSString,
+        _ message: String
+    ) -> ControlAPIResponse {
         .json(status, .object([
             JSONMember(key: "error", value: .string(JSString(message))),
             JSONMember(key: "reason", value: .string(JSString(reason))),

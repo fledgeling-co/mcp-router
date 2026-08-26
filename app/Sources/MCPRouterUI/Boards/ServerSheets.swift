@@ -24,6 +24,14 @@
                     serverName: name,
                     isDisabled: servers.first(where: { $0.name == name })?.disabled ?? false
                 )
+            case let .document(name):
+                // Built per open from the board's own client, which is the only channel this app
+                // has (A36). The source parses and decodes; nothing here holds a path.
+                ServerDocumentSheet(
+                    source: ControlAPICapabilityDocumentSource(client: board.client),
+                    serverName: name,
+                    dismiss: { board.sheet = nil }
+                )
             case let .removeServer(name):
                 if let server = servers.first(where: { $0.name == name }) {
                     RemoveServerDialog(board: board, server: server)

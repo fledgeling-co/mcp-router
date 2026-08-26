@@ -29,7 +29,21 @@
             "ChildPathSheet", "DiscoverDetailSheet", "HeldChangeSheet", "HeldVersionSheet",
             "InboxReviewSheet", "MarketplacesSheet", "MissingSubjectSheet", "OfficialMarkSheet",
             "PairingSheet", "RemoveServerDialog", "RemoveServerSheet", "ResetHistorySheet",
-            "ShimExplanationSheet", "SkillProvenanceSheet"
+            "ServerDocumentSheet", "ShimExplanationSheet", "SkillProvenanceSheet"
+        ]
+
+        /// Sheets whose Escape path is the panel they host, in another file.
+        ///
+        /// **A separate list from ``noEscapePath`` on purpose.** That one is an allowlist of open
+        /// defects; this is a limit of the scanner, which reads one file at a time and cannot follow
+        /// a wrapper into the view it renders. Collapsing the two would let a real gap hide inside a
+        /// list whose entries mean "this is fine".
+        ///
+        /// `ServerDocumentSheet` renders ``CapabilityDocumentSheet`` and supplies its `dismiss`;
+        /// that panel carries `.onExitCommand`, which is the Escape path `DESIGN.md` §8 asks for and
+        /// is why `CapabilityDocumentSheet` itself is not excused anywhere in this file.
+        static let escapeFromHostedPanel: [String: String] = [
+            "ServerDocumentSheet": "hosts CapabilityDocumentSheet, whose onExitCommand takes Escape"
         ]
 
         /// The sheets with no Escape path, each with why it was left rather than fixed.
@@ -270,7 +284,7 @@
 
         // MARK: - The population, and the gap that is left in it
 
-        @Test("the sheet population is the fifteen named here")
+        @Test("the sheet population is the eighteen named here")
         func thePopulationIsTheFifteenNamed() throws {
             let found = try Set(SheetShortcutScan.allSheetViews().map(\.name))
             let added = found.subtracting(Self.sheetViews).sorted()
@@ -282,7 +296,10 @@
         func everySheetOutsideTheGapCarriesAnEscapePath() throws {
             let views = try SheetShortcutScan.allSheetViews()
             var offenders: [String] = []
-            for view in views where Self.noEscapePath[view.name] == nil {
+            for view in views
+                where Self.noEscapePath[view.name] == nil
+                && Self.escapeFromHostedPanel[view.name] == nil
+            {
                 if !view.shortcuts.contains("cancelAction") {
                     offenders.append("\(view.file):\(view.line) \(view.name) → \(view.shortcuts)")
                 }
@@ -292,8 +309,14 @@
             // The allowlist's own presence control: a name that has stopped matching a sheet is an
             // exemption granted to nothing, and it would hide the next real gap behind it.
             let names = Set(views.map(\.name))
-            let stale = Self.noEscapePath.keys.filter { !names.contains($0) }
+            let excused = Set(Self.noEscapePath.keys).union(Self.escapeFromHostedPanel.keys)
+            let stale = excused.filter { !names.contains($0) }
             #expect(stale.isEmpty, "these are excused and no longer exist: \(stale.sorted())")
+
+            // The hosted-panel excuse's own presence control: the panel it points at must itself be
+            // scanned and unexcused, or the excuse names an Escape path nothing checks.
+            #expect(names.contains("CapabilityDocumentSheet"))
+            #expect(Self.noEscapePath["CapabilityDocumentSheet"] == nil)
         }
     }
 #endif

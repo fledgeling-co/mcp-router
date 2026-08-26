@@ -92,11 +92,21 @@ struct RouterSheetTests {
         }
     }
 
-    @Test("the four unhosted kinds are the four triage named, with their owners")
+    /// The census was four, and M30 hosting `readme` is what moved it to three.
+    ///
+    /// **This assertion changes with the feature rather than to accommodate it**, and it is
+    /// deliberately stronger afterwards than before: it asserted that four kinds were unhosted and
+    /// that `readme` was M19's, which was true only while nothing served a document. It now asserts
+    /// that `readme` is hosted, carries no owner, and has a presentable case — three claims where
+    /// there was one — so a later change that unhosted it again fails here rather than quietly
+    /// leaving the panel unreachable, which is exactly the state M19 recorded and M30 closed.
+    @Test("the three unhosted kinds are M22's, and readme is hosted since M30")
     func unhostedKindsAreTheOnesOnRecord() {
         let unhosted = RouterSheet.Kind.allCases.filter { !$0.isHosted }
-        #expect(Set(unhosted) == [.reconcile, .readme, .recommendation, .analyzer])
-        #expect(RouterSheet.Kind.readme.owner == "M19")
+        #expect(Set(unhosted) == [.reconcile, .recommendation, .analyzer])
+        #expect(RouterSheet.Kind.readme.owner == nil)
+        #expect(RouterSheet.Kind.readme.isHosted)
+        #expect(RouterSheet.allPresentable.contains { $0.kind == .readme })
         #expect(RouterSheet.Kind.reconcile.owner == "M22")
         #expect(RouterSheet.Kind.recommendation.owner == "M22")
         #expect(RouterSheet.Kind.analyzer.owner == "M22")

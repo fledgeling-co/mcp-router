@@ -107,6 +107,15 @@ public enum ControlAPIError: Error, Equatable, Sendable {
 /// `add` takes `NewServer`, a separate type, so declaring a server and editing one can never be
 /// confused for each other.
 public protocol ControlAPIClient: Sendable {
+    /// Spelled short so the one operation that answers a different error type still fits its
+    /// signature on one line.
+    ///
+    /// Not cosmetic: SwiftFormat wraps a longer signature and puts the brace on its own line, and
+    /// SwiftLint's `opening_brace` wants it on the signature's. `.swiftlint.yml` reconciles those
+    /// two only for wrapped *statement conditions*, so a declaration long enough to wrap is a pair
+    /// of gates nothing can satisfy at once. An alias costs a name and satisfies both.
+    typealias Payload = CapabilityDocumentPayload
+
     // MARK: Reading
 
     /// Every declared server and the router's own state.
@@ -160,6 +169,17 @@ public protocol ControlAPIClient: Sendable {
     /// Everything the Insights board draws, counted from what the router served and opened.
     func insights() async throws(ControlAPIError) -> InsightsResponse
 
+    /// One capability's own documents, read by the router out of the package it starts it from.
+    ///
+    /// The one read on this protocol that answers a **different error type**, and deliberately: the
+    /// panel's designed states are "nothing is published", "this server has no package", "its
+    /// directory is gone" and "the document is over the transport cap", and collapsing four named
+    /// situations into *the router couldn't complete that* is what `DESIGN.md` §6 forbids.
+    ///
+    /// Images arrive as bytes rather than references, so nothing downstream holds a path. That is
+    /// M19's rule and A36's: reading a file is one of the ways past this boundary.
+    func capabilityDocument(for server: String) async throws(CapabilityDocumentError) -> Payload
+
     // MARK: Writing
 
     /// Declare a new server. `force` adopts one that failed to start, which the router otherwise
@@ -211,6 +231,15 @@ public extension ControlAPIClient {
 
     func insights() async throws(ControlAPIError) -> InsightsResponse {
         throw ControlAPIError.malformedResponse(detail: "this router has no /insights endpoint")
+    }
+
+    /// A client that cannot ask for a document answers the state that says so.
+    ///
+    /// `notServed` is the honest answer for a conformer with nothing behind it — the phone's client,
+    /// a preview, a harness — and it stays the default here rather than being deleted along with
+    /// the absence M30 closed: a surface with nothing to ask is not a router that answered.
+    func capabilityDocument(for _: String) async throws(CapabilityDocumentError) -> Payload {
+        throw CapabilityDocumentError.notServed
     }
 
     /// Defaults so a caller that wants the ordinary behaviour does not have to name the flag.

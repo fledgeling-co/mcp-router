@@ -151,7 +151,9 @@ public enum DocumentPackage {
 
         func flush() {
             guard !run.isEmpty else { return }
-            for reference in imageReferences(inRun: run.joined(separator: " ")) where !seen.contains(reference) {
+            for reference in imageReferences(inRun: run.joined(separator: " "))
+                where !seen.contains(reference)
+            {
                 seen.insert(reference)
                 references.append(reference)
             }
@@ -238,7 +240,8 @@ public enum DocumentPackage {
         let head = reference[reference.startIndex ..< colon]
         guard let first = head.first, first.isASCII, first.isLetter else { return nil }
         let rest = head.dropFirst()
-        let legal = rest.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "+" || $0 == "." || $0 == "-") }
+        let legal = rest
+            .allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "+" || $0 == "." || $0 == "-") }
         return legal ? head.lowercased() : nil
     }
 

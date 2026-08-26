@@ -71,6 +71,7 @@
             "app/Sources/MCPRouterUI/Boards/InboxBoardMetrics.swift",
             "app/Sources/MCPRouterUI/Boards/InboxReviewSheet.swift",
             "app/Sources/MCPRouterUI/Boards/PairingSheet.swift",
+            "app/Sources/MCPRouterUI/Boards/ServerDocumentSheet.swift",
             "app/Sources/MCPRouterUI/Boards/PairingSessionModel.swift",
             // M16's Signal Path — the signature element, enrolled in the boundary gates in the
             // same commit that created the files, because a board file nobody listed is a board

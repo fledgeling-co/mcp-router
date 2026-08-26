@@ -109,6 +109,27 @@ reasons it cannot distinguish. `--control` — which runs on every invocation, n
 builds a throwaway git repository, plants one file per class plus a waived instance and an
 unwaivable bare marker, runs the real classifier over it, and requires every planted answer
 exactly. If any planted instance is missed, the run exits 2 and prints no verdict.
+
+**The control's own failure path had this gate's defect in it.** A plant that never reached the
+index returned a partial reading, and the report loop raised `KeyError` before it read the failed
+set — so the interpreter chose the exit code, and it chose **1**, which this gate assigns to
+FINDINGS. A broken control wearing a verdict's exit code is worse than no control, because 1 reads
+as a real finding to everything downstream. The guard now returns a reading for every plant, so
+the failure prints and exits 2. Armed both ways the failure can arrive — a plant added to the
+index one-by-one, and a plant never written to disk — and both now print `NEVER REACHED THE INDEX`
+and exit 2.
+
+## What this gate cannot see
+
+Printed on every run under `NOT MEASURED HERE`, and blocking nothing, because a blind spot
+recorded only in a progress file is one this gate's own readers never meet. The `src/*.ts` sources
+that build the `mcp-router` bin are mode 100644 with no shebang and no interpreter suffix, so they
+sit outside N1 while `dist/index.js` — the thing that actually runs — is not tracked at all and is
+therefore in no denominator here. And `BLOCK` matches neither a `$VAR`-interpolated home path,
+which is arguably right because that is `~/`'s portable shape, nor a lower-case spelling, which on
+a case-insensitive volume is G9's original defect written differently. Every figure in that block
+is re-derived from the tree on each run, and each of its three counters has been shown to move
+under a planted line. Widening the corpus in either direction is the owner's call, not this gate's.
 """
 
 import os
@@ -218,6 +239,44 @@ def record_diagnostic(root):
     return files
 
 
+# ------------------------------------------------------------------- what this gate cannot see
+
+# Two limits the verifier certified rather than closed, because closing either widens the corpus.
+# They lived only in `planning/progress/G9.md`, where nobody reading this gate's output would meet
+# them — and an absence sweep whose blind spots are recorded somewhere else reports a zero at the
+# wrong width. Printed on every run, blocking nothing; both are the owner's call. Every figure is
+# re-derived from the tree here rather than written down, because a pinned figure is what this
+# gate exists to argue against.
+#
+# Neither pattern below contains a literal capital-U machine path, so this file does not plant one.
+USERVAR = re.compile(r"/(?:[Uu]sers|[Vv]olumes)/\$(?:USER|USERNAME|LOGNAME|HOME)\b")
+FOLDED = re.compile(r"(?<![A-Za-z0-9_~.-])/(?:users|volumes)/[A-Za-z0-9_.~+=@-]")
+
+
+def blind_spots(root, runnable):
+    """(compiled-source count, how many carry a machine path, product tracked?, $VAR hits, folded hits)."""
+    names = [n for n, _ in tracked(root)]
+    runnable_set = set(runnable)
+    sources = [n for n in names
+               if n.startswith("src/") and n.endswith(".ts") and n not in runnable_set]
+    with_path = 0
+    for name in sources:
+        try:
+            if BLOCK.search((root / name).read_text(errors="replace")):
+                with_path += 1
+        except OSError:
+            pass
+    uservar = folded = 0
+    for name in runnable:
+        try:
+            text = (root / name).read_text(errors="replace")
+        except OSError:
+            continue
+        uservar += len(USERVAR.findall(text))
+        folded += len(FOLDED.findall(text))
+    return len(sources), with_path, "dist/index.js" in names, uservar, folded
+
+
 # ---------------------------------------------------------------------------- the presence control
 
 PLANTS = {
@@ -257,7 +316,16 @@ def control():
                                  capture_output=True, text=True).stdout.split()
         missing = [n for n in PLANTS if n not in tracked or not (d / n).is_file()]
         if missing:
-            return {}, {n: ("PLANTED", "NEVER REACHED THE INDEX") for n in missing}
+            # A guard that returned a PARTIAL `got` was this gate's own subject one layer up.
+            # `main` indexed the first plant, raised `KeyError`, and the interpreter exited **1**
+            # — the FINDINGS code — so a control that never ran wore a verdict's exit code, and
+            # the string below could not be printed by any input. Every plant gets a reading
+            # here, so the table prints, `bad` is non-empty, and the run exits 2. Nothing was
+            # classified once one plant is missing, so no plant may read `ok`: the ones that
+            # arrived read NOT ASSESSED rather than a verdict this run did not earn.
+            got = {n: ("NEVER REACHED THE INDEX" if n in missing else "NOT ASSESSED")
+                   for n in PLANTS}
+            return got, {n: (PLANTS[n][1], got[n]) for n in PLANTS}
 
         runnable, findings, _ = scan(d)
         got = {}
@@ -286,8 +354,11 @@ def main():
     got, bad = control()
     print("presence control (a throwaway repo; nothing is planted here)")
     for name, (_, expected) in PLANTS.items():
-        mark = "ok  " if got[name] == expected else "MISS"
-        print(f"  {mark}  {name:<18} expected {expected:<13} read {got[name]}")
+        # `.get`, not `[]`: an arm that reports a broken control must not be reachable only
+        # through an exception that has already chosen the wrong exit code for it.
+        reading = got.get(name, "NOT ASSESSED")
+        mark = "ok  " if reading == expected else "MISS"
+        print(f"  {mark}  {name:<18} expected {expected:<13} read {reading}")
     if bad:
         print("\nCONTROL DID NOT FIRE — the classifier missed a planted instance.")
         print("The verdict below would be an absence this instrument cannot see, so none is printed.")
@@ -311,6 +382,18 @@ def main():
     print(f"  lines with /Applications /opt /usr/local /Library  {counts['SYSTEM']}   system locations, any Mac has them")
     print(f"  lines with a scratch root                     {counts['SCRATCH']}   planning/foreign-path-gate.py owns this axis")
     print(f"  NON-runnable tracked files with a machine path {record_diagnostic(ROOT)}   adjudicated in planning/progress/G9.md")
+    print()
+
+    n_src, src_with_path, product_tracked, uservar, folded = blind_spots(ROOT, runnable)
+    print("NOT MEASURED HERE — this gate's own blind spots, so the zero above is read at its width")
+    print(f"  {n_src} tracked src/*.ts sources are outside N1: mode 100644, no shebang, no interpreter")
+    print(f"      suffix. They compile into the `mcp-router` bin, whose artefact dist/index.js is")
+    print(f"      {'TRACKED — which would put it in N1' if product_tracked else 'NOT tracked, so it is in no denominator here at all'}.")
+    print(f"      {src_with_path} of the {n_src} name a machine path today. Widening N1 to reach them is the owner's call.")
+    print("  BLOCK matches neither a $VAR-interpolated home path — arguably right, since that is")
+    print("      ~/'s portable shape — nor a lower-case spelling, which on a case-insensitive")
+    print(f"      volume is G9's original defect written differently. In runnable files today:")
+    print(f"      {uservar} $VAR-interpolated and {folded} lower-case. Neither is counted above.")
     print()
 
     if waived:

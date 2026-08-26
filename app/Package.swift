@@ -133,6 +133,13 @@ let package = Package(
             dependencies: ["RouterCore"],
             path: "Sources/MCPRouterCLI",
             swiftSettings: [.swiftLanguageMode(.v6)]
+        ),
+        .executableTarget(
+            name: "MCPRouterApp",
+            dependencies: ["MCPRouterKit", "MCPRouterUI"],
+            path: "MCPRouter",
+            exclude: ["Info.plist", "MCPRouter.entitlements", "Assets.xcassets"],
+            swiftSettings: [.swiftLanguageMode(.v6)]
         )
     ]
 )

@@ -24,14 +24,47 @@ Three sources, in increasing order of how hard they are to fake:
   build plan    `.build/<config>.yaml`, llbuild's manifest for the build that just ran.
   **object**    `.build/<triple>/<config>/<Target>.build/<Source>.swift.o` — a real artifact that
                 only a real compile produces. This is the load-bearing one.
+  **freshness** llbuild's own answer to "is there work left for this tree", asked by running the
+                build again and requiring it to do nothing. See below for why nothing on disk
+                answers this and only the tool does.
 
 An object file alone is not enough either, and the reason is the same defect wearing a third hat:
 **a `.o` outlives the target that produced it.** Delete `MCPRouterApp` from `Package.swift` and the
 object from the previous build stays on disk, so a check that only looked for the artifact would go
 on reporting the directory compiled after the lane stopped compiling it. So a target counts as
-compiled only when it is BOTH declared right now AND carries an object at least as new as its
-source. Removing the target drops it from the declaration; editing the source without rebuilding
-makes the object stale. Either way the claim falls rather than persisting.
+compiled only when it is BOTH declared right now AND was not something SwiftPM still had work to do
+for. Removing the target drops it from the declaration; editing the source without rebuilding
+leaves work outstanding. Either way the claim falls rather than persisting.
+
+## mtime is not a freshness oracle under SwiftPM
+
+The first cut of this gate asked whether the object was at least as new as its source, and that is
+wrong in the direction that produces a FALSE RED over a perfectly current object. Measured here on
+2026-08-27 against `MCPRouterUI/Controls.swift`:
+
+  * Append a comment to the source and rebuild. `swift build` reports `Compiling MCPRouterUI
+    Controls.swift`, so the compile really happened — and the object's mtime does not move, because
+    the bytes it would write are identical to the bytes already there. The object is left older
+    than the source it perfectly describes, for ever, and no rebuild will fix it.
+  * Append a real declaration instead and the object's mtime DOES move and its sha256 changes. So
+    the object's mtime tracks changes to the object's CONTENT, not the occurrence of a compile.
+
+Anything that stamps a source without changing its meaning therefore strands the object in the
+past. This repository does that as a matter of routine, because `.build` is shared across every
+worktree: one worktree compiles a file at 19:21, merging that branch stamps the same content on
+`main` at 00:00, and the object is content-current and mtime-older in every other worktree. An
+mtime check cannot tell that from "the green describes a previous tree", and in a repo with this
+convention the innocent case is the common one.
+
+The sibling artifacts of the same compile are not a way out. Of the four outputs the frontend
+writes for one source, `.dia` and `.d` are rewritten unconditionally while `.o` and `.swiftdeps`
+are written only when their bytes change — and there is nothing in the shape of the four that says
+which is which. Picking the two that happen to be unconditional would be resting the gate on an
+undocumented accident, so the oracle here does not rest on any file's mtime.
+
+llbuild's own build database would answer it, but its per-rule results are a custom binary encoding
+whose misparse would read as clean, which is the one failure mode this file may not have. So the
+question goes to the tool: run the build again and require it to do nothing.
 
 ## What it fails on
 
@@ -255,10 +288,9 @@ def read_build_plan(app_dir: Path, config: str) -> set[str]:
     """The Swift sources llbuild was asked to compile in the build that just ran.
 
     This is the answer to a question object files cannot settle. An object outlives the target
-    that produced it, and a source that nobody edits keeps an object NEWER than itself forever —
-    so if SwiftPM stopped building a still-declared target, every object would remain, every
-    mtime would still read fresh, and an oracle resting on artifacts alone would go on reporting
-    the directory compiled. That is the exact shape the review lane warned about when this item
+    that produced it, so if SwiftPM stopped building a still-declared target every object would
+    remain on disk and an oracle resting on artifacts alone would go on reporting the directory
+    compiled. That is the exact shape the review lane warned about when this item
     was armed: an `executableTarget` no test depends on might not be built at all.
 
     The plan is regenerated for each build, so a target missing from it was not part of this one.
@@ -273,6 +305,76 @@ def read_build_plan(app_dir: Path, config: str) -> set[str]:
         )
     text = plan.read_text(encoding="utf-8", errors="replace")
     return set(re.findall(r'"(/[^"]+\.swift)"', text))
+
+
+# A build that is fully up to date prints exactly these steps, and they run on every invocation
+# whether or not anything needed doing. Every OTHER step line means llbuild found work outstanding.
+# The list is a whitelist rather than a blacklist on purpose: an unrecognised step counts as work
+# and the gate goes red, where a blacklist would let an unrecognised compile step read as clean —
+# and a compile step reading as clean is the exact defect this whole file exists to refuse.
+BENIGN_STEPS = re.compile(r"^(?:Write\b|Planning build\b|Copying\b)")
+
+STEP = re.compile(r"^\[\s*\d+/\d+\]\s+(?P<step>.*\S)\s*$")
+COMPILING = re.compile(r"^Compiling\s+(?P<target>\S+)\s+(?P<sources>\S.*)$")
+
+
+def probe_remaining_work(
+    app_dir: Path, config: str, output: str | None = None
+) -> tuple[dict[str, set[str]], list[str]]:
+    """Ask SwiftPM whether the build that just ran left anything undone.
+
+    This is the freshness oracle, and it is the tool's own answer rather than an inference from
+    the filesystem. A build that compiles nothing is a build with nothing left to compile, so
+    every declared source's object describes the tree as it stands. The header explains at length
+    why no mtime on disk can be asked this question.
+
+    `--build-tests` is not decoration. `make test` runs `swift test`, which plans test targets as
+    well as products; a bare `swift build` plans only products, and since both write the same
+    `.build/<config>.yaml` the probe would replace the build plan this report reads two steps
+    later with a narrower one, and every test source would report as absent from it. Measured
+    2026-08-27: after `swift test list`, `swift build --build-tests` compiles nothing and returns
+    in 0.73s, so the two are a fixed point and the probe is a sub-second no-op on a settled tree.
+
+    The probe repairs what it reports, because SwiftPM has no dry-run. That is honest rather than
+    convenient: the finding says the suite ran against a tree that was not the current one, which
+    stays true after the repair, and the next run is green because it genuinely tested the current
+    tree rather than because the evidence was tidied away.
+
+    Returns (per-target recompiled source basenames, unattributable step lines).
+    """
+    if output is None:
+        try:
+            proc = subprocess.run(
+                ["swift", "build", "--build-tests", "--configuration", config],
+                cwd=app_dir, capture_output=True, text=True, timeout=1800,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise Unreadable(f"could not ask SwiftPM for remaining work in {app_dir}: {exc}") from exc
+        if proc.returncode != 0:
+            raise Unreadable(
+                f"the freshness probe `swift build --build-tests` exited {proc.returncode}, so "
+                "whether the suite compiled the current tree is unknown:\n"
+                + (proc.stderr.strip() or proc.stdout.strip())[:2000]
+            )
+        output = proc.stdout + "\n" + proc.stderr
+
+    per_target: dict[str, set[str]] = {}
+    unattributed: list[str] = []
+    for line in output.splitlines():
+        m = STEP.match(line.strip())
+        if not m:
+            continue
+        step = m.group("step")
+        if BENIGN_STEPS.match(step):
+            continue
+        c = COMPILING.match(step)
+        if c:
+            srcs = {s.strip() for s in c.group("sources").split(",") if s.strip()}
+            if srcs:
+                per_target.setdefault(c.group("target"), set()).update(srcs)
+                continue
+        unattributed.append(step)
+    return per_target, unattributed
 
 
 def resolve_build_root(app_dir: Path, config: str) -> Path:
@@ -320,14 +422,21 @@ def resolve_build_root(app_dir: Path, config: str) -> Path:
     return roots[0]
 
 
-def attribute_objects(app_dir: Path, targets: list[SwiftPMTarget], config: str) -> Path:
-    """Attach per-source object AND build-plan evidence to each target.
+def attribute_objects(
+    app_dir: Path, targets: list[SwiftPMTarget], config: str
+) -> tuple[Path, list[str]]:
+    """Attach per-source object, build-plan AND freshness evidence to each target.
 
-    A source counts as compiled when it is in the plan for this build AND carries an object at
-    least as new as itself. Either half alone is defeatable: the plan without the object says the
-    build intended a compile that may never have produced anything, and the object without the
-    plan says a compile happened at some point in history.
+    A source counts as compiled when it is in the plan for this build, carries an object, and was
+    not something SwiftPM still had work to do for. Each half alone is defeatable: the plan without
+    the object says the build intended a compile that may never have produced anything, the object
+    without the plan says a compile happened at some point in history, and either without the
+    freshness probe says nothing about whether it happened over the tree that is here now.
+
+    The probe runs first because it may write `.build/<config>.yaml`, which `read_build_plan` reads
+    immediately after — the plan this report describes must be the one in force when it is read.
     """
+    remaining, unattributed = probe_remaining_work(app_dir, config)
     root = resolve_build_root(app_dir, config)
     planned = read_build_plan(app_dir, config)
 
@@ -351,11 +460,11 @@ def attribute_objects(app_dir: Path, targets: list[SwiftPMTarget], config: str) 
                 tgt.unplanned.append(src)
             elif not obj.exists():
                 tgt.missing.append(src)
-            elif src_path.exists() and obj.stat().st_mtime < src_path.stat().st_mtime:
+            elif Path(src).name in remaining.get(tgt.name, frozenset()):
                 tgt.stale.append(src)
             else:
                 tgt.compiled.append(src)
-    return root
+    return root, unattributed
 
 
 # =============================================================================================
@@ -370,6 +479,7 @@ def analyse(
     all_prereqs: list[str],
     build_root: str,
     tallies: list[Tally] | None = None,
+    unattributed_work: list[str] | None = None,
 ) -> Report:
     rep = Report()
     swiftpm_paths = {t.path.rstrip("/"): t for t in targets}
@@ -412,8 +522,17 @@ def analyse(
                      f"and any object still on disk is a leftover rather than evidence.")
         if tgt.stale:
             rep.fail("stale-object",
-                     f"SwiftPM target `{tgt.name}` has object(s) older than their source: "
-                     f"{', '.join(tgt.stale[:5])}. The green describes a previous tree.")
+                     f"SwiftPM had work left for source(s) of `{tgt.name}` after the suite built: "
+                     f"{', '.join(tgt.stale[:5])}. Asked to build again, it compiled them, so what "
+                     f"the suite ran against was not the tree that is here now. The green "
+                     f"describes a previous tree.")
+
+    for step in unattributed_work or []:
+        rep.fail("build-work-remaining",
+                 f"asked to build again after the suite, SwiftPM did `{step}` — work the suite "
+                 f"left outstanding that this report cannot pin to a declared source. Unrecognised "
+                 f"build steps count as work rather than as clean, so this may be a step that is "
+                 f"always benign; it is red until the step is known to be one.")
 
     ios_lanes = [p for p in all_prereqs if p.startswith("test-ios")]
     rep.say("")
@@ -497,11 +616,12 @@ def _clean_targets() -> list[SwiftPMTarget]:
     return [_tgt("MCPRouterKit", "Sources/MCPRouterKit", 3), _tgt("MCPRouterApp", "MCPRouter", 1)]
 
 
-def _run(targets, yml=CLEAN_YML, make=CLEAN_MAKE):
+def _run(targets, yml=CLEAN_YML, make=CLEAN_MAKE, unattributed=None):
     paths, yml_tally = read_project_yml(yml)
     ios, ios_tally = read_ios_platforms(yml)
     return analyse("MCPRouterKit", targets, paths, ios, read_all_target(make),
-                   "arm64-apple-macosx/debug", tallies=[yml_tally, ios_tally])
+                   "arm64-apple-macosx/debug", tallies=[yml_tally, ios_tally],
+                   unattributed_work=unattributed)
 
 
 def selftest() -> int:
@@ -522,10 +642,10 @@ def selftest() -> int:
     arms.append(("poison", "declared app target with no object -> uncompiled-target",
                  any(f.code == "uncompiled-target" for f in r.findings)))
 
-    # 3. A stale object outliving the source it claims to be evidence for.
+    # 3. The suite built, and SwiftPM still had work to do for a source afterwards.
     r = _run([_tgt("MCPRouterKit", "Sources/MCPRouterKit", 3),
               _tgt("MCPRouterApp", "MCPRouter", 1, compiled=0, stale=1)])
-    arms.append(("poison", "object older than its source -> stale-object",
+    arms.append(("poison", "source SwiftPM still had work for -> stale-object",
                  any(f.code == "stale-object" for f in r.findings)))
 
     # 4. The iOS directories are excused only because another lane in the same gate reads them.
@@ -552,7 +672,32 @@ def selftest() -> int:
     arms.append(("poison", "two sources sharing a basename -> basename-collision",
                  any(f.code == "basename-collision" for f in r.findings)))
 
-    # 5-7. Null arms. Nothing to read must be a refusal, never a clean report.
+    # 7. The freshness probe's reading of a build that had work left, and of one that did not.
+    #    These are the arms that stand where the mtime comparison used to: the header records why
+    #    a `.o` can be older than the source it perfectly describes, so the oracle is llbuild's own
+    #    verdict and these prove the verdict is read in both directions.
+    settled = ("Building for debugging...\n"
+               "[0/12] Write swift-version--58304C5D6DBC2206.txt\n"
+               "Build complete! (0.15s)\n")
+    per_target, unattr = probe_remaining_work(Path("."), "debug", output=settled)
+    arms.append(("null", "up-to-date build output -> no work attributed",
+                 per_target == {} and unattr == []))
+
+    worked = ("Building for debugging...\n"
+              "[0/12] Write swift-version--58304C5D6DBC2206.txt\n"
+              "[4/8] Compiling MCPRouterUI Controls.swift, Palette.swift\n"
+              "Build complete! (1.47s)\n")
+    per_target, unattr = probe_remaining_work(Path("."), "debug", output=worked)
+    arms.append(("poison", "`Compiling` after the suite -> attributed to that target's sources",
+                 per_target == {"MCPRouterUI": {"Controls.swift", "Palette.swift"}} and unattr == []))
+
+    # 8. A step the whitelist does not know is work, not silence. A blacklist would read it clean.
+    odd = "[3/9] Emitting module MCPRouterUI\nBuild complete! (0.9s)\n"
+    r = _run(_clean_targets(), unattributed=probe_remaining_work(Path("."), "debug", output=odd)[1])
+    arms.append(("poison", "unrecognised build step -> build-work-remaining",
+                 any(f.code == "build-work-remaining" for f in r.findings)))
+
+    # 9-11. Null arms. Nothing to read must be a refusal, never a clean report.
     for label, fn in (
         ("empty describe JSON", lambda: read_declaration(Path("."), describe_json="{}")),
         ("project.yml with no source paths", lambda: read_project_yml("name: X\ntargets:\n")[0]),
@@ -593,7 +738,7 @@ def main() -> int:
 
     try:
         package_name, targets = read_declaration(app_dir)
-        build_root = attribute_objects(app_dir, targets, args.configuration)
+        build_root, unattributed = attribute_objects(app_dir, targets, args.configuration)
         yml_text = (app_dir / "project.yml").read_text(encoding="utf-8")
         yml_paths, yml_tally = read_project_yml(yml_text)
         ios_targets, ios_tally = read_ios_platforms(yml_text)
@@ -604,7 +749,8 @@ def main() -> int:
         return 2
 
     rep = analyse(package_name, targets, yml_paths, ios_targets, all_prereqs,
-                  str(build_root.relative_to(app_dir)), tallies=[yml_tally, ios_tally])
+                  str(build_root.relative_to(app_dir)), tallies=[yml_tally, ios_tally],
+                  unattributed_work=unattributed)
     print("\n".join(rep.lines))
     return 1 if rep.findings else 0
 

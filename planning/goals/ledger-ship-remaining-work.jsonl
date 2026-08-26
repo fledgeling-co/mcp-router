@@ -1,0 +1,12 @@
+# Goal ledger — ship-remaining-work
+
+| turn | at | verdict | failing | note |
+|---|---|---|---|---|
+| 1 | 10:37:16 | block | lint, ledger, citations, reckon, branches, worklist | iteration 1/60 · repeat ×1 |
+| 2 | 10:41:37 | block | lint, citations, reckon, branches, worklist | iteration 2/60 · repeat ×1 |
+| 3 | 10:46:50 | block | lint, citations, branches, worklist | iteration 3/60 · repeat ×1 |
+| 4 | 10:59:43 | block | branches, worklist | iteration 4/60 · repeat ×1 |
+| 5 | 11:03:57 | block | branches, worklist, liveness | iteration 5/60 · repeat ×1 |
+| 6 | 11:07:07 | block | branches, worklist | iteration 6/60 · repeat ×1 |
+| 7 | 11:10:18 | block | branches, worklist | iteration 7/60 · repeat ×2 |
+| 8 | 11:13:49 | block | branches, worklist | iteration 8/60 · repeat ×3 |

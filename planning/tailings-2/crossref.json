@@ -1,0 +1,56 @@
+{
+ "schema": 1,
+ "repo": "/Users/lukerhodes/Dev/mcp-router",
+ "window": {
+  "since": "2026-08-25T11:00:00Z",
+  "until": null,
+  "commits": 13
+ },
+ "uncommitted_paths": 25,
+ "findings": [
+  {
+   "probe": "R2",
+   "title": "a cited path exists nowhere in the repo or its history: spec-P4.md",
+   "band": 1,
+   "confidence": "observed",
+   "remedy": "write spec-P4.md, or strike the claim that cites it",
+   "path": "spec-P4.md",
+   "line": 1261,
+   "quote": "\ud83e\udee5 Phase 4 serial pre-triage is now complete for all eleven active backlog items: ### Pre-Triage Disposition | Item | Title | Verdict | Key Grounding & Notes | |---|---|---|---| | **`G6`** | Evidence i"
+  },
+  {
+   "probe": "R9",
+   "title": "SwiftUI button with an empty action: scripts/acceptance/menu-badge-fixture/swiftui-fixture.swift:26",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "scripts/acceptance/menu-badge-fixture/swiftui-fixture.swift",
+   "line": 26,
+   "quote": "Button(\"SwiftUI Badged\") {}"
+  },
+  {
+   "probe": "R9",
+   "title": "SwiftUI button with an empty action: scripts/acceptance/menu-badge-fixture/swiftui-fixture.swift:27",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "scripts/acceptance/menu-badge-fixture/swiftui-fixture.swift",
+   "line": 27,
+   "quote": "Button(\"SwiftUI Badged Chord\") {}"
+  },
+  {
+   "probe": "R9",
+   "title": "SwiftUI button with an empty action: scripts/acceptance/menu-badge-fixture/swiftui-fixture.swift:32",
+   "band": 2,
+   "confidence": "weak-inference",
+   "remedy": "open it and read for effect \u2014 a regex cannot tell a stub from a no-op",
+   "path": "scripts/acceptance/menu-badge-fixture/swiftui-fixture.swift",
+   "line": 32,
+   "quote": "Button(\"SwiftUI Help Only\") {}"
+  }
+ ],
+ "notes": [
+  "R4: no capture directory found; capture identity unchecked"
+ ],
+ "probes_that_could_not_run": []
+}

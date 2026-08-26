@@ -72,8 +72,11 @@ this is the remedy it names, for the half of that corner which is executed rathe
 scratch path in a script is fine under both gates and should be: a committed script that writes to
 `/tmp` is re-runnable, which is exactly the property G6 wanted.
 
-They are also separate for a duller reason: `foreign-path-gate.py` is on `ai/g6` and unmerged. A
-gate on `ai/g9` that imported it would be a gate whose arming depends on another branch landing.
+An earlier draft of this docstring gave a second, duller reason: that `foreign-path-gate.py` was on
+`ai/g6` and unmerged, so importing it would make this gate's arming depend on another branch
+landing. **`ai/g6` merged at `03c34c3` and that file is on `main`**, so the clause is deleted rather
+than left to be false the day this branch lands. The two-axis argument above is the reason, and it
+was the reason all along; the second one was scheduling.
 
 ## Waivers
 

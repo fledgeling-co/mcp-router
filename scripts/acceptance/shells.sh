@@ -41,6 +41,26 @@ fail() { echo "FAIL: $*" >&2; exit 1; }
 blocked() { echo "BLOCKED: $*" >&2; exit 2; }
 pass() { echo "  ok — $*"; }
 
+# G10, fifth defect — and the one this file was already written to prevent, in the half it forgot.
+#
+# Every assertion below judges a RUNNING app, so a bundle older than the tree turns each one into a
+# statement about a build nobody is looking at. `build-freshness.sh` exists for exactly that, opens
+# by saying the harness "has been reporting STALE BUILDS AS PRODUCT DEFECTS", and `mac-shell.sh`
+# requires it. This lane never did.
+#
+# Measured here on 2026-08-26: the iOS half failed with "iOS dark background rendered #1E1E1E,
+# expected ColorToken.ground #1C1C1E". `.ground` was #1E1E1E until c920afb on 2026-08-22, and the
+# simulator bundle on disk was built 2026-08-20 — so the phone was faithfully painting the token it
+# was compiled with, and the lane called the app broken. `make acceptance` builds `build-mac` and
+# `build-mac-release` and no iOS target at all, so the iOS half has only ever asserted against
+# whatever bundle happened to be lying around.
+#
+# A stale bundle is an environment this check could not run in, not a product that is wrong, so it
+# exits 2 and names the build that would fix it. That is the same misattribution as the window
+# lookup above, and the same repair.
+# shellcheck source=scripts/acceptance/build-freshness.sh
+source "$ROOT/scripts/acceptance/build-freshness.sh"
+
 # ---------------------------------------------------------------- expected value
 
 # Read the token from source. An unreadable token is a harness failure, not a passing test: without
@@ -109,6 +129,9 @@ sample_pixel() { swift "$WORK/sample.swift" "$1" "$2" "$3"; }
 #
 # Checked against the built binaries rather than the source: `#if DEBUG` around the wrong brace
 # still compiles, and grepping the source would agree with itself.
+
+build_freshness_require Debug "$ROOT"
+build_freshness_require Release "$ROOT"
 
 echo
 echo "the gallery is compiled into Debug only"
@@ -466,6 +489,8 @@ osascript -e "tell application id \"$MAC_BUNDLE_ID\" to quit" >/dev/null 2>&1 ||
 
 echo
 echo "iOS shell"
+
+build_freshness_require Debug-iphonesimulator "$ROOT"
 
 SIM_ID="$(xcrun simctl list devices available | grep -E 'iPhone' | head -1 | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/' || true)"
 [ -n "$SIM_ID" ] || blocked "no iPhone simulator available"

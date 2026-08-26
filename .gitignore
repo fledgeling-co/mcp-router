@@ -91,6 +91,17 @@ planning/test-campaign.2026-08-19-paper/evidence.html
 # state exists to prevent. The ledger the gate writes from them IS committed.
 planning/fidelity/dumps/
 
+# Dispatch material — work orders, gap-fix briefs, verify briefs. G6: a dispatcher wrote these
+# INTO the tree under test, and they landed in three commits, one predating this fleet. `.dispatch/`
+# is inside the repository so a brief can cite a repo-relative path, and outside every item's diff
+# so no runner has to reinvent the isolate-the-commit-and-drop-it workaround one runner invented
+# alone. The three bare root names are ignored too, anchored to the root: that is exactly where the
+# three that landed were written, and habit is what put them there.
+.dispatch/
+/WORK-ORDER.md
+/GAPFIX-BRIEF.md
+/VERIFY-BRIEF.md
+
 # better-goal
 .claude/goals/
 .claude/settings.local.json.bak.*

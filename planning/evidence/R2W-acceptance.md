@@ -118,7 +118,7 @@ a second contended file) changed the design rather than the prose.
 
 ## Phase D completeness critic — in-family, ACCEPT
 
-`/tmp/r2w-phased.md`. No critical and no high finding; the critic ran the suites itself (33 tests,
+`/tmp/r2w-phased.md` (gone). No critical and no high finding; the critic ran the suites itself (33 tests,
 6 suites) and searched specifically for a path that could damage a real machine, finding none.
 Four of its findings changed code:
 

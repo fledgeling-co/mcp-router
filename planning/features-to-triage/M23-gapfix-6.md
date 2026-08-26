@@ -66,7 +66,7 @@ The verifier built the harness that disproves it — a symlinked gate script, th
 `build()` already writes, and a twelve-line `MeasureDump` stub — reaching the gate's decision in
 **about a second**. On a fixture, that harness reproduces `D-m23-ap` by printing `NO ledger was
 written by this run (exit 0)` over a table it had just written. It is preserved at
-`/tmp/m23v6/keep/clean/`.
+`/tmp/m23v6/keep/clean/` (gone).
 
 That is the finding the previous pass could only obtain by having a review lane mutate the tree
 under test and running a three-minute live gate. **Adopt the harness**, so the gate script's console

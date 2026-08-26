@@ -26,10 +26,10 @@ Two concrete consequences, both already real rather than hypothetical:
 - **A verdict already given rests on an artifact nobody can re-run.** G5 gap-fix 2's
   verification recorded *"both sweeps run clean, the fixture is intact — four planted faults,
   four `FAIL` rows"*, and additionally that the verifier planted three faults of its own that
-  each produced a correct `FAIL`. All of it pointed at `/tmp/g5gf2/sweep2.py`. The verdict was
+  each produced a correct `FAIL`. All of it pointed at `/tmp/g5gf2/sweep2.py` (gone). The verdict was
   sound when given and is now unfalsifiable.
 - **A live verifier was sent to run a file that does not exist.** `G5V2`'s brief opens arm 1
-  with *"Run it"* against `/tmp/g5gf3/sweep3.py`, and calls that arm the claim that decides the
+  with *"Run it"* against `/tmp/g5gf3/sweep3.py` (gone), and calls that arm the claim that decides the
   item.
 
 ## The asymmetry that makes it worse than a stale number
@@ -68,8 +68,8 @@ written here, and `GAPFIX-BRIEF.md:64` is mine.
 
 `lukerhodes-2f` supplied the rule that pairs with "load-bearing instruments get committed":
 **a brief cites a repo path or it cites nothing.** Two briefs failed it today, both written by
-this fleet hours earlier rather than inherited — `GAPFIX-BRIEF.md:64` (`/tmp/m18-build2.log`)
-and `VERIFY-BRIEF.md:29` (`/tmp/g5gf3/sweep3.py`). Neither was a stale inheritance; both were
+this fleet hours earlier rather than inherited — `GAPFIX-BRIEF.md:64`, citing `/tmp/m18-build2.log` (gone),
+and `VERIFY-BRIEF.md:29` (`/tmp/g5gf3/sweep3.py` (gone)). Neither was a stale inheritance; both were
 fresh.
 
 **This section DESCRIBES a defect. It does not prescribe the practice.** A runner read it as the

@@ -288,7 +288,7 @@ them.
 
 **Codex cross-family spec review — 2026-08-14**
 
-Reviewer: `gpt-5.6-sol`, read-only, `max` effort — `/tmp/gate-R1-spec.md`.
+Reviewer: `gpt-5.6-sol`, read-only, `max` effort — `/tmp/gate-R1-spec.md` (gone).
 **Verdict: MATERIAL DEFECTS — 44 findings. All accepted; the spec above is the rewrite.**
 
 *Lane note, recorded rather than hidden:* the review ran to completion at `max` (19,979 bytes,
@@ -343,10 +343,10 @@ Implementation plan: `planning/plans/plan-R1.md` (Plan size: Large).
 *Lane accounting, recorded rather than hidden.* The first attempt at the full four-question review
 over four files **exhausted its 600s budget reading them and never answered** (exit 142, no output
 file). Rather than downgrade the effort — F1's precedent — the gate was split into two `max`-effort
-calls with narrowed scope: `/tmp/gate-R1-plan-a.md` (JSON/JavaScript semantics, answered from an
-inlined specification with no file reads at all) and `/tmp/gate-R1-plan-b.md` (plan-delivers-spec
+calls with narrowed scope: `/tmp/gate-R1-plan-a.md` (gone) (JSON/JavaScript semantics, answered from an
+inlined specification with no file reads at all) and `/tmp/gate-R1-plan-b.md` (gone) (plan-delivers-spec
 coverage, two files). **Both ran at `max`; neither is a downgrade.** Wire headers captured in
-`/tmp/gate-R1-plan-{a,b}.stdout.txt`.
+`/tmp/gate-R1-plan-{a,b}.stdout.txt` (gone).
 
 The first round found the plan's JSON foundation **architecturally wrong rather than incomplete**,
 and it is the finding this item most needed:

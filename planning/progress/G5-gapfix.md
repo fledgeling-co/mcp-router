@@ -95,7 +95,7 @@ and prints all eleven before any assertion is trusted:
   1 on all three.** That is the blindness demonstrated rather than asserted — the class that cost
   G4's gap-fix two broken sweeps and R17 four passes on a claim a line-anchored grep could not see.
 
-The sweep lives at `/tmp/g5gf/sweep.py` and is deliberately not committed: the scope is four
+The sweep lives at `/tmp/g5gf/sweep.py` (gone) and is deliberately not committed: the scope is four
 documents, and a checker for one commit's prose is not repository surface.
 
 ## Gates
@@ -138,7 +138,7 @@ file. The Swift population is unchanged at **542 considered, 535 linted, 0 requi
 `FileNotFoundError` rather than a failing assertion in that state. `git checkout --` restored it and
 the restored file is byte-identical to the commit — `sha256 bbe4530f21949391a73b70bc2976e452ab66fb9a`
 both ways — so nothing was lost but the file's presence. **No reading in the table above is affected**:
-all five saved `make lint` captures under `/tmp/g5gf/` — 15:31, 15:37, 15:43, 15:48 and 15:52 — read
+all five saved `make lint` captures under `/tmp/g5gf/` (gone) — 15:31, 15:37, 15:43, 15:48 and 15:52 — read
 **285 files skipped**, so every gate recorded here ran with the file present, and the 284 probe saved
 no capture and ran after the last of them. Recorded rather than fixed quietly, because an item whose
 subject is records that misdescribe their evidence lost its own record to a measurement technique.

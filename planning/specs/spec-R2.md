@@ -358,7 +358,7 @@ rewording one would make R4 report a difference that is only a rewording.
 ### Out-of-family spec review — codex `gpt-5.6-sol`, effort `max`, read-only
 
 Wire verified: `model: gpt-5.6-sol`, `reasoning effort: max`, exit 0. Report at
-`/tmp/gate-R2-spec.md`. **Verdict: REJECT** on the draft — 1 critical, 17 high, 6 medium, 1 low.
+`/tmp/gate-R2-spec.md` (gone). **Verdict: REJECT** on the draft — 1 critical, 17 high, 6 medium, 1 low.
 Every finding is dispositioned below; the spec above is the rewrite.
 
 **Accepted and fixed (22):** 1 (the critical — T1-T4 and D5 replace a trap that does not exist in
@@ -466,7 +466,7 @@ it read more sensibly would have made it diff worse under R4.
 
 ### Phase D completeness critic — disposition
 
-Out-of-family, `gpt-5.6-sol` at `max`, read-only, log at `/tmp/gate-R2-phased.md`. Verdict **REJECT**,
+Out-of-family, `gpt-5.6-sol` at `max`, read-only, log at `/tmp/gate-R2-phased.md` (gone). Verdict **REJECT**,
 19 findings. Every one is dispositioned below; none is left silent.
 
 | # | Disposition |

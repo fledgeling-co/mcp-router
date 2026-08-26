@@ -509,7 +509,7 @@ pass each lane belongs to, rather than by dropping either.
 
 Re-run in full by the gap-fix pass on 2026-08-22, each **redirected to a file and the file read**,
 never through a pipe — two of the previous runner's rows had been captured through `tail`, so `$?`
-read `tail` rather than the gate. Logs under `/tmp/r17gf/logs/`.
+read `tail` rather than the gate. Logs under `/tmp/r17gf/logs/` (gone).
 
 | Gate | Exit | Result | Log |
 |---|---|---|---|

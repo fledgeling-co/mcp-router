@@ -28,7 +28,11 @@
 
         /// Why the action is dimmed, or `nil` when it is live. Mirrors the inspector's property of
         /// the same name so the two cannot drift into disagreeing about one condition.
-        private var disabledReason: String? {
+        ///
+        /// Internal rather than private so a test can call it. *The `Enable` action dims in place
+        /// while in flight* is an acceptance line (`spec-M29.md` 16), and a property only a running
+        /// view can reach is one no test states anything about.
+        var disabledReason: String? {
             if isWriting { return ServersBoardModel.applyingReason }
             if !canWrite { return ServersBoardModel.cannotWriteReason }
             return nil
@@ -108,10 +112,19 @@
             // read out as punctuation or skip. The mock marks `aria-disabled` on the row and on
             // every cell; the app's analogue is what is spoken, not `.disabled(true)`, which would
             // make the row unselectable and strand the `Enable` action sitting on it.
-            .accessibilityValue(
-                row.tools == nil ? "\(subtitleText), tools withheld" : subtitleText
-            )
+            .accessibilityValue(accessibilityValueText)
             .measured("row-\(row.id)", role: "table-row", kind: .hstack, text: rowText)
+        }
+
+        /// What assistive technology reads for this row, beside its name.
+        ///
+        /// The withheld count reaches a screen reader as words rather than as a dash it would read
+        /// out as punctuation or skip. Internal and named rather than composed inside `body`: it is
+        /// acceptance line 18, and the mock's `aria-disabled` has no analogue this app can assert
+        /// on a rendered view — `.disabled(true)` would make the row unselectable and strand the
+        /// `Enable` action sitting on it, so the spoken value is the whole of the claim.
+        var accessibilityValueText: String {
+            row.tools == nil ? "\(subtitleText), tools withheld" : subtitleText
         }
 
         /// The tools cell's text: the count, or an em-dash when it is withheld.

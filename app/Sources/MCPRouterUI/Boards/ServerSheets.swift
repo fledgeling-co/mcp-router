@@ -152,12 +152,20 @@
         /// `.disabled(board.heldChanges?.changes.isEmpty ?? true)` said none of them — so during the
         /// sheet's own load the user saw a dead prominent button and no explanation at all.
         /// The destructive button's label. It names the action and the subject (`DESIGN.md` §6).
-        private var disableLabel: String { "Disable \(serverName)" }
+        ///
+        /// A static function of the name rather than a private computed property, for the reason
+        /// `MenuBarPresentation.CountLabel` gives itself: a string built inside a `View` is one no
+        /// test can call, and *the sheet's destructive button reads `Disable <server>`* is
+        /// acceptance line 12. The lane that would otherwise read it off a render —
+        /// `make mock-fidelity SURFACE=servers` — exits 3 on an inherited break, so a unit-reachable
+        /// value is the only route to the claim.
+        static func disableLabel(_ serverName: String) -> String { "Disable \(serverName)" }
 
         /// Why `Disable` is dimmed, or `nil` when it is live. Dims in place with the reason
-        /// readable, per `DESIGN.md` §3.4 — it never disappears.
-        private var disableReason: String? {
-            isDisabled ? "This server is already disabled." : nil
+        /// readable, per `DESIGN.md` §3.4 — it never disappears. Static for the same reason as the
+        /// label above; line 12's second half is the *reason*, not only the dimming.
+        static func disableReason(alreadyDisabled: Bool) -> String? {
+            alreadyDisabled ? "This server is already disabled." : nil
         }
 
         private var acceptReason: String? {
@@ -208,13 +216,13 @@
                 // its undo restores a row that looks recovered and does not work — and it stays
                 // reachable from the inspector and the Router menu, which is where a decision that
                 // size belongs.
-                Button(disableLabel, role: .destructive) {
+                Button(Self.disableLabel(serverName), role: .destructive) {
                     Task { await board.setDisabled(serverName, to: true) }
                 }
                 .buttonStyle(StandardButtonStyle())
-                .disabled(disableReason != nil)
-                .help(disableReason ?? "")
-                .accessibilityHint(disableReason ?? "")
+                .disabled(Self.disableReason(alreadyDisabled: isDisabled) != nil)
+                .help(Self.disableReason(alreadyDisabled: isDisabled) ?? "")
+                .accessibilityHint(Self.disableReason(alreadyDisabled: isDisabled) ?? "")
 
                 // Cancel leads, and its label says what it actually does: closing this sheet sends
                 // no request, because the router is already serving the approved text and the change

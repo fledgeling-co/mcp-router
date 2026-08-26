@@ -782,10 +782,11 @@ def guarded(label: str, run) -> tuple[bool, list[str]]:
                        "is evidence."]
 
 
-def report(verdict: Verdict, git: Git, base: str, run_live: bool) -> int:
+def report(verdict: Verdict, git: Git, base: str, run_live: bool,
+           hermetic: tuple[bool, list[str]]) -> int:
     print("role-intersection gate — the union of every active branch's roles, per surface\n")
 
-    ok_hermetic, hermetic_lines = guarded("hermetic control", hermetic_control)
+    ok_hermetic, hermetic_lines = hermetic
     print("Hermetic control (a throwaway repository, every answer planted and required exactly):")
     print("\n".join(hermetic_lines))
     print(f"  => {'the instrument answers all five planted cases' if ok_hermetic else 'CONTROL FAILED'}\n")
@@ -924,13 +925,40 @@ def main() -> int:
         return 0 if ok else CONTROL_FAILED
 
     git = Git(os.path.abspath(args.repo))
+
+    # The control runs FIRST, and the corpus is not measured until it has spoken. The earlier order
+    # measured first, so a broken ref walk raised `Inconclusive` before any control existed and the
+    # process answered 3 — a verdict about the corpus, produced by an instrument nothing had tested
+    # (`grok-4.6`, 2026-08-26). A control that runs after the measurement cannot certify it.
+    hermetic = guarded("hermetic control", hermetic_control)
+    if not hermetic[0]:
+        print("Hermetic control (a throwaway repository, every answer planted and required "
+              "exactly):")
+        print("\n".join(hermetic[1]))
+        print(f"\nCONTROL-FAILED role-intersection: the control failed, so the corpus was not "
+              f"measured at all. This is exit {CONTROL_FAILED} and not {INCONCLUSIVE_CODE} — "
+              f"nothing is known about the corpus because nothing was asked of it.")
+        return CONTROL_FAILED
+
     try:
         verdict = measure(git, args.base)
     except Inconclusive as error:
         print(f"INCONCLUSIVE role-intersection: {error}")
-        print("      The baseline could not be established, so nothing could be measured against it.")
+        print("      The baseline could not be established, so nothing could be measured against")
+        print("      it. The control above held, so this is a fact about the corpus.")
         return INCONCLUSIVE_CODE
-    return report(verdict, git, args.base, run_live=not args.no_live_control)
+    except Exception as error:  # noqa: BLE001 — see guarded(); an unexpected throw is not a verdict
+        print(f"CONTROL-FAILED role-intersection: measuring the corpus raised "
+              f"{type(error).__name__}: {error}")
+        print(f"      {traceback.format_exc().strip().splitlines()[-3].strip()}")
+        return CONTROL_FAILED
+    try:
+        return report(verdict, git, args.base, run_live=not args.no_live_control,
+                      hermetic=hermetic)
+    except Exception as error:  # noqa: BLE001
+        print(f"CONTROL-FAILED role-intersection: reporting raised "
+              f"{type(error).__name__}: {error}")
+        return CONTROL_FAILED
 
 
 if __name__ == "__main__":

@@ -236,8 +236,8 @@ only advantage over the written rule.
 
 ```
 3581db8d…  scripts/acceptance/mock_fidelity.py   (header now points at the check)
-d6c53c20…  planning/role-intersection-gate.py    (was 971c3df3… before the gap-fix)
-f1bab3ae…  planning/sweep-control-gate.py        (was 425caa8d… before the gap-fix)
+1a6d2451…  planning/role-intersection-gate.py    (was 971c3df3… before the gap-fix)
+c02737c8…  planning/sweep-control-gate.py        (was 425caa8d… before the gap-fix)
 885abffc…  planning/sweep-controls.json          (unchanged — no row added, none removed)
 ```
 
@@ -268,6 +268,48 @@ instrument works and the corpus has a hole in it; 4 means the instrument is not 
 nothing it printed should be read. They are opposite instructions. `runnable-path-gate.py` on
 `ai/g9` makes the same split with 2 and 1; 2 is unavailable here because `argparse` owns it and
 `make` collapses every failing recipe to it, which the `role-intersection` target already says.
+
+**Four more, from the out-of-family review (`grok-4.6` at xhigh, with `claude-fable-5` and
+`gpt-5.6-sol` consulted by it on the open call; `gemini-3.7-flash-high` was down — headless
+permission auto-denial, zero-byte output).** It read the branch rather than the summary and each
+finding is measured, not argued:
+
+* **The census's conservation arm was `a == a`.** It compared `corpus.considered` against the sum
+  that defines `corpus.considered`, so it held however badly the loop dropped — a control that
+  cannot fail, in a gate whose subject is controls that cannot fail. It now compares against an
+  independent second `git ls-files`, and the fixture gained a `vendor/` plant so the arm has
+  something to lose: deleting the vendor record now prints `BLIND a vendored script is discarded BY
+  NAME rather than by silence (nothing recorded)` and `FAIL … 2 + 2 = 4 against 5 counted
+  independently` at exit 4. Restored byte-identically, sha256 prefix `b2d6cd857d494a12`.
+
+* **`is_shebang_script` required a dot-free basename**, which read "extensionless" for "script D0
+  cannot see" and exempted the larger half of the hole. Removed. X+ moves from 2 to **6**: the two
+  hooks plus `scripts/fixtures/{registry-fixture-server,slow-failing-server,slow-mcp-server}.mjs`
+  and `src/index.ts`, all four `#!/usr/bin/env node`.
+
+* **UNDISCOVERED should block, and now does.** The first draft printed it and passed, reasoning
+  that both remedies are owner calls. Three reviewers took the other side: a reader tightening that
+  drops rows out of discovery while the gate still exits 0 is the gate certifying a corpus it
+  stopped measuring, which is this file's subject. The finding names both calls and the third
+  answer the registry already accepts.
+
+* **The control ran after the measurement.** On a stub `git`, `--control-only` answered 4 but the
+  default path answered **3**, because `main` called `measure` before `guarded(hermetic_control)` —
+  a verdict about the corpus from an instrument nothing had tested — and `report` printed the whole
+  corpus table before returning. Reordered: the control runs first, the corpus is not measured if
+  it fails, and the same stub now prints the control failure and nothing else at exit 4.
+
+**D0 is deliberately still 114.** Six tracked scripts are named as outside it and outside every
+disposition, which is a decision owed rather than one taken; a verifier re-derived D0 exact and
+widening it would move a confirmed denominator. Measured 2026-08-26: none of the six carries two
+markers, so widening today would add 0 sweeps and move only the denominators.
+
+**The three UNDISPOSED were acted on by their owner while this gap-fix ran.** `main` at `db15862`
+repaired all three goal scripts and its message credits this gate's finding; `lint-except-citation-
+ratchet.sh` now carries `MIN_STEPS=8` as a presence control on its own parser. They are still
+UNDISPOSED here because `planning/sweep-controls.json` exists only on this branch and holds no row
+for them — bookkeeping the owner can close with three rows, not an open defect. The finding is left
+standing rather than silenced by this branch.
 
 **The new census is armed both ways.** `self_control` plants an extensionless shebang script that
 must be named and a `.md` that must not. Forcing `is_shebang_script` to return `False` for every

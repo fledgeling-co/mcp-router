@@ -145,14 +145,17 @@ DISCARDS = ("vendor/", "no .py or .sh extension")
 
 
 def is_shebang_script(root: str, relative: str) -> bool:
-    """Whether a path with no script extension is nonetheless a script, by its first line.
+    """Whether a path D0 dropped is nonetheless a script, by its first line.
 
     This is the half of the extension filter that is a real hole rather than a scope: a tracked
-    `planning/hooks/pre-commit` is a shell script that discovery never opens. Naming it costs one
-    `read(2)` per extensionless path and turns an unexamined set into a listed one.
+    `planning/hooks/pre-commit` is a shell script discovery never opens. Naming it costs one
+    `readline` per dropped path and turns an unexamined set into a listed one.
+
+    An earlier version required the basename to carry no dot, which read "extensionless" for
+    "script D0 cannot see" and silently exempted the larger half of the hole — a `.mjs`, `.zsh` or
+    `.rb` with a shebang is just as runnable and just as invisible to D0 (`grok-4.6`, 2026-08-26).
+    The precondition is gone; the first line is the whole test.
     """
-    if "." in os.path.basename(relative):
-        return False
     try:
         with open(os.path.join(root, relative), encoding="utf-8") as handle:
             return bool(SHEBANG.match(handle.readline()))
@@ -203,7 +206,8 @@ class Corpus:
     between a scope and a blind spot.
     """
 
-    def __init__(self, hits, by_level, files, undecodable, discarded, shebang):
+    def __init__(self, hits, by_level, files, undecodable, discarded, shebang, announced):
+        self.announced = announced
         self.hits = hits
         self.by_level = by_level
         self.files = files
@@ -214,6 +218,7 @@ class Corpus:
 
     @property
     def considered(self) -> int:
+        """Kept plus discarded. Never compare this to its own definition — see `independent`."""
         return self.size + sum(len(v) for v in self.discarded.values())
 
 
@@ -229,6 +234,11 @@ def discover(root: str) -> Corpus:
     by_level: dict[int, int] = {1: 0, 2: 0, 3: 0, 4: 0}
     undecodable: list[str] = []
     files, discarded, shebang = tracked_scripts(root)
+    # An INDEPENDENT count of what `git ls-files` returned, taken by a second call rather than
+    # derived from the first one's partition. `considered` is defined as kept + discarded, so
+    # checking one against the other is an identity that holds however badly the loop drops.
+    ledger = subprocess.run(["git", "ls-files"], capture_output=True, text=True, cwd=root)
+    announced = len(ledger.stdout.splitlines())
     for relative in files:
         path = os.path.join(root, relative)
         try:
@@ -242,7 +252,7 @@ def discover(root: str) -> Corpus:
             by_level[level] = by_level.get(level, 0) + 1
         if len(found) >= THRESHOLD:
             hits[relative] = found
-    return Corpus(hits, by_level, files, undecodable, discarded, shebang)
+    return Corpus(hits, by_level, files, undecodable, discarded, shebang, announced)
 
 
 def load_registry(root: str) -> tuple[dict[str, dict], str | None]:
@@ -334,8 +344,14 @@ def self_control(root: str) -> tuple[bool, list[str]]:
     try:
         git = ["git", "-c", "user.email=c@x", "-c", "user.name=c", "-c", "commit.gpgsign=false"]
         subprocess.run(["git", "init", "-q", "-b", "main", temp], capture_output=True)
+        # One planted file per discard reason as well as per discovery answer, so the conservation
+        # arm below has something to lose. Without the `vendor/` plant, deleting the vendor record
+        # changed nothing in this fixture and the arm passed over a reader that had stopped
+        # reporting (`grok-4.6`, 2026-08-26).
         for name, body in (("planted_sweep.py", SWEEP_FIXTURE), ("planted_quiet.py", QUIET_FIXTURE),
-                           ("planted_hook", HOOK_FIXTURE), ("planted_notes.md", "# not a script\n")):
+                           ("planted_hook", HOOK_FIXTURE), ("planted_notes.md", "# not a script\n"),
+                           ("vendor/planted_vendor.sh", "#!/bin/sh\ngrep -c needle x\n")):
+            os.makedirs(os.path.dirname(os.path.join(temp, name)) or temp, exist_ok=True)
             with open(os.path.join(temp, name), "w", encoding="utf-8") as handle:
                 handle.write(body)
         subprocess.run(["git", "add", "-A"], capture_output=True, cwd=temp)
@@ -356,16 +372,22 @@ def self_control(root: str) -> tuple[bool, list[str]]:
         # census that simply listed every extensionless-or-otherwise drop would fail here.
         saw_hook = "planted_hook" in corpus.shebang
         saw_notes = "planted_notes.md" in corpus.shebang
-        counted = corpus.considered == corpus.size + sum(len(v) for v in corpus.discarded.values())
+        counted = corpus.considered == corpus.announced
         ok = ok and saw_hook and not saw_notes and counted
         lines.append(f"  {'sees ' if saw_hook else 'BLIND'} a tracked script with no script "
                      f"extension is named by the discard census "
                      f"({'planted_hook' if saw_hook else 'not named — D0 drops it in silence'})")
         lines.append(f"  {'quiet' if not saw_notes else 'FALSE'} a planted non-script drop is not "
                      f"called a script, so the census is a reading and not a list of everything")
+        vendored = corpus.discarded["vendor/"] == ["vendor/planted_vendor.sh"]
+        ok = ok and vendored
+        lines.append(f"  {'sees ' if vendored else 'BLIND'} a vendored script is discarded BY NAME "
+                     f"rather than by silence "
+                     f"({corpus.discarded['vendor/'] or 'nothing recorded'})")
         lines.append(f"  {'ok   ' if counted else 'FAIL '} kept + discarded accounts for every path "
                      f"`git ls-files` returned ({corpus.size} + "
-                     f"{sum(len(v) for v in corpus.discarded.values())} = {corpus.considered})")
+                     f"{sum(len(v) for v in corpus.discarded.values())} = {corpus.considered} "
+                     f"against {corpus.announced} counted independently)")
 
         failing = {"path": "planted_sweep.py", "disposition": "control",
                    "control": ["python3", "-c", "import sys; sys.exit(1)"]}
@@ -424,13 +446,18 @@ def report(root: str) -> int:
     print(f"  X0  {census.considered:4d}  paths returned by `git ls-files`, before any filter")
     for reason in DISCARDS:
         print(f"  X-  {len(census.discarded[reason]):4d}  dropped: {reason}")
-    print(f"  X+  {len(census.shebang):4d}  of those drops are scripts by shebang with no script "
-          f"extension —")
+    print(f"  X+  {len(census.shebang):4d}  of those drops open with a script shebang, so they are "
+          f"runnable and unexamined —")
     if census.shebang:
         for path in census.shebang:
             print(f"            {path}")
-        print("        outside D0 and therefore outside every figure above. Named here because a")
-        print("        script this gate never opens is a script it has said nothing about.")
+        print("        Outside D0, therefore outside every figure above AND outside every")
+        print("        disposition below: no registry row can be written for a path discovery")
+        print("        never reaches. D0 is held at .py/.sh deliberately — a verifier re-derived")
+        print("        it exact and widening it would move a confirmed denominator — so this is a")
+        print("        named, owed decision rather than a closed one. Measured 2026-08-26: none")
+        print("        of them carries two markers, so widening D0 today would add 0 sweeps and")
+        print("        move only the denominators.")
     else:
         print("        none today, so the extension filter drops no script it can recognise.")
     print()
@@ -471,10 +498,16 @@ def report(root: str) -> int:
     # A registered row whose file is still in the tree but which discovery no longer matches had no
     # class at all: not `unregistered` (it is in the registry), not `stale` (the file exists), not
     # `mislabelled` (its word is one of the four). It was counted in the grandfathered tally and
-    # nowhere else, so the backlog figure was one larger than the set discovery claims. That is a
-    # hole in the classifier rather than a defect in the corpus, so it is printed rather than
-    # failed: the two ways to close it — drop the row, or widen the readers — are both owner calls,
-    # and dropping a row to make an inventory agree inverts the check this gate is.
+    # nowhere else, so the backlog figure was one larger than the set discovery claims.
+    #
+    # It BLOCKS. The first draft printed it and passed, on the reasoning that both remedies — drop
+    # the row, or widen the readers — are owner calls and a gate should not force either. Three
+    # out-of-family reviewers took the other side and they are right: a reader tightening that
+    # quietly drops rows out of discovery, with the gate still exiting 0, is the gate certifying a
+    # corpus it stopped measuring. That is the failure this file is named after. Blocking does not
+    # mean "delete the row" — it means make one of the two calls and record it, and `waived` with a
+    # reason is a third answer the registry already accepts (`grok-4.6` with `claude-fable-5` and
+    # `gpt-5.6-sol`, 2026-08-26).
     undiscovered = sorted(path for path in entries
                           if path not in found and os.path.exists(os.path.join(root, path)))
     tally = {kind: 0 for kind in DISPOSITIONS}
@@ -525,6 +558,15 @@ def report(root: str) -> int:
     for path in unregistered:
         findings.append(f"{path}: discovered as a sweep ({','.join(found[path])}) with no "
                         f"disposition in {REGISTRY}")
+    for path in undiscovered:
+        now = markers_for(open(os.path.join(root, path), encoding="utf-8", errors="replace").read())
+        findings.append(f"{path}: registered {entries[path].get('disposition')!r} and still in the "
+                        f"tree, but discovery no longer claims it — it now carries "
+                        f"{','.join(now) if now else 'no marker'} against a threshold of "
+                        f"{THRESHOLD}. Either the readers narrowed and should be widened back, or "
+                        f"this file stopped being a sweep and the row should say `not-a-sweep` or "
+                        f"`waived` with a reason. Leaving it counted as backlog is the third answer "
+                        f"and it is the one that reports a corpus this gate stopped measuring")
     for path in mislabelled:
         findings.append(f"{path}: its disposition is "
                         f"{entries[path].get('disposition')!r}, which is not one of "

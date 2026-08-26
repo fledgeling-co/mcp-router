@@ -15,8 +15,15 @@ from pathlib import Path
 import websockets
 
 BROWSER = "ws://127.0.0.1:9334/devtools/browser"
-PROTO = Path("/Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html")
-SHOTS = Path("/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots")
+
+# Derived, never pinned: this file sits at planning/test-campaign/evidence/runs/, so the
+# repository root is four parents up. A hardcoded home path here is correct only on the
+# machine that wrote it, and says nothing when it stops being — see G9.
+ROOT = Path(__file__).resolve().parents[4]
+if not (ROOT / "design" / "mocks" / "prototype.html").exists():
+    raise SystemExit(f"FATAL: {ROOT} is not the repository root — this script moved; fix parents[4]")
+PROTO = ROOT / "design" / "mocks" / "prototype.html"
+SHOTS = ROOT / "planning" / "test-campaign" / "evidence" / "shots"
 MOCK = SHOTS / "mock"
 VIEWPORT = {"width": 1440, "height": 900}
 SETTLE_MS = 1200
@@ -238,7 +245,7 @@ async def capture():
 
     pairs_path = SHOTS / "pairs.json"
     pairs_path.write_text(json.dumps(pairs, indent=1) + "\n")
-    log_path = Path("/Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/runs/capture-mocks.log")
+    log_path = ROOT / "planning" / "test-campaign" / "evidence" / "runs" / "capture-mocks.log"
     log_path.write_text("\n".join(log) + "\n")
     with_ref = sum(1 for p in pairs if p.get("reference"))
     print(f"CAPTURE PAIRS  surfaces={len(pairs)}  with a reference={with_ref}  without={len(pairs)-with_ref}")

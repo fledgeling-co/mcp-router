@@ -754,8 +754,8 @@ write('locale-compare', {
 write('project-of', {
   description: 'usage.projectOf — the project label the activity view groups by.',
   cases: [
-    '/Users/x/Dev/app', '/Users/x/Dev/app/', '/Users/x/Dev/app//', '/', '//', '',
-    'app', './app', '/a b/c d', '/Users/x/Dev/.hidden', '/Users/x/Dev/app.tar.gz', '/日本語/プロジェクト'
+    '/Users/x/Dev/app', '/Users/x/Dev/app/', '/Users/x/Dev/app//', '/', '//', '',  // path-gate: ok — basename() inputs: fictitious cwd strings the vector exercises, never opened
+    'app', './app', '/a b/c d', '/Users/x/Dev/.hidden', '/Users/x/Dev/app.tar.gz', '/日本語/プロジェクト'  // path-gate: ok — as above — a dotfile and a dotted name, pinning POSIX basename's behaviour
   ].map((cwd, index) => ({
     id: `project-${index}`,
     cwd,
@@ -783,7 +783,7 @@ const usageStats = join(usageScratch, 'usage-stats.json');
       ok: i % 4 !== 0,
       ms: i,
       cold: i === 0,
-      cwd: i % 2 === 0 ? '/Users/x/Dev/one' : '/Users/x/Dev/two'
+      cwd: i % 2 === 0 ? '/Users/x/Dev/one' : '/Users/x/Dev/two'  // path-gate: ok — seeded record cwd: a label the store groups by, not a location
     });
   }
   writeFileSync(usageLog, seeded.map((r) => JSON.stringify(r)).join('\n') + '\n');
@@ -802,8 +802,8 @@ const usageStats = join(usageScratch, 'usage-stats.json');
   }
   // And the two filters, whose interaction with the slice is the part an order-swapped port breaks.
   usageCases.push({ id: 'filter-server', limit: '2', server: 'alpha', records: store.recent({ limit: 2, server: 'alpha' }).map((r) => r.tool) });
-  usageCases.push({ id: 'filter-cwd', limit: '3', cwd: '/Users/x/Dev/two', records: store.recent({ limit: 3, cwd: '/Users/x/Dev/two' }).map((r) => r.tool) });
-  usageCases.push({ id: 'filter-both', limit: 'abc', server: 'beta', cwd: '/Users/x/Dev/two', records: store.recent({ limit: Number('abc'), server: 'beta', cwd: '/Users/x/Dev/two' }).map((r) => r.tool) });
+  usageCases.push({ id: 'filter-cwd', limit: '3', cwd: '/Users/x/Dev/two', records: store.recent({ limit: 3, cwd: '/Users/x/Dev/two' }).map((r) => r.tool) });  // path-gate: ok — a filter argument matched against stored cwd labels, never opened
+  usageCases.push({ id: 'filter-both', limit: 'abc', server: 'beta', cwd: '/Users/x/Dev/two', records: store.recent({ limit: Number('abc'), server: 'beta', cwd: '/Users/x/Dev/two' }).map((r) => r.tool) });  // path-gate: ok — as above — a filter argument, never opened
   usageCases.push({ id: 'filter-no-match', limit: '5', server: 'nobody', records: store.recent({ limit: 5, server: 'nobody' }).map((r) => r.tool) });
 
   write('usage-limit', {

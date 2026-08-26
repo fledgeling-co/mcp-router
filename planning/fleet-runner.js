@@ -11,6 +11,13 @@ if (!a || !Array.isArray(a.items) || a.items.length === 0)
 if (a.items.length > 8)
   throw new Error(`${a.items.length} items exceeds the 8-slot cap`)
 
+// The repo root is DERIVED, never pinned (G9). This module runs from the checkout it dispatches
+// for, so cwd is the anchor; `args.repoRoot` overrides when the caller knows better. A literal
+// a hardcoded home path here was correct on one machine and silently wrong on every other, and a
+// prompt is the worst carrier for one, because a runner obeys the path it is given rather than
+// checking that it still exists.
+const REPO_ROOT = a.repoRoot || (typeof process !== 'undefined' && process.cwd ? process.cwd() : '.')
+
 const ROUTING = `
 MODEL ROUTING — you run on Opus at high effort. Route the agents YOU spawn per lane, and
 propagate this entire block into every prompt that itself spawns agents:
@@ -242,7 +249,7 @@ STANDING PRODUCT CONSTRAINTS — these are decisions, not preferences:
 
 const prompt = (it) => `You are a feature runner in an orchestrated fleet. Deliver ONE
 feature by invoking the ship-feature skill (Skill tool: "ship-feature:ship-feature") on
-it, from the repo root /Users/lukerhodes/Dev/mcp-router.
+it. Repo root: ${REPO_ROOT}.
 
 FIRST ACTION — model self-check: your system prompt states the model powering you. If it
 is NOT an Opus-class Claude model, reply immediately with exactly "WRONG-MODEL: <that id>"

@@ -8,16 +8,44 @@
 # the orchestrator was still in the middle of making.
 #
 # Worktrees share this hooks directory, so the guard must distinguish them. It does that by the
-# git dir: the main checkout reports `.git`, a worktree reports `.git/worktrees/<name>`.
+# git dir: the main checkout reports `<repo>/.git`, a worktree reports `<repo>/.git/worktrees/<name>`.
+#
+# THE GIT DIR IS READ FROM GIT, NOT FROM THE CWD, and that distinction is the whole guard.
+# Measured 2026-08-26 (G9); `planning/hooks/prove-pre-commit.sh` re-runs all of it.
+#
+#   Git runs this hook standing in the WORK TREE, and GIT_WORK_TREE moves the work tree without
+#   moving the commit. Committing from the main checkout with `GIT_WORK_TREE` aimed at any linked
+#   worktree put the hook's cwd inside that worktree while the commit still landed on `main` in
+#   the shared checkout — the exact thing this refuses. A cwd-derived `git rev-parse --git-dir`
+#   read `.git/worktrees/<name>`, called it a runner, and waved it through.
+#
+#   `git rev-parse --absolute-git-dir` answers from the environment git set up for the commit, so
+#   it names the repository the commit is GOING TO in all three cases: unset GIT_DIR in the main
+#   checkout, an exported one inside a worktree, and a redirected work tree. The branch is then
+#   read through `--git-dir` for the same reason.
+#
+# GIT_DIR and GIT_WORK_TREE are unset immediately afterwards. Nothing below reads them, and
+# nothing this hook is later asked to invoke should inherit them: git exports GIT_DIR for every
+# commit inside a linked worktree, which is every runner commit in this fleet, so a descendant
+# that walks into another directory and runs git would operate on the runner's repository rather
+# than the one it is standing in. That is DEF-253's mechanism, and one unset closes it for every
+# descendant, whatever they turn out to be. It is preferred to an inventory of offending scripts
+# because it holds for the scripts nobody has written yet.
+#
+# The unset does NOT close the GIT_WORK_TREE bypass above — that hole is carried by the cwd, not
+# by the variable, and only the git-dir read closes it. Two separate faults, two separate lines.
 
 [ "$MCPR_ORCHESTRATOR" = "1" ] && exit 0
 
-git_dir=$(git rev-parse --git-dir)
+git_dir=$(git rev-parse --absolute-git-dir) || exit 0
+
+unset GIT_DIR GIT_WORK_TREE
+
 case "$git_dir" in
-    */worktrees/*) exit 0 ;;          # a runner in its own worktree: this is its job
+    */.git/worktrees/*) exit 0 ;;     # a runner in its own worktree: this is its job
 esac
 
-branch=$(git symbolic-ref --quiet --short HEAD 2>/dev/null) || exit 0   # detached: not main
+branch=$(git --git-dir="$git_dir" symbolic-ref --quiet --short HEAD 2>/dev/null) || exit 0  # detached: not main
 [ "$branch" = "main" ] || exit 0
 
 cat >&2 <<'EOF'

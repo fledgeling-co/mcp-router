@@ -59,6 +59,21 @@
       "since": "2026-08-26"
     },
     {
+      "path": "planning/hooks/prove-pre-commit.sh",
+      "disposition": "control",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-26",
+      "control": [
+        "bash",
+        "planning/hooks/prove-pre-commit.sh"
+      ],
+      "proves": "the control runs on every invocation, not behind a flag: D4 and D6 are each run twice, once against the tracked hook which must refuse and once against a reconstructed pre-G9 hook which must allow, and an arm that agrees with its control exits 2 instead of printing a pass"
+    },
+    {
       "path": "planning/ledger-reconcile.py",
       "disposition": "grandfathered",
       "markers": [
@@ -103,6 +118,21 @@
         "--control-only"
       ],
       "proves": "five planted answers in a throwaway repo, including a branch with zero diff on the gate file that must still read EXPOSED, an obituary ledger that must read INCONCLUSIVE rather than clean, and a fail-if-agree row that reddens if the verdict does not depend on the union"
+    },
+    {
+      "path": "planning/runnable-path-gate.py",
+      "disposition": "control",
+      "markers": [
+        "V1",
+        "V3",
+        "V4"
+      ],
+      "since": "2026-08-26",
+      "control": [
+        "python3",
+        "planning/runnable-path-gate.py"
+      ],
+      "proves": "ten fixtures planted in a throwaway repo on every invocation — one per class plus a waived instance, a marker quoted inside a string, and a bare marker with no reason — each answer required exactly; a plant that never reaches the index reads NEVER REACHED THE INDEX and the run exits 2 without printing a verdict"
     },
     {
       "path": "planning/sweep-control-gate.py",

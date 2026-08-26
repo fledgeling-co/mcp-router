@@ -75,6 +75,23 @@ SURFACE    ?= servers
 ## registry, or an empty corpus) · 4 the control failed · 2 usage. `lint` treats every non-zero the
 ## same, which is right for a lint step and is why the codes have to be readable on their own.
 ##
+## `runnable-path-gate.py` (`G9`) is the last of `lint`'s six Python gates — `py39-annotation-gate.py`
+## landed on `main` between null-run and citation, and `sweep-control-gate.py` ahead of it, while
+## this was in flight — and it is in `lint` for the reason it exists.
+## Two tracked 0755 scripts began by `cd`-ing into a literal home path under `.worktrees/R2`; the
+## directory was deleted in a routine cleanup, both scripts exited 90 on every invocation from that
+## day on, and a spec went on citing one of them as a mutation gate that had run. **Nothing went
+## red, because nothing invoked them.** A gate against that shipped invoked by nothing would be the
+## same sentence one layer up, so it runs here rather than behind a target somebody remembers.
+##
+## It fails any tracked file the repository can RUN — git mode 100755, or an interpreter suffix, or
+## a shebang, a union because each catches what the others miss — that names a path under `/Users`
+## or `/Volumes`. `~/`, `/Applications`-class system paths and `/tmp`-class scratch paths are
+## counted and printed, never blocked, each for a reason the gate states; scratch roots are
+## `foreign-path-gate.py`'s axis and are deliberately not duplicated. Four seconds, hermetic, and
+## its presence control plants nine instances across every class on every invocation and exits 2
+## without printing a verdict if any one of them is missed — so a zero here is a measurement.
+##
 ## `role-intersection-gate.py` (`G8`) is deliberately NOT in `lint` or in `all`, and the reason is
 ## its own subject. It exits **3** on this tree today: `planning/fidelity/popover.ledger.md` is an
 ## obituary — the fidelity gate exited 3 on `#statusPopover has no '.v-ideal' block` and wrote no
@@ -591,6 +608,7 @@ lint: tools
 	python3 planning/py39-annotation-gate.py || fail=1; \
 	python3 planning/citation-gate.py || fail=1; \
 	python3 planning/sweep-control-gate.py || fail=1; \
+	python3 planning/runnable-path-gate.py || fail=1; \
 	exit $$fail
 
 ## The cross-branch role-intersection check (`G8`). Not in `all` — see the note above `all` for

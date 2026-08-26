@@ -335,7 +335,7 @@ is `D-p2-b` / R4-C's. `div-r1-d3`'s note records that only the preservation half
 
 ## 5. Phase E — gates
 
-From `/Users/lukerhodes/Dev/mcp-router/.worktrees/P2`; Makefile at the **worktree root**. Exit codes
+From the worktree root (`.worktrees/P2`); Makefile at the **worktree root**. Exit codes
 as `cmd > /tmp/f.txt 2>&1; echo $?`, never through a pipeline.
 
 | # | Gate |

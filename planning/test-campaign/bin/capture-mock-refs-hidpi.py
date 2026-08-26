@@ -21,7 +21,13 @@ import websockets
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 9222
 OUT = pathlib.Path(sys.argv[2]) if len(sys.argv) > 2 else pathlib.Path("evidence/shots/mock-hidpi")
-MOCK = "file:///Users/lukerhodes/Dev/mcp-router/design/mocks/prototype.html"
+# Derived, never pinned (G9): this file sits at planning/test-campaign/bin/, so the repository
+# root is three parents up. as_uri() builds the file:// form rather than string-pasting it.
+_ROOT = pathlib.Path(__file__).resolve().parents[3]
+_PROTO = _ROOT / "design" / "mocks" / "prototype.html"
+if not _PROTO.exists():
+    raise SystemExit(f"FATAL: no prototype at {_PROTO} — this script moved; fix parents[3]")
+MOCK = _PROTO.as_uri()
 
 # CSS viewport: wide enough for the 1156pt window plus the body's 30pt gutters,
 # tall enough for the page header plus the 26pt menubar plus the 680pt window.

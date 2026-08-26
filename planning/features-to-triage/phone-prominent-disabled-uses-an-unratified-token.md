@@ -10,7 +10,8 @@ fill: `--t4` on `--f3`, with a `--line` bezel where the control carries one. Eve
 control in the design of record and on the store page draws that triple. `PhoneProminentButtonStyle`
 draws a different one, and nothing has yet seen it render.
 
-`app/Sources/MCPRouterUI/Phone/PhoneButtonStyle.swift:47` is
+`.fill(isEnabled ? ColorToken.accent.color : ColorToken.raised.color)`,
+`app/Sources/MCPRouterUI/Phone/PhoneButtonStyle.swift:47` at `03c34c3`, is
 
 ```swift
 .fill(isEnabled ? ColorToken.accent.color : ColorToken.raised.color)
@@ -35,12 +36,16 @@ the `UNPROVEN` lines.
 ## Why the sweep reports these rather than failing on them
 
 `PhoneProminentButtonStyle:32` reads `@Environment(\.isEnabled)` on the `ButtonStyle` type itself.
-`Controls.swift:169-173` declines to do that on purpose, and says why: a `ButtonStyle` is not a
+(anchor ``// **A nested `View` rather than `@Environment` on this type.** A `ButtonStyle` is not a``,
+`app/Sources/MCPRouterUI/Controls.swift:169` at `03c34c3`) declines to do that on purpose, and
+says why: a `ButtonStyle` is not a
 `View`, whether SwiftUI installs a style's dynamic properties has changed between releases, and a
 disabled button rendering at full strength is a defect no compile catches and no unit test sees. So
 the phone's dimming is conditional on a behaviour a source read cannot settle either way.
 
-`PairingResultSurfaces.swift:23` and `:25` remove the condition entirely:
+`PhoneProminentButtonStyle(fillsWidth: fillsWidth).makeBody(configuration: configuration)`,
+`app/Sources/MCPRouterUI/Phone/PairingResultSurfaces.swift:23` at `03c34c3`, and `:25` beside it,
+remove the condition entirely:
 
 ```swift
 PhoneProminentButtonStyle(fillsWidth: fillsWidth).makeBody(configuration: configuration)
@@ -51,7 +56,8 @@ holds the default at those two sites whatever the surrounding view's enablement 
 rather than unproven, and it is the strongest of the thirteen.
 
 Pixels would settle the rest, and are unavailable: `make mock-fidelity` exits 3 on an inherited
-break at `MeasureDump/main.swift:206`, a non-exhaustive switch missing `.readme`. Unblocking that is
+break — anchor `switch surface {`, `app/Sources/MeasureDump/main.swift:206` at `03c34c3`, a
+non-exhaustive switch missing `.readme`. Unblocking that is
 a dependency of this item rather than part of it.
 
 ## One thing this is not

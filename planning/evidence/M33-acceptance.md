@@ -211,14 +211,57 @@ the source rather than on the icons.
 | `planning/m33-branch-sweep.py --selftest` | **0** | 7/7 arms |
 | `planning/reader-accounting.py` | **0** | went **red** on this branch and was fixed, not declared past: the three new readers account for their drops with `input_accounting.Tally`; `accounts` 4 → 6, `unaccounted` 0 |
 | `planning/null-run-gate.py` | 0 | unchanged |
-| `planning/citation-gate.py` | 1 | **partly inherited, and this row was wrong.** See *The row that certified over something it had not read* below. |
+| `planning/citation-gate.py` | 1 | **partly inherited, and this row was wrong.** See *The row that certified over something it had not read* below. Rebased onto `main` today: `exit: control 0 · blocking 0 · ratchet 1`, `BARE 1332 over N5 1493 against baseline 1291 — 9 file(s) above`, and this file is not among the nine. |
+
+**Both of this branch's new scripts are now registered sweeps.** `G8`'s
+`planning/sweep-control-gate.py` reached `main` while this was in flight; it discovers new
+undisposed sweeps and blocks on them. `planning/m33-branch-sweep.py` (V2,V3,V4) and
+`scripts/build-description-report.py` (V2,V3) are both sweeps by its readers, and unregistered they
+took that gate from `main`'s 5 UNDISPOSED / 6 FINDINGS to 7 / 8. Both carry a real `--selftest`
+control, so both are registered in `planning/sweep-controls.json` as `disposition: control` with
+the command that proves it — not `grandfathered`, which is a backlog entry rather than a pass. The
+gate now reads 5 / 6 on this branch, identical to `main`.
+
+Armed, because a registry row that has never been shown to redden is a claim rather than a check.
+Inverting one arm of the branch sweep's guard — `ARMED.search('path: "MCPRouterIOS"') is None`
+becomes `is not None`, so the regex is asserted to match the thing it exists to exclude:
+
+```
+  FAIL  planning/m33-branch-sweep.py           control exited 1 — it said: selftest: 6/7 arms bit
+FINDINGS sweep-control: 7
+```
+
+Restored byte-identically, sha256 `829ee2a6287dedb261bce31d7d4413c74f61b215655f5c41e83ee76db8398f30`
+before and after, and the gate returns to 5 / 6.
+
+**On the over-baseline figure this item has been quoted against.** The number circulated through
+this session's briefs was **10 files / BARE 1341**. It is a *working-tree* reading. Measured both
+ways at the same `main` commit `bf8f58d` — once in the main checkout, which carries 25 uncommitted
+paths, and once in a detached checkout of the same commit, which carries none:
+
+```
+$ python3 planning/citation-gate.py   # in the main checkout, working tree dirty
+ratchet: BARE 1341 over N5 1501 against baseline 1291 — 10 file(s) above, 2 below
+
+$ git checkout --detach main && python3 planning/citation-gate.py   # same commit, clean
+ratchet: BARE 1332 over N5 1490 against baseline 1291 — 9 file(s) above, 2 below
+
+$ diff <clean list> <dirty list>
+>   planning/test-campaign/RUN-2026-08-20.md  10, baseline 1
+```
+
+One file and nine bare citations, and the file is uncommitted. So **9 / 1332** is the repository's
+figure and **10 / 1341** is one checkout's, which is why this record quotes the first. It is
+written down because two separate corrections in this run turned out to be the same mistake made
+twice: a gate read against a working tree and reported as a property of the branch.
 
 ## The row that certified over something it had not read
 
 The gate row above used to read *"**inherited** — `blocking 0`, ratchet only, 3 files above
-baseline and all three are M29's"*. Every clause of it was false at the tree that committed it, and
-the way it was false is this item's own subject: a lane reporting clean over something it did not
-look at.
+baseline and all three are M29's"*. Every clause of it was false at `b5f2227`, the commit that
+wrote it, and the way it was false is this item's own subject: a lane reporting clean over
+something it did not look at. That tree is measured below rather than described, because a figure
+asserted against a tree nobody names is the same defect at reduced scale.
 
 **Re-derived, and the derivation is printed rather than described.** An earlier draft of this
 section named a command and asserted corrected numbers beside it, which is the same defect one
@@ -246,17 +289,79 @@ ratchet: 10 file(s) hold more bare citations than the baseline allows:
   A bare citation is unfalsifiable; carry anchor and tree.
 ```
 
-`planning/evidence/M33-acceptance.md` is not in that list. It was, before the `:94` fix below. The
-ten are `main`'s own at `bbe8df1`, and the tenth — `planning/goals/tests-reader-control.sh` — landed
-on `main` after this section was first written, which is why the file list is printed rather than
-the count: a count is what the original row was.
+`planning/evidence/M33-acceptance.md` is not in that list. It was, before the `:94` fix below.
+
+**The ten are `main`'s own**, and that is measured rather than attributed. `bbe8df1` is the base
+this worktree sits on; with none of M33's files in the tree it returns the same ten files:
+
+```
+$ git checkout --detach bbe8df1 && python3 planning/citation-gate.py \
+    | sed -n '/^ratchet: [0-9]* file/,/A bare citation/p'
+ratchet: 10 file(s) hold more bare citations than the baseline allows:
+  ORCHESTRATOR.md  69, baseline 68
+  planning/evidence/M29-decisions-grok.md  1, baseline 0
+  planning/goals/tests-reader-control.sh  1, baseline 0
+  planning/plans/plan-G6.md  1, baseline 0
+  planning/plans/plan-M29.md  23, baseline 0
+  planning/progress/G6.md  3, baseline 0
+  planning/specs/spec-M29.md  6, baseline 0
+  planning/tailings-2/crossref.json  3, baseline 0
+  planning/tailings-2/worklist.json  4, baseline 0
+  planning/verification/G6-shared-ledger-withdrawals.py  1, baseline 0
+  A bare citation is unfalsifiable; carry anchor and tree.
+```
+
+The tenth — `planning/goals/tests-reader-control.sh` — is `main`'s own too, added at `9c51170`
+after this section was first written and repaired later at `ea39b46`, which is an ancestor of
+`main` today but **not** of `bbe8df1`. So the row moved twice under this section, which is the
+argument for printing the list rather than the count: a count is what the original row was. **Nine**
+is the same reading one commit earlier, at `b151f14`:
+
+```
+$ git checkout --detach 9c51170^   # b151f14
+$ python3 planning/citation-gate.py | sed -n '/^ratchet: [0-9]* file/,/A bare citation/p'
+ratchet: 9 file(s) hold more bare citations than the baseline allows:
+  ORCHESTRATOR.md  69, baseline 68
+  planning/evidence/M29-decisions-grok.md  1, baseline 0
+  planning/plans/plan-G6.md  1, baseline 0
+  planning/plans/plan-M29.md  23, baseline 0
+  planning/progress/G6.md  3, baseline 0
+  planning/specs/spec-M29.md  6, baseline 0
+  planning/tailings-2/crossref.json  3, baseline 0
+  planning/tailings-2/worklist.json  4, baseline 0
+  planning/verification/G6-shared-ledger-withdrawals.py  1, baseline 0
+  A bare citation is unfalsifiable; carry anchor and tree.
+```
 
 | clause | what the gate actually says at `141394c` |
 |---|---|
 | `blocking 0` | **`blocking 1`** — the `exit:` line's third field, not a file count. Anchor "exits 0 and silent on a fault", `planning/features-to-triage/LEDGER.md:124` at `bbe8df1`, cites this file's `:214` at `b5f2227` with an anchor whose pipes are backslash-escaped, because the citing row is itself a markdown table row. The cited line's pipes are not escaped, so the anchor cannot match and the gate classes it `ABSENT` — a stated frame that does not hold — and marks it `DANGEROUS`, because the line it landed on reads perfectly well. |
 | `ratchet only` | Not only. The `exit:` line reads `blocking 1 · ratchet 1`, and both those 1s are exit-field flags rather than counts. Blocking is the class that means a *false* claim; the ratchet class means an unfalsifiable one. |
-| `3 files above baseline` | **10** at `141394c`, 9 before `main` added its own, and 4 at the tree that made the claim. Three is the count of the M29 files alone. |
+| `3 files above baseline` | **10** at `141394c` and at `bbe8df1`; **9** at `b151f14`, before `main` added its own; **4** at `b5f2227`, the commit that wrote this row. All four readings are fenced — the first two and the third above, the fourth below. Three is the count of the M29 files alone, and of nothing else. |
 | `all three are M29's` | Three of the ten are M29's — `planning/evidence/M29-decisions-grok.md`, `planning/plans/plan-M29.md`, `planning/specs/spec-M29.md`. The other seven are listed above and none is M29's. **And at the tree this record was written, one of them was `planning/evidence/M33-acceptance.md` — this file.** It carried one bare citation at `:94`. So the row certified that every file above baseline belonged to another item, while the file making the certification was one of them. |
+
+**The fourth reading — 4 at `b5f2227`, the tree that made the claim.** The row above says three
+files are above baseline and all three are M29's. Here is what the gate returned at the commit that
+wrote it:
+
+```
+$ git worktree add --detach /tmp/m33-claimtree b5f2227
+$ python3 planning/citation-gate.py | sed -n '/^ratchet: [0-9]* file/,/A bare citation/p'
+ratchet: 4 file(s) hold more bare citations than the baseline allows:
+  planning/evidence/M29-decisions-grok.md  1, baseline 0
+  planning/evidence/M33-acceptance.md  1, baseline 0
+  planning/plans/plan-M29.md  23, baseline 0
+  planning/specs/spec-M29.md  6, baseline 0
+  A bare citation is unfalsifiable; carry anchor and tree.
+```
+
+Four, not three; and the second line of that list is this file. The clause below about the
+certifying file being one of the certified is read off that output rather than asserted beside it.
+
+**One caveat on reproducing it.** `b5f2227` is dangling — the rebase onto `bbe8df1` rewrote it, and
+`git name-rev` answers `undefined`. The object is in this repository, so the checkout above works
+here; a clone that never received it cannot run this fence at all. The same caveat governs the
+`ABSENT` finding below, and for the same reason.
 
 **The bare citation at `:94` is fixed rather than absorbed.** It now carries anchor `- path:
 MCPRouter` and the tree `570910a`, per `planning/practices/CITATIONS.md` — *"a citation must resolve
@@ -274,6 +379,16 @@ unescaped cited line. The one fix available from this branch is to unescape them
 `citation-gate.py` to unescape `\|` when the citing line is a table row — and that second one
 reclassifies every table-row citation in the corpus, which is an owner's call and not a side effect
 of this item.
+
+**Why this section's own anchors are delimited with double quotes, and not with backticks.** Two
+of the citations this section added were classed `TREE_ONLY` rather than anchored on their first
+run: the anchor text contained nested backticks, which defeat the anchor parser, so the gate read a
+tree and no anchor. `planning/practices/CITATIONS.md` says to delimit with double quotes when the
+anchor itself contains backticks, so the LEDGER anchor above reads `"exits 0 and silent on a
+fault"`. Without this paragraph the change looks like a style preference; it is a parser limit, and
+a reader who copies the backtick form back in will silently lose the anchor while the citation
+still appears to carry one. `TREE_ONLY` does not block — which is exactly why it needed writing
+down rather than being left to the commit message, where it was the only place it lived.
 
 **Two things about that blocking row are worth stating precisely, because both were nearly claimed
 wrongly.**

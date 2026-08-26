@@ -154,7 +154,11 @@ enum ControlAuthSupport {
         manifestPath: String = ManifestLockScratch.path("controlauth"),
         calls: AuthDispatchCalls = AuthDispatchCalls(),
         starter: (any AuthFlowStarting)? = nil,
-        log: RouterLog? = nil
+        log: RouterLog? = nil,
+        // Defaults to the two-server fixture above, so every existing caller reads as it did. A
+        // caller that needs a server in a state the fixture cannot express — M29's `disabled`, for
+        // one — supplies its own rather than mutating a shared constant.
+        config: String = ControlAuthSupport.config
     ) throws -> ControlDeps {
         let parsed = try JSONParser.parse(config)
         let entries = parsed.member("mcpServers")?.asObjectMembers ?? []

@@ -29,22 +29,38 @@ cd "$(git rev-parse --show-toplevel)" || exit 2
 WAIVED='planning/citation-gate.py'
 MIN_STEPS=8   # presence control on the PARSER: lint had 9 steps when this was written.
 
-mapfile -t STEPS < <(
-  sed -n '/^lint:/,/^$/p' Makefile |
+# `while read` and not `mapfile`: macOS /bin/bash is 3.2 and has no mapfile. The first version
+# used it, and under the guard's shell it died with `mapfile: command not found`, then `STEPS:
+# unbound variable`, and exited **1** — reporting "lint failed on a step that is not the citation
+# ratchet" when the truth was that lint had never run. An environment failure wearing a findings
+# failure's exit code is the same defect this gate exists to catch, one layer down. Everything
+# below is POSIX-shell-safe, and a parse or environment failure now exits 2.
+STEPS=""
+while IFS= read -r step; do
+  [ -n "$step" ] && STEPS="$STEPS$step
+"
+done <<PARSE
+$(sed -n '/^lint:/,/^$/p' Makefile |
   grep -oE '^[[:space:]]*[^|]+ \|\| fail=1' |
-  sed -E 's/[[:space:]]*\|\| fail=1$//; s/^[[:space:]]*//'
-)
+  sed -E 's/[[:space:]]*\|\| fail=1$//; s/^[[:space:]]*//')
+PARSE
 
-if [ "${#STEPS[@]}" -lt "$MIN_STEPS" ]; then
-  echo "lint-gate: parsed only ${#STEPS[@]} steps from the Makefile's lint recipe, expected >= $MIN_STEPS."
-  echo "lint-gate: the recipe's shape changed and this gate can no longer see every step."
-  echo "lint-gate: INCONCLUSIVE — no verdict printed, because a verdict here would be an absence this instrument cannot see."
+n_steps=$(printf '%s' "$STEPS" | grep -c . || true)
+if [ "${n_steps:-0}" -lt "$MIN_STEPS" ]; then
+  echo "lint-gate: parsed only ${n_steps:-0} steps from the Makefile's lint recipe, expected >= $MIN_STEPS."
+  echo "lint-gate: the recipe's shape changed, or this shell cannot run the parser."
+  echo "lint-gate: INCONCLUSIVE at exit 2 — no verdict printed, because a verdict here would be an absence this instrument cannot see."
   exit 2
 fi
 
-echo "lint-gate: $(( ${#STEPS[@]} )) steps parsed from Makefile:lint"
+echo "lint-gate: $n_steps steps parsed from Makefile:lint"
 fail_other=0; fail_waived=0
-for s in "${STEPS[@]}"; do
+# A here-string, NOT `printf ... | while`. A piped while-loop runs in a SUBSHELL, so fail_other
+# and fail_waived never reach the parent and the gate prints "lint: clean" over a failing step —
+# which is the fail-open this gate was written to close, reintroduced inside the fix for it.
+# Measured 2026-08-26: with the pipe, a citation-gate exit of 1 reported clean.
+while IFS= read -r s; do
+  [ -n "$s" ] || continue
   out=$(eval "$s" 2>&1); rc=$?
   if [ $rc -eq 0 ]; then
     printf '  %-52s 0\n' "$s"
@@ -57,7 +73,7 @@ for s in "${STEPS[@]}"; do
     echo "$out" | tail -12 | sed 's/^/      /'
     fail_other=1
   fi
-done
+done <<< "$STEPS"
 
 if [ "$fail_other" -ne 0 ]; then
   echo "lint: failed on a step that is not the citation ratchet"; exit 1

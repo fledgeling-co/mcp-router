@@ -39,6 +39,18 @@ So the package root is `upstream.cwd`, **and only that**. Deriving a root from `
 is refused by name: it is a guess about a packaging convention the router does not otherwise use,
 and §6's rule is about where a figure came from rather than how plausible it is.
 
+**What that refusal costs, measured rather than estimated.** `scripts/acceptance/m30-reach.mjs`
+applies this route's own guard — `!isStdio(u) || !u.cwd`, byte-for-byte from `src/control.ts` — to
+the developer's live `servers.json`. `planning/evidence/M30-reach.txt` is the run:
+**0 of 21 upstreams can be served**, all twenty-one landing on `404 noPackageDirectory`. Fourteen
+are stdio and declare no `cwd`; seven are http and carry no local directory at all. For this route
+to answer, a server must be **stdio** *and* **declare a `cwd`** naming a readable directory holding
+at least one of `README.md`, `CHANGELOG.md` or `CAPABILITIES.md` — and nothing on this machine does.
+The panel is therefore complete and, on a real config today, draws only its refusal frame. Widening
+the derivation is a decision about a readable surface on a trust boundary rather than a fix, so it is
+filed as `planning/features-to-triage/the-document-route-can-serve-none-of-this-machines-upstreams.md`
+with the options and a recommendation, not taken here.
+
 `ServerRoute`'s sub-path grammar already accepts a lowercase-letter segment, so `/document` needs no
 change to `isControlPath` and no change to the route regex in either implementation. The route
 inherits the existing unknown-server 404, the 405 fallback, and the (deliberately ungated) GET path.

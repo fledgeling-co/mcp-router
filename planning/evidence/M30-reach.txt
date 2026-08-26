@@ -1,0 +1,28 @@
+measured  : 2026-08-26T21:36:47.519Z
+config    : /Users/lukerhodes/.claude/mcp-router/servers.json
+upstreams : 21
+
+ref-tools-mcp    stdio   404 noPackageDirectory   stdio, no cwd declared
+ai-elements      stdio   404 noPackageDirectory   stdio, no cwd declared
+namecheap        stdio   404 noPackageDirectory   stdio, no cwd declared
+docker-mcp       stdio   404 noPackageDirectory   stdio, no cwd declared
+dossier          stdio   404 noPackageDirectory   stdio, no cwd declared
+google-search    stdio   404 noPackageDirectory   stdio, no cwd declared
+media-gen-pro    stdio   404 noPackageDirectory   stdio, no cwd declared
+yt-transcript    stdio   404 noPackageDirectory   stdio, no cwd declared
+sift             stdio   404 noPackageDirectory   stdio, no cwd declared
+lifeline         stdio   404 noPackageDirectory   stdio, no cwd declared
+obscura          stdio   404 noPackageDirectory   stdio, no cwd declared
+mobbin           http    404 noPackageDirectory   not stdio
+atlas-admin      http    404 noPackageDirectory   not stdio
+proctor          stdio   404 noPackageDirectory   stdio, no cwd declared
+warden           stdio   404 noPackageDirectory   stdio, no cwd declared
+pocketsmith      http    404 noPackageDirectory   not stdio
+linear           http    404 noPackageDirectory   not stdio
+workos           http    404 noPackageDirectory   not stdio
+github           stdio   404 noPackageDirectory   stdio, no cwd declared
+diolog-admin     http    404 noPackageDirectory   not stdio
+diolog-tasks     http    404 noPackageDirectory   not stdio
+
+SERVED 0 of 21
+outcomes: {"404 noPackageDirectory":21}

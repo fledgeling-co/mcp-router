@@ -67,6 +67,45 @@ script really was exiting 2, and the two readings were indistinguishable.
 
 `enrolled: 8   run: 8   pass: 5   fail: 1   blocked: 2   vacuous: 0`
 
+**The conditions this table was measured under, because five of its eight rows are decided by them.**
+
+| Condition | On the run below | How it is known |
+|---|---|---|
+| `MCPRouterCLI` in `app/.build/debug/` | **absent** | the two BLOCKED rows print the path and say so — the row is its own evidence |
+| the session composites a window | **yes** | `shells.sh` resolved a window id through `CGWindowListCopyWindowInfo` and captured its backing store; a session that composites nothing cannot reach either |
+
+A verifier re-ran these same eight lanes on this same branch and **five of the eight rows came out
+differently**, in both directions and traceably:
+
+| Lane | Here | On the verifier's machine | The condition that decided it |
+|---|---|---|---|
+| `p1-auth-routes.sh` | BLOCKED | **PASS** | `MCPRouterCLI` was already in a shared `.build` there |
+| `r7-harness-reconciliation.sh` | BLOCKED | **PASS** | same |
+| `shells.sh` | PASS | **BLOCKED** | 0 windows after 15s on both Debug and Release; isolated, `shells.sh` exits 1 with `the macOS window never appeared` |
+| `mac-shell.sh` | FAIL | **BLOCKED** | same |
+| `menu-badge-lane.sh` | PASS | **BLOCKED** | same |
+
+**Neither table is wrong, and re-running until they agree is not the repair** — these two conditions
+are properties of the machine, not of the tree, and two honest runs of the same commit will keep
+disagreeing while they differ. The defect was one level up: a per-lane table with no environment
+beside it is a measurement whose conditions are unrecoverable, and a ledger that cannot be compared
+with the next run is not doing the job `UI_VERIFICATION.md` rule 2 asks of it.
+
+So the aggregator now states both facts itself, above the lanes and again under the counts line, as
+`ACCEPTANCE-ENV:` — `scripts/acceptance/acceptance-lanes.sh`, with the window plane probed by
+`scripts/acceptance/window-plane.swift` counting on-screen windows before MCP Router launches.
+`acceptance-lanes-selftest.sh` arm 12 requires both facts in both places, and requires the footer
+copy specifically, because a stamp printed only above a long run is one that is lost the moment
+somebody pastes the summary. Measured on this tree, one hour after the table below:
+`MCPRouterCLI in .build: present — built 2026-08-26 22:32`, `window plane composites: yes — 27
+on-screen windows, 26 named`. Both differ from the run below, which is the point of printing them.
+
+**The `shells.sh` window failure the verifier hit is inherited, not this branch's.** It reproduces at
+`03c34c3`, the tree this item started from, and nothing on this branch touches window resolution —
+`git diff 03c34c3..ai/g10 -- app/Sources/` is empty, so no product code was changed at all. A
+session that cannot composite is an environment this lane cannot run in, which is what its exit 2
+is for.
+
 | Lane | Exit | Assertions | Verdict | What it means |
 |---|---|---|---|---|
 | `shells.sh` | 0 | 12 | PASS | the item's own lane, green end-to-end after five repairs — both AX needles, `#1C1C1E` on the Mac, `#FFFFFF` in the gallery, `#1C1C1E`/`#FFFFFF` on the phone |
@@ -123,13 +162,29 @@ echo a subprocess line beginning `ok` — it would pass. That hole is named here
 header rather than covered by a claim that the number is exact, and `ACCEPTANCE-ASSERTIONS:` is the
 way a lane states its count precisely.
 
-Presence control, `acceptance-lanes-selftest.sh`, 12 arms all held. Arm 8 plants a silent exit 0 and
-requires VACUOUS; **arm 9 is its control** — the same lane with one `ok` line added must be a PASS
-again, so the check cannot be satisfied by reddening every zero; arm 10 plants the shape this was
-*found* in, a shell killed by `set -u` whose EXIT trap launders the status. With `lane_assertions()`
-planted to credit every lane with one assertion it never made, 8 assertions across arms 8 and 10 go
-red. Restored byte-identically, sha256
-`322b4913c6f00c0adf6cf1bfadb1cbc5ec9614d8c49f0bc82231e29a6de24fe3` either side.
+Presence control, `acceptance-lanes-selftest.sh`, **13 arms all held**. Arm 8 plants a silent exit 0
+and requires VACUOUS; **arm 9 is its control** — the same lane with one `ok` line added must be a
+PASS again, so the check cannot be satisfied by reddening every zero; arm 10 plants the shape this
+was *found* in, a shell killed by `set -u` whose EXIT trap launders the status; arm 11 requires a
+declared `ACCEPTANCE-ASSERTIONS:` count to be honoured in both directions, a declared **0** included.
+
+With `lane_assertions()` planted to credit every lane with one assertion it never made, **11
+assertions across arms 8, 10 and 11** go red. An earlier version of this paragraph said 8 across arms
+8 and 10: it was written before arm 11 existed and was not re-measured when it was added, so it
+understated the control's reach by three assertions and one arm. **Understating a control is the same
+class of error as overstating it** — it is the number a reader uses to decide whether the control is
+worth trusting. Re-measured on the delivered tree by planting the fault and counting `SELFTEST FAIL`
+lines: 11, in arms 8, 10 and 11.
+
+Restored byte-identically, sha256 of `scripts/acceptance/acceptance-lanes.sh`
+`9faef3d588fec2b8fdfb5394f0eef6c3be47e62d8fcfe17883bdb2b703987cb8` either side of both plants, and
+`git diff` empty after each restore.
+
+**Arm 12 was watched going red twice, under two different plants.** Dropping the footer
+`environment_stamp` call: 2 red — `expected 4 ACCEPTANCE-ENV lines … saw 2` and `the counts line is
+not followed by both ACCEPTANCE-ENV facts, saw 0`. Dropping the window-plane line from the stamp
+itself: 3 red, including `no ACCEPTANCE-ENV line names whether the session composites windows`. Both
+restored to the same sha256 above, `git diff` empty, 13 arms held again after each.
 
 ### `mac-shell.sh` holds two independent reds, and the first version of this record named neither
 
@@ -142,12 +197,26 @@ version of this record did not follow.
 `fail` recording instead of exiting, it prints **four** FAIL lines over 54 passing assertions, and
 they are **two** defects:
 
-| Red | Independent? | Class |
-|---|---|---|
-| `the window title is 'Insights', which is not a destination name (§3.7 forbids the app's name)` | yes | the seven-name allow-list is stale by two since M22 shipped Harnesses and Insights — cited in full below the table |
-| `File / Export library… is not in the menu bar at all — §3.4 forbids hiding a disabled command` | yes | the row hard-names the File menu and a lowercase title; `MenuCommand` moved `exportLibrary` to Library at M20 and titles it `Export Library…` |
-| `File / Export library… is offered as usable, but no export feature exists in either target` | no — cascade | `EXPORT_LINE` came back empty, so the enabled field read empty and this fired on its own message |
-| `File / Export library… is dimmed and says nothing — §3.4 requires a discoverable reason` | no — cascade | same empty line, one field over |
+| Red | Independent? | Standing or conditional? | Class |
+|---|---|---|---|
+| `the window title is 'Insights', which is not a destination name (§3.7 forbids the app's name)` | yes | **conditional** — see below | the seven-name allow-list is stale by two since M22 shipped Harnesses and Insights — cited in full below the table |
+| `File / Export library… is not in the menu bar at all — §3.4 forbids hiding a disabled command` | yes | standing | the row hard-names the File menu and a lowercase title; `MenuCommand` moved `exportLibrary` to Library at M20 and titles it `Export Library…` |
+| `File / Export library… is offered as usable, but no export feature exists in either target` | no — cascade | standing | `EXPORT_LINE` came back empty, so the enabled field read empty and this fired on its own message |
+| `File / Export library… is dimmed and says nothing — §3.4 requires a discoverable reason` | no — cascade | standing | same empty line, one field over |
+
+**The first red is state-dependent, and an earlier version of this record wrote it up as standing.**
+The assertion reads the title of whichever board the app *restored into*, so it fires only when that
+board is Harnesses or Insights — the two names missing from the allow-list. It fired here because
+this run restored into Insights. A verifier's run of the same lane on this same branch restored into
+Checks, and the same assertion **passed**, printing `window title is 'Checks'`.
+
+The staleness underneath it is standing and is not in doubt: `Destination.swift` ships nine cases —
+`activity`, `servers`, `skills`, `harnesses`, `discover`, `inbox`, `evals` (titled `Checks`),
+`cleanup`, `insights` — against the seven the allow-list names, and `harnesses` and `insights` are
+absent from it by reading, on any run, whatever the app restored into. What is conditional is the
+*red*, not the defect. Writing a conditional red up as a standing one overstates the evidence in a
+way a reader cannot detect, and it is the same class as the understated control count above: both
+are a number that decides how much weight the finding carries.
 
 The allow-list the first red trips over is `Activity|Servers|Skills|Discover|Inbox|Checks|Cleanup`,
 `mac-shell.sh:346` at `03c34c3` — seven names against the nine destinations the app now ships. It

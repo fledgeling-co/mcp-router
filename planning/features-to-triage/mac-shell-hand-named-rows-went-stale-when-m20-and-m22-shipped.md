@@ -13,12 +13,24 @@ intended surface that the product has since moved past. Neither is the app misbe
     FAIL: the window title is 'Insights', which is not a destination name (§3.7 forbids the app's name)
     FAIL: File / Export library… is not in the menu bar at all — §3.4 forbids hiding a disabled command
 
-## 1. The destination allow-list is stale by two
+## 1. The destination allow-list is stale by two — and its red is intermittent
 
 The seven-name allow-list decides whether the window title is a destination name. `M22` shipped the
 Harnesses and Insights boards, so the app now has nine. The lane contradicts itself inside one run:
 it passes *9 destination rows share one height* and then *all seven destinations are in the
 accessibility tree*.
+
+**The staleness is standing; the red is conditional, and triage should size it that way.** The
+assertion reads the title of whichever board the app *restored into*, so it fires only on a run that
+restores into Harnesses or Insights. It fired on G10's run, which restored into Insights; a
+verifier's run of the same lane on the same branch restored into Checks and the assertion **passed**.
+So this is a lane that goes green or red on stored UI state rather than on the tree — which makes it
+worse to leave than a reliable red, not better: an intermittent red is the one nobody chases, and the
+next person to see it green will read the allow-list as current.
+
+The staleness itself needs no run to see. `Destination.swift` ships nine cases — `activity`,
+`servers`, `skills`, `harnesses`, `discover`, `inbox`, `evals` (titled `Checks`), `cleanup`,
+`insights` — and `harnesses` and `insights` are absent from the seven-name list by reading.
 
 Whether nine is the intended set is `M22`'s question, which is why G10 reported this rather than
 extending the list.
@@ -53,7 +65,9 @@ which is why G10 left both reds standing and wrote this instead.
 ## Scope
 
 - Decide whether nine destinations is `M22`'s intended set, and make the title check read the set
-  from the same place the app does rather than from a list in the lane.
+  from the same place the app does rather than from a list in the lane. Deriving the set also ends
+  the intermittency: a check that reads the same source the app does cannot go green because of
+  which board happened to be restored.
 - Decide whether the `File / Export library…` row should be corrected, or retired in favour of the
   derived A22 coverage that already asserts the same thing and does not go stale.
 - Neither is G10's to settle: G10's line throughout was to clear what prevents measurement and

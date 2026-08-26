@@ -36,7 +36,7 @@ So:
   never *recovered*, and be suspicious of a reconstruction whose report survives only as counts —
   an instrument rebuilt to return the recorded numbers is an instrument constructed to agree.
 - **A live scratch path is not better than a dead one.** It is worse, because it still resolves.
-  `R17` gap-fix 3 measured exactly this: `/tmp/g-gate.log` held *a different repository's* build
+  `R17` gap-fix 3 measured exactly this: `/tmp/g-gate.log` (gone) held *a different repository's* build
   output while a record pointed at it. A path that answers with something that is not what was
   measured is the failure the reader cannot see.
 

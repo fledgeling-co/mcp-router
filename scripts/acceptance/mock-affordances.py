@@ -11,9 +11,34 @@ the mock — which is a visible change to the design of record rather than to a 
 
 What counts as an affordance is a declared list, not a judgement call made per element: the M23
 brief names "every header element, button, card, section, badge, chip, search field, meaningful
-icon, list row and call to action". Each rule below maps to one of those words, and an element
-matching none of them is not inventoried — which the summary reports as a count, so the exclusion
-is visible rather than silent.
+icon, list row and call to action". Each rule below maps to one of those words.
+
+**Every element in the frame lands in exactly one class, and "matched no rule" is one of them.**
+That is M32's subject and it is a repair rather than a restatement. This file used to say the
+exclusion was "reported as a count, so it is visible rather than silent", and the count it reported
+was `unclassifiedElements` — which skipped `span`, `div`, `svg`, `b`, `i`, `dt`, `dd`, `dl`,
+`aside`, `use`, `br` and `small` before counting, and which nothing in `mock_fidelity.py` ever read.
+Measured on this tree at 03c34c3: the Insights board's `v-ideal` frame drew four `<div class="stat">`
+cells carrying twelve strings — `Resident, all children`, `214 MB`, `measured, not modelled` and
+nine more — and reported `unclassifiedElements: 1`. So M20's finding is exact: a wrong
+`Resident 214 MB` could never enter the census as `present`, `divergent` OR `absent`, and the field
+that was supposed to make that visible said 1 while nothing read even that.
+
+The four classes partition the frame, and the partition is asserted here rather than assumed:
+
+  affordance     matched a rule; it is an inventory row.
+  covered        matched no rule, but sits inside an element that did — its text is carried into
+                 that affordance's label, so it was inventoried through its ancestor. A `.c` cell
+                 inside a `.trow` is this: the row's label IS its subtree's text.
+  uninventoried  matched no rule, has no affordance ancestor, and draws a string of its own.
+                 **Nothing inventories this text.** It is what a derivation rule set that silently
+                 declines to derive looks like from the outside, and `mock_fidelity.py`'s `census`
+                 layer reports every one of them.
+  container      matched no rule, no affordance ancestor, and draws nothing of its own.
+
+`covered` and `container` are the two honest silences and they are counted, not dropped. A change
+to `RULES` moves elements between the classes and the totals still sum, which is what stops a rule
+being narrowed to shrink the reported residue.
 
 Usage:  mock-affordances.py <mock.html> <section-id> <frame>
 Writes the inventory as JSON on stdout.
@@ -30,6 +55,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+import unicodedata
 from html.parser import HTMLParser
 
 # kind -> (predicate on (tag, classes, attrs), label source)
@@ -72,7 +98,17 @@ def slug(text: str) -> str:
     return s[:48] or "unlabelled"
 
 
-VOID = {"br", "img", "input", "hr", "meta", "link", "source", "area", "col", "embed", "param"}
+# Every void element in HTML5. `wbr`, `track` and `base` were missing, and a void tag this set
+# does not know is pushed onto the open-element stack and never popped — so every later sibling
+# inherits an affordance ancestor from it and lands `covered` instead of `uninventoried`
+# (`gemini-3.7-flash-high`, finding 3.3; its `<input>` example is already covered, the class is not).
+VOID = {"br", "img", "input", "hr", "meta", "link", "source", "area", "col", "embed", "param",
+        "wbr", "track", "base"}
+
+# Elements whose text is code or metadata rather than something drawn on the screen. Without this
+# a `<style>` block is an element with no rule, no affordance ancestor and a great deal of visible
+# text, so it lands in the residue and asks somebody to waive a stylesheet (finding 3.5).
+NON_DRAWING = {"script", "style", "template", "noscript", "title"}
 
 
 class Slicer(HTMLParser):
@@ -113,6 +149,18 @@ class Slicer(HTMLParser):
 
 
 def slice_element(html: str, match) -> str | None:
+    found = slice_element_at(html, match)
+    return None if found is None else found[0]
+
+
+def slice_element_at(html: str, match) -> tuple[str, int] | None:
+    """The fragment, and the 1-based line its first byte sits on inside `html`.
+
+    The line travels with the fragment so an element the census cannot derive can be reported at a
+    place a reader opens, rather than at an offset into a slice that exists only inside this
+    process. `design/mcp-router-console.html:3410` `<div class="sl">Resident, all children</div>`
+    at 03c34c3 is the line M20's finding names, and it is where the census now points.
+    """
     slicer = Slicer(match)
     slicer.feed(html)
     if slicer.start_offset is None or slicer.end_offset is None:
@@ -123,19 +171,40 @@ def slice_element(html: str, match) -> str | None:
         line, col = pos
         return sum(len(l) + 1 for l in lines[: line - 1]) + col
 
-    return html[index_of(slicer.start_offset): index_of(slicer.end_offset)]
+    return html[index_of(slicer.start_offset): index_of(slicer.end_offset)], slicer.start_offset[0]
 
 
 class SurfaceParser(HTMLParser):
-    """Records every affordance inside an already-sliced fragment."""
+    """Records every element inside an already-sliced fragment, and classifies all of them.
 
-    def __init__(self):
+    Two structures, because they answer two different questions and conflating them is what made
+    the residue invisible. `found` is the inventory — the elements a rule matched. `elements` is
+    every element the frame contains, each carrying the class it landed in, so the four counts sum
+    to the number of elements rather than to the number somebody remembered to count.
+
+    `open_elements` is the full open-element stack; `stack` is the subset of it that are
+    affordances. The label-building loop reads `stack` exactly as it always has, so an affordance's
+    label is unchanged — what is new is that the text is ALSO recorded against the one element that
+    literally contains it, which is what distinguishes a string carried into an affordance's label
+    from a string nothing inventories.
+    """
+
+    def __init__(self, line_offset: int = 0):
         super().__init__(convert_charrefs=True)
         self.depth = 0
         self.stack: list[dict] = []
         self.found: list[dict] = []
-        self.unclassified = 0
+        self.elements: list[dict] = []
+        self.open_elements: list[dict] = []
         self.ancestors: list[tuple[int, list[str]]] = []
+        #: Line of the fragment's first byte inside the whole mock, so a reported element can be
+        #: opened at `design/<mock>.html:<line>` rather than at an offset into a slice nobody has.
+        self.line_offset = line_offset
+        #: Visible text parsed while no element was open. It belongs to no element, so it belongs
+        #: to no class, and a partition with text outside it is not a partition (finding 3.4).
+        self.orphan_text = 0
+        #: How deep inside a `<script>`/`<style>` we are. Their content is code, not drawn copy.
+        self.non_drawing = 0
 
     def handle_startendtag(self, tag, attrs):
         self._open(tag, dict(attrs), void=True)
@@ -148,6 +217,21 @@ class SurfaceParser(HTMLParser):
         inherited = {c for _, classes in self.ancestors for c in classes}
         a = dict(a, _ancestors=tuple(sorted(inherited)))
         kind = next((k for k, pred in RULES if pred(tag, cls, a)), None)
+
+        # Recorded for EVERY element, matched or not. `hasAffordanceAncestor` is read off the open
+        # stack rather than recomputed later, because "is this element's text carried into some
+        # affordance's label" is a question about who was open when it was parsed.
+        element = {
+            "kind": kind,
+            "tag": tag,
+            "classes": cls,
+            "line": self.line_offset + self.getpos()[0] - 1,
+            "ownText": "",
+            "hasAffordanceAncestor": any(e["kind"] for e in self.open_elements),
+            "depth": self.depth,
+        }
+        self.elements.append(element)
+
         if kind:
             record = {
                 "kind": kind,
@@ -163,27 +247,76 @@ class SurfaceParser(HTMLParser):
             self.found.append(record)
             if not void:
                 self.stack.append(record)
-        elif tag not in ("span", "div", "svg", "b", "i", "dt", "dd", "dl", "aside", "use", "br", "small"):
-            self.unclassified += 1
         if not void:
+            if tag in NON_DRAWING:
+                self.non_drawing += 1
+            self.open_elements.append(element)
             self.ancestors.append((self.depth, cls))
             self.depth += 1
 
     def handle_endtag(self, tag):
         if tag in VOID:
             return
+        if tag in NON_DRAWING and self.non_drawing:
+            self.non_drawing -= 1
         self.depth -= 1
         while self.ancestors and self.ancestors[-1][0] >= self.depth:
             self.ancestors.pop()
         while self.stack and self.stack[-1]["depth"] >= self.depth:
             self.stack.pop()
+        while self.open_elements and self.open_elements[-1]["depth"] >= self.depth:
+            self.open_elements.pop()
 
     def handle_data(self, data):
         text = " ".join(data.split())
         if not text:
             return
+        if self.non_drawing:
+            return  # the body of a <script> or <style> is not copy anybody reads off the screen
+        # The innermost open element is the one that literally draws this string. Every affordance
+        # still open takes it into its label, which is the pre-existing behaviour and unchanged.
+        if self.open_elements:
+            owner = self.open_elements[-1]
+            owner["ownText"] = (owner["ownText"] + " " + text).strip()
+        elif visible(text):
+            self.orphan_text += 1
         for record in self.stack:
             record["text"] = (record["text"] + " " + text).strip()
+
+    def classify(self) -> list[dict]:
+        """One class per element, assigned here so the four are read off one expression."""
+        for element in self.elements:
+            if element["kind"]:
+                element["class"] = "affordance"
+            elif element["hasAffordanceAncestor"]:
+                element["class"] = "covered"
+            elif visible(element["ownText"]):
+                element["class"] = "uninventoried"
+            else:
+                element["class"] = "container"
+        return self.elements
+
+
+# The same question `mock_fidelity.py`'s `readable` asks, asked of the mock side: is there anything
+# here a person could see. Whitespace-only text is not a drawn string, and neither is a run of
+# codepoints that put no mark on the screen — so an element carrying one is a container rather than
+# an uninventoried affordance, and does not become a finding nobody can act on.
+# `Co` — private use — is deliberately ABSENT here and present in `mock_fidelity.py`'s `readable`,
+# and the asymmetry is the point rather than a drift. There, filtering a private-use codepoint costs
+# a finding, which is the safe direction. Here it costs a PASS: an icon-font glyph is a drawn thing
+# with no rule and no affordance ancestor, and filtering it would classify the element `container`
+# and drop it out of the residue silently (`gemini-3.7-flash-high`, finding 2.2).
+INVISIBLE_CATEGORIES = {"Cc", "Cf", "Cs", "Cn", "Zs", "Zl", "Zp", "Mn", "Me", "Mc"}
+BLANK_CODEPOINTS = {"\u115f", "\u1160", "\u3164", "\uffa0", "\u2800"}
+
+
+def visible(value: str | None) -> str:
+    return "".join(
+        ch for ch in (value or "")
+        if not ch.isspace()
+        and ch not in BLANK_CODEPOINTS
+        and unicodedata.category(ch) not in INVISIBLE_CATEGORIES
+    )
 
 
 def main() -> int:
@@ -194,16 +327,17 @@ def main() -> int:
     with open(path, encoding="utf-8") as handle:
         html = handle.read()
 
-    section = slice_element(html, lambda tag, a: a.get("id") == section_id)
-    if section is None:
+    located = slice_element_at(html, lambda tag, a: a.get("id") == section_id)
+    if located is None:
         sys.stderr.write(f"error: the mock has no element with id '{section_id}'\n")
         return 3
+    section, section_line = located
     if frame == f"#{section_id}":
         # The frame IS the section — a sheet carries its whole state in one element. Taken
         # directly rather than re-sliced, because `slice_element` returns the fragment WITHOUT its
         # own closing tag, so feeding it back in leaves the outer element never closed and the
         # slicer returns None. That reads as "the mock has no such element", which would be false.
-        fragment, described = section, f"element with id '{section_id}'"
+        fragment, fragment_line, described = section, section_line, f"element with id '{section_id}'"
     else:
         if frame.startswith("#"):
             frame_id = frame[1:]
@@ -212,14 +346,23 @@ def main() -> int:
         else:
             match = lambda tag, a: frame in (a.get("class") or "").split()   # noqa: E731
             described = f"'.{frame}' block"
-        fragment = slice_element(section, match)
+        located = slice_element_at(section, match)
+        if located is None:
+            sys.stderr.write(f"error: #{section_id} has no {described}\n")
+            return 3
+        # The inner slice's line is relative to `section`, whose own first byte is at
+        # `section_line`, so the two compose. Off by one without the `- 1`, because both are
+        # 1-based and the fragment's first line IS the section's `section_line`-th.
+        fragment, inner_line = located
+        fragment_line = section_line + inner_line - 1
     if fragment is None:
         sys.stderr.write(f"error: #{section_id} has no {described}\n")
         return 3
     prefix = frame.lstrip("#")
 
-    parser = SurfaceParser()
+    parser = SurfaceParser(line_offset=fragment_line)
     parser.feed(fragment)
+    elements = parser.classify()
 
     if not parser.found:
         sys.stderr.write(
@@ -245,12 +388,73 @@ def main() -> int:
             "attrs": record["attrs"],
         })
 
+    # The residue, with an id built the same way an affordance id is so a waiver in the pairing
+    # file survives the mock being reformatted. `where` is for a person; `id` is for the gate.
+    uninventoried = []
+    seen_residue: dict[str, int] = {}
+    for element in elements:
+        if element["class"] != "uninventoried":
+            continue
+        base = f"{prefix}/uninventoried/{slug(element['ownText'])}"
+        seen_residue[base] = seen_residue.get(base, 0) + 1
+        ident = base if seen_residue[base] == 1 else f"{base}#{seen_residue[base]}"
+        uninventoried.append({
+            "id": ident,
+            "where": f"{path}:{element['line']}",
+            "tag": element["tag"],
+            "classes": element["classes"],
+            "text": element["ownText"],
+        })
+
+    census = {"elements": len(elements), "affordance": 0, "covered": 0, "container": 0,
+              "uninventoried": 0}
+    for element in elements:
+        census[element["class"]] += 1
+
+    # Two conditions under which `uninventoried` is not a measurement, reported rather than
+    # detected downstream by their effect.
+    #
+    # `rootAffordance` is the sharper one (`gemini-3.7-flash-high`, finding 3.2). The slicer returns
+    # a fragment WITHOUT its closing tag, so the frame's own root element stays open for the whole
+    # parse — which is right, everything IS inside it. But if that root matches a rule, every
+    # element in the frame has an affordance ancestor, every one of them lands `covered`, and the
+    # residue is identically zero for a structural reason rather than a measured one. A frame that
+    # can only ever report a clean residue is a check that cannot fail, so it says so instead.
+    #
+    # `orphanText` is text parsed with no element open. It belongs to no element and therefore to
+    # no class, and a partition with drawn text outside it is not a partition (finding 3.4).
+    census["rootAffordance"] = elements[0]["kind"] if elements and elements[0]["kind"] else None
+    census["orphanText"] = parser.orphan_text
+
+    # Asserted where it is produced, not only where it is read. The four classes are assigned by one
+    # if/elif chain, so they cannot overlap — what this catches is an element that was parsed into
+    # `elements` and never classified, and a future fifth class added to `classify` without being
+    # added here. A census that does not partition its own population is the defect this whole file
+    # is about, arriving one level in (`mock_fidelity.py` re-derives it independently and refuses
+    # too, because a producer vouching for itself is not a measurement).
+    parts = census["affordance"] + census["covered"] + census["container"] + census["uninventoried"]
+    if parts != census["elements"] or census["affordance"] != len(inventory):
+        sys.stderr.write(
+            f"error: the census does not partition the frame — {census['elements']} element(s) "
+            f"split into {parts} across four classes, and {census['affordance']} of them were "
+            f"called affordances against {len(inventory)} inventory row(s). Every element has to "
+            f"land in exactly one class or the residue is unsized.\n"
+        )
+        return 3
+    if census["uninventoried"] != len(uninventoried):
+        sys.stderr.write(
+            f"error: {census['uninventoried']} element(s) were classified uninventoried and "
+            f"{len(uninventoried)} were listed, so the count and the list are not the same set.\n"
+        )
+        return 3
+
     json.dump({
         "mock": path,
         "section": section_id,
         "state": prefix,
         "count": len(inventory),
-        "unclassifiedElements": parser.unclassified,
+        "census": census,
+        "uninventoried": uninventoried,
         "affordances": inventory,
     }, sys.stdout, indent=2, sort_keys=True)
     sys.stdout.write("\n")

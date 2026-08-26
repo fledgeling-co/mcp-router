@@ -84,6 +84,22 @@
       "since": "2026-08-26"
     },
     {
+      "path": "planning/m33-branch-sweep.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3",
+        "V4"
+      ],
+      "since": "2026-08-26",
+      "control": [
+        "python3",
+        "planning/m33-branch-sweep.py",
+        "--selftest"
+      ],
+      "proves": "7 arms bit: the sweep never reports a bare `affected=0`, it separates `n/a` from `clean` so a branch it could not read is not counted as one it cleared, and a planted branch touching app/MCPRouter/ is discovered rather than skipped"
+    },
+    {
       "path": "planning/null-run-gate.py",
       "disposition": "grandfathered",
       "markers": [
@@ -583,6 +599,21 @@
       ],
       "reason": "predates this gate; carries no control this gate can run",
       "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/build-description-report.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-26",
+      "control": [
+        "python3",
+        "scripts/build-description-report.py",
+        "--selftest"
+      ],
+      "proves": "10 poison arms bit: the report line cannot go missing while the target passes, a project.yml source path compiled by no lane reads COVERED BY NOTHING at exit 1, and the `make all` excuse for the three MCPRouterIOS* paths is checked against the real Makefile rather than asserted"
     },
     {
       "path": "scripts/capture-control-fixtures.sh",

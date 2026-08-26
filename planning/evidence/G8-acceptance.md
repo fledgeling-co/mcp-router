@@ -29,7 +29,8 @@ prints each surface's own unpaired remainder (`structure-unpaired`, `extra`, `ex
 figures are printed instead.
 
 That narrower reading still reproduces the brief's finding exactly. `callout` on `unreadable-note`
-is a paired node, so it sits in `harnesses.ledger.md:155` and this gate reddens on it.
+is a paired node, so it sits in `planning/fidelity/harnesses.ledger.md:155` at `03c34c3`, on the
+row anchored `role=callout kind=text`, and this gate reddens on it.
 
 **Verdict on this tree: exit 3.** `planning/fidelity/popover.ledger.md` is an obituary — the fidelity
 gate exited 3 on `#statusPopover has no '.v-ideal' block` and wrote *"This run did not produce a
@@ -51,21 +52,50 @@ four named readers, requires a disposition for each, and **runs** the declared c
 believing the registry at `planning/sweep-controls.json`.
 
 ```
-D0   108  tracked .py/.sh files, vendor/ excluded
-D1    85  carrying 1+ marker(s)
-D2    57  carrying 2+ marker(s)  <= the threshold
-D3    18  carrying 3+ marker(s)
+D0   114  tracked .py/.sh files, vendor/ excluded
+D1    91  carrying 1+ marker(s)
+D2    60  carrying 2+ marker(s)  <= the threshold
+D3    19  carrying 3+ marker(s)
 D4     1  carrying 4+ marker(s)
-D5    57  discovered as absence sweeps
+D5    60  discovered as absence sweeps
+
+X0  1662  paths returned by `git ls-files`, before any filter
+X-    86  dropped: vendor/
+X-  1462  dropped: no .py or .sh extension
+X+     2  of those drops are scripts by shebang with no script extension
 ```
 
-The count at every threshold is printed so the choice of two is visible rather than buried — one
-marker alone catches 85 of 108 and would mean nothing.
+Every figure here was re-derived by running `python3 planning/sweep-control-gate.py` at `7048d44`
+and reading the block above its disposition table. **An earlier draft of this file transcribed
+D0 108 / D1 85 / D2 57 / D5 57 and 54 grandfathered.** Those were the numbers on the day the gate
+was written; nothing in the corpus was measured again before they were copied here, and by then six
+more scripts were tracked. A record certifying a count it did not re-derive is the failure this
+item is named after, committed by the item's own evidence file, so the correction is written out
+rather than quietly substituted.
 
-The registry is a **ratchet**, for `citation-gate.py`'s reason: demanding all 57 grow a runnable
+The count at every threshold is printed so the choice of two is visible rather than buried — one
+marker alone catches 91 of 114 and would mean nothing. The X block is the D0 filter reporting what
+it discarded, added at `7048d44`: it names `planning/hooks/pre-commit` and `planning/hooks/pre-push`
+as tracked scripts D0 cannot see, so the corpus's edge is a listed set rather than a prose caveat.
+
+The registry is a **ratchet**, for `citation-gate.py`'s reason: demanding all 60 grow a runnable
 control this week either never goes green or gets softened until it means nothing. So **3 control ·
-54 grandfathered · 0 undisposed · 0 mislabelled**, never blended into one figure, and the gate blocks on what is new.
+55 grandfathered · 3 UNDISPOSED · 0 mislabelled · 1 UNDISCOVERED**, never blended into one figure,
+and the gate blocks on what is new.
 **Grandfathered is a backlog with a number on it, not a pass, and the gate says so on every run.**
+
+Two of those five figures are not zero, and neither is being reported as clean:
+
+* **3 UNDISPOSED** — `planning/goals/{citations-blocking-check,lint-except-citation-ratchet,worklist-check}.sh`.
+  They are the orchestrator's own goal scripts, so this gate exits 1 and `make lint` with it. The
+  strongest of the three is `lint-except-citation-ratchet.sh`, which decides that lint failed only
+  on the ratchet by counting matches of `error:|Violation|FAIL|did not pass lint` — a lint failure
+  spelled none of those four ways, in a run whose output contains `ratchet: BARE` anywhere, exits 0.
+  Left standing rather than disposed: the fix is a change to what those scripts judge, which is
+  their owner's call and not this branch's.
+* **1 UNDISCOVERED** — `design/assets/slice-tiles.py`, registered `grandfathered`, still in the tree,
+  and matching only V4 since V2 stopped claiming what V4 owns. The registry holds 55 rows; the live
+  backlog is 54. Both numbers are printed, and neither is the other.
 
 Three controls are declared and run: `citation-gate.py --control`, `role-intersection-gate.py
 --control-only`, and this gate's own. `claim-sweep.py` is grandfathered with an accurate reason — it
@@ -198,13 +228,49 @@ only advantage over the written rule.
   `make mock-fidelity SURFACE=servers` exits 3 today (known-inherited).
 * **`popover` has never been measured.** Until it produces a table the role gate stands at 3 and
   stays out of `make all` — wiring a permanent 3 into `all` would mean softening it within the week.
-* **54 grandfathered sweeps.** A visible backlog with a count that may fall, not an amnesty.
+* **55 registered grandfathered rows, 54 of them still discovered.** A visible backlog with a count
+  that may fall, not an amnesty — and two counts rather than one, because a row discovery no longer
+  claims is not backlog.
 
 ## Hashes at the close
 
 ```
 3581db8d…  scripts/acceptance/mock_fidelity.py   (header now points at the check)
-971c3df3…  planning/role-intersection-gate.py
-425caa8d…  planning/sweep-control-gate.py
-885abffc…  planning/sweep-controls.json
+d6c53c20…  planning/role-intersection-gate.py    (was 971c3df3… before the gap-fix)
+f1bab3ae…  planning/sweep-control-gate.py        (was 425caa8d… before the gap-fix)
+885abffc…  planning/sweep-controls.json          (unchanged — no row added, none removed)
 ```
+
+## Gap-fix, 2026-08-26
+
+One gap and three findings, returned by a fresh-context verifier that confirmed the rest.
+
+**The gap: this item regressed a lint gate it had wired itself into.**
+`python3 planning/reader-accounting.py` exited **1** on this branch and **0** on `ai/g9`, on one
+reader — `planning/sweep-control-gate.py::tracked_scripts`, dropping at a comprehension filter and
+recording nothing. The gate offers two ways out and they are not equivalent here. Declaring the drop
+in `planning/reader-accounting.tsv` would have satisfied the gate and hidden a real hole: the filter
+narrows 1662 tracked paths to 114, and two of the paths it threw away are shell scripts. So the code
+reports instead, which is the remedy this item exists to argue for. `reader-accounting.py` now
+classes it `accounts` rather than `unaccounted`, and exits 0.
+
+**Finding a — a registry state with no reporting class.** Closed with the UNDISCOVERED class above.
+
+**Finding b — a broken control exited 1, which in these gates means FINDINGS.** Reproduced with a
+`git` on PATH that exits 128 for every invocation: `active_refs` returned nothing, `measure` raised
+`Inconclusive` from inside `hermetic_control`, and nothing caught it — traceback, exit 1. That is
+the confusion `Inconclusive`'s own docstring was written to prevent, one frame further out. Both
+gates now run controls through a guard; the same fault re-run answers `CONTROL FAILED … raised
+Inconclusive` at exit 4.
+
+**Finding c — control-failure and inconclusive answered with one number.** Split. 3 now means the
+instrument works and the corpus has a hole in it; 4 means the instrument is not known to work and
+nothing it printed should be read. They are opposite instructions. `runnable-path-gate.py` on
+`ai/g9` makes the same split with 2 and 1; 2 is unavailable here because `argparse` owns it and
+`make` collapses every failing recipe to it, which the `role-intersection` target already says.
+
+**The new census is armed both ways.** `self_control` plants an extensionless shebang script that
+must be named and a `.md` that must not. Forcing `is_shebang_script` to return `False` for every
+path turned the row `BLIND a tracked script with no script extension is named by the discard census
+(not named — D0 drops it in silence)` at exit 4; restored byte-identically, sha256 prefix
+`f1bab3ae67ce92df` before and after, back to exit 0.

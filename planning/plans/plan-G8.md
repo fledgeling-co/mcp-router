@@ -6,8 +6,9 @@ and there is no rendered surface for `design-review` or `be-my-witness` to gate.
 
 ## What already landed, and why it is not enough
 
-`scripts/acceptance/mock_fidelity.py:38-48` carries a ten-line header comment recording M16's
-cross-branch role-intersection rule. Nothing reads it, nothing depends on it, and nothing goes red
+anchor `The Cross-Branch Role-Intersection and Scope-Completeness Invariant (G8 / M16)`,
+`scripts/acceptance/mock_fidelity.py:39` at `03c34c3`, opens a ten-line header comment recording
+M16's cross-branch role-intersection rule. Nothing reads it, nothing depends on it, and nothing goes red
 when it is violated. **A header comment with nothing downstream of it reads as a standard to
 satisfy rather than a call to make** — which is this item's own subject, committed by the item.
 

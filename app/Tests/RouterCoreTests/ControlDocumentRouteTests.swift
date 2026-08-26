@@ -248,6 +248,31 @@ struct ControlDocumentRouteTests {
         #expect(body.contains(#""base64":"QUFBQQ==""#))
     }
 
+    @Test("A6 — once the shared image budget is spent, the next figure is refused for the budget")
+    func imageBudgetExhausted() async throws {
+        // Four figures each exactly at the per-image cap spend the shared budget to the byte, so
+        // the fifth is refused by the budget rather than by its own size — which is the one caps
+        // decision the vectors exercise and no route test did. Reaching it needs the real budget
+        // spent, so this test is deliberately the heavy one in the suite.
+        let full = DocumentPackage.Caps.imageBytes
+        let package = try Package.make(
+            readMe: "# pkg\n\n![a](a.png)\n\n![b](b.png)\n\n![c](c.png)\n\n![d](d.png)\n\n![e](e.png)",
+            images: [("a.png", full), ("b.png", full), ("c.png", full), ("d.png", full), ("e.png", 4)]
+        )
+        defer { package.remove() }
+        var deps = try Self.deps(for: package)
+
+        let (status, body) = await Self.answer("/servers/pkg/document", &deps)
+        #expect(status == 200)
+        // Its own reason, not `tooLarge`: four bytes is nowhere near the per-image cap, and a
+        // reader told "too large" about a 4-byte figure would go looking in the wrong place.
+        #expect(body.contains(#""reference":"e.png","reason":"budgetExhausted""#))
+        // The four that fit still travel, so exhaustion truncates rather than failing the response.
+        #expect(body.contains(#""reference":"a.png""#))
+        #expect(body.contains(#""reference":"d.png""#))
+        #expect(!body.contains(#""base64":"QUFBQQ==""#))
+    }
+
     @Test("the unknown-server 404 still has no reason, so version skew stays tellable apart")
     func unknownServerCarriesNoReason() async throws {
         let package = try Package.make(readMe: "# pkg")

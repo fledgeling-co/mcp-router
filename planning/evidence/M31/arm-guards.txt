@@ -1,0 +1,65 @@
+=== BASELINE ===  with 8 tests in 1 suite passed  failing tests: 0
+  design/mcp-router-console.html  c6b000bddce69841
+  docs/mcp-router-store.html  617cce184eeab555
+  DESIGN.md  529f8fbb7f4b6695
+
+ARM 1 restore cursor:not-allowed (targets: declares no cursor, §3 rule 8)
+    planted   design/mcp-router-console.html  c6b000bddce69841 -> 172f577f7320830e
+    with 8 tests in 1 suite failed
+    reddened: Test "the design of record declares no cursor at all (§3 rule 8)" recorded an issue
+    restored  c6b000bddce69841  IDENTICAL
+
+ARM 2 add an unclaimed property to .btn.primary (targets: the cascade guard)
+    planted   design/mcp-router-console.html  c6b000bddce69841 -> 7fdd9c2093750761
+    with 8 tests in 1 suite failed
+    reddened: Test "the design of record dims a disabled primary in every slot the accent rule fills" recorded an issue
+    restored  c6b000bddce69841  IDENTICAL
+
+ARM 3 perturb the ratio in DESIGN.md (targets: the design authority states the semantics)
+    planted   DESIGN.md  529f8fbb7f4b6695 -> c04f36c2a497479b
+    with 8 tests in 1 suite failed
+    reddened: Test "DESIGN.md states the disabled-primary treatment, its ratio and its exemption" recorded an issue
+    restored  529f8fbb7f4b6695  IDENTICAL
+
+ARM 4 drop the §3 generalisation (targets: the rule binds the fill, not the button)
+    planted   DESIGN.md  529f8fbb7f4b6695 -> 0a735d0fccf882e7
+    with 8 tests in 1 suite failed
+    reddened: Test "DESIGN.md states the disabled-primary treatment, its ratio and its exemption" recorded an issue
+    restored  529f8fbb7f4b6695  IDENTICAL
+
+ARM 5 un-enumerate .tb-btn (targets: dims every control that resolves an accent fill)
+    planted   design/mcp-router-console.html  c6b000bddce69841 -> 42a78eb1092241ae
+    with 8 tests in 1 suite failed
+    reddened: Test "no surface in the repository draws a disabled control as though it were enabled" recorded an issue
+    reddened: Test "the design of record dims every control that resolves an accent fill" recorded an issue
+    restored  c6b000bddce69841  IDENTICAL
+
+ARM 6 take the fill back off .trow.disabled (targets: the same test, row branch)
+    planted   design/mcp-router-console.html  c6b000bddce69841 -> 27c8a6174e04e851
+    with 8 tests in 1 suite failed
+    reddened: Test "no surface in the repository draws a disabled control as though it were enabled" recorded an issue
+    reddened: Test "the design of record dims every control that resolves an accent fill" recorded an issue
+    restored  c6b000bddce69841  IDENTICAL
+
+ARM 7 respell the switch rule for :disabled only (targets: the same test, switch branch)
+    planted   design/mcp-router-console.html  c6b000bddce69841 -> 0b1d39e76e072b72
+    with 8 tests in 1 suite failed
+    reddened: Test "no surface in the repository draws a disabled control as though it were enabled" recorded an issue
+    reddened: Test "the design of record dims every control that resolves an accent fill" recorded an issue
+    restored  c6b000bddce69841  IDENTICAL
+
+ARM 8 restore opacity dimming on the store page (targets: the store page test)
+    planted   docs/mcp-router-store.html  617cce184eeab555 -> b9bd69129f181ccb
+    with 8 tests in 1 suite failed
+    reddened: Test "no surface in the repository draws a disabled control as though it were enabled" recorded an issue
+    reddened: Test "the store page dims its disabled primary to the ratified triple, and sets no cursor" recorded an issue
+    restored  617cce184eeab555  IDENTICAL
+
+=== RESTORED ===  with 8 tests in 1 suite passed
+  design/mcp-router-console.html  c6b000bddce69841
+  docs/mcp-router-store.html  617cce184eeab555
+  DESIGN.md  529f8fbb7f4b6695
+  failing-test set identical to baseline
+  git:  M DESIGN.md
+  git:  M design/mcp-router-console.html
+  git:  M docs/mcp-router-store.html

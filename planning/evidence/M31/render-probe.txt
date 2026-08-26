@@ -1,0 +1,39 @@
+== console mock, light: every accent-filled control, live then disabled ==
+.btn.primary              
+  LIVE     rgb(0, 113, 227) fg=rgb(255, 255, 255) bc=rgb(0, 113, 227) op=1 cur=auto
+  DISABLED rgba(0, 0, 0, 0.03137255) fg=rgb(154, 154, 162) bc=rgba(0, 0, 0, 0.101960786) op=1 cur=auto
+.tb-btn.on                
+  LIVE     rgb(0, 113, 227) fg=rgb(255, 255, 255) bc=rgb(0, 113, 227) op=1 cur=auto
+  DISABLED rgba(0, 0, 0, 0.03137255) fg=rgb(154, 154, 162) bc=rgba(0, 0, 0, 0.101960786) op=1 cur=auto
+.seg[aria-pressed]        
+  LIVE     rgb(0, 113, 227) fg=rgb(255, 255, 255) bc=rgb(255, 255, 255) op=1 cur=auto
+  DISABLED rgba(0, 0, 0, 0.03137255) fg=rgb(154, 154, 162) bc=rgb(154, 154, 162) op=1 cur=auto
+.switch (page markup)     
+  LIVE     rgb(0, 113, 227) fg=rgb(23, 23, 26) bc=rgb(0, 113, 227) op=1 cur=auto
+  DISABLED rgba(0, 0, 0, 0.03137255) fg=rgb(23, 23, 26) bc=rgba(0, 0, 0, 0.101960786) op=1 cur=auto
+  KNOB     rgb(154, 154, 162) fg=rgb(23, 23, 26) bc=rgb(23, 23, 26) op=1 cur=auto
+.trow.disabled unselected 
+  ROW      rgba(0, 0, 0, 0.03137255) fg=rgb(154, 154, 162) bc=rgb(154, 154, 162) op=1 cur=auto
+.trow.disabled + selected 
+  ROW      rgba(0, 0, 0, 0.03137255) fg=rgb(154, 154, 162) bc=rgb(154, 154, 162) op=1 cur=auto
+  .c-sub   rgba(0, 0, 0, 0) fg=rgb(154, 154, 162) bc=rgb(154, 154, 162) op=1 cur=auto
+
+== console mock, dark: page's own dark :root values applied ==
+darkVarsApplied=39
+.btn.primary              
+  LIVE     rgb(10, 111, 214) fg=rgb(255, 255, 255) bc=rgb(10, 111, 214) op=1 cur=auto
+  DISABLED rgba(255, 255, 255, 0.050980393) fg=rgb(110, 110, 118) bc=rgba(255, 255, 255, 0.09019608) op=1 cur=auto
+.tb-btn.on                
+  LIVE     rgb(10, 111, 214) fg=rgb(255, 255, 255) bc=rgb(10, 111, 214) op=1 cur=auto
+  DISABLED rgba(255, 255, 255, 0.050980393) fg=rgb(110, 110, 118) bc=rgba(255, 255, 255, 0.09019608) op=1 cur=auto
+.trow.disabled + selected 
+  ROW      rgba(255, 255, 255, 0.050980393) fg=rgb(110, 110, 118) bc=rgb(110, 110, 118) op=1 cur=auto
+.switch (page markup)     
+  DISABLED rgba(255, 255, 255, 0.050980393) fg=rgb(255, 255, 255) bc=rgba(255, 255, 255, 0.09019608) op=1 cur=auto
+  KNOB     rgb(110, 110, 118) fg=rgb(255, 255, 255) bc=rgb(255, 255, 255) op=1 cur=auto
+
+== store page: the bare .btn IS the accent-filled control, and :1098 is disabled ==
+.btn live                 
+  LIVE     rgb(0, 113, 227) fg=rgb(255, 255, 255) bc=rgba(0, 0, 0, 0) op=1 cur=auto
+.btn#route disabled       
+  DISABLED rgba(0, 0, 0, 0.03137255) fg=rgb(154, 154, 162) bc=rgba(0, 0, 0, 0.101960786) op=1 cur=auto

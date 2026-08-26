@@ -285,8 +285,8 @@ swapped for an easier one.
 
 The whole point of the item, so it is measured the same way twice.
 
-1. `bash scripts/acceptance/parity-gate.sh` from `/Users/lukerhodes/Dev/mcp-router`
-2. `bash scripts/acceptance/parity-gate.sh` from `/Users/lukerhodes/Dev/mcp-router/.worktrees/P4`
+1. `bash scripts/acceptance/parity-gate.sh` from the main checkout
+2. `bash scripts/acceptance/parity-gate.sh` from the worktree root (`.worktrees/P4`)
 
 Recorded for each: exit code, proven/total, blocked, DIVERGED **and which rows**, and the per-group
 table. A9 is judged on the **`fixture` group's per-row verdicts being identical** and on

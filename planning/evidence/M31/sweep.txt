@@ -1,0 +1,21 @@
+Swift surfaces with a primary action: examined=23 call-sites=31 disableable=10 failures=0 unproven=13
+  ProminentButtonStyle         sites=20 disableable=6
+  PhoneProminentButtonStyle    sites=11 disableable=4
+  UNPROVEN app/Sources/MCPRouterUI/Phone/ConnectionBanner.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/ConnectionBanner.swift [PhoneProminentButtonStyle] — dims only if SwiftUI installs @Environment on a ButtonStyle
+  UNPROVEN app/Sources/MCPRouterUI/Phone/Discover/DiscoverBandSection.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/Discover/QueueCommitBar.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/Discover/QueueCommitBar.swift [PhoneProminentButtonStyle] — dims only if SwiftUI installs @Environment on a ButtonStyle
+  UNPROVEN app/Sources/MCPRouterUI/Phone/PairedMacSettingsView.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/PairingResultSurfaces.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/PairingResultSurfaces.swift [PhoneProminentButtonStyle] — makeBody called directly at :23, so SwiftUI never installs the style's dynamic properties
+  UNPROVEN app/Sources/MCPRouterUI/Phone/PairingSurfaces.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/Triage/TriageComponents.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/Triage/TriageComponents.swift [PhoneProminentButtonStyle] — dims only if SwiftUI installs @Environment on a ButtonStyle
+  UNPROVEN app/Sources/MCPRouterUI/Phone/TypedEntryView.swift [PhoneProminentButtonStyle] — disabled fill is --raised, DESIGN.md §3 ratifies --f3
+  UNPROVEN app/Sources/MCPRouterUI/Phone/TypedEntryView.swift [PhoneProminentButtonStyle] — dims only if SwiftUI installs @Environment on a ButtonStyle
+HTML surfaces: examined=4
+  design/mcp-router-console.html     {'accent_filled_selector': '.btn.primary', 'accent_filled_controls': 35, 'disabled_reachable': True, 'has_dimming_rule': True, 'cursor_declarations': 0}
+  docs/mcp-router-store.html         {'accent_filled_selector': '.btn', 'accent_filled_controls': 3, 'disabled_reachable': True, 'has_dimming_rule': True, 'cursor_declarations': 2}
+  docs/index.html                    {'accent_filled_selector': 'none — this surface draws no accent-filled control', 'accent_filled_controls': 0, 'disabled_reachable': False, 'has_dimming_rule': False, 'cursor_declarations': 1}
+  design/banner.html                 {'accent_filled_selector': 'none — this surface draws no accent-filled control', 'accent_filled_controls': 0, 'disabled_reachable': False, 'has_dimming_rule': False, 'cursor_declarations': 0}

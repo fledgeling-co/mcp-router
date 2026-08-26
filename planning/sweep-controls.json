@@ -1,0 +1,618 @@
+{
+  "note": "Every tracked script discovered as an absence sweep, and what has been decided about its presence control. Written by planning/sweep-control-gate.py. `grandfathered` is a backlog entry, not a pass.",
+  "threshold": 2,
+  "sweeps": [
+    {
+      "path": "app/Scripts/pool-mutation-gate.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "design/assets/slice-tiles.py",
+      "disposition": "grandfathered",
+      "markers": [
+        "V2",
+        "V4"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "planning/citation-gate.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-26",
+      "control": [
+        "python3",
+        "planning/citation-gate.py",
+        "--control"
+      ],
+      "proves": "twelve citations planted in a throwaway repo, one per class, each answer required exactly; the wrap row must classify RESOLVES whole and something else line-anchored, so a reader that would have answered the same either way fails the control"
+    },
+    {
+      "path": "planning/claim-sweep.py",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "reason": "carries the wrap-tolerant reader and the blockquote-marker finding that a control produced, but exposes no flag that re-runs that control; the proof lives in its docstring rather than in an exit code. Growing it a --control is the obvious next entry to promote.",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "planning/evidence/M18-gapfix-2/arm-guards.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "planning/ledger-reconcile.py",
+      "disposition": "grandfathered",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "planning/null-run-gate.py",
+      "disposition": "grandfathered",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "planning/reader-accounting.py",
+      "disposition": "grandfathered",
+      "markers": [
+        "V2",
+        "V3",
+        "V4"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "planning/role-intersection-gate.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-26",
+      "control": [
+        "python3",
+        "planning/role-intersection-gate.py",
+        "--control-only"
+      ],
+      "proves": "five planted answers in a throwaway repo, including a branch with zero diff on the gate file that must still read EXPOSED, an obituary ledger that must read INCONCLUSIVE rather than clean, and a fail-if-agree row that reddens if the verdict does not depend on the union"
+    },
+    {
+      "path": "planning/sweep-control-gate.py",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-26",
+      "disposition": "control",
+      "control": [
+        "python3",
+        "planning/sweep-control-gate.py",
+        "--control-only"
+      ],
+      "proves": "a planted sweep must be discovered and a planted non-sweep must not, and a control command that exits 1 must be reported failing - so the runner is known to be able to go red"
+    },
+    {
+      "path": "planning/test-campaign/bin/arm-headless.py",
+      "disposition": "grandfathered",
+      "markers": [
+        "V2",
+        "V4"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "planning/test-campaign/bin/record-glass-arms.py",
+      "disposition": "grandfathered",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "planning/test-campaign/bin/vocab-differential.py",
+      "disposition": "grandfathered",
+      "markers": [
+        "V3",
+        "V4"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "planning/test-campaign/bin/witness-arm-denial.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "planning/test-campaign/bin/witness-arm.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "planning/test-campaign/bin/witness-authserver-socket.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "planning/test-campaign/bin/witness-effects.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "planning/watch-fleet.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/auth-rejection-visible.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/build-freshness.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/control-client.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/control-differential.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/i5-pairing-transport.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/i6-mutations.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/install-router-default.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/m2-activity.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/m22-boards.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/m5-discover.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/m6-inbox-pairing.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/m7-evals-cleanup.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/m8-settings-menubar.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/mac-app.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/mac-shell.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/menu-badge-lane.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/mock-fidelity-selftest.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "proves all three exits of the fidelity gate are reachable, which is a real control, but it needs the MEASURE build this gate must not trigger. Promote it behind a make target rather than running it here.",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/mock_fidelity.py",
+      "disposition": "grandfathered",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/p1-auth-routes.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/parity-cli.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/parity-divergence.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/parity-fixture.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/parity-gate.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/parity-lane-selftest.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/parity-lock-selftest.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/parity-manifest-check.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/parity-mcp.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/parity-oauth.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/parity-pool.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/parity-registry.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/parity-stream.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/r6-child-path.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/r7-harness-reconciliation.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/acceptance/shells.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/capture-control-fixtures.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/lint/no-harness-config-writes-selftest.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/lint/no-harness-config-writes.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/lint/no-raw-design-values.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/lint/no-wire-codable.sh",
+      "disposition": "grandfathered",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "reason": "predates this gate; carries no control this gate can run",
+      "since": "2026-08-26"
+    },
+    {
+      "path": "scripts/red-green.py",
+      "disposition": "grandfathered",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "reason": "is itself a proving pass rather than a sweep - it mutates the implementation and records which tests go red. Discovered by vocabulary; kept in the registry so the discovery is dispositioned rather than silently dropped.",
+      "since": "2026-08-26"
+    }
+  ]
+}

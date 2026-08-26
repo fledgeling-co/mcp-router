@@ -62,7 +62,23 @@ subject.addItem(item("Disabled Both", badge: "BADGEDISABOTH", chord: "3", enable
 subjectItem.submenu = subject
 mainMenu.addItem(subjectItem)
 
+// Two items whose badge is set **after** the menu is installed, which is the only shape the real
+// app has: `ShellMenuReasons` walks a menu SwiftUI already built and assigns `badge` to items that
+// are already in it. If a post-hoc badge did not reach the plane while a construction-time one did,
+// these two rows are what would say so — and they are what rules that explanation out for the real
+// app's missing badges.
+let lateBadge = item("Late Badge", badge: nil, chord: nil, enabled: false)
+let lateBoth = item("Late Both", badge: nil, chord: "4", enabled: false)
+subject.addItem(lateBadge)
+subject.addItem(lateBoth)
+
 app.mainMenu = mainMenu
+
+// After the run loop is up and the menu installed, exactly as the walker does it.
+DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+    lateBadge.badge = NSMenuItemBadge(string: "BADGELATE")
+    lateBoth.badge = NSMenuItemBadge(string: "BADGELATEBOTH")
+}
 
 // The pid on stdout is the driver's handle. Flushed, because the driver reads one line and then
 // waits on it — a buffered pid is a hang.

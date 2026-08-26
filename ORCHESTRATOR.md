@@ -3104,3 +3104,35 @@ Three rules this leaves behind, all cheap:
 
 The other four goal scripts were swept and run under `/bin/bash` after this: `worklist-check`,
 `tests-check`, `citations-blocking-check` and `liveness-check`, 0 errors each.
+
+### The environment the gates actually run in is not the one they were tested in
+
+Two iterations were spent on this, in two different languages, and it is one fact.
+
+`/bin/bash` here is **3.2.57**; an interactive shell resolves `bash` to Homebrew's **5.3.9**.
+`/usr/bin/python3` here is **3.9.6**; an interactive shell resolves `python3` to Homebrew's
+**3.14.6**. Hooks, `make` recipes, and the goal guard get the first of each pair. Anything tested
+by hand and shipped is tested against the second.
+
+What that cost, in order: a goal gate built on `mapfile` (bash 4+) that died and reported the
+failure as *"lint failed on a step"* when lint had never run; its replacement failing open through
+a piped `while` subshell; and then two lint gates carrying `X | None` annotations, which 3.9
+evaluates at definition time and 3.14 does not.
+
+**The compounding error is the sweep that cleared the second one.** It reported *"28 scripts
+against 3.9, 0 other failures"* and the claim was false — `planning/reader-accounting.py` and
+`planning/null-run-gate.py` were both already broken when it ran. The instrument was a syntax
+check, and those files are syntactically *valid* on 3.9; the failure is at evaluation, which
+`py_compile` never reaches. A third file carried the same defect and went unreported for the same
+reason. So the sweep did not get unlucky, it measured the wrong thing and returned a clean number,
+which is this repository's most frequently recorded failure shape and the one every gate here is
+built against.
+
+`planning/py39-annotation-gate.py` replaces that claim with something re-runnable, wired into
+`make lint` so it cannot become a gate nothing invokes, carrying a two-arm presence control that
+exits 2 printing no count if either arm fails. It parses annotation positions rather than
+executing modules, because running every gate to discover whether it imports is a sweep with side
+effects.
+
+The general rule, cheap and worth applying before anything is wired into a gate: **run it under
+`/bin/bash` and `/usr/bin/python3` explicitly, not under the shell you are typing into.**

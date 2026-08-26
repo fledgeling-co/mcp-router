@@ -44,7 +44,7 @@ MAC_DEST   ?= platform=macOS
 ## M15-M22 add theirs by writing planning/fidelity/<surface>.layers.json beside this one.
 SURFACE    ?= servers
 
-.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance mock-fidelity mock-fidelity-selftest lint format clean install-default
+.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default
 
 ## G4's two harness gates run inside `lint` rather than as a stage of their own. Both are
 ## hermetic and finish in under ten seconds, and `lint` is where the other four script gates
@@ -62,6 +62,25 @@ SURFACE    ?= servers
 ## citations are ratcheted against `planning/citation-ratchet.json` instead, so the number can only
 ## fall. Renumbering a citation to the current revision earns nothing here, which is the point: a
 ## number with no tree and no anchor is unfalsifiable however recently it was chased.
+##
+## `sweep-control-gate.py` (`G8`) is the fourth, and it guards the other three. An absence check
+## cannot detect its own blindness, and this corpus has four measured absence checks that could not
+## fail. Every sweeping script here already carries a control; nothing checked that the next one
+## does. It discovers sweeps across the tracked corpus with four named readers, requires each to
+## carry a disposition, and RUNS the declared controls rather than believing the registry at
+## `planning/sweep-controls.json` — so a control rotted into a no-op reddens. What exists today is
+## grandfathered by name and printed as a backlog with a number on it; the gate blocks on a NEW
+## undisposed sweep. Eight seconds, hermetic, and its own control plants a control that exits 1 and
+## requires it to be reported failing.
+##
+## `role-intersection-gate.py` (`G8`) is deliberately NOT in `lint` or in `all`, and the reason is
+## its own subject. It exits **3** on this tree today: `planning/fidelity/popover.ledger.md` is an
+## obituary — the fidelity gate exited 3 on `#statusPopover has no '.v-ideal' block` and wrote no
+## table — so one surface has never been measured. That is a true verdict, not a broken gate, and
+## wiring a permanent 3 into `all` would mean softening it to 0 within a week. It joins `all` when
+## `popover` produces a table. Run it before any merge that touches `VOUCHED_CONTROLS`, and read
+## the exit as: 0 no surface uses a role the union adds, 1 one does and it is a call to make, 3 a
+## surface or a branch could not be read — which is not a clean surface.
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
 ## `test-ios-glass` is in this list because `X2-ios-on-glass.md` said it would be: "The target
@@ -567,7 +586,18 @@ lint: tools
 	python3 planning/null-run-gate.py || fail=1; \
 	python3 planning/py39-annotation-gate.py || fail=1; \
 	python3 planning/citation-gate.py || fail=1; \
+	python3 planning/sweep-control-gate.py || fail=1; \
 	exit $$fail
+
+## The cross-branch role-intersection check (`G8`). Not in `all` — see the note above `all` for
+## why a standing exit 3 stays out of it. Two controls run on every invocation and print above the
+## table, so the zero it reports today is a measurement rather than a blind spot.
+role-intersection:
+	@python3 planning/role-intersection-gate.py; ec=$$?; \
+	echo "role-intersection: exit $$ec  (0 clean · 1 findings · 3 inconclusive · 2 usage)"; \
+	echo "  make collapses ANY failing recipe to its own exit 2, which collides with this"; \
+	echo "  gate's usage code. The line above is the verdict; make's status is not."; \
+	exit $$ec
 
 ## Writes formatting changes in place. Not part of `all` — a gate that edits your files is a gate
 ## that can turn a red build green without anyone reading the diff.

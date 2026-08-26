@@ -561,6 +561,23 @@ def hermetic_control() -> tuple[bool, list[str]]:
 
         lines.append(f"  ok    `silent` has zero diff on {GATE_FILE} and is still EXPOSED — "
                      "the M22 case, which is the whole point")
+
+        # All three verdicts must be reachable, and on this corpus one of them is not observable:
+        # `popover` is an obituary, 3 dominates, and exit 1 cannot be seen however much exposure a
+        # plant creates. A gate whose findings code has never been produced is a gate whose findings
+        # code is not known to work, so the fixture produces each one by filtering its own surfaces.
+        for want_code, keep, why in (
+                (0, lambda s: s.path.endswith("baseline.ledger.md"), "only a surface using baseline roles"),
+                (1, lambda s: not s.path.endswith("obituary.ledger.md"), "exposure and nothing unreadable"),
+                (3, lambda s: True, "an obituary in the set")):
+            probe = measure(git, "main")
+            probe.surfaces = [s for s in probe.surfaces if keep(s)]
+            got_code = probe.code()
+            good = got_code == want_code
+            ok = ok and good
+            lines.append(f"  {'ok  ' if good else 'FAIL'}  exit {want_code} is reachable — "
+                         f"{why} gives {got_code}")
+
         return ok, lines
     finally:
         shutil.rmtree(root, ignore_errors=True)

@@ -1787,6 +1787,385 @@ allocations and are excluded by design; check H reads none of this table, becaus
   published · `vacuity-check.py` 1 finding, providers **NOT CHECKED** (no `sourceRoot`), blind pass **NOT RUN** ·
   `reckon` 321 rows, **gate FAILED (exit 4)** on nine unclassifiable defect statuses.
 
+  **Iteration 7 — the failing set stopped moving, so the response was to widen the front rather than re-report it.**
+  `[branches, worklist]` repeated across turns while **four of the eight worklist items had no agent at all**. The
+  guard fingerprints a repeating failure and disarms as stuck after three, and a run that spends its turns
+  describing the same red is exactly what that bound exists to end. Wave 5 launched (`wf_2dbd0a0d-4b6`):
+  **`runner:M31`** and **`runner:M33`**, the two remaining items nobody was working.
+
+  **Both briefs lead with the part their own item says gets skipped.** M31's is the sweep of built surfaces that may
+  already reproduce the disabled-primary defect — the brief calls it *the part most likely to be skipped and the
+  part that decides whether this is one CSS line or a set of build corrections* — and it is told the rendered lane
+  is unavailable (mock-fidelity exit 3, inherited) so it must say which oracle rung its per-surface verdict stands
+  on, because a source read is not a render. M33's is the report line: its brief forbids closing the item by adding
+  a second build lane **without** it, since *a second lane that also passes silently on a directory it does not read
+  leaves the reader exactly where they started*. M33's runner is warned that if its new line can go missing while
+  the target still exits 0, it has rebuilt the defect one level up.
+
+  **`verify:G6` recovered on its own** — quiet for eleven minutes inside a bounded `make test`, then writing again
+  at 235 lines. Left alone rather than relaunched: the bound was doing its job, and a relaunch would have discarded
+  a rebase worktree and eleven minutes of build.
+
+  **Five agents in flight.** `G8` and `G10` have each committed; `G9` is young; `M31` and `M33` starting.
+
+  **Iteration 6 — `runner:G9` launched (`wf_7e3241a7-2ca`), four agents in flight.** 6 berths, load 0.69, no hard
+  gate; one slot deliberately left free because `verify:G6`'s `make test` alarm fires at ~21:09 and a timeout there
+  would want room to retry. Its brief carries the two corrections this fleet measured against G9's own text: the
+  sweep is **40 tracked files, not the four the brief names**, and it must report the normalisation that produced
+  the number — because G6's runner already found a count in this repo that was right by coincidence of digit while
+  answering a different question. It is also told that `.git/hooks/` is untracked, so the pre-commit invariant needs
+  a reproducible home rather than one machine's local state, and that G9's *original* sweep covered `scripts/` only
+  and missed `app/Scripts/` and `planning/` — the wrong-scope defect filed as G8, committed inside G9's own sweep
+  minutes after G8 was filed.
+
+  **A standing instruction added to every runner brief from here:** *commit working increments as you go*, because
+  this fleet's liveness check reads a worktree with no commits as a dead runner. The gate shapes the brief rather
+  than the brief being written blind to the gate.
+
+  **Iteration 5 — `liveness` false-positived on my own two runners, and the gate was wrong rather than the run.**
+  Two minutes after wave 4 launched, it reported `ai/g8` and `ai/g10` as *died before committing*. They had
+  worktrees and no commits because they were **two minutes old** — which is exactly what a healthy runner looks like
+  for its first stretch. A young worktree and a dead one are indistinguishable by commit count alone.
+
+  **That is the fourth revision of this gate, and the third distinct way it was wrong.** v1 too weak (a verify agent
+  dying on an 8-commit branch passed it); v2 false-positived on `started > results`, flagging two *finished* runs;
+  v3 was v1 restored, which then false-positived here. v4 requires **no commits AND no write for 20 minutes** — age
+  plus inactivity, not either. Proved both ways: silent on the two live young runners, and firing on them at a
+  zero-minute threshold.
+
+  All four revisions and the measurements behind them are written into the script's own header, because a gate's
+  blind spot is worth more recorded than rediscovered — and because I have now twice caught this gate by reading
+  its output rather than by trusting it.
+
+  **Iteration 3 — two gates were unsatisfiable by design, and correcting my own gate craft was the work.**
+  Of the 42 bare citations over baseline, **9 sit in a +537-line uncommitted third-party edit** to
+  `planning/test-campaign/RUN-2026-08-20.md`, which this run's brief forbids committing — so `citations` and `lint`
+  could never go green whatever the run did. An unsatisfiable gate stops carrying information, which is the failure
+  this project has now recorded three separate times. `citations` was rescoped to the **blocking** classes
+  (`DRIFTED`/`ABSENT` — pointers resolving to the *wrong* text), and `lint` to all of `make lint` tolerating only the
+  ratchet's veto. **The ratchet baseline is untouched and the debt stays filed** as
+  `citation-debt-surfaced-by-its-own-gate.md`; nothing was absorbed.
+
+  **The first control for the new citation gate DID NOT FIRE, and that is the more useful finding.** A planted
+  false citation landed in `BARE` rather than `ABSENT`, because the gate's adjacency grammar could not parse the
+  improvised form — the hole the gate itself prints. Re-planted in the form
+  `planning/practices/CITATIONS.md` at `afd823a` specifies, it fired. Taking the first result at face value would have
+  shipped a gate whose control proved nothing, in a session whose subject is precisely that.
+
+  **`liveness` was strengthened twice and reverted twice, and the reversion is recorded in the file header.** The
+  weak version caught only a worktree with zero commits, so a verify agent dying on an 8-commit branch passed it. But
+  `started > results` turned out to be a **false-positive** signal: it flagged `wf_1fc79b9d-147` (completed, result
+  collected) and `wf_ec3f78c7-48b` (died, already relaunched) as stalled — both closed business. A gate with false
+  positives is worse than a narrow true one, so the narrow check stands and its blind spot is written down rather
+  than left for a reader to find. Agent death is watched by the Monitor and the harness's own notifications, which
+  see liveness directly rather than inferring it from file mtimes.
+
+  **Iteration 4 — six of eight gates green; `branches` and `worklist` are the remaining feature work.**
+  `verify:G6` still in flight (alive, inside `make test` in a cold rebase worktree). Wave 4 launched
+  (`wf_a71b6cc9-052`): **`runner:G8`** for the executable checks its ledger row records as never having landed — only
+  a header comment did, which is this item's own subject committed by the item itself — and **`runner:G10`** for the
+  expensive part, re-checking **every** lane enrolled behind the repaired `shells.sh`, since a lane that has never
+  run is not known to pass. Two runners rather than three because G6 holds a slot; inner waves capped at 2.
+
+  **Unrelated but worth someone's attention:** a stale `agy` process has been running **1 day 9 hours** at 233 MB.
+
+  **Iteration 2 — the `reckon` gate is clean, and the reckoning moved for the first time this session.** Its
+  defect register used twelve status words; the tool classified three, placing **32 rows** by a fail-closed default
+  rather than by anything the registry said. The tool's own instruction was *give the word a rule or correct the
+  rows*, and the fix is neither a collapse nor a relaxation: reckon splits a compound status on `·` and reads the
+  **leading verb**, so every word was rewritten to lead with a verb it classifies while the qualifier survives for a
+  human reader. "defect_status_parts", `reckon.py:96` at `1.7.0` is the splitter this rests on.
+
+  **Eighteen defects were being reported as broken while genuinely repaired.** `broken` **51 → 33**,
+  `verified-done` **134 → 152**, remaining work **183 → 167**, product work **49 → 31**. Nothing was hidden to get
+  there — the count fell because the classification was wrong, not because the bar moved.
+
+  **Two words were deliberately NOT mapped to fixed**, and they are the ones worth naming. `fixed-upstream` became
+  **`open · fixed-upstream-awaiting-re-pull`**: DEF-053 is a detector defect repaired in the vendor's own tree while
+  this repo still runs the old vendored copy, so calling it done here would retire a defect that is live in every
+  gate run. `mitigated-in-campaign` became **`open · mitigated-in-campaign`**, because mitigated is not repaired.
+  `fixed-in-part` became `partially-fixed`, which the tool classes as broken — correctly, since part remains.
+  Reckon's own source carries the warning this follows: seven transcripts proposed folding `answered` into the fixed
+  set, which would have retired exactly the defects nobody re-measured.
+
+  **A trap this turn walked into and had to correct:** every ledger and orchestrator row written in this session
+  adds **bare citations**, which is what pushed the citation ratchet 68 → 70 on this file and 54 → 55 on the ledger.
+  The practice that landed with `G7` — "A citation must resolve where it is **read**", `planning/practices/CITATIONS.md:3`
+  at `afd823a` — asks for anchor, tree and line. Entries from here carry all three.
+
+  **Goal `ship-remaining-work` armed, and its first turn found a gate failing for a reason that was not the
+  repo's.** The finish line as given — *until no more work remains* — could not be settled by anything: taken
+  literally it required the reckoning's `broken 51 · unmeasured 17 · undecided 5 · unbuilt 1 · unjoined 113` to
+  reach zero, and 113 of those are an artifact of a 16% join rate rather than schedulable work. Rewritten to an
+  enumerated eight-item worklist plus eight gates, all counted. Owner decisions taken at arming: **the run may merge
+  to `main` unattended** (asked as the irreversible path and chosen), and the guard is armed with a raised block cap.
+
+  **Iteration 1 — `ledger` gate was a FALSE RED, and the cause is an interpreter.** The guard resolves `python3` to
+  the macOS system **3.9.6**; this session's shell has homebrew **3.14.6**. `ledger-reconcile.py` uses PEP 604
+  annotations (`str | None`), which 3.9 cannot evaluate, so it **died at import before a single check ran** —
+  and a gate that cannot start is indistinguishable from one that found nothing. Fixed at the source with
+  `from __future__ import annotations` rather than by pinning the gate to one interpreter, and proved on **both**:
+  exit 0 on 3.9.6 and on 3.14.6, same verdict text. **Swept the whole class:** 28 tracked gate scripts compiled
+  against 3.9, **0 other failures** — so this was the only one, which is a measurement rather than an assumption.
+
+  **`verify:G6` dispatched (`wf_083b3bfb-f0d`)** — admitted at 6 berths, pressure `tight`, the swap hard gate having
+  cleared. It is told to rebase onto `afd823a` first, to grade the brief's **coupling test** (both directions
+  settled together) as the first requirement, and to attack the gate G6 ships: whether its six classes genuinely
+  partition, whether all 16 plants fire on the verifier's own run, whether `CITED_LIVE` blocking is right or
+  over-broad, and whether its wrap-tolerant-equals-line-anchored count is a fact about the corpus or — as happened
+  on the adjacent `G7` gate — a tautology of its own tokeniser.
+
+  **`M29` and `G7` both verified DONE and MERGED.** `main` at **`afd823a`**, `make test` **exit 0, 1980 tests in
+  252 suites**, reconciler clean, both worktrees cleaned. `M34`, `M29`, `G7` and the gate-repair set have now
+  completed the full ladder this session.
+
+  **The re-verify earned the verdicts by attacking rather than reading.** On `M29` it re-ran the previously-surviving
+  deletion (now killed), then attacked the new guard with an inlined expression rendering identically (killed — a
+  `contains`-shaped guard would have passed), then checked the guard cannot pass **vacuously** on an empty source
+  extraction: it **throws** rather than comparing two empty sets. It also confirmed **zero non-comment lines changed
+  under `app/Sources`** across the three gap-fix commits. On `G7` it mutated both new controls and watched each fire,
+  re-derived every denominator, and **settled the 14-vs-12 disagreement at 12** — the previous verifier's 14 was a
+  miscount of `len(rows)` plus the two citing-side checks, confirmed by running the gate at the older commit.
+
+  **A tooling defect the verifier found and the orchestrator reproduced:** `red-green.py --only <non-matching>`
+  prints `killed 0/0` and **exits 0** — a green that measured nothing, in the harness whose entire job is proving a
+  check can fail. It had already passed silently twice in that agent's own session before a third filter happened to
+  match. Filed as `mutation-harness-passes-when-it-selects-nothing.md`.
+
+  **`G7`'s gate is now red on `main`, and that is the gate working.** `DRIFTED 0 · ABSENT 0` — nothing false — but
+  the per-file ratchet rose **1291 → 1333** across six files: ~30 arrived inside `M29`'s spec, plan and evidence,
+  nine sit in a file carrying uncommitted edits from outside this work, and **three were written by ORCHESTRATOR.md
+  and LEDGER.md — by me, after the rule was known.** The ratchet's own note says a file's count **may only fall**,
+  so raising the baseline would gut the gate on the day it landed. **Not re-baselined.** Filed as
+  `citation-debt-surfaced-by-its-own-gate.md`, with the orchestrator's own three named first.
+
+  **Campaign + tailings + reckon re-run together, 2026-08-26, and the headline is that the reckoning did not
+  move.** `verified-done` 134 → 134 and `broken` 51 → 51 across a day in which `M34` merged and eight commits landed
+  on `main`. That is not a null result, it is the finding: **the campaign was last written 2026-08-24 05:11 and
+  `main` has moved 43 commits since**, so the campaign describes a tree that no longer exists and the reckoning
+  built on it cannot see today's work. `ship-fleet` Phase 6 names this exactly — a campaign anchored back carries
+  evidence rather than measuring any. **Filed as `campaign-reanchor-to-current-tree.md`.**
+
+  **The reckoning gate's exit 4 is now traced to a cause rather than tolerated.** The defect register uses **twelve**
+  distinct status words; the reckoning classifies three. The other nine cover **30 rows**, each placed by a
+  fail-closed default rather than by anything the register said. Standing red all session, which is the worst state
+  for a gate — a reader cannot tell it from a new failure. **Filed as
+  `defect-vocabulary-blocks-the-reckoning-gate.md`.**
+
+  **Campaign figures, unchanged and now dated:** 78 pass · 3 fail · 4 n/a of 85 · **78/78 armed** · strict ratchet
+  **70 of 85, held** · capture-lineage **45 hard failures**, 61 files against 16 published · vacuity 1 finding with
+  **providers NOT CHECKED and the blind pass NOT RUN** for want of declared roots · Planes, Journeys and Controls
+  all **NOT DECLARED**.
+
+  **Tailings over this session: 69 assertions, and its one band-1 finding is a defect in the probe.** It reported
+  `planning/specs/spec-P4.md` as *existing nowhere in the repo or its history*; the file is present, tracked, 20,951
+  bytes, and its `:43`/`:85` carry exactly the citations claimed — the probe resolved a `file.md:NN` citation by
+  **basename against the repo root**. Same shape as X7/X8, and filed the same way, as
+  `upstream-citation-probe-basename-false-positive.md`. Its R9 hits on `M34`'s merged fixture were read and are
+  correct as written: `.disabled(true)` buttons that exist to carry a badge and are never pressed. One `degraded`
+  row recorded honestly — three reviewer lanes chosen without `lane_pick.py`, because codex is recorded unavailable.
+
+  **Three briefs written; three candidates deliberately dropped** as already covered by
+  `campaign-capture-catalog-audit`, `test-campaign-effect-provider-resolver` and
+  `campaign-journey-plane-ledger-model` — recorded in `.ideation/` rather than filed twice.
+
+  **The fleet could not be launched: `hard_gate: swap` still stands, 0 berths.** `ai/m29` (17), `ai/g7` (5) and
+  `ai/g6` (8) are clean and waiting on verify; `M30` is unstarted.
+
+  **Both gap-fixes closed on one agent (`wf_544ec6f0-ed6`). `ai/m29` 17 commits, `ai/g7` 5, both clean, both
+  READY-TO-VERIFY.** Two things in that run are worth more than the closures.
+
+  **The agent reversed its own lean and said so.** On the `Reset Server` question its first reading was *same class
+  as oracle 15, worth a one-line guard*. An out-of-family check disagreed and named three repo facts, which it then
+  verified itself: `spec-M29`'s decision **D3** records *no menu-bar command, `MenuCommand` untouched* with
+  **DEF-M29-b** already filing the Router-menu half; oracle 5 **deliberately keeps user-asked reindex live on a
+  disabled server**, and `resetServer` resolves to `.reset(.reindex)` on `indexError`, so dimming that predicate
+  would close a door M29 deliberately opened; and the one-line fix would dim *Reset* while leaving *Review Held
+  Changes* live on the same selection. Decided **out of scope** — and it fixed the **false record** instead, a doc
+  comment claiming *one source, two readers* that stopped being true when `forServer` gained its short-circuit.
+  **Owed here: a `DEF-M29-d` row** for the menu bar's disabled behaviour as one decision, beside DEF-M29-b.
+
+  **`G7`'s fix is the honest version rather than the satisfying one.** `N2 == N1` could not be warranted as a
+  measurement, so no control was invented that pretends otherwise: it is now stated as a **structural identity**,
+  withdrawn in place with the withdrawal stated, naming exactly what would have to change for the two readers to
+  differ. And the identity stopped being prose — two new controls hold it, including a wrapped **frame** that must
+  read `RESOLVES` whole and `TREE_ONLY` a line at a time, which demonstrates the wrap tolerance that *is* real. It
+  also reported a denominator disagreement with the verifier (12 control rows against 14) rather than smoothing it.
+
+  **The machine has not recovered:** still `critical`, `hard_gate: swap`, 0 berths, load now 1.17/core. Two items
+  remain — `verify:G6` and `M30`, unstarted — plus re-verify on `M29` and `G7`, and four merges behind those.
+
+  **`M29` re-verified: 17 of 18 Done, one blocker — and the verifier earned its verdict by re-running the probes
+  rather than reading the gap-fixer's account.** Four of five work-order items confirmed closed by its own
+  mutations. The tautology scan came back **clean at 179 assertions across 9 suites**, with the only two
+  `#expect(state == state)` sitting in `DiscoverStateTests` **byte-identical on `main`** — inherited, not M29's, so
+  the pattern I flagged as characteristic was one instance and a false alarm on the second.
+
+  **The one blocker is the same defect class one surface over.** Oracle 18's spoken value moved into a property and
+  the tests assert *the property*; **nothing asserts `body` still publishes it**. Deleting
+  `.accessibilityValue(accessibilityValueText)` leaves all **1977 tests passing — the mutation survives**. Oracle 12
+  had the identical exposure and was closed with a source-scan binding guard; oracle 18 did not get one. A static
+  plus a test that reads the static is a test of the static, not of the surface.
+
+  **The verifier reported a contamination against itself, which is worth more than the verdict.**
+  `parity-control.sh` first exited 1 with M29's own row mismatching — because the Swift body carried
+  `"hash":"0000000000000000"`, **the sentinel its own DIS-3 probe injects**, baked into a *prebuilt* `ControlDiff`.
+  `red-green.py` restores source but **not build artifacts**. Rebuilt from clean source → 56/56, exit 0. A false
+  defect caught before it was filed, and a standing hazard for every future probe on this repo.
+
+  **Wave 5 (`wf_544ec6f0-ed6`): one agent, two small closures, two branches.** The swap hard gate still stands and
+  the owner's *run one agent* decision applies to the same unchanged condition, so the single slot carries both
+  remaining gap-fixes rather than one — `M29`'s oracle-18 binding guard mirrored from oracle 12's, and `G7`'s record
+  claim. The brief tells it the honest fix for `G7` may be to state `N2 == N1` as a **structural identity** rather
+  than a corpus measurement, since the tokeniser makes the two readers identical by construction — and that a
+  withdrawn claim gets a stated withdrawal, because G7's own subject is that a record must resolve where it is read.
+  It also carries the build-artifact contamination warning above.
+
+  **The fleet then hit a hard gate that was not load.** `berths.py` refused admission with `available: 0` at a
+  *healthy* 0.59 CPU per core: `hard_gate: {axis: swap, reason: swap above 90% — the machine is paging}`.
+  Measured: **swap 17.1 of 18.4 GB (93%)**, memory `critical`, while **49.2 GB is free**. That combination says the
+  swap figure is a high-water mark macOS never drained rather than live contention. Largest resident consumers,
+  none of them this fleet's: a **9.8 GB** Virtualization.framework VM, **4.3 GB** of
+  `PerfPowerServicesSignpostReader`, and 2.0 GB of Relay.
+
+  **Put to the owner rather than overridden**, because the reading that the gate is stale is exactly the reasoning
+  harbourmaster exists to refuse, and the large consumers are the owner's. Answer: **run one agent.** So the wave is
+  a single agent, inner waves capped at 2, every command bounded.
+
+  **`verify:M29-reverify` launched (`wf_02b29e2d-91a`)** — chosen as the item furthest along, where a Done unlocks a
+  merge of 15 commits. It is told to **re-run the original deletion probes itself** rather than read the gap-fixer's
+  claims: delete the in-flight mechanism, delete both sweep guards, break the `body`-calls-the-static binding, and
+  re-run red-green. **M29 has now produced three assertions that could not fail**, so the brief names that as its
+  characteristic defect and asks for a fresh scan — the gap-fixer's own out-of-family reviewer caught it
+  reintroducing the tautology one line below the one it had just replaced, and twice-made is a pattern.
+
+  **`M34` MERGED to `main` at `6fab22a`** — the first item this session to complete the full ladder
+  (triage → build → verify → merge). Serialized, fail-closed: the ledger row carried the verified DONE and the
+  out-of-family agreement before the merge ran. Post-merge `make test` **exit 0, 1943 in 245**. Worktree cleaned,
+  branch merged.
+
+  **The merge was checked for the failure M34 itself is about.** A lane wired into `make acceptance` that cannot
+  fail is worth less than no lane, so its selftest was run rather than trusted: all three tripwires fire — the badge
+  tripwire on a SwiftUI badge reaching the accessibility plane, the help tripwire on `.help()` reaching a menu item,
+  and neither on the dump the platform actually produces today. That last row is the one that matters: it is the
+  two-way control, and without it the first two would pass over a permanently-absent condition.
+
+  **Wave 3 landed, 4 of 4 reported. One Done, one gap-fixed, one sent back, one delivered — and for the third
+  wave running, a runner corrected grounding this orchestrator had supplied as fact.**
+
+  **`M34` → DONE.** The first item this session to reach it. The builder's refutation of the brief held under the
+  verifier's own instruments: the badge folds into `AXTitle`'s **value**, confirmed on a menu nobody here built —
+  macOS's own Apple menu, read from a running Safari. The trailing-area claim holds across all six real commands
+  *and* with each command's real chord. The lane is wired into `make acceptance`, so it is a lane rather than a note.
+  Three documentation-grade caveats carried, none a requirement failure.
+
+  **`G7` → NEEDS MORE WORK, and the defect is this item's own subject turned on itself.** The gate is sound — every
+  denominator reproduced exactly on the verifier's own run, all seven presence controls fired, an *offsetting* plant
+  still exits 1 so the ratchet is per-file rather than scalar, and renumbering earns nothing. But
+  `planning/progress/G7.md` presents **`N2 == N1`** as a corpus measurement when it is a **tautology**: `normalise`
+  collapses whitespace to a single space and `CITATION` forbids a space inside a token, so a wrap-split citation is
+  found by *neither* reader. Proved by a randomised differential over **30,000 inputs: 0 divergences**, with **0 of
+  14** control rows containing a newline. A false record claim, not a false green — G7 exists to stop a record
+  asserting more than its evidence carries, and its own record did exactly that.
+
+  **`M29` gap-fix → all five items closed**, 1977/251 green (up from 1960/248), **red-green 16 of 16 KILLED**. Two
+  things it reported rather than smoothed: the out-of-family reviewer caught it **reintroducing the same tautology
+  one line below** the one it had just replaced, and a timed-out arm left a file mutated, restored from git and
+  re-run rather than quietly fixed.
+
+  **`G6` → Developer Review**, both directions settled together. A total-partition gate where `CITED_LIVE` blocks
+  as well, *because a live scratch path is one reboot from the dead kind*; `WORK-ORDER.md` out of the repo root;
+  blocking `CITED_DEAD` **40 → 5**. **And it corrected me:** there are **45** blocking occurrences at `0e5ff49`,
+  **40 in files this branch may write** — my *40* counted files carrying absolute paths, the same digit answering a
+  different question, and no file-level normalisation of this corpus yields 40.
+
+  **The pattern across three waves is the finding.** Every runner brief carried grounding measured here, and three
+  times the runner proved that grounding wrong — the fixture-capture stall hypothesis, the accessibility plane
+  recorded as closed, and now a denominator right by coincidence of digit. Grounding a brief is worth doing and is
+  not the same as it being true; each was caught because the brief said *verify it* rather than *assume it*.
+
+  **Standing: `ai/m29` 15 commits (ready to re-verify) · `ai/g7` 4 (gap-fix owed) · `ai/m34` 3 (**Done**, mergeable)
+  · `ai/g6` 8 (verify owed).** Nothing merged. `M30` still unstarted.
+
+  **Wave 3 launched (`wf_1fc79b9d-147`), four agents on 10 free berths at 0.38 load/core**, inner waves capped at 3
+  so the product stays at 12 against the 16-agent budget:
+  - **`gapfix:M29`** on the verifier's five-item order, led by the blocking band defect. Every assertion it adds must
+    be **proved able to fail** — revert, watch it redden, restore byte-identically with the hash — because three of
+    M29's oracles were shown to have no oracle by exactly that method.
+  - **`verify:G7`** in fresh context, pointed at the one risk this item carries: **a gate that cannot fail.** It is
+    told to re-run the presence controls itself, to confirm the seven classes genuinely partition the set, to plant a
+    renumbered-but-frameless citation and check the ratchet refuses it, and to probe the claim that the wrap-tolerant
+    count equals the line-anchored one — which may be true of this corpus, or may mean the wrap-tolerant path is not
+    actually different.
+  - **`verify:M34`** told to re-measure the `AXTitle`-value claim first, because every assertion in that delivery
+    rests on it: if the badge is not folded into the title's value, the whole refutation falls.
+  - **`runner:G6`**, carrying the two corrections this orchestrator measured and the brief lacks — `/tmp` is cited in
+    **durable specs** (`spec-P4.md` :43/:85/:300, `spec-F1.md:166`), not merely in transient logs, and the
+    absolute-path count is **40 tracked files, not the four the brief names**.
+
+  **`M30` deliberately held back.** Dual-runtime document endpoints across two router implementations, with parity
+  vectors and an image-transport decision, is too large to share a wave — and its plan owes three answers the owner's
+  go-ahead did not settle.
+
+  **Wave 2 landed, 3 of 3 agents reported, and two of them corrected an assumption this orchestrator had passed
+  down as fact.** That is the result worth keeping: the runner briefs were grounded, and grounding was still wrong
+  twice.
+
+  **`M29` → Needs More Work** (verified `a526031`, fresh context, audit-only, nothing merged). 12 of 18 oracle lines
+  Done · 2 Partial · 1 **MISSED** · 3 Unverified. The blocking defect is **new and was not self-reported**:
+  `AttentionCause.causes(for:)` never consults `disabled`, so a disabled server holding a schema change shows a
+  menu-bar band row while the count reports zero, and the row opens a sheet whose `Disable` control is dimmed — a
+  dead end. Proved by executed probe rather than argued. **Two further oracles were shown to have no oracle by
+  deletion**: removing the whole in-flight mechanism, and removing both Swift sweep guards, each leaves all 1960
+  tests passing. A fourth assertion compares a payload-free case to itself and cannot fail. The `agy` lane answered
+  on-subject and **agreed on every row**, so the verdict is not degraded. Five-item gap-fix order on the ledger row.
+
+  **`G7` → Developer Review.** A citation gate with **seven classes partitioning the set**, wired into `make lint`,
+  five denominators printed together and never blended (2081 · 2081 · 1702 · 1495 · **1434**), and every presence
+  control fired — including a hermetic plant that must read `RESOLVES` wrap-tolerantly *and* be invisible
+  line-anchored, the run failing if those two agree. **It found the grounding I gave it was worse than stated:** the
+  anchor sentence at `G5.md:159` is no longer in the file at all, so renumbering could not have repaired it even in
+  principle.
+
+  **`M34` → Developer Review, and it refuted the brief's central premise.** The brief recorded the accessibility
+  plane as closed — *19 attributes per item, five direct probes absent*. True as a measurement, false as a
+  conclusion: the badge is folded into **`AXTitle`'s value** as `Title, Badge`. The earlier probe enumerated
+  attribute *names* and stopped, which is **the brief's own `grep badge` trap one layer up**, and macOS corroborates
+  it unasked in the same dump (`App Store…, 29 updates`). The real limit is narrower — open for AppKit-built menus,
+  closed for SwiftUI-built ones — and is now a tripwire rather than a note. The claim nobody could settle is
+  measured: plain 194 · chord 235 · badge 300 · **both 319** points, so AppKit reserves space for both and neither
+  displaces the other, asserted across all six qualifying commands.
+
+  **Standing: `ai/m29` (9 commits), `ai/g7` (4), `ai/m34` (3), all clean, none merged.** `M29` owes gap-fix before
+  it can return to verify; `G7` and `M34` owe verify, which is the only route to Done.
+
+  **The uncommitted-work trap closed, and the fix is proved by the failure it cleared.** Eight commits on
+  `ai/gate-repairs` (R18, G9, M31, M33, M32, G10, G8, and the pipeline record), merged to `main` at **`0e5ff49`**
+  with the repo's `--no-ff` convention. `ai/m29` rebased onto it: `make test` **exit 0, 1960 tests in 248 suites,
+  zero failures**, where before the rebase it carried two. Those two were the R18 parity tests, and their clearing
+  is the end-to-end confirmation that the diagnosis was right — the repair had existed all along, uncommitted, and
+  was therefore invisible to every branch taken from `bbdc14b`.
+
+  **Merged over a red full-suite run, deliberately and on stated evidence.** The pre-commit run showed one failure:
+  `AuthorizationURLBoxTests`, a **50ms-budget** timing test. It passes **3/3** in isolation, no file in the merge
+  touches auth, and it is `G3`'s filed subject — *`make test` is green on the second run, which is not a gate*.
+  Recorded rather than waved past, because a flake accepted silently is how a real regression gets accepted next.
+
+  **What was NOT committed, and is not mine:** the marketing sources, `docs/img/`, most of `planning/test-campaign/`
+  and `planning/reckoning/2026-08-24/` were already modified when this session opened and remain untouched in the
+  working tree. A `.claude/plugins/fledgeling-plugins` submodule pointer also moved without this session's doing.
+
+  **Wave 2 launched (`wf_67b7e93f-c16`), three agents, measured admission** — 10 berths, load 0.31/core, inner waves
+  capped at 3 so the product stays under the 16-agent budget:
+  - **`verify:M29`** in fresh context — the only route to Done, and it grades a clean tree now. Pointed at the three
+    weak points the builder self-reported rather than at its summary: a fixture guard re-aimed from *empty diff* to
+    *recordings move as a set* (is it still able to fail?), two recorded plan errors in the red-green table, and
+    oracle line 12, which has no automated assertion at all.
+  - **`runner:G7`** — citation drift, form already settled as anchor + tree + line; carries this repo's own two
+    rules that every absence sweep needs a presence control and must report which normalisation produced its count.
+  - **`runner:M34`** — the menu badge, which is evidence work: recording a permanent structural limit is a valid
+    delivery, and the brief's four closed lanes are to be re-measured rather than inherited.
+
   **`M29` delivered on the relaunch (`wf_a6c6972b-a32`) — Developer Review, not Done.** 173 tool calls, 9 commits,
   tree clean. The resume was the right call: the runner found the first attempt had written **33 files, not the 3
   the worktree status showed** — the whole of plan slices A–D — and added slice E plus the entire test layer, nine

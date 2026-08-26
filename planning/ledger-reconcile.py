@@ -29,6 +29,13 @@ shipped, and a script that guesses would write the next false note.
 Exit 0 clean, 1 on any finding, 2 on a usage error.
 """
 
+# PEP 604 annotations (`str | None`) are used below and need Python 3.10+ to evaluate.
+# This file is invoked as a gate from environments that resolve `python3` to the macOS
+# system 3.9 — measured 2026-08-26, where it died at import with a TypeError before any
+# check ran. A gate that cannot start is indistinguishable from one that found nothing,
+# so the annotations are made lazy rather than the invocation pinned to one interpreter.
+from __future__ import annotations
+
 import re
 import subprocess
 import sys

@@ -90,3 +90,7 @@ planning/test-campaign.2026-08-19-paper/evidence.html
 # from rather than the one in front of you, which is the same silent pass the gate's third exit
 # state exists to prevent. The ledger the gate writes from them IS committed.
 planning/fidelity/dumps/
+
+# better-goal
+.claude/goals/
+.claude/settings.local.json.bak.*

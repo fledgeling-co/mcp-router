@@ -10,13 +10,20 @@ worktree alike, with a freshly built `dist/`:
 
 ```
 TypeError: opts.commit is not a function
-    at Module.buildManifest (dist/manifest.js:291:30)
-    at async atFixedTime (scripts/parity/generate-vectors.mjs:321:16)
+    at Module.buildManifest (dist/manifest.js)
+    at async atFixedTime (scripts/parity/generate-vectors.mjs)
 ```
 
-The generator calls `buildManifest` without the `commit` option that function now requires. It
-produces `manifest-parse` and `manifest-missing`, then dies — so the twenty-odd vector files after
-that point are never rewritten by a run of the script that produced them.
+The trace is quoted without its line and column columns on purpose: the numbers it carried were
+already stale — M30 added one import line to the generator and every frame below it shifted — which
+is the drift `planning/practices/CITATIONS.md` exists to stop. The framed pointer is the durable
+form of the same thing: the call is
+anchor `manifest.buildManifest([buildUpstream], poolFor(observation), input, { force })`,
+`scripts/parity/generate-vectors.mjs:545` at `7b33ea3`, and it passes no `commit`, which
+`buildManifest` now requires.
+
+The generator produces `manifest-parse` and `manifest-missing`, then dies — so the twenty-odd vector
+files after that point are never rewritten by a run of the script that produced them.
 
 ## Why it matters more than a broken script
 

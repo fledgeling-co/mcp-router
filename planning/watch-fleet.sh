@@ -32,11 +32,31 @@
 
 QUIET=${FLEET_QUIET:-900}               # 15 min of silence with no gate running
 GATED_QUIET=${FLEET_GATED_QUIET:-2700}  # 45 min: past 1740s, the longest gate re-run observed
-REPO=${FLEET_REPO:-/Users/lukerhodes/Dev/mcp-router}
-SESSION=/Users/lukerhodes/.claude/projects/-Users-lukerhodes-Dev/bdb1ad3b-8861-4dfc-8f0d-9e160dc3aa80
-RUNS="$SESSION/subagents/workflows"
+REPO=${FLEET_REPO:-$(git -C "$(dirname "$0")" rev-parse --show-toplevel 2>/dev/null)}
 
 [ $# -eq 0 ] && { echo "FATAL: no run ids given — watching nothing is not watching"; exit 2; }
+[ -n "$REPO" ] && [ -d "$REPO" ] || { echo "FATAL: no repo root — run this from a checkout, or set FLEET_REPO"; exit 2; }
+
+# The session directory is DISCOVERED FROM A RUN ID, never pinned.
+#
+# It used to be a literal `~/.claude/projects/<project>/<session-uuid>` written when this script
+# was first used. That decays exactly the way `.worktrees/R2` decayed in the two gate scripts
+# (G9): correct when written, falsified by a routine event nobody connects to this file — here,
+# the next session starting — and silent about it, because a missing directory reads the same as
+# a fleet that has not started. A run id names exactly one session and is already an argument, so
+# looking the session up from it cannot go stale.
+SESSION=${FLEET_SESSION:-}
+if [ -z "$SESSION" ]; then
+    projects=${CLAUDE_PROJECTS:-$HOME/.claude/projects}
+    hit=$(find "$projects" -maxdepth 6 -type d -path "*/subagents/workflows/$1" -print -quit 2>/dev/null)
+    [ -n "$hit" ] && SESSION=${hit%/subagents/workflows/"$1"}
+fi
+[ -n "$SESSION" ] && [ -d "$SESSION" ] || {
+    echo "FATAL: no session directory holds run '$1' under ${CLAUDE_PROJECTS:-$HOME/.claude/projects}"
+    echo "       set FLEET_SESSION if the transcripts live elsewhere"
+    exit 2
+}
+RUNS="$SESSION/subagents/workflows"
 for id in "$@"; do
     [ -d "$RUNS/$id" ] || { echo "FATAL: no such run dir: $id"; exit 2; }
 done

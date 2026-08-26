@@ -49,6 +49,17 @@ So the bare count in the hand-written scope is held against a tracked baseline i
 `planning/citation-ratchet.json` and may only fall. Regenerate it with `--write-ratchet` after a
 sweep, and the diff shows the number moving in the direction the discipline requires.
 
+**The ratchet is per citing file, not a total.** A scalar count lets a deletion or a refactor in
+one file buy headroom for a brand-new bare citation in another, so the defect spreads while the
+number holds. Demonstrated by planting: one bare citation added to a file whose baseline is 0 and
+one existing citation framed elsewhere leaves the total at 1291 against a baseline of 1291, which
+a scalar ratchet passes and this one exits 1 on. Raised by the out-of-family review, 2026-08-25.
+
+The hole this leaves is printed rather than argued away. A frame the adjacency grammar cannot
+follow lands in `BARE` rather than in an error class, so an `M16`-form citation written with an
+unrecognised connective drops past the `DRIFTED`/`ABSENT` check silently. Every run prints how many
+`BARE` citations sit within reach of a SHA-shaped token, which is the visible size of that hole.
+
 ## The reader, and why it reads whole files
 
 `planning/claim-sweep.py`'s finding, restated: a line-anchored reader cannot see a claim a text
@@ -402,7 +413,13 @@ def classify(cit, tree, resolved):
         # gate cannot tell that from a typo.
         return "NOTREE", sha, (anchor[:60] if anchor else None)
     if sha is None and anchor is None:
-        return "BARE", None, None
+        # A frame the grammar could not follow lands here rather than in an error class, so an
+        # M16-form citation written with an unrecognised connective drops silently past the
+        # DRIFTED/ABSENT check. It cannot be classified — there is nothing parsed to check — but it
+        # can be made visible: a SHA-shaped token inside the window says a frame was probably
+        # intended. Raised by the out-of-family review, 2026-08-25.
+        near = bool(SHA_SHAPED.search(cit["prefix"]) or SHA_SHAPED.search(cit["suffix"]))
+        return "BARE", None, ("near-miss: a SHA-shaped token is in the window" if near else None)
 
     if sha is None:
         if resolved is None:
@@ -684,6 +701,12 @@ def main():
         mark = "  BLOCKS" if k in BLOCKING else ""
         print("  %-12s %6d%s" % (k, tally[k], mark))
     print("  %-12s %6d" % ("(sum)", sum(tally.values())))
+    near = sum(1 for c in checkable
+               if c["class"] == "BARE" and c["evidence"] and "near-miss" in c["evidence"])
+    print("  of the BARE, %d sit within reach of a SHA-shaped token. A frame the adjacency grammar"
+          % near)
+    print("  could not follow lands in BARE rather than in an error class, so it drops past the")
+    print("  DRIFTED/ABSENT check silently; this number is how visible that hole is.")
     print()
 
     if blocked:
@@ -712,27 +735,41 @@ def main():
     bare_now = tally["BARE"]
     if "--write-ratchet" in argv:
         RATCHET.write_text(json.dumps({
-            "note": "BARE citations over N5. Written by planning/citation-gate.py "
-                    "--write-ratchet. May only fall.",
+            "note": "BARE citations over N5, per citing file. Written by "
+                    "planning/citation-gate.py --write-ratchet. Each file's count may only fall, "
+                    "and a file absent here may hold none: a scalar total would let a deletion in "
+                    "one file buy headroom for a new bare citation in another.",
             "denominator": "N5",
             "bare": bare_now,
             "n5": n5,
+            "by_file": dict(sorted(bare_by_file.items())),
         }, indent=2) + "\n")
-        print("ratchet: written — BARE %d over N5 %d" % (bare_now, n5))
+        print("ratchet: written — BARE %d over N5 %d, across %d files"
+              % (bare_now, n5, len(bare_by_file)))
         return rc_control
 
     rc_ratchet = 0
     if baseline is None:
         print("ratchet: no baseline at %s — run --write-ratchet to set one"
               % RATCHET.relative_to(ROOT))
-    elif bare_now > baseline["bare"]:
-        print("ratchet: BARE %d over N5 %d — ABOVE the baseline %d. A bare citation is "
-              "unfalsifiable; carry anchor and tree." % (bare_now, n5, baseline["bare"]))
-        rc_ratchet = 1
     else:
-        print("ratchet: BARE %d over N5 %d — at or below the baseline %d%s"
-              % (bare_now, n5, baseline["bare"],
-                 "" if bare_now == baseline["bare"] else "; re-run --write-ratchet to lower it"))
+        # Per file, not in total. A scalar ratchet lets a deletion or a refactor in one file buy
+        # headroom for a brand-new bare citation in another, and the defect spreads while the
+        # number holds. Raised by the out-of-family review, 2026-08-25.
+        base_by_file = baseline.get("by_file", {})
+        risen = sorted((f, n, base_by_file.get(f, 0)) for f, n in bare_by_file.items()
+                       if n > base_by_file.get(f, 0))
+        if risen:
+            print("ratchet: %d file(s) hold more bare citations than the baseline allows:"
+                  % len(risen))
+            for f, n, was in risen:
+                print("  %s  %d, baseline %d" % (f, n, was))
+            print("  A bare citation is unfalsifiable; carry anchor and tree.")
+            rc_ratchet = 1
+        fell = sum(1 for f, was in base_by_file.items() if bare_by_file.get(f, 0) < was)
+        print("ratchet: BARE %d over N5 %d against baseline %d — %d file(s) above, %d below%s"
+              % (bare_now, n5, baseline["bare"], len(risen), fell,
+                 "; re-run --write-ratchet to lower it" if fell and not risen else ""))
 
     rc_block = 1 if blocked else 0
     print("exit: control %d · blocking %d · ratchet %d" % (rc_control, rc_block, rc_ratchet))

@@ -67,9 +67,16 @@ anchor ends at its first inner backtick.
 not there at all) exit 1. A stated frame that does not hold is a false claim.
 
 A bare citation cannot block, because there is nothing to compare it against. Bare citations are
-held against a baseline in `planning/citation-ratchet.json` and may only fall; the gate prints the
-ten files holding the most of them, so the number is lowerable rather than merely held. Lower it
-with `python3 planning/citation-gate.py --write-ratchet`, in the same change that repoints them.
+held against a baseline in `planning/citation-ratchet.json`, **per citing file**, and each file's
+count may only fall. A scalar total would let a deletion in one file buy headroom for a new bare
+citation in another. The gate prints the ten files holding the most, so the number is lowerable
+rather than merely held; lower it with `python3 planning/citation-gate.py --write-ratchet`, in the
+same change that repoints them.
+
+A citation whose frame the grammar cannot follow is counted `BARE` rather than reported as
+unparsed, so it drops past the blocking check silently. Every run prints how many `BARE` citations
+sit within reach of a SHA-shaped token — 82 at the time of writing — which is the visible size of
+that hole. Writing a frame in one of the three spellings above is what keeps a citation out of it.
 
 ## Citing a section rather than a line
 

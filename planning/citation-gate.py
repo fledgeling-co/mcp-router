@@ -87,7 +87,7 @@ four was right. Each is a different question:
 
   N1  every occurrence, line-anchored regex — what a `grep` sees
   N2  every occurrence, wrap-tolerant — N1 plus the ones a wrap hid
-  N3  N2 deduplicated by (citing file, cited path, cited line)
+  N3  N2 deduplicated by (citing file, cited path, cited line, frame)
   N4  N3 with generated files excluded — those are regenerated, not maintained
   N5  N4 whose cited path resolves to a tracked file — the checkable set
 
@@ -311,7 +311,11 @@ def read_frame(cit):
             m = TREE_AFTER.match(rest)
             if m:
                 tree = m.group("sha") or m.group("sha2")
-                rest = rest[m.end():]
+                # `X.md:159 at a9603e5` writes the whole frame inside ONE span, so consuming the
+                # tree leaves the span's closing tick at the head of `rest`, where it opens a new
+                # span that swallows the rest of the clause as an anchor. That read the G7 brief's
+                # own sentence as an anchor and blocked on it.
+                rest = _trim_tick(rest[m.end():], False)
                 continue
         if anchor is None:
             m = ANCHOR_AFTER.match(rest)
@@ -517,6 +521,10 @@ def control():
             ("anchor, no tree", "anchor `records the version it finds`, `a.md:2`",
              "ANCHOR_ONLY"),
             ("neither", "see `a.md:2` for the detail", "BARE"),
+            # The whole frame inside one span, with prose following. TREE_ONLY, not an anchor
+            # scraped off the clause behind the span's closing tick.
+            ("frame inside one span", "`a.md:2 at %s` is one answer; quoting the phrase "
+             "relied on is another" % old, "TREE_ONLY"),
             # The first cut's false positive, planted so it cannot come back: a backticked phrase
             # in the same sentence but not against the citation is not this citation's anchor.
             ("phrase in the sentence, not against the citation",
@@ -617,7 +625,13 @@ def main():
         n2 += len(found)
         bare_continuation += bare
         for c in found:
-            key = (f, c["path"], c["line"], c["end"])
+            # The frame is part of the key. Keyed on (file, path, line) alone, a second citation of
+            # the same line carrying a DIFFERENT and wrong frame is deduplicated away behind the
+            # first one that resolves — found by planting exactly that in `G5-gapfix-3.md` and
+            # watching the gate stay green. Same shape as `G8`: a clean answer to a narrower
+            # question.
+            c["frame"] = read_frame(c)
+            key = (f, c["path"], c["line"], c["end"]) + c["frame"]
             if key in seen:
                 continue
             seen.add(key)
@@ -656,7 +670,7 @@ def main():
     print("  N1  every occurrence, line-anchored regex                    %6d" % n1)
     print("  N2  every occurrence, wrap-tolerant (whole file, collapsed)  %6d   %+d vs N1"
           % (n2, n2 - n1))
-    print("  N3  N2 deduplicated by (citing file, cited path, cited line) %6d" % n3)
+    print("  N3  N2 deduplicated by (citing file, cited path, line, frame) %5d" % n3)
     print("  N4  N3 with %d generated files excluded by name              %6d"
           % (len(generated), n4))
     print("  N5  N4 whose cited path resolves to a tracked file           %6d" % n5)
@@ -678,6 +692,18 @@ def main():
             print("  %s:%d  cites %s:%d at %s  [%s]  %s"
                   % (c["file"], c["at"], c["path"], c["line"], c["sha"], c["class"],
                      c["evidence"]))
+        print()
+
+    bare_by_file = {}
+    for c in checkable:
+        if c["class"] == "BARE":
+            bare_by_file[c["file"]] = bare_by_file.get(c["file"], 0) + 1
+    if bare_by_file:
+        top = sorted(bare_by_file.items(), key=lambda kv: -kv[1])[:10]
+        print("where the unfalsifiable ones are — top %d of %d files, so the ratchet is lowerable "
+              "rather than merely held" % (len(top), len(bare_by_file)))
+        for f, n in top:
+            print("  %5d  %s" % (n, f))
         print()
 
     baseline = None

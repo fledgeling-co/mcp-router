@@ -79,16 +79,27 @@ being a record of what happened.
 
 Counted over tracked Markdown at `a9603e5`, excluding the vendored tree:
 
-```
-ORCHESTRATOR.md:314                              the G5 row, in the same file as the register row
-planning/features-to-triage/LEDGER.md:67, :295
-planning/progress/G5.md:76, :94, :123, :143, :159, :163
-planning/progress/G5-gapfix.md:22
-```
+Each carries **anchor, tree and line**, which is `G7`'s form — the anchor survives a line shift, the
+line survives a re-wrap, and the tree is what makes either checkable. Repointed 2026-08-25 under
+`planning/citation-gate.py`; the ten were bare when written, and `:159` had already landed on
+unrelated prose by `0e5ff49`.
 
-The row named only `G5-gapfix.md`'s four-version table and the `LEDGER.md` G5 row. `G5.md:159` is the
-sharpest of the ten because it asserts what `installed_plugins.json` *records*, in the present tense,
-and that file has read `0.9.8` since 17:38.
+- "**Ready to verify** — 2026-08-22, **gap-fix 2 applied**", `ORCHESTRATOR.md:314` at `a9603e5` —
+  the G5 row, in the same file as the register row
+- "`G5-vendor-the-campaign-version-the-gates-run.md`", `planning/features-to-triage/LEDGER.md:67` at `a9603e5`
+- "rung and silently drops all four such cases", `planning/features-to-triage/LEDGER.md:295` at `a9603e5`
+- "Fresh clone, cache denied | Installed 0.9.4", `planning/progress/G5.md:76` at `a9603e5`
+- "| 0.9.4 — installed | **62 of 76 (82%)** |", `planning/progress/G5.md:94` at `a9603e5`
+- "| installed 0.9.4 | **62 of 76 (82%)** |", `planning/progress/G5.md:123` at `a9603e5`
+- "and it reads what the installed 0.9.4 reads on this data", `planning/progress/G5.md:143` at `a9603e5`
+- "`installed_plugins.json` records **0.9.4** since 2026-08-21", `planning/progress/G5.md:159` at `a9603e5`
+- "it reproduces 0.9.4's numbers on this data", `planning/progress/G5.md:163` at `a9603e5`
+- "| 0.9.4 — installed | 62 of 76 (82%) | 2× |", `planning/progress/G5-gapfix.md:22` at `a9603e5`
+
+The row named only `G5-gapfix.md`'s four-version table and the `LEDGER.md` G5 row. The sharpest of
+the ten is the eighth — "`installed_plugins.json` records **0.9.4** since 2026-08-21",
+`planning/progress/G5.md:159` at `a9603e5` — because it asserts what `installed_plugins.json`
+*records*, in the present tense, and that file has read `0.9.8` since 17:38.
 
 **The count is corrected and the ten labels are left alone**, which is the same rule as BL-1: the
 label names an instant that has passed, and re-numbering ten sites to `0.9.8` would put ten new fuses

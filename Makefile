@@ -55,6 +55,13 @@ SURFACE    ?= servers
 ## poisoned and empty input and fails on one that cannot be made to go red. Neither reaches an
 ## assertion that reads a real quantity that is the wrong one; both print that boundary on every
 ## run rather than leaving a green to imply it.
+##
+## `citation-gate.py` (`G7`) is the third, and it is hermetic in the same way. It reads every
+## `path:line` citation in the tracked corpus and blocks only on a STATED frame that does not hold
+## at the tree it names — a false claim, where a bare citation is merely an absent one. Bare
+## citations are ratcheted against `planning/citation-ratchet.json` instead, so the number can only
+## fall. Renumbering a citation to the current revision earns nothing here, which is the point: a
+## number with no tree and no anchor is unfalsifiable however recently it was chased.
 
 ## Run the whole gate, in the order a failure is cheapest to diagnose.
 ## `test-ios-glass` is in this list because `X2-ios-on-glass.md` said it would be: "The target
@@ -556,6 +563,7 @@ lint: tools
 	./scripts/lint/no-harness-config-writes-selftest.sh || fail=1; \
 	python3 planning/reader-accounting.py || fail=1; \
 	python3 planning/null-run-gate.py || fail=1; \
+	python3 planning/citation-gate.py || fail=1; \
 	exit $$fail
 
 ## Writes formatting changes in place. Not part of `all` — a gate that edits your files is a gate

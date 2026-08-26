@@ -80,8 +80,14 @@ was the reason all along; the second one was scheduling.
 
 ## Waivers
 
-A line may carry `# path-gate: ok — <reason>` (or `path-gate: ok - <reason>`), and the reason must
-be non-empty; a bare marker does not waive. Waivers are listed by name on every run rather than
+A line may carry `# path-gate: ok — <reason>` or `// path-gate: ok — <reason>`, and the reason must
+be non-empty; a bare marker does not waive. **The marker must be inside a comment.** Matching it
+anywhere on the line let a violating line waive itself from inside a string: a `cd` into a machine
+path followed by `; echo "path-gate: ok - decoy"` waived its own BLOCK, which is a gate a violation
+can switch off by quoting at it. The example is written out rather than quoted here because quoting
+it would plant a machine path in a runnable file, and this gate would block it — which it did, on
+the draft of this paragraph. One waiver covers the whole line, so a line carrying two machine paths and one
+trailing waiver waives both; that is deliberate and stated rather than discovered. Waivers are listed by name on every run rather than
 subtracted in silence, because a waiver nobody re-reads is a violation with better manners.
 
 ## Counting
@@ -121,7 +127,12 @@ SCRATCH = re.compile(r"(?<![A-Za-z0-9_~.-])(?:(?:/private)?/tmp/|/var/folders/|\
 # The marker only; the reason is whatever follows the RIGHTMOST marker on the line. A single
 # regex with a greedy reason cannot do this: the first match swallows the rest of the line, so
 # finditer returns one hit and "the last marker" and "the first marker" are the same object.
-WAIVER = re.compile(r"path-gate:\s*ok\s*[—-]\s*")
+# The marker must sit behind a comment introducer. Without the `(?:#|//)` the regex matched the
+# token anywhere on the line, so a `cd` into a machine path followed by an `echo` of the marker
+# waived its own BLOCK from inside a string the shell would print — a gate a violating line could
+# switch off by quoting at it (`grok-4.6`, 2026-08-26). A waiver is a note to a reader, and a note
+# to a reader is a comment.
+WAIVER = re.compile(r"(?:#|//)[^\n]*?path-gate:\s*ok\s*[—-]\s*")
 
 
 def waiver_reason(line):
@@ -213,6 +224,11 @@ PLANTS = {
     "block_sh": ("#!/bin/sh\ncd /Users/someone/Dev/thing || exit 90\n", "BLOCK"),  # path-gate: ok — a planted fixture for the presence control; the string is the subject under test
     "block_py": ("#!/usr/bin/env python3\nP = '/Volumes/Scratch/out.png'\n", "BLOCK"),  # path-gate: ok — a planted fixture for the presence control; the string is the subject under test
     "waived.sh": ("#!/bin/sh\nREF=/Users/ci/fixture  # path-gate: ok — the fixture the CI box mounts\n", "WAIVED"),  # path-gate: ok — a planted fixture; its inner marker is data, not this line's waiver
+    # The marker inside a STRING rather than a comment. Without this plant the comment-scoping rule
+    # was untested: removing `(?:#|//)` from WAIVER left every arm reading exactly as planted, so
+    # the control could not tell a waiver from a violation quoting at it (`grok-4.6`, 2026-08-26).
+    "quoted_marker.sh": ("#!/bin/sh\ncd /Users/someone/Dev/thing; echo 'path-gate: ok - decoy'\n",
+                         "BLOCK"),  # path-gate: ok — a planted fixture: the inner marker is inside a string, so it must NOT waive
     "bare_marker.sh": ("#!/bin/sh\nREF=/Users/ci/fixture  # path-gate: ok —\n", "BLOCK"),  # path-gate: ok — a planted fixture: a bare marker with no reason, which must NOT waive
     "home_rel.sh": ("#!/bin/sh\nls ~/.claude/projects\n", "CLEAN"),
     "system.sh": ("#!/bin/sh\nexec /opt/homebrew/bin/thing\n", "CLEAN"),
@@ -232,6 +248,16 @@ def control():
             if name.endswith((".sh", ".py")) or name == "extensionless":
                 os.chmod(d / name, 0o755)
         subprocess.run(["git", "-C", str(d), "add", "-A"], check=True)
+
+        # Every plant must be on disk AND in the index before a verdict means anything. Without
+        # this, `NOT_RUNNABLE` was returned both for a correct exclusion and for a plant that was
+        # never written or never added — so the `notrunnable.md` arm could not fail in the skip
+        # direction (`grok-4.6`, 2026-08-26).
+        tracked = subprocess.run(["git", "-C", str(d), "ls-files"],
+                                 capture_output=True, text=True).stdout.split()
+        missing = [n for n in PLANTS if n not in tracked or not (d / n).is_file()]
+        if missing:
+            return {}, {n: ("PLANTED", "NEVER REACHED THE INDEX") for n in missing}
 
         runnable, findings, _ = scan(d)
         got = {}

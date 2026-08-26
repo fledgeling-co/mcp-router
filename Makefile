@@ -75,7 +75,9 @@ SURFACE    ?= servers
 ## registry, or an empty corpus) · 4 the control failed · 2 usage. `lint` treats every non-zero the
 ## same, which is right for a lint step and is why the codes have to be readable on their own.
 ##
-## `runnable-path-gate.py` (`G9`) is the fifth, and it is in `lint` for the reason it exists.
+## `runnable-path-gate.py` (`G9`) is the last of `lint`'s six Python gates — `py39-annotation-gate.py`
+## landed on `main` between null-run and citation, and `sweep-control-gate.py` ahead of it, while
+## this was in flight — and it is in `lint` for the reason it exists.
 ## Two tracked 0755 scripts began by `cd`-ing into a literal home path under `.worktrees/R2`; the
 ## directory was deleted in a routine cleanup, both scripts exited 90 on every invocation from that
 ## day on, and a spec went on citing one of them as a mutation gate that had run. **Nothing went
@@ -86,7 +88,7 @@ SURFACE    ?= servers
 ## a shebang, a union because each catches what the others miss — that names a path under `/Users`
 ## or `/Volumes`. `~/`, `/Applications`-class system paths and `/tmp`-class scratch paths are
 ## counted and printed, never blocked, each for a reason the gate states; scratch roots are
-## `foreign-path-gate.py`'s axis and are deliberately not duplicated. Eight seconds, hermetic, and
+## `foreign-path-gate.py`'s axis and are deliberately not duplicated. Four seconds, hermetic, and
 ## its presence control plants nine instances across every class on every invocation and exits 2
 ## without printing a verdict if any one of them is missed — so a zero here is a measurement.
 ##

@@ -262,7 +262,8 @@ pass "window appeared (AXStandardWindow)"
 # **walk** was wrong too, and fixing only the attribute left a lane that still could not see the
 # sidebar.
 #
-# `mac-shell.sh:66` had already written down why, for its own first version, which failed the same
+# `in AppleScript binds a snapshot of a tree this app`, `mac-shell.sh:66` at `03c34c3` had
+# already written down why, for its own first version, which failed the same
 # way against a perfectly good window: `entire contents` binds a SNAPSHOT of a tree this app mutates
 # every two seconds as it polls, and reading a property off an element that has since been rebuilt
 # raises -1728. Every read above sat inside a `try`, so each -1728 was swallowed and the element
@@ -367,7 +368,8 @@ WH="$(echo "$BOUNDS" | cut -d, -f4 | tr -d ' ')"
 # The sidebar's width, read from the token rather than pinned here, because the sample point below
 # has to be clear of it and "clear of it" is a fact about `MetricToken.sidebar` rather than about
 # any number this file could hold.
-# Read the same way `mac-shell.sh:144` reads it — out of `leadingScalar`'s own switch, where the
+# Read the same way `metric() {`, `mac-shell.sh:144` at `03c34c3` reads it — out of
+# `leadingScalar`'s own switch, where the
 # numbers live. `MetricToken`'s cases carry display names ("Sidebar"), not values, so a reader
 # pointed at the case list finds no number at all.
 SIDEBAR_PT="$(sed -n '/var leadingScalar: Double/,/^    }/p' \

@@ -750,9 +750,9 @@ for command in MenuCommand.allCases {
     //
     // So the app said `Re-indexing the whole manifest hasn't been built yet.`, this oracle expected
     // `This feature hasn't been built yet.`, and the lane reported a FAIL naming the product. It is
-    // `shells.sh:216`'s defect exactly — an instrument asking a neighbouring question and reporting
-    // the difference as the app's fault — and it is the fifth time in this item that the harness was
-    // wrong about an app that was right.
+    // the defect `set v to value of e as text`, `shells.sh:216` at `03c34c3` carried exactly — an
+    // instrument asking a neighbouring question and reporting the difference as the app's fault —
+    // and it is the fifth time in this item that the harness was wrong about an app that was right.
     //
     // The assertion gets STRONGER for the change: the lane now requires the specific sentence for
     // each of the nine unbuilt commands rather than one generic string shared between them, so a
@@ -792,7 +792,8 @@ SWIFT
 # `KeyChord.swift` landed at `0bdfcbe` on 2026-08-22 with M20's menu bar, `MenuCommand.swift` began
 # referring to `KeyChord` in the same change, and this list did not follow — so every run of this
 # script since blocked at "could not build the availability oracle" with
-# `MenuCommand.swift:285:26: error: cannot find type 'KeyChord' in scope`.
+# `error: cannot find type 'KeyChord' in scope`, raised against `public var shortcut: KeyChord? {`,
+# `MenuCommand.swift:285` at `03c34c3`.
 #
 # **Nobody saw it, and that is G10's point rather than this lane's.** `make acceptance` ran
 # `shells.sh` first and stopped there, so this lane was not reached at all between 2026-08-22 and

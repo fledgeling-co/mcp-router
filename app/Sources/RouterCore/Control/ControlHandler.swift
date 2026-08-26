@@ -221,6 +221,9 @@ public struct ControlHandler: Sendable {
             let failed = outcome.error?.isJSTruthyString ?? false
             return .json(failed ? 422 : 200, .object(reply))
 
+        case ("/document", "GET"):
+            return documentResponse(upstream: upstream, name: name, deps: deps)
+
         case ("/changes", "GET"):
             // The in-memory snapshot, never a disk read, and observationally read-only (B35).
             let entry = deps.manifest.entry(named: name.string)

@@ -1,0 +1,158 @@
+{
+  "description": "document.documentOverCap and imageCapDecisions — which cap fires, and in what order (M30).",
+  "caps": {
+    "documentBytes": 524288,
+    "imageBytes": 2097152,
+    "imageBudgetBytes": 8388608
+  },
+  "cases": [
+    {
+      "id": "doc-0",
+      "kind": "document",
+      "size": 0,
+      "over": false
+    },
+    {
+      "id": "doc-1",
+      "kind": "document",
+      "size": 1,
+      "over": false
+    },
+    {
+      "id": "doc-2",
+      "kind": "document",
+      "size": 524287,
+      "over": false
+    },
+    {
+      "id": "doc-3",
+      "kind": "document",
+      "size": 524288,
+      "over": false
+    },
+    {
+      "id": "doc-4",
+      "kind": "document",
+      "size": 524289,
+      "over": true
+    },
+    {
+      "id": "doc-5",
+      "kind": "document",
+      "size": 16777216,
+      "over": true
+    },
+    {
+      "id": "all-small",
+      "kind": "images",
+      "sizes": [
+        10,
+        20,
+        30
+      ],
+      "decisions": [
+        "send",
+        "send",
+        "send"
+      ]
+    },
+    {
+      "id": "one-at-the-image-cap",
+      "kind": "images",
+      "sizes": [
+        2097152
+      ],
+      "decisions": [
+        "send"
+      ]
+    },
+    {
+      "id": "one-over-the-image-cap",
+      "kind": "images",
+      "sizes": [
+        2097153
+      ],
+      "decisions": [
+        "tooLarge"
+      ]
+    },
+    {
+      "id": "oversize-does-not-spend-the-budget",
+      "kind": "images",
+      "sizes": [
+        2097153,
+        8388608,
+        1
+      ],
+      "decisions": [
+        "tooLarge",
+        "tooLarge",
+        "send"
+      ]
+    },
+    {
+      "id": "budget-exactly-spent",
+      "kind": "images",
+      "sizes": [
+        8388608,
+        1
+      ],
+      "decisions": [
+        "tooLarge",
+        "send"
+      ]
+    },
+    {
+      "id": "budget-exhausted-mid-run",
+      "kind": "images",
+      "sizes": [
+        2097152,
+        2097152,
+        2097152,
+        2097152,
+        2097152
+      ],
+      "decisions": [
+        "send",
+        "send",
+        "send",
+        "send",
+        "budgetExhausted"
+      ]
+    },
+    {
+      "id": "a-later-small-one-still-fits",
+      "kind": "images",
+      "sizes": [
+        8388607,
+        2097152,
+        1
+      ],
+      "decisions": [
+        "tooLarge",
+        "send",
+        "send"
+      ]
+    },
+    {
+      "id": "empty",
+      "kind": "images",
+      "sizes": [],
+      "decisions": []
+    },
+    {
+      "id": "zero-sized",
+      "kind": "images",
+      "sizes": [
+        0,
+        0,
+        0
+      ],
+      "decisions": [
+        "send",
+        "send",
+        "send"
+      ]
+    }
+  ]
+}

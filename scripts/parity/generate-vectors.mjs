@@ -14,6 +14,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import { writeDocumentVectors } from './generate-document-vectors.mjs';
 
 const require = createRequire(import.meta.url);
 const here = dirname(fileURLToPath(import.meta.url));
@@ -838,6 +839,17 @@ const usageStats = join(usageScratch, 'usage-stats.json');
     })
   });
 }
+
+
+// ---------------------------------------------------------------- M30 · the document route
+//
+// In a module of its own, and imported rather than inlined, so `generate-document-vectors.mjs` can
+// also be run on its own. That is not tidiness: `parity-regen` drives this whole file, and this
+// file cannot currently run to completion — `buildManifest` is called here without the `commit`
+// option it now requires, which is a break that predates M30 and is recorded in
+// `planning/features-to-triage/M31-parity-regen-is-broken.md`. A generator whose only entry point
+// is a script that throws is a generator nobody can re-run.
+writeDocumentVectors({ write, distDir, require });
 
 rmSync(usageScratch, { recursive: true, force: true });
 

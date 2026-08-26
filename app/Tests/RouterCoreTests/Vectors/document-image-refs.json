@@ -1,0 +1,140 @@
+{
+  "description": "document.imageReferences — every reference a document names, in order (M30).",
+  "cases": [
+    {
+      "id": "plain",
+      "text": "![a](x.png)",
+      "references": [
+        "x.png"
+      ]
+    },
+    {
+      "id": "two-on-one-line",
+      "text": "![a](x.png) and ![b](y.png)",
+      "references": [
+        "x.png",
+        "y.png"
+      ]
+    },
+    {
+      "id": "balanced-parens",
+      "text": "![a](img/badge_(v2).png)",
+      "references": [
+        "img/badge_(v2).png"
+      ]
+    },
+    {
+      "id": "title-dropped",
+      "text": "![a](x.png \"a caption\")",
+      "references": [
+        "x.png"
+      ]
+    },
+    {
+      "id": "title-with-parens",
+      "text": "![a](x.png \"a (caption)\")",
+      "references": [
+        "x.png"
+      ]
+    },
+    {
+      "id": "bang-not-an-image",
+      "text": "Wait! [a](x.png) is a link.",
+      "references": []
+    },
+    {
+      "id": "unterminated-bracket",
+      "text": "![a(x.png)",
+      "references": []
+    },
+    {
+      "id": "unterminated-paren",
+      "text": "![a](x.png",
+      "references": []
+    },
+    {
+      "id": "empty-reference",
+      "text": "![a]()",
+      "references": [
+        ""
+      ]
+    },
+    {
+      "id": "nested-brackets-in-alt",
+      "text": "![a [b] c](x.png)",
+      "references": []
+    },
+    {
+      "id": "wrapped-across-lines",
+      "text": "![a](x.png)\nand ![b](y.png)",
+      "references": [
+        "x.png",
+        "y.png"
+      ]
+    },
+    {
+      "id": "blank-line-splits-runs",
+      "text": "![a](x.png)\n\n![b](y.png)",
+      "references": [
+        "x.png",
+        "y.png"
+      ]
+    },
+    {
+      "id": "duplicate-collapses",
+      "text": "![a](x.png)\n\n![b](x.png)",
+      "references": [
+        "x.png"
+      ]
+    },
+    {
+      "id": "fenced-is-skipped",
+      "text": "```\n![a](x.png)\n```\n\n![b](y.png)",
+      "references": [
+        "y.png"
+      ]
+    },
+    {
+      "id": "tilde-fence-is-skipped",
+      "text": "~~~\n![a](x.png)\n~~~\n\n![b](y.png)",
+      "references": [
+        "y.png"
+      ]
+    },
+    {
+      "id": "split-reference-joins",
+      "text": "![a](x\n.png)",
+      "references": [
+        "x"
+      ]
+    },
+    {
+      "id": "leading-whitespace-trimmed",
+      "text": "   ![a](x.png)   ",
+      "references": [
+        "x.png"
+      ]
+    },
+    {
+      "id": "crlf",
+      "text": "![a](x.png)\r\n\r\n![b](y.png)",
+      "references": [
+        "x.png",
+        "y.png"
+      ]
+    },
+    {
+      "id": "no-images",
+      "text": "nothing here at all",
+      "references": []
+    },
+    {
+      "id": "shield-row",
+      "text": "![ci](https://img.shields.io/badge/ci-passing-green) ![v](docs/v.png)",
+      "references": [
+        "https://img.shields.io/badge/ci-passing-green",
+        "docs/v.png"
+      ]
+    }
+  ]
+}

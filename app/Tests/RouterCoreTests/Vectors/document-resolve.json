@@ -1,0 +1,182 @@
+{
+  "description": "document.resolveInPackage — the traversal boundary and its refusals (M30).",
+  "tree": {
+    "files": [
+      "README.md",
+      "docs/figure.png",
+      "docs/deep/nested.png",
+      "notes.txt",
+      "no-extension"
+    ],
+    "directories": [
+      "looks-like.png"
+    ],
+    "symlinks": [
+      {
+        "link": "escape.png",
+        "target": "../outside.png"
+      }
+    ],
+    "sibling": "pkg-evil"
+  },
+  "cases": [
+    {
+      "id": "resolve-0",
+      "reference": "docs/figure.png",
+      "kind": "readable",
+      "relative": "docs/figure.png"
+    },
+    {
+      "id": "resolve-1",
+      "reference": "docs/deep/nested.png",
+      "kind": "readable",
+      "relative": "docs/deep/nested.png"
+    },
+    {
+      "id": "resolve-2",
+      "reference": "./docs/figure.png",
+      "kind": "readable",
+      "relative": "docs/figure.png"
+    },
+    {
+      "id": "resolve-3",
+      "reference": "docs/../docs/figure.png",
+      "kind": "readable",
+      "relative": "docs/figure.png"
+    },
+    {
+      "id": "resolve-4",
+      "reference": "missing.png",
+      "kind": "notInPackage",
+      "reason": "notInPackage"
+    },
+    {
+      "id": "resolve-5",
+      "reference": "notes.txt",
+      "kind": "unsupportedType",
+      "reason": "unsupportedType",
+      "extension": ".txt"
+    },
+    {
+      "id": "resolve-6",
+      "reference": "no-extension",
+      "kind": "unsupportedType",
+      "reason": "unsupportedType",
+      "extension": ""
+    },
+    {
+      "id": "resolve-7",
+      "reference": "looks-like.png",
+      "kind": "notInPackage",
+      "reason": "notInPackage"
+    },
+    {
+      "id": "resolve-8",
+      "reference": "figure.svg",
+      "kind": "unsupportedType",
+      "reason": "unsupportedType",
+      "extension": ".svg"
+    },
+    {
+      "id": "resolve-9",
+      "reference": "../outside.png",
+      "kind": "escapesPackage",
+      "reason": "escapesPackage"
+    },
+    {
+      "id": "resolve-10",
+      "reference": "../../etc/passwd",
+      "kind": "escapesPackage",
+      "reason": "escapesPackage"
+    },
+    {
+      "id": "resolve-11",
+      "reference": "docs/../../outside.png",
+      "kind": "escapesPackage",
+      "reason": "escapesPackage"
+    },
+    {
+      "id": "resolve-12",
+      "reference": "escape.png",
+      "kind": "escapesPackage",
+      "reason": "escapesPackage"
+    },
+    {
+      "id": "resolve-13",
+      "reference": "../pkg-evil/x.png",
+      "kind": "escapesPackage",
+      "reason": "escapesPackage"
+    },
+    {
+      "id": "resolve-14",
+      "reference": "/etc/passwd",
+      "kind": "absolutePath",
+      "reason": "absolutePath"
+    },
+    {
+      "id": "resolve-15",
+      "reference": "~/secrets.png",
+      "kind": "absolutePath",
+      "reason": "absolutePath"
+    },
+    {
+      "id": "resolve-16",
+      "reference": "https://example.com/a.png",
+      "kind": "remote",
+      "reason": "remote",
+      "scheme": "https"
+    },
+    {
+      "id": "resolve-17",
+      "reference": "HTTPS://example.com/a.png",
+      "kind": "remote",
+      "reason": "remote",
+      "scheme": "https"
+    },
+    {
+      "id": "resolve-18",
+      "reference": "data:image/png;base64,AAAA",
+      "kind": "remote",
+      "reason": "remote",
+      "scheme": "data"
+    },
+    {
+      "id": "resolve-19",
+      "reference": "file:///etc/passwd",
+      "kind": "remote",
+      "reason": "remote",
+      "scheme": "file"
+    },
+    {
+      "id": "resolve-20",
+      "reference": "javascript:alert(1)",
+      "kind": "remote",
+      "reason": "remote",
+      "scheme": "javascript"
+    },
+    {
+      "id": "resolve-21",
+      "reference": "   docs/figure.png   ",
+      "kind": "readable",
+      "relative": "docs/figure.png"
+    },
+    {
+      "id": "resolve-22",
+      "reference": "",
+      "kind": "escapesPackage",
+      "reason": "escapesPackage"
+    },
+    {
+      "id": "resolve-23",
+      "reference": ".",
+      "kind": "escapesPackage",
+      "reason": "escapesPackage"
+    },
+    {
+      "id": "resolve-24",
+      "reference": "..",
+      "kind": "escapesPackage",
+      "reason": "escapesPackage"
+    }
+  ]
+}

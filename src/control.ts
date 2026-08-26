@@ -28,6 +28,7 @@ import {
 } from './manifest.js';
 import { withExclusiveLock, lockTimeoutMs, DAEMON_TIMEOUT_MS } from './lock.js';
 import { searchRegistries } from './registry.js';
+import { isRefusal, readPackageDocuments } from './document.js';
 import { UsageStore, projectOf } from './usage.js';
 import {
   beginAuth,
@@ -308,6 +309,35 @@ async function indexOne(
 
 const REGISTRY_BASE = process.env.MCP_ROUTER_REGISTRY ?? 'https://registry.modelcontextprotocol.io';
 
+/**
+ * The facts strip, built only from what this router actually observed.
+ *
+ * `DESIGN.md` §6 forbids displaying a figure the router does not observe, and `spec-M30.md` §2.1
+ * answers the mock's five cells one at a time: `Kind` survives, and `Version`, `Licence`,
+ * `Runs in` and `Reads` are all derivations this router cannot make honestly — there is no version
+ * on any wire type for an installed upstream, identifying a licence from a file's text is
+ * inference, nothing observes which harnesses could run a capability, and nothing observes what a
+ * child process reads.
+ *
+ * The two below `Kind` are here because they are observed, not because the mock drew them: the
+ * tool count is the length of the list this router connected and read, and the project list is the
+ * visibility restriction this router itself applies. Each is omitted when it was not observed, so
+ * the strip's width is a function of what is known rather than of how many labels exist.
+ */
+function documentFacts(
+  u: UpstreamConfig,
+  entry: { tools: Array<{ name: string }>; error?: string } | undefined
+): Array<{ label: string; value: string }> {
+  const facts: Array<{ label: string; value: string }> = [{ label: 'Kind', value: u.transport }];
+  if (entry && !entry.error) {
+    facts.push({ label: 'Tools', value: String(entry.tools.length) });
+  }
+  if (u.projects?.length) {
+    facts.push({ label: 'Served to', value: u.projects.join(', ') });
+  }
+  return facts;
+}
+
 /** True when this path belongs to the control API rather than to /mcp. */
 export function isControlPath(pathname: string): boolean {
   return (
@@ -490,6 +520,48 @@ export async function handleControl(
         );
       }
       json(res, outcome.status, outcome.body);
+      return true;
+    }
+
+    /*
+     * The capability document. M30's route, and the first one that reads a package's own files.
+     *
+     * The package root is the server's declared `cwd` and nothing else. It is the one directory
+     * any wire type carries, and the router already uses it — it is what the child process is
+     * started in. Deriving a root from `args[0]`'s directory was considered and refused: it is a
+     * guess about a packaging convention this router does not otherwise use, and `DESIGN.md` §6
+     * turns on where a figure came from rather than on how plausible it is.
+     *
+     * The response carries bytes and never a path, so nothing the app receives can be opened.
+     * Every refusal names its own `reason`, and the size refusal names which of the three
+     * transport caps it hit — `MarkdownLimits` caps the parse, in the app, after the bytes have
+     * already crossed, so it cannot be the transport's bound.
+     */
+    if (sub === '/document' && req.method === 'GET') {
+      if (!isStdio(u) || !u.cwd) {
+        json(res, 404, {
+          error: 'this server declares no directory, so there is no package to read documentation from',
+          reason: 'noPackageDirectory',
+          server: name,
+        });
+        return true;
+      }
+      const outcome = readPackageDocuments(u.cwd);
+      if (isRefusal(outcome)) {
+        const { status, ...body } = outcome;
+        json(res, status, { ...body, server: name });
+        return true;
+      }
+      json(res, 200, {
+        server: name,
+        facts: documentFacts(u, deps.manifest.current().servers[name]),
+        // An object with at most the three fixed keys, in tab order. A key that is absent means
+        // the package published no such file, which is a different thing from an empty one — and
+        // the panel says which document is missing rather than drawing a blank pane.
+        documents: Object.fromEntries(outcome.documents.map((d) => [d.tab, d.text])),
+        images: outcome.images,
+        refusedImages: outcome.refusedImages,
+      });
       return true;
     }
 

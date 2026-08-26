@@ -197,7 +197,11 @@ struct VectorRegistryTests {
     /// point — a floor left at 352 would let the auth corpus be deleted without failing.
     /// M29 adds nine — four `union-tools`, four `parse-server` and one `upstream-hash` — for a
     /// server that is declared and not served, so the floor rises to 367 for the same reason.
-    static let executedFloor = 367
+    /// M30 adds sixty — twenty reference scans, twenty-five resolutions and fifteen cap decisions —
+    /// for the document route, so the floor rises to 427. Same reason: a floor left at 367 would let
+    /// the whole document corpus be deleted without failing, and the corpus is the only thing that
+    /// can tell a shared misreading of an image reference from a correct one.
+    static let executedFloor = 427
 
     /// B81. A bare total is satisfied by any unrelated vectors, so the auth corpus is asserted
     /// **by name** as well as by count — the substitute out-of-family gate found that a floor alone

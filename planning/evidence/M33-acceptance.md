@@ -91,7 +91,7 @@ line cannot satisfy it — a **red** report cannot stand in for the presence of 
 | step | `app/Package.swift` sha256 | gate |
 |---|---|---|
 | before | `250fc6929837` | exit 0 |
-| `MCPRouterApp` target block removed | `e3f7e7f15946` | **exit 1** — `[uncovered-path] app/project.yml:43 declares 'MCPRouter' for target 'MCPRouter', and no SwiftPM target declares this path … this is M33 recurring.` |
+| `MCPRouterApp` target block removed | `e3f7e7f15946` | **exit 1**, citing anchor `- path: MCPRouter`, `app/project.yml:43` at `570910a` — *"[uncovered-path] … declares 'MCPRouter' for target 'MCPRouter', and no SwiftPM target declares this path … this is M33 recurring."* |
 | restored | `250fc6929837` (identical, `git status` clean) | exit 0 |
 
 ## 4. A false green an out-of-family review found, and closed
@@ -211,4 +211,45 @@ the source rather than on the icons.
 | `planning/m33-branch-sweep.py --selftest` | **0** | 7/7 arms |
 | `planning/reader-accounting.py` | **0** | went **red** on this branch and was fixed, not declared past: the three new readers account for their drops with `input_accounting.Tally`; `accounts` 4 → 6, `unaccounted` 0 |
 | `planning/null-run-gate.py` | 0 | unchanged |
-| `planning/citation-gate.py` | 1 | **inherited** — `blocking 0`, ratchet only, 3 files above baseline and all three are M29's |
+| `planning/citation-gate.py` | 1 | **partly inherited, and this row was wrong.** See *The row that certified over something it had not read* below. |
+
+## The row that certified over something it had not read
+
+The gate row above used to read *"**inherited** — `blocking 0`, ratchet only, 3 files above
+baseline and all three are M29's"*. Every clause of it was false at the tree this record was
+committed at, and the way it was false is this item's own subject: a lane reporting clean over
+something it did not look at.
+
+**Re-derived, not restated.** Run in this worktree at `be48f5a`, whose base is `main` at
+`570910a`:
+
+```
+cd .worktrees/M33 && python3 planning/citation-gate.py; echo "exit $?"
+```
+
+and read three separate lines of its output — the `exit:` summary line, the `ratchet: N file(s)`
+header, and the file list under it. The counting was done by reading that list, not by recalling a
+number.
+
+| clause | what the gate actually says at `be48f5a` |
+|---|---|
+| `blocking 0` | **`blocking 1`.** Anchor `` `swift build` exits 0 and silent on a fault ``, `planning/features-to-triage/LEDGER.md:124` at `570910a`, cites `planning/evidence/M33-acceptance.md:214` at `b5f2227` with an anchor whose pipes are backslash-escaped, because the citing row is itself a markdown table row. The cited line's pipes are not escaped, so the anchor cannot match and the gate classes it `ABSENT` — a stated frame that does not hold — and marks it `DANGEROUS`, because the line it landed on reads perfectly well. |
+| `ratchet only` | Not only. The ratchet is 1 and blocking is 1, and blocking is the class that means a *false* claim rather than an unfalsifiable one. |
+| `3 files above baseline` | **9**, and at the unrebased tip it was 4. Three is the count of the M29 files alone. |
+| `all three are M29's` | Three of the nine are M29's — `planning/evidence/M29-decisions-grok.md`, `planning/plans/plan-M29.md`, `planning/specs/spec-M29.md`. The other six are `ORCHESTRATOR.md`, `planning/plans/plan-G6.md`, `planning/progress/G6.md`, `planning/tailings-2/crossref.json`, `planning/tailings-2/worklist.json` and `planning/verification/G6-shared-ledger-withdrawals.py`. **And at the tree this record was written, a tenth was `planning/evidence/M33-acceptance.md` — this file.** It carried one bare citation at `:94` — anchor `- path: MCPRouter`, `app/project.yml:43` at `570910a`, quoted inside gate output with no anchor and no tree at the time. So the row certified that every file above baseline belonged to another item while the file making the certification was one of them. |
+
+**The bare citation at `:94` is fixed rather than absorbed.** It now carries anchor `- path:
+MCPRouter` and the tree `570910a`, per `planning/practices/CITATIONS.md` — *"a citation must resolve
+where it is **read**, not merely where it was written."* The ratchet baseline in
+`planning/citation-ratchet.json` is untouched: the rule is that counts may only fall, and absorbing
+debt is an owner decision. `planning/evidence/M33-acceptance.md` is no longer on the over-baseline
+list, and the list is back to the nine files `main` carries at `570910a`.
+
+**`blocking 1` is not this branch's to close and is reported rather than fixed.** The failing
+citation lives in `planning/features-to-triage/LEDGER.md`, which this runner may not write. It is
+also *latent on `main`*: the cited path does not exist there, so the citation drops out of the
+gate's resolvable denominator and the gate reads `blocking 0`. It becomes checkable — and fails —
+the moment this branch lands. Two ways to close it, both the owner's: unescape the anchor's pipes
+in the LEDGER row, or teach `citation-gate.py` to unescape `\|` when the citing line is a table
+row. Note that correcting `:214` above, which was the instruction, moves the text that citation
+points at, so the row needs rewriting either way.

@@ -51,10 +51,14 @@ public struct CapabilityDocument: Equatable, Sendable {
     public struct Identity: Equatable, Sendable {
         public var name: String
         public var version: String?
-        public var publisher: String
+        /// **Optional for the same reason a fact is absent rather than empty.** A marketplace names
+        /// a publisher; a server declared in a config file has none the router observes, and an
+        /// empty `Text` in the header's stack reserves layout for a fact nobody has.
+        public var publisher: String?
         /// Whether the marketplace this came from marks the publisher as official.
         public var publisherIsVerified: Bool
-        public var pitch: String
+        /// The one-line pitch, where something observed one. See ``publisher``.
+        public var pitch: String?
         /// Where the capability says it lives, and only when it is `https`.
         ///
         /// Filtered at construction rather than at the press, so no view holds a URL this app would
@@ -65,9 +69,9 @@ public struct CapabilityDocument: Equatable, Sendable {
         public init(
             name: String,
             version: String? = nil,
-            publisher: String,
+            publisher: String? = nil,
             publisherIsVerified: Bool = false,
-            pitch: String,
+            pitch: String? = nil,
             repository: URL? = nil
         ) {
             self.name = name

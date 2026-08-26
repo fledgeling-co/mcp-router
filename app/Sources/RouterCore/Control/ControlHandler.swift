@@ -208,18 +208,10 @@ public struct ControlHandler: Sendable {
             return patch(request, name: name, deps: &deps)
 
         case ("/reindex", "POST"):
-            let outcome = await deps.indexer.index(upstream)
-            var reply: [JSONMember] = [
-                JSONMember(key: "name", value: .string(name)),
-                JSONMember(key: "tools", value: .number(Double(outcome.tools)))
-            ]
-            // Forwarded verbatim, and omitted only when undefined — so an `error: ""` yields 200
-            // and still carries `"error":""` (B33, S1, S3).
-            if let error = outcome.error {
-                reply.append(JSONMember(key: "error", value: .string(JSString(error))))
-            }
-            let failed = outcome.error?.isJSTruthyString ?? false
-            return .json(failed ? 422 : 200, .object(reply))
+            return await reindexResponse(upstream: upstream, name: name, deps: deps)
+
+        case ("/document", "GET"):
+            return documentResponse(upstream: upstream, name: name, deps: deps)
 
         case ("/changes", "GET"):
             // The in-memory snapshot, never a disk read, and observationally read-only (B35).
@@ -244,6 +236,31 @@ public struct ControlHandler: Sendable {
         default:
             return nil
         }
+    }
+
+    /// `POST /servers/:name/reindex`.
+    ///
+    /// Extracted from the switch rather than left inline. The dispatch's cyclomatic complexity is
+    /// capped at 10 and M30's `/document` arm took it to 11; this body carried two of the branch
+    /// points (`if let error` and the truthiness fallback) and is a whole route rather than a
+    /// fragment, so moving it is a seam rather than a way of paying for the new arm.
+    private func reindexResponse(
+        upstream: UpstreamConfig,
+        name: JSString,
+        deps: ControlDeps
+    ) async -> ControlAPIResponse {
+        let outcome = await deps.indexer.index(upstream)
+        var reply: [JSONMember] = [
+            JSONMember(key: "name", value: .string(name)),
+            JSONMember(key: "tools", value: .number(Double(outcome.tools)))
+        ]
+        // Forwarded verbatim, and omitted only when undefined — so an `error: ""` yields 200
+        // and still carries `"error":""` (B33, S1, S3).
+        if let error = outcome.error {
+            reply.append(JSONMember(key: "error", value: .string(JSString(error))))
+        }
+        let failed = outcome.error?.isJSTruthyString ?? false
+        return .json(failed ? 422 : 200, .object(reply))
     }
 
     /// edit → reload → clearAuth → forget, in that order and no other (B32). A failure at any

@@ -25,10 +25,16 @@
                         .lineLimit(1)
                         .truncationMode(.tail)
                     publisher
-                    Text(identity.pitch)
-                        .typeRole(.callout)
-                        .foregroundStyle(ColorToken.t2.color)
-                        .fixedSize(horizontal: false, vertical: true)
+                    // Omitted rather than drawn empty. §6's rule that a figure the router does not
+                    // observe is never displayed applies to a blank row as much as to an invented
+                    // one: a server declared in a config file has no pitch anybody observed, and an
+                    // empty `Text` here would reserve the stack's spacing for it anyway.
+                    if let pitch = identity.pitch, !pitch.isEmpty {
+                        Text(pitch)
+                            .typeRole(.callout)
+                            .foregroundStyle(ColorToken.t2.color)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 Spacer(minLength: 0)
             }
@@ -68,9 +74,15 @@
         /// The word `Official` carries the meaning and the glyph accompanies it, never the other way
         /// round: `DESIGN.md` §6 requires a word beside every state that has a mark, which is also
         /// what exempts the pairing from the non-text contrast floor.
-        private var publisher: some View {
+        @ViewBuilder private var publisher: some View {
+            if let name = identity.publisher, !name.isEmpty {
+                publisherRow(name)
+            }
+        }
+
+        private func publisherRow(_ name: String) -> some View {
             HStack(spacing: DocumentMetrics.labelGap) {
-                Text(identity.publisher)
+                Text(name)
                     .typeRole(.callout)
                     .foregroundStyle(ColorToken.t2.color)
                 if identity.publisherIsVerified {

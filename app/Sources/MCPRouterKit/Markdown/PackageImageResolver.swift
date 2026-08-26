@@ -30,6 +30,21 @@ public enum PackageImageResolver {
         case escapesPackage
         /// Resolved inside the package, and nothing is there.
         case notInPackage
+        /// Inside the package and not a kind this app renders as an image. A boundary rather than a
+        /// convenience: an image reference is a request to read a file, and `svg` is a document
+        /// format that can carry script.
+        case unsupportedType(extension: String)
+        /// Read, and larger than the transport will send. `limitBytes` is the cap it hit, which is
+        /// what makes the sentence say **which** rule refused it rather than only that one did.
+        case tooLarge(limitBytes: Int)
+        /// The response's shared image budget was spent before this reference was reached.
+        case budgetExhausted
+        /// A refusal this version of the app does not recognise, kept rather than dropped.
+        ///
+        /// A router newer than this app can name a reason that did not exist when this was built.
+        /// Dropping it would draw the figure as though nothing had happened; keeping it says the
+        /// document pointed somewhere the router would not go, which is the part worth knowing.
+        case unrecognised(reason: String)
 
         /// What the placeholder says. Present tense, states what happened, no blame, and it says
         /// what the app did rather than what the document did wrong (`DESIGN.md` §6).
@@ -43,6 +58,16 @@ public enum PackageImageResolver {
                 "Not shown — this image points outside the package it came with."
             case .notInPackage:
                 "Not shown — the package does not contain this image."
+            case let .unsupportedType(ext):
+                ext.isEmpty
+                    ? "Not shown — this file has no extension, so it is not a kind this app draws."
+                    : "Not shown — this app doesn't draw \(ext) files."
+            case let .tooLarge(limitBytes):
+                "Not shown — this image is larger than the \(limitBytes / 1024) KB the router will send."
+            case .budgetExhausted:
+                "Not shown — this document's images together exceed what the router will send."
+            case let .unrecognised(reason):
+                "Not shown — the router refused this image, and this version doesn't know \(reason)."
             }
         }
     }

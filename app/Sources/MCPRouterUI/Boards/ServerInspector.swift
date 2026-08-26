@@ -70,6 +70,13 @@
                         .foregroundStyle(ColorToken.t3.color)
                 }
                 Spacer(minLength: 0)
+                // Verb-first and naming the action (§6), with the ellipsis that says a sheet opens.
+                // This is the whole reachability of the document panel: the mock draws `sh-readme`
+                // and until M30 nothing in the build could present it.
+                Button("Read its documentation…") {
+                    board.sheet = .document(server: server.name)
+                }
+                .buttonStyle(StandardButtonStyle(scale: .small))
                 Button("Close") { board.selection = nil }
                     .buttonStyle(StandardButtonStyle(scale: .small))
             }

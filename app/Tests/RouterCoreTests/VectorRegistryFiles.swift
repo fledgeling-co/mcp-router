@@ -9,7 +9,7 @@ import Testing
 extension VectorRegistry {
     /// Every registered vector file. R3's are in `VectorRegistryControlFiles.swift`; they are
     /// concatenated rather than listed here so neither file passes the 400-line cap.
-    static let files: [RegisteredVectorFile] = coreFiles + controlFiles
+    static let files: [RegisteredVectorFile] = coreFiles + controlFiles + documentFiles
 
     static let coreFiles: [RegisteredVectorFile] = [
         // R5 — the callback pages. Generated from the reference's own PAGE template literal

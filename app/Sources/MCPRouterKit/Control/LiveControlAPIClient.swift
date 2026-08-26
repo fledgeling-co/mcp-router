@@ -98,7 +98,7 @@ public actor LiveControlAPIClient: ControlAPIClient {
 
     /// Percent-encode one path segment. A server may legitimately be named with a character that
     /// would otherwise split the path; the router decodes the segment on the way in.
-    private func segment(_ raw: String) -> String {
+    func segment(_ raw: String) -> String {
         raw.addingPercentEncoding(withAllowedCharacters: .alphanumerics.union(.init(charactersIn: "-._~")))
             ?? raw
     }

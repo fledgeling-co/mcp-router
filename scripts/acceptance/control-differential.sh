@@ -106,10 +106,40 @@ cat > "$HOME_DIR/servers.json" <<JSON
     },
     "diff-http": { "url": "https://example.invalid/mcp", "type": "http", "oauth": false },
     "diff-oauth": { "url": "https://example.invalid/auth", "type": "http", "oauth": true },
-    "diff-warm": { "command": "/bin/echo", "warm": true, "placard": "a placard" }
+    "diff-warm": { "command": "/bin/echo", "warm": true, "placard": "a placard" },
+    "diff-doc": { "command": "/bin/echo", "cwd": "DOC_PACKAGE_ROOT" }
   }
 }
 JSON
+
+# M30 - a real package for `GET /servers/:name/document` to read.
+#
+# Inside the scratch HOME rather than anywhere on the developer's disk: the route reads whatever the
+# server's `cwd` names, and a lane pointed at a real checkout would put somebody's own files through
+# a gate run. The read me deliberately names four references - one that resolves, one that climbs
+# out, one absolute and one remote - so the comparison covers the refusals as well as the success
+# without needing four more requests.
+DOC_ROOT="$HOME_DIR/diff-doc-package"
+mkdir -p "$DOC_ROOT/docs"
+printf 'AAAAAAAA' > "$DOC_ROOT/docs/figure.png"
+cat > "$DOC_ROOT/README.md" <<'DOCMD'
+# diff-doc
+
+A package the differential lane reads.
+
+![inside](docs/figure.png)
+
+![climbing](../../../../etc/passwd)
+
+![absolute](/etc/passwd)
+
+![remote](https://example.invalid/badge.png)
+DOCMD
+cat > "$DOC_ROOT/CHANGELOG.md" <<'DOCCL'
+1.0.0 - the first one.
+DOCCL
+# The declared cwd is substituted after the file is written, because it is only known here.
+python3 -c 'import sys; p,r=sys.argv[1],sys.argv[2]; t=open(p,encoding="utf-8").read().replace("DOC_PACKAGE_ROOT",r); open(p,"w",encoding="utf-8").write(t)' "$HOME_DIR/servers.json" "$DOC_ROOT"
 
 # MCP_ROUTER_HOME is the ONLY variable that moves the router's whole state, and `serve --port` is
 # how the port is set — an earlier version of this script guessed `MCPR_HOME` and `MCP_ROUTER_PORT`,
@@ -259,6 +289,15 @@ compare control-usage-summary   "B47 GET /usage/summary"             GET "/usage
 compare control-usage-get       "B45 GET /usage"                     GET "/usage"
 compare control-changes-get     "B26 GET /servers/:name/changes"     GET "/servers/diff-stdio/changes"
 compare control-server-get      "B24 unknown server is 404"          GET "/servers/nope"
+
+# M30 - the document route, at both binaries.
+#
+# The success body carries the package's own markdown, the observed facts strip and the image bytes,
+# plus three refused references. Comparing it whole is what makes the two implementations of the
+# scan, the containment check and the media-type map agree on the wire as well as in the vectors.
+compare control-document-get    "M30 GET /servers/:name/document"    GET "/servers/diff-doc/document"
+compare control-document-get    "M30 a server with no cwd"           GET "/servers/diff-stdio/document"
+compare control-document-get    "M30 document on an unknown server"  GET "/servers/nope/document"
 
 # R4 — the routes R3's matrix never reached. Each one is a route the reference dispatches, so
 # each one is a manifest row that was being counted as covered by a harness that never issued it.

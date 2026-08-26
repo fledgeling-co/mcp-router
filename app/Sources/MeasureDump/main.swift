@@ -83,6 +83,31 @@ import Foundation
         var output = "planning/fidelity/servers.dump.json"
         /// How long the run loop is spun for the layout to settle, in seconds.
         var settle = 1.5
+        /// The base URL of a **running** router to fetch `.readme`'s content from, instead of
+        /// M19's fixture.
+        ///
+        /// M30 added a second implementation of `CapabilityDocumentSource` that reads a real
+        /// package through the control API, and nothing rendered it: the `.readme` arm below builds
+        /// `FixtureCapabilityDocumentSource`, so every dump and every capture of that panel — M23's
+        /// included — is a picture of a JSON file in this repository. That is a measurement of the
+        /// *layout* and it was never anything else, but it means no one had seen the panel draw a
+        /// document a router actually served.
+        ///
+        /// Naming a URL here swaps the fixture for `ControlAPICapabilityDocumentSource` against
+        /// that router. It is opt-in and it is never a default, because a harness that silently
+        /// reached for the network would make M23's fidelity dumps depend on whether a daemon
+        /// happened to be up.
+        var documentFrom: URL?
+        /// Which server on that router to ask for. Only read when `documentFrom` is set.
+        var documentServer = "m30-look"
+        /// Where to write a PNG of the hosted view, if anywhere.
+        ///
+        /// Rendered off the hosting view with `cacheDisplay(in:to:)` rather than photographed off
+        /// the screen. `UI_VERIFICATION.md` rule 1 forbids taking the user's display, and a
+        /// `screencapture` of a region photographs whatever is on top of it rather than the window
+        /// meant — this path needs no visible window at all, so there is nothing to steal and
+        /// nothing to occlude the subject.
+        var png: String?
         /// Every argument this could not honour, in the words it would report them in.
         ///
         /// Collected rather than defaulted away. An unreadable `--surface` used to fall back to the
@@ -150,6 +175,12 @@ import Foundation
                 output = take("a path", Self.nonEmpty) ?? output
             case "--settle":
                 settle = take("a non-negative number", Self.nonNegative) ?? settle
+            case "--document-from":
+                documentFrom = take("a URL", { URL(string: $0) }) ?? documentFrom
+            case "--document-server":
+                documentServer = take("a name", Self.nonEmpty) ?? documentServer
+            case "--png":
+                png = take("a path", Self.nonEmpty) ?? png
             default:
                 rejected.append("'\(key)' is not an argument this tool takes")
                 return false
@@ -226,6 +257,14 @@ import Foundation
         let client: any ControlAPIClient
         let appearance: ColorScheme
         let boards: PreparedBoards
+        /// What the `.readme` arm draws.
+        ///
+        /// Resolved in `run()` rather than here, because the live source is an `await` and a view's
+        /// `body` cannot make one — and because a `.task` on a hosting view in a window that is
+        /// never ordered in does not reliably fire, which is the same trap `PreparedBoards` above
+        /// exists to avoid. It defaults to M19's fixture, so every existing invocation renders
+        /// exactly what it rendered before.
+        let readme: CapabilityDocumentSheet.Content
 
         var body: some View {
             Group {
@@ -236,11 +275,7 @@ import Foundation
                         board: ServersBoardModel(client: client, tracker: shell.tracker)
                     )
                 case .readme:
-                    CapabilityDocumentSheet(
-                        content: FixtureCapabilityDocumentSource.build()
-                            .map(CapabilityDocumentSheet.Content.document)
-                            ?? .unavailable(.notFound(capability: "trawl"))
-                    )
+                    CapabilityDocumentSheet(content: readme)
                 case .popover:
                     MenuBarPopover(shell: shell)
                 case .harnesses:
@@ -308,7 +343,42 @@ import Foundation
             if args.surface == .popover { await shell.inboxBoard.load() }
             await boards.read(args.surface)
         }
-        return render(args, shell: shell, client: client, boards: boards)
+        return render(args, shell: shell, client: client, boards: boards, readme: await readme(args))
+    }
+
+    /// What the `.readme` surface draws, and the one place this tool will talk to a real router.
+    ///
+    /// Without `--document-from` it is M19's fixture, unchanged — which is what M23 measured and
+    /// what every existing dump is a picture of. With it, the panel is driven by
+    /// `ControlAPICapabilityDocumentSource` against a router that is running now, so what lands on
+    /// the screen is a package's own bytes rather than a JSON file in this repository.
+    ///
+    /// A failure is rendered rather than swallowed. `CapabilityDocumentSheet` draws every
+    /// `CapabilityDocumentError` as one of its own states, and the refusal frame is exactly what a
+    /// server declaring no `cwd` produces — the state every upstream on this machine is in — so it
+    /// is a subject worth capturing rather than an error to exit on.
+    @MainActor
+    func readme(_ args: Arguments) async -> CapabilityDocumentSheet.Content {
+        guard let base = args.documentFrom else {
+            return FixtureCapabilityDocumentSource.build()
+                .map(CapabilityDocumentSheet.Content.document)
+                ?? .unavailable(.notFound(capability: "trawl"))
+        }
+        let source = ControlAPICapabilityDocumentSource(
+            client: LiveControlAPIClient(
+                baseURL: base,
+                session: URLSession(configuration: .ephemeral),
+                // The token comes from the router's own file under `MCP_ROUTER_HOME`, which is how
+                // `ControlProbe` is pointed at a throwaway router rather than the real one.
+                store: InMemoryTokenStore(nil),
+                tokenFile: RouterTokenFile()
+            )
+        )
+        do {
+            return .document(try await source.document(for: args.documentServer))
+        } catch {
+            return .unavailable(error)
+        }
     }
 
     /// Hosts the surface, lets the layout settle, and writes the dump.
@@ -318,7 +388,8 @@ import Foundation
     /// `SWIFT_PRACTICES.md` §1 because it deadlocks the cooperative pool.
     @MainActor
     func render(
-        _ args: Arguments, shell: ShellModel, client: any ControlAPIClient, boards: PreparedBoards
+        _ args: Arguments, shell: ShellModel, client: any ControlAPIClient, boards: PreparedBoards,
+        readme: CapabilityDocumentSheet.Content
     ) -> Int32 {
         SurfaceRecorder.shared.reset()
 
@@ -330,7 +401,8 @@ import Foundation
         let host = NSHostingView(rootView: MeasuredSurface(
             surface: args.surface,
             surfaceName: "\(args.surface.rawValue).\(args.state.rawValue)",
-            size: size, shell: shell, client: client, appearance: args.appearance, boards: boards
+            size: size, shell: shell, client: client, appearance: args.appearance, boards: boards,
+            readme: readme
         ))
         host.frame = NSRect(origin: .zero, size: size)
         window.contentView = host
@@ -344,6 +416,41 @@ import Foundation
         RunLoop.main.run(until: Date().addingTimeInterval(args.settle))
         host.layoutSubtreeIfNeeded()
         RunLoop.main.run(until: Date().addingTimeInterval(args.settle))
+
+        // The picture, before the node dump, because a run that renders nothing measurable should
+        // still hand back what it drew — that image is how somebody sees *why* the recorder found
+        // nothing. Written off the view's own backing store: no window is ever ordered in, so
+        // there is no screen to take and nothing on top of the subject to photograph by mistake.
+        if let path = args.png {
+            if let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) {
+                host.cacheDisplay(in: host.bounds, to: rep)
+                if let data = rep.representation(using: .png, properties: [:]) {
+                    let url = URL(fileURLWithPath: path)
+                    do {
+                        try FileManager.default.createDirectory(
+                            at: url.deletingLastPathComponent(), withIntermediateDirectories: true
+                        )
+                        try data.write(to: url)
+                        print("measure-dump: wrote \(rep.pixelsWide)x\(rep.pixelsHigh) to \(url.path)")
+                    } catch {
+                        FileHandle.standardError.write(
+                            Data("measure-dump: could not write \(url.path): \(error)\n".utf8)
+                        )
+                        return 3
+                    }
+                } else {
+                    FileHandle.standardError.write(
+                        Data("measure-dump: the view's backing store would not encode as PNG\n".utf8)
+                    )
+                    return 3
+                }
+            } else {
+                FileHandle.standardError.write(
+                    Data("measure-dump: the hosting view offered no backing store to capture\n".utf8)
+                )
+                return 3
+            }
+        }
 
         guard let dump = SurfaceRecorder.shared.dump(
             surface: "\(args.surface.rawValue).\(args.state.rawValue)",

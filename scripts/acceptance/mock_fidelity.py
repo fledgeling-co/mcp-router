@@ -36,6 +36,12 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 # anything else optional is itself inconclusive.
 ALLOWED_OPTIONAL = {"font-weight-face"}
 
+# Where an oracle for a build-side addition may live. The list is here rather than in the manifest
+# for the same reason `ALLOWED_OPTIONAL` is: a runner who needs a green gate would otherwise widen
+# it in the file the gate reads. `app/Sources` is deliberately absent — see `oracle_verdict`.
+TEST_ROOTS = ("app/Tests/", "app/MCPRouterIOSTests/", "app/MCPRouterIOSUITests/",
+              "scripts/acceptance/", "planning/evidence/")
+
 # The Cross-Branch Role-Intersection and Scope-Completeness Invariant (G8 / M16):
 #
 # When merging or reconciling multi-branch additions to VOUCHED_CONTROLS:
@@ -762,6 +768,49 @@ def layer_copy(ctx) -> Layer:
     return layer
 
 
+def extra_status(ctx, state: str, path: str, node: dict, citation: str | None, layer: Layer,
+                 what: str) -> tuple[str, str]:
+    """The status and the citation cell for one build node the mock never drew.
+
+    Three things can be true of such a node and they are three different states, where this gate
+    used to have two. It EXISTS on purpose or it does not — that is the citation, and it is the
+    burden of proof `mock-fidelity` already inverts correctly. What it SAYS is right or unchecked —
+    that is the oracle, and until M32 there was nowhere to put it, so a cited extra and a cited
+    extra whose string was wrong printed the same row.
+
+    A finding is removed only where an oracle was found AND verified against the string the node
+    actually drew. A citation alone never removes one, which is the property that keeps this from
+    being the gate narrowed to go green: every row that was a finding before is a finding now
+    unless somebody wrote a file that carries the string, and the gate opened that file and read it.
+
+    A node with nothing readable to draw needs no oracle: there is no string to be wrong. Its row
+    is unchanged, and the reason it is unchanged is that `readable` — not truthiness — decides,
+    which is the same test the copy and breadth layers make about invisible codepoints.
+    """
+    own = " ".join((node.get("text") or "").split())
+    base = "extra-cited" if citation else "extra"
+    if not readable(own):
+        layer.findings.append(f"{state}: {path} {what}" + (f" ({citation})" if citation else ""))
+        return base, citation or ""
+
+    ok, why = oracle_verdict(ctx, state, path, own)
+    if ok and citation:
+        layer.carried.append(f"{state}: {path} draws \"{own[:50]}\" — {citation} · {why}")
+        return "extra-oracled", f"{citation} · {why}"
+    if ok:
+        layer.findings.append(
+            f"{state}: {path} {what}, and carries no citation saying why it exists — its string is "
+            f"{why}, which is the other half"
+        )
+        return "extra-oracled", why
+    layer.findings.append(
+        f"{state}: {path} {what}" + (f" ({citation})" if citation else "")
+        + f". It draws \"{own[:50]}\" and {why}. A citation says why the node is there; it cannot "
+        "say whether what it reads is correct, and nothing else on this run can either"
+    )
+    return base, citation or ""
+
+
 def layer_breadth(ctx) -> Layer:
     """Present / divergent / absent for every affordance the mock draws, both directions.
 
@@ -799,6 +848,10 @@ def layer_breadth(ctx) -> Layer:
         # reader, and there are two of them.
         claims = ctx.claims[state]
         comparable = ctx.comparable.get(state, {})
+        # The build nodes whose pairing read `present` — mock label and build text readable, equal
+        # and measured. Nothing weaker than equality can vouch for a child's string: see the
+        # `covered-by-pair` exemption below.
+        present_nodes: set[str] = set()
 
         for affordance in inventory:
             layer.observations += 1
@@ -867,6 +920,8 @@ def layer_breadth(ctx) -> Layer:
             else:
                 status = "unclassified"
 
+            if status == "present":
+                present_nodes.add(node_path)
             rows.append((state, affordance["id"], affordance["kind"], status,
                          f'mock="{mock_text[:60]}" kind={affordance["kind"]}',
                          f'build={node_path} text="{app_text[:60]}" '
@@ -974,9 +1029,48 @@ def layer_breadth(ctx) -> Layer:
                 answerable = sorted(MOCK_KINDS_FOR_ROLE.get(node["role"], set()))
                 declared = sum(census.get(kind, 0) for kind in answerable)
                 if declared == 0:
-                    rows.append((state, path, node["role"], "covered-by-pair",
+                    # M32: `covered-by-pair` was this gate's one wholly silent class — no finding,
+                    # no citation, nothing to interrogate. That is defensible only where the node's
+                    # string was genuinely compared, which is true when the owner pairing is one
+                    # the copy layer could compare AND the owner's compared text contains this
+                    # node's. Where it is not, the build is drawing a string nothing on either side
+                    # ever read, and this class was where such a string could sit forever.
+                    own = " ".join((node.get("text") or "").split())
+                    owner_node = nodes.get(owner)
+                    owner_text = " ".join((owner_node.get("text") or "").split()) if owner_node else ""
+                    # `present`, not merely comparable, and this is the whole of the difference.
+                    # The first draft exempted a child whose string was a SUBSTRING of a compared
+                    # ancestor's text, and the out-of-family review (`gemini-3.7-flash-high`,
+                    # finding 1.2) showed that reaches nothing: a SwiftUI container that combines
+                    # its children's labels has an aggregate text every child is a substring of, so
+                    # the check was unreachable for exactly the shape it was written for — and a
+                    # duplicated row, or an invented badge reading `Resident`, exempted itself off
+                    # a parent that merely happened to contain the word.
+                    #
+                    # Where the ancestor read `present`, its WHOLE aggregate equalled the mock's
+                    # label. So a duplicated child, an invented sibling or an extra word changes
+                    # that aggregate, the ancestor stops being `present`, and every child under it
+                    # loses the exemption at once. The comparison this leans on is one that
+                    # actually happened.
+                    owner_present = owner in present_nodes
+                    if not readable(own) or (owner_present and own and own in owner_text):
+                        rows.append((state, path, node["role"], "covered-by-pair",
+                                     "mock=inside a paired affordance, at a granularity the mock's "
+                                     "census does not reach", f"build={path}", ""))
+                        continue
+                    ok, why = oracle_verdict(ctx, state, path, own)
+                    rows.append((state, path, node["role"],
+                                 "covered-oracled" if ok else "covered-unoracled",
                                  "mock=inside a paired affordance, at a granularity the mock's "
-                                 "census does not reach", f"build={path}", ""))
+                                 "census does not reach", f"build={path} text=\"{own[:60]}\"",
+                                 why if ok else ""))
+                    if ok:
+                        layer.carried.append(f"{state}: {path} draws \"{own[:50]}\" — {why}")
+                    else:
+                        layer.findings.append(
+                            f"{state}: {path} draws \"{own[:50]}\", which the mock does not and "
+                            f"which no ancestor that measured `present` accounts for — {why}"
+                        )
                     continue
                 siblings = kin.get((owner, node["role"]), [])
                 answered = sum(1 for p in siblings if p in paired_nodes)
@@ -987,27 +1081,19 @@ def layer_breadth(ctx) -> Layer:
                     "answers none"
                 )
                 citation = ctx.extra_allowed.get(state, {}).get(path)
-                rows.append((state, path, node["role"], "extra-cited" if citation else "extra",
-                             f"mock={surplus}", f"build={path}", citation or ""))
-                layer.findings.append(
-                    f"{state}: {path} is in the build and not in the mock — {surplus}"
-                    + (f" ({citation})" if citation else "")
-                )
+                status, note = extra_status(ctx, state, path, node, citation, layer,
+                                            f"is in the build and not in the mock — {surplus}")
+                rows.append((state, path, node["role"], status,
+                             f"mock={surplus}", f"build={path}", note))
                 continue
             if node.get("children") and subtree_has_pair(path):
                 rows.append((state, path, node["role"], "structure-unpaired", "mock=no affordance of a declared kind",
                              f"build={path} ({len(node['children'])} children, at least one paired)", ""))
                 continue
-            if path in ctx.extra_allowed.get(state, {}):
-                rows.append((state, path, node["role"], "extra-cited", "mock=nothing",
-                             f"build={path}", ctx.extra_allowed[state][path]))
-                layer.findings.append(
-                    f"{state}: {path} is in the build and not in the mock "
-                    f"({ctx.extra_allowed[state][path]})"
-                )
-                continue
-            rows.append((state, path, node["role"], "extra", "mock=nothing", f"build={path}", ""))
-            layer.findings.append(f"{state}: {path} is in the build and not in the mock")
+            citation = ctx.extra_allowed.get(state, {}).get(path)
+            status, note = extra_status(ctx, state, path, node, citation, layer,
+                                        "is in the build and not in the mock")
+            rows.append((state, path, node["role"], status, "mock=nothing", f"build={path}", note))
 
     layer.ran = True
     if layer.observations < ctx.floors["affordances"]:
@@ -1021,6 +1107,212 @@ def layer_breadth(ctx) -> Layer:
     for row in rows:
         counts[row[3]] = counts.get(row[3], 0) + 1
     layer.note = " · ".join(f"{k} {v}" for k, v in sorted(counts.items()))
+    return layer
+
+
+def oracle_verdict(ctx, state: str, path: str, text: str) -> tuple[bool, str]:
+    """Is there something that asserts what this build-side addition says?
+
+    M32's first mechanism. `mock-fidelity` inverts the burden of proof — a difference is a defect
+    until a citation proves it intentional — which is right, and makes it strong on everything the
+    mock draws. On anything the build ADDS that the mock never drew there is no other side, so the
+    gate has no opinion, and no opinion reads exactly like agreement. The `extra-cited` row for
+    `harnesses.ideal/…/harnesses-footer/read-at` is the case: an honest citation saying the board
+    reports how old its answer is, beside a build that rendered `Read now ago` for five seconds
+    after every load. The citation says why the node exists. Nothing said what it should read.
+
+    So a citation is not an oracle, and this is what an oracle is: a file that carries the string
+    this node actually put on screen, as a literal a person reads. That is the brief's own
+    suggestion — "golden-copy assertions on strings the build composes … `Read now ago` is wrong on
+    inspection with no comparison needed" — and its value is that it relocates the string somewhere
+    a reviewer meets it, rather than adding a second thing to keep in sync.
+
+    Deliberately not satisfied by the reference alone. A `!` row naming a file that does not exist,
+    or one that does not contain the string, is an oracle that cannot fail, which is the family of
+    defect this whole item is filed under.
+
+    Two ways to satisfy it without measuring anything were found by the out-of-family review
+    (`gemini-3.7-flash-high`, findings 1.1 and 5.3) against the first draft, and both are closed
+    here rather than noted:
+
+    **Pointing the oracle at the implementation.** A `!` row naming the view that composes the
+    string made the build assert against its own hardcoded defect — the file contains the literal
+    because the file is what draws it. So an oracle has to live in a TEST, and `TEST_ROOTS` is what
+    that means in this repo. A reference under `app/Sources` is refused by name.
+
+    **A bare substring.** `text in body` was true for `0`, `MB` and `save` against almost any file
+    in the tree, because a Swift identifier is a character sequence too. So the string has to appear
+    as a DOUBLE-QUOTED LITERAL — which is what an assertion about copy looks like, and what a
+    function name is not.
+    """
+    declared = ctx.oracles.get(state, {}).get(path)
+    if declared is None:
+        return False, "nothing asserts what it says"
+    reference, _note = declared
+    target = reference.split("::", 1)[0]
+    # Resolve the path BEFORE testing it, because the spelling and the file it opens are not the
+    # same fact. `app/Tests/../../app/Sources/MCPRouterKit/Shell/MenuCommand.swift` satisfied a
+    # `startswith` test against the raw string while `open` landed on the implementation — the
+    # third way of pointing an oracle at the file that draws the literal, and the one that wore a
+    # test root's name while doing it. `./`-prefixing did the same. Both are closed by checking the
+    # resolved path, so the root a reader sees and the bytes that are read agree by construction.
+    absolute = os.path.realpath(target if os.path.isabs(target) else os.path.join(ROOT, target))
+    relative = os.path.relpath(absolute, os.path.realpath(ROOT))
+    if relative == os.pardir or relative.startswith(os.pardir + os.sep):
+        return False, (
+            f"its oracle names {reference}, which resolves outside this repository entirely, to "
+            f"{absolute} — an oracle nobody reviewing this tree can read"
+        )
+    if not any(relative.startswith(root) for root in TEST_ROOTS):
+        return False, (
+            f"its oracle names {reference}, which resolves to {relative} and is not under "
+            f"{', '.join(sorted(TEST_ROOTS))}. An "
+            "oracle inside the implementation is the build asserting against its own string: the "
+            "file carries the literal because the file is what draws it"
+        )
+    if not os.path.exists(absolute):
+        return False, f"its oracle names {reference}, and there is no file at {target}"
+    try:
+        with open(absolute, encoding="utf-8", errors="replace") as handle:
+            body = handle.read()
+    except OSError as error:
+        return False, f"its oracle at {target} could not be read ({error})"
+    if not body.strip():
+        return False, f"its oracle at {target} is empty, so it asserts nothing"
+    selector = reference.split("::", 1)[1] if "::" in reference else ""
+    if selector and selector not in body:
+        return False, (
+            f"its oracle names {reference} and {target} carries no '{selector}', so the row points "
+            "past the thing it names"
+        )
+    quoted = f'"{text}"'
+    if quoted in body or quoted in " ".join(body.split()):
+        return True, f"asserted as a quoted literal in {reference}"
+    if text in body or text in " ".join(body.split()):
+        return False, (
+            f"its oracle at {reference} contains \"{text[:50]}\" but not as a quoted literal, so "
+            "what matched may be an identifier rather than an assertion about this copy"
+        )
+    return False, (
+        f"its oracle at {reference} does not carry the string this node draws, "
+        f"\"{text[:60]}\" — so whatever that file checks, it is not this"
+    )
+
+
+def layer_census(ctx) -> Layer:
+    """Does the mock's own census reach every element the mock draws?
+
+    M20's finding, and the brief calls it worse than the one M32 opens with. `mock-affordances.py`
+    derives affordances from a declared rule list, and an element no rule matches is not inventoried
+    — so it can never be reported `present`, `divergent` OR `absent`, because it never enters the
+    population any of those words describe. The first blindness at least leaves an `extra` row a
+    reader can interrogate; this one leaves nothing at all.
+
+    Measured on this tree at 03c34c3: the Insights `v-ideal` frame drew `Resident, all children`
+    and `214 MB` inside `<div class="stat">`, which matches no rule, and the field that was supposed
+    to make the exclusion visible reported `unclassifiedElements: 1` for a frame with twelve such
+    strings — because it skipped `div` and `span` before counting, and because nothing in this file
+    ever read it. Both halves of that are now closed: the census partitions the frame, and this
+    layer reads it.
+
+    The population is every element in the frame, across every state, which is deliberately the
+    widest number available: a rule set that stopped deriving would shrink `affordance` and grow
+    `covered`, and only a denominator that counts both can see it.
+
+    A residue element is a finding unless a `~` row in the pairing file waives it with a citation.
+    Extending `RULES` is the other route and the better one — a waiver records that a string is
+    drawn and outside the census on purpose, and the count of them is the size of the hole.
+    """
+    layer = Layer("census")
+    residue = 0
+    waived = 0
+    for state in ctx.states:
+        inventory = ctx.inventory[state]
+        census = inventory.get("census")
+        listed = inventory.get("uninventoried")
+        if census is None or listed is None:
+            raise Inconclusive(
+                f"census[{state}]: the inventory carries no census, so how much of the frame the "
+                "derivation rules reached is unknown. A count of what a rule set declined to derive "
+                "is the only thing that can size the hole, and its absence is not a clean read."
+            )
+        # Re-derived rather than believed. `mock-affordances.py` asserts this partition where it
+        # produces it, which is the right place for it and is also the producer vouching for
+        # itself. Two readers, one arithmetic.
+        classes = ("affordance", "covered", "container", "uninventoried")
+        try:
+            parts = sum(int(census[name]) for name in classes)
+            elements = int(census["elements"])
+        except (KeyError, TypeError, ValueError) as error:
+            raise Inconclusive(
+                f"census[{state}]: the census does not carry the four class counts as numbers "
+                f"({error!r}), so the frame was never partitioned"
+            ) from error
+        if parts != elements:
+            raise Inconclusive(
+                f"census[{state}]: the frame holds {elements} element(s) and the four classes "
+                f"account for {parts}. An element in no class is one this gate cannot report on "
+                "in any of its words, which is the whole of what this layer measures."
+            )
+        if census["affordance"] != len(inventory["affordances"]):
+            raise Inconclusive(
+                f"census[{state}]: {census['affordance']} element(s) were classified as affordances "
+                f"against {len(inventory['affordances'])} inventory row(s). The census and the "
+                "inventory are not describing the same set."
+            )
+        if census.get("rootAffordance"):
+            raise Inconclusive(
+                f"census[{state}]: the frame's own root element matches the "
+                f"'{census['rootAffordance']}' rule, so every element inside it has an affordance "
+                "ancestor and lands `covered`. The residue is zero for a structural reason rather "
+                "than a measured one, and a layer whose finding count cannot rise above zero "
+                "reports exactly like one that looked and found nothing."
+            )
+        if census.get("orphanText"):
+            raise Inconclusive(
+                f"census[{state}]: {census['orphanText']} run(s) of drawn text sit outside every "
+                "element in the frame, so they are in none of the four classes. A partition with "
+                "drawn text outside it does not partition the frame."
+            )
+        if census["uninventoried"] != len(listed):
+            raise Inconclusive(
+                f"census[{state}]: {census['uninventoried']} element(s) are counted outside every "
+                f"rule and {len(listed)} are listed, so the count and the list disagree and neither "
+                "can be acted on."
+            )
+        layer.observations += elements
+        residue += census["uninventoried"]
+
+        waivers = ctx.rule_waivers.get(state, {})
+        for element in listed:
+            citation = waivers.get(element["id"])
+            if citation:
+                waived += 1
+                layer.carried.append(
+                    f"{state}: {element['id']} is drawn at {element['where']} and matches no "
+                    f"derivation rule — {citation}"
+                )
+                continue
+            layer.findings.append(
+                f"{state}: the mock draws \"{element['text'][:60]}\" at {element['where']} "
+                f"(<{element['tag']} class=\"{' '.join(element['classes'])}\">) and no derivation "
+                "rule matches it, so it enters the census as nothing at all — not present, not "
+                "divergent, not absent. A wrong string here is invisible to every other layer."
+            )
+
+    layer.ran = True
+    if layer.observations < ctx.floors["mockElements"]:
+        raise Inconclusive(
+            f"census: the {len(ctx.states)} frame(s) hold {layer.observations} element(s), below "
+            f"the floor of {ctx.floors['mockElements']}. A frame the slicer truncated derives a "
+            "small clean census off a surface it never read to the end — the first version of "
+            "`mock-affordances.py` did exactly that and reported 30 affordances for a state with "
+            "more than a hundred."
+        )
+    layer.note = (
+        f"{layer.observations} mock element(s) across {len(ctx.states)} state(s) · "
+        f"{residue} outside every derivation rule, {waived} of them waived"
+    )
     return layer
 
 
@@ -1050,14 +1342,15 @@ LAYERS = {
     "geometry": layer_geometry,
     "type-metrics": layer_type_metrics,
     "copy": layer_copy,
+    "census": layer_census,
     "breadth": layer_breadth,
     "font-weight-face": layer_font_weight_face,
 }
 
 # The order the layers run and print in. Kept beside the table it has to agree with, and checked
 # against it in `main()` rather than trusted.
-LAYER_ORDER = ["tokens", "literals", "structure", "geometry", "type-metrics", "copy", "breadth",
-               "font-weight-face"]
+LAYER_ORDER = ["tokens", "literals", "structure", "geometry", "type-metrics", "copy", "census",
+               "breadth", "font-weight-face"]
 
 
 # --------------------------------------------------------------------------- driver
@@ -1098,6 +1391,13 @@ class Context:
         self.comparable: dict[str, dict[str, str]] = {}
         self.citations: dict[str, str] = {}
         self.extra_allowed: dict[str, dict[str, str]] = {}
+        #: state -> uninventoried element id -> citation. A `~` row: this mock element is drawn,
+        #: no derivation rule matches it, and here is why that is allowed to stand.
+        self.rule_waivers: dict[str, dict[str, str]] = {}
+        #: state -> build node path -> (reference, note). A `!` row: what asserts the string this
+        #: build-side addition draws. The citation says why the node exists; this says what checks
+        #: that what it says is right, which is the difference M32 is about.
+        self.oracles: dict[str, dict[str, tuple[str, str]]] = {}
         self.breadth_rows: list[tuple] = []
 
     def frame(self, state: str) -> str:
@@ -1145,6 +1445,28 @@ class Context:
                     raise Inconclusive(f"pairing: unknown state '{state}'")
                 if affordance.startswith("+"):
                     self.extra_allowed.setdefault(state, {})[affordance[1:]] = citation
+                    continue
+                if affordance.startswith("~"):
+                    # A drawn mock element no derivation rule matches, waived deliberately. The
+                    # citation is the whole of the row's value, so a waiver without one is refused
+                    # here rather than counted as a silence somebody chose.
+                    if not citation.strip():
+                        raise Inconclusive(
+                            f"pairing: '{affordance}' waives an element the census cannot derive "
+                            "and carries no citation. A waiver with no reason is the silent drop "
+                            "the census exists to end, written down."
+                        )
+                    self.rule_waivers.setdefault(state, {})[affordance[1:]] = citation
+                    continue
+                if affordance.startswith("!"):
+                    # An ORACLE for a build node the mock never drew: which file asserts the string
+                    # this node puts on screen. `node` holds the reference rather than a node path.
+                    if node == "-" or not node.strip():
+                        raise Inconclusive(
+                            f"pairing: '{affordance}' declares an oracle for {affordance[1:]} and "
+                            "names no file, so nothing was pointed at."
+                        )
+                    self.oracles.setdefault(state, {})[affordance[1:]] = (node, citation)
                     continue
                 if node == "-":
                     if citation:

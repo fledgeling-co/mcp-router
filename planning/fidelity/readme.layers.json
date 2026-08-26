@@ -170,7 +170,7 @@
     "tokenRows": 89,
     "dumpNodes": 30,
     "affordances": 51,
-    "lintFiles": 132
+    "lintFiles": 132, "mockElements": 162
   },
 
   "layers": [
@@ -180,6 +180,7 @@
     { "name": "geometry", "required": true },
     { "name": "type-metrics", "required": true },
     { "name": "copy", "required": true },
+    { "name": "census", "required": true },
     { "name": "breadth", "required": true },
     {
       "name": "font-weight-face",

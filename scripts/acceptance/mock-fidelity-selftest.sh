@@ -72,6 +72,31 @@ print(json.dumps(data))
 DUP
   fi
 
+  # M32 presence controls for the engine's own re-derivation of the census. The shipped inventory
+  # tool asserts the partition where it produces it; these two wrap the real tool and break the
+  # arithmetic after it, which is the only way to show that the engine refuses rather than trusting
+  # a producer that vouches for itself. Same shape as the FIXTURE_DUP_ID wrapper above.
+  if [ "${FIXTURE_CENSUS_BREAK:-0}" = "1" ] || [ "${FIXTURE_CENSUS_DROP:-0}" = "1" ]; then
+    rm -f "$root/scripts/acceptance/mock-affordances.py"
+    cat > "$root/scripts/acceptance/mock-affordances.py" <<CENSUS
+import json, subprocess, sys
+out = subprocess.run([sys.executable, "$AFFORDANCES"] + sys.argv[1:], capture_output=True, text=True)
+if out.returncode != 0:
+    sys.stderr.write(out.stderr)
+    sys.exit(out.returncode)
+data = json.loads(out.stdout)
+# Baked in at build time rather than read from the environment at run time: \`expect\` launches the
+# engine itself, so a variable the case exported around \`build\` is long gone by then, and a stub
+# that silently did not take effect makes a case pass for the wrong reason.
+if "${FIXTURE_CENSUS_DROP:-0}" == "1":
+    data.pop("census", None)
+    data.pop("uninventoried", None)
+else:
+    data["census"]["container"] -= 1
+print(json.dumps(data))
+CENSUS
+  fi
+
   cat > "$root/scripts/lint/no-raw-design-values.sh" <<'LINT'
 #!/bin/bash
 # Stub stand-in for the real colour-literal lint. Prints the same scan line the real one does,
@@ -246,6 +271,22 @@ elif CLAIM == "same-copy":
     # same pairings, has a genuine string difference to report on a pairing the breadth layer has
     # just recorded as unmeasurable.
     extra_mock += '    <h3>Alpha</h3>\n    <h3>Beta</h3>\n'
+# M32 (b): a drawn mock element no derivation rule matches. `.stat` and its two children are the
+# shape M20 found on the Insights board — `Resident, all children` / `214 MB` inside plain divs, so
+# the census cannot inventory them and a wrong number here is neither present, divergent NOR absent.
+RESIDUE = os.environ.get("FIXTURE_RESIDUE") or ""
+if RESIDUE:
+    extra_mock += (
+        '    <div class="stat">\n'
+        '      <div class="sl">Resident, all children</div>\n'
+        '      <div class="sv mono">214 MB</div>\n'
+        '    </div>\n'
+    )
+# M32 (a), the covered-by-pair half: a mock card whose build answer carries a child drawing a
+# string the card's own compared label does not contain. That child used to land `covered-by-pair`,
+# which is this gate's one wholly silent class.
+if os.environ.get("FIXTURE_COVERED_TEXT"):
+    extra_mock += '    <div class="card">Panel body</div>\n'
 # A card the mock fills with TWO rows, against a build that draws three.
 if os.environ.get("FIXTURE_SURPLUS_CHILD") == "1":
     extra_mock += (
@@ -255,9 +296,14 @@ if os.environ.get("FIXTURE_SURPLUS_CHILD") == "1":
         '    </div>\n'
     )
 
+# The frame's own root matching a rule. The slicer returns a fragment without its closing tag, so
+# that root stays open for the whole parse and EVERY element inside it lands `covered` — a residue
+# that is zero for a structural reason rather than a measured one.
+FRAME_CLASS = "v v-ideal card" if os.environ.get("FIXTURE_ROOT_AFFORDANCE") == "1" else "v v-ideal"
+
 open(os.path.join(root, "design/fixture.html"), "w").write("""<!doctype html>
 <section id="b-fixture">
-  <div class="v v-ideal">
+  <div class="%s">""" % FRAME_CLASS + """
     <h1>Fixture</h1>
     <p>One sentence.</p>
     <button class="btn primary">Do the thing</button>
@@ -377,6 +423,30 @@ if os.environ.get("FIXTURE_KIND_MISMATCH") == "1":
         node("panel", "skeleton", "vstack", (0, 80, 200, 40),
              text=os.environ.get("FIXTURE_PANEL_TEXT") or "Panel")
     )
+# M32 (a): a build-side addition that draws a string the mock has no counterpart for. `Read now ago`
+# is the literal string M22's Harnesses board rendered for the first five seconds after every load
+# — an honest citation said the board reports how old its answer is, and nothing said what it
+# should read.
+EXTRA_TEXT = os.environ.get("FIXTURE_EXTRA_TEXT") or ""
+if EXTRA_TEXT:
+    dump["root"]["children"].append(
+        node("freshness", "freshness", "text", (0, 120, 200, 16), text="Read now ago",
+             type_role="Body")
+    )
+if os.environ.get("FIXTURE_COVERED_TEXT"):
+    # `substring` is the out-of-family review's own attack on the first draft's exemption
+    # (`gemini-3.7-flash-high`, finding 1.2): the container aggregates its children's labels, so the
+    # child's string IS a substring of the owner's text. The owner therefore no longer equals the
+    # mock's `Panel body` and is not `present`, and the child must not be exempted by it.
+    aggregated = os.environ.get("FIXTURE_COVERED_TEXT") == "substring"
+    dump["root"]["children"].append(
+        node("panel", "table", "vstack", (0, 140, 200, 40),
+             text="Panel body Read now ago" if aggregated else "Panel body", axis="vertical",
+             children=[
+                 node("label", "column-header", "text", (0, 140, 200, 16), text="Panel body"),
+                 node("stamp", "freshness", "text", (0, 160, 200, 16), text="Read now ago"),
+             ])
+    )
 if os.environ.get("FIXTURE_SURPLUS_CHILD") == "1":
     dump["root"]["children"].append(
         node("rows", "table", "vstack", (0, 80, 200, 60),
@@ -389,7 +459,8 @@ if os.environ.get("FIXTURE_SURPLUS_CHILD") == "1":
 
 open(os.path.join(root, "dumps/fixture.ideal.json"), "w").write(json.dumps(dump, indent=1))
 
-layers = ["tokens", "literals", "structure", "geometry", "type-metrics", "copy", "breadth"]
+layers = ["tokens", "literals", "structure", "geometry", "type-metrics", "copy", "census",
+          "breadth"]
 declared = [{"name": name, "required": True} for name in layers]
 if os.environ.get("FIXTURE_SILENCE_STRUCTURE") == "1":
     declared[2] = {"name": "structure", "required": False, "substitute": "checked by eye"}
@@ -399,7 +470,8 @@ declared.append({"name": "font-weight-face", "required": False,
 open(os.path.join(root, "planning/fidelity/fixture.layers.json"), "w").write(json.dumps({
     "surface": "fixture", "mock": "design/fixture.html", "section": "b-fixture",
     "pairing": "planning/fidelity/fixture.pairing.tsv", "states": ["ideal"],
-    "floors": {"tokenRows": 10, "dumpNodes": 4, "affordances": 3, "lintFiles": 3},
+    "floors": {"tokenRows": 10, "dumpNodes": 4, "affordances": 3, "lintFiles": 3,
+               "mockElements": 4},
     "layers": declared,
 }, indent=1))
 
@@ -429,6 +501,67 @@ elif CLAIM == "cross":
 elif CLAIM == "same-copy":
     pairing += ("ideal\tv-ideal/heading/alpha\tfixture.ideal/shared\n"
                 "ideal\tv-ideal/heading/beta\tfixture.ideal/shared\n")
+if RESIDUE == "waived":
+    pairing += (
+        "ideal\t~v-ideal/uninventoried/resident-all-children\t-\t"
+        "M32 selftest — waived deliberately, with a reason, which is the route that is meant to "
+        "exist beside extending RULES\n"
+        "ideal\t~v-ideal/uninventoried/214-mb\t-\t"
+        "M32 selftest — waived deliberately, with a reason\n"
+    )
+elif RESIDUE == "nocite":
+    # A waiver with no reason is the silent drop written down, so the gate refuses it.
+    pairing += "ideal\t~v-ideal/uninventoried/resident-all-children\t-\n"
+if EXTRA_TEXT:
+    pairing += ("ideal\t+fixture.ideal/freshness\t-\t"
+                "D1 · the board says how old its answer is, which the mock has no counterpart for\n")
+if EXTRA_TEXT == "oracle":
+    open(os.path.join(root, "scripts/acceptance/oracle.txt"), "w").write(
+        'expect(footer.freshness == "Read now ago")\n')
+    pairing += "ideal\t!fixture.ideal/freshness\tscripts/acceptance/oracle.txt\tgolden copy\n"
+elif EXTRA_TEXT == "badoracle":
+    open(os.path.join(root, "scripts/acceptance/oracle.txt"), "w").write(
+        'expect(footer.freshness == "Read just now")\n')
+    pairing += "ideal\t!fixture.ideal/freshness\tscripts/acceptance/oracle.txt\tgolden copy\n"
+elif EXTRA_TEXT == "nofile":
+    pairing += "ideal\t!fixture.ideal/freshness\tscripts/acceptance/no-such-oracle.txt\tgolden copy\n"
+elif EXTRA_TEXT == "selfassert":
+    # The cheapest bypass of the first draft: point the oracle at the view that composes the string.
+    os.makedirs(os.path.join(root, "app/Sources/Fixture"), exist_ok=True)
+    open(os.path.join(root, "app/Sources/Fixture/Footer.swift"), "w").write(
+        'Text("Read now ago")\n')
+    pairing += "ideal\t!fixture.ideal/freshness\tapp/Sources/Fixture/Footer.swift\tgolden copy\n"
+elif EXTRA_TEXT in ("traverse", "dottraverse"):
+    # The same bypass wearing a test root's name. `app/Tests/../../app/Sources/...` satisfied a
+    # `startswith` test on the spelling while `open` landed on the implementation, and the verifier
+    # drove it through the guard that was added to close the `selfassert` case above. The `./`
+    # prefix is the second spelling, because the first draft stripped it with `lstrip("./")`.
+    os.makedirs(os.path.join(root, "app/Sources/Fixture"), exist_ok=True)
+    os.makedirs(os.path.join(root, "app/Tests"), exist_ok=True)
+    open(os.path.join(root, "app/Sources/Fixture/Footer.swift"), "w").write(
+        'Text("Read now ago")\n')
+    prefix = "./" if EXTRA_TEXT == "dottraverse" else ""
+    pairing += ("ideal\t!fixture.ideal/freshness\t"
+                + prefix + "app/Tests/../../app/Sources/Fixture/Footer.swift\tgolden copy\n")
+elif EXTRA_TEXT == "unquoted":
+    # The string is in the file and is not an assertion about copy — the shape a Swift identifier
+    # or a comment has.
+    open(os.path.join(root, "scripts/acceptance/oracle.txt"), "w").write(
+        "func testReadNowAgoRendering() { /* Read now ago */ }\n")
+    pairing += "ideal\t!fixture.ideal/freshness\tscripts/acceptance/oracle.txt\tgolden copy\n"
+elif EXTRA_TEXT == "badselector":
+    open(os.path.join(root, "scripts/acceptance/oracle.txt"), "w").write(
+        'expect(footer.freshness == "Read now ago")\n')
+    pairing += ("ideal\t!fixture.ideal/freshness\t"
+                "scripts/acceptance/oracle.txt::testNoSuchCase\tgolden copy\n")
+elif EXTRA_TEXT == "noref":
+    pairing += "ideal\t!fixture.ideal/freshness\t-\tgolden copy\n"
+if os.environ.get("FIXTURE_COVERED_TEXT"):
+    pairing += "ideal\tv-ideal/card/panel-body\tfixture.ideal/panel\n"
+    if os.environ.get("FIXTURE_COVERED_TEXT") == "oracle":
+        open(os.path.join(root, "scripts/acceptance/oracle.txt"), "w").write(
+            'expect(panel.stamp == "Read now ago")\n')
+        pairing += "ideal\t!fixture.ideal/panel/stamp\tscripts/acceptance/oracle.txt\tgolden copy\n"
 if os.environ.get("FIXTURE_KIND_MISMATCH") == "1":
     pairing += "ideal\tv-ideal/card/panel\tfixture.ideal/panel\n"
 if os.environ.get("FIXTURE_SURPLUS_CHILD") == "1":
@@ -583,6 +716,113 @@ expect "a mock card answered by a build skeleton returns 1" 1 "$root" "never vou
 # three. Under the blanket `inside_a_pair` exemption this read `covered-by-pair` and said nothing.
 root="$SCRATCH/surplus"; export FIXTURE_SURPLUS_CHILD=1; build "$root"; unset FIXTURE_SURPLUS_CHILD
 expect "a build child past the mock's count returns 1" 1 "$root" "and this one answers none"
+
+# ---------------------------------------------------------------------------- M32
+#
+# Two mechanisms, and the second is the one M20 called worse. Every case below plants the fault the
+# check is supposed to catch and asserts the run goes red on it — and the `!`-prefixed refutations
+# assert the run stays quiet where the check is meant to be satisfied, because a check that only
+# ever looks for presence cannot tell a passing oracle from a missing layer.
+
+# (b) A drawn mock element outside every derivation rule. Before this layer it entered the census
+# as nothing at all, and `unclassifiedElements` — the field that was supposed to make the exclusion
+# visible — skipped `div` before counting and was read by nothing.
+root=$SCRATCH/residue; FIXTURE_RESIDUE=1 build "$root"
+expect "a mock element no rule derives returns 1, not 0" 1 "$root" \
+  "no derivation rule matches it" "Resident, all children" "2 outside every derivation rule"
+
+root=$SCRATCH/residue-waived; FIXTURE_RESIDUE=waived build "$root"
+expect "the same element, waived with a reason, returns 0" 0 "$root" \
+  "2 outside every derivation rule, 2 of them waived" "!no derivation rule matches it"
+
+root=$SCRATCH/residue-nocite; FIXTURE_RESIDUE=nocite build "$root"
+expect "a waiver with no reason returns 3, not 0" 3 "$root" \
+  "A waiver with no reason is the silent drop"
+
+# The engine re-derives the partition rather than believing the producer's own arithmetic. A
+# producer that miscounts is the case: `mock-affordances.py` asserts the partition where it makes
+# it, which is right and is also the producer vouching for itself.
+root=$SCRATCH/census-broken; FIXTURE_CENSUS_BREAK=1 build "$root"
+expect "a census that does not partition its frame returns 3, not 0" 3 "$root" \
+  "An element in no class is one this gate cannot report on in any of its words"
+
+root=$SCRATCH/census-absent; FIXTURE_CENSUS_DROP=1 build "$root"
+expect "an inventory carrying no census returns 3, not 0" 3 "$root" \
+  "the inventory carries no census"
+
+# (a) A build-side addition the mock never drew. The citation says why the node exists; until M32
+# nothing could say whether what it reads is right, and `Read now ago` shipped behind an honest one.
+root=$SCRATCH/extra-unoracled; FIXTURE_EXTRA_TEXT=1 build "$root"
+expect "a cited extra with no oracle returns 1, naming what is missing" 1 "$root" \
+  "nothing asserts what it says" "Read now ago" \
+  "A citation says why the node is there; it cannot say whether what it reads is correct"
+
+root=$SCRATCH/extra-oracled; FIXTURE_EXTRA_TEXT=oracle build "$root"
+expect "a cited extra whose oracle carries its string returns 0" 0 "$root" \
+  "asserted as a quoted literal in scripts/acceptance/oracle.txt" "!nothing asserts what it says"
+
+root=$SCRATCH/extra-badoracle; FIXTURE_EXTRA_TEXT=badoracle build "$root"
+expect "an oracle that does not carry the string returns 1, not 0" 1 "$root" \
+  "does not carry the string this node draws" "!asserted as a quoted literal"
+
+root=$SCRATCH/extra-nofile; FIXTURE_EXTRA_TEXT=nofile build "$root"
+expect "an oracle naming a file that does not exist returns 1, not 0" 1 "$root" \
+  "there is no file at scripts/acceptance/no-such-oracle.txt"
+
+root=$SCRATCH/extra-noref; FIXTURE_EXTRA_TEXT=noref build "$root"
+expect "an oracle row naming no file returns 3" 3 "$root" \
+  "names no file, so nothing was pointed at"
+
+# (a), the silent half. `covered-by-pair` produced no finding and no citation, so a build string
+# nobody compared could sit in it forever — which is where a freshness line lives.
+root=$SCRATCH/covered-text; FIXTURE_COVERED_TEXT=1 build "$root"
+expect "a covered-by-pair node drawing an uncompared string returns 1, not 0" 1 "$root" \
+  "which no ancestor that measured \`present\` accounts for" "Read now ago"
+
+root=$SCRATCH/extra-selfassert; FIXTURE_EXTRA_TEXT=selfassert build "$root"
+expect "an oracle pointing at the implementation returns 1, not 0" 1 "$root" \
+  "An oracle inside the implementation is the build asserting against its own string"
+
+# The verifier's own bypass of the guard directly above, as two cases. The `selfassert` case alone
+# plants the naive spelling, so it could never fail on a traversal: the guard tested the string and
+# `open` read the resolved path, and only one of those two was ever checked.
+root=$SCRATCH/extra-traverse; FIXTURE_EXTRA_TEXT=traverse build "$root"
+expect "an oracle reaching the implementation through .. returns 1, not 0" 1 "$root" \
+  "An oracle inside the implementation is the build asserting against its own string" \
+  "resolves to app/Sources/Fixture/Footer.swift" \
+  "!asserted as a quoted literal"
+
+root=$SCRATCH/extra-dottraverse; FIXTURE_EXTRA_TEXT=dottraverse build "$root"
+expect "the same traversal spelled with a leading ./ returns 1, not 0" 1 "$root" \
+  "An oracle inside the implementation is the build asserting against its own string" \
+  "resolves to app/Sources/Fixture/Footer.swift" \
+  "!asserted as a quoted literal"
+
+root=$SCRATCH/extra-unquoted; FIXTURE_EXTRA_TEXT=unquoted build "$root"
+expect "an oracle matching outside a quoted literal returns 1, not 0" 1 "$root" \
+  "not as a quoted literal"
+
+root=$SCRATCH/extra-badselector; FIXTURE_EXTRA_TEXT=badselector build "$root"
+expect "an oracle whose named case is not in the file returns 1, not 0" 1 "$root" \
+  "carries no 'testNoSuchCase'"
+
+# The out-of-family review's attack on the covered exemption, run as a case rather than answered in
+# prose: the ancestor's aggregate text CONTAINS the child's string, and the ancestor is not
+# `present`, so nothing measured that string.
+root=$SCRATCH/covered-substring; FIXTURE_COVERED_TEXT=substring build "$root"
+expect "a child whose string an unequal ancestor merely contains returns 1, not 0" 1 "$root" \
+  "no ancestor that measured \`present\` accounts for"
+
+# A frame whose own root matches a rule can never report a residue, whatever is drawn inside it.
+root=$SCRATCH/root-affordance; FIXTURE_ROOT_AFFORDANCE=1 FIXTURE_RESIDUE=1 build "$root"
+expect "a frame root that is itself an affordance returns 3, not a clean residue" 3 "$root" \
+  "residue is zero for a structural reason rather than a measured one" \
+  "!no derivation rule matches it"
+
+root=$SCRATCH/covered-oracled; FIXTURE_COVERED_TEXT=oracle build "$root"
+expect "the same node with a verified oracle returns 0" 0 "$root" \
+  "asserted as a quoted literal in scripts/acceptance/oracle.txt" \
+  "!which no ancestor that measured \`present\` accounts for"
 
 # 16 — tokens, G3: the marker is printed and carries no census fields. It is what the real suite
 # prints with MCP_ROUTER_WRITE_TOKEN_REGISTER=1 in the environment, and unguarded it raised an

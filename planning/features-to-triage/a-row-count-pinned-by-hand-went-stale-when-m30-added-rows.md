@@ -45,6 +45,40 @@ The question is whether this count should be pinned by hand at all, and if it mu
 adding a row without updating it should fail loudly at the point of the edit rather than silently
 several gates later.
 
+## The history, measured — this is a recurrence, and the pin has never worked
+
+`git log -L3,3` on the file shows the pin **bumped five times**, once per change that touched it:
+
+| commit | pin becomes |
+|---|---|
+| `6c4829e` | 83 |
+| `ab2a64b` | 91 |
+| `855179b` | 92 |
+| `0eed681` | 94 |
+| `ebe3165` | 95 |
+
+**It was caught in advance once, and the catch did not survive.** R19's ledger row records, on
+2026-08-22: *"the union with today's `main` puts 96 rows against `surface.tsv:3`'s `# rows: 94`
+pin, so `parity-manifest-check.sh` exits 1 on the merged tree while both parents are green — a
+merge-only break caught in advance for the first time."* That is the same failure, predicted
+before it landed, by a runner reading two branches. It was then resolved the way every other
+occurrence was resolved: by moving the pin.
+
+**And the sharpest measurement is that the last bump was already wrong when it was written.**
+`ebe3165` set the pin to **95**. At that same commit the file already held **97** data rows. So
+the hand-update was stale by two the moment it was made, and `b1160ef` — the same item, minutes
+later — inherited it. Nobody mistyped: the number is simply not derivable by the person editing
+it, and five people in a row have proved that.
+
+The gate's own message names the coupling that makes this more than a counter:
+
+> the manifest holds 97 rows and pins itself at 95. … A row was added or removed. If that was
+> deliberate, move the pin in the same change and **the cutover target is derived from this
+> denominator and is pinned separately.**
+
+So a coverage fraction that moves without the gate noticing is precisely what this file exists to
+prevent, and the mechanism protecting it is a number a human retypes.
+
 ## Scope
 
 - Establish what the pin is for and who owns the number, since it reaches an owner decision.

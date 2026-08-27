@@ -15,7 +15,7 @@
       "executionPlane": "on-glass"
     },
     "oracle": "outcome",
-    "status": "pass",
+    "status": "fail",
     "armed": true,
     "evidence": [
       "evidence/runs/mac-glass-capture.log",
@@ -24,7 +24,7 @@
       "evidence/ax/SURF-008.title.txt",
       "evidence/runs/glass-assert.json"
     ],
-    "note": "Sidebar AXPress selected Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Settings; window titles matched. Cmd+1\u20137 not part of this case. ARMED: predicate watched to fail under the SURF-001 decoy.",
+    "note": "Sidebar AXPress selected Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Settings; window titles matched. Cmd+1\u20137 not part of this case. ARMED: predicate watched to fail under the SURF-001 decoy.  ---  RE-MEASURED 2026-08-27 by G16 and now FAILING against a fresh capture. This case passed over evidence taken on 20 Aug from a build that predates M22. See DEF-058. Not chased here \u2014 editing the stale assertion to restore green is the one move this campaign forbids, and the stale assertion is the instrument that found it.",
     "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-001's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs \u00b7 leaks=0 \u00b7 shell surfaces asserted for persistence instead: 1) \u2014 a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build\u2192launch\u2192capture\u2192assert pipeline is armed once, end to end, on CASE-0014/CASE-0106."
   },
   {
@@ -399,7 +399,7 @@
       "executionPlane": "headless"
     },
     "oracle": "outcome",
-    "status": "pass",
+    "status": "fail",
     "armed": true,
     "evidence": [
       "evidence/ax/SURF-011.title.txt",
@@ -407,7 +407,7 @@
       "evidence/runs/glass-assert.json"
     ],
     "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-011's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs \u00b7 leaks=0 \u00b7 shell surfaces asserted for persistence instead: 1) \u2014 a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build\u2192launch\u2192capture\u2192assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-011 decoy."
+    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-011 decoy.  ---  RE-MEASURED 2026-08-27 by G16 and now FAILING against a fresh capture. This case passed over evidence taken on 20 Aug from a build that predates M22. See DEF-058. Not chased here \u2014 editing the stale assertion to restore green is the one move this campaign forbids, and the stale assertion is the instrument that found it."
   },
   {
     "id": "CASE-0017",
@@ -860,7 +860,7 @@
       "executionPlane": "on-glass"
     },
     "oracle": "raster-visual",
-    "status": "pass",
+    "status": "fail",
     "armed": true,
     "evidence": [
       "evidence/shots/SURF-001.shell.png"
@@ -869,7 +869,7 @@
       "method": "screencapture -x -l<CGWindowID>, cropped to the window chrome (derivedFrom SURF-002.build.png)",
       "frameStatus": "complete"
     },
-    "note": "The shell has no board of its own, so its raster is the titlebar and source list cropped from the Servers capture, with the parent named in derivedFrom.",
+    "note": "The shell has no board of its own, so its raster is the titlebar and source list cropped from the Servers capture, with the parent named in derivedFrom.  ---  RE-MEASURED 2026-08-27 by G16 and now FAILING against a fresh capture. This case passed over evidence taken on 20 Aug from a build that predates M22. See DEF-058. Not chased here \u2014 editing the stale assertion to restore green is the one move this campaign forbids, and the stale assertion is the instrument that found it.",
     "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-001's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs \u00b7 leaks=0 \u00b7 shell surfaces asserted for persistence instead: 1) \u2014 a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build\u2192launch\u2192capture\u2192assert pipeline is armed once, end to end, on CASE-0014/CASE-0106."
   },
   {
@@ -1125,7 +1125,7 @@
       "executionPlane": "on-glass"
     },
     "oracle": "raster-visual",
-    "status": "pass",
+    "status": "fail",
     "armed": true,
     "evidence": [
       "evidence/shots/SURF-011.build.png"
@@ -1135,7 +1135,7 @@
       "frameStatus": "unavailable: screencapture reports no per-frame status"
     },
     "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-011's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs \u00b7 leaks=0 \u00b7 shell surfaces asserted for persistence instead: 1) \u2014 a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build\u2192launch\u2192capture\u2192assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
-    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-011 decoy."
+    "note": "assertion was unrecorded before this run; it is now stated in bin/glass-assert.py and reproduced there. ARMED: predicate watched to fail under the SURF-011 decoy.  ---  RE-MEASURED 2026-08-27 by G16 and now FAILING against a fresh capture. This case passed over evidence taken on 20 Aug from a build that predates M22. See DEF-058. Not chased here \u2014 editing the stale assertion to restore green is the one move this campaign forbids, and the stale assertion is the instrument that found it."
   },
   {
     "id": "CASE-0120",
@@ -1884,5 +1884,212 @@
       "evidence/runs/def-025-028-arms.json"
     ],
     "armed": true
+  },
+  {
+    "id": "CASE-0170",
+    "req": "REQ-003",
+    "surface": "SURF-026",
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-026",
+      "state": "populated",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/runs/mac-glass-capture.log",
+      "evidence/ax/SURF-026.title.txt",
+      "evidence/ax/SURF-026.window.txt",
+      "evidence/runs/glass-assert.json"
+    ],
+    "note": "The Insights board is reachable from the sidebar and the window title becomes its destination name \u2014 `axkit select Insights` actuated the row, `axkit title` read `Insights` back off the running app, and the capture manifest records target=app://mac/insights from that readback rather than from a filename. The predicates are the sentences that BOUND its figures rather than the figures themselves: that nothing on it is modelled, the provenance line under the memory reading, why a bar can read nothing at all, and the duty cycle's mechanism and window. The \u00a76 search for a saving runs over the rendered window and is non-vacuous by construction \u2014 the copy list requires the board to BE discussing memory and duty cycle, so a clean result is a measurement rather than a search over a tree with no numbers in it. The FIGURES are not asserted here and that is deliberate: a Debug shell reads a fixture, so asserting a number in this window would prove the fixture. CASE-0177 traces them against a live router.",
+    "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-026`, which strips this surface's own copy from its dump and turns the case RED. `--discriminate` reports this predicate wrongly accepting 1 of 8 foreign dumps \u2014 SURF-011's, which is DEF-058 rather than a weak predicate: that dump is written from a select that no longer takes."
+  },
+  {
+    "id": "CASE-0171",
+    "req": "REQ-003",
+    "surface": "SURF-026",
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-026",
+      "state": "populated",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "raster-visual",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/shots/SURF-026.build.png",
+      "evidence/shots/captures.json",
+      "evidence/runs/mac-glass-capture.log"
+    ],
+    "capture": {
+      "method": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+      "frameStatus": "complete"
+    },
+    "note": "The populated board photographed off the display server, window-scoped to the CGWindowID the attached pid owns, subject SURF-026 and target app://mac/insights both recorded from the shutter readback. This case FAILED on its first run and the failure was real: `Settings` is no longer a sidebar row, so the loop's next select did not take and the same pixels were filed a second time under SURF-011, breaking the uniqueness check. The capture script now refuses to photograph a select that did not take \u2014 see DEF-058.",
+    "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-026`, which strips this surface's own copy from its dump and turns the case RED. The raster half additionally requires a real PNG over 20 KB whose sha256 is unique across every case in the suite."
+  },
+  {
+    "id": "CASE-0172",
+    "req": "REQ-017",
+    "surface": "SURF-026",
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-026",
+      "state": "empty",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "thin",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/ax/SURF-026.empty.window.txt",
+      "evidence/runs/glass-assert.json"
+    ],
+    "note": "Not enough history is a MEASUREMENT rather than a threshold picked by eye: the thin response carries a nil logHorizon, and that nil is the whole of it. The absence half is load-bearing \u2014 the charts, the section headers and the provenance line must all be ABSENT, because a board that drew its charts under a response with no horizon would be plotting a window it never had. The window title is read off this state's own AXWindow row.",
+    "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-026/empty`, which strips this surface's own copy from its dump and turns the case RED."
+  },
+  {
+    "id": "CASE-0173",
+    "req": "REQ-017",
+    "surface": "SURF-026",
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-026",
+      "state": "empty",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "thin",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "raster-visual",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/shots/SURF-026.empty.png",
+      "evidence/shots/captures.json"
+    ],
+    "capture": {
+      "method": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+      "frameStatus": "complete"
+    },
+    "note": "The empty state photographed from its own launch; manifest subject SURF-026, target app://mac/insights read back at the shutter, sha256 unique.",
+    "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-026/empty`, which strips this surface's own copy from its dump and turns the case RED."
+  },
+  {
+    "id": "CASE-0174",
+    "req": "REQ-017",
+    "surface": "SURF-026",
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-026",
+      "state": "failure",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "offline",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/ax/SURF-026.failure.window.txt",
+      "evidence/runs/glass-assert.json"
+    ],
+    "note": "A failed read draws the router-not-running state and draws NO FIGURE AT ALL. The absence is the point on this board above any other: a count kept through a failed read would be a number describing a world the router could not see, which is the exact defect \u00a76 names. The failure copy is ControlAPIError's and shared by every board, so this case does not rest on it \u2014 the window title is read off this state's own AXWindow row.",
+    "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-026/failure`, which strips this surface's own copy from its dump and turns the case RED."
+  },
+  {
+    "id": "CASE-0175",
+    "req": "REQ-017",
+    "surface": "SURF-026",
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-026",
+      "state": "failure",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "offline",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "raster-visual",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/shots/SURF-026.failure.png",
+      "evidence/shots/captures.json"
+    ],
+    "capture": {
+      "method": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+      "frameStatus": "complete"
+    },
+    "note": "The failure state photographed from its own launch; manifest subject SURF-026, target app://mac/insights read back at the shutter, sha256 unique.",
+    "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-026/failure`, which strips this surface's own copy from its dump and turns the case RED."
+  },
+  {
+    "id": "CASE-0176",
+    "req": "REQ-017",
+    "surface": "SURF-026",
+    "lane": "macos-glass",
+    "cell": {
+      "surface": "SURF-026",
+      "state": "populated",
+      "viewport": "1024x768",
+      "theme": "light",
+      "role": "operator",
+      "dataShape": "typical",
+      "executionPlane": "on-glass"
+    },
+    "oracle": "structural",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/ax/SURF-026.window.txt",
+      "evidence/runs/glass-assert.json"
+    ],
+    "note": "PROVED TO RENDER, NOT PROVED TO WORK, and recorded at `structural` for that reason. `Analyse now` exists in the accessibility tree, drawn disabled. Nothing presses it and nothing could: PRD.md \u00a76 specifies a session analyst and nothing in app/Sources implements one, so there is no run to observe. A case claiming the analyst panel works would be claiming a feature that does not exist.",
+    "armedBy": "predicate arm. Stated explicitly in bin/glass-assert.py and re-run there. Watched to fail under `--decoy SURF-026`, which strips this surface's own copy from its dump and turns the case RED."
+  },
+  {
+    "id": "CASE-0177",
+    "req": "REQ-007",
+    "surface": "SURF-026",
+    "lane": "router-daemon",
+    "cell": {
+      "surface": "SURF-026",
+      "state": "populated",
+      "viewport": "n/a",
+      "theme": "light",
+      "role": "daemon",
+      "dataShape": "live-router",
+      "executionPlane": "headless"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/runs/insights-live-probe.json",
+      "evidence/runs/insights-live-payload.json"
+    ],
+    "note": "EVERY FIGURE THE BOARD DRAWS, TRACED TO SOMETHING THE ROUTER OBSERVES \u2014 the reason this board is its own item. Run against the Swift router serving GET /insights on 127.0.0.1:8976 under an isolated MCP_ROUTER_HOME, because ShellClientFactory makes a Debug build always take a fixture and no rendered window can tell a real reading from a recorded one.\n\nEach figure resolves to one of three classes and only two pass. OBSERVED: children.alive and children.declared (the pool's live child table; the server list on disk), calls.total (records the router wrote to its own usage log), otherCalls. DERIVED, with the derivation and both terms stated: the failure rate is failed/total*100 and BOTH terms are drawn beside it, and the duty-cycle share is aliveSeconds/uptimeSeconds \u2014 the router reports both numbers rather than a pre-divided share precisely so a surface holding both can decline to draw it. UNTRACEABLE fails the case, and nothing was untraceable.\n\nTHE M32 CELL specifically: `Resident, all children`. With no child holding a process the route serves `resident: null` and the board draws an em dash and `No child is running, so there is nothing to measure` \u2014 an absence, never a zero, which is what the label `measured, not modelled` rules out. NOT EXERCISED IN THIS RUN: the non-null path. No live child was spawned, so a real megabyte figure was never compared against ps(1). The check that would do it is written and bounded (the reading must fall within this machine's whole RSS) and it did not run. That is a gap in this case, stated rather than left to be inferred.\n\nIndependently taken by this script rather than trusted: children.declared equals the server list it counted itself; windowHours and calls.unreadableLines are both served, so a count of what parsed is not passed off as a count of what was there; the analyst member is present and NULL rather than absent, so the board draws its empty state from a fact the router stated rather than a key it failed to find.",
+    "armedBy": "two planted faults, built into bin/insights-live-probe.py --arm. ARM 1 removes `calls.total` from the payload: the trace goes RED naming both the figure that reads it and the derivation whose second term vanished. ARM 2 drops `resident` from the figure map: the completeness check goes RED with `NOT IN THE MAP: ['resident']`. That second arm is the one that matters \u2014 the map is parsed against every `identifier:` InsightsBoard.swift actually draws a figure under, so a figure ADDED to the board cannot escape the trace by not being written down, which is exactly how the surface list stopped growing while the product did. Payload restored byte-identically, both sha256 digests printed. The instrument was wrong first and it is recorded: it read `resident: null` as an untraceable figure when it is a declared absence, which is the opposite verdict and the distinction \u00a76 is entirely about."
   }
 ]

@@ -1,4 +1,4 @@
-0	AXWindow	AXStandardWindow	Servers								SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1	180.0	140.0	980.0	620.0	0
+0	AXWindow	AXStandardWindow	Insights								SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1	180.0	140.0	980.0	620.0	0
 1	AXGroup	AXHostingView										180.0	140.0	980.0	620.0	0
 2	AXSplitGroup										SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1, SidebarNavigationSplitView	180.0	-212.5	980.0	1377.5	0
 3	AXGroup	AXHostingView										188.0	-204.5	256.0	1361.5	0
@@ -11,9 +11,9 @@
 6	AXRow	AXOutlineRow						0				188.0	-141.5	256.0	32.0	
 7	AXCell						1	0				198.0	-141.5	236.0	32.0	1
 8	AXButton				Activity		1					205.5	-133.5	71.0	16.0	
-6	AXRow	AXOutlineRow						1				188.0	-109.5	256.0	32.0	
-7	AXCell						1	1				198.0	-109.5	236.0	32.0	1
-8	AXButton				Servers		1	1				204.0	-101.5	72.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-109.5	256.0	32.0	
+7	AXCell						1	0				198.0	-109.5	236.0	32.0	1
+8	AXButton				Servers		1					204.0	-101.5	72.5	16.0	
 6	AXRow	AXOutlineRow						0				188.0	-77.5	256.0	32.0	
 7	AXCell						1	0				198.0	-77.5	236.0	32.0	1
 8	AXButton				Skills		1					207.0	-69.5	55.0	16.0	
@@ -36,9 +36,9 @@
 6	AXRow	AXOutlineRow						0				188.0	114.5	256.0	32.0	
 7	AXCell						1	0				198.0	114.5	236.0	32.0	1
 8	AXButton				Cleanup		1					205.5	122.5	74.5	16.0	
-6	AXRow	AXOutlineRow						0				188.0	146.5	256.0	32.0	
-7	AXCell						1	0				198.0	146.5	236.0	32.0	1
-8	AXButton				Insights		1					203.5	154.5	75.0	16.0	
+6	AXRow	AXOutlineRow						1				188.0	146.5	256.0	32.0	
+7	AXCell						1	1				198.0	146.5	236.0	32.0	1
+8	AXButton				Insights		1	1				203.5	154.5	75.0	16.0	
 6	AXColumn							0			ListColumn	198.0	-160.5	236.0	1192.5	
 4	AXStaticText			No servers declared yet, Point MCP Router at a config and the servers your agents already use appear here.			1				sidebar	204.0	1048.0	201.0	60.0	
 4	AXStaticText			Router endpoint, 127.0.0.1:8971			1				sidebar	204.0	1134.0	95.5	14.0	
@@ -46,13 +46,12 @@
 3	AXGroup	AXHostingView										180.0	-212.5	980.0	1377.5	0
 4	AXStaticText			none	mcprouter-key-probe						content	1084.0	1137.0	72.0	24.0	1
 4	AXScrollArea										content	444.0	-160.5	716.0	1325.5	0
-5	AXStaticText			Servers			1					460.0	-144.5	79.5	26.0	
-5	AXButton				Add Server…		1					1047.0	-140.5	97.0	24.0	0
-5	AXStaticText			0 tools from 0 servers · 0 running			1					460.0	-114.5	210.5	16.0	
-5	AXUnknown				conduit		1					790.2	-62.7	23.5	18.3	
-5	AXStaticText			No servers declared yet			1					717.2	-28.5	169.5	19.0	
-5	AXStaticText			MCP Router reads the servers your agents already have configured. Point it at a config, or declare one by hand.			1					661.2	-5.5	281.5	49.0	
-5	AXButton				Add server…		1					754.5	55.5	95.5	24.0	0
+5	AXStaticText			Insights			1					460.0	-144.5	82.5	26.0	
+5	AXStaticText			What your agents actually used. Every number here is counted from calls this router served or from processes it opened — none of it is modelled.			1					460.0	-116.5	628.5	32.5	
+5	AXImage				insights		1				chart.bar	785.0	-41.5	34.5	24.5	
+5	AXStaticText			Not enough history yet			1					720.5	-2.5	163.0	19.0	
+5	AXStaticText			No calls have been served in the last 24 hours, so these charts would say less than the Activity log already does. They fill themselves as sessions run; there is nothing to set up.			1					660.5	20.5	283.0	82.0	
+5	AXButton				Watch the live log instead		1					713.0	114.5	178.0	24.0	0
 1	AXToolbar											180.0	140.0	980.0	52.0	0
 2	AXButton				Hide Sidebar		1	0				397.0	140.0	47.0	52.0	0
 1	AXButton	AXCloseButton					1					198.0	158.0	16.0	16.0	0
@@ -60,4 +59,4 @@
 2	AXGroup											245.0	159.0	14.0	14.0	0
 3	AXGroup											245.0	159.0	14.0	14.0	0
 1	AXButton	AXMinimizeButton					1					221.0	158.0	16.0	16.0	0
-1	AXStaticText			Servers			1					448.0	140.0	708.0	52.0	0
+1	AXStaticText			Insights			1					448.0	140.0	708.0	52.0	0

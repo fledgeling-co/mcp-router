@@ -155,6 +155,39 @@ SURFACE    ?= servers
 ## whose artifact IS written to disk in the control repo: a classifier that reads the filesystem
 ## answers `TRACKED` and the control fails.
 
+## `target-resolution-gate.py` (`G7`, third axis) is the third sibling on that axis, and the split
+## between the three is the whole reason it is a separate file. `citation-gate` asks whether a
+## STATED FRAME holds — is the anchor at the cited line at the cited tree. `foreign-path-gate` asks
+## whether the artifact behind a SCRATCH path survives. This asks whether the target a record names
+## exists at all, for paths rooted INSIDE the repository and for registry ids, which is the half
+## none of the three reads: `citation-gate` DROPS a citation whose path is not tracked rather than
+## classifying it — 65 of them at the run this landed against — and those 65 are the top of this
+## gate's population.
+##
+## Measured over 411 hand-written records at the landing commit: 1639 repo-rooted path citations,
+## of which 1591 resolve, 9 are dead-but-framed (a tree carried, so still checkable), 8 withdrawn,
+## 8 plan work-items — and 22 name a target no commit reachable from any ref holds. 1050 id
+## citations, 1 of which names no row in any registry. The census is the finding; the numbers are
+## printed on every run so none can be quoted without its question.
+##
+## It reads the INDEX rather than `HEAD`, which is `evidence-citation-gate`'s frame and not
+## `foreign-path-gate`'s. Deliberate: this gate exists to stop a dead pointer being WRITTEN, and a
+## gate that only sees a citation once it is committed has already let it through. `--rev <sha>`
+## gives the deterministic per-commit reading `G11`'s argument wants.
+##
+## It survives a legitimate renumber without a waiver list, which is what decided its design —
+## `G16` became `DEF-059`, `G19` `SURF-027` and `G17` `CASE-0184..0194` in one day. Registries are
+## read as a UNION, so a refiling that keeps the old row leaves both ids resolving; a path citation
+## carrying a tree reads `FRAMED` whatever happens to the path afterwards; and what is left is a
+## renumber that deletes the old id everywhere and names no successor, which is
+## `registry-drop-gate`'s undeclared drop and is declared in the same
+## `planning/registry-retirements.json`. Its control holds both halves apart: a renumber that keeps
+## the old row must be silent and one that does not must fire, and the run fails if they agree.
+##
+## Its floor is per CITING file and may only fall, for `citation-gate`'s reason — a scalar lets a
+## deletion in one file buy headroom for a new dead citation in another. `--set-floor` writes it;
+## checking never does.
+
 ## `foreign-path-gate.py` (`G6`) is the sibling of that one, one directory out. `evidence-citation-gate`
 ## asks whether a path a campaign record names is in the index; this asks whether a path a
 ## hand-written record cites is inside the repository AT ALL. On 2026-08-23 a terminal died and
@@ -867,6 +900,7 @@ lint: tools
 	python3 planning/registry-drop-gate.py || fail=1; \
 	python3 planning/evidence-citation-gate.py || fail=1; \
 	python3 planning/foreign-path-gate.py --quiet || fail=1; \
+	python3 planning/target-resolution-gate.py --quiet || fail=1; \
 	python3 planning/test-campaign/bin/capture-manifest.py || fail=1; \
 	python3 planning/pin-class-gate.py || fail=1; \
 	python3 planning/shipped-brief-gate.py || fail=1; \

@@ -8,6 +8,7 @@ controls that have actually held:
 ```sh
 planning/hooks/install.sh           # install both, then print each sha256
 planning/hooks/install.sh --check   # is what is installed still what is tracked? exit 1 if not
+planning/hooks/install.sh --gate    # the same reading, scoped so `make lint` can carry it
 ```
 
 `--check` is the half that used to be missing. The `cp` line this replaces told a fresh clone how
@@ -15,6 +16,25 @@ to install and gave it no way to find out afterwards whether it had worked, so a
 hook and a stale installed copy looked identical from outside — a control believed armed with
 nothing checking, which is the shape `G9` exists for. The installer derives the repository root
 and resolves `--git-common-dir`, so it installs once for the main checkout and every worktree.
+
+`--gate` is the half after that, and it exists because `--check` was written and then invoked by
+nothing — no Makefile target, no goals script, no hook. That is `G9`'s own finding one layer up,
+and it is how the pre-commit hook reached a third hand-off still uninstalled: two verifiers
+recorded the gap and no instrument could. `--gate` runs from `make lint`.
+
+It is not simply `--check` wired in, because CI runs `make lint` on a fresh clone where
+`.git/hooks` holds only the samples, and `--check` reds on ABSENT. `--gate` splits the two states
+`--check` conflates: **DRIFTED** always reds, because an installed copy that silently disagrees
+with the tracked source claims to be a control and is not; **ABSENT** reds only where linked
+worktrees exist, because that is precisely where the hook has a job — it exists to tell the main
+checkout apart from a runner's worktree, and with no linked worktrees there is neither. A lost
+executable bit reds in every mode. Its own presence control plants all five states in throwaway
+repositories on every run and exits 2 without printing a verdict if any reads wrong.
+
+**The hooks are installed on this machine as of 2026-08-27**, which earlier revisions of this file
+and of `planning/progress/G9.md` recorded as deliberately outstanding. Installing is safe to repeat
+and safe to run mid-fleet: `install -m 0755` writes a temp file and renames, so a runner whose
+commit is in flight finishes against the inode it already opened.
 
 Run it from the orchestrating session: `.git/hooks` is shared by every linked worktree, so
 installing from inside one changes the controls under every runner in flight.

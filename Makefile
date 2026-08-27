@@ -114,6 +114,22 @@ SURFACE    ?= servers
 ## its presence control plants nine instances across every class on every invocation and exits 2
 ## without printing a verdict if any one of them is missed — so a zero here is a measurement.
 ##
+## `planning/hooks/install.sh --gate` (`G9`, 2026-08-27) is the same rule turned on G9's own
+## remedy. The pre-commit hook that refuses a non-merge commit on `main` in the shared checkout is
+## tracked at `planning/hooks/pre-commit`, but `.git/hooks` is not tracked, so the installed copy
+## is derived state that can drift from the source with nothing going red — an edited tracked hook
+## and a stale installed copy are indistinguishable from outside. `--check` was written to detect
+## exactly that and was then invoked by nothing, which is how the hook reached a third hand-off
+## still uninstalled: two verifiers recorded the gap and no instrument could.
+##
+## It is `--gate` rather than `--check` because CI runs `make lint` on a fresh clone, where
+## `.git/hooks` holds only the samples. `--gate` splits the two states `--check` conflates: DRIFTED
+## always reds, because a stale copy claims to be a control and is not; ABSENT reds only where
+## linked worktrees exist, because that is where the hook has a job — it exists to tell the main
+## checkout apart from a runner's worktree, and with none there is neither. The discriminator is
+## counted from `git worktree list`, not sniffed from the environment. Proved red four ways and
+## green on a real fresh clone; see `planning/progress/G9.md`.
+##
 ## `pin-class-gate.py` (`P11`) runs here for the reason P9 declined to put it here in a hurry:
 ## "bolting an unproven gate into the lint chain at the end of a gap-fix round is how a gate ends
 ## up reporting success without running." It is armed twice before it is trusted — five arms of its
@@ -864,6 +880,7 @@ lint: tools
 	python3 planning/citation-gate.py || fail=1; \
 	python3 planning/sweep-control-gate.py || fail=1; \
 	python3 planning/runnable-path-gate.py || fail=1; \
+	bash planning/hooks/install.sh --gate || fail=1; \
 	python3 planning/registry-drop-gate.py || fail=1; \
 	python3 planning/evidence-citation-gate.py || fail=1; \
 	python3 planning/foreign-path-gate.py --quiet || fail=1; \

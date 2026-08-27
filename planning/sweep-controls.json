@@ -74,6 +74,22 @@
       "since": "2026-08-26"
     },
     {
+      "path": "planning/hooks/install.sh",
+      "disposition": "control",
+      "markers": [
+        "V1",
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-27",
+      "control": [
+        "bash",
+        "planning/hooks/install.sh",
+        "--gate"
+      ],
+      "proves": "five hook states planted in throwaway repositories on every --gate invocation \u2014 in sync, a drifted installed copy, absent with no linked worktrees (which must be EXEMPT, not ABSENT), absent with a linked worktree (which must be ABSENT), and an installed copy with the executable bit lost \u2014 each answer required exactly; any MISS prints no verdict and exits 2, distinct from 1 for drift found"
+    },
+    {
       "path": "planning/hooks/prove-pre-commit.sh",
       "disposition": "control",
       "markers": [

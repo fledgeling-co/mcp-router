@@ -36,6 +36,22 @@ FIXTURE_DIR="$REPO_ROOT/app/Sources/MCPRouterKit/Control/Fixtures"
 [ -f "$ROUTER_TS" ]   || { echo "environment: no reference router at $ROUTER_TS"; exit 2; }
 [ -d "$FIXTURE_DIR" ] || { echo "environment: no fixtures at $FIXTURE_DIR"; exit 2; }
 
+# The census, read from the one file whose job is to count this one — P10. It is read HERE, with
+# the other environment checks, rather than beside the floor it feeds: a manifest the oracle cannot
+# read produces a finding against every reconciliation below at once, and sixty true-but-useless
+# lines about routes with no rows is not a better report than one line saying the census could not
+# be taken. `$total` is used at the bottom, by the floor and by the summary.
+CENSUS="$(PARITY_MANIFEST="$MANIFEST" "$REPO_ROOT/scripts/acceptance/surface-census.sh")" || {
+  echo "environment: the census oracle could not read $MANIFEST, so this check has no denominator."
+  echo "             scripts/acceptance/surface-census.sh printed the reason above."
+  exit 2; }
+total="$(printf '%s\n' "$CENSUS" | awk -F'\t' '$1 == "total" { print $2 }')"
+if [ -z "$total" ]; then
+  echo "environment: the census oracle printed no total. A check that carried on from here would"
+  echo "             compare an empty string against a floor and report a clean manifest."
+  exit 2
+fi
+
 problems=0
 # `note` opens a finding: it prints and it counts. `detail` continues one: it prints and it does
 # NOT count.
@@ -615,41 +631,114 @@ if [ -n "$dupes" ]; then
   while IFS= read -r id; do note "duplicate row id \"$id\""; done <<< "$dupes"
 fi
 
-total="$(awk -F'\t' '!/^#/ && NF == 6' "$MANIFEST" | wc -l | tr -d ' ')"
-
-# ------------------------------------------------------------------ the census is pinned
-# The reconciliations above derive four groups from source. `divergence`, `install`, `pool`,
-# `state` and `log` name declarations and scenarios rather than a surface some file exposes, so
-# they cannot be derived — and a BLOCKED row in one of them can be deleted with every check here
-# still green. That deletion leaves the numerator untouched and shrinks the denominator, so the
-# reported coverage GOES UP. Four rows were in that position: div-r1-d3 and the three install
-# rows.
+# ------------------------------------------------------------------ the census, derived
+# The reconciliations above derive five groups from source. `divergence`, `install`, `pool`,
+# `state`, `log` and `overlap` name declarations and scenarios rather than a surface some file
+# exposes, so they cannot be derived — and a BLOCKED row in one of them can be deleted with every
+# check here still green. That deletion leaves the numerator untouched and shrinks the denominator,
+# so the reported coverage GOES UP. Four rows were in that position: div-r1-d3 and the three
+# install rows.
 #
 # `parity-gate.sh` catches any row a LANE speaks for, by noticing a result with no row. It cannot
 # reach a blocked row, because no lane speaks for one.
 #
-# So the size of the census is pinned, here, next to the census. This is a hand-maintained number
-# and that is the point: the denominator is what the cutover target is DERIVED from, so moving it
-# should be a deliberate line in a diff rather than a side effect. Adding a row is as gated as
-# deleting one — a duplicate blocked twin sharing an existing subject satisfies every derivation
-# above and would otherwise inflate the total unnoticed.
+# **So the size of the census is DERIVED and the floor beneath it is hand-written.** This is P10,
+# and it is the third instance in this repository of one repair: `destination-oracle.swift` for
+# `mac-shell.sh` (M35) and `surface-oracle.swift` for the campaign denominator (G18) both replaced
+# a hand-kept copy of a fact with a reading of the thing itself. What replaced this one is
+# `scripts/acceptance/surface-census.sh`.
 #
-# The denominator is no longer the target ITSELF. It was, while the gate's footer read "requires
-# $total of $total". The owner set the target to 82 of 83 on 2026-08-16 (bec9d18) because
-# `fixture-registry-search` is a standing exclusion, so the target is now the census MINUS the
-# standing exclusions, pinned separately in `parity-gate.sh` as PARITY_CUTOVER_TARGET. Moving this
-# pin without moving that one makes the two disagree, and the gate prints that disagreement rather
-# than re-deriving a target for itself.
-pinned="$(sed -n 's/^# rows: \([0-9][0-9]*\).*/\1/p' "$MANIFEST" | head -1)"
-if [ -z "$pinned" ]; then
-  note "the manifest carries no \`# rows: N\` pin, so its size is unconstrained and a row can"
-  detail "  leave it without anything noticing."
-elif [ "$pinned" != "$total" ]; then
-  note "the manifest holds $total rows and pins itself at $pinned."
-  detail "  A row was added or removed. If that was deliberate, move the pin in the same change and"
-  detail "  say so — and check PARITY_CUTOVER_TARGET in parity-gate.sh in the SAME change, because"
-  detail "  the cutover target is derived from this denominator and is pinned separately."
+# What was here before was `# rows: N` on line 3 of the manifest, checked for equality. The
+# argument for it was that moving the denominator should be a deliberate line in a diff. The
+# measurement against it is that `git log -L3,3` shows that line bumped five times, once per change
+# that touched the file, and that the fifth bump was ALREADY WRONG when it was written: `ebe3165`
+# set 95 against a file holding 97. From `b1160ef` onward this check exited 1 on the unmutated
+# tree, which put `parity-manifest-selftest.sh` into its "every red below proves nothing" state and
+# stopped the four selftests behind it in `make parity-selftest` from running at all. An equality
+# that goes red on a CORRECT manifest is not a stricter guard; it is a guard whose reds stop being
+# read.
+#
+# `SURFACE_ROW_FLOOR` is a ratchet, not a copy of the census. It names no row and carries no group,
+# so ADDING a row never touches it — which is the edit that went stale five times. It is edited
+# only by a change that deliberately removes one, and that edit is the deliberation: a red here
+# says *say so in this commit, and check PARITY_CUTOVER_TARGET in the same one*.
+#
+# It is also stale in the safe direction. A floor left below the true census weakens this check and
+# can never redden a correct manifest, which is the opposite of the pin it replaces.
+#
+# **What the floor does not catch, stated rather than left for the next reader to find.** A removal
+# paired with an addition in the same change keeps the total at or above the floor and passes here.
+# For the five derived groups the addition half is caught by the reconciliations and by the
+# one-row-per-subject rule below, so the survivor is a swap inside `divergence`, `install`, `pool`,
+# `state`, `log` or `overlap` — 33 of the 97 rows. Catching that needs the per-row census back,
+# which is the hand-maintained copy this change exists to delete. Net shrinkage is caught; a swap
+# in those six groups is not.
+#
+# The denominator is not the cutover target. The owner set that to 82 on 2026-08-16 (bec9d18)
+# because `fixture-registry-search` is a standing exclusion, and it is pinned separately in
+# `parity-gate.sh`, which prints the disagreement rather than re-deriving a target for itself.
+# Nothing here moves it.
+SURFACE_ROW_FLOOR=97
+if [ "$total" -lt "$SURFACE_ROW_FLOOR" ]; then
+  note "the manifest holds $total rows against a floor of $SURFACE_ROW_FLOOR — a row has been removed."
+  detail "  A deleted row leaves the numerator alone and shrinks the denominator, so the coverage"
+  detail "  fraction GOES UP. If the removal is deliberate, lower SURFACE_ROW_FLOOR in the same"
+  detail "  commit and say why — and check PARITY_CUTOVER_TARGET in parity-gate.sh in that same"
+  detail "  commit, because the cutover target is derived from this denominator and pinned separately."
 fi
+
+# ------------------------------------------------------------------ one row per source subject
+# The floor above is a ratchet and so says nothing about addition. The derivations say almost
+# nothing either, because every one of them reduces the manifest side with `sort -u`: a SECOND row
+# claiming a subject that source really does answer satisfies both directions of every
+# reconciliation above. Until P10 the only thing standing in front of that was the `# rows: N`
+# equality, which is why the selftest's "a duplicate blocked twin ADDED" case wanted the pin's own
+# message — and why deleting the pin without this block would have retired a guard rather than
+# replaced it.
+#
+# A twin is worth refusing on its own terms. It inflates the denominator with a row no lane will
+# ever speak for, and the census the cutover target is compared against moves with it.
+#
+# One subject is legitimately shared, and it is named rather than inferred. `control-auth-post` and
+# `control-auth-post-http` are the two halves of `POST /servers/:name/auth` — the stdio refusal and
+# the OAuth path — deliberately kept as separate rows because they are proven by different lanes.
+# The allowlist is `<group>\t<subject>`, in the idiom `CLI_ALIASES` and `NOT_LANES` already use
+# here: a shared subject is a declaration somebody makes, not a shape the check infers.
+# The entry carries the REDUCED key, which for `control` is the whole subject.
+SHARED_SUBJECTS="control	POST /servers/:name/auth"
+
+# The KEY has to be the one the reconciliation reduces on, or this rule has a hole in exactly the
+# place the reconciliation does. `mcp` and `authserver` rows carry an HTTP verb the source side does
+# not — "GET /health" against `/health` — and both blocks compare on the subject's LAST field. So a
+# twin spelled `POST /health` satisfies both directions there, and comparing whole subjects here
+# would not see it either.
+subject_key() {
+  case "$1" in
+    mcp|authserver) printf '%s' "$(printf '%s' "$2" | awk '{ print $NF }')" ;;
+    *)              printf '%s' "$2" ;;
+  esac
+}
+
+for derived_group in control cli mcp authserver fixture; do
+  keys="$(awk -F'\t' -v g="$derived_group" '!/^#/ && NF == 6 && $1 == g { print $3 }' "$MANIFEST" \
+    | while IFS= read -r subject; do subject_key "$derived_group" "$subject"; echo; done)"
+  dupe_keys="$(printf '%s\n' "$keys" | grep -v '^$' | sort | uniq -d)"
+  [ -n "$dupe_keys" ] || continue
+  while IFS= read -r key; do
+    [ -z "$key" ] && continue
+    if printf '%s\n' "$SHARED_SUBJECTS" | grep -qxF "$(printf '%s\t%s' "$derived_group" "$key")"; then
+      continue
+    fi
+    claimants=""
+    while IFS=$'\t' read -r rid subject; do
+      [ "$(subject_key "$derived_group" "$subject")" = "$key" ] && claimants="$claimants$rid "
+    done <<< "$(awk -F'\t' -v g="$derived_group" '!/^#/ && NF == 6 && $1 == g { print $2 "\t" $3 }' "$MANIFEST")"
+    note "$derived_group subject \"$key\" is claimed by more than one manifest row: $claimants"
+    detail "  Every reconciliation in this file reduces the manifest side with \`sort -u\`, so a second"
+    detail "  row on one subject passes all of them while inflating the denominator with a row no"
+    detail "  lane speaks for. If the split is deliberate, add it to SHARED_SUBJECTS with the reason."
+  done <<< "$dupe_keys"
+done
 
 if [ "$problems" -gt 0 ]; then
   echo

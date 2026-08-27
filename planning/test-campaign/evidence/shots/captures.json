@@ -512,5 +512,100 @@
       "scenario": "offline"
     },
     "witnessed": "axkit attached pid=8471 owns CGWindowID 63253, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  },
+  {
+    "path": "evidence/g17-document/readme.served.png",
+    "subject": "SURF-028",
+    "target": "app://mac/servers/g17-capability/document",
+    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store — no window ordered in, activation policy .prohibited; not a screen photograph",
+    "derivedFrom": null,
+    "sha256": "9d048beb8c7eb6a3bf828fd79da3716294ebbca3156a647ea5cb08313bda9a40",
+    "capturedAt": "2026-08-27T03:48:21Z",
+    "conditions": {
+      "flowStep": "FLOW-006.02",
+      "documentServer": "g17-capability",
+      "documentTab": "readMe",
+      "appearance": "dark",
+      "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
+      "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh — 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+      "frontmostAtShutter": "not sampled per shutter; the whole run is sampled once a second and neither MeasureDump nor the router appears in it — evidence/g17-document/frontmost.txt"
+    },
+    "witnessed": "Rendered by MeasureDump off the hosting view's own backing store, driven by ControlAPICapabilityDocumentSource against a router running on 127.0.0.1 at the moment of the render. The frame is tied to what was served rather than to this filename: its own titlebar draws 'g17-capability' and the assertion pass reads that back out of the matching dump (check G17-L1)."
+  },
+  {
+    "path": "evidence/g17-document/changelog.served.png",
+    "subject": "SURF-028",
+    "target": "app://mac/servers/g17-capability/document",
+    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store — no window ordered in, activation policy .prohibited; not a screen photograph",
+    "derivedFrom": null,
+    "sha256": "61ba8f22e0d882ac544797ed1b9e915d445b117a6c03182245d05d86bf950e8d",
+    "capturedAt": "2026-08-27T03:48:21Z",
+    "conditions": {
+      "flowStep": "FLOW-006.03",
+      "documentServer": "g17-capability",
+      "documentTab": "changelog",
+      "appearance": "dark",
+      "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
+      "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh — 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+      "frontmostAtShutter": "not sampled per shutter; the whole run is sampled once a second and neither MeasureDump nor the router appears in it — evidence/g17-document/frontmost.txt"
+    },
+    "witnessed": "Rendered by MeasureDump off the hosting view's own backing store, driven by ControlAPICapabilityDocumentSource against a router running on 127.0.0.1 at the moment of the render. The frame is tied to what was served rather than to this filename: its own titlebar draws 'g17-capability' and the assertion pass reads that back out of the matching dump (check G17-L1)."
+  },
+  {
+    "path": "evidence/g17-document/capabilities.served.png",
+    "subject": "SURF-028",
+    "target": "app://mac/servers/g17-capability/document",
+    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store — no window ordered in, activation policy .prohibited; not a screen photograph",
+    "derivedFrom": null,
+    "sha256": "103a4c4d086ff45f3fa3c72d27b8185958c884bafd61544a3252d1cecbf67b5f",
+    "capturedAt": "2026-08-27T03:48:21Z",
+    "conditions": {
+      "flowStep": "FLOW-006.04",
+      "documentServer": "g17-capability",
+      "documentTab": "capabilities",
+      "appearance": "dark",
+      "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
+      "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh — 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+      "frontmostAtShutter": "not sampled per shutter; the whole run is sampled once a second and neither MeasureDump nor the router appears in it — evidence/g17-document/frontmost.txt"
+    },
+    "witnessed": "Rendered by MeasureDump off the hosting view's own backing store, driven by ControlAPICapabilityDocumentSource against a router running on 127.0.0.1 at the moment of the render. The frame is tied to what was served rather than to this filename: its own titlebar draws 'g17-capability' and the assertion pass reads that back out of the matching dump (check G17-L1)."
+  },
+  {
+    "path": "evidence/g17-document/refusal.nopackage.png",
+    "subject": "SURF-028",
+    "target": "app://mac/servers/g17-no-package/document",
+    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store — no window ordered in, activation policy .prohibited; not a screen photograph",
+    "derivedFrom": null,
+    "sha256": "bbea8b9e9e1267e70bb3595347aa2b2a04ea5c24a0306dbf5ecd9376f277e1ea",
+    "capturedAt": "2026-08-27T03:48:21Z",
+    "conditions": {
+      "flowStep": "FLOW-006.02",
+      "documentServer": "g17-no-package",
+      "documentTab": "readMe",
+      "appearance": "dark",
+      "servedBy": "http://127.0.0.1:8894/servers/g17-no-package/document (reference router, node dist/index.js)",
+      "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh — 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+      "frontmostAtShutter": "not sampled per shutter; the whole run is sampled once a second and neither MeasureDump nor the router appears in it — evidence/g17-document/frontmost.txt"
+    },
+    "witnessed": "Rendered by MeasureDump off the hosting view's own backing store, driven by ControlAPICapabilityDocumentSource against a router running on 127.0.0.1 at the moment of the render. The frame is tied to what was served rather than to this filename: its own titlebar draws 'g17-no-package' and the assertion pass reads that back out of the matching dump (check G17-L1)."
+  },
+  {
+    "path": "evidence/g17-document/refusal.toolarge.png",
+    "subject": "SURF-028",
+    "target": "app://mac/servers/g17-oversize/document",
+    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store — no window ordered in, activation policy .prohibited; not a screen photograph",
+    "derivedFrom": null,
+    "sha256": "c66fbf1a718dcc57fbee80372513f162b197bbc9b6480f41f1cdd15973711576",
+    "capturedAt": "2026-08-27T03:48:21Z",
+    "conditions": {
+      "flowStep": "FLOW-006.02",
+      "documentServer": "g17-oversize",
+      "documentTab": "readMe",
+      "appearance": "dark",
+      "servedBy": "http://127.0.0.1:8894/servers/g17-oversize/document (reference router, node dist/index.js)",
+      "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh — 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+      "frontmostAtShutter": "not sampled per shutter; the whole run is sampled once a second and neither MeasureDump nor the router appears in it — evidence/g17-document/frontmost.txt"
+    },
+    "witnessed": "Rendered by MeasureDump off the hosting view's own backing store, driven by ControlAPICapabilityDocumentSource against a router running on 127.0.0.1 at the moment of the render. The frame is tied to what was served rather than to this filename: IT IS NOT — a too-large refusal names the file and the cap and never the capability, so this row is the only thing binding this picture to its subject. Recorded as DEF-060 and counted by check G17-L2 rather than passed over."
   }
 ]

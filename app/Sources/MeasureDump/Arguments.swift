@@ -8,6 +8,7 @@
 #if MEASURE && os(macOS)
 
     import Foundation
+    import MCPRouterKit
     import MCPRouterUI
     import SwiftUI
 
@@ -38,6 +39,13 @@
         var documentFrom: URL?
         /// Which server on that router to ask for. Only read when `documentFrom` is set.
         var documentServer = "m30-look"
+        /// Which of the panel's three tabs to draw.
+        ///
+        /// A tab is switched by pressing it, and a headless render performs no presses, so before
+        /// this the changelog and the capability list had never been drawn carrying a document —
+        /// every dump and every capture of this panel was its read me. G17's flow moves between
+        /// the three, so each one needs a frame of its own.
+        var documentTab: CapabilityDocument.Tab = .readMe
         /// Where to write a PNG of the hosted view, if anywhere.
         ///
         /// Rendered off the hosting view with `cacheDisplay(in:to:)` rather than photographed off
@@ -151,6 +159,11 @@
                 documentFrom = take(key, value, "a URL") { URL(string: $0) } ?? documentFrom
             case "--document-server":
                 documentServer = take(key, value, "a name", Self.nonEmpty) ?? documentServer
+            case "--document-tab":
+                documentTab = take(
+                    key, value, Self.oneOf(CapabilityDocument.Tab.allCases),
+                    CapabilityDocument.Tab.init(rawValue:)
+                ) ?? documentTab
             default:
                 return false
             }

@@ -51,16 +51,25 @@
         var actions: [Action] = []
         var dismiss: (@MainActor @Sendable () -> Void)?
 
-        @State private var tab: CapabilityDocument.Tab = .readMe
+        @State private var tab: CapabilityDocument.Tab
 
+        /// Which tab the panel opens on.
+        ///
+        /// `.readMe` for every caller in the product — a reader arrives at a capability to decide
+        /// whether to install it, and the read me is that document. The parameter exists for the
+        /// measurement harness: the tab is `@State` and switching it is a press, which a headless
+        /// render has no way to perform, so a frame of the changelog could not be taken at all and
+        /// the panel's other two tabs had never been photographed carrying a document.
         public init(
             content: Content,
             actions: [Action] = [],
+            initialTab: CapabilityDocument.Tab = .readMe,
             dismiss: (@MainActor @Sendable () -> Void)? = nil
         ) {
             self.content = content
             self.actions = actions
             self.dismiss = dismiss
+            _tab = State(initialValue: initialTab)
         }
 
         public var body: some View {

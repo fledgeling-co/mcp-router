@@ -131,5 +131,12 @@
     "route": "app://mac/insights",
     "lane": "macos-glass",
     "status": "ready"
+  },
+  {
+    "id": "SURF-028",
+    "title": "Mac capability document panel — three tabs over one package",
+    "route": "app://mac/servers/{server}/document",
+    "lane": "swiftui",
+    "status": "ready"
   }
 ]

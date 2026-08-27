@@ -147,5 +147,14 @@
     "title": "the capture script dumped the accessibility tree before the step that changed the board, so every dump was labelled with the next board's name",
     "detail": "`bin/capture-mac-design-size.sh` ran `axkit dump` in the caller's loop, and the loop called `capture()` - which performs the sidebar select - afterwards. Every dump therefore described the board that was up before the one it was named for: nine files, each carrying the previous board's tree under the next board's filename. Both the capture and the dump were real; only the pairing was wrong.\n\nInvisible until a `127.0.0.1` hit appeared in a dump filed as SURF-001 and could not be attributed to the board the filename named. Fixed by moving the dump inside `capture()`, after the select, and proved by a readback printing each dump's own `AXWindow` title against its filename - nine of nine now agree.",
     "found-by": "attribution check while reading the dumps for the fidelity verdicts"
+  },
+  {
+    "id": "DEF-060",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "title": "A too-large refusal names the file and the cap but never the capability, so its picture cannot say what it refuses",
+    "text": "Measured by G17 on 2026-08-27. `CapabilityDocumentSheet`'s titlebar draws the capability's name from the DOCUMENT, so on any `unavailable` state it falls back to the generic word 'Documentation'. Three of the panel's refusals still identify themselves \u2014 `noPackageDirectory`, `packageUnreadable` and `notFound` all interpolate the capability into their headline \u2014 but `tooLarge`'s headline is '<file> is too large to show here', which names README.md and the 512 KB cap and never the server. So a photograph of that state is tied to the capability it refuses by its manifest row alone, which is the exact dependency the campaign's capture-lineage rule exists to remove. G17 records it rather than waiving it: check G17-L2 counts the frames that cannot corroborate their own row and fails if that set is anything other than this one.",
+    "source": "planning/test-campaign/evidence/g17-document/verdicts.json (G17-L2); app/Sources/MCPRouterKit/Markdown/CapabilityDocumentSource.swift:58",
+    "status": "open \u00b7 measured"
   }
 ]

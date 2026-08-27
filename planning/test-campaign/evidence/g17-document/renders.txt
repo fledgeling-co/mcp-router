@@ -1,0 +1,45 @@
+measure-dump: wrote 1800x1640 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/readme.served.png
+measure-dump: 17 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/readme.served.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face
+measure-dump: wrote 1800x1640 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/changelog.served.png
+measure-dump: 14 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/changelog.served.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face
+measure-dump: wrote 1800x1640 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/capabilities.served.png
+measure-dump: 13 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/capabilities.served.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face
+measure-dump: wrote 1800x1040 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/refusal.nopackage.png
+measure-dump: 11 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/refusal.nopackage.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face
+measure-dump: wrote 1800x1040 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/refusal.toolarge.png
+measure-dump: 11 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/refusal.toolarge.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face
+measure-dump: wrote 1800x1640 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/readme.served.png
+measure-dump: 18 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/readme.served.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face
+measure-dump: wrote 1800x1640 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/readme.served.png
+measure-dump: 17 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/readme.served.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face
+measure-dump: wrote 1800x1640 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/readme.served.png
+measure-dump: 11 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/readme.served.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face
+measure-dump: wrote 1800x1640 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/readme.served.png
+measure-dump: 17 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/readme.served.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face
+measure-dump: wrote 1800x1640 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/changelog.served.png
+measure-dump: 17 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/changelog.served.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face
+measure-dump: wrote 1800x1640 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/capabilities.served.png
+measure-dump: 17 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/capabilities.served.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face
+measure-dump: wrote 1800x1640 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/changelog.served.png
+measure-dump: 14 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/changelog.served.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face
+measure-dump: wrote 1800x1640 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/capabilities.served.png
+measure-dump: 13 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/capabilities.served.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face
+measure-dump: wrote 1800x1040 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/refusal.toolarge.png
+measure-dump: 11 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/refusal.toolarge.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face
+measure-dump: wrote 1800x1040 to /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/refusal.toolarge.png
+measure-dump: 11 nodes, dark, /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/planning/test-campaign/evidence/g17-document/refusal.toolarge.dump.json
+measure-dump: INCONCLUSIVE resolved-font — String(describing:) of a Font built through Font.system(size:weight:) returns "Font(provider: SwiftUI.FontBox<SwiftUI.Font.SystemProvider>)" — no size, no weight, no face

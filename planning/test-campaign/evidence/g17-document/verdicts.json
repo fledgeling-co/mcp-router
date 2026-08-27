@@ -1,0 +1,198 @@
+{
+ "captures": {
+  "manifest": [
+   {
+    "bytes": 177879,
+    "capturedAt": "2026-08-27T04:44:19Z",
+    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
+    "derivedFrom": null,
+    "documentServer": "g17-capability",
+    "documentTab": "readMe",
+    "frame": "readme.served",
+    "marker": "g17-capability",
+    "markerRole": "titlebar",
+    "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+    "path": "evidence/g17-document/readme.served.png",
+    "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
+    "sha256": "a54c084a5e62dbc396aabbc614a4b40968d5e3b8c794fa56d99dae50be30cd82",
+    "step": "FLOW-006.02",
+    "subject": "SURF-028",
+    "target": "app://mac/servers/g17-capability/document"
+   },
+   {
+    "bytes": 118311,
+    "capturedAt": "2026-08-27T04:44:19Z",
+    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
+    "derivedFrom": null,
+    "documentServer": "g17-capability",
+    "documentTab": "changelog",
+    "frame": "changelog.served",
+    "marker": "g17-capability",
+    "markerRole": "titlebar",
+    "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+    "path": "evidence/g17-document/changelog.served.png",
+    "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
+    "sha256": "5563977a462a643d927596543857c4f9d46546bfb25ca166e3d7780c67d4c069",
+    "step": "FLOW-006.03",
+    "subject": "SURF-028",
+    "target": "app://mac/servers/g17-capability/document"
+   },
+   {
+    "bytes": 118939,
+    "capturedAt": "2026-08-27T04:44:19Z",
+    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
+    "derivedFrom": null,
+    "documentServer": "g17-capability",
+    "documentTab": "capabilities",
+    "frame": "capabilities.served",
+    "marker": "g17-capability",
+    "markerRole": "titlebar",
+    "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+    "path": "evidence/g17-document/capabilities.served.png",
+    "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
+    "sha256": "3c5aa28b93bd06ca8d63369d1cda29c6da5ab2357d181c250fcc8eadf118ba93",
+    "step": "FLOW-006.04",
+    "subject": "SURF-028",
+    "target": "app://mac/servers/g17-capability/document"
+   },
+   {
+    "bytes": 85588,
+    "capturedAt": "2026-08-27T04:44:19Z",
+    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
+    "derivedFrom": null,
+    "documentServer": "g17-no-package",
+    "documentTab": "readMe",
+    "frame": "refusal.nopackage",
+    "marker": "g17-no-package",
+    "markerRole": "state-title",
+    "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+    "path": "evidence/g17-document/refusal.nopackage.png",
+    "servedBy": "http://127.0.0.1:8894/servers/g17-no-package/document (reference router, node dist/index.js)",
+    "sha256": "0b2e1e75479b5f29cffc3d54803c3d0e3dc5935ccd00068691f4dc12050dddbd",
+    "step": "FLOW-006.02",
+    "subject": "SURF-028",
+    "target": "app://mac/servers/g17-no-package/document"
+   },
+   {
+    "bytes": 89571,
+    "capturedAt": "2026-08-27T04:44:19Z",
+    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
+    "derivedFrom": null,
+    "documentServer": "g17-oversize",
+    "documentTab": "readMe",
+    "frame": "refusal.toolarge",
+    "marker": null,
+    "markerRole": null,
+    "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+    "path": "evidence/g17-document/refusal.toolarge.png",
+    "servedBy": "http://127.0.0.1:8894/servers/g17-oversize/document (reference router, node dist/index.js)",
+    "sha256": "5462034f32270ed0c716cf96d3d2dc39e8d2e5af381e5a642741d5a3a99e7547",
+    "step": "FLOW-006.02",
+    "subject": "SURF-028",
+    "target": "app://mac/servers/g17-oversize/document"
+   }
+  ],
+  "sha256": {
+   "capabilities.served": "3c5aa28b93bd06ca8d63369d1cda29c6da5ab2357d181c250fcc8eadf118ba93",
+   "changelog.served": "5563977a462a643d927596543857c4f9d46546bfb25ca166e3d7780c67d4c069",
+   "readme.served": "a54c084a5e62dbc396aabbc614a4b40968d5e3b8c794fa56d99dae50be30cd82",
+   "refusal.nopackage": "0b2e1e75479b5f29cffc3d54803c3d0e3dc5935ccd00068691f4dc12050dddbd",
+   "refusal.toolarge": "5462034f32270ed0c716cf96d3d2dc39e8d2e5af381e5a642741d5a3a99e7547"
+  },
+  "unidentifiable": [
+   "refusal.toolarge"
+  ]
+ },
+ "checks": [
+  {
+   "id": "G17-W1",
+   "message": "the route serves all three of the constructed package's documents: ['capabilities', 'changelog', 'readMe']",
+   "pass": true
+  },
+  {
+   "id": "G17-W2",
+   "message": "one figure arrives as image/png and the escaping reference is refused: images=1 refused=['escapesPackage']",
+   "pass": true
+  },
+  {
+   "id": "G17-W3",
+   "message": "the response carries bytes and no filesystem path the app could open",
+   "pass": true
+  },
+  {
+   "id": "G17-W4",
+   "message": "a server declaring no directory refuses noPackageDirectory \u2014 the state all 21 upstreams on this machine are in: noPackageDirectory",
+   "pass": true
+  },
+  {
+   "id": "G17-W5",
+   "message": "a read me over the 512 KB document cap refuses documentTooLarge, naming the file and the cap: reason=documentTooLarge file=README.md limit=524288",
+   "pass": true
+  },
+  {
+   "id": "G17-P1",
+   "message": "the frame's titlebar names the served package and M19's fixture capability 'trawl' appears nowhere: ['g17-capability']",
+   "pass": true
+  },
+  {
+   "id": "G17-P2",
+   "message": "the package's own H1 and prose are drawn from the bytes the router served",
+   "pass": true
+  },
+  {
+   "id": "G17-P3",
+   "message": "all three tab controls are drawn: ['Read me', 'Changelog', 'Capabilities']",
+   "pass": true
+  },
+  {
+   "id": "G17-P4",
+   "message": "the in-package figure DREW: 65.7% of its 385664-pixel card is the band's colour (floor 25%) \u2014 bytes the router sent, decoded and painted, not a placeholder",
+   "pass": true
+  },
+  {
+   "id": "G17-P5",
+   "message": "the escaping reference drew its own refusal and no picture (0.00% figure colour): 'Not shown \u2014 this image points outside the package it came with.'",
+   "pass": true
+  },
+  {
+   "id": "G17-P6",
+   "message": "the changelog tab draws the changelog's own heading: ['Changelog', '1.0.0']",
+   "pass": true
+  },
+  {
+   "id": "G17-P7",
+   "message": "the capabilities tab draws the capability list's own heading: ['Capabilities']",
+   "pass": true
+  },
+  {
+   "id": "G17-P8",
+   "message": "the three tabs draw three different documents out of one package: distinct bodies=3, all three name g17-capability=True",
+   "pass": true
+  },
+  {
+   "id": "G17-R1",
+   "message": "the nothing-served refusal draws its own state and no figure: ['g17-no-package has no package to read']",
+   "pass": true
+  },
+  {
+   "id": "G17-R2",
+   "message": "the too-large refusal names the file and the cap it broke: ['README.md is too large to show here']",
+   "pass": true
+  },
+  {
+   "id": "G17-R3",
+   "message": "the three refusals are pairwise distinguishable in the words they draw: 3 distinct",
+   "pass": true
+  },
+  {
+   "id": "G17-L1",
+   "message": "each of the 5 pictures names the surface and the step it is of, carries the sha256 of the file on disk, and \u2014 for the 4 that draw their own subject \u2014 is corroborated by what the frame itself drew",
+   "pass": true
+  },
+  {
+   "id": "G17-L2",
+   "message": "1 of 5 frames cannot corroborate their own manifest row and are named here rather than counted as corroborated: ['refusal.toolarge'] (DEF-060)",
+   "pass": true
+  }
+ ]
+}

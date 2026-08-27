@@ -46,6 +46,15 @@
       "captureChannel": "XCUIScreen.main.screenshot() attached as XCTAttachment and exported by xcresulttool export attachments, which groups each PNG under the test identifier that produced it \u2014 attribution by construction rather than by filename. No per-frame status is available on this channel and the campaign does not claim one.",
       "declaredAt": "2026-08-20T03:09:08+00:00",
       "signing": "CODE_SIGN_IDENTITY=- with signing required. An unsigned build has no keychain access group, so the app rendered its unreadable-pairing state from a real -34018 rather than from a product defect \u2014 DEF-017."
+    },
+    "swiftui": {
+      "attached": false,
+      "artifact": "/Users/lukerhodes/Dev/mcp-router/.worktrees/G17/app/.build/debug/MeasureDump",
+      "artifactBytes": 23604176,
+      "builtBy": "MCP_ROUTER_MEASURE=1 swift build --package-path app --product MeasureDump",
+      "attachedBy": "NOT ATTACHED, and the distinction is this lane's whole content. It hosts the product's own SwiftUI views in an NSHostingView inside a process whose activation policy is `.prohibited` and whose window is never ordered in. It does NOT claim MCPRouter.app was running and drawn \u2014 that is macos-glass's claim, and macos-glass proves it by axkit attaching to a CGWindowID the launched pid owns. What this lane witnesses is narrower and is stated as such: the hierarchy under measurement is compiled from app/Sources/MCPRouterUI rather than mocked, it laid out, and it painted. The in-view recorder (MCPRouterUI/Measure/Measured.swift, compiled only under MEASURE) reports resolved frames from inside the views themselves, because an NSHostingView hosting a real hierarchy has exactly one AppKit subview and walking it from outside the process returns nothing. A run whose recorder found no nodes exits 3 rather than writing an empty dump and reading as agreement.",
+      "captureChannel": "NSHostingView.cacheDisplay(in:to:) -> NSBitmapImageRep -> PNG, off the view's own backing store. Not screencapture and not ScreenCaptureKit: nothing is photographed off the display, so no window can occlude the subject and there is no screen to take. G17 samples the frontmost application once a second for the whole of its run and asserts that neither MeasureDump nor the router ever appears in the sample (planning/test-campaign/evidence/g17-document/frontmost.txt) \u2014 a stronger statement than comparing the frontmost app before and after, which a third-party application stealing focus mid-run turns into a false red.",
+      "declaredAt": "2026-08-27T02:59:59+00:00"
     }
   }
 }

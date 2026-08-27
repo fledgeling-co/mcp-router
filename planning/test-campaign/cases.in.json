@@ -1228,5 +1228,236 @@
     "status": "open",
     "armed": false,
     "evidence": []
+  },
+  {
+    "id": "CASE-0184",
+    "req": "REQ-026",
+    "surface": "SURF-027",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.01",
+    "lane": "router-daemon",
+    "cell": {
+      "surface": "SURF-027",
+      "state": "populated",
+      "viewport": "n/a",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "served-package",
+      "executionPlane": "headless"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0185",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.02",
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x820",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "served-package",
+      "executionPlane": "headless"
+    },
+    "oracle": "raster-visual",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0186",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.02",
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x820",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "served-package",
+      "executionPlane": "headless"
+    },
+    "oracle": "raster-visual",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0187",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.02",
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x820",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "escaping-reference",
+      "executionPlane": "headless"
+    },
+    "oracle": "raster-visual",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0188",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.03",
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x820",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "served-package",
+      "executionPlane": "headless"
+    },
+    "oracle": "structural-visual",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0189",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.04",
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x820",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "served-package",
+      "executionPlane": "headless"
+    },
+    "oracle": "structural-visual",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0190",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x820",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "served-package",
+      "executionPlane": "headless"
+    },
+    "oracle": "metamorphic",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0191",
+    "req": "REQ-017",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.02",
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x520",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "no-package-directory",
+      "executionPlane": "headless"
+    },
+    "oracle": "raster-visual",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0192",
+    "req": "REQ-017",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.02",
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x520",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "oversize-document",
+      "executionPlane": "headless"
+    },
+    "oracle": "raster-visual",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0193",
+    "req": "REQ-017",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x520",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "refusal-set",
+      "executionPlane": "headless"
+    },
+    "oracle": "outcome",
+    "status": "open",
+    "armed": false,
+    "evidence": []
+  },
+  {
+    "id": "CASE-0194",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x820",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "capture-lineage",
+      "executionPlane": "headless"
+    },
+    "oracle": "structural",
+    "status": "open",
+    "armed": false,
+    "evidence": []
   }
 ]

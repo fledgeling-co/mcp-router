@@ -2459,5 +2459,319 @@
       "effect": "inbound-socket",
       "count": 1
     }
+  },
+  {
+    "id": "CASE-0184",
+    "req": "REQ-026",
+    "surface": "SURF-027",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.01",
+    "lane": "router-daemon",
+    "cell": {
+      "surface": "SURF-027",
+      "state": "populated",
+      "viewport": "n/a",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "served-package",
+      "executionPlane": "headless"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/g17-document/verdicts.json",
+      "evidence/g17-document/captures.json",
+      "evidence/g17-document/run.txt",
+      "evidence/g17-document/wire-served.json"
+    ],
+    "note": "FLOW-006.01. GET /servers/g17-capability/document on a running reference router returns all three documents (readMe, changelog, capabilities), one figure as image/png, and one refused reference with reason escapesPackage; the response body carries no filesystem path. Checks G17-W1, G17-W2, G17-W3. The server is CONSTRUCTED by the harness and labelled so in three places — the harness header, the package's own read me, and every row of evidence/g17-document/captures.json. 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt), so there is no real one to point at. The router, the route, the transport, the parser, the image resolver and the panel are all the product's.",
+    "armedBy": "arm: G17-W2 and G17-W3 are wire assertions over a live response and are not separately planted; the four planted faults sit on the panel half, where the join had never been measured. What arms this row is that its response is the SAME response the panel then rendered — control G17-P1 rendered the panel against a different server and went red, so the frames are known to follow the wire rather than a fixture."
+  },
+  {
+    "id": "CASE-0185",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.02",
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x820",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "served-package",
+      "executionPlane": "headless"
+    },
+    "oracle": "raster-visual",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/g17-document/verdicts.json",
+      "evidence/g17-document/captures.json",
+      "evidence/g17-document/run.txt",
+      "evidence/g17-document/readme.served.png",
+      "evidence/g17-document/readme.served.dump.json"
+    ],
+    "note": "FLOW-006.02. The panel drew a document THE ROUTER SERVED, not M19's fixture: the titlebar names g17-capability, the package's own H1 and prose are on screen, all three tab controls are drawn, and 'trawl' — the fixture capability every previous dump and capture of this panel was a picture of, M23's included — appears nowhere in the tree. Checks G17-P1, G17-P2, G17-P3. Picture: evidence/g17-document/readme.served.png. The server is CONSTRUCTED by the harness and labelled so in three places — the harness header, the package's own read me, and every row of evidence/g17-document/captures.json. 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt), so there is no real one to point at. The router, the route, the transport, the parser, the image resolver and the panel are all the product's.",
+    "armedBy": "ARMED and watched: control G17-P1 re-rendered this frame against g17-no-package under its own filename; the check went red and the harness recorded it (evidence/g17-document/armed/subject.txt). Restored and re-rendered byte-identically, sha256 recorded in captures.json."
+  },
+  {
+    "id": "CASE-0186",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.02",
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x820",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "served-package",
+      "executionPlane": "headless"
+    },
+    "oracle": "raster-visual",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/g17-document/verdicts.json",
+      "evidence/g17-document/captures.json",
+      "evidence/g17-document/run.txt",
+      "evidence/g17-document/readme.served.png",
+      "evidence/g17-document/armed/figure.txt"
+    ],
+    "note": "FLOW-006.02, and the claim nothing had ever made: an image inside a served document DRAWS. M19's resolver returns bytes precisely so the app never opens a file, and until now the strongest available statement was that four image cards were laid out — `MarkdownBlockView` draws a figure and a refusal placeholder inside the same measured `card`, so the two are one record. This case does not fix that by adding a node: a node would say two views differ, and what needed saying is that bytes arrived and were painted. The pixels answer it. 65.7% of the figure card's own frame in readme.served.png is the constructed band's authored colour, read at the scale derived from the dump's size rather than assumed to be 2, with a 25% floor and a tolerance on the colour because the backing store resolves in the display's space (authored #2F9C9C reads back near #519A9B). Check G17-P4.",
+    "armedBy": "ARMED and watched: control G17-P4 replaced the package's figure.png with bytes NSImage cannot decode — the route still served them as image/png, so the only thing that changed was whether they drew. The check went red (evidence/g17-document/armed/figure.txt). The original bytes were restored and the frame re-rendered BYTE-IDENTICAL, sha256 9d048beb8c7eb6a3bf828fd79da3716294ebbca3156a647ea5cb08313bda9a40."
+  },
+  {
+    "id": "CASE-0187",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.02",
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x820",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "escaping-reference",
+      "executionPlane": "headless"
+    },
+    "oracle": "raster-visual",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/g17-document/verdicts.json",
+      "evidence/g17-document/captures.json",
+      "evidence/g17-document/run.txt",
+      "evidence/g17-document/readme.served.png",
+      "evidence/g17-document/wire-served.json"
+    ],
+    "note": "The 'outside the package' refusal, rendered and distinguishable. A reference climbing out of the package is refused by the router as escapesPackage, and the panel draws its own sentence — 'Not shown — this image points outside the package it came with.' — read back off the `figure-refusal` node G17 added, in a card carrying 0.00% figure colour. Both halves matter: the node says WHICH refusal landed, which no dump could say before, and the pixels say the card really is a placeholder rather than a picture nobody checked. The node costs the readme fidelity census nothing, because it is drawn only when a reference is refused and the M19 fixture's one image resolves. Check G17-P5.",
+    "armedBy": "arm: shares control G17-P4's plant. That fault turns the RESOLVED figure into a refusal, so the same run watches the figure/placeholder discrimination bite from the other side. The sentence itself is pinned to the router's own reason string by G17-W2, which reads escapesPackage off the wire response this frame was rendered from."
+  },
+  {
+    "id": "CASE-0188",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.03",
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x820",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "served-package",
+      "executionPlane": "headless"
+    },
+    "oracle": "structural-visual",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/g17-document/verdicts.json",
+      "evidence/g17-document/captures.json",
+      "evidence/g17-document/run.txt",
+      "evidence/g17-document/changelog.served.png",
+      "evidence/g17-document/changelog.served.dump.json"
+    ],
+    "note": "FLOW-006.03. Moving to the Changelog tab draws the changelog the router served — its own heading and its 1.0.0 entry. Until G17 the panel's other two tabs had never been drawn carrying a document at all: switching tabs is a press on @State and a headless render performs no presses, so every frame of this panel in the campaign's history was its read me. Check G17-P6. Picture: evidence/g17-document/changelog.served.png.",
+    "armedBy": "ARMED and watched through control G17-P8 (see CASE-0190): the changelog frame was re-rendered on the read me tab under its own filename and the tab check went red. Restored byte-identically."
+  },
+  {
+    "id": "CASE-0189",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.04",
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x820",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "served-package",
+      "executionPlane": "headless"
+    },
+    "oracle": "structural-visual",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/g17-document/verdicts.json",
+      "evidence/g17-document/captures.json",
+      "evidence/g17-document/run.txt",
+      "evidence/g17-document/capabilities.served.png",
+      "evidence/g17-document/capabilities.served.dump.json"
+    ],
+    "note": "FLOW-006.04. Moving to the Capabilities tab draws the capability list the router served. Check G17-P7. Picture: evidence/g17-document/capabilities.served.png.",
+    "armedBy": "ARMED and watched through control G17-P8 (see CASE-0190). Restored byte-identically."
+  },
+  {
+    "id": "CASE-0190",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x820",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "served-package",
+      "executionPlane": "headless"
+    },
+    "oracle": "metamorphic",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/g17-document/verdicts.json",
+      "evidence/g17-document/captures.json",
+      "evidence/g17-document/run.txt",
+      "evidence/g17-document/armed/tabs.txt"
+    ],
+    "note": "The flow's whole shape in one relation: one package, three tabs, three different documents. The three frames' drawn text is pairwise distinct and all three titlebars name the same package — so the tab is what changed and the subject is not. Check G17-P8.",
+    "armedBy": "ARMED and watched: control G17-P8 re-rendered the changelog and capabilities frames on the read me tab, leaving their filenames alone. The check went red (evidence/g17-document/armed/tabs.txt); both frames were restored and re-rendered byte-identically against the sha256 recorded before the fault."
+  },
+  {
+    "id": "CASE-0191",
+    "req": "REQ-017",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.02",
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x520",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "no-package-directory",
+      "executionPlane": "headless"
+    },
+    "oracle": "raster-visual",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/g17-document/verdicts.json",
+      "evidence/g17-document/captures.json",
+      "evidence/g17-document/run.txt",
+      "evidence/g17-document/refusal.nopackage.png",
+      "evidence/g17-document/wire-nopackage.json"
+    ],
+    "note": "Refusal 1 of 3 — nothing served. A server declaring no cwd is refused noPackageDirectory on the wire, and the panel draws the designed state: 'g17-no-package has no package to read', and no figure. This is the state EVERY ONE of the 21 upstreams on this machine is in today, so the frame is a picture of the product as configured rather than of an edge case. Checks G17-W4, G17-R1. Picture: evidence/g17-document/refusal.nopackage.png.",
+    "armedBy": "ARMED and watched through control G17-R3 (see CASE-0193): the too-large frame was re-rendered against THIS server so two refusals drew the same words, and the distinguishability check went red."
+  },
+  {
+    "id": "CASE-0192",
+    "req": "REQ-017",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": "FLOW-006.02",
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x520",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "oversize-document",
+      "executionPlane": "headless"
+    },
+    "oracle": "raster-visual",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/g17-document/verdicts.json",
+      "evidence/g17-document/captures.json",
+      "evidence/g17-document/run.txt",
+      "evidence/g17-document/refusal.toolarge.png",
+      "evidence/g17-document/wire-toolarge.json"
+    ],
+    "note": "Refusal 2 of 3 — too large. A read me of 600,012 bytes is over the 524,288-byte transport cap for one document; the route refuses `documentTooLarge` naming the file and the limit, and the panel draws 'README.md is too large to show here' with the 512 KB cap in its advice. Note the wire spelling: `documentTooLarge`, not `tooLarge` — the latter is the IMAGE refusal one level in, and a check written against the Swift enum's case name rather than against the wire would have passed on a router that refused nothing. Checks G17-W5, G17-R2. This frame is also DEF-060: it never names the capability it refuses.",
+    "armedBy": "ARMED and watched: control G17-R3 re-rendered this frame against g17-no-package under its own filename, collapsing two refusals onto one wording; the check went red (evidence/g17-document/armed/refusals.txt). Restored and re-rendered byte-identically."
+  },
+  {
+    "id": "CASE-0193",
+    "req": "REQ-017",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x520",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "refusal-set",
+      "executionPlane": "headless"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/g17-document/verdicts.json",
+      "evidence/g17-document/captures.json",
+      "evidence/g17-document/run.txt",
+      "evidence/g17-document/armed/refusals.txt"
+    ],
+    "note": "The three refusals are pairwise distinguishable in the words the panel actually drew: 'g17-no-package has no package to read' / 'README.md is too large to show here' / 'Not shown — this image points outside the package it came with.' Three distinct strings, each read out of the frame that drew it rather than out of the enum that declares it. Two are whole-panel states and the third is a placeholder inside a document, which is the honest shape: the route has no document-level refusal for a reference escaping the package. Check G17-R3.",
+    "armedBy": "ARMED and watched: control G17-R3 pointed the too-large frame at the no-package server so two of the three drew identical words. The check went red and the harness refused to continue until it was restored."
+  },
+  {
+    "id": "CASE-0194",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "flow": "FLOW-006",
+    "step": null,
+    "lane": "swiftui",
+    "cell": {
+      "surface": "SURF-028",
+      "state": "populated",
+      "viewport": "900x820",
+      "theme": "dark",
+      "role": "operator",
+      "dataShape": "capture-lineage",
+      "executionPlane": "headless"
+    },
+    "oracle": "structural",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/g17-document/verdicts.json",
+      "evidence/g17-document/captures.json",
+      "evidence/g17-document/run.txt"
+    ],
+    "note": "Capture lineage over this flow's own wall of pictures. Each of the five rows in evidence/g17-document/captures.json names the campaign surface and the flow step it is of, carries the sha256 of the file on disk, and — for four of the five — names a string the PANEL draws which the assertion pass then reads back out of that frame's own dump. So a picture is tied to the package it is of independently of its filename. The fifth, refusal.toolarge, cannot do this and is NAMED rather than counted as corroborated: G17-L2 fails if that set is ever anything other than exactly it. DEF-060. Checks G17-L1, G17-L2.",
+    "armedBy": "ARMED and watched: control G17-P1 re-rendered readme.served against a different server while leaving its filename and its manifest row alone — the wall-of-20-captures failure, reproduced deliberately. Both G17-P1 and the lineage cross-check went red."
   }
 ]

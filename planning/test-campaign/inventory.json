@@ -240,6 +240,16 @@
       "effect": "inbound-socket",
       "provider": "app/Sources/RouterCore/Control/ControlDocument.swift; app/Sources/RouterCore/Control/DocumentPackage.swift; src/document.ts",
       "note": "The effect class is the socket, because that is the class this campaign's closed vocabulary can carry. The route's other effect is a filesystem READ inside the package, and EFFECT_CLASSES has no read class — filesystem-write is the only filesystem member and this route writes nothing. That effect is therefore proved at the outcome rung by CASE-0178 (the bytes on the wire are the file's own bytes) rather than by a witness, and the gap is recorded here rather than papered over by declaring a class the route does not perform."
+    },
+    {
+      "id": "REQ-027",
+      "class": "behaviour",
+      "text": "A capability's own read me, changelog and capability list are read out of the package directory its server declares and drawn in the document panel; images resolve from inside that package and nothing else is fetched, and every refusal names which one it is.",
+      "source": "planning/specs/spec-M19.md; planning/specs/spec-M30.md; app/Sources/RouterCore/Control/ControlDocument.swift:16-79; src/document.ts:262-320",
+      "evidence": "observed",
+      "effect": "filesystem-read",
+      "provider": "RouterCore/Control/ControlDocument.swift:47 deps.fileSystem.readFile(atPath:) and :120 resolveImages read the declared cwd; src/document.ts:270-284 is the reference half. The panel never opens a file: the response carries bytes and no path, which is what REQ-027's second clause turns on.",
+      "note": "Added by G17. `filesystem-read` is a new value in this campaign's effect vocabulary — the five that existed were none, inbound-socket, outbound-socket, subprocess and filesystem-write, and none of them describes a route that reads a directory it was told about. The requirement itself is not new work: M19 and M30 both shipped against it and the campaign had no row for it, so the feature had no denominator and no case could have failed on it. Reach limit, stated rather than buried: the route serves only servers declaring a package directory and 0 of the 21 upstreams on this machine declare one (M30, planning/evidence/M30-reach.txt), so every case citing this requirement is measured against a CONSTRUCTED server.\n\nRECONCILED 2026-08-27. This row was allocated REQ-026 by G17 and G19 at the same time, off the same `main`. G19's REQ-026 keeps the number and states the WIRE contract: what GET /servers/:name/document serves and the exact refusal each rule names. This row keeps the half G19's does not carry -- that those documents are DRAWN in the Mac capability document panel, that a figure resolves from inside the package and nothing else is fetched, and that each refusal identifies itself on screen. Its cases are the swiftui lane's (CASE-0185..0190, CASE-0194) and they need a requirement to trace to; folding them into a router-daemon requirement would put a panel assertion inside a route's contract. G17's one WIRE case, CASE-0184, traces to REQ-026 instead, because that is the requirement its assertion is of. The two rows overlap on 'read out of the declared package directory' deliberately: neither text was rewritten, so the overlap is visible rather than resolved by editing delivered work. The `filesystem-read` effect class is left exactly as G17 declared it and is NOT in campaign.py's closed EFFECT_CLASSES -- `check` has flagged that since G17 landed and still does; G19's REQ-026 note records the same gap from the other side, having declined to name a class the vocabulary does not hold. Reconciling the vocabulary is the campaign owner's, not this renumber's."
     }
   ],
   "surface": [
@@ -465,6 +475,18 @@
       "lane": "router-daemon",
       "status": "ready",
       "routeNote": "Every server exercised against this surface is CONSTRUCTED. None of the 21 upstreams installed on this machine declares a package directory, so on all 21 the route answers 404 noPackageDirectory and no real package on this host reaches the other six outcomes. The fixture in bin/wire-document-fixture/seed.py builds seven servers, one per outcome, under a scratch MCP_ROUTER_HOME."
+    },
+    {
+      "id": "SURF-028",
+      "title": "Mac capability document panel — three tabs over one package",
+      "route": "app://mac/servers/{server}/document",
+      "lane": "swiftui",
+      "status": "ready",
+      "shot": "evidence/g17-document/readme.served.png",
+      "reaches": "SURF-027",
+      "routeNote": "Opened from the Servers board's inspector — ServerInspector.swift:77 sets `board.sheet = .document(server: server.name)` and ServerSheets.swift:30 presents `ServerDocumentSheet`, whose source is `ControlAPICapabilityDocumentSource`. That source is the one caller of SURF-027, which is what `reaches` records: the panel is not a surface that happens to sit near the route, it is the route's only consumer in the product.",
+      "shotNote": "The pictures are rendered off an NSHostingView's own backing store by MeasureDump (`cacheDisplay(in:to:)`), not photographed off the display: no window is ordered in and the process sets `.prohibited`, which is how the campaign photographs this panel without taking the screen (UI_VERIFICATION.md rule 1). So these frames are a claim about a real SwiftUI hierarchy laid out and painted, and they are NOT a claim that MCPRouter.app was running — that is the macos-glass lane's claim and this surface does not make it.",
+      "reachesNote": "SURF-027 is G19's row for the same route. G17 enumerated it too, as its own SURF-026, and that duplicate was removed here. The one fact its note carried that G19's does not: both routers answer the route -- RouterCore/Control/ControlDocument.swift and src/control.ts:544 -- so it is a `control` parity row rather than a divergence. G17's CASE-0184 exercises the reference implementation (node dist/index.js), the same one M30's look used; the Swift half is covered by M30's route tests and its two-router differential rather than by this flow."
     }
   ],
   "flow": [
@@ -618,6 +640,54 @@
           "atoms": [
             "child.spawned",
             "child.reaped"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FLOW-006",
+      "title": "open-a-capability-and-read-its-document",
+      "critical": true,
+      "steps": [
+        {
+          "id": "FLOW-006.01",
+          "surface": "SURF-027",
+          "title": "The router reads the capability's package and serves its three documents",
+          "atoms": [
+            "document.readMe",
+            "document.changelog",
+            "document.capabilities",
+            "image.bytes",
+            "image.refused"
+          ]
+        },
+        {
+          "id": "FLOW-006.02",
+          "surface": "SURF-028",
+          "title": "Open the capability and read its read me, with its figure drawn",
+          "atoms": [
+            "sheet.titlebar",
+            "document.heading",
+            "figure.drawn",
+            "figure.refusal"
+          ]
+        },
+        {
+          "id": "FLOW-006.03",
+          "surface": "SURF-028",
+          "title": "Move to the Changelog tab",
+          "atoms": [
+            "tab.changelog",
+            "changelog.heading"
+          ]
+        },
+        {
+          "id": "FLOW-006.04",
+          "surface": "SURF-028",
+          "title": "Move to the Capabilities tab",
+          "atoms": [
+            "tab.capabilities",
+            "capabilities.heading"
           ]
         }
       ]
@@ -1123,6 +1193,15 @@
       "title": "`Settings` is no longer a sidebar row, so the glass capture filed a neighbouring board's pixels under SURF-011 — and the committed glass evidence predates M22",
       "status": "open · measured · partially fixed",
       "detail": "Measured 2026-08-27 by G16 while enumerating SURF-026, and independently by G15.\n\nM15 made Settings a Scene and removed the case from `Destination`, and capture-mac-glass.sh still ran `axkit select Settings`. That select fails — `axkit: no sidebar row starting 'Settings'` — the app stays on whichever board the loop visited last, and the shutter filed THAT board's pixels under SURF-011: byte-identical to the Cleanup board on one loop ordering and to the Insights board on another.\n\nTHE CAMPAIGN'S OWN INSTRUMENTS CAUGHT IT FROM TWO DIRECTIONS, which is the part worth keeping. glass-assert.py's raster uniqueness check went red because two cases shared a sha256; `--discriminate` reported the neighbouring board's predicate wrongly accepting SURF-011's dump, because that dump IS the neighbouring board; and the capture manifest's readback recorded the picture's target as the neighbour's route under subject SURF-011, contradicting its own filename.\n\nFIXED HERE, NARROWLY: the capture script now refuses to photograph a select that did not take, and says which board the window is actually showing. That is the script's own standing rule rather than a new one — it already declines to substitute a picture for the pairing sheet and the status item, and its header records the run that filed the Inbox board as SURF-010. The title and the dump are still written from what the app is really showing, so the failure stays visible downstream; what is withheld is the photograph, because a misattributed picture is the one artefact nothing downstream can correct.\n\nSTILL OPEN, and deliberately not fixed here:\n1. SURF-011 has no route to the Settings SCENE. It needs Cmd-comma or the app menu, not a sidebar select that cannot succeed. CASE-0016 and CASE-0111 fail until it does.\n2. THE MENU MAP IS PRE-M22. Committed SURF-001.menu.txt binds Cmd-4 to `Discover`; the running app binds Cmd-4 to `Harnesses`, exactly as Destination.selectionDigit declares (activity 1, servers 2, skills 3, harnesses 4, discover 5, inbox 6, evals 7, cleanup 8, insights 9). glass-assert.py's SURF-001 `menu` dict is the old map, so CASE-0001 asserts five bindings this build does not have. Correcting it is editing an assertion to restore a green, which this campaign forbids — it is owed as its own item, from Destination.selectionDigit rather than by hand.\n\nWHY IT IS THE SAME FINDING AS G14'S, ONE LAYER DOWN. G14 found the surface LIST had stopped growing while the product did. This is the EVIDENCE not having been re-taken since the build moved: the committed glass artefacts were last written on 20 Aug by cef3729, before M22 added two destinations and renumbered four accelerators. In both cases a completeness gate reported clean because what it measured was a stale artefact rather than the product."
+    },
+    {
+      "id": "DEF-060",
+      "req": "REQ-027",
+      "surface": "SURF-028",
+      "title": "A too-large refusal names the file and the cap but never the capability, so its picture cannot say what it refuses",
+      "text": "Measured by G17 on 2026-08-27. `CapabilityDocumentSheet`'s titlebar draws the capability's name from the DOCUMENT, so on any `unavailable` state it falls back to the generic word 'Documentation'. Three of the panel's refusals still identify themselves — `noPackageDirectory`, `packageUnreadable` and `notFound` all interpolate the capability into their headline — but `tooLarge`'s headline is '<file> is too large to show here', which names README.md and the 512 KB cap and never the server. So a photograph of that state is tied to the capability it refuses by its manifest row alone, which is the exact dependency the campaign's capture-lineage rule exists to remove. G17 records it rather than waiving it: check G17-L2 counts the frames that cannot corroborate their own row and fails if that set is anything other than this one.",
+      "source": "planning/test-campaign/evidence/g17-document/verdicts.json (G17-L2); app/Sources/MCPRouterKit/Markdown/CapabilityDocumentSource.swift:58",
+      "status": "open · measured"
     }
   ]
 }

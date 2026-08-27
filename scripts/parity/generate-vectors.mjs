@@ -227,6 +227,12 @@ const hashCases = [
   { id: 'env-key-order-irrelevant-b', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: { B: '2', A: '1' } } },
   // N1 — UTF-16 code-unit ordering. Sorting these by Unicode scalar inverts them.
   { id: 'env-utf16-ordering', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: { '\u{1F600}': 'emoji', '\uE000': 'private' } } },
+  // Collation, which UTF-16 ordering alone does not reach. Code units put `B` before `a`; ICU root
+  // collation puts `a` before `B`. Without a discriminating pair here, one of `upstreamHash`'s two
+  // sorts could be edited back to an inline `localeCompare` -- leaving `compareStrings` untouched,
+  // so `string-ordering` stays green -- and this digest would not move either. Measured at exit 0
+  // before this case existed.
+  { id: 'env-collation-ordering', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: { B: '1', a: '2' } } },
   // N2 — argument order is significant and must never be sorted.
   { id: 'args-order-za', u: { transport: 'stdio', name: 'a', command: 'x', args: ['z', 'a'], env: {} } },
   { id: 'args-order-az', u: { transport: 'stdio', name: 'a', command: 'x', args: ['a', 'z'], env: {} } },
@@ -245,6 +251,9 @@ const hashCases = [
   { id: 'http-transport', u: { transport: 'http', name: 'a', url: 'https://e.com', headers: {} } },
   { id: 'sse-transport', u: { transport: 'sse', name: 'a', url: 'https://e.com', headers: {} } },
   { id: 'header-utf16-ordering', u: { transport: 'http', name: 'a', url: 'https://e.com', headers: { '\u{1F600}': 'e', '\uE000': 'p' } } },
+  // The header sort is the second call site, and needs its own discriminating pair for the reason
+  // the env one above does.
+  { id: 'header-collation-ordering', u: { transport: 'http', name: 'a', url: 'https://e.com', headers: { B: '1', a: '2' } } },
   { id: 'excluded-oauth', u: { transport: 'http', name: 'a', url: 'https://e.com', headers: {}, oauth: true } }
 ];
 
@@ -356,7 +365,10 @@ const digestCases = [
   { id: 'null-schema', tools: [{ name: 'a', description: 'd', inputSchema: null }] },
   { id: 'empty-object-schema', tools: [{ name: 'a', description: 'd', inputSchema: {} }] },
   // UTF-16 ordering reaches the tool sort too.
-  { id: 'utf16-name-ordering', tools: [{ name: '\u{1F600}', description: 'emoji' }, { name: '', description: 'private' }] }
+  { id: 'utf16-name-ordering', tools: [{ name: '\u{1F600}', description: 'emoji' }, { name: '', description: 'private' }] },
+  // The third call site: `toolsDigest` sorts tool names with the same comparator, and needs its own
+  // collation-discriminating pair.
+  { id: 'collation-name-ordering', tools: [{ name: 'B', description: 'upper' }, { name: 'a', description: 'lower' }] }
 ];
 
 write('tools-digest', {

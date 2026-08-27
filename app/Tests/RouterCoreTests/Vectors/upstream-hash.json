@@ -83,6 +83,20 @@
       "hash": "302981e42b4c564b"
     },
     {
+      "id": "env-collation-ordering",
+      "upstream": {
+        "transport": "stdio",
+        "name": "a",
+        "command": "x",
+        "args": [],
+        "env": {
+          "B": "1",
+          "a": "2"
+        }
+      },
+      "hash": "0cfbad7b0391ab48"
+    },
+    {
       "id": "args-order-za",
       "upstream": {
         "transport": "stdio",
@@ -240,6 +254,19 @@
         }
       },
       "hash": "f6f94980dbeee5c0"
+    },
+    {
+      "id": "header-collation-ordering",
+      "upstream": {
+        "transport": "http",
+        "name": "a",
+        "url": "https://e.com",
+        "headers": {
+          "B": "1",
+          "a": "2"
+        }
+      },
+      "hash": "2906c33173f2d3c8"
     },
     {
       "id": "excluded-oauth",

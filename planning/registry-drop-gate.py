@@ -53,6 +53,15 @@ The second half is deliberately narrower than `campaign.py check` as a whole. Th
 exits 1 on capture-lineage findings this repository is carrying on purpose (G21, G29), and a gate
 that lands permanently red is a gate somebody switches off within a week.
 
+WHY THE HIGH-WATER MARK IS WRITTEN ONLY WHEN ASKED. The first version wrote it on every successful
+run, which made a read-only check a working-tree mutation. Measured 2026-08-27: running this gate
+between two merges in a serialized merge sequence left `registry-highwater.json` modified, and the
+next `git merge` refused with *"Your local changes to the following files would be overwritten by
+merge"*. A gate that cannot be run mid-sequence is a gate that will not be run there, and between
+merges is exactly where this one earns its keep. `--set-highwater` now matches `strict-check.py`'s
+`--set-ratchet` idiom: checking is read-only, and raising the floor is a deliberate act recorded in
+the commit that earns it.
+
 CONTROL, run on every invocation: a synthetic baseline with a planted extra id must be reported as
 a drop, and a synthetic baseline identical to the tree must be reported silent. If either arm
 misbehaves the gate exits 2 and prints no count, because a count from an instrument that cannot
@@ -259,9 +268,18 @@ def main():
             print('requirement deferred with its citation.')
             return 1
 
-    with open(HIGHWATER, 'w', encoding='utf-8') as fh:
-        json.dump({'ids': tree_total, 'baselines': refs}, fh, indent=1)
-        fh.write('\n')
+    prev = None
+    if os.path.exists(HIGHWATER):
+        with open(HIGHWATER, encoding='utf-8') as fh:
+            prev = json.load(fh).get('ids')
+    if '--set-highwater' in sys.argv:
+        with open(HIGHWATER, 'w', encoding='utf-8') as fh:
+            json.dump({'ids': tree_total, 'baselines': refs}, fh, indent=1)
+            fh.write('\n')
+        print(f'high-water mark set to {tree_total} (was {prev})')
+    elif prev is not None and tree_total > prev:
+        print(f'high-water mark is {prev}; the registry now holds {tree_total}. '
+              f'Raise it with --set-highwater in the commit that earns it.')
     print(f'no id dropped — registry holds {tree_total} across cases, requirements, surfaces and defects')
     return 0
 

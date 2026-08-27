@@ -15,12 +15,15 @@ against the real file, which is the whole path the gate uses.
 
 WHAT GREEN MEANS HERE
 ---------------------
-The gate is legitimately red today: three shipped addresses have no campaign surface (Harnesses,
-Insights and the capability-document viewer) and G15-G17 are the items that add them. So the arm
-cannot assert "red, then green" without lying about one end of it. It asserts something stricter:
-the mutated verdict must be the baseline PLUS the planted address and nothing else, and the
-restored verdict must be byte-identical to the baseline. A gate that went red for a second reason
-under the mutation, or that failed to return to exactly where it was, fails here.
+The assertion is a DELTA rather than "red, then green". It was written that way because the gate
+was legitimately red when this file landed — three shipped addresses had no campaign surface, and
+G15-G17 were the items adding them — so neither end of red-then-green was available to assert.
+G25 bound the three and the baseline is green now (measured 2026-08-27: `BASELINE exit=0 named=[]`,
+`MUTATED exit=1 named=['destination:probeboard']`), and the delta form is KEPT rather than
+tightened to red-then-green, because it is the stronger check either way: the mutated verdict must
+be the baseline PLUS the planted address and nothing else, and the restored verdict must be
+byte-identical to the baseline. A gate that went red for a second reason under the mutation, or
+that failed to return to exactly where it was, fails here.
 
 WHAT IT PUTS BACK
 -----------------

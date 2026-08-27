@@ -155,7 +155,35 @@ SURFACE    ?= servers
 ## whose artifact IS written to disk in the control repo: a classifier that reads the filesystem
 ## answers `TRACKED` and the control fails.
 
-## `role-intersection-gate.py` (`G8`) is deliberately NOT in `lint` or in `all`, and the reason is
+## `foreign-path-gate.py` (`G6`) is the sibling of that one, one directory out. `evidence-citation-gate`
+## asks whether a path a campaign record names is in the index; this asks whether a path a
+## hand-written record cites is inside the repository AT ALL. On 2026-08-23 a terminal died and
+## every `/tmp` artifact this fleet had cited went with it — four sweeps and a build log, one of
+## them carrying an ACCEPTED verdict and one of them named by a live verify brief as the arm that
+## decided the item. A sweep is the instrument proving a guard is armed, and a dead pointer at one
+## produces no wrong answer to catch: only an absence, which reads exactly like *not yet run*.
+##
+## It landed on `main` at `03c34c3` deliberately NOT wired here, because it was knowingly red on
+## five citations in files that branch was not permitted to write, because
+## "a gate added to a shared target in a red state is a", `planning/progress/G6.md:206` at `03c34c3`
+## gate that gets softened. Those five landed with the merge and the gate has been at `CITED 0` on
+## `main` since. The condition it named is met, so this is the line it named — and until it
+## existed, `git grep` found this gate invoked by nothing, which is the shape `G9` was blocked on
+## twice.
+##
+## It reads the committed tree at `HEAD`, never the working tree, for `G11`'s reason: the same
+## commit read from a dirty checkout and a pristine one gave opposite verdicts when uncommitted
+## edits marked two citations withdrawn on disk. The cost is real and is the honest statement of
+## what this line buys — a `/tmp` citation is refused on the first `lint` AFTER it is committed,
+## not before. `--worktree` is the pre-commit reading and is not what runs here.
+##
+## Its control plants sixteen classifications, three of them negative, and refuses to print a
+## verdict at exit 2 if any one is missed. The seventeenth arm runs the gate's own driver over a
+## planted repository the two readers disagree about, because the plants alone left the choice
+## between the readers untested: swapping the wrap-tolerant reader for the line-anchored one used
+## to survive with `ALL PLANTS FIRED` and `PASS`, and now turns the control red.
+
+
 ## its own subject. It exits **3** on this tree today: `planning/fidelity/popover.ledger.md` is an
 ## obituary — the fidelity gate exited 3 on `#statusPopover has no '.v-ideal' block` and wrote no
 ## table — so one surface has never been measured. That is a true verdict, not a broken gate, and
@@ -813,6 +841,7 @@ lint: tools
 	python3 planning/runnable-path-gate.py || fail=1; \
 	python3 planning/registry-drop-gate.py || fail=1; \
 	python3 planning/evidence-citation-gate.py || fail=1; \
+	python3 planning/foreign-path-gate.py --quiet || fail=1; \
 	python3 planning/test-campaign/bin/capture-manifest.py || fail=1; \
 	python3 planning/pin-class-gate.py || fail=1; \
 	zsh app/Scripts/pool-mutation-gate-selftest.sh || fail=1; \

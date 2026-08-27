@@ -1822,6 +1822,43 @@ here as **D-m23-be**, same file and same line, red once under another session's 
 green on the re-run. Recorded so the next reader does not re-diagnose it.
 
 
+### SCHEDULING — HARBOURMASTER MEASURES BERTHS, NOT AGENT SLOTS, AND WAVE F DIED ON THE DIFFERENCE
+
+Wave F dispatched four runners at 2026-08-28 04:50 against `harbourmaster berths.py` reading
+`available: 4 of 6`, cpu healthy, `load/core 0.518` — the quietest reading of the whole night. All
+four died. `started=24 results=0`: six attempts each, twenty of the twenty-four leaving a four-line
+transcript of prompt, deferred-tools, skill-listing, `[Request interrupted by user]`, with no
+assistant message and no error row. The four that got further were reading source with Bash and
+were cut mid-tool. Nothing committed, no worktree dirtied, 384,616 subagent tokens spent.
+
+**The cause was machine-wide agent concurrency, which harbourmaster does not measure.** Nine
+workflow runs across nine projects were live in that six-hour window — egress, ssd-offload,
+dAIolog, warden ×3, loope, packetloss and this one. `berths.py` reports COMPUTE: CPU load, memory
+pressure, and slots claimed by `governor-run` for builds and test suites. An agent that is thinking
+rather than compiling claims no berth, so a dozen live agents read as an idle machine. The reading
+was true and the inference from it was wrong.
+
+`ship-fleet`'s own rule is the one that applies and it is measured, not preferential: concurrency
+past roughly five agents kills agents that never emit a token, and the counters stay clean because
+`error_rows` is 0 for exactly the runs the harness killed. Twenty transcripts with no assistant
+message is that failure, reproduced here at a per-workflow width of four.
+
+**So the slot count is a machine-wide agent count, not a per-fleet one, and berths do not supply
+it.** Before dispatching, count live agents across ALL projects:
+
+```bash
+python3 <workflow-resume>/scripts/scan_workflows.py --hours 1 | grep -c '^    LIVE'
+```
+
+Dispatch only up to the difference between that count and five. Wave F's re-run was held rather
+than relaunched on this reading: seven agents were live elsewhere at the time, so the width
+available to this repo was zero, and relaunching into it would have destroyed a second wave and
+reported the same clean counters.
+
+Resume was refused for the same run on `workflow-resume`'s own rule: `results=0` means replay
+recovers nothing, and every branch sat at `main`'s HEAD with no commits and no dirty files, which
+is that skill's "died before committing — clean re-run".
+
 ## Needs input — not blocking any wave
 
 | # | Question | Blocks |

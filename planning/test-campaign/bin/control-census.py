@@ -93,9 +93,16 @@ def main() -> int:
     actuated: dict[str, set[str]] = {sid: set() for sid in declared}
     claimed: dict[str, set[str]] = {sid: set() for sid in declared}
     strays: list[str] = []
+    # A case that actuates nothing is not a case this census can count, and until now it left no
+    # trace: the numerator moved only for cases carrying `actuates`, and the size of the set that
+    # could never move it was invisible. That set is the census's own blind spot — a surface whose
+    # cases all sit in it reads as "declares controls that nothing actuates" with no way to tell
+    # a control nobody drove from a suite that never names controls at all.
+    no_actuation: list[str] = []
     for c in cases:
         names = c.get("actuates") or []
         if not names:
+            no_actuation.append(str(c.get("id") or "<case with no id>"))
             continue
         sid = c.get("surface")
         if sid not in declared:
@@ -117,6 +124,8 @@ def main() -> int:
     unhit_msg = sum(len(message_only[sid] - actuated[sid]) for sid in declared)
     unhit_state = (total - hit) - unhit_msg
 
+    print(f"Cases:      {len(cases) - len(no_actuation)} of {len(cases)} case(s) name a control "
+          f"they actuate; {len(no_actuation)} name none and cannot move any number below")
     print(f"Controls:   {hit} of {total} declared control(s) actuated by a passing effect-rung "
           f"case, across {len(declared)} surface(s) that declare any")
     print(f"            {msg_total} of the {total} are message-only — the design's whole promised "

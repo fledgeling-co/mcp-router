@@ -400,7 +400,12 @@ def read_corpus(root=ROOT, rev="HEAD", worktree=False):
     if not worktree:
         out = subprocess.run(["git", "-C", str(root), "ls-tree", "-r", "-z", rev],
                              capture_output=True, check=True).stdout
-        entries = [e for e in out.split(b"\0") if e]
+        # `-z` terminates each record with a NUL, so the field after the final terminator is the
+        # terminator's own tail rather than an entry. Sliced off rather than filtered out: a
+        # comprehension's `if` over raw input discards without recording, and an entry lost to a
+        # filter here is a file this gate never scanned and never said it skipped. Same reasoning
+        # as `reader-accounting.py::tracked_files`, which is the gate that asks for it.
+        entries = out.split(b"\0")[:-1]
         blobs_to_read = []
         for e in entries:
             meta, path_b = e.split(b"\t", 1)
@@ -443,7 +448,8 @@ def read_corpus(root=ROOT, rev="HEAD", worktree=False):
     else:
         out = subprocess.run(["git", "-C", str(root), "ls-files", "-z"],
                              capture_output=True, check=True).stdout
-        paths = [p.decode("utf-8", errors="replace") for p in out.split(b"\0") if p]
+        # Sliced, not filtered, for the reason spelled out on the `ls-tree` branch above.
+        paths = [p.decode("utf-8", errors="replace") for p in out.split(b"\0")[:-1]]
         for path in paths:
             if path in SELF:
                 dropped.append(path)

@@ -1,63 +1,64 @@
 {
-  "project": "mcp-router",
-  "startedAt": "2026-08-19T01:43:08+00:00",
-  "lanes": [
-    "macos-glass",
-    "ios-glass",
-    "swiftui",
-    "router-daemon",
-    "parity-wire"
-  ],
-  "axes": [
-    "surface",
-    "state",
-    "viewport",
-    "theme",
-    "role",
-    "data-shape",
-    "execution-plane"
-  ],
-  "sample": "pairwise floor; 3-way on theme\u00d7viewport\u00d7surface (Mac boards) and role\u00d7state\u00d7network (honesty); oversample honesty-guardrails; drop high-contrast (no authored tokens); drop RTL (no localisation); pairing-transport cells blocked (I5: unimplemented)",
-  "designOfRecord": "design/mocks/prototype.html",
-  "sourceRoot": "../..",
-  "testRoot": "app",
-  "rootsNote": "sourceRoot is the repository root, spelled relative to this directory because vacuity-check's find_root() tries the campaign directory FIRST: a literal \".\" resolves to planning/test-campaign, and the census then reports 4 of 8 providers resolved by matching symbols against this directory's own bin/*.py. Measured 2026-08-27. The root has to be the repository because the product ships TWO production trees \u2014 Swift under app/Sources and TypeScript under src/ \u2014 the instrument takes one root, and four providers (REQ-021, REQ-024, REQ-025, REQ-026) name a file in each. Under app/Sources those four resolve to nothing; under the repository all eight named providers resolve, every one of them by PATH rather than by symbol. WHAT THE CHOICE LEAVES UNMEASURED: the production index is 449 files, of which 393 are app/Sources and 15 are src/. The other 41 are pipeline gates, build scripts and evidence probes under planning/, scripts/, design/ and app/Scripts \u2014 SKIP_DIRS and TEST_MARKERS are module constants and cannot be configured away. They cost nothing today because no provider falls through to the symbol half, and they are a live weakness the day one does: a future provider could resolve on a symbol that exists only in a gate script. If the campaign directory ever moves, \"../..\" lands on a different existing directory and the providers stop resolving \u2014 the census goes red rather than quiet, which is the failure direction to want. testRoot is app rather than app/Tests, so the blind pass reads the five MCPRouterIOSTests/MCPRouterIOSUITests files as well as the 252 under app/Tests; and rather than the repository, which would hand the pass 20 campaign scripts under planning/test-campaign/bin plus the eight vendored instrument scripts and have the checker examine itself. Two things it does not reach: src/ has NO tests at all, and scripts/e2e*.mjs is invisible because .mjs is not in the pass's suffix set. Six production files ride along under app because Inspector contains the substring spec (ActivityInspector, EvalsInspector, ServerInspector, ServerInspectorControls, ServerInspectorSections, SkillInspector) \u2014 DEF-055's structural finding, still live. No blindVocabulary is declared: DEF-055 measured that tuning it lowers the count without improving what the pass knows.",
-  "run": {
-    "scope": "full",
-    "basis": "",
-    "lastFullRun": "2026-08-19T23:52:31+00:00",
-    "decidedBy": "user asked to invoke the skill to its fullest and resolve every gap \u2014 rung 1, no inference",
-    "maxFullRunAgeDays": 14.0,
-    "declaredAt": "2026-08-19T23:52:31+00:00"
+ "project": "mcp-router",
+ "startedAt": "2026-08-19T01:43:08+00:00",
+ "lanes": [
+  "macos-glass",
+  "ios-glass",
+  "swiftui",
+  "router-daemon",
+  "parity-wire"
+ ],
+ "axes": [
+  "surface",
+  "state",
+  "viewport",
+  "theme",
+  "role",
+  "data-shape",
+  "execution-plane"
+ ],
+ "sample": "pairwise floor; 3-way on theme×viewport×surface (Mac boards) and role×state×network (honesty); oversample honesty-guardrails; drop high-contrast (no authored tokens); drop RTL (no localisation); pairing-transport cells blocked (I5: unimplemented)",
+ "designOfRecord": "design/mcp-router-console.html",
+ "sourceRoot": "../..",
+ "testRoot": "app",
+ "rootsNote": "sourceRoot is the repository root, spelled relative to this directory because vacuity-check's find_root() tries the campaign directory FIRST: a literal \".\" resolves to planning/test-campaign, and the census then reports 4 of 8 providers resolved by matching symbols against this directory's own bin/*.py. Measured 2026-08-27. The root has to be the repository because the product ships TWO production trees — Swift under app/Sources and TypeScript under src/ — the instrument takes one root, and four providers (REQ-021, REQ-024, REQ-025, REQ-026) name a file in each. Under app/Sources those four resolve to nothing; under the repository all eight named providers resolve, every one of them by PATH rather than by symbol. WHAT THE CHOICE LEAVES UNMEASURED: the production index is 449 files, of which 393 are app/Sources and 15 are src/. The other 41 are pipeline gates, build scripts and evidence probes under planning/, scripts/, design/ and app/Scripts — SKIP_DIRS and TEST_MARKERS are module constants and cannot be configured away. They cost nothing today because no provider falls through to the symbol half, and they are a live weakness the day one does: a future provider could resolve on a symbol that exists only in a gate script. If the campaign directory ever moves, \"../..\" lands on a different existing directory and the providers stop resolving — the census goes red rather than quiet, which is the failure direction to want. testRoot is app rather than app/Tests, so the blind pass reads the five MCPRouterIOSTests/MCPRouterIOSUITests files as well as the 252 under app/Tests; and rather than the repository, which would hand the pass 20 campaign scripts under planning/test-campaign/bin plus the eight vendored instrument scripts and have the checker examine itself. Two things it does not reach: src/ has NO tests at all, and scripts/e2e*.mjs is invisible because .mjs is not in the pass's suffix set. Six production files ride along under app because Inspector contains the substring spec (ActivityInspector, EvalsInspector, ServerInspector, ServerInspectorControls, ServerInspectorSections, SkillInspector) — DEF-055's structural finding, still live. No blindVocabulary is declared: DEF-055 measured that tuning it lowers the count without improving what the pass knows.",
+ "run": {
+  "scope": "full",
+  "basis": "",
+  "lastFullRun": "2026-08-19T23:52:31+00:00",
+  "decidedBy": "user asked to invoke the skill to its fullest and resolve every gap — rung 1, no inference",
+  "maxFullRunAgeDays": 14.0,
+  "declaredAt": "2026-08-19T23:52:31+00:00"
+ },
+ "laneProof": {
+  "macos-glass": {
+   "attached": true,
+   "artifact": "/Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+   "artifactBytes": null,
+   "builtBy": "xcodebuild -project app/MCPRouter.xcodeproj -scheme MCPRouter -configuration Debug -derivedDataPath app/.derived CODE_SIGNING_ALLOWED=NO",
+   "attachedBy": "axkit attached pid=72421 owns CGWindowID 191539 title Activity; frontmost before/after = Relay",
+   "captureChannel": "screencapture -x -l<CGWindowID> window-scoped; PNG magic verified; no SCFrameStatus (screencapture, not ScreenCaptureKit)",
+   "declaredAt": "2026-08-19T04:28:40+00:00"
   },
-  "laneProof": {
-    "macos-glass": {
-      "attached": true,
-      "artifact": "/Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
-      "artifactBytes": null,
-      "builtBy": "xcodebuild -project app/MCPRouter.xcodeproj -scheme MCPRouter -configuration Debug -derivedDataPath app/.derived CODE_SIGNING_ALLOWED=NO",
-      "attachedBy": "axkit attached pid=72421 owns CGWindowID 191539 title Activity; frontmost before/after = Relay",
-      "captureChannel": "screencapture -x -l<CGWindowID> window-scoped; PNG magic verified; no SCFrameStatus (screencapture, not ScreenCaptureKit)",
-      "declaredAt": "2026-08-19T04:28:40+00:00"
-    },
-    "ios-glass": {
-      "attached": true,
-      "artifact": "/Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug-iphonesimulator/MCPRouterIOS.app",
-      "artifactBytes": null,
-      "builtBy": "make test-ios-glass \u2192 xcodebuild -scheme MCPRouterIOSGlass -destination id=$(the lane's own MCPRouter-Glass device) CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=YES test (lane source on branch ai/x2, not yet merged to main)",
-      "attachedBy": "XCUITest runner attached out-of-process to app.fledgeling.mcprouter.ios on MCPRouter-Glass (995BEF6F-101F-4D8A-ACE5-38724A13689A, iPhone 17 Pro, iOS 26.5), a device this lane creates and owns. Six green runs on 20 Aug 2026, 5 of 5 tests each; the last two were on the final source state and the four before them each carried one fewer fix. The four red runs between them were deliberate mutation arms, listed on CASE-0024, CASE-0122, CASE-0124 and CASE-0125. Simulator.app never opened and Ghostty stayed frontmost throughout. The device is lane-owned because a shared one was not: DEF-020 was another project's VPN app holding the foreground and receiving this lane's taps, and five runs failed on a different tab each time before anyone photographed the device itself.",
-      "captureChannel": "XCUIScreen.main.screenshot() attached as XCTAttachment and exported by xcresulttool export attachments, which groups each PNG under the test identifier that produced it \u2014 attribution by construction rather than by filename. No per-frame status is available on this channel and the campaign does not claim one.",
-      "declaredAt": "2026-08-20T03:09:08+00:00",
-      "signing": "CODE_SIGN_IDENTITY=- with signing required. An unsigned build has no keychain access group, so the app rendered its unreadable-pairing state from a real -34018 rather than from a product defect \u2014 DEF-017."
-    },
-    "swiftui": {
-      "attached": false,
-      "artifact": "/Users/lukerhodes/Dev/mcp-router/.worktrees/G17/app/.build/debug/MeasureDump",
-      "artifactBytes": 23604176,
-      "builtBy": "MCP_ROUTER_MEASURE=1 swift build --package-path app --product MeasureDump",
-      "attachedBy": "NOT ATTACHED, and the distinction is this lane's whole content. It hosts the product's own SwiftUI views in an NSHostingView inside a process whose activation policy is `.prohibited` and whose window is never ordered in. It does NOT claim MCPRouter.app was running and drawn \u2014 that is macos-glass's claim, and macos-glass proves it by axkit attaching to a CGWindowID the launched pid owns. What this lane witnesses is narrower and is stated as such: the hierarchy under measurement is compiled from app/Sources/MCPRouterUI rather than mocked, it laid out, and it painted. The in-view recorder (MCPRouterUI/Measure/Measured.swift, compiled only under MEASURE) reports resolved frames from inside the views themselves, because an NSHostingView hosting a real hierarchy has exactly one AppKit subview and walking it from outside the process returns nothing. A run whose recorder found no nodes exits 3 rather than writing an empty dump and reading as agreement.",
-      "captureChannel": "NSHostingView.cacheDisplay(in:to:) -> NSBitmapImageRep -> PNG, off the view's own backing store. Not screencapture and not ScreenCaptureKit: nothing is photographed off the display, so no window can occlude the subject and there is no screen to take. G17 samples the frontmost application once a second for the whole of its run and asserts that neither MeasureDump nor the router ever appears in the sample (planning/test-campaign/evidence/g17-document/frontmost.txt) \u2014 a stronger statement than comparing the frontmost app before and after, which a third-party application stealing focus mid-run turns into a false red.",
-      "declaredAt": "2026-08-27T02:59:59+00:00"
-    }
+  "ios-glass": {
+   "attached": true,
+   "artifact": "/Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug-iphonesimulator/MCPRouterIOS.app",
+   "artifactBytes": null,
+   "builtBy": "make test-ios-glass → xcodebuild -scheme MCPRouterIOSGlass -destination id=$(the lane's own MCPRouter-Glass device) CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=YES test (lane source on branch ai/x2, not yet merged to main)",
+   "attachedBy": "XCUITest runner attached out-of-process to app.fledgeling.mcprouter.ios on MCPRouter-Glass (995BEF6F-101F-4D8A-ACE5-38724A13689A, iPhone 17 Pro, iOS 26.5), a device this lane creates and owns. Six green runs on 20 Aug 2026, 5 of 5 tests each; the last two were on the final source state and the four before them each carried one fewer fix. The four red runs between them were deliberate mutation arms, listed on CASE-0024, CASE-0122, CASE-0124 and CASE-0125. Simulator.app never opened and Ghostty stayed frontmost throughout. The device is lane-owned because a shared one was not: DEF-020 was another project's VPN app holding the foreground and receiving this lane's taps, and five runs failed on a different tab each time before anyone photographed the device itself.",
+   "captureChannel": "XCUIScreen.main.screenshot() attached as XCTAttachment and exported by xcresulttool export attachments, which groups each PNG under the test identifier that produced it — attribution by construction rather than by filename. No per-frame status is available on this channel and the campaign does not claim one.",
+   "declaredAt": "2026-08-20T03:09:08+00:00",
+   "signing": "CODE_SIGN_IDENTITY=- with signing required. An unsigned build has no keychain access group, so the app rendered its unreadable-pairing state from a real -34018 rather than from a product defect — DEF-017."
+  },
+  "swiftui": {
+   "attached": false,
+   "artifact": "/Users/lukerhodes/Dev/mcp-router/.worktrees/G17/app/.build/debug/MeasureDump",
+   "artifactBytes": 23604176,
+   "builtBy": "MCP_ROUTER_MEASURE=1 swift build --package-path app --product MeasureDump",
+   "attachedBy": "NOT ATTACHED, and the distinction is this lane's whole content. It hosts the product's own SwiftUI views in an NSHostingView inside a process whose activation policy is `.prohibited` and whose window is never ordered in. It does NOT claim MCPRouter.app was running and drawn — that is macos-glass's claim, and macos-glass proves it by axkit attaching to a CGWindowID the launched pid owns. What this lane witnesses is narrower and is stated as such: the hierarchy under measurement is compiled from app/Sources/MCPRouterUI rather than mocked, it laid out, and it painted. The in-view recorder (MCPRouterUI/Measure/Measured.swift, compiled only under MEASURE) reports resolved frames from inside the views themselves, because an NSHostingView hosting a real hierarchy has exactly one AppKit subview and walking it from outside the process returns nothing. A run whose recorder found no nodes exits 3 rather than writing an empty dump and reading as agreement.",
+   "captureChannel": "NSHostingView.cacheDisplay(in:to:) -> NSBitmapImageRep -> PNG, off the view's own backing store. Not screencapture and not ScreenCaptureKit: nothing is photographed off the display, so no window can occlude the subject and there is no screen to take. G17 samples the frontmost application once a second for the whole of its run and asserts that neither MeasureDump nor the router ever appears in the sample (planning/test-campaign/evidence/g17-document/frontmost.txt) — a stronger statement than comparing the frontmost app before and after, which a third-party application stealing focus mid-run turns into a false red.",
+   "declaredAt": "2026-08-27T02:59:59+00:00"
   }
+ },
+ "designOfRecordNote": "The design of record settled 2026-08-22 (ORCHESTRATOR.md Contract). design/mocks/prototype.html is the superseded prototype and is cited only for surfaces not yet converted — G28's per-surface `controlsSource` records which of the two each surface's control list was read from, so the distinction survives per row rather than being flattened here. The two disagree about the shell itself (6 menus vs 8, 8 sidebar rows vs 9, 'Conduit' vs 'MCP Router'), so SURF-001 stays sourced from the prototype until it is converted: unioning them would describe a shell no single design specifies."
 }

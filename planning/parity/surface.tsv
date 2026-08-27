@@ -1,15 +1,21 @@
 # planning/parity/surface.tsv — the cutover surface, enumerated.
 #
-# rows: 95
+# THE SIZE OF THIS CENSUS IS NOT WRITTEN DOWN HERE. It is derived from the rows below by
+# scripts/acceptance/surface-census.sh, and parity-manifest-check.sh reads that oracle. Adding a row
+# is complete when the row is added: there is no second number to keep in step with it.
 #
-# The size of this census is pinned, and checked by parity-manifest-check.sh. Four groups are
-# reconciled against a source file and every row a lane speaks for is reconciled against the
-# results, but a BLOCKED row in `divergence`, `install`, `pool`, `state` or `log` is spoken for by
-# nothing — and deleting one leaves the numerator alone while shrinking the denominator, so the
-# reported coverage goes UP. This number is what makes that a red rather than an improvement.
+# Line 3 used to carry `# rows: N`. `git log -L3,3` on this file shows it bumped five times, once
+# per change that touched the file, and the last bump was already wrong when it was written —
+# `ebe3165` set 95 against a file that held 97 — after which parity-manifest-check.sh exited 1 on
+# the unmutated tree and the four selftests behind it in `make parity-selftest` stopped running at
+# all. The number was simply not derivable by the person editing it.
 #
-# Moving it is a deliberate line in a diff, which is the point: the denominator is R4-C's cutover
-# target. Add or remove a row and move the pin in the same change.
+# What still needs a decision is REMOVAL. Five groups here reconcile against a source file, but a
+# BLOCKED row in `divergence`, `install`, `pool`, `state`, `log` or `overlap` is spoken for by
+# nothing — deleting one leaves the numerator alone while shrinking the denominator, so the reported
+# coverage goes UP. `SURFACE_ROW_FLOOR` in parity-manifest-check.sh is the ratchet that makes that a
+# red: adding a row never touches it, and removing one means lowering it in the same commit, beside
+# PARITY_CUTOVER_TARGET in parity-gate.sh, which is R4-C's cutover target and a separate decision.
 #
 # One row per capability the cutover requires the Swift router to answer for. The gate reports
 # coverage as a fraction of THIS file, so a row that is missing here does not make the gate red —

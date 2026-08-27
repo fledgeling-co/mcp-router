@@ -140,6 +140,25 @@ expect_red_any() {
   printf '  red   %-62s exit %s\n' "$label" "$status"
 }
 
+# expect_green <label> <dir> — the check must PASS on this tree.
+#
+# Every other case here asks whether a guard can fire. This one asks whether it can stay quiet, and
+# it exists because the failure P10 repaired was of that kind: `# rows: N` went red on a manifest
+# that was CORRECT, and a guard that reddens on correct trees is a guard whose reds stop being
+# read. A ratchet plus an addition case is the only shape with both properties, so both are armed.
+expect_green() {
+  local label="$1" dir="$2" status
+  status="$(check "$dir")"
+  if [ "$status" != 0 ]; then
+    fail=$((fail + 1))
+    printf '  WENT RED      %s (exit %s)\n' "$label" "$status"
+    sed 's/^/                /' "$WORK/out.txt"
+    return
+  fi
+  pass=$((pass + 1))
+  printf '  green %-62s exit 0\n' "$label"
+}
+
 echo "parity-manifest-selftest — can the manifest check fail?"
 echo
 
@@ -360,13 +379,20 @@ expect_red "a cited divergence row deleted (div-r1-d3-control)" "$dir" \
 
 echo
 
-# ------------------------------------------------------------------------------ the pinned census
+# ----------------------------------------------------------------------------- the derived census
 # The four groups above are derived from a source file, and parity-gate.sh notices any row a LANE
 # speaks for. Neither reaches a BLOCKED row in `divergence`, `install`, `pool`, `state` or `log`:
 # no lane speaks for it, and no file exposes it. Four rows were in exactly that position, and
 # deleting one moved 74/83 to 74/82 with every other check green — the coverage figure going UP,
 # which is the whole of D-n.
-echo "the pinned census — the deletion neither derivation nor the lanes can see"
+#
+# These cases were aimed at `# rows: N` — an equality between the census and a number a person
+# retyped. P10 replaced that with `surface-census.sh`, which derives the count, and
+# `SURFACE_ROW_FLOOR`, which is a ratchet. So the cases are re-aimed rather than retired, and there
+# are more of them than there were: the four deletions and the twin still have to go red, an
+# addition now has to stay GREEN, and the oracle the count comes from has to be unable to fail
+# silently.
+echo "the derived census — the deletion neither derivation nor the lanes can see"
 
 # The wanted substring is the check's REASON, not its arithmetic.
 #
@@ -377,35 +403,60 @@ echo "the pinned census — the deletion neither derivation nor the lanes can se
 # case that matters would go unnoticed.
 #
 # `div-r1-d3` additionally trips the citation check first, because `div-r1-d3-control`'s note names
-# it — a stronger guard than the pin, and one that fires for a better reason. So each row is
+# it — a stronger guard than the floor, and one that fires for a better reason. So each row is
 # accepted on EITHER finding rather than on one spelling of one of them: what this case asserts is
 # that deleting a blocked row cannot pass, not which of the two guards catches it.
 for row in div-r1-d3 install-claude-json install-import-servers install-rollback; do
   dir="$(scratch)"
   delete_row "$dir/planning/parity/surface.tsv" "$row" || true
   expect_red_any "a blocked row deleted: $row" "$dir" \
-    'A row was added or removed' 'which is not a row id in this manifest'
+    'against a floor of' 'which is not a row id in this manifest'
 done
 
-# Addition is gated by the same number, and needs to be: a duplicate blocked twin sharing an
-# existing subject satisfies every derivation above, because those reconcile SUBJECTS.
+# A duplicate blocked twin sharing an existing subject satisfies every derivation above, because
+# those reconcile SUBJECTS and reduce the manifest side with `sort -u`. It used to be caught only by
+# the `# rows: N` equality — this case wanted that equality's own message — so removing the pin
+# without putting something in its place would have retired a guard rather than replaced it. What
+# catches it now is the one-row-per-source-subject rule, which names the claimants.
 dir="$(scratch)"
 printf 'cli\tcli-auth-2\tauth\tblocked\tD-x\ta twin sharing an existing subject\n' \
   >> "$dir/planning/parity/surface.tsv"
 expect_red "a duplicate blocked twin ADDED" "$dir" \
-  'A row was added or removed'
+  'is claimed by more than one manifest row'
 
-# And the pin itself has to be there.
+# The deliberately shared subject must still pass, or that rule is a rule against the manifest this
+# repository actually ships. `control-auth-post` and `control-auth-post-http` are the two halves of
+# POST /servers/:name/auth and are declared in SHARED_SUBJECTS; this case is what would notice the
+# declaration being dropped.
+dir="$(scratch)"
+expect_green "the DECLARED shared subject (POST /servers/:name/auth) passes" "$dir"
+
+# An ordinary row addition must stay green with NOTHING else edited. This is the case the pin could
+# not pass: `ebe3165` added rows and set the pin to 95 against a file that held 97, and every run
+# from `b1160ef` onward reported a correct manifest as broken.
+dir="$(scratch)"
+printf 'pool\tpool-selftest-probe\ta row added with nothing else touched\tblocked\tD-x\tproves the census follows the file\n' \
+  >> "$dir/planning/parity/surface.tsv"
+expect_green "a row ADDED, and no second number to move" "$dir"
+
+# The census the floor is compared against comes from an oracle, so an oracle that fails silently is
+# how this whole block goes quiet. Both halves are armed: a census that yields nothing, and the
+# oracle missing altogether. Neither may read as a clean manifest.
 dir="$(scratch)"
 python3 - "$dir/planning/parity/surface.tsv" <<'PY'
 import sys
 path = sys.argv[1]
-lines = [l for l in open(path).readlines() if not l.startswith('# rows: ')]
+lines = [l for l in open(path).readlines() if l.startswith('#')]
 with open(path, 'w') as handle:
     handle.writelines(lines)
 PY
-expect_red "the pin removed from the manifest" "$dir" \
-  'carries no `# rows: N` pin'
+expect_red "the census EMPTIED — an empty surface is a broken oracle" "$dir" \
+  'yielded no rows'
+
+dir="$(scratch)"
+rm -f "$dir/scripts/acceptance/surface-census.sh"
+expect_red "the census oracle REMOVED" "$dir" \
+  'this check has no denominator'
 
 echo
 

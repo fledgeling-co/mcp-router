@@ -89,9 +89,11 @@ fail() { echo "  FAIL: $*"; failures=$((failures + 1)); }
 ok() { echo "  ok: $*"; }
 
 # No PARITY_RESULTS row is written. `parity-gate.sh` reports a result whose id is not in
-# `planning/parity/surface.tsv` as an orphan, and adding a census row would move `# rows:` and
-# force `PARITY_CUTOVER_TARGET`, which the owner set on 2026-08-16. This lane is dispatched by
-# `make acceptance-r6`, not by the parity suite.
+# `planning/parity/surface.tsv` as an orphan, and adding a census row would move the denominator
+# `PARITY_CUTOVER_TARGET` is read against, which the owner set on 2026-08-16. (Until P10 it would
+# also have needed the `# rows:` pin moved by hand; that pin is gone and the census is derived, but
+# the cutover target is still an owner decision and is still the reason this lane writes no row.)
+# This lane is dispatched by `make acceptance-r6`, not by the parity suite.
 
 # Index one server through one router, under a scratch home, and print the PATH its child saw.
 # Prints nothing and returns 1 when the child never started.

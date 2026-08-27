@@ -387,8 +387,14 @@ PARITY_CUTOVER_DECIDED="the owner on 2026-08-16 (ORCHESTRATOR.md \"CUTOVER TARGE
 # census can be lowered by marking one more row `accepted-uncomparable` — which is deleting a row
 # to make the number look better, wearing different clothes. So the decision is pinned, the census
 # is derived, and a disagreement is reported rather than resolved: this gate prints the target that
-# was DECIDED and never silently re-derives one. That is the manifest's own idiom, where `# rows:
-# 83` is pinned and checked for exactly this reason.
+# was DECIDED and never silently re-derives one.
+#
+# This used to end "that is the manifest's own idiom, where `# rows: 83` is pinned and checked for
+# exactly this reason". P10 removed that pin: the census is derived by
+# `scripts/acceptance/surface-census.sh` and `SURFACE_ROW_FLOOR` in `parity-manifest-check.sh` is a
+# ratchet beneath it, because an equality against a hand-retyped number went red on a CORRECT
+# manifest five times. The idiom HERE is unchanged and is not that one — the target is a decision
+# and stays pinned, which is the case the manifest's number never had.
 #
 # It alters no exit code. A drift here is a claim that needs an owner, not a measurement this run
 # is entitled to overturn — and in every case where it can occur alongside blocked rows, the run is

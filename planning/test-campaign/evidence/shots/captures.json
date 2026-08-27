@@ -5,17 +5,17 @@
     "target": "app://mac/servers",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "99b4b20df9de32f5265ec81ba640d09075d6301d64fed14e1d5460ad0e7ad76a",
-    "capturedAt": "2026-08-27T02:50:22Z",
+    "sha256": "396f7a823d19d3df3b09256429b3befad5aad9e2f2d4fc1611ff3e5ab5f559d5",
+    "capturedAt": "2026-08-27T03:15:16Z",
     "conditions": {
       "windowTitleReadback": "Servers",
       "frame": "180,140,980,620",
-      "cgWindowID": "62427",
+      "cgWindowID": "63212",
       "appearance": "system",
-      "frontmostAtShutter": "Google Chrome",
+      "frontmostAtShutter": "Ghostty",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app",
+    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app",
     "sharesWith": [
       "SURF-001"
     ],
@@ -27,17 +27,17 @@
     "target": "app://mac/servers",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": "evidence/shots/SURF-002.build.png",
-    "sha256": "99b4b20df9de32f5265ec81ba640d09075d6301d64fed14e1d5460ad0e7ad76a",
-    "capturedAt": "2026-08-27T02:50:22Z",
+    "sha256": "396f7a823d19d3df3b09256429b3befad5aad9e2f2d4fc1611ff3e5ab5f559d5",
+    "capturedAt": "2026-08-27T03:15:16Z",
     "conditions": {
       "windowTitleReadback": "Servers",
       "frame": "180,140,980,620",
-      "cgWindowID": "62427",
+      "cgWindowID": "63212",
       "appearance": "system",
-      "frontmostAtShutter": "Google Chrome",
+      "frontmostAtShutter": "Ghostty",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app",
+    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app",
     "sharesWith": [
       "SURF-002"
     ],
@@ -49,18 +49,18 @@
     "target": "app://mac/shell",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS), cropped to the sidebar frame the AX dump reports",
     "derivedFrom": "evidence/shots/SURF-001.build.png",
-    "sha256": "4119037c75a3ae5bc0ea0a5a16a8b1fe40d656854295a5353a2480782527db6f",
-    "capturedAt": "2026-08-27T02:50:23Z",
+    "sha256": "5531328c00628d622c7a9d6fc324d480481dec4bd87d6baf21c35b983ea924a4",
+    "capturedAt": "2026-08-27T03:15:17Z",
     "conditions": {
       "windowTitleReadback": "Servers",
       "frame": "188.0,192.0,256.0,419.0",
-      "cgWindowID": "62427",
+      "cgWindowID": "63212",
       "appearance": "system",
-      "frontmostAtShutter": "n/a \u2014 derived crop, see SURF-001.build.png",
+      "frontmostAtShutter": "n/a — derived crop, see SURF-001.build.png",
       "scenario": "populated",
       "crop": "0,0,596,1376 of 2096x1376 at scale 2, shadow margin 68px"
     },
-    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-003.build.png",
@@ -68,17 +68,17 @@
     "target": "app://mac/activity",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "8b5e22118041bc70d98612c4e2b823b4dc0a3d98ca3ad16ca5080ebd33f1d55d",
-    "capturedAt": "2026-08-27T02:50:26Z",
+    "sha256": "c1c7fb459167edfd77f3bdd551ed836217303bbc84bb620a41923439cd5180ca",
+    "capturedAt": "2026-08-27T03:15:19Z",
     "conditions": {
       "windowTitleReadback": "Activity",
       "frame": "180,140,980,620",
-      "cgWindowID": "62427",
+      "cgWindowID": "63212",
       "appearance": "system",
       "frontmostAtShutter": "Ghostty",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-004.build.png",
@@ -86,17 +86,17 @@
     "target": "app://mac/skills",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "eb96b2645ef0b905c0599f3b238a5cb3df9f600a5fe8cd4d737fc78005f2b829",
-    "capturedAt": "2026-08-27T02:50:27Z",
+    "sha256": "d5e4d4fec406a9e3d5a2589918c3228aafe6861e2632cd3f22e0284507784675",
+    "capturedAt": "2026-08-27T03:15:20Z",
     "conditions": {
       "windowTitleReadback": "Skills",
       "frame": "180,140,980,620",
-      "cgWindowID": "62427",
+      "cgWindowID": "63212",
       "appearance": "system",
       "frontmostAtShutter": "Ghostty",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-005.build.png",
@@ -104,17 +104,17 @@
     "target": "app://mac/discover",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "63caa234049bd17fe80324832835a882f3f8671197b7555e8b5a237ec9552fd0",
-    "capturedAt": "2026-08-27T02:50:48Z",
+    "sha256": "c730d766467f7373b3e3b0ebd22259dd3470db1ac88cd26fc8232eeba9f94446",
+    "capturedAt": "2026-08-27T03:15:24Z",
     "conditions": {
       "windowTitleReadback": "Discover",
       "frame": "180,140,980,620",
-      "cgWindowID": "62427",
+      "cgWindowID": "63212",
       "appearance": "system",
-      "frontmostAtShutter": "Google Chrome",
+      "frontmostAtShutter": "Ghostty",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-008.build.png",
@@ -122,17 +122,17 @@
     "target": "app://mac/inbox",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "7de2f068d927e85b95c94684469181e115172a02e7bb6f6f3b10d37ae2131af3",
-    "capturedAt": "2026-08-27T02:50:49Z",
+    "sha256": "39d97570c50a7fc53274fc166c3bf751b8ef86ea2696074aa5f1bdf3ba426528",
+    "capturedAt": "2026-08-27T03:15:27Z",
     "conditions": {
       "windowTitleReadback": "Inbox",
       "frame": "180,140,980,620",
-      "cgWindowID": "62427",
+      "cgWindowID": "63212",
       "appearance": "system",
-      "frontmostAtShutter": "DaisyDisk",
+      "frontmostAtShutter": "Ghostty",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-006.build.png",
@@ -140,17 +140,17 @@
     "target": "app://mac/checks",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "2f2045dcb5e0b7c76fb7e93abc0662696eb5fcd55b289f52efde71b55a16db9f",
-    "capturedAt": "2026-08-27T02:50:51Z",
+    "sha256": "5aa88f0cf5d03704d4ab47d9fdd928cf4415810ead08a6ec1d97a17437fe5d5a",
+    "capturedAt": "2026-08-27T03:15:29Z",
     "conditions": {
       "windowTitleReadback": "Checks",
       "frame": "180,140,980,620",
-      "cgWindowID": "62427",
+      "cgWindowID": "63212",
       "appearance": "system",
-      "frontmostAtShutter": "DaisyDisk",
+      "frontmostAtShutter": "Ghostty",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-007.build.png",
@@ -158,35 +158,35 @@
     "target": "app://mac/cleanup",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "a6f834241deccd0acc66d29194b994528e66e54d7c00c67b7fe6077fc4b34a85",
-    "capturedAt": "2026-08-27T02:50:52Z",
+    "sha256": "94df3c584c6b0a5f34c8b35731207ad2c741c650787c34ac758b237235e47386",
+    "capturedAt": "2026-08-27T03:15:31Z",
     "conditions": {
       "windowTitleReadback": "Cleanup",
       "frame": "180,140,980,620",
-      "cgWindowID": "62427",
+      "cgWindowID": "63212",
       "appearance": "system",
-      "frontmostAtShutter": "DaisyDisk",
+      "frontmostAtShutter": "Ghostty",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-011.build.png",
     "subject": "SURF-011",
-    "target": "app://mac/cleanup",
+    "target": "app://mac/insights",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "a6f834241deccd0acc66d29194b994528e66e54d7c00c67b7fe6077fc4b34a85",
-    "capturedAt": "2026-08-27T02:51:04Z",
+    "sha256": "195e10068dfd364bcd311007fd6d2a8ce6db08584c0a499760915389ea84e0df",
+    "capturedAt": "2026-08-27T03:13:16Z",
     "conditions": {
-      "windowTitleReadback": "Cleanup",
+      "windowTitleReadback": "Insights",
       "frame": "180,140,980,620",
-      "cgWindowID": "62427",
+      "cgWindowID": "63156",
       "appearance": "system",
-      "frontmostAtShutter": "DaisyDisk",
+      "frontmostAtShutter": "Ghostty",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=64458 owns CGWindowID 63156, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-002.addserver.png",
@@ -212,17 +212,17 @@
     "target": "app://mac/pairing",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "e1af9aabe178da01c74911a2640d5f2876b1ac59b84a0765e9ec1217730ffc39",
-    "capturedAt": "2026-08-27T02:51:07Z",
+    "sha256": "780a70277d35d28637afa1ac7babbc0491a3ab5bb8c1349f1867fc77dd16681f",
+    "capturedAt": "2026-08-27T03:15:52Z",
     "conditions": {
       "windowTitleReadback": "Inbox",
       "frame": "180,140,980,620",
-      "cgWindowID": "62427",
+      "cgWindowID": "63212",
       "appearance": "system",
-      "frontmostAtShutter": "Finder",
+      "frontmostAtShutter": "Ghostty",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-002.empty.png",
@@ -231,16 +231,16 @@
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
     "sha256": "532c11b30605b0ac6b25aa134cc220a00320ca010b56b016c959434f20963241",
-    "capturedAt": "2026-08-27T02:51:11Z",
+    "capturedAt": "2026-08-27T03:16:08Z",
     "conditions": {
       "windowTitleReadback": "Servers",
       "frame": "180,140,980,620",
-      "cgWindowID": "62463",
+      "cgWindowID": "63228",
       "appearance": "system",
-      "frontmostAtShutter": "Finder",
+      "frontmostAtShutter": "Ghostty",
       "scenario": "empty"
     },
-    "witnessed": "axkit attached pid=18649 owns CGWindowID 62463, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=87283 owns CGWindowID 63228, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-002.offline.png",
@@ -249,16 +249,16 @@
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
     "sha256": "84a469099e7cd38253df6b4cc9a306b939ff48b7d66a6445715e90743e0d8bbf",
-    "capturedAt": "2026-08-27T02:51:13Z",
+    "capturedAt": "2026-08-27T03:16:24Z",
     "conditions": {
       "windowTitleReadback": "Servers",
       "frame": "180,140,980,620",
-      "cgWindowID": "62469",
+      "cgWindowID": "63236",
       "appearance": "system",
-      "frontmostAtShutter": "Finder",
+      "frontmostAtShutter": "Ghostty",
       "scenario": "offline"
     },
-    "witnessed": "axkit attached pid=19785 owns CGWindowID 62469, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=90213 owns CGWindowID 63236, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-007.cleanup-skills.png",
@@ -266,17 +266,17 @@
     "target": "app://mac/cleanup",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "c46ce8ebaceef3c4011cf11935e4a10c40308c6a051d2e1407a116bdf04fa53c",
-    "capturedAt": "2026-08-27T02:51:17Z",
+    "sha256": "57f694c88ddd12a993a81f79bb2aee47c05fca5d8b01919540db4592ba2d2cf2",
+    "capturedAt": "2026-08-27T03:16:40Z",
     "conditions": {
       "windowTitleReadback": "Cleanup",
       "frame": "180,140,980,620",
-      "cgWindowID": "62473",
+      "cgWindowID": "63241",
       "appearance": "system",
-      "frontmostAtShutter": "Finder",
+      "frontmostAtShutter": "Ghostty",
       "scenario": "cleanupSkills"
     },
-    "witnessed": "axkit attached pid=20173 owns CGWindowID 62473, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=93332 owns CGWindowID 63241, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-007.provenance-sheet.png",
@@ -305,7 +305,7 @@
     "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testDiscoverRendersTheRoutersCatalogue]",
     "sha256": "fb59515de8832c3c530d36fb67df212056378b3ab38e820ebe8bd29a6299c280",
     "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
     "witnessed": false
   },
   {
@@ -317,7 +317,7 @@
     "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testDiscoverTracksWhatTheRouterReturned]",
     "sha256": "efacc8e553e3084390fea6e18e446c553d8b1e58372739c8c9ae24e9d045e124",
     "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
     "witnessed": false
   },
   {
@@ -329,7 +329,7 @@
     "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
     "sha256": "e84897f27a63079643cb3a317ed495dfeefe0b2b89e894668117c8f0e6c590a9",
     "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
     "witnessed": false
   },
   {
@@ -341,7 +341,7 @@
     "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
     "sha256": "49be996cecefc81f8ce03bacca9b742ac134246cc188695d745038348a048f51",
     "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
     "witnessed": false
   },
   {
@@ -353,9 +353,9 @@
     "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
     "sha256": "6c58ee19619fe773968e86acfcd60559f752645b75a2128d161250ac8cef266d",
     "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
     "witnessed": false,
-    "unassertedReason": "A third capture of app://ios/pair-mac, kept for lineage and asserted by nothing. It shows the same camera-preflight state as SURF-014.ios.camera-preflight.png (sha 49be996c) \u2014 Camera not started, the Why the camera rationale, Allow camera access, Enter the code instead \u2014 so writing a case over it would count one check twice rather than check anything new. It is named UNASSERTED rather than SURF-014 so attach-shots.py cannot stem-match it onto that surface and make it look like a second, independent proof. Note what the two files establish together: they are visually identical and their sha256s differ (6c58ee19 vs 49be996c), so byte-identity across runs is not an oracle on the iOS lane the way it is on the Mac one."
+    "unassertedReason": "A third capture of app://ios/pair-mac, kept for lineage and asserted by nothing. It shows the same camera-preflight state as SURF-014.ios.camera-preflight.png (sha 49be996c) — Camera not started, the Why the camera rationale, Allow camera access, Enter the code instead — so writing a case over it would count one check twice rather than check anything new. It is named UNASSERTED rather than SURF-014 so attach-shots.py cannot stem-match it onto that surface and make it look like a second, independent proof. Note what the two files establish together: they are visually identical and their sha256s differ (6c58ee19 vs 49be996c), so byte-identity across runs is not an oracle on the iOS lane the way it is on the Mac one."
   },
   {
     "path": "evidence/shots/ios/SURF-018.ios.settings-never-paired.png",
@@ -366,7 +366,7 @@
     "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
     "sha256": "cb15aa3016a9a5589e9ac6fb2eb0f27d89f040440dac435ed564bc5d246aacf7",
     "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
     "witnessed": false
   },
   {
@@ -378,7 +378,7 @@
     "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
     "sha256": "5305bbc36e148891b553a4fcba1edd9c938a38c4869df1167d830357052e3639",
     "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
     "witnessed": false
   },
   {
@@ -390,7 +390,7 @@
     "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
     "sha256": "d013a14efe1b52712f4994d250b79b4b74dfd44022ef183f117c376007c3fba8",
     "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
     "witnessed": false
   },
   {
@@ -402,7 +402,7 @@
     "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
     "sha256": "651e672f5333326fecf0256700a02ec08657c96b6316a60ef625e522d3b4c918",
     "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
     "witnessed": false
   },
   {
@@ -458,5 +458,59 @@
       "scenario": "offline"
     },
     "witnessed": "axkit attached pid=23162 owns CGWindowID 62484, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+  },
+  {
+    "path": "evidence/shots/SURF-026.build.png",
+    "subject": "SURF-026",
+    "target": "app://mac/insights",
+    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+    "derivedFrom": null,
+    "sha256": "8adecf368f3ad9e9a7ed01c8f82e5e100c9f82b210efd70f91c78004b448ceeb",
+    "capturedAt": "2026-08-27T03:15:35Z",
+    "conditions": {
+      "windowTitleReadback": "Insights",
+      "frame": "180,140,980,620",
+      "cgWindowID": "63212",
+      "appearance": "system",
+      "frontmostAtShutter": "Ghostty",
+      "scenario": "populated"
+    },
+    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  },
+  {
+    "path": "evidence/shots/SURF-026.empty.png",
+    "subject": "SURF-026",
+    "target": "app://mac/insights",
+    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+    "derivedFrom": null,
+    "sha256": "c60c0a62ec46e0c7bcc15ace7eeb8e17e259f26ee11524313e55a7939aa25abb",
+    "capturedAt": "2026-08-27T03:16:57Z",
+    "conditions": {
+      "windowTitleReadback": "Insights",
+      "frame": "180,140,980,620",
+      "cgWindowID": "63247",
+      "appearance": "system",
+      "frontmostAtShutter": "Ghostty",
+      "scenario": "empty"
+    },
+    "witnessed": "axkit attached pid=2087 owns CGWindowID 63247, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  },
+  {
+    "path": "evidence/shots/SURF-026.failure.png",
+    "subject": "SURF-026",
+    "target": "app://mac/insights",
+    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+    "derivedFrom": null,
+    "sha256": "ad1f088b9ac4941f6161b9cf89b3f3b2b193769418353eebc3915e5788409a63",
+    "capturedAt": "2026-08-27T03:17:11Z",
+    "conditions": {
+      "windowTitleReadback": "Insights",
+      "frame": "180,140,980,620",
+      "cgWindowID": "63253",
+      "appearance": "system",
+      "frontmostAtShutter": "Ghostty",
+      "scenario": "offline"
+    },
+    "witnessed": "axkit attached pid=8471 owns CGWindowID 63253, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
   }
 ]

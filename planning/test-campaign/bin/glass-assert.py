@@ -204,6 +204,42 @@ SURFACES = {
                    "its reading to the configuration it actually read, and states its finding as "
                    "a counted pair rather than a judgement",
     },
+    # THE BOARD OF COUNTS AND MEASUREMENTS.
+    #
+    # Enumerated 2026-08-27 by G16. Every predicate below is a sentence that BOUNDS a figure
+    # rather than a figure itself: the subtitle's claim that nothing here is modelled, the
+    # provenance line under the memory reading, the caption that says why a bar can read
+    # nothing at all, and the duty-cycle caption that states its mechanism and its window
+    # instead of quoting the brief's "every one of these sat at 100%" — a number about a world
+    # this router never ran.
+    #
+    # The figures themselves are NOT asserted here, and that is deliberate rather than an
+    # omission: a Debug shell reads a fixture, so asserting `214` in this window would prove
+    # the fixture, not the product. The figures are traced against a live router by
+    # bin/insights-live-probe.py on the router-daemon lane, which is the lane that can tell.
+    "SURF-026": {
+        "dump": "SURF-026.window.txt", "title": "Insights",
+        "shot": "SURF-026.build.png",
+        "copy": [
+            "Every number here is counted from calls this router served",
+            "Where the calls came from",
+            "Duty cycle, per server",
+            "measured, not modelled",
+            "The share of wall-clock time each child was alive, since the router started",
+            "It sees the process on the other end of the connection, not the harness that "
+            "started it",
+        ],
+        # THE §6 SEARCH, RUN OVER THE RENDERED WINDOW. A saving is a figure about a world the
+        # router never ran, and PRD.md §8.2's own sketch draws one. Proven non-vacuous by the
+        # copy list above, which requires the board to BE discussing memory and duty cycle.
+        "absentAny": ["Savings", "saved", "vs unrouted", "unrouted", "would have been",
+                      "99.8", "99.7"],
+        "controls": {"Analyse now": False},
+        "asserts": "the Insights board states that nothing on it is modelled, carries the "
+                   "provenance line under the memory reading, says why a bar can read nothing "
+                   "at all, states the duty cycle's mechanism and window rather than a "
+                   "percentage about a world the router never ran, and speaks no saving anywhere",
+    },
     "SURF-011": {
         "dump": "SURF-011.window.txt", "title": "Settings",
         "shot": "SURF-011.build.png",
@@ -315,6 +351,41 @@ STATES = {
         "asserts": "a failed read draws the router-not-running state on THIS board — the window "
                    "title is read back off the failure's own dump — and draws no harness rows",
     },
+    # Not enough history is a MEASUREMENT, not a threshold picked by eye: the fixture's thin
+    # response carries a nil `logHorizon`, and that nil is the whole of it. The `absent` list is
+    # the load-bearing half — a board that drew its charts under a response with no horizon
+    # would be plotting a window it never had.
+    "SURF-026/empty": {
+        "surface": "SURF-026",
+        "dump": "SURF-026.empty.window.txt", "title": "Insights",
+        "shot": "SURF-026.empty.png",
+        "absentFrom": "SURF-026.window.txt",
+        "titleFromDump": True,
+        "copy": [
+            "Not enough history yet",
+            "No calls have been served in the last 24 hours",
+        ],
+        "absent": ["Where the calls came from", "Duty cycle, per server",
+                   "measured, not modelled", "Calls per hour"],
+        "asserts": "a response with no log horizon draws `not enough history yet` and draws NO "
+                   "chart and NO figure — an absent measurement is not a zero",
+    },
+    "SURF-026/failure": {
+        "surface": "SURF-026",
+        "dump": "SURF-026.failure.window.txt", "title": "Insights",
+        "shot": "SURF-026.failure.png",
+        "absentFrom": "SURF-026.window.txt",
+        "titleFromDump": True,
+        "copy": [
+            "The router isn't running",
+            "Nothing is listening on the control port",
+        ],
+        "absent": ["Where the calls came from", "Duty cycle, per server",
+                   "measured, not modelled", "Calls per hour"],
+        "asserts": "a failed read draws the router-not-running state on THIS board and draws no "
+                   "figure at all — a stale count kept through a failed read would be the exact "
+                   "defect §6 names",
+    },
     "SURF-007/cleanup-skills": {
         "surface": "SURF-007",
         "dump": "SURF-007.cleanup-skills.window.txt", "title": "Cleanup",
@@ -350,6 +421,8 @@ CASES = {
     "CASE-0016": ("SURF-011", "ax"),
     "CASE-0160": ("SURF-025", "ax"),
     "CASE-0167": ("SURF-025", "ax"),
+    "CASE-0170": ("SURF-026", "ax"),
+    "CASE-0176": ("SURF-026", "ax"),
     "CASE-0101": ("SURF-001", "raster"),
     "CASE-0102": ("SURF-002", "raster"),
     "CASE-0103": ("SURF-003", "raster"),
@@ -360,6 +433,7 @@ CASES = {
     "CASE-0108": ("SURF-008", "raster"),
     "CASE-0111": ("SURF-011", "raster"),
     "CASE-0161": ("SURF-025", "raster"),
+    "CASE-0171": ("SURF-026", "raster"),
 }
 
 # case -> state key. Same two kinds, read off the state's own dump and capture.
@@ -374,6 +448,10 @@ STATE_CASES = {
     "CASE-0163": ("SURF-025/empty", "raster"),
     "CASE-0164": ("SURF-025/failure", "ax"),
     "CASE-0165": ("SURF-025/failure", "raster"),
+    "CASE-0172": ("SURF-026/empty", "ax"),
+    "CASE-0173": ("SURF-026/empty", "raster"),
+    "CASE-0174": ("SURF-026/failure", "ax"),
+    "CASE-0175": ("SURF-026/failure", "raster"),
 }
 
 
@@ -505,6 +583,13 @@ def main() -> int:
         # the dump is a real AX tree of a real window, not an empty file
         check(case, "dump is an AXWindow tree", "AXWindow" in text and len(text) > 500)
 
+        # A NEGATIVE the board owes: a word it must never speak. Non-vacuity is carried by the
+        # copy list above, which requires the board to be discussing the subject the search is
+        # about — a clean result over a tree with no numbers in it proves nothing.
+        for phrase in spec.get("absentAny", []):
+            check(case, f"window does NOT speak: {phrase[:40]}",
+                  phrase.lower() not in text.lower() or decoy == surface)
+
         # CONTROLS THAT ARE ONLY PROVEN TO RENDER.
         #
         # A control's presence in the tree is a `structural` claim and nothing more: an AXButton
@@ -517,7 +602,8 @@ def main() -> int:
                     if len(r) > 8 and r[1] == "AXButton" and r[5].startswith(label)]
             check(case, f"a control labelled {label} is drawn", bool(hits))
             if hits and enabled is not None:
-                check(case, f"the {label} control is drawn {'enabled' if enabled else 'disabled'}",
+                check(case,
+                      f"the {label} control is drawn {'enabled' if enabled else 'disabled'}",
                       any(r[7] == ("1" if enabled else "0") for r in hits))
 
         # A shell surface owes the stronger claim: its chrome is in EVERY window, and

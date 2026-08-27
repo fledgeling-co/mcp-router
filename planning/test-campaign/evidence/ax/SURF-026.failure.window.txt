@@ -1,0 +1,61 @@
+0	AXWindow	AXStandardWindow	Insights								SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1	180.0	140.0	980.0	620.0	0
+1	AXGroup	AXHostingView										180.0	140.0	980.0	620.0	0
+2	AXSplitGroup										SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1, SidebarNavigationSplitView	180.0	-589.0	980.0	2130.0	0
+3	AXGroup	AXHostingView										188.0	-581.0	256.0	2114.0	0
+4	AXScrollArea											188.0	-537.0	256.0	1964.0	0
+5	AXOutline				Sidebar		1				sidebar	188.0	-537.0	256.0	1964.0	0
+6	AXRow	AXOutlineRow						0				188.0	-537.0	256.0	19.0	
+7	AXCell						1	0				198.0	-537.0	236.0	19.0	1
+8	AXGroup	AXHostingView										202.0	-537.0	240.0	19.0	0
+9	AXHeading				Running		1					202.0	-534.5	45.0	14.0	
+6	AXRow	AXOutlineRow						0				188.0	-518.0	256.0	32.0	
+7	AXCell						1	0				198.0	-518.0	236.0	32.0	1
+8	AXButton				Activity		1					205.5	-510.0	71.0	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-486.0	256.0	32.0	
+7	AXCell						1	0				198.0	-486.0	236.0	32.0	1
+8	AXButton				Servers		1					204.0	-478.0	72.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-454.0	256.0	32.0	
+7	AXCell						1	0				198.0	-454.0	236.0	32.0	1
+8	AXButton				Skills		1					207.0	-446.0	55.0	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-422.0	256.0	32.0	
+7	AXCell						1	0				198.0	-422.0	236.0	32.0	1
+8	AXButton				Harnesses		1					205.0	-414.0	90.0	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-377.0	256.0	19.0	
+7	AXCell						1	0				198.0	-377.0	236.0	19.0	1
+8	AXGroup	AXHostingView										202.0	-377.0	240.0	19.0	0
+9	AXHeading				Library		1					202.0	-374.5	39.0	14.0	
+6	AXRow	AXOutlineRow						0				188.0	-358.0	256.0	32.0	
+7	AXCell						1	0				198.0	-358.0	236.0	32.0	1
+8	AXButton				Discover		1					206.0	-350.0	77.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-326.0	256.0	32.0	
+7	AXCell						1	0				198.0	-326.0	236.0	32.0	1
+8	AXButton				Inbox		1					204.5	-318.0	58.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-294.0	256.0	32.0	
+7	AXCell						1	0				198.0	-294.0	236.0	32.0	1
+8	AXButton				Checks		1	1				204.5	-286.0	70.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-262.0	256.0	32.0	
+7	AXCell						1	0				198.0	-262.0	236.0	32.0	1
+8	AXButton				Cleanup		1					205.5	-254.0	74.5	16.0	
+6	AXRow	AXOutlineRow						1				188.0	-230.0	256.0	32.0	
+7	AXCell						1	1				198.0	-230.0	236.0	32.0	1
+8	AXButton				Insights		1	1				203.5	-222.0	75.0	16.0	
+6	AXColumn							0			ListColumn	198.0	-537.0	236.0	1964.0	
+4	AXStaticText			The router isn't running, Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a moment and your servers stay exactly as you left them.			1				sidebar	204.0	1443.0	214.5	74.0	
+3	AXSplitter			264			0	0				444.0	973.0	0.0	568.0	0
+3	AXGroup	AXHostingView										180.0	-589.0	980.0	2130.0	0
+4	AXStaticText			none	mcprouter-key-probe						content	1084.0	1513.0	72.0	24.0	1
+4	AXScrollArea										content	444.0	-537.0	716.0	2078.0	0
+5	AXStaticText			Insights			1					460.0	-521.0	82.5	26.0	
+5	AXStaticText			What your agents actually used. Every number here is counted from calls this router served or from processes it opened — none of it is modelled.			1					460.0	-493.0	628.5	32.5	
+5	AXImage				insights		1				chart.bar	785.0	-418.0	34.5	24.5	
+5	AXStaticText			The router isn't running			1					717.8	-379.0	168.5	19.0	
+5	AXStaticText			Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a moment and your servers stay exactly as you left them.			1					658.8	-356.0	286.5	65.5	
+5	AXButton				Start the router		1					745.0	-278.5	114.0	24.0	0
+1	AXToolbar											180.0	140.0	980.0	52.0	0
+2	AXButton				Hide Sidebar		1	0				397.0	140.0	47.0	52.0	0
+1	AXButton	AXCloseButton					1					198.0	158.0	16.0	16.0	0
+1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					244.0	158.0	16.0	16.0	0
+2	AXGroup											245.0	159.0	14.0	14.0	0
+3	AXGroup											245.0	159.0	14.0	14.0	0
+1	AXButton	AXMinimizeButton					1					221.0	158.0	16.0	16.0	0
+1	AXStaticText			Insights			1					448.0	140.0	708.0	52.0	0

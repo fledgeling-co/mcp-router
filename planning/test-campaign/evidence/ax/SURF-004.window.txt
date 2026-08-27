@@ -41,7 +41,7 @@
 8	AXButton				Insights		1					203.5	507.0	75.0	16.0	
 6	AXColumn							0			ListColumn	198.0	192.0	236.0	419.0	
 4	AXStaticText			Child processes, 1 of 4 declared servers running			1				sidebar	204.0	631.0	224.0	16.0	
-4	AXStaticText			last 16s · peak 1			1				sidebar	204.0	684.5	105.5	13.0	
+4	AXStaticText			last 15s · peak 1			1				sidebar	204.0	684.5	105.5	13.0	
 4	AXStaticText			Router endpoint, 127.0.0.1:8971			1				sidebar	204.0	729.0	95.5	14.0	
 3	AXSplitter			264			0	0				444.0	192.0	0.0	568.0	0
 3	AXGroup	AXHostingView										180.0	140.0	980.0	620.0	0

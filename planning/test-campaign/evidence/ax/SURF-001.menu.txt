@@ -14,12 +14,14 @@
 5	AXMenuItem		Show “Activity Monitor” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		EgressMac				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Show “EgressMac” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Finder				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “Finder” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Google Chrome				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Show “Google Chrome” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Graft				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Show “Graft” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Mail				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “Mail” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		MCPRouter				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “MCPRouter” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		MCPRouter				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Show “MCPRouter” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		MCPRouter				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
@@ -28,8 +30,6 @@
 5	AXMenuItem		Show “Podcasts” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		System Settings				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Show “System Settings” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Terminal				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “Terminal” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Documents				0	0		0		0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		anvil-site.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
@@ -65,7 +65,7 @@
 3	AXMenuItem		Force Quit…				1	0	⎋	2	_forceQuitPanelRequested:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Force Quit MCP Router				1	0	⎋	3	_forceQuitRequested:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Sleep				1	0		0	_sleepRequested:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Sleep				0	0		0	_sleepRequested:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Restart…				1	0		0	_restartRequested:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Restart				1	0		10	_restartNowRequested:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Shut Down…				1	0		0	_shutDownRequested:	0.0	1117.0	0.0	0.0	0
@@ -120,8 +120,8 @@
 3	AXMenuItem		Select All				0	0	A	0	selectAll:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Find				1	0	F	0	menuAction:	0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Reset Server				0	0	R	0		0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Remove Server				0	0		0		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Reset Server			Select a server first.	0	0	R	0		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Remove Server			Select a server first.	0	0		0		0.0	1117.0	0.0	0.0	0
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Writing Tools				1	0		0	__NSTextViewContextSubmenuIdentifierWritingTools	0.0	1117.0	0.0	0.0	0
 4	AXMenu						1	0				0.0	1117.0	0.0	0.0	0

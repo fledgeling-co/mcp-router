@@ -114,7 +114,9 @@ PY
 
 SHELL_SHARE_REASON="the shell is window chrome and the sidebar; it has no board of its own, so it is photographed on the Servers board and is the same window and the same pixels"
 
-# Nine boards, each selected then read back. SURF-001 is the shell — chrome that
+# Ten boards, each selected then read back. SURF-026 joined on 2026-08-27 (G16): the
+# Insights board shipped with M22 and was never enumerated, so it was never selected
+# here. SURF-001 is the shell — chrome that
 # has no board of its own — so it is photographed on the Servers board and says
 # so, rather than being filed as "whatever was restored".
 #
@@ -133,15 +135,38 @@ for pair in \
   "SURF-008:Inbox" \
   "SURF-006:Checks" \
   "SURF-007:Cleanup" \
+  "SURF-026:Insights" \
   "SURF-011:Settings"
 do
   sid="${pair%%:*}"
   row="${pair##*:}"
   echo "select $row -> $sid"
-  "$AXKIT" select "$PID" "$row" || echo "  select failed for $row"
+  SELECTED=1
+  "$AXKIT" select "$PID" "$row" || { SELECTED=0; echo "  select failed for $row"; }
   sleep 0.5
   "$AXKIT" title "$PID" | tee "$AX/${sid}.title.txt"
   "$AXKIT" dump "$PID" window > "$AX/${sid}.window.txt"
+  # A SELECT THAT DID NOT TAKE MUST NOT BE PHOTOGRAPHED, and this is the script's own cardinal
+  # sin rather than a new rule: it already refuses to substitute a picture for the pairing sheet
+  # and the status item, and its header records the run that filed the Inbox board as SURF-010.
+  #
+  # It was doing exactly that again. `Settings` stopped being a sidebar row when M15 made it a
+  # Scene, so `axkit select Settings` now fails, the app stays on whichever board the loop
+  # visited last, and the shutter filed THAT board's pixels under SURF-011 — the Cleanup board
+  # on one ordering, the Insights board on another, byte-identical to the real one each time.
+  # `glass-assert.py` caught it twice from opposite directions: the raster uniqueness check went
+  # red because two cases shared a sha, and `--discriminate` reported the neighbouring board's
+  # predicate wrongly accepting SURF-011's dump. Filed as DEF-059 by G16; G15 recorded the
+  # same select under DEF-058 §2, as part of the wider pre-M22 staleness.
+  #
+  # The title and the dump are still written, from what the app is ACTUALLY showing, so the
+  # failure stays visible to every assertion downstream. What is withheld is the photograph,
+  # because a misattributed picture is the one artefact nothing downstream can correct.
+  if [ "$SELECTED" = "0" ]; then
+    echo "  $sid NOT PHOTOGRAPHED — the select did not take, and the window is showing"
+    echo "  $("$AXKIT" title "$PID") instead. Filing that picture under $sid is DEF-059."
+    continue
+  fi
   # The Servers capture is also the shell's, so BOTH entries declare the share —
   # the gate requires every subject in a share to name the others, which is what
   # makes the wall say "one picture, two cells" from either side of it.
@@ -339,6 +364,13 @@ relaunch_and_capture cleanupSkills SURF-007.cleanup-skills SURF-007 Cleanup
 # draws nothing on screen is exactly the failure this campaign was rebuilt to catch.
 relaunch_and_capture empty   SURF-025.empty   SURF-025 Harnesses
 relaunch_and_capture offline SURF-025.failure SURF-025 Harnesses
+# The Insights board's other two states.
+#
+# `empty` serves the THIN response rather than a zeroed one, and the difference is the whole of
+# "not enough history yet": `logHorizon` is nil, so the board says it has too little history
+# instead of drawing a flat chart that implies a quiet day. `offline` is the read failing.
+relaunch_and_capture empty   SURF-026.empty   SURF-026 Insights
+relaunch_and_capture offline SURF-026.failure SURF-026 Insights
 
 # The sheet that `Read first…` opens, from the row that draws it.
 #

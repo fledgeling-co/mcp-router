@@ -232,7 +232,15 @@ export function currentFlow(): { server: string; url: string } | undefined {
   return current ? { server: current.flow.server, url: current.flow.url } : undefined;
 }
 
-const PAGE = (title: string, detail: string): string =>
+/**
+ * The callback page the OAuth listener writes to the browser.
+ *
+ * Exported rather than module-local because `scripts/parity/generate-vectors.mjs` builds the
+ * `auth-pages` vector from it. A generator that keeps its own copy of a template it claims to
+ * have derived from the reference cannot detect the reference changing under it — the exact
+ * defect P9 exists to close, so the vector imports this symbol instead of transcribing it.
+ */
+export const PAGE = (title: string, detail: string): string =>
   `<!doctype html><meta charset="utf-8"><title>${title}</title>` +
   `<style>body{font:15px/1.6 -apple-system,system-ui,sans-serif;background:#141220;color:#eae8f5;` +
   `display:grid;place-items:center;height:100vh;margin:0;text-align:center}` +

@@ -1,5 +1,5 @@
 {
-  "description": "Math.min(Number(x ?? 30) || 30, 60) then slice(0, limit) — the registry cap (N6, B54).",
+  "description": "control.registrySearchLimit(x) then slice(0, limit) — the registry cap, imported from the reference (N6, B54).",
   "rows": 70,
   "cases": [
     {

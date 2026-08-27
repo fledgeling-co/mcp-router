@@ -338,6 +338,24 @@ function documentFacts(
   return facts;
 }
 
+/**
+ * The row cap `/registry/search` applies to a `limit` query value.
+ *
+ * Extracted from the handler and exported because `scripts/parity/generate-vectors.mjs` builds the
+ * `registry-limit` vector from it. It used to be an inline expression there and a transcription of
+ * that expression in the generator, which is the shape P9 measured going wrong on `auth-pages`: a
+ * vector generated from a copy cannot notice the original change, so raising the cap to 100 would
+ * have left the vector asserting 60 and `make parity-regen` green.
+ *
+ * The coercion ladder is deliberate and load-bearing, so it is preserved exactly: `||` is
+ * ToBoolean, so both `0` and `NaN` collapse to 30; `min` caps at 60; and a negative survives all
+ * of it and reaches `slice`, where it counts back from the end and drops rows instead of taking
+ * them.
+ */
+export function registrySearchLimit(raw: string | null): number {
+  return Math.min(Number(raw ?? 30) || 30, 60);
+}
+
 /** True when this path belongs to the control API rather than to /mcp. */
 export function isControlPath(pathname: string): boolean {
   return (
@@ -698,7 +716,7 @@ export async function handleControl(
     try {
       const out = await searchRegistries(
         url.searchParams.get('q') ?? '',
-        Math.min(Number(url.searchParams.get('limit') ?? 30) || 30, 60)
+        registrySearchLimit(url.searchParams.get('limit'))
       );
       // Which servers are already installed, so the app can render "Installed"
       // instead of an install button it would have to disable a moment later.

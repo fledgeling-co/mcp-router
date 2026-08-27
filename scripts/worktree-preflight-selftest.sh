@@ -78,6 +78,16 @@ if [ "$GRC" = 0 ] && [ -d "$PHY/node_modules" ] \
 else
   bad "P1 the guard did not repair the dangling link (rc=$GRC, link=$(readlink "$PHY/node_modules" 2>/dev/null))"
 fi
+# P1b — the repair is only half the product; the sentence saying WHY is the other half, and the
+# first version of it shipped with a dropped closing quote, so the second line printed as
+# `      echo  resolved physically and lands…`. P1 read the symlink and never read the message.
+if printf '%s' "$GOUT" | grep -q "is a symlink onto another volume" \
+   && printf '%s' "$GOUT" | grep -q "no relative path reaches it" \
+   && ! printf '%s' "$GOUT" | grep -qE '^ *echo '; then
+  ok "P1b the repair explained itself, and no line of it leaked its own 'echo'"
+else
+  bad "P1b the repair message is malformed or does not say why: $GOUT"
+fi
 
 # ---- P2  nothing to share: the guard must refuse, not link into thin air ------------------
 fresh_tree no-node-modules

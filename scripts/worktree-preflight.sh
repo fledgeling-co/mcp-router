@@ -131,8 +131,8 @@ preflight_node() {
     # replacing it changes nothing a branch can see. A REAL directory is never touched.
     if [ -L "$PHYS_ROOT/node_modules" ]; then
       echo "worktree-preflight: node_modules -> $(readlink "$PHYS_ROOT/node_modules") does not resolve."
-      echo "                    '.worktrees' is a symlink onto another volume, so a relative link is
-      echo "                    resolved physically and lands outside the main checkout. Repointing it.
+      echo "                    '.worktrees' is a symlink onto another volume, so a relative link is"
+      echo "                    resolved physically and lands outside the main checkout. Repointing it."
       rm -f "$PHYS_ROOT/node_modules"
     fi
     if [ ! -d "$main/node_modules" ]; then

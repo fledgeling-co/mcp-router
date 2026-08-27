@@ -1,6 +1,6 @@
 # M29 decisions — out-of-family lane: grok-4.6 --effort xhigh
 
-Run 2026-08-25, bounded at 540s, exit 0. Prompt `/tmp/m29/prompt2.txt` — the same evidence with
+Run 2026-08-25, bounded at 540s, exit 0. Prompt `/tmp/m29/prompt2.txt` (not retained) — the same evidence with
 the **(c) option order swapped** (deny-list first, global boolean last) and a fourth question
 added about whether the router should send a derived status enum. The reply opens with its own
 tool narration because this lane read the repository directly and ran referrals of its own; that

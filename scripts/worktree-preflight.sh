@@ -106,6 +106,8 @@ other_spelling() {
 }
 OTHER="$(other_spelling || true)"
 
+note() { printf '%s\n' "$*" >&2; }
+
 fail() { echo "$@" >&2; }
 rc=0
 
@@ -186,6 +188,29 @@ preflight_swift() {
     local was=""
     [ -f "$stamp" ] && was="$(cat "$stamp" 2>/dev/null)"
     if [ "$was" = "$SPELL" ]; then continue; fi
+
+    # No stamp means this cache predates the check. Refusing there blocks every cache that
+    # already existed, once, including in the main checkout where the duality cannot occur —
+    # and it did: the first `make lint` after this guard landed died at `tools` over a cache
+    # holding one spelling and no second one anywhere in it. An unknown is not a failure, and
+    # here it is cheap to MEASURE rather than default: the cache's own bytes name the spellings
+    # it was filled under. So adopt a cache that demonstrably holds only this spelling, and keep
+    # refusing one that holds both — which is the condition the segfault actually comes from.
+    if [ -z "$was" ] && [ -n "$PHYS_ROOT" ]; then
+      local found_phys=0 found_other=0
+      grep -rlqs -- "$PHYS_ROOT" "$root" 2>/dev/null && found_phys=1
+      if [ -n "$OTHER" ]; then
+        grep -rlqs -- "$OTHER" "$root" 2>/dev/null && found_other=1
+      fi
+      if [ "$found_phys" -eq 1 ] && [ "$found_other" -eq 0 ] && [ "$SPELL" = "$PHYS_ROOT" ]; then
+        printf '%s' "$SPELL" > "$stamp" 2>/dev/null || true
+        note "worktree-preflight: adopted the existing module cache under"
+        note "  $root"
+        note "It holds only $PHYS_ROOT and no second spelling, so its provenance is measured"
+        note "rather than unknown. Stamped; a later build under the other spelling still refuses."
+        continue
+      fi
+    fi
 
     fail "worktree-preflight: REFUSING to build — the Swift module cache under"
     fail "  $root"

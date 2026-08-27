@@ -219,14 +219,14 @@
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .accessibilityLabel(image.alternateText)
-                        // **Deliberately not measured.** A node here would say a drawn image and a
-                        // refusal placeholder are different views, which they are; it would not say
-                        // that any bytes arrived or that anything was painted, and it is the second
-                        // claim that had never been made. CASE-0153 reads the pixels inside this
-                        // card's own frame off the raster instead, which is the rung that can
-                        // actually answer it — and a `figure` node here would additionally be a
-                        // build affordance the mock has no peer for, adding a finding to
-                        // `mock-fidelity SURFACE=readme` in exchange for a weaker oracle.
+                    // **Deliberately not measured.** A node here would say a drawn image and a
+                    // refusal placeholder are different views, which they are; it would not say
+                    // that any bytes arrived or that anything was painted, and it is the second
+                    // claim that had never been made. CASE-0153 reads the pixels inside this
+                    // card's own frame off the raster instead, which is the rung that can
+                    // actually answer it — and a `figure` node here would additionally be a
+                    // build affordance the mock has no peer for, adding a finding to
+                    // `mock-fidelity SURFACE=readme` in exchange for a weaker oracle.
                 } else {
                     Text(refusalSentence(for: image))
                         .typeRole(.subheadline)

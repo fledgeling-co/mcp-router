@@ -111,7 +111,8 @@ four was right. Each is a different question:
   N1  every occurrence, line-anchored regex — what a `grep` sees
   N2  every occurrence, read from the whole file collapsed — the same tokens, by construction
   N3  N2 deduplicated by (citing file, cited path, cited line, frame)
-  N4  N3 with generated files excluded — those are regenerated, not maintained
+  N4  N3 with generated and frozen files excluded — a generated one is regenerated rather
+      than maintained, and a frozen one is a preserved copy that must not be edited at all
   N5  N4 whose cited path resolves to a tracked file — the checkable set
 
 The ratchet reads N5's `BARE` count. Every other figure is printed beside it so no number can be
@@ -195,7 +196,14 @@ GENERATED = (
     "planning/fidelity/*.tsv",
     "planning/fidelity/*.ledger.md",
     "planning/reckoning/*/*.json",
-    "planning/tailings/*.json",
+    # `planning/tailings*/*.json`, not `planning/tailings/*.json`: the same skill has now run
+    # three times over three commit windows and written `tailings/`, `tailings-2/` and
+    # `tailings-3/`. All three carry schema 1 and the identical machine-written probe title —
+    # `"function body is empty: <path>:<line>"` — so the first run's exclusion and the second's
+    # inclusion were the same artifact answered two ways because the glob named a directory
+    # instead of a generator. Measured 2026-08-27: `tailings-2/` put 7 bare citations over the
+    # ratchet across two files, every one of them a probe title of that form.
+    "planning/tailings*/*.json",
     "planning/test-campaign/*.json",
     "planning/test-campaign/evidence/*.json",
     "planning/test-campaign/evidence/*/*.json",
@@ -211,6 +219,33 @@ GENERATED = (
     "planning/reader-accounting.tsv",
     "planning/parity/*.tsv",
     "planning/status/*.json",
+    # The campaign's evidence page, built by
+    # `vendor/test-campaign/skills/test-campaign/scripts/evidence-page.py` from
+    # `campaign.json`, `inventory.json`, `cases.json` and `evidence/`. Every citation in it is
+    # a verbatim copy of a `why` or a `note` string in those registries, which the two globs
+    # above already exclude — so the page and its source were being answered two different
+    # ways for the same 18 strings. Proved by regenerating it 2026-08-27: the fresh page
+    # carries the same 18 bare citations, one for one, so a hand-edit here buys nothing that
+    # survives the next run of the generator. That is the decisive half — a per-file counter
+    # on this artifact can only be satisfied by editing a file that is overwritten, which is
+    # the wrong fix taught by a green gate. The right fix is in the registry and this gate
+    # cannot see it: the campaign registries are unguarded for bare citations, and naming
+    # that hole is the cost of this line.
+    "planning/test-campaign/evidence.html",
+)
+
+# Not regenerated — *frozen*, which is a different reason for the same exclusion and so gets
+# its own name rather than being folded into GENERATED.
+#
+# `planning/rescue/campaign-stash-20260827/` is a byte-copy of a campaign registry taken from a
+# git stash that had been dropped, committed at `cb1d7de` so five cases could not be lost a
+# second time. It makes no claim a reader follows — the live registry at
+# `planning/test-campaign/cases.json` does, and it is excluded above as generated. And the
+# exclusion is not a convenience: a rescue copy is evidence *because* it is identical to what
+# it rescued, so framing a citation inside one would destroy the only property it has. There
+# is no edit to this file that both satisfies the ratchet and leaves it a rescue.
+FROZEN = (
+    "planning/rescue/*/*.json",
 )
 
 # This file quotes every class name and several example citations in order to explain them, so it
@@ -697,7 +732,11 @@ def main():
 
     generated = sorted(f for f in tracked
                        if any(fnmatch.fnmatch(f, p) for p in GENERATED))
-    gen_set = set(generated)
+    frozen = sorted(f for f in tracked
+                    if any(fnmatch.fnmatch(f, p) for p in FROZEN))
+    # Both leave N4, and the two lists are printed apart so the two reasons never blend into one
+    # number nobody can question.
+    unmaintained = set(generated) | set(frozen)
     selfnamed = [f for f in tracked if f in SELF]
     scan = [f for f in tracked if f not in set(selfnamed)]
 
@@ -731,11 +770,11 @@ def main():
                 continue
             seen.add(key)
             c["file"] = f
-            c["generated"] = f in gen_set
+            c["unmaintained"] = f in unmaintained
             rows.append(c)
 
     n3 = len(rows)
-    hand = [c for c in rows if not c["generated"]]
+    hand = [c for c in rows if not c["unmaintained"]]
     n4 = len(hand)
 
     checkable = []
@@ -766,8 +805,8 @@ def main():
     print("  N2  every occurrence, wrap-tolerant (whole file, collapsed)  %6d   %+d vs N1"
           % (n2, n2 - n1))
     print("  N3  N2 deduplicated by (citing file, cited path, line, frame) %5d" % n3)
-    print("  N4  N3 with %d generated files excluded by name              %6d"
-          % (len(generated), n4))
+    print("  N4  N3 with %d generated and %d frozen files excluded by name %5d"
+          % (len(generated), len(frozen), n4))
     print("  N5  N4 whose cited path resolves to a tracked file           %6d" % n5)
     print("      dropped from N5: %d ambiguous basename, %d path not tracked"
           % (unresolved["ambiguous"], unresolved["untracked"]))

@@ -1,0 +1,197 @@
+{
+ "config": "/Users/lukerhodes/.claude/mcp-router/servers.json",
+ "rows": [
+  {
+   "upstream": "atlas-admin",
+   "block": "headers",
+   "key": "Authorization",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  },
+  {
+   "upstream": "diolog-admin",
+   "block": "headers",
+   "key": "Authorization",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  },
+  {
+   "upstream": "diolog-tasks",
+   "block": "headers",
+   "key": "Authorization",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  },
+  {
+   "upstream": "diolog-tasks",
+   "block": "headers",
+   "key": "x-company-id",
+   "is_secret": false,
+   "reason": "a tenant identifier, not an authenticator",
+   "uri": null
+  },
+  {
+   "upstream": "docker-mcp",
+   "block": "env",
+   "key": "DOCKER_HOST",
+   "is_secret": false,
+   "reason": "a socket address; it grants nothing on its own",
+   "uri": null
+  },
+  {
+   "upstream": "dossier",
+   "block": "env",
+   "key": "DOSSIER_BUDGET_USD",
+   "is_secret": false,
+   "reason": "a spend ceiling, read by the upstream as policy",
+   "uri": null
+  },
+  {
+   "upstream": "dossier",
+   "block": "env",
+   "key": "DOSSIER_REQUIRE_CONTRACT",
+   "is_secret": false,
+   "reason": "a boolean policy flag",
+   "uri": null
+  },
+  {
+   "upstream": "dossier",
+   "block": "env",
+   "key": "GEMINI_API_KEY",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  },
+  {
+   "upstream": "dossier",
+   "block": "env",
+   "key": "OPENAI_API_KEY",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  },
+  {
+   "upstream": "dossier",
+   "block": "env",
+   "key": "PATH",
+   "is_secret": false,
+   "reason": "the process search path, not a credential",
+   "uri": null
+  },
+  {
+   "upstream": "dossier",
+   "block": "env",
+   "key": "PERPLEXITY_API_KEY",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  },
+  {
+   "upstream": "dossier",
+   "block": "env",
+   "key": "XAI_API_KEY",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  },
+  {
+   "upstream": "google-search",
+   "block": "env",
+   "key": "GEMINI_API_KEY",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  },
+  {
+   "upstream": "media-gen-pro",
+   "block": "env",
+   "key": "AI_GATEWAY_API_KEY",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  },
+  {
+   "upstream": "media-gen-pro",
+   "block": "env",
+   "key": "GEMINI_API_KEY",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  },
+  {
+   "upstream": "media-gen-pro",
+   "block": "env",
+   "key": "OPENAI_API_KEY",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  },
+  {
+   "upstream": "namecheap",
+   "block": "env",
+   "key": "NAMECHEAP_API_KEY",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  },
+  {
+   "upstream": "namecheap",
+   "block": "env",
+   "key": "NAMECHEAP_API_USER",
+   "is_secret": false,
+   "reason": "an account name, as above",
+   "uri": null
+  },
+  {
+   "upstream": "namecheap",
+   "block": "env",
+   "key": "NAMECHEAP_CLIENT_IP",
+   "is_secret": false,
+   "reason": "the caller IP the API expects, not a secret",
+   "uri": null
+  },
+  {
+   "upstream": "namecheap",
+   "block": "env",
+   "key": "NAMECHEAP_SANDBOX",
+   "is_secret": false,
+   "reason": "a boolean selecting the sandbox endpoint",
+   "uri": null
+  },
+  {
+   "upstream": "namecheap",
+   "block": "env",
+   "key": "NAMECHEAP_USERNAME",
+   "is_secret": false,
+   "reason": "an account name; it authenticates nothing without the API key",
+   "uri": null
+  },
+  {
+   "upstream": "ref-tools-mcp",
+   "block": "env",
+   "key": "REF_API_KEY",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  },
+  {
+   "upstream": "yt-transcript",
+   "block": "env",
+   "key": "AI_GATEWAY_API_KEY",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  },
+  {
+   "upstream": "yt-transcript",
+   "block": "env",
+   "key": "GEMINI_API_KEY",
+   "is_secret": true,
+   "reason": "treated as a credential \u2014 an entry is a secret unless this file says otherwise",
+   "uri": "<CHOOSE>"
+  }
+ ]
+}

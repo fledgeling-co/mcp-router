@@ -1,7 +1,7 @@
 {
  "url": "http://127.0.0.1:8975/harnesses",
- "sha256": "3fcae1f57cff7718e916a6a344ca15ebd1618f37d02ca24f599018b645fcb4c4",
- "readAt": "2026-08-27T02:56:02.964Z",
+ "sha256": "5dcf5a368cebefa2943c986093adf6fecaf71fc1947b31527be495130424c8e9",
+ "readAt": "2026-08-27T04:25:10.986Z",
  "rows": 7,
  "traced": [
   "claudeCode=1",

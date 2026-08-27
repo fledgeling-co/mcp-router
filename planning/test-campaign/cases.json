@@ -1886,12 +1886,12 @@
     "armed": true
   },
   {
-    "id": "CASE-0160",
+    "id": "CASE-0178",
     "req": "REQ-026",
-    "surface": "SURF-025",
+    "surface": "SURF-027",
     "lane": "router-daemon",
     "cell": {
-      "surface": "SURF-025",
+      "surface": "SURF-027",
       "state": "populated",
       "viewport": "n/a",
       "theme": "n/a",
@@ -1912,12 +1912,12 @@
     "armedBy": "Two planted leaks, one per implementation, each watched to turn this case RED and each restored byte-identically (sha256 before == after). node `leaks-the-path`: `media: entry.path` in src/document.ts, so the response carries the path it read from under a key the app consumes. swift `swift-leaks-the-path`: an extra `root` member on the 200 object in ControlDocument.swift, carrying the package root. Both reddened `served` AND `escape` \u2014 declared, not incidental: the no-path property is asserted by two scenarios on purpose, and an arm that reddened only one of them would be the finding. A THIRD spelling was tried first and is recorded because it is a real result: adding a `path` FIELD to the pushed object does not compile \u2014 `images` is typed Array<{reference; media; base64}> and tsc refuses the excess property. So the TypeScript type already forbids this leak by ADDITION and says nothing about it by SUBSTITUTION, which is precisely the leak this wire assertion is here to catch."
   },
   {
-    "id": "CASE-0161",
+    "id": "CASE-0179",
     "req": "REQ-026",
-    "surface": "SURF-025",
+    "surface": "SURF-027",
     "lane": "router-daemon",
     "cell": {
-      "surface": "SURF-025",
+      "surface": "SURF-027",
       "state": "refused",
       "viewport": "n/a",
       "theme": "n/a",
@@ -1938,12 +1938,12 @@
     "armedBy": "Two planted faults, each red exactly where declared and restored byte-identically. `nodocs-served-anyway`: the `noDocuments` 404 block deleted from src/document.ts, so a package publishing nothing is answered with a body and the panel would draw three empty tabs over it \u2014 RED on noDocuments and nothing else. `unnamed-refusal`: `reason: 'packageUnreadable'` rewritten to a generic `'notFound'` \u2014 RED on packageUnreadable and nothing else, which is what demonstrates the case is checking WHICH rule was hit rather than merely that a 404 arrived."
   },
   {
-    "id": "CASE-0162",
+    "id": "CASE-0180",
     "req": "REQ-026",
-    "surface": "SURF-025",
+    "surface": "SURF-027",
     "lane": "router-daemon",
     "cell": {
-      "surface": "SURF-025",
+      "surface": "SURF-027",
       "state": "refused",
       "viewport": "n/a",
       "theme": "n/a",
@@ -1964,12 +1964,12 @@
     "armedBy": "`unnamed-cap`: `cap: 'documentBytes'` rewritten to `cap: 'markdownLimits'` in src/document.ts, so the refusal still refuses and still carries a limit but no longer names the cap the reader would act on. RED on documentTooLarge and nothing else; sha256 before == after restore."
   },
   {
-    "id": "CASE-0163",
+    "id": "CASE-0181",
     "req": "REQ-026",
-    "surface": "SURF-025",
+    "surface": "SURF-027",
     "lane": "router-daemon",
     "cell": {
-      "surface": "SURF-025",
+      "surface": "SURF-027",
       "state": "refused",
       "viewport": "n/a",
       "theme": "n/a",
@@ -1990,12 +1990,12 @@
     "armedBy": "Five planted faults \u2014 three on the reference implementation and two on the SHIPPED router \u2014 each RED on escape and nothing else, each restored byte-identically. node, src/document.ts: `contained-always` (the containment check removed outright); `contained-prefix` (compared as a STRING prefix via candidate.startsWith(base), which serves the sibling `pkg-escape-evil`); `contained-nolinks` (realpathSync dropped, so containment is compared before symlinks resolve and the link out is served). swift, DocumentPackage.swift: `swift-contained-always` (the segment-prefix guard replaced by a non-empty check); `swift-contained-nolinks` (`.resolvingSymlinksInPath()` dropped from both base and candidate). Removing the containment check turns this case red on either implementation."
   },
   {
-    "id": "CASE-0164",
+    "id": "CASE-0182",
     "req": "REQ-026",
-    "surface": "SURF-025",
+    "surface": "SURF-027",
     "lane": "router-daemon",
     "cell": {
-      "surface": "SURF-025",
+      "surface": "SURF-027",
       "state": "populated",
       "viewport": "n/a",
       "theme": "n/a",
@@ -2016,12 +2016,12 @@
     "armedBy": "`oversize-spends-budget`: `spent += size` added to the tooLarge branch of imageCapDecisions in src/document.ts, so an oversized figure charges the shared budget on its way out. With it planted, c.png and d.png came back refused and the budget read 4,195,328 instead of 8,388,608 \u2014 RED on budget and nothing else. sha256 before == after restore."
   },
   {
-    "id": "CASE-0165",
+    "id": "CASE-0183",
     "req": "REQ-026",
-    "surface": "SURF-025",
+    "surface": "SURF-027",
     "lane": "router-daemon",
     "cell": {
-      "surface": "SURF-025",
+      "surface": "SURF-027",
       "state": "populated",
       "viewport": "n/a",
       "theme": "n/a",

@@ -1,337 +1,13 @@
 {
-  "recordedAt": "2026-08-27T03:29:29Z",
+  "recordedAt": "2026-08-27T04:34:12Z",
   "port": 8981,
   "scratch": "/private/tmp/g19-wire-scratch",
   "constructed": true,
   "constructedNote": "Every server exercised here is constructed. None of the 21 upstreams installed on this machine declares a package directory, so the route 404s noPackageDirectory for all of them and no real package on this host can reach the other six outcomes.",
   "implementations": {
-    "node": {
-      "binary": "/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/dist/index.js",
-      "sha256": "857f4d7c8dea3de6f034e5dba3753065898f3c6df9cb3e1dbd211f3e99c4fff5",
-      "scenarios": [
-        {
-          "scenario": "served",
-          "pass": true,
-          "bodyBytes": 408,
-          "bodySha256": "467aa3d1363d07fae48a19fe0524eacbe6dbab12181a4c6618a421e416d7e127",
-          "asserts": [
-            {
-              "assert": "status is 200",
-              "pass": true,
-              "detail": "expected 200, got 200"
-            },
-            {
-              "assert": "readMe carries the sentinel",
-              "pass": true,
-              "detail": ""
-            },
-            {
-              "assert": "changelog is present",
-              "pass": true,
-              "detail": ""
-            },
-            {
-              "assert": "capabilities is present",
-              "pass": true,
-              "detail": ""
-            },
-            {
-              "assert": "one image travelled",
-              "pass": true,
-              "detail": "expected 1, got 1"
-            },
-            {
-              "assert": "the reference is as the document spelled it",
-              "pass": true,
-              "detail": "expected 'docs/figure.png', got 'docs/figure.png'"
-            },
-            {
-              "assert": "media type",
-              "pass": true,
-              "detail": "expected 'image/png', got 'image/png'"
-            },
-            {
-              "assert": "the bytes are the file's own",
-              "pass": true,
-              "detail": "expected b'AAAAAAAA', got b'AAAAAAAA'"
-            },
-            {
-              "assert": "nothing was refused",
-              "pass": true,
-              "detail": "expected [], got []"
-            },
-            {
-              "assert": "the package root appears NOWHERE in the body",
-              "pass": true,
-              "detail": "root=/private/tmp/g19-wire-scratch/packages/pkg-served"
-            },
-            {
-              "assert": "no absolute path of any shape appears in the body",
-              "pass": true,
-              "detail": ""
-            }
-          ]
-        },
-        {
-          "scenario": "noPackageDirectory",
-          "pass": true,
-          "bodyBytes": 162,
-          "bodySha256": "895847631d2081ffad8ff9bfb3977272726f292da3e7a95eb20d63242975dd72",
-          "asserts": [
-            {
-              "assert": "status",
-              "pass": true,
-              "detail": "expected 404, got 404"
-            },
-            {
-              "assert": "names its own rule",
-              "pass": true,
-              "detail": "expected 'noPackageDirectory', got 'noPackageDirectory'"
-            },
-            {
-              "assert": "carries a human sentence",
-              "pass": true,
-              "detail": ""
-            }
-          ]
-        },
-        {
-          "scenario": "packageUnreadable",
-          "pass": true,
-          "bodyBytes": 179,
-          "bodySha256": "544748ae55baf0e0777d567a81995079f345ea9b7bb8241a9b9e02b1cae83a62",
-          "asserts": [
-            {
-              "assert": "status",
-              "pass": true,
-              "detail": "expected 404, got 404"
-            },
-            {
-              "assert": "names its own rule",
-              "pass": true,
-              "detail": "expected 'packageUnreadable', got 'packageUnreadable'"
-            },
-            {
-              "assert": "carries a human sentence",
-              "pass": true,
-              "detail": ""
-            }
-          ]
-        },
-        {
-          "scenario": "noDocuments",
-          "pass": true,
-          "bodyBytes": 125,
-          "bodySha256": "9327593207c27fc827673bf80f61edf5e24e9f76065f1b8c3c04cd9ccf457633",
-          "asserts": [
-            {
-              "assert": "status",
-              "pass": true,
-              "detail": "expected 404, got 404"
-            },
-            {
-              "assert": "names its own rule",
-              "pass": true,
-              "detail": "expected 'noDocuments', got 'noDocuments'"
-            },
-            {
-              "assert": "carries a human sentence",
-              "pass": true,
-              "detail": ""
-            }
-          ]
-        },
-        {
-          "scenario": "documentTooLarge",
-          "pass": true,
-          "bodyBytes": 222,
-          "bodySha256": "d66bae3b687c3e5b058cf1361e06894892f1bad4d00eca919b707ee5a5c3d992",
-          "asserts": [
-            {
-              "assert": "status",
-              "pass": true,
-              "detail": "expected 413, got 413"
-            },
-            {
-              "assert": "names its own rule",
-              "pass": true,
-              "detail": "expected 'documentTooLarge', got 'documentTooLarge'"
-            },
-            {
-              "assert": "carries a human sentence",
-              "pass": true,
-              "detail": ""
-            },
-            {
-              "assert": "names the cap it hit",
-              "pass": true,
-              "detail": "expected 'documentBytes', got 'documentBytes'"
-            },
-            {
-              "assert": "names the limit",
-              "pass": true,
-              "detail": "expected 524288, got 524288"
-            },
-            {
-              "assert": "names the actual size",
-              "pass": true,
-              "detail": "expected 524289, got 524289"
-            },
-            {
-              "assert": "names the file",
-              "pass": true,
-              "detail": "expected 'README.md', got 'README.md'"
-            }
-          ]
-        },
-        {
-          "scenario": "escape",
-          "pass": true,
-          "bodyBytes": 1217,
-          "bodySha256": "7065f66ee987db904539db8bcfb81c7672ce9209a82a2b73a3213d95badc8b77",
-          "asserts": [
-            {
-              "assert": "status is 200",
-              "pass": true,
-              "detail": "expected 200, got 200"
-            },
-            {
-              "assert": "the out-of-package secret is NOT in the body",
-              "pass": true,
-              "detail": ""
-            },
-            {
-              "assert": "the package root is NOT in the body",
-              "pass": true,
-              "detail": ""
-            },
-            {
-              "assert": "exactly one image travelled",
-              "pass": true,
-              "detail": "expected 1, got 1"
-            },
-            {
-              "assert": "and it is the one inside the package",
-              "pass": true,
-              "detail": "expected 'docs/inside.png', got 'docs/inside.png'"
-            },
-            {
-              "assert": "../outside/secret.png -> escapesPackage",
-              "pass": true,
-              "detail": "expected 'escapesPackage', got 'escapesPackage'"
-            },
-            {
-              "assert": "../pkg-escape-evil/secret.png -> escapesPackage",
-              "pass": true,
-              "detail": "expected 'escapesPackage', got 'escapesPackage'"
-            },
-            {
-              "assert": "link-out.png -> escapesPackage",
-              "pass": true,
-              "detail": "expected 'escapesPackage', got 'escapesPackage'"
-            },
-            {
-              "assert": "linkdir/secret.png -> escapesPackage",
-              "pass": true,
-              "detail": "expected 'escapesPackage', got 'escapesPackage'"
-            },
-            {
-              "assert": "../../../../etc/passwd -> escapesPackage",
-              "pass": true,
-              "detail": "expected 'escapesPackage', got 'escapesPackage'"
-            },
-            {
-              "assert": "/etc/hosts.png -> absolutePath",
-              "pass": true,
-              "detail": "expected 'absolutePath', got 'absolutePath'"
-            },
-            {
-              "assert": "~/secret.png -> absolutePath",
-              "pass": true,
-              "detail": "expected 'absolutePath', got 'absolutePath'"
-            },
-            {
-              "assert": "https://example.invalid/secret.png -> remote",
-              "pass": true,
-              "detail": "expected 'remote', got 'remote'"
-            },
-            {
-              "assert": "%2e%2e/outside/secret.png -> notInPackage",
-              "pass": true,
-              "detail": "expected 'notInPackage', got 'notInPackage'"
-            },
-            {
-              "assert": "nine references refused and no more",
-              "pass": true,
-              "detail": "expected 9, got 9"
-            }
-          ]
-        },
-        {
-          "scenario": "budget",
-          "pass": true,
-          "bodyBytes": 11185418,
-          "bodySha256": "ae96b84efdfd7e673d8657132f848d4868c4ba96c8b18393255ea705f9064f7b",
-          "asserts": [
-            {
-              "assert": "status is 200",
-              "pass": true,
-              "detail": "expected 200, got 200"
-            },
-            {
-              "assert": "the oversized figure is refused on its own terms",
-              "pass": true,
-              "detail": "expected 'tooLarge', got 'tooLarge'"
-            },
-            {
-              "assert": "and names the per-image limit",
-              "pass": true,
-              "detail": "expected 2097152, got 2097152"
-            },
-            {
-              "assert": "a.png travelled",
-              "pass": true,
-              "detail": "expected 2097152, got 2097152"
-            },
-            {
-              "assert": "b.png travelled",
-              "pass": true,
-              "detail": "expected 2097152, got 2097152"
-            },
-            {
-              "assert": "c.png travelled",
-              "pass": true,
-              "detail": "expected 2097152, got 2097152"
-            },
-            {
-              "assert": "d.png travelled",
-              "pass": true,
-              "detail": "expected 2097152, got 2097152"
-            },
-            {
-              "assert": "d.png is not a refusal \u2014 the oversized figure spent NO budget",
-              "pass": true,
-              "detail": "refusals=['oversize.png', 'tail.png']"
-            },
-            {
-              "assert": "tail.png is refused once the budget is spent",
-              "pass": true,
-              "detail": "expected 'budgetExhausted', got 'budgetExhausted'"
-            },
-            {
-              "assert": "the budget was spent exactly",
-              "pass": true,
-              "detail": "expected 8388608, got 8388608"
-            }
-          ]
-        }
-      ],
-      "passed": 7,
-      "total": 7
-    },
     "swift": {
       "binary": "/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/.build/debug/MCPRouterCLI",
-      "sha256": "8bb9e8d4a2f130996854daefc39447414186faf368d9dbc0c1e909288916ec27",
+      "sha256": "f55b4b9ab2664502a9975097d5789058e422be49a297c88d4d2b693be800fa6d",
       "scenarios": [
         {
           "scenario": "served",
@@ -510,9 +186,9 @@
         },
         {
           "scenario": "escape",
-          "pass": true,
-          "bodyBytes": 1217,
-          "bodySha256": "7065f66ee987db904539db8bcfb81c7672ce9209a82a2b73a3213d95badc8b77",
+          "pass": false,
+          "bodyBytes": 1341,
+          "bodySha256": "0432b307c7ed28f7bb4628a625f9f7f642ba9461c25b0a2763fb546a5693d7f7",
           "asserts": [
             {
               "assert": "status is 200",
@@ -531,8 +207,8 @@
             },
             {
               "assert": "exactly one image travelled",
-              "pass": true,
-              "detail": "expected 1, got 1"
+              "pass": false,
+              "detail": "expected 1, got 3"
             },
             {
               "assert": "and it is the one inside the package",
@@ -551,13 +227,13 @@
             },
             {
               "assert": "link-out.png -> escapesPackage",
-              "pass": true,
-              "detail": "expected 'escapesPackage', got 'escapesPackage'"
+              "pass": false,
+              "detail": "expected 'escapesPackage', got None"
             },
             {
               "assert": "linkdir/secret.png -> escapesPackage",
-              "pass": true,
-              "detail": "expected 'escapesPackage', got 'escapesPackage'"
+              "pass": false,
+              "detail": "expected 'escapesPackage', got None"
             },
             {
               "assert": "../../../../etc/passwd -> escapesPackage",
@@ -586,8 +262,8 @@
             },
             {
               "assert": "nine references refused and no more",
-              "pass": true,
-              "detail": "expected 9, got 9"
+              "pass": false,
+              "detail": "expected 9, got 7"
             }
           ]
         },
@@ -650,7 +326,7 @@
           ]
         }
       ],
-      "passed": 7,
+      "passed": 6,
       "total": 7
     }
   }

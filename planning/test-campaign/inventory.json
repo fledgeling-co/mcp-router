@@ -239,7 +239,7 @@
       "evidence": "observed",
       "effect": "inbound-socket",
       "provider": "app/Sources/RouterCore/Control/ControlDocument.swift; app/Sources/RouterCore/Control/DocumentPackage.swift; src/document.ts",
-      "note": "The effect class is the socket, because that is the class this campaign's closed vocabulary can carry. The route's other effect is a filesystem READ inside the package, and EFFECT_CLASSES has no read class \u2014 filesystem-write is the only filesystem member and this route writes nothing. That effect is therefore proved at the outcome rung by CASE-0160 (the bytes on the wire are the file's own bytes) rather than by a witness, and the gap is recorded here rather than papered over by declaring a class the route does not perform."
+      "note": "The effect class is the socket, because that is the class this campaign's closed vocabulary can carry. The route's other effect is a filesystem READ inside the package, and EFFECT_CLASSES has no read class \u2014 filesystem-write is the only filesystem member and this route writes nothing. That effect is therefore proved at the outcome rung by CASE-0178 (the bytes on the wire are the file's own bytes) rather than by a witness, and the gap is recorded here rather than papered over by declaring a class the route does not perform."
     }
   ],
   "surface": [
@@ -441,7 +441,7 @@
       "status": "ready"
     },
     {
-      "id": "SURF-025",
+      "id": "SURF-027",
       "title": "The document route \u2014 a package's own files over the control API",
       "route": "http://127.0.0.1:8879/servers/:name/document",
       "lane": "router-daemon",

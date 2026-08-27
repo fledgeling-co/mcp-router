@@ -81,9 +81,9 @@ Lanes: macos-glass, ios-glass, swiftui, router-daemon, parity-wire
 | CASE-0150 | SURF-018  |  | ios-unit | pass | yes | 1 |
 | CASE-0124 | SURF-019  |  | ios-glass | pass | yes | 1 |
 | CASE-0125 | SURF-020  |  | ios-glass | pass | yes | 1 |
-| CASE-0160 | SURF-025  |  | router-daemon | pass | yes | 4 |
-| CASE-0161 | SURF-025  |  | router-daemon | pass | yes | 4 |
-| CASE-0162 | SURF-025  |  | router-daemon | pass | yes | 4 |
-| CASE-0163 | SURF-025  |  | router-daemon | pass | yes | 4 |
-| CASE-0164 | SURF-025  |  | router-daemon | pass | yes | 4 |
-| CASE-0165 | SURF-025  |  | router-daemon | pass | yes | 2 |
+| CASE-0178 | SURF-027  |  | router-daemon | pass | yes | 4 |
+| CASE-0179 | SURF-027  |  | router-daemon | pass | yes | 4 |
+| CASE-0180 | SURF-027  |  | router-daemon | pass | yes | 4 |
+| CASE-0181 | SURF-027  |  | router-daemon | pass | yes | 4 |
+| CASE-0182 | SURF-027  |  | router-daemon | pass | yes | 4 |
+| CASE-0183 | SURF-027  |  | router-daemon | pass | yes | 2 |

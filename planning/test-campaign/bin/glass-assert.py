@@ -169,6 +169,41 @@ SURFACES = {
         "asserts": "the Inbox states the phone's ceiling — queue only, never install "
                    "(honesty guardrail, REQ-006)",
     },
+    # THE BOARD THIS CAMPAIGN COULD NOT REPORT AS UNCOVERED.
+    #
+    # Enumerated 2026-08-27 by G15. `Destination.swift` has shipped nine destinations since
+    # M22 and this list held seven boards, so `campaign.py check` reported "0 with no case"
+    # over a denominator that never named this one. A surface with no row cannot be uncovered.
+    #
+    # The predicates below are the board's own sentences rather than chrome: the subtitle, the
+    # section header over the detected list, the shim row's COST — a bridge drawn without it
+    # reads as a clean tick — the scope the reading does not cover, and the finding as a
+    # counted pair rather than a judgement. `--discriminate` proves each rejects the other
+    # eight boards' windows.
+    "SURF-025": {
+        "dump": "SURF-025.window.txt", "title": "Harnesses",
+        "shot": "SURF-025.build.png",
+        "copy": [
+            "Which AI tools on this Mac actually route through here",
+            "Detected on this Mac",
+            "one extra process per session",
+            "Global configuration only",
+            # The finding is a count of what was measured. The digits are the fixture's and
+            # would move with it, so the pattern asserts the SHAPE — a count of a harness's own
+            # servers and a count of the overlap — rather than today's two numbers.
+            re.compile(
+                r"runs \d+ servers? of its own, \d+ of which this router already fronts"
+            ),
+        ],
+        # Proved to render, not proved to work — CASE-0167 stands at `structural` and says so.
+        # `Rescan` re-runs the read, and no case here presses it: the Debug shell reads a
+        # fixture, so a second read returns the same bytes and a green "it refreshed" would be
+        # indistinguishable from a button wired to nothing.
+        "controls": {"Rescan": True, "Reconcile all": False},
+        "asserts": "the Harnesses board names the bridge AND the extra process it costs, bounds "
+                   "its reading to the configuration it actually read, and states its finding as "
+                   "a counted pair rather than a judgement",
+    },
     "SURF-011": {
         "dump": "SURF-011.window.txt", "title": "Settings",
         "shot": "SURF-011.build.png",
@@ -242,6 +277,44 @@ STATES = {
                    "offers no code, rather than drawing an 8-character Crockford code it "
                    "cannot complete a pairing with (REQ-019)",
     },
+    # The two answers this board has that the populated capture cannot show.
+    #
+    # `empty` is a real answer of NONE — the fixture serves a successful read of an empty list —
+    # so the board owes its own empty state and NOT an error. `absent` is the load-bearing half:
+    # a board that drew the detected list under an empty reading would be drawing rows nothing
+    # returned.
+    "SURF-025/empty": {
+        "surface": "SURF-025",
+        "dump": "SURF-025.empty.window.txt", "title": "Harnesses",
+        "shot": "SURF-025.empty.png",
+        "absentFrom": "SURF-025.window.txt",
+        "titleFromDump": True,
+        "copy": [
+            "No AI harnesses found",
+            "Nothing on this Mac looks like an agent CLI",
+        ],
+        "absent": ["Detected on this Mac", "mcp-remote", "one extra process per session"],
+        "asserts": "an empty reading draws the board's own empty state, says the router reads "
+                   "the standard paths only, and draws no detected list — an answer of none is "
+                   "not a failure and is not a row",
+    },
+    # `offline` is the read FAILING. The board owes the load's error and, again, no rows: a
+    # failed read that kept drawing yesterday's harnesses would be the stale reading the brief
+    # calls worse than no reading.
+    "SURF-025/failure": {
+        "surface": "SURF-025",
+        "dump": "SURF-025.failure.window.txt", "title": "Harnesses",
+        "shot": "SURF-025.failure.png",
+        "absentFrom": "SURF-025.window.txt",
+        "titleFromDump": True,
+        "copy": [
+            "The router isn't running",
+            "Nothing is listening on the control port",
+        ],
+        "absent": ["Detected on this Mac", "mcp-remote", "one extra process per session"],
+        "asserts": "a failed read draws the router-not-running state on THIS board — the window "
+                   "title is read back off the failure's own dump — and draws no harness rows",
+    },
     "SURF-007/cleanup-skills": {
         "surface": "SURF-007",
         "dump": "SURF-007.cleanup-skills.window.txt", "title": "Cleanup",
@@ -275,6 +348,8 @@ CASES = {
     "CASE-0014": ("SURF-006", "ax"),
     "CASE-0015": ("SURF-007", "ax"),
     "CASE-0016": ("SURF-011", "ax"),
+    "CASE-0160": ("SURF-025", "ax"),
+    "CASE-0167": ("SURF-025", "ax"),
     "CASE-0101": ("SURF-001", "raster"),
     "CASE-0102": ("SURF-002", "raster"),
     "CASE-0103": ("SURF-003", "raster"),
@@ -284,6 +359,7 @@ CASES = {
     "CASE-0107": ("SURF-007", "raster"),
     "CASE-0108": ("SURF-008", "raster"),
     "CASE-0111": ("SURF-011", "raster"),
+    "CASE-0161": ("SURF-025", "raster"),
 }
 
 # case -> state key. Same two kinds, read off the state's own dump and capture.
@@ -294,6 +370,10 @@ STATE_CASES = {
     "CASE-0141": ("SURF-007/provenance-sheet", "raster"),
     "CASE-0142": ("SURF-010/unavailable", "ax"),
     "CASE-0143": ("SURF-010/unavailable", "raster"),
+    "CASE-0162": ("SURF-025/empty", "ax"),
+    "CASE-0163": ("SURF-025/empty", "raster"),
+    "CASE-0164": ("SURF-025/failure", "ax"),
+    "CASE-0165": ("SURF-025/failure", "raster"),
 }
 
 
@@ -312,6 +392,16 @@ def dump_text(key: str, decoy: str | None) -> str:
             text = (phrase.sub("", text) if isinstance(phrase, re.Pattern)
                     else text.replace(phrase, ""))
     return text
+
+
+def window_title_in(text: str) -> str | None:
+    """The AXWindow row's own title, out of a dump. Field 3, as the crop in
+    capture-mac-glass.sh reads it."""
+    for line in text.splitlines():
+        f = line.split("\t")
+        if len(f) > 5 and f[1] == "AXWindow":
+            return f[3]
+    return None
 
 
 def title_of(surface: str) -> str | None:
@@ -415,6 +505,21 @@ def main() -> int:
         # the dump is a real AX tree of a real window, not an empty file
         check(case, "dump is an AXWindow tree", "AXWindow" in text and len(text) > 500)
 
+        # CONTROLS THAT ARE ONLY PROVEN TO RENDER.
+        #
+        # A control's presence in the tree is a `structural` claim and nothing more: an AXButton
+        # exists with that label. It does not say the handler does anything, and the case that
+        # cites it is recorded at `structural` for exactly that reason. Kept separate from the
+        # copy list above so it cannot be mistaken for one of the board's outcome predicates.
+        for label, enabled in spec.get("controls", {}).items():
+            rows = [r.split("\t") for r in text.splitlines()]
+            hits = [r for r in rows
+                    if len(r) > 8 and r[1] == "AXButton" and r[5].startswith(label)]
+            check(case, f"a control labelled {label} is drawn", bool(hits))
+            if hits and enabled is not None:
+                check(case, f"the {label} control is drawn {'enabled' if enabled else 'disabled'}",
+                      any(r[7] == ("1" if enabled else "0") for r in hits))
+
         # A shell surface owes the stronger claim: its chrome is in EVERY window, and
         # its own capture is not one of the board captures wearing a second id.
         if spec.get("kind") == "shell":
@@ -447,8 +552,17 @@ def main() -> int:
         spec = STATES[key]
         text = dump_text(key, decoy)
 
-        check(case, f"window title is {spec['title']}",
-              title_of(spec["surface"]) == spec["title"])
+        # A STATE's title, read off the state's own dump rather than off the populated run's
+        # title file. Opt-in, because the states that predate it are sheets over a parent board
+        # and their claim is about the parent. For a state that IS the board in another world,
+        # the populated title file says nothing about which window the failure was drawn in —
+        # and the failure copy here is `ControlAPIError`'s, shared by every board.
+        if spec.get("titleFromDump"):
+            check(case, f"state's own window dump is titled {spec['title']}",
+                  window_title_in(text) == spec["title"])
+        else:
+            check(case, f"window title is {spec['title']}",
+                  title_of(spec["surface"]) == spec["title"])
         for phrase in spec["copy"]:
             check(case, f"state window carries: {label_of(phrase)[:56]}",
                   carries(phrase, text))

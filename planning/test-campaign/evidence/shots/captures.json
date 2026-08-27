@@ -5,17 +5,17 @@
     "target": "app://mac/servers",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "f221cce575ed34a8cf683ba00e909382c109b009abb06b109cf6e781d86892a0",
-    "capturedAt": "2026-08-20T11:32:49Z",
+    "sha256": "99b4b20df9de32f5265ec81ba640d09075d6301d64fed14e1d5460ad0e7ad76a",
+    "capturedAt": "2026-08-27T02:50:22Z",
     "conditions": {
       "windowTitleReadback": "Servers",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105219",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62427",
       "appearance": "system",
-      "frontmostAtShutter": "Warden",
+      "frontmostAtShutter": "Google Chrome",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app",
     "sharesWith": [
       "SURF-001"
     ],
@@ -27,17 +27,17 @@
     "target": "app://mac/servers",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": "evidence/shots/SURF-002.build.png",
-    "sha256": "f221cce575ed34a8cf683ba00e909382c109b009abb06b109cf6e781d86892a0",
-    "capturedAt": "2026-08-20T11:32:49Z",
+    "sha256": "99b4b20df9de32f5265ec81ba640d09075d6301d64fed14e1d5460ad0e7ad76a",
+    "capturedAt": "2026-08-27T02:50:22Z",
     "conditions": {
       "windowTitleReadback": "Servers",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105219",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62427",
       "appearance": "system",
-      "frontmostAtShutter": "Warden",
+      "frontmostAtShutter": "Google Chrome",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app",
     "sharesWith": [
       "SURF-002"
     ],
@@ -46,22 +46,21 @@
   {
     "path": "evidence/shots/SURF-001.shell.png",
     "subject": "SURF-001",
-    "target": "app://mac/servers",
+    "target": "app://mac/shell",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS), cropped to the sidebar frame the AX dump reports",
     "derivedFrom": "evidence/shots/SURF-001.build.png",
-    "sha256": "c45c098af28d9fd03e246153d5dcaadc2a30ab1492fc830629f7cd42d3a6caf2",
-    "capturedAt": "2026-08-20T11:32:49Z",
+    "sha256": "4119037c75a3ae5bc0ea0a5a16a8b1fe40d656854295a5353a2480782527db6f",
+    "capturedAt": "2026-08-27T02:50:23Z",
     "conditions": {
       "windowTitleReadback": "Servers",
-      "frame": "188.0,236.0,256.0,475.0",
-      "cgWindowID": "105219",
+      "frame": "188.0,192.0,256.0,419.0",
+      "cgWindowID": "62427",
       "appearance": "system",
       "frontmostAtShutter": "n/a \u2014 derived crop, see SURF-001.build.png",
       "scenario": "populated",
       "crop": "0,0,596,1376 of 2096x1376 at scale 2, shadow margin 68px"
     },
-    "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
-    "targetNote": "the shutter was aimed at the Servers board; this file is the sidebar crop of that frame, recorded in channel and conditions.crop. The earlier value app://mac/shell named the crop's subject rather than what the channel was pointed at, and no channel can be pointed at it."
+    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-003.build.png",
@@ -69,17 +68,17 @@
     "target": "app://mac/activity",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "67ec5b003a42ff815434d79d8bf09c42e76fdbb834f19266a8a9679ad8de2872",
-    "capturedAt": "2026-08-20T11:32:50Z",
+    "sha256": "8b5e22118041bc70d98612c4e2b823b4dc0a3d98ca3ad16ca5080ebd33f1d55d",
+    "capturedAt": "2026-08-27T02:50:26Z",
     "conditions": {
       "windowTitleReadback": "Activity",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105219",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62427",
       "appearance": "system",
-      "frontmostAtShutter": "Warden",
+      "frontmostAtShutter": "Ghostty",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-004.build.png",
@@ -87,17 +86,17 @@
     "target": "app://mac/skills",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "5d9c92bd76dc87dd220188ec7b123369c72ddaf8d1882f7a2aabcedad00d97c2",
-    "capturedAt": "2026-08-20T11:32:52Z",
+    "sha256": "eb96b2645ef0b905c0599f3b238a5cb3df9f600a5fe8cd4d737fc78005f2b829",
+    "capturedAt": "2026-08-27T02:50:27Z",
     "conditions": {
       "windowTitleReadback": "Skills",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105219",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62427",
       "appearance": "system",
-      "frontmostAtShutter": "Warden",
+      "frontmostAtShutter": "Ghostty",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-005.build.png",
@@ -105,17 +104,17 @@
     "target": "app://mac/discover",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "b12da3f0eb96c4e9d7237541f84773c3af6a580f28cde19b482780ab62ce968e",
-    "capturedAt": "2026-08-20T11:32:53Z",
+    "sha256": "63caa234049bd17fe80324832835a882f3f8671197b7555e8b5a237ec9552fd0",
+    "capturedAt": "2026-08-27T02:50:48Z",
     "conditions": {
       "windowTitleReadback": "Discover",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105219",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62427",
       "appearance": "system",
-      "frontmostAtShutter": "Warden",
+      "frontmostAtShutter": "Google Chrome",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-008.build.png",
@@ -123,17 +122,17 @@
     "target": "app://mac/inbox",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "ac60c33fec6697fd3039412d3d9fc5d81cb2282215e331f9d3c63b7765aa9e1e",
-    "capturedAt": "2026-08-20T11:32:54Z",
+    "sha256": "7de2f068d927e85b95c94684469181e115172a02e7bb6f6f3b10d37ae2131af3",
+    "capturedAt": "2026-08-27T02:50:49Z",
     "conditions": {
       "windowTitleReadback": "Inbox",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105219",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62427",
       "appearance": "system",
-      "frontmostAtShutter": "Warden",
+      "frontmostAtShutter": "DaisyDisk",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-006.build.png",
@@ -141,17 +140,17 @@
     "target": "app://mac/checks",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "baaf6220b51c1052ec6b8808b1af82079ed656e93af46cec2536ad5f55d8b891",
-    "capturedAt": "2026-08-20T11:32:55Z",
+    "sha256": "2f2045dcb5e0b7c76fb7e93abc0662696eb5fcd55b289f52efde71b55a16db9f",
+    "capturedAt": "2026-08-27T02:50:51Z",
     "conditions": {
       "windowTitleReadback": "Checks",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105219",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62427",
       "appearance": "system",
-      "frontmostAtShutter": "Warden",
+      "frontmostAtShutter": "DaisyDisk",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-007.build.png",
@@ -159,35 +158,35 @@
     "target": "app://mac/cleanup",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "89465dc1c0bf407dfbfa289922376b91feabf7941e31f30098e50384f0934379",
-    "capturedAt": "2026-08-20T11:32:57Z",
+    "sha256": "a6f834241deccd0acc66d29194b994528e66e54d7c00c67b7fe6077fc4b34a85",
+    "capturedAt": "2026-08-27T02:50:52Z",
     "conditions": {
       "windowTitleReadback": "Cleanup",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105219",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62427",
       "appearance": "system",
-      "frontmostAtShutter": "Warden",
+      "frontmostAtShutter": "DaisyDisk",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-011.build.png",
     "subject": "SURF-011",
-    "target": "app://mac/settings",
+    "target": "app://mac/cleanup",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "3b5a26ef6016a38cd87c1436e2eace618744117af128a5c49ac87047b773b189",
-    "capturedAt": "2026-08-20T11:32:58Z",
+    "sha256": "a6f834241deccd0acc66d29194b994528e66e54d7c00c67b7fe6077fc4b34a85",
+    "capturedAt": "2026-08-27T02:51:04Z",
     "conditions": {
-      "windowTitleReadback": "Settings",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105219",
+      "windowTitleReadback": "Cleanup",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62427",
       "appearance": "system",
-      "frontmostAtShutter": "Warden",
+      "frontmostAtShutter": "DaisyDisk",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-002.addserver.png",
@@ -213,17 +212,17 @@
     "target": "app://mac/pairing",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "705e19b7c853443c2da783f428fcbe2e2415d69ef273aff4d3b549850a659ffb",
-    "capturedAt": "2026-08-20T11:33:01Z",
+    "sha256": "e1af9aabe178da01c74911a2640d5f2876b1ac59b84a0765e9ec1217730ffc39",
+    "capturedAt": "2026-08-27T02:51:07Z",
     "conditions": {
       "windowTitleReadback": "Inbox",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105219",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62427",
       "appearance": "system",
       "frontmostAtShutter": "Finder",
       "scenario": "populated"
     },
-    "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-002.empty.png",
@@ -231,17 +230,17 @@
     "target": "app://mac/servers",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "698cedd0cd055f6710eed115a79c2da3253f04e90145575769c0fe04ba396189",
-    "capturedAt": "2026-08-20T11:33:04Z",
+    "sha256": "532c11b30605b0ac6b25aa134cc220a00320ca010b56b016c959434f20963241",
+    "capturedAt": "2026-08-27T02:51:11Z",
     "conditions": {
       "windowTitleReadback": "Servers",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105236",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62463",
       "appearance": "system",
-      "frontmostAtShutter": "Warden",
+      "frontmostAtShutter": "Finder",
       "scenario": "empty"
     },
-    "witnessed": "axkit attached pid=43408 owns CGWindowID 105236, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=18649 owns CGWindowID 62463, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-002.offline.png",
@@ -249,17 +248,17 @@
     "target": "app://mac/servers",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "24e6f3c136bae63a8ca735f1e8dc7487360cb525eeb0555f3a8d81e210755633",
-    "capturedAt": "2026-08-20T11:33:05Z",
+    "sha256": "84a469099e7cd38253df6b4cc9a306b939ff48b7d66a6445715e90743e0d8bbf",
+    "capturedAt": "2026-08-27T02:51:13Z",
     "conditions": {
       "windowTitleReadback": "Servers",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105241",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62469",
       "appearance": "system",
-      "frontmostAtShutter": "Warden",
+      "frontmostAtShutter": "Finder",
       "scenario": "offline"
     },
-    "witnessed": "axkit attached pid=44129 owns CGWindowID 105241, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=19785 owns CGWindowID 62469, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-007.cleanup-skills.png",
@@ -267,17 +266,17 @@
     "target": "app://mac/cleanup",
     "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
     "derivedFrom": null,
-    "sha256": "94dd9d06f87dc3d1558016fb6127028d78da4880f4796f9034980014bc9a4d6b",
-    "capturedAt": "2026-08-20T11:33:07Z",
+    "sha256": "c46ce8ebaceef3c4011cf11935e4a10c40308c6a051d2e1407a116bdf04fa53c",
+    "capturedAt": "2026-08-27T02:51:17Z",
     "conditions": {
       "windowTitleReadback": "Cleanup",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105247",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62473",
       "appearance": "system",
-      "frontmostAtShutter": "Warden",
+      "frontmostAtShutter": "Finder",
       "scenario": "cleanupSkills"
     },
-    "witnessed": "axkit attached pid=44643 owns CGWindowID 105247, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+    "witnessed": "axkit attached pid=20173 owns CGWindowID 62473, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
   },
   {
     "path": "evidence/shots/SURF-007.provenance-sheet.png",
@@ -405,5 +404,59 @@
     "capturedAt": "2026-08-20T09:01:55.081767+00:00",
     "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
     "witnessed": false
+  },
+  {
+    "path": "evidence/shots/SURF-025.build.png",
+    "subject": "SURF-025",
+    "target": "app://mac/harnesses",
+    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+    "derivedFrom": null,
+    "sha256": "c9edbe374e7444d75dadbc0285d5044dcd81c1950c4996f57fb9db0d6e940fbf",
+    "capturedAt": "2026-08-27T02:50:34Z",
+    "conditions": {
+      "windowTitleReadback": "Harnesses",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62427",
+      "appearance": "system",
+      "frontmostAtShutter": "Ghostty",
+      "scenario": "populated"
+    },
+    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+  },
+  {
+    "path": "evidence/shots/SURF-025.empty.png",
+    "subject": "SURF-025",
+    "target": "app://mac/harnesses",
+    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+    "derivedFrom": null,
+    "sha256": "50939d373cbf6912488659b583bf8212a9aec0b282f8244a1d088fd9b11498be",
+    "capturedAt": "2026-08-27T02:51:30Z",
+    "conditions": {
+      "windowTitleReadback": "Harnesses",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62477",
+      "appearance": "system",
+      "frontmostAtShutter": "DaisyDisk",
+      "scenario": "empty"
+    },
+    "witnessed": "axkit attached pid=20744 owns CGWindowID 62477, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+  },
+  {
+    "path": "evidence/shots/SURF-025.failure.png",
+    "subject": "SURF-025",
+    "target": "app://mac/harnesses",
+    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+    "derivedFrom": null,
+    "sha256": "7fabf84e7062ebe33e89dce1a67e5a7ac98dbfd1c10371050a440f48ba65fdb0",
+    "capturedAt": "2026-08-27T02:51:34Z",
+    "conditions": {
+      "windowTitleReadback": "Harnesses",
+      "frame": "180,140,980,620",
+      "cgWindowID": "62484",
+      "appearance": "system",
+      "frontmostAtShutter": "DaisyDisk",
+      "scenario": "offline"
+    },
+    "witnessed": "axkit attached pid=23162 owns CGWindowID 62484, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
   }
 ]

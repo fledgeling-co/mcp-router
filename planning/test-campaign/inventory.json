@@ -429,6 +429,15 @@
       "route": "http://127.0.0.1:8879/",
       "lane": "router-daemon",
       "status": "ready"
+    },
+    {
+      "id": "SURF-025",
+      "title": "Mac Harnesses board",
+      "route": "app://mac/harnesses",
+      "lane": "macos-glass",
+      "status": "ready",
+      "shot": "evidence/shots/SURF-025.build.png",
+      "enumeratedNote": "Enumerated 2026-08-27 by G15. The board shipped with M22 and was absent from this list until now, so no completeness gate could report it uncovered \u2014 a surface never enumerated has no row to be uncovered in. `scripts/acceptance/m22-boards.sh` had been opening it on glass since M22, which is why this is an enumeration gap rather than an unbuilt board: the repository could see it and the campaign's denominator could not."
     }
   ],
   "flow": [
@@ -1075,6 +1084,12 @@
       "status": "open \u00b7 measured",
       "detail": "Measured 2026-08-21. `.gitmodules` vendors `.claude/plugins/fledgeling-plugins` at `main`, and `planning/features-to-triage/LEDGER.md`'s allocation notes state the reason: 'a runner reads mockup-fidelity, mac-craft, design-craft and ux-craft at a repo-relative path rather than depending on the machine.'\n\nFor test-campaign that is not what happens. The submodule (HEAD baaf79a, branch main, clean) carries `plugins/test-campaign` at version 0.5.0, whose `skills/test-campaign/scripts` holds five files: attach-shots.py, campaign.py, evidence-page.py, strict-check.py, witness-worklist.py. It has no `vacuity-check.py` and no `capture-lineage.py`; `grep effect-witness strict-check.py` returns nothing and `grep -c blindVocabulary vacuity-check.py` cannot run because the file is absent.\n\nEvery gate this campaign reports ran from `~/.claude/plugins/cache/fledgeling-plugins/test-campaign/0.9.2/`, on the machine. The vacuity census, the effect-witness rung, the blind-mutation pass, the capture-lineage ratchet and the strict score of 65 all come from code the submodule does not contain, four minor versions ahead of it.\n\nCONSEQUENCE FOR THE PIPELINE, and it is the reason this is filed rather than noted: DEF-051, DEF-052, DEF-054, DEF-055 and DEF-056 are defects in 0.9.2's scripts. None of that code is in this repo at any path, so no ship-feature runner working in an mcp-router worktree can fix them. They are upstream work in github.com/fledgeling-co/fledgeling-plugins, and closing them requires a change pushed to that repo plus a submodule bump here \u2014 a different repo and an outward-facing action.\n\nSeparately, a fresh clone that follows the documented `git submodule update --init --recursive` gets 0.5.0 and would reproduce none of this campaign's numbers.\n\nNot fixed here: which version the submodule should track, and whether the campaign should run from it rather than the cache, is the owner's call.",
       "id": "DEF-057"
+    },
+    {
+      "id": "DEF-058",
+      "title": "the macos-glass lane is green over window evidence captured from a pre-M22 build, and four of its cases assert a shell that no longer ships",
+      "status": "open \u00b7 measured",
+      "detail": "Measured 2026-08-27 by G15, while enumerating SURF-025. The committed glass evidence under planning/test-campaign/evidence/ax was last written by commit cef3729 on 20 Aug. M22 then added two destinations and RENUMBERED four accelerators, and nothing re-took the pictures. Running bin/capture-mac-glass.sh against the current build turns four previously-passing cases red, and in every one of them the PRODUCT is right and the recorded evidence is stale:\n\n1. THE MENU MAP. Committed SURF-001.menu.txt binds Cmd-4 to `Discover`; the running app binds Cmd-4 to `Harnesses`, exactly as Destination.swift's selectionDigit declares (activity 1, servers 2, skills 3, harnesses 4, discover 5, inbox 6, evals 7, cleanup 8, insights 9). glass-assert.py's SURF-001 `menu` dict is the pre-M22 map, so CASE-0001 asserts five bindings the shipped build does not have.\n\n2. SETTINGS IS NOT A SIDEBAR ROW. M15 made Settings a Scene and removed the case from Destination, and capture-mac-glass.sh still does `axkit select Settings`. That select now fails \u2014 `axkit: no sidebar row starting 'Settings'` \u2014 the app stays on Cleanup, and the script photographs the CLEANUP board and files it as SURF-011. CASE-0016 and CASE-0111 fail against it.\n\nTHE CAMPAIGN'S OWN INSTRUMENTS CAUGHT BOTH, WHICH IS THE ONE GOOD PART. The capture manifest's readback records that picture as target `app://mac/cleanup` under subject SURF-011, contradicting its own filename \u2014 the exact mechanism the script was rebuilt around. Independently, glass-assert.py --discriminate reports LEAK SURF-007 wrongly accepted 1 of 8 foreign board dumps: SURF-011 \u2014 because SURF-011's dump IS the Cleanup board. Two instruments, one cause.\n\nWHY THIS IS THE SAME FINDING AS G14'S, ONE LAYER DOWN. G14 found the surface LIST had not grown since it was written. This is the EVIDENCE not having been re-taken since the build moved. In both cases a completeness gate reported clean because the thing it measured was a stale artefact rather than the product.\n\nNOT FIXED HERE, DELIBERATELY. G15's remit is the Harnesses enumeration, and correcting glass-assert.py's menu map or the Settings navigation would be editing an assertion to restore a green \u2014 even though the product is right, that is the move this campaign forbids, and the stale assertion is the instrument that found this. The four cases are set to `fail` with this id in their notes. Owed: re-map SURF-001's menu dict from Destination.selectionDigit, and give SURF-011 a route to the Settings SCENE (Cmd-comma or the app menu) instead of a sidebar select that cannot succeed."
     }
   ]
 }

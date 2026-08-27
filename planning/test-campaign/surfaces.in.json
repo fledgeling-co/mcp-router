@@ -1,5 +1,5 @@
 [
-  {"id": "SURF-001", "title": "Mac shell — sidebar, title, menus", "route": "app://mac/shell", "lane": "macos-glass", "status": "ready"},
+  {"id": "SURF-001", "title": "Mac shell \u2014 sidebar, title, menus", "route": "app://mac/shell", "lane": "macos-glass", "status": "ready"},
   {"id": "SURF-002", "title": "Mac Servers board", "route": "app://mac/servers", "lane": "macos-glass", "status": "ready"},
   {"id": "SURF-003", "title": "Mac Activity board", "route": "app://mac/activity", "lane": "macos-glass", "status": "ready"},
   {"id": "SURF-004", "title": "Mac Skills board", "route": "app://mac/skills", "lane": "macos-glass", "status": "ready"},
@@ -15,5 +15,6 @@
   {"id": "SURF-014", "title": "iOS Pairing scanner and code entry", "route": "app://ios/pairing", "lane": "ios-glass", "status": "ready"},
   {"id": "SURF-015", "title": "Router daemon and upstream pool", "route": "ipc://router/core", "lane": "router-daemon", "status": "ready"},
   {"id": "SURF-016", "title": "Loopback control API and auth routes", "route": "http://127.0.0.1:8879/control", "lane": "router-daemon", "status": "ready"},
-  {"id": "SURF-017", "title": "Parity harness vs TypeScript reference", "route": "test://parity/surface", "lane": "parity-wire", "status": "ready"}
+  {"id": "SURF-017", "title": "Parity harness vs TypeScript reference", "route": "test://parity/surface", "lane": "parity-wire", "status": "ready"},
+  {"id": "SURF-025", "title": "Mac Harnesses board", "route": "app://mac/harnesses", "lane": "macos-glass", "status": "ready"}
 ]

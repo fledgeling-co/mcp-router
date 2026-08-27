@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 4e18cc0
+---
+
 # G3 — `make test` is green on the second run, which is not a gate
 
 **Requirement:** the fleet's evidence contract. Every item in this fleet quotes `make test`

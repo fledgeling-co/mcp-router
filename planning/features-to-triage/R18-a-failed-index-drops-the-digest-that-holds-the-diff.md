@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 4de2080
+---
+
 # R18 — a failed index drops the digest, so the next success serves a changed surface unheld
 
 **Status:** Untriaged · security-adjacent

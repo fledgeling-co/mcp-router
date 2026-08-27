@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: f466020
+---
+
 # P3 — An oracle for the usage stream, and one for registry search
 
 **Source:** `cutover` = `finish-first`.

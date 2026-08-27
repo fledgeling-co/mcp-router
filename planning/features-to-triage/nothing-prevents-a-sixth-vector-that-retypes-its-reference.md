@@ -1,5 +1,6 @@
 ---
-status: to-triage
+status: completed
+shipped-by: 415b1da
 found-by: P9's second gap-fix round, 2026-08-27, handed back rather than built
 ---
 

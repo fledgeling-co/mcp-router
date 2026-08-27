@@ -1,3 +1,8 @@
+---
+status: retired
+shipped-by: 9125010
+---
+
 # The document route has no wire-level campaign case
 
 - origin: the orchestrator, ideating past the surface gaps · 2026-08-27

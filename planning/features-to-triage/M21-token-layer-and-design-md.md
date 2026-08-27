@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 2fbe062
+---
+
 # M21 — the token layer, the split accent, and reconciling `DESIGN.md`
 
 **Depends on:** F2 (the design system in SwiftUI).

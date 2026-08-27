@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 10cad44
+---
+
 # M1 — Mac window shell, menu bar commands, keyboard
 
 **Depends on:** F2, F3.

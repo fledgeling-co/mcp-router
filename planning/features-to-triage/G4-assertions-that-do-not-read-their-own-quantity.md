@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: de1315d
+---
+
 # G4 — assertions that do not read the quantity they are named for
 
 **Class:** harness / instrument. **Status:** Untriaged, not dispatched.

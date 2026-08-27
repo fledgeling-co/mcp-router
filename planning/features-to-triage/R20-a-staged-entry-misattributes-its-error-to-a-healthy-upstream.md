@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: b637adf
+---
+
 # R20 — a staged entry wipes a same-named healthy upstream and blames it for the failure
 
 **Status:** Untriaged · **Found:** 2026-08-22 by R17's verifier, measured against R17's fixed code

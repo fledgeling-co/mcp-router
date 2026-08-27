@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: aba30bd
+---
+
 # F4 — ServerStateTracker cannot report failure
 
 **Category:** foundation · **Depends on:** F3 (merged) · **Blocks:** M2, M3

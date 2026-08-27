@@ -1,5 +1,6 @@
 ---
-status: to-triage
+status: retired
+shipped-by: 2ac492f
 found-by: the serialized merge of G15/G16/G17/G19, 2026-08-27, running G18's own gate afterwards
 ---
 

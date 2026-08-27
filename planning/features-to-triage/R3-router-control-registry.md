@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: e154bae
+---
+
 # R3 — Swift router: control API, auth, usage, registry
 
 **Depends on:** R1.

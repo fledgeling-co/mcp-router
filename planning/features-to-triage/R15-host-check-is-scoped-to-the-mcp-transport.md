@@ -1,3 +1,8 @@
+---
+status: retired
+shipped-by: 2481e05
+---
+
 # R15 — the Host check guards `/mcp` and nothing else
 
 **Status:** Untriaged · security

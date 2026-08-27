@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 2b0be30
+---
+
 # R16 — adoption reads global scope only, so a project-scoped server is invisible to it
 
 **Status:** Untriaged

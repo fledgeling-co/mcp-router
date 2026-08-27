@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: b7c527c
+---
+
 # R5 — Swift router: OAuth and the authorization routes
 
 **Category:** router · **Depends on:** R3 (merged) · **Blocks:** R4

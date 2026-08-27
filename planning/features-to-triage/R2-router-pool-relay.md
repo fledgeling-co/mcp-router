@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: a8091bb
+---
+
 # R2 — Swift router: lazy pool, relay, HTTP passthrough
 
 **Depends on:** R1.

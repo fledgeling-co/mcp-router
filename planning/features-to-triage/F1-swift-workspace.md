@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 0924040
+---
+
 # F1 — Swift workspace, shared kit, and the three targets
 
 **Depends on:** nothing. Everything else depends on this.

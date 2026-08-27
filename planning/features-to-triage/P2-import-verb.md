@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 95d16f9
+---
+
 # P2 — The `import` verb and the `~/.claude.json` rewrite
 
 **Source:** `cutover` = `finish-first`.

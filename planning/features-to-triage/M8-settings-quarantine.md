@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: affaed6
+---
+
 # M8 — Settings, menu-bar popover, schema quarantine
 
 **Depends on:** M3.

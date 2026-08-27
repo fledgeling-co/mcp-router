@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: c735ab1
+---
+
 # M31 — `make parity-regen` cannot run, so the vectors are unverifiable against the reference
 
 **Raised by:** M30's build, 2026-08-26, from a measured failure rather than a design idea.

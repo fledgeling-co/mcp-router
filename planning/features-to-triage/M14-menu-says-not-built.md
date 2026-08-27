@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 7e7ed70
+---
+
 # M14 — a shipped menu tells the user the app is not built
 
 **Source:** found by M13 once A34 stopped masking the check behind it. Confirmed at merge by the

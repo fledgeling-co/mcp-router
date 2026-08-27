@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: c39c891
+---
+
 # M2 — Activity: the live call log
 
 **Depends on:** M1.

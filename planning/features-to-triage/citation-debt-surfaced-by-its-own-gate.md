@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 490cecb
+---
+
 # The citation gate landed and immediately found forty-two unfalsifiable claims
 
 - origin: the citation gate's first run on the integration branch after two merges · 2026-08-26

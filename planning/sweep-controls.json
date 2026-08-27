@@ -181,6 +181,21 @@
       "proves": "ten fixtures planted in a throwaway repo on every invocation \u2014 one per class plus a waived instance, a marker quoted inside a string, and a bare marker with no reason \u2014 each answer required exactly; a plant that never reaches the index reads NEVER REACHED THE INDEX and the run exits 2 without printing a verdict"
     },
     {
+      "path": "planning/shipped-brief-gate.py",
+      "markers": [
+        "V3",
+        "V4"
+      ],
+      "since": "2026-08-27",
+      "disposition": "control",
+      "control": [
+        "python3",
+        "planning/shipped-brief-gate.py",
+        "--control"
+      ],
+      "proves": "ten arms on a synthetic brief queue and a synthetic LEDGER on every invocation \u2014 a terminal word with no ledger row, one over a To Do row, one over a sha the branch does not carry, a shipped-by the row does not witness, one over a failing case, and `retired` with no passing case must each be refused, while a measured brief, an unmeasured one, a drifted one, a contested drifted one and an untouched one each stay silent; the finding count is asserted exactly, so a rule that fired twice or matched everything fails the control and no census is printed"
+    },
+    {
       "path": "planning/sweep-control-gate.py",
       "markers": [
         "V2",

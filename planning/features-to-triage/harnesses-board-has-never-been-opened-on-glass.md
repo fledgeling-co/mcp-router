@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 3e962f8
+---
+
 # The Harnesses board has never been opened on glass
 
 - origin: the orchestrator, from the G14 surface-enumeration finding · 2026-08-27

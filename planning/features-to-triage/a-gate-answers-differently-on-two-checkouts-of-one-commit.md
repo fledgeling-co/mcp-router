@@ -1,5 +1,6 @@
 ---
-status: to-triage
+status: completed
+shipped-by: eebac8f
 found-by: M30's runner, 2026-08-26; reproduced and diagnosed by the orchestrator the same day
 ---
 

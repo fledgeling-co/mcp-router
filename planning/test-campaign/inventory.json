@@ -260,7 +260,44 @@
       "lane": "macos-glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-001.shell.png",
-      "routeNote": "the shell is window chrome and the source list. It has no `Destination` case and no `RouterSheet` case, which is what `surface-bindings.json` records by listing it as addressless; `app://mac/shell` is the campaign's name for the frame, and it is the target `bin/capture-mac-glass.sh:248` writes at the shutter for the sidebar crop. This field previously read `app://mac/servers`, which is not this surface's address but the board it was PHOTOGRAPHED on -- two different facts in one field, and `capture-lineage.py`'s tie pass read the disagreement as a mis-aimed camera. Where the photograph was taken is recorded where it belongs, in the capture's `derivedFrom`: SURF-001.shell.png is cropped out of SURF-002.build.png at the frame the AX dump reports."
+      "routeNote": "the shell is window chrome and the source list. It has no `Destination` case and no `RouterSheet` case, which is what `surface-bindings.json` records by listing it as addressless; `app://mac/shell` is the campaign's name for the frame, and it is the target `bin/capture-mac-glass.sh:248` writes at the shutter for the sidebar crop. This field previously read `app://mac/servers`, which is not this surface's address but the board it was PHOTOGRAPHED on -- two different facts in one field, and `capture-lineage.py`'s tie pass read the disagreement as a mis-aimed camera. Where the photograph was taken is recorded where it belongs, in the capture's `derivedFrom`: SURF-001.shell.png is cropped out of SURF-002.build.png at the frame the AX dump reports.",
+      "controls": [
+        "Activity",
+        "Add MCP Server…",
+        "Add Marketplace…",
+        "Checks",
+        "Cleanup",
+        "Conduit",
+        "Discover",
+        "Edit",
+        "File",
+        "Help",
+        "Inbox",
+        "Menu-bar status item",
+        "Pair iPhone…",
+        "Servers",
+        "Settings",
+        "Settings…",
+        "Show Menu Bar Popover",
+        "Skills",
+        "View",
+        "Window"
+      ],
+      "controlsMessageOnly": [
+        "Add MCP Server…",
+        "Add Marketplace…",
+        "Conduit",
+        "Edit",
+        "File",
+        "Help",
+        "Menu-bar status item",
+        "Pair iPhone…",
+        "Settings…",
+        "Show Menu Bar Popover",
+        "View",
+        "Window"
+      ],
+      "controlsSource": "design/mocks/prototype.html"
     },
     {
       "id": "SURF-002",
@@ -268,7 +305,46 @@
       "route": "app://mac/servers",
       "lane": "macos-glass",
       "status": "ready",
-      "shot": "evidence/shots/SURF-002.build.png"
+      "shot": "evidence/shots/SURF-002.build.png",
+      "controls": [
+        "Accept the new text",
+        "Add server…",
+        "All",
+        "Cancel",
+        "Close inspector",
+        "Context menu → Keep warm",
+        "Context menu → Only load in named projects…",
+        "Context menu → Open in inspector",
+        "Context menu → Remove…",
+        "Idle",
+        "Index and add",
+        "Keep serving the old text",
+        "Keep warm",
+        "Needs you",
+        "Only load in named projects",
+        "Remove",
+        "Remove the server",
+        "Remove this server…",
+        "Reset",
+        "Review the change",
+        "Review…",
+        "Running",
+        "Server row → inspector"
+      ],
+      "controlsMessageOnly": [
+        "Add server…",
+        "Cancel",
+        "Close inspector",
+        "Context menu → Open in inspector",
+        "Context menu → Remove…",
+        "Index and add",
+        "Remove the server",
+        "Remove this server…",
+        "Review the change",
+        "Review…",
+        "Server row → inspector"
+      ],
+      "controlsSource": "design/mocks/prototype.html"
     },
     {
       "id": "SURF-003",
@@ -276,7 +352,17 @@
       "route": "app://mac/activity",
       "lane": "macos-glass",
       "status": "ready",
-      "shot": "evidence/shots/SURF-003.build.png"
+      "shot": "evidence/shots/SURF-003.build.png",
+      "controls": [
+        "Cancel",
+        "Reset history",
+        "Reset history…"
+      ],
+      "controlsMessageOnly": [
+        "Cancel",
+        "Reset history…"
+      ],
+      "controlsSource": "design/mocks/prototype.html"
     },
     {
       "id": "SURF-004",
@@ -284,7 +370,48 @@
       "route": "app://mac/skills",
       "lane": "macos-glass",
       "status": "ready",
-      "shot": "evidence/shots/SURF-004.build.png"
+      "shot": "evidence/shots/SURF-004.build.png",
+      "controls": [
+        "Add marketplace",
+        "Add marketplace…",
+        "All",
+        "Cancel",
+        "Close inspector",
+        "Context menu → Open in inspector",
+        "Context menu → Remove…",
+        "Context menu → Version history…",
+        "Done",
+        "Held",
+        "Keep the installed version",
+        "Never run",
+        "Promote the held update",
+        "Remove…",
+        "Reveal repo in Finder",
+        "Review",
+        "Review the held update…",
+        "Roll back to an earlier version…",
+        "Show full diff",
+        "Skill row → inspector",
+        "Version history…"
+      ],
+      "controlsMessageOnly": [
+        "Add marketplace",
+        "Add marketplace…",
+        "Cancel",
+        "Close inspector",
+        "Context menu → Open in inspector",
+        "Context menu → Remove…",
+        "Context menu → Version history…",
+        "Done",
+        "Remove…",
+        "Review",
+        "Review the held update…",
+        "Roll back to an earlier version…",
+        "Show full diff",
+        "Skill row → inspector",
+        "Version history…"
+      ],
+      "controlsSource": "design/mocks/prototype.html"
     },
     {
       "id": "SURF-005",
@@ -292,7 +419,24 @@
       "route": "app://mac/discover",
       "lane": "macos-glass",
       "status": "ready",
-      "shot": "evidence/shots/SURF-005.build.png"
+      "shot": "evidence/shots/SURF-005.build.png",
+      "controls": [
+        "24h",
+        "30d",
+        "7d",
+        "Cancel",
+        "Install",
+        "Not now",
+        "Registry row → detail sheet",
+        "Servers",
+        "Skills"
+      ],
+      "controlsMessageOnly": [
+        "Cancel",
+        "Not now",
+        "Registry row → detail sheet"
+      ],
+      "controlsSource": "design/mocks/prototype.html"
     },
     {
       "id": "SURF-006",
@@ -301,7 +445,18 @@
       "lane": "macos-glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-006.build.png",
-      "routeNote": "the registry addressed this board as /evals; the running app's window title reads back 'Checks'. The tie pass caught the drift — the board was renamed and the campaign's address was not."
+      "routeNote": "the registry addressed this board as /evals; the running app's window title reads back 'Checks'. The tie pass caught the drift — the board was renamed and the campaign's address was not.",
+      "controls": [
+        "All",
+        "Not met",
+        "Not observed",
+        "Re-check all…",
+        "Unstamped"
+      ],
+      "controlsMessageOnly": [
+        "Re-check all…"
+      ],
+      "controlsSource": "design/mocks/prototype.html"
     },
     {
       "id": "SURF-007",
@@ -309,7 +464,27 @@
       "route": "app://mac/cleanup",
       "lane": "macos-glass",
       "status": "ready",
-      "shot": "evidence/shots/SURF-007.build.png"
+      "shot": "evidence/shots/SURF-007.build.png",
+      "controls": [
+        "Cancel",
+        "Inspect",
+        "Leave it",
+        "Open the repo",
+        "Read first…",
+        "Remove",
+        "Remove it",
+        "Reset history",
+        "Reset history…"
+      ],
+      "controlsMessageOnly": [
+        "Cancel",
+        "Inspect",
+        "Leave it",
+        "Read first…",
+        "Remove",
+        "Reset history…"
+      ],
+      "controlsSource": "design/mocks/prototype.html"
     },
     {
       "id": "SURF-008",
@@ -317,7 +492,22 @@
       "route": "app://mac/inbox",
       "lane": "macos-glass",
       "status": "ready",
-      "shot": "evidence/shots/SURF-008.build.png"
+      "shot": "evidence/shots/SURF-008.build.png",
+      "controls": [
+        "Cancel",
+        "Decline",
+        "Install",
+        "Not now",
+        "Pairing…",
+        "Review…"
+      ],
+      "controlsMessageOnly": [
+        "Cancel",
+        "Not now",
+        "Pairing…",
+        "Review…"
+      ],
+      "controlsSource": "design/mocks/prototype.html"
     },
     {
       "id": "SURF-009",
@@ -325,7 +515,25 @@
       "route": "app://mac/menubar-popover",
       "lane": "macos-glass",
       "status": "ready",
-      "shotNote": "No build capture exists, and none can be taken under this campaign's standing constraint: the campaign never activates MCPRouter, and a menu-bar popover cannot be opened or photographed without doing so. evidence/shots/pairs.json already carried `shot: null` with `reason: build half uncaptured -- see the surface's shotNote`, and until 20 Aug 2026 the shotNote it points at did not exist -- a dangling pointer that reads, to anyone following it, as a note somebody deleted rather than one nobody wrote. The reference half (evidence/shots/mock/SURF-009.png) is rendered and on disk, so this surface is uncompared rather than unreferenced, and it is not a pass. Related: DEF-051."
+      "shotNote": "No build capture exists, and none can be taken under this campaign's standing constraint: the campaign never activates MCPRouter, and a menu-bar popover cannot be opened or photographed without doing so. evidence/shots/pairs.json already carried `shot: null` with `reason: build half uncaptured -- see the surface's shotNote`, and until 20 Aug 2026 the shotNote it points at did not exist -- a dangling pointer that reads, to anyone following it, as a note somebody deleted rather than one nobody wrote. The reference half (evidence/shots/mock/SURF-009.png) is rendered and on disk, so this surface is uncompared rather than unreferenced, and it is not a pass. Related: DEF-051.",
+      "controls": [
+        "Attention row → Inbox",
+        "Attention row → Servers",
+        "Attention row → held-description review",
+        "Attention row → update review",
+        "Close popover",
+        "Open Conduit",
+        "Quit"
+      ],
+      "controlsMessageOnly": [
+        "Attention row → Inbox",
+        "Attention row → Servers",
+        "Attention row → held-description review",
+        "Attention row → update review",
+        "Close popover",
+        "Open Conduit"
+      ],
+      "controlsSource": "design/mocks/prototype.html"
     },
     {
       "id": "SURF-010",
@@ -334,7 +542,15 @@
       "lane": "macos-glass",
       "status": "ready",
       "shotNote": "CORRECTED 20 Aug 2026. This note used to read 'no picture is filed under this surface ... the sheet was never opened and never photographed', which was true when written and false by the time it was read: DEF-036 closed and the sheet was opened and photographed at 2026-08-20T11:33:01Z. The capture's windowTitleReadback is 'Inbox' because the sheet is a modal over the Inbox window, so the window keeps its title while the sheet is up - a readback that looks like the mis-file DEF-006 records and is not one. Judged 20 Aug 2026: fail, DEF-001 on glass.",
-      "shot": "evidence/shots/SURF-010.build.png"
+      "shot": "evidence/shots/SURF-010.build.png",
+      "controls": [
+        "Can't scan? Type a code",
+        "Done"
+      ],
+      "controlsMessageOnly": [
+        "Done"
+      ],
+      "controlsSource": "design/mocks/prototype.html"
     },
     {
       "id": "SURF-011",
@@ -342,7 +558,29 @@
       "route": "app://mac/settings",
       "lane": "macos-glass",
       "status": "ready",
-      "shot": "evidence/shots/SURF-011.build.png"
+      "shot": "evidence/shots/SURF-011.build.png",
+      "controls": [
+        "Can't scan? Type a code",
+        "Cancel",
+        "Check for updates automatically",
+        "Done",
+        "Pair another device…",
+        "Promote an update when the capability diff is empty",
+        "Promote any update that passes its evals",
+        "Reset call history…",
+        "Reset history",
+        "Unpair"
+      ],
+      "controlsMessageOnly": [
+        "Cancel",
+        "Check for updates automatically",
+        "Done",
+        "Pair another device…",
+        "Promote an update when the capability diff is empty",
+        "Promote any update that passes its evals",
+        "Reset call history…"
+      ],
+      "controlsSource": "design/mocks/prototype.html"
     },
     {
       "id": "SURF-012",
@@ -457,7 +695,32 @@
       "lane": "macos-glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-025.build.png",
-      "enumeratedNote": "Enumerated 2026-08-27 by G15. The board shipped with M22 and was absent from this list until now, so no completeness gate could report it uncovered — a surface never enumerated has no row to be uncovered in. `scripts/acceptance/m22-boards.sh` had been opening it on glass since M22, which is why this is an enumeration gap rather than an unbuilt board: the repository could see it and the campaign's denominator could not."
+      "enumeratedNote": "Enumerated 2026-08-27 by G15. The board shipped with M22 and was absent from this list until now, so no completeness gate could report it uncovered — a surface never enumerated has no row to be uncovered in. `scripts/acceptance/m22-boards.sh` had been opening it on glass since M22, which is why this is an enumeration gap rather than an unbuilt board: the repository could see it and the campaign's denominator could not.",
+      "controls": [
+        "Choose a config file…",
+        "Open config",
+        "Open in editor",
+        "Reconcile all…",
+        "Reconcile…",
+        "Rescan",
+        "Scan again",
+        "Show the diff…",
+        "Verify now",
+        "Why a shim?",
+        "Wire to the router"
+      ],
+      "controlsMessageOnly": [
+        "Choose a config file…",
+        "Open config",
+        "Open in editor",
+        "Reconcile all…",
+        "Reconcile…",
+        "Show the diff…",
+        "Verify now",
+        "Why a shim?",
+        "Wire to the router"
+      ],
+      "controlsSource": "design/mcp-router-console.html"
     },
     {
       "id": "SURF-026",
@@ -466,7 +729,21 @@
       "lane": "macos-glass",
       "status": "ready",
       "shot": "evidence/shots/SURF-026.build.png",
-      "enumeratedNote": "Enumerated 2026-08-27 by G16. Absent from this list since M22 shipped it, so no completeness gate could report it uncovered. It is the board of COUNTS AND MEASUREMENTS, which is why it is enumerated separately from Harnesses: DESIGN.md §6 forbids drawing a figure the router does not observe, and a plausible number reads as a real one. Its cases therefore owe a trace per figure, not only a render."
+      "enumeratedNote": "Enumerated 2026-08-27 by G16. Absent from this list since M22 shipped it, so no completeness gate could report it uncovered. It is the board of COUNTS AND MEASUREMENTS, which is why it is enumerated separately from Harnesses: DESIGN.md §6 forbids drawing a figure the router does not observe, and a plausible number reads as a real one. Its cases therefore owe a trace per figure, not only a render.",
+      "controls": [
+        "Analyse now",
+        "Analyst cadence",
+        "Analyst model",
+        "Change the order…",
+        "Insights window",
+        "Second-opinion model",
+        "Watch the live log instead"
+      ],
+      "controlsMessageOnly": [
+        "Change the order…",
+        "Watch the live log instead"
+      ],
+      "controlsSource": "design/mcp-router-console.html"
     },
     {
       "id": "SURF-027",
@@ -485,7 +762,27 @@
       "reaches": "SURF-027",
       "routeNote": "Opened from the Servers board's inspector — ServerInspector.swift:77 sets `board.sheet = .document(server: server.name)` and ServerSheets.swift:30 presents `ServerDocumentSheet`, whose source is `ControlAPICapabilityDocumentSource`. That source is the one caller of SURF-027, which is what `reaches` records: the panel is not a surface that happens to sit near the route, it is the route's only consumer in the product.",
       "shotNote": "The pictures are rendered off an NSHostingView's own backing store by MeasureDump (`cacheDisplay(in:to:)`), not photographed off the display: no window is ordered in and the process sets `.prohibited`, which is how the campaign photographs this panel without taking the screen (UI_VERIFICATION.md rule 1). So these frames are a claim about a real SwiftUI hierarchy laid out and painted, and they are NOT a claim that MCPRouter.app was running — that is the macos-glass lane's claim and this surface does not make it.\n\nThis surface publishes no `shot` of its own, and that is the route being parameterised rather than evidence being withheld. `app://mac/servers/{server}/document` is a family of addresses; the five frames on disk were taken against THREE different servers (g17-capability, g17-no-package, g17-oversize), so any one of them published as the surface's portrait would be captioned with an address it was not taken at. The three served frames are published by the FLOW-006 steps that took them, each carrying the concrete route its own capture recorded, so every picture is now filed at the address the channel was pointed at. The two refusal frames stay unpublished and cited by CASE-0191 and CASE-0192. Note the detector limit this ALSO exposes and does not close: `capture-lineage.py`'s tie pass (`tie`, capture-lineage.py:101-112) has no notion of a route template, so a `{server}` segment read against an instance is reported as a wrong subject. That is an instrument defect owed upstream with X7 and X8, not a property of this registry.",
-      "reachesNote": "SURF-027 is G19's row for the same route. G17 enumerated it too, as its own SURF-026, and that duplicate was removed here. The one fact its note carried that G19's does not: both routers answer the route -- RouterCore/Control/ControlDocument.swift and src/control.ts:544 -- so it is a `control` parity row rather than a divergence. G17's CASE-0184 exercises the reference implementation (node dist/index.js), the same one M30's look used; the Swift half is covered by M30's route tests and its two-router differential rather than by this flow."
+      "reachesNote": "SURF-027 is G19's row for the same route. G17 enumerated it too, as its own SURF-026, and that duplicate was removed here. The one fact its note carried that G19's does not: both routers answer the route -- RouterCore/Control/ControlDocument.swift and src/control.ts:544 -- so it is a `control` parity row rather than a divergence. G17's CASE-0184 exercises the reference implementation (node dist/index.js), the same one M30's look used; the Swift half is covered by M30's route tests and its two-router differential rather than by this flow.",
+      "controls": [
+        "Capabilities",
+        "Changelog",
+        "Close",
+        "Install…",
+        "Open on GitHub",
+        "Read me",
+        "Update to the held version",
+        "What changed…"
+      ],
+      "controlsMessageOnly": [
+        "Capabilities",
+        "Changelog",
+        "Close",
+        "Open on GitHub",
+        "Read me",
+        "Update to the held version",
+        "What changed…"
+      ],
+      "controlsSource": "design/mcp-router-console.html"
     }
   ],
   "flow": [

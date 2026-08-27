@@ -25,7 +25,18 @@
    "evidence/runs/glass-assert.json"
   ],
   "note": "Sidebar AXPress selected Activity, Servers, Skills, Discover, Inbox, Checks, Cleanup, Settings; window titles matched. Cmd+1–7 not part of this case. ARMED: predicate watched to fail under the SURF-001 decoy.  ---  RE-MEASURED 2026-08-27 by G15 and independently by G16, and now FAILING against a fresh capture. This case passed over evidence captured on 20 Aug from a build that predates M22. Re-running bin/capture-mac-glass.sh against the current build turns it red, and the product is right: see DEF-058 (the stale pre-M22 evidence) and DEF-059 (the `Settings` select that stopped taking). Not chased here — editing the stale assertion to restore green is the one move this campaign forbids, and the stale assertion is the instrument that found it.",
-  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-001's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106."
+  "armedBy": "predicate arm. The assertion is stated explicitly in bin/glass-assert.py and re-run there (checked=137 failures=0 cases=18). Removing SURF-001's own copy from its window dump turns this case RED, so the check is known to bite. The suite's discrimination control additionally runs every board's predicate against every other board's dump (compared 56 board/dump pairs · leaks=0 · shell surfaces asserted for persistence instead: 1) — a predicate that accepted a foreign window would be matching shared shell chrome rather than the board it names. This arms the PREDICATE against a recorded artifact; the build→launch→capture→assert pipeline is armed once, end to end, on CASE-0014/CASE-0106.",
+  "actuates": [
+   "Activity",
+   "Servers",
+   "Skills",
+   "Discover",
+   "Inbox",
+   "Checks",
+   "Cleanup",
+   "Settings"
+  ],
+  "actuatesNote": "AXPress on each sidebar row of the running app, with the window title read back after each. Recorded although this case is FAILING: the census counts only a passing effect-rung case, so these eight move nothing until DEF-058 and DEF-059 are closed. Recording the drive on a red case is the point — it is what makes the count fall when a control stops taking, which is precisely what DEF-059 is."
  },
  {
   "id": "CASE-0002",
@@ -1359,7 +1370,13 @@
   "evidence": [
    "app/Tests/MCPRouterUITests/ActivityResetEntryPointTests.swift"
   ],
-  "note": "DEF-016's behaviour half. `ActivityResetEntryPointTests.theDialogResetsOnlyWhenConfirmed` counts `POST /usage/reset` through `RecordingUsageClient.resets` across the dialog's whole life: opening it sends 0, cancelling sends 0, confirming sends exactly 1, and the sheet closes with no `writeError`. Counted rather than flagged, because \"the dialog sent one\" and \"every keystroke sent one\" are the same Bool and different products — which is the distinction REQ-018 turns on, since this is the named-consequence dialog reserved for an act undo cannot reverse. Armed 20 Aug 2026 by duplicating `_ = try await client.resetUsage()`, which reads `confirming the dialog sent 2 resets`. Deleting the call was tried first and rejected: it fails to compile under typed throws, which is a red for the wrong reason."
+  "note": "DEF-016's behaviour half. `ActivityResetEntryPointTests.theDialogResetsOnlyWhenConfirmed` counts `POST /usage/reset` through `RecordingUsageClient.resets` across the dialog's whole life: opening it sends 0, cancelling sends 0, confirming sends exactly 1, and the sheet closes with no `writeError`. Counted rather than flagged, because \"the dialog sent one\" and \"every keystroke sent one\" are the same Bool and different products — which is the distinction REQ-018 turns on, since this is the named-consequence dialog reserved for an act undo cannot reverse. Armed 20 Aug 2026 by duplicating `_ = try await client.resetUsage()`, which reads `confirming the dialog sent 2 resets`. Deleting the call was tried first and rejected: it fails to compile under typed throws, which is a red for the wrong reason.",
+  "actuates": [
+   "Reset history…",
+   "Cancel",
+   "Reset history"
+  ],
+  "actuatesNote": "The dialog is driven through its whole life — opened, cancelled, confirmed — and the effect is read on a DIFFERENT channel from the one that struck it: `RecordingUsageClient.resets` counts `POST /usage/reset` at 0, 0 and exactly 1. Driven at the model rather than by pressing the header button; CASE-0128 is the assertion that the header button reaches this model, and it sits at `structural-visual` because that is as far as reading a view declaration honestly gets."
  },
  {
   "id": "CASE-0128",
@@ -1665,7 +1682,11 @@
    "frameStatus": "unavailable: screencapture reports no per-frame status"
   },
   "armedBy": "predicate arm with both halves proven. `glass-assert.py --decoy SURF-007/provenance-sheet` reds 12 assertions: the five the sheet must carry go missing, and the four the sheet must NOT state are injected, so the negative half is watched to fail rather than assumed — an always-true not-that predicate is the failure this half exists to catch. The local control is `state copy is absent from SURF-007.cleanup-skills.window.txt`: the board behind the sheet is photographed too, and a predicate passing on both would be describing the board. Suite run: checked=187 failures=0 cases=22 (surfaces 9, states 2); discrimination compared 56 board/dump pairs, 0 leaks.",
-  "note": "CASE-0137's claim, rendered. That case reads `CleanupSheets.swift` and states in its own note that no assertion in it proves a sheet was drawn; this one presses `Read first…` on a running build and reads the sheet that opens. `axkit press` is background-safe on a SwiftUI Button — AXPress runs the action on the element and needs no focused scene — and it exits non-zero when the press does not take, so the sheet is photographed or reported uncaptured, never assumed. The AXSheet subtree carries the three observations `SkillProvenance` actually holds (`Where the router first saw it`, `Where it resolves now`, `The router first saw it`, each with its value), and the sentence that bounds them: `The router records where a marketplace resolves, never who owns it and never what changed inside it`. It states none of the four figures `prototype.html:1249` invents — `@jbailey`, `force-pushed`, `no longer in history`, `evals fail` — each checked by name. Frontmost was Ghostty before and after; the app was never activated."
+  "note": "CASE-0137's claim, rendered. That case reads `CleanupSheets.swift` and states in its own note that no assertion in it proves a sheet was drawn; this one presses `Read first…` on a running build and reads the sheet that opens. `axkit press` is background-safe on a SwiftUI Button — AXPress runs the action on the element and needs no focused scene — and it exits non-zero when the press does not take, so the sheet is photographed or reported uncaptured, never assumed. The AXSheet subtree carries the three observations `SkillProvenance` actually holds (`Where the router first saw it`, `Where it resolves now`, `The router first saw it`, each with its value), and the sentence that bounds them: `The router records where a marketplace resolves, never who owns it and never what changed inside it`. It states none of the four figures `prototype.html:1249` invents — `@jbailey`, `force-pushed`, `no longer in history`, `evals fail` — each checked by name. Frontmost was Ghostty before and after; the app was never activated.",
+  "actuates": [
+   "Read first…"
+  ],
+  "actuatesNote": "`axkit press` on the running app's own button, which exits non-zero when the press does not take, so the sheet is photographed or reported uncaptured and never assumed. The effect is read on the accessibility tree of the sheet that opened, not on the button."
  },
  {
   "id": "CASE-0141",
@@ -2733,7 +2754,11 @@
    "evidence/g17-document/changelog.served.dump.json"
   ],
   "note": "FLOW-006.03. Moving to the Changelog tab draws the changelog the router served — its own heading and its 1.0.0 entry. Until G17 the panel's other two tabs had never been drawn carrying a document at all: switching tabs is a press on @State and a headless render performs no presses, so every frame of this panel in the campaign's history was its read me. Check G17-P6. Picture: evidence/g17-document/changelog.served.png.",
-  "armedBy": "ARMED and watched through control G17-P8 (see CASE-0190): the changelog frame was re-rendered on the read me tab under its own filename and the tab check went red. Restored byte-identically."
+  "armedBy": "ARMED and watched through control G17-P8 (see CASE-0190): the changelog frame was re-rendered on the read me tab under its own filename and the tab check went red. Restored byte-identically.",
+  "actuates": [
+   "Changelog"
+  ],
+  "actuatesNote": "The tab is pressed and the changelog the router served is drawn. At `structural-visual`, so it moves no count: CASE-0190 is the effect-rung case over the same presses."
  },
  {
   "id": "CASE-0189",
@@ -2762,7 +2787,11 @@
    "evidence/g17-document/capabilities.served.dump.json"
   ],
   "note": "FLOW-006.04. Moving to the Capabilities tab draws the capability list the router served. Check G17-P7. Picture: evidence/g17-document/capabilities.served.png.",
-  "armedBy": "ARMED and watched through control G17-P8 (see CASE-0190). Restored byte-identically."
+  "armedBy": "ARMED and watched through control G17-P8 (see CASE-0190). Restored byte-identically.",
+  "actuates": [
+   "Capabilities"
+  ],
+  "actuatesNote": "The tab is pressed and the capability list the router served is drawn. At `structural-visual`, so it moves no count; see CASE-0190."
  },
  {
   "id": "CASE-0190",
@@ -2790,7 +2819,12 @@
    "evidence/g17-document/armed/tabs.txt"
   ],
   "note": "The flow's whole shape in one relation: one package, three tabs, three different documents. The three frames' drawn text is pairwise distinct and all three titlebars name the same package — so the tab is what changed and the subject is not. Check G17-P8.",
-  "armedBy": "ARMED and watched: control G17-P8 re-rendered the changelog and capabilities frames on the read me tab, leaving their filenames alone. The check went red (evidence/g17-document/armed/tabs.txt); both frames were restored and re-rendered byte-identically against the sha256 recorded before the fault."
+  "armedBy": "ARMED and watched: control G17-P8 re-rendered the changelog and capabilities frames on the read me tab, leaving their filenames alone. The check went red (evidence/g17-document/armed/tabs.txt); both frames were restored and re-rendered byte-identically against the sha256 recorded before the fault.",
+  "actuates": [
+   "Changelog",
+   "Capabilities"
+  ],
+  "actuatesNote": "The relation that proves the two presses had an effect rather than merely landing: three frames over one package, pairwise distinct text, one titlebar. `Read me` is deliberately NOT claimed — it is the tab the panel opens on, so nothing pressed it."
  },
  {
   "id": "CASE-0191",

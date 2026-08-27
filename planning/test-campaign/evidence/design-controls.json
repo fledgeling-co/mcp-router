@@ -1,0 +1,1995 @@
+{
+  "designOfRecord": "design/mocks/prototype.html",
+  "secondSource": "design/mcp-router-console.html",
+  "secondSourceReason": "The prototype predates the Harnesses board, the Insights board and the capability-document panel; ORCHESTRATOR.md's Contract names the console as the design of record settled 2026-08-22.",
+  "surfaces": {
+    "SURF-001": {
+      "title": "Mac shell \u2014 sidebar, title, menus",
+      "source": "design/mocks/prototype.html",
+      "states": [
+        "sidebar",
+        "menu-bar",
+        "menu:Conduit",
+        "menu:File",
+        "menu:Edit",
+        "menu:View",
+        "menu:Window",
+        "menu:Help"
+      ],
+      "controls": [
+        "Activity",
+        "Add MCP Server\u2026",
+        "Add Marketplace\u2026",
+        "Checks",
+        "Cleanup",
+        "Conduit",
+        "Discover",
+        "Edit",
+        "File",
+        "Help",
+        "Inbox",
+        "Menu-bar status item",
+        "Pair iPhone\u2026",
+        "Servers",
+        "Settings",
+        "Settings\u2026",
+        "Show Menu Bar Popover",
+        "Skills",
+        "View",
+        "Window"
+      ],
+      "messageOnly": [
+        "Add MCP Server\u2026",
+        "Add Marketplace\u2026",
+        "Conduit",
+        "Edit",
+        "File",
+        "Help",
+        "Menu-bar status item",
+        "Pair iPhone\u2026",
+        "Settings\u2026",
+        "Show Menu Bar Popover",
+        "View",
+        "Window"
+      ],
+      "detail": [
+        {
+          "name": "Activity",
+          "action": "pane",
+          "states": [
+            "sidebar",
+            "menu:View"
+          ],
+          "rawLabels": [
+            "Activity",
+            "Activity\u23181"
+          ]
+        },
+        {
+          "name": "Add MCP Server\u2026",
+          "action": "mitem",
+          "states": [
+            "menu:File"
+          ],
+          "rawLabels": [
+            "Add MCP Server\u2026\u2318N"
+          ]
+        },
+        {
+          "name": "Add Marketplace\u2026",
+          "action": "mitem",
+          "states": [
+            "menu:File"
+          ],
+          "rawLabels": [
+            "Add Marketplace\u2026\u21e7\u2318N"
+          ]
+        },
+        {
+          "name": "Checks",
+          "action": "pane",
+          "states": [
+            "sidebar"
+          ],
+          "rawLabels": [
+            "Checks"
+          ]
+        },
+        {
+          "name": "Cleanup",
+          "action": "pane",
+          "states": [
+            "sidebar"
+          ],
+          "rawLabels": [
+            "Cleanup3"
+          ]
+        },
+        {
+          "name": "Conduit",
+          "action": "menu",
+          "states": [
+            "menu-bar",
+            "menu:Conduit",
+            "menu:File",
+            "menu:Edit",
+            "menu:View",
+            "menu:Window",
+            "menu:Help"
+          ],
+          "rawLabels": [
+            "Conduit"
+          ]
+        },
+        {
+          "name": "Discover",
+          "action": "pane",
+          "states": [
+            "sidebar",
+            "menu:View"
+          ],
+          "rawLabels": [
+            "Discover",
+            "Discover\u23184"
+          ]
+        },
+        {
+          "name": "Edit",
+          "action": "menu",
+          "states": [
+            "menu-bar",
+            "menu:Conduit",
+            "menu:File",
+            "menu:Edit",
+            "menu:View",
+            "menu:Window",
+            "menu:Help"
+          ],
+          "rawLabels": [
+            "Edit"
+          ]
+        },
+        {
+          "name": "File",
+          "action": "menu",
+          "states": [
+            "menu-bar",
+            "menu:Conduit",
+            "menu:File",
+            "menu:Edit",
+            "menu:View",
+            "menu:Window",
+            "menu:Help"
+          ],
+          "rawLabels": [
+            "File"
+          ]
+        },
+        {
+          "name": "Help",
+          "action": "menu",
+          "states": [
+            "menu-bar",
+            "menu:Conduit",
+            "menu:File",
+            "menu:Edit",
+            "menu:View",
+            "menu:Window",
+            "menu:Help"
+          ],
+          "rawLabels": [
+            "Help"
+          ]
+        },
+        {
+          "name": "Inbox",
+          "action": "pane",
+          "states": [
+            "sidebar",
+            "menu:View"
+          ],
+          "rawLabels": [
+            "Inbox",
+            "Inbox\u23185"
+          ]
+        },
+        {
+          "name": "Menu-bar status item",
+          "action": "popover",
+          "states": [
+            "menu-bar",
+            "menu:Conduit",
+            "menu:File",
+            "menu:Edit",
+            "menu:View",
+            "menu:Window",
+            "menu:Help"
+          ],
+          "rawLabels": [
+            ""
+          ]
+        },
+        {
+          "name": "Pair iPhone\u2026",
+          "action": "mitem",
+          "states": [
+            "menu:File"
+          ],
+          "rawLabels": [
+            "Pair iPhone\u2026"
+          ]
+        },
+        {
+          "name": "Servers",
+          "action": "pane",
+          "states": [
+            "sidebar",
+            "menu:View"
+          ],
+          "rawLabels": [
+            "Servers2",
+            "Servers\u23182"
+          ]
+        },
+        {
+          "name": "Settings",
+          "action": "pane",
+          "states": [
+            "sidebar"
+          ],
+          "rawLabels": [
+            "Settings"
+          ]
+        },
+        {
+          "name": "Settings\u2026",
+          "action": "mitem",
+          "states": [
+            "menu:Conduit"
+          ],
+          "rawLabels": [
+            "Settings\u2026\u2318,"
+          ]
+        },
+        {
+          "name": "Show Menu Bar Popover",
+          "action": "mitem",
+          "states": [
+            "menu:View"
+          ],
+          "rawLabels": [
+            "Show Menu Bar Popover"
+          ]
+        },
+        {
+          "name": "Skills",
+          "action": "pane",
+          "states": [
+            "sidebar",
+            "menu:View"
+          ],
+          "rawLabels": [
+            "Skills1",
+            "Skills\u23183"
+          ]
+        },
+        {
+          "name": "View",
+          "action": "menu",
+          "states": [
+            "menu-bar",
+            "menu:Conduit",
+            "menu:File",
+            "menu:Edit",
+            "menu:View",
+            "menu:Window",
+            "menu:Help"
+          ],
+          "rawLabels": [
+            "View"
+          ]
+        },
+        {
+          "name": "Window",
+          "action": "menu",
+          "states": [
+            "menu-bar",
+            "menu:Conduit",
+            "menu:File",
+            "menu:Edit",
+            "menu:View",
+            "menu:Window",
+            "menu:Help"
+          ],
+          "rawLabels": [
+            "Window"
+          ]
+        }
+      ],
+      "droppedAsRowData": []
+    },
+    "SURF-002": {
+      "title": "Mac Servers board",
+      "source": "design/mocks/prototype.html",
+      "states": [
+        "board",
+        "board:needs-you",
+        "inspector:running",
+        "inspector:held",
+        "context-menu:server",
+        "sheet:add-server",
+        "sheet:confirm-remove",
+        "sheet:quarantine"
+      ],
+      "controls": [
+        "Accept the new text",
+        "Add server\u2026",
+        "All",
+        "Cancel",
+        "Close inspector",
+        "Context menu \u2192 Keep warm",
+        "Context menu \u2192 Only load in named projects\u2026",
+        "Context menu \u2192 Open in inspector",
+        "Context menu \u2192 Remove\u2026",
+        "Idle",
+        "Index and add",
+        "Keep serving the old text",
+        "Keep warm",
+        "Needs you",
+        "Only load in named projects",
+        "Remove",
+        "Remove the server",
+        "Remove this server\u2026",
+        "Reset",
+        "Review the change",
+        "Review\u2026",
+        "Running",
+        "Server row \u2192 inspector"
+      ],
+      "messageOnly": [
+        "Add server\u2026",
+        "Cancel",
+        "Close inspector",
+        "Context menu \u2192 Open in inspector",
+        "Context menu \u2192 Remove\u2026",
+        "Index and add",
+        "Remove the server",
+        "Remove this server\u2026",
+        "Review the change",
+        "Review\u2026",
+        "Server row \u2192 inspector"
+      ],
+      "detail": [
+        {
+          "name": "Accept the new text",
+          "action": "acceptdesc",
+          "states": [
+            "sheet:quarantine"
+          ],
+          "rawLabels": [
+            "Accept the new text"
+          ]
+        },
+        {
+          "name": "Add server\u2026",
+          "action": "sheet",
+          "states": [
+            "board",
+            "board:needs-you"
+          ],
+          "rawLabels": [
+            "Add server\u2026"
+          ]
+        },
+        {
+          "name": "All",
+          "action": "sfilter",
+          "states": [
+            "board",
+            "board:needs-you"
+          ],
+          "rawLabels": [
+            "All8"
+          ]
+        },
+        {
+          "name": "Cancel",
+          "action": "closesheet",
+          "states": [
+            "sheet:add-server",
+            "sheet:confirm-remove"
+          ],
+          "rawLabels": [
+            "Cancel"
+          ]
+        },
+        {
+          "name": "Close inspector",
+          "action": "sel",
+          "states": [
+            "inspector:running",
+            "inspector:held"
+          ],
+          "rawLabels": [
+            "\u2715"
+          ]
+        },
+        {
+          "name": "Context menu \u2192 Keep warm",
+          "action": "warm",
+          "states": [
+            "context-menu:server"
+          ],
+          "rawLabels": [
+            "Stop keeping warm"
+          ]
+        },
+        {
+          "name": "Context menu \u2192 Only load in named projects\u2026",
+          "action": "scope",
+          "states": [
+            "context-menu:server"
+          ],
+          "rawLabels": [
+            "Only load in named projects\u2026"
+          ]
+        },
+        {
+          "name": "Context menu \u2192 Open in inspector",
+          "action": "sel",
+          "states": [
+            "context-menu:server"
+          ],
+          "rawLabels": [
+            "Open in inspector"
+          ]
+        },
+        {
+          "name": "Context menu \u2192 Remove\u2026",
+          "action": "sheet",
+          "states": [
+            "context-menu:server"
+          ],
+          "rawLabels": [
+            "Remove\u2026"
+          ]
+        },
+        {
+          "name": "Idle",
+          "action": "sfilter",
+          "states": [
+            "board",
+            "board:needs-you"
+          ],
+          "rawLabels": [
+            "Idle7"
+          ]
+        },
+        {
+          "name": "Index and add",
+          "action": "closesheet",
+          "states": [
+            "sheet:add-server"
+          ],
+          "rawLabels": [
+            "Index and add"
+          ]
+        },
+        {
+          "name": "Keep serving the old text",
+          "action": "keepdesc",
+          "states": [
+            "sheet:quarantine"
+          ],
+          "rawLabels": [
+            "Keep serving the old text"
+          ]
+        },
+        {
+          "name": "Keep warm",
+          "action": "warm",
+          "states": [
+            "inspector:running",
+            "inspector:held"
+          ],
+          "rawLabels": [
+            "Keep warmSkip the reaper. Costs resident memory to save a co",
+            "Keep warmSkip the reaper. Costs resident memory to save a co"
+          ]
+        },
+        {
+          "name": "Needs you",
+          "action": "sfilter",
+          "states": [
+            "board",
+            "board:needs-you"
+          ],
+          "rawLabels": [
+            "Needs you2"
+          ]
+        },
+        {
+          "name": "Only load in named projects",
+          "action": "scope",
+          "states": [
+            "inspector:running",
+            "inspector:held"
+          ],
+          "rawLabels": [
+            "Only load in named projectsCurrently every session sees its ",
+            "Only load in named projectsCurrently every session sees its "
+          ]
+        },
+        {
+          "name": "Remove",
+          "action": "doremove",
+          "states": [
+            "sheet:confirm-remove"
+          ],
+          "rawLabels": [
+            "Remove"
+          ]
+        },
+        {
+          "name": "Remove the server",
+          "action": "sheet",
+          "states": [
+            "sheet:quarantine"
+          ],
+          "rawLabels": [
+            "Remove fetch-pro"
+          ]
+        },
+        {
+          "name": "Remove this server\u2026",
+          "action": "sheet",
+          "states": [
+            "inspector:running",
+            "inspector:held"
+          ],
+          "rawLabels": [
+            "Remove this server\u2026"
+          ]
+        },
+        {
+          "name": "Reset",
+          "action": "reset-server",
+          "states": [
+            "board",
+            "board:needs-you"
+          ],
+          "rawLabels": [
+            "Reset"
+          ]
+        },
+        {
+          "name": "Review the change",
+          "action": "sheet",
+          "states": [
+            "inspector:held"
+          ],
+          "rawLabels": [
+            "Review the change"
+          ]
+        },
+        {
+          "name": "Review\u2026",
+          "action": "sheet",
+          "states": [
+            "board",
+            "board:needs-you"
+          ],
+          "rawLabels": [
+            "Review\u2026"
+          ]
+        },
+        {
+          "name": "Running",
+          "action": "sfilter",
+          "states": [
+            "board",
+            "board:needs-you"
+          ],
+          "rawLabels": [
+            "Running1"
+          ]
+        },
+        {
+          "name": "Server row \u2192 inspector",
+          "action": "sel",
+          "states": [
+            "board",
+            "board:needs-you"
+          ],
+          "rawLabels": [
+            "obscurawarm \u00b7 never reaped stdio 31 1204 now passed",
+            "dossierdormant stdio 28 312 2 18m passed",
+            "siftscoped to 1 project stdio 12 88 1m not evaluated",
+            "mobbindormant stdio 3 47 6m passed",
+            "namecheaptripped \u00b7 1011150 invalid request IP stdio 24 41 6 ",
+            "fetch-pro1 description held http 6 19 2h Review\u2026",
+            "media-gen-prodormant stdio 2 0 Never not evaluated",
+            "lifelinedormant stdio 9 126 40m passed",
+            "namecheaptripped \u00b7 1011150 invalid request IP stdio 24 41 6 "
+          ]
+        }
+      ],
+      "droppedAsRowData": []
+    },
+    "SURF-003": {
+      "title": "Mac Activity board",
+      "source": "design/mocks/prototype.html",
+      "states": [
+        "board",
+        "sheet:reset-history"
+      ],
+      "controls": [
+        "Cancel",
+        "Reset history",
+        "Reset history\u2026"
+      ],
+      "messageOnly": [
+        "Cancel",
+        "Reset history\u2026"
+      ],
+      "detail": [
+        {
+          "name": "Cancel",
+          "action": "closesheet",
+          "states": [
+            "sheet:reset-history"
+          ],
+          "rawLabels": [
+            "Cancel"
+          ]
+        },
+        {
+          "name": "Reset history",
+          "action": "doreset",
+          "states": [
+            "sheet:reset-history"
+          ],
+          "rawLabels": [
+            "Reset history"
+          ]
+        },
+        {
+          "name": "Reset history\u2026",
+          "action": "sheet",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "Reset history\u2026"
+          ]
+        }
+      ],
+      "droppedAsRowData": []
+    },
+    "SURF-004": {
+      "title": "Mac Skills board",
+      "source": "design/mocks/prototype.html",
+      "states": [
+        "board",
+        "board:held",
+        "inspector:skill",
+        "inspector:provenance",
+        "context-menu:skill",
+        "sheet:add-marketplace",
+        "sheet:capability-delta",
+        "sheet:version-history"
+      ],
+      "controls": [
+        "Add marketplace",
+        "Add marketplace\u2026",
+        "All",
+        "Cancel",
+        "Close inspector",
+        "Context menu \u2192 Open in inspector",
+        "Context menu \u2192 Remove\u2026",
+        "Context menu \u2192 Version history\u2026",
+        "Done",
+        "Held",
+        "Keep the installed version",
+        "Never run",
+        "Promote the held update",
+        "Remove\u2026",
+        "Reveal repo in Finder",
+        "Review",
+        "Review the held update\u2026",
+        "Roll back to an earlier version\u2026",
+        "Show full diff",
+        "Skill row \u2192 inspector",
+        "Version history\u2026"
+      ],
+      "messageOnly": [
+        "Add marketplace",
+        "Add marketplace\u2026",
+        "Cancel",
+        "Close inspector",
+        "Context menu \u2192 Open in inspector",
+        "Context menu \u2192 Remove\u2026",
+        "Context menu \u2192 Version history\u2026",
+        "Done",
+        "Remove\u2026",
+        "Review",
+        "Review the held update\u2026",
+        "Roll back to an earlier version\u2026",
+        "Show full diff",
+        "Skill row \u2192 inspector",
+        "Version history\u2026"
+      ],
+      "detail": [
+        {
+          "name": "Add marketplace",
+          "action": "closesheet",
+          "states": [
+            "sheet:add-marketplace"
+          ],
+          "rawLabels": [
+            "Add marketplace"
+          ]
+        },
+        {
+          "name": "Add marketplace\u2026",
+          "action": "sheet",
+          "states": [
+            "board",
+            "board:held"
+          ],
+          "rawLabels": [
+            "Add marketplace\u2026"
+          ]
+        },
+        {
+          "name": "All",
+          "action": "kfilter",
+          "states": [
+            "board",
+            "board:held"
+          ],
+          "rawLabels": [
+            "All6"
+          ]
+        },
+        {
+          "name": "Cancel",
+          "action": "closesheet",
+          "states": [
+            "sheet:add-marketplace"
+          ],
+          "rawLabels": [
+            "Cancel"
+          ]
+        },
+        {
+          "name": "Close inspector",
+          "action": "sel",
+          "states": [
+            "inspector:skill",
+            "inspector:provenance"
+          ],
+          "rawLabels": [
+            "\u2715"
+          ]
+        },
+        {
+          "name": "Context menu \u2192 Open in inspector",
+          "action": "sel",
+          "states": [
+            "context-menu:skill"
+          ],
+          "rawLabels": [
+            "Open in inspector"
+          ]
+        },
+        {
+          "name": "Context menu \u2192 Remove\u2026",
+          "action": "sheet",
+          "states": [
+            "context-menu:skill"
+          ],
+          "rawLabels": [
+            "Remove\u2026"
+          ]
+        },
+        {
+          "name": "Context menu \u2192 Version history\u2026",
+          "action": "sheet",
+          "states": [
+            "context-menu:skill"
+          ],
+          "rawLabels": [
+            "Version history\u2026"
+          ]
+        },
+        {
+          "name": "Done",
+          "action": "closesheet",
+          "states": [
+            "sheet:version-history"
+          ],
+          "rawLabels": [
+            "Done"
+          ]
+        },
+        {
+          "name": "Held",
+          "action": "kfilter",
+          "states": [
+            "board",
+            "board:held"
+          ],
+          "rawLabels": [
+            "Held1"
+          ]
+        },
+        {
+          "name": "Keep the installed version",
+          "action": "keepver",
+          "states": [
+            "sheet:capability-delta"
+          ],
+          "rawLabels": [
+            "Keep 2.2.0"
+          ]
+        },
+        {
+          "name": "Never run",
+          "action": "kfilter",
+          "states": [
+            "board",
+            "board:held"
+          ],
+          "rawLabels": [
+            "Never run2"
+          ]
+        },
+        {
+          "name": "Promote the held update",
+          "action": "promote",
+          "states": [
+            "sheet:capability-delta"
+          ],
+          "rawLabels": [
+            "Promote 2.3.0"
+          ]
+        },
+        {
+          "name": "Remove\u2026",
+          "action": "sheet",
+          "states": [
+            "inspector:skill",
+            "inspector:provenance"
+          ],
+          "rawLabels": [
+            "Remove\u2026"
+          ]
+        },
+        {
+          "name": "Reveal repo in Finder",
+          "action": "",
+          "states": [
+            "sheet:version-history"
+          ],
+          "rawLabels": [
+            "Reveal repo in Finder"
+          ]
+        },
+        {
+          "name": "Review",
+          "action": "sheet",
+          "states": [
+            "inspector:skill"
+          ],
+          "rawLabels": [
+            "Review"
+          ]
+        },
+        {
+          "name": "Review the held update\u2026",
+          "action": "sheet",
+          "states": [
+            "board",
+            "board:held"
+          ],
+          "rawLabels": [
+            "Review 2.3.0\u2026"
+          ]
+        },
+        {
+          "name": "Roll back to an earlier version\u2026",
+          "action": "closesheet",
+          "states": [
+            "sheet:version-history"
+          ],
+          "rawLabels": [
+            "Roll back to 2.1.0\u2026"
+          ]
+        },
+        {
+          "name": "Show full diff",
+          "action": "sheet",
+          "states": [
+            "sheet:capability-delta"
+          ],
+          "rawLabels": [
+            "Show full diff (412 lines)"
+          ]
+        },
+        {
+          "name": "Skill row \u2192 inspector",
+          "action": "sel",
+          "states": [
+            "board",
+            "board:held"
+          ],
+          "rawLabels": [
+            "create-mac-icon fledgeling-plugins CCCXCDXOC 1.3.0 14 2d 12/",
+            "trawl fledgeling-plugins CCCXCDXOC 2.2.0 \u2192 31 1h 9/9 Review ",
+            "design-craft diolog-plugins CCCXCDXOC 1.14.0 62 12m 7/7",
+            "ux-craft diolog-plugins CCCXCDXOC 1.5.0 44 12m 5/5",
+            "mac-doctor fledgeling-plugins CCCXCDXOC 1.1.0 0 Never not ev",
+            "pr-summariser upstream owner changed since install CCCXCDXOC",
+            "trawl fledgeling-plugins CCCXCDXOC 2.2.0 \u2192 31 1h 9/9 Review "
+          ]
+        },
+        {
+          "name": "Version history\u2026",
+          "action": "sheet",
+          "states": [
+            "inspector:skill",
+            "inspector:provenance"
+          ],
+          "rawLabels": [
+            "Version history\u2026"
+          ]
+        }
+      ],
+      "droppedAsRowData": []
+    },
+    "SURF-005": {
+      "title": "Mac Discover board",
+      "source": "design/mocks/prototype.html",
+      "states": [
+        "board:skills",
+        "board:servers",
+        "sheet:registry-detail"
+      ],
+      "controls": [
+        "24h",
+        "30d",
+        "7d",
+        "Cancel",
+        "Install",
+        "Not now",
+        "Registry row \u2192 detail sheet",
+        "Servers",
+        "Skills"
+      ],
+      "messageOnly": [
+        "Cancel",
+        "Not now",
+        "Registry row \u2192 detail sheet"
+      ],
+      "detail": [
+        {
+          "name": "24h",
+          "action": "dwindow",
+          "states": [
+            "board:skills",
+            "board:servers"
+          ],
+          "rawLabels": [
+            "24h"
+          ]
+        },
+        {
+          "name": "30d",
+          "action": "dwindow",
+          "states": [
+            "board:skills",
+            "board:servers"
+          ],
+          "rawLabels": [
+            "30d"
+          ]
+        },
+        {
+          "name": "7d",
+          "action": "dwindow",
+          "states": [
+            "board:skills",
+            "board:servers"
+          ],
+          "rawLabels": [
+            "7d"
+          ]
+        },
+        {
+          "name": "Cancel",
+          "action": "closesheet",
+          "states": [
+            "sheet:registry-detail"
+          ],
+          "rawLabels": [
+            "Cancel"
+          ]
+        },
+        {
+          "name": "Install",
+          "action": "install",
+          "states": [
+            "sheet:registry-detail"
+          ],
+          "rawLabels": [
+            "Install"
+          ]
+        },
+        {
+          "name": "Not now",
+          "action": "closesheet",
+          "states": [
+            "sheet:registry-detail"
+          ],
+          "rawLabels": [
+            "Not now"
+          ]
+        },
+        {
+          "name": "Registry row \u2192 detail sheet",
+          "action": "sheet",
+          "states": [
+            "board:skills",
+            "board:servers"
+          ],
+          "rawLabels": [
+            "armada-sync @fledgeling-co \u00b7 MIT Rewrites one project's entr",
+            "flaky-hunter @vercel \u00b7 MIT Reruns a suite until a test fails",
+            "1 discipline @fledgeling-co \u00b7 MIT 4,102 +218% 6/6",
+            "2 sql-explain @planetscale \u00b7 Apache-2.0 9,880 +64% 8/8",
+            "3 changelog-writer @unknown \u00b7 no licence 1,455 +41% not eval",
+            "4 design-review @fledgeling-co \u00b7 MIT 12,301 -8% 11/11",
+            "1 postgres-mcp @crunchydata \u00b7 Apache-2.0 7,740 +112% 9/9",
+            "2 linear-mcp @linear \u00b7 MIT 15,220 +23% 7/7"
+          ]
+        },
+        {
+          "name": "Servers",
+          "action": "dkind",
+          "states": [
+            "board:skills",
+            "board:servers"
+          ],
+          "rawLabels": [
+            "Servers"
+          ]
+        },
+        {
+          "name": "Skills",
+          "action": "dkind",
+          "states": [
+            "board:skills",
+            "board:servers"
+          ],
+          "rawLabels": [
+            "Skills"
+          ]
+        }
+      ],
+      "droppedAsRowData": []
+    },
+    "SURF-006": {
+      "title": "Mac Checks board",
+      "source": "design/mocks/prototype.html",
+      "states": [
+        "board"
+      ],
+      "controls": [
+        "All",
+        "Not met",
+        "Not observed",
+        "Re-check all\u2026",
+        "Unstamped"
+      ],
+      "messageOnly": [
+        "Re-check all\u2026"
+      ],
+      "detail": [
+        {
+          "name": "All",
+          "action": "efilter",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "All14"
+          ]
+        },
+        {
+          "name": "Not met",
+          "action": "efilter",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "Not met1"
+          ]
+        },
+        {
+          "name": "Not observed",
+          "action": "efilter",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "Not observed"
+          ]
+        },
+        {
+          "name": "Re-check all\u2026",
+          "action": "recheck",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "Re-check all\u2026"
+          ]
+        },
+        {
+          "name": "Unstamped",
+          "action": "efilter",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "Unstamped"
+          ]
+        }
+      ],
+      "droppedAsRowData": []
+    },
+    "SURF-007": {
+      "title": "Mac Cleanup board",
+      "source": "design/mocks/prototype.html",
+      "states": [
+        "board",
+        "sheet:confirm-remove",
+        "sheet:skill-provenance",
+        "sheet:reset-history"
+      ],
+      "controls": [
+        "Cancel",
+        "Inspect",
+        "Leave it",
+        "Open the repo",
+        "Read first\u2026",
+        "Remove",
+        "Remove it",
+        "Reset history",
+        "Reset history\u2026"
+      ],
+      "messageOnly": [
+        "Cancel",
+        "Inspect",
+        "Leave it",
+        "Read first\u2026",
+        "Remove",
+        "Reset history\u2026"
+      ],
+      "detail": [
+        {
+          "name": "Cancel",
+          "action": "closesheet",
+          "states": [
+            "sheet:confirm-remove",
+            "sheet:reset-history"
+          ],
+          "rawLabels": [
+            "Cancel"
+          ]
+        },
+        {
+          "name": "Inspect",
+          "action": "sel",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "Inspect"
+          ]
+        },
+        {
+          "name": "Leave it",
+          "action": "closesheet",
+          "states": [
+            "sheet:skill-provenance"
+          ],
+          "rawLabels": [
+            "Leave it"
+          ]
+        },
+        {
+          "name": "Open the repo",
+          "action": "",
+          "states": [
+            "sheet:skill-provenance"
+          ],
+          "rawLabels": [
+            "Open the repo"
+          ]
+        },
+        {
+          "name": "Read first\u2026",
+          "action": "sheet",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "Read first\u2026"
+          ]
+        },
+        {
+          "name": "Remove",
+          "action": "sheet",
+          "states": [
+            "board",
+            "sheet:confirm-remove"
+          ],
+          "rawLabels": [
+            "Remove"
+          ]
+        },
+        {
+          "name": "Remove it",
+          "action": "doremove",
+          "states": [
+            "sheet:skill-provenance"
+          ],
+          "rawLabels": [
+            "Remove it"
+          ]
+        },
+        {
+          "name": "Reset history",
+          "action": "doreset",
+          "states": [
+            "sheet:reset-history"
+          ],
+          "rawLabels": [
+            "Reset history"
+          ]
+        },
+        {
+          "name": "Reset history\u2026",
+          "action": "sheet",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "Reset history\u2026"
+          ]
+        }
+      ],
+      "droppedAsRowData": []
+    },
+    "SURF-008": {
+      "title": "Mac Inbox board and review sheet",
+      "source": "design/mocks/prototype.html",
+      "states": [
+        "board:empty",
+        "board:queued",
+        "sheet:queued-detail"
+      ],
+      "controls": [
+        "Cancel",
+        "Decline",
+        "Install",
+        "Not now",
+        "Pairing\u2026",
+        "Review\u2026"
+      ],
+      "messageOnly": [
+        "Cancel",
+        "Not now",
+        "Pairing\u2026",
+        "Review\u2026"
+      ],
+      "detail": [
+        {
+          "name": "Cancel",
+          "action": "closesheet",
+          "states": [
+            "sheet:queued-detail"
+          ],
+          "rawLabels": [
+            "Cancel"
+          ]
+        },
+        {
+          "name": "Decline",
+          "action": "decline",
+          "states": [
+            "board:queued",
+            "sheet:queued-detail"
+          ],
+          "rawLabels": [
+            "Decline"
+          ]
+        },
+        {
+          "name": "Install",
+          "action": "install",
+          "states": [
+            "sheet:queued-detail"
+          ],
+          "rawLabels": [
+            "Install"
+          ]
+        },
+        {
+          "name": "Not now",
+          "action": "closesheet",
+          "states": [
+            "sheet:queued-detail"
+          ],
+          "rawLabels": [
+            "Not now"
+          ]
+        },
+        {
+          "name": "Pairing\u2026",
+          "action": "sheet",
+          "states": [
+            "board:empty",
+            "board:queued"
+          ],
+          "rawLabels": [
+            "Pairing\u2026"
+          ]
+        },
+        {
+          "name": "Review\u2026",
+          "action": "sheet",
+          "states": [
+            "board:queued"
+          ],
+          "rawLabels": [
+            "Review\u2026"
+          ]
+        }
+      ],
+      "droppedAsRowData": []
+    },
+    "SURF-009": {
+      "title": "Mac menu-bar popover and inbox band",
+      "source": "design/mocks/prototype.html",
+      "states": [
+        "popover",
+        "popover:inbox-band"
+      ],
+      "controls": [
+        "Attention row \u2192 Inbox",
+        "Attention row \u2192 Servers",
+        "Attention row \u2192 held-description review",
+        "Attention row \u2192 update review",
+        "Close popover",
+        "Open Conduit",
+        "Quit"
+      ],
+      "messageOnly": [
+        "Attention row \u2192 Inbox",
+        "Attention row \u2192 Servers",
+        "Attention row \u2192 held-description review",
+        "Attention row \u2192 update review",
+        "Close popover",
+        "Open Conduit"
+      ],
+      "detail": [
+        {
+          "name": "Attention row \u2192 Inbox",
+          "action": "goto",
+          "states": [
+            "popover:inbox-band"
+          ],
+          "rawLabels": [
+            "1 queued from iPhonewaiting for you to review at the Mac"
+          ]
+        },
+        {
+          "name": "Attention row \u2192 Servers",
+          "action": "goto",
+          "states": [
+            "popover",
+            "popover:inbox-band"
+          ],
+          "rawLabels": [
+            "namecheap1011150 invalid request IP \u2014 will not re-arm on its",
+            "namecheap1011150 invalid request IP \u2014 will not re-arm on its"
+          ]
+        },
+        {
+          "name": "Attention row \u2192 held-description review",
+          "action": "sheet",
+          "states": [
+            "popover",
+            "popover:inbox-band"
+          ],
+          "rawLabels": [
+            "fetch-prochanged a tool description \u2014 held, not served"
+          ]
+        },
+        {
+          "name": "Attention row \u2192 update review",
+          "action": "sheet",
+          "states": [
+            "popover",
+            "popover:inbox-band"
+          ],
+          "rawLabels": [
+            "trawl 2.3.0update asks for capability it didn't have"
+          ]
+        },
+        {
+          "name": "Close popover",
+          "action": "popover",
+          "states": [
+            "popover",
+            "popover:inbox-band"
+          ],
+          "rawLabels": [
+            "\u2715"
+          ]
+        },
+        {
+          "name": "Open Conduit",
+          "action": "popover",
+          "states": [
+            "popover",
+            "popover:inbox-band"
+          ],
+          "rawLabels": [
+            "Open Conduit"
+          ]
+        },
+        {
+          "name": "Quit",
+          "action": "",
+          "states": [
+            "popover",
+            "popover:inbox-band"
+          ],
+          "rawLabels": [
+            "Quit"
+          ]
+        }
+      ],
+      "droppedAsRowData": []
+    },
+    "SURF-010": {
+      "title": "Mac Pairing sheet",
+      "source": "design/mocks/prototype.html",
+      "states": [
+        "sheet:pair"
+      ],
+      "controls": [
+        "Can't scan? Type a code",
+        "Done"
+      ],
+      "messageOnly": [
+        "Done"
+      ],
+      "detail": [
+        {
+          "name": "Can't scan? Type a code",
+          "action": "",
+          "states": [
+            "sheet:pair"
+          ],
+          "rawLabels": [
+            "Can't scan? Type a code"
+          ]
+        },
+        {
+          "name": "Done",
+          "action": "closesheet",
+          "states": [
+            "sheet:pair"
+          ],
+          "rawLabels": [
+            "Done"
+          ]
+        }
+      ],
+      "droppedAsRowData": []
+    },
+    "SURF-011": {
+      "title": "Mac Settings board",
+      "source": "design/mocks/prototype.html",
+      "states": [
+        "board",
+        "sheet:pair-another",
+        "sheet:reset-history"
+      ],
+      "controls": [
+        "Can't scan? Type a code",
+        "Cancel",
+        "Check for updates automatically",
+        "Done",
+        "Pair another device\u2026",
+        "Promote an update when the capability diff is empty",
+        "Promote any update that passes its evals",
+        "Reset call history\u2026",
+        "Reset history",
+        "Unpair"
+      ],
+      "messageOnly": [
+        "Cancel",
+        "Check for updates automatically",
+        "Done",
+        "Pair another device\u2026",
+        "Promote an update when the capability diff is empty",
+        "Promote any update that passes its evals",
+        "Reset call history\u2026"
+      ],
+      "detail": [
+        {
+          "name": "Can't scan? Type a code",
+          "action": "",
+          "states": [
+            "sheet:pair-another"
+          ],
+          "rawLabels": [
+            "Can't scan? Type a code"
+          ]
+        },
+        {
+          "name": "Cancel",
+          "action": "closesheet",
+          "states": [
+            "sheet:reset-history"
+          ],
+          "rawLabels": [
+            "Cancel"
+          ]
+        },
+        {
+          "name": "Check for updates automatically",
+          "action": "noop",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "Check for updates automatically Hourly, in the background"
+          ]
+        },
+        {
+          "name": "Done",
+          "action": "closesheet",
+          "states": [
+            "sheet:pair-another"
+          ],
+          "rawLabels": [
+            "Done"
+          ]
+        },
+        {
+          "name": "Pair another device\u2026",
+          "action": "sheet",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "Pair another device\u2026"
+          ]
+        },
+        {
+          "name": "Promote an update when the capability diff is empty",
+          "action": "noop",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "Promote an update when the capability diff is empty No new h"
+          ]
+        },
+        {
+          "name": "Promote any update that passes its evals",
+          "action": "noop",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "Promote any update that passes its evals Off by default. Pas"
+          ]
+        },
+        {
+          "name": "Reset call history\u2026",
+          "action": "sheet",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "Reset call history\u2026"
+          ]
+        },
+        {
+          "name": "Reset history",
+          "action": "doreset",
+          "states": [
+            "sheet:reset-history"
+          ],
+          "rawLabels": [
+            "Reset history"
+          ]
+        },
+        {
+          "name": "Unpair",
+          "action": "",
+          "states": [
+            "board"
+          ],
+          "rawLabels": [
+            "Unpair"
+          ]
+        }
+      ],
+      "droppedAsRowData": []
+    },
+    "SURF-025": {
+      "title": "Mac Harnesses board",
+      "source": "design/mcp-router-console.html",
+      "states": [
+        "board:ideal",
+        "board:empty",
+        "board:error"
+      ],
+      "controls": [
+        "Choose a config file\u2026",
+        "Open config",
+        "Open in editor",
+        "Reconcile all\u2026",
+        "Reconcile\u2026",
+        "Rescan",
+        "Scan again",
+        "Show the diff\u2026",
+        "Verify now",
+        "Why a shim?",
+        "Wire to the router"
+      ],
+      "messageOnly": [
+        "Choose a config file\u2026",
+        "Open config",
+        "Open in editor",
+        "Reconcile all\u2026",
+        "Reconcile\u2026",
+        "Show the diff\u2026",
+        "Verify now",
+        "Why a shim?",
+        "Wire to the router"
+      ],
+      "detail": [
+        {
+          "name": "Choose a config file\u2026",
+          "action": "act:choose-config",
+          "states": [
+            "board:empty"
+          ],
+          "rawLabels": [
+            "Choose a config file\u2026"
+          ]
+        },
+        {
+          "name": "Open config",
+          "action": "act:open-config",
+          "states": [
+            "board:ideal"
+          ],
+          "rawLabels": [
+            "Open config"
+          ]
+        },
+        {
+          "name": "Open in editor",
+          "action": "act:open-config",
+          "states": [
+            "board:error"
+          ],
+          "rawLabels": [
+            "Open in editor"
+          ]
+        },
+        {
+          "name": "Reconcile all\u2026",
+          "action": "sheet:reconcile",
+          "states": [
+            "board:ideal"
+          ],
+          "rawLabels": [
+            "Reconcile all\u2026"
+          ]
+        },
+        {
+          "name": "Reconcile\u2026",
+          "action": "sheet:reconcile",
+          "states": [
+            "board:ideal"
+          ],
+          "rawLabels": [
+            "Reconcile\u2026"
+          ]
+        },
+        {
+          "name": "Rescan",
+          "action": "act:rescan",
+          "states": [
+            "board:ideal"
+          ],
+          "rawLabels": [
+            "Rescan"
+          ]
+        },
+        {
+          "name": "Scan again",
+          "action": "act:rescan",
+          "states": [
+            "board:empty"
+          ],
+          "rawLabels": [
+            "Scan again"
+          ]
+        },
+        {
+          "name": "Show the diff\u2026",
+          "action": "sheet:reconcile",
+          "states": [
+            "board:ideal"
+          ],
+          "rawLabels": [
+            "Show the diff\u2026"
+          ]
+        },
+        {
+          "name": "Verify now",
+          "action": "act:verify",
+          "states": [
+            "board:ideal"
+          ],
+          "rawLabels": [
+            "Verify now"
+          ]
+        },
+        {
+          "name": "Why a shim?",
+          "action": "act:shim",
+          "states": [
+            "board:ideal"
+          ],
+          "rawLabels": [
+            "Why a shim?"
+          ]
+        },
+        {
+          "name": "Wire to the router",
+          "action": "act:wire",
+          "states": [
+            "board:ideal"
+          ],
+          "rawLabels": [
+            "Wire to the router"
+          ]
+        }
+      ],
+      "droppedAsRowData": []
+    },
+    "SURF-026": {
+      "title": "Mac Insights board",
+      "source": "design/mcp-router-console.html",
+      "states": [
+        "board:ideal",
+        "board:empty",
+        "board:error"
+      ],
+      "controls": [
+        "Analyse now",
+        "Analyst cadence",
+        "Analyst model",
+        "Change the order\u2026",
+        "Insights window",
+        "Second-opinion model",
+        "Watch the live log instead"
+      ],
+      "messageOnly": [
+        "Change the order\u2026",
+        "Watch the live log instead"
+      ],
+      "detail": [
+        {
+          "name": "Analyse now",
+          "action": "act:run-analyst",
+          "states": [
+            "board:ideal"
+          ],
+          "rawLabels": [
+            "Analyse now"
+          ]
+        },
+        {
+          "name": "Analyst cadence",
+          "action": "",
+          "states": [
+            "board:ideal"
+          ],
+          "rawLabels": [
+            "Every 6 hours"
+          ]
+        },
+        {
+          "name": "Analyst model",
+          "action": "",
+          "states": [
+            "board:ideal"
+          ],
+          "rawLabels": [
+            "Claude CLI \u00b7 haiku"
+          ]
+        },
+        {
+          "name": "Change the order\u2026",
+          "action": "sheet:analyzer",
+          "states": [
+            "board:error"
+          ],
+          "rawLabels": [
+            "Change the order\u2026"
+          ]
+        },
+        {
+          "name": "Insights window",
+          "action": "",
+          "states": [
+            "board:ideal"
+          ],
+          "rawLabels": [
+            "Last 7 days"
+          ]
+        },
+        {
+          "name": "Second-opinion model",
+          "action": "",
+          "states": [
+            "board:ideal"
+          ],
+          "rawLabels": [
+            "Grok CLI \u00b7 grok-4.6 medium"
+          ]
+        },
+        {
+          "name": "Watch the live log instead",
+          "action": "board:activity",
+          "states": [
+            "board:empty"
+          ],
+          "rawLabels": [
+            "Watch the live log instead"
+          ]
+        }
+      ],
+      "droppedAsRowData": [
+        "design-review2.3.1Skill 142 4 h ago",
+        "docker-mcp1.2.0MCP server 18 14 min ago",
+        "obscura0.2.0MCP server 612 1 min ago",
+        "trawl1.4.2Skill 64 yesterday"
+      ]
+    },
+    "SURF-028": {
+      "title": "Mac capability document panel \u2014 three tabs over one package",
+      "source": "design/mcp-router-console.html",
+      "states": [
+        "sheet:readme"
+      ],
+      "controls": [
+        "Capabilities",
+        "Changelog",
+        "Close",
+        "Install\u2026",
+        "Open on GitHub",
+        "Read me",
+        "Update to the held version",
+        "What changed\u2026"
+      ],
+      "messageOnly": [
+        "Capabilities",
+        "Changelog",
+        "Close",
+        "Open on GitHub",
+        "Read me",
+        "Update to the held version",
+        "What changed\u2026"
+      ],
+      "detail": [
+        {
+          "name": "Capabilities",
+          "action": "mdtab:md-caps",
+          "states": [
+            "sheet:readme"
+          ],
+          "rawLabels": [
+            "Capabilities"
+          ]
+        },
+        {
+          "name": "Changelog",
+          "action": "mdtab:md-changelog",
+          "states": [
+            "sheet:readme"
+          ],
+          "rawLabels": [
+            "Changelog"
+          ]
+        },
+        {
+          "name": "Close",
+          "action": "act:close-sheet",
+          "states": [
+            "sheet:readme"
+          ],
+          "rawLabels": [
+            "Close"
+          ]
+        },
+        {
+          "name": "Install\u2026",
+          "action": "act:install-capability",
+          "states": [
+            "sheet:readme"
+          ],
+          "rawLabels": [
+            "Install\u2026"
+          ]
+        },
+        {
+          "name": "Open on GitHub",
+          "action": "act:open-config",
+          "states": [
+            "sheet:readme"
+          ],
+          "rawLabels": [
+            "Open on GitHub"
+          ]
+        },
+        {
+          "name": "Read me",
+          "action": "mdtab:md-readme",
+          "states": [
+            "sheet:readme"
+          ],
+          "rawLabels": [
+            "Read me"
+          ]
+        },
+        {
+          "name": "Update to the held version",
+          "action": "act:close-sheet",
+          "states": [
+            "sheet:readme"
+          ],
+          "rawLabels": [
+            "Update to 1.5.0"
+          ]
+        },
+        {
+          "name": "What changed\u2026",
+          "action": "sheet:capability-delta",
+          "states": [
+            "sheet:readme"
+          ],
+          "rawLabels": [
+            "What changed\u2026"
+          ]
+        }
+      ],
+      "droppedAsRowData": []
+    }
+  }
+}

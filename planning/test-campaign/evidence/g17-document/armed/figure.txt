@@ -1,0 +1,19 @@
+  ok   G17-W1 — the route serves all three of the constructed package's documents: ['capabilities', 'changelog', 'readMe']
+  ok   G17-W2 — one figure arrives as image/png and the escaping reference is refused: images=1 refused=['escapesPackage']
+  ok   G17-W3 — the response carries bytes and no filesystem path the app could open
+  ok   G17-W4 — a server declaring no directory refuses noPackageDirectory — the state all 21 upstreams on this machine are in: noPackageDirectory
+  ok   G17-W5 — a read me over the 512 KB document cap refuses documentTooLarge, naming the file and the cap: reason=documentTooLarge file=README.md limit=524288
+  ok   G17-P1 — the frame's titlebar names the served package and M19's fixture capability 'trawl' appears nowhere: ['g17-capability']
+  ok   G17-P2 — the package's own H1 and prose are drawn from the bytes the router served
+  ok   G17-P3 — all three tab controls are drawn: ['Read me', 'Changelog', 'Capabilities']
+  FAIL G17-P4 — the in-package figure DREW: 0.0% of its 164864-pixel card is the band's colour (floor 25%) — bytes the router sent, decoded and painted, not a placeholder
+  FAIL G17-P5 — the escaping reference drew its own refusal and no picture (0.00% figure colour): 'Not shown — the package does not contain this image.'
+  ok   G17-P6 — the changelog tab draws the changelog's own heading: ['Changelog', '1.0.0']
+  ok   G17-P7 — the capabilities tab draws the capability list's own heading: ['Capabilities']
+  ok   G17-P8 — the three tabs draw three different documents out of one package: distinct bodies=3, all three name g17-capability=True
+  ok   G17-R1 — the nothing-served refusal draws its own state and no figure: ['g17-no-package has no package to read']
+  ok   G17-R2 — the too-large refusal names the file and the cap it broke: ['README.md is too large to show here']
+  ok   G17-R3 — the three refusals are pairwise distinguishable in the words they draw: 3 distinct
+  FAIL G17-L1 — each of the 5 pictures names the surface and the step it is of, carries the sha256 of the file on disk, and — for the 4 that draw their own subject — is corroborated by what the frame itself drew — readme.served: manifest sha does not match the file on disk
+  ok   G17-L2 — 1 of 5 frames cannot corroborate their own manifest row and are named here rather than counted as corroborated: ['refusal.toolarge'] (DEF-058)
+ARMED: G17-P4 went red under the planted fault

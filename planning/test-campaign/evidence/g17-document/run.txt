@@ -1,0 +1,60 @@
+frontmost before: Finder
+router up on 8894 (reference implementation, node /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/dist/index.js), scratch home /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/tmp.r22N3EjblZ
+wrote 5 capture rows
+--- assertions
+  ok   G17-W1 — the route serves all three of the constructed package's documents: ['capabilities', 'changelog', 'readMe']
+  ok   G17-W2 — one figure arrives as image/png and the escaping reference is refused: images=1 refused=['escapesPackage']
+  ok   G17-W3 — the response carries bytes and no filesystem path the app could open
+  ok   G17-W4 — a server declaring no directory refuses noPackageDirectory — the state all 21 upstreams on this machine are in: noPackageDirectory
+  ok   G17-W5 — a read me over the 512 KB document cap refuses documentTooLarge, naming the file and the cap: reason=documentTooLarge file=README.md limit=524288
+  ok   G17-P1 — the frame's titlebar names the served package and M19's fixture capability 'trawl' appears nowhere: ['g17-capability']
+  ok   G17-P2 — the package's own H1 and prose are drawn from the bytes the router served
+  ok   G17-P3 — all three tab controls are drawn: ['Read me', 'Changelog', 'Capabilities']
+  ok   G17-P4 — the in-package figure DREW: 65.7% of its 385664-pixel card is the band's colour (floor 25%) — bytes the router sent, decoded and painted, not a placeholder
+  ok   G17-P5 — the escaping reference drew its own refusal and no picture (0.00% figure colour): 'Not shown — this image points outside the package it came with.'
+  ok   G17-P6 — the changelog tab draws the changelog's own heading: ['Changelog', '1.0.0']
+  ok   G17-P7 — the capabilities tab draws the capability list's own heading: ['Capabilities']
+  ok   G17-P8 — the three tabs draw three different documents out of one package: distinct bodies=3, all three name g17-capability=True
+  ok   G17-R1 — the nothing-served refusal draws its own state and no figure: ['g17-no-package has no package to read']
+  ok   G17-R2 — the too-large refusal names the file and the cap it broke: ['README.md is too large to show here']
+  ok   G17-R3 — the three refusals are pairwise distinguishable in the words they draw: 3 distinct
+  ok   G17-L1 — each of the 5 pictures names the surface and the step it is of, carries the sha256 of the file on disk, and — for the 4 that draw their own subject — is corroborated by what the frame itself drew
+  ok   G17-L2 — 1 of 5 frames cannot corroborate their own manifest row and are named here rather than counted as corroborated: ['refusal.toolarge'] (DEF-058)
+g17-document-assert: 18 checks, all green
+--- controls
+  ARMED  G17-P4 — the served figure's bytes replaced with something that cannot decode
+  RESTORED readme.served byte-identical — sha256 9d048beb8c7eb6a3bf828fd79da3716294ebbca3156a647ea5cb08313bda9a40
+  ARMED  G17-P1 — the read me frame rendered against g17-no-package under its own filename
+  RESTORED readme.served byte-identical — sha256 9d048beb8c7eb6a3bf828fd79da3716294ebbca3156a647ea5cb08313bda9a40
+  ARMED  G17-P8 — the changelog and capabilities frames both rendered on the read me tab
+  RESTORED changelog.served byte-identical — sha256 61ba8f22e0d882ac544797ed1b9e915d445b117a6c03182245d05d86bf950e8d
+  RESTORED capabilities.served byte-identical — sha256 103a4c4d086ff45f3fa3c72d27b8185958c884bafd61544a3252d1cecbf67b5f
+  ARMED  G17-R3 — the too-large frame rendered against the no-package server, so two refusals
+                       draw the same words
+  RESTORED refusal.toolarge byte-identical — sha256 c66fbf1a718dcc57fbee80372513f162b197bbc9b6480f41f1cdd15973711576
+--- re-assert after restoration
+  ok   G17-W1 — the route serves all three of the constructed package's documents: ['capabilities', 'changelog', 'readMe']
+  ok   G17-W2 — one figure arrives as image/png and the escaping reference is refused: images=1 refused=['escapesPackage']
+  ok   G17-W3 — the response carries bytes and no filesystem path the app could open
+  ok   G17-W4 — a server declaring no directory refuses noPackageDirectory — the state all 21 upstreams on this machine are in: noPackageDirectory
+  ok   G17-W5 — a read me over the 512 KB document cap refuses documentTooLarge, naming the file and the cap: reason=documentTooLarge file=README.md limit=524288
+  ok   G17-P1 — the frame's titlebar names the served package and M19's fixture capability 'trawl' appears nowhere: ['g17-capability']
+  ok   G17-P2 — the package's own H1 and prose are drawn from the bytes the router served
+  ok   G17-P3 — all three tab controls are drawn: ['Read me', 'Changelog', 'Capabilities']
+  ok   G17-P4 — the in-package figure DREW: 65.7% of its 385664-pixel card is the band's colour (floor 25%) — bytes the router sent, decoded and painted, not a placeholder
+  ok   G17-P5 — the escaping reference drew its own refusal and no picture (0.00% figure colour): 'Not shown — this image points outside the package it came with.'
+  ok   G17-P6 — the changelog tab draws the changelog's own heading: ['Changelog', '1.0.0']
+  ok   G17-P7 — the capabilities tab draws the capability list's own heading: ['Capabilities']
+  ok   G17-P8 — the three tabs draw three different documents out of one package: distinct bodies=3, all three name g17-capability=True
+  ok   G17-R1 — the nothing-served refusal draws its own state and no figure: ['g17-no-package has no package to read']
+  ok   G17-R2 — the too-large refusal names the file and the cap it broke: ['README.md is too large to show here']
+  ok   G17-R3 — the three refusals are pairwise distinguishable in the words they draw: 3 distinct
+  ok   G17-L1 — each of the 5 pictures names the surface and the step it is of, carries the sha256 of the file on disk, and — for the 4 that draw their own subject — is corroborated by what the frame itself drew
+  ok   G17-L2 — 1 of 5 frames cannot corroborate their own manifest row and are named here rather than counted as corroborated: ['refusal.toolarge'] (DEF-058)
+g17-document-assert: 18 checks, all green
+./planning/test-campaign/bin/g17-document-flow.sh: line 337: 82277 Terminated: 15          ( while :; do
+    osascript -e 'tell application "System Events" to get name of first process whose frontmost is true' 2> /dev/null >> "$FRONT_LOG" || true; sleep 1;
+done )
+frontmost after:  Finder (51 samples over the run)
+  ok — neither MeasureDump nor the router was frontmost in any of the 51 samples
+g17-document-flow: ok

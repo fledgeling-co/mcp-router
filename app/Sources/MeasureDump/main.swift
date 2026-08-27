@@ -121,7 +121,8 @@ import Foundation
             surface: args.surface,
             surfaceName: "\(args.surface.rawValue).\(args.state.rawValue)",
             size: size, shell: shell, client: client, appearance: args.appearance, boards: boards,
-            readme: readme
+            readme: readme,
+            readmeTab: args.documentTab
         ))
         host.frame = NSRect(origin: .zero, size: size)
         window.contentView = host

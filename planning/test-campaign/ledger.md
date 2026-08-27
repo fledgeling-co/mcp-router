@@ -7,6 +7,14 @@ Lanes: macos-glass, ios-glass, swiftui, router-daemon, parity-wire
 20 surfaces · 5 flows · 8 components · 70 cases
 63 pass · 3 fail · 0 skip · 4 n/a · 0 open · armed 63/63
 
+> **The counts line above is stale, and G17 is not the item that gets to rewrite it.** It reads
+> `20 surfaces · 5 flows · 8 components · 70 cases`; `inventory.json` and `cases.json` hold 26
+> surfaces, 6 flows, 8 components and 87 cases as of 2026-08-27. It was already stale before this
+> item (24 surfaces / 76 cases at `aab9190`), which is `D-g5-c` in `planning/progress/G5-gapfix*.md`
+> and the campaign owner's to close together with `strict-ratchet.json`'s `58`. Correcting the
+> figure here would fold a known open defect into a passing header. G17 added SURF-025, SURF-026,
+> FLOW-006, REQ-026, DEF-058 and CASE-0151-CASE-0161, all listed above and all run.
+
 | Case | Surface | State | Lane | Status | Armed | Evidence |
 |---|---|---|---|---|---|---|
 | CASE-0001 | SURF-001  |  | macos-glass | pass | yes | 5 |
@@ -79,3 +87,14 @@ Lanes: macos-glass, ios-glass, swiftui, router-daemon, parity-wire
 | CASE-0126 | SURF-018  |  | swiftui | pass | yes | 1 |
 | CASE-0124 | SURF-019  |  | ios-glass | pass | yes | 1 |
 | CASE-0125 | SURF-020  |  | ios-glass | pass | yes | 1 |
+| CASE-0152 | SURF-025  |  | swiftui | pass | yes | 5 |
+| CASE-0153 | SURF-025  |  | swiftui | pass | yes | 5 |
+| CASE-0154 | SURF-025  |  | swiftui | pass | yes | 5 |
+| CASE-0155 | SURF-025  |  | swiftui | pass | yes | 5 |
+| CASE-0156 | SURF-025  |  | swiftui | pass | yes | 5 |
+| CASE-0157 | SURF-025  |  | swiftui | pass | yes | 4 |
+| CASE-0158 | SURF-025  |  | swiftui | pass | yes | 5 |
+| CASE-0159 | SURF-025  |  | swiftui | pass | yes | 5 |
+| CASE-0160 | SURF-025  |  | swiftui | pass | yes | 4 |
+| CASE-0161 | SURF-025  |  | swiftui | pass | yes | 3 |
+| CASE-0151 | SURF-026  |  | router-daemon | pass | yes | 4 |

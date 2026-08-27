@@ -692,6 +692,7 @@ lint: tools
 	python3 planning/citation-gate.py || fail=1; \
 	python3 planning/sweep-control-gate.py || fail=1; \
 	python3 planning/runnable-path-gate.py || fail=1; \
+	python3 planning/registry-drop-gate.py || fail=1; \
 	exit $$fail
 
 ## The cross-branch role-intersection check (`G8`). Not in `all` — see the note above `all` for

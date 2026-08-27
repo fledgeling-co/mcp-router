@@ -490,7 +490,7 @@ A dispatch brief's gate line is named for *the base this branch was cut from* an
 |---|---|
 | `make test` 0 at **1686/210** | **1684 in 209** — the 1686 is `ai/r17`'s, and that branch is 16 commits ahead of main |
 | lint 0 over **531 files** | **530** |
-| `scripts/acceptance/no-raw-design-values.sh` | the script is `scripts/lint/no-raw-design-values.sh` |
+| `scripts/acceptance/no-raw-design-values.sh` (does not exist, at any commit) | the script is `scripts/lint/no-raw-design-values.sh` |
 | `reconciler 0 across **A–L**` | the base carries **A–K**; check L landed on main afterwards |
 
 It belongs in this table because it is the same shape as everything above it and not because it

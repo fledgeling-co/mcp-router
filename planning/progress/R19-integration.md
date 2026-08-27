@@ -378,7 +378,8 @@ the working tree holds only the two intended files.
 ## Gap-fix 1 — four record corrections, no code
 
 **2026-08-22, on `ai/r19` at `eb3e42c`**, after a **Needs More Work** verdict from a fresh-context
-verifier in `.worktrees/R19V` (`planning/verification/R19-verdict.md` there). The verifier merged
+verifier in `.worktrees/R19V` (`planning/verification/R19-verdict.md` at `a40351d` — on `ai/r19`,
+not reachable from `main`). The verifier merged
 `main` into `eb3e42c` cleanly, re-measured every gate on the merged tree and agreed with all of
 them — lint 0 over 552, `make test` 1728 in 216, `parity-cli` 18 verbs 0 disagreed with all four
 `cli-watch` scenarios green, `parity-overlap` 2 of 2, the reconciler clean across A–L — and

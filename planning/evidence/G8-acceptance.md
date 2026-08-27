@@ -116,7 +116,7 @@ fail is not known to bite, and this item exists because of exactly that.
 | # | plant | before | after plant | restored |
 |---|---|---|---|---|
 | A | `("board-action", "leaf")` added to `VOUCHED_CONTROLS` on `ai/g8` — a role present on `harnesses` and absent from `main`'s table | `harnesses` CLEAR, `B6` = 0 added | **`harnesses` EXPOSED**, `B6` = 1, three sites printed at `:27`, `:28`, `:127` | `mock_fidelity.py` back to `cacb2947…`, byte-identical to the pre-plant copy |
-| B1 | a new tracked sweeping script `planning/PLANT-sweep.py` | 0 UNDISPOSED, exit 0 | **exit 1**, `1 UNDISPOSED`, named with its markers `V2,V3,V4` | removed from the index and the tree |
+| B1 | a new tracked sweeping script `planning/PLANT-sweep.py` (deleted after; the plant was reverted and it is in no commit) | 0 UNDISPOSED, exit 0 | **exit 1**, `1 UNDISPOSED`, named with its markers `V2,V3,V4` | removed from the index and the tree |
 | B2 | `citation-gate.py`'s declared control rewritten to exit 7 | 3 controls passing, exit 0 | **exit 1**, `FAIL … control exited 7` | `sweep-controls.json` back to `885abffc…`, byte-identical |
 
 **All three of the role gate's exit codes are proved reachable inside the hermetic control**, and this

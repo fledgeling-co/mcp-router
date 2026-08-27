@@ -187,7 +187,7 @@ upstream with X7 and X8, and is what keeps the row open.
 ## The guard
 
 `planning/installed-claim-sweep.py`, committed, superseding rather than sitting beside
-`planning/verification/G5-gapfix-3-sweep.py`: it carries that script's nine cache-claim patterns
+`planning/verification/G5-gapfix-3-sweep.py` at `3e63811`: it carries that script's nine cache-claim patterns
 forward and adds three of its own, so there is one instrument rather than two with a partial overlap.
 
 Twelve blocking patterns, every one keyed on `\d+\.\d+\.\d+` with optional markdown emphasis rather

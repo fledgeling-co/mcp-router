@@ -133,7 +133,7 @@ untracked leaky reader planted **outside** `planning/test-campaign/`:
 
 | | Before (`rglob`) | After (`git ls-files`) |
 |---|---|---|
-| `planning/zz-untracked-probe.py` present | 23 files, `unaccounted 1`, **exit 1** | 22 files, `unaccounted 0`, **exit 0** |
+| `planning/zz-untracked-probe.py` (deleted after; never committed) present | 23 files, `unaccounted 1`, **exit 1** | 22 files, `unaccounted 0`, **exit 0** |
 | probe removed | 22 files, exit 0 | 22 files, exit 0 |
 
 ---

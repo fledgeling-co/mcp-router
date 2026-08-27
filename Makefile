@@ -183,7 +183,32 @@ SURFACE    ?= servers
 ## between the readers untested: swapping the wrap-tolerant reader for the line-anchored one used
 ## to survive with `ALL PLANTS FIRED` and `PASS`, and now turns the control red.
 
+## `shipped-brief-gate.py` (`G31`) runs here because the failure it closes is a number nobody
+## disbelieves. Eleven items shipped, were verified and were merged on 2026-08-27 and the reckoning
+## read 190 pieces of work before and 190 after: `reckon` reads the brief FILES, and a brief carries
+## no state saying it shipped, so every one of them stayed on the total. That is not a reporting
+## nuisance. `ship-fleet` finishes when the ledger drains AND the reconciliation is clean, so a
+## reconciliation shipping cannot move is an exit condition nothing can reach.
+##
+## The one lever `reckon` leaves open is a frontmatter word in its `WAIVED_DECLARED` set, and a word
+## is exactly the release-by-typing it refuses everywhere else. Its own ratchet cannot hold this end
+## either -- briefs are exempt from it by construction -- so this gate is the missing half. Six
+## refusals, each proved on a synthetic corpus on every invocation: a terminal word with no LEDGER
+## row, a word over a To Do row, a word over a commit git cannot place on `main`, a `shipped-by` the
+## row does not witness, a word over a failing case or an open defect, and `retired` claimed with no
+## passing case behind it. The route out of the remaining-work set is a merge somebody can point at.
+##
+## Two words rather than one, because `shipped and measured` and `shipped and never measured` are
+## different conclusions and `unjoined` -- which means nobody has looked at the brief at all -- is
+## neither. On the landing run: 5 `retired`, 63 `completed`, 7 held back by a red case, 0 shipped
+## briefs still declaring nothing, and the reckoning fell from 193 to 125 over an unchanged 388
+## rows. Nothing was deleted; the denominator is the same one.
+##
+## What it does NOT fix: the join rate, which is the real lever and is still 17.7%. This makes a
+## merge visible, not a surface measured. `--apply` is the only writing path and is never a side
+## effect of checking. Exit codes are 0 clean, 1 findings, 2 the control failed, 3 inconclusive.
 
+## `role-intersection-gate.py` (`G8`) is deliberately NOT in `lint` or in `all`, and the reason is
 ## its own subject. It exits **3** on this tree today: `planning/fidelity/popover.ledger.md` is an
 ## obituary — the fidelity gate exited 3 on `#statusPopover has no '.v-ideal' block` and wrote no
 ## table — so one surface has never been measured. That is a true verdict, not a broken gate, and
@@ -844,6 +869,7 @@ lint: tools
 	python3 planning/foreign-path-gate.py --quiet || fail=1; \
 	python3 planning/test-campaign/bin/capture-manifest.py || fail=1; \
 	python3 planning/pin-class-gate.py || fail=1; \
+	python3 planning/shipped-brief-gate.py || fail=1; \
 	zsh app/Scripts/pool-mutation-gate-selftest.sh || fail=1; \
 	exit $$fail
 

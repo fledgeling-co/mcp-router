@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 7a28de8
+---
+
 # M4 — Skills and marketplaces
 
 **Depends on:** M1.

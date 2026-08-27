@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: e129779
+---
+
 # R4 — Differential parity harness and the installer cutover
 
 **Depends on:** R2, R3.

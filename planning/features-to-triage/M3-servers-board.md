@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 3b11f33
+---
+
 # M3 — Servers: the breaker board
 
 **Depends on:** M1.

@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 67ae4f5
+---
+
 # D3 — The deferred register: phone copy, and the harness limit
 
 **Source:** `deferred-plan` = `schedule-all` (confirmed).

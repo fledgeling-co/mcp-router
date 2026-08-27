@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: d285298
+---
+
 # R7 — the router's own thesis is unmet for every harness except Claude Code
 
 **Category:** router · **Found:** 2026-08-15, by measurement on the author's own machine

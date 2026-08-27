@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: b50aa8d
+---
+
 # I3 — iPhone: Triage, Queue, Library, Settings
 
 **Depends on:** I2.

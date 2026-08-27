@@ -1,5 +1,6 @@
 ---
-status: to-triage
+status: completed
+shipped-by: b9ceec6
 kind: inventory — not a migration plan
 prepared-for: the armada conductor's request, 2026-08-23
 constraint: rotation and any config change are the owner's, not this fleet's

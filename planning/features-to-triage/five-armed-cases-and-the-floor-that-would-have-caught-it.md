@@ -1,5 +1,6 @@
 ---
-status: to-triage
+status: retired
+shipped-by: 2f68f7b
 found-by: investigation of the campaign registry after the G15-G19 merge run, 2026-08-27
 ---
 

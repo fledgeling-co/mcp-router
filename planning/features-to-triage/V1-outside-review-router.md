@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 29af3eb
+---
+
 # V1 — Re-run the out-of-family review on the router items
 
 **Source:** `review-rerun` = `rerun-the-router` (confirmed). **The note qualifies the answer and the

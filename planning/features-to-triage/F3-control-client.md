@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 13825c9
+---
+
 # F3 — Typed control-API client and models
 
 **Depends on:** F1.

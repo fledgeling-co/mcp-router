@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 85d8331
+---
+
 # M7 — Evals and Cleanup
 
 **Depends on:** M3, M4.

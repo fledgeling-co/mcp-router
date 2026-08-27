@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: d33924f
+---
+
 # M17 — four states on every surface, and chrome that follows them
 
 **Depends on:** M1.

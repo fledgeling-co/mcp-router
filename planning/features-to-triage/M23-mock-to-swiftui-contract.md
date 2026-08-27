@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 6d54ce2
+---
+
 # M23 — the mock-to-SwiftUI conversion contract
 
 **Depends on:** F2. **Blocks:** M15–M22, and every later surface built from a mock.

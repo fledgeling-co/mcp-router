@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: ba139d4
+---
+
 # I2 — iPhone: Discover and detail
 
 **Depends on:** I1.

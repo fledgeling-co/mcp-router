@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 15185eb
+---
+
 # M22 — the Harnesses and Insights boards
 
 **Depends on:** M1. **Related:** R6, R7 (Harnesses); PRD §8 (Insights).

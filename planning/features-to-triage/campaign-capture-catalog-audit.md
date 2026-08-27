@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: cef3729
+---
+
 # Test Campaign Visual Capture Lineage and Unpublished Reason Catalog
 
 - origin: test-campaign capture lineage gate checks · 2026-08-25

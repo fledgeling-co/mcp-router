@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 0f5f118
+---
+
 # M12 — Staleness and an as-of time inside a destructive dialog
 
 **Source:** M7's Phase D critic, findings 4 and 8, both graded VALID and deferred rather than fixed

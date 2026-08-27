@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 87e16dc
+---
+
 # G4 gap-fix 3 — the two gates this item shipped both violate the doctrine this item wrote
 
 **Parent:** G4 (merged `de1315d`) · **Status:** Ready for AI, **urgent — `main`'s `make lint` is red**

@@ -351,6 +351,18 @@ def scan_lines(path, raw):
     return out
 
 
+def scan_file(path, raw):
+    """The gate's reading of one file. THE SINGLE SEAM: `main` reads a file only through here.
+
+    Before this existed, `main` called `scan_collapsed` directly and the control called
+    `scan_collapsed` and `scan_lines` directly, which left the *choice between them* untested —
+    the verify pass of 2026-08-26 found that swapping the wrap-tolerant reader for the
+    line-anchored one survived every plant green. Keeping one seam is half the fix; the other
+    half is `driver_arm` below, which runs the driver over a corpus the two readers disagree on.
+    """
+    return scan_collapsed(path, raw)
+
+
 def dedupe(occurrences):
     """One row per (citing file, token), keeping the MOST SEVERE class rather than the first seen."""
     best = {}
@@ -498,6 +510,55 @@ CONTROL_WRAP = (
     "WITHDRAWN", "CITED")
 
 
+def driver_arm(d):
+    """Run this gate's own driver over a planted repository, end to end.
+
+    Every other plant calls a scanner directly, so all of them pass whichever scanner `main`
+    happens to use. The verify pass of 2026-08-26 measured the consequence: replacing the
+    wrap-tolerant reader with the line-anchored one inside `main` left the control ALL PLANTS
+    FIRED, because `N1 == N2` on this repository and the two readers disagree on exactly one
+    shape — a withdrawal marker carried onto the line after its citation.
+
+    So the corpus here is built out of that shape, and the two readers give DIFFERENT verdicts
+    over it: line-anchored blocks both files, wrap-tolerant blocks one. The arm asserts the
+    wrap-tolerant verdict through the real driver, which is the only place the reader choice
+    is observable. Returns (ok, expected, actual).
+    """
+    repo = d / "driver"
+    repo.mkdir()
+    subprocess.run(["git", "init"], cwd=repo, capture_output=True, check=True)
+    subprocess.run(["git", "config", "user.name", "Control"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "user.email", "control@test.com"], cwd=repo, check=True)
+    # The wrap: `(gone)` sits on the next source line, adjacent only once whitespace collapses.
+    (repo / "wrapped.md").write_text(
+        "The sweep that decided it lived at `/tmp/control-definitely-absent-9f3a/w.py`\n"
+        "(gone), so the verdict resting on it is no longer falsifiable.\n")
+    (repo / "dead.md").write_text(
+        "The sweep is at `/tmp/control-definitely-absent-9f3a/d.py` and decides the item.\n")
+    subprocess.run(["git", "add", "-A"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-m", "planted"], cwd=repo, capture_output=True, check=True)
+
+    res = subprocess.run(
+        [sys.executable, str(pathlib.Path(__file__).resolve()),
+         "--root", str(repo), "--skip-control", "--quiet"],
+        capture_output=True, text=True)
+    # Read the BLOCKED block alone, whole, with no per-line discard — naming the file anywhere
+    # in stdout is not enough, because the counts block names it too in the reader-disagreement
+    # diagnostic. Matched rather than looped so this reader drops nothing silently.
+    m = re.search(r"^BLOCKED —.*\n((?:  .*\n)*)", res.stdout, re.M)
+    blocked = m.group(1).splitlines() if m else []
+    expected = "exit 1 · blocks dead.md only"
+    blocked_dead = any(" dead.md:" in b for b in blocked)
+    blocked_wrapped = any(" wrapped.md:" in b for b in blocked)
+    actual = "exit %d · %s" % (
+        res.returncode,
+        "blocks dead.md only" if (blocked_dead and not blocked_wrapped)
+        else ("blocks both" if blocked_wrapped and blocked_dead
+              else ("blocks wrapped.md only" if blocked_wrapped else "blocks neither")))
+    ok = res.returncode == 1 and blocked_dead and not blocked_wrapped
+    return ok, expected, actual
+
+
 def run_control(verbose=True):
     """Plant test cases and run the 2-way checkout control in a throwaway repo."""
     rows, ok = [], True
@@ -585,6 +646,12 @@ def run_control(verbose=True):
                      "fired" if two_way_ok else "MISSED",
                      "committed blob reading guarantees deterministic verdicts across checkouts"))
 
+        driver_ok, driver_expect, driver_actual = driver_arm(d)
+        ok &= driver_ok
+        rows.append(("(driver) reader choice, end to end", driver_expect, driver_actual,
+                     "fired" if driver_ok else "MISSED",
+                     "the driver's own reader is the one the plants describe"))
+
     if verbose:
         print("PRESENCE CONTROL — planted in a throwaway tree, classified by the real reader")
         w = max(len(r[0]) for r in rows)
@@ -607,10 +674,13 @@ def main():
                     help="scan working tree files on disk rather than committed git blobs")
     ap.add_argument("--control", action="store_true",
                     help="run only the presence control and exit")
+    ap.add_argument("--skip-control", action="store_true",
+                    help=argparse.SUPPRESS)  # used by the driver arm; a run of the driver arm
+                                             # that ran the control would recurse forever
     ap.add_argument("--quiet", action="store_true", help="counts and verdict only")
     args = ap.parse_args()
 
-    control_ok = run_control()
+    control_ok = True if args.skip_control else run_control()
     if args.control:
         return 0 if control_ok else 2
     if not control_ok:
@@ -622,15 +692,17 @@ def main():
         root=root_path, rev=args.rev, worktree=args.worktree)
 
     n1 = n2 = 0
-    occurrences, machine_files = [], []
+    occurrences, line_occurrences, machine_files = [], [], []
 
     for path, raw in files_data.items():
         if MACHINE.search(raw):
             machine_files.append(path)
         if "/tmp/" not in raw and "/var/folders/" not in raw and "$TMPDIR/" not in raw:
             continue
-        n1 += len(scan_lines(path, raw))
-        hits = scan_collapsed(path, raw)
+        lhits = scan_lines(path, raw)
+        n1 += len(lhits)
+        line_occurrences.extend(lhits)
+        hits = scan_file(path, raw)
         n2 += len(hits)
         occurrences.extend(hits)
 
@@ -647,6 +719,14 @@ def main():
 
     live_host_count = sum(1 for h in blocking if exists_now(h["token"]))
     dead_host_count = len(blocking) - live_host_count
+
+    # What the wrap-tolerant reader buys, WITH its denominator. The record used to say it buys
+    # nothing on this corpus and give no denominator, which makes an unfalsifiable claim out of a
+    # measurable one: nothing-out-of-nothing and nothing-out-of-345 read the same in prose.
+    lines_by_key = {(h["file"], h["token"]): h["class"] for h in dedupe(line_occurrences)}
+    collapsed_by_key = {(h["file"], h["token"]): h["class"] for h in n3}
+    disagreements = [k for k in set(lines_by_key) | set(collapsed_by_key)
+                     if lines_by_key.get(k) != collapsed_by_key.get(k)]
 
     corpus_desc = f"working tree disk ({len(files_data)} text files)" if args.worktree else f"committed tree at {args.rev} ({len(files_data)} text blobs)"
 
@@ -675,6 +755,12 @@ def main():
           % extensionless_in_records)
     print("  N4 pointers read as SUBJECT (fence, redirect, …)     %5d   (discriminator hole 2)"
           % fenced_pointers)
+    print("  rows the two readers class differently               %5d   of N3 %d — what the"
+          % (len(disagreements), len(n3)))
+    print("                                                               wrap-tolerant reader buys here")
+    for k in sorted(disagreements)[:10]:
+        print("      %s  %s  line-anchored %s · wrap-tolerant %s"
+              % (k[0], k[1], lines_by_key.get(k, "—"), collapsed_by_key.get(k, "—")))
     if undecodable:
         expected = [x for x in undecodable if pathlib.Path(x[0]).suffix.lower() in BINARY_SUFFIX or x[1] in ("binary asset", "submodule")]
         surprising = [x for x in undecodable if x not in expected]

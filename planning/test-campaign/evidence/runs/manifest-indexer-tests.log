@@ -1,0 +1,21 @@
+== swift test --filter ManifestIndexerWriteFailureTests ==
+recorded at: 2026-08-20T13:40:02Z
+
+Test Suite 'Selected tests' started at 2026-08-20 23:40:03.651.
+Test Suite 'MCPRouterKitPackageTests.xctest' started at 2026-08-20 23:40:03.652.
+Test Suite 'MCPRouterKitPackageTests.xctest' passed at 2026-08-20 23:40:03.652.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+Test Suite 'Selected tests' passed at 2026-08-20 23:40:03.652.
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+􀟈  Suite "ManifestIndexer — a manifest write that fails" started.
+􀟈  Test "a refused write is reported as a successful index — characterised, not endorsed" started.
+􀟈  Test "the control: a writable manifest really does gain the tool" started.
+􀟈  Test "the disagreement the CLI prints and never checks" started.
+􁁛  Test "the disagreement the CLI prints and never checks" passed after 0.001 seconds.
+􁁛  Test "the control: a writable manifest really does gain the tool" passed after 0.001 seconds.
+􁁛  Test "a refused write is reported as a successful index — characterised, not endorsed" passed after 0.001 seconds.
+􁁛  Suite "ManifestIndexer — a manifest write that fails" passed after 0.001 seconds.
+􁁛  Test run with 3 tests in 1 suite passed after 0.001 seconds.
+
+The XCTest 'Executed 0 tests' line above is MCPRouterKitPackageTests, which holds no
+XCTest cases; the trustworthy count is swift-testing's 'Test run with N tests'.

@@ -1,0 +1,25 @@
+== arming the ManifestIndexer write-failure characterisation ==
+recorded at: 2026-08-20T13:36:21Z
+
+sha256 before: 74dec1647849d7dc
+
+MUTATION: propagate the manifest write error instead of discarding it.
+  ServicePorts.swift record(): try? ManifestIO.save(...)  ->  do/catch that turns
+  a failed save into ManifestBookkeeping.Outcome.failed, so index() reports an error.
+
+UNDER THE MUTATION:
+  control  'a writable manifest really does gain the tool'                PASSED
+  pinned   'a refused write is reported as a successful index'            FAILED, 2 issues
+             outcome.error -> "manifest write failed: injected(\"writeFile refused for
+             /router/manifest.json.tmp-93335\")" == nil
+             outcome.tools -> 0 == 1
+  pinned   'the disagreement the CLI prints and never checks'             FAILED, 2 issues
+             outcome.tools -> 0 == 1
+             outcome.tools -> 0 != cached -> 0
+  Test run with 3 tests in 1 suite failed after 0.002 seconds with 4 issues.
+
+  The control staying green is what makes this an arm rather than a broken build:
+  the mutation reaches only the path the two pinned tests read.
+
+sha256 after restore: 74dec1647849d7dc
+􁁛  Test run with 3 tests in 1 suite passed after 0.001 seconds.

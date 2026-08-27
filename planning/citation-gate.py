@@ -199,6 +199,15 @@ GENERATED = (
     "planning/test-campaign/*.json",
     "planning/test-campaign/evidence/*.json",
     "planning/test-campaign/evidence/*/*.json",
+    # The campaign's run logs, tracked from `G24` onward. They are written by `bin/arm-*.py`,
+    # `bin/wire-document.py` and the capture shells, and they quote source locations the way a
+    # compiler and a test runner do — `DocumentPackage.swift:214`. Measured when the 45 logs were
+    # first staged: 16 of them carry 32 such tokens between them, every one BARE, which took the
+    # ratchet's over-baseline set from 14 files to 30 without a writer having typed a citation.
+    # They belong in this tuple by its own definition — a stale one is fixed by re-running the
+    # generator, never by a writer carrying an anchor and a tree.
+    "planning/test-campaign/evidence/*.log",
+    "planning/test-campaign/evidence/*/*.log",
     "planning/reader-accounting.tsv",
     "planning/parity/*.tsv",
     "planning/status/*.json",

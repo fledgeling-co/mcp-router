@@ -1,0 +1,35 @@
+frontmost before: Google Chrome
+design window size: 1156x680
+attached pid=7631
+winid=113895
+frame as launched: 120,120,1156,680
+OK
+frame after setframe: 120,120,1156,680
+-- SURF-002 (Servers)
+OK
+  captured SURF-002 {'pixelWidth': '2448', 'pixelHeight': '1496'} sha=ae64e7588862da70 title='Servers'
+-- SURF-003 (Activity)
+OK
+  captured SURF-003 {'pixelWidth': '2448', 'pixelHeight': '1496'} sha=fb918842ac790dbe title='Activity'
+-- SURF-004 (Skills)
+OK
+  captured SURF-004 {'pixelWidth': '2448', 'pixelHeight': '1496'} sha=8db0f78e9c930ad1 title='Skills'
+-- SURF-005 (Discover)
+OK
+  captured SURF-005 {'pixelWidth': '2448', 'pixelHeight': '1496'} sha=c08d4988b63e3108 title='Discover'
+-- SURF-008 (Inbox)
+OK
+  captured SURF-008 {'pixelWidth': '2448', 'pixelHeight': '1496'} sha=bf2c3b838ea10c67 title='Inbox'
+-- SURF-006 (Checks)
+OK
+  captured SURF-006 {'pixelWidth': '2448', 'pixelHeight': '1496'} sha=c9c4efb05a1ce86d title='Checks'
+-- SURF-007 (Cleanup)
+OK
+  captured SURF-007 {'pixelWidth': '2448', 'pixelHeight': '1496'} sha=b08efa547a140e05 title='Cleanup'
+-- SURF-011 (Settings)
+OK
+  captured SURF-011 {'pixelWidth': '2448', 'pixelHeight': '1496'} sha=7c24af576e451143 title='Settings'
+-- SURF-001 (shell, declared share of the last board captured)
+frontmost after: Google Chrome
+OK
+wrote evidence/shots/design-size/captures.json — 8 captures

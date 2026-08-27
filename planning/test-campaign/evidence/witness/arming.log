@@ -1,0 +1,80 @@
+== arming the effect witnesses ==
+recorded at: 2026-08-20T13:49:47Z
+
+-- arm REQ-013: run the router against one home, watch a DIFFERENT one --
+1 upstreams, 1 need indexing (forced: all)
+2026-08-20T13:49:47.514Z info  spawning upstream "witness-fixture" (/usr/bin/python3 /tmp/mcp-witness-arm/fixture-server.py)
+2026-08-20T13:49:47.566Z info  upstream "witness-fixture" ready in 52ms
+2026-08-20T13:49:47.578Z info  indexed "witness-fixture": 1 tools
+2026-08-20T13:49:47.579Z info  closing idle child "witness-fixture" after 1 call(s), 0s alive
+  ok    witness-fixture (1 tools)
+
+1 tools cached -> /tmp/mcp-witness-arm/manifest.json
+All upstreams closed; none will open again until a tool is called.
+   count=0 at the decoy path, count=1 at the real one (present).
+   The stat recorder discriminates.
+
+-- arm REQ-012: point lsof at a port no router was told to use --
+2026-08-20T13:49:47.760Z info  wrote a new control token -> /tmp/mcp-witness-arm/control.token
+2026-08-20T13:49:47.761Z info  mcp-router listening on http://127.0.0.1:8973/mcp
+2026-08-20T13:49:47.761Z info  serving 1 tools from 1 upstreams; 0 open, idle window 300s
+   port 8973 (the one serve was given): LISTEN rows = 1
+   port 8974 (never mentioned to it):  LISTEN rows = 0
+   The lsof recorder discriminates: it answers about the port it is pointed at.
+2026-08-20T13:49:48.137Z info  SIGTERM received; closing upstreams
+   after the router is killed:          LISTEN rows = 0
+
+-- arm REQ-001/011: a router home whose config spawns nothing --
+0 upstreams, 0 need indexing (forced: all)
+
+0 tools cached -> /tmp/mcp-witness-nospawn/manifest.json
+All upstreams closed; none will open again until a tool is called.
+   count=0. No child recorded itself, because there was nothing to spawn.
+   Re-running the same recorder against the populated home for contrast:
+1 upstreams, 1 need indexing (forced: all)
+2026-08-20T13:49:48.832Z info  spawning upstream "witness-fixture" (/usr/bin/python3 /tmp/mcp-witness-home/fixture-server.py)
+2026-08-20T13:49:48.870Z info  upstream "witness-fixture" ready in 38ms
+2026-08-20T13:49:48.883Z info  indexed "witness-fixture": 1 tools
+2026-08-20T13:49:48.883Z info  closing idle child "witness-fixture" after 1 call(s), 0s alive
+  ok    witness-fixture (1 tools)
+
+1 tools cached -> /tmp/mcp-witness-home/manifest.json
+All upstreams closed; none will open again until a tool is called.
+   count=1, child pid 12414 reporting parent 12411 (shell launched 12411; agree=yes)
+
+ARMED: every recorder reported 0 where the effect does not happen and 1 where it does.
+
+== second arming pass: denial controls ==
+recorded at: 2026-08-20T13:49:56Z
+
+-- deny REQ-013: a router home the process is not permitted to write --
+1 upstreams, 1 need indexing (forced: all)
+2026-08-20T13:49:56.137Z info  spawning upstream "witness-fixture" (/usr/bin/python3 /tmp/mcp-witness-denyfs/fixture-server.py)
+2026-08-20T13:51:00.103Z error failed to index "witness-fixture": upstream "witness-fixture" did not initialize within 60000ms
+  FAIL  witness-fixture: upstream "witness-fixture" did not initialize within 60000ms
+
+0 tools cached -> /tmp/mcp-witness-denyfs/manifest.json
+All upstreams closed; none will open again until a tool is called.
+   home mode: dr-x------  (the process may read and traverse, not create)
+   index --force exit code: 0
+   manifest.json present after the run: no
+   count=0 with the effect denied. The stat recorder is reading the write, not the run.
+
+-- deny REQ-012: hold the port first, so the router's bind cannot succeed --
+   squatter pid 28079 holds the port: LISTEN rows owned by it = 1
+2026-08-20T13:51:01.752Z info  wrote a new control token -> /tmp/mcp-witness-home/control.token
+listen EADDRINUSE: address already in use 127.0.0.1:8973
+   router pid 28272, LISTEN rows owned by the router = 0
+   count=0 with the bind denied, against count=1 in the witness run on the same port.
+   The lsof recorder attributes the listener to a pid rather than to the port.
+
+-- the kernel bar is out of reach on this host, and that is the lane's ceiling --
+   csrutil: System Integrity Protection status: enabled.
+   uid: 501   dtrace: dtrace: failed to initialize dtrace: DTrace requires additional privileges
+   So no execve/connect/open syscall trace backs part 2 of the causal witness.
+   What these recorders carry is the portable floor from references/effect-boundary.md:
+   a real listener the kernel reports, a real child that reports its own parent, and a
+   real file whose inode and mtime the filesystem records. Completion is witnessed by
+   something other than the product; the ATTEMPT is not separately traced.
+
+DENIAL-ARMED: every recorder went to 0 when the effect itself was denied.

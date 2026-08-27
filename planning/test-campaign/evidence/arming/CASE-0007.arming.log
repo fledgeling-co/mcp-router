@@ -1,0 +1,19 @@
+case: CASE-0007
+filter: InboxArrivalTests
+verdict: RED
+executed: 15
+exit: 1
+breaks: a disposition stops withdrawing its own banner, leaving it up until the next poll
+note: 15 tests ran; the suite failed as required
+mutation:
+  app/Sources/MCPRouterUI/Boards/InboxBoardModel.swift
+    - withdrawBanner(for: disposition.item.id)
+    + 
+restored: app/Sources/MCPRouterUI/Boards/InboxBoardModel.swift@9ba14243038774b0
+first failures:
+  􀢄  Test "a disposition withdraws its own banner before any further read" recorded an issue at InboxWithdrawalTests.swift:45:33: Expectation failed: (notifier.withdrawals → []).last → nil → nil
+  􀢄  Test "a disposition withdraws its own banner before any further read" failed after 0.001 seconds with 1 issue.
+  􀢄  Test "an accept withdraws its banner too, on the press rather than on the poll" recorded an issue at InboxWithdrawalTests.swift:75:33: Expectation failed: (notifier.withdrawals → []).last → nil → n
+  􀢄  Test "an accept withdraws its banner too, on the press rather than on the poll" failed after 0.004 seconds with 1 issue.
+  􀢄  Suite "I6 · arrivals, routes and the boundary" failed after 0.004 seconds with 2 issues.
+  􀢄  Test run with 15 tests in 1 suite failed after 0.004 seconds with 2 issues.

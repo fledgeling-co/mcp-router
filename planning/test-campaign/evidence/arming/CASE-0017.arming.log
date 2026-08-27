@@ -1,0 +1,20 @@
+case: CASE-0017
+filter: InboxBoardTests
+verdict: RED
+executed: 16
+exit: 1
+breaks: the undo leaves the declined item declined
+note: 16 tests ran; the suite failed as required
+mutation:
+  app/Sources/MCPRouterUI/Boards/InboxBoardModel.swift
+    - dispositioned[item.id] = nil
+            lastDisposition = nil
+    + lastDisposition = nil
+restored: app/Sources/MCPRouterUI/Boards/InboxBoardModel.swift@9ba14243038774b0
+first failures:
+  􀢄  Test "only the most recent disposition can be undone" recorded an issue at InboxBoardTests.swift:225:13: Expectation failed: board.rows.contains { $0.id == second.id }
+  􀢄  Test "only the most recent disposition can be undone" failed after 0.004 seconds with 1 issue.
+  􀢄  Test "declining is reversible and reported" recorded an issue at InboxBoardTests.swift:176:13: Expectation failed: (board.rows.count → 1) == 2
+  􀢄  Test "declining is reversible and reported" failed after 0.004 seconds with 1 issue.
+  􀢄  Suite "M6 — the Inbox board" failed after 0.023 seconds with 2 issues.
+  􀢄  Test run with 16 tests in 1 suite failed after 0.023 seconds with 2 issues.

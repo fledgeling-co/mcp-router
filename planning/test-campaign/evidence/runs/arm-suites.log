@@ -1,0 +1,295 @@
+{
+ "arms": [
+  {
+   "case": "CASE-0007",
+   "filter": "withdrawalIsCommandedAtTheDisposition",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "a disposition withdrawing its own banner at the moment it happens. Reverting leaves the notification standing for an item the user has already dealt with, so the banner invites a second decision on a settled thing.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Boards/InboxBoardModel+Arrivals.swift"
+   ]
+  },
+  {
+   "case": "CASE-0008",
+   "filter": "footerRefusesTheFabrication",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "the cleanup footer's refusal to claim a memory saving \u2014 the honesty guardrail REQ-007 names. Reverting it turns the disclaimer into the fabrication.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterKit/Cleanup/CleanupPresentation.swift"
+   ]
+  },
+  {
+   "case": "CASE-0009",
+   "filter": "loopbackPinned",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "the IPv4-loopback pin on the control listener. Without it NWListener binds every interface and puts an endpoint that runs the user's MCP servers on the LAN.",
+   "armed": true,
+   "files": [
+    "Sources/RouterCore/HTTP/LoopbackHTTPServer.swift"
+   ]
+  },
+  {
+   "case": "CASE-0017",
+   "filter": "declineIsUndoable",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "undo actually restoring the declined row. Reverting leaves a control labelled Undo that reports success and restores nothing.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterUI/Boards/InboxBoardModel.swift"
+   ]
+  },
+  {
+   "case": "CASE-0018",
+   "filter": "refusedWriteThrows",
+   "mutated": {
+    "verdict": "red",
+    "tests": 2,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 2,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "a refused write throwing rather than reporting success. Reverting makes a failed enqueue silently succeed, which is REQ-019's guardrail exactly.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterKit/Discover/CapabilityQueue.swift"
+   ]
+  },
+  {
+   "case": "CASE-0023",
+   "filter": "popularityUnitIsPinned",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "the popularity unit saying sessions, which is what Smithery publishes. Reverting it claims installs, a number nobody measured.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterKit/Discover/DiscoverCopyControls.swift"
+   ]
+  },
+  {
+   "case": "CASE-0030",
+   "filter": "singleFlight",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "single-flight on a cold upstream. Reverting spawns one child per concurrent caller, so three leases start three real processes.",
+   "armed": true,
+   "files": [
+    "Sources/RouterCore/Pool/UpstreamPool.swift"
+   ]
+  },
+  {
+   "case": "CASE-0031",
+   "filter": "splitMatches",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "splitting a namespaced tool name at the FIRST separator. Reverting splits at the last, which routes a__b__c to a server that does not exist.",
+   "armed": true,
+   "files": [
+    "Sources/RouterCore/Manifest/ToolUnion.swift"
+   ]
+  },
+  {
+   "case": "CASE-0032",
+   "filter": "warmIsNeverReaped",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "a warm upstream never being reaped. Reverting reaps exactly the servers the user committed to paying to keep resident.",
+   "armed": true,
+   "files": [
+    "Sources/RouterCore/Pool/UpstreamPoolReaping.swift"
+   ]
+  },
+  {
+   "case": "CASE-0033",
+   "filter": "patchCannotRewriteACommandLine",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "the control API being unable to put a command line on the wire. Reverting lets a PATCH rewrite what binary a server runs.",
+   "armed": true,
+   "files": [
+    "Sources/MCPRouterKit/Control/ServerPatch.swift",
+    "Sources/MCPRouterKit/Control/ServerPatch.swift"
+   ]
+  },
+  {
+   "case": "CASE-0034",
+   "filter": "lockSerialises",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "the exclusive flock that serialises config mutation. Reverting lets two holders overlap, so one writer's servers.json clobbers the other's.",
+   "armed": true,
+   "files": [
+    "Sources/RouterCore/Config/ConfigMutationLock.swift"
+   ]
+  },
+  {
+   "case": "CASE-0035",
+   "filter": "untokenedAuthIs401",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "the token gate running ahead of routing, so an untokened mutation is 401 rather than 404. Reverting makes an unauthorized call indistinguishable from a typo.",
+   "armed": true,
+   "files": [
+    "Sources/RouterCore/Control/ControlHandler.swift"
+   ]
+  },
+  {
+   "case": "CASE-0037",
+   "filter": "codeIsExchangedOverTheWire",
+   "mutated": {
+    "verdict": "red",
+    "tests": 1,
+    "exit": 1,
+    "detail": ""
+   },
+   "restored": {
+    "verdict": "green",
+    "tests": 1,
+    "exit": 0,
+    "detail": ""
+   },
+   "reverts": "the callback actually exchanging the authorization code it received. Reverting serves the success page for a code that was never redeemed.",
+   "armed": true,
+   "files": [
+    "Sources/RouterCore/Auth/CallbackResponder.swift"
+   ]
+  }
+ ],
+ "armed": [
+  "CASE-0007",
+  "CASE-0008",
+  "CASE-0009",
+  "CASE-0017",
+  "CASE-0018",
+  "CASE-0023",
+  "CASE-0030",
+  "CASE-0031",
+  "CASE-0032",
+  "CASE-0033",
+  "CASE-0034",
+  "CASE-0035",
+  "CASE-0037"
+ ],
+ "refused": [],
+ "denominator": 13
+}

@@ -1,0 +1,7 @@
+
+===== swift =====
+2026-08-27T04:34:13.211Z warn  7 upstream(s) not in the manifest (constructed-served, constructed-no-directory, constructed-absent-directory, constructed-nodocs, constructed-toolarge, constructed-escape, constructed-budget); their tools will be missing until `mcp-router index` runs.
+2026-08-27T04:34:13.211Z info  wrote a new control token -> /private/tmp/g19-wire-scratch/home/control.token
+2026-08-27T04:34:13.213Z info  mcp-router listening on http://127.0.0.1:8981/mcp
+2026-08-27T04:34:13.213Z info  serving 0 tools from 7 upstreams; 0 open, idle window 300s
+2026-08-27T04:34:13.874Z info  SIGTERM received; closing upstreams

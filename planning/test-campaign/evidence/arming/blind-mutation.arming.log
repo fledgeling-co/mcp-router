@@ -1,0 +1,13 @@
+# Arming — vacuity-check blind-mutation pass (test-campaign 0.9.2)
+date: 2026-08-21
+
+## Two-way control
+Probe added at app/Tests/MCPRouterKitTests/ZZArmBlindProbe.swift:
+    func armProbeBlind() { var acc: [Int] = []; acc.removeAll(); #expect(Bool(true)) }
+A @Test that mutates (removeAll) and never observes acc.
+
+ARMED   : blind: examined=1662 mutating=321 re-read-after=232 blind=89
+RESTORED: blind: examined=1661 mutating=320 re-read-after=232 blind=88
+
+The count moved by exactly 1 in each direction. The check detects a genuinely
+blind test. Probe deleted; app/Tests clean afterwards (git status empty above).

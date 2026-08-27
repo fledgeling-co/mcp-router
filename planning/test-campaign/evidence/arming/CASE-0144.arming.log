@@ -1,0 +1,35 @@
+CASE-0144 arming — 2026-08-20T11:45:50Z
+target: app/Tests/MCPRouterKitTests/FixtureClientTests.swift :: cleanupSkillsProposesSkills
+mutated file: app/Sources/MCPRouterKit/Control/SkillFixtures.swift  (sha256 before 0b5b67d5040c)
+
+== BASELINE (unmutated) ==
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.000) seconds
+	 Executed 0 tests, with 0 failures (0 unexpected) in 0.000 (0.001) seconds
+􁁛  Test run with 1 test in 1 suite passed after 0.005 seconds.
+
+== ARM 1: stale-linter installed on one client (no longer a cleanup candidate) ==
+mutation: presence(.absent,…) -> presence(.present,…) on stale-linter
+􀢄  Test "the cleanupSkills scenario puts one moved and one unmoved skill on the Cleanup board" recorded an issue at FixtureClientTests.swift:179:9: Expectation failed: (proposed.count → 1) == 2
+􀄵  expected two cleanup-eligible skills, got ["pr-summariser"]
+􀄵  /// scenario to be worth having: the skills are candidates (nobody has them), and exactly one
+􀢄  Test run with 1 test in 1 suite failed after 0.005 seconds with 1 issue.
+
+== ARM 2: stale-linter given a moved-marketplace provenance (both rows moved) ==
+mutation: added SkillProvenance(firstSeen != current) to stale-linter
+􀢄  Test "the cleanupSkills scenario puts one moved and one unmoved skill on the Cleanup board" recorded an issue at FixtureClientTests.swift:183:9: Expectation failed: (moved.map(\.name) → ["pr-summariser", "stale-linter"]) == ["pr-summariser"]
+􀄵  exactly one row should substitute Read first…, got ["pr-summariser", "stale-linter"]
+􀄵  /// scenario to be worth having: the skills are candidates (nobody has them), and exactly one
+􀢄  Test run with 1 test in 1 suite failed after 0.010 seconds with 1 issue.
+
+== RESTORED ==
+sha256 after restore 0b5b67d5040c
+􁁛  Test run with 1 test in 1 suite passed after 0.003 seconds.
+
+git status of the mutated file:
+ M app/Sources/MCPRouterKit/Control/SkillFixtures.swift
+The ` M` is this campaign's own uncommitted fixture work, not a leftover mutation:
+restoration is proved by the sha256 pair above (0b5b67d5040c before, 0b5b67d5040c after).
+
+Note on the run count: the XCTest bundle prints `Executed 0 tests` on every run here, so the
+only trustworthy number is swift-testing's own `Test run with 1 test in 1 suite`. Both arms
+ran one test and failed it; the restore ran one test and passed it.

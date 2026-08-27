@@ -1,0 +1,18 @@
+case: CASE-0008
+filter: CleanupPresentationTests
+verdict: RED
+executed: 13
+exit: 1
+breaks: the cleanup footer claims a memory saving
+note: 13 tests ran; the suite failed as required
+mutation:
+  app/Sources/MCPRouterKit/Cleanup/CleanupPresentation.swift
+    - Nothing here claims a
+    + Removing these reclaims a
+restored: app/Sources/MCPRouterKit/Cleanup/CleanupPresentation.swift@153a0b7c055b07d3
+first failures:
+  􀢄  Test "The footer refuses a memory saving and the trash metaphor" recorded an issue at CleanupPresentationTests.swift:126:9: Expectation failed: (footer → "These sit in every session's tool list, wh
+  􀢄  Test "The footer refuses a memory saving and the trash metaphor" recorded an issue at CleanupPresentationTests.swift:129:13: Expectation failed: !((footer.lowercased() → "these sit in every session
+  􀢄  Test "The footer refuses a memory saving and the trash metaphor" failed after 0.001 seconds with 2 issues.
+  􀢄  Suite "Cleanup presentation" failed after 0.004 seconds with 2 issues.
+  􀢄  Test run with 13 tests in 1 suite failed after 0.005 seconds with 2 issues.

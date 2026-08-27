@@ -1,0 +1,8 @@
+parity-lock: the parity harness is already in use by pid 4280 — bash scripts/acceptance/parity-gate.sh (took the lock as: parity-gate.sh).
+
+Every lane binds a fixed port, so two runs contend and neither measures the surface it
+reports on. This run has bound nothing and is printing no coverage fraction, because a
+fraction from a contended run reads as a low score rather than as a refusal.
+
+Wait for the other run to finish, or override deliberately with PARITY_NO_LOCK=1.
+EXIT:2

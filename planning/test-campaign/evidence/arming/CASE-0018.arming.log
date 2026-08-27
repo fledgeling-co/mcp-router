@@ -1,0 +1,22 @@
+case: CASE-0018
+filter: DiscoverCommitTests
+verdict: RED
+executed: 13
+exit: 1
+breaks: a refused write is swallowed and reports success
+note: 13 tests ran; the suite failed as required
+mutation:
+  app/Sources/MCPRouterKit/Discover/CapabilityQueue.swift
+    - public func enqueue(_ item: QueuedCapability) async throws {
+        if let failure { throw failure }
+        guard !items.contains(where: { $0.id == item.id })
+    + public func enqueue(_ item: QueuedCapability) async throws {
+        if let failure { _ = failure }
+        guard !items.contains(where: { $0.id == item.id }) e
+restored: app/Sources/MCPRouterKit/Discover/CapabilityQueue.swift@f691ac885c66f251
+first failures:
+  􀢄  Test "a refused write throws and never reports success" recorded an issue at DiscoverCommitTests.swift:188:15: Expectation failed: an error was expected but none was thrown
+  􀢄  Test "a refused write throws and never reports success" recorded an issue at DiscoverCommitTests.swift:191:9: Expectation failed: try await queue.all().isEmpty
+  􀢄  Test "a refused write throws and never reports success" failed after 0.001 seconds with 2 issues.
+  􀢄  Suite "The commit and the queue — A16 to A22" failed after 0.005 seconds with 2 issues.
+  􀢄  Test run with 13 tests in 1 suite failed after 0.006 seconds with 2 issues.

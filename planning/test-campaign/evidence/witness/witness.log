@@ -1,0 +1,73 @@
+== effect witness pass ==
+recorded at: 2026-08-20T13:51:05Z
+binary:      /Users/lukerhodes/Dev/mcp-router/app/.build/debug/MCPRouterCLI
+sha256:      5bfa26a979edd38588962fcc41329dc0cff98bbd2aada29b78c5c9db92a2bf2c
+router home: /tmp/mcp-witness-home   (the user's own home is untouched)
+port:        127.0.0.1:8973
+
+-- REQ-013 filesystem-write --------------------------------------------
+recorder: stat(2) on /tmp/mcp-witness-home/manifest.json
+before:   exists=no
+1 upstreams, 1 need indexing (forced: all)
+2026-08-20T13:51:05.253Z info  spawning upstream "witness-fixture" (/usr/bin/python3 /tmp/mcp-witness-home/fixture-server.py)
+2026-08-20T13:51:05.316Z info  upstream "witness-fixture" ready in 63ms
+2026-08-20T13:51:05.329Z info  indexed "witness-fixture": 1 tools
+2026-08-20T13:51:05.329Z info  closing idle child "witness-fixture" after 1 call(s), 0s alive
+  ok    witness-fixture (1 tools)
+
+1 tools cached -> /tmp/mcp-witness-home/manifest.json
+All upstreams closed; none will open again until a tool is called.
+after:    exists=yes  inode=890887079 bytes=548 mtime=2026-08-20T23:51:05Z
+VERDICT:  witnessed — count=1 (index rc=0)
+
+-- REQ-012 inbound-socket ----------------------------------------------
+recorder: the kernel socket table, read through lsof(8)
+before:   LISTEN entries on 127.0.0.1:8973 = 0
+2026-08-20T13:51:05.550Z info  mcp-router listening on http://127.0.0.1:8973/mcp
+2026-08-20T13:51:05.551Z info  serving 1 tools from 1 upstreams; 0 open, idle window 300s
+after:    MCPRouter 30611 lukerhodes 4u IPv4 0x25d8b3fd9efb2679 0t0 TCP 127.0.0.1:8973 (LISTEN)
+owner pid 30611 == serve pid 30611 ? yes
+a client held a socket open across the sample:
+  ESTABLISHED rows on that port  = 3
+  of which owned by the router   = 1   (the accepted half of the pair)
+  a separate request returned      HTTP 200
+VERDICT:  witnessed - count=1, an independent recorder saw the router bind the port AND
+          hold the accepted end of a real client connection.
+
+-- REQ-001 / REQ-011 subprocess ----------------------------------------
+recorder: two records, neither written by the router. The SHELL records the pid it
+          launched, through $!. The CHILD records its own getppid(), which is the
+          kernel's answer to who spawned it, into a file under a path passed in the
+          environment and never read back by the product. If those two agree, the
+          spawn is attributed by two parties that cannot have coordinated.
+
+          A ps(1) sample runs alongside as a third, best-effort reading. It usually
+          misses: the index verb spawns, handshakes and exits inside one scheduling
+          quantum. Two earlier versions of this witness depended on ps alone and could
+          report only that the child had a parent, not whose child it was.
+1 upstreams, 0 need indexing (forced: all)
+2026-08-20T13:51:14.010Z info  spawning upstream "witness-fixture" (/usr/bin/python3 /tmp/mcp-witness-home/fixture-server.py)
+2026-08-20T13:51:14.057Z info  upstream "witness-fixture" ready in 48ms
+2026-08-20T13:51:14.074Z info  indexed "witness-fixture": 1 tools
+2026-08-20T13:51:14.075Z info  closing idle child "witness-fixture" after 1 call(s), 0s alive
+  ok    witness-fixture (1 tools)
+
+1 tools cached -> /tmp/mcp-witness-home/manifest.json
+All upstreams closed; none will open again until a tool is called.
+
+shell recorded launching pid : 36844
+child reports its parent as  : 36844   (child pid 36849)
+ps sample                    : missed - spawn shorter than one sample
+VERDICT:  witnessed - count=1. The two independent records name the same parent, so
+          the router process spawned this child. Artifact: evidence/witness/pstree.txt
+
+2026-08-20T13:51:14.174Z info  SIGTERM received; closing upstreams
+after teardown: LISTEN entries on 127.0.0.1:8973 = 0
+
+-- REQ-016 outbound-socket ---------------------------------------------
+NOT WITNESSABLE. No symbol under app/Sources opens a connection to a paired device
+(DEF-041, agreeing with DEF-001 from the effect side). A recorder pointed at this would
+see nothing, and nothing seen is the condition under test rather than proof of it.
+
+wrote /Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/witness/effects.json
+exit: 0

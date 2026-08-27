@@ -1,0 +1,39 @@
+{
+  "note": "Evidence citations that `planning/evidence-citation-gate.py` cannot honour and that are not the citing item's to rewrite. Read by that gate; a row here is a declared floor, never a pass. A carried path that starts resolving is reported as STALE, so this list can only shrink. `UNTRACKED` — an artifact present on the author's disk and in no commit — is never carryable: that is the class the gate exists for.",
+  "opened": "2026-08-27",
+  "opened-by": "G24, on the run that first landed the gate. All four were found by it, none is G24's axis, and G24's axis (the campaign's `.log` evidence) is at zero.",
+  "carried": [
+    {
+      "path": "planning/test-campaign/evidence/shots/ios/SURF-013.ios.queue.png",
+      "class": "MISSING",
+      "cited-by": "planning/test-campaign/cases.json — CASE-0021, status pass, evidence[1]",
+      "owner": "the campaign's surface re-attribution, not G24",
+      "reason": "CASE-0021 names three captures under SURF-013 and only `SURF-013.ios.triage.png` exists. Queue and Library became their own surfaces; the tree holds `SURF-019.ios.queue.png` and `SURF-020.ios.library.png`, so the pixels exist and the case's evidence array kept the pre-split names. Repointing it is an edit to a registry `registry-drop-gate.py` watches, on a passing case, and belongs to whoever owns the re-attribution.",
+      "since": "2026-08-27"
+    },
+    {
+      "path": "planning/test-campaign/evidence/shots/ios/SURF-013.ios.library.png",
+      "class": "MISSING",
+      "cited-by": "planning/test-campaign/cases.json — CASE-0021, status pass, evidence[2]",
+      "owner": "the campaign's surface re-attribution, not G24",
+      "reason": "The other half of the row above. `SURF-020.ios.library.png` is the same capture under its post-split name.",
+      "since": "2026-08-27"
+    },
+    {
+      "path": "planning/test-campaign/evidence/shots/UNATTRIBUTED.ios-settings-boot.png",
+      "class": "MISSING",
+      "cited-by": "planning/test-campaign/inventory.json and defects.in.json — DEF-006 `source`",
+      "owner": "DEF-006, status `fixed · in-campaign`",
+      "reason": "DEF-006 records that two shots were pointed at the wrong surfaces and that the files were RENAMED to `UNATTRIBUTED.*` so `attach-shots.py` could not stem-match them back. The renamed files are in no commit — the rename was never captured, only described. The `source` field cites them by name and sha, which is the record of the misattribution and the reason the defect is legible. Rewriting it to make this gate green would delete the evidence for a closed defect.",
+      "since": "2026-08-27"
+    },
+    {
+      "path": "planning/test-campaign/evidence/shots/UNATTRIBUTED.mac-add-server.png",
+      "class": "MISSING",
+      "cited-by": "planning/test-campaign/inventory.json and defects.in.json — DEF-006 `source`",
+      "owner": "DEF-006, status `fixed · in-campaign`",
+      "reason": "The other half of the row above.",
+      "since": "2026-08-27"
+    }
+  ]
+}

@@ -1,0 +1,1695 @@
+
+
+########## arming pass 2026-08-27T02:53:20Z ##########
+
+===== arm contained-always (the containment check removed outright) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: 9e6b696e4b44af711d5d0f6156135cac21bd10bdb9a78efce7e400418c78d527
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         exactly one image travelled  expected 1, got 4
+         ../outside/secret.png -> escapesPackage  expected 'escapesPackage', got 'notInPackage'
+         ../pkg-escape-evil/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         link-out.png -> escapesPackage  expected 'escapesPackage', got None
+         linkdir/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         ../../../../etc/passwd -> escapesPackage  expected 'escapesPackage', got 'unsupportedType'
+         nine references refused and no more  expected 9, got 6
+node   budget             PASS
+
+failures: 7
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — escape failed, and only escape
+
+===== arm contained-prefix (containment compared as a string prefix rather than on path segments) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: dac0347095534d0712fa898957bf81a003fff828e468299b014c82490e40a7cb
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         exactly one image travelled  expected 1, got 2
+         ../pkg-escape-evil/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         nine references refused and no more  expected 9, got 8
+node   budget             PASS
+
+failures: 3
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — escape failed, and only escape
+
+===== arm contained-nolinks (containment compared before symlinks are resolved) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: 831e7909ec3b576c6ad58d2770cea28edf97c4bb3c245933e93a48df7eb46b72
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         exactly one image travelled  expected 1, got 3
+         link-out.png -> escapesPackage  expected 'escapesPackage', got None
+         linkdir/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         nine references refused and no more  expected 9, got 7
+node   budget             PASS
+
+failures: 4
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — escape failed, and only escape
+
+===== arm leaks-the-path (the response carries the filesystem path it read from) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: fb1c063e2bed0e55b63e3cb4b9fc0a0cb255d5d0b81c0dc61a3de63fc7b9a8c6
+src/document.ts(326,7): error TS2353: Object literal may only specify known properties, and 'path' does not exist in type '{ reference: string; media: string; base64: string; }'.
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: build-failed — the planted source did not compile (rc=2)
+
+===== arm unnamed-cap (the size refusal no longer names which of the three caps it hit) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: f82701a664e28a4b251ebad847ddd7f646b45e7bb476da02be6e6f8d4330f75f
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   FAIL
+         names the cap it hit  expected 'documentBytes', got 'markdownLimits'
+node   escape             PASS
+node   budget             PASS
+
+failures: 1
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — documentTooLarge failed, and only documentTooLarge
+
+===== arm oversize-spends-budget (an oversized image spends the shared budget instead of being refused on its own terms) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: f0ac9307b9d750f3e89e083b2fba89a649e69d74d529b081927c1742c55bd014
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             PASS
+node   budget             FAIL
+         c.png travelled  expected 2097152, got None
+         d.png travelled  expected 2097152, got None
+         d.png is not a refusal — the oversized figure spent NO budget  refusals=['c.png', 'd.png', 'oversize.png']
+         tail.png is refused once the budget is spent  expected 'budgetExhausted', got None
+         the budget was spent exactly  expected 8388608, got 4195328
+
+failures: 5
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — budget failed, and only budget
+
+
+########## arming pass 2026-08-27T03:14:06Z ##########
+
+===== arm contained-always (the containment check removed outright) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: 9e6b696e4b44af711d5d0f6156135cac21bd10bdb9a78efce7e400418c78d527
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         exactly one image travelled  expected 1, got 4
+         ../outside/secret.png -> escapesPackage  expected 'escapesPackage', got 'notInPackage'
+         ../pkg-escape-evil/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         link-out.png -> escapesPackage  expected 'escapesPackage', got None
+         linkdir/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         ../../../../etc/passwd -> escapesPackage  expected 'escapesPackage', got 'unsupportedType'
+         nine references refused and no more  expected 9, got 6
+node   budget             PASS
+
+failures: 7
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — escape failed, and only escape
+
+===== arm contained-prefix (containment compared as a string prefix rather than on path segments) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: dac0347095534d0712fa898957bf81a003fff828e468299b014c82490e40a7cb
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         exactly one image travelled  expected 1, got 2
+         ../pkg-escape-evil/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         nine references refused and no more  expected 9, got 8
+node   budget             PASS
+
+failures: 3
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — escape failed, and only escape
+
+===== arm contained-nolinks (containment compared before symlinks are resolved) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: 831e7909ec3b576c6ad58d2770cea28edf97c4bb3c245933e93a48df7eb46b72
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         exactly one image travelled  expected 1, got 3
+         link-out.png -> escapesPackage  expected 'escapesPackage', got None
+         linkdir/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         nine references refused and no more  expected 9, got 7
+node   budget             PASS
+
+failures: 4
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — escape failed, and only escape
+
+===== arm leaks-the-path (the response carries the filesystem path it read from, under the key the app reads as a reference. The first spelling of this arm ADDED a `path` field and tsc refused it: `images` is typed `Array<{reference; media; base64}>` and an object literal carrying an extra property is an excess-property error. So the type already forbids the leak by addition and says nothing about the leak by substitution — which is the one the wire assertion is here to catch.) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: ff9562fe97c8d0ebb62102634923526193f803c131db03df1274c36ab06fcc0f
+node   served             FAIL
+         the reference is as the document spelled it  expected 'docs/figure.png', got '/private/tmp/g19-wire-scratch/packages/pkg-served/docs/figure.png'
+         the package root appears NOWHERE in the body  root=/private/tmp/g19-wire-scratch/packages/pkg-served
+         no absolute path of any shape appears in the body  
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         the package root is NOT in the body  
+         and it is the one inside the package  expected 'docs/inside.png', got '/private/tmp/g19-wire-scratch/packages/pkg-escape/docs/inside.png'
+node   budget             FAIL
+         a.png travelled  expected 2097152, got None
+         b.png travelled  expected 2097152, got None
+         c.png travelled  expected 2097152, got None
+         d.png travelled  expected 2097152, got None
+
+failures: 9
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red-but-noisy — served failed, and so did ['budget', 'escape']
+
+===== arm unnamed-cap (the size refusal no longer names which of the three caps it hit) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: f82701a664e28a4b251ebad847ddd7f646b45e7bb476da02be6e6f8d4330f75f
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   FAIL
+         names the cap it hit  expected 'documentBytes', got 'markdownLimits'
+node   escape             PASS
+node   budget             PASS
+
+failures: 1
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — documentTooLarge failed, and only documentTooLarge
+
+===== arm oversize-spends-budget (an oversized image spends the shared budget instead of being refused on its own terms) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: f0ac9307b9d750f3e89e083b2fba89a649e69d74d529b081927c1742c55bd014
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             PASS
+node   budget             FAIL
+         c.png travelled  expected 2097152, got None
+         d.png travelled  expected 2097152, got None
+         d.png is not a refusal — the oversized figure spent NO budget  refusals=['c.png', 'd.png', 'oversize.png']
+         tail.png is refused once the budget is spent  expected 'budgetExhausted', got None
+         the budget was spent exactly  expected 8388608, got 4195328
+
+failures: 5
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — budget failed, and only budget
+
+===== arm swift-contained-always (the SHIPPED router's containment check removed outright) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift
+sha256 before: ca7dc638ee3fcc83814ab6f6b3f8be9d917bcb187415d19283fbe76d8cc70e78
+sha256 planted: c8402dab618f0007417a0896455d0d2c545db3069e5e2001743d12d439a3256d
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/1] Planning build
+Building for debugging...
+[0/17] Write sources
+[1/17] Compiling CNIOWindows WSAStartup.c
+[2/17] Compiling CNIOWindows shim.c
+[2/17] Compiling CNIOWASI CNIOWASI.c
+[4/17] Compiling CNIOLinux shim.c
+[4/17] Compiling CNIOOpenBSD shim.c
+[4/17] Compiling CNIOFreeBSD shim.c
+[4/17] Compiling CNIOLinux liburing_shims.c
+[8/17] Compiling CSystem shims.c
+[9/17] Write swift-version--58304C5D6DBC2206.txt
+[10/17] Compiling _AtomicsShims.c
+[11/108] Compiling CNIODarwin shim.c
+[13/108] Emitting module _NIOBase64
+[14/108] Compiling InternalCollectionsUtilities RandomAccessCollection+Offsets.swift
+[15/109] Compiling InternalCollectionsUtilities Span+Extras.swift
+[16/109] Compiling InternalCollectionsUtilities _UniqueCollection.swift
+[17/109] Compiling InternalCollectionsUtilities UnsafeMutableRawBufferPointer+Extras.swift
+[18/109] Compiling Atomics IntegerOperations.swift
+[19/110] Compiling InternalCollectionsUtilities UnsafeBufferPointer+Extras.swift
+[20/110] Compiling _NIOBase64 Base64.swift
+[21/110] Compiling Atomics AtomicReference.swift
+[22/110] Compiling InternalCollectionsUtilities String+Padding.swift
+[23/110] Compiling Atomics AtomicOptionalWrappable.swift
+[24/110] Compiling SystemPackage FilePathSyntax.swift
+[25/110] Compiling SystemPackage FilePathTemp.swift
+[26/110] Compiling InternalCollectionsUtilities LifetimeOverride.swift
+[27/110] Compiling InternalCollectionsUtilities UnsafeRawBufferPointer+Extras.swift
+[28/110] Compiling InternalCollectionsUtilities _SortedCollection.swift
+[29/110] Compiling SystemPackage FilePathComponentView.swift
+[30/110] Compiling SystemPackage FilePathComponents.swift
+[31/110] Emitting module InternalCollectionsUtilities
+[32/110] Compiling SystemPackage FilePathParsing.swift
+[33/110] Compiling SystemPackage FilePathString.swift
+[34/110] Compiling Atomics UnsafeAtomicLazyReference.swift
+[35/110] Compiling Atomics UnsafeAtomic.swift
+[36/110] Compiling Atomics ManagedAtomicLazyReference.swift
+[37/110] Compiling Atomics DoubleWord.swift
+[38/110] Compiling Logging LogEvent.swift
+[39/110] Compiling Atomics AtomicValue.swift
+[40/110] Compiling Logging LogHandler.swift
+[41/110] Compiling Atomics AtomicInteger.swift
+[42/110] Compiling InternalCollectionsUtilities _UnsafeBitSet+_Word.swift
+[45/110] Compiling Atomics AtomicMemoryOrderings.swift
+[46/110] Compiling Atomics ManagedAtomic.swift
+[47/110] Compiling Atomics Unmanaged extensions.swift
+[48/110] Compiling Atomics AtomicStorage.swift
+[49/110] Compiling InternalCollectionsUtilities UnsafeMutableBufferPointer+Extras.swift
+[50/110] Emitting module _NIODataStructures
+[51/110] Compiling _NIODataStructures PriorityQueue.swift
+[52/110] Compiling _NIODataStructures _TinyArray.swift
+[53/110] Compiling Logging LoggingSystem.swift
+[54/110] Compiling Logging MetadataProvider.swift
+[55/110] Compiling Logging SwiftLogNoOpLogHandler.swift
+[56/110] Compiling Logging Locks.swift
+[57/110] Compiling _NIODataStructures Heap.swift
+[58/110] Compiling InternalCollectionsUtilities _UnsafeBitSet+Index.swift
+[59/110] Compiling InternalCollectionsUtilities _UnsafeBitSet.swift
+[60/110] Compiling Logging Logger+With.swift
+[61/110] Compiling Logging Logger+Attributes.swift
+[62/110] Compiling Logging Logger.swift
+[63/110] Compiling SystemPackage FilePathWindows.swift
+[64/110] Compiling SystemPackage FilePermissions.swift
+[67/112] Compiling Logging MultiplexLogHandler.swift
+[68/112] Emitting module Logging
+[69/112] Compiling Logging StreamLogHandler.swift
+[70/150] Compiling ContainersPreview BorrowingSequence+Algorithms.swift
+[71/150] Compiling ContainersPreview BorrowingSequence+Standard Conformances.swift
+[72/150] Compiling ContainersPreview BorrowingSequence+Utilities.swift
+[73/152] Compiling ContainersPreview BorrowingIteratorProtocol+Reduce.swift
+[74/152] Compiling ContainersPreview BorrowingIteratorProtocol+SpanwiseZip.swift
+[75/152] Compiling ContainersPreview BorrowingIteratorProtocol.swift
+[76/152] Compiling ContainersPreview Producer+Filter.swift
+[77/152] Compiling ContainersPreview Producer+Map.swift
+[78/152] Compiling ContainersPreview Drain.swift
+[79/152] Compiling ContainersPreview Producer+Collect.swift
+[80/152] Compiling ContainersPreview BorrowingSequence.swift
+[81/152] Compiling ContainersPreview BidirectionalContainer.swift
+[82/152] Compiling ContainersPreview Container+Filter.swift
+[83/152] Compiling ContainersPreview BorrowingIteratorProtocol+ElementsEqual.swift
+[84/152] Compiling ContainersPreview BorrowingIteratorProtocol+Filter.swift
+[85/152] Compiling ContainersPreview BorrowingIteratorProtocol+Map.swift
+[86/152] Compiling ContainersPreview Producer+Reduce.swift
+[87/152] Compiling ContainersPreview Producer.swift
+[88/152] Compiling ContainersPreview Drain+Map.swift
+[89/152] Compiling ContainersPreview Drain+Reduce.swift
+[90/152] Compiling ContainersPreview DynamicContainer.swift
+[91/152] Compiling ContainersPreview MutableContainer.swift
+[92/152] Compiling ContainersPreview PermutableContainer.swift
+[93/152] Compiling ContainersPreview Ref.swift
+[94/152] Compiling ContainersPreview Shared.swift
+[95/152] Compiling ContainersPreview Container+SpanwiseZip.swift
+[96/152] Compiling ContainersPreview Container.swift
+[97/152] Compiling ContainersPreview ContainerIterator.swift
+[98/152] Compiling ContainersPreview InputSpan.swift
+[99/152] Compiling ContainersPreview MutableRef.swift
+[100/152] Compiling ContainersPreview RandomAccessContainer.swift
+[101/152] Compiling ContainersPreview RangeExpression2.swift
+[105/152] Compiling ContainersPreview RangeReplaceableContainer.swift
+[106/152] Compiling ContainersPreview Strideable+Limits.swift
+[113/152] Compiling ContainersPreview SpanIterator.swift
+[114/152] Compiling ContainersPreview UniqueBox.swift
+[115/152] Emitting module ContainersPreview
+[118/152] Compiling ContainersPreview OutputSpan+Extras.swift
+[119/152] Compiling ContainersPreview TemporaryAllocation.swift
+[120/152] Emitting module Atomics
+[123/152] Compiling ContainersPreview BorrowingIteratorProtocol+Copy.swift
+[124/196] Compiling DequeModule UniqueDeque+Container.swift
+[125/196] Compiling DequeModule UniqueDeque+Deprecated.swift
+[126/196] Compiling DequeModule UniqueDeque+Descriptions.swift
+[127/198] Emitting module SystemPackage
+[128/198] Compiling DequeModule RigidDeque+Consumption.swift
+[129/198] Compiling DequeModule RigidDeque+Container.swift
+[130/198] Compiling DequeModule RigidDeque+Descriptions.swift
+[131/198] Compiling DequeModule RigidDeque+Equatable.swift
+[132/198] Compiling DequeModule RigidDeque+Experimental.swift
+[133/198] Compiling DequeModule RigidDeque+Hashable.swift
+[134/198] Compiling DequeModule Deque+Codable.swift
+[135/198] Compiling DequeModule Deque+Collection.swift
+[136/198] Compiling DequeModule Deque+CustomReflectable.swift
+[137/198] Compiling DequeModule Deque+Descriptions.swift
+[138/198] Compiling DequeModule Deque+Equatable.swift
+[139/198] Compiling DequeModule Deque+ExpressibleByArrayLiteral.swift
+[140/198] Compiling DequeModule UniqueDeque+Equatable.swift
+[141/198] Compiling DequeModule UniqueDeque+Experimental.swift
+[142/198] Compiling DequeModule UniqueDeque+Hashable.swift
+[143/198] Compiling DequeModule UniqueDeque+Removals.swift
+[144/198] Compiling DequeModule UniqueDeque+Replacements.swift
+[145/198] Compiling DequeModule RigidDeque.swift
+[146/198] Compiling DequeModule UniqueDeque+Append.swift
+[147/198] Compiling DequeModule UniqueDeque+Consumption.swift
+[148/198] Compiling DequeModule UniqueDeque.swift
+[149/198] Compiling DequeModule _DequeSlot.swift
+[150/198] Compiling DequeModule UniqueDeque+Initializers.swift
+[151/198] Compiling DequeModule UniqueDeque+Insertions.swift
+[152/198] Compiling DequeModule UniqueDeque+Prepend.swift
+[153/198] Compiling DequeModule RigidDeque+Removals.swift
+[154/198] Compiling DequeModule RigidDeque+Replacements.swift
+[155/198] Compiling DequeModule RigidDeque+Testing.swift
+[156/198] Compiling DequeModule _DequeBuffer.swift
+[157/198] Compiling DequeModule _DequeBufferHeader.swift
+[158/198] Compiling DequeModule RigidDeque+Append.swift
+[159/198] Compiling DequeModule Deque+Extras.swift
+[160/198] Compiling DequeModule Deque+Hashable.swift
+[161/198] Compiling DequeModule Deque+Testing.swift
+[162/198] Compiling DequeModule RigidDeque+Initializers.swift
+[163/198] Compiling DequeModule RigidDeque+Insertions.swift
+[164/198] Compiling DequeModule RigidDeque+Prepend.swift
+[165/198] Compiling DequeModule Deque._Storage.swift
+[166/198] Compiling DequeModule Deque._UnsafeHandle.swift
+[167/198] Compiling DequeModule Deque.swift
+[171/198] Compiling DequeModule _UnsafeDequeHandle.swift
+[172/198] Compiling DequeModule _UnsafeDequeSegments.swift
+[193/198] Emitting module DequeModule
+[193/198] Compiling c-nioatomics.c
+[194/198] Compiling c-atomics.c
+[196/205] Compiling NIOConcurrencyHelpers NIOThreadPoolWorkAvailable.swift
+[197/205] Compiling NIOConcurrencyHelpers NIOLock.swift
+[198/205] Compiling NIOConcurrencyHelpers NIOLockedValueBox.swift
+[199/205] Compiling NIOConcurrencyHelpers NIOAtomic.swift
+[200/205] Emitting module NIOConcurrencyHelpers
+[201/205] Compiling NIOConcurrencyHelpers atomics.swift
+[202/205] Compiling NIOConcurrencyHelpers lock.swift
+[203/273] Compiling NIOCore FileDescriptor.swift
+[204/273] Compiling NIOCore FileHandle.swift
+[205/273] Compiling NIOCore FileRegion.swift
+[206/273] Compiling NIOCore GlobalSingletons.swift
+[207/277] Compiling NIOCore ByteBuffer-views.swift
+[208/277] Compiling NIOCore Channel.swift
+[209/277] Compiling NIOCore ChannelHandler.swift
+[210/277] Compiling NIOCore ChannelHandlers.swift
+[211/277] Compiling NIOCore ChannelInvoker.swift
+[212/277] Compiling NIOCore NIODecodedAsyncSequence.swift
+[213/277] Compiling NIOCore NIOLoopBound.swift
+[214/277] Compiling NIOCore NIOPooledRecvBufferAllocator.swift
+[215/277] Compiling NIOCore NIOScheduledCallback.swift
+[216/277] Compiling NIOCore MulticastChannel.swift
+[217/277] Compiling NIOCore NIOAny.swift
+[218/277] Compiling NIOCore NIOCloseOnErrorHandler.swift
+[219/277] Compiling NIOCore NIOCoreSendableMetatype.swift
+[220/277] Compiling NIOCore DeadChannel.swift
+[221/277] Compiling NIOCore DispatchQueue+WithFuture.swift
+[222/277] Compiling NIOCore EventLoop+Deprecated.swift
+[223/277] Compiling NIOCore EventLoop+SerialExecutor.swift
+[224/277] Compiling NIOCore EventLoop.swift
+[225/277] Compiling NIOCore TimeAmount+Duration.swift
+[226/277] Compiling NIOCore TypeAssistedChannelHandler.swift
+[227/277] Compiling NIOCore UniversalBootstrapSupport.swift
+[228/277] Compiling NIOCore Utilities.swift
+[229/277] Compiling NIOCore EventLoopFuture+AssumeIsolated.swift
+[230/277] Compiling NIOCore EventLoopFuture+Deprecated.swift
+[231/277] Compiling NIOCore EventLoopFuture+WithEventLoop.swift
+[232/277] Compiling NIOCore EventLoopFuture.swift
+[233/277] Compiling NIOCore NIOSendable.swift
+[234/277] Compiling NIOCore NIOSplitLinesMessageDecoder.swift
+[235/277] Compiling NIOCore NIOTransportAccessibleChannelCore.swift
+[236/277] Compiling NIOCore RecvByteBufferAllocator.swift
+[237/277] Compiling NIOCore IO.swift
+[238/277] Compiling NIOCore IOData.swift
+[239/277] Compiling NIOCore IPProtocol.swift
+[240/277] Compiling NIOCore IntegerBitPacking.swift
+[241/277] Compiling NIOCore SingleStepByteToMessageDecoder.swift
+[242/277] Compiling NIOCore SocketAddresses.swift
+[243/277] Compiling NIOCore SocketOptionProvider.swift
+[244/277] Compiling NIOCore SystemCallHelpers.swift
+[245/277] Compiling NIOCore AsyncChannelOutboundWriter.swift
+[246/277] Compiling NIOCore NIOAsyncSequenceProducer.swift
+[247/277] Compiling NIOCore NIOAsyncSequenceProducerStrategies.swift
+[248/277] Compiling NIOCore NIOAsyncWriter.swift
+[249/277] Compiling NIOCore NIOThrowingAsyncSequenceProducer.swift
+[250/277] Compiling NIOCore BSDSocketAPI.swift
+[251/277] Compiling NIOCore ByteBuffer-aux.swift
+[252/277] Compiling NIOCore ByteBuffer-binaryEncodedLengthPrefix.swift
+[253/277] Compiling NIOCore ByteBuffer-conversions.swift
+[254/277] Compiling NIOCore ByteBuffer-core.swift
+[255/277] Compiling NIOCore AddressedEnvelope.swift
+[256/277] Compiling NIOCore AsyncAwaitSupport.swift
+[257/277] Compiling NIOCore AsyncChannel.swift
+[258/277] Compiling NIOCore AsyncChannelHandler.swift
+[259/277] Compiling NIOCore AsyncChannelInboundStream.swift
+[260/277] Compiling NIOCore ChannelOption.swift
+[261/277] Compiling NIOCore ChannelPipeline.swift
+[262/277] Compiling NIOCore CircularBuffer.swift
+[263/277] Compiling NIOCore Codec.swift
+[264/277] Compiling NIOCore ConvenienceOptionSupport.swift
+[265/277] Compiling NIOCore IntegerTypes.swift
+[266/277] Compiling NIOCore Interfaces.swift
+[267/277] Compiling NIOCore Linux.swift
+[268/277] Compiling NIOCore MarkedCircularBuffer.swift
+[269/277] Compiling NIOCore ByteBuffer-hex.swift
+[270/277] Compiling NIOCore ByteBuffer-int.swift
+[271/277] Compiling NIOCore ByteBuffer-lengthPrefix.swift
+[272/277] Compiling NIOCore ByteBuffer-multi-int.swift
+[273/277] Compiling NIOCore ByteBuffer-quicBinaryEncodingStrategy.swift
+[274/277] Emitting module NIOCore
+[275/282] Compiling EventSource AsyncSequence+Events.swift
+[276/282] Emitting module EventSource
+[277/282] Compiling EventSource AsyncEventsSequence.swift
+[278/282] Compiling EventSource EventSource.swift
+[279/282] Compiling EventSource EventSource+AsyncHTTPClient.swift
+[280/328] Compiling MCP Cancellation.swift
+[281/328] Compiling MCP Ping.swift
+[282/328] Compiling MCP Progress.swift
+[283/330] Compiling MCP StatefulHTTPServerTransport.swift
+[284/330] Compiling MCP StatelessHTTPServerTransport.swift
+[285/330] Compiling MCP InMemoryTransport.swift
+[286/330] Compiling MCP ID.swift
+[287/330] Compiling MCP Icon.swift
+[288/330] Compiling MCP Lifecycle.swift
+[289/330] Emitting module MCP
+[290/330] Compiling MCP NetworkTransport.swift
+[291/330] Compiling MCP StdioTransport.swift
+[292/330] Compiling MCP UnitInterval.swift
+[293/330] Compiling MCP Messages.swift
+[294/330] Compiling MCP PendingRequest.swift
+[295/330] Compiling MCP Transport.swift
+[296/330] Compiling MCP OAuthConfiguration.swift
+[297/330] Compiling MCP OAuthConstants.swift
+[298/330] Compiling MCP OAuthDiscovery.swift
+[299/330] Compiling MCP OAuthAuthorizationCodeFlow.swift
+[300/330] Compiling MCP OAuthAuthorizer.swift
+[301/330] Compiling MCP OAuthClientRegistrar.swift
+[302/330] Compiling MCP HTTPClientTransport.swift
+[303/330] Compiling MCP HTTPRequestValidation.swift
+[304/330] Compiling MCP HTTPServerTypes.swift
+[305/330] Compiling MCP RequestContext.swift
+[306/330] Compiling MCP Value.swift
+[307/330] Compiling MCP Versioning.swift
+[308/330] Compiling MCP OAuthTokenEndpointClient.swift
+[309/330] Compiling MCP OAuthURLValidator.swift
+[310/330] Compiling MCP OAuthWWWAuthenticateParser.swift
+[311/330] Compiling MCP PKCE.swift
+[312/330] Compiling MCP TokenStorage.swift
+[313/330] Compiling MCP Error.swift
+[314/330] Compiling MCP OAuthDiscoveryClient.swift
+[315/330] Compiling MCP OAuthErrors.swift
+[316/330] Compiling MCP OAuthModels.swift
+[317/330] Compiling MCP Logging.swift
+[318/330] Compiling MCP Prompts.swift
+[319/330] Compiling MCP Resources.swift
+[320/330] Compiling MCP Client.swift
+[321/330] Compiling MCP Elicitation.swift
+[322/330] Compiling MCP Roots.swift
+[323/330] Compiling MCP Server.swift
+[324/330] Compiling MCP Tools.swift
+[325/330] Compiling MCP Sampling.swift
+[326/330] Compiling MCP Data+Extensions.swift
+[327/330] Compiling MCP Completion.swift
+[328/455] Compiling RouterCore AuthFlow.swift
+[329/455] Compiling RouterCore AuthPages.swift
+[330/455] Compiling RouterCore AuthPaths.swift
+[331/455] Compiling RouterCore AuthRecord.swift
+[332/455] Compiling RouterCore AuthRefusal.swift
+[333/455] Compiling RouterCore AuthRoutes.swift
+[334/455] Compiling RouterCore AuthStamp.swift
+[335/455] Compiling RouterCore CallbackListener.swift
+[336/455] Compiling RouterCore CallbackResponder.swift
+[337/463] Compiling RouterCore ECMAKeyOrder.swift
+[338/463] Compiling RouterCore JSNumber.swift
+[339/463] Compiling RouterCore JSONCursor.swift
+[340/463] Compiling RouterCore JSONParser.swift
+[341/463] Compiling RouterCore JSONValue.swift
+[342/463] Compiling RouterCore JSObjectDraft.swift
+[343/463] Compiling RouterCore JSRound.swift
+[344/463] Compiling RouterCore JSString.swift
+[345/463] Compiling RouterCore UpstreamHash.swift
+[346/463] Compiling RouterCore ConfigEdit.swift
+[347/463] Compiling RouterCore ControlAPIRequest.swift
+[348/463] Compiling RouterCore ControlAuthDispatch.swift
+[349/463] Compiling RouterCore ControlDocument.swift
+[350/463] Compiling RouterCore ControlHandler.swift
+[351/463] Compiling RouterCore ControlHandlerPatchFields.swift
+[352/463] Compiling RouterCore ControlHarnesses.swift
+[353/463] Compiling RouterCore CallbackWire.swift
+[354/463] Compiling RouterCore FileAuthStore.swift
+[355/463] Compiling RouterCore FileModeWriting.swift
+[356/463] Compiling RouterCore OAuthClient.swift
+[357/463] Compiling RouterCore OAuthClientMetadata.swift
+[358/463] Compiling RouterCore OAuthDiscovery.swift
+[359/463] Compiling RouterCore OAuthFlowStarter.swift
+[360/463] Compiling RouterCore OAuthHTTP.swift
+[361/463] Compiling RouterCore OAuthMetadata.swift
+[362/463] Emitting module RouterCore
+[363/463] Compiling RouterCore UpstreamStateReport.swift
+[364/463] Compiling RouterCore ConfigLoader.swift
+[365/463] Compiling RouterCore ConfigMutationLock.swift
+[366/463] Compiling RouterCore ConfigWriter.swift
+[367/463] Compiling RouterCore ImportConfigWriter.swift
+[368/463] Compiling RouterCore ImportPaths.swift
+[369/463] Compiling RouterCore JSURL.swift
+[370/463] Compiling RouterCore ServerParser.swift
+[371/463] Compiling RouterCore UpstreamConfig.swift
+[372/463] Compiling RouterCore ToolChangeJSON.swift
+[373/463] Compiling RouterCore ClientConfigs.swift
+[374/463] Compiling RouterCore ClientProcessName.swift
+[375/463] Compiling RouterCore HarnessCapability.swift
+[376/463] Compiling RouterCore HarnessReconciliation.swift
+[377/463] Compiling RouterCore HarnessReportJSON.swift
+[378/463] Compiling RouterCore HarnessWiring.swift
+[379/463] Compiling RouterCore MiniTOML.swift
+[380/463] Compiling RouterCore MiniTOMLValues.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/HTTP/LoopbackHTTPServer.swift:253:30: warning: result of call to 'write' is unused [#no-usage]
+251 |                 length = try HTTPWire.bodyLength(of: head)
+252 |             } catch {
+253 |                 await socket.write(refusal(400, "the request framing could not be read"))
+    |                              `- warning: result of call to 'write' is unused [#no-usage]
+254 |                 break
+255 |             }
+[381/463] Compiling RouterCore ReconciliationPlan.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/HTTP/LoopbackHTTPServer.swift:253:30: warning: result of call to 'write' is unused [#no-usage]
+251 |                 length = try HTTPWire.bodyLength(of: head)
+252 |             } catch {
+253 |                 await socket.write(refusal(400, "the request framing could not be read"))
+    |                              `- warning: result of call to 'write' is unused [#no-usage]
+254 |                 break
+255 |             }
+[382/463] Compiling RouterCore HTTPSocket.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/HTTP/LoopbackHTTPServer.swift:253:30: warning: result of call to 'write' is unused [#no-usage]
+251 |                 length = try HTTPWire.bodyLength(of: head)
+252 |             } catch {
+253 |                 await socket.write(refusal(400, "the request framing could not be read"))
+    |                              `- warning: result of call to 'write' is unused [#no-usage]
+254 |                 break
+255 |             }
+[383/463] Compiling RouterCore HTTPWire.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/HTTP/LoopbackHTTPServer.swift:253:30: warning: result of call to 'write' is unused [#no-usage]
+251 |                 length = try HTTPWire.bodyLength(of: head)
+252 |             } catch {
+253 |                 await socket.write(refusal(400, "the request framing could not be read"))
+    |                              `- warning: result of call to 'write' is unused [#no-usage]
+254 |                 break
+255 |             }
+[384/463] Compiling RouterCore LoopbackHTTPServer.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/HTTP/LoopbackHTTPServer.swift:253:30: warning: result of call to 'write' is unused [#no-usage]
+251 |                 length = try HTTPWire.bodyLength(of: head)
+252 |             } catch {
+253 |                 await socket.write(refusal(400, "the request framing could not be read"))
+    |                              `- warning: result of call to 'write' is unused [#no-usage]
+254 |                 break
+255 |             }
+[385/463] Compiling RouterCore RegistryHTTPClient.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/HTTP/LoopbackHTTPServer.swift:253:30: warning: result of call to 'write' is unused [#no-usage]
+251 |                 length = try HTTPWire.bodyLength(of: head)
+252 |             } catch {
+253 |                 await socket.write(refusal(400, "the request framing could not be read"))
+    |                              `- warning: result of call to 'write' is unused [#no-usage]
+254 |                 break
+255 |             }
+[386/463] Compiling RouterCore FileSystem.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/HTTP/LoopbackHTTPServer.swift:253:30: warning: result of call to 'write' is unused [#no-usage]
+251 |                 length = try HTTPWire.bodyLength(of: head)
+252 |             } catch {
+253 |                 await socket.write(refusal(400, "the request framing could not be read"))
+    |                              `- warning: result of call to 'write' is unused [#no-usage]
+254 |                 break
+255 |             }
+[387/463] Compiling RouterCore RouterClock.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/HTTP/LoopbackHTTPServer.swift:253:30: warning: result of call to 'write' is unused [#no-usage]
+251 |                 length = try HTTPWire.bodyLength(of: head)
+252 |             } catch {
+253 |                 await socket.write(refusal(400, "the request framing could not be read"))
+    |                              `- warning: result of call to 'write' is unused [#no-usage]
+254 |                 break
+255 |             }
+[388/463] Compiling RouterCore ManifestStore.swift
+[389/463] Compiling RouterCore ToolUnion.swift
+[390/463] Compiling RouterCore ToolsDigest.swift
+[391/463] Compiling RouterCore ChildPath.swift
+[392/463] Compiling RouterCore PoolDutyCycle.swift
+[393/463] Compiling RouterCore PoolEntry.swift
+[394/463] Compiling RouterCore PoolIdentifiers.swift
+[395/463] Compiling RouterCore PoolLogEvent.swift
+[396/463] Compiling RouterCore OAuthPKCE.swift
+[397/463] Compiling RouterCore OAuthTokenRequest.swift
+[398/463] Compiling RouterCore OAuthWire.swift
+[399/463] Compiling RouterCore SecretResolver.swift
+[400/463] Compiling RouterCore AuthServerFlow.swift
+[401/463] Compiling RouterCore AuthServerPage.swift
+[402/463] Compiling RouterCore AuthServerRoutes.swift
+[403/463] Compiling RouterCore AuthServerSeal.swift
+[404/463] Compiling RouterCore AuthServerWire.swift
+[405/463] Compiling RouterCore ControlInsights.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift:208:13: warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+206 |         let candidate = base.appendingPathComponent(trimmed)
+207 |             .standardizedFileURL.resolvingSymlinksInPath()
+208 |         let baseParts = base.pathComponents
+    |             `- warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+209 |         let candidateParts = candidate.pathComponents
+210 |         guard candidateParts.count > 0 else {
+[406/463] Compiling RouterCore ControlPorts.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift:208:13: warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+206 |         let candidate = base.appendingPathComponent(trimmed)
+207 |             .standardizedFileURL.resolvingSymlinksInPath()
+208 |         let baseParts = base.pathComponents
+    |             `- warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+209 |         let candidateParts = candidate.pathComponents
+210 |         guard candidateParts.count > 0 else {
+[407/463] Compiling RouterCore ControlRegistry.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift:208:13: warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+206 |         let candidate = base.appendingPathComponent(trimmed)
+207 |             .standardizedFileURL.resolvingSymlinksInPath()
+208 |         let baseParts = base.pathComponents
+    |             `- warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+209 |         let candidateParts = candidate.pathComponents
+210 |         guard candidateParts.count > 0 else {
+[408/463] Compiling RouterCore ControlRoute.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift:208:13: warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+206 |         let candidate = base.appendingPathComponent(trimmed)
+207 |             .standardizedFileURL.resolvingSymlinksInPath()
+208 |         let baseParts = base.pathComponents
+    |             `- warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+209 |         let candidateParts = candidate.pathComponents
+210 |         guard candidateParts.count > 0 else {
+[409/463] Compiling RouterCore ControlToken.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift:208:13: warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+206 |         let candidate = base.appendingPathComponent(trimmed)
+207 |             .standardizedFileURL.resolvingSymlinksInPath()
+208 |         let baseParts = base.pathComponents
+    |             `- warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+209 |         let candidateParts = candidate.pathComponents
+210 |         guard candidateParts.count > 0 else {
+[410/463] Compiling RouterCore ControlUsage.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift:208:13: warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+206 |         let candidate = base.appendingPathComponent(trimmed)
+207 |             .standardizedFileURL.resolvingSymlinksInPath()
+208 |         let baseParts = base.pathComponents
+    |             `- warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+209 |         let candidateParts = candidate.pathComponents
+210 |         guard candidateParts.count > 0 else {
+[411/463] Compiling RouterCore Describe.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift:208:13: warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+206 |         let candidate = base.appendingPathComponent(trimmed)
+207 |             .standardizedFileURL.resolvingSymlinksInPath()
+208 |         let baseParts = base.pathComponents
+    |             `- warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+209 |         let candidateParts = candidate.pathComponents
+210 |         guard candidateParts.count > 0 else {
+[412/463] Compiling RouterCore DocumentPackage.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift:208:13: warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+206 |         let candidate = base.appendingPathComponent(trimmed)
+207 |             .standardizedFileURL.resolvingSymlinksInPath()
+208 |         let baseParts = base.pathComponents
+    |             `- warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+209 |         let candidateParts = candidate.pathComponents
+210 |         guard candidateParts.count > 0 else {
+[413/463] Compiling RouterCore ProcessProbe.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Usage/ProcessProbe.swift:101:24: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 99 |             var buffer = [CChar](repeating: 0, count: 4096)
+100 |             guard proc_name(pid, &buffer, UInt32(buffer.count)) > 0 else { return nil }
+101 |             let text = String(cString: buffer)
+    |                        `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+102 |             return text.isEmpty ? nil : text
+103 |         #else
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[414/463] Compiling RouterCore UsageInsights.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Usage/ProcessProbe.swift:101:24: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 99 |             var buffer = [CChar](repeating: 0, count: 4096)
+100 |             guard proc_name(pid, &buffer, UInt32(buffer.count)) > 0 else { return nil }
+101 |             let text = String(cString: buffer)
+    |                        `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+102 |             return text.isEmpty ? nil : text
+103 |         #else
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[415/463] Compiling RouterCore UsageRecord.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Usage/ProcessProbe.swift:101:24: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 99 |             var buffer = [CChar](repeating: 0, count: 4096)
+100 |             guard proc_name(pid, &buffer, UInt32(buffer.count)) > 0 else { return nil }
+101 |             let text = String(cString: buffer)
+    |                        `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+102 |             return text.isEmpty ? nil : text
+103 |         #else
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[416/463] Compiling RouterCore UsageStore.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Usage/ProcessProbe.swift:101:24: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 99 |             var buffer = [CChar](repeating: 0, count: 4096)
+100 |             guard proc_name(pid, &buffer, UInt32(buffer.count)) > 0 else { return nil }
+101 |             let text = String(cString: buffer)
+    |                        `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+102 |             return text.isEmpty ? nil : text
+103 |         #else
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[417/463] Compiling RouterCore ClaudeStagingEntry.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Usage/ProcessProbe.swift:101:24: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 99 |             var buffer = [CChar](repeating: 0, count: 4096)
+100 |             guard proc_name(pid, &buffer, UInt32(buffer.count)) > 0 else { return nil }
+101 |             let text = String(cString: buffer)
+    |                        `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+102 |             return text.isEmpty ? nil : text
+103 |         #else
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[418/463] Compiling RouterCore StableHash.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Usage/ProcessProbe.swift:101:24: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 99 |             var buffer = [CChar](repeating: 0, count: 4096)
+100 |             guard proc_name(pid, &buffer, UInt32(buffer.count)) > 0 else { return nil }
+101 |             let text = String(cString: buffer)
+    |                        `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+102 |             return text.isEmpty ? nil : text
+103 |         #else
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[419/463] Compiling RouterCore WatchAdoption.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Usage/ProcessProbe.swift:101:24: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 99 |             var buffer = [CChar](repeating: 0, count: 4096)
+100 |             guard proc_name(pid, &buffer, UInt32(buffer.count)) > 0 else { return nil }
+101 |             let text = String(cString: buffer)
+    |                        `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+102 |             return text.isEmpty ? nil : text
+103 |         #else
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[420/463] Compiling RouterCore WatchBackup.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Usage/ProcessProbe.swift:101:24: warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+ 99 |             var buffer = [CChar](repeating: 0, count: 4096)
+100 |             guard proc_name(pid, &buffer, UInt32(buffer.count)) > 0 else { return nil }
+101 |             let text = String(cString: buffer)
+    |                        `- warning: 'init(cString:)' is deprecated: Use String(decoding: array, as: UTF8.self) instead, after truncating the null termination. [#DeprecatedDeclaration]
+102 |             return text.isEmpty ? nil : text
+103 |         #else
+
+[#DeprecatedDeclaration]: <https://docs.swift.org/compiler/documentation/diagnostics/deprecated-declaration>
+[421/463] Compiling RouterCore JSStringify.swift
+[422/463] Compiling RouterCore JSToNumber.swift
+[423/463] Compiling RouterCore RouterLog.swift
+[424/463] Compiling RouterCore CachedTool.swift
+[425/463] Compiling RouterCore DiffTools.swift
+[426/463] Compiling RouterCore Manifest.swift
+[427/463] Compiling RouterCore ManifestBookkeeping.swift
+[428/463] Compiling RouterCore ManifestIO.swift
+[429/463] Compiling RouterCore RegistrySearch.swift
+[430/463] Compiling RouterCore RouterSeams.swift
+[431/463] Compiling RouterCore IndexLogEvent.swift
+[432/463] Compiling RouterCore MCPEndpoint.swift
+[433/463] Compiling RouterCore MCPEndpointFraming.swift
+[434/463] Compiling RouterCore MCPEndpointToolCall.swift
+[435/463] Compiling RouterCore ManifestIndexer.swift
+[436/463] Compiling RouterCore PoolInsightsPort.swift
+[437/463] Compiling RouterCore RequestAuthority.swift
+[438/463] Compiling RouterCore RouterService.swift
+[439/463] Compiling RouterCore RouterServiceCollaborators.swift
+[440/463] Compiling RouterCore RouterServiceDispatch.swift
+[441/463] Compiling RouterCore ServiceLogEvent.swift
+[442/463] Compiling RouterCore ServicePorts.swift
+[443/463] Compiling RouterCore AttributionCache.swift
+[444/463] Compiling RouterCore PeerResolver.swift
+[445/463] Compiling RouterCore ProcessResident.swift
+[446/463] Compiling RouterCore StdioUpstreamSession.swift
+[447/463] Compiling RouterCore StdioUpstreamTransport.swift
+[448/463] Compiling RouterCore UpstreamCalling.swift
+[449/463] Compiling RouterCore UpstreamPool.swift
+[450/463] Compiling RouterCore UpstreamPoolReaping.swift
+[451/463] Compiling RouterCore JSLocaleCompare.swift
+[452/463] Compiling RouterCore RegistryMerge.swift
+[453/463] Compiling RouterCore WatchIndexing.swift
+[454/463] Compiling RouterCore WatchLog.swift
+[455/463] Compiling RouterCore WatchPaths.swift
+[456/463] Compiling RouterCore WatchRestart.swift
+[457/463] Compiling RouterCore WatchRun.swift
+[458/463] Compiling RouterCore WatchRunStaging.swift
+[459/463] Compiling RouterCore WatchStaging.swift
+[460/463] Compiling RouterCore WatchState.swift
+[461/473] Compiling MCPRouterCLI WatchVerb.swift
+[462/473] Compiling MCPRouterCLI Support.swift
+[463/473] Compiling MCPRouterCLI MCPRouterCLIIndex.swift
+[464/473] Emitting module MCPRouterCLI
+[465/473] Compiling MCPRouterCLI HarnessesVerb.swift
+[466/473] Compiling MCPRouterCLI AuthVerb.swift
+[467/473] Compiling MCPRouterCLI Loopback.swift
+[468/473] Compiling MCPRouterCLI InstallEntryVerb.swift
+[469/473] Compiling MCPRouterCLI ImportVerb.swift
+[470/473] Compiling MCPRouterCLI MCPRouterCLI.swift
+[470/473] Write Objects.LinkFileList
+[471/473] Linking MCPRouterCLI
+[472/473] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (71.70s)
+swift  served             PASS
+swift  noPackageDirectory PASS
+swift  packageUnreadable  PASS
+swift  noDocuments        PASS
+swift  documentTooLarge   PASS
+swift  escape             FAIL
+         exactly one image travelled  expected 1, got 4
+         ../outside/secret.png -> escapesPackage  expected 'escapesPackage', got 'notInPackage'
+         ../pkg-escape-evil/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         link-out.png -> escapesPackage  expected 'escapesPackage', got None
+         linkdir/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         ../../../../etc/passwd -> escapesPackage  expected 'escapesPackage', got 'unsupportedType'
+         nine references refused and no more  expected 9, got 6
+swift  budget             PASS
+
+failures: 7
+sha256 after restore: ca7dc638ee3fcc83814ab6f6b3f8be9d917bcb187415d19283fbe76d8cc70e78  (IDENTICAL)
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Compiling RouterCore DocumentPackage.swift
+[4/6] Emitting module RouterCore
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (7.61s)
+rebuild after restore rc=0
+VERDICT: red — escape failed, and only escape
+
+===== arm swift-leaks-the-path (the SHIPPED router's response carries the package root it read from. Planted on the response object rather than on a reference, because `ReadableImage` carries no path to substitute — the Swift half cannot leak one the way the TypeScript half can, and the arm plants the leak this side can actually have.) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/ControlDocument.swift
+sha256 before: e6daaa44edeabcef115e507ad3f397566d38f66d77e4cb7c1571c196a1f36e54
+sha256 planted: de441e4928ff2270d78dd16fabe50b368b1af0393873db22f1ae5d6749121b73
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Compiling RouterCore ControlDocument.swift
+[4/6] Emitting module RouterCore
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (5.89s)
+swift  served             FAIL
+         the package root appears NOWHERE in the body  root=/private/tmp/g19-wire-scratch/packages/pkg-served
+         no absolute path of any shape appears in the body  
+swift  noPackageDirectory PASS
+swift  packageUnreadable  PASS
+swift  noDocuments        PASS
+swift  documentTooLarge   PASS
+swift  escape             FAIL
+         the package root is NOT in the body  
+swift  budget             PASS
+
+failures: 3
+sha256 after restore: e6daaa44edeabcef115e507ad3f397566d38f66d77e4cb7c1571c196a1f36e54  (IDENTICAL)
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Emitting module RouterCore
+[4/6] Compiling RouterCore ControlDocument.swift
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (7.82s)
+rebuild after restore rc=0
+VERDICT: red-but-noisy — served failed, and so did ['escape']
+
+===== arm swift-contained-nolinks (the SHIPPED router compares containment before resolving symlinks) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift
+sha256 before: ca7dc638ee3fcc83814ab6f6b3f8be9d917bcb187415d19283fbe76d8cc70e78
+sha256 planted: b413c0263cbe3c1bb95ca1ca914c999f65f0ef77ba1621157b398039564719ba
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Emitting module RouterCore
+[4/6] Compiling RouterCore DocumentPackage.swift
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (5.35s)
+swift  served             PASS
+swift  noPackageDirectory PASS
+swift  packageUnreadable  PASS
+swift  noDocuments        PASS
+swift  documentTooLarge   PASS
+swift  escape             FAIL
+         exactly one image travelled  expected 1, got 3
+         link-out.png -> escapesPackage  expected 'escapesPackage', got None
+         linkdir/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         nine references refused and no more  expected 9, got 7
+swift  budget             PASS
+
+failures: 4
+sha256 after restore: ca7dc638ee3fcc83814ab6f6b3f8be9d917bcb187415d19283fbe76d8cc70e78  (IDENTICAL)
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Compiling RouterCore DocumentPackage.swift
+[4/6] Emitting module RouterCore
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (10.17s)
+rebuild after restore rc=0
+VERDICT: red — escape failed, and only escape
+
+
+########## arming pass 2026-08-27T03:23:27Z ##########
+
+===== arm leaks-the-path (the response carries the filesystem path it read from, under the key the app reads as a reference. The first spelling of this arm ADDED a `path` field and tsc refused it: `images` is typed `Array<{reference; media; base64}>` and an object literal carrying an extra property is an excess-property error. So the type already forbids the leak by addition and says nothing about the leak by substitution — which is the one the wire assertion is here to catch.) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: 5c286ca59a0aa4ce4ca7255632636ab3cb8fc5c5aa69c9d3466c9c19f8c9496e
+node   served             FAIL
+         media type  expected 'image/png', got '/private/tmp/g19-wire-scratch/packages/pkg-served/docs/figure.png'
+         the package root appears NOWHERE in the body  root=/private/tmp/g19-wire-scratch/packages/pkg-served
+         no absolute path of any shape appears in the body  
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         the package root is NOT in the body  
+node   budget             PASS
+
+failures: 4
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape, served
+
+===== arm swift-leaks-the-path (the SHIPPED router's response carries the package root it read from. Planted on the response object rather than on a reference, because `ReadableImage` carries no path to substitute — the Swift half cannot leak one the way the TypeScript half can, and the arm plants the leak this side can actually have.) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/ControlDocument.swift
+sha256 before: e6daaa44edeabcef115e507ad3f397566d38f66d77e4cb7c1571c196a1f36e54
+sha256 planted: de441e4928ff2270d78dd16fabe50b368b1af0393873db22f1ae5d6749121b73
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Emitting module RouterCore
+[4/6] Compiling RouterCore ControlDocument.swift
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (13.91s)
+swift  served             FAIL
+         the package root appears NOWHERE in the body  root=/private/tmp/g19-wire-scratch/packages/pkg-served
+         no absolute path of any shape appears in the body  
+swift  noPackageDirectory PASS
+swift  packageUnreadable  PASS
+swift  noDocuments        PASS
+swift  documentTooLarge   PASS
+swift  escape             FAIL
+         the package root is NOT in the body  
+swift  budget             PASS
+
+failures: 3
+sha256 after restore: e6daaa44edeabcef115e507ad3f397566d38f66d77e4cb7c1571c196a1f36e54  (IDENTICAL)
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Emitting module RouterCore
+[4/6] Compiling RouterCore ControlDocument.swift
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (12.79s)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape, served
+
+
+########## arming pass 2026-08-27T03:26:26Z ##########
+
+===== arm nodocs-served-anyway (a package publishing none of the three documents is answered with a body rather than refused. The panel would then draw three empty tabs over a package that published nothing, which is the failure `noDocuments` exists to prevent.) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: a22ac9a0ff86af34f6fe3b4af0da00768658086f406ed4af37102aa7ee3b8a21
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        FAIL
+         status  expected 404, got 200
+         names its own rule  expected 'noDocuments', got None
+         carries a human sentence  
+node   documentTooLarge   PASS
+node   escape             PASS
+node   budget             PASS
+
+failures: 3
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: noDocuments
+
+===== arm unnamed-refusal (a refusal stops naming the rule it hit and answers a generic `notFound`. Three different things produce a 404 on this route and the app maps each to different copy, so a shared reason code is a refusal the reader cannot act on.) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: e05063275f6178f74f1f4dd75a2c468c57f51c3453c4a047e7903a4ab766a4c6
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  FAIL
+         names its own rule  expected 'packageUnreadable', got 'notFound'
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             PASS
+node   budget             PASS
+
+failures: 1
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: packageUnreadable
+
+
+########## arming pass 2026-08-27T04:18:55Z ##########
+
+===== arm contained-always (the containment check removed outright) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 5c286ca59a0aa4ce4ca7255632636ab3cb8fc5c5aa69c9d3466c9c19f8c9496e
+sha256 planted: cd8b664eac2ca576681a5ea1798d1cc4d9e25b0828b77b5ba0849021b0bccb5d
+node   served             FAIL
+         media type  expected 'image/png', got '/private/tmp/g19-wire-scratch/packages/pkg-served/docs/figure.png'
+         the package root appears NOWHERE in the body  root=/private/tmp/g19-wire-scratch/packages/pkg-served
+         no absolute path of any shape appears in the body  
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         the package root is NOT in the body  
+         exactly one image travelled  expected 1, got 4
+         ../outside/secret.png -> escapesPackage  expected 'escapesPackage', got 'notInPackage'
+         ../pkg-escape-evil/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         link-out.png -> escapesPackage  expected 'escapesPackage', got None
+         linkdir/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         ../../../../etc/passwd -> escapesPackage  expected 'escapesPackage', got 'unsupportedType'
+         nine references refused and no more  expected 9, got 6
+node   budget             PASS
+
+failures: 11
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (DIFFERS)
+rebuild after restore rc=0
+VERDICT: NOT-RESTORED — sha256 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a != 5c286ca59a0aa4ce4ca7255632636ab3cb8fc5c5aa69c9d3466c9c19f8c9496e
+
+===== arm contained-prefix (containment compared as a string prefix rather than on path segments) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: dac0347095534d0712fa898957bf81a003fff828e468299b014c82490e40a7cb
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         exactly one image travelled  expected 1, got 2
+         ../pkg-escape-evil/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         nine references refused and no more  expected 9, got 8
+node   budget             PASS
+
+failures: 3
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape
+
+===== arm contained-nolinks (containment compared before symlinks are resolved) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: 831e7909ec3b576c6ad58d2770cea28edf97c4bb3c245933e93a48df7eb46b72
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         exactly one image travelled  expected 1, got 3
+         link-out.png -> escapesPackage  expected 'escapesPackage', got None
+         linkdir/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         nine references refused and no more  expected 9, got 7
+node   budget             PASS
+
+failures: 4
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape
+
+===== arm leaks-the-path (the response carries the filesystem path it read from, under the key the app reads as a reference. The first spelling of this arm ADDED a `path` field and tsc refused it: `images` is typed `Array<{reference; media; base64}>` and an object literal carrying an extra property is an excess-property error. So the type already forbids the leak by addition and says nothing about the leak by substitution — which is the one the wire assertion is here to catch.) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: 5c286ca59a0aa4ce4ca7255632636ab3cb8fc5c5aa69c9d3466c9c19f8c9496e
+node   served             FAIL
+         media type  expected 'image/png', got '/private/tmp/g19-wire-scratch/packages/pkg-served/docs/figure.png'
+         the package root appears NOWHERE in the body  root=/private/tmp/g19-wire-scratch/packages/pkg-served
+         no absolute path of any shape appears in the body  
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         the package root is NOT in the body  
+node   budget             PASS
+
+failures: 4
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape, served
+
+===== arm nodocs-served-anyway (a package publishing none of the three documents is answered with a body rather than refused. The panel would then draw three empty tabs over a package that published nothing, which is the failure `noDocuments` exists to prevent.) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: a22ac9a0ff86af34f6fe3b4af0da00768658086f406ed4af37102aa7ee3b8a21
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        FAIL
+         status  expected 404, got 200
+         names its own rule  expected 'noDocuments', got None
+         carries a human sentence  
+node   documentTooLarge   PASS
+node   escape             PASS
+node   budget             PASS
+
+failures: 3
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: noDocuments
+
+===== arm unnamed-refusal (a refusal stops naming the rule it hit and answers a generic `notFound`. Three different things produce a 404 on this route and the app maps each to different copy, so a shared reason code is a refusal the reader cannot act on.) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: e05063275f6178f74f1f4dd75a2c468c57f51c3453c4a047e7903a4ab766a4c6
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  FAIL
+         names its own rule  expected 'packageUnreadable', got 'notFound'
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             PASS
+node   budget             PASS
+
+failures: 1
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: packageUnreadable
+
+===== arm unnamed-cap (the size refusal no longer names which of the three caps it hit) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: f82701a664e28a4b251ebad847ddd7f646b45e7bb476da02be6e6f8d4330f75f
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   FAIL
+         names the cap it hit  expected 'documentBytes', got 'markdownLimits'
+node   escape             PASS
+node   budget             PASS
+
+failures: 1
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: documentTooLarge
+
+===== arm oversize-spends-budget (an oversized image spends the shared budget instead of being refused on its own terms) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: f0ac9307b9d750f3e89e083b2fba89a649e69d74d529b081927c1742c55bd014
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             PASS
+node   budget             FAIL
+         c.png travelled  expected 2097152, got None
+         d.png travelled  expected 2097152, got None
+         d.png is not a refusal — the oversized figure spent NO budget  refusals=['c.png', 'd.png', 'oversize.png']
+         tail.png is refused once the budget is spent  expected 'budgetExhausted', got None
+         the budget was spent exactly  expected 8388608, got 4195328
+
+failures: 5
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: budget
+
+===== arm swift-contained-always (the SHIPPED router's containment check removed outright) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift
+sha256 before: ca7dc638ee3fcc83814ab6f6b3f8be9d917bcb187415d19283fbe76d8cc70e78
+sha256 planted: c8402dab618f0007417a0896455d0d2c545db3069e5e2001743d12d439a3256d
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/1] Planning build
+Building for debugging...
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Compiling RouterCore DocumentPackage.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift:208:13: warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+206 |         let candidate = base.appendingPathComponent(trimmed)
+207 |             .standardizedFileURL.resolvingSymlinksInPath()
+208 |         let baseParts = base.pathComponents
+    |             `- warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+209 |         let candidateParts = candidate.pathComponents
+210 |         guard candidateParts.count > 0 else {
+[4/6] Emitting module RouterCore
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (7.33s)
+swift  served             PASS
+swift  noPackageDirectory PASS
+swift  packageUnreadable  PASS
+swift  noDocuments        PASS
+swift  documentTooLarge   PASS
+swift  escape             FAIL
+         exactly one image travelled  expected 1, got 4
+         ../outside/secret.png -> escapesPackage  expected 'escapesPackage', got 'notInPackage'
+         ../pkg-escape-evil/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         link-out.png -> escapesPackage  expected 'escapesPackage', got None
+         linkdir/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         ../../../../etc/passwd -> escapesPackage  expected 'escapesPackage', got 'unsupportedType'
+         nine references refused and no more  expected 9, got 6
+swift  budget             PASS
+
+failures: 7
+sha256 after restore: ca7dc638ee3fcc83814ab6f6b3f8be9d917bcb187415d19283fbe76d8cc70e78  (IDENTICAL)
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Emitting module RouterCore
+[4/6] Compiling RouterCore DocumentPackage.swift
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (2.18s)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape
+
+===== arm swift-leaks-the-path (the SHIPPED router's response carries the package root it read from. Planted on the response object rather than on a reference, because `ReadableImage` carries no path to substitute — the Swift half cannot leak one the way the TypeScript half can, and the arm plants the leak this side can actually have.) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/ControlDocument.swift
+sha256 before: e6daaa44edeabcef115e507ad3f397566d38f66d77e4cb7c1571c196a1f36e54
+sha256 planted: de441e4928ff2270d78dd16fabe50b368b1af0393873db22f1ae5d6749121b73
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Compiling RouterCore ControlDocument.swift
+[4/6] Emitting module RouterCore
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (1.76s)
+swift  served             FAIL
+         the package root appears NOWHERE in the body  root=/private/tmp/g19-wire-scratch/packages/pkg-served
+         no absolute path of any shape appears in the body  
+swift  noPackageDirectory PASS
+swift  packageUnreadable  PASS
+swift  noDocuments        PASS
+swift  documentTooLarge   PASS
+swift  escape             FAIL
+         the package root is NOT in the body  
+swift  budget             PASS
+
+failures: 3
+sha256 after restore: e6daaa44edeabcef115e507ad3f397566d38f66d77e4cb7c1571c196a1f36e54  (IDENTICAL)
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Compiling RouterCore ControlDocument.swift
+[4/6] Emitting module RouterCore
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (1.71s)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape, served
+
+===== arm swift-contained-nolinks (the SHIPPED router compares containment before resolving symlinks) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift
+sha256 before: ca7dc638ee3fcc83814ab6f6b3f8be9d917bcb187415d19283fbe76d8cc70e78
+sha256 planted: b413c0263cbe3c1bb95ca1ca914c999f65f0ef77ba1621157b398039564719ba
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Compiling RouterCore DocumentPackage.swift
+[4/6] Emitting module RouterCore
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (1.75s)
+swift  served             PASS
+swift  noPackageDirectory PASS
+swift  packageUnreadable  PASS
+swift  noDocuments        PASS
+swift  documentTooLarge   PASS
+swift  escape             FAIL
+         exactly one image travelled  expected 1, got 3
+         link-out.png -> escapesPackage  expected 'escapesPackage', got None
+         linkdir/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         nine references refused and no more  expected 9, got 7
+swift  budget             PASS
+
+failures: 4
+sha256 after restore: ca7dc638ee3fcc83814ab6f6b3f8be9d917bcb187415d19283fbe76d8cc70e78  (IDENTICAL)
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Compiling RouterCore DocumentPackage.swift
+[4/6] Emitting module RouterCore
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (1.58s)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape
+
+
+########## arming pass 2026-08-27T04:26:30Z ##########
+
+===== arm contained-always (the containment check removed outright) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: 9e6b696e4b44af711d5d0f6156135cac21bd10bdb9a78efce7e400418c78d527
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         exactly one image travelled  expected 1, got 4
+         ../outside/secret.png -> escapesPackage  expected 'escapesPackage', got 'notInPackage'
+         ../pkg-escape-evil/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         link-out.png -> escapesPackage  expected 'escapesPackage', got None
+         linkdir/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         ../../../../etc/passwd -> escapesPackage  expected 'escapesPackage', got 'unsupportedType'
+         nine references refused and no more  expected 9, got 6
+node   budget             PASS
+
+failures: 7
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape
+
+===== arm contained-prefix (containment compared as a string prefix rather than on path segments) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: dac0347095534d0712fa898957bf81a003fff828e468299b014c82490e40a7cb
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         exactly one image travelled  expected 1, got 2
+         ../pkg-escape-evil/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         nine references refused and no more  expected 9, got 8
+node   budget             PASS
+
+failures: 3
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape
+
+===== arm contained-nolinks (containment compared before symlinks are resolved) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: 831e7909ec3b576c6ad58d2770cea28edf97c4bb3c245933e93a48df7eb46b72
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         exactly one image travelled  expected 1, got 3
+         link-out.png -> escapesPackage  expected 'escapesPackage', got None
+         linkdir/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         nine references refused and no more  expected 9, got 7
+node   budget             PASS
+
+failures: 4
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape
+
+===== arm leaks-the-path (the response carries the filesystem path it read from, under the key the app reads as a reference. The first spelling of this arm ADDED a `path` field and tsc refused it: `images` is typed `Array<{reference; media; base64}>` and an object literal carrying an extra property is an excess-property error. So the type already forbids the leak by addition and says nothing about the leak by substitution — which is the one the wire assertion is here to catch.) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: 5c286ca59a0aa4ce4ca7255632636ab3cb8fc5c5aa69c9d3466c9c19f8c9496e
+node   served             FAIL
+         media type  expected 'image/png', got '/private/tmp/g19-wire-scratch/packages/pkg-served/docs/figure.png'
+         the package root appears NOWHERE in the body  root=/private/tmp/g19-wire-scratch/packages/pkg-served
+         no absolute path of any shape appears in the body  
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             FAIL
+         the package root is NOT in the body  
+node   budget             PASS
+
+failures: 4
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape, served
+
+===== arm nodocs-served-anyway (a package publishing none of the three documents is answered with a body rather than refused. The panel would then draw three empty tabs over a package that published nothing, which is the failure `noDocuments` exists to prevent.) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: a22ac9a0ff86af34f6fe3b4af0da00768658086f406ed4af37102aa7ee3b8a21
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        FAIL
+         status  expected 404, got 200
+         names its own rule  expected 'noDocuments', got None
+         carries a human sentence  
+node   documentTooLarge   PASS
+node   escape             PASS
+node   budget             PASS
+
+failures: 3
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: noDocuments
+
+===== arm unnamed-refusal (a refusal stops naming the rule it hit and answers a generic `notFound`. Three different things produce a 404 on this route and the app maps each to different copy, so a shared reason code is a refusal the reader cannot act on.) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: e05063275f6178f74f1f4dd75a2c468c57f51c3453c4a047e7903a4ab766a4c6
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  FAIL
+         names its own rule  expected 'packageUnreadable', got 'notFound'
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             PASS
+node   budget             PASS
+
+failures: 1
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: packageUnreadable
+
+===== arm unnamed-cap (the size refusal no longer names which of the three caps it hit) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: f82701a664e28a4b251ebad847ddd7f646b45e7bb476da02be6e6f8d4330f75f
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   FAIL
+         names the cap it hit  expected 'documentBytes', got 'markdownLimits'
+node   escape             PASS
+node   budget             PASS
+
+failures: 1
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: documentTooLarge
+
+===== arm oversize-spends-budget (an oversized image spends the shared budget instead of being refused on its own terms) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/src/document.ts
+sha256 before: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a
+sha256 planted: f0ac9307b9d750f3e89e083b2fba89a649e69d74d529b081927c1742c55bd014
+node   served             PASS
+node   noPackageDirectory PASS
+node   packageUnreadable  PASS
+node   noDocuments        PASS
+node   documentTooLarge   PASS
+node   escape             PASS
+node   budget             FAIL
+         c.png travelled  expected 2097152, got None
+         d.png travelled  expected 2097152, got None
+         d.png is not a refusal — the oversized figure spent NO budget  refusals=['c.png', 'd.png', 'oversize.png']
+         tail.png is refused once the budget is spent  expected 'budgetExhausted', got None
+         the budget was spent exactly  expected 8388608, got 4195328
+
+failures: 5
+sha256 after restore: 19f7fa5c08b55d871c90d9a1a4e46a1654c1bec3db14d34e37ab2668ce9b8e0a  (IDENTICAL)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: budget
+
+===== arm swift-contained-always (the SHIPPED router's containment check removed outright) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift
+sha256 before: ca7dc638ee3fcc83814ab6f6b3f8be9d917bcb187415d19283fbe76d8cc70e78
+sha256 planted: c8402dab618f0007417a0896455d0d2c545db3069e5e2001743d12d439a3256d
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Emitting module RouterCore
+[4/6] Compiling RouterCore DocumentPackage.swift
+/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift:208:13: warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+206 |         let candidate = base.appendingPathComponent(trimmed)
+207 |             .standardizedFileURL.resolvingSymlinksInPath()
+208 |         let baseParts = base.pathComponents
+    |             `- warning: initialization of immutable value 'baseParts' was never used; consider replacing with assignment to '_' or removing it [#no-usage]
+209 |         let candidateParts = candidate.pathComponents
+210 |         guard candidateParts.count > 0 else {
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (1.89s)
+swift  served             PASS
+swift  noPackageDirectory PASS
+swift  packageUnreadable  PASS
+swift  noDocuments        PASS
+swift  documentTooLarge   PASS
+swift  escape             FAIL
+         exactly one image travelled  expected 1, got 4
+         ../outside/secret.png -> escapesPackage  expected 'escapesPackage', got 'notInPackage'
+         ../pkg-escape-evil/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         link-out.png -> escapesPackage  expected 'escapesPackage', got None
+         linkdir/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         ../../../../etc/passwd -> escapesPackage  expected 'escapesPackage', got 'unsupportedType'
+         nine references refused and no more  expected 9, got 6
+swift  budget             PASS
+
+failures: 7
+sha256 after restore: ca7dc638ee3fcc83814ab6f6b3f8be9d917bcb187415d19283fbe76d8cc70e78  (IDENTICAL)
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Compiling RouterCore DocumentPackage.swift
+[4/6] Emitting module RouterCore
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (1.64s)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape
+
+===== arm swift-leaks-the-path (the SHIPPED router's response carries the package root it read from. Planted on the response object rather than on a reference, because `ReadableImage` carries no path to substitute — the Swift half cannot leak one the way the TypeScript half can, and the arm plants the leak this side can actually have.) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/ControlDocument.swift
+sha256 before: e6daaa44edeabcef115e507ad3f397566d38f66d77e4cb7c1571c196a1f36e54
+sha256 planted: de441e4928ff2270d78dd16fabe50b368b1af0393873db22f1ae5d6749121b73
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Compiling RouterCore ControlDocument.swift
+[4/6] Emitting module RouterCore
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (1.47s)
+swift  served             FAIL
+         the package root appears NOWHERE in the body  root=/private/tmp/g19-wire-scratch/packages/pkg-served
+         no absolute path of any shape appears in the body  
+swift  noPackageDirectory PASS
+swift  packageUnreadable  PASS
+swift  noDocuments        PASS
+swift  documentTooLarge   PASS
+swift  escape             FAIL
+         the package root is NOT in the body  
+swift  budget             PASS
+
+failures: 3
+sha256 after restore: e6daaa44edeabcef115e507ad3f397566d38f66d77e4cb7c1571c196a1f36e54  (IDENTICAL)
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Emitting module RouterCore
+[4/6] Compiling RouterCore ControlDocument.swift
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (1.60s)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape, served
+
+===== arm swift-contained-nolinks (the SHIPPED router compares containment before resolving symlinks) =====
+file:   /Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/Sources/RouterCore/Control/DocumentPackage.swift
+sha256 before: ca7dc638ee3fcc83814ab6f6b3f8be9d917bcb187415d19283fbe76d8cc70e78
+sha256 planted: b413c0263cbe3c1bb95ca1ca914c999f65f0ef77ba1621157b398039564719ba
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Compiling RouterCore DocumentPackage.swift
+[4/6] Emitting module RouterCore
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (1.53s)
+swift  served             PASS
+swift  noPackageDirectory PASS
+swift  packageUnreadable  PASS
+swift  noDocuments        PASS
+swift  documentTooLarge   PASS
+swift  escape             FAIL
+         exactly one image travelled  expected 1, got 3
+         link-out.png -> escapesPackage  expected 'escapesPackage', got None
+         linkdir/secret.png -> escapesPackage  expected 'escapesPackage', got None
+         nine references refused and no more  expected 9, got 7
+swift  budget             PASS
+
+failures: 4
+sha256 after restore: ca7dc638ee3fcc83814ab6f6b3f8be9d917bcb187415d19283fbe76d8cc70e78  (IDENTICAL)
+Building for debugging...
+warning: 'app': Invalid Exclude '/Users/lukerhodes/Dev/mcp-router/.worktrees/G19/app/MCPRouter/Info.plist': File not found.
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Emitting module RouterCore
+[4/6] Compiling RouterCore DocumentPackage.swift
+[4/7] Write Objects.LinkFileList
+[5/7] Linking MCPRouterCLI
+[6/7] Applying MCPRouterCLI
+Build of product 'MCPRouterCLI' complete! (1.59s)
+rebuild after restore rc=0
+VERDICT: red — red exactly where declared: escape

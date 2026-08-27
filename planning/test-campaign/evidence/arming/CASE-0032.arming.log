@@ -1,0 +1,28 @@
+case: CASE-0032
+filter: PoolTests
+verdict: RED
+executed: 6
+exit: 1
+breaks: the reaper stops considering work in flight, so a call outliving the idle window has its own child closed underneath it
+note: 6 tests ran; the suite failed as required
+mutation:
+  app/Sources/RouterCore/Pool/UpstreamPoolReaping.swift
+    - guard entry.inFlight == 0, entry.pendingWaiters == 0, let handle = entry.handle else { return }
+    + guard let handle = entry.handle else { return }
+  app/Sources/RouterCore/Pool/UpstreamPool.swift
+    - entry.inFlight += 1
+        cancelReap(&entry)
+    + entry.inFlight += 1
+        armReap(name: name, entry: &entry)
+  app/Sources/RouterCore/Pool/UpstreamPoolReaping.swift
+    - entry.inFlight == 0, // nothing outstanding
+    + 
+  app/Sources/RouterCore/Pool/UpstreamPoolReaping.swift
+    - if !force, entry.inFlight > 0 { return }
+    + 
+restored: app/Sources/RouterCore/Pool/UpstreamPool.swift@5ac459f07f51313b, app/Sources/RouterCore/Pool/UpstreamPoolReaping.swift@b763c8e64faf2a6a
+first failures:
+  􀢄  Test "P4 — an upstream with a call outstanding is never reaped" recorded an issue at PoolTests.swift:127:9: Expectation failed: await pool.isLive("a")
+  􀢄  Test "P4 — an upstream with a call outstanding is never reaped" failed after 0.246 seconds with 1 issue.
+  􀢄  Suite "Pool state machine" failed after 0.246 seconds with 1 issue.
+  􀢄  Test run with 6 tests in 1 suite failed after 0.247 seconds with 1 issue.

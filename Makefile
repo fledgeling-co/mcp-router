@@ -736,10 +736,11 @@ parity-watch-mutations:
 ##
 ## G10 established that this target reached only its first lane. With that fixed it reached all
 ## eight and reported `7 pass, 0 fail, 1 blocked` — and the one blocked lane was blocked on an
-## artifact this target does not build. `shells.sh:495` calls
-## `build_freshness_require Debug-iphonesimulator`, so it asserts against the iOS simulator bundle
-## and BLOCKS without one; `app/.build/debug/MCPRouterCLI` is the same shape for the other two,
-## and only passed above because an earlier build happened to leave one on disk.
+## artifact this target does not build.
+## `shells.sh:495` at `ae845a1` reads `build_freshness_require Debug-iphonesimulator`, so it
+## asserts against the iOS simulator bundle and BLOCKS without one; `app/.build/debug/MCPRouterCLI`
+## is the same shape for the other two, and only passed above because an earlier build happened to
+## leave one on disk.
 ##
 ## A lane that blocks on a missing artifact is not evidence about the product. It is the target
 ## declining to build what its own lane checks, and it reads as a gate with a permanent exception

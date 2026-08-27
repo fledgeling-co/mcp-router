@@ -335,11 +335,11 @@ WINDOW_TEXT="$(cut -f4,5,6 "$WORK/window.tsv" | tr '\t' '\n' | grep -v '^$' || t
 # loose number. That is the point of the label, so the assertion has to allow for it.
 # Settings left this list at M15: it is a `Settings` scene now, not a destination, so a row for it
 # in the console's tree would be the removal having been partial.
-for needle in Activity Servers Skills Discover Inbox Checks Cleanup; do
+for needle in Activity Servers Skills Harnesses Discover Inbox Checks Cleanup Insights; do
     printf '%s\n' "$WINDOW_TEXT" | grep -qE "^$needle(,|$)" \
       || fail "the accessibility tree does not carry a row for '$needle'"
 done
-pass "all seven destinations are in the accessibility tree"
+pass "all nine destinations are in the accessibility tree"
 
 # The other direction, which is what makes the removal checkable rather than merely unbroken: the
 # console must not carry a Settings row at all.
@@ -390,7 +390,7 @@ pass "the readout announces its counts as a sentence"
 
 TITLE="$("$AXKIT" title "$PID")"
 case "$TITLE" in
-    Activity|Servers|Skills|Discover|Inbox|Checks|Cleanup) ;;
+    Activity|Servers|Skills|Harnesses|Discover|Inbox|Checks|Cleanup|Insights) ;;
     # `Settings` is deliberately absent: the console's title is a destination's, and Settings is no
     # longer one. The Settings *window* carries that title, and `m8-settings-menubar.sh` reads it
     # there.
@@ -1219,7 +1219,7 @@ capture_evidence() {
 }
 
 : > "$WORK/all-panes.tsv"
-for dest in Activity Servers Skills Discover Inbox Checks Cleanup; do
+for dest in Activity Servers Skills Harnesses Discover Inbox Checks Cleanup Insights; do
     "$AXKIT" select "$PID" "$dest" >/dev/null || fail "could not select $dest"
     sleep 1.2
     dump_window
@@ -1292,7 +1292,7 @@ for dest in Activity Servers Skills Discover Inbox Checks Cleanup; do
 
     # Held BELOW the card it is the foot of, so "last in the sidebar" is measured rather than
     # assumed. Without a y bound the foot could be moved above the destination list, keep its x, and
-    # pass on all seven boards.
+    # pass on all nine boards.
     FOOT="$(sidebar_address "$WORK/window.tsv" "$SIDE_L" "$SIDE_R" "$LABEL_Y")"
     [ -n "$FOOT" ] \
       || fail "$dest: the sidebar foot carries no loopback readout below the count card — it is in the shared wrapper, so it belongs on every board (M27)"
@@ -1334,7 +1334,7 @@ fi
 if grep -qw "Evals" "$WORK/menu.tsv"; then
     fail "'Evals' is still in the menu bar — the View menu and the sidebar disagree"
 fi
-pass "'Evals' appears in neither the seven panes nor the menu bar; the sidebar, the title and the pane heading all read 'Checks'"
+pass "'Evals' appears in neither the nine panes nor the menu bar; the sidebar, the title and the pane heading all read 'Checks'"
 check_invisible "the board-alignment and rename assertions"
 
 # ---------------------------------------------------------------- A34 · the scroll edge, rendered
@@ -1751,21 +1751,21 @@ pass "File / Pair iPhone… is enabled and carries no reason — the menu agrees
 #
 # **When export ships, this row is a deliberate edit**, exactly like G2 when pairing changes. That
 # is the cost of naming a command, and it is the only thing that makes the claim falsifiable.
-EXPORT_LINE="$(awk -F'\t' '$1 == "File" && $2 == "Export library…" { print; exit }' "$WORK/items.tsv")"
-[ -n "$EXPORT_LINE" ] || fail "File / Export library… is not in the menu bar at all — §3.4 forbids hiding a disabled command"
+EXPORT_LINE="$(awk -F'\t' '$1 == "Library" && $2 == "Export Library…" { print; exit }' "$WORK/items.tsv")"
+[ -n "$EXPORT_LINE" ] || fail "Library / Export Library… is not in the menu bar at all — §3.4 forbids hiding a disabled command"
 EXPORT_ENABLED="$(printf '%s' "$EXPORT_LINE" | cut -f3)"
 EXPORT_HELP="$(printf '%s' "$EXPORT_LINE" | cut -f4)"
 [ "$EXPORT_ENABLED" = "0" ] \
-  || fail "File / Export library… is offered as usable, but no export feature exists in either target"
+  || fail "Library / Export Library… is offered as usable, but no export feature exists in either target"
 [ "$EXPORT_HELP" != "$SURFACE_ABSENT_REASON" ] \
-  || fail "File / Export library… explains itself with the missing-board sentence — its feature was never built, which is a different fact"
+  || fail "Library / Export Library… explains itself with the missing-board sentence — its feature was never built, which is a different fact"
 [ -n "$EXPORT_HELP" ] \
-  || fail "File / Export library… is dimmed and says nothing — §3.4 requires a discoverable reason"
-pass "File / Export library… is dimmed and gives a reason of its own: '$EXPORT_HELP'"
+  || fail "Library / Export Library… is dimmed and says nothing — §3.4 requires a discoverable reason"
+pass "Library / Export Library… is dimmed and gives a reason of its own: '$EXPORT_HELP'"
 
 # ---------------------------------------------------------------- D4 · a shortcut §8 never granted
 #
-# `Export library…` used to carry `⌘E`, and two separate things were wrong with it.
+# `Export Library…` used to carry `⌘E`, and two separate things were wrong with it.
 #
 # `DESIGN.md` §8's table is where this app's ⌘-combinations are granted, and it never granted `⌘E`.
 # And `⌘E` is already a **standard macOS combination** — Finder's *Eject*, and Cocoa's *Use Selection
@@ -1782,8 +1782,8 @@ pass "File / Export library… is dimmed and gives a reason of its own: '$EXPORT
 # command picked the same ungranted chord up.
 EXPORT_CHAR="$(printf '%s' "$EXPORT_LINE" | cut -f5 | tr -d '[:cntrl:]')"
 [ -z "$EXPORT_CHAR" ] \
-  || fail "File / Export library… binds '$EXPORT_CHAR', but §8's table grants it no shortcut and the command can never fire"
-pass "File / Export library… carries no shortcut — §8 granted it none"
+  || fail "Library / Export Library… binds '$EXPORT_CHAR', but §8's table grants it no shortcut and the command can never fire"
+pass "Library / Export Library… carries no shortcut — §8 granted it none"
 
 #
 # **Two things this has to get right, and the first draft got both wrong — measured, not reasoned.**

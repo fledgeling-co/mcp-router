@@ -93,7 +93,7 @@ PER_FILE = {
         "app stayed on whichever board the loop visited last, and the shutter filed those pixels "
         "under SURF-011's filename -- the exact failure `capture-lineage.py` exists to find, and the "
         "one its tie pass caught, because the capture step recorded `target: app://mac/insights` "
-        "honestly while the filename said otherwise. `NOT PHOTOGRAPHED — the select did not take, and the window is showing`, `bin/capture-mac-glass.sh:165-169` at `16b5ca9` now refuses to "
+        "honestly while the filename said otherwise. `bin/capture-mac-glass.sh:165-169` now refuses to "
         "photograph a select that did not take. Renamed rather than deleted so the defect keeps its "
         "evidence, and renamed rather than left in place so no filename-matching tool can offer it "
         "to SURF-011 again.",

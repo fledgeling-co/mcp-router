@@ -2300,5 +2300,164 @@
     ],
     "note": "EVERY FIGURE THE BOARD DRAWS, TRACED TO SOMETHING THE ROUTER OBSERVES — the reason this board is its own item. Run against the Swift router serving GET /insights on 127.0.0.1:8976 under an isolated MCP_ROUTER_HOME, because ShellClientFactory makes a Debug build always take a fixture and no rendered window can tell a real reading from a recorded one.\n\nEach figure resolves to one of three classes and only two pass. OBSERVED: children.alive and children.declared (the pool's live child table; the server list on disk), calls.total (records the router wrote to its own usage log), otherCalls. DERIVED, with the derivation and both terms stated: the failure rate is failed/total*100 and BOTH terms are drawn beside it, and the duty-cycle share is aliveSeconds/uptimeSeconds — the router reports both numbers rather than a pre-divided share precisely so a surface holding both can decline to draw it. UNTRACEABLE fails the case, and nothing was untraceable.\n\nTHE M32 CELL specifically: `Resident, all children`. With no child holding a process the route serves `resident: null` and the board draws an em dash and `No child is running, so there is nothing to measure` — an absence, never a zero, which is what the label `measured, not modelled` rules out. NOT EXERCISED IN THIS RUN: the non-null path. No live child was spawned, so a real megabyte figure was never compared against ps(1). The check that would do it is written and bounded (the reading must fall within this machine's whole RSS) and it did not run. That is a gap in this case, stated rather than left to be inferred.\n\nIndependently taken by this script rather than trusted: children.declared equals the server list it counted itself; windowHours and calls.unreadableLines are both served, so a count of what parsed is not passed off as a count of what was there; the analyst member is present and NULL rather than absent, so the board draws its empty state from a fact the router stated rather than a key it failed to find.",
     "armedBy": "two planted faults, built into bin/insights-live-probe.py --arm. ARM 1 removes `calls.total` from the payload: the trace goes RED naming both the figure that reads it and the derivation whose second term vanished. ARM 2 drops `resident` from the figure map: the completeness check goes RED with `NOT IN THE MAP: ['resident']`. That second arm is the one that matters — the map is parsed against every `identifier:` InsightsBoard.swift actually draws a figure under, so a figure ADDED to the board cannot escape the trace by not being written down, which is exactly how the surface list stopped growing while the product did. Payload restored byte-identically, both sha256 digests printed. The instrument was wrong first and it is recorded: it read `resident: null` as an untraceable figure when it is a declared absence, which is the opposite verdict and the distinction §6 is entirely about."
+  },
+  {
+    "id": "CASE-0178",
+    "req": "REQ-026",
+    "surface": "SURF-027",
+    "lane": "router-daemon",
+    "cell": {
+      "surface": "SURF-027",
+      "state": "populated",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "operator",
+      "dataShape": "a package publishing all three documents and one figure",
+      "executionPlane": "loopback-http"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/wire-document/wire-document.json",
+      "evidence/wire-document/wire-document.log",
+      "evidence/wire-document/arming.json",
+      "evidence/wire-document/arming.log"
+    ],
+    "note": "A served document returns its content, and the response carries NO filesystem path. Eleven assertions: 200; the read me carries the fixture's sentinel; changelog and capabilities both present; exactly one image travelled; its reference is the string the document spelled (`docs/figure.png`) rather than a resolved path; media `image/png`; the base64 decodes to the file's own bytes; nothing refused; the package root appears NOWHERE in the raw body; and no absolute path of any shape (/private/tmp, /Users, /tmp) appears in it either. The last two are M30's own assertion moved onto the wire — the app may not open a file, so a payload carrying a path is a payload that invites one. Run against BOTH implementations over a real socket: `dist/index.js serve` and the shipped `app/.build/debug/MCPRouterCLI serve`, each on 127.0.0.1:8981 with a scratch MCP_ROUTER_HOME. M30 already proves this route in process — `ControlDocumentRouteTests.swift` calls the handler and asserts on the string it returns — which is a different claim from this one: this lets the kernel carry the bytes and reads what a client actually receives, which is what the campaign asks of every other route on this lane. Observing only the TypeScript half would leave the SHIPPED router unobserved, so both are run and both pass. The server is CONSTRUCTED and labelled so: 0 of the 21 upstreams on this machine declares a package directory, so this route 404s noPackageDirectory for all of them and no real package here reaches this outcome.",
+    "armedBy": "Two planted leaks, one per implementation, each watched to turn this case RED and each restored byte-identically (sha256 before == after). node `leaks-the-path`: `media: entry.path` in src/document.ts, so the response carries the path it read from under a key the app consumes. swift `swift-leaks-the-path`: an extra `root` member on the 200 object in ControlDocument.swift, carrying the package root. Both reddened `served` AND `escape` — declared, not incidental: the no-path property is asserted by two scenarios on purpose, and an arm that reddened only one of them would be the finding. A THIRD spelling was tried first and is recorded because it is a real result: adding a `path` FIELD to the pushed object does not compile — `images` is typed Array<{reference; media; base64}> and tsc refuses the excess property. So the TypeScript type already forbids this leak by ADDITION and says nothing about it by SUBSTITUTION, which is precisely the leak this wire assertion is here to catch."
+  },
+  {
+    "id": "CASE-0179",
+    "req": "REQ-026",
+    "surface": "SURF-027",
+    "lane": "router-daemon",
+    "cell": {
+      "surface": "SURF-027",
+      "state": "refused",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "operator",
+      "dataShape": "no directory declared · a directory that is not there · a directory publishing none of the three",
+      "executionPlane": "loopback-http"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/wire-document/wire-document.json",
+      "evidence/wire-document/wire-document.log",
+      "evidence/wire-document/arming.json",
+      "evidence/wire-document/arming.log"
+    ],
+    "note": "Nothing served — the three ways this route has nothing to give, each reachable and each NAMING ITS OWN RULE rather than a shared 404. `noPackageDirectory` (the server declares no cwd), `packageUnreadable` (it declares one that is not on disk) and `noDocuments` (the directory is there and publishes no README.md, CHANGELOG.md or CAPABILITIES.md). Nine assertions, three per refusal: the status is 404, the `reason` is the specific rule, and a human sentence rides along. The app maps each reason to different copy, so a shared code is a refusal the reader cannot act on. Run against BOTH implementations over a real socket: `dist/index.js serve` and the shipped `app/.build/debug/MCPRouterCLI serve`, each on 127.0.0.1:8981 with a scratch MCP_ROUTER_HOME. M30 already proves this route in process — `ControlDocumentRouteTests.swift` calls the handler and asserts on the string it returns — which is a different claim from this one: this lets the kernel carry the bytes and reads what a client actually receives, which is what the campaign asks of every other route on this lane. Observing only the TypeScript half would leave the SHIPPED router unobserved, so both are run and both pass.",
+    "armedBy": "Two planted faults, each red exactly where declared and restored byte-identically. `nodocs-served-anyway`: the `noDocuments` 404 block deleted from src/document.ts, so a package publishing nothing is answered with a body and the panel would draw three empty tabs over it — RED on noDocuments and nothing else. `unnamed-refusal`: `reason: 'packageUnreadable'` rewritten to a generic `'notFound'` — RED on packageUnreadable and nothing else, which is what demonstrates the case is checking WHICH rule was hit rather than merely that a 404 arrived."
+  },
+  {
+    "id": "CASE-0180",
+    "req": "REQ-026",
+    "surface": "SURF-027",
+    "lane": "router-daemon",
+    "cell": {
+      "surface": "SURF-027",
+      "state": "refused",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "operator",
+      "dataShape": "a README.md of exactly documentBytes + 1",
+      "executionPlane": "loopback-http"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/wire-document/wire-document.json",
+      "evidence/wire-document/wire-document.log",
+      "evidence/wire-document/arming.json",
+      "evidence/wire-document/arming.log"
+    ],
+    "note": "Too large, and it names WHICH cap it hit. A README.md of 524,289 bytes — the 512 KiB documentBytes cap plus one — returns 413 with `cap: documentBytes`, `limit: 524288`, `actual: 524289` and `file: README.md`. Seven assertions. There are three caps on this route that can produce a size refusal, so 'too large' without a cap name tells a reader nothing they can act on. The fixture is built one byte over the boundary rather than comfortably over it, and the runner REFUSES TO START (exit 2) if the caps declared in src/document.ts have drifted from the three the fixture is sized for — a fixture sized past a cap that has since moved is a fixture that passes by never reaching the boundary at all. Run against BOTH implementations over a real socket: `dist/index.js serve` and the shipped `app/.build/debug/MCPRouterCLI serve`, each on 127.0.0.1:8981 with a scratch MCP_ROUTER_HOME. M30 already proves this route in process — `ControlDocumentRouteTests.swift` calls the handler and asserts on the string it returns — which is a different claim from this one: this lets the kernel carry the bytes and reads what a client actually receives, which is what the campaign asks of every other route on this lane. Observing only the TypeScript half would leave the SHIPPED router unobserved, so both are run and both pass.",
+    "armedBy": "`unnamed-cap`: `cap: 'documentBytes'` rewritten to `cap: 'markdownLimits'` in src/document.ts, so the refusal still refuses and still carries a limit but no longer names the cap the reader would act on. RED on documentTooLarge and nothing else; sha256 before == after restore."
+  },
+  {
+    "id": "CASE-0181",
+    "req": "REQ-026",
+    "surface": "SURF-027",
+    "lane": "router-daemon",
+    "cell": {
+      "surface": "SURF-027",
+      "state": "refused",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "operator",
+      "dataShape": "nine adversarial references, one readable figure inside the package",
+      "executionPlane": "loopback-http"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/wire-document/wire-document.json",
+      "evidence/wire-document/wire-document.log",
+      "evidence/wire-document/arming.json",
+      "evidence/wire-document/arming.log"
+    ],
+    "note": "A reference attempting to ESCAPE THE PACKAGE is refused rather than served. Fifteen assertions over one response. The strongest of them is not a reason code: the fixture plants a secret file outside the package, and the case asserts that the secret's path appears NOWHERE in the raw body — if anything escaped, the bytes are in the response and no status code hides that. Then exactly one image travelled and it is the one inside the package (`docs/inside.png`), and nine references are refused with the reason each earns and no more than nine: `../outside/secret.png`, `../pkg-escape-evil/secret.png` (a SIBLING package whose path is a string prefix of this one), `link-out.png` (a real symlink out), `linkdir/secret.png` (a symlinked DIRECTORY), `../../../../etc/passwd` -> escapesPackage; `/etc/hosts.png` and `~/secret.png` -> absolutePath; `https://example.invalid/secret.png` -> remote; `%2e%2e/outside/secret.png` -> notInPackage. M30 armed this check with three planted divergences and a fresh-context verifier attacked it with 23 adversarial references for zero escapes. That evidence is real and it lives in M30's record, where it was proved ONCE. This case exists so the property is checked on a schedule instead. Run against BOTH implementations over a real socket: `dist/index.js serve` and the shipped `app/.build/debug/MCPRouterCLI serve`, each on 127.0.0.1:8981 with a scratch MCP_ROUTER_HOME. M30 already proves this route in process — `ControlDocumentRouteTests.swift` calls the handler and asserts on the string it returns — which is a different claim from this one: this lets the kernel carry the bytes and reads what a client actually receives, which is what the campaign asks of every other route on this lane. Observing only the TypeScript half would leave the SHIPPED router unobserved, so both are run and both pass.",
+    "armedBy": "Five planted faults — three on the reference implementation and two on the SHIPPED router — each RED on escape and nothing else, each restored byte-identically. node, src/document.ts: `contained-always` (the containment check removed outright); `contained-prefix` (compared as a STRING prefix via candidate.startsWith(base), which serves the sibling `pkg-escape-evil`); `contained-nolinks` (realpathSync dropped, so containment is compared before symlinks resolve and the link out is served). swift, DocumentPackage.swift: `swift-contained-always` (the segment-prefix guard replaced by a non-empty check); `swift-contained-nolinks` (`.resolvingSymlinksInPath()` dropped from both base and candidate). Removing the containment check turns this case red on either implementation."
+  },
+  {
+    "id": "CASE-0182",
+    "req": "REQ-026",
+    "surface": "SURF-027",
+    "lane": "router-daemon",
+    "cell": {
+      "surface": "SURF-027",
+      "state": "populated",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "operator",
+      "dataShape": "one 9 MiB figure, four 2 MiB figures, one tail figure",
+      "executionPlane": "loopback-http"
+    },
+    "oracle": "outcome",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/wire-document/wire-document.json",
+      "evidence/wire-document/wire-document.log",
+      "evidence/wire-document/arming.json",
+      "evidence/wire-document/arming.log"
+    ],
+    "note": "An oversized image is refused ON ITS OWN TERMS and does NOT spend the shared budget. Ten assertions. The document names `oversize.png` (over the 2 MiB imageBytes cap) first, then a.png..d.png at exactly 2 MiB each — which together spend the 8 MiB imageBudgetBytes exactly — then tail.png. The discriminator is d.png: it travels only if the oversized figure spent nothing, because had it spent its own 2 MiB + 1 the budget would be gone before d.png was reached and d.png would come back budgetExhausted. tail.png is budgetExhausted either way and so proves nothing on its own, which is why the case does not rest on it. Also asserted: oversize.png is refused `tooLarge` naming the 2,097,152-byte per-image limit rather than `budgetExhausted`, and the budget was spent to exactly 8,388,608 bytes. Run against BOTH implementations over a real socket: `dist/index.js serve` and the shipped `app/.build/debug/MCPRouterCLI serve`, each on 127.0.0.1:8981 with a scratch MCP_ROUTER_HOME. M30 already proves this route in process — `ControlDocumentRouteTests.swift` calls the handler and asserts on the string it returns — which is a different claim from this one: this lets the kernel carry the bytes and reads what a client actually receives, which is what the campaign asks of every other route on this lane. Observing only the TypeScript half would leave the SHIPPED router unobserved, so both are run and both pass.",
+    "armedBy": "`oversize-spends-budget`: `spent += size` added to the tooLarge branch of imageCapDecisions in src/document.ts, so an oversized figure charges the shared budget on its way out. With it planted, c.png and d.png came back refused and the budget read 4,195,328 instead of 8,388,608 — RED on budget and nothing else. sha256 before == after restore."
+  },
+  {
+    "id": "CASE-0183",
+    "req": "REQ-026",
+    "surface": "SURF-027",
+    "lane": "router-daemon",
+    "cell": {
+      "surface": "SURF-027",
+      "state": "populated",
+      "viewport": "n/a",
+      "theme": "n/a",
+      "role": "operator",
+      "dataShape": "one constructed package · network=loopback only",
+      "executionPlane": "loopback-http"
+    },
+    "oracle": "effect-witness",
+    "status": "pass",
+    "armed": true,
+    "evidence": [
+      "evidence/wire-document/witness-socket.txt",
+      "evidence/wire-document/witness.log"
+    ],
+    "note": "The document response crossing a real kernel socket, seen by a party that is not the router. The six cases above read status codes and bodies back through urllib, which proves the route answered but takes the router's own word for how the bytes travelled; this takes the kernel's. `bin/witness-document-socket.sh` starts the SHIPPED router against a scratch home, then holds a socket open with a real `GET /servers/constructed-served/document` written into it while lsof(8) samples the socket table. Before: 1 LISTEN row on 8983 owned by the pid the shell launched, 0 on the decoy. During: 4 ESTABLISHED rows, 1 of them owned by the router pid — the ACCEPTED half, which is the half that proves the process took the connection rather than merely reserving the port; 0 on the decoy. The 589 bytes read straight off that socket begin `HTTP/1.1 200 OK` and contain the fixture's read me sentinel, so the connection lsof saw is the one that carried this route's document. After the process is killed: 0 LISTEN rows. The server is CONSTRUCTED and labelled so: 0 of the 21 upstreams on this machine declares a package directory, so this route 404s noPackageDirectory for all of them and no real package here reaches this outcome.",
+    "armedBy": "The decoy port is the arm: the same recorder, in the same run, is pointed at 8990 — a port nothing was told to bind — and reports 0 LISTEN and 0 ESTABLISHED while 8983 reports 1 and 1. A recorder that answered about whether the router was alive rather than about this port would report the same on both. Two earlier spellings of the socket READ are recorded because each failed in a way that reads exactly like a route answering 200 with an empty body: `head -c 1400` blocked forever on a keep-alive connection that had already sent all ~590 of its bytes, and a line-wise `print while <STDIN>` lost the body to SIGALRM because the JSON carries no trailing newline, so the headers arrived and the body did not. The byte-wise sysread loses at most the byte in flight.",
+    "witness": {
+      "recorder": "kernel socket table via lsof(8), which no part of the router authors: LISTEN rows before and after, and the ESTABLISHED pair sampled while a raw /dev/tcp client held a real GET /servers/constructed-served/document open. The router-owned half is counted by pid. Armed by a decoy port nothing was told to bind, reporting 0 in the same run.",
+      "effect": "inbound-socket",
+      "count": 1
+    }
   }
 ]

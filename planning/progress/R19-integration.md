@@ -46,7 +46,7 @@ instrument catches:
   one.
 - **`parity-overlap.sh`, the lane R19 added itself, carries three assertions per row rather than
   one**: two absolute, one per side against `WANTED_ROWS="lifeline,slowfail"`
-  (`scripts/acceptance/parity-overlap.sh:189`, compared at `:192-193` and `:194-195`), and one
+  (`WANTED_ROWS="lifeline,slowfail"`, `scripts/acceptance/parity-overlap.sh:189` at `4a4990d`, compared at `:192-193` and `:194-195`), and one
   differential between the two sides (`:196`). The absolute pair is why it reddens on **all three**
   armed rows, the both-sides one included, where its output carries a `reference:` clause and a
   `swift:` clause and **no `disagree:` clause** — the two binaries agree there and it fails them
@@ -70,8 +70,8 @@ eye:
 | arm | `parity-cli.sh` | `IndexFailureRecordTests` | `parity-overlap.sh` |
 |---|---|---|---|
 | none | green — 18 verbs agreed, 0 did not, exit 0 | green — 2 tests in 1 suite | green — 2 agreed, 0 did not, exit 0 |
-| **A** node delete, `src/watch.ts:265` | **RED** — 17 agreed, 1 did not, exit 1 | green — 2 tests in 1 suite | **RED** — 1 agreed, 1 did not, exit 1 |
-| **B** Swift `removeEntry` effect, `app/Sources/RouterCore/Watch/WatchIndexing.swift:209` | **RED** — 17 agreed, 1 did not, exit 1 | **RED** — 11 issues | **RED** — 1 agreed, 1 did not, exit 1 |
+| **A** node delete, "saveManifest(manifestPath, current);", `src/watch.ts:265` at `eb3e42c` | **RED** — 17 agreed, 1 did not, exit 1 | green — 2 tests in 1 suite | **RED** — 1 agreed, 1 did not, exit 1 |
+| **B** Swift `removeEntry` effect, `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `app/Sources/RouterCore/Watch/WatchIndexing.swift:209` at `8294df4` | **RED** — 17 agreed, 1 did not, exit 1 | **RED** — 11 issues | **RED** — 1 agreed, 1 did not, exit 1 |
 | **A+B** both arms at once | **green** — 18 verbs agreed, 0 did not, exit 0 | **RED** — 11 issues | **RED** — 1 agreed, 1 did not, exit 1 |
 | both arms removed | green — 18 verbs agreed, 0 did not, exit 0 | green — 2 tests in 1 suite | green — 2 agreed, 0 did not, exit 0 |
 
@@ -308,10 +308,10 @@ first so a doc comment naming a function is not read as a call to it, and assert
 inside a lock block opened by `withExclusiveLock` / `ConfigMutationLock.withExclusiveLock` — or, for
 one level of indirection, inside a helper every call to which is itself inside one.
 
-**6 of 6 covered, exit 0.** `src/manifest.ts:190` in `manifestCommitter`, `src/watch.ts:265` in the
-watcher's closure, `src/control.ts:465` on approve, `app/Sources/RouterCore/Auth/AuthRoutes.swift:173`
+**6 of 6 covered, exit 0.** "saveManifest(path, current);", `src/manifest.ts:190` at `eb3e42c` in `manifestCommitter`, `src/watch.ts:265` in the
+watcher's closure, "saveManifest(deps.cfg.manifestPath, manifest);", `src/control.ts:465` at `eb3e42c` on approve, `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `app/Sources/RouterCore/Auth/AuthRoutes.swift:173` at `8294df4`
 via `promote()`, `app/Sources/RouterCore/Watch/WatchIndexing.swift:209`,
-`app/Sources/RouterCore/Service/ManifestIndexer.swift:186`. The three Swift sites were bare
+`try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `app/Sources/RouterCore/Service/ManifestIndexer.swift:186` at `8294df4`. The three Swift sites were bare
 filenames until gap-fix 1 and now carry their paths, for the reason given there: this repo has two
 Swift modules and a filename alone sends a reader to the wrong one.
 
@@ -425,7 +425,7 @@ recorded accurately.
 
 ### The citation that had rotted three lines
 
-`planning/parity/surface.tsv`'s `cli` / `cli-watch` / `watch` row cited `WatchIndexing.swift:206`
+`planning/parity/surface.tsv`'s `cli` / `cli-watch` / `watch` row cited "// stage `lifeline` as well and its row starts disappearing.", `WatchIndexing.swift:206` at `8294df4`
 for the Swift watcher's manifest save. On this tree `:206` is a comment — *stage `lifeline` as well
 and its row starts disappearing* — and the `try? ManifestIO.save(…)` it meant is at **`:209`**. All
 three Swift sites in that pairing were bare filenames, and this repo has two Swift modules; the
@@ -435,7 +435,7 @@ reader can find it by phrase when the line moves again. The same three were bare
 note's own six-site list and now carry their paths too — the numbers there were already right, the
 module was not stated, and fixing one copy while leaving the other reads as arbitrary. The node
 sites were correct everywhere. **Each of the six was re-read on this tree before the edit**,
-including `ManifestIndexer.swift:186` and `AuthRoutes.swift:173`, which resolve — and which sit
+including `try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `ManifestIndexer.swift:186` at `eb3e42c` and `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `AuthRoutes.swift:173` at `eb3e42c`, which resolve — and which sit
 under `Service/` and `Auth/`, not the `Indexing/` and `HTTP/` a reader might guess.
 
 `parity-manifest-check.sh` reports every cited test, script and row id resolving while this citation

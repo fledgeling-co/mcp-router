@@ -10,7 +10,7 @@ written after the shutter" -- is wrong here, and the git history says so exactly
     39102ac  png=9d048beb8c7eb6a3   captures.json=9d048beb8c7eb6a3   agree
     3189d02  png=a54c084a5e62dbc3   captures.json=9d048beb8c7eb6a3   disagree
 
-`bin/g17-document-flow.sh:238,326` writes a sha256 for every frame as it renders and
+`"sha256": hashlib.sha256(open(png, "rb").read()).hexdigest()`, `bin/g17-document-flow.sh:238` at `16b5ca9` and `:326` writes a sha256 for every frame as it renders and
 re-stamps it at the end of the run, into its OWN manifest at
 `evidence/g17-document/captures.json`. That file still agrees with all five frames byte for
 byte. What went stale was the HAND-COPIED duplicate of those rows in the top-level manifest:
@@ -65,7 +65,7 @@ def sha_of(p: Path) -> str:
 
 def target_from_readback(title: str) -> str:
     """The address a Mac board capture was pointed at, from the window title the AX layer
-    read back AT THE SHUTTER. This is the same construction `bin/capture-mac-glass.sh:191`
+    read back AT THE SHUTTER. This is the same construction `+ title.strip().lower().replace(`, `bin/capture-mac-glass.sh:191` at `16b5ca9`
     performs inline while capturing, applied to `design-size`'s capture-time readback, which
     that script records and does not turn into a target."""
     return "app://mac/" + title.strip().lower().replace(" ", "-")
@@ -93,7 +93,7 @@ PER_FILE = {
         "app stayed on whichever board the loop visited last, and the shutter filed those pixels "
         "under SURF-011's filename -- the exact failure `capture-lineage.py` exists to find, and the "
         "one its tie pass caught, because the capture step recorded `target: app://mac/insights` "
-        "honestly while the filename said otherwise. `bin/capture-mac-glass.sh:165-169` now refuses to "
+        "honestly while the filename said otherwise. `NOT PHOTOGRAPHED — the select did not take, and the window is showing`, `bin/capture-mac-glass.sh:165-169` at `16b5ca9` now refuses to "
         "photograph a select that did not take. Renamed rather than deleted so the defect keeps its "
         "evidence, and renamed rather than left in place so no filename-matching tool can offer it "
         "to SURF-011 again.",

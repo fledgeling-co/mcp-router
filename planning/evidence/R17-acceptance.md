@@ -56,14 +56,14 @@ implementations:
   watcher's own backoff, not in a manifest entry that would look indexed."
 - `app/Sources/RouterCore/Watch/WatchIndexing.swift`, in `WatchIndexer` — `if !step.failed.isEmpty
   { Self.removeEntry(named: upstream.name, from: &manifest) }`, immediately before
-  `ManifestIO.save`, citing `watch.ts:244` as its reason.
+  `ManifestIO.save`, citing `watch.ts:244` at `1004d10` as its reason.
 
 `lifeline` is not staged in `~/.claude.json`, so the watcher's failed loop never ran over it and
 the row `index --force` wrote survived. `namecheap` is staged as a global entry as well as being a
 router upstream, so every watch fire past the five-minute backoff re-indexed it and deleted the row
 again; the row `index --force` had just written was gone again too, **by this delete or by the
 stale save R19 describes, whichever fire it fell into** — a row written *after* a fire's load at
-`src/watch.ts:212` is not in `next` for the delete to reach at all. `/servers` then reported
+"let manifest: Manifest = loadManifest(manifestPath);", `src/watch.ts:212` at `b41c588` is not in `next` for the delete to reach at all. `/servers` then reported
 `error: None, tools: 0, state: idle` for a server whose reason the same process had held and
 discarded, and `watch-state.json` kept that reason in a file the watcher reads every fire for the
 backoff and never reads back to any surface.
@@ -76,7 +76,7 @@ an error row as indexed.
 ### Why this is sufficient and not exclusive — R19
 
 **A second mechanism produces the same observable, and it survives the fix.** `cmdWatch` loads the
-manifest once at `src/watch.ts:212`, spends seconds spawning and indexing children, and saves that
+manifest once at "let manifest: Manifest = loadManifest(manifestPath);", `src/watch.ts:212` at `b41c588`, spends seconds spawning and indexing children, and saves that
 same object at `:292`, so a row another path writes inside the window is clobbered — **with no
 delete statement anywhere in the path**. The verifier demonstrated it against the *fixed* node
 watcher: a `watch` fire held open six seconds on a staged failing server, with `index --force`
@@ -161,7 +161,7 @@ below, F3.
 **Corrected 2026-08-22: the *regardless of how it was configured* half is unmet for the staged-only
 route.** A server staged in `~/.claude.json` and never adopted into `servers.json` now gets a
 manifest row, and **no surface REPORTS it**: `reportUpstreams` maps over `cfg.upstreams`
-(`src/oauth.ts:277`), and `/servers` builds its list the same way, so a row keyed by a name that is
+(`return cfg.upstreams.map((u: UpstreamConfig): UpstreamReport => {`, `src/oauth.ts:277` at `b41c588`), and `/servers` builds its list the same way, so a row keyed by a name that is
 not in `config.upstreams` is never joined to anything a reader is shown. `pocketsmith` on the
 owner's machine is that shape.
 
@@ -288,7 +288,7 @@ It *was* measured — once, by the verifier, out of lane. What no scenario in th
 reproduce it, and a declaration of blindness that says "not measured" when its own evidence sentence
 says "measured" is the one wobble such a declaration cannot afford.
 The two implementations disagree on *when* the manifest is read. `cmdWatch` loads it once per run
-(`src/watch.ts:212`) and saves that same object at `:292`. `WatchIndexer.apply` re-loads it per
+("let manifest: Manifest = loadManifest(manifestPath);", `src/watch.ts:212` at `b41c588`) and saves that same object at `:292`. `WatchIndexer.apply` re-loads it per
 entry, immediately before each save — a property `WatchIndexing.swift`'s own header has documented
 since X4b, citing this exact window in the reference. On a fixture that overlaps a second writer,
 Swift keeps both rows and node keeps one; the verifier measured that on 2026-08-22.
@@ -312,15 +312,15 @@ genuinely *did* overlap a writer would redden this row on a divergence older tha
 wrong instrument for a records pass to reach for.
 
 **What the declaration covers, and what it does not.** It is scoped to the watch save alone —
-`src/watch.ts:292` against `WatchIndexing.swift:187`. It does **not** cover the other four
-`saveManifest` call sites: `src/index.ts:146` on the `import` verb, `src/index.ts:186` on `index`,
-and `src/control.ts:262` and `:432` on the control API. None is declared and none is measured. With
+"saveManifest(manifestPath, manifest);", `src/watch.ts:292` at `8592e5c` against `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `WatchIndexing.swift:187` at `aaee8b9`. It does **not** cover the other four
+`saveManifest` call sites: "saveManifest(manifestPath, manifest);", `src/index.ts:146` at `b41c588` on the `import` verb, "saveManifest(manifestPath, next);", `src/index.ts:186` at `13e728b` on `index`,
+and "saveManifest(cfg.manifestPath, manifest);", `src/control.ts:262` at `b41c588` and `:432` on the control API. None is declared and none is measured. With
 the two uncovered `ManifestIO.save` sites named below, that is **six** uncovered sites and not four
 pairs.
 
 **"Five" is the reference's count, and the two inventories are not a pairing.** node has five
-`saveManifest` call sites; this router has **three** `ManifestIO.save` sites — `AuthRoutes.swift:120`,
-`ServicePorts.swift:391` and `WatchIndexing.swift:187` — so the declared pair is one of five against
+`saveManifest` call sites; this router has **three** `ManifestIO.save` sites — `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `AuthRoutes.swift:120` at `8592e5c`,
+`try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `ServicePorts.swift:391` at `8592e5c` and `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `WatchIndexing.swift:187` at `aaee8b9` — so the declared pair is one of five against
 one of three, and the remaining four and two are uncovered on their own terms rather than as
 twins. The second reader caught the count being quoted as though it spanned both. The repo already has this guard for the config writer and states it
 in those words — `ImportConfigWriterLockTests.swift`'s *W11 — the read happens inside the lock, so a
@@ -362,7 +362,7 @@ error row as indexed. agy checked all six consumer sites across both implementat
 the claim held at each.
 
 **F1 — a failed index resets the trust anchor, and it was reproduced.** The catch in
-`manifest.ts:260-265` writes a fresh object and discards `prev` entirely, including its `digest`.
+`manifest.servers[u.name] = {`, `manifest.ts:260-265` at `1004d10` writes a fresh object and discards `prev` entirely, including its `digest`.
 On the next successful index `manifest.ts:236` — `if (!prev?.digest || prev.digest === digest)` —
 takes the first-sight-approves branch, so a changed tool surface is served without the
 held-for-approval diff. Reproduced against the built router with a server whose surface can be
@@ -405,10 +405,10 @@ as a deferred child — not something this review discovered and not something R
 cited rather than filed. Its cause is F1's, and R18 is where the fix argument lives.
 
 **F3 — four paths that still leave no record.** Acceptance criterion 1 is unmet for each:
-`watch.ts:200`'s unguarded `JSON.parse` of `servers.json`; a staged entry `parseServer` rejects,
+`const routerCfg = JSON.parse(readFileSync(DEFAULT_CONFIG_PATH, 'utf8')) as {`, `watch.ts:200` at `1004d10` — its unguarded `JSON.parse` of `servers.json`; a staged entry `parseServer` rejects,
 which gets a `watchLog` line and never reaches `buildManifest`; `WatchIndexing.swift:187`'s
 `try? ManifestIO.save`, which swallows a save failure while the backoff still records one; and
-`watch.ts:292`, where a throwing `saveManifest` propagates before `saveState`, so the backoff is
+"saveManifest(manifestPath, manifest);", `watch.ts:292` at `8592e5c`, where a throwing `saveManifest` propagates before `saveState`, so the backoff is
 never persisted and the next fire retries immediately.
 
 The first was checked empirically, twice — once by the runner and once again on 2026-08-22 for the
@@ -430,7 +430,7 @@ both are load-bearing refusals rather than silent deaths, which is milder than t
 Neither writes a manifest row or a log line, so the finding stands as a gap in criterion 1's
 "whichever branch the failure took".
 
-**F4 — manifest rows are now permanent.** Nothing prunes them: `watch.ts:206-209` prunes only the
+**F4 — manifest rows are now permanent.** Nothing prunes them: `// A failure record for a server that is no longer staged is dead weight.`, `watch.ts:206-209` at `1004d10` prunes only the
 `failures` in `watch-state.json`. agy reached the same finding independently and assessed the
 runtime impact as zero, because every operational surface iterates `config.upstreams` rather than
 `Object.keys(manifest.servers)`. Growth is bounded by the number of distinct names ever staged.

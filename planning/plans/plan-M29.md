@@ -24,7 +24,7 @@ destructive `Disable <server>` button that the build currently ships as `Remove 
 The item is **not** "add a boolean". The boolean is four lines. The work is (i) making the *serving
 surface* a closed, enumerated set rather than one function, (ii) making the same change twice
 under a gate that diffs bytes, and (iii) not disturbing the reference defect at
-`src/manifest.ts:436` that this feature is most likely to be absorbed into.
+"if (!entry || entry.tools.length === 0) continue;", `src/manifest.ts:436` at `9c48d2d` that this feature is most likely to be absorbed into.
 
 ---
 
@@ -46,11 +46,11 @@ covers only the first is a disable in name (spec §4, D5):
 
 | # | Site (TS) | Site (Swift) | What leaks without the check |
 |---|---|---|---|
-| 1 | `src/manifest.ts:434` (`unionTools`) | `ToolUnion.swift` `unionTools` | the tools stay on `tools/list` |
-| 2 | `src/router.ts:196` (`tools/call` guard) | `MCPEndpointToolCall.swift:60` | the tools stay callable by name |
-| 3 | `src/pool.ts:453` (`warmUp`) | `UpstreamPoolReaping.swift:104` | a warm+disabled server is spawned at boot |
-| 4 | `src/pool.ts:435` (reap skip) | `UpstreamPoolReaping.swift:28` | **a warm+disabled server is never reaped** — it stays resident forever, serving nobody |
-| 5 | `src/index.ts:199,228` + `src/watch.ts:233` | the Swift index/watch sweeps | the automatic sweeps spawn it to index it |
+| 1 | "if (!visibleTo(u, opts.cwd)) continue;", `src/manifest.ts:434` at `9c48d2d` (`unionTools`) | `ToolUnion.swift` `unionTools` | the tools stay on `tools/list` |
+| 2 | `if (!visibleTo(upstream, who.cwd)) {`, `src/router.ts:196` at `9c48d2d` (`tools/call` guard) | `if !ToolUnion.visibleTo(upstream, cwd: identity.cwd) {`, `MCPEndpointToolCall.swift:60` at `9c48d2d` | the tools stay callable by name |
+| 3 | "const warm = [...this.upstreams.values()].filter((u) => u.warm);", `src/pool.ts:453` at `9c48d2d` (`warmUp`) | `let warm = orderedNames.compactMap { upstreams[$0] }.filter { $0.warm == true }`, `UpstreamPoolReaping.swift:104` at `9c48d2d` | a warm+disabled server is spawned at boot |
+| 4 | "if (u?.warm) return;", `src/pool.ts:435` at `9c48d2d` (reap skip) | `if config.warm == true { return }`, `UpstreamPoolReaping.swift:28` at `9c48d2d` | **a warm+disabled server is never reaped** — it stays resident forever, serving nobody |
+| 5 | "const stale = upstreams.filter((u) => isStale(manifest, u));", `src/index.ts:199` at `9c48d2d` and `:228` + "if (isStale(manifest, upstream)) toIndex.push(upstream);", `src/watch.ts:233` at `9c48d2d` | the Swift index/watch sweeps | the automatic sweeps spawn it to index it |
 
 Row 4 was not in the spec and is not cosmetic: `if (u?.warm) return;` skips the reap timer
 entirely, so disabling a warm server today would produce a resident child process with no route to
@@ -92,18 +92,18 @@ in …"*, which is the reference's *first* `in` test — putting `disabled` firs
 message and redden a row that has nothing to do with this feature.
 
 `describe()`'s `disabled` is `!!u.disabled` — JS truthiness over the raw value, matching `warm`,
-because `Describe.swift:133` reports `warm` as `.bool(upstream.raw.member("warm")?.isTruthy ?? false)`
+because `key: "warm", value: .bool(upstream.raw.member("warm")?.isTruthy ?? false)`, `Describe.swift:133` at `9c48d2d` reports `warm` as `.bool(upstream.raw.member("warm")?.isTruthy ?? false)`
 and a typed read would diverge on `"disabled": "yes"`.
 
 ### Slice B — the Swift router (RouterCore)
 
 Mirrors slice A exactly. `UpstreamConfig.swift` (`disabled: Bool?`),
-`ServerParser.swift:84-86` (`disabled: raw.member("disabled")?.asBool`, beside `warm`),
-`ToolUnion.swift` (`isServed`), `MCPEndpointToolCall.swift:60`,
-`UpstreamPoolReaping.swift:28,104`, the Swift index/watch sweeps,
+`projects: raw.member("projects")?.asArray?.map(\.jsDisplayString)`, `ServerParser.swift:84-86` at `9c48d2d` (`disabled: raw.member("disabled")?.asBool`, beside `warm`),
+`ToolUnion.swift` (`isServed`), `if !ToolUnion.visibleTo(upstream, cwd: identity.cwd) {`, `MCPEndpointToolCall.swift:60` at `9c48d2d`,
+`if config.warm == true { return }`, `UpstreamPoolReaping.swift:28` at `9c48d2d` and `:104`, the Swift index/watch sweeps,
 `ControlHandler.swift` `patch(_:name:deps:)` (a fifth `supplied("disabled")` arm **after**
 `placard`, shaped exactly like the `warm` arm's truthiness coercion), and
-`Describe.swift:123-134` (`disabled` beside `warm`, read from `raw` with `isTruthy`).
+"/// `projects` and `warm` — one nullish default and one truthiness coercion, deliberately", `Describe.swift:123-134` at `9c48d2d` (`disabled` beside `warm`, read from `raw` with `isTruthy`).
 
 `UpstreamHash.swift` is not touched. Confirm by diff that it is not.
 
@@ -126,25 +126,25 @@ rather than render a disabled server as live.
 | `ServerPresentation.swift` | `ServerSubtitle.forServer` gains `if server.disabled { return ServerSubtitle(text: "disabled by you", tint: .t3) }` **first**, above `inFlight`. First because a disabled server that is also holding a change, also unauthorised and also index-errored is, before any of that, not serving anything |
 | `ServerPresentation.swift` | `ServerRowAction` gains `case enable` (label `Enable`), returned first in `forServer`; `ServerRowModel.tools` becomes `Int?`, nil exactly when disabled |
 | `JackPresentation.swift` | a disabled server's jack is `.dormant`; its word is `disabled` rather than `dormant`/`warm` |
-| `ServersBoardRow.swift:79,113` | the tools cell renders `—` for nil; the accessibility label says `tools withheld` rather than an empty string, so the row is not silently ambiguous to VoiceOver |
+| `cell("\(row.tools)", width: ServersBoardMetrics.toolsColumn, tint: .t2)`, `ServersBoardRow.swift:79` at `9c48d2d` and `:113` | the tools cell renders `—` for nil; the accessibility label says `tools withheld` rather than an empty string, so the row is not silently ambiguous to VoiceOver |
 | `ServersBoardWrites.swift` | `setDisabled(_ name: String, to: Bool)` beside `setWarm`; `perform(_:on:)` gains the `.enable` arm |
-| `ServerSheets.swift:181` | the held-change sheet's destructive button becomes `Disable \(serverName)` calling `board.setDisabled(serverName, to: true)`, dimmed with `This server is already disabled.` when it is. Replaces `Remove \(serverName)` — which stays reachable at `ServerInspectorSections.swift:155` and `ShellCommandRouter.swift:282`, verified by grep before and after |
+| `board.request(.removeInstalledCapability, subject: serverName)`, `ServerSheets.swift:181` at `9c48d2d` | the held-change sheet's destructive button becomes `Disable \(serverName)` calling `board.setDisabled(serverName, to: true)`, dimmed with `This server is already disabled.` when it is. Replaces `Remove \(serverName)` — which stays reachable at `board.request(.removeInstalledCapability, subject: server.name)`, `ServerInspectorSections.swift:155` at `9c48d2d` and `model.serversBoard.request(.removeInstalledCapability, subject: selection)`, `ShellCommandRouter.swift:282` at `9c48d2d`, verified by grep before and after |
 
 `MenuCommand` is not touched (spec D3).
 
 **`needsAttention` must change, and the plan previously said it need not.** The out-of-family
 review caught this and it is the largest correction in the plan. `ServerFilter.needsYou` is
 `server.needsAttention || server.placard != nil`, and `MCPServer.needsAttention`
-(`Models.swift:109-111`) is `pendingChange != nil || (auth.supported && !auth.authorized) ||
+(`public var needsAttention: Bool {`, `Models.swift:109-111` at `9c48d2d`) is `pendingChange != nil || (auth.supported && !auth.authorized) ||
 indexError != nil`. A disabled server holding a schema change satisfies all of it, so spec A1
 does **not** fall out of the existing cases. The blast radius is wider than the board: the same
-property feeds `ReadoutModel.swift:218`, `MenuBarPresentation.swift:137,150` and the Servers
+property feeds `case .serversNeedingAttention: servers.filter(\.needsAttention).count`, `ReadoutModel.swift:218` at `9c48d2d`, `waiting > 0 || servers.contains(where: \.needsAttention)`, `MenuBarPresentation.swift:137` at `9c48d2d` and `:150` and the Servers
 sidebar badge, so without this a disabled server would put a count on the menu bar for a decision
 nothing can act on and nothing is exposed to.
 
 | File | Change |
 |---|---|
-| `Models.swift:109` | `needsAttention` becomes `!disabled && (pendingChange != nil \|\| (auth.supported && !auth.authorized) \|\| indexError != nil)` — one edit, five consumers corrected |
+| `public var needsAttention: Bool {`, `Models.swift:109` at `9c48d2d` | `needsAttention` becomes `!disabled && (pendingChange != nil \|\| (auth.supported && !auth.authorized) \|\| indexError != nil)` — one edit, five consumers corrected |
 | `ServerPresentation.swift` | `ServerFilter.needsYou` becomes `!server.disabled && (server.needsAttention \|\| server.placard != nil)`, because the `placard` limb sits outside `needsAttention` |
 
 The record is not lost, only the summons: the held change stays on `MCPServer.pendingChange` and
@@ -259,7 +259,7 @@ line rather than omitted, so the silence is not read as forgotten.
 Everything here is already an accepted assumption or a filed child in the spec, so there is no
 narrowing: DEF-M29-a (per-project deny-list, spec §3.3), DEF-M29-b (the Router-menu commands, spec
 D3), DEF-M29-c (the inspector's `⋯` menu, which the mock does not draw). Killing a running child
-process on disable is assumption A3 and is deliberately not done. The `manifest.ts:436` defect is
+process on disable is assumption A3 and is deliberately not done. The "if (!entry || entry.tools.length === 0) continue;", `manifest.ts:436` at `9c48d2d` defect is
 explicitly not fixed (spec §3.2). No requirement of the brief is left uncarried.
 
 ## 8 · Gates
@@ -277,10 +277,10 @@ not run is reported as that rather than as a pass.
 **Mechanical path check — pass.** 35 backtick-quoted paths extracted; every directory-qualified
 one resolves. Thirteen are bare basenames used inside a table whose directory its own row
 establishes, and each resolves to exactly one file in the tree. Separately, **all 17 line-number
-citations were read back** (`src/manifest.ts:434`, `src/router.ts:196`, `src/pool.ts:435,453`,
-`MCPEndpointToolCall.swift:60`, `UpstreamPoolReaping.swift:28,104`, `src/index.ts:199,228`,
-`src/watch.ts:233`, `ServerParser.swift:85`, `Describe.swift:133`, `ServersBoardRow.swift:79,113`,
-`ServerSheets.swift:181`, `ServerInspectorSections.swift:155`, `ShellCommandRouter.swift:282`) and
+citations were read back** ("if (!visibleTo(u, opts.cwd)) continue;", `src/manifest.ts:434` at `9c48d2d`, `if (!visibleTo(upstream, who.cwd)) {`, `src/router.ts:196` at `9c48d2d`, "if (u?.warm) return;", `src/pool.ts:435` at `9c48d2d` and `:453`,
+`if !ToolUnion.visibleTo(upstream, cwd: identity.cwd) {`, `MCPEndpointToolCall.swift:60` at `9c48d2d`, `if config.warm == true { return }`, `UpstreamPoolReaping.swift:28` at `9c48d2d` and `:104`, "const stale = upstreams.filter((u) => isStale(manifest, u));", `src/index.ts:199` at `9c48d2d` and `:228`,
+"if (isStale(manifest, upstream)) toIndex.push(upstream);", `src/watch.ts:233` at `9c48d2d`, `warm: raw.member("warm")?.asBool`, `ServerParser.swift:85` at `9c48d2d`, `key: "warm", value: .bool(upstream.raw.member("warm")?.isTruthy ?? false)`, `Describe.swift:133` at `9c48d2d`, `cell("\(row.tools)", width: ServersBoardMetrics.toolsColumn, tint: .t2)`, `ServersBoardRow.swift:79` at `9c48d2d` and `:113`,
+`board.request(.removeInstalledCapability, subject: serverName)`, `ServerSheets.swift:181` at `9c48d2d`, `board.request(.removeInstalledCapability, subject: server.name)`, `ServerInspectorSections.swift:155` at `9c48d2d`, `model.serversBoard.request(.removeInstalledCapability, subject: selection)`, `ShellCommandRouter.swift:282` at `9c48d2d`) and
 each contains the text the plan attributes to it.
 
 **Out-of-family review — `gemini-3.7-flash-high` via `agy --new-project`, bounded 540s, exit 0,

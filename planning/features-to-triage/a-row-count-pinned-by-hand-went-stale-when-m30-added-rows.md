@@ -58,7 +58,7 @@ several gates later.
 | `ebe3165` | 95 |
 
 **It was caught in advance once, and the catch did not survive.** R19's ledger row records, on
-2026-08-22: *"the union with today's `main` puts 96 rows against `surface.tsv:3`'s `# rows: 94`
+2026-08-22: *"the union with today's `main` puts 96 rows against `rows: 95`, `surface.tsv:3` at `9275d1c` — its `# rows: 94`
 pin, so `parity-manifest-check.sh` exits 1 on the merged tree while both parents are green — a
 merge-only break caught in advance for the first time."* That is the same failure, predicted
 before it landed, by a runner reading two branches. It was then resolved the way every other

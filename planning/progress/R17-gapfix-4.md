@@ -35,7 +35,7 @@ how the next pass inherits a wrong denominator, which is this row's entire failu
 states 408 and says which part 368 counts.
 
 What is *not* softened is the defect. One red on a git-clean, 24-file, fully tracked fixture
-directory proves it, and the mechanism is cited unchanged: `parity-manifest-check.sh:431` and `:437`
+directory proves it, and the mechanism is cited unchanged: `printf '%s\n' "$fixtures_in_manifest" | grep -qxF "$fixture" \`, `parity-manifest-check.sh:431` at `9194208` and `:437`
 pipe a `printf` of the list into `grep -qxF` per item and read **any** non-zero exit as *not found*,
 with no way to separate a genuine miss from a `grep` that failed to spawn. `:189` is the same shape
 for the cli list. Direction stays **false-RED**. The row closes on the operational line rather than
@@ -86,7 +86,7 @@ $ git branch --merged main --list "ai/g5"
 `git branch --merged main --list ai/*` listed it from the instant the branch was created. Nothing
 named G5 has ever been merged.
 
-The premise that makes this unreadable is at `ledger-reconcile.py:282`, whose `merged_branches`
+The premise that makes this unreadable is at "def merged_branches(root: Path) -> dict[str, str]:", `ledger-reconcile.py:282` at `9194208`, whose `merged_branches`
 docstring calls that listing *the hardest evidence an id is taken* — true of a branch with commits,
 false of an empty one. This is the **check-E false-RED**, recorded on `main` as a dispatch hazard
 and as `D-g4-b`, G4's twelfth instance, with the operating rule that a check-E finding naming a
@@ -211,7 +211,7 @@ includes the files this pass wrote. Two counts moved for a stated reason rather 
 one: `A4` reads 14 where gap-fix 3 read 19, and `B1`–`B4` read 0 where it read 5, 3, 2 and 2. **Every
 one of those 17 hits sits in the four records this script now excludes and gap-fix 3 scanned, and
 none was removed from the tree** — a 0 there means *not scanned*, not *gone*. `A5` and `A6` still show all four homes of the count saying six, and `A7`
-still shows `R17-acceptance.md:472` reading `declaration names all six`.
+still shows `reproduction — undeclared."* Correct as a fact and already stated: the declaration names`, `R17-acceptance.md:472` at `9194208` reading `declaration names all six`.
 
 
 ## Gates — measured on this tree, with every run reported
@@ -235,12 +235,12 @@ make that happen: `ai/g5` simply took two commits and stopped being an ancestor 
 
 ### The `make test` red, named rather than re-rolled away
 
-Run 1 failed at `OAuthWireTests.swift:263`, *a waiter that is cancelled is resumed rather than
+Run 1 failed at `OAuthWireTests.swift:263` as of `9194208`, *a waiter that is cancelled is resumed rather than
 stranded* — `Expectation failed: await finished.value`, one issue in 1686 tests across 210 suites.
 The test sleeps a fixed 3 s at `:262` before cancelling and asserting the waiter finished.
 
 It is **already registered twice**, in a file this pass does not touch: `D-g3-s` lists
-`OAuthWireTests.swift:263` by file and line as one of its fixed-sleep flakes, and `D-m23-be` records
+`OAuthWireTests.swift:263` at `9194208` by file and line as one of its fixed-sleep flakes, and `D-m23-be` records
 this exact test going red once before with the same reading — *a cancellation-timing test on a
 machine concurrently running another session's Swift builds*. This pass changed no code at all; its
 whole diff is one register row, two progress docs and one new Python script, and

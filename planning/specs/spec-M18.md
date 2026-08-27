@@ -155,9 +155,9 @@ link rather than a fourteenth sheet.
 ### 3.3 What the built app has
 
 Seven `.sheet(` call sites. **Four use `item:`** — Activity, Servers, Skills, Cleanup, with
-`ActivityBoard.swift:61` carrying the reason in a comment: *"`item:` rather than `isPresented:` so the
+`.sheet(item: $model.sheet) { _ in`, `ActivityBoard.swift:61` at `7725932` carrying the reason in a comment: *"`item:` rather than `isPresented:` so the
 enum is the single source of truth."* **Three use `isPresented:`** — `InboxBoard.swift:26` (review),
-`InboxBoard.swift:31` (pairing), `DiscoverBoard.swift:32` (detail). Those three are the class of bug
+`.sheet(isPresented: pairingPresented) {`, `InboxBoard.swift:31` at `7725932` (pairing), `.sheet(isPresented: sheetPresented) {`, `DiscoverBoard.swift:32` at `7725932` (detail). Those three are the class of bug
 the brief names.
 
 There is no single sheet enum. Each board model carries its own: `ServersBoardModel.Sheet`
@@ -171,16 +171,16 @@ Mapping the thirteen onto what exists:
 | Sheet | Built as |
 |---|---|
 | pair | `PairingSheet.swift`, opened from Inbox |
-| add-server | `AddServerSheet` (`ServerSheets.swift:45`), `⌘N` |
-| add-marketplace | `MarketplacesSheet` (`SkillSheets.swift:108`), `⇧⌘N` |
-| quarantine / capability-delta | `HeldChangeSheet` (`ServerSheets.swift:134`) drawing `ToolChangeCard` over `SchemaDiff.compare(before:after:)` — one sheet where the mock has two |
-| queued-detail | `InboxReviewSheet.swift:18` |
-| confirm-remove | `RemoveServerDialog` (`ServerSheets.swift:220`) and `RemoveServerSheet` (`CleanupSheets.swift:33`) — two, both presented as sheets rather than dialogs |
-| path | partially, as `SkillProvenanceSheet` (`CleanupSheets.swift:175`) — a capability's origin, not the resolved search path |
+| add-server | `AddServerSheet` (`struct AddServerSheet: View {`, `ServerSheets.swift:45` at `7725932`), `⌘N` |
+| add-marketplace | `MarketplacesSheet` (`struct MarketplacesSheet: View {`, `SkillSheets.swift:108` at `7725932`), `⇧⌘N` |
+| quarantine / capability-delta | `HeldChangeSheet` (`struct HeldChangeSheet: View {`, `ServerSheets.swift:134` at `7725932`) drawing `ToolChangeCard` over `SchemaDiff.compare(before:after:)` — one sheet where the mock has two |
+| queued-detail | `struct InboxReviewSheet: View {`, `InboxReviewSheet.swift:18` at `7725932` |
+| confirm-remove | `RemoveServerDialog` (`struct RemoveServerDialog: View {`, `ServerSheets.swift:220` at `7725932`) and `RemoveServerSheet` (`struct RemoveServerSheet: View {`, `CleanupSheets.swift:33` at `7725932`) — two, both presented as sheets rather than dialogs |
+| path | partially, as `SkillProvenanceSheet` (`struct SkillProvenanceSheet: View {`, `CleanupSheets.swift:175` at `7725932`) — a capability's origin, not the resolved search path |
 | readme · reconcile · recommendation · analyzer · official | absent |
 
 `confirmationDialog` appears once in the whole tree and it is on the phone
-(`Phone/PairingFlowView.swift:344`). `alert(` appears nowhere. So the brief's rule that a dialog is
+(`.confirmationDialog(`, `Phone/PairingFlowView.swift:344` at `7725932`). `alert(` appears nowhere. So the brief's rule that a dialog is
 not a substitute for a gated sheet is already how the Mac app is built.
 
 ### 3.4 What the campaign measured — cite, do not re-derive
@@ -232,6 +232,6 @@ finding nothing is a failed review. Verdict: **AMEND** from both. The dispositio
 item are below; the full set is repeated in each spec it changes.
 
 - **Accepted — three missing dependencies, all real.** The `readme` panel's contents are M19's; the `path` panel attaches to the Settings window, which is M15's; and `reconcile`, `recommendation` and `analyzer` open from the Harnesses and Insights boards, which are M22's. Five of the thirteen panels have no host surface until those three land. The header now names all three.
-- **Accepted — a live contradiction with the design document, recorded rather than resolved silently.** `DESIGN.md`:400 says `⌘⌫` removes the selected server *"(undoable, never confirmed)"* and §9 states the app's contract as *"Undo over confirm"*. The build confirms: `ServersBoardModel.Sheet.removeServer` presents `RemoveServerDialog`, and `MenuCommand.swift:265` binds `⌫` to that command. The campaign records the confirming behaviour as a deliberate fix — `DEF-011`'s note reads *"Removal opens the dialog rather than removing, because the one destructive act on this board is never one click."* So the build and the design document disagree, and the build's side was chosen on purpose. This item codifies the build. Recorded as an assumption in §2 rather than a question, because the decision was already taken and written down; it is flagged here so the planner does not read `DESIGN.md`:400 as licence to delete the dialog.
+- **Accepted — a live contradiction with the design document, recorded rather than resolved silently.** `DESIGN.md`:400 says `⌘⌫` removes the selected server *"(undoable, never confirmed)"* and §9 states the app's contract as *"Undo over confirm"*. The build confirms: `ServersBoardModel.Sheet.removeServer` presents `RemoveServerDialog`, and `case .removeServer: KeyChord("⌫")`, `MenuCommand.swift:265` at `7725932` binds `⌫` to that command. The campaign records the confirming behaviour as a deliberate fix — `DEF-011`'s note reads *"Removal opens the dialog rather than removing, because the one destructive act on this board is never one click."* So the build and the design document disagree, and the build's side was chosen on purpose. This item codifies the build. Recorded as an assumption in §2 rather than a question, because the decision was already taken and written down; it is flagged here so the planner does not read `DESIGN.md`:400 as licence to delete the dialog.
 - **Reconciled, not a contradiction:** one lane read `confirm-remove` as contradicting undo-over-confirm outright. It does not — the brief's own row for it is *"what is being removed and the undo window"*, which informs rather than asks, and the Cleanup gate is *"multi-select, named count, 30-day undo stated on the surface"*. That is §9's rule applied, not broken.
 - **Accepted:** the off-by-one — thirteen drawn against twelve named — and the two dangling actions were confirmed independently. Both were already §2's first two assumptions.

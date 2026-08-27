@@ -77,7 +77,7 @@ word. Line numbers are the reviewer's and were each opened and confirmed.
 
 | # | Sev | Finding | Disposition |
 |---|---|---|---|
-| F1 | critical | `ServerParser.swift:81-82` — `Int($0)` on `idleMs`/`startupTimeoutMs` traps | **Accepted · fixed** |
+| F1 | critical | "raw: raw,", `ServerParser.swift:81-82` at `7a2c7bb` — `Int($0)` on `idleMs`/`startupTimeoutMs` traps | **Accepted · fixed** |
 | F2 | critical | `UsageRecord.swift:84` — `Int32($0)` on `pid` traps | **Accepted · fixed** |
 | F3 | critical | A successful add/remove/patch never reaches the live process | **Accepted · deferred `D-v1a`** |
 | F4 | high | `POST /servers/:name/approve` is 405 | **Accepted · already owned (`D-j`, P1 in flight)** |
@@ -99,14 +99,14 @@ anyone but its author.
 
 ### The three that matter most
 
-**F3 — the control API's writes never reach the running router.** `RouterServiceDispatch.swift:107`
+**F3 — the control API's writes never reach the running router.** `_ request: HTTPWireRequest, path: String, query: String?`, `RouterServiceDispatch.swift:107` at `7a2c7bb`
 builds a fresh `var deps` per request from `config`, hands `&deps` to the handler, and then
 **discards it**. `ControlHandler` assigns `deps.upstreams = try ConfigEdit.reload(…)` at three
 places (`:161`, `:255`, `:344`) — every one of them writes into a local that dies at the end of the
 function. `RouterService.config` is a `let` (`:37`, assigned once at `:67`) and the pool is built
 once from it (`:82`). So `POST /servers` answers **201**, the file on disk is correct, and
 `GET /servers` still lists the old set; the pool cannot serve the new server until the daemon
-restarts. The reference does this in-process (`src/control.ts:109-112`).
+restarts. The reference does this in-process ("deps.upstreams.clear();", `src/control.ts:109-112` at `7a2c7bb`).
 
 This is a **seam defect between R3 and R2-R**, which is exactly the class a per-item reviewer cannot
 see: R3's tests pass `&deps` and correctly assert the mutation, and R2-R's tests never exercise the
@@ -116,8 +116,8 @@ must become mutable *and* the pool must be told, which has in-flight-lease seman
 no mandate to settle.
 
 **F6 + F7 — two secrets written at the umask default.** The reference writes `control.token` at
-`0600` inside a `0700` directory (`src/control.ts:51-53`) and commits `servers.json` through a
-`0600` temporary (`src/control.ts:95`). Both Swift call sites used the mode-less `FileSystem`
+`0600` inside a `0700` directory ("mkdirSync(ROUTER_HOME, { recursive: true, mode: 0o700 });", `src/control.ts:51-53` at `7a2c7bb`) and commits `servers.json` through a
+`0600` temporary ("writeFileSync(tmp, JSON.stringify(raw, null, 2), { mode: 0o600 });", `src/control.ts:95` at `7a2c7bb`). Both Swift call sites used the mode-less `FileSystem`
 overloads, so both landed at `0644`. `control.token` gates the endpoint that installs a server, and
 installing a server runs an arbitrary command line with the user's environment — the type's own
 documentation said the token "lives in a `0600` file no web page can read" while the code did not
@@ -144,7 +144,7 @@ write, and every watcher fire, so `{"idleMs": 1e20}` — which the reference sto
 the daemon down *after* the write has landed, and again on every restart. `UsageRecord` is on
 `UsageStore.init`'s `readTail`, so one line of `usage.jsonl` decided whether the daemon could start.
 
-The telling detail: **`UsageStore.swift:184` already carried a comment explaining this exact trap**
+The telling detail: **`if let cwd, !cwd.isEmpty { out = out.filter { $0.cwd == cwd } }`, `UsageStore.swift:184` at `7a2c7bb` already carried a comment explaining this exact trap**
 ("`Int(1e300)` traps, so converting first would let any caller halt the router with a query string")
 and clamps correctly, as does `RegistrySearch.jsSlice`. The lesson was learned inside R3 and not
 applied to its two neighbours. All four sites now share one guard, `JSNumber.int` / `JSNumber.int32`.
@@ -161,7 +161,7 @@ expected-difference rules.
 - **F13** — **B44 is false as written.** It says a primitive body "coerces to `{}` per `body ?? {}`,
   so a null-bodied PATCH still edits, reloads and returns 200". But `??` is nullish — the spec's own
   S2 — so `42 ?? {}` is `42`, and `'projects' in 42` is a `TypeError` that kills the reference
-  process. `ControlHandler.swift:289-297` answers 400 with V8's own TypeError text and documents the
+  process. `switch request.bodyDisposition {`, `ControlHandler.swift:289-297` at `7a2c7bb` answers 400 with V8's own TypeError text and documents the
   reasoning at length; that is right, and it is also an undeclared divergence.
 
 Both are reported to the orchestrator for R4's register rather than edited into `spec-R3.md` here,
@@ -175,7 +175,7 @@ because the divergence table is the artefact R4 reads and changing it is R4's ca
 |---|---|---|---|
 | F1 | high | `startupTimeoutMs()`'s guard is a tautology | **Artefact of the review racing this branch — see below** |
 | F2 | high | Unlocked rewrite of `~/.claude.json` can drop live session state | **Accepted · deferred `D-v1f`** |
-| F3 | high | `ServerParser.swift:82` traps on a staged `~/.claude.json` entry | **Accepted · fixed (same fix as R3 F1)** |
+| F3 | high | `idleMs: raw.member("idleMs")?.asNumber.flatMap(JSNumber.int)`, `ServerParser.swift:82` at `7a2c7bb` traps on a staged `~/.claude.json` entry | **Accepted · fixed (same fix as R3 F1)** |
 | F4 | medium | X2 is false: `import` writes `servers.json` with no lock | **Accepted · already owned (P2)** |
 | F5 | medium | A `~/.claude.json` deleted after the W5 re-read is recreated | **Accepted · fixed** |
 | F6 | low | X2a's "`edit` writes mode 0600" is not what the code does | **Accepted · fixed (same fix as R3 F7)** |
@@ -184,7 +184,7 @@ because the divergence table is the artefact R4 reads and changing it is R4's ca
 
 The R2-W review ran **while this branch was being edited**, and its transcript says so: *"The
 sources changed after the first pass — I'll re-read the implementation as it is now so findings match
-the disk."* What it then read at `WatchRun.swift:314` was `value.isFinite || !value.isFinite` — a
+the disk."* What it then read at `WatchRun.swift:314` as of `7a2c7bb` was `value.isFinite || !value.isFinite` — a
 **deliberately broken mutation I had applied moments earlier to prove the test went red**, and which
 was restored immediately afterwards.
 
@@ -195,7 +195,7 @@ both are worth keeping:
 1. **An independent reviewer caught a tautological guard on sight**, which is a real (if accidental)
    validation of the lane.
 2. Its remark that **`ConfigLoader.intMember` does the `isFinite` check correctly** sent me to
-   `ConfigLoader.swift:143` — where the check is `isFinite` **only**, with no range test, so
+   `private static func intMember(_ raw: JSONValue, _ key: String) -> Int? {`, `ConfigLoader.swift:143` at `7a2c7bb` — where the check is `isFinite` **only**, with no range test, so
    `1e300` traps there too. That is a third site the review did not claim and would not have been
    found without it. It now uses the shared guard.
 
@@ -205,13 +205,13 @@ been finished before the fixes began.
 ### F2 — the window this item declared for one file and not the other
 
 X4b applied W10's argument to `manifest.json` and refused to hold a snapshot across indexing. The
-same argument reaches `~/.claude.json` and no clause covers it: `WatchRunStaging.swift:20` re-reads
+same argument reaches `~/.claude.json` and no clause covers it: `parsed = try JSONParser.parse(fileSystem.readFile(atPath: paths.claudeJSON))`, `WatchRunStaging.swift:20` at `7a2c7bb` re-reads
 the file, and `:50` writes the **whole ~268 KB document** back from that snapshot, unlocked. Claude
 Code rewrites that file constantly, so any of its writes landing in between is lost — including the
 `projects` and session state the watcher has no interest in.
 
 **Deferred rather than fixed**, and the reason is the one that governs this whole port: the
-reference has the identical window (`src/watch.ts:288`), so closing it is a *new declared
+reference has the identical window ("let fresh2: { mcpServers?: Record<string, RawServer> } & Record<string, unknown>;", `src/watch.ts:288` at `7a2c7bb`), so closing it is a *new declared
 divergence* on the file the item's own header calls "live session state for every project on the
 machine". That is a design decision with an R4 consequence, not a review's to take unilaterally.
 The reviewer's second interleaving — a write landing between the rename and the post-write hash,
@@ -251,19 +251,19 @@ Recorded separately because they are evidence about the lane rather than from it
 
 1. **The watcher ran with two different homes.** `WatchPaths` resolves `$HOME` (X10, W-D2);
    `WatchRunner.init` defaulted `home:` to `RouterHome()`, which reads `NSHomeDirectory()` and
-   **ignores `$HOME`**. `WatchVerb.swift:14` — the only production caller — took both defaults. So
+   **ignores `$HOME`**. `try await WatchRunner(emit: { Out.print($0) }).run(verbose: options.has("verbose"))`, `WatchVerb.swift:14` at `7a2c7bb` — the only production caller — took both defaults. So
    under a scratch `HOME` with no `MCP_ROUTER_HOME`, the watcher read the scratch `~/.claude.json`
    and wrote the **real account's** `servers.json`, which is precisely the hazard X10's own comment
    says it prevents. The reference cannot produce it: one `homedir()` feeds both
-   (`src/config.ts:79`, `src/watch.ts:45`).
+   (`export const ROUTER_HOME = process.env.MCP_ROUTER_HOME`, `src/config.ts:79` at `7a2c7bb`, "const CLAUDE_JSON = join(homedir(), '.claude.json');", `src/watch.ts:45` at `7a2c7bb`).
 
    **No test could see it.** `homeComesFromTheEnvironment` asserts only the `WatchPaths`-derived
-   paths, and `WatchTestSupport.swift:35-36` passes `routerHome:` and `paths:` explicitly, always as
+   paths, and "routerHome: RouterHome(environment: environment, homeDirectory: home.path),", `WatchTestSupport.swift:35-36` at `7a2c7bb` passes `routerHome:` and `paths:` explicitly, always as
    a matching pair. The harness supplied the agreement that production lacked — which is the same
    shape as every other finding here.
 
-2. **`WatchRun.swift:294`'s `Int(value)`** — found by grepping the two items for the trap class, and
-   found *because* `UsageStore.swift:184` documents it. The grok R3 review then found the same class
+2. **`/// fail the run on a config the adoption path is about to rewrite anyway.`, `WatchRun.swift:294` at `7a2c7bb` — its `Int(value)`** — found by grepping the two items for the trap class, and
+   found *because* `if let cwd, !cwd.isEmpty { out = out.filter { $0.cwd == cwd } }`, `UsageStore.swift:184` at `7a2c7bb` documents it. The grok R3 review then found the same class
    at two further sites.
 
 3. **`control.token` was not `0600`** — independently the same as R3 F6.
@@ -289,7 +289,7 @@ regression.** `searchIsDebounced` and `reconnectIsNotDeadAfterItsFirstSuccess` f
 passed every time, and each subsequent full run passed clean. All three are wall-clock timing tests
 — `perServerIdleWins` gives a 25 ms idle window 150 ms to be reaped — on a machine running the rest
 of the fleet. This diff touches **zero** files under `MCPRouterKit`, and `perServerIdleWins` builds
-its `UpstreamConfig` through `stdioUpstream` (`PoolTestSupport.swift:186`), which never calls
+its `UpstreamConfig` through `stdioUpstream` (`func stdioUpstream(`, `PoolTestSupport.swift:186` at `7a2c7bb`), which never calls
 `ServerParser` — so the one changed thing that could plausibly reach it provably does not.
 
 Recorded rather than quietly re-run, because "it passed the second time" is exactly the claim that
@@ -336,12 +336,12 @@ Reported to the orchestrator, not registered here.
 
 | Suggested id | Title | Deps | Mechanism |
 |---|---|---|---|
-| **D-v1a** | The control API's writes never reach the live process | R2-R, R3 | `RouterServiceDispatch.controlResponse` discards the `deps` it passed `inout`. `RouterService.config` must become mutable and the reloaded upstream list written back to it *and* to the pool, which needs a defined answer for leases already in flight. `POST /servers` then 201s and `GET /servers` lists it, as `src/control.ts:109-112` does |
+| **D-v1a** | The control API's writes never reach the live process | R2-R, R3 | `RouterServiceDispatch.controlResponse` discards the `deps` it passed `inout`. `RouterService.config` must become mutable and the reloaded upstream list written back to it *and* to the pool, which needs a defined answer for leases already in flight. `POST /servers` then 201s and `GET /servers` lists it, as "deps.upstreams.clear();", `src/control.ts:109-112` at `7a2c7bb` does |
 | **D-v1b** | Usage aggregates are never debounce-flushed | R3 | `UsageStore.flushDebounceMilliseconds` is declared and never read; `record()` sets `dirty` and starts no timer, so `flush()` runs only from `reset`/`forget`/`stop`. Needs a 3 s debounce matching `src/usage.ts:203,232-240`. `UsageLogTests.rotatesAtTheBoundary` calls `flush()` itself, so it cannot go red on this |
 | **D-v1c** | An unreadable `usage-stats.json` warns as B52 requires | R3 | `UsageStore` holds no log seam; the warning costs a logger threaded from `RouterService`. The misleading comment is already corrected |
-| **D-v1d** | Attribution completes inside the accept handler, as B68 requires | R2-R, R3 | `RouterService.swift:131` spawns `Task.detached` and returns, so the handler can record a call before the identity is stored. `LibProcPeerResolver` is synchronous and answers in ~104 µs; the fix is to resolve on the accept path rather than hop off it |
-| **D-v1e** | `JSToNumber` radix literals beyond `UInt64` | R3 | `JSToNumber.swift:47` returns `NaN` where `Number("0x1"+16 zeros)` is a finite 2⁶⁴. Parse the magnitude as a `Double` when it overflows `UInt64` |
-| **D-v1f** | The watcher's unlocked `~/.claude.json` rewrite | R2-W | `WatchRunStaging.swift:20→50` writes the whole document from a snapshot, so a concurrent Claude Code write is lost; and a write landing between the rename and the post-write hash seals a foreign hash, after which every fire takes the W1 fast path and the entry never leaves user scope. Matches the reference (`watch.ts:288`), so closing it is a **new declared divergence** and an R4 decision |
+| **D-v1d** | Attribution completes inside the accept handler, as B68 requires | R2-R, R3 | `Task.detached {`, `RouterService.swift:131` at `7a2c7bb` spawns `Task.detached` and returns, so the handler can record a call before the identity is stored. `LibProcPeerResolver` is synchronous and answers in ~104 µs; the fix is to resolve on the accept path rather than hop off it |
+| **D-v1e** | `JSToNumber` radix literals beyond `UInt64` | R3 | `guard !digits.isEmpty, let magnitude = UInt64(digits, radix: radix) else { return`, `JSToNumber.swift:47` at `7a2c7bb` returns `NaN` where `Number("0x1"+16 zeros)` is a finite 2⁶⁴. Parse the magnitude as a `Double` when it overflows `UInt64` |
+| **D-v1f** | The watcher's unlocked `~/.claude.json` rewrite | R2-W | `WatchRunStaging.swift:20→50` writes the whole document from a snapshot, so a concurrent Claude Code write is lost; and a write landing between the rename and the post-write hash seals a foreign hash, after which every fire takes the W1 fast path and the entry never leaves user scope. Matches the reference ("let fresh2: { mcpServers?: Record<string, RawServer> } & Record<string, unknown>;", `watch.ts:288` at `7a2c7bb`), so closing it is a **new declared divergence** and an R4 decision |
 | **D-v1g** | B23 and B44 are wrong in `spec-R3.md`; two undeclared divergences | R4 | F12 and F13 above. `%ZZ` answers 400 rather than propagating a `URIError`, and B44 states a `body ?? {}` coercion that nullish semantics make impossible. Both belong in R3's divergence table before R4 diffs against it |
 
 Already owned, and **not** re-registered: **F4/`D-j`** (P1, in flight) and **R2-W F4** (P2 — the
@@ -358,4 +358,4 @@ The spec review caught the spec. Nothing caught the code, because the gate that 
 one that never ran — and the failure mode is legible in the findings themselves: a clause with no
 mode in it (B18), a comment asserting a property the code lacks (the token, the stats warning), a
 test that supplies the agreement production lacks (`WatchWorld.runner`), and a lesson learned in one
-file (`UsageStore.swift:184`) and not applied to the file next to it.
+file (`if let cwd, !cwd.isEmpty { out = out.filter { $0.cwd == cwd } }`, `UsageStore.swift:184` at `7a2c7bb`) and not applied to the file next to it.

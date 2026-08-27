@@ -12,7 +12,7 @@ One note on where the work order lives: `planning/features-to-triage/R17-gapfix-
 at `afc087f` and is not on this branch, whose HEAD merged `main` at `ccf01c7`. It was read with
 `git show main:planning/features-to-triage/R17-gapfix-2.md`. Nothing was rebased.
 
-## Acceptance 1 — the withdrawn clause is gone from `R17-acceptance.md:114`
+## Acceptance 1 — the withdrawn clause is gone from `failed identically — which is the pairing an R19-only world predicts in reverse, three`, `R17-acceptance.md:114` at `13e728b`
 
 The line read *"and R19's window is indifferent to whether a server is staged"*, five lines below
 the paragraph recording that clause as broken. It now reads *"which is the pairing an R19-only
@@ -37,19 +37,19 @@ Neither side has a second manifest writer: `grep -rn manifestPath app/Sources/ |
 
 `R19.md` now states both inventories with the command each came from, and carries a six-row table
 of what is uncovered and what each site faces on the other side. The table is what kills the
-pairing claim: only `src/control.ts:432` and `AuthRoutes.swift:120` are a positional pair.
-`src/index.ts:146` and `:186` have no `ManifestIO.save` twin, because Swift routes `index` and
-`import` through `ManifestIndexer.record`, which re-loads at `ServicePorts.swift:381` and saves at
+pairing claim: only "saveManifest(deps.cfg.manifestPath, manifest);", `src/control.ts:432` at `13e728b` and `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `AuthRoutes.swift:120` at `13e728b` are a positional pair.
+"saveManifest(manifestPath, manifest);", `src/index.ts:146` at `13e728b` and `:186` have no `ManifestIO.save` twin, because Swift routes `index` and
+`import` through `ManifestIndexer.record`, which re-loads at `var manifest = ManifestIO.load(path: manifestPath, fileSystem: fileSystem).manifest`, `ServicePorts.swift:381` at `13e728b` and saves at
 `:391` **per entry** where node loads and saves once per run. `surface.tsv`'s `cli-watch` note
-carries the same six sites, and now names `AuthRoutes.swift:120` and `ServicePorts.swift:391`,
+carries the same six sites, and now names `try? ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `AuthRoutes.swift:120` at `13e728b` and `try ManifestIO.save(manifest, toPath: manifestPath, fileSystem: fileSystem)`, `ServicePorts.swift:391` at `13e728b`,
 which appeared nowhere in it before.
 
 Two changes inside the scoped files go slightly beyond the literal clause, and are called out here
-rather than left for a reader to find. First, `R17-acceptance.md:315` attributed both
-`src/index.ts:146` and `:186` to the `index` verb; `:146` is `cmdImport`'s adopt path, and the
+rather than left for a reader to find. First, `. It does **not** cover the other four`, `R17-acceptance.md:315` at `13e728b` attributed both
+"saveManifest(manifestPath, manifest);", `src/index.ts:146` at `13e728b` and `:186` to the `index` verb; `:146` is `cmdImport`'s adopt path, and the
 register row `VER2-R17-3` turns on that distinction, so the verb is corrected and the six-site
 total made explicit in the same sentence. Second, three places said the policy runs *over all five
-sites* — `R19.md`'s acceptance 1, `R17-acceptance.md:325` and `surface.tsv` — where five is node's
+sites* — `R19.md`'s acceptance 1, `twins. The second reader caught the count being quoted as though it spanned both. The`, `R17-acceptance.md:325` at `13e728b` and `surface.tsv` — where five is node's
 count alone. All three now name both inventories. No new total was coined: writing *eight* into one
 file while three others said five would have reproduced exactly the defect this pass exists to fix.
 
@@ -103,7 +103,7 @@ planning/evidence/R17-gapfix-review-fable.md:33 "It does NOT cover the other fou
 `:315` is node's four, correctly scoped, and the same sentence now states the six-site total. The
 other two are the archived review lanes quoting the claim under attribution. The remaining 29 are
 other counts of four — `spec-G1.md`'s Mac launchers, `R8`'s zero-tool upstreams, `surface.tsv`'s
-FOUR parity scenarios, `R17-gapfix.md:90`'s four BL-1 citation sites — none about manifest writers.
+FOUR parity scenarios, `1. The claim reads sufficient-not-exclusive at all four sites, citing R19.`, `R17-gapfix.md:90` at `13e728b` — its four BL-1 citation sites — none about manifest writers.
 
 ## Acceptance 4 — gates
 
@@ -139,7 +139,7 @@ fixtures `add-refused`, `auth-start`, `servers`, `usage-reset` and `changes-pend
 manifest-check: 3 problem(s).
 ```
 
-`control-registry-search` is at `surface.tsv:50` and `fixture-add-refused` at `:75`. It reproduces
+`control-registry-search` is at `control control-registry-search GET /registry/search proven - THE ROW WAS BLOCKED ON AN`, `surface.tsv:50` at `13e728b` and `fixture-add-refused` at `:75`. It reproduces
 on `main`'s `surface.tsv` as well as on the edited one, so it is not this pass's. The two lists the
 fixture comparison comes down to are byte-identical over 30 samples each, so the inputs are stable
 and the flake is in the per-item comparison rather than in what it reads. Suspected and not proven:

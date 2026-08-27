@@ -43,15 +43,15 @@ written. The table is unchanged from the first draft **except** for the two rows
 | `SkillClient.status == .unreadable` — the per-**client** signal | `SkillClient` | same | ✓ |
 | `source` closed enum, `.standalone` carrying **no version** | `SkillSource` | same | ✓ |
 | `provenance`, `held`, `description` | `Skill` | same | ✓ |
-| `since` | **`UsageSummary`** | `Control/Models.swift:186` | ✓ |
+| `since` | **`UsageSummary`** | `public var since: String`, `Control/Models.swift:186` at `cb54c78` | ✓ |
 | `asControlAPIDate`, `shortAgo` | `String` / free fn | `Kit/Formatting/RelativeTime.swift` | ✓ |
 | `reindex`, `remove(_:keepHistory:)`, `resetUsage`, `skills`, `servers`, `usageSummary` | `ControlAPIClient` — **F3's**, not M3's | `Control/ControlAPIClient.swift` | ✓ |
 | `removeToolsConsequence`, `removeConsequence` | public statics | `MCPRouterUI/Boards/ServersBoardModel.swift:267,286` | ✓ |
-| `BoardRegistry.installed = [.servers, .skills, .activity]` | | `MCPRouterUI/Shell/ScaffoldPane.swift:32` | ✓ |
+| `BoardRegistry.installed = [.servers, .skills, .activity]` | | "/// (`DiscoverBoard`).", `MCPRouterUI/Shell/ScaffoldPane.swift:32` at `cb54c78` | ✓ |
 
 ### What `hash` actually is — quoted, because the first draft got it wrong
 
-`src/control.ts:163` sends `hash: upstreamHash(u)`. `src/config.ts:98`:
+"hash: upstreamHash(u),", `src/control.ts:163` at `cb54c78` sends `hash: upstreamHash(u)`. `export function upstreamHash(u: UpstreamConfig): string {`, `src/config.ts:98` at `cb54c78`:
 
 ```js
 const material = isStdio(u)
@@ -68,18 +68,18 @@ useless one for governing a live verdict, which is why live verdicts no longer r
 
 | Claim | Line | Verified |
 |---|---|---|
-| `--t4` is "disabled controls only — never live text" | `DESIGN.md:81` | ✓ — invalidated history renders `--t3` |
-| `⌘R` is "Reset the selected server" | `DESIGN.md:319` | ✓ — re-check takes `⇧⌘R` |
+| `--t4` is "disabled controls only — never live text" | "**disabled controls only — never live text**", `DESIGN.md:81` at `cb54c78` | ✓ — invalidated history renders `--t3` |
+| `⌘R` is "Reset the selected server" | `Reset the selected server`, `DESIGN.md:319` at `cb54c78` | ✓ — re-check takes `⇧⌘R` |
 | §6 mandates a "not evaluated" skill string | `DESIGN.md:279–280` | ✓ — **reported, not edited**; see §9 |
 
 ### The merged tests this item must edit, and why that is the designed action
 
 | File:line | Asserts | Becomes |
 |---|---|---|
-| `ShellIntegrationTests.swift:260` | `installed == [.servers, .activity, .skills]` | `+ .evals, .cleanup` |
-| `ShellIntegrationTests.swift:263` | `scaffolded.count == 5` | `== 3` |
+| "BoardRegistry.installed == [.servers, .activity, .skills, .settings, .discover],", `ShellIntegrationTests.swift:260` at `cb54c78` | `installed == [.servers, .activity, .skills]` | `+ .evals, .cleanup` |
+| `expect(BoardRegistry.scaffolded.count == 3)`, `ShellIntegrationTests.swift:263` at `cb54c78` | `scaffolded.count == 5` | `== 3` |
 | `ActivityBoardContractTests.swift:191–192` | the same pair | the same edit |
-| `ShellIntegrationTests.swift:304` | `#require(BoardRegistry.scaffolded.first)` | unchanged — `.discover` is still scaffolded |
+| `let example = try #require(BoardRegistry.scaffolded.first)`, `ShellIntegrationTests.swift:304` at `cb54c78` | `#require(BoardRegistry.scaffolded.first)` | unchanged — `.discover` is still scaffolded |
 
 M5 (`.discover`) and M8 (`.settings`) edit the same two lines on their own branches. Textual conflict
 at merge is expected and is the orchestrator's to serialize; the resolution is a set union.
@@ -178,7 +178,7 @@ public enum HistoryRowState: Equatable, Sendable {
 public static func historyRowState(run: StoredRun, live: Stamp?) -> HistoryRowState
 ```
 
-`--t3`, not `--t4`: DESIGN.md:81 binds `--t4` to disabled controls only and an invalidated history row
+`--t3`, not `--t4`: "**disabled controls only — never live text**", DESIGN.md:81 at `cb54c78` binds `--t4` to disabled controls only and an invalidated history row
 is live text.
 
 **A10 is now structural rather than universally quantified.** The first draft asserted "there is no

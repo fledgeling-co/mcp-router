@@ -94,12 +94,12 @@ The **13** rows this item leaves blocked belong to `D-j` (2), `D-k` (3), `D-l` (
 ### 2.3 What may change in the gate, and what may not
 
 A row moves from `blocked` to `proven` only when the product gains the capability **and** a lane
-records `ok` for it. A flipped verdict alone proves nothing: `parity-gate.sh:161` counts a `proven`
-row no lane spoke for as **blocked**, and `parity-manifest-check.sh:60-62` additionally rejects a
+records `ok` for it. A flipped verdict alone proves nothing: `if [ -z "$results" ]; then`, `parity-gate.sh:161` at `6bd711e` counts a `proven`
+row no lane spoke for as **blocked**, and `if [ "$verdict" != "blocked" ] && [ "$owner" != "-" ]; then`, `parity-manifest-check.sh:60-62` at `6bd711e` additionally rejects a
 non-blocked row that still carries an owner, so a half-flip fails the manifest check outright.
 
 Changed in `parity-gate.sh`: **the `LANES` default on line 32, and nothing else.** That line is one
-R4 anticipated — `parity-gate.sh:201` already prints coverage in the order
+R4 anticipated — `order = "control fixture divergence pool mcp cli install state log"`, `parity-gate.sh:201` at `6bd711e` already prints coverage in the order
 `control fixture divergence pool mcp cli install state log`, for five groups that had no lanes, and
 `:73-78` already records a named-but-missing lane as an environment failure.
 
@@ -118,7 +118,7 @@ evidence file records the command and result for each:
 1. **An explicit owned set.** Each lane declares the `(group, id)` **pairs** it may speak for, and
    `record()` refuses anything else. Revision 2 asserted only that the pair exists in `surface.tsv`,
    which every pair in `surface.tsv` does — that catches a typo, not authorship, and authorship is
-   the exposure `parity-gate.sh:157-159` names. An owned set also handles a lane that legitimately
+   the exposure `Matched on GROUP and id, not id alone. Without the group, any lane can write a result for`, `parity-gate.sh:157-159` at `6bd711e` names. An owned set also handles a lane that legitimately
    writes more than one group: the mcp lane owns `pool` and `divergence` rows as well as its own,
    exactly as `parity-pool.sh` writes a `divergence` row through a second helper.
 2. **A negative control with a mechanism.** `scripts/acceptance/parity-lane-selftest.sh` seeds a
@@ -126,10 +126,10 @@ evidence file records the command and result for each:
    this as a paragraph in an evidence file, which is re-run by nothing. The defect is injected
    through a shim on `$SWIFT_BIN`, never a hook in the router — a test-only branch inside the
    product is a branch that can ship.
-3. **Its own caveat line, printed by the lane.** `parity-gate.sh:101` echoes each lane's log into
+3. **Its own caveat line, printed by the lane.** `cat "$WORK/$lane.log"`, `parity-gate.sh:101` at `6bd711e` echoes each lane's log into
    the report, so a lane whose claim is weaker than a simultaneous byte diff says so there — the
    gate's own caveat block at `:214-217` names only the three older lanes and is not edited.
-4. **A port that is refused if taken**, as `parity-pool.sh:64-68` does.
+4. **A port that is refused if taken**, as `if lsof -nP -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1; then`, `parity-pool.sh:64-68` at `6bd711e` does.
 
 ## 3 · The reference, measured
 
@@ -200,7 +200,7 @@ GET /nope    → 404 {"error":"not found; MCP endpoint is /mcp"}
 ```
 
 All three carry `content-type: application/json` and an explicit `content-length`. **None requires a
-token** — `src/router.ts:239-242` answers them before the control block at `:253-263`, deliberately.
+token** — `if (url.pathname === '/health') {`, `src/router.ts:239-242` at `6bd711e` answers them before the control block at `:253-263`, deliberately.
 G11 pins that.
 
 ### 3.4 The CLI, measured per stream
@@ -322,17 +322,17 @@ own budget.
 
 | State | Surface | Copy | Source |
 |---|---|---|---|
-| Default | `serve` | `serving 12 tools from 4 upstreams; 0 open, idle window 300s` | `index.ts:220-223`, verbatim |
+| Default | `serve` | `serving 12 tools from 4 upstreams; 0 open, idle window 300s` | "`0 open, idle window ${Math.round(config.idleMs / 1000)}s`", `index.ts:220-223` at `6bd711e`, verbatim |
 | Empty | `tools`, no servers | `\n0 tools from 0 upstreams\n`, exit 0 | measured §3.4. **The reference has no empty branch.** DESIGN.md §5 wants one sentence and one action here; adding it is a divergence on `cli-tools`, so it is **reported as deferred child D-r2r-a** and not built |
-| Loading | `index` | `4 upstreams, 2 need indexing` before any spawn, then a line per server | `index.ts:177-178` |
-| Partial | `index`, some failed | `  ok    fs (12 tools)` / `  FAIL  broken: …`, then the closing count | `manifest.ts:242`, `index.ts:186-190` |
+| Loading | `index` | `4 upstreams, 2 need indexing` before any spawn, then a line per server | `upstreams, ${stale.length} need indexing`, `index.ts:177-178` at `6bd711e` |
+| Partial | `index`, some failed | `  ok    fs (12 tools)` / `  FAIL  broken: …`, then the closing count | "built.push(`${u.name} (${res.tools.length} tools)`);", `manifest.ts:242` at `6bd711e`, "for (const f of failed) process.stdout.write(` FAIL ${f}\n`);", `index.ts:186-190` at `6bd711e` |
 | Error | `serve`, port taken | `listen EADDRINUSE: address already in use 127.0.0.1:8879`, exit 1 | the reference's wording, **with no tail added** |
-| Success | `auth` | `✓ github is authorized` | `index.ts:295`. Not claimed as parity — A1 |
+| Success | `auth` | `✓ github is authorized` | `index.ts:295` at `6bd711e`. Not claimed as parity — A1 |
 | Offline | `status` | **stdout** `no router answering on 127.0.0.1:8879 (fetch failed)`, exit 1 | measured §3.4 |
 | Offline | `usage` | **stderr** `mcp-router: no router answering on 127.0.0.1:8879 (fetch failed)`, exit 1 | measured §3.4 |
-| Offline | `auth` | stderr, same text plus ` — start it first` | `index.ts:279`. Not claimed — A1 |
-| Disabled | `auth <stdio>` | `stdio servers do not authorize; their credentials are env vars` | `control.ts:392`. Not claimed — A1 |
-| Overflow | `status`, long names | padded, never truncated: `padEnd(20)` widens, it does not elide | `index.ts:247`. A truncated server name is unactionable in a terminal |
+| Offline | `auth` | stderr, same text plus ` — start it first` | `async function cmdAuth(): Promise<void> {`, `index.ts:279` at `6bd711e`. Not claimed — A1 |
+| Disabled | `auth <stdio>` | `stdio servers do not authorize; their credentials are env vars` | "json(res, 400, { error: 'stdio servers do not authorize; their credentials are env vars'", `control.ts:392` at `6bd711e`. Not claimed — A1 |
+| Overflow | `status`, long names | padded, never truncated: `padEnd(20)` widens, it does not elide | `index.ts:247` at `6bd711e`. A truncated server name is unactionable in a terminal |
 
 Three of the nine states are therefore **the reference's own gaps**, recorded here rather than
 quietly improved. That is the correct answer for a port whose acceptance test is a byte comparison,
@@ -351,8 +351,8 @@ and D-r2r-a is where the improvement goes once the cutover has happened.
 | G7 | A call is recorded **after** the result is on its way, and attribution failure never fails a call | `src/router.ts`'s `finally` |
 | G8 | One broken upstream is a tool error, never a router crash | one broken server must not take the other nine down |
 | G9 | No displayed number is one the router does not observe | `DESIGN.md` §6 |
-| **G10** | The control token check travels with the control paths onto the socket: **both** `Authorization: Bearer <t>` and `x-mcpr-token: <t>` are honoured (`control.ts:58-60`), and an unauthorized mutation is 401 with a body naming the token path (`control.ts:233-234`) | this item is what first makes `ControlHandler` reachable over a socket; until now it was only ever called in-process |
-| **G11** | `/health` and `/status` stay **unauthenticated**, and are dispatched **before** the control block | `src/router.ts:239-242`; both are rows in this item's own budget, and gating them would be a divergence dressed as hardening |
+| **G10** | The control token check travels with the control paths onto the socket: **both** `Authorization: Bearer <t>` and `x-mcpr-token: <t>` are honoured (`function tokenOk(req: IncomingMessage, expected: string): boolean {`, `control.ts:58-60` at `6bd711e`), and an unauthorized mutation is 401 with a body naming the token path (`if (!tokenOk(req, token)) {`, `control.ts:233-234` at `6bd711e`) | this item is what first makes `ControlHandler` reachable over a socket; until now it was only ever called in-process |
+| **G11** | `/health` and `/status` stay **unauthenticated**, and are dispatched **before** the control block | `if (url.pathname === '/health') {`, `src/router.ts:239-242` at `6bd711e`; both are rows in this item's own budget, and gating them would be a divergence dressed as hardening |
 | **G12** | F3's recorded fixtures are consumed, never altered. No lane this item adds writes to `app/Sources/MCPRouterKit/Control/Fixtures/`, and `git status` on that directory is part of the completion note | brief:57-58 |
 
 ## 7 · Declared divergences
@@ -376,7 +376,7 @@ justification is above, and the completion note carries the one-line diff.
 
 - **A1 — `D-j` is NOT fixed, and `cli-auth` leaves this item's budget.** Revision 1 proposed wiring
   `AuthRoutes` into `ControlHandler`'s dispatch. That is wrong for a decisive mechanical reason:
-  `control-differential.sh:465-479` asserts the defect in both directions, so fixing it makes that
+  `printf ' STALE %-42s ts=%s (wanted %s) swift=%s (wanted %s)\n' \`, `control-differential.sh:465-479` at `6bd711e` asserts the defect in both directions, so fixing it makes that
   lane `record "$id" fail "stale defect record: …"` — and the gate goes red whether the manifest row
   is left `blocked` (`:141` matches `^stale`) or flipped to `proven` (`:172` matches `fail`). The
   only route to green would be editing a 637-line lane that has been adversarially reviewed three
@@ -384,7 +384,7 @@ justification is above, and the completion note carries the one-line diff.
   `mcp-router auth` is implemented as a verb, but the Swift router answers 405 where the reference
   answers 400, so the verb cannot be byte-compared. **`cli-auth`'s owner is left as `R2-R`.** Revision 2 proposed
   moving it to `D-j` and calling that a concession; it is not one — the row was unprovable either
-  way, `parity-gate.sh:134` reads the owner only to print it, and the sole observable effect would
+  way, `printf '%s\t%s\t%s\t%s\n' "$owner" "$group" "$subject" "$note" >> "$WORK/blocked.txt"`, `parity-gate.sh:134` at `6bd711e` reads the owner only to print it, and the sole observable effect would
   have been which item's name sits beside a row it failed to prove. The row stays this item's, and
   is reported as owed. Its **note** is corrected, because the original said "No Swift entry point"
   and the entry point now exists; the note states the measured reason instead.
@@ -413,7 +413,7 @@ justification is above, and the completion note carries the one-line diff.
 - **A5 — ports.** Lanes bind 8992–8999 and refuse to start if the port is listening. 8975/8976 are
   the user's; 8966 is `parity-pool.sh`'s; 8991 was §3's probe; 8879 is the reference's default and
   appears only in copy.
-- **A6 — new row ids stay group-prefixed.** `parity-gate.sh:141` matches the stale-assertion lookup
+- **A6 — new row ids stay group-prefixed.** `stale="$(awk -F'\t' -v id="$id" '$2 == id && $4 ~ /^stale/ { print $4 }' "$RESULTS"`, `parity-gate.sh:141` at `6bd711e` matches the stale-assertion lookup
   on id alone where `:160` matches group and id. Five new lanes writing many rows raise the chance
   of a cross-group collision producing a spurious mismatch. Every id this item adds or reports
   against already begins with its group name, and §2.4's assertion enforces it. The exposure can

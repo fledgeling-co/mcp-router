@@ -1,0 +1,54 @@
+{
+  "_what": [
+    "The hand-written half of the surface reconciliation. `bin/surface-oracle.swift` derives WHERE",
+    "the Mac app's surfaces live and WHAT THEY ARE CALLED, by being compiled against the shipped",
+    "`Destination.swift` and `RouterSheet.swift`. This file says WHICH CAMPAIGN SURFACE covers each",
+    "of those addresses. `bin/surface-reconcile.py` refuses when the two disagree in any direction.",
+    "",
+    "The split is deliberate and is M35's, one file over in `scripts/acceptance/`. A fully derived",
+    "binding would have to invent a campaign surface for every address the app grows, which moves",
+    "the campaign's denominator with the app and stops it catching the thing it exists to catch: a",
+    "surface shipped with nobody having decided how to test it. Requiring a human to write the row",
+    "is the point. What is NOT left to a human is noticing that the row is missing.",
+    "",
+    "A value is a LIST because one sheet kind can be presented by two boards. `confirm-remove` is",
+    "`servers.removeServer` and `cleanup.removeCandidate`; `-reset-history` is `activity.resetHistory`",
+    "and `cleanup.resetHistory`. Binding either to a single surface would name one host and hide the",
+    "other. Coverage is satisfied when any bound surface carries a case, and every bound surface must",
+    "exist in `inventory.json`."
+  ],
+  "bindings": {
+    "destination:activity": ["SURF-003"],
+    "destination:servers": ["SURF-002"],
+    "destination:skills": ["SURF-004"],
+    "destination:discover": ["SURF-005"],
+    "destination:inbox": ["SURF-008"],
+    "destination:evals": ["SURF-006"],
+    "destination:cleanup": ["SURF-007"],
+
+    "sheet:add-server": ["SURF-002"],
+    "sheet:quarantine": ["SURF-002"],
+    "sheet:confirm-remove": ["SURF-002", "SURF-007"],
+    "sheet:add-marketplace": ["SURF-004"],
+    "sheet:capability-delta": ["SURF-004"],
+    "sheet:official": ["SURF-005"],
+    "sheet:-registry-detail": ["SURF-005"],
+    "sheet:queued-detail": ["SURF-008"],
+    "sheet:pair": ["SURF-010"],
+    "sheet:path": ["SURF-011"],
+    "sheet:-reset-history": ["SURF-003", "SURF-007"],
+    "sheet:-skill-provenance": ["SURF-007"]
+  },
+  "_unbound": [
+    "Three shipped addresses are deliberately absent, and their absence is what this change ships:",
+    "`destination:harnesses`, `destination:insights` and `sheet:readme`. M22 shipped the first two",
+    "boards and M30 shipped the capability-document viewer; the campaign's surface list was written",
+    "by hand and none of the three followed. G15, G16 and G17 add the surfaces. Writing rows for them",
+    "HERE would turn the gate green while the campaign still has no surface and no case for any of",
+    "them, which is the defect with a fresh coat on it."
+  ],
+  "addressless": {
+    "SURF-001": "The shell itself — sidebar chrome, window title, menu bar. Not a destination and not a sheet; it is the frame the destinations are drawn in, so no address in `Destination` or `RouterSheet` names it.",
+    "SURF-009": "The menu-bar popover and its inbox band. A separate scene from the console window, presented by the status item rather than by a board, so `RouterSheet` does not enumerate it."
+  }
+}

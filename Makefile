@@ -44,7 +44,7 @@ MAC_DEST   ?= platform=macOS
 ## M15-M22 add theirs by writing planning/fidelity/<surface>.layers.json beside this one.
 SURFACE    ?= servers
 
-.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default
+.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default surface-reconcile surface-reconcile-arm
 
 ## G4's two harness gates run inside `lint` rather than as a stage of their own. Both are
 ## hermetic and finish in under ten seconds, and `lint` is where the other four script gates
@@ -110,7 +110,7 @@ SURFACE    ?= servers
 ## runs since. It costs roughly two minutes and adds no new requirement — `test-ios` already needs
 ## a booted simulator — and it is the only stage here that proves the app runs rather than that its
 ## views construct.
-all: tools lint build test test-ios test-ios-glass parity parity-selftest mock-fidelity-selftest acceptance-lanes-selftest install-default
+all: tools lint build test test-ios test-ios-glass parity parity-selftest mock-fidelity-selftest acceptance-lanes-selftest install-default surface-reconcile
 
 ## Fail loudly and specifically when a required tool is missing, rather than skipping the gate.
 ## A silently-skipped lint step is worse than no lint step: it reports success.
@@ -630,6 +630,41 @@ mock-fidelity:
 ## the two external tools the layers shell out to.
 mock-fidelity-selftest:
 	./scripts/acceptance/mock-fidelity-selftest.sh
+
+## G18 — the campaign's surface set against the product's own list of surfaces.
+##
+## The completeness gate this sits beside asks which ENUMERATED surface has no case, so a surface
+## nobody ever enumerated is invisible to it. It reported clean for two milestones while the app
+## shipped three surfaces the campaign had never heard of. This one derives the denominator from
+## the app instead: `planning/test-campaign/bin/surface-oracle.swift` is COMPILED against the
+## shipped `Destination.swift` and `RouterSheet.swift`, so a destination cannot be added without
+## appearing in the count.
+##
+## **It is red today, on purpose, and the three names it prints are the point.** `destination:harnesses`,
+## `destination:insights` and `sheet:readme` are shipped and unenumerated; G15, G16 and G17 are the
+## items that add their surfaces, and each of those turns one row green by writing a binding and a
+## case. Landing it green would have meant writing the bindings here and leaving the campaign with
+## no surface for any of them, which is the defect with a fresh coat on it.
+##
+## In `all` for `mock-fidelity-selftest`'s reason turned around: a gate wired into nothing is a
+## script. It needs `swiftc` and about eight seconds, and it builds no app target.
+surface-reconcile:
+	@/usr/bin/python3 planning/test-campaign/bin/surface-reconcile.py; status=$$?; \
+	if [ $$status = 2 ]; then \
+	  echo "make: surface-reconcile CONTROL FAILED (exit 2) — the gate could not see its own planted defects, so it printed no verdict."; \
+	elif [ $$status = 3 ]; then \
+	  echo "make: surface-reconcile BLOCKED (exit 3) — the oracle would not build or would not run. That is not a clean campaign."; \
+	fi; \
+	exit $$status
+
+## The arm for the gate above: adds a tenth destination to the product with no campaign surface,
+## requires the gate to name exactly that one and nothing else, restores the file from the bytes
+## read before the mutation and proves the restore with SHA-256.
+##
+## Out of `all` because it writes to a tracked source file while it runs. It restores it in a
+## `finally`, and the recorded hashes are how you check that rather than the promise.
+surface-reconcile-arm:
+	/usr/bin/python3 planning/test-campaign/bin/arm-surface-reconcile.py
 
 ## R6 — the PATH a spawned child inherits, measured at both routers under a scratch HOME.
 ##

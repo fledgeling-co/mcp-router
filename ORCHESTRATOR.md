@@ -1777,6 +1777,44 @@ allocations and are excluded by design; check H reads none of this table, becaus
 | D-r17-d | `parity-manifest-check.sh` false-reds on an unchanged, git-clean file, and four passes have each stated a condition the next measurement refuted | G1 | Found by R17's gap-fix 2 while running the gate, and **it reproduces on `main`'s `surface.tsv` as well as on the edited one**, so it is not this pass's. **The defect is real and proven. The condition is not, and this row deliberately states no reproduction rate** — a register row stating a rate is how each of the last three passes inherited a number the next disproved. **Mechanism.** `parity-manifest-check.sh:431` and `:437` pipe a `printf` of the list into `grep -qxF` per item and read **any** non-zero exit as *not found*, with no way to tell a genuine miss from a `grep` that failed to spawn. `:189` is the same shape for the cli list — it named `src/index.ts dispatches "serve"` for one verifier and `"tools"` for gap-fix 2 — and the control, authserver, mcp and oauth comparisons are built the same way. **Each subject named demonstrably has its row** (`control-registry-search` at `surface.tsv:50`, `fixture-add-refused` at `:75`), and the two lists the fixture comparison comes down to are byte-identical over 30 samples, so the inputs are stable and the flake is in the per-item comparison rather than in what it reads. **Direction is false-RED** rather than false-green. **The four measurement sets, as history rather than as a recipe.** Gap-fix 2 reported *about a quarter to a third* of roughly 60 runs, flat. The third verification measured **0 of 40 serial** on the branch and **0 of 40 serial** on main, with **53 of 104** on the branch and **24 of 72** on main at four concurrent — the concurrent figure on main being what settles the reproduces-on-main half. Gap-fix 3 re-measured and got **0 of 40 serial** and **29 of 80** at four concurrent. The fourth verification ran a quiet tree and got **0 of 40 serial, 0 of 80 at 4×, 0 of 96 at 8×, 0 of 96 at 16× and 1 of 96 at 32×**; that single red, on a git-clean 24-file fixture directory, is what proves the defect. **Its headline *368 invocations* is the concurrent subtotal** — 80 plus 96 plus 96 plus 96 — and the whole run is **408** with the serial 40 added, which is how the figure should be read wherever it is quoted. **The controlling variable is total machine pressure rather than this gate's own concurrency** — every high rate was recorded while other sessions were loading the box, and the fourth verification's quiet tree is where four concurrent copies produced nothing. **No condition is stated because none of the four sets survives the next one**, and the fleet-level gate hazard row records it the same way. **The both-directions contradiction is proven once and not reproduced since, so the mechanism is the best-supported account rather than a re-demonstrated one.** The third verification reported ten fixture names simultaneously in both directions — `add-refused`, `added`, `approve`, `auth-start`, `patch-response`, `removed`, `server-placarded`, `server-tools`, `servers`, `unauthorized`, each appearing both as *on disk and has no manifest row* and as *carries a row, which is not on disk* — over the git-tracked 24-file fixture directory with no local modifications, and gap-fix 3 reported the shape independently with `servers` in both directions over 80 runs. The fourth verification could not re-witness it: its single red gave direction A only. *Two mutually exclusive findings about one unchanging file can only come from the comparison* therefore rests on those reports rather than on anything re-witnessed since. **One difference from the fleet hazard row is recorded rather than resolved**: that row reads *not re-witnessed since the third verification*, which does not count gap-fix 3's `servers`, and neither pass's run can be replayed to settle it. **Operationally: read any manifest-check red seen while other work is running as unproven, and re-run it on a quiet machine before acting on it.** Registered rather than fixed: this item's scope carries no code |
 ---
 
+## 2026-08-27 evening · The remaining-backlog fleet
+
+Owner asked for all remaining work after a scoped wave closed four items. 57 schedulable rows.
+Slot count **3**, taken from `harbourmaster berths.py` (`available: 3 of ceiling 6`, cpu healthy,
+memory tight, load 0.554/core) rather than from habit — the same reading was `available: 1` and
+`load 41.1` two hours earlier, which is why the earlier wave ran narrow.
+
+Gates before features: a gate that cannot fail makes every verdict downstream of it worthless,
+and three of this backlog's gate items are exactly that shape.
+
+| Wave | Items | Peak slots | Gate to leave |
+|---|---|---|---|
+| A | P11 · G25 · G22 | 3 | `make surface-reconcile` exit 0; `vacuity-check` resolves providers instead of `NOT CHECKED` |
+| B | P9 (needs P11) · G21+G29 (one runner, shared file) · G24 | 3 | `capture-lineage --gate` exit 0; `make parity-selftest` exit 0 |
+| C | G28 · G14 close-out · G10 · G9 | 3 | `campaign.py check` control census stops reading NOT DECLARED |
+| D | G4 · G4-B · G6 · G7 · G8 · G23 · M32 · M33 · M34 | 3 | the gate family clean on a merged tree |
+| E | M3 · M9 · M10 · M15 · M18 · M19 · M21 · M31 · M36 · M37 · M38 · M39 | 3 | per-item verify |
+| F | R4-C · R17 · R19 · R22–R27 · X1 · X3 · W2 | 3 | per-item verify |
+| G | F5 · F6 · F7 · F8 (proposed-by-ai) | 3 | per-item verify |
+
+**Flagged and never scheduled here — upstream in `fledgeling-plugins`, not this repo:** G27, X7,
+X8, X9. An external dependency flags and skips; it does not stall the fleet.
+
+**Held for an owner decision rather than a runner:** G20 (absorbing the citation debt is a
+judgement about what to carry), M28 (five findings that are decisions by construction), M30, P10,
+R16.
+
+**M35** re-verified on this wave: its selftest is `13 arms, all held` on an idle machine, where
+the run that reported `1 assertion(s) failed` had died on `echo: write error: Broken pipe` at load
+41.1. Out-of-family re-verification dispatched.
+
+**`make test` is green on main.** The two failures recorded earlier today — `OAuthWireTests.swift:263`
+and `RealProcessTests.swift:93` — do not reproduce on an idle machine. Both are wall-clock-bound
+(a 3s budget, a 400ms timeout) and both were measured at load 41.1/core. The first has prior art
+here as **D-m23-be**, same file and same line, red once under another session's Swift builds and
+green on the re-run. Recorded so the next reader does not re-diagnose it.
+
+
 ## Needs input — not blocking any wave
 
 | # | Question | Blocks |

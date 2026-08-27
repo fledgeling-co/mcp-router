@@ -1,0 +1,218 @@
+[
+ {
+  "n": "filesystem",
+  "t": 14,
+  "mb": 195.8,
+  "cold": 0.58,
+  "p": 2,
+  "rt": "node",
+  "src": "@modelcontextprotocol/server-filesystem"
+ },
+ {
+  "n": "memory",
+  "t": 9,
+  "mb": 192.8,
+  "cold": 0.55,
+  "p": 2,
+  "rt": "node",
+  "src": "@modelcontextprotocol/server-memory"
+ },
+ {
+  "n": "sequential-thinking",
+  "t": 1,
+  "mb": 193.2,
+  "cold": 0.53,
+  "p": 2,
+  "rt": "node",
+  "src": "@modelcontextprotocol/server-sequential-thinking"
+ },
+ {
+  "n": "everything",
+  "t": 13,
+  "mb": 195.5,
+  "cold": 0.46,
+  "p": 2,
+  "rt": "node",
+  "src": "@modelcontextprotocol/server-everything"
+ },
+ {
+  "n": "context7",
+  "t": 2,
+  "mb": 229.7,
+  "cold": 0.56,
+  "p": 2,
+  "rt": "node",
+  "src": "@upstash/context7-mcp"
+ },
+ {
+  "n": "firecrawl",
+  "t": 27,
+  "mb": 268.8,
+  "cold": 0.67,
+  "p": 2,
+  "rt": "node",
+  "src": "firecrawl-mcp"
+ },
+ {
+  "n": "notion",
+  "t": 24,
+  "mb": 215.6,
+  "cold": 0.47,
+  "p": 2,
+  "rt": "node",
+  "src": "@notionhq/notion-mcp-server"
+ },
+ {
+  "n": "github",
+  "t": 26,
+  "mb": 185.8,
+  "cold": 0.45,
+  "p": 2,
+  "rt": "node",
+  "src": "@modelcontextprotocol/server-github"
+ },
+ {
+  "n": "sentry",
+  "t": 9,
+  "mb": 262.9,
+  "cold": 0.7,
+  "p": 2,
+  "rt": "node",
+  "src": "@sentry/mcp-server"
+ },
+ {
+  "n": "brave-search",
+  "t": 2,
+  "mb": 174.8,
+  "cold": 0.44,
+  "p": 2,
+  "rt": "node",
+  "src": "@modelcontextprotocol/server-brave-search"
+ },
+ {
+  "n": "mcp-server-chart",
+  "t": 27,
+  "mb": 217.7,
+  "cold": 2.08,
+  "p": 2,
+  "rt": "node",
+  "src": "@antv/mcp-server-chart"
+ },
+ {
+  "n": "ref-tools-mcp",
+  "t": 2,
+  "mb": 191.1,
+  "cold": 1.06,
+  "p": 2,
+  "rt": "node",
+  "src": "ref-tools-mcp"
+ },
+ {
+  "n": "ai-elements",
+  "t": 2,
+  "mb": 237.9,
+  "cold": 2.88,
+  "p": 2,
+  "rt": "node",
+  "src": "registry.ai-sdk.dev"
+ },
+ {
+  "n": "google-search",
+  "t": 1,
+  "mb": 239.9,
+  "cold": 0.96,
+  "p": 2,
+  "rt": "node",
+  "src": "google-search-api-mcp"
+ },
+ {
+  "n": "media-gen-pro",
+  "t": 2,
+  "mb": 249.6,
+  "cold": 0.99,
+  "p": 2,
+  "rt": "node",
+  "src": "media-gen-pro-mcp"
+ },
+ {
+  "n": "yt-transcript",
+  "t": 4,
+  "mb": 254.4,
+  "cold": 0.94,
+  "p": 2,
+  "rt": "node",
+  "src": "yt-transcript-gemini-mcp"
+ },
+ {
+  "n": "fetch",
+  "t": 1,
+  "mb": 142.0,
+  "cold": 0.6,
+  "p": 2,
+  "rt": "python",
+  "src": "mcp-server-fetch"
+ },
+ {
+  "n": "time",
+  "t": 2,
+  "mb": 106.4,
+  "cold": 1.26,
+  "p": 2,
+  "rt": "python",
+  "src": "mcp-server-time"
+ },
+ {
+  "n": "git",
+  "t": 12,
+  "mb": 107.1,
+  "cold": 1.29,
+  "p": 2,
+  "rt": "python",
+  "src": "mcp-server-git"
+ },
+ {
+  "n": "duckduckgo",
+  "t": 2,
+  "mb": 110.8,
+  "cold": 0.68,
+  "p": 2,
+  "rt": "python",
+  "src": "duckduckgo-mcp-server"
+ },
+ {
+  "n": "markitdown",
+  "t": 1,
+  "mb": 238.9,
+  "cold": 1.97,
+  "p": 2,
+  "rt": "python",
+  "src": "markitdown-mcp"
+ },
+ {
+  "n": "dossier",
+  "t": 39,
+  "mb": 170.3,
+  "cold": 1.93,
+  "p": 1,
+  "rt": "node-direct",
+  "src": "deep-research-mcp"
+ },
+ {
+  "n": "docker-mcp",
+  "t": 4,
+  "mb": 63.0,
+  "cold": 0.69,
+  "p": 1,
+  "rt": "binary",
+  "src": "docker-mcp-guard"
+ },
+ {
+  "n": "obscura",
+  "t": 37,
+  "mb": 10.2,
+  "cold": 0.01,
+  "p": 1,
+  "rt": "binary",
+  "src": "h4ckf0r0day/obscura"
+ }
+]

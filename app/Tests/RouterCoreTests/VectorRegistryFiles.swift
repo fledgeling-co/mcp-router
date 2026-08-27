@@ -18,9 +18,10 @@ extension VectorRegistry {
         //
         // The import is the load-bearing word. Until P9's gap-fix both generators carried a
         // hand-copied duplicate of the template under a comment claiming it was reference-derived,
-        // and a colour changed in the reference left `make parity-regen` green. The regen path is
-        // `scripts/parity/generate-vectors.mjs`; `scripts/gen-auth-vectors.mjs` writes the same
-        // file from the same import and is kept only as a standalone entry point.
+        // and a colour changed in the reference left `make parity-regen` green. The cases, the
+        // description and the import now have exactly one definition, in
+        // `scripts/parity/generate-auth-vectors.mjs`, which `generate-vectors.mjs` calls on the
+        // regen path and which also runs standalone.
         RegisteredVectorFile(
             file: "auth-pages", rows: ["B65", "B99"], consumer: "AuthParityTests.pageBytes"
         ) { cases in

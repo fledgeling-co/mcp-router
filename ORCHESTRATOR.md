@@ -1301,7 +1301,7 @@ does **not** change what any check reads, and must not be described as though it
 | G11 | A gate answers differently on two checkouts of one commit | gate | — | — | Opus | **Merged** | — | `eebac8f` |
 | G12 | The mutation harness reports success when its filter selects nothing | harness | — | — | Opus | **Merged** | — | `6c0249b` |
 | G13 | The pool mutation gate has a guard nothing proves | gate | — | — | Opus | **Merged** | — | `0bf48cc` |
-| G14 | The campaign never enumerated three surfaces that shipped | evidence | — | — | Opus | **To Do** | — | — |
+| G14 | The campaign never enumerated three surfaces that shipped | evidence | — | — | Opus | **Done** | — | `e70ac76` |
 | G15 | The Harnesses board has never been opened on glass | evidence | — | — | Opus | **Merged** | — | `3e962f8` |
 | G16 | The Insights board has never been opened on glass | evidence | — | — | Opus | **Merged** | — | `519aebc` |
 | G17 | The capability-document viewer has no case and no flow | evidence | — | — | Opus | **Merged** | — | `3189d02` |

@@ -508,8 +508,23 @@ def report(root: str) -> int:
     # mean "delete the row" — it means make one of the two calls and record it, and `waived` with a
     # reason is a third answer the registry already accepts (`grok-4.6` with `claude-fable-5` and
     # `gpt-5.6-sol`, 2026-08-26).
-    undiscovered = sorted(path for path in entries
-                          if path not in found and os.path.exists(os.path.join(root, path)))
+    #
+    # THE CALL, ONCE MADE, HAS TO BE ACCEPTED. Until 2026-08-27 this set was every registered row
+    # discovery no longer matched, whatever its disposition — so the finding named `not-a-sweep` or
+    # `waived` as the two ways to settle it and then went on refusing both, and the only answer
+    # that cleared it was deleting the row. That is the one remedy the paragraph above rules out,
+    # and a gate whose stated remedy does not work teaches people to delete records to make a
+    # counter fall. Measured on `design/assets/slice-tiles.py`, which G34 re-dispositioned from
+    # `grandfathered` to `not-a-sweep` with the reason in the registry and which stayed a finding
+    # anyway. A row still CLAIMING to be a sweep — `control` or `grandfathered` — blocks exactly as
+    # before, because that is the silent-narrowing case this whole class exists for.
+    SETTLED = ("not-a-sweep", "waived")
+    left_discovery = [path for path in entries
+                      if path not in found and os.path.exists(os.path.join(root, path))]
+    undiscovered = sorted(path for path in left_discovery
+                          if entries[path].get("disposition") not in SETTLED)
+    settled = sorted(path for path in left_discovery
+                     if entries[path].get("disposition") in SETTLED)
     tally = {kind: 0 for kind in DISPOSITIONS}
     for path, entry in entries.items():
         if entry.get("disposition") in tally:
@@ -526,6 +541,13 @@ def report(root: str) -> int:
         now = markers_for(open(os.path.join(root, path), encoding="utf-8", errors="replace").read())
         print(f"        {path} — disposition {entries[path].get('disposition')!r}, markers now "
               f"{','.join(now) if now else '(none)'}, below the threshold of {THRESHOLD}")
+    print(f"  {len(settled):4d}  SETTLED-AND-UNDISCOVERED — left discovery and the call was made: "
+          f"{', '.join(SETTLED)}")
+    for path in settled:
+        now = markers_for(open(os.path.join(root, path), encoding="utf-8", errors="replace").read())
+        print(f"        {path} — {entries[path].get('disposition')!r}, markers now "
+              f"{','.join(now) if now else '(none)'}. Reported, not a finding: the row says this "
+              f"file stopped being a sweep and gives its reason.")
     if undiscovered:
         print(f"        So {len(undiscovered)} of the {tally['grandfathered']} grandfathered rows "
               f"names a file discovery does not claim.")

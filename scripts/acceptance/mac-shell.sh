@@ -146,6 +146,35 @@ DEST_TOTAL="$(grep -c . "$WORK/destinations.tsv" | tr -d ' ')"
 # below turns `$DEST_TITLES` into a `for`, and an empty one runs zero assertions and reports a pass.
 [ "$DEST_TOTAL" -gt 0 ] || blocked "the destination oracle named no destinations — the oracle is wrong, not the app"
 
+# The guard above is about the oracle; this one is about the app, and it is the only number in this
+# block that does not come from the oracle. That distinction is the whole point of it.
+#
+# A4 below asserts `$DEST_ROW_COUNT -ge $DEST_TOTAL` — the sidebar's rows against the app's own
+# count — and **both sides move together**. Delete a case from `Destination` and delete its row from
+# the sidebar and that comparison still holds, because the expectation followed the app. Every other
+# reader of `$DEST_TITLES` has the same shape: the needle loop, the title lookup, the pane walk and
+# the board census all iterate the set the app declares, so a set that shrank iterates fewer times
+# and passes. **A derived expectation cannot notice a deletion.** That is the price of deriving, and
+# deriving is still right; the price is paid here instead.
+#
+# `DEST_FLOOR` is a ratchet, not a copy of the list. It names no destination and carries no order,
+# so adding a destination never touches it — which is the edit that went stale four times and is the
+# reason the list was deleted. It is edited only by a change that deliberately removes one, and that
+# edit is the deliberation: a red here says *say so in this commit*.
+#
+# It is also stale in the safe direction. A floor left below the true count weakens this check and
+# can never redden a correct app, which is the opposite of the pinned `case`-count it replaces —
+# that one was an equality and went red on a correct app the moment M22 shipped.
+#
+# **What it does not catch**, stated rather than left for the next reader to discover: a removal
+# paired with an addition in the same build keeps the total at or above the floor and passes here,
+# and no check in this file names a destination, so nothing else notices either. Catching that needs
+# the hand-written list back, which is a worse trade. The floor catches net shrinkage; a swap is
+# uncovered.
+DEST_FLOOR=9
+[ "$DEST_TOTAL" -ge "$DEST_FLOOR" ] \
+  || fail "the app declares $DEST_TOTAL destinations against a floor of $DEST_FLOOR — one has been removed, and every derived check below moved with it. If the removal is deliberate, lower DEST_FLOOR in the same commit."
+
 # `$DEST_TITLES` is consumed by word-splitting, which is correct only while no title carries a
 # space. That holds for every title the app ships today, and it is a property of the app rather than
 # of this lane, so it is checked rather than assumed: a two-word destination would otherwise split
@@ -366,8 +395,19 @@ WINDOW_TEXT="$(cut -f4,5,6 "$WORK/window.tsv" | tr '\t' '\n' | grep -v '^$' || t
 # loose number. That is the point of the label, so the assertion has to allow for it.
 # Settings left this list at M15: it is a `Settings` scene now, not a destination, so a row for it
 # in the console's tree would be the removal having been partial.
+#
+# Matched **literally** rather than as a pattern. The needle is a destination title, which is now
+# the app's string rather than this file's, and an ERE built by interpolation reads `+`, `(`, `?`
+# and `.` in it as syntax: a title like `Insights (beta)` would compile to a pattern matching
+# `Insights beta` and fail against the row the app draws correctly. The whitespace guard at the
+# oracle catches the word-split hazard and not this one — it looks at spaces, and these characters
+# are not spaces. `index($0, n) == 1` anchors the prefix with no pattern language involved, and the
+# needle reaches awk through the environment rather than `-v`, which would process backslashes.
 for needle in $DEST_TITLES; do
-    printf '%s\n' "$WINDOW_TEXT" | grep -qE "^$needle(,|$)" \
+    printf '%s\n' "$WINDOW_TEXT" \
+      | needle="$needle" awk 'BEGIN { n = ENVIRON["needle"]; l = length(n) }
+                              index($0, n) == 1 && (length($0) == l || substr($0, l + 1, 1) == ",") { found = 1 }
+                              END { exit !found }' \
       || fail "the accessibility tree does not carry a row for '$needle'"
 done
 pass "all $DEST_TOTAL destinations are in the accessibility tree"

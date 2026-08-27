@@ -1,611 +1,1654 @@
 [
-  {
-    "path": "evidence/shots/SURF-002.build.png",
-    "subject": "SURF-002",
-    "target": "app://mac/servers",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "396f7a823d19d3df3b09256429b3befad5aad9e2f2d4fc1611ff3e5ab5f559d5",
-    "capturedAt": "2026-08-27T03:15:16Z",
-    "conditions": {
-      "windowTitleReadback": "Servers",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63212",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "populated"
-    },
-    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app",
-    "sharesWith": [
-      "SURF-001"
+ {
+  "bytes": 118939,
+  "capturedAt": "2026-08-27T04:44:19Z",
+  "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
+  "derivedFrom": null,
+  "documentServer": "g17-capability",
+  "documentTab": "capabilities",
+  "frame": "capabilities.served",
+  "marker": "g17-capability",
+  "markerRole": "titlebar",
+  "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+  "path": "evidence/g17-document/capabilities.served.png",
+  "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
+  "sha256": "3c5aa28b93bd06ca8d63369d1cda29c6da5ab2357d181c250fcc8eadf118ba93",
+  "step": "FLOW-006.04",
+  "subject": "FLOW-006.04",
+  "target": "app://mac/servers/g17-capability/document",
+  "subjectNote": "the capture step recorded `subject: SURF-028` and `step: FLOW-006.04`; FLOW-006.04 is the subject that publishes this frame, so the narrower of the two capture-time claims is the one recorded here. SURF-028's route is the template `app://mac/servers/{server}/document` and this frame was rendered against one instance of it."
+ },
+ {
+  "bytes": 118311,
+  "capturedAt": "2026-08-27T04:44:19Z",
+  "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
+  "derivedFrom": null,
+  "documentServer": "g17-capability",
+  "documentTab": "changelog",
+  "frame": "changelog.served",
+  "marker": "g17-capability",
+  "markerRole": "titlebar",
+  "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+  "path": "evidence/g17-document/changelog.served.png",
+  "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
+  "sha256": "5563977a462a643d927596543857c4f9d46546bfb25ca166e3d7780c67d4c069",
+  "step": "FLOW-006.03",
+  "subject": "FLOW-006.03",
+  "target": "app://mac/servers/g17-capability/document",
+  "subjectNote": "the capture step recorded `subject: SURF-028` and `step: FLOW-006.03`; FLOW-006.03 is the subject that publishes this frame, so the narrower of the two capture-time claims is the one recorded here. SURF-028's route is the template `app://mac/servers/{server}/document` and this frame was rendered against one instance of it."
+ },
+ {
+  "bytes": 177879,
+  "capturedAt": "2026-08-27T04:44:19Z",
+  "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
+  "derivedFrom": null,
+  "documentServer": "g17-capability",
+  "documentTab": "readMe",
+  "frame": "readme.served",
+  "marker": "g17-capability",
+  "markerRole": "titlebar",
+  "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+  "path": "evidence/g17-document/readme.served.png",
+  "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
+  "sha256": "a54c084a5e62dbc396aabbc614a4b40968d5e3b8c794fa56d99dae50be30cd82",
+  "step": "FLOW-006.02",
+  "subject": "FLOW-006.02",
+  "target": "app://mac/servers/g17-capability/document",
+  "subjectNote": "the capture step recorded `subject: SURF-028` and `step: FLOW-006.02`; FLOW-006.02 is the subject that publishes this frame, so the narrower of the two capture-time claims is the one recorded here. SURF-028's route is the template `app://mac/servers/{server}/document` and this frame was rendered against one instance of it."
+ },
+ {
+  "bytes": 85588,
+  "capturedAt": "2026-08-27T04:44:19Z",
+  "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
+  "derivedFrom": null,
+  "documentServer": "g17-no-package",
+  "documentTab": "readMe",
+  "frame": "refusal.nopackage",
+  "marker": "g17-no-package",
+  "markerRole": "state-title",
+  "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+  "path": "evidence/g17-document/refusal.nopackage.png",
+  "servedBy": "http://127.0.0.1:8894/servers/g17-no-package/document (reference router, node dist/index.js)",
+  "sha256": "0b2e1e75479b5f29cffc3d54803c3d0e3dc5935ccd00068691f4dc12050dddbd",
+  "step": "FLOW-006.02",
+  "subject": "SURF-028",
+  "target": "app://mac/servers/g17-no-package/document",
+  "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0191) rather than by the wall."
+ },
+ {
+  "bytes": 89571,
+  "capturedAt": "2026-08-27T04:44:19Z",
+  "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
+  "derivedFrom": null,
+  "documentServer": "g17-oversize",
+  "documentTab": "readMe",
+  "frame": "refusal.toolarge",
+  "marker": null,
+  "markerRole": null,
+  "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
+  "path": "evidence/g17-document/refusal.toolarge.png",
+  "servedBy": "http://127.0.0.1:8894/servers/g17-oversize/document (reference router, node dist/index.js)",
+  "sha256": "5462034f32270ed0c716cf96d3d2dc39e8d2e5af381e5a642741d5a3a99e7547",
+  "step": "FLOW-006.02",
+  "subject": "SURF-028",
+  "target": "app://mac/servers/g17-oversize/document",
+  "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0192) rather than by the wall."
+ },
+ {
+  "path": "evidence/shots/DEF-059.insights-filed-as-SURF-011.png",
+  "subject": "DEF-059",
+  "target": "app://mac/insights",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "195e10068dfd364bcd311007fd6d2a8ce6db08584c0a499760915389ea84e0df",
+  "capturedAt": "2026-08-27T03:13:16Z",
+  "conditions": {
+   "windowTitleReadback": "Insights",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63156",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=64458 owns CGWindowID 63156, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "pathNote": "This row was written at the shutter by `bin/capture-mac-glass.sh` and every field in it is what the channel did: it recorded `app://mac/insights` and a window-title readback of `Insights`. Only the FILENAME claimed SURF-011, and `inventory.json` published it as the Settings board on the strength of that name. The file has been renamed to say what it is; nothing else in this row changed, because nothing else in it was wrong.",
+  "unpublishedReason": "DEF-059's own exhibit, kept deliberately. These are the Insights board's pixels, and until this commit they sat at `evidence/shots/SURF-011.build.png` and were published as the Mac Settings board. `axkit select Settings` stopped working when M15 made Settings a Scene, the app stayed on whichever board the loop visited last, and the shutter filed those pixels under SURF-011's filename -- the exact failure `capture-lineage.py` exists to find, and the one its tie pass caught, because the capture step recorded `target: app://mac/insights` honestly while the filename said otherwise. `bin/capture-mac-glass.sh:165-169` now refuses to photograph a select that did not take. Renamed rather than deleted so the defect keeps its evidence, and renamed rather than left in place so no filename-matching tool can offer it to SURF-011 again."
+ },
+ {
+  "path": "evidence/shots/SURF-001.build.png",
+  "subject": "SURF-001",
+  "target": "app://mac/servers",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": "evidence/shots/SURF-002.build.png",
+  "sha256": "396f7a823d19d3df3b09256429b3befad5aad9e2f2d4fc1611ff3e5ab5f559d5",
+  "capturedAt": "2026-08-27T03:15:16Z",
+  "conditions": {
+   "windowTitleReadback": "Servers",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63212",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "sharesWith": [
+   "SURF-002"
+  ],
+  "shareReason": "the shell is window chrome and the sidebar; it has no board of its own, so it is photographed on the Servers board and is the same window and the same pixels",
+  "unpublishedReason": "the Servers window SURF-001 declares a share of. SURF-001 publishes the sidebar crop taken out of it (`SURF-001.shell.png`, named in that row's `derivedFrom`), so publishing this frame too would put the same pixels on the wall twice under two captions."
+ },
+ {
+  "path": "evidence/shots/SURF-001.shell.png",
+  "subject": "SURF-001",
+  "target": "app://mac/shell",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS), cropped to the sidebar frame the AX dump reports",
+  "derivedFrom": "evidence/shots/SURF-001.build.png",
+  "sha256": "5531328c00628d622c7a9d6fc324d480481dec4bd87d6baf21c35b983ea924a4",
+  "capturedAt": "2026-08-27T03:15:17Z",
+  "conditions": {
+   "windowTitleReadback": "Servers",
+   "frame": "188.0,192.0,256.0,419.0",
+   "cgWindowID": "63212",
+   "appearance": "system",
+   "frontmostAtShutter": "n/a \u2014 derived crop, see SURF-001.build.png",
+   "scenario": "populated",
+   "crop": "0,0,596,1376 of 2096x1376 at scale 2, shadow margin 68px"
+  },
+  "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+ },
+ {
+  "path": "evidence/shots/SURF-002.addserver.png",
+  "subject": "SURF-002",
+  "target": "app://mac/servers",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "95d2701708b8cb2fa0939f00eff2b8d06f1bf442305e697c56473c311bc56359",
+  "capturedAt": "2026-08-20T11:32:59Z",
+  "conditions": {
+   "windowTitleReadback": "Servers",
+   "frame": "180,184,980,620",
+   "cgWindowID": "105219",
+   "appearance": "system",
+   "frontmostAtShutter": "Finder",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "unpublishedReason": "a witnessed capture of the `Add an MCP server` sheet drawn over the Servers board, from the 2026-08-20 glass run. Nothing publishes it because NO SURFACE ENUMERATES THAT SHEET: `inventory.json` has no id for it and no case cites it, so it is a picture of a control the product has and the campaign never counted. Kept rather than deleted -- the frame is real evidence and deleting it would remove the only trace of the gap. Enumerating the sheet as a surface with its own cases is coverage work and belongs to a coverage item, not to this one."
+ },
+ {
+  "path": "evidence/shots/SURF-002.build.png",
+  "subject": "SURF-002",
+  "target": "app://mac/servers",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "396f7a823d19d3df3b09256429b3befad5aad9e2f2d4fc1611ff3e5ab5f559d5",
+  "capturedAt": "2026-08-27T03:15:16Z",
+  "conditions": {
+   "windowTitleReadback": "Servers",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63212",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "sharesWith": [
+   "SURF-001"
+  ],
+  "shareReason": "the shell is window chrome and the sidebar; it has no board of its own, so it is photographed on the Servers board and is the same window and the same pixels"
+ },
+ {
+  "path": "evidence/shots/SURF-002.empty.png",
+  "subject": "SURF-002",
+  "target": "app://mac/servers",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "532c11b30605b0ac6b25aa134cc220a00320ca010b56b016c959434f20963241",
+  "capturedAt": "2026-08-27T03:16:08Z",
+  "conditions": {
+   "windowTitleReadback": "Servers",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63228",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "empty"
+  },
+  "witnessed": "axkit attached pid=87283 owns CGWindowID 63228, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0041) rather than by the wall."
+ },
+ {
+  "path": "evidence/shots/SURF-002.offline.png",
+  "subject": "SURF-002",
+  "target": "app://mac/servers",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "84a469099e7cd38253df6b4cc9a306b939ff48b7d66a6445715e90743e0d8bbf",
+  "capturedAt": "2026-08-27T03:16:24Z",
+  "conditions": {
+   "windowTitleReadback": "Servers",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63236",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "offline"
+  },
+  "witnessed": "axkit attached pid=90213 owns CGWindowID 63236, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0042) rather than by the wall."
+ },
+ {
+  "path": "evidence/shots/SURF-003.build.png",
+  "subject": "SURF-003",
+  "target": "app://mac/activity",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "c1c7fb459167edfd77f3bdd551ed836217303bbc84bb620a41923439cd5180ca",
+  "capturedAt": "2026-08-27T03:15:19Z",
+  "conditions": {
+   "windowTitleReadback": "Activity",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63212",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+ },
+ {
+  "path": "evidence/shots/SURF-004.build.png",
+  "subject": "SURF-004",
+  "target": "app://mac/skills",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "d5e4d4fec406a9e3d5a2589918c3228aafe6861e2632cd3f22e0284507784675",
+  "capturedAt": "2026-08-27T03:15:20Z",
+  "conditions": {
+   "windowTitleReadback": "Skills",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63212",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+ },
+ {
+  "path": "evidence/shots/SURF-005.build.png",
+  "subject": "SURF-005",
+  "target": "app://mac/discover",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "c730d766467f7373b3e3b0ebd22259dd3470db1ac88cd26fc8232eeba9f94446",
+  "capturedAt": "2026-08-27T03:15:24Z",
+  "conditions": {
+   "windowTitleReadback": "Discover",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63212",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+ },
+ {
+  "path": "evidence/shots/SURF-006.build.png",
+  "subject": "SURF-006",
+  "target": "app://mac/checks",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "5aa88f0cf5d03704d4ab47d9fdd928cf4415810ead08a6ec1d97a17437fe5d5a",
+  "capturedAt": "2026-08-27T03:15:29Z",
+  "conditions": {
+   "windowTitleReadback": "Checks",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63212",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+ },
+ {
+  "path": "evidence/shots/SURF-007.build.png",
+  "subject": "SURF-007",
+  "target": "app://mac/cleanup",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "94df3c584c6b0a5f34c8b35731207ad2c741c650787c34ac758b237235e47386",
+  "capturedAt": "2026-08-27T03:15:31Z",
+  "conditions": {
+   "windowTitleReadback": "Cleanup",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63212",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+ },
+ {
+  "path": "evidence/shots/SURF-007.cleanup-skills.png",
+  "subject": "SURF-007",
+  "target": "app://mac/cleanup",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "57f694c88ddd12a993a81f79bb2aee47c05fca5d8b01919540db4592ba2d2cf2",
+  "capturedAt": "2026-08-27T03:16:40Z",
+  "conditions": {
+   "windowTitleReadback": "Cleanup",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63241",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "cleanupSkills"
+  },
+  "witnessed": "axkit attached pid=93332 owns CGWindowID 63241, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0139) rather than by the wall."
+ },
+ {
+  "path": "evidence/shots/SURF-007.provenance-sheet.png",
+  "subject": "SURF-007",
+  "target": "app://mac/cleanup",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "778ceb5ee227dc18fb0577a2150fd06bd6b5fe5cf61963bfe23bc49e3b79d383",
+  "capturedAt": "2026-08-20T11:33:09Z",
+  "conditions": {
+   "windowTitleReadback": "Cleanup",
+   "frame": "180,184,980,620",
+   "cgWindowID": "105247",
+   "appearance": "system",
+   "frontmostAtShutter": "Warden",
+   "scenario": "cleanupSkills"
+  },
+  "witnessed": "axkit attached pid=44643 owns CGWindowID 105247, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0141) rather than by the wall."
+ },
+ {
+  "path": "evidence/shots/SURF-008.build.png",
+  "subject": "SURF-008",
+  "target": "app://mac/inbox",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "39d97570c50a7fc53274fc166c3bf751b8ef86ea2696074aa5f1bdf3ba426528",
+  "capturedAt": "2026-08-27T03:15:27Z",
+  "conditions": {
+   "windowTitleReadback": "Inbox",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63212",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+ },
+ {
+  "path": "evidence/shots/SURF-010.build.png",
+  "subject": "SURF-010",
+  "target": "app://mac/pairing",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "780a70277d35d28637afa1ac7babbc0491a3ab5bb8c1349f1867fc77dd16681f",
+  "capturedAt": "2026-08-27T03:15:52Z",
+  "conditions": {
+   "windowTitleReadback": "Inbox",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63212",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+ },
+ {
+  "path": "evidence/shots/SURF-011.build.png",
+  "subject": "SURF-011",
+  "target": "app://mac/settings",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "3b5a26ef6016a38cd87c1436e2eace618744117af128a5c49ac87047b773b189",
+  "capturedAt": "2026-08-20T11:32:58Z",
+  "conditions": {
+   "windowTitleReadback": "Settings",
+   "frame": "180,184,980,620",
+   "cgWindowID": "105219",
+   "appearance": "system",
+   "frontmostAtShutter": "Warden",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "restoredFrom": "cef3729 \u2014 the commit where this row and these bytes last agreed. Both were overwritten at 519aebc by a glass run taken before `bin/capture-mac-glass.sh` learned to refuse a select that did not take (DEF-059): `axkit select Settings` fails since M15 made Settings a Scene, the app stayed on Insights, and both the frame and this row were replaced with that board's. The file and the row are restored together from the same commit, so this is a recovery of a capture-time record rather than a manifest written after the fact."
+ },
+ {
+  "path": "evidence/shots/SURF-025.build.png",
+  "subject": "SURF-025",
+  "target": "app://mac/harnesses",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "c9edbe374e7444d75dadbc0285d5044dcd81c1950c4996f57fb9db0d6e940fbf",
+  "capturedAt": "2026-08-27T02:50:34Z",
+  "conditions": {
+   "windowTitleReadback": "Harnesses",
+   "frame": "180,140,980,620",
+   "cgWindowID": "62427",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+ },
+ {
+  "path": "evidence/shots/SURF-025.empty.png",
+  "subject": "SURF-025",
+  "target": "app://mac/harnesses",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "50939d373cbf6912488659b583bf8212a9aec0b282f8244a1d088fd9b11498be",
+  "capturedAt": "2026-08-27T02:51:30Z",
+  "conditions": {
+   "windowTitleReadback": "Harnesses",
+   "frame": "180,140,980,620",
+   "cgWindowID": "62477",
+   "appearance": "system",
+   "frontmostAtShutter": "DaisyDisk",
+   "scenario": "empty"
+  },
+  "witnessed": "axkit attached pid=20744 owns CGWindowID 62477, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0163) rather than by the wall."
+ },
+ {
+  "path": "evidence/shots/SURF-025.failure.png",
+  "subject": "SURF-025",
+  "target": "app://mac/harnesses",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "7fabf84e7062ebe33e89dce1a67e5a7ac98dbfd1c10371050a440f48ba65fdb0",
+  "capturedAt": "2026-08-27T02:51:34Z",
+  "conditions": {
+   "windowTitleReadback": "Harnesses",
+   "frame": "180,140,980,620",
+   "cgWindowID": "62484",
+   "appearance": "system",
+   "frontmostAtShutter": "DaisyDisk",
+   "scenario": "offline"
+  },
+  "witnessed": "axkit attached pid=23162 owns CGWindowID 62484, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0165) rather than by the wall."
+ },
+ {
+  "path": "evidence/shots/SURF-026.build.png",
+  "subject": "SURF-026",
+  "target": "app://mac/insights",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "8adecf368f3ad9e9a7ed01c8f82e5e100c9f82b210efd70f91c78004b448ceeb",
+  "capturedAt": "2026-08-27T03:15:35Z",
+  "conditions": {
+   "windowTitleReadback": "Insights",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63212",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+ },
+ {
+  "path": "evidence/shots/SURF-026.empty.png",
+  "subject": "SURF-026",
+  "target": "app://mac/insights",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "c60c0a62ec46e0c7bcc15ace7eeb8e17e259f26ee11524313e55a7939aa25abb",
+  "capturedAt": "2026-08-27T03:16:57Z",
+  "conditions": {
+   "windowTitleReadback": "Insights",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63247",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "empty"
+  },
+  "witnessed": "axkit attached pid=2087 owns CGWindowID 63247, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0173) rather than by the wall."
+ },
+ {
+  "path": "evidence/shots/SURF-026.failure.png",
+  "subject": "SURF-026",
+  "target": "app://mac/insights",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "ad1f088b9ac4941f6161b9cf89b3f3b2b193769418353eebc3915e5788409a63",
+  "capturedAt": "2026-08-27T03:17:11Z",
+  "conditions": {
+   "windowTitleReadback": "Insights",
+   "frame": "180,140,980,620",
+   "cgWindowID": "63253",
+   "appearance": "system",
+   "frontmostAtShutter": "Ghostty",
+   "scenario": "offline"
+  },
+  "witnessed": "axkit attached pid=8471 owns CGWindowID 63253, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "unpublishedReason": "a second state of a surface the wall already shows. `inventory.json` renders one `shot` per subject, so the extra scenario states are carried by the cases that cite them (CASE-0175) rather than by the wall."
+ },
+ {
+  "path": "evidence/shots/design-size/SURF-002.png",
+  "subject": "SURF-002",
+  "target": "app://mac/servers",
+  "targetSource": "constructed from `conditions.windowTitleReadback`, which the capture step recorded at the shutter; `bin/capture-mac-design-size.sh` writes no `target` field of its own",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "ae64e7588862da70ac3501dae096569f52f86988d88f37ab1d75658fd9173f24",
+  "conditions": {
+   "windowTitleReadback": "Servers",
+   "frame": "120,120,1156,680",
+   "requestedSize": "1156x680",
+   "frontmostAtShutter": "Google Chrome",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=7631 owns CGWindowID 113895, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "frameStatus": "unavailable \u2014 screencapture exposes no per-frame status; ScreenCaptureKit's SCFrameStatus has no equivalent here",
+  "unpublishedReason": "the build half of the mockup-fidelity pairs, photographed at the DESIGN's own window size (1156x680) rather than the campaign's 980x620. `bin/crop-fidelity-pairs.py` crops it to the window's own content box; the wall publishes the 980x620 glass captures, so this frame is an input to the comparison rather than a picture of the surface."
+ },
+ {
+  "path": "evidence/shots/design-size/SURF-003.png",
+  "subject": "SURF-003",
+  "target": "app://mac/activity",
+  "targetSource": "constructed from `conditions.windowTitleReadback`, which the capture step recorded at the shutter; `bin/capture-mac-design-size.sh` writes no `target` field of its own",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "fb918842ac790dbeb731d93c1d33c3d95b0e4e59f762a377c7053ef1aa1e6540",
+  "conditions": {
+   "windowTitleReadback": "Activity",
+   "frame": "120,120,1156,680",
+   "requestedSize": "1156x680",
+   "frontmostAtShutter": "Google Chrome",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=7631 owns CGWindowID 113895, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "frameStatus": "unavailable \u2014 screencapture exposes no per-frame status; ScreenCaptureKit's SCFrameStatus has no equivalent here",
+  "unpublishedReason": "the build half of the mockup-fidelity pairs, photographed at the DESIGN's own window size (1156x680) rather than the campaign's 980x620. `bin/crop-fidelity-pairs.py` crops it to the window's own content box; the wall publishes the 980x620 glass captures, so this frame is an input to the comparison rather than a picture of the surface."
+ },
+ {
+  "path": "evidence/shots/design-size/SURF-004.png",
+  "subject": "SURF-004",
+  "target": "app://mac/skills",
+  "targetSource": "constructed from `conditions.windowTitleReadback`, which the capture step recorded at the shutter; `bin/capture-mac-design-size.sh` writes no `target` field of its own",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "8db0f78e9c930ad103e046e62bcdefb0db1e8dce3ae5a5818d308224467b39e5",
+  "conditions": {
+   "windowTitleReadback": "Skills",
+   "frame": "120,120,1156,680",
+   "requestedSize": "1156x680",
+   "frontmostAtShutter": "Google Chrome",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=7631 owns CGWindowID 113895, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "frameStatus": "unavailable \u2014 screencapture exposes no per-frame status; ScreenCaptureKit's SCFrameStatus has no equivalent here",
+  "unpublishedReason": "the build half of the mockup-fidelity pairs, photographed at the DESIGN's own window size (1156x680) rather than the campaign's 980x620. `bin/crop-fidelity-pairs.py` crops it to the window's own content box; the wall publishes the 980x620 glass captures, so this frame is an input to the comparison rather than a picture of the surface."
+ },
+ {
+  "path": "evidence/shots/design-size/SURF-005.png",
+  "subject": "SURF-005",
+  "target": "app://mac/discover",
+  "targetSource": "constructed from `conditions.windowTitleReadback`, which the capture step recorded at the shutter; `bin/capture-mac-design-size.sh` writes no `target` field of its own",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "c08d4988b63e31083785803ba5a7afd7b9b634d6e2c9a5cd843fb4f7ee9031d7",
+  "conditions": {
+   "windowTitleReadback": "Discover",
+   "frame": "120,120,1156,680",
+   "requestedSize": "1156x680",
+   "frontmostAtShutter": "Google Chrome",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=7631 owns CGWindowID 113895, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "frameStatus": "unavailable \u2014 screencapture exposes no per-frame status; ScreenCaptureKit's SCFrameStatus has no equivalent here",
+  "unpublishedReason": "the build half of the mockup-fidelity pairs, photographed at the DESIGN's own window size (1156x680) rather than the campaign's 980x620. `bin/crop-fidelity-pairs.py` crops it to the window's own content box; the wall publishes the 980x620 glass captures, so this frame is an input to the comparison rather than a picture of the surface."
+ },
+ {
+  "path": "evidence/shots/design-size/SURF-006.png",
+  "subject": "SURF-006",
+  "target": "app://mac/checks",
+  "targetSource": "constructed from `conditions.windowTitleReadback`, which the capture step recorded at the shutter; `bin/capture-mac-design-size.sh` writes no `target` field of its own",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "c9c4efb05a1ce86de25f5b7c35d1638990869649aa5bc5a0d06f81642cb10432",
+  "conditions": {
+   "windowTitleReadback": "Checks",
+   "frame": "120,120,1156,680",
+   "requestedSize": "1156x680",
+   "frontmostAtShutter": "Google Chrome",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=7631 owns CGWindowID 113895, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "frameStatus": "unavailable \u2014 screencapture exposes no per-frame status; ScreenCaptureKit's SCFrameStatus has no equivalent here",
+  "unpublishedReason": "the build half of the mockup-fidelity pairs, photographed at the DESIGN's own window size (1156x680) rather than the campaign's 980x620. `bin/crop-fidelity-pairs.py` crops it to the window's own content box; the wall publishes the 980x620 glass captures, so this frame is an input to the comparison rather than a picture of the surface."
+ },
+ {
+  "path": "evidence/shots/design-size/SURF-007.png",
+  "subject": "SURF-007",
+  "target": "app://mac/cleanup",
+  "targetSource": "constructed from `conditions.windowTitleReadback`, which the capture step recorded at the shutter; `bin/capture-mac-design-size.sh` writes no `target` field of its own",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "b08efa547a140e05d3990a715918f64edea9d440dd8c4821698d3dc843f6e120",
+  "conditions": {
+   "windowTitleReadback": "Cleanup",
+   "frame": "120,120,1156,680",
+   "requestedSize": "1156x680",
+   "frontmostAtShutter": "Google Chrome",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=7631 owns CGWindowID 113895, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "frameStatus": "unavailable \u2014 screencapture exposes no per-frame status; ScreenCaptureKit's SCFrameStatus has no equivalent here",
+  "unpublishedReason": "the build half of the mockup-fidelity pairs, photographed at the DESIGN's own window size (1156x680) rather than the campaign's 980x620. `bin/crop-fidelity-pairs.py` crops it to the window's own content box; the wall publishes the 980x620 glass captures, so this frame is an input to the comparison rather than a picture of the surface."
+ },
+ {
+  "path": "evidence/shots/design-size/SURF-008.png",
+  "subject": "SURF-008",
+  "target": "app://mac/inbox",
+  "targetSource": "constructed from `conditions.windowTitleReadback`, which the capture step recorded at the shutter; `bin/capture-mac-design-size.sh` writes no `target` field of its own",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "bf2c3b838ea10c671cd781df17a1a0b549c9564e6f1b632b068767f07f4507fb",
+  "conditions": {
+   "windowTitleReadback": "Inbox",
+   "frame": "120,120,1156,680",
+   "requestedSize": "1156x680",
+   "frontmostAtShutter": "Google Chrome",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=7631 owns CGWindowID 113895, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "frameStatus": "unavailable \u2014 screencapture exposes no per-frame status; ScreenCaptureKit's SCFrameStatus has no equivalent here",
+  "unpublishedReason": "the build half of the mockup-fidelity pairs, photographed at the DESIGN's own window size (1156x680) rather than the campaign's 980x620. `bin/crop-fidelity-pairs.py` crops it to the window's own content box; the wall publishes the 980x620 glass captures, so this frame is an input to the comparison rather than a picture of the surface."
+ },
+ {
+  "path": "evidence/shots/design-size/SURF-011.png",
+  "subject": "SURF-011",
+  "target": "app://mac/settings",
+  "targetSource": "constructed from `conditions.windowTitleReadback`, which the capture step recorded at the shutter; `bin/capture-mac-design-size.sh` writes no `target` field of its own",
+  "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
+  "derivedFrom": null,
+  "sha256": "7c24af576e451143ef8ec8b7ca8d14c987410a771adb580b92d78c165031d8d2",
+  "conditions": {
+   "windowTitleReadback": "Settings",
+   "frame": "120,120,1156,680",
+   "requestedSize": "1156x680",
+   "frontmostAtShutter": "Google Chrome",
+   "scenario": "populated"
+  },
+  "witnessed": "axkit attached pid=7631 owns CGWindowID 113895, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+  "frameStatus": "unavailable \u2014 screencapture exposes no per-frame status; ScreenCaptureKit's SCFrameStatus has no equivalent here",
+  "unpublishedReason": "the build half of the mockup-fidelity pairs, photographed at the DESIGN's own window size (1156x680) rather than the campaign's 980x620. `bin/crop-fidelity-pairs.py` crops it to the window's own content box; the wall publishes the 980x620 glass captures, so this frame is an input to the comparison rather than a picture of the surface."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-002.build.png",
+  "subject": null,
+  "depicts": "the build half of the fidelity pair for SURF-002",
+  "target": null,
+  "croppedFrom": "app://mac/servers",
+  "channel": "screencapture -x -l<CGWindowID> at an AX-set 1156x680 frame, cropped by the shadow-margin solve",
+  "derivedFrom": "evidence/shots/design-size/SURF-002.png",
+  "cropBox": [
+   68,
+   68,
+   2380,
+   1428
+  ],
+  "sha256": "354b927e86f5bd38f892034a4072664f2acb254851c05a30d5580e62a9a11eff",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
     ],
-    "shareReason": "the shell is window chrome and the sidebar; it has no board of its own, so it is photographed on the Servers board and is the same window and the same pixels"
-  },
-  {
-    "path": "evidence/shots/SURF-001.build.png",
-    "subject": "SURF-001",
-    "target": "app://mac/servers",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": "evidence/shots/SURF-002.build.png",
-    "sha256": "396f7a823d19d3df3b09256429b3befad5aad9e2f2d4fc1611ff3e5ab5f559d5",
-    "capturedAt": "2026-08-27T03:15:16Z",
-    "conditions": {
-      "windowTitleReadback": "Servers",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63212",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "populated"
-    },
-    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app",
-    "sharesWith": [
-      "SURF-002"
+    "devicePixels": [
+     2312,
+     1360
     ],
-    "shareReason": "the shell is window chrome and the sidebar; it has no board of its own, so it is photographed on the Servers board and is the same window and the same pixels"
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/SURF-001.shell.png",
-    "subject": "SURF-001",
-    "target": "app://mac/shell",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS), cropped to the sidebar frame the AX dump reports",
-    "derivedFrom": "evidence/shots/SURF-001.build.png",
-    "sha256": "5531328c00628d622c7a9d6fc324d480481dec4bd87d6baf21c35b983ea924a4",
-    "capturedAt": "2026-08-27T03:15:17Z",
-    "conditions": {
-      "windowTitleReadback": "Servers",
-      "frame": "188.0,192.0,256.0,419.0",
-      "cgWindowID": "63212",
-      "appearance": "system",
-      "frontmostAtShutter": "n/a — derived crop, see SURF-001.build.png",
-      "scenario": "populated",
-      "crop": "0,0,596,1376 of 2096x1376 at scale 2, shadow margin 68px"
-    },
-    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-002.design.png",
+  "subject": null,
+  "depicts": "the design half of the fidelity pair for SURF-002",
+  "target": null,
+  "croppedFrom": "design/mocks/prototype.html?pane=servers&only=mac",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
+  "derivedFrom": "evidence/shots/mock-hidpi/SURF-002.full.png",
+  "cropBox": [
+   60,
+   330,
+   2372,
+   1690
+  ],
+  "sha256": "60b172e6807d452a45e6d34b6bc7029d675d978245f45bea9903ca6bb4a377e6",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/SURF-003.build.png",
-    "subject": "SURF-003",
-    "target": "app://mac/activity",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "c1c7fb459167edfd77f3bdd551ed836217303bbc84bb620a41923439cd5180ca",
-    "capturedAt": "2026-08-27T03:15:19Z",
-    "conditions": {
-      "windowTitleReadback": "Activity",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63212",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "populated"
-    },
-    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-003.build.png",
+  "subject": null,
+  "depicts": "the build half of the fidelity pair for SURF-003",
+  "target": null,
+  "croppedFrom": "app://mac/activity",
+  "channel": "screencapture -x -l<CGWindowID> at an AX-set 1156x680 frame, cropped by the shadow-margin solve",
+  "derivedFrom": "evidence/shots/design-size/SURF-003.png",
+  "cropBox": [
+   68,
+   68,
+   2380,
+   1428
+  ],
+  "sha256": "287a743b2551fb4f281aaced6a513967371b36791ed7d2145a6c404bd23f55a8",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/SURF-004.build.png",
-    "subject": "SURF-004",
-    "target": "app://mac/skills",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "d5e4d4fec406a9e3d5a2589918c3228aafe6861e2632cd3f22e0284507784675",
-    "capturedAt": "2026-08-27T03:15:20Z",
-    "conditions": {
-      "windowTitleReadback": "Skills",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63212",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "populated"
-    },
-    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-003.design.png",
+  "subject": null,
+  "depicts": "the design half of the fidelity pair for SURF-003",
+  "target": null,
+  "croppedFrom": "design/mocks/prototype.html?pane=activity&only=mac",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
+  "derivedFrom": "evidence/shots/mock-hidpi/SURF-003.full.png",
+  "cropBox": [
+   60,
+   330,
+   2372,
+   1690
+  ],
+  "sha256": "3c8367012a510bb4fc9686bb9a25f5802b75b8621968c7efd4f78c0f7f5aec1e",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/SURF-005.build.png",
-    "subject": "SURF-005",
-    "target": "app://mac/discover",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "c730d766467f7373b3e3b0ebd22259dd3470db1ac88cd26fc8232eeba9f94446",
-    "capturedAt": "2026-08-27T03:15:24Z",
-    "conditions": {
-      "windowTitleReadback": "Discover",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63212",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "populated"
-    },
-    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-004.build.png",
+  "subject": null,
+  "depicts": "the build half of the fidelity pair for SURF-004",
+  "target": null,
+  "croppedFrom": "app://mac/skills",
+  "channel": "screencapture -x -l<CGWindowID> at an AX-set 1156x680 frame, cropped by the shadow-margin solve",
+  "derivedFrom": "evidence/shots/design-size/SURF-004.png",
+  "cropBox": [
+   68,
+   68,
+   2380,
+   1428
+  ],
+  "sha256": "1a1ba4c3b64ef2d442d8ec00971552a9570b94e3cab594381efe8c7b598871c0",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/SURF-008.build.png",
-    "subject": "SURF-008",
-    "target": "app://mac/inbox",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "39d97570c50a7fc53274fc166c3bf751b8ef86ea2696074aa5f1bdf3ba426528",
-    "capturedAt": "2026-08-27T03:15:27Z",
-    "conditions": {
-      "windowTitleReadback": "Inbox",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63212",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "populated"
-    },
-    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-004.design.png",
+  "subject": null,
+  "depicts": "the design half of the fidelity pair for SURF-004",
+  "target": null,
+  "croppedFrom": "design/mocks/prototype.html?pane=skills&only=mac",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
+  "derivedFrom": "evidence/shots/mock-hidpi/SURF-004.full.png",
+  "cropBox": [
+   60,
+   330,
+   2372,
+   1690
+  ],
+  "sha256": "45b3eff9595db062beff5cb6f415747235ab49e3634a907ad3d22bbf32f8a99f",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/SURF-006.build.png",
-    "subject": "SURF-006",
-    "target": "app://mac/checks",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "5aa88f0cf5d03704d4ab47d9fdd928cf4415810ead08a6ec1d97a17437fe5d5a",
-    "capturedAt": "2026-08-27T03:15:29Z",
-    "conditions": {
-      "windowTitleReadback": "Checks",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63212",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "populated"
-    },
-    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-005.build.png",
+  "subject": null,
+  "depicts": "the build half of the fidelity pair for SURF-005",
+  "target": null,
+  "croppedFrom": "app://mac/discover",
+  "channel": "screencapture -x -l<CGWindowID> at an AX-set 1156x680 frame, cropped by the shadow-margin solve",
+  "derivedFrom": "evidence/shots/design-size/SURF-005.png",
+  "cropBox": [
+   68,
+   68,
+   2380,
+   1428
+  ],
+  "sha256": "4bdc9b90c518af41e1a8343798336d7c90b99db0ef4959ac899a0d606c488e03",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/SURF-007.build.png",
-    "subject": "SURF-007",
-    "target": "app://mac/cleanup",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "94df3c584c6b0a5f34c8b35731207ad2c741c650787c34ac758b237235e47386",
-    "capturedAt": "2026-08-27T03:15:31Z",
-    "conditions": {
-      "windowTitleReadback": "Cleanup",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63212",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "populated"
-    },
-    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-005.design.png",
+  "subject": null,
+  "depicts": "the design half of the fidelity pair for SURF-005",
+  "target": null,
+  "croppedFrom": "design/mocks/prototype.html?pane=discover&only=mac",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
+  "derivedFrom": "evidence/shots/mock-hidpi/SURF-005.full.png",
+  "cropBox": [
+   60,
+   330,
+   2372,
+   1690
+  ],
+  "sha256": "98a8d1be98aa055a671ee97558567221df8b70c3225e54a921ad9f2767cfb6f4",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/SURF-011.build.png",
-    "subject": "SURF-011",
-    "target": "app://mac/insights",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "195e10068dfd364bcd311007fd6d2a8ce6db08584c0a499760915389ea84e0df",
-    "capturedAt": "2026-08-27T03:13:16Z",
-    "conditions": {
-      "windowTitleReadback": "Insights",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63156",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "populated"
-    },
-    "witnessed": "axkit attached pid=64458 owns CGWindowID 63156, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-006.build.png",
+  "subject": null,
+  "depicts": "the build half of the fidelity pair for SURF-006",
+  "target": null,
+  "croppedFrom": "app://mac/checks",
+  "channel": "screencapture -x -l<CGWindowID> at an AX-set 1156x680 frame, cropped by the shadow-margin solve",
+  "derivedFrom": "evidence/shots/design-size/SURF-006.png",
+  "cropBox": [
+   68,
+   68,
+   2380,
+   1428
+  ],
+  "sha256": "c077e657adad6a2266d7b4dae2f4f460efa01fa7c75bbc5d3fb756c324ede4f1",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/SURF-002.addserver.png",
-    "subject": "SURF-002",
-    "target": "app://mac/servers",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "95d2701708b8cb2fa0939f00eff2b8d06f1bf442305e697c56473c311bc56359",
-    "capturedAt": "2026-08-20T11:32:59Z",
-    "conditions": {
-      "windowTitleReadback": "Servers",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105219",
-      "appearance": "system",
-      "frontmostAtShutter": "Finder",
-      "scenario": "populated"
-    },
-    "witnessed": "axkit attached pid=41218 owns CGWindowID 105219, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-006.design.png",
+  "subject": null,
+  "depicts": "the design half of the fidelity pair for SURF-006",
+  "target": null,
+  "croppedFrom": "design/mocks/prototype.html?pane=evals&only=mac",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
+  "derivedFrom": "evidence/shots/mock-hidpi/SURF-006.full.png",
+  "cropBox": [
+   60,
+   330,
+   2372,
+   1690
+  ],
+  "sha256": "99e7167d842dbd5775029a40b3d4395fc88ecf1e04a7f2aa8a2e68dd07e8cdb9",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/SURF-010.build.png",
-    "subject": "SURF-010",
-    "target": "app://mac/pairing",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "780a70277d35d28637afa1ac7babbc0491a3ab5bb8c1349f1867fc77dd16681f",
-    "capturedAt": "2026-08-27T03:15:52Z",
-    "conditions": {
-      "windowTitleReadback": "Inbox",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63212",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "populated"
-    },
-    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-007.build.png",
+  "subject": null,
+  "depicts": "the build half of the fidelity pair for SURF-007",
+  "target": null,
+  "croppedFrom": "app://mac/cleanup",
+  "channel": "screencapture -x -l<CGWindowID> at an AX-set 1156x680 frame, cropped by the shadow-margin solve",
+  "derivedFrom": "evidence/shots/design-size/SURF-007.png",
+  "cropBox": [
+   68,
+   68,
+   2380,
+   1428
+  ],
+  "sha256": "82084768b6cc29af641d55ce1413909b387be8d51b7f43fb5fd6a74e13854ed0",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/SURF-002.empty.png",
-    "subject": "SURF-002",
-    "target": "app://mac/servers",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "532c11b30605b0ac6b25aa134cc220a00320ca010b56b016c959434f20963241",
-    "capturedAt": "2026-08-27T03:16:08Z",
-    "conditions": {
-      "windowTitleReadback": "Servers",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63228",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "empty"
-    },
-    "witnessed": "axkit attached pid=87283 owns CGWindowID 63228, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-007.design.png",
+  "subject": null,
+  "depicts": "the design half of the fidelity pair for SURF-007",
+  "target": null,
+  "croppedFrom": "design/mocks/prototype.html?pane=cleanup&only=mac",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
+  "derivedFrom": "evidence/shots/mock-hidpi/SURF-007.full.png",
+  "cropBox": [
+   60,
+   330,
+   2372,
+   1690
+  ],
+  "sha256": "292f10367c2ca331e51ccb6a4f5fd6325c22872fc9745203e9cf29b5b4599ac6",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/SURF-002.offline.png",
-    "subject": "SURF-002",
-    "target": "app://mac/servers",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "84a469099e7cd38253df6b4cc9a306b939ff48b7d66a6445715e90743e0d8bbf",
-    "capturedAt": "2026-08-27T03:16:24Z",
-    "conditions": {
-      "windowTitleReadback": "Servers",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63236",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "offline"
-    },
-    "witnessed": "axkit attached pid=90213 owns CGWindowID 63236, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-008.build.png",
+  "subject": null,
+  "depicts": "the build half of the fidelity pair for SURF-008",
+  "target": null,
+  "croppedFrom": "app://mac/inbox",
+  "channel": "screencapture -x -l<CGWindowID> at an AX-set 1156x680 frame, cropped by the shadow-margin solve",
+  "derivedFrom": "evidence/shots/design-size/SURF-008.png",
+  "cropBox": [
+   68,
+   68,
+   2380,
+   1428
+  ],
+  "sha256": "d6d9482b7012b909d334e5d436ffa3f88dc70a2690c4fab5ba926c0b66271090",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/SURF-007.cleanup-skills.png",
-    "subject": "SURF-007",
-    "target": "app://mac/cleanup",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "57f694c88ddd12a993a81f79bb2aee47c05fca5d8b01919540db4592ba2d2cf2",
-    "capturedAt": "2026-08-27T03:16:40Z",
-    "conditions": {
-      "windowTitleReadback": "Cleanup",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63241",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "cleanupSkills"
-    },
-    "witnessed": "axkit attached pid=93332 owns CGWindowID 63241, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-008.design.png",
+  "subject": null,
+  "depicts": "the design half of the fidelity pair for SURF-008",
+  "target": null,
+  "croppedFrom": "design/mocks/prototype.html?pane=inbox&only=mac",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
+  "derivedFrom": "evidence/shots/mock-hidpi/SURF-008.full.png",
+  "cropBox": [
+   60,
+   330,
+   2372,
+   1690
+  ],
+  "sha256": "fff96a9e4d63614407ca6faa030fb7048f7f731fd4a561593808ffdf0c49d1e8",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/SURF-007.provenance-sheet.png",
-    "subject": "SURF-007",
-    "target": "app://mac/cleanup",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "778ceb5ee227dc18fb0577a2150fd06bd6b5fe5cf61963bfe23bc49e3b79d383",
-    "capturedAt": "2026-08-20T11:33:09Z",
-    "conditions": {
-      "windowTitleReadback": "Cleanup",
-      "frame": "180,184,980,620",
-      "cgWindowID": "105247",
-      "appearance": "system",
-      "frontmostAtShutter": "Warden",
-      "scenario": "cleanupSkills"
-    },
-    "witnessed": "axkit attached pid=44643 owns CGWindowID 105247, bundle /Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-011.build.png",
+  "subject": null,
+  "depicts": "the build half of the fidelity pair for SURF-011",
+  "target": null,
+  "croppedFrom": "app://mac/settings",
+  "channel": "screencapture -x -l<CGWindowID> at an AX-set 1156x680 frame, cropped by the shadow-margin solve",
+  "derivedFrom": "evidence/shots/design-size/SURF-011.png",
+  "cropBox": [
+   68,
+   68,
+   2380,
+   1428
+  ],
+  "sha256": "e1449a1596041e6e81f05f8ec35d9491e70c6937618c8ae0d7a97db08e791bc2",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/ios/SURF-012.ios.discover-populated.png",
-    "subject": "SURF-012",
-    "target": "app://ios/discover",
-    "targetReadback": "Discover",
-    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
-    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testDiscoverRendersTheRoutersCatalogue]",
-    "sha256": "fb59515de8832c3c530d36fb67df212056378b3ab38e820ebe8bd29a6299c280",
-    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
-    "witnessed": false
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/fidelity/SURF-011.design.png",
+  "subject": null,
+  "depicts": "the design half of the fidelity pair for SURF-011",
+  "target": null,
+  "croppedFrom": "design/mocks/prototype.html?pane=settings&only=mac",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride 1280x900@2 + Page.captureScreenshot, cropped to the window's own borders",
+  "derivedFrom": "evidence/shots/mock-hidpi/SURF-011.full.png",
+  "cropBox": [
+   60,
+   330,
+   2372,
+   1690
+  ],
+  "sha256": "9ca082b47d220cc903dceb83eb912f4603d37bbb373e2fa06b4287de5f8a0c74",
+  "conditions": {
+   "size": [
+    2312,
+    1360
+   ],
+   "window": {
+    "points": [
+     1156,
+     680
+    ],
+    "devicePixels": [
+     2312,
+     1360
+    ],
+    "deviceScaleFactor": 2
+   }
   },
-  {
-    "path": "evidence/shots/ios/SURF-012.ios.discover-empty.png",
-    "subject": "SURF-012",
-    "target": "app://ios/discover",
-    "targetReadback": "Discover",
-    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
-    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testDiscoverTracksWhatTheRouterReturned]",
-    "sha256": "efacc8e553e3084390fea6e18e446c553d8b1e58372739c8c9ae24e9d045e124",
-    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
-    "witnessed": false
+  "witnessed": false,
+  "unpublishedReason": "a derived crop, not a capture. `evidence/shots/fidelity/pairs.json` is what be-my-witness reads, and it names both halves, the image each was cropped from and the box. A crop of one half of a comparison is not the surface's picture and must never be published as one."
+ },
+ {
+  "path": "evidence/shots/ios/SURF-012.ios.discover-empty.png",
+  "subject": "SURF-012",
+  "target": "app://ios/discover",
+  "targetReadback": "Discover",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testDiscoverTracksWhatTheRouterReturned]",
+  "sha256": "efacc8e553e3084390fea6e18e446c553d8b1e58372739c8c9ae24e9d045e124",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false,
+  "unpublishedReason": "a second state of an iOS surface the wall already shows for that subject. The cases that cite it carry it."
+ },
+ {
+  "path": "evidence/shots/ios/SURF-012.ios.discover-populated.png",
+  "subject": "SURF-012",
+  "target": "app://ios/discover",
+  "targetReadback": "Discover",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testDiscoverRendersTheRoutersCatalogue]",
+  "sha256": "fb59515de8832c3c530d36fb67df212056378b3ab38e820ebe8bd29a6299c280",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ },
+ {
+  "path": "evidence/shots/ios/SURF-013.ios.triage.png",
+  "subject": "SURF-013",
+  "target": "app://ios/triage",
+  "targetReadback": "Triage",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
+  "sha256": "651e672f5333326fecf0256700a02ec08657c96b6316a60ef625e522d3b4c918",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ },
+ {
+  "path": "evidence/shots/ios/SURF-014.ios.camera-preflight.png",
+  "subject": "SURF-014",
+  "target": "app://ios/pair-mac",
+  "targetReadback": "Pair Mac",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
+  "sha256": "49be996cecefc81f8ce03bacca9b742ac134246cc188695d745038348a048f51",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ },
+ {
+  "path": "evidence/shots/ios/SURF-014.ios.pairing-typed-entry.png",
+  "subject": "SURF-014",
+  "target": "app://ios/pair-mac",
+  "targetReadback": "Pair Mac",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
+  "sha256": "e84897f27a63079643cb3a317ed495dfeefe0b2b89e894668117c8f0e6c590a9",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false,
+  "unpublishedReason": "a second state of an iOS surface the wall already shows for that subject. The cases that cite it carry it."
+ },
+ {
+  "path": "evidence/shots/ios/SURF-018.ios.settings-never-paired.png",
+  "subject": "SURF-018",
+  "target": "app://ios/settings",
+  "targetReadback": "Settings",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
+  "sha256": "cb15aa3016a9a5589e9ac6fb2eb0f27d89f040440dac435ed564bc5d246aacf7",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ },
+ {
+  "path": "evidence/shots/ios/SURF-019.ios.queue.png",
+  "subject": "SURF-019",
+  "target": "app://ios/queue",
+  "targetReadback": "Queue",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
+  "sha256": "d013a14efe1b52712f4994d250b79b4b74dfd44022ef183f117c376007c3fba8",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ },
+ {
+  "path": "evidence/shots/ios/SURF-020.ios.library.png",
+  "subject": "SURF-020",
+  "target": "app://ios/library",
+  "targetReadback": "Library",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
+  "sha256": "5305bbc36e148891b553a4fcba1edd9c938a38c4869df1167d830357052e3639",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false
+ },
+ {
+  "path": "evidence/shots/ios/UNASSERTED.ios.after-tapping-pair-mac.png",
+  "subject": "UNASSERTED",
+  "target": "app://ios/pair-mac",
+  "targetReadback": "Pair Mac",
+  "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
+  "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
+  "sha256": "6c58ee19619fe773968e86acfcd60559f752645b75a2128d161250ac8cef266d",
+  "capturedAt": "2026-08-20T09:01:55.081767+00:00",
+  "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place \u2014 taken in-test after the surface's own assertion",
+  "witnessed": false,
+  "unassertedReason": "A third capture of app://ios/pair-mac, kept for lineage and asserted by nothing. It shows the same camera-preflight state as SURF-014.ios.camera-preflight.png (sha 49be996c) \u2014 Camera not started, the Why the camera rationale, Allow camera access, Enter the code instead \u2014 so writing a case over it would count one check twice rather than check anything new. It is named UNASSERTED rather than SURF-014 so attach-shots.py cannot stem-match it onto that surface and make it look like a second, independent proof. Note what the two files establish together: they are visually identical and their sha256s differ (6c58ee19 vs 49be996c), so byte-identity across runs is not an oracle on the iOS lane the way it is on the Mac one.",
+  "unpublishedReason": "a third capture of app://ios/pair-mac, asserted by nothing and named UNASSERTED so no filename match can present it as a second independent proof. Its `unassertedReason` carries the full argument."
+ },
+ {
+  "path": "evidence/shots/mock-hidpi/SURF-001.full.png",
+  "subject": null,
+  "depicts": "the design of record for SURF-001, not the build",
+  "target": null,
+  "renderedFrom": "design/mocks/prototype.html?pane=servers&only=mac",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
+  "derivedFrom": null,
+  "sha256": "6790530654cdd5e97a7f3d3d840b1c3bea64e5697274bb28ba34f9dd470d98fd",
+  "conditions": {
+   "viewport": {
+    "width": 1280,
+    "height": 900,
+    "deviceScaleFactor": 2
+   },
+   "viewportReadback": [
+    1280,
+    900,
+    2
+   ],
+   "titleReadback": "Conduit \u2014 interactive prototype"
   },
-  {
-    "path": "evidence/shots/ios/SURF-014.ios.pairing-typed-entry.png",
-    "subject": "SURF-014",
-    "target": "app://ios/pair-mac",
-    "targetReadback": "Pair Mac",
-    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
-    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
-    "sha256": "e84897f27a63079643cb3a317ed495dfeefe0b2b89e894668117c8f0e6c590a9",
-    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
-    "witnessed": false
+  "witnessed": false,
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+ },
+ {
+  "path": "evidence/shots/mock-hidpi/SURF-002.full.png",
+  "subject": null,
+  "depicts": "the design of record for SURF-002, not the build",
+  "target": null,
+  "renderedFrom": "design/mocks/prototype.html?pane=servers&only=mac",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
+  "derivedFrom": null,
+  "sha256": "6790530654cdd5e97a7f3d3d840b1c3bea64e5697274bb28ba34f9dd470d98fd",
+  "conditions": {
+   "viewport": {
+    "width": 1280,
+    "height": 900,
+    "deviceScaleFactor": 2
+   },
+   "viewportReadback": [
+    1280,
+    900,
+    2
+   ],
+   "titleReadback": "Conduit \u2014 interactive prototype"
   },
-  {
-    "path": "evidence/shots/ios/SURF-014.ios.camera-preflight.png",
-    "subject": "SURF-014",
-    "target": "app://ios/pair-mac",
-    "targetReadback": "Pair Mac",
-    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
-    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
-    "sha256": "49be996cecefc81f8ce03bacca9b742ac134246cc188695d745038348a048f51",
-    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
-    "witnessed": false
+  "witnessed": false,
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+ },
+ {
+  "path": "evidence/shots/mock-hidpi/SURF-003.full.png",
+  "subject": null,
+  "depicts": "the design of record for SURF-003, not the build",
+  "target": null,
+  "renderedFrom": "design/mocks/prototype.html?pane=activity&only=mac",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
+  "derivedFrom": null,
+  "sha256": "e3dc0713201b6da092426d2652d6c5402719a18425ed79997d241cf25eab348c",
+  "conditions": {
+   "viewport": {
+    "width": 1280,
+    "height": 900,
+    "deviceScaleFactor": 2
+   },
+   "viewportReadback": [
+    1280,
+    900,
+    2
+   ],
+   "titleReadback": "Conduit \u2014 interactive prototype"
   },
-  {
-    "path": "evidence/shots/ios/UNASSERTED.ios.after-tapping-pair-mac.png",
-    "subject": "UNASSERTED",
-    "target": "app://ios/pair-mac",
-    "targetReadback": "Pair Mac",
-    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
-    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
-    "sha256": "6c58ee19619fe773968e86acfcd60559f752645b75a2128d161250ac8cef266d",
-    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
-    "witnessed": false,
-    "unassertedReason": "A third capture of app://ios/pair-mac, kept for lineage and asserted by nothing. It shows the same camera-preflight state as SURF-014.ios.camera-preflight.png (sha 49be996c) — Camera not started, the Why the camera rationale, Allow camera access, Enter the code instead — so writing a case over it would count one check twice rather than check anything new. It is named UNASSERTED rather than SURF-014 so attach-shots.py cannot stem-match it onto that surface and make it look like a second, independent proof. Note what the two files establish together: they are visually identical and their sha256s differ (6c58ee19 vs 49be996c), so byte-identity across runs is not an oracle on the iOS lane the way it is on the Mac one."
+  "witnessed": false,
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+ },
+ {
+  "path": "evidence/shots/mock-hidpi/SURF-004.full.png",
+  "subject": null,
+  "depicts": "the design of record for SURF-004, not the build",
+  "target": null,
+  "renderedFrom": "design/mocks/prototype.html?pane=skills&only=mac",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
+  "derivedFrom": null,
+  "sha256": "903f5e721485cb1ac7b6ed9fa85898e86d3e3113dcdac63219ec61f769cebfc5",
+  "conditions": {
+   "viewport": {
+    "width": 1280,
+    "height": 900,
+    "deviceScaleFactor": 2
+   },
+   "viewportReadback": [
+    1280,
+    900,
+    2
+   ],
+   "titleReadback": "Conduit \u2014 interactive prototype"
   },
-  {
-    "path": "evidence/shots/ios/SURF-018.ios.settings-never-paired.png",
-    "subject": "SURF-018",
-    "target": "app://ios/settings",
-    "targetReadback": "Settings",
-    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
-    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testPairingIsReachedFromSettingsAndRendersItsPreflight]",
-    "sha256": "cb15aa3016a9a5589e9ac6fb2eb0f27d89f040440dac435ed564bc5d246aacf7",
-    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
-    "witnessed": false
+  "witnessed": false,
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+ },
+ {
+  "path": "evidence/shots/mock-hidpi/SURF-005.full.png",
+  "subject": null,
+  "depicts": "the design of record for SURF-005, not the build",
+  "target": null,
+  "renderedFrom": "design/mocks/prototype.html?pane=discover&only=mac",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
+  "derivedFrom": null,
+  "sha256": "57b72a3b3c90b05eb6a1c86e1ec971955da948c75301a40049f2941f07f757f8",
+  "conditions": {
+   "viewport": {
+    "width": 1280,
+    "height": 900,
+    "deviceScaleFactor": 2
+   },
+   "viewportReadback": [
+    1280,
+    900,
+    2
+   ],
+   "titleReadback": "Conduit \u2014 interactive prototype"
   },
-  {
-    "path": "evidence/shots/ios/SURF-020.ios.library.png",
-    "subject": "SURF-020",
-    "target": "app://ios/library",
-    "targetReadback": "Library",
-    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
-    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
-    "sha256": "5305bbc36e148891b553a4fcba1edd9c938a38c4869df1167d830357052e3639",
-    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
-    "witnessed": false
+  "witnessed": false,
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+ },
+ {
+  "path": "evidence/shots/mock-hidpi/SURF-006.full.png",
+  "subject": null,
+  "depicts": "the design of record for SURF-006, not the build",
+  "target": null,
+  "renderedFrom": "design/mocks/prototype.html?pane=evals&only=mac",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
+  "derivedFrom": null,
+  "sha256": "0d67d57461eca4789971d2fd030eaa23fb5bf1d6b115450df85137d61f5a08de",
+  "conditions": {
+   "viewport": {
+    "width": 1280,
+    "height": 900,
+    "deviceScaleFactor": 2
+   },
+   "viewportReadback": [
+    1280,
+    900,
+    2
+   ],
+   "titleReadback": "Conduit \u2014 interactive prototype"
   },
-  {
-    "path": "evidence/shots/ios/SURF-019.ios.queue.png",
-    "subject": "SURF-019",
-    "target": "app://ios/queue",
-    "targetReadback": "Queue",
-    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
-    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
-    "sha256": "d013a14efe1b52712f4994d250b79b4b74dfd44022ef183f117c376007c3fba8",
-    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
-    "witnessed": false
+  "witnessed": false,
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+ },
+ {
+  "path": "evidence/shots/mock-hidpi/SURF-007.full.png",
+  "subject": null,
+  "depicts": "the design of record for SURF-007, not the build",
+  "target": null,
+  "renderedFrom": "design/mocks/prototype.html?pane=cleanup&only=mac",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
+  "derivedFrom": null,
+  "sha256": "e30084130c8a0e105d40943e6e3d0359c1ae4f7f37a46b4b7ff0bb2e0cee8fe0",
+  "conditions": {
+   "viewport": {
+    "width": 1280,
+    "height": 900,
+    "deviceScaleFactor": 2
+   },
+   "viewportReadback": [
+    1280,
+    900,
+    2
+   ],
+   "titleReadback": "Conduit \u2014 interactive prototype"
   },
-  {
-    "path": "evidence/shots/ios/SURF-013.ios.triage.png",
-    "subject": "SURF-013",
-    "target": "app://ios/triage",
-    "targetReadback": "Triage",
-    "channel": "XCUIScreenshot via XCTAttachment, in-test, after this surface's assertion",
-    "derivedFrom": "PhoneGlassTests/-[PhoneGlassTests testTriageQueueAndLibraryEachRenderTheirOwnSurface]",
-    "sha256": "651e672f5333326fecf0256700a02ec08657c96b6316a60ef625e522d3b4c918",
-    "capturedAt": "2026-08-20T09:01:55.081767+00:00",
-    "conditions": "iOS Simulator, lane-owned device; XCUIScreenshot carries no per-frame status, so attribution stands in its place — taken in-test after the surface's own assertion",
-    "witnessed": false
+  "witnessed": false,
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+ },
+ {
+  "path": "evidence/shots/mock-hidpi/SURF-008.full.png",
+  "subject": null,
+  "depicts": "the design of record for SURF-008, not the build",
+  "target": null,
+  "renderedFrom": "design/mocks/prototype.html?pane=inbox&only=mac",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
+  "derivedFrom": null,
+  "sha256": "114fee3d612bbb891a1dd9cc058580a95af8afdd268c478d47f2ced26a9512be",
+  "conditions": {
+   "viewport": {
+    "width": 1280,
+    "height": 900,
+    "deviceScaleFactor": 2
+   },
+   "viewportReadback": [
+    1280,
+    900,
+    2
+   ],
+   "titleReadback": "Conduit \u2014 interactive prototype"
   },
-  {
-    "path": "evidence/shots/SURF-025.build.png",
-    "subject": "SURF-025",
-    "target": "app://mac/harnesses",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "c9edbe374e7444d75dadbc0285d5044dcd81c1950c4996f57fb9db0d6e940fbf",
-    "capturedAt": "2026-08-27T02:50:34Z",
-    "conditions": {
-      "windowTitleReadback": "Harnesses",
-      "frame": "180,140,980,620",
-      "cgWindowID": "62427",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "populated"
-    },
-    "witnessed": "axkit attached pid=7225 owns CGWindowID 62427, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+ },
+ {
+  "path": "evidence/shots/mock-hidpi/SURF-009.full.png",
+  "subject": null,
+  "depicts": "the design of record for SURF-009, not the build",
+  "target": null,
+  "renderedFrom": "design/mocks/prototype.html?pane=inbox&popover=1&only=mac",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
+  "derivedFrom": null,
+  "sha256": "2f41ac363edba43b92c44ee424cf917379cb839e9c4ccdbf8b30ef7326a541b3",
+  "conditions": {
+   "viewport": {
+    "width": 1280,
+    "height": 900,
+    "deviceScaleFactor": 2
+   },
+   "viewportReadback": [
+    1280,
+    900,
+    2
+   ],
+   "titleReadback": "Conduit \u2014 interactive prototype"
   },
-  {
-    "path": "evidence/shots/SURF-025.empty.png",
-    "subject": "SURF-025",
-    "target": "app://mac/harnesses",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "50939d373cbf6912488659b583bf8212a9aec0b282f8244a1d088fd9b11498be",
-    "capturedAt": "2026-08-27T02:51:30Z",
-    "conditions": {
-      "windowTitleReadback": "Harnesses",
-      "frame": "180,140,980,620",
-      "cgWindowID": "62477",
-      "appearance": "system",
-      "frontmostAtShutter": "DaisyDisk",
-      "scenario": "empty"
-    },
-    "witnessed": "axkit attached pid=20744 owns CGWindowID 62477, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+ },
+ {
+  "path": "evidence/shots/mock-hidpi/SURF-010.full.png",
+  "subject": null,
+  "depicts": "the design of record for SURF-010, not the build",
+  "target": null,
+  "renderedFrom": "design/mocks/prototype.html?pane=inbox&sheet=pair&only=mac",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
+  "derivedFrom": null,
+  "sha256": "43b4813a85fd6fee0e8e9d649354e3ff0370cd44eca78b493ed0f4d381f4396d",
+  "conditions": {
+   "viewport": {
+    "width": 1280,
+    "height": 900,
+    "deviceScaleFactor": 2
+   },
+   "viewportReadback": [
+    1280,
+    900,
+    2
+   ],
+   "titleReadback": "Conduit \u2014 interactive prototype"
   },
-  {
-    "path": "evidence/shots/SURF-025.failure.png",
-    "subject": "SURF-025",
-    "target": "app://mac/harnesses",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "7fabf84e7062ebe33e89dce1a67e5a7ac98dbfd1c10371050a440f48ba65fdb0",
-    "capturedAt": "2026-08-27T02:51:34Z",
-    "conditions": {
-      "windowTitleReadback": "Harnesses",
-      "frame": "180,140,980,620",
-      "cgWindowID": "62484",
-      "appearance": "system",
-      "frontmostAtShutter": "DaisyDisk",
-      "scenario": "offline"
-    },
-    "witnessed": "axkit attached pid=23162 owns CGWindowID 62484, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G15/app/.derived/Build/Products/Debug/MCPRouter.app"
+  "witnessed": false,
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+ },
+ {
+  "path": "evidence/shots/mock-hidpi/SURF-011.full.png",
+  "subject": null,
+  "depicts": "the design of record for SURF-011, not the build",
+  "target": null,
+  "renderedFrom": "design/mocks/prototype.html?pane=settings&only=mac",
+  "attachHazard": "DEF-054 / X8 \u2014 `attach-shots.py`'s mock exclusion matches a directory named exactly `mock`, so it walks `mock-hidpi/` and offers this render to a surface on its filename. Any tool that attaches this file to a surface is doing so on the filename alone.",
+  "channel": "obscura-0.2.0 serve --allow-file-access, CDP Emulation.setDeviceMetricsOverride + Page.captureScreenshot",
+  "derivedFrom": null,
+  "sha256": "8667ec75e42cd005a90cdaec2c8389d9865c32a564d6f67b3e308ee04c2e9c4b",
+  "conditions": {
+   "viewport": {
+    "width": 1280,
+    "height": 900,
+    "deviceScaleFactor": 2
+   },
+   "viewportReadback": [
+    1280,
+    900,
+    2
+   ],
+   "titleReadback": "Conduit \u2014 interactive prototype"
   },
-  {
-    "path": "evidence/shots/SURF-026.build.png",
-    "subject": "SURF-026",
-    "target": "app://mac/insights",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "8adecf368f3ad9e9a7ed01c8f82e5e100c9f82b210efd70f91c78004b448ceeb",
-    "capturedAt": "2026-08-27T03:15:35Z",
-    "conditions": {
-      "windowTitleReadback": "Insights",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63212",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "populated"
-    },
-    "witnessed": "axkit attached pid=76318 owns CGWindowID 63212, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
-  },
-  {
-    "path": "evidence/shots/SURF-026.empty.png",
-    "subject": "SURF-026",
-    "target": "app://mac/insights",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "c60c0a62ec46e0c7bcc15ace7eeb8e17e259f26ee11524313e55a7939aa25abb",
-    "capturedAt": "2026-08-27T03:16:57Z",
-    "conditions": {
-      "windowTitleReadback": "Insights",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63247",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "empty"
-    },
-    "witnessed": "axkit attached pid=2087 owns CGWindowID 63247, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
-  },
-  {
-    "path": "evidence/shots/SURF-026.failure.png",
-    "subject": "SURF-026",
-    "target": "app://mac/insights",
-    "channel": "screencapture -x -l<CGWindowID> (window-scoped, background; macOS)",
-    "derivedFrom": null,
-    "sha256": "ad1f088b9ac4941f6161b9cf89b3f3b2b193769418353eebc3915e5788409a63",
-    "capturedAt": "2026-08-27T03:17:11Z",
-    "conditions": {
-      "windowTitleReadback": "Insights",
-      "frame": "180,140,980,620",
-      "cgWindowID": "63253",
-      "appearance": "system",
-      "frontmostAtShutter": "Ghostty",
-      "scenario": "offline"
-    },
-    "witnessed": "axkit attached pid=8471 owns CGWindowID 63253, bundle /Users/lukerhodes/Dev/mcp-router/.worktrees/G16/app/.derived/Build/Products/Debug/MCPRouter.app"
-  },
-  {
-    "path": "evidence/g17-document/readme.served.png",
-    "subject": "SURF-028",
-    "target": "app://mac/servers/g17-capability/document",
-    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store — no window ordered in, activation policy .prohibited; not a screen photograph",
-    "derivedFrom": null,
-    "sha256": "9d048beb8c7eb6a3bf828fd79da3716294ebbca3156a647ea5cb08313bda9a40",
-    "capturedAt": "2026-08-27T03:48:21Z",
-    "conditions": {
-      "flowStep": "FLOW-006.02",
-      "documentServer": "g17-capability",
-      "documentTab": "readMe",
-      "appearance": "dark",
-      "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
-      "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh — 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
-      "frontmostAtShutter": "not sampled per shutter; the whole run is sampled once a second and neither MeasureDump nor the router appears in it — evidence/g17-document/frontmost.txt"
-    },
-    "witnessed": "Rendered by MeasureDump off the hosting view's own backing store, driven by ControlAPICapabilityDocumentSource against a router running on 127.0.0.1 at the moment of the render. The frame is tied to what was served rather than to this filename: its own titlebar draws 'g17-capability' and the assertion pass reads that back out of the matching dump (check G17-L1)."
-  },
-  {
-    "path": "evidence/g17-document/changelog.served.png",
-    "subject": "SURF-028",
-    "target": "app://mac/servers/g17-capability/document",
-    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store — no window ordered in, activation policy .prohibited; not a screen photograph",
-    "derivedFrom": null,
-    "sha256": "61ba8f22e0d882ac544797ed1b9e915d445b117a6c03182245d05d86bf950e8d",
-    "capturedAt": "2026-08-27T03:48:21Z",
-    "conditions": {
-      "flowStep": "FLOW-006.03",
-      "documentServer": "g17-capability",
-      "documentTab": "changelog",
-      "appearance": "dark",
-      "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
-      "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh — 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
-      "frontmostAtShutter": "not sampled per shutter; the whole run is sampled once a second and neither MeasureDump nor the router appears in it — evidence/g17-document/frontmost.txt"
-    },
-    "witnessed": "Rendered by MeasureDump off the hosting view's own backing store, driven by ControlAPICapabilityDocumentSource against a router running on 127.0.0.1 at the moment of the render. The frame is tied to what was served rather than to this filename: its own titlebar draws 'g17-capability' and the assertion pass reads that back out of the matching dump (check G17-L1)."
-  },
-  {
-    "path": "evidence/g17-document/capabilities.served.png",
-    "subject": "SURF-028",
-    "target": "app://mac/servers/g17-capability/document",
-    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store — no window ordered in, activation policy .prohibited; not a screen photograph",
-    "derivedFrom": null,
-    "sha256": "103a4c4d086ff45f3fa3c72d27b8185958c884bafd61544a3252d1cecbf67b5f",
-    "capturedAt": "2026-08-27T03:48:21Z",
-    "conditions": {
-      "flowStep": "FLOW-006.04",
-      "documentServer": "g17-capability",
-      "documentTab": "capabilities",
-      "appearance": "dark",
-      "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
-      "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh — 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
-      "frontmostAtShutter": "not sampled per shutter; the whole run is sampled once a second and neither MeasureDump nor the router appears in it — evidence/g17-document/frontmost.txt"
-    },
-    "witnessed": "Rendered by MeasureDump off the hosting view's own backing store, driven by ControlAPICapabilityDocumentSource against a router running on 127.0.0.1 at the moment of the render. The frame is tied to what was served rather than to this filename: its own titlebar draws 'g17-capability' and the assertion pass reads that back out of the matching dump (check G17-L1)."
-  },
-  {
-    "path": "evidence/g17-document/refusal.nopackage.png",
-    "subject": "SURF-028",
-    "target": "app://mac/servers/g17-no-package/document",
-    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store — no window ordered in, activation policy .prohibited; not a screen photograph",
-    "derivedFrom": null,
-    "sha256": "bbea8b9e9e1267e70bb3595347aa2b2a04ea5c24a0306dbf5ecd9376f277e1ea",
-    "capturedAt": "2026-08-27T03:48:21Z",
-    "conditions": {
-      "flowStep": "FLOW-006.02",
-      "documentServer": "g17-no-package",
-      "documentTab": "readMe",
-      "appearance": "dark",
-      "servedBy": "http://127.0.0.1:8894/servers/g17-no-package/document (reference router, node dist/index.js)",
-      "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh — 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
-      "frontmostAtShutter": "not sampled per shutter; the whole run is sampled once a second and neither MeasureDump nor the router appears in it — evidence/g17-document/frontmost.txt"
-    },
-    "witnessed": "Rendered by MeasureDump off the hosting view's own backing store, driven by ControlAPICapabilityDocumentSource against a router running on 127.0.0.1 at the moment of the render. The frame is tied to what was served rather than to this filename: its own titlebar draws 'g17-no-package' and the assertion pass reads that back out of the matching dump (check G17-L1)."
-  },
-  {
-    "path": "evidence/g17-document/refusal.toolarge.png",
-    "subject": "SURF-028",
-    "target": "app://mac/servers/g17-oversize/document",
-    "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store — no window ordered in, activation policy .prohibited; not a screen photograph",
-    "derivedFrom": null,
-    "sha256": "c66fbf1a718dcc57fbee80372513f162b197bbc9b6480f41f1cdd15973711576",
-    "capturedAt": "2026-08-27T03:48:21Z",
-    "conditions": {
-      "flowStep": "FLOW-006.02",
-      "documentServer": "g17-oversize",
-      "documentTab": "readMe",
-      "appearance": "dark",
-      "servedBy": "http://127.0.0.1:8894/servers/g17-oversize/document (reference router, node dist/index.js)",
-      "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh — 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
-      "frontmostAtShutter": "not sampled per shutter; the whole run is sampled once a second and neither MeasureDump nor the router appears in it — evidence/g17-document/frontmost.txt"
-    },
-    "witnessed": "Rendered by MeasureDump off the hosting view's own backing store, driven by ControlAPICapabilityDocumentSource against a router running on 127.0.0.1 at the moment of the render. The frame is tied to what was served rather than to this filename: IT IS NOT — a too-large refusal names the file and the cap and never the capability, so this row is the only thing binding this picture to its subject. Recorded as DEF-060 and counted by check G17-L2 rather than passed over."
-  }
+  "witnessed": false,
+  "unpublishedReason": "a render of the DESIGN OF RECORD, not a photograph of the build. Publishing one of these as a surface's `shot` is exactly DEF-054: `attach-shots.py --apply` would repoint 11 surfaces at these files, because its mock exclusion matches a directory named exactly `mock` and this one is `mock-hidpi`. Kept as the design source the fidelity pairs crop from."
+ },
+ {
+  "path": "evidence/shots/surf-022-consent-auth-states.png",
+  "subject": null,
+  "target": null,
+  "channel": null,
+  "derivedFrom": null,
+  "sha256": null,
+  "provenanceGap": "No capture-time manifest row was ever written for this frame. `cases.json` CASE-0157 records `capture.method` as 'obscura fetch --allow-private-network --screenshot, 1280x720 viewport, live /authorize route', which is a record made alongside the case rather than by the shutter, and no digest was recorded at all. A `target` and a `sha256` written now would say what somebody believes rather than what the channel did, so neither is written. `attach-shots.py` therefore keeps reporting SURF-022 as resting on its filename, correctly. Re-taking it through a channel that writes captures.json is the only thing that closes it.",
+  "witnessed": false,
+  "unpublishedReason": "the wall does not show it; CASE-0157 cites it as raster evidence of the consent screen's states. It is kept unpublished because its provenance cannot be made good without re-taking it -- see `provenanceGap` on this row."
+ }
 ]

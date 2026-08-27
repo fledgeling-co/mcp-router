@@ -726,6 +726,7 @@ lint: tools
 	python3 planning/sweep-control-gate.py || fail=1; \
 	python3 planning/runnable-path-gate.py || fail=1; \
 	python3 planning/registry-drop-gate.py || fail=1; \
+	python3 planning/test-campaign/bin/capture-manifest.py || fail=1; \
 	python3 planning/pin-class-gate.py || fail=1; \
 	zsh app/Scripts/pool-mutation-gate-selftest.sh || fail=1; \
 	exit $$fail

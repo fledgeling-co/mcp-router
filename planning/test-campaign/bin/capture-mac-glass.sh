@@ -114,13 +114,21 @@ PY
 
 SHELL_SHARE_REASON="the shell is window chrome and the sidebar; it has no board of its own, so it is photographed on the Servers board and is the same window and the same pixels"
 
-# Eight boards, each selected then read back. SURF-001 is the shell — chrome that
+# Nine boards, each selected then read back. SURF-001 is the shell — chrome that
 # has no board of its own — so it is photographed on the Servers board and says
 # so, rather than being filed as "whatever was restored".
+#
+# **SURF-025 joined this loop on 2026-08-27 and that is the whole of G15.** The
+# Harnesses board shipped with M22 and was never enumerated, so it was never
+# selected here — and because a surface with no row cannot be reported uncovered,
+# every completeness gate stayed clean over a list that had eight boards in it and
+# a product that had nine. Adding the pair is the fix; the denominator moving is
+# the evidence.
 for pair in \
   "SURF-002:Servers" \
   "SURF-003:Activity" \
   "SURF-004:Skills" \
+  "SURF-025:Harnesses" \
   "SURF-005:Discover" \
   "SURF-008:Inbox" \
   "SURF-006:Checks" \
@@ -317,6 +325,20 @@ relaunch_and_capture offline SURF-002.offline SURF-002
 # no skills at all: the `Read first…` substitution and the disabled skill-kind `Remove…` had no
 # rendered path in any build, only in tests that construct a reading directly.
 relaunch_and_capture cleanupSkills SURF-007.cleanup-skills SURF-007 Cleanup
+
+# The Harnesses board's other two states.
+#
+# The populated capture above is one of the three answers this board has, and it is the one that
+# needs no explaining. `empty` is a real answer of NONE — nothing on this Mac looks like an agent
+# CLI — which the fixture serves as a successful read of an empty list rather than as a failure,
+# so the board draws its own empty state and not an error. `offline` is the read failing, which
+# the board answers with the load's error rather than with rows.
+#
+# Both need their own launch because the scenario is read once at start-up, and both are
+# photographed rather than asserted only in the tree: a state that renders in the AX plane and
+# draws nothing on screen is exactly the failure this campaign was rebuilt to catch.
+relaunch_and_capture empty   SURF-025.empty   SURF-025 Harnesses
+relaunch_and_capture offline SURF-025.failure SURF-025 Harnesses
 
 # The sheet that `Read first…` opens, from the row that draws it.
 #

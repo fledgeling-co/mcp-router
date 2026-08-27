@@ -338,6 +338,41 @@ function documentFacts(
   return facts;
 }
 
+/**
+ * The row cap `/registry/search` applies to a `limit` query value.
+ *
+ * Extracted from the handler and exported because `scripts/parity/generate-vectors.mjs` builds the
+ * `registry-limit` vector from it. It used to be an inline expression there and a transcription of
+ * that expression in the generator, which is the shape P9 measured going wrong on `auth-pages`: a
+ * vector generated from a copy cannot notice the original change, so raising the cap to 100 would
+ * have left the vector asserting 60 and `make parity-regen` green.
+ *
+ * The coercion ladder is deliberate and load-bearing, so it is preserved exactly: `||` is
+ * ToBoolean, so both `0` and `NaN` collapse to 30; `min` caps at 60; and a negative survives all
+ * of it and reaches `slice`, where it counts back from the end and drops rows instead of taking
+ * them.
+ */
+export function registrySearchLimit(raw: string | null): number {
+  return Math.min(Number(raw ?? 30) || 30, 60);
+}
+
+/**
+ * The row cap `/usage` applies to a `limit` query value.
+ *
+ * Exported for the same reason as `registrySearchLimit` above, and closing the same hole: the
+ * `usage-limit` vector in `scripts/parity/generate-vectors.mjs` used to re-type this expression
+ * under a comment claiming it was "exactly" the one here, and a vector that re-types its reference
+ * cannot see that reference drift. Mutating the default from 200 to 3 in `dist/control.js` left
+ * `make parity-regen` at exit 0.
+ *
+ * No ladder here, unlike the registry cap: a bare `Number` with a default. That is the point --
+ * `''` and `' '` become 0 rather than 200, `'abc'` becomes NaN, and both reach `recent`, so the
+ * default applies only to an absent parameter and never to an unparseable one.
+ */
+export function usageRecentLimit(raw: string | null): number {
+  return Number(raw ?? 200);
+}
+
 /** True when this path belongs to the control API rather than to /mcp. */
 export function isControlPath(pathname: string): boolean {
   return (
@@ -641,7 +676,7 @@ export async function handleControl(
     json(res, 200, {
       since: deps.usage.summary().since,
       records: deps.usage.recent({
-        limit: Number(url.searchParams.get('limit') ?? 200),
+        limit: usageRecentLimit(url.searchParams.get('limit')),
         server: url.searchParams.get('server') ?? undefined,
         cwd: url.searchParams.get('cwd') ?? undefined,
       }),
@@ -698,7 +733,7 @@ export async function handleControl(
     try {
       const out = await searchRegistries(
         url.searchParams.get('q') ?? '',
-        Math.min(Number(url.searchParams.get('limit') ?? 30) || 30, 60)
+        registrySearchLimit(url.searchParams.get('limit'))
       );
       // Which servers are already installed, so the app can render "Installed"
       // instead of an install button it would have to disable a moment later.

@@ -15,6 +15,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { writeDocumentVectors } from './generate-document-vectors.mjs';
+import { writeAuthVectors } from './generate-auth-vectors.mjs';
 
 const require = createRequire(import.meta.url);
 const here = dirname(fileURLToPath(import.meta.url));
@@ -98,11 +99,24 @@ write('json-roundtrip', {
   })
 });
 
+// The reference itself, from here on: these vectors record what `src/config.ts` does rather than
+// what anyone believes it does. Required this early because `string-ordering` below is driven from
+// the reference's own comparator.
+const config = require(join(distDir, 'config.js'));
+const registryModule = require(join(distDir, 'registry.js'));
+
 // ---------------------------------------------------------------- string ordering (N1)
 //
-// The comparator the reference sorts env and header keys with. UTF-16 code-unit order, which
-// disagrees with Unicode scalar order exactly where a supplementary character meets a private-use
-// one.
+// The comparator the reference sorts env and header keys with -- `config.compareStrings`, the one
+// definition behind `upstreamHash`'s two sorts and `manifest.toolsDigest`'s. UTF-16 code-unit
+// order, which disagrees with Unicode scalar order exactly where a supplementary character meets a
+// private-use one.
+//
+// Imported rather than re-typed, and that distinction is this vector's whole subject. A re-typed
+// copy reddens regen when the reference's comparator is *reversed* -- but swapping all three sites
+// to `localeCompare` left regen at exit 0, while ICU root collation disagrees with code-unit order
+// on 5 of the 6 discriminating probes in `orderingGroups`. So the copy was blind to the one
+// substitution a porter actually reaches for.
 const orderingGroups = [
   ['b', 'a', 'c'],
   ['B', 'a'],
@@ -114,25 +128,18 @@ const orderingGroups = [
 ];
 
 // pin-class: src-export — config.compareStrings
-// pin-carry: P9 — the comparator is re-typed here rather than imported, and `config.compareStrings`
-//           does not exist on this tree. Measured: swapping all three reference sort sites to
-//           `localeCompare` left `make parity-regen` at exit 0.
 write('string-ordering', {
-  description: 'Array.prototype.sort with (a<b?-1:a>b?1:0) — the reference comparator.',
+  description: 'Array.prototype.sort with config.compareStrings — the reference comparator, imported from the reference (N1).',
   cases: orderingGroups.map((input, index) => ({
     id: `ordering-${index}`,
     input,
-    sorted: [...input].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+    sorted: [...input].sort(config.compareStrings)
   }))
 });
 
 console.log(`\nwrote vectors to ${outDir}`);
 
 // ---------------------------------------------------------------- config layer
-//
-// From here on the reference itself is driven, so these vectors record what `src/config.ts`
-// does rather than what anyone believes it does.
-const config = require(join(distDir, 'config.js'));
 
 // Every field of the returned upstream, not just the accept/reject decision — a port that
 // reproduces the decisions and drops `projects` or `placard` changes routing while passing a
@@ -223,6 +230,12 @@ const hashCases = [
   { id: 'env-key-order-irrelevant-b', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: { B: '2', A: '1' } } },
   // N1 — UTF-16 code-unit ordering. Sorting these by Unicode scalar inverts them.
   { id: 'env-utf16-ordering', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: { '\u{1F600}': 'emoji', '\uE000': 'private' } } },
+  // Collation, which UTF-16 ordering alone does not reach. Code units put `B` before `a`; ICU root
+  // collation puts `a` before `B`. Without a discriminating pair here, one of `upstreamHash`'s two
+  // sorts could be edited back to an inline `localeCompare` -- leaving `compareStrings` untouched,
+  // so `string-ordering` stays green -- and this digest would not move either. Measured at exit 0
+  // before this case existed.
+  { id: 'env-collation-ordering', u: { transport: 'stdio', name: 'a', command: 'x', args: [], env: { B: '1', a: '2' } } },
   // N2 — argument order is significant and must never be sorted.
   { id: 'args-order-za', u: { transport: 'stdio', name: 'a', command: 'x', args: ['z', 'a'], env: {} } },
   { id: 'args-order-az', u: { transport: 'stdio', name: 'a', command: 'x', args: ['a', 'z'], env: {} } },
@@ -241,6 +254,9 @@ const hashCases = [
   { id: 'http-transport', u: { transport: 'http', name: 'a', url: 'https://e.com', headers: {} } },
   { id: 'sse-transport', u: { transport: 'sse', name: 'a', url: 'https://e.com', headers: {} } },
   { id: 'header-utf16-ordering', u: { transport: 'http', name: 'a', url: 'https://e.com', headers: { '\u{1F600}': 'e', '\uE000': 'p' } } },
+  // The header sort is the second call site, and needs its own discriminating pair for the reason
+  // the env one above does.
+  { id: 'header-collation-ordering', u: { transport: 'http', name: 'a', url: 'https://e.com', headers: { B: '1', a: '2' } } },
   { id: 'excluded-oauth', u: { transport: 'http', name: 'a', url: 'https://e.com', headers: {}, oauth: true } }
 ];
 
@@ -355,7 +371,10 @@ const digestCases = [
   { id: 'null-schema', tools: [{ name: 'a', description: 'd', inputSchema: null }] },
   { id: 'empty-object-schema', tools: [{ name: 'a', description: 'd', inputSchema: {} }] },
   // UTF-16 ordering reaches the tool sort too.
-  { id: 'utf16-name-ordering', tools: [{ name: '\u{1F600}', description: 'emoji' }, { name: '', description: 'private' }] }
+  { id: 'utf16-name-ordering', tools: [{ name: '\u{1F600}', description: 'emoji' }, { name: '', description: 'private' }] },
+  // The third call site: `toolsDigest` sorts tool names with the same comparator, and needs its own
+  // collation-discriminating pair.
+  { id: 'collation-name-ordering', tools: [{ name: 'B', description: 'upper' }, { name: 'a', description: 'lower' }] }
 ];
 
 // pin-class: src-export — manifest.toolsDigest
@@ -561,7 +580,7 @@ const buildResults = [];
 for (const { id, servers, observation, force } of buildCases) {
   const input = { version: 1, servers: JSON.parse(JSON.stringify(servers)) };
   const result = await atFixedTime(
-    () => manifest.buildManifest([buildUpstream], poolFor(observation), input, { force })
+    () => manifest.buildManifest([buildUpstream], poolFor(observation), input, { force, commit: (apply) => apply(input) })
   );
   buildResults.push({
     id, upstream: buildUpstream, force, servers, observation, builtAtMs: FIXED_MS,
@@ -752,6 +771,10 @@ write('js-to-number', {
 // before `"B"` and `"A"` after `"a"` — both the reverse of UTF-16 code-unit order — so the obvious
 // Swift substitution reorders the registry results for any pair of rows whose timestamps differ in
 // case or in fractional-second digit count.
+//
+// Driven from `registry.compareUpdatedAt`, the reference's own comparator, not from a re-typed
+// `lhs.localeCompare(rhs)`. The re-typed form asserted the same numbers and could not see the
+// reference move: swapping the registry sort to code units left `make parity-regen` at exit 0.
 const comparePairs = [
   ['2024-01-01T00:00:00Z', '2024-01-01T00:00:00.000Z'],
   ['2024-01-01T00:00:00.1Z', '2024-01-01T00:00:00.10Z'],
@@ -763,9 +786,6 @@ const comparePairs = [
   ['2024-01-01T00:00:00+00:00', '2024-01-01T00:00:00Z']
 ];
 // pin-class: src-export — registry.compareUpdatedAt
-// pin-carry: P9 — `lhs.localeCompare(rhs)` is re-typed here. ICU collation is not the pinned thing:
-//           the registry has its own comparator, so there is a second copy. Measured: swapping
-//           the registry sort to code units left `make parity-regen` at exit 0.
 write('locale-compare', {
   description: 'String.prototype.localeCompare over the ISO domain and the letter cases (N8).',
   cases: comparePairs.map(([lhs, rhs], index) => ({
@@ -773,7 +793,7 @@ write('locale-compare', {
     lhs,
     rhs,
     // Normalised to the sign, which is all the sort consumes and all ICU guarantees.
-    result: Math.sign(lhs.localeCompare(rhs))
+    result: Math.sign(registryModule.compareUpdatedAt(lhs, rhs))
   }))
 });
 
@@ -805,9 +825,6 @@ const usageScratch = mkdtempSync(join(tmpdir(), 'mcp-router-vectors-usage-'));
 const usageLog = join(usageScratch, 'usage.log');
 const usageStats = join(usageScratch, 'usage-stats.json');
 // pin-class: src-export — control.usageRecentLimit, usage.UsageStore
-// pin-carry: P9 — `Number(raw ?? 200)` is a transcription of src/control.ts under a comment that said
-//           so: "exactly the expression at src/control.ts's `/usage` branch". Measured: mutating
-//           that default from 200 to 3 left `make parity-regen` at exit 0.
 {
   const seeded = [];
   for (let i = 0; i < 12; i += 1) {
@@ -827,8 +844,12 @@ const usageStats = join(usageScratch, 'usage-stats.json');
   const limitValues = [null, '', ' ', '0', '1', '3', '200', 'abc', '-1', '-5', '-100', '1e2', '2.7', '-2.7'];
   const usageCases = [];
   for (const [index, raw] of limitValues.entries()) {
-    // Exactly the expression at src/control.ts's `/usage` branch.
-    const limit = Number(raw ?? 200);
+    // Driven from the reference's own `usageRecentLimit`, not from a transcription of it. The
+    // comment that stood here claimed this was "exactly the expression at src/control.ts's
+    // `/usage` branch" -- which is precisely the claim a copy cannot keep. Mutating the default
+    // there from 200 to 3 left this vector asserting the old answers and `make parity-regen` at
+    // exit 0.
+    const limit = controlModule.usageRecentLimit(raw);
     usageCases.push({
       id: `limit-${index}`,
       ...(raw === null ? {} : { limit: raw }),
@@ -836,10 +857,10 @@ const usageStats = join(usageScratch, 'usage-stats.json');
     });
   }
   // And the two filters, whose interaction with the slice is the part an order-swapped port breaks.
-  usageCases.push({ id: 'filter-server', limit: '2', server: 'alpha', records: store.recent({ limit: 2, server: 'alpha' }).map((r) => r.tool) });
-  usageCases.push({ id: 'filter-cwd', limit: '3', cwd: '/Users/x/Dev/two', records: store.recent({ limit: 3, cwd: '/Users/x/Dev/two' }).map((r) => r.tool) });  // path-gate: ok — a filter argument matched against stored cwd labels, never opened
-  usageCases.push({ id: 'filter-both', limit: 'abc', server: 'beta', cwd: '/Users/x/Dev/two', records: store.recent({ limit: Number('abc'), server: 'beta', cwd: '/Users/x/Dev/two' }).map((r) => r.tool) });  // path-gate: ok — as above — a filter argument, never opened
-  usageCases.push({ id: 'filter-no-match', limit: '5', server: 'nobody', records: store.recent({ limit: 5, server: 'nobody' }).map((r) => r.tool) });
+  usageCases.push({ id: 'filter-server', limit: '2', server: 'alpha', records: store.recent({ limit: controlModule.usageRecentLimit('2'), server: 'alpha' }).map((r) => r.tool) });
+  usageCases.push({ id: 'filter-cwd', limit: '3', cwd: '/Users/x/Dev/two', records: store.recent({ limit: controlModule.usageRecentLimit('3'), cwd: '/Users/x/Dev/two' }).map((r) => r.tool) });  // path-gate: ok — a filter argument matched against stored cwd labels, never opened
+  usageCases.push({ id: 'filter-both', limit: 'abc', server: 'beta', cwd: '/Users/x/Dev/two', records: store.recent({ limit: controlModule.usageRecentLimit('abc'), server: 'beta', cwd: '/Users/x/Dev/two' }).map((r) => r.tool) });  // path-gate: ok — as above — a filter argument, never opened
+  usageCases.push({ id: 'filter-no-match', limit: '5', server: 'nobody', records: store.recent({ limit: controlModule.usageRecentLimit('5'), server: 'nobody' }).map((r) => r.tool) });
 
   write('usage-limit', {
     description: 'UsageStore.recent over a seeded ring — filter, take the last N, reverse (N4, B45, B46).',
@@ -856,16 +877,17 @@ const usageStats = join(usageScratch, 'usage-stats.json');
 // ToBoolean so both `0` and `NaN` collapse to 30, `min` caps at 60, and a negative survives all of
 // it and reaches `slice`, where it counts back from the end and drops rows instead of taking them.
 // pin-class: src-export — control.registrySearchLimit
-// pin-carry: P9 — `Math.min(Number(x ?? 30) || 30, 60)` is re-typed here, and its transcription was
-//           the only expectation of that code anywhere in the corpus.
 {
   const rows = Array.from({ length: 70 }, (_, i) => `row-${i}`);
   const limitValues = [null, '', ' ', '0', '1', '30', '59', '60', '61', '500', 'abc', '-1', '-5', '-100', '2.9', '1e1', 'Infinity', '-Infinity'];
   write('registry-limit', {
-    description: 'Math.min(Number(x ?? 30) || 30, 60) then slice(0, limit) — the registry cap (N6, B54).',
+    description: 'control.registrySearchLimit(x) then slice(0, limit) — the registry cap, imported from the reference (N6, B54).',
     rows: rows.length,
+    // Driven from the reference's own `registrySearchLimit`, not from a transcription of it: an
+    // expectation computed by re-typing the formula agrees with the reference only for as long as
+    // nobody edits either copy, and cannot report when one of them moves.
     cases: limitValues.map((raw, index) => {
-      const limit = Math.min(Number(raw ?? 30) || 30, 60);
+      const limit = controlModule.registrySearchLimit(raw);
       return {
         id: `rlimit-${index}`,
         ...(raw === null ? {} : { limit: raw }),
@@ -881,12 +903,15 @@ const usageStats = join(usageScratch, 'usage-stats.json');
 // ---------------------------------------------------------------- M30 · the document route
 //
 // In a module of its own, and imported rather than inlined, so `generate-document-vectors.mjs` can
-// also be run on its own. That is not tidiness: `parity-regen` drives this whole file, and this
-// file cannot currently run to completion — `buildManifest` is called here without the `commit`
-// option it now requires, which is a break that predates M30 and is recorded in
-// `planning/features-to-triage/M31-parity-regen-is-broken.md`. A generator whose only entry point
-// is a script that throws is a generator nobody can re-run.
+// also be run on its own.
 writeDocumentVectors({ write, distDir, require });
+
+// ---------------------------------------------------------------- R5 · auth pages
+//
+// In a module of its own, imported rather than inlined, so there is exactly one definition of the
+// cases, the description and the `PAGE` import — and one standalone entry point — instead of two
+// scripts writing the same committed file.
+writeAuthVectors({ write, distDir, require });
 
 rmSync(usageScratch, { recursive: true, force: true });
 

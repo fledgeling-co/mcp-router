@@ -4,6 +4,22 @@ import { ROUTER_HOME } from './config.js';
 import { log } from './log.js';
 
 /**
+ * The tie-break rank two registry rows get on `updatedAt`: ICU root collation, not code units.
+ *
+ * Exported so `scripts/parity/generate-vectors.mjs` can build the `locale-compare` vector from it
+ * rather than re-typing `localeCompare` beside a comment claiming this is where it lives. Measured
+ * on 2026-08-27: with that comment and no import, swapping this call to a code-unit comparator left
+ * `make parity-regen` at exit 0, so the vector that exists to pin the choice could not see it
+ * change. It reddens now.
+ *
+ * Ascending, and the descending order lives at the call site, because the vector's rows are
+ * ordered pairs and reading them backwards would hide a sign error rather than catch one.
+ */
+export function compareUpdatedAt(lhs: string, rhs: string): number {
+  return lhs.localeCompare(rhs);
+}
+
+/**
  * Server discovery across two indexes, because neither one answers the question alone.
  *
  * The official registry (registry.modelcontextprotocol.io) is the authoritative list of
@@ -344,7 +360,7 @@ export async function searchRegistries(q: string, limit = 30): Promise<SearchRes
     if (use) return use;
     const stars = (b.stars ?? 0) - (a.stars ?? 0);
     if (stars) return stars;
-    return (b.updatedAt ?? '').localeCompare(a.updatedAt ?? '');
+    return compareUpdatedAt(b.updatedAt ?? '', a.updatedAt ?? '');
   });
 
   log.debug(`registry search "${q}": ${official.length} official + ${smithery.length} smithery -> ${results.length}`);

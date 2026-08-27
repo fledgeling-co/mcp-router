@@ -195,6 +195,20 @@
         }
       ],
       "digest": "4978dacf25074e20"
+    },
+    {
+      "id": "collation-name-ordering",
+      "tools": [
+        {
+          "name": "B",
+          "description": "upper"
+        },
+        {
+          "name": "a",
+          "description": "lower"
+        }
+      ],
+      "digest": "f7e0c25ba1d188b0"
     }
   ]
 }

@@ -7,8 +7,9 @@ each was proved blind the same way: mutate the reference, and `make parity-regen
 A vector that re-types its reference cannot see that reference move, so it reports the committed
 corpus as matching while the thing it names has drifted.
 
-All five are closed on `P9`'s branch. **The sweep that found them is a snapshot.** Nothing on this
-tree prevented a sixth, which is what this gate is: the default for a new vector is refusal.
+All five are closed as of `P9`, and `CARRY` below is empty. **The sweep that found them was a
+snapshot.** Nothing prevented a sixth, which is what this gate is: the default for a new vector is
+refusal.
 
 THE TWO CLASSES, and why there are exactly two.
 
@@ -32,8 +33,9 @@ another snapshot: a sixth vector added tomorrow fails until somebody says what i
 WHAT THE ENFORCEMENT ACTUALLY MEASURES, stated rather than implied.
 
   R0  a `src-export` region must reach its declared exports through a binding this file resolved
-      back to `require(join(distDir, '<module>.js'))`. `auth-pages` fails here on this tree: it
-      names `src/auth.ts`'s `PAGE` in a comment and requires nothing at all.
+      back to `require(join(distDir, '<module>.js'))`. `auth-pages` was the shape: it named
+      `src/auth.ts`'s `PAGE` in a comment and required nothing at all. `P9` closed it by importing
+      `PAGE`, and R0 is what now holds that import in place.
   R1  a `src-export` region may contain none of the computation constructs in `COMPUTATION` --
       measured, not guessed: those seven patterns fire on exactly the four re-typed regions in
       `scripts/parity/` and on none of the nineteen compliant `src-export` regions beside them.
@@ -53,11 +55,13 @@ WHAT THE ENFORCEMENT ACTUALLY MEASURES, stated rather than implied.
 
 THE CARRY, and why it is a constant in this file rather than a registry.
 
-  Five regions fail R0/R1/R3 on this tree, and they are the five the item is about. Their fix is
-  `P9`'s -- it adds four production exports (`config.compareStrings`, `control.usageRecentLimit`,
-  `control.registrySearchLimit`, `registry.compareUpdatedAt`) and cannot be re-done here without
-  re-doing that branch. So they are carried BY NAME in `CARRY`, each declaring the item that closes
-  it in a `// pin-carry:` line the region itself must also carry.
+  Five regions failed R0/R1/R3 when this gate was written, and they were the five the item was
+  about. Their fix was `P9`'s -- it adds four production exports (`config.compareStrings`,
+  `control.usageRecentLimit`, `control.registrySearchLimit`, `registry.compareUpdatedAt`) and could
+  not be re-done here without re-doing that branch. So they were carried BY NAME in `CARRY`, each
+  declaring the item that closes it in a `// pin-carry:` line the region itself also carried. `P9`
+  merged, the five regions now import their exports, and both the entries and the `// pin-carry:`
+  lines are gone -- which is the mechanism working, not it being switched off.
 
   A carry is not a class and cannot be declared into existence: a name absent from `CARRY` is a
   blocking finding however the region annotates itself, so a sixth vector cannot join by copying
@@ -65,8 +69,9 @@ THE CARRY, and why it is a constant in this file rather than a registry.
   cheapest escape and this gate's own arm found it -- declaring `locale-compare` a
   `platform-builtin` made its finding vanish and the run exit 0 before the class was carried too.
   `CARRY` can only shrink -- a carried region that passes every rule is itself a finding, so `P9`
-  must delete its entries in the same change that fixes the regions. Every run prints the carried
-  set at the top of the report, so a green here never reads as clean.
+  deleted its entries in the same change that fixed the regions. Every run prints the carried set
+  at the top of the report, so a green here never reads as clean; with `CARRY` empty the report
+  says `0 carried`, and that is the only reading of this gate that means what it appears to.
 
 Exit codes: 0 every region declared and compliant (carried regions named), 1 a finding, 2 the
 control failed or the population was empty -- which is not a pass.
@@ -123,21 +128,24 @@ BUILTIN_EXEMPTS = {"Number": "Number(...) coercion"}
 
 VERBATIM_MIN = 40
 
-#: The five regions that re-type their reference on this tree: vector -> (the item that closes it,
-#: the class the carry is for). This set may shrink and may never grow -- a name that is not here
-#: is a blocking finding.
+#: Regions that re-type their reference and are already scheduled: vector -> (the item that closes
+#: it, the class the carry is for). This set may shrink and may never grow -- a name that is not
+#: here is a blocking finding.
+#:
+#: **Empty, and that is the state this file was written to reach.** P11 opened it with five --
+#: `auth-pages`, `string-ordering`, `locale-compare`, `usage-limit`, `registry-limit` -- each
+#: naming `P9` as the item that closes it. P9 landed: all five now reach their declared export
+#: through a `require(join(distDir, ...))` binding, so all five break no rule, and the gate's own
+#: report turns a spent carry into a finding ("is carried and now breaks no rule -- the carry is
+#: spent, delete it from CARRY"). Deleting them is therefore not tidying: a carry left behind a
+#: fixed region is a permanent hole that every later run prints as a known one.
 #:
 #: The class is carried with the name because of what happened when this gate's own arm re-declared
 #: `locale-compare` as `platform-builtin — String#localeCompare`: the vocabulary check fired, the
 #: carry absorbed it, and the run exited 0. Re-labelling a vector is the cheapest way to silence
-#: this gate, so a carry now excuses only the class it was recorded against.
-CARRY = {
-    "auth-pages": ("P9", "src-export"),
-    "string-ordering": ("P9", "src-export"),
-    "locale-compare": ("P9", "src-export"),
-    "usage-limit": ("P9", "src-export"),
-    "registry-limit": ("P9", "src-export"),
-}
+#: this gate, so a carry excuses only the class it was recorded against. That rule stays armed for
+#: whatever is carried next.
+CARRY: dict[str, tuple[str, str]] = {}
 
 ANNOTATION = re.compile(r"//\s*pin-class:\s*([a-z-]+)\s*(?:—|--)\s*(.+?)\s*$", re.M)
 CARRY_NOTE = re.compile(r"//\s*pin-carry:\s*([A-Za-z0-9]+)\s*(?:—|--)\s*(.+?)\s*$", re.M)

@@ -1,7 +1,7 @@
 {
  "url": "http://127.0.0.1:8976/insights",
- "sha256": "bc202d8c580a832f31e53377ecabad8c556c909130bdf3c5f71d9d29a405ad80",
- "generatedAt": "2026-08-27T03:10:05.351Z",
+ "sha256": "d7f06fd9877aae49a0f9d7894bd3ac9ff6b0746a5b85c360fabbf5f4057e805e",
+ "generatedAt": "2026-08-27T04:23:50.796Z",
  "identifiersDrawn": [
   "<row.harness>",
   "calls",

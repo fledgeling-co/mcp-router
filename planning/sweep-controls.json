@@ -974,6 +974,17 @@
       "since": "2026-08-26"
     },
     {
+      "path": "scripts/warden/selftest.sh",
+      "disposition": "control",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "since": "2026-08-28",
+      "control": "./scripts/warden/selftest.sh",
+      "proves": "Seven arms over a scratch config holding a fake key, the shape G34 gave the other eight selftests: a credential with no vault URI refuses and writes nothing, a filled plan writes a copy carrying the URI and not the value, the source config is unmodified by a copy run, configuration passes through untouched, the copy is mode 0600, a URI the router's own isSecretURI predicate rejects refuses, and --in-place without --backup refuses. The refusals are the half worth arming: a placeholder and an unrecognised scheme both land at upstream connection time as an error naming neither cause. Registered twice — the first row was removed because discovery did not claim the file while it was untracked, and this gate reads the committed tree."
+    },
+    {
       "path": "scripts/worktree-preflight-selftest.sh",
       "disposition": "control",
       "markers": [

@@ -570,12 +570,26 @@ mutation-selftest:
 install-default:
 	./scripts/acceptance/install-router-default.sh
 
+## P10: the five selftests are dispatched by `parity-selftests.sh`, which runs ALL of them and
+## aggregates.
+##
+## They used to be five recipe lines. make stops a target at the first line that fails,
+## `parity-manifest-selftest.sh` is first, and it was red on `main` from `b1160ef` onward because
+## `planning/parity/surface.tsv` pinned `# rows: 95` against a file holding 97 — so the four behind
+## it had not been reached at all. `grep -c parity-regen-selftest` over a full run log returns 0,
+## and one of the four it silenced was P9's own new selftest, merged the same evening into a target
+## that could not reach it.
+##
+## Exactly `make acceptance`'s finding (G10), one target over, and repaired the same way: the runner
+## keeps going past a red selftest and prints a per-selftest table with every exit code, so the risk
+## continuing carries — a green summary over a red selftest — is what the table makes impossible
+## rather than what the ordering hopes to avoid.
+##
+## It preserves the 1-vs-2 distinction at the aggregate: 1 means a selftest failed, 2 means none
+## failed but at least one could not run. make itself collapses both to 2, so run the script
+## directly when the caller needs to tell them apart.
 parity-selftest:
-	./scripts/acceptance/parity-manifest-selftest.sh
-	./scripts/acceptance/parity-lock-selftest.sh
-	./scripts/acceptance/parity-normalise-selftest.sh
-	./scripts/acceptance/parity-regen-selftest.sh
-	@$(MAKE) --no-print-directory parity-lane-selftest
+	./scripts/acceptance/parity-selftests.sh
 
 ## Proves the lanes can actually GO RED, by running each against a deliberately broken Swift
 ## router. It also reports failability per ROW, which is the only place that number exists: on this

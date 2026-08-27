@@ -558,6 +558,7 @@ parity-manifest-selftest:proves this file can fail; run by 'make parity-selftest
 parity-lane-selftest:proves a lane can fail; run by 'make parity-selftest'
 parity-normalise-selftest:proves the normaliser can fail; run by 'make parity-selftest'
 parity-regen-selftest:proves vector divergence is caught; run by 'make parity-selftest'
+parity-selftests:the aggregator behind 'make parity-selftest' (P10); it runs the five selftests below and keeps going past a red one
 parity-lock:the harness lock (D-g1-g); sourced by parity-gate.sh and four other entry points
 parity-lock-selftest:proves the lock can refuse; run by 'make parity-selftest'
 parity-install-watch:the watch half of the install lane; sourced by parity-install.sh and by parity-install-watch-mutations.sh, so one copy of the observation serves both
@@ -582,6 +583,31 @@ done
 # drain this section exists to close — parity-stream.sh with paperwork, executable and passing by
 # hand and run by nothing. So each exempted script must be REFERENCED somewhere that runs it: the
 # Makefile, or the gate itself. "Not a lane" has to mean "run another way", never "not run".
+#
+# P10 adds a THIRD way to be run, and it is deliberately one level deep. `make parity-selftest` used
+# to be five recipe lines and is now `parity-selftests.sh`, which runs those five and keeps going
+# past a red one. That moved three exempt scripts out of the Makefile and into an array inside
+# another exempt script, and this check reported all three as run by nothing — correctly, on the
+# rule as it stood.
+#
+# So an exempt script may be vouched for by another exempt script that is ITSELF named in the
+# Makefile or the gate. The voucher has to have passed the direct test first, which is what stops
+# this becoming the drain: the chain always terminates at the Makefile, and two unrun files cannot
+# vouch for each other because neither would be in the vouching set to begin with.
+#
+# The direct set is computed before the loop rather than inside it, because the loop's verdict for
+# one entry now depends on the verdict for another.
+NOT_LANES_DIRECT=""
+while IFS= read -r entry; do
+  [ -z "$entry" ] && continue
+  name="${entry%%:*}"
+  [ -f "$REPO_ROOT/scripts/acceptance/$name.sh" ] || continue
+  if grep -q "$name\.sh" "$REPO_ROOT/Makefile" 2>/dev/null || grep -q "$name\.sh" "$GATE_SH"; then
+    NOT_LANES_DIRECT="$NOT_LANES_DIRECT$name
+"
+  fi
+done <<< "$NOT_LANES"
+
 while IFS= read -r entry; do
   [ -z "$entry" ] && continue
   name="${entry%%:*}"
@@ -615,12 +641,25 @@ while IFS= read -r entry; do
   # `$name.sh`, not `$name`. Unanchored, one script's name is a PREFIX of another's, so
   # `parity-install-watch-mutations.sh` in the Makefile silently vouched for `parity-install-watch`
   # — an exemption satisfied by a script that is not the exempted one.
-  if ! grep -q "$name\.sh" "$REPO_ROOT/Makefile" && ! grep -q "$name\.sh" "$GATE_SH"; then
-    note "NOT_LANES exempts \"$name\" as not-a-lane, and nothing runs it: it appears in neither the"
-    detail "  Makefile nor parity-gate.sh. An exemption has to mean \"run another way\", not \"not"
-    detail "  run\" — otherwise this list is just a waiver for the invisible-script defect it exists"
-    detail "  to catch. Being sourced by a dispatched lane counts; being mentioned does not."
-  fi
+  grep -q "$name\.sh" "$REPO_ROOT/Makefile" && continue
+  grep -q "$name\.sh" "$GATE_SH" && continue
+
+  # Dispatched by an exempt script the Makefile itself names. Same prefix trap, same `$name.sh`.
+  dispatched_by=""
+  while IFS= read -r voucher; do
+    [ -z "$voucher" ] && continue
+    [ "$voucher" = "$name" ] && continue
+    grep -q "$name\.sh" "$REPO_ROOT/scripts/acceptance/$voucher.sh" 2>/dev/null \
+      && { dispatched_by="$voucher"; break; }
+  done <<< "$NOT_LANES_DIRECT"
+  [ -n "$dispatched_by" ] && continue
+
+  note "NOT_LANES exempts \"$name\" as not-a-lane, and nothing runs it: it appears in neither the"
+  detail "  Makefile nor parity-gate.sh, and no exempt script the Makefile names dispatches it. An"
+  detail "  exemption has to mean \"run another way\", not \"not run\" — otherwise this list is just"
+  detail "  a waiver for the invisible-script defect it exists to catch. Being sourced by a"
+  detail "  dispatched lane counts, and being dispatched by a runner the Makefile names counts;"
+  detail "  being mentioned does not."
 done <<< "$NOT_LANES"
 
 # ------------------------------------------------------------------ ids are unique

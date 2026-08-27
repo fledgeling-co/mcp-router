@@ -44,7 +44,7 @@ MAC_DEST   ?= platform=macOS
 ## M15-M22 add theirs by writing planning/fidelity/<surface>.layers.json beside this one.
 SURFACE    ?= servers
 
-.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation mutation-selftest acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default surface-reconcile surface-reconcile-arm
+.PHONY: build-cli-debug all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation mutation-selftest acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default surface-reconcile surface-reconcile-arm
 
 ## G4's two harness gates run inside `lint` rather than as a stage of their own. Both are
 ## hermetic and finish in under ten seconds, and `lint` is where the other four script gates
@@ -656,8 +656,32 @@ parity-watch-mutations:
 ## It preserves the 1-vs-2 distinction this target has always drawn, at the aggregate: 1 means a lane
 ## failed an assertion, 2 means no lane failed but at least one could not run. make itself collapses
 ## both to 2, so run the script directly when the caller needs to tell them apart.
-acceptance: build-mac build-mac-release
+## Prerequisites widened 2026-08-27, on the owner's decision, from `build-mac build-mac-release`.
+##
+## G10 established that this target reached only its first lane. With that fixed it reached all
+## eight and reported `7 pass, 0 fail, 1 blocked` — and the one blocked lane was blocked on an
+## artifact this target does not build. `shells.sh:495` calls
+## `build_freshness_require Debug-iphonesimulator`, so it asserts against the iOS simulator bundle
+## and BLOCKS without one; `app/.build/debug/MCPRouterCLI` is the same shape for the other two,
+## and only passed above because an earlier build happened to leave one on disk.
+##
+## A lane that blocks on a missing artifact is not evidence about the product. It is the target
+## declining to build what its own lane checks, and it reads as a gate with a permanent exception
+## rather than as a gate. So the artifacts move into the prerequisites, and the cost moves with
+## them: this target now builds the iOS simulator bundle and the debug CLI on every run, which
+## takes it from seconds to minutes. That is the trade the owner took, deliberately, over leaving
+## three of eight lanes asserting nothing.
+##
+## It stays out of `all` for the same reason it always did — it needs a GUI session, an
+## Accessibility grant and a simulator, and `all` has to run where none of those exist.
+acceptance: build-mac build-mac-release build-ios build-cli-debug
 	./scripts/acceptance/acceptance-lanes.sh
+
+## The debug CLI three acceptance lanes assert against. Separate from the release build at
+## `install-default`, because a lane reading `app/.build/debug/MCPRouterCLI` is not served by a
+## release binary sitting somewhere else.
+build-cli-debug:
+	cd $(APP_DIR) && swift build --product MCPRouterCLI
 
 ## Proves the aggregation above can go red, and that a red lane cannot hide inside a green total.
 ##

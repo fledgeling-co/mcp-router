@@ -1,7 +1,7 @@
 [
  {
-  "bytes": 177459,
-  "capturedAt": "2026-08-27T03:48:21Z",
+  "bytes": 177879,
+  "capturedAt": "2026-08-27T04:44:19Z",
   "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
   "derivedFrom": null,
   "documentServer": "g17-capability",
@@ -12,14 +12,14 @@
   "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
   "path": "evidence/g17-document/readme.served.png",
   "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
-  "sha256": "9d048beb8c7eb6a3bf828fd79da3716294ebbca3156a647ea5cb08313bda9a40",
+  "sha256": "a54c084a5e62dbc396aabbc614a4b40968d5e3b8c794fa56d99dae50be30cd82",
   "step": "FLOW-006.02",
-  "subject": "SURF-025",
+  "subject": "SURF-028",
   "target": "app://mac/servers/g17-capability/document"
  },
  {
-  "bytes": 117890,
-  "capturedAt": "2026-08-27T03:48:21Z",
+  "bytes": 118311,
+  "capturedAt": "2026-08-27T04:44:19Z",
   "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
   "derivedFrom": null,
   "documentServer": "g17-capability",
@@ -30,14 +30,14 @@
   "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
   "path": "evidence/g17-document/changelog.served.png",
   "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
-  "sha256": "61ba8f22e0d882ac544797ed1b9e915d445b117a6c03182245d05d86bf950e8d",
+  "sha256": "5563977a462a643d927596543857c4f9d46546bfb25ca166e3d7780c67d4c069",
   "step": "FLOW-006.03",
-  "subject": "SURF-025",
+  "subject": "SURF-028",
   "target": "app://mac/servers/g17-capability/document"
  },
  {
-  "bytes": 118521,
-  "capturedAt": "2026-08-27T03:48:21Z",
+  "bytes": 118939,
+  "capturedAt": "2026-08-27T04:44:19Z",
   "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
   "derivedFrom": null,
   "documentServer": "g17-capability",
@@ -48,14 +48,14 @@
   "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
   "path": "evidence/g17-document/capabilities.served.png",
   "servedBy": "http://127.0.0.1:8894/servers/g17-capability/document (reference router, node dist/index.js)",
-  "sha256": "103a4c4d086ff45f3fa3c72d27b8185958c884bafd61544a3252d1cecbf67b5f",
+  "sha256": "3c5aa28b93bd06ca8d63369d1cda29c6da5ab2357d181c250fcc8eadf118ba93",
   "step": "FLOW-006.04",
-  "subject": "SURF-025",
+  "subject": "SURF-028",
   "target": "app://mac/servers/g17-capability/document"
  },
  {
-  "bytes": 85169,
-  "capturedAt": "2026-08-27T03:48:21Z",
+  "bytes": 85588,
+  "capturedAt": "2026-08-27T04:44:19Z",
   "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
   "derivedFrom": null,
   "documentServer": "g17-no-package",
@@ -66,14 +66,14 @@
   "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
   "path": "evidence/g17-document/refusal.nopackage.png",
   "servedBy": "http://127.0.0.1:8894/servers/g17-no-package/document (reference router, node dist/index.js)",
-  "sha256": "bbea8b9e9e1267e70bb3595347aa2b2a04ea5c24a0306dbf5ecd9376f277e1ea",
+  "sha256": "0b2e1e75479b5f29cffc3d54803c3d0e3dc5935ccd00068691f4dc12050dddbd",
   "step": "FLOW-006.02",
-  "subject": "SURF-025",
+  "subject": "SURF-028",
   "target": "app://mac/servers/g17-no-package/document"
  },
  {
-  "bytes": 89151,
-  "capturedAt": "2026-08-27T03:48:21Z",
+  "bytes": 89571,
+  "capturedAt": "2026-08-27T04:44:19Z",
   "channel": "NSHostingView cacheDisplay(in:to:) off the view's own backing store \u2014 no window ordered in, activation policy .prohibited; not a screen photograph",
   "derivedFrom": null,
   "documentServer": "g17-oversize",
@@ -84,9 +84,9 @@
   "packageProvenance": "CONSTRUCTED by planning/test-campaign/bin/g17-document-flow.sh \u2014 0 of the 21 upstreams on this machine declare a package directory (M30, planning/evidence/M30-reach.txt)",
   "path": "evidence/g17-document/refusal.toolarge.png",
   "servedBy": "http://127.0.0.1:8894/servers/g17-oversize/document (reference router, node dist/index.js)",
-  "sha256": "c66fbf1a718dcc57fbee80372513f162b197bbc9b6480f41f1cdd15973711576",
+  "sha256": "5462034f32270ed0c716cf96d3d2dc39e8d2e5af381e5a642741d5a3a99e7547",
   "step": "FLOW-006.02",
-  "subject": "SURF-025",
+  "subject": "SURF-028",
   "target": "app://mac/servers/g17-oversize/document"
  }
 ]

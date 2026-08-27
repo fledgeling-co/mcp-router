@@ -1,5 +1,5 @@
-frontmost before: Finder
-router up on 8894 (reference implementation, node /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/dist/index.js), scratch home /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/tmp.r22N3EjblZ
+frontmost before: ghostty
+router up on 8894 (reference implementation, node /Users/lukerhodes/Dev/mcp-router/.worktrees/G17/dist/index.js), scratch home /var/folders/b3/hwz3nk4d1kz8x6mzk7qrbpsc0000gn/T/tmp.3YdnbUZcKf
 wrote 5 capture rows
 --- assertions
   ok   G17-W1 — the route serves all three of the constructed package's documents: ['capabilities', 'changelog', 'readMe']
@@ -19,19 +19,19 @@ wrote 5 capture rows
   ok   G17-R2 — the too-large refusal names the file and the cap it broke: ['README.md is too large to show here']
   ok   G17-R3 — the three refusals are pairwise distinguishable in the words they draw: 3 distinct
   ok   G17-L1 — each of the 5 pictures names the surface and the step it is of, carries the sha256 of the file on disk, and — for the 4 that draw their own subject — is corroborated by what the frame itself drew
-  ok   G17-L2 — 1 of 5 frames cannot corroborate their own manifest row and are named here rather than counted as corroborated: ['refusal.toolarge'] (DEF-058)
+  ok   G17-L2 — 1 of 5 frames cannot corroborate their own manifest row and are named here rather than counted as corroborated: ['refusal.toolarge'] (DEF-060)
 g17-document-assert: 18 checks, all green
 --- controls
   ARMED  G17-P4 — the served figure's bytes replaced with something that cannot decode
-  RESTORED readme.served byte-identical — sha256 9d048beb8c7eb6a3bf828fd79da3716294ebbca3156a647ea5cb08313bda9a40
+  RESTORED readme.served byte-identical — sha256 a54c084a5e62dbc396aabbc614a4b40968d5e3b8c794fa56d99dae50be30cd82
   ARMED  G17-P1 — the read me frame rendered against g17-no-package under its own filename
-  RESTORED readme.served byte-identical — sha256 9d048beb8c7eb6a3bf828fd79da3716294ebbca3156a647ea5cb08313bda9a40
+  RESTORED readme.served byte-identical — sha256 a54c084a5e62dbc396aabbc614a4b40968d5e3b8c794fa56d99dae50be30cd82
   ARMED  G17-P8 — the changelog and capabilities frames both rendered on the read me tab
-  RESTORED changelog.served byte-identical — sha256 61ba8f22e0d882ac544797ed1b9e915d445b117a6c03182245d05d86bf950e8d
-  RESTORED capabilities.served byte-identical — sha256 103a4c4d086ff45f3fa3c72d27b8185958c884bafd61544a3252d1cecbf67b5f
+  RESTORED changelog.served byte-identical — sha256 5563977a462a643d927596543857c4f9d46546bfb25ca166e3d7780c67d4c069
+  RESTORED capabilities.served byte-identical — sha256 3c5aa28b93bd06ca8d63369d1cda29c6da5ab2357d181c250fcc8eadf118ba93
   ARMED  G17-R3 — the too-large frame rendered against the no-package server, so two refusals
                        draw the same words
-  RESTORED refusal.toolarge byte-identical — sha256 c66fbf1a718dcc57fbee80372513f162b197bbc9b6480f41f1cdd15973711576
+  RESTORED refusal.toolarge byte-identical — sha256 5462034f32270ed0c716cf96d3d2dc39e8d2e5af381e5a642741d5a3a99e7547
 --- re-assert after restoration
   ok   G17-W1 — the route serves all three of the constructed package's documents: ['capabilities', 'changelog', 'readMe']
   ok   G17-W2 — one figure arrives as image/png and the escaping reference is refused: images=1 refused=['escapesPackage']
@@ -50,11 +50,11 @@ g17-document-assert: 18 checks, all green
   ok   G17-R2 — the too-large refusal names the file and the cap it broke: ['README.md is too large to show here']
   ok   G17-R3 — the three refusals are pairwise distinguishable in the words they draw: 3 distinct
   ok   G17-L1 — each of the 5 pictures names the surface and the step it is of, carries the sha256 of the file on disk, and — for the 4 that draw their own subject — is corroborated by what the frame itself drew
-  ok   G17-L2 — 1 of 5 frames cannot corroborate their own manifest row and are named here rather than counted as corroborated: ['refusal.toolarge'] (DEF-058)
+  ok   G17-L2 — 1 of 5 frames cannot corroborate their own manifest row and are named here rather than counted as corroborated: ['refusal.toolarge'] (DEF-060)
 g17-document-assert: 18 checks, all green
-./planning/test-campaign/bin/g17-document-flow.sh: line 337: 82277 Terminated: 15          ( while :; do
+./planning/test-campaign/bin/g17-document-flow.sh: line 337: 28018 Terminated: 15          ( while :; do
     osascript -e 'tell application "System Events" to get name of first process whose frontmost is true' 2> /dev/null >> "$FRONT_LOG" || true; sleep 1;
 done )
-frontmost after:  Finder (51 samples over the run)
-  ok — neither MeasureDump nor the router was frontmost in any of the 51 samples
+frontmost after:  ghostty (55 samples over the run)
+  ok — neither MeasureDump nor the router was frontmost in any of the 55 samples
 g17-document-flow: ok

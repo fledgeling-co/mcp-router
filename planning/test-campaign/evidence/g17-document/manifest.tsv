@@ -1,15 +1,15 @@
-readme.served	g17-capability	readMe	SURF-025	FLOW-006.02	g17-capability	titlebar
-changelog.served	g17-capability	changelog	SURF-025	FLOW-006.03	g17-capability	titlebar
-capabilities.served	g17-capability	capabilities	SURF-025	FLOW-006.04	g17-capability	titlebar
-refusal.nopackage	g17-no-package	readMe	SURF-025	FLOW-006.02	g17-no-package	state-title
-refusal.toolarge	g17-oversize	readMe	SURF-025	FLOW-006.02		
-readme.served	g17-capability	readMe	SURF-025	FLOW-006.02	g17-capability	titlebar
-readme.served	g17-capability	readMe	SURF-025	FLOW-006.02	g17-capability	titlebar
-readme.served	g17-no-package	readMe	SURF-025	FLOW-006.02	g17-capability	titlebar
-readme.served	g17-capability	readMe	SURF-025	FLOW-006.02	g17-capability	titlebar
-changelog.served	g17-capability	readMe	SURF-025	FLOW-006.03	g17-capability	titlebar
-capabilities.served	g17-capability	readMe	SURF-025	FLOW-006.04	g17-capability	titlebar
-changelog.served	g17-capability	changelog	SURF-025	FLOW-006.03	g17-capability	titlebar
-capabilities.served	g17-capability	capabilities	SURF-025	FLOW-006.04	g17-capability	titlebar
-refusal.toolarge	g17-no-package	readMe	SURF-025	FLOW-006.02		
-refusal.toolarge	g17-oversize	readMe	SURF-025	FLOW-006.02		
+readme.served	g17-capability	readMe	SURF-028	FLOW-006.02	g17-capability	titlebar
+changelog.served	g17-capability	changelog	SURF-028	FLOW-006.03	g17-capability	titlebar
+capabilities.served	g17-capability	capabilities	SURF-028	FLOW-006.04	g17-capability	titlebar
+refusal.nopackage	g17-no-package	readMe	SURF-028	FLOW-006.02	g17-no-package	state-title
+refusal.toolarge	g17-oversize	readMe	SURF-028	FLOW-006.02		
+readme.served	g17-capability	readMe	SURF-028	FLOW-006.02	g17-capability	titlebar
+readme.served	g17-capability	readMe	SURF-028	FLOW-006.02	g17-capability	titlebar
+readme.served	g17-no-package	readMe	SURF-028	FLOW-006.02	g17-capability	titlebar
+readme.served	g17-capability	readMe	SURF-028	FLOW-006.02	g17-capability	titlebar
+changelog.served	g17-capability	readMe	SURF-028	FLOW-006.03	g17-capability	titlebar
+capabilities.served	g17-capability	readMe	SURF-028	FLOW-006.04	g17-capability	titlebar
+changelog.served	g17-capability	changelog	SURF-028	FLOW-006.03	g17-capability	titlebar
+capabilities.served	g17-capability	capabilities	SURF-028	FLOW-006.04	g17-capability	titlebar
+refusal.toolarge	g17-no-package	readMe	SURF-028	FLOW-006.02		
+refusal.toolarge	g17-oversize	readMe	SURF-028	FLOW-006.02		

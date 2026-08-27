@@ -167,7 +167,7 @@ grep -q 'g17-capability' "$HOME_DIR/probe.json" || blocked "the scratch router i
 [ -f "$HOME_DIR/control.token" ] || blocked "no control token under the scratch home — MCP_ROUTER_HOME did not take"
 echo "router up on $PORT (reference implementation, node $DIST/index.js), scratch home $HOME_DIR"
 
-# ---------------------------------------------------------------- FLOW-006.01 — the wire (SURF-026)
+# ---------------------------------------------------------------- FLOW-006.01 — the wire (SURF-027)
 curl -fsS -m 10 "http://127.0.0.1:$PORT/servers/g17-capability/document" -o "$OUT/wire-served.json" \
   || fail "the document route refused the constructed server"
 curl -sS -m 10 "http://127.0.0.1:$PORT/servers/g17-no-package/document" -o "$OUT/wire-nopackage.json" || true
@@ -201,12 +201,12 @@ render() {
 # The last two arguments are the frame's own witness: a string the PANEL draws, and the role it
 # draws it in. That is what ties a picture to the package it is of independently of its filename.
 # `refusal.toolarge` has none, and the empty pair is the honest record of that — its refusal names
-# the file and the cap and never the capability, so the frame cannot say what it refuses. DEF-058.
-render readme.served        g17-capability readMe       820 SURF-025 FLOW-006.02 g17-capability titlebar
-render changelog.served     g17-capability changelog    820 SURF-025 FLOW-006.03 g17-capability titlebar
-render capabilities.served  g17-capability capabilities 820 SURF-025 FLOW-006.04 g17-capability titlebar
-render refusal.nopackage    g17-no-package readMe       520 SURF-025 FLOW-006.02 g17-no-package state-title
-render refusal.toolarge     g17-oversize   readMe       520 SURF-025 FLOW-006.02
+# the file and the cap and never the capability, so the frame cannot say what it refuses. DEF-060.
+render readme.served        g17-capability readMe       820 SURF-028 FLOW-006.02 g17-capability titlebar
+render changelog.served     g17-capability changelog    820 SURF-028 FLOW-006.03 g17-capability titlebar
+render capabilities.served  g17-capability capabilities 820 SURF-028 FLOW-006.04 g17-capability titlebar
+render refusal.nopackage    g17-no-package readMe       520 SURF-028 FLOW-006.02 g17-no-package state-title
+render refusal.toolarge     g17-oversize   readMe       520 SURF-028 FLOW-006.02
 
 # The capture manifest, written from the render log rather than from the filenames. Each row carries
 # what the router was asked for, and the assertion pass checks that against what the panel drew.
@@ -286,34 +286,34 @@ if [ "$ARM" = "yes" ]; then
   # A — the figure's pixels. Replace the PNG's bytes with something NSImage cannot decode; the
   #     route still serves it as image/png, so what changes is only whether it draws.
   printf 'not a picture, and not eight bytes of A either\n' > "$PKG/docs/figure.png"
-  render readme.served g17-capability readMe 820 SURF-025 FLOW-006.02 g17-capability titlebar
+  render readme.served g17-capability readMe 820 SURF-028 FLOW-006.02 g17-capability titlebar
   arm figure G17-P4 "the served figure's bytes replaced with something that cannot decode"
   cp "$HOME_DIR/figure.png.orig" "$PKG/docs/figure.png"
-  render readme.served g17-capability readMe 820 SURF-025 FLOW-006.02 g17-capability titlebar
+  render readme.served g17-capability readMe 820 SURF-028 FLOW-006.02 g17-capability titlebar
   restore readme.served "$BEFORE_README" "the served read me"
 
   # B — the subject. Point the same frame at a different server; the filename does not change and
   #     the picture does, which is exactly the failure the lineage check exists for.
-  render readme.served g17-no-package readMe 820 SURF-025 FLOW-006.02 g17-capability titlebar
+  render readme.served g17-no-package readMe 820 SURF-028 FLOW-006.02 g17-capability titlebar
   arm subject G17-P1 "the read me frame rendered against g17-no-package under its own filename"
-  render readme.served g17-capability readMe 820 SURF-025 FLOW-006.02 g17-capability titlebar
+  render readme.served g17-capability readMe 820 SURF-028 FLOW-006.02 g17-capability titlebar
   restore readme.served "$BEFORE_README" "the served read me"
 
   # C — the tabs. Draw the read me three times; if the flow's tab step could pass on that, moving
   #     between tabs was never being measured.
-  render changelog.served    g17-capability readMe 820 SURF-025 FLOW-006.03 g17-capability titlebar
-  render capabilities.served g17-capability readMe 820 SURF-025 FLOW-006.04 g17-capability titlebar
+  render changelog.served    g17-capability readMe 820 SURF-028 FLOW-006.03 g17-capability titlebar
+  render capabilities.served g17-capability readMe 820 SURF-028 FLOW-006.04 g17-capability titlebar
   arm tabs G17-P8 "the changelog and capabilities frames both rendered on the read me tab"
-  render changelog.served    g17-capability changelog    820 SURF-025 FLOW-006.03 g17-capability titlebar
-  render capabilities.served g17-capability capabilities 820 SURF-025 FLOW-006.04 g17-capability titlebar
+  render changelog.served    g17-capability changelog    820 SURF-028 FLOW-006.03 g17-capability titlebar
+  render capabilities.served g17-capability capabilities 820 SURF-028 FLOW-006.04 g17-capability titlebar
   restore changelog.served "$BEFORE_CL" "the changelog"
   restore capabilities.served "$BEFORE_CAPS" "the capability list"
 
   # D — the refusals. Make two of the three the same refusal; distinguishable has to mean measured.
-  render refusal.toolarge g17-no-package readMe 520 SURF-025 FLOW-006.02
+  render refusal.toolarge g17-no-package readMe 520 SURF-028 FLOW-006.02
   arm refusals G17-R3 "the too-large frame rendered against the no-package server, so two refusals
                        draw the same words"
-  render refusal.toolarge g17-oversize readMe 520 SURF-025 FLOW-006.02
+  render refusal.toolarge g17-oversize readMe 520 SURF-028 FLOW-006.02
   restore refusal.toolarge "$BEFORE_LARGE" "the too-large refusal"
 
   echo "--- re-assert after restoration"

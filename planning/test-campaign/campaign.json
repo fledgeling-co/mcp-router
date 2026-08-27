@@ -1,60 +1,60 @@
 {
- "project": "mcp-router",
- "startedAt": "2026-08-19T01:43:08+00:00",
- "lanes": [
-  "macos-glass",
-  "ios-glass",
-  "swiftui",
-  "router-daemon",
-  "parity-wire"
- ],
- "axes": [
-  "surface",
-  "state",
-  "viewport",
-  "theme",
-  "role",
-  "data-shape",
-  "execution-plane"
- ],
- "sample": "pairwise floor; 3-way on theme×viewport×surface (Mac boards) and role×state×network (honesty); oversample honesty-guardrails; drop high-contrast (no authored tokens); drop RTL (no localisation); pairing-transport cells blocked (I5: unimplemented)",
- "designOfRecord": "design/mocks/prototype.html",
- "run": {
-  "scope": "full",
-  "basis": "",
-  "lastFullRun": "2026-08-19T23:52:31+00:00",
-  "decidedBy": "user asked to invoke the skill to its fullest and resolve every gap — rung 1, no inference",
-  "maxFullRunAgeDays": 14.0,
-  "declaredAt": "2026-08-19T23:52:31+00:00"
- },
- "laneProof": {
-  "macos-glass": {
-   "attached": true,
-   "artifact": "/Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
-   "artifactBytes": null,
-   "builtBy": "xcodebuild -project app/MCPRouter.xcodeproj -scheme MCPRouter -configuration Debug -derivedDataPath app/.derived CODE_SIGNING_ALLOWED=NO",
-   "attachedBy": "axkit attached pid=72421 owns CGWindowID 191539 title Activity; frontmost before/after = Relay",
-   "captureChannel": "screencapture -x -l<CGWindowID> window-scoped; PNG magic verified; no SCFrameStatus (screencapture, not ScreenCaptureKit)",
-   "declaredAt": "2026-08-19T04:28:40+00:00"
+  "project": "mcp-router",
+  "startedAt": "2026-08-19T01:43:08+00:00",
+  "lanes": [
+    "macos-glass",
+    "ios-glass",
+    "swiftui",
+    "router-daemon",
+    "parity-wire"
+  ],
+  "axes": [
+    "surface",
+    "state",
+    "viewport",
+    "theme",
+    "role",
+    "data-shape",
+    "execution-plane"
+  ],
+  "sample": "pairwise floor; 3-way on theme\u00d7viewport\u00d7surface (Mac boards) and role\u00d7state\u00d7network (honesty); oversample honesty-guardrails; drop high-contrast (no authored tokens); drop RTL (no localisation); pairing-transport cells blocked (I5: unimplemented)",
+  "designOfRecord": "design/mocks/prototype.html",
+  "run": {
+    "scope": "full",
+    "basis": "",
+    "lastFullRun": "2026-08-19T23:52:31+00:00",
+    "decidedBy": "user asked to invoke the skill to its fullest and resolve every gap \u2014 rung 1, no inference",
+    "maxFullRunAgeDays": 14.0,
+    "declaredAt": "2026-08-19T23:52:31+00:00"
   },
-  "ios-glass": {
-   "attached": true,
-   "artifact": "/Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug-iphonesimulator/MCPRouterIOS.app",
-   "artifactBytes": null,
-   "builtBy": "make test-ios-glass → xcodebuild -scheme MCPRouterIOSGlass -destination id=$(the lane's own MCPRouter-Glass device) CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=YES test (lane source on branch ai/x2, not yet merged to main)",
-   "attachedBy": "XCUITest runner attached out-of-process to app.fledgeling.mcprouter.ios on MCPRouter-Glass (995BEF6F-101F-4D8A-ACE5-38724A13689A, iPhone 17 Pro, iOS 26.5), a device this lane creates and owns. Six green runs on 20 Aug 2026, 5 of 5 tests each; the last two were on the final source state and the four before them each carried one fewer fix. The four red runs between them were deliberate mutation arms, listed on CASE-0024, CASE-0122, CASE-0124 and CASE-0125. Simulator.app never opened and Ghostty stayed frontmost throughout. The device is lane-owned because a shared one was not: DEF-020 was another project's VPN app holding the foreground and receiving this lane's taps, and five runs failed on a different tab each time before anyone photographed the device itself.",
-   "captureChannel": "XCUIScreen.main.screenshot() attached as XCTAttachment and exported by xcresulttool export attachments, which groups each PNG under the test identifier that produced it — attribution by construction rather than by filename. No per-frame status is available on this channel and the campaign does not claim one.",
-   "declaredAt": "2026-08-20T03:09:08+00:00",
-   "signing": "CODE_SIGN_IDENTITY=- with signing required. An unsigned build has no keychain access group, so the app rendered its unreadable-pairing state from a real -34018 rather than from a product defect — DEF-017."
-  },
-  "swiftui": {
-   "attached": false,
-   "artifact": "/Users/lukerhodes/Dev/mcp-router/.worktrees/G17/app/.build/debug/MeasureDump",
-   "artifactBytes": 23604176,
-   "builtBy": "MCP_ROUTER_MEASURE=1 swift build --package-path app --product MeasureDump",
-   "attachedBy": "NOT ATTACHED, and the distinction is this lane's whole content. It hosts the product's own SwiftUI views in an NSHostingView inside a process whose activation policy is `.prohibited` and whose window is never ordered in. It does NOT claim MCPRouter.app was running and drawn — that is macos-glass's claim, and macos-glass proves it by axkit attaching to a CGWindowID the launched pid owns. What this lane witnesses is narrower and is stated as such: the hierarchy under measurement is compiled from app/Sources/MCPRouterUI rather than mocked, it laid out, and it painted. The in-view recorder (MCPRouterUI/Measure/Measured.swift, compiled only under MEASURE) reports resolved frames from inside the views themselves, because an NSHostingView hosting a real hierarchy has exactly one AppKit subview and walking it from outside the process returns nothing. A run whose recorder found no nodes exits 3 rather than writing an empty dump and reading as agreement.",
-   "captureChannel": "NSHostingView.cacheDisplay(in:to:) -> NSBitmapImageRep -> PNG, off the view's own backing store. Not screencapture and not ScreenCaptureKit: nothing is photographed off the display, so no window can occlude the subject and there is no screen to take. G17 samples the frontmost application once a second for the whole of its run and asserts that neither MeasureDump nor the router ever appears in the sample (planning/test-campaign/evidence/g17-document/frontmost.txt) — a stronger statement than comparing the frontmost app before and after, which a third-party application stealing focus mid-run turns into a false red.",
-   "declaredAt": "2026-08-27T02:59:59+00:00"
+  "laneProof": {
+    "macos-glass": {
+      "attached": true,
+      "artifact": "/Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug/MCPRouter.app",
+      "artifactBytes": null,
+      "builtBy": "xcodebuild -project app/MCPRouter.xcodeproj -scheme MCPRouter -configuration Debug -derivedDataPath app/.derived CODE_SIGNING_ALLOWED=NO",
+      "attachedBy": "axkit attached pid=72421 owns CGWindowID 191539 title Activity; frontmost before/after = Relay",
+      "captureChannel": "screencapture -x -l<CGWindowID> window-scoped; PNG magic verified; no SCFrameStatus (screencapture, not ScreenCaptureKit)",
+      "declaredAt": "2026-08-19T04:28:40+00:00"
+    },
+    "ios-glass": {
+      "attached": true,
+      "artifact": "/Users/lukerhodes/Dev/mcp-router/app/.derived/Build/Products/Debug-iphonesimulator/MCPRouterIOS.app",
+      "artifactBytes": null,
+      "builtBy": "make test-ios-glass \u2192 xcodebuild -scheme MCPRouterIOSGlass -destination id=$(the lane's own MCPRouter-Glass device) CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=YES test (lane source on branch ai/x2, not yet merged to main)",
+      "attachedBy": "XCUITest runner attached out-of-process to app.fledgeling.mcprouter.ios on MCPRouter-Glass (995BEF6F-101F-4D8A-ACE5-38724A13689A, iPhone 17 Pro, iOS 26.5), a device this lane creates and owns. Six green runs on 20 Aug 2026, 5 of 5 tests each; the last two were on the final source state and the four before them each carried one fewer fix. The four red runs between them were deliberate mutation arms, listed on CASE-0024, CASE-0122, CASE-0124 and CASE-0125. Simulator.app never opened and Ghostty stayed frontmost throughout. The device is lane-owned because a shared one was not: DEF-020 was another project's VPN app holding the foreground and receiving this lane's taps, and five runs failed on a different tab each time before anyone photographed the device itself.",
+      "captureChannel": "XCUIScreen.main.screenshot() attached as XCTAttachment and exported by xcresulttool export attachments, which groups each PNG under the test identifier that produced it \u2014 attribution by construction rather than by filename. No per-frame status is available on this channel and the campaign does not claim one.",
+      "declaredAt": "2026-08-20T03:09:08+00:00",
+      "signing": "CODE_SIGN_IDENTITY=- with signing required. An unsigned build has no keychain access group, so the app rendered its unreadable-pairing state from a real -34018 rather than from a product defect \u2014 DEF-017."
+    },
+    "swiftui": {
+      "attached": false,
+      "artifact": "/Users/lukerhodes/Dev/mcp-router/.worktrees/G17/app/.build/debug/MeasureDump",
+      "artifactBytes": 23604176,
+      "builtBy": "MCP_ROUTER_MEASURE=1 swift build --package-path app --product MeasureDump",
+      "attachedBy": "NOT ATTACHED, and the distinction is this lane's whole content. It hosts the product's own SwiftUI views in an NSHostingView inside a process whose activation policy is `.prohibited` and whose window is never ordered in. It does NOT claim MCPRouter.app was running and drawn \u2014 that is macos-glass's claim, and macos-glass proves it by axkit attaching to a CGWindowID the launched pid owns. What this lane witnesses is narrower and is stated as such: the hierarchy under measurement is compiled from app/Sources/MCPRouterUI rather than mocked, it laid out, and it painted. The in-view recorder (MCPRouterUI/Measure/Measured.swift, compiled only under MEASURE) reports resolved frames from inside the views themselves, because an NSHostingView hosting a real hierarchy has exactly one AppKit subview and walking it from outside the process returns nothing. A run whose recorder found no nodes exits 3 rather than writing an empty dump and reading as agreement.",
+      "captureChannel": "NSHostingView.cacheDisplay(in:to:) -> NSBitmapImageRep -> PNG, off the view's own backing store. Not screencapture and not ScreenCaptureKit: nothing is photographed off the display, so no window can occlude the subject and there is no screen to take. G17 samples the frontmost application once a second for the whole of its run and asserts that neither MeasureDump nor the router ever appears in the sample (planning/test-campaign/evidence/g17-document/frontmost.txt) \u2014 a stronger statement than comparing the frontmost app before and after, which a third-party application stealing focus mid-run turns into a false red.",
+      "declaredAt": "2026-08-27T02:59:59+00:00"
+    }
   }
- }
 }

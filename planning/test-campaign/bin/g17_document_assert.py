@@ -326,7 +326,7 @@ def run(root, report):
             problems.append("%s: names no campaign surface or no flow step" % name)
         marker = row.get("marker")
         if not marker:
-            # The frame cannot corroborate its own row. Recorded rather than waived: see DEF-058.
+            # The frame cannot corroborate its own row. Recorded rather than waived: see DEF-060.
             unidentifiable.append(name)
             continue
         drawn = " ".join(art.text_of(name, row.get("markerRole") or "titlebar"))
@@ -351,12 +351,12 @@ def run(root, report):
     # **Not folded into the check above.** One of these frames cannot say what it is a picture of,
     # and a lineage pass that reported five-of-five corroborated would be the exact failure the
     # rule exists to prevent. The panel's too-large refusal names the file and the cap and never the
-    # capability, so its picture is tied to its subject by its manifest row alone. DEF-058.
+    # capability, so its picture is tied to its subject by its manifest row alone. DEF-060.
     report.check(
         "G17-L2",
         unidentifiable == ["refusal.toolarge"],
         "%d of %d frames cannot corroborate their own manifest row and are named here rather than "
-        "counted as corroborated: %s (DEF-058)"
+        "counted as corroborated: %s (DEF-060)"
         % (len(unidentifiable), len(manifest), unidentifiable or "none"),
     )
     return {"sha256": shas, "manifest": manifest, "unidentifiable": unidentifiable}

@@ -1,160 +1,160 @@
 [
- {
-  "id": "DEF-001",
-  "req": "REQ-016",
-  "surface": "SURF-014",
-  "title": "Pairing transport is unimplemented",
-  "text": "Neither the phone nor the Mac implements a pairing transport. The phone stores a paired-Mac record for a Mac it never contacted. Measured by I5.",
-  "source": "planning/evidence/I5-transport-proof.md",
-  "status": "open"
- },
- {
-  "id": "DEF-002",
-  "req": "REQ-014",
-  "surface": "SURF-017",
-  "title": "Parity gate exits 1 at 80/83, two real-work rows short of the cutover",
-  "text": "The gate exits 1 at 80 of 83 rows proven, 3 blocked, 0 DIVERGED (run 2026-08-19T05:40:27Z, evidence/runs/parity-gate-2026-08-19-rollback.log). install-rollback R4-C was cleared this session and is now ok. The 3 that remain: fixture-registry-search is a STANDING EXCLUSION nobody is working on; control-auth-post-http needs D-p1-a; install-launchd-watch is held blocked deliberately, because its `reran` term reads yes on 2 of 6 decoy trials where no stimulus can reach the watched path, so agreement on it is not evidence of parity. Two real-work rows therefore stand between 80 and the owner's 82/83 cutover target. Not a product UI defect.",
-  "source": "ORCHESTRATOR.md CUTOVER TARGET (bec9d18); evidence/runs/parity-gate-2026-08-19-rollback.log",
-  "status": "open"
- },
- {
-  "id": "DEF-003",
-  "req": "REQ-012",
-  "surface": "SURF-016",
-  "title": "loopbackPinned counted the pin instead of reading it",
-  "text": "`#expect(parameters.requiredLocalEndpoint != nil)` stayed TRUE — and the suite stayed green — with `host: .ipv4(.any)` in `loopbackParameters`, which is the LAN bind the clause exists to stop. An assertion that cannot fail on the defect it names is a decoration. Now reads the host and port off the endpoint. Found by arming, in app/Tests/RouterCoreTests/HTTPWireTests.swift.",
-  "source": "app/Tests/RouterCoreTests/HTTPWireTests.swift",
-  "status": "fixed-in-test"
- },
- {
-  "id": "DEF-004",
-  "req": "REQ-006",
-  "surface": "SURF-008",
-  "title": "the no-install guarantee read only half of where the buttons are stated",
-  "text": "`InboxNotificationCategory.actions` states the button sets a second time and that copy is what the notifier registers with macOS. Mutating `.many` to offer a decline left all ten clauses green, because `noInstallAction` only reads `make`. The buttons macOS draws could drift from the buttons the value carries — the one failure that type exists to close. Now asserts the round trip through `drawing`.",
-  "source": "app/Tests/MCPRouterKitTests/InboxAnnouncementTests.swift",
-  "status": "fixed-in-test"
- },
- {
-  "id": "DEF-005",
-  "req": "REQ-006",
-  "surface": "SURF-013",
-  "title": "iOS copy assertions ran against an empty accessibility tree",
-  "text": "A local `UIWindow` dies when the host function returns, leaving SwiftUI's hosting view without a window: layout numbers already computed survive, so `sizeThatFits` returns a real height while the accessibility tree is EMPTY. The first two iOS runs failed every copy assertion with `in: `. The window is now retained for the test's lifetime. This is the lane's version of a check that could not run reading as a check that ran.",
-  "source": "app/MCPRouterIOSTests/PhoneSurfaceTests.swift",
-  "status": "fixed-in-test"
- },
- {
-  "id": "DEF-006",
-  "req": "REQ-010",
-  "surface": "SURF-012",
-  "title": "inventory pointed Discover and Triage at someone else's pixels",
-  "text": "inventory.json had shot=evidence/shots/SURF-012.ios-boot.png on SURF-012 (iOS Discover) and shot=evidence/shots/SURF-013.add.png on SURF-013 (iOS Triage). The boot PNG is Phone Settings (CASE-0020/0120). The add PNG is the Mac Add a server sheet (2096×1376). Both inventory shot fields removed and the files renamed UNATTRIBUTED.ios-settings-boot.png / UNATTRIBUTED.mac-add-server.png so attach-shots.py cannot stem-match them back.",
-  "source": "planning/test-campaign/inventory.json; evidence/shots/UNATTRIBUTED.ios-settings-boot.png sha 16385e6f; evidence/shots/UNATTRIBUTED.mac-add-server.png sha 43e30338",
-  "status": "fixed-in-campaign"
- },
- {
-  "id": "DEF-034",
-  "req": "REQ-019",
-  "surface": "SURF-007",
-  "title": "the Cleanup board's skill half could not be drawn by any build",
-  "text": "CleanupBoardRow carries three treatments for a skill row — the `Read first…` substitution when SkillChecks.originUnchanged fails, the skill-kind `Remove…` drawn disabled because the router removes servers and never files on disk, and the candidacy reason — and none of them had a rendered path in any configuration of the product. A skill is proposed for cleanup only when every readable client lacks it, and all six skills in SkillFixtures.populated are installed somewhere, so the Debug Cleanup board drew three servers and zero skills. Release reaches the branch only if a real user happens to hold an orphaned skill. CASE-0136 asserted the branch exists by reading CleanupBoardRow and said in its own note why it stopped there; what nobody could say was that a build had ever drawn it. Fixed in-campaign by adding a Debug-only `cleanupSkills` scenario and two SkillFixtures.uninstalled rows, kept separate from `populated` because SURF-004's on-glass predicate asserts the count populated publishes. No view code was touched and no assertion was weakened. Now photographed by CASE-0138/CASE-0139 and guarded in the harness by CASE-0144.",
-  "source": "app/Sources/MCPRouterUI/Boards/CleanupBoardModel.swift:279-283; app/Sources/MCPRouterKit/Control/SkillFixtures.swift; evidence/shots/SURF-007.cleanup-skills.png sha 94dd9d06f87d",
-  "status": "fixed-in-campaign"
- },
- {
-  "id": "DEF-035",
-  "req": "REQ-014",
-  "surface": "SURF-001",
-  "title": "an incremental Swift build after adding an enum case reports impossible test failures",
-  "text": "Adding a 14th case to `Scenario` made `make test` fail with 31 issues, two of which cannot be true of the source: `Expectation failed: (… → .live) == (.live → .fixture(…cleanupSkills))` in ShellClientFactoryTests and TriageSourceGuardTests, both asserting a Release-posture guard that returns .live unconditionally. `git stash` of the two changed source files → 19 tests pass; unstash → the same failures return, which reads as a real regression. It is not. `Choice.live` is encoded in the spare inhabitants of `Scenario`'s tag, so a new Scenario case shifts that encoding, and stale MCPRouterUI object files compiled against the old layout compare a value that no longer means what they think. `rm -rf app/.build` then rebuild: 5/5 pass, then 1512/1512. The hazard for this campaign is the mirror case — a stale build can as easily produce a green — so any test evidence taken across an enum change is taken from a clean build. MITIGATED 2026-08-20: `app/Scripts/enum-layout-stamp.py` hashes the ordered case list of every enum in the package (212 of them) and removes `app/.build` when that hash moves; `make test` now depends on it. The stamp is the case lists rather than the source, so it holds still for an ordinary edit and for a `switch` over the enum — the false positive a naive grep for `^\\s*case` would hit — and moves for an added or renamed case. Armed on all four: comment SAME, switch statement SAME, added Scenario case MOVED, renamed Scenario case MOVED, restore back to baseline. The SwiftPM behaviour itself is unchanged and still upstream; what is fixed is this repo's exposure to it.",
-  "source": "app/Sources/MCPRouterKit/Control/Scenario.swift; evidence/runs/make-test-3.log (clean build, 1512 tests in 188 suites); app/Scripts/enum-layout-stamp.py; Makefile target enum-layout-stamp; evidence/runs/make-test-4.log",
-  "status": "mitigated-in-campaign"
- },
- {
-  "id": "DEF-036",
-  "req": "REQ-015",
-  "surface": "SURF-010",
-  "title": "the capture script recorded the pairing sheet unreachable for its own reason",
-  "text": "capture-mac-glass.sh pressed `Pairing…` while the app sat on whatever destination it had launched into — Servers — and the pairing control lives on Inbox and Settings. Three consecutive runs therefore logged `no pairing control was pressable in the background` and left SURF-010 with no capture, which reads exactly like the app refusing to open the sheet while backgrounded. It was the script looking on the wrong board. Fixed by selecting a board that carries the control before pressing — Inbox first, falling back to Settings. Inbox took it on the first attempt, which is why evidence/ax/SURF-010.title.txt reads `Inbox` rather than `Settings`. The general shape is the one DEF-006 also has: an instrument failure that is indistinguishable, in the log, from the product failing.",
-  "source": "planning/test-campaign/bin/capture-mac-glass.sh; evidence/shots/SURF-010.build.png; evidence/ax/SURF-010.title.txt reads `Inbox`",
-  "status": "fixed-in-campaign"
- },
- {
-  "id": "DEF-037",
-  "req": "REQ-017",
-  "surface": "SURF-012",
-  "title": "the witness pair map under-reported what had been photographed",
-  "text": "`evidence/shots/pairs.json` is what `witness-worklist.py` reads, and it had drifted from `inventory.json`. It listed 17 pairs against a 20-surface registry, so SURF-018, SURF-019 and SURF-020 were never offered for judging at all despite having both a mock reference and an attributed build capture. Four more pairs named a build half that was absent or wrong: SURF-010's capture existed and was cited by two cases while the pair said none, SURF-012/013/014 pointed at nothing while the iOS lane's captures sat in `evidence/shots/ios/`, and SURF-001 pointed at `SURF-001.build.png`, which is byte-identical to `SURF-002.build.png` (sha f221cce5) because the shell is photographed from the Servers board — the case had already been moved to the distinct sidebar crop `SURF-001.shell.png` and the pair map had not. Four iOS pairs also carried a `conditionsNote` describing a macOS `screencapture`, and a `reason` of `build half uncaptured` beside a build half that existed. Repointed by hand from `inventory.json` rather than by `attach-shots.py --apply`, which stem-matches and would re-create the DEF-006 mis-attributions. The comparable count is now 16 of 20 pairs with both halves, 3 with no design of record by construction, and SURF-009 with no build half for the reason its cases already carry.",
-  "source": "planning/test-campaign/evidence/shots/pairs.json; planning/test-campaign/inventory.json; witness-worklist.py output before and after",
-  "status": "fixed-in-campaign"
- },
- {
-  "id": "DEF-038",
-  "req": "REQ-017",
-  "surface": "SURF-007",
-  "title": "the rendered-quality gate has never been able to run, and nothing said why",
-  "text": "The campaign names design-review and be-my-witness as gates and has never run either, and the reason was never measured — it read as a skip. It is not. be-my-witness 0.2.0's deterministic prescan over all 16 pairs that hold both halves reports isEvidence 16/16, settled 16/16, framingComparable 0/16, proceed 0/16. Not a dead predicate: the scale ratios differ per lane (0.466x on the SURF-001 sidebar crop, 1.64x on the Mac boards, 0.942x on the phone) rather than returning a constant. Every reference was rasterised at a 1280x720 dpr-1 viewport, inside which prototype.html draws a fixed artboard rather than filling the frame, so rendering larger pads rather than enlarges. Re-rendering the reference does not fix it either: the design's Mac window is #win at 1156x680, aspect 1.700, and the build's is 980x620, aspect 1.581. The build half crops exactly — scale=(2096-1376)/(980-620)=2.0, margin=(2096-980*2)/2=68, content rect (68,68,1960,1240), precisely 2x the AX frame — but no crop reconciles two different window shapes. What would make them comparable is re-capturing the app at the design's window size, which means driving the app again and photographing a window shape the product does not use. Left unresolved deliberately: the structural and lexical differential in evidence/differential.md is the comparison that is valid here, and it ran.",
-  "source": "planning/test-campaign/evidence/runs/prescan.json; be-my-witness 0.2.0 scripts/prescan.py; evidence/differential.md",
-  "status": "fixed-in-campaign",
-  "detail": "\n\nCLOSED 2026-08-20. The cause was two independent framing errors, both invisible because the gate could not run to report them. The design references came from `obscura fetch --screenshot`, which captures at a fixed 1280x720 dpr1 viewport with no viewport flag, so every reference was clipped rather than merely small - the bottom row of one carried 578 non-background pixels of 640 sampled. And the build captures were 980x620 against the design's 1156x680 window, aspect 1.581 against 1.700, which no crop reconciles. Fixed by rasterising the design through CDP with `Emulation.setDeviceMetricsOverride` at 1280x900 dpr2 (readback asserted `[1280, 900, 2]` before any capture), re-photographing the eight Mac boards at the design's own 1156x680 with a setframe readback guard, and cropping both halves to the window's own content box. prescan goes from framingComparable 0/16 to 8/8, aspectRatioOfRatios 1.0 and scaleRatio 1.0 on every pair (evidence/runs/prescan-fidelity.json). Eight verdicts written: 2 pass, 5 fail, 1 unoracled."
- },
- {
-  "id": "DEF-039",
-  "status": "fixed-in-campaign",
-  "title": "two capture lanes wrote one manifest and the last one deleted the other's provenance",
-  "detail": "`evidence/shots/captures.json` is the only manifest `capture-lineage.py --gate` reads, and two lanes write it: `capture-mac-glass.sh`, and `scripts/acceptance/name-glass-attachments.py`, which merges the iOS lane's rows up from `evidence/shots/ios/captures.json`. The Mac script wrote `json.dumps(rows)` — its own rows, whole file — so whichever lane captured last erased the other's lineage without saying anything. Measured 2026-08-20 on v0.9.1's new lineage plane: the parent held 16 Mac rows and none of the 9 iOS ones, and the gate reported 6 iOS captures UNSOURCED — 'the only thing binding this picture to SURF-012 is its filename', which is the correct verdict on a manifest that had been overwritten. The pictures were always right and their provenance was always recorded; it was recorded into a file that was then replaced. Fixed by merging on `path` in both writers, and the 9 rows were restored from the lane's own capture-time record rather than reconstructed.",
-  "found-by": "test-campaign 0.9.1 capture-lineage.py --gate"
- },
- {
-  "id": "DEF-040",
-  "status": "open-instrument",
-  "title": "the blind-test pass flags three tests that do read after mutating, because the mutator's name is the observable's name",
-  "detail": "`vacuity-check.py`'s blind pass reports `examined=1820 mutating=3 re-read-after=0 blind=3` over this test tree. All three read after the mutation: `restartIsIssuedBeforeTheStagingWrite` reads `WatchWorld.serverNames`, the log, `kicks.issued` and `WatchState.load`; `restartIsOwedBeforeTheWriteLands` reads `WatchState.load` inside the lock and `WatchWorld.serverNames` on both sides of the rename; `restartRechecksTheCamera` reads `model.entry.characters`. The heuristic looks for a read AFTER the last occurrence of a mutating verb, and in this product the verb `restart` is also the name of the thing being observed — `restartPending`, `restarted scratch-label` — so the last `restart` in the file sits inside the final assertion and nothing is textually after it. Recorded rather than acted on: the tests are correct as written, and rewording an assertion to satisfy a text heuristic would make the suite worse. The pass is still worth running; 3 of 1820 is a reviewable rate, and it is the check that would have caught 26 of 32 on the campaign it was built from.",
-  "found-by": "test-campaign 0.9.1 vacuity-check.py blind pass"
- },
- {
-  "id": "DEF-041",
-  "status": "open-measured",
-  "title": "REQ-016's declared outbound-socket effect has no provider in production source",
-  "detail": "The effect census over `app/Sources` with the test targets excluded finds no symbol that opens a connection to a paired device. REQ-016 — 'a pairing exchange actually contacts the other device and stores a record only after that contact succeeds' — therefore holds vacuously: the guarantee cannot be violated by a build that never contacts anything. This is DEF-001 (pairing transport unimplemented) reached from the effect side rather than from a failing assertion, and the two agree. Kept as its own row because the remedies differ: DEF-001 wants the transport built, and this row is the record that until it is, no test result about REQ-016 means what it appears to mean.",
-  "found-by": "test-campaign 0.9.1 vacuity-check.py uncensused pass"
- },
- {
-  "id": "DEF-042",
-  "status": "open-owner",
-  "title": "the design of record still draws a model-graded evaluation feature the product deliberately does not have",
-  "detail": "Four boards diverge from `design/mocks/prototype.html` in one direction and for one reason. Skills: the design has `runs`, `last run` and `eval` columns with graded pills; the build drops all three and prints 'A skill is loaded into an agent's context by the client and never reaches the router, so the router does not see it run.' Discover: the design has install velocity and eval pills; the build prints 'No trend or velocity figure is shown. Measuring one needs a history of these indexes over time, which the router does not keep yet.' Checks: the design shows a graded eval run with per-case verdicts and a failed exchange; the build shows checks the router performed itself and states 'No model-graded evaluation exists in this product.' Servers: every design row carries a trailing evaluation pill; no build row does.\n\nThe build is the correct half. ORCHESTRATOR.md's rule is that no number is displayed that the router does not observe, and the build obeys it on all four boards while explaining itself on three. The design of record predates the rule. Filed against the design rather than the build, and left open because which artifact gets changed - re-cut the mock, or annotate it as superseded - is the owner's call, not the campaign's.",
-  "found-by": "design-size fidelity witness pass, 8 framing-comparable pairs"
- },
- {
-  "id": "DEF-043",
-  "status": "open-measured",
-  "title": "the sidebar foot's loopback readout is absent from the build on every board, and the child-process card lost its label",
-  "detail": "`design/mocks/prototype.html:681` emits `<div class=\"sfoot\"><span class=\"dot live\"></span>127.0.0.1:8879</div>` from inside the shared sidebar wrapper, so the design paints a live-dot loopback readout at the foot of the sidebar on every board. The build paints none: across 9 accessibility dumps taken at 1156x680, the only two `127.0.0.1` hits are the Settings board's own Endpoint row, at window-relative x=942 in the content area rather than the sidebar.\n\nSeparately, `prototype.html:699-700` labels the sidebar-foot card 'Child processes' over a large numeral and 'of N declared'. The build draws the count - as an unlabelled, uncarded row reading 'Running   1 of 4' - and the string 'Child processes' appears in 0 of 9 dumps. The number survives; the card and its label do not.\n\nRecorded as measured rather than as a build defect, because the loopback address is exactly the kind of number the honesty rule governs and its removal may be deliberate. What is not deliberate either way is that nothing in the campaign had checked.",
-  "found-by": "design-size fidelity witness pass + 9 accessibility dumps"
- },
- {
-  "id": "DEF-044",
-  "status": "fixed-in-campaign",
-  "title": "a capture width narrower than the design's made real controls invisible, and a witness verdict recorded them as missing",
-  "detail": "The SURF-007 verdict of this campaign read 'the built board's rows carry no trailing controls at all' and 'the build also truncates the column that exists to explain'. Photographed at the design's own 1156pt, every Cleanup row carries `Inspect` and `Remove...`. The controls were outside the 980pt capture the verdict was written against.\n\nThis is the failure mode the campaign already knows in a different costume: a picture that claims a subject it cannot support. The subject here was right and the frame was wrong, which is harder to see, because nothing about a correctly-named capture of a too-narrow window looks incorrect. The old verdict is kept and marked superseded rather than deleted. Fixed by photographing at the design's window size with a setframe readback guard that refuses to write a capture the window clamped.",
-  "found-by": "design-size fidelity witness pass, overturning this campaign's own earlier verdict"
- },
- {
-  "id": "DEF-045",
-  "status": "fixed-in-campaign",
-  "title": "the capture script dumped the accessibility tree before the step that changed the board, so every dump was labelled with the next board's name",
-  "detail": "`bin/capture-mac-design-size.sh` ran `axkit dump` in the caller's loop, and the loop called `capture()` - which performs the sidebar select - afterwards. Every dump therefore described the board that was up before the one it was named for: nine files, each carrying the previous board's tree under the next board's filename. Both the capture and the dump were real; only the pairing was wrong.\n\nInvisible until a `127.0.0.1` hit appeared in a dump filed as SURF-001 and could not be attributed to the board the filename named. Fixed by moving the dump inside `capture()`, after the select, and proved by a readback printing each dump's own `AXWindow` title against its filename - nine of nine now agree.",
-  "found-by": "attribution check while reading the dumps for the fidelity verdicts"
- },
- {
-  "id": "DEF-058",
-  "req": "REQ-026",
-  "surface": "SURF-025",
-  "title": "A too-large refusal names the file and the cap but never the capability, so its picture cannot say what it refuses",
-  "text": "Measured by G17 on 2026-08-27. `CapabilityDocumentSheet`'s titlebar draws the capability's name from the DOCUMENT, so on any `unavailable` state it falls back to the generic word 'Documentation'. Three of the panel's refusals still identify themselves — `noPackageDirectory`, `packageUnreadable` and `notFound` all interpolate the capability into their headline — but `tooLarge`'s headline is '<file> is too large to show here', which names README.md and the 512 KB cap and never the server. So a photograph of that state is tied to the capability it refuses by its manifest row alone, which is the exact dependency the campaign's capture-lineage rule exists to remove. G17 records it rather than waiving it: check G17-L2 counts the frames that cannot corroborate their own row and fails if that set is anything other than this one.",
-  "source": "planning/test-campaign/evidence/g17-document/verdicts.json (G17-L2); app/Sources/MCPRouterKit/Markdown/CapabilityDocumentSource.swift:58",
-  "status": "open · measured"
- }
+  {
+    "id": "DEF-001",
+    "req": "REQ-016",
+    "surface": "SURF-014",
+    "title": "Pairing transport is unimplemented",
+    "text": "Neither the phone nor the Mac implements a pairing transport. The phone stores a paired-Mac record for a Mac it never contacted. Measured by I5.",
+    "source": "planning/evidence/I5-transport-proof.md",
+    "status": "open"
+  },
+  {
+    "id": "DEF-002",
+    "req": "REQ-014",
+    "surface": "SURF-017",
+    "title": "Parity gate exits 1 at 80/83, two real-work rows short of the cutover",
+    "text": "The gate exits 1 at 80 of 83 rows proven, 3 blocked, 0 DIVERGED (run 2026-08-19T05:40:27Z, evidence/runs/parity-gate-2026-08-19-rollback.log). install-rollback R4-C was cleared this session and is now ok. The 3 that remain: fixture-registry-search is a STANDING EXCLUSION nobody is working on; control-auth-post-http needs D-p1-a; install-launchd-watch is held blocked deliberately, because its `reran` term reads yes on 2 of 6 decoy trials where no stimulus can reach the watched path, so agreement on it is not evidence of parity. Two real-work rows therefore stand between 80 and the owner's 82/83 cutover target. Not a product UI defect.",
+    "source": "ORCHESTRATOR.md CUTOVER TARGET (bec9d18); evidence/runs/parity-gate-2026-08-19-rollback.log",
+    "status": "open"
+  },
+  {
+    "id": "DEF-003",
+    "req": "REQ-012",
+    "surface": "SURF-016",
+    "title": "loopbackPinned counted the pin instead of reading it",
+    "text": "`#expect(parameters.requiredLocalEndpoint != nil)` stayed TRUE \u2014 and the suite stayed green \u2014 with `host: .ipv4(.any)` in `loopbackParameters`, which is the LAN bind the clause exists to stop. An assertion that cannot fail on the defect it names is a decoration. Now reads the host and port off the endpoint. Found by arming, in app/Tests/RouterCoreTests/HTTPWireTests.swift.",
+    "source": "app/Tests/RouterCoreTests/HTTPWireTests.swift",
+    "status": "fixed-in-test"
+  },
+  {
+    "id": "DEF-004",
+    "req": "REQ-006",
+    "surface": "SURF-008",
+    "title": "the no-install guarantee read only half of where the buttons are stated",
+    "text": "`InboxNotificationCategory.actions` states the button sets a second time and that copy is what the notifier registers with macOS. Mutating `.many` to offer a decline left all ten clauses green, because `noInstallAction` only reads `make`. The buttons macOS draws could drift from the buttons the value carries \u2014 the one failure that type exists to close. Now asserts the round trip through `drawing`.",
+    "source": "app/Tests/MCPRouterKitTests/InboxAnnouncementTests.swift",
+    "status": "fixed-in-test"
+  },
+  {
+    "id": "DEF-005",
+    "req": "REQ-006",
+    "surface": "SURF-013",
+    "title": "iOS copy assertions ran against an empty accessibility tree",
+    "text": "A local `UIWindow` dies when the host function returns, leaving SwiftUI's hosting view without a window: layout numbers already computed survive, so `sizeThatFits` returns a real height while the accessibility tree is EMPTY. The first two iOS runs failed every copy assertion with `in: `. The window is now retained for the test's lifetime. This is the lane's version of a check that could not run reading as a check that ran.",
+    "source": "app/MCPRouterIOSTests/PhoneSurfaceTests.swift",
+    "status": "fixed-in-test"
+  },
+  {
+    "id": "DEF-006",
+    "req": "REQ-010",
+    "surface": "SURF-012",
+    "title": "inventory pointed Discover and Triage at someone else's pixels",
+    "text": "inventory.json had shot=evidence/shots/SURF-012.ios-boot.png on SURF-012 (iOS Discover) and shot=evidence/shots/SURF-013.add.png on SURF-013 (iOS Triage). The boot PNG is Phone Settings (CASE-0020/0120). The add PNG is the Mac Add a server sheet (2096\u00d71376). Both inventory shot fields removed and the files renamed UNATTRIBUTED.ios-settings-boot.png / UNATTRIBUTED.mac-add-server.png so attach-shots.py cannot stem-match them back.",
+    "source": "planning/test-campaign/inventory.json; evidence/shots/UNATTRIBUTED.ios-settings-boot.png sha 16385e6f; evidence/shots/UNATTRIBUTED.mac-add-server.png sha 43e30338",
+    "status": "fixed-in-campaign"
+  },
+  {
+    "id": "DEF-034",
+    "req": "REQ-019",
+    "surface": "SURF-007",
+    "title": "the Cleanup board's skill half could not be drawn by any build",
+    "text": "CleanupBoardRow carries three treatments for a skill row \u2014 the `Read first\u2026` substitution when SkillChecks.originUnchanged fails, the skill-kind `Remove\u2026` drawn disabled because the router removes servers and never files on disk, and the candidacy reason \u2014 and none of them had a rendered path in any configuration of the product. A skill is proposed for cleanup only when every readable client lacks it, and all six skills in SkillFixtures.populated are installed somewhere, so the Debug Cleanup board drew three servers and zero skills. Release reaches the branch only if a real user happens to hold an orphaned skill. CASE-0136 asserted the branch exists by reading CleanupBoardRow and said in its own note why it stopped there; what nobody could say was that a build had ever drawn it. Fixed in-campaign by adding a Debug-only `cleanupSkills` scenario and two SkillFixtures.uninstalled rows, kept separate from `populated` because SURF-004's on-glass predicate asserts the count populated publishes. No view code was touched and no assertion was weakened. Now photographed by CASE-0138/CASE-0139 and guarded in the harness by CASE-0144.",
+    "source": "app/Sources/MCPRouterUI/Boards/CleanupBoardModel.swift:279-283; app/Sources/MCPRouterKit/Control/SkillFixtures.swift; evidence/shots/SURF-007.cleanup-skills.png sha 94dd9d06f87d",
+    "status": "fixed-in-campaign"
+  },
+  {
+    "id": "DEF-035",
+    "req": "REQ-014",
+    "surface": "SURF-001",
+    "title": "an incremental Swift build after adding an enum case reports impossible test failures",
+    "text": "Adding a 14th case to `Scenario` made `make test` fail with 31 issues, two of which cannot be true of the source: `Expectation failed: (\u2026 \u2192 .live) == (.live \u2192 .fixture(\u2026cleanupSkills))` in ShellClientFactoryTests and TriageSourceGuardTests, both asserting a Release-posture guard that returns .live unconditionally. `git stash` of the two changed source files \u2192 19 tests pass; unstash \u2192 the same failures return, which reads as a real regression. It is not. `Choice.live` is encoded in the spare inhabitants of `Scenario`'s tag, so a new Scenario case shifts that encoding, and stale MCPRouterUI object files compiled against the old layout compare a value that no longer means what they think. `rm -rf app/.build` then rebuild: 5/5 pass, then 1512/1512. The hazard for this campaign is the mirror case \u2014 a stale build can as easily produce a green \u2014 so any test evidence taken across an enum change is taken from a clean build. MITIGATED 2026-08-20: `app/Scripts/enum-layout-stamp.py` hashes the ordered case list of every enum in the package (212 of them) and removes `app/.build` when that hash moves; `make test` now depends on it. The stamp is the case lists rather than the source, so it holds still for an ordinary edit and for a `switch` over the enum \u2014 the false positive a naive grep for `^\\s*case` would hit \u2014 and moves for an added or renamed case. Armed on all four: comment SAME, switch statement SAME, added Scenario case MOVED, renamed Scenario case MOVED, restore back to baseline. The SwiftPM behaviour itself is unchanged and still upstream; what is fixed is this repo's exposure to it.",
+    "source": "app/Sources/MCPRouterKit/Control/Scenario.swift; evidence/runs/make-test-3.log (clean build, 1512 tests in 188 suites); app/Scripts/enum-layout-stamp.py; Makefile target enum-layout-stamp; evidence/runs/make-test-4.log",
+    "status": "mitigated-in-campaign"
+  },
+  {
+    "id": "DEF-036",
+    "req": "REQ-015",
+    "surface": "SURF-010",
+    "title": "the capture script recorded the pairing sheet unreachable for its own reason",
+    "text": "capture-mac-glass.sh pressed `Pairing\u2026` while the app sat on whatever destination it had launched into \u2014 Servers \u2014 and the pairing control lives on Inbox and Settings. Three consecutive runs therefore logged `no pairing control was pressable in the background` and left SURF-010 with no capture, which reads exactly like the app refusing to open the sheet while backgrounded. It was the script looking on the wrong board. Fixed by selecting a board that carries the control before pressing \u2014 Inbox first, falling back to Settings. Inbox took it on the first attempt, which is why evidence/ax/SURF-010.title.txt reads `Inbox` rather than `Settings`. The general shape is the one DEF-006 also has: an instrument failure that is indistinguishable, in the log, from the product failing.",
+    "source": "planning/test-campaign/bin/capture-mac-glass.sh; evidence/shots/SURF-010.build.png; evidence/ax/SURF-010.title.txt reads `Inbox`",
+    "status": "fixed-in-campaign"
+  },
+  {
+    "id": "DEF-037",
+    "req": "REQ-017",
+    "surface": "SURF-012",
+    "title": "the witness pair map under-reported what had been photographed",
+    "text": "`evidence/shots/pairs.json` is what `witness-worklist.py` reads, and it had drifted from `inventory.json`. It listed 17 pairs against a 20-surface registry, so SURF-018, SURF-019 and SURF-020 were never offered for judging at all despite having both a mock reference and an attributed build capture. Four more pairs named a build half that was absent or wrong: SURF-010's capture existed and was cited by two cases while the pair said none, SURF-012/013/014 pointed at nothing while the iOS lane's captures sat in `evidence/shots/ios/`, and SURF-001 pointed at `SURF-001.build.png`, which is byte-identical to `SURF-002.build.png` (sha f221cce5) because the shell is photographed from the Servers board \u2014 the case had already been moved to the distinct sidebar crop `SURF-001.shell.png` and the pair map had not. Four iOS pairs also carried a `conditionsNote` describing a macOS `screencapture`, and a `reason` of `build half uncaptured` beside a build half that existed. Repointed by hand from `inventory.json` rather than by `attach-shots.py --apply`, which stem-matches and would re-create the DEF-006 mis-attributions. The comparable count is now 16 of 20 pairs with both halves, 3 with no design of record by construction, and SURF-009 with no build half for the reason its cases already carry.",
+    "source": "planning/test-campaign/evidence/shots/pairs.json; planning/test-campaign/inventory.json; witness-worklist.py output before and after",
+    "status": "fixed-in-campaign"
+  },
+  {
+    "id": "DEF-038",
+    "req": "REQ-017",
+    "surface": "SURF-007",
+    "title": "the rendered-quality gate has never been able to run, and nothing said why",
+    "text": "The campaign names design-review and be-my-witness as gates and has never run either, and the reason was never measured \u2014 it read as a skip. It is not. be-my-witness 0.2.0's deterministic prescan over all 16 pairs that hold both halves reports isEvidence 16/16, settled 16/16, framingComparable 0/16, proceed 0/16. Not a dead predicate: the scale ratios differ per lane (0.466x on the SURF-001 sidebar crop, 1.64x on the Mac boards, 0.942x on the phone) rather than returning a constant. Every reference was rasterised at a 1280x720 dpr-1 viewport, inside which prototype.html draws a fixed artboard rather than filling the frame, so rendering larger pads rather than enlarges. Re-rendering the reference does not fix it either: the design's Mac window is #win at 1156x680, aspect 1.700, and the build's is 980x620, aspect 1.581. The build half crops exactly \u2014 scale=(2096-1376)/(980-620)=2.0, margin=(2096-980*2)/2=68, content rect (68,68,1960,1240), precisely 2x the AX frame \u2014 but no crop reconciles two different window shapes. What would make them comparable is re-capturing the app at the design's window size, which means driving the app again and photographing a window shape the product does not use. Left unresolved deliberately: the structural and lexical differential in evidence/differential.md is the comparison that is valid here, and it ran.",
+    "source": "planning/test-campaign/evidence/runs/prescan.json; be-my-witness 0.2.0 scripts/prescan.py; evidence/differential.md",
+    "status": "fixed-in-campaign",
+    "detail": "\n\nCLOSED 2026-08-20. The cause was two independent framing errors, both invisible because the gate could not run to report them. The design references came from `obscura fetch --screenshot`, which captures at a fixed 1280x720 dpr1 viewport with no viewport flag, so every reference was clipped rather than merely small - the bottom row of one carried 578 non-background pixels of 640 sampled. And the build captures were 980x620 against the design's 1156x680 window, aspect 1.581 against 1.700, which no crop reconciles. Fixed by rasterising the design through CDP with `Emulation.setDeviceMetricsOverride` at 1280x900 dpr2 (readback asserted `[1280, 900, 2]` before any capture), re-photographing the eight Mac boards at the design's own 1156x680 with a setframe readback guard, and cropping both halves to the window's own content box. prescan goes from framingComparable 0/16 to 8/8, aspectRatioOfRatios 1.0 and scaleRatio 1.0 on every pair (evidence/runs/prescan-fidelity.json). Eight verdicts written: 2 pass, 5 fail, 1 unoracled."
+  },
+  {
+    "id": "DEF-039",
+    "status": "fixed-in-campaign",
+    "title": "two capture lanes wrote one manifest and the last one deleted the other's provenance",
+    "detail": "`evidence/shots/captures.json` is the only manifest `capture-lineage.py --gate` reads, and two lanes write it: `capture-mac-glass.sh`, and `scripts/acceptance/name-glass-attachments.py`, which merges the iOS lane's rows up from `evidence/shots/ios/captures.json`. The Mac script wrote `json.dumps(rows)` \u2014 its own rows, whole file \u2014 so whichever lane captured last erased the other's lineage without saying anything. Measured 2026-08-20 on v0.9.1's new lineage plane: the parent held 16 Mac rows and none of the 9 iOS ones, and the gate reported 6 iOS captures UNSOURCED \u2014 'the only thing binding this picture to SURF-012 is its filename', which is the correct verdict on a manifest that had been overwritten. The pictures were always right and their provenance was always recorded; it was recorded into a file that was then replaced. Fixed by merging on `path` in both writers, and the 9 rows were restored from the lane's own capture-time record rather than reconstructed.",
+    "found-by": "test-campaign 0.9.1 capture-lineage.py --gate"
+  },
+  {
+    "id": "DEF-040",
+    "status": "open-instrument",
+    "title": "the blind-test pass flags three tests that do read after mutating, because the mutator's name is the observable's name",
+    "detail": "`vacuity-check.py`'s blind pass reports `examined=1820 mutating=3 re-read-after=0 blind=3` over this test tree. All three read after the mutation: `restartIsIssuedBeforeTheStagingWrite` reads `WatchWorld.serverNames`, the log, `kicks.issued` and `WatchState.load`; `restartIsOwedBeforeTheWriteLands` reads `WatchState.load` inside the lock and `WatchWorld.serverNames` on both sides of the rename; `restartRechecksTheCamera` reads `model.entry.characters`. The heuristic looks for a read AFTER the last occurrence of a mutating verb, and in this product the verb `restart` is also the name of the thing being observed \u2014 `restartPending`, `restarted scratch-label` \u2014 so the last `restart` in the file sits inside the final assertion and nothing is textually after it. Recorded rather than acted on: the tests are correct as written, and rewording an assertion to satisfy a text heuristic would make the suite worse. The pass is still worth running; 3 of 1820 is a reviewable rate, and it is the check that would have caught 26 of 32 on the campaign it was built from.",
+    "found-by": "test-campaign 0.9.1 vacuity-check.py blind pass"
+  },
+  {
+    "id": "DEF-041",
+    "status": "open-measured",
+    "title": "REQ-016's declared outbound-socket effect has no provider in production source",
+    "detail": "The effect census over `app/Sources` with the test targets excluded finds no symbol that opens a connection to a paired device. REQ-016 \u2014 'a pairing exchange actually contacts the other device and stores a record only after that contact succeeds' \u2014 therefore holds vacuously: the guarantee cannot be violated by a build that never contacts anything. This is DEF-001 (pairing transport unimplemented) reached from the effect side rather than from a failing assertion, and the two agree. Kept as its own row because the remedies differ: DEF-001 wants the transport built, and this row is the record that until it is, no test result about REQ-016 means what it appears to mean.",
+    "found-by": "test-campaign 0.9.1 vacuity-check.py uncensused pass"
+  },
+  {
+    "id": "DEF-042",
+    "status": "open-owner",
+    "title": "the design of record still draws a model-graded evaluation feature the product deliberately does not have",
+    "detail": "Four boards diverge from `design/mocks/prototype.html` in one direction and for one reason. Skills: the design has `runs`, `last run` and `eval` columns with graded pills; the build drops all three and prints 'A skill is loaded into an agent's context by the client and never reaches the router, so the router does not see it run.' Discover: the design has install velocity and eval pills; the build prints 'No trend or velocity figure is shown. Measuring one needs a history of these indexes over time, which the router does not keep yet.' Checks: the design shows a graded eval run with per-case verdicts and a failed exchange; the build shows checks the router performed itself and states 'No model-graded evaluation exists in this product.' Servers: every design row carries a trailing evaluation pill; no build row does.\n\nThe build is the correct half. ORCHESTRATOR.md's rule is that no number is displayed that the router does not observe, and the build obeys it on all four boards while explaining itself on three. The design of record predates the rule. Filed against the design rather than the build, and left open because which artifact gets changed - re-cut the mock, or annotate it as superseded - is the owner's call, not the campaign's.",
+    "found-by": "design-size fidelity witness pass, 8 framing-comparable pairs"
+  },
+  {
+    "id": "DEF-043",
+    "status": "open-measured",
+    "title": "the sidebar foot's loopback readout is absent from the build on every board, and the child-process card lost its label",
+    "detail": "`design/mocks/prototype.html:681` emits `<div class=\"sfoot\"><span class=\"dot live\"></span>127.0.0.1:8879</div>` from inside the shared sidebar wrapper, so the design paints a live-dot loopback readout at the foot of the sidebar on every board. The build paints none: across 9 accessibility dumps taken at 1156x680, the only two `127.0.0.1` hits are the Settings board's own Endpoint row, at window-relative x=942 in the content area rather than the sidebar.\n\nSeparately, `prototype.html:699-700` labels the sidebar-foot card 'Child processes' over a large numeral and 'of N declared'. The build draws the count - as an unlabelled, uncarded row reading 'Running   1 of 4' - and the string 'Child processes' appears in 0 of 9 dumps. The number survives; the card and its label do not.\n\nRecorded as measured rather than as a build defect, because the loopback address is exactly the kind of number the honesty rule governs and its removal may be deliberate. What is not deliberate either way is that nothing in the campaign had checked.",
+    "found-by": "design-size fidelity witness pass + 9 accessibility dumps"
+  },
+  {
+    "id": "DEF-044",
+    "status": "fixed-in-campaign",
+    "title": "a capture width narrower than the design's made real controls invisible, and a witness verdict recorded them as missing",
+    "detail": "The SURF-007 verdict of this campaign read 'the built board's rows carry no trailing controls at all' and 'the build also truncates the column that exists to explain'. Photographed at the design's own 1156pt, every Cleanup row carries `Inspect` and `Remove...`. The controls were outside the 980pt capture the verdict was written against.\n\nThis is the failure mode the campaign already knows in a different costume: a picture that claims a subject it cannot support. The subject here was right and the frame was wrong, which is harder to see, because nothing about a correctly-named capture of a too-narrow window looks incorrect. The old verdict is kept and marked superseded rather than deleted. Fixed by photographing at the design's window size with a setframe readback guard that refuses to write a capture the window clamped.",
+    "found-by": "design-size fidelity witness pass, overturning this campaign's own earlier verdict"
+  },
+  {
+    "id": "DEF-045",
+    "status": "fixed-in-campaign",
+    "title": "the capture script dumped the accessibility tree before the step that changed the board, so every dump was labelled with the next board's name",
+    "detail": "`bin/capture-mac-design-size.sh` ran `axkit dump` in the caller's loop, and the loop called `capture()` - which performs the sidebar select - afterwards. Every dump therefore described the board that was up before the one it was named for: nine files, each carrying the previous board's tree under the next board's filename. Both the capture and the dump were real; only the pairing was wrong.\n\nInvisible until a `127.0.0.1` hit appeared in a dump filed as SURF-001 and could not be attributed to the board the filename named. Fixed by moving the dump inside `capture()`, after the select, and proved by a readback printing each dump's own `AXWindow` title against its filename - nine of nine now agree.",
+    "found-by": "attribution check while reading the dumps for the fidelity verdicts"
+  },
+  {
+    "id": "DEF-060",
+    "req": "REQ-027",
+    "surface": "SURF-028",
+    "title": "A too-large refusal names the file and the cap but never the capability, so its picture cannot say what it refuses",
+    "text": "Measured by G17 on 2026-08-27. `CapabilityDocumentSheet`'s titlebar draws the capability's name from the DOCUMENT, so on any `unavailable` state it falls back to the generic word 'Documentation'. Three of the panel's refusals still identify themselves \u2014 `noPackageDirectory`, `packageUnreadable` and `notFound` all interpolate the capability into their headline \u2014 but `tooLarge`'s headline is '<file> is too large to show here', which names README.md and the 512 KB cap and never the server. So a photograph of that state is tied to the capability it refuses by its manifest row alone, which is the exact dependency the campaign's capture-lineage rule exists to remove. G17 records it rather than waiving it: check G17-L2 counts the frames that cannot corroborate their own row and fails if that set is anything other than this one.",
+    "source": "planning/test-campaign/evidence/g17-document/verdicts.json (G17-L2); app/Sources/MCPRouterKit/Markdown/CapabilityDocumentSource.swift:58",
+    "status": "open \u00b7 measured"
+  }
 ]

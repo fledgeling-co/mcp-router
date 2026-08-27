@@ -30,9 +30,7 @@
     "blocking": [
       "ID_ABSENT"
     ],
-    "total": 1,
-    "by_file": {
-      "planning/features-to-triage/X7-campaign-artifacts-underreport.md": 1
-    }
+    "total": 0,
+    "by_file": {}
   }
 }

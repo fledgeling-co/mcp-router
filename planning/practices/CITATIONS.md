@@ -117,17 +117,19 @@ Everything above is about whether a **frame** holds. A citation can carry a perf
 committed file, and still point at nothing — because the file moved, the file was deleted, or the id
 was renumbered. `planning/target-resolution-gate.py` reads that half, and `make lint` runs it.
 
-Measured over 411 hand-written records, 2026-08-27: **1639 repo-rooted path citations and 1050
-campaign-id citations.** 1591 paths resolve at the index and 957 ids name a row. Of the rest:
+Measured over 411 hand-written records, 2026-08-27: **1651 repo-rooted path citations and 1057
+campaign-id citations.** 1596 paths resolve at the index and 963 ids name a row. Of the rest:
 
 | | count | what it is |
 | --- | --- | --- |
-| `FRAMED` | 9 | gone from the tree, and the citation names a tree where it is. **Not a defect.** |
-| `WITHDRAWN` | 8 | gone, and the record says so in a delimited marker |
+| `FRAMED` | 10 | gone from the tree, and the citation names a tree where it is. **Not a defect.** |
+| `WITHDRAWN` | 10 | gone, and the record says so in a marker in the same sentence |
 | `PLANNED` | 8 | a plan naming a file under `Create` / `Delete` — intent, not a claim of presence |
+| `SUBJECT` | 5 | fenced, or carrying an elided `.../` segment. A value, not a pointer |
 | `DELETED` | 9 | gone from the tree, no frame, no marker. **Blocks.** |
 | `PHANTOM` | 13 | in no commit reachable from any ref. **Blocks, and no frame can repair it.** |
-| `ID_ABSENT` | 1 | an id with no row in any registry and no declared retirement. **Blocks.** |
+| `ID_WITHDRAWN` | 2 | an id named precisely because it has no row |
+| `ID_ABSENT` | 0 | an id with no row, no retirement and no marker. **Blocks.** |
 
 `PHANTOM` is the one worth knowing about. There is no tree at which that citation was ever true, so
 it is not a pointer that rotted — it is a claim that was never checkable. Three of the thirteen name
@@ -161,8 +163,15 @@ bold run opening with it:
 ```
 
 An adjacent denial clause counts too — *"which **does not exist**"*, *"which is nowhere in the
-repo"* — but only adjacent. A paragraph that happens to contain the words withdraws nothing, and
-the control plants exactly that case to keep it that way.
+repo"* — and so does a marker that comes *before* the path, which is how a record listing dead
+pointers has to write them: *"…name an artifact no commit holds: `a.json` and `b.md`"*. Without
+that direction a census of dead citations could not be written down at all, which this item found
+by having its own census blocked by its own gate.
+
+The binding is the **sentence**, never a character count. A marker on the other side of a full stop
+is a marker about some other pointer, and the negative control plants exactly that. The boundary is
+a full stop followed by whitespace — a bare `.` splits inside `servers.ideal.json`, which cost a
+marker one path token away from its citation while this was landing.
 
 ### Ids, and how a renumber survives
 

@@ -74,6 +74,13 @@ Ids:
 
   ID_RESOLVES  a row with that id exists in some registry.
   ID_RETIRED   declared in `planning/registry-retirements.json` with a reason.
+  ID_WITHDRAWN the record names the id and says in the same breath that it has no row — the same
+               marker vocabulary the path arm uses. Without this class a record CANNOT REPORT an
+               absent id, because naming one to report it is itself blocked, and the gate would be
+               demanding that findings be unwritable. Found by writing this item's own census: it
+               names `CASE-0151` precisely because `X7`'s brief names it and the registry holds no
+               such row, and the gate blocked the sentence saying so. `evidence-citation-gate` hit
+               the same wall from the other side and answered it by not adjudicating prose at all.
   ID_FOREIGN   the id belongs to a namespace declared foreign — another project's registry, the
                vendored skill's own examples, the superseded paper campaign. Counted, never blocked.
   ID_ABSENT    none of the above. **BLOCKS.**
@@ -222,6 +229,49 @@ EXTS = ("md", "py", "swift", "ts", "tsx", "js", "mjs", "json", "sh", "zsh", "yml
 
 CAMPAIGN_ID = re.compile(r"\b(CASE|REQ|SURF|DEF|FLOW|COMP)-(\d{3,4})\b")
 
+# The id arm's own denial vocabulary, additive to DENIAL for the phrasings a record about a missing
+# id actually uses. Adjacent only, and it must say the id has no ROW — an id described as absent
+# from a *report* is a different claim and is not withdrawn by this.
+# The id arm's own absence vocabulary. Bound to the id by SENTENCE rather than by distance: the
+# marker must sit within `ID_CLAUSE` characters and no full stop may fall between. A plain `search`
+# inside a 90-character window was the first cut and the control caught it withdrawing an id whose
+# marker was two clauses and one full stop away — a marker about some other row.
+ID_ABSENCE = re.compile(
+    r"(?:"
+    r"\b(?:the\s+)?registry\s+holds?\s+(?:none|no\s+such\s+row)"
+    r"|\bnames?\s+no\s+row\b|\bno\s+row\s+in\s+any\s+registry\b"
+    r"|\bhas\s+no\s+registry\s+row\b|\bis\s+absent\s+from\s+(?:the\s+)?registr"
+    r"|\bthe\s+eight\s+absent\s+are\b|\bbecause\s+it\s+is\s+absent\b"
+    r"|\bthe\s+registry\s+holds\s+no\b|\bthe\s+eight\s+absent\b"
+    r")", re.I)
+ID_CLAUSE = 70
+
+# A full stop is a sentence boundary only when whitespace follows it. Splitting on a bare `.`
+# breaks inside `servers.ideal.json` and `0.9.4`, which silently truncates the clause to whatever
+# follows the last dot of a filename — measured while landing this: a marker sitting one path token
+# ahead of its citation was lost to the dots inside that token.
+SENTENCE = re.compile(r"(?<=[.!?])\s")
+
+
+def last_clause(text):
+    return SENTENCE.split(text)[-1]
+
+
+def first_clause(text):
+    return SENTENCE.split(text)[0]
+
+
+def id_absence_marked(head, tail):
+    """Whether the record says, in the same sentence, that this id names no row.
+
+    Same job as the path arm's `DENIAL`, and the same reason: without it a record cannot REPORT an
+    absent id, because naming one to report it is itself blocked. The sentence is the boundary —
+    scanning a fixed character window instead lets a marker about a different row two clauses away
+    withdraw this one, which is what the negative control plants."""
+    fwd = first_clause(tail[:ID_CLAUSE])
+    back = last_clause(head[-ID_CLAUSE:])
+    return bool(ID_ABSENCE.search(fwd) or ID_ABSENCE.search(back))
+
 # Ids that belong to another registry entirely. Named, with the evidence, so the exclusion is a
 # statement rather than a silence.
 FOREIGN_ID_FILES = (
@@ -261,8 +311,10 @@ SELF = ("planning/target-resolution-gate.py", "planning/target-resolution-ratche
 PATH_CLASSES = ("SUBJECT", "RESOLVES", "FRAMED", "WITHDRAWN", "PLANNED",
                 "MOVED", "DELETED", "PHANTOM")
 PATH_BLOCKING = ("MOVED", "DELETED", "PHANTOM")
-ID_CLASSES = ("ID_RESOLVES", "ID_RETIRED", "ID_FOREIGN", "ID_ABSENT")
+ID_CLASSES = ("ID_RESOLVES", "ID_RETIRED", "ID_WITHDRAWN", "ID_FOREIGN", "ID_ABSENT")
 ID_BLOCKING = ("ID_ABSENT",)
+ID_SEVERITY = {"ID_RESOLVES": 0, "ID_FOREIGN": 0, "ID_RETIRED": 1, "ID_WITHDRAWN": 2,
+               "ID_ABSENT": 3}
 
 
 def matches_any(path, globs):
@@ -338,12 +390,30 @@ class Repo:
         return data
 
     def ever_existed(self, path):
-        """Whether any commit reachable from any ref held this path. The discriminator between a
-        pointer that has rotted and one that was never true anywhere."""
+        """The last commit that TOUCHED this path, over every ref, or None. The discriminator
+        between a pointer that has rotted and one that was never true anywhere."""
         if path not in self._hist:
             r = self._git("log", "--all", "--format=%H", "-1", "--", path)
             self._hist[path] = r.stdout.decode().strip() or None
         return self._hist[path]
+
+    def last_holding(self, path):
+        """A tree where the path IS, so the evidence names a frame a writer can copy.
+
+        `ever_existed` returns the commit that last touched the path, and for a deleted file that
+        is the commit that DELETED it — where the path is absent. Printing that sha as the frame
+        sends a writer to a tree the file is not in, which is this item's own defect committed by
+        the gate written to catch it. Found by planting the printed sha as a frame and watching the
+        citation stay red."""
+        last = self.ever_existed(path)
+        if not last:
+            return None
+        if self.at(last, path):
+            return last
+        for parent in self._git("rev-parse", "%s^@" % last).stdout.decode().split():
+            if self.at(parent, path):
+                return parent
+        return None
 
     def ancestor(self, sha):
         if sha not in self._anc:
@@ -403,6 +473,32 @@ def windows(norm, start, end):
     return norm[max(0, start - 240):start], norm[end:end + 240]
 
 
+def withdrawn_before(head):
+    """A withdrawal stated AHEAD of the path it withdraws.
+
+    `foreign-path-gate` reads the tail only, which is right for the shape it guards — a `/tmp` path
+    followed by `(gone)`. This corpus also writes the other order, and a record REPORTING dead
+    pointers writes it that way by necessity: *"…name an artifact no commit holds: `a.json` and
+    `b.md`"*. Without this a census of dead citations cannot be written down, which is the same wall
+    the id arm hit and is answered the same way.
+
+    Bound by SENTENCE, not by distance — the marker must be in the clause the path sits in, so a
+    withdrawal of some earlier pointer does not reach forward over a full stop and cover this one.
+    The negative control plants exactly that."""
+    clause = last_clause(head[-FPG.WINDOW:])
+    return bool(WITHDRAW.search(clause) or ID_ABSENCE.search(clause)
+                or PATH_ABSENCE.search(clause))
+
+
+# The phrasings a record uses when it is *listing* pointers that do not resolve. Searched only
+# inside the clause the citation sits in.
+PATH_ABSENCE = re.compile(
+    r"\bno\s+commit\s+(?:reachable\s+from\s+\S+\s+)?holds?\b"
+    r"|\bin\s+no\s+commit\b|\bwhich\s+no\s+commit\b"
+    r"|\bnot\s+in\s+the\s+tree\b|\bhold\s+more\s+dead\b"
+    r"|\bdead\s+(?:path\s+)?(?:target|pointer)s?\b", re.I)
+
+
 def classify_path(citing, path, head, tail, repo, tree, fenced):
     """One class, plus the evidence it rests on. Precedence is the docstring's order."""
     if fenced:
@@ -424,7 +520,8 @@ def classify_path(citing, path, head, tail, repo, tree, fenced):
                                   % (sha[:7], "" if repo.ancestor(sha) else
                                      " (NOT an ancestor of HEAD — reachable only from a side "
                                      "branch, so a prune would take it)"))
-    if WITHDRAW.search(tail[:FPG.WINDOW]) or DENIAL.match(tail[:CLAUSE]):
+    if WITHDRAW.search(tail[:FPG.WINDOW]) or DENIAL.match(tail[:CLAUSE]) \
+            or withdrawn_before(head):
         return "WITHDRAWN", "the record says so"
     if matches_any(citing, PLAN_FILE) and (WORK_VERB.search(tail[:120])
                                            or WORK_VERB.search(head[-120:])):
@@ -433,7 +530,10 @@ def classify_path(citing, path, head, tail, repo, tree, fenced):
         succ = repo.successor(path)
         if succ:
             return "MOVED", "git names the successor: %s" % succ
-        return "DELETED", "last held at %s" % repo.ever_existed(path)[:7]
+        holding = repo.last_holding(path)
+        return "DELETED", ("carry a tree: it is in the tree at %s" % holding[:7] if holding
+                           else "removed at %s and in no tree this reader could find it in"
+                                % repo.ever_existed(path)[:7])
     return "PHANTOM", "in no commit reachable from any ref"
 
 
@@ -482,7 +582,7 @@ def retirements(root):
             if isinstance(r, dict) and r.get("id") and r.get("reason")}
 
 
-def classify_id(cid, citing, known, retired):
+def classify_id(cid, citing, known, retired, head="", tail=""):
     if matches_any(citing, FOREIGN_ID_FILES):
         return "ID_FOREIGN", "a foreign corpus: %s" % citing.split("/")[0]
     if cid in known:
@@ -491,6 +591,12 @@ def classify_id(cid, citing, known, retired):
         return "ID_RETIRED", retired[cid]
     if cid in FOREIGN_IDS:
         return "ID_FOREIGN", FOREIGN_IDS[cid]
+    # Same window and same vocabulary as the path arm, so a writer satisfies one rule. Adjacency is
+    # what keeps this from swallowing the class: a paragraph that happens to contain "is absent"
+    # withdraws nothing, and the control plants exactly that.
+    if WITHDRAW.search(tail[:FPG.WINDOW]) or DENIAL.match(tail[:CLAUSE]) \
+            or id_absence_marked(head, tail):
+        return "ID_WITHDRAWN", "the record says this id names no row"
     return "ID_ABSENT", "no row in any registry, no retirement declared"
 
 
@@ -627,6 +733,30 @@ def control(verbose=True):
             if cls != want:
                 failures.append("%s: got %s, want %s" % (label, cls, want))
 
+        # A record must be able to REPORT an absent id. Without this the gate blocks the sentence
+        # that names the finding, which is a gate demanding its own findings be unwritable — and it
+        # is not hypothetical: this item's census names `CASE-0151` for exactly that reason and was
+        # blocked by its own gate on the first run.
+        cls, _ = classify_id("DEF-777", "planning/progress/x.md", known, retired,
+                             "", ", and the registry holds none of them")
+        ok = cls == "ID_WITHDRAWN"
+        rows.append(("an absent id NAMED as absent", "ID_WITHDRAWN", cls, ok,
+                     "a record must be able to report its own finding"))
+        if not ok:
+            failures.append("id withdrawal: got %s, want ID_WITHDRAWN" % cls)
+
+        # And the negative, or the class above swallows the arm it sits beside.
+        cls, _ = classify_id("DEF-777", "planning/progress/x.md", known, retired,
+                             "", " is the case we relied on. Twelve paragraphs later, some other "
+                                  "row names no row in any registry and that is a different claim "
+                                  "about a different id entirely, at a distance no reader would "
+                                  "bind to this one.")
+        ok = cls == "ID_ABSENT"
+        rows.append(("NEGATIVE: the words, far from the id", "ID_ABSENT", cls, ok,
+                     "an absence marker must be adjacent to withdraw"))
+        if not ok:
+            failures.append("id withdrawal negative: got %s, want ID_ABSENT" % cls)
+
         # The renumber arm, both ways, in one comparison. A gate that answered the same on both
         # would either block every legitimate renumber or catch no illegitimate one.
         legit = classify_id("DEF-059", "planning/progress/x.md", known, retired)[0]
@@ -694,17 +824,27 @@ def sweep(root, rev=None):
             prows.append({"file": f, "at": at, "path": path, "class": cls, "evidence": ev})
 
     i1 = 0
-    iseen = set()
+    iseen = {}
     irows = []
     for f, raw in sorted(list(records.items()) + list(foreign_records.items())):
-        for m in CAMPAIGN_ID.finditer(raw):
+        norm, _ = normalise(raw)
+        for m in CAMPAIGN_ID.finditer(norm):
             i1 += 1
             cid = m.group(0)
-            if (f, cid) in iseen:
+            head, tail = windows(norm, m.start(), m.end())
+            cls, ev = classify_id(cid, f, known, retired, head, tail)
+            key = (f, cid)
+            if key in iseen:
+                # The WORST reading of a repeated id wins, never the first. A record that withdraws
+                # an id in one sentence and cites it bare in another has still cited it bare —
+                # `foreign-path-gate`'s severity-preserving dedupe, one arm along.
+                prev = iseen[key]
+                if ID_SEVERITY[cls] > ID_SEVERITY[prev["class"]]:
+                    prev["class"], prev["evidence"] = cls, ev
                 continue
-            iseen.add((f, cid))
-            cls, ev = classify_id(cid, f, known, retired)
-            irows.append({"file": f, "id": cid, "class": cls, "evidence": ev})
+            row = {"file": f, "id": cid, "class": cls, "evidence": ev}
+            iseen[key] = row
+            irows.append(row)
 
     return {"repo": repo, "records": records, "foreign": foreign_records,
             "p1": p1, "p2": p2, "prows": prows, "i1": i1, "irows": irows,

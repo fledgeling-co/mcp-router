@@ -211,6 +211,21 @@
       "proves": "a planted sweep must be discovered and a planted non-sweep must not, and a control command that exits 1 must be reported failing - so the runner is known to be able to go red"
     },
     {
+      "path": "planning/target-resolution-gate.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-27",
+      "control": [
+        "python3",
+        "planning/target-resolution-gate.py",
+        "--control"
+      ],
+      "proves": "seventeen arms in a throwaway git repository \u2014 one plant per path class and per id class, each answer required exactly. Two carry the weight. The same dead path cited WITH and WITHOUT a tree must answer FRAMED and MOVED and the run fails if they agree, because a frame that changes no answer has demonstrated nothing about the coordinate the whole form rests on. And a renumber that keeps the old registry row must be silent where one that drops it fires, which is what makes this gate survivable in a repository that renumbered three ids in one day. Three arms are negatives: a plan file with no work verb still blocks, a denial clause far from its citation withdraws nothing, and an elided path segment is a value rather than a pointer."
+    },
+    {
       "path": "planning/test-campaign/bin/arm-headless.py",
       "disposition": "grandfathered",
       "markers": [

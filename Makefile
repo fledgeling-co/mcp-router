@@ -164,11 +164,12 @@ SURFACE    ?= servers
 ## classifying it — 65 of them at the run this landed against — and those 65 are the top of this
 ## gate's population.
 ##
-## Measured over 411 hand-written records at the landing commit: 1639 repo-rooted path citations,
-## of which 1591 resolve, 9 are dead-but-framed (a tree carried, so still checkable), 8 withdrawn,
-## 8 plan work-items — and 22 name a target no commit reachable from any ref holds. 1050 id
-## citations, 1 of which names no row in any registry. The census is the finding; the numbers are
-## printed on every run so none can be quoted without its question.
+## Measured over 411 hand-written records at the landing commit: 1651 repo-rooted path citations,
+## of which 1596 resolve, 10 are dead-but-framed (a tree carried, so still checkable), 10 withdrawn,
+## 8 plan work-items, 5 values rather than pointers — and 22 name a target no commit reachable from
+## any ref holds. 1057 id citations, all of which resolve, are foreign, or are named precisely
+## because they have no row. The census is the finding; the numbers are printed on every run so
+## none can be quoted without its question.
 ##
 ## It reads the INDEX rather than `HEAD`, which is `evidence-citation-gate`'s frame and not
 ## `foreign-path-gate`'s. Deliberate: this gate exists to stop a dead pointer being WRITTEN, and a

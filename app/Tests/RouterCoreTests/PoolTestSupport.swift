@@ -332,6 +332,7 @@ func httpUpstream(_ name: String, transport: ServerTransport = .http) -> Upstrea
 /// window would then open and shut before the code under test ever ran.
 final class BlockingSink: LogSink, Sendable {
     private let armed = Mutex<Bool>(true)
+    private let entered = Mutex<Bool>(false)
     private let marker: String
     private let seconds: Double
 
@@ -340,8 +341,18 @@ final class BlockingSink: LogSink, Sendable {
         self.seconds = seconds
     }
 
+    /// Whether the marked line has reached the sink — set before the block begins, so a test can
+    /// act *inside* the window rather than waiting it out.
+    ///
+    /// A test that waits for the effect the guard produces cannot tell a guard that runs before the
+    /// suspension from one that runs after it: both eventually produce the effect, and the wait
+    /// simply outlasts the block. Waiting on the window opening instead is what makes the ordering
+    /// observable, and it is the only reason `endedSessionIsEvictedBeforeAnySuspension` can go red.
+    var hasEntered: Bool { entered.withLock { $0 } }
+
     func write(_ bytes: Data) throws {
         guard let line = String(bytes: bytes, encoding: .utf8), line.contains(marker) else { return }
+        entered.withLock { $0 = true }
         let shouldBlock = armed.withLock { pending -> Bool in
             defer { pending = false }
             return pending

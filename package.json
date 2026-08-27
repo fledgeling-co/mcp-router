@@ -6,6 +6,7 @@
   "description": "One shared HTTP MCP endpoint that lazily spawns stdio upstreams on first use and reaps them when idle.",
   "bin": { "mcp-router": "dist/index.js" },
   "scripts": {
+    "prebuild": "bash scripts/worktree-preflight.sh node",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "dev": "tsc -p tsconfig.json --watch"

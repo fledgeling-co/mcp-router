@@ -8,6 +8,28 @@ SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 .DEFAULT_GOAL := all
 
+## G32 — one spelling of this directory, for every tool this file starts.
+##
+## `.worktrees` is a symlink onto another volume, so a worktree has two names for itself, and
+## THIS FILE ALREADY HANDS OUT BOTH. Measured 2026-08-27 in one `make` run, no arguments:
+##
+##     CURDIR       = <volume>/Dev/mcp-router/.worktrees/G32   (make: getcwd, physical)
+##     recipe $$PWD = <home>/Dev/mcp-router/.worktrees/G32     (inherited, logical)
+##
+## That matters because `swift-frontend` resolves a relative `-module-cache-path` against `$$PWD`
+## rather than `getcwd()`. Measured the same day on a two-line `import Foundation` file with the
+## cwd held constant and only `PWD` changed: the first spelling exits 0, the second exits 139
+## (SIGSEGV) after `error: module '_DarwinFoundation1' is defined in both '…' and '…'` — where the
+## two quoted paths are the SAME FILE, same hash directory, same name, differing only in spelling.
+## A compiler segfault is the last thing anybody reads as a path problem, and it cost real time in
+## Wave B twice.
+##
+## Pinning `PWD` to `CURDIR` gives every recipe, and every compiler under it, the physical
+## spelling whichever way the runner cd'd in. In the main checkout the two are equal and this is a
+## no-op. A cache filled under the OTHER spelling before this line existed is not fixed by it —
+## `scripts/worktree-preflight.sh` refuses that build and says why.
+export PWD := $(CURDIR)
+
 APP_DIR    := app
 PROJECT    := $(APP_DIR)/MCPRouter.xcodeproj
 DERIVED    := $(APP_DIR)/.derived
@@ -163,6 +185,7 @@ all: tools lint build test test-ios test-ios-glass parity parity-selftest mutati
 ## twice on 20 Aug 2026, on two different worktrees, and cost two full gate runs. Checking here
 ## costs a millisecond and fails in the first second.
 tools:
+	@./scripts/worktree-preflight.sh
 	@for t in xcodegen swiftlint swiftformat; do \
 	  command -v $$t >/dev/null 2>&1 || { \
 	    echo "error: $$t is not installed. brew install $$t"; exit 1; }; \
@@ -781,6 +804,7 @@ lint: tools
 	./scripts/lint/no-wire-codable.sh || fail=1; \
 	./scripts/lint/no-harness-config-writes.sh || fail=1; \
 	./scripts/lint/no-harness-config-writes-selftest.sh || fail=1; \
+	./scripts/worktree-preflight-selftest.sh || fail=1; \
 	python3 planning/reader-accounting.py || fail=1; \
 	python3 planning/null-run-gate.py || fail=1; \
 	python3 planning/py39-annotation-gate.py || fail=1; \

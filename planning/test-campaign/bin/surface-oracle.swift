@@ -54,7 +54,7 @@ enum SurfaceOracle {
                 "destination:\(destination.rawValue)",
                 destination.title,
                 "shipped",
-                destination.group.rawValue,
+                destination.group.rawValue
             ].joined(separator: "\t"))
         }
 
@@ -68,7 +68,7 @@ enum SurfaceOracle {
                 "sheet:\(kind.rawValue)",
                 kind.rawValue,
                 state,
-                kind.rawValue.hasPrefix("-") ? "build-only" : "in-mock",
+                kind.rawValue.hasPrefix("-") ? "build-only" : "in-mock"
             ].joined(separator: "\t"))
         }
     }

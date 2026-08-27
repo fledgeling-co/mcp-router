@@ -986,6 +986,17 @@
         "scripts/worktree-preflight-selftest.sh"
       ],
       "proves": "11 arms on planted worktrees, both directions: the two-spellings symlink trap this machine actually has must be reported, a plain worktree must pass in silence, and a real node_modules must be left exactly as it was — so a guard that always refused and a guard that never refused both fail it. Already run by `make lint`; this row binds it to the sweep it arms."
+    },
+    {
+      "path": "scripts/worktree-preflight.sh",
+      "disposition": "control",
+      "markers": [
+        "V1",
+        "V2"
+      ],
+      "since": "2026-08-28",
+      "control": "./scripts/worktree-preflight-selftest.sh",
+      "proves": "Discovered as a sweep only after this session added a comment explaining why it adopts a measured cache instead of refusing an unstamped one — the prose, not the code, crossed the discovery threshold. That is worth recording rather than wording around: this gate reads comments, so a file can enter discovery on an edit that changes no behaviour. Its control is worktree-preflight-selftest.sh, 11 arms, already in `make lint`, which plants a poisoned cache, a foreign-spelling cache, a broken node_modules link and a main checkout with no link at all, and requires the refusal, the adoption and the two silences to differ."
     }
   ]
 }

@@ -44,7 +44,7 @@ MAC_DEST   ?= platform=macOS
 ## M15-M22 add theirs by writing planning/fidelity/<surface>.layers.json beside this one.
 SURFACE    ?= servers
 
-.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default surface-reconcile surface-reconcile-arm
+.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation mutation-selftest acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default surface-reconcile surface-reconcile-arm
 
 ## G4's two harness gates run inside `lint` rather than as a stage of their own. Both are
 ## hermetic and finish in under ten seconds, and `lint` is where the other four script gates
@@ -110,7 +110,7 @@ SURFACE    ?= servers
 ## runs since. It costs roughly two minutes and adds no new requirement — `test-ios` already needs
 ## a booted simulator — and it is the only stage here that proves the app runs rather than that its
 ## views construct.
-all: tools lint build test test-ios test-ios-glass parity parity-selftest mock-fidelity-selftest acceptance-lanes-selftest install-default surface-reconcile
+all: tools lint build test test-ios test-ios-glass parity parity-selftest mutation-selftest mock-fidelity-selftest acceptance-lanes-selftest install-default surface-reconcile
 
 ## Fail loudly and specifically when a required tool is missing, rather than skipping the gate.
 ## A silently-skipped lint step is worse than no lint step: it reports success.
@@ -490,6 +490,21 @@ parity-regen:
 ## Kept out of `all` because each mutation is a rebuild plus a test run. Run it before a merge.
 mutation:
 	./scripts/parity/mutation-gate.sh
+
+## Can the mutation harness's FILTER go red? — G12.
+##
+## `mutation` is what other checks are measured against, so a filter typo silently converting it
+## into the weakest evidence available is worse than an ordinary false pass. Until G12, a filter
+## naming a mutation that does not exist selected nothing, ran nothing, and printed `0 — none` on
+## both oracles with exit 0 — the same success a run that killed all thirty-five produces. It was
+## read as evidence twice in one session before a third filter happened to match.
+##
+## In `all`, unlike `mutation` itself, and the reason is the whole point: the harness resolves its
+## filter before the dirty-tree guard and before the baseline, so these eleven cases cost
+## milliseconds and need no build. A selftest that needed a rebuild would be run before a merge —
+## which is exactly when nobody runs it.
+mutation-selftest:
+	./scripts/parity/mutation-gate-selftest.sh
 
 ## Can the parity harness itself go red? — P4.
 ##

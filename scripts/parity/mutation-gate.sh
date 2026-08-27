@@ -22,8 +22,10 @@
 # Slow by construction: each mutation is a rebuild plus a test run. Kept out of `make all` for that
 # reason and run before a merge, not on every save.
 #
-# Usage:  scripts/parity/mutation-gate.sh [id ...]
-#         with no arguments, every mutation runs.
+# Usage:  scripts/parity/mutation-gate.sh [--list] [id ...]
+#         with no arguments, every mutation runs. An id that names no mutation in the table is a
+#         failure (exit 2) rather than an empty, silently-successful run — see the selection block.
+#         --list prints the selection and exits, so the filter can be checked without a build.
 
 set -Eeuo pipefail
 
@@ -81,11 +83,95 @@ TABLE
 
 # ---------------------------------------------------------------------------------------------
 
-want=("$@")
+# --- selection --------------------------------------------------------------------------------
+#
+# The filter is resolved HERE, before the dirty-tree guard and before the baseline, and an id that
+# names no mutation is a hard failure rather than an empty run.
+#
+# This script used to treat the filter as a pure predicate: `wanted` returned 1 for everything a
+# typo named, the loop skipped every row, and the summary printed `0 — none` on both oracles and
+# exited 0. That is the exact failure this harness exists to catch, occurring in the harness — a
+# run that selected nothing was indistinguishable from a run that selected everything and killed
+# it, and "the mutation gate passed" is the strongest sentence in this repository's evidence
+# vocabulary. It was taken as evidence twice in one session before a third filter happened to
+# match.
+#
+# A warning was considered and rejected: a warning printed among ordinary output is precisely what
+# let the first two pass unnoticed. Exit 2 is used rather than 1 so that a filter that named
+# nothing is distinguishable, by exit code alone, from mutations that ran and reported a finding.
+
+usage() {
+  echo "Usage: $(basename "$0") [--list] [id ...]"
+  echo "  no ids   run every mutation in the table"
+  echo "  id ...   run exactly those; an id naming no mutation is an error, never an empty run"
+  echo "  --list   print the selection and exit, running nothing (no build, no clean tree needed)"
+}
+
+all_ids=()
+while IFS= read -r line; do
+  [ -z "${line:-}" ] && continue
+  all_ids+=("${line%%@@*}")
+done <<< "$MUTATIONS"
+readonly TOTAL=${#all_ids[@]}
+
+list_only=0
+want=()
+# `for arg in "$@"` is spelled with the count guard because this file must parse and run under
+# /bin/bash 3.2.57, which is what the gates use, not the interactive shell's bash 5.
+if [ $# -gt 0 ]; then
+  for arg in "$@"; do
+    case "$arg" in
+      --list)    list_only=1 ;;
+      -h|--help) usage; exit 0 ;;
+      -*)        echo "error: unknown option '$arg'"; usage; exit 2 ;;
+      *)         want+=("$arg") ;;
+    esac
+  done
+fi
+
+selected=()
+unknown=()
+if [ ${#want[@]} -eq 0 ]; then
+  selected=("${all_ids[@]}")
+else
+  for arg in "${want[@]}"; do
+    hit=0
+    for id in "${all_ids[@]}"; do [ "$id" = "$arg" ] && { hit=1; break; }; done
+    if [ $hit -eq 1 ]; then
+      dup=0
+      if [ ${#selected[@]} -gt 0 ]; then
+        for id in "${selected[@]}"; do [ "$id" = "$arg" ] && { dup=1; break; }; done
+      fi
+      [ $dup -eq 0 ] && selected+=("$arg")
+    else
+      unknown+=("$arg")
+    fi
+  done
+fi
+
+if [ ${#unknown[@]} -gt 0 ]; then
+  echo "error: filter matched no mutation: ${unknown[*]}"
+  echo "       Nothing was run and nothing was proved. This is a FILTER failure, not a green gate:"
+  echo "       a run that selects nothing must never report the same success as a run that"
+  echo "       selected everything and killed it."
+  echo "       The ${TOTAL} ids in the table are:"
+  echo "         ${all_ids[*]}"
+  exit 2
+fi
+
+if [ ${#selected[@]} -eq 0 ]; then
+  echo "error: the filter selected 0 of ${TOTAL} mutations, so this run would prove nothing."
+  exit 2
+fi
+
+if [ $list_only -eq 1 ]; then
+  echo "Selected ${#selected[@]} of ${TOTAL} mutations: ${selected[*]}"
+  exit 0
+fi
+
 wanted() {
-  [ ${#want[@]} -eq 0 ] && return 0
   local id
-  for id in "${want[@]}"; do [ "$id" = "$1" ] && return 0; done
+  for id in "${selected[@]}"; do [ "$id" = "$1" ] && return 0; done
   return 1
 }
 
@@ -165,11 +251,30 @@ while IFS= read -r line; do
   restore
 done <<< "$MUTATIONS"
 
+ran=$(( ${#corpus[@]} + ${#suite[@]} + ${#decorations[@]} + ${#misapplied[@]} ))
+
 echo
-echo "Caught by the vector corpus:            ${#corpus[@]} — ${corpus[*]:-none}"
-echo "Caught by the suite but not the corpus: ${#suite[@]} — ${suite[*]:-none}"
+echo "Mutations run: ${ran} of ${#selected[@]} selected, ${TOTAL} in the table."
+echo "Caught by the vector corpus:            ${#corpus[@]}/${ran} — ${corpus[*]:-none}"
+echo "Caught by the suite but not the corpus: ${#suite[@]}/${ran} — ${suite[*]:-none}"
 
 status=0
+
+# The counts above are only readable against a denominator, and the denominator is only trustworthy
+# if it matches what was asked for. A selection of N that produced fewer than N verdicts means a row
+# was skipped by something other than the filter, and every count printed above is over the wrong
+# base.
+if [ "$ran" -ne "${#selected[@]}" ]; then
+  echo
+  echo "error: ${#selected[@]} mutation(s) were selected but ${ran} produced a verdict."
+  echo "       The counts above are over the wrong denominator. Nothing here is evidence."
+  status=1
+fi
+if [ "$ran" -eq 0 ]; then
+  echo
+  echo "error: no mutation produced a verdict, so nothing was proved."
+  status=1
+fi
 if [ ${#misapplied[@]} -gt 0 ]; then
   echo
   echo "error: ${#misapplied[@]} mutation(s) did not apply: ${misapplied[*]}"

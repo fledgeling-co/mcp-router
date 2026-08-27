@@ -28,3 +28,10 @@ exactly the attention it was built to save — and, worse, teaches a reader to d
 - Assuming this is fixed in the shared tooling and then re-pulled, following the decision already taken
   for two earlier findings of the same shape, rather than patched locally.
 - Assuming the local copy keeps reporting this until the re-pull, so runs in the meantime must say so.
+
+---
+
+**NOT THIS REPO'S TO FIX, recorded 2026-08-27.** The probe is `fledgeling-plugins`', like `X7`
+and `X8`, and this repository carries the vendored copy rather than the source. Measured today:
+`planning/citation-gate.py` reports `control 0 · blocking 0`, so the false positive is not
+currently costing this tree a blocking class. Routed upstream rather than allocated an id here.

@@ -27,3 +27,11 @@ cannot tell this standing condition from a new problem.
   default is what stops a guess being recorded as a finding.
 - Assuming words distinguishing where a defect was fixed carry real meaning worth preserving, rather than
   being collapsed into a single closed state.
+
+---
+
+**RESOLVED 2026-08-27, and recorded here rather than deleted.** The gate exited 4 on every run
+when this was filed, on defect statuses its vocabulary could not classify. Measured today on
+`main` at `d8b4959`: `reckon.py check planning/reckoning/2026-08-27/ledger.json` exits **0** over
+337 rows. The 32 statuses were remapped to lead with a verb the tool classifies, in the same
+session that filed this. No id allocated — it closed before it was scheduled.

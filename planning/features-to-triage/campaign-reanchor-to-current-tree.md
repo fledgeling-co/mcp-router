@@ -30,3 +30,11 @@ equally mean "nobody looked again".
   against the new version, which would carry the staleness forward invisibly.
 - Assuming a carried result is legitimate when it is labelled as carried, rather than requiring every
   figure to be re-measured on every run.
+
+---
+
+**RESOLVED 2026-08-27, and recorded here rather than deleted.** Measured on `main` at `d8b4959`:
+`campaign.py check planning/test-campaign` exits **0**, and `strict-check.py` and
+`vacuity-check.py` both exit 0 with the ratchet held at 70. The campaign was re-anchored by the
+work that ran between this brief's filing and today. No id was allocated — an item that closed
+before it was scheduled needs a record, not a row.

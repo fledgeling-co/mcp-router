@@ -1,0 +1,342 @@
+diff --git a/planning/sweep-controls.json b/planning/sweep-controls.json
+index eaa599c..d5adaa9 100644
+--- a/planning/sweep-controls.json
++++ b/planning/sweep-controls.json
+@@ -2,6 +2,20 @@
+   "note": "Every tracked script discovered as an absence sweep, and what has been decided about its presence control. Written by planning/sweep-control-gate.py. `grandfathered` is a backlog entry, not a pass.",
+   "threshold": 2,
+   "sweeps": [
++    {
++      "path": "app/Scripts/pool-mutation-gate-selftest.sh",
++      "disposition": "control",
++      "markers": [
++        "V1",
++        "V2"
++      ],
++      "since": "2026-08-27",
++      "control": [
++        "zsh",
++        "app/Scripts/pool-mutation-gate-selftest.sh"
++      ],
++      "proves": "14 cases against the real gate driven by a `swift` shim on PATH, so every outcome class is reachable without a rebuild: a hole no test covers, a mutation that no longer applies, a suite that will not compile and an empty run must each produce a DIFFERENT verdict, and the four mutated sources must come back byte-identical. The verdict logic this arms once collapsed six outcomes into one `all thirteen guards proved load-bearing`. What it does NOT prove is that a mutation removes the guard it names; only a real `pool-mutation-gate.sh` run establishes that."
++    },
+     {
+       "path": "app/Scripts/pool-mutation-gate.sh",
+       "disposition": "grandfathered",
+@@ -14,13 +28,12 @@
+     },
+     {
+       "path": "design/assets/slice-tiles.py",
+-      "disposition": "grandfathered",
++      "disposition": "not-a-sweep",
+       "markers": [
+-        "V2",
+         "V4"
+       ],
+-      "reason": "predates this gate; carries no control this gate can run",
+-      "since": "2026-08-26"
++      "since": "2026-08-27",
++      "reason": "Re-dispositioned from `grandfathered` on 2026-08-27, because this gate's UNDISCOVERED class blocked on it: registered, still in the tree, and no longer matched by the four readers \u2014 it now carries V4 alone against a threshold of 2. The gate is right that the row had to be settled rather than left counted as backlog, and the answer is that the row was wrong from the seed rather than that the readers narrowed. It is an image utility: it slices a 2x2 generated icon sheet into 128px squircle tiles. Its one marker is `if len(ys) == 0:`, which asks whether a luminance-and-saturation mask found any pixels in one quadrant of one PNG. That is a property of an image, not a claim about this corpus, and no presence control over the tracked tree could arm it."
+     },
+     {
+       "path": "planning/citation-gate.py",
+@@ -73,6 +86,88 @@
+       "reason": "predates this gate; carries no control this gate can run",
+       "since": "2026-08-26"
+     },
++    {
++      "path": "planning/evidence/M31/arm-guards.sh",
++      "disposition": "not-a-sweep",
++      "markers": [
++        "V1",
++        "V3"
++      ],
++      "since": "2026-08-27",
++      "reason": "Discovery is answering about the wrong thing on both markers. V3 fired on line 9, a sentence about a DIFFERENT file (`The sweep has its own control in arm-sweep.sh`); the sweep it names is sweep-prominent-disabled.py, which is registered `control` here pointing at that very script. V1 fired on `diff \"$BASE\" \"$now\" | grep -q \"^>\"`, which asserts a difference is PRESENT \u2014 a new failing test name appearing after a plant. This file is itself a presence control: it plants eight defects and watches one named Swift test redden for each. It claims no absence, so there is nothing here for a presence control to arm. Separately and outside this row: it sets no verdict exit code \u2014 it prints `*** NO TEST REDDENED ***` and still exits 0 \u2014 and each arm runs `swift test` twice, so it is minutes rather than seconds."
++    },
++    {
++      "path": "planning/evidence/M31/sweep-prominent-disabled.py",
++      "disposition": "control",
++      "markers": [
++        "V2",
++        "V3"
++      ],
++      "since": "2026-08-27",
++      "control": [
++        "bash",
++        "planning/evidence/M31/arm-sweep.sh"
++      ],
++      "proves": "the file's own named control (`The sweep has its own control in arm-sweep.sh`). Eight arms plant a real defect each into the mock, the store page and Controls.swift, and the assertion is the DIFF of the sweep's verdict lines against baseline plus the movement in its failure count \u2014 never a grep for a word, because grepping was wrong twice in one run. It exists because the sweep's first form could not fail: `failures` was initialised, read twice and never appended to. Every file is restored and the restore is checked back to its pre-plant sha256."
++    },
++    {
++      "path": "planning/goals/citations-blocking-check.sh",
++      "disposition": "waived",
++      "markers": [
++        "V1",
++        "V2",
++        "V3"
++      ],
++      "since": "2026-08-27",
++      "reason": "It makes no absence claim of its own. The sweep is planning/citation-gate.py, which is registered `control` here with its own twelve planted citations, and this wrapper refuses to report at all unless that gate printed `control: HELD` \u2014 it delegates the arming rather than skipping it. Its own reading is a parse of two named count lines that fails CLOSED: a missing DRIFTED or ABSENT line leaves the shell default of 1 and the check exits non-zero, so a reader that stopped seeing its own field reddens rather than reporting a clean zero. A control here would re-arm the same instrument one layer out."
++    },
++    {
++      "path": "planning/goals/lint-except-citation-ratchet.sh",
++      "disposition": "waived",
++      "markers": [
++        "V1",
++        "V2",
++        "V3"
++      ],
++      "since": "2026-08-27",
++      "reason": "It carries a presence control on the only reader it owns \u2014 MIN_STEPS=8 against a step list PARSED from the Makefile, exit 2 when fewer steps parse \u2014 and it exists because an earlier version of it was itself caught by this gate as an absence sweep with no control. It cannot be a command this gate runs: it executes every step of `make lint` itself, one of which is this gate, so enrolling it makes sweep-control-gate.py invoke sweep-control-gate.py. The recursion aside, a full lint is far past the 120s control timeout."
++    },
++    {
++      "path": "planning/goals/liveness-check.sh",
++      "disposition": "waived",
++      "markers": [
++        "V1",
++        "V2",
++        "V3"
++      ],
++      "since": "2026-08-27",
++      "reason": "Its presence control runs on every invocation against real planted directories \u2014 a 90-minute-old tree must read silent, a fresh one must read alive, and both age readers must agree \u2014 and it exits 2 INCONCLUSIVE with no count printed when they do not. It cannot be a command this gate runs because its exit 0 is a verdict about live worktrees on this machine at this moment: measured 2026-08-27 it exits 1 with `1 stalled of 28 worktree(s) examined`. A stalled runner would be reported here as a rotted control. Its own header already records that the control does not cover the SIGPIPE race it was written for, which is a second reason not to let a green row here read as coverage."
++    },
++    {
++      "path": "planning/goals/tests-reader-control.sh",
++      "disposition": "control",
++      "markers": [
++        "V1",
++        "V2"
++      ],
++      "since": "2026-08-27",
++      "control": [
++        "bash",
++        "planning/goals/tests-reader-control.sh"
++      ],
++      "proves": "two fixtures and a pattern EXTRACTED from tests-check.sh rather than copied, so an edit to the reader changes this control instead of leaving it testing a dead string. A 7-line green log whose test NAMES contain the word failed must produce 0 matches (the real defect: 59 matches printed under a FAILING TESTS heading), and 3 real failure lines must produce exactly 3 \u2014 so a pattern matching nothing fails it too. Exits 2 rather than 0 when the extraction stops working."
++    },
++    {
++      "path": "planning/goals/worklist-check.sh",
++      "disposition": "waived",
++      "markers": [
++        "V1",
++        "V2",
++        "V3"
++      ],
++      "since": "2026-08-27",
++      "reason": "Both directions of its classifier are armed on every invocation \u2014 a bold terminal verdict must be recognised, and narrative prose about ANOTHER branch being merged must not be \u2014 and it exits 2 with no count when either arm fails. That arming exists because the prose case really did trip the finish line. It cannot be a command this gate runs: its exit 0 is a verdict about open ledger rows, and it exits 1 today with `2 of 8 still open`, which is the gate working rather than an instrument failing."
++    },
+     {
+       "path": "planning/hooks/prove-pre-commit.sh",
+       "disposition": "control",
+@@ -150,6 +245,16 @@
+       "reason": "predates this gate; carries no control this gate can run",
+       "since": "2026-08-26"
+     },
++    {
++      "path": "planning/registry-drop-gate.py",
++      "disposition": "waived",
++      "markers": [
++        "V2",
++        "V3"
++      ],
++      "since": "2026-08-27",
++      "reason": "Same shape as surface-reconcile.py and named here rather than left to be inferred: its control() runs before anything is read and the gate exits 2 printing no count when either arm misbehaves, but its exit 0 is a corpus verdict \u2014 no id dropped across 230 rows against every parent of HEAD \u2014 so a genuine drop would be reported here as a rotted control. It is already run whole by `make lint`. The second reason is worth writing down: that control is set arithmetic over three literals ({'A','B','C'} minus {'A','B'}), so it exercises none of the four extractors that build the sets it compares. Enrolling it would register a command that cannot fail for any reason to do with this gate's readers, which is the decoration this registry exists to refuse."
++    },
+     {
+       "path": "planning/role-intersection-gate.py",
+       "disposition": "control",
+@@ -220,6 +325,26 @@
+       "reason": "predates this gate; carries no control this gate can run",
+       "since": "2026-08-26"
+     },
++    {
++      "path": "planning/test-campaign/bin/design-controls.py",
++      "disposition": "waived",
++      "markers": [
++        "V2",
++        "V4"
++      ],
++      "since": "2026-08-27",
++      "reason": "This is the one waiver here that is about cost rather than about an arming that already exists, and it is written plainly because a waiver that hides that is the amnesty this registry refuses. It carries NO presence control. It refuses to print a verdict when obscura is absent (exit 3) rather than reporting a zero, which is honesty about its own blindness but is not a control. A real one would plant the two defects it was written from \u2014 DEF-011's Cleanup row actions and SURF-003's `Reset history\u2026` button, both specified by the design and drawn by nothing \u2014 into a synthetic harvest and require each reported. It is not enrolled because a run drives obscura over roughly thirty deep-linked states of the design of record at a 180s per-fetch timeout, which is minutes and past this gate's control timeout on the first surface."
++    },
++    {
++      "path": "planning/test-campaign/bin/insights-live-probe.py",
++      "disposition": "waived",
++      "markers": [
++        "V2",
++        "V3"
++      ],
++      "since": "2026-08-27",
++      "reason": "Armed by `--arm`, which plants two faults and requires the trace to fail on them, and separately by parsing InsightsBoard.swift for every identifier it draws a figure under so a figure absent from the hand-written map fails rather than escaping the trace. Neither the trace nor the arming has anything to run against without a live Swift router serving GET /insights on a port \u2014 the glass lane cannot substitute, because a Debug build always takes a fixture and asserting a fixture proves the fixture. Booting the product is not something a lint member should do."
++    },
+     {
+       "path": "planning/test-campaign/bin/record-glass-arms.py",
+       "disposition": "grandfathered",
+@@ -230,6 +355,16 @@
+       "reason": "predates this gate; carries no control this gate can run",
+       "since": "2026-08-26"
+     },
++    {
++      "path": "planning/test-campaign/bin/surface-reconcile.py",
++      "disposition": "waived",
++      "markers": [
++        "V2",
++        "V4"
++      ],
++      "since": "2026-08-27",
++      "reason": "Its arming is real and runs on every invocation: presence_control plants one defect of each of five classes into a doctored COPY of the world \u2014 a shipped-and-unbound address, a bound-but-caseless one, a binding onto a surface id the inventory does not hold, a binding to an address the app does not ship, and a binding onto a sheet no board can present \u2014 and the file exits 2 with no verdict printed when an arm does not fire. What is waived is ENROLMENT, not the arming. Its exit 0 is a campaign verdict and not a control result: it compiles a Swift oracle against the shipped sources and exits 1 whenever the campaign's surface set and the product's disagree, which is a live and expected event while the campaign grows. Registered as a control it would report the next real disagreement as a rotted control, which is a worse reading than no row."
++    },
+     {
+       "path": "planning/test-campaign/bin/vocab-differential.py",
+       "disposition": "grandfathered",
+@@ -271,6 +406,16 @@
+       "reason": "predates this gate; carries no control this gate can run",
+       "since": "2026-08-26"
+     },
++    {
++      "path": "planning/test-campaign/bin/witness-document-socket.sh",
++      "disposition": "waived",
++      "markers": [
++        "V1",
++        "V2"
++      ],
++      "since": "2026-08-27",
++      "reason": "Armed in every run by a decoy port: the same recorder is pointed at a port nothing was told to bind, and it must report 0 in the same sample the real port reports 1, or the recorder is answering a question about whether the router is alive rather than about this port. It cannot be a command this gate runs because it needs a built app/.build/debug/MCPRouterCLI (it exits 2 without one), binds two TCP ports, spawns a router process and holds a real socket open across the sample \u2014 effects on the machine, which is what a witness is for and what a checking gate must not do."
++    },
+     {
+       "path": "planning/test-campaign/bin/witness-effects.sh",
+       "disposition": "grandfathered",
+@@ -281,6 +426,20 @@
+       "reason": "predates this gate; carries no control this gate can run",
+       "since": "2026-08-26"
+     },
++    {
++      "path": "planning/verification/G11-corpus-determinism.py",
++      "disposition": "control",
++      "markers": [
++        "V2",
++        "V3"
++      ],
++      "since": "2026-08-27",
++      "control": [
++        "python3",
++        "planning/verification/G11-corpus-determinism.py"
++      ],
++      "proves": "four arms including a planted fault: a pristine checkout and a dirty working tree must evaluate HEAD identically, the /tmp-file presence/absence partition must not move the verdict, and a regression that makes the gate read from disk must FAIL the 2-way control (exit 2) \u2014 so the control is watched failing on every invocation, not merely run. The mutated gate is restored and its hash compared."
++    },
+     {
+       "path": "planning/watch-fleet.sh",
+       "disposition": "grandfathered",
+@@ -291,6 +450,35 @@
+       "reason": "predates this gate; carries no control this gate can run",
+       "since": "2026-08-26"
+     },
++    {
++      "path": "scripts/acceptance/acceptance-lanes-selftest.sh",
++      "disposition": "control",
++      "markers": [
++        "V1",
++        "V2"
++      ],
++      "since": "2026-08-27",
++      "control": [
++        "bash",
++        "scripts/acceptance/acceptance-lanes-selftest.sh"
++      ],
++      "proves": "13 arms on planted lanes with known exit codes, dispatched through ACCEPTANCE_LANES/ACCEPTANCE_LANES_DIR so no real lane runs: an all-green set must exit 0, a red lane must not be aggregated away, a lane that exits 0 having asserted nothing must be classed with the failures rather than the blocked, and a lane that leaves no row must redden the run on the row count alone. Arm 9 is the presence control for arm 8, so a runner that always exits 1 cannot satisfy the set."
++    },
++    {
++      "path": "scripts/acceptance/acceptance-lanes.sh",
++      "disposition": "control",
++      "markers": [
++        "V1",
++        "V2",
++        "V3"
++      ],
++      "since": "2026-08-27",
++      "control": [
++        "bash",
++        "scripts/acceptance/acceptance-lanes-selftest.sh"
++      ],
++      "proves": "the aggregator's own arming, named by the file in its own words as `what proves the aggregation can actually go red`. The sweep here is the zero-assertion test \u2014 a lane reaching exit 0 through a dead shell or an empty loop \u2014 and the selftest plants exactly that lane and requires it classed with the failures. It runs the same 19 seconds as the selftest's own row; that row proves the instrument, this one binds the sweep to it, and neither is the other."
++    },
+     {
+       "path": "scripts/acceptance/auth-rejection-visible.sh",
+       "disposition": "grandfathered",
+@@ -559,6 +747,16 @@
+       "reason": "predates this gate; carries no control this gate can run",
+       "since": "2026-08-26"
+     },
++    {
++      "path": "scripts/acceptance/parity-manifest-selftest.sh",
++      "disposition": "grandfathered",
++      "markers": [
++        "V1",
++        "V2"
++      ],
++      "since": "2026-08-27",
++      "reason": "Added 2026-08-15, eleven days before this gate existed, and it is not being brought up to the rule now. It is a real arming \u2014 it plants a removed control delegation, a wrong row pin and a doctored SDK version and requires the manifest check to redden on each \u2014 but it cannot be enrolled as a command here: run in this worktree 2026-08-27 it exits 2 with `environment: the MCP SDK is not installed. Run npm install.` It reads the mcp method names out of the installed SDK, and `make lint` installs nothing, so a row pointing at it would redden this gate on every clean checkout for an environment reason rather than a defect. WHAT WOULD END THE GRANDFATHERING: the method names becoming readable without an install \u2014 vendored into the repo the way vendor/test-campaign is pinned \u2014 or the lint environment taking on `npm ci` as a declared dependency. Either makes this a one-line promotion to `control`."
++    },
+     {
+       "path": "scripts/acceptance/parity-mcp.sh",
+       "disposition": "grandfathered",
+@@ -601,6 +799,16 @@
+       "reason": "predates this gate; carries no control this gate can run",
+       "since": "2026-08-26"
+     },
++    {
++      "path": "scripts/acceptance/parity-selftests.sh",
++      "disposition": "waived",
++      "markers": [
++        "V1",
++        "V3"
++      ],
++      "since": "2026-08-27",
++      "reason": "Its only absence claim is the identity `run == enrolled`, and that is armed by construction: the summary table is printed from the same array the verdict is computed from, so there is no total a selftest can be absent from, and PARITY_SELFTESTS / PARITY_SELFTEST_DIR exist for planting selftests with known exits. It cannot be a command this gate runs because it dispatches all five parity selftests: the first exits 2 without node_modules, and parity-lane-selftest.sh takes about four and a half minutes against the TypeScript reference \u2014 more than double this gate's 120s control timeout, so the row would report a timeout rather than a verdict."
++    },
+     {
+       "path": "scripts/acceptance/parity-stream.sh",
+       "disposition": "grandfathered",
+@@ -710,6 +918,20 @@
+       "reason": "predates this gate; carries no control this gate can run",
+       "since": "2026-08-26"
+     },
++    {
++      "path": "scripts/parity/mutation-gate-selftest.sh",
++      "disposition": "control",
++      "markers": [
++        "V1",
++        "V2"
++      ],
++      "since": "2026-08-27",
++      "control": [
++        "bash",
++        "scripts/parity/mutation-gate-selftest.sh"
++      ],
++      "proves": "11 cases against the real harness with no rebuild: a filter that selects nothing must fail closed rather than report a clean sweep of zero mutations, the mutation count is read from the table rather than asserted, and an unknown option exits 2 instead of being ignored."
++    },
+     {
+       "path": "scripts/red-green.py",
+       "disposition": "grandfathered",
+@@ -719,6 +941,20 @@
+       ],
+       "reason": "is itself a proving pass rather than a sweep - it mutates the implementation and records which tests go red. Discovered by vocabulary; kept in the registry so the discovery is dispositioned rather than silently dropped.",
+       "since": "2026-08-26"
++    },
++    {
++      "path": "scripts/worktree-preflight-selftest.sh",
++      "disposition": "control",
++      "markers": [
++        "V1",
++        "V2"
++      ],
++      "since": "2026-08-27",
++      "control": [
++        "bash",
++        "scripts/worktree-preflight-selftest.sh"
++      ],
++      "proves": "11 arms on planted worktrees, both directions: the two-spellings symlink trap this machine actually has must be reported, a plain worktree must pass in silence, and a real node_modules must be left exactly as it was \u2014 so a guard that always refused and a guard that never refused both fail it. Already run by `make lint`; this row binds it to the sweep it arms."
+     }
+   ]
+ }

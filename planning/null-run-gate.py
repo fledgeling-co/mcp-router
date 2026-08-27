@@ -228,6 +228,64 @@ def empty_raw_tree(root: Path) -> None:
         (root / d).mkdir(parents=True, exist_ok=True)
 
 
+PIN_CLASS = "planning/pin-class-gate.py"
+
+#: The reference text a `pin-class-gate.py` arm plants a verbatim copy out of.
+PIN_SRC = "export const BANNER = `a reference string long enough to matter here, forty plus`;\n"
+PIN_PREAMBLE = "const config = require(join(distDir, 'config.js'));\n"
+PIN_COMPLIANT = """// pin-class: src-export — config.parseServer
+write('fixture-one', {
+  description: 'x',
+  cases: rows.map((r) => ({ id: r.id, out: config.parseServer(r.name, r.raw) }))
+});
+"""
+
+
+def pin_class_tree(extra_js: str = "", extra_vectors: tuple[str, ...] = ()):
+    """A miniature vector corpus: one compliant region, plus one region per carried name.
+
+    The carries are generated FROM the gate's own `CARRY` constant rather than spelled out, so an
+    arm cannot drift from the set it is standing in for. Without them the baseline would be red on
+    `CARRY names ... and no region produces it`, which is the check that stops a carry outliving
+    the vector it excuses.
+    """
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("pin_class_gate", ROOT / PIN_CLASS)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    carried = sorted(module.CARRY)
+
+    def build(root: Path) -> None:
+        (root / "planning").mkdir(parents=True, exist_ok=True)
+        shutil.copy(ROOT / PIN_CLASS, root / PIN_CLASS)
+        (root / "src").mkdir(parents=True, exist_ok=True)
+        (root / "src" / "reference.ts").write_text(PIN_SRC, encoding="utf-8")
+        (root / "scripts" / "parity").mkdir(parents=True, exist_ok=True)
+        body = [PIN_PREAMBLE, PIN_COMPLIANT]
+        for name in carried:
+            body.append(
+                f"// pin-class: src-export — config.notThere\n"
+                f"// pin-carry: P9 — a stand-in for the real carry of the same name\n"
+                f"write('{name}', {{ cases: rows.map((r) => Number(r.raw)) }});\n")
+        body.append(extra_js)
+        (root / "scripts" / "parity" / "fixture.mjs").write_text("".join(body), encoding="utf-8")
+        vectors = root / "app" / "Tests" / "RouterCoreTests" / "Vectors"
+        vectors.mkdir(parents=True, exist_ok=True)
+        for name in ["fixture-one", *carried, *extra_vectors]:
+            (vectors / f"{name}.json").write_text("{}\n", encoding="utf-8")
+    return build
+
+
+def pin_class_empty(root: Path) -> None:
+    """The gate and a reference, and no generator at all — it must refuse, not report clean."""
+    (root / "planning").mkdir(parents=True, exist_ok=True)
+    shutil.copy(ROOT / PIN_CLASS, root / PIN_CLASS)
+    (root / "src").mkdir(parents=True, exist_ok=True)
+    (root / "src" / "reference.ts").write_text(PIN_SRC, encoding="utf-8")
+    (root / "scripts").mkdir(parents=True, exist_ok=True)
+
+
 LEDGER_MD = "planning/features-to-triage/LEDGER.md"
 RECONCILE = "planning/ledger-reconcile.py"
 ACCOUNTING = "planning/reader-accounting.py"
@@ -379,6 +437,45 @@ ARMS: list[Arm] = [
     Arm("NULL-raw", RAW, "null", "the scanned directories hold no Swift files",
         empty_raw_tree, 1, expect="the gate did not run",
         forbid="no-raw-design-values: clean"),
+
+    # ---- the pin-class gate (P11) --------------------------------------------------------------
+    Arm("BASE-pin-class", PIN_CLASS, "poison",
+        "the fixture corpus is compliant, so a red under a plant is the plant",
+        pin_class_tree(), 0, expect="every vector declares a pin class", repo=True),
+    Arm("PIN-unannotated", PIN_CLASS, "poison",
+        "a new vector written by a call no pin-class annotation covers",
+        pin_class_tree("write('fixture-two', { cases: [] });\n", ("fixture-two",)),
+        1, expect="is written by nothing that declares a pin class", repo=True),
+    Arm("PIN-retyped", PIN_CLASS, "poison",
+        "a src-export region that computes its expectation instead of importing it",
+        pin_class_tree("// pin-class: src-export — config.parseServer\n"
+                       "write('fixture-three', { cases: rows.map((r) => Math.min(Number(r.raw)"
+                       " || 30, 60)) });\n", ("fixture-three",)),
+        1, expect="computes its own expectation", repo=True),
+    Arm("PIN-declared-carry", PIN_CLASS, "poison",
+        "a region excusing itself with a pin-carry line for a name this gate does not carry",
+        pin_class_tree("// pin-class: src-export — config.parseServer\n"
+                       "// pin-carry: P9 — invented on the spot\n"
+                       "write('fixture-four', { cases: rows.map((r) => Number(r.raw)) });\n",
+                       ("fixture-four",)),
+        1, expect="a carry cannot be declared into existence", repo=True),
+    Arm("PIN-builtin-vocabulary", PIN_CLASS, "poison",
+        "a platform-builtin region declaring a builtin the reference also implements",
+        pin_class_tree("// pin-class: platform-builtin — String#localeCompare\n"
+                       "write('fixture-five', { cases: rows.map((r) => r.a.localeCompare(r.b)) });\n",
+                       ("fixture-five",)),
+        1, expect="not in the closed builtin vocabulary", repo=True),
+    Arm("PIN-verbatim", PIN_CLASS, "poison",
+        "a region carrying a template literal lifted verbatim out of src/",
+        pin_class_tree("// pin-class: src-export — config.parseServer\n"
+                       "write('fixture-six', { cases: rows.map((r) => config.parseServer("
+                       "`a reference string long enough to matter here, forty plus`)) });\n",
+                       ("fixture-six",)),
+        1, expect="appears verbatim in src/", repo=True),
+    Arm("NULL-pin-class", PIN_CLASS, "null",
+        "a tree with no generator and no vectors — the census is empty",
+        pin_class_empty, 2, expect="measured nothing",
+        forbid="every vector declares a pin class", repo=True),
 ]
 
 # Assertions in this repository that this gate does NOT arm, with the reason. Counted and printed,

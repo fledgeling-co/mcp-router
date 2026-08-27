@@ -110,6 +110,21 @@
       "since": "2026-08-26"
     },
     {
+      "path": "planning/pin-class-gate.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-27",
+      "control": [
+        "python3",
+        "planning/pin-class-gate.py",
+        "--control"
+      ],
+      "proves": "five arms on a synthetic generator: a compliant region is silent, a region that computes its own expectation is reported, a copy hidden in a helper one call away is followed and reported, a writer with no pin-class annotation is reported as uncovered, and a template literal lifted verbatim out of the reference is reported. A rule set that matched nothing would pass the first arm and fail the other four."
+    },
+    {
       "path": "planning/reader-accounting.py",
       "disposition": "grandfathered",
       "markers": [
@@ -148,7 +163,7 @@
         "python3",
         "planning/runnable-path-gate.py"
       ],
-      "proves": "ten fixtures planted in a throwaway repo on every invocation — one per class plus a waived instance, a marker quoted inside a string, and a bare marker with no reason — each answer required exactly; a plant that never reaches the index reads NEVER REACHED THE INDEX and the run exits 2 without printing a verdict"
+      "proves": "ten fixtures planted in a throwaway repo on every invocation \u2014 one per class plus a waived instance, a marker quoted inside a string, and a bare marker with no reason \u2014 each answer required exactly; a plant that never reaches the index reads NEVER REACHED THE INDEX and the run exits 2 without printing a verdict"
     },
     {
       "path": "planning/sweep-control-gate.py",

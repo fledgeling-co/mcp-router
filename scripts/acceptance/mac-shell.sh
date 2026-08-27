@@ -1951,7 +1951,12 @@ if [ "$FEATURE_UNBUILT_COUNT" -eq 0 ]; then
     pass "no command reports featureUnbuilt in this build"
 else
     FEATURE_CHECKED=0
-    while IFS=$'\t' read -r menu title kind availability reason; do
+    # `_identity` is not decoration. `expected.tsv` grew a sixth column at `77857e5`, and `read`
+    # gives every leftover field to its LAST variable — so a five-name read here bound `reason` to
+    # `<reason>\treindexManifest` and the `help = reason` comparison below could never be true
+    # again, whatever the app rendered. The A22 loop above was updated in that commit and this one
+    # was not, which is why `mac-shell.sh` was red on a correct app.
+    while IFS=$'\t' read -r menu title kind availability reason _identity; do
         [ -n "$title" ] || continue
         [ "$kind" = "app" ] \
           || fail "$menu / $title reports featureUnbuilt but is a system item — macOS does not build the app's features"

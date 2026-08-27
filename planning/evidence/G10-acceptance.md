@@ -298,3 +298,95 @@ concurrent runners and a person; what rule 1 asserts is that MCP Router never to
 `shells.sh` asserts that itself and reported it held. The exception the first version of this record
 had to carry — a leftover instance, momentarily frontmost — is closed by the cleanup above rather
 than repeated.
+
+---
+
+## 2026-08-27 · Re-measured on `main` at `6775efb`, three weeks of drift later
+
+Appended rather than rewritten, per `UI_VERIFICATION.md` rule 2. The table above was measured on
+`ai/g10` before the merge at `59ecf34`; `main` has moved 122 commits since, and three of those
+touch `mac-shell.sh` directly. A per-lane table is only evidence for the tree it was taken on.
+
+**The mechanism held.** All eight lanes were reached on both runs below, the aggregate named every
+one of them, and the run with a red lane in it exited non-zero without printing a passing line.
+That is the whole of what this item built, re-proved on a tree it was not written against.
+
+### The environment, printed by the run itself
+
+| Condition | This machine, 2026-08-27 |
+|---|---|
+| `MCPRouterCLI` in `app/.build` | **absent** — `p1-auth-routes.sh` and `r7-harness-reconciliation.sh` block on this alone |
+| window plane composites | **yes** — 40 on-screen windows, 38 named |
+
+### Two runs, before and after one repair
+
+`make acceptance`, both runs. The aggregator's exit and `make`'s own exit are stated separately,
+because `make` collapses 1 and 2 to its own 2.
+
+| Lane | Run 1 (`6775efb`) | Run 2 (+ the repair below) | Assertions, run 2 |
+|---|---|---|---|
+| `shells.sh` | 2 BLOCKED | 2 BLOCKED | 8 |
+| `control-client.sh` | 0 PASS | 0 PASS | 4 |
+| `p1-auth-routes.sh` | 2 BLOCKED | 2 BLOCKED | 0 |
+| `mac-shell.sh` | **1 FAIL** | **0 PASS** | 56 |
+| `r7-harness-reconciliation.sh` | 2 BLOCKED | 2 BLOCKED | 0 |
+| `m22-boards.sh` | 0 PASS | 0 PASS | 16 |
+| `menu-badge-lane.sh` | 0 PASS | 0 PASS | 8 |
+| `menu-badge-lane-selftest.sh` | 0 PASS | 0 PASS | 3 |
+
+Run 1: `enrolled: 8   run: 8   pass: 4   fail: 1   blocked: 3   vacuous: 0`, aggregator **1**,
+`make` **2**, footer `ACCEPTANCE FAILED: 1 of 8 lanes failed an assertion.`
+
+Run 2: `enrolled: 8   run: 8   pass: 5   fail: 0   blocked: 3   vacuous: 0`, aggregator **2**,
+`make` **2**, footer `ACCEPTANCE COULD NOT COMPLETE: 3 of 8 lanes could not run (exit 2).`
+
+### The one red, and why it was the harness again
+
+`mac-shell.sh` printed:
+
+    FAIL: Router / Re-index Manifest carries 'Re-indexing the whole manifest hasn't been built yet.' where its own reason is 'Re-indexing the whole manifest hasn't been built yet.	reindexManifest'
+
+The two strings differ by a tab and a command id, which is the tell. `77857e5` gave the availability
+oracle a sixth column — the command's identity — and updated the A22 reader loop to
+`read -r menu title kind availability reason _identity`. The `featureUnbuilt` loop a thousand lines
+below was left at five names, and `read` gives every leftover field to its last variable, so
+`reason` bound `<reason>\treindexManifest` and `[ "$help" = "$reason" ]` **could not be true on any
+app**. A guard that can only fail measures nothing, in the same way one that can only pass does.
+
+Repaired here by naming the sixth field. Three-arm control, on the loop in isolation with a real
+six-field row:
+
+| Arm | AXHelp | Result |
+|---|---|---|
+| five-name read, app string **correct** | `Re-indexing the whole manifest hasn't been built yet.` | **FAIL** — the defect |
+| six-name read, app string **correct** | same | ok |
+| six-name read, app string **wrong** | `This feature hasn't been built yet.` | **FAIL** — the assertion still bites |
+
+The third arm is the one that matters: the repair does not green the lane by softening it. Run live,
+the block covers **9 commands with no feature behind them, each with its own sentence**, and
+`mac-shell.sh` exits 0 over 56 assertions.
+
+`git diff` against `app/Sources/` is empty across this change — no product code was touched.
+
+### The three blocked lanes are one shape, and `make acceptance` does not produce what they need
+
+| Lane | Its own message | The artifact |
+|---|---|---|
+| `shells.sh` | `no Debug-iphonesimulator build at …/MCPRouterIOS.app — run 'make build-ios' first.` | the iOS simulator bundle |
+| `p1-auth-routes.sh` | `no MCPRouterCLI at app/.build/debug/MCPRouterCLI (run: make build or swift build --package-path app)` | the Swift CLI |
+| `r7-harness-reconciliation.sh` | `no router binary at app/.build/debug/MCPRouterCLI.` | the Swift CLI |
+
+`acceptance`'s prerequisites are `build-mac build-mac-release` only. Every one of these is a lane
+asserting against an artifact its own target does not build — the same shape as defect 5 above,
+one level up. `shells.sh` is new to this list: it passed its **eight** macOS assertions, including
+`#1C1C1E = ColorToken.ground` and the light gallery at `#FFFFFF`, and blocked on the iOS half.
+
+Widening the prerequisites would settle all three and would add an iOS build to every run of this
+target. That is a decision about what `make acceptance` costs, so it is recorded here rather than
+taken.
+
+### Rule 1
+
+`frontmost at start: ghostty` on both GUI lanes, `ok — MCP Router was never the frontmost
+application during this run (it ended on 'Ghostty')`, and `ok — the frontmost application is
+unchanged — 'ghostty'`. Frontmost was `ghostty` before the sweep and `ghostty` after it.

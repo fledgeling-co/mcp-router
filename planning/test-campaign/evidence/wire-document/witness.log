@@ -1,0 +1,5 @@
+2026-08-27T03:36:16.453Z warn  7 upstream(s) not in the manifest (constructed-served, constructed-no-directory, constructed-absent-directory, constructed-nodocs, constructed-toolarge, constructed-escape, constructed-budget); their tools will be missing until `mcp-router index` runs.
+2026-08-27T03:36:16.453Z info  wrote a new control token -> /tmp/g19-witness-scratch/home/control.token
+2026-08-27T03:36:16.631Z info  mcp-router listening on http://127.0.0.1:8983/mcp
+2026-08-27T03:36:16.631Z info  serving 0 tools from 7 upstreams; 0 open, idle window 300s
+2026-08-27T03:37:29.524Z info  SIGTERM received; closing upstreams

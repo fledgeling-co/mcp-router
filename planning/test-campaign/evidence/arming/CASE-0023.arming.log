@@ -1,0 +1,18 @@
+case: CASE-0023
+filter: DiscoverCopyTests
+verdict: RED
+executed: 13
+exit: 1
+breaks: the popularity unit reports installs instead of sessions
+note: 13 tests ran; the suite failed as required
+mutation:
+  app/Sources/MCPRouterKit/Discover/DiscoverCopyControls.swift
+    - DiscoverCopy.Entry(body: "{count} sessions on Smithery")
+    + DiscoverCopy.Entry(body: "{count} installs on Smithery")
+restored: app/Sources/MCPRouterKit/Discover/DiscoverCopyControls.swift@69142e732491fb05
+first failures:
+  􀢄  Test "the popularity unit says sessions on Smithery, never installs or downloads" recorded an issue at DiscoverCopyTests.swift:141:9: Expectation failed: (unit → "{count} installs on Smithery") == 
+  􀢄  Test "the popularity unit says sessions on Smithery, never installs or downloads" recorded an issue at DiscoverCopyTests.swift:142:9: Expectation failed: !((unit.lowercased() → "{count} installs on
+  􀢄  Test "the popularity unit says sessions on Smithery, never installs or downloads" failed after 0.001 seconds with 2 issues.
+  􀢄  Suite "Discover copy — A28 and A20" failed after 0.001 seconds with 2 issues.
+  􀢄  Test run with 13 tests in 1 suite failed after 0.001 seconds with 2 issues.

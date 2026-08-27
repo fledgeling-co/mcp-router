@@ -48,6 +48,21 @@
       "since": "2026-08-26"
     },
     {
+      "path": "planning/evidence-citation-gate.py",
+      "disposition": "control",
+      "markers": [
+        "V2",
+        "V3"
+      ],
+      "since": "2026-08-27",
+      "control": [
+        "python3",
+        "planning/evidence-citation-gate.py",
+        "--control"
+      ],
+      "proves": "five citations planted in a throwaway git repository, one per class, plus a carry entry for a tracked path; each answer required exactly. The UNTRACKED arm carries the weight \u2014 its artifact IS written to disk in the control repo, so a classifier that consulted the filesystem answers TRACKED and the control exits 2 without printing a verdict. The stale-carry arm proves the carry file is not a one-way valve."
+    },
+    {
       "path": "planning/evidence/M18-gapfix-2/arm-guards.sh",
       "disposition": "grandfathered",
       "markers": [

@@ -1,0 +1,19 @@
+case: CASE-0005
+filter: InboxAnnouncementTests
+verdict: RED
+executed: 11
+exit: 1
+breaks: the many-item banner offers a decline, so the action set stops being pinned
+note: 11 tests ran; the suite failed as required
+mutation:
+  app/Sources/MCPRouterKit/Inbox/InboxArrival.swift
+    - actions: [.review],
+                itemIDs: arrivals.map(\.id)
+    + actions: [.review, .decline],
+                itemIDs: arrivals.map(\.id)
+restored: app/Sources/MCPRouterKit/Inbox/InboxArrival.swift@fa50ca2e6e5c4216
+first failures:
+  􀢄  Test "no notification action installs anything, over every case" recorded an issue at InboxAnnouncementTests.swift:55:9: Expectation failed: (many.actions → [MCPRouterKit.InboxNotificationAction.re
+  􀢄  Test "no notification action installs anything, over every case" failed after 0.002 seconds with 1 issue.
+  􀢄  Suite "I6 · the arrival notification" failed after 0.002 seconds with 1 issue.
+  􀢄  Test run with 11 tests in 1 suite failed after 0.003 seconds with 1 issue.

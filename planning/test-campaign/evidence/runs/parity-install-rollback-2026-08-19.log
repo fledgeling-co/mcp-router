@@ -1,0 +1,35 @@
+supervising each binary under its own scratch launchd agent on :8997
+
+  reference: yes,yes,yes,-e
+  swift:     yes,yes,yes,-e
+  (started, relaunched-after-SIGKILL, stayed-down-after-bootout, log-streams-written)
+  the fourth term is which streams carry bytes: o=stdout, e=stderr, - =empty, none=silent.
+  Both routers log to stderr only, so `-e` is the agreeing answer, not a partial one.
+
+  ok   both binaries survive the installer's supervision identically
+
+supervising each binary's WATCH agent — RunAtLoad + WatchPaths, no KeepAlive
+
+  reference: yes,yes,yes,--
+  swift:     yes,yes,yes,--
+  (ran-at-load, re-ran-on-file-change, one-shot-not-resident, log-streams-written)
+  launchd's own accounting: ts:runs=1->2:stages=1 swift:runs=1->2:stages=1 
+  `stages` is how many times the watched file had to be changed before launchd delivered an
+  event. More than 1 is launchd coalescing or dropping a delivery, not a router misbehaving.
+
+  note both binaries answered the watch agent's supervision identically this run
+       (yes,yes,yes,--), and launchd's own counter is the witness for the one-shot term.
+       The row stays BLOCKED and NOTHING is recorded: the `reran` term reads yes about
+       one run in three even when no stimulus can reach the watched path (4 of 6 decoy
+       trials correct, 2 of 6 spurious), so agreement on it is not evidence of parity.
+
+install-import-servers — import as install.sh:77 runs it (no --from, no MCP_ROUTER_HOME)
+  ok   both binaries adopt into $HOME/.claude/mcp-router at the same mode
+
+install-claude-json — the router entry, against install.sh's own extracted node script
+  ok   both write the same ~/.claude.json at the same mode, each with its own backup
+
+install-rollback — restore extracted from uninstall.sh, against a Swift-cutover fixture
+  ok   probe restored, mcp-router/router gone, keep-hand unclobbered, mode 0600, backup is pre-image
+
+install: four real agents under real launchd supervision, two per binary.

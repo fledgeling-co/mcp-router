@@ -1,0 +1,421 @@
+parity gate — 2026-08-20T10:18:20Z
+
+manifest-check: 83 rows, consistent with control.ts, index.ts, router.ts and the fixture
+                directory; every cited test, script and row id resolves.
+
+running control (1 of 13 lanes)
+  control: 53 result rows
+    Differential: the Swift handler against the running reference on :8973
+    
+    acceptance criteria
+      ok   B13 GET /servers envelope                      200
+      ok   B1  describe a stdio server                    200
+      ok   B1  describe an http server                    200
+      ok   B1  describe an oauth server                   200
+      ok   B1  describe a warm/placarded row              200
+      ok   B47 GET /usage/summary                         200
+      ok   B45 GET /usage                                 200
+      ok   B26 GET /servers/:name/changes                 200
+      ok   B24 unknown server is 404                      404
+    
+    R4 — routes the 32-row matrix did not reach
+      ok   POST /servers with no name                     400
+      ok   POST /servers with an empty name               400
+      ok   POST /servers with no command                  400
+      ok   DELETE /servers/:name/auth                     200
+      ok   DELETE auth on an http server                  200
+      ok   DELETE auth on an unknown server               404
+      ok   POST reindex on an unknown server              404
+      ok   changes on an unknown server                   404
+    
+    6b — fault injection
+      ok   malformed JSON body                            200
+      ok   body is an array                               200
+      ok   body is null                                   200
+      ok   lowercase method is not mutating               200
+    
+    6e — data-shape stress
+      ok   N4 ?limit= is empty                            200
+      ok   N4 ?limit=0                                    200
+      ok   N4 ?limit=abc is NaN                           200
+      ok   N4 ?limit=-5 counts from the front             200
+      ok   ?limit=1e300 does not trap                     200
+      ok   repeated ?limit takes the first                200
+      ok   a very long server name                        404
+    
+    6f — security surface
+      ok   B15 encoded slash is not a route               both disclaim it
+      ok   path traversal stays a name                    404
+      ok   unknown control path                           405
+    
+    6f — env-value canary
+      ok   no env value appears in any compared response
+    
+    6f — the token gate on the live router
+      ok   untokened POST /servers                        401
+      ok   untokened DELETE /servers/diff-stdio           401
+      ok   untokened PATCH /servers/diff-stdio            401
+      ok   untokened POST /servers/diff-stdio/approve     401
+      ok   untokened POST /servers/diff-stdio/auth        401
+    
+    expected divergences — the reference dies here, and this port does not
+      ok   PATCH body 42 kills the reference            reference DIED (TypeError) · swift 400
+      ok   PATCH body "hi" kills the reference          reference DIED (TypeError) · swift 400
+      ok   PATCH body true kills the reference          reference DIED (TypeError) · swift 400
+      ok   GET %ZZ kills the reference                  reference DIED (URIError) · swift 400
+      ok   GET a truncated escape kills it              reference DIED (URIError) · swift 400
+    
+    P1 — the two auth routes, reachable at last
+      ok   POST /servers/:name/approve                    409
+      ok   POST /servers/:name/auth                       400
+      ok   approve on an unknown server                   404
+      ok   POST auth on an unknown server                 404
+    
+    R4 — mutating routes, each side against the same pre-mutation snapshot
+      ok   PATCH sets a placard                           200 (config identical)
+      ok   PATCH rejects a command edit                   200 (config identical)
+      ok   PATCH rejects an env edit                      200 (config identical)
+      ok   POST refuses a duplicate                       409 (config identical)
+      ok   DELETE removes a server                        200 (config identical)
+      ok   DELETE an unknown server                       404 (config identical)
+      ok   POST /usage/reset                              200 (config identical)
+    
+    R4 — branches a stub owns: masked field named, everything else still compared
+      --   PATCH sets warm (triggers warm-up)             200 · identical outside the pool-reported state
+      --   POST adds a server (indexes first)             422 · identical outside the indexer error text
+    
+    not comparable — recorded as blocked in the manifest, shown so the gap is visible
+      --   GET /usage/stream (SSE, body is a stream)      ts=200held-open swift=200
+      --   GET /registry/search (live network on the reference) swift={"error":"registry search is unavailable: no HTTP client is configured"}
+    
+    compared 53 rows: 53 ok, 0 failed
+    The Swift handler answers what the reference answers on every compared row.
+running fixture (2 of 13 lanes)
+  fixture: 23 result rows
+    re-capturing the fixture set against a live reference on :8963
+      captured 24 bodies and 24 statuses
+    
+    fixture                        status  verdict
+      add-refused                  422     matches the recording
+      added                        201     matches the recording
+      approve-conflict             409     matches the recording
+      approve                      200     matches the recording
+      auth-start                   200     matches the recording
+      changes-none                 200     matches the recording
+      changes-pending              200     matches the recording
+      patch-response               200     matches the recording
+      registry-search              200     not compared — live registry, no stable oracle
+      reindex-failure              422     matches the recording
+      reindex-held                 200     matches the recording
+      removed                      200     matches the recording
+      server-http                  200     matches the recording
+      server-pending-change        200     matches the recording
+      server-placarded             200     matches the recording
+      server-stdio                 200     matches the recording
+      server-tools                 200     matches the recording
+      servers-pending-auth         200     matches the recording
+      servers                      200     matches the recording
+      signout                      200     matches the recording
+      unauthorized                 401     matches the recording
+      usage-reset                  200     matches the recording
+      usage-summary                200     matches the recording
+      usage                        200     matches the recording
+    
+    fixtures: 23 match the live reference, 0 drifted
+running divergence (3 of 13 lanes)
+  divergence: 4 result rows
+    D1 — an unrecognisable mcpServers
+      ok   the reference serves an empty list; Swift refuses the config
+    
+    D3 — an unknown top-level key survives a control-API write, on both sides
+      ok   both writers preserved the unknown key
+    
+    R2 D7 — a lost restart on an unparseable ~/.claude.json
+      reference: yes,yes,no
+      swift:     yes,yes,yes
+      (servers.json written, re-read failed, restart issued)
+      ok   the reference loses the restart on this path; the Swift watcher issues it
+    
+    div-r1-d3 — the import writer preserves a top-level key the reference drops
+      reference kept the key: no
+      swift kept the key:     yes
+      swift actually wrote:   yes
+      ok   the reference drops the unknown key on import; Swift preserves it
+    
+    divergences: 4 as declared, 0 stale
+running pool (4 of 13 lanes)
+  pool: 5 result rows
+    driving the reference's pool on :8966 with a 3000ms idle window
+    
+      ok   nothing spawned before the first call (state=idle, children=0) 
+      ok   five concurrent calls served by 1 child (callsServed=1) 
+      ok   callsServed counted 1 acquisition for 5 concurrent calls (D6)
+      ok   the idle child was reaped after 3000ms (state=idle, children=0) 
+      ok   child 75983 was killed; the next call reopened as 76095 
+    
+    pool: 5 decisions match the Swift suite, 0 do not
+          pool-p4 and pool-reap-traffic stay blocked on R2-R — both need traffic arriving at a
+          Swift MCP endpoint, and approximating them would be the failure this gate prevents.
+running suite (5 of 13 lanes)
+  suite reported mismatches — 10 result rows
+    running every citation the manifest rests on
+    
+      FAIL scripts/acceptance/parity-oauth.sh                         the gate reported findings
+      ok   RouterCoreTests/ManifestIOParityTests.degradationCopyIsVerbatim 1 test(s) passed
+      ok   RouterCoreTests/LogParityTests.loggingNeverThrows          1 test(s) passed
+      ok   scripts/lint/no-wire-codable.sh                            the gate ran and is clean
+      ok   RouterCoreTests/CallbackWireTests.pageResponseBytes        1 test(s) passed
+      ok   RouterCoreTests/RealProcessTests.poolSpawnsAndReapsARealChild 1 test(s) passed
+      ok   RouterCoreTests/RealProcessTests.concurrentLeasesSpawnOneRealChild 1 test(s) passed
+      ok   RouterCoreTests/RealProcessTests.poolSpawnsAndReapsARealChild 1 test(s) passed
+      ok   RouterCoreTests/RealProcessTests.realChildThatExitsIsEvicted 1 test(s) passed
+    
+    suite: 8 citation(s) ran and passed, 1 failed
+running mcp (6 of 13 lanes)
+  mcp: 8 result rows
+    driving both routers: reference on :8992, Swift on :8993
+    
+      ok   GET /health — status, headers and body
+      ok   POST /mcp with a foreign Host is 403
+      ok   POST /mcp accepting only JSON is 406
+      ok   POST /mcp with no content-type is 415
+      ok   POST /mcp with an empty body is 400 parse error
+      ok   an unknown path is 404 naming the MCP endpoint
+      ok   the framing refusals and the 404 agree on both routers
+      ok   both answer 500/-32603 with the "invalid JSON body: " prefix; the parser text differs, as declared (ts="Unexpected token 'o', \"not json\" is no" swift="expected null at byte 0")
+      ok   tools/list — SSE head and the whole envelope, byte for byte
+      ok   tools/call ok
+      ok   tools/call unnamespaced
+      ok   tools/call unknownserver
+      ok   tools/call unknownmethod
+      ok   tools/call initialize
+      ok   tools/call ping
+      ok   tools/call httpupstream
+      ok   tools/call agrees across seven shapes, one of them routed through an HTTP upstream
+      ok   GET /status after an identical call sequence
+      ok   a 6s call survived a 3s idle window on both routers
+      ok   spawn/reap under live traffic: both reported running,idle,running
+    
+    mcp: 8 comparisons agreed, 0 did not
+         Every row above except div-r2r-d8 is a SIMULTANEOUS two-router wire comparison — both
+         routers live, the same request at each, bodies diffed byte for byte. div-r2r-d8 is an
+         assertion in both directions rather than an agreement, and is labelled as such.
+running cli (7 of 13 lanes)
+  cli: 17 result rows
+    comparing both binaries verb by verb
+    
+      ok   cli-help                     help prints the usage block (exit 0, stdout and stderr identical)
+      ok   cli-help                     --help is the same arm (exit 0, stdout and stderr identical)
+      ok   cli-help                     -h is the same arm (exit 0, stdout and stderr identical)
+      ok   cli-help                     an unknown verb falls to help (exit 1, stdout and stderr identical)
+      ok   cli-tools                    tools lists the cached surface (exit 0, stdout and stderr identical)
+      ok   cli-tools                    tools lists a populated surface (exit 0, stdout and stderr identical)
+      ok   cli-index                    index builds the manifest (exit 0, stdout and stderr identical)
+      ok   cli-refresh                  refresh is the same arm as index (exit 0, stdout and stderr identical)
+      ok   cli-usage                    usage with nothing listening (exit 1, stdout and stderr identical)
+      ok   cli-status                   status with nothing listening (exit 1, stdout and stderr identical)
+      ok   cli-import                   import adopts the same servers and writes the same servers.json
+      ok   cli-serve                    both bound, answered /health, logged [<ts> info  wrote a new control token -> <home>/control.token,<ts> info  mcp-router listening on http://127.0.0.1:8994/mcp,<ts> info  serving 2 tools from 1 upstreams; 0 open, idle window 300s,<ts> info  SIGTERM received; closing upstreams,] and exited 0 on SIGTERM
+      ok   cli-auth                     auth against a stdio upstream, router listening (both routers answered; exit 1, stdout and stderr identical)
+      ok   cli-auth                     auth against an unknown server, router listening (both routers answered; exit 1, stdout and stderr identical)
+      ok   cli-watch                    nothing staged takes the fast path (exit 0; streams, servers.json and ~/.claude.json identical)
+      ok   cli-watch                    a staged server is indexed, adopted and unstaged (exit 0; streams, servers.json and ~/.claude.json identical)
+      ok   cli-watch                    an unparseable ~/.claude.json writes nothing (exit 0; streams, servers.json and ~/.claude.json identical)
+    
+    cli: 17 verbs agreed, 0 did not
+         Every row is a simultaneous comparison of two binaries over identical inputs, with
+         stdout, stderr and the exit code compared separately.
+         cli-auth IS claimed here now (D-p1-d, closed by P5): the verb is run against a router
+         this lane started, and a run in which either router failed to answer /health is a
+         failure rather than a pass — without that guard the two binaries agree on the
+         no-router sentence and the row passes having reached none of its own code.
+         Its non-stdio path is NOT compared here and is not counted twice: the reference
+         answers 200 with an authorizationUrl where this router answers 405, which is D-p1-a
+         and is carried by the control-auth-post-http row.
+running install (8 of 13 lanes)
+  install: 5 result rows
+    supervising each binary under its own scratch launchd agent on :8997
+    
+      reference: yes,yes,yes,-e
+      swift:     yes,yes,yes,-e
+      (started, relaunched-after-SIGKILL, stayed-down-after-bootout, log-streams-written)
+      the fourth term is which streams carry bytes: o=stdout, e=stderr, - =empty, none=silent.
+      Both routers log to stderr only, so `-e` is the agreeing answer, not a partial one.
+    
+      ok   both binaries survive the installer's supervision identically
+    
+    supervising each binary's WATCH agent — RunAtLoad + WatchPaths, no KeepAlive
+    
+      reference: yes,yes,yes,--
+      swift:     yes,yes,yes,--
+      (ran-at-load, observed-the-staged-change, one-shot-not-resident, log-streams-written)
+      launchd's own accounting: ts:runs=1->2:stages=1/6:stamp=stim-ts-91367-0:watched=self swift:runs=2->3:stages=1/6:stamp=stim-swift-91367-0:watched=self 
+      `stages` is deliveries used over deliveries allowed: how many times the watched file had to
+      be changed before a run observed one. More than 1 is launchd coalescing or dropping a
+      delivery, not a router misbehaving. `stamp` is WHICH staged change came back, named by the
+      run that saw it, and it is what makes the second term an observation rather than a spawn
+      count. `watched=self` means the agent watches the file it reads.
+    
+      ok   both binaries ran at load, observed the stamped change staged into the path their own
+           plist watches, and stayed one-shot (yes,yes,yes,--)
+    
+    install-import-servers — import as install.sh:77 runs it (no --from, no MCP_ROUTER_HOME)
+      ok   both binaries adopt into $HOME/.claude/mcp-router at the same mode
+    
+    install-claude-json — the router entry, against install.sh's own extracted node script
+      ok   both write the same ~/.claude.json at the same mode, each with its own backup
+    
+    install-rollback — restore extracted from uninstall.sh, against a Swift-cutover fixture
+      ok   probe restored, mcp-router/router gone, keep-hand unclobbered, mode 0600, backup is pre-image
+    
+    install: four real agents under real launchd supervision, two per binary.
+running state (9 of 13 lanes)
+  state: 1 result rows
+    phase 1 — the reference writes the state, for real
+      the reference left servers.json (302 bytes)
+      the reference left manifest.json (828 bytes)
+      the reference left usage.jsonl (374 bytes)
+      the reference left usage-stats.json (302 bytes)
+    
+    phase 2 — the Swift router is started on exactly those files, having written none of them
+    
+      ok   the Swift router served the same tool corpus and the same call history from the
+           reference's own files, having written none of them
+    
+    state: one-directional by design — TypeScript writes, Swift reads.
+running log (10 of 13 lanes)
+  log: 1 result rows
+    driving one scripted session at each router on :8995
+    
+      ok   13 log lines agree, in order
+           <ts> warn  1 upstream(s) not in the manifest (probe); their tools will be missing until `mcp-router index` runs.
+           <ts> info  wrote a new control token -> <home>/control.token
+           <ts> info  mcp-router listening on http://127.0.0.1:<port>/mcp
+           <ts> info  serving 0 tools from 1 upstreams; 0 open, idle window 2s
+           <ts> info  spawning upstream "probe" (node <repo>/scripts/fixtures/mcp-fixture-server.mjs stdio)
+           <ts> info  upstream "probe" ready in <ms>ms
+           <ts> info  indexed "probe": 2 tools
+           <ts> info  closing idle child "probe" after 1 call(s), <s>s alive
+           <ts> info  manifest reloaded: 1 servers cached
+           <ts> info  spawning upstream "probe" (node <repo>/scripts/fixtures/mcp-fixture-server.mjs stdio)
+           <ts> info  upstream "probe" ready in <ms>ms
+           <ts> info  closing idle child "probe" after 1 call(s), <s>s alive
+           <ts> info  SIGTERM received; closing upstreams
+    
+    log: a simultaneous two-router comparison of one scripted serving session.
+running stream (11 of 13 lanes)
+  stream: 4 result rows
+    
+    R2-R — GET /usage/stream, driven over a socket at both routers
+      both routers delivered the opening comment while the connection stayed open
+      ok   the response head — status line and every header — is byte-identical on both routers, Date aside
+      both routers streamed one frame per call, as the calls happened
+      both routers sent the 25s heartbeat on the open connection
+      ok   GET /usage/stream — 9 frames diffed byte for byte on an open connection (opening comment, 3 records, heartbeat)
+    
+      a second reader, joining after three records already exist
+      ok   a late subscriber received no backlog at either router and exactly the one record driven after it joined, byte for byte
+      ok   both original connections were still open after the heartbeat and delivered the fourth record byte for byte — the stream does not end itself and does not degrade once it is long-lived
+      both routers still served /health after the reader disconnected — the subscription and
+      the heartbeat were released without taking the process with them
+    
+    compared 4 rows: 4 ok, 0 failed
+running registry (12 of 13 lanes)
+  registry: 12 result rows
+    
+    P3 — GET /registry/search, both routers against one pinned registry on :8959
+      shape guard (ts): 8 rows, every compared path present, ranked order exact
+      shape guard (swift): 8 rows, every compared path present, ranked order exact
+      ok   ?q=github&limit=3 — envelope, merge, ranking, seeded stars — HTTP 200, 1242 bytes, byte for byte, no normalisation
+      ok   ?limit=0 — zero is falsy and becomes 30 — HTTP 200, 2752 bytes, byte for byte, no normalisation
+      ok   ?limit=abc — NaN is falsy and becomes 30 — HTTP 200, 2752 bytes, byte for byte, no normalisation
+      ok   ?limit=-1 — a negative reaches slice — HTTP 200, 2479 bytes, byte for byte, no normalisation
+      ok   ?limit=99 — capped at 60 — HTTP 200, 2752 bytes, byte for byte, no normalisation
+      ok   a negative limit reaches slice on both routers — fewer results than limit=30, measured per router, not inferred from agreement
+      ok   no q — an empty query sets no search parameter — HTTP 200, 2729 bytes, byte for byte, no normalisation
+      ok   smithery answering 503 — the warning and the partial result — HTTP 200, 1930 bytes, byte for byte, no normalisation
+      ok   the official index answering 503 — the other half of the same failure — HTTP 200, 1227 bytes, byte for byte, no normalisation
+      ok   the registry unreachable — both report node's own "fetch failed" — HTTP 200, 159 bytes, byte for byte, no normalisation
+      ok   neither router holds a connection off loopback, and the seeded star count survived into the compared body — the GitHub cache was read rather than the network
+      ok   both bases set and EMPTY — a nullish default keeps the empty string and new URL throws — HTTP 200, 157 bytes, byte for byte, no normalisation
+    
+    compared 12 scenarios: 12 ok, 0 failed
+running oauth (13 of 13 lanes)
+  oauth: 1 result rows
+    P7 — control-auth-post-http: the OAuth half of POST /servers/:name/auth, both routers
+         provider on :8967 with its endpoints at /as-9c41f7, callback on :8969
+    
+      (waited 9s for :8969 to become bindable again)
+      (waited 15s for :8967 to become bindable again)
+    guards — the comparison has something to compare
+      ok   reference answered 200 to POST /auth           
+      ok   reference produced a 43-char S256 challenge    
+      ok   reference saved a well-formed code verifier    
+      ok   reference's credential file holds a token      
+      ok   reference's callback answered the browser 200  
+      ok   reference reports the server as authorized     
+      ok   reference's provider saw the whole cascade     9 requests
+      ok   swift answered 200 to POST /auth               
+      ok   swift produced a 43-char S256 challenge        
+      ok   swift saved a well-formed code verifier        
+      ok   swift's credential file holds a token          
+      ok   swift's callback answered the browser 200      
+      ok   swift reports the server as authorized         
+      ok   swift's provider saw the whole cascade         9 requests
+    
+    the comparison — 9 provider requests per side
+      ok   the 200 and its authorizationUrl               identical
+      ok   every request the provider was sent            identical
+      ok   the credential file on disk                    identical
+      ok   the page the browser lands on                  identical
+      ok   GET /servers/:name's auth sub-object           identical
+      ok   a second authorization on an authorized server identical
+      ok   the second authorization's status              status=502
+    
+    21 checks passed, 0 failed — examined=21 failures=0
+    the routers agree on the discovery cascade, the registration bytes, the PKCE parameters,
+    the token exchange, the callback page, the credential file and the re-authorization branch.
+
+───────────────────────────────────────────────────────────────────────
+coverage by group — these are not all the same claim:
+  control     15 of 16 proven, 1 DIVERGED
+  fixture     23 of 24 proven, 1 blocked
+  divergence  15 of 15 proven (4 by suite only)
+  pool         6 of  6 proven
+  mcp          5 of  5 proven
+  cli         10 of 10 proven
+  install      5 of  5 proven
+  state        1 of  1 proven
+  log          1 of  1 proven
+
+  control compares both routers on the wire. fixture compares the live reference against
+  its own recording — reference currency, not two-router parity. pool compares a live
+  reference measurement against a Swift real-process test, taken at different times.
+
+parity: 1 of 83 rows DIVERGED from the reference.
+
+  control     POST /servers/:name/auth                   the Swift router never reached the token endpoint
+  scripts/acceptance/parity-oauth.sh reported findings                                            
+
+parity: 81 of 83 rows proven (4 of them by suite only, not by wire comparison), 1 blocked. This is NOT a pass.
+
+cutover target: 82 of 83, decided by the owner on 2026-08-16 (ORCHESTRATOR.md "CUTOVER TARGET", bec9d18).
+This gate REPORTS that target; it does not enact it. Every blocked row still exits 1
+below, and the cutover itself is the owner's call on R4-C's evidence, not this script's.
+
+  1 of the 1 blocked rows is a STANDING EXCLUSION, not work — nobody is
+  assigned to it and nobody is waiting on it:
+    fixture     fixture-registry-search  registry-search
+
+  It stays in the denominator deliberately: deleting it would leave the numerator alone
+  and shrink the denominator, so the coverage figure would RISE. Its reason is in that
+  row's own note in planning/parity/surface.tsv, and it is a decision, not an open task.
+
+  1 row stands between 81 proven and the target of 82.
+
+blocked, grouped by the item that would unblock them:
+
+  accepted-uncomparable
+    fixture     registry-search                                NOT BLOCKED ON WORK AND NOT WAITING FOR ANYONE - this row is a standing ex
+
+A mismatch is a divergence from the reference that nothing declared. Exit 1.

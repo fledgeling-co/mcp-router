@@ -1,0 +1,18 @@
+attached target=page-1 session=page-1-session-1
+SURF-001 bytes=41501 magic=True clip=1156x680 @(30,110) freeze={'intervalsCleared': 3, 'timeoutsCleared': 4} state={pane:activity,tab:discover,sheet:None,popover:False,pairing:None}
+SURF-002 bytes=84498 magic=True clip=1156x680 @(30,110) freeze={'intervalsCleared': 3, 'timeoutsCleared': 4} state={pane:servers,tab:discover,sheet:None,popover:False,pairing:None}
+SURF-003 bytes=41501 magic=True clip=1156x680 @(30,110) freeze={'intervalsCleared': 3, 'timeoutsCleared': 4} state={pane:activity,tab:discover,sheet:None,popover:False,pairing:None}
+SURF-004 bytes=76776 magic=True clip=1156x680 @(30,110) freeze={'intervalsCleared': 3, 'timeoutsCleared': 4} state={pane:skills,tab:discover,sheet:None,popover:False,pairing:None}
+SURF-005 bytes=86722 magic=True clip=1156x680 @(30,110) freeze={'intervalsCleared': 3, 'timeoutsCleared': 4} state={pane:discover,tab:discover,sheet:None,popover:False,pairing:None}
+SURF-006 bytes=77982 magic=True clip=1156x680 @(30,110) freeze={'intervalsCleared': 3, 'timeoutsCleared': 4} state={pane:evals,tab:discover,sheet:None,popover:False,pairing:None}
+SURF-007 bytes=69049 magic=True clip=1156x680 @(30,110) freeze={'intervalsCleared': 3, 'timeoutsCleared': 4} state={pane:cleanup,tab:discover,sheet:None,popover:False,pairing:None}
+SURF-008 bytes=41168 magic=True clip=1156x680 @(30,110) freeze={'intervalsCleared': 3, 'timeoutsCleared': 4} state={pane:inbox,tab:discover,sheet:None,popover:False,pairing:None}
+SURF-009 bytes=60575 magic=True clip=1156x680 @(30,110) freeze={'intervalsCleared': 3, 'timeoutsCleared': 4} state={pane:activity,tab:discover,sheet:None,popover:True,pairing:None}
+SURF-010 bytes=58825 magic=True clip=1156x680 @(30,110) freeze={'intervalsCleared': 3, 'timeoutsCleared': 4} state={pane:activity,tab:discover,sheet:pair,popover:False,pairing:None}
+SURF-011 bytes=80160 magic=True clip=1156x680 @(30,110) freeze={'intervalsCleared': 3, 'timeoutsCleared': 4} state={pane:settings,tab:discover,sheet:None,popover:False,pairing:None}
+SURF-012 bytes=43395 magic=True clip=302x646 @(30,84) freeze={'intervalsCleared': 3, 'timeoutsCleared': 4} state={pane:activity,tab:discover,sheet:None,popover:False,pairing:None}
+SURF-013 bytes=47557 magic=True clip=302x646 @(30,84) freeze={'intervalsCleared': 3, 'timeoutsCleared': 4} state={pane:activity,tab:triage,sheet:None,popover:False,pairing:None}
+SURF-014 bytes=37886 magic=True clip=302x646 @(30,84) freeze={'intervalsCleared': 3, 'timeoutsCleared': 4} state={pane:activity,tab:settings,sheet:None,popover:False,pairing:scan}
+SURF-015 no-visual no visual design of record (daemon / IPC)
+SURF-016 no-visual no visual design of record (HTTP control API)
+SURF-017 no-visual no visual design of record (parity harness)

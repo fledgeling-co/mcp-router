@@ -110,6 +110,29 @@ SURFACE    ?= servers
 ## sixth vector is refusal rather than silent admission. The five that exist today are carried by
 ## name in the gate's own `CARRY` constant, printed on every run, and close with `P9`.
 
+## `evidence-citation-gate.py` (`G24`) runs here because the defect it closes is invisible to the
+## person who caused it. `.gitignore:24` was `*.log`, unanchored, and the campaign writes its run
+## evidence as `.log`: 42 evidence logs on disk, 0 tracked, 38 distinct log paths cited as evidence
+## by the registries. Three of them were already gone — `ai/g19` merged the `.json` siblings while
+## the `.log` files stayed behind in `.worktrees/G19` — and six cases went on citing paths that
+## existed in one worktree and in no commit. `.gitignore` now carries a negation scoped to
+## `planning/test-campaign/evidence/**/*.log`, and this is the gate that keeps it honest.
+##
+## It reads the INDEX, never the working tree, and that is the whole design. `os.path.exists`
+## answered True for all 45 logs throughout the entire period in which none of them was tracked,
+## so a check that consults the filesystem measures nothing here. A structured evidence field —
+## `evidence[]`, `shot`, `source` — must name a path `git ls-files` knows; prose naming a path is
+## swept, counted and printed rather than blocked, because `inventory.json`'s DEF-006 text exists
+## precisely to record the shot pointers that were WRONG. Four unresolvable citations found on the
+## landing run are declared by path and owner in `planning/evidence-citation-carry.json`, which can
+## only shrink: a carried path that starts resolving is reported. `UNTRACKED` — on disk, in no
+## commit — is never carryable, because it is the class the gate exists for.
+##
+## Its control plants one citation per class plus a stale carry on every invocation and exits 2
+## without printing a verdict if any arm misbehaves. The arm that carries the weight is `UNTRACKED`,
+## whose artifact IS written to disk in the control repo: a classifier that reads the filesystem
+## answers `TRACKED` and the control fails.
+
 ## `role-intersection-gate.py` (`G8`) is deliberately NOT in `lint` or in `all`, and the reason is
 ## its own subject. It exits **3** on this tree today: `planning/fidelity/popover.ledger.md` is an
 ## obituary — the fidelity gate exited 3 on `#statusPopover has no '.v-ideal' block` and wrote no
@@ -727,6 +750,7 @@ lint: tools
 	python3 planning/sweep-control-gate.py || fail=1; \
 	python3 planning/runnable-path-gate.py || fail=1; \
 	python3 planning/registry-drop-gate.py || fail=1; \
+	python3 planning/evidence-citation-gate.py || fail=1; \
 	python3 planning/pin-class-gate.py || fail=1; \
 	zsh app/Scripts/pool-mutation-gate-selftest.sh || fail=1; \
 	exit $$fail

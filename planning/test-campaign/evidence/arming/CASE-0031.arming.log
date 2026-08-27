@@ -1,0 +1,21 @@
+case: CASE-0031
+filter: ToolUnionParityTests
+verdict: RED
+executed: 5
+exit: 1
+breaks: a namespaced tool name splits at the LAST separator instead of the first
+note: 5 tests ran; the suite failed as required
+mutation:
+  app/Sources/RouterCore/Manifest/ToolUnion.swift
+    - index = start
+                break
+    + index = start
+restored: app/Sources/RouterCore/Manifest/ToolUnion.swift@9a88e5a8bb1c168a
+first failures:
+  􀢄  Test "a namespaced tool name splits at the first separator" recorded an issue at ManifestParityTests.swift:275:13: Expectation failed: (split?.server → "a__b") == (ManifestVectors.text(testCase.mem
+  􀢄  Test "a namespaced tool name splits at the first separator" recorded an issue at ManifestParityTests.swift:276:13: Expectation failed: (split?.tool → "c") == (ManifestVectors.text(testCase.member("
+  􀢄  Test "a namespaced tool name splits at the first separator" recorded an issue at ManifestParityTests.swift:275:13: Expectation failed: (split?.server → "a__") == (ManifestVectors.text(testCase.memb
+  􀢄  Test "a namespaced tool name splits at the first separator" recorded an issue at ManifestParityTests.swift:276:13: Expectation failed: (split?.tool → "b") == (ManifestVectors.text(testCase.member("
+  􀢄  Test "a namespaced tool name splits at the first separator" failed after 0.004 seconds with 4 issues.
+  􀢄  Suite "Tool union and visibility parity with src/manifest.ts" failed after 0.005 seconds with 4 issues.
+  􀢄  Test run with 5 tests in 1 suite failed after 0.005 seconds with 4 issues.

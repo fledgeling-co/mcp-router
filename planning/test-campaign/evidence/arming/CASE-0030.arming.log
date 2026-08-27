@@ -1,0 +1,21 @@
+case: CASE-0030
+filter: RealProcessTests
+verdict: RED
+executed: 10
+exit: 1
+breaks: an idle child is never reaped, so the pool leaks the process it spawned
+note: 10 tests ran; the suite failed as required
+mutation:
+  app/Sources/RouterCore/Pool/UpstreamPoolReaping.swift
+    - else { return }
+        await reap(name: name, force: false)
+    + else { return }
+        if Bool(true) { return }
+        await reap(name: name, force: false)
+restored: app/Sources/RouterCore/Pool/UpstreamPoolReaping.swift@b763c8e64faf2a6a
+first failures:
+  􀢄  Test "E0/P1+P3+P6 — the pool spawns a real child on first lease and reaps it when idle" recorded an issue at RealProcessTests.swift:159:9: Expectation failed: await StubServer.waitUntilGone(pid)
+  􀢄  Test "E0/P1+P3+P6 — the pool spawns a real child on first lease and reaps it when idle" recorded an issue at RealProcessTests.swift:160:9: Expectation failed: await !pool.isLive("pooled")
+  􀢄  Test "E0/P1+P3+P6 — the pool spawns a real child on first lease and reaps it when idle" failed after 5.060 seconds with 2 issues.
+  􀢄  Suite "Real child processes" failed after 6.310 seconds with 2 issues.
+  􀢄  Test run with 10 tests in 1 suite failed after 6.310 seconds with 2 issues.

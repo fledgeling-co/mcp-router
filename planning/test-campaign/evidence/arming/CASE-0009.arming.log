@@ -1,0 +1,29 @@
+case: CASE-0009
+filter: ControlContractTests
+verdict: RED
+executed: 18
+exit: 1
+breaks: a patch carries a command line onto the wire
+note: 18 tests ran; the suite failed as required
+mutation:
+  app/Sources/MCPRouterKit/Control/ServerPatch.swift
+    - case projects, warm, idleMs, placard
+    + case projects, warm, idleMs, placard, command
+  app/Sources/MCPRouterKit/Control/ServerPatch.swift
+    - var container = encoder.container(keyedBy: CodingKeys.self)
+    + var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode("sh", forKey: .command)
+restored: app/Sources/MCPRouterKit/Control/ServerPatch.swift@a9a96dffe0bcfd6b
+first failures:
+  􀢄  Test "a fully-populated patch encodes exactly the keys the router reads" recorded an issue at ControlContractTests.swift:50:9: Expectation failed: (Set(object.keys) → ["projects", "idleMs", "warm",
+  􀢄  Test "an encoded ServerPatch can never carry command, args or env" recorded an issue at ControlContractTests.swift:29:13: Expectation failed: (object[forbidden] → sh) == nil
+  􀢄  Test "a fully-populated patch encodes exactly the keys the router reads" failed after 0.001 seconds with 1 issue.
+  􀢄  Test "a placard can be set, cleared, or left alone, and the three are different on the wire" recorded an issue at ControlContractTests.swift:91:6: Caught error: .forbiddenKeys(["command"])
+  􀢄  Test "the patch path stays allowlisted now that the protocol is wider" recorded an issue at ControlContractTests.swift:237:6: Caught error: .forbiddenKeys(["command"])
+  􀢄  Test "encodedBody emits only permitted keys, for every shape a patch can take" recorded an issue at ControlContractTests.swift:124:6: Caught error: .forbiddenKeys(["command"])
+  􀢄  Test "an encoded ServerPatch can never carry command, args or env" recorded an issue at ControlContractTests.swift:37:9: Expectation failed: (Set(object.keys) → ["idleMs", "projects", "warm", "comm
+  􀢄  Test "encodedBody emits only permitted keys, for every shape a patch can take" failed after 0.001 seconds with 1 issue.
+  􀢄  Test "the patch path stays allowlisted now that the protocol is wider" failed after 0.001 seconds with 1 issue.
+  􀢄  Test "a placard can be set, cleared, or left alone, and the three are different on the wire" failed after 0.001 seconds with 1 issue.
+  􀢄  Test "an encoded ServerPatch can never carry command, args or env" failed after 0.001 seconds with 2 issues.
+  􀢄  Suite "Control API contract" failed after 0.001 seconds with 6 issues.

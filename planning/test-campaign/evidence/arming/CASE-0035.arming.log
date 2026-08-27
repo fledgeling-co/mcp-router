@@ -1,0 +1,18 @@
+case: CASE-0035
+filter: ControlAuthStartDispatchTests
+verdict: RED
+executed: 11
+exit: 1
+breaks: the token gate runs after route ownership, so an untokened call answers 404 before 401
+note: 11 tests ran; the suite failed as required
+mutation:
+  app/Sources/RouterCore/Control/ControlHandler.swift
+    - return .error(401, "unauthorized; the token is in \(tokenPath)")
+    + return .error(404, "not found")
+restored: app/Sources/RouterCore/Control/ControlHandler.swift@14f4d99cadc52957
+first failures:
+  􀢄  Test "A11 — an untokened auth is 401, ahead of the 404" recorded an issue at ControlAuthStartDispatchTests.swift:181:13: Expectation failed: (status → 404) == 401
+  􀢄  Test "A11 — an untokened auth is 401, ahead of the 404" recorded an issue at ControlAuthStartDispatchTests.swift:181:13: Expectation failed: (status → 404) == 401
+  􀢄  Test "A11 — an untokened auth is 401, ahead of the 404" failed after 0.002 seconds with 2 issues.
+  􀢄  Suite ControlAuthStartDispatchTests failed after 0.263 seconds with 2 issues.
+  􀢄  Test run with 11 tests in 1 suite failed after 0.263 seconds with 2 issues.

@@ -1,0 +1,23 @@
+case: CASE-0034
+filter: ImportConfigWriterLockTests
+verdict: RED
+executed: 2
+exit: 1
+breaks: the read moves outside the lock, so a concurrent write is clobbered from a stale snapshot
+note: 2 tests ran; the suite failed as required
+mutation:
+  app/Sources/RouterCore/Config/ImportConfigWriter.swift
+    - let path = destination.path
+        try ConfigMutationLock.withExclusiveLock(
+    + let path = destination.path
+        let preRead = existingMembers(at: path, fileSystem: fileSystem)
+        try ConfigMutationLock.withExclusiveLock(
+  app/Sources/RouterCore/Config/ImportConfigWriter.swift
+    - into: existingMembers(at: path, fileSystem: fileSystem),
+    + into: preRead,
+restored: app/Sources/RouterCore/Config/ImportConfigWriter.swift@faa0bfeadf61c312
+first failures:
+  􀢄  Test "W11 — the read happens inside the lock, so a concurrent write is not clobbered" recorded an issue at ImportConfigWriterLockTests.swift:157:9: Expectation failed: (text → "{
+  􀢄  Test "W11 — the read happens inside the lock, so a concurrent write is not clobbered" failed after 0.292 seconds with 1 issue.
+  􀢄  Suite "Import config writer — the lock" failed after 0.813 seconds with 1 issue.
+  􀢄  Test run with 2 tests in 1 suite failed after 0.814 seconds with 1 issue.

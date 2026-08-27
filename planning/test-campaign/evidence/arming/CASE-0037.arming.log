@@ -1,0 +1,21 @@
+case: CASE-0037
+filter: CallbackListenerTests
+verdict: RED
+executed: 6
+exit: 1
+breaks: the callback serves its page without exchanging the code
+note: 6 tests ran; the suite failed as required
+mutation:
+  app/Sources/RouterCore/Auth/CallbackResponder.swift
+    - try await exchange(authorizationCode)
+    + 
+restored: app/Sources/RouterCore/Auth/CallbackResponder.swift@c578ed51383b2855
+first failures:
+  􀢄  Test "termination 1 — a real GET /callback?code= exchanges the code and serves the page" recorded an issue at CallbackListenerTests.swift:57:9: Expectation failed: (exchanged → []) == ["abc123"]
+  􀢄  Test "termination 1 — a real GET /callback?code= exchanges the code and serves the page" failed after 0.214 seconds with 1 issue.
+  􀢄  Test "termination 4 — a failing token exchange serves 500 with the thrown message" recorded an issue at CallbackListenerTests.swift:121:9: Expectation failed: (head → "HTTP/1.1 200 OK
+  􀢄  Test "termination 4 — a failing token exchange serves 500 with the thrown message" recorded an issue at CallbackListenerTests.swift:122:9: Expectation failed: (body → "<!doctype html><meta charset=
+  􀢄  Test "termination 4 — a failing token exchange serves 500 with the thrown message" recorded an issue at CallbackListenerTests.swift:126:9: Expectation failed: (outcome → "resolved") == "rejected:th
+  􀢄  Test "termination 4 — a failing token exchange serves 500 with the thrown message" failed after 0.210 seconds with 3 issues.
+  􀢄  Suite "R5 auth — the loopback callback listener's terminations" failed after 1.620 seconds with 4 issues.
+  􀢄  Test run with 6 tests in 1 suite failed after 1.620 seconds with 4 issues.

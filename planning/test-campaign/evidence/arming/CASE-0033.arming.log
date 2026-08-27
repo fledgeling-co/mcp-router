@@ -1,0 +1,17 @@
+case: CASE-0033
+filter: ListenerFailureTests
+verdict: RED
+executed: 3
+exit: 1
+breaks: the control listener binds every interface instead of IPv4 loopback
+note: 3 tests ran; the suite failed as required
+mutation:
+  app/Sources/RouterCore/HTTP/LoopbackHTTPServer.swift
+    - host: .ipv4(.loopback), port: endpointPort
+    + host: .ipv4(.any), port: endpointPort
+restored: app/Sources/RouterCore/HTTP/LoopbackHTTPServer.swift@dc21eed28868c763
+first failures:
+  􀢄  Test "the bind is pinned to IPv4 loopback, never every interface" recorded an issue at HTTPWireTests.swift:235:9: Expectation failed: (host → 0.0.0.0) == (.ipv4(.loopback) → 127.0.0.1)
+  􀢄  Test "the bind is pinned to IPv4 loopback, never every interface" failed after 0.002 seconds with 1 issue.
+  􀢄  Suite "Bringing the listener up" failed after 0.003 seconds with 1 issue.
+  􀢄  Test run with 3 tests in 1 suite failed after 0.003 seconds with 1 issue.

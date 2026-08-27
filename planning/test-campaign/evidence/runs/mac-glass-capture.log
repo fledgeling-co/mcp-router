@@ -1,0 +1,66 @@
+frontmost before: Warden
+attached pid=41218
+winid=105219
+180,184,980,620
+Cleanup
+select Servers -> SURF-002
+OK
+Servers
+  captured SURF-002.build bytes=410665 sha=f221cce575ed34a8 target=app://mac/servers
+  captured SURF-001.build (declared share of SURF-002) sha=f221cce575ed34a8
+  captured SURF-001.shell (sidebar crop of SURF-001.build) bytes=94067 sha=c45c098af28d9fd0
+select Activity -> SURF-003
+OK
+Activity
+  captured SURF-003.build bytes=454012 sha=67ec5b003a42ff81 target=app://mac/activity
+select Skills -> SURF-004
+OK
+Skills
+  captured SURF-004.build bytes=458432 sha=5d9c92bd76dc87dd target=app://mac/skills
+select Discover -> SURF-005
+OK
+Discover
+  captured SURF-005.build bytes=428612 sha=b12da3f0eb96c4e9 target=app://mac/discover
+select Inbox -> SURF-008
+OK
+Inbox
+  captured SURF-008.build bytes=359081 sha=ac60c33fec6697fd target=app://mac/inbox
+select Checks -> SURF-006
+OK
+Checks
+  captured SURF-006.build bytes=492393 sha=baaf6220b51c1052 target=app://mac/checks
+select Cleanup -> SURF-007
+OK
+Cleanup
+  captured SURF-007.build bytes=484387 sha=89465dc1c0bf407d target=app://mac/cleanup
+select Settings -> SURF-011
+OK
+Settings
+  captured SURF-011.build bytes=475178 sha=3b5a26ef6016a38c target=app://mac/settings
+try add-server sheet
+OK
+  captured SURF-002.addserver bytes=490575 sha=95d2701708b8cb2f target=app://mac/servers
+sent
+try pairing sheet
+OK
+  captured SURF-010.build bytes=415782 sha=705e19b7c853443c target=app://mac/pairing
+sent
+try status item / popover
+  status item not pressable in background — SURF-009 uncaptured
+OK
+OK
+  captured SURF-002.empty bytes=270318 sha=698cedd0cd055f67 target=app://mac/servers
+OK
+OK
+  captured SURF-002.offline bytes=266658 sha=24e6f3c136bae63a target=app://mac/servers
+OK
+OK
+  captured SURF-007.cleanup-skills bytes=519568 sha=94dd9d06f87dc3d1 target=app://mac/cleanup
+try provenance sheet
+  captured SURF-007.provenance-sheet bytes=632806 sha=778ceb5ee227dc18 target=app://mac/cleanup
+sent
+OK
+manifest: 16 capture(s) -> /Users/lukerhodes/Dev/mcp-router/planning/test-campaign/evidence/shots/captures.json
+board width: examined=16 overflowing=0 (DEF-015)
+frontmost after: Warden
+glass capture done, MCPRouter never frontmost

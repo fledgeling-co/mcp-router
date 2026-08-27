@@ -23,6 +23,21 @@ node_modules
 /manifest.json
 *.log
 
+# ...but NOT the test campaign's run evidence (`G24`). `*.log` above is unanchored and matches at
+# every depth, and the campaign writes every run record it produces as `.log`. Measured on `main`
+# at `d6e2958`: 42 evidence logs on disk under `planning/test-campaign/evidence/`, 0 tracked, and
+# 35 distinct log paths cited as evidence by cases, defects and the evidence page. So every one of
+# those citations resolved only on the machine that wrote it. Three of them — the wire-document
+# trio — had already been lost: `ai/g19` merged the `.json` siblings and the `.log` files stayed
+# behind in `.worktrees/G19`, which is the same disappearance one directory in.
+#
+# Negated here rather than by weakening `*.log` globally, because `*.log` is right everywhere else:
+# a build or a server log dropped anywhere in this tree is scratch, and a repository that tracks
+# every `.log` acquires them by accident. This exemption is a single directory whose entire purpose
+# is to hold artifacts that records cite, and `planning/evidence-citation-gate.py` fails a citation
+# to anything under it that the repository does not actually hold.
+!/planning/test-campaign/evidence/**/*.log
+
 # Generated launchd plists — install.sh writes these with machine-specific
 # absolute paths (node binary, repo location), so they are never committed.
 *.plist

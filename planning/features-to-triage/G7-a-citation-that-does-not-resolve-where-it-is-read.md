@@ -53,8 +53,11 @@ first.
   places. Nobody has counted the rest.
 - Decide whether it earns a guard. A check that a cited line still holds the phrase its citer
   relied on is mechanical, and `planning/claim-sweep.py` plus
-  `planning/verification/G5-gapfix-3-sweep.py` are both committed examples of the reader it
-  would need.
+  `planning/verification/G5-gapfix-3-sweep.py` at `3e63811` are both examples of the reader it
+  would need. **Corrected in place 2026-08-27:** this sentence read *"are both committed
+  examples"* and the second file is in no commit reachable from `main` — it is on `ai/g5` at
+  `3e63811` and nowhere else. This item's own brief failing this item's own rule, which is why
+  the frame is carried rather than the sentence quietly repaired.
 
 **Do not fix this by renumbering to the current revision.** A number chased forward is correct
 until the next edit and carries no way for a reader to tell — which is the defect, restated.

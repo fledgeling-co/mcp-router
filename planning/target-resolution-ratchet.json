@@ -1,0 +1,36 @@
+{
+  "note": "Blocking-class citations per CITING file. Written by planning/target-resolution-gate.py --set-floor. Each file's count may only fall. Per file rather than in total, because a scalar lets a deletion in one file buy headroom for a new dead citation in another.",
+  "paths": {
+    "blocking": [
+      "MOVED",
+      "DELETED",
+      "PHANTOM"
+    ],
+    "total": 22,
+    "by_file": {
+      "ORCHESTRATOR.md": 1,
+      "planning/evidence/M16-acceptance.md": 1,
+      "planning/evidence/M23-acceptance.md": 1,
+      "planning/features-to-triage/G3-gapfix-2.md": 1,
+      "planning/plans/plan-F1.md": 2,
+      "planning/plans/plan-M16.md": 3,
+      "planning/plans/plan-M19.md": 1,
+      "planning/plans/plan-M3.md": 1,
+      "planning/plans/plan-M4.md": 1,
+      "planning/practices/EVIDENCE_AND_DISPATCH.md": 1,
+      "planning/practices/NEW_PROJECT_BEST_PRACTICES.md": 1,
+      "planning/progress/G4-gapfix-3.md": 1,
+      "planning/progress/G6.md": 2,
+      "planning/progress/P9.md": 1,
+      "planning/specs/spec-I2.md": 1,
+      "planning/specs/spec-M16.md": 3
+    }
+  },
+  "ids": {
+    "blocking": [
+      "ID_ABSENT"
+    ],
+    "total": 0,
+    "by_file": {}
+  }
+}

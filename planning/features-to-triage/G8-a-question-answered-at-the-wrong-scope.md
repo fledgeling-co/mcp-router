@@ -73,7 +73,9 @@ Ask what the set is before answering a question about its members, and prefer a 
 - `git log --all -S<phrase>` or a diff over **every** branch, not the branches you are in
   conversation with.
 - A wrap-tolerant reader for any absence claim over prose — `planning/claim-sweep.py` and
-  `planning/verification/G5-gapfix-3-sweep.py` are both committed and both do this.
+  `planning/verification/G5-gapfix-3-sweep.py` at `3e63811` both do this. **Corrected in place
+  2026-08-27:** this read *"are both committed"*; the second is on `ai/g5` at `3e63811` and is
+  in no commit reachable from `main`.
 - **A presence control on every absence check.** Plant a known instance, confirm the instrument
   sees it, then trust the zero. An absence check cannot detect its own blindness.
 - When ruling out a change, read **both sides of it**. Three readings from one side are one

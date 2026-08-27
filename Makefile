@@ -114,6 +114,22 @@ SURFACE    ?= servers
 ## its presence control plants nine instances across every class on every invocation and exits 2
 ## without printing a verdict if any one of them is missed — so a zero here is a measurement.
 ##
+## `planning/hooks/install.sh --gate` (`G9`, 2026-08-27) is the same rule turned on G9's own
+## remedy. The pre-commit hook that refuses a non-merge commit on `main` in the shared checkout is
+## tracked at `planning/hooks/pre-commit`, but `.git/hooks` is not tracked, so the installed copy
+## is derived state that can drift from the source with nothing going red — an edited tracked hook
+## and a stale installed copy are indistinguishable from outside. `--check` was written to detect
+## exactly that and was then invoked by nothing, which is how the hook reached a third hand-off
+## still uninstalled: two verifiers recorded the gap and no instrument could.
+##
+## It is `--gate` rather than `--check` because CI runs `make lint` on a fresh clone, where
+## `.git/hooks` holds only the samples. `--gate` splits the two states `--check` conflates: DRIFTED
+## always reds, because a stale copy claims to be a control and is not; ABSENT reds only where
+## linked worktrees exist, because that is where the hook has a job — it exists to tell the main
+## checkout apart from a runner's worktree, and with none there is neither. The discriminator is
+## counted from `git worktree list`, not sniffed from the environment. Proved red four ways and
+## green on a real fresh clone; see `planning/progress/G9.md`.
+##
 ## `pin-class-gate.py` (`P11`) runs here for the reason P9 declined to put it here in a hurry:
 ## "bolting an unproven gate into the lint chain at the end of a gap-fix round is how a gate ends
 ## up reporting success without running." It is armed twice before it is trusted — five arms of its
@@ -154,6 +170,40 @@ SURFACE    ?= servers
 ## without printing a verdict if any arm misbehaves. The arm that carries the weight is `UNTRACKED`,
 ## whose artifact IS written to disk in the control repo: a classifier that reads the filesystem
 ## answers `TRACKED` and the control fails.
+
+## `target-resolution-gate.py` (`G7`, third axis) is the third sibling on that axis, and the split
+## between the three is the whole reason it is a separate file. `citation-gate` asks whether a
+## STATED FRAME holds — is the anchor at the cited line at the cited tree. `foreign-path-gate` asks
+## whether the artifact behind a SCRATCH path survives. This asks whether the target a record names
+## exists at all, for paths rooted INSIDE the repository and for registry ids, which is the half
+## none of the three reads: `citation-gate` DROPS a citation whose path is not tracked rather than
+## classifying it — 65 of them at the run this landed against — and those 65 are the top of this
+## gate's population.
+##
+## Measured over 411 hand-written records at the landing commit: 1651 repo-rooted path citations,
+## of which 1596 resolve, 10 are dead-but-framed (a tree carried, so still checkable), 10 withdrawn,
+## 8 plan work-items, 5 values rather than pointers — and 22 name a target no commit reachable from
+## any ref holds. 1057 id citations, all of which resolve, are foreign, or are named precisely
+## because they have no row. The census is the finding; the numbers are printed on every run so
+## none can be quoted without its question.
+##
+## It reads the INDEX rather than `HEAD`, which is `evidence-citation-gate`'s frame and not
+## `foreign-path-gate`'s. Deliberate: this gate exists to stop a dead pointer being WRITTEN, and a
+## gate that only sees a citation once it is committed has already let it through. `--rev <sha>`
+## gives the deterministic per-commit reading `G11`'s argument wants.
+##
+## It survives a legitimate renumber without a waiver list, which is what decided its design —
+## `G16` became `DEF-059`, `G19` `SURF-027` and `G17` `CASE-0184..0194` in one day. Registries are
+## read as a UNION, so a refiling that keeps the old row leaves both ids resolving; a path citation
+## carrying a tree reads `FRAMED` whatever happens to the path afterwards; and what is left is a
+## renumber that deletes the old id everywhere and names no successor, which is
+## `registry-drop-gate`'s undeclared drop and is declared in the same
+## `planning/registry-retirements.json`. Its control holds both halves apart: a renumber that keeps
+## the old row must be silent and one that does not must fire, and the run fails if they agree.
+##
+## Its floor is per CITING file and may only fall, for `citation-gate`'s reason — a scalar lets a
+## deletion in one file buy headroom for a new dead citation in another. `--set-floor` writes it;
+## checking never does.
 
 ## `foreign-path-gate.py` (`G6`) is the sibling of that one, one directory out. `evidence-citation-gate`
 ## asks whether a path a campaign record names is in the index; this asks whether a path a
@@ -865,9 +915,11 @@ lint: tools
 	python3 planning/citation-gate.py || fail=1; \
 	python3 planning/sweep-control-gate.py || fail=1; \
 	python3 planning/runnable-path-gate.py || fail=1; \
+	bash planning/hooks/install.sh --gate || fail=1; \
 	python3 planning/registry-drop-gate.py || fail=1; \
 	python3 planning/evidence-citation-gate.py || fail=1; \
 	python3 planning/foreign-path-gate.py --quiet || fail=1; \
+	python3 planning/target-resolution-gate.py --quiet || fail=1; \
 	python3 planning/test-campaign/bin/capture-manifest.py || fail=1; \
 	python3 planning/pin-class-gate.py || fail=1; \
 	python3 planning/shipped-brief-gate.py || fail=1; \

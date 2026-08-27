@@ -110,3 +110,86 @@ two pipes — and it is usually the most distinctive part anyway:
 
 The same applies to any anchor carrying a character the *citing* file gives structural meaning to.
 The anchor's job is to be findable in the cited file; it is never required to be the whole line.
+
+## The other half: does the target exist at all
+
+Everything above is about whether a **frame** holds. A citation can carry a perfect frame, sit in a
+committed file, and still point at nothing — because the file moved, the file was deleted, or the id
+was renumbered. `planning/target-resolution-gate.py` reads that half, and `make lint` runs it.
+
+Measured over 411 hand-written records, 2026-08-27: **1651 repo-rooted path citations and 1057
+campaign-id citations.** 1596 paths resolve at the index and 963 ids name a row. Of the rest:
+
+| | count | what it is |
+| --- | --- | --- |
+| `FRAMED` | 10 | gone from the tree, and the citation names a tree where it is. **Not a defect.** |
+| `WITHDRAWN` | 10 | gone, and the record says so in a marker in the same sentence |
+| `PLANNED` | 8 | a plan naming a file under `Create` / `Delete` — intent, not a claim of presence |
+| `SUBJECT` | 5 | fenced, or carrying an elided `.../` segment. A value, not a pointer |
+| `DELETED` | 9 | gone from the tree, no frame, no marker. **Blocks.** |
+| `PHANTOM` | 13 | in no commit reachable from any ref. **Blocks, and no frame can repair it.** |
+| `ID_WITHDRAWN` | 2 | an id named precisely because it has no row |
+| `ID_ABSENT` | 0 | an id with no row, no retirement and no marker. **Blocks.** |
+
+`PHANTOM` is the one worth knowing about. There is no tree at which that citation was ever true, so
+it is not a pointer that rotted — it is a claim that was never checkable. Three of the thirteen name
+an artifact a record calls evidence and no commit holds, which is `G24`'s defect outside the campaign
+directory.
+
+### Carry a tree and a rename costs you nothing
+
+A path citation naming a commit reads `FRAMED` forever, whatever happens to the path afterwards.
+That is the same third coordinate as above doing a second job, and it is why the answer to a
+renamed file is never to chase the new path:
+
+```
+  bad   `app/Sources/MCPRouterUI/Breaker.swift` — the drawing
+  good  `app/Sources/MCPRouterUI/Breaker.swift` at `d0b19c3` — the drawing
+```
+
+The gate prints whether the named tree is an ancestor of `HEAD`. A frame on a side branch is
+checkable in this clone and would stop being checkable if that branch were pruned, which is a weaker
+guarantee than the same frame on mainline and is not reported as the same fact.
+
+### Where a record must keep a dead pointer
+
+Say so, in `foreign-path-gate`'s marker vocabulary — the same spelling, so a writer satisfies one
+rule rather than two. A parenthesised clause opening with the marker word, a lone table cell, or a
+bold run opening with it:
+
+```
+`planning/PLANT-sweep.py` (deleted after; the plant was reverted and it is in no commit)
+| `scripts/acceptance/no-raw-design-values.sh` (does not exist, at any commit) | the script is … |
+```
+
+An adjacent denial clause counts too — *"which **does not exist**"*, *"which is nowhere in the
+repo"* — and so does a marker that comes *before* the path, which is how a record listing dead
+pointers has to write them: *"…name an artifact no commit holds: `a.json` and `b.md`"*. Without
+that direction a census of dead citations could not be written down at all, which this item found
+by having its own census blocked by its own gate.
+
+The binding is the **sentence**, never a character count. A marker on the other side of a full stop
+is a marker about some other pointer, and the negative control plants exactly that. The boundary is
+a full stop followed by whitespace — a bare `.` splits inside `servers.ideal.json`, which cost a
+marker one path token away from its citation while this was landing.
+
+### Ids, and how a renumber survives
+
+This repository renumbers routinely: `G16` was refiled as `DEF-059`, `G19` as `SURF-027` and `G17`
+as `CASE-0184..0194` in one day. None of them reddens the gate, and the reason is structural rather
+than a waiver list — **the registries are read as a union**, so a refiling that keeps the old row
+leaves both ids resolving. `DEF-059` and `SURF-027` are in `inventory.json` and in neither
+`defects.in.json` nor `surfaces.in.json`; a gate reading the seed registries alone would have
+blocked 55 cited ids on the day the refiling landed.
+
+What is left is a renumber that deletes the old id from everywhere and names no successor. That is
+`registry-drop-gate`'s undeclared drop one layer along, and it is declared in the same file —
+`planning/registry-retirements.json`, as `{"id": "…", "reason": "…"}`. One declaration satisfies both
+gates.
+
+### The floor
+
+The blocking count is held per **citing file** in `planning/target-resolution-ratchet.json` and may
+only fall, for the reason the bare-citation ratchet gives. Lower it with
+`python3 planning/target-resolution-gate.py --set-floor`, in the same change that repoints the
+citations — never to absorb a new one.

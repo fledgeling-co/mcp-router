@@ -518,6 +518,7 @@ parity-selftest:
 	./scripts/acceptance/parity-manifest-selftest.sh
 	./scripts/acceptance/parity-lock-selftest.sh
 	./scripts/acceptance/parity-normalise-selftest.sh
+	./scripts/acceptance/parity-regen-selftest.sh
 	@$(MAKE) --no-print-directory parity-lane-selftest
 
 ## Proves the lanes can actually GO RED, by running each against a deliberately broken Swift

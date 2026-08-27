@@ -207,18 +207,19 @@ function applyObservation(
   u: UpstreamConfig,
   observation: Observation
 ): EntryOutcome {
+  const prev = manifest.servers[u.name];
   if ('error' in observation) {
     manifest.servers[u.name] = {
       hash: upstreamHash(u),
       builtAt: new Date().toISOString(),
       tools: [],
+      ...(prev?.digest ? { digest: prev.digest } : {}),
       error: observation.error,
     };
     return { name: u.name, failed: `${u.name}: ${observation.error}` };
   }
 
   const digest = toolsDigest(observation.tools);
-  const prev = manifest.servers[u.name];
 
   /*
    * First sight of a server approves it: there is nothing to compare against,

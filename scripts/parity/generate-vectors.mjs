@@ -542,7 +542,7 @@ const buildResults = [];
 for (const { id, servers, observation, force } of buildCases) {
   const input = { version: 1, servers: JSON.parse(JSON.stringify(servers)) };
   const result = await atFixedTime(
-    () => manifest.buildManifest([buildUpstream], poolFor(observation), input, { force })
+    () => manifest.buildManifest([buildUpstream], poolFor(observation), input, { force, commit: (apply) => apply(input) })
   );
   buildResults.push({
     id, upstream: buildUpstream, force, servers, observation, builtAtMs: FIXED_MS,
@@ -844,12 +844,36 @@ const usageStats = join(usageScratch, 'usage-stats.json');
 // ---------------------------------------------------------------- M30 · the document route
 //
 // In a module of its own, and imported rather than inlined, so `generate-document-vectors.mjs` can
-// also be run on its own. That is not tidiness: `parity-regen` drives this whole file, and this
-// file cannot currently run to completion — `buildManifest` is called here without the `commit`
-// option it now requires, which is a break that predates M30 and is recorded in
-// `planning/features-to-triage/M31-parity-regen-is-broken.md`. A generator whose only entry point
-// is a script that throws is a generator nobody can re-run.
+// also be run on its own.
 writeDocumentVectors({ write, distDir, require });
+
+// ---------------------------------------------------------------- R5 · auth pages
+const authCases = [
+  { id: "connected",            kind: "connected", server: "linear",  detail: "",                     title: "linear is connected",  d: "You can close this tab and return to mcp-router." },
+  { id: "connected-unicode",    kind: "connected", server: "a-b_9",   detail: "",                     title: "a-b_9 is connected",   d: "You can close this tab and return to mcp-router." },
+  { id: "provider-refused",     kind: "failed",    server: "",        detail: "access_denied",        title: "Authorization failed", d: "access_denied" },
+  { id: "no-code",             kind: "failed",    server: "",        detail: "the provider returned no code", title: "Authorization failed", d: "the provider returned no code" },
+  { id: "exchange-failed",      kind: "failed",    server: "",        detail: "token endpoint returned 401 invalid_client", title: "Authorization failed", d: "token endpoint returned 401 invalid_client" },
+  { id: "empty-error-detail",   kind: "failed",    server: "",        detail: "",                     title: "Authorization failed", d: "" },
+];
+const PAGE = (title, detail) =>
+  `<!doctype html><meta charset="utf-8"><title>${title}</title>` +
+  `<style>body{font:15px/1.6 -apple-system,system-ui,sans-serif;background:#141220;color:#eae8f5;` +
+  `display:grid;place-items:center;height:100vh;margin:0;text-align:center}` +
+  `h1{font-size:19px;margin:0 0 6px}p{margin:0;color:#a6a2c4}</style>` +
+  `<div><h1>${title}</h1><p>${detail}</p></div>`;
+
+write("auth-pages", {
+  description: "The bytes src/auth.ts's PAGE() emits, generated from the reference's own template literal. R4 diffs these.",
+  cases: authCases.map(c => ({
+    id: c.id,
+    kind: c.kind,
+    server: c.server,
+    detail: c.detail,
+    html: PAGE(c.title, c.d),
+  }))
+});
+
 
 rmSync(usageScratch, { recursive: true, force: true });
 

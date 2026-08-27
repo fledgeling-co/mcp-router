@@ -1,5 +1,5 @@
 {
-  "description": "Array.prototype.sort with (a<b?-1:a>b?1:0) — the reference comparator.",
+  "description": "Array.prototype.sort with config.compareStrings — the reference comparator, imported from the reference (N1).",
   "cases": [
     {
       "id": "ordering-0",

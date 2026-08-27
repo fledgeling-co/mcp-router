@@ -116,6 +116,28 @@ export const AUTH_DIR = join(ROUTER_HOME, 'auth');
  * than the config, and a routine token refresh must not invalidate a tool list
  * that has not changed.
  */
+/**
+ * Code-unit ordering: the comparator every digest in this repo sorts with.
+ *
+ * One definition rather than three inline copies, and exported, because
+ * `scripts/parity/generate-vectors.mjs` builds the `string-ordering` vector from it. Both digests
+ * below and `manifest.toolsDigest` call it, so a change here moves the vector and reddens
+ * `make parity-regen`; a copy in the generator could not see that.
+ *
+ * The exemption argued in an earlier P9 round -- that a comparator change reddens regen anyway
+ * through the reference-driven `upstream-hash` and `tools-digest` vectors -- holds only for the
+ * mutation nobody makes. Reversing the comparator at all three sites does redden regen. Swapping
+ * it to `localeCompare` did not, and that is the swap someone reaches for: ICU root collation
+ * disagrees with code-unit order on `B/a`, `A/a`, `Z/a`, `e-acute/z` and `1/_`, so both digests
+ * would change while every vector kept passing.
+ *
+ * `localeCompare` is the wrong answer for a digest regardless of locale data: it is
+ * environment-dependent, and these digests are compared across processes and across ports.
+ */
+export function compareStrings(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
 export function upstreamHash(u: UpstreamConfig): string {
   const material = isStdio(u)
     ? JSON.stringify([
@@ -123,12 +145,12 @@ export function upstreamHash(u: UpstreamConfig): string {
         u.command,
         u.args,
         u.cwd ?? null,
-        Object.entries(u.env).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+        Object.entries(u.env).sort(([a], [b]) => compareStrings(a, b)),
       ])
     : JSON.stringify([
         u.transport,
         u.url,
-        Object.entries(u.headers).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+        Object.entries(u.headers).sort(([a], [b]) => compareStrings(a, b)),
       ]);
   return createHash('sha256').update(material).digest('hex').slice(0, 16);
 }

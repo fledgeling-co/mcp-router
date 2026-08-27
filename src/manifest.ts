@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 import { createHash } from 'node:crypto';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import type { UpstreamConfig } from './config.js';
-import { upstreamHash } from './config.js';
+import { upstreamHash, compareStrings } from './config.js';
 import { UpstreamPool } from './pool.js';
 import { isAuthFailure } from './auth.js';
 import { withExclusiveLock } from './lock.js';
@@ -48,7 +48,7 @@ export interface Manifest {
 export function toolsDigest(tools: Tool[]): string {
   const material = [...tools]
     .map((t) => [t.name, t.description ?? '', JSON.stringify(t.inputSchema ?? {})])
-    .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+    .sort((a, b) => compareStrings(a[0], b[0]));
   return createHash('sha256').update(JSON.stringify(material)).digest('hex').slice(0, 16);
 }
 

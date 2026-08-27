@@ -98,11 +98,24 @@ write('json-roundtrip', {
   })
 });
 
+// The reference itself, from here on: these vectors record what `src/config.ts` does rather than
+// what anyone believes it does. Required this early because `string-ordering` below is driven from
+// the reference's own comparator.
+const config = require(join(distDir, 'config.js'));
+const registryModule = require(join(distDir, 'registry.js'));
+
 // ---------------------------------------------------------------- string ordering (N1)
 //
-// The comparator the reference sorts env and header keys with. UTF-16 code-unit order, which
-// disagrees with Unicode scalar order exactly where a supplementary character meets a private-use
-// one.
+// The comparator the reference sorts env and header keys with -- `config.compareStrings`, the one
+// definition behind `upstreamHash`'s two sorts and `manifest.toolsDigest`'s. UTF-16 code-unit
+// order, which disagrees with Unicode scalar order exactly where a supplementary character meets a
+// private-use one.
+//
+// Imported rather than re-typed, and that distinction is this vector's whole subject. A re-typed
+// copy reddens regen when the reference's comparator is *reversed* -- but swapping all three sites
+// to `localeCompare` left regen at exit 0, while ICU root collation disagrees with code-unit order
+// on 5 of the 6 discriminating probes in `orderingGroups`. So the copy was blind to the one
+// substitution a porter actually reaches for.
 const orderingGroups = [
   ['b', 'a', 'c'],
   ['B', 'a'],
@@ -114,21 +127,17 @@ const orderingGroups = [
 ];
 
 write('string-ordering', {
-  description: 'Array.prototype.sort with (a<b?-1:a>b?1:0) — the reference comparator.',
+  description: 'Array.prototype.sort with config.compareStrings — the reference comparator, imported from the reference (N1).',
   cases: orderingGroups.map((input, index) => ({
     id: `ordering-${index}`,
     input,
-    sorted: [...input].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+    sorted: [...input].sort(config.compareStrings)
   }))
 });
 
 console.log(`\nwrote vectors to ${outDir}`);
 
 // ---------------------------------------------------------------- config layer
-//
-// From here on the reference itself is driven, so these vectors record what `src/config.ts`
-// does rather than what anyone believes it does.
-const config = require(join(distDir, 'config.js'));
 
 // Every field of the returned upstream, not just the accept/reject decision — a port that
 // reproduces the decisions and drops `projects` or `placard` changes routing while passing a
@@ -728,6 +737,10 @@ write('js-to-number', {
 // before `"B"` and `"A"` after `"a"` — both the reverse of UTF-16 code-unit order — so the obvious
 // Swift substitution reorders the registry results for any pair of rows whose timestamps differ in
 // case or in fractional-second digit count.
+//
+// Driven from `registry.compareUpdatedAt`, the reference's own comparator, not from a re-typed
+// `lhs.localeCompare(rhs)`. The re-typed form asserted the same numbers and could not see the
+// reference move: swapping the registry sort to code units left `make parity-regen` at exit 0.
 const comparePairs = [
   ['2024-01-01T00:00:00Z', '2024-01-01T00:00:00.000Z'],
   ['2024-01-01T00:00:00.1Z', '2024-01-01T00:00:00.10Z'],
@@ -745,7 +758,7 @@ write('locale-compare', {
     lhs,
     rhs,
     // Normalised to the sign, which is all the sort consumes and all ICU guarantees.
-    result: Math.sign(lhs.localeCompare(rhs))
+    result: Math.sign(registryModule.compareUpdatedAt(lhs, rhs))
   }))
 });
 
@@ -794,8 +807,12 @@ const usageStats = join(usageScratch, 'usage-stats.json');
   const limitValues = [null, '', ' ', '0', '1', '3', '200', 'abc', '-1', '-5', '-100', '1e2', '2.7', '-2.7'];
   const usageCases = [];
   for (const [index, raw] of limitValues.entries()) {
-    // Exactly the expression at src/control.ts's `/usage` branch.
-    const limit = Number(raw ?? 200);
+    // Driven from the reference's own `usageRecentLimit`, not from a transcription of it. The
+    // comment that stood here claimed this was "exactly the expression at src/control.ts's
+    // `/usage` branch" -- which is precisely the claim a copy cannot keep. Mutating the default
+    // there from 200 to 3 left this vector asserting the old answers and `make parity-regen` at
+    // exit 0.
+    const limit = controlModule.usageRecentLimit(raw);
     usageCases.push({
       id: `limit-${index}`,
       ...(raw === null ? {} : { limit: raw }),
@@ -803,10 +820,10 @@ const usageStats = join(usageScratch, 'usage-stats.json');
     });
   }
   // And the two filters, whose interaction with the slice is the part an order-swapped port breaks.
-  usageCases.push({ id: 'filter-server', limit: '2', server: 'alpha', records: store.recent({ limit: 2, server: 'alpha' }).map((r) => r.tool) });
-  usageCases.push({ id: 'filter-cwd', limit: '3', cwd: '/Users/x/Dev/two', records: store.recent({ limit: 3, cwd: '/Users/x/Dev/two' }).map((r) => r.tool) });  // path-gate: ok — a filter argument matched against stored cwd labels, never opened
-  usageCases.push({ id: 'filter-both', limit: 'abc', server: 'beta', cwd: '/Users/x/Dev/two', records: store.recent({ limit: Number('abc'), server: 'beta', cwd: '/Users/x/Dev/two' }).map((r) => r.tool) });  // path-gate: ok — as above — a filter argument, never opened
-  usageCases.push({ id: 'filter-no-match', limit: '5', server: 'nobody', records: store.recent({ limit: 5, server: 'nobody' }).map((r) => r.tool) });
+  usageCases.push({ id: 'filter-server', limit: '2', server: 'alpha', records: store.recent({ limit: controlModule.usageRecentLimit('2'), server: 'alpha' }).map((r) => r.tool) });
+  usageCases.push({ id: 'filter-cwd', limit: '3', cwd: '/Users/x/Dev/two', records: store.recent({ limit: controlModule.usageRecentLimit('3'), cwd: '/Users/x/Dev/two' }).map((r) => r.tool) });  // path-gate: ok — a filter argument matched against stored cwd labels, never opened
+  usageCases.push({ id: 'filter-both', limit: 'abc', server: 'beta', cwd: '/Users/x/Dev/two', records: store.recent({ limit: controlModule.usageRecentLimit('abc'), server: 'beta', cwd: '/Users/x/Dev/two' }).map((r) => r.tool) });  // path-gate: ok — as above — a filter argument, never opened
+  usageCases.push({ id: 'filter-no-match', limit: '5', server: 'nobody', records: store.recent({ limit: controlModule.usageRecentLimit('5'), server: 'nobody' }).map((r) => r.tool) });
 
   write('usage-limit', {
     description: 'UsageStore.recent over a seeded ring — filter, take the last N, reverse (N4, B45, B46).',

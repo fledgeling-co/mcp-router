@@ -1,5 +1,6 @@
 ---
-status: to-triage
+status: completed
+shipped-by: eb8b0fd
 found-by: the campaign-id reconciliation, 2026-08-27, from two cases on g15 and g16; sized by the orchestrator the same day
 ---
 

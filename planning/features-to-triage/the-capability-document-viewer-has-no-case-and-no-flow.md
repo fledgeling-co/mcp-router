@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 3189d02
+---
+
 # The capability-document viewer has no case and no flow
 
 - origin: the orchestrator, from the G14 surface-enumeration finding · 2026-08-27

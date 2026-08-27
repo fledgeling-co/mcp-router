@@ -1,5 +1,6 @@
 ---
-status: to-triage
+status: completed
+shipped-by: 77857e5
 found-by: M22's verifier, 2026-08-23, during a Done-verdict residual sweep
 ---
 

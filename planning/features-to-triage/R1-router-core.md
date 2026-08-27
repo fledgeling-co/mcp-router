@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: c30eac9
+---
+
 # R1 — Swift router: core, config, manifest
 
 **Depends on:** F1.

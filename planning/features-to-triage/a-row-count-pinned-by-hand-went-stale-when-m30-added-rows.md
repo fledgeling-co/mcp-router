@@ -1,5 +1,6 @@
 ---
-status: to-triage
+status: completed
+shipped-by: 9259d48
 found-by: P9's gap-fix, 2026-08-27; reproduced by the orchestrator the same day
 ---
 

@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 496f88c
+---
+
 # P1 — Make the two auth routes reachable, and retire the stale defect assertions
 
 **Source:** `mcp-router-status-answers.json`, question `cutover` = `finish-first` (confirmed, own choice).

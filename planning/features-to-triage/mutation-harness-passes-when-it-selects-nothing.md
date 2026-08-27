@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 6c0249b
+---
+
 # The mutation harness reports success when its filter selects nothing
 
 - origin: found by the M29/G7 re-verify agent, reproduced by the orchestrator · 2026-08-26

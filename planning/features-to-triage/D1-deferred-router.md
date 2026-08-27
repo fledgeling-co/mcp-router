@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 997f7af
+---
+
 # D1 — The deferred register: router side
 
 **Source:** `deferred-plan` = `schedule-all` (confirmed). The owner **chose differently from the

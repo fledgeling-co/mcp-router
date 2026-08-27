@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 0bf48cc
+---
+
 # The pool mutation gate has a guard nothing proves, and a mutation that no longer applies
 
 - origin: tailings audit of session 8246a1a7, after the worktree-path repair made the gate runnable · 2026-08-25

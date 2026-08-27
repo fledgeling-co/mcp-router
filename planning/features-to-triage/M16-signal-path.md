@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 15926c5
+---
+
 # M16 — the Signal Path replaces the Breaker Column
 
 **Depends on:** M3. **Supersedes:** M3's signature element only; M3's state-correctness rules

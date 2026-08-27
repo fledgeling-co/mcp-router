@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 22d1802
+---
+
 # F2 — The design system in SwiftUI
 
 **Depends on:** F1.

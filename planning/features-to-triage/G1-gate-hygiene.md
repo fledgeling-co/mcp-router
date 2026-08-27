@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 8cfb9e3
+---
+
 # G1 — Stop the checks blaming the app for being out of date
 
 **Source:** `red-checks` = `all-three` (confirmed).

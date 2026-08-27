@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 01b6ef9
+---
+
 # M20 — menu bar, status item, and the notification banner
 
 **Depends on:** M1. **Related:** M8 (popover), M14 (menu items that lie), I6 (arrival

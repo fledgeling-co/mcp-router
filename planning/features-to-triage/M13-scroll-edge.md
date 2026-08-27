@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 08b9bdf
+---
+
 # M13 — The scroll-edge separator, A34
 
 **Source:** `red-checks` = `all-three` (confirmed, accepted recommendation).

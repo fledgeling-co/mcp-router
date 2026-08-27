@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 29d5111
+---
+
 # M15 — Settings becomes its own window
 
 **Depends on:** M1. **Supersedes:** the Settings half of M8.

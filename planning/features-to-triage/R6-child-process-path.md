@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 1d958b4
+---
+
 # R6 — the router hands its children launchd's PATH, and capabilities disappear silently
 
 **Category:** router · **Found:** 2026-08-15, by measurement on the author's own machine

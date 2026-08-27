@@ -1,5 +1,6 @@
 ---
-status: to-triage
+status: completed
+shipped-by: 423d74b
 found-by: G10's gap-fix, 2026-08-26, enumerating every red mac-shell.sh holds rather than the first one
 ---
 

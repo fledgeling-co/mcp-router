@@ -1,5 +1,6 @@
 ---
-status: to-triage
+status: completed
+shipped-by: e716f46
 found-by: the mechanism behind the 2026-08-27 loss, generalised
 ---
 

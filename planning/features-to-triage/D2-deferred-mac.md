@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 9e8a754
+---
+
 # D2 — The deferred register: Mac surfaces and the design authority
 
 **Source:** `deferred-plan` = `schedule-all` (confirmed, chosen against the recommendation).

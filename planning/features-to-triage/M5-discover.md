@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 2a81c87
+---
+
 # M5 — Discover: the registry
 
 **Depends on:** M4.

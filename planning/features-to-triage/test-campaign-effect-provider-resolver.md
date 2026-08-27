@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 457955d
+---
+
 # Test Campaign External Effect Provider and Source Root Resolver
 
 - origin: test-campaign vacuity checks and reckoning unmeasured audit · 2026-08-25

@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 8686fd6
+---
+
 # P4 — Derive the manifest rows from source, and fix the directory-dependent normaliser
 
 **Source:** `cutover` = `finish-first`.

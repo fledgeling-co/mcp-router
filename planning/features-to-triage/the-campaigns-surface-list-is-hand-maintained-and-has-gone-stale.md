@@ -1,3 +1,8 @@
+---
+status: completed
+shipped-by: 1bdf13a
+---
+
 # The campaign's surface list is hand-maintained, and has gone stale twice over
 
 - origin: the orchestrator, from the G14 surface-enumeration finding · 2026-08-27

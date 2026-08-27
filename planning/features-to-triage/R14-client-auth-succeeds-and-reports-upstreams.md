@@ -1,3 +1,8 @@
+---
+status: retired
+shipped-by: 2481e05
+---
+
 # R14 — a client's Authenticate action succeeds, and says what still needs authorising
 
 **Status:** Untriaged

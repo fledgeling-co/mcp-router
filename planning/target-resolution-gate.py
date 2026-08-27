@@ -278,6 +278,7 @@ class Repo:
         self._at = {}
         self._succ = {}
         self._anc = {}
+        self._staged = None
 
     def _git(self, *a):
         return subprocess.run(["git", "-C", self.root] + list(a), capture_output=True)
@@ -355,10 +356,28 @@ class Repo:
             self._at[key] = self._git("cat-file", "-e", "%s:%s" % (sha, path)).returncode == 0
         return self._at[key]
 
+    def staged_renames(self):
+        """Renames sitting in the index and not yet committed. Without this a `git mv` reads
+        DELETED until it is committed, and the remedy line — where the file went — arrives one
+        commit after the finding, which is the commit where it was needed."""
+        if self._staged is None:
+            self._staged = {}
+            r = self._git("diff", "--cached", "--name-status", "-M", "HEAD")
+            for line in r.stdout.decode("utf-8", "replace").splitlines():
+                parts = line.split("\t")
+                if len(parts) == 3 and parts[0].startswith("R"):
+                    self._staged[parts[1]] = parts[2]
+        return self._staged
+
     def successor(self, path):
-        """Where git says the path went, when the commit that removed it recorded a rename."""
+        """Where git says the path went — from the index first, then from the commit that removed
+        it. The index first, because a staged rename is the one a runner is about to commit."""
         if path in self._succ:
             return self._succ[path]
+        staged = self.staged_renames().get(path)
+        if staged:
+            self._succ[path] = staged
+            return staged
         last = self.ever_existed(path)
         out = None
         if last:

@@ -101,6 +101,14 @@ if [ "$GRC" = 1 ] && printf '%s' "$GOUT" | grep -q "REFUSING" \
 else
   bad "P3 expected rc=1 naming the symlink, got rc=$GRC: $GOUT"
 fi
+# P3b — the message must print BOTH names of the directory. The first version derived the second
+# spelling from `$PWD`, so under `make` (which pins PWD to CURDIR) it printed the physical path
+# twice under two labels: the one line that had a job to do, doing none of it.
+if printf '%s' "$GOUT" | grep -qF "$PHY" && printf '%s' "$GOUT" | grep -qF "$LOG" && [ "$PHY" != "$LOG" ]; then
+  ok "P3b the refusal printed both spellings of the one directory, not one of them twice"
+else
+  bad "P3b the refusal did not name both spellings ($PHY / $LOG): $GOUT"
+fi
 
 # ---- P4  the cache was filled under the other spelling --------------------------------------
 fresh_tree with-node-modules

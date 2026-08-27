@@ -2,28 +2,28 @@
 #
 # G32 — the two spellings of a worktree's own path, refused before a build rather than after one.
 #
-# `~/Dev/mcp-router/.worktrees` is a symlink to `/Volumes/LLMs/Dev/mcp-router/.worktrees`, so every
-# worktree has two names for itself: the logical `/Users/…/.worktrees/<ID>` a runner cd's into, and
-# the physical `/Volumes/LLMs/…/.worktrees/<ID>` the OS resolves it to. Two toolchains read that
+# `<home>/Dev/mcp-router/.worktrees` is a symlink onto another volume, so every worktree has two
+# names for itself: the logical `<home>/Dev/mcp-router/.worktrees/<ID>` a runner cd's into, and the
+# physical `<volume>/Dev/mcp-router/.worktrees/<ID>` the OS resolves it to. Two toolchains read that
 # differently, and NEITHER failure mentions a symlink. Both cost real time in Wave B.
 #
 # ## The node half — sixty type errors that are one missing directory
 #
 # The documented worktree convention is to symlink `node_modules` to the main checkout. Written the
 # obvious way that is `ln -s ../../node_modules node_modules`, and a relative link is resolved
-# PHYSICALLY: from `/Volumes/LLMs/Dev/mcp-router/.worktrees/<ID>`, `../../` is
-# `/Volumes/LLMs/Dev/mcp-router/`, which holds `.worktrees` and nothing else. Measured 2026-08-27:
+# PHYSICALLY: from `<volume>/Dev/mcp-router/.worktrees/<ID>`, `../../` is `<volume>/Dev/mcp-router/`,
+# which holds `.worktrees` and nothing else. Measured 2026-08-27:
 #
-#     $ ls /Volumes/LLMs/Dev/mcp-router/
+#     $ ls <volume>/Dev/mcp-router/
 #     .worktrees
 #
 # So the link dangles, and `npm run build` reports it as ~60 `Cannot find module 'node:os'` and
 # `Cannot find name 'process'` errors — the exact shape of a broken `tsconfig`, which is where the
 # next hour goes.
 #
-# The repair here is an ABSOLUTE link, and that is not a shortcut. The main checkout lives at
-# `/Users/lukerhodes/Dev/mcp-router` and the worktree physically at `/Volumes/LLMs/…`; below `/`
-# the two trees share no ancestor at all. There is therefore NO relative path from a worktree that
+# The repair here is an ABSOLUTE link, and that is not a shortcut. The main checkout lives under
+# the home directory and the worktree physically on the other volume; below `/` the two trees
+# share no ancestor at all. There is therefore NO relative path from a worktree that
 # reaches the main checkout's `node_modules` — relative is not fragile here, it is unrepresentable.
 # The absolute target is COMPUTED from `git rev-parse --git-common-dir` on every run rather than
 # written down, so nothing here is pinned to one machine, and `.gitignore` ignores `node_modules`
@@ -41,11 +41,11 @@
 # Measured 2026-08-27 with a two-line `import Foundation` file, one shared cache, cwd held constant
 # and only `PWD` changed:
 #
-#     PWD=/Users/…    -module-cache-path mc   -> rc=0
-#     PWD=/Volumes/…  -module-cache-path mc   -> rc=139 (SIGSEGV), preceded by
+#     PWD=<logical spelling>   -module-cache-path mc   -> rc=0
+#     PWD=<physical spelling>  -module-cache-path mc   -> rc=139 (SIGSEGV), preceded by
 #       error: module '_DarwinFoundation1' is defined in both
-#         '/Users/…/mc/1T2R8I3HT0CL9/_DarwinFoundation1-2YSBQADOLX02V.pcm' and
-#         '/Volumes/…/mc/1T2R8I3HT0CL9/_DarwinFoundation1-2YSBQADOLX02V.pcm'
+#         '<logical>/mc/1T2R8I3HT0CL9/_DarwinFoundation1-2YSBQADOLX02V.pcm' and
+#         '<physical>/mc/1T2R8I3HT0CL9/_DarwinFoundation1-2YSBQADOLX02V.pcm'
 #
 # Those two paths are the SAME FILE — same hash directory, same name. Only the spelling differs.
 #
@@ -53,7 +53,8 @@
 # already the physical spelling), so nothing make drives can produce a second spelling. What that
 # cannot fix is a cache POPULATED BEFORE the change, or a `swift test` a runner types by hand in
 # `app/`. Measured on a live worktree the same evening: `G16`'s module caches hold 237 files
-# recording `/Users/…` and 0 recording `/Volumes/…`, so the first canonical build in it segfaults.
+# recording the logical spelling and 0 recording the physical one, so its first canonical build
+# segfaults.
 # This script refuses that build and names the cause, which is the whole of the ask.
 #
 # The spelling is recorded per cache root in `.path-spelling`, beside the cache and inside the
@@ -88,8 +89,22 @@ build_spelling() {
 }
 SPELL="$(build_spelling)"
 
-DUAL=0
-[ "$SPELL" != "$PHYS_ROOT" ] && DUAL=1
+# The OTHER spelling this directory answers to, established rather than assumed: git records a
+# worktree by its physical path and the common dir by its logical one, so neither alone shows the
+# duality. `<main checkout>/.worktrees/<name>` is the layout, and it is CHECKED to resolve back to
+# this same physical root before being reported — a message that prints one spelling twice is the
+# one line in it that had a job to do.
+other_spelling() {
+  local common main cand
+  common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 1
+  main="$(dirname "$common")"
+  cand="$main/.worktrees/$(basename "$PHYS_ROOT")"
+  [ -d "$cand" ] || return 1
+  [ "$(cd "$cand" 2>/dev/null && pwd -P)" = "$PHYS_ROOT" ] || return 1
+  [ "$cand" = "$PHYS_ROOT" ] && return 1
+  printf '%s\n' "$cand"
+}
+OTHER="$(other_spelling || true)"
 
 fail() { echo "$@" >&2; }
 rc=0
@@ -116,8 +131,8 @@ preflight_node() {
     # replacing it changes nothing a branch can see. A REAL directory is never touched.
     if [ -L "$PHYS_ROOT/node_modules" ]; then
       echo "worktree-preflight: node_modules -> $(readlink "$PHYS_ROOT/node_modules") does not resolve."
-      echo "                    '.worktrees' is a symlink to /Volumes, so a relative link is resolved"
-      echo "                    physically and lands outside the main checkout. Repointing it."
+      echo "                    '.worktrees' is a symlink onto another volume, so a relative link is
+      echo "                    resolved physically and lands outside the main checkout. Repointing it.
       rm -f "$PHYS_ROOT/node_modules"
     fi
     if [ ! -d "$main/node_modules" ]; then
@@ -185,9 +200,14 @@ preflight_swift() {
       fail "  $SPELL"
     fi
     fail ""
-    fail "CAUSE: '.worktrees' is a symlink to /Volumes/LLMs, so this directory has two names."
-    fail "  logical  $( [ "$DUAL" = 1 ] && printf '%s' "$SPELL" || printf '%s' "$PHYS_ROOT" )"
-    fail "  physical $PHYS_ROOT"
+    fail "CAUSE: '.worktrees' is a symlink, so this ONE directory answers to two names:"
+    fail "  physical  $PHYS_ROOT"
+    if [ -n "$OTHER" ]; then
+      fail "  through the symlink  $OTHER"
+    else
+      fail "  (the second spelling could not be established from this checkout — see .worktrees)"
+    fi
+    fail "and this build is using  $SPELL"
     fail "swift-frontend resolves a relative -module-cache-path against \$PWD, so a cache filled"
     fail "under one spelling and read under the other reports"
     fail "  error: module '_DarwinFoundation1' is defined in both '…' and '…'"

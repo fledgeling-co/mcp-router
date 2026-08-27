@@ -10,11 +10,11 @@ SHELL := /bin/bash
 
 ## G32 — one spelling of this directory, for every tool this file starts.
 ##
-## `.worktrees` is a symlink to `/Volumes/LLMs/…`, so a worktree has two names for itself, and
+## `.worktrees` is a symlink onto another volume, so a worktree has two names for itself, and
 ## THIS FILE ALREADY HANDS OUT BOTH. Measured 2026-08-27 in one `make` run, no arguments:
 ##
-##     CURDIR      = /Volumes/LLMs/Dev/mcp-router/.worktrees/G32   (make: getcwd, physical)
-##     recipe $$PWD = /Users/lukerhodes/Dev/mcp-router/.worktrees/G32 (inherited, logical)
+##     CURDIR       = <volume>/Dev/mcp-router/.worktrees/G32   (make: getcwd, physical)
+##     recipe $$PWD = <home>/Dev/mcp-router/.worktrees/G32     (inherited, logical)
 ##
 ## That matters because `swift-frontend` resolves a relative `-module-cache-path` against `$$PWD`
 ## rather than `getcwd()`. Measured the same day on a two-line `import Foundation` file with the

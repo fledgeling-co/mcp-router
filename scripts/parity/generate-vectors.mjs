@@ -83,6 +83,7 @@ const jsonDocuments = [
   { id: 'proto-key', text: '{"__proto__":{"p":1},"x":2}' }
 ];
 
+// pin-class: platform-builtin — JSON.parse, JSON.stringify
 write('json-roundtrip', {
   description:
     'JSON.parse then JSON.stringify. `compact` is the digest form; `pretty` is the manifest form.',
@@ -112,6 +113,10 @@ const orderingGroups = [
   ['a', 'ab']
 ];
 
+// pin-class: src-export — config.compareStrings
+// pin-carry: P9 — the comparator is re-typed here rather than imported, and `config.compareStrings`
+//           does not exist on this tree. Measured: swapping all three reference sort sites to
+//           `localeCompare` left `make parity-regen` at exit 0.
 write('string-ordering', {
   description: 'Array.prototype.sort with (a<b?-1:a>b?1:0) — the reference comparator.',
   cases: orderingGroups.map((input, index) => ({
@@ -193,6 +198,7 @@ const serverCases = [
   { id: 'disabled-truthy-string-uncoerced', name: 'a', raw: { command: 'x', disabled: 'yes' } }
 ];
 
+// pin-class: src-export — config.parseServer, config.upstreamHash
 write('parse-server', {
   description: 'parseServer(name, raw) — the whole returned value, not only the decision.',
   cases: serverCases.map(({ id, name, raw }) => {
@@ -238,6 +244,7 @@ const hashCases = [
   { id: 'excluded-oauth', u: { transport: 'http', name: 'a', url: 'https://e.com', headers: {}, oauth: true } }
 ];
 
+// pin-class: src-export — config.upstreamHash
 write('upstream-hash', {
   description: 'upstreamHash(upstream) — sha256 over JSON.stringify of the material, sliced to 16.',
   cases: hashCases.map(({ id, u }) => ({ id, upstream: u, hash: config.upstreamHash(u) }))
@@ -261,6 +268,7 @@ const selfCases = [
   { id: 'unparseable-url', name: 'x', raw: { url: 'not a url' }, port: 8879 }
 ];
 
+// pin-class: src-export — config.isSelfReference
 write('self-reference', {
   description: 'isSelfReference(name, raw, port).',
   cases: selfCases.map(({ id, name, raw, port }) => ({
@@ -278,6 +286,7 @@ const urlCases = [
   'http://host:0', 'http://host:00080'
 ];
 
+// pin-class: platform-builtin — URL
 write('url-parse', {
   description: 'new URL(input) — parseability, hostname, and the port AS REPORTED.',
   cases: urlCases.map((input, index) => {
@@ -349,6 +358,7 @@ const digestCases = [
   { id: 'utf16-name-ordering', tools: [{ name: '\u{1F600}', description: 'emoji' }, { name: '', description: 'private' }] }
 ];
 
+// pin-class: src-export — manifest.toolsDigest
 write('tools-digest', {
   description: 'toolsDigest(tools) — sha256 over the material, sliced to 16.',
   cases: digestCases.map(({ id, tools }) => ({ id, tools, digest: manifest.toolsDigest(tools) }))
@@ -375,6 +385,7 @@ const diffCases = [
   { id: 'duplicate-names-collapse', before: [{ name: 'a', description: 'one' }], after: [{ name: 'a', description: 'two' }, { name: 'a', description: 'three' }] }
 ];
 
+// pin-class: src-export — manifest.diffTools
 write('diff-tools', {
   description: 'diffTools(before, after) — the returned array, as JSON.stringify writes it.',
   cases: diffCases.map(({ id, before, after }) => ({
@@ -397,6 +408,7 @@ const visibilityCases = [
   { id: 'case-sensitive', u: { name: 'a', projects: ['/A/B'] }, cwd: '/a/b' }
 ];
 
+// pin-class: src-export — manifest.visibleTo
 write('visible-to', {
   description: 'visibleTo(upstream, cwd) — lexical, case-sensitive, never normalised.',
   cases: visibilityCases.map(({ id, u, cwd }) => ({
@@ -406,6 +418,7 @@ write('visible-to', {
 
 const splitCases = ['server__tool', 'a__b__c', 'a____b', '__leading', 'trailing__', 'nosep', '', '__', 'a__'];
 
+// pin-class: src-export — manifest.splitToolName
 write('split-tool-name', {
   description: 'splitToolName(name) — splits at the FIRST separator.',
   cases: splitCases.map((input, index) => {
@@ -429,6 +442,7 @@ const staleCases = [
   { id: 'current-empty-error', servers: { a: { hash: staleHash, builtAt: 't', tools: [], error: '' } } }
 ];
 
+// pin-class: src-export — manifest.isStale
 write('is-stale', {
   description: 'isStale(manifest, upstream) — including the four entries that are CURRENT.',
   cases: staleCases.map(({ id, servers }) => ({
@@ -463,6 +477,7 @@ const unionCases = [
   { id: 'two-servers-keep-upstream-order', servers: { b: { hash: 'h', builtAt: 't', tools: [{ name: 'x' }] }, a: { hash: 'h', builtAt: 't', tools: [{ name: 'y' }] } }, upstreams: [{ transport: 'stdio', name: 'a' }, { transport: 'stdio', name: 'b' }], cwd: undefined }
 ];
 
+// pin-class: src-export — manifest.unionTools
 write('union-tools', {
   description: 'unionTools(manifest, upstreams, {cwd}) — the served list, as JSON.stringify writes it.',
   cases: unionCases.map(({ id, servers, upstreams, cwd }) => ({
@@ -494,6 +509,7 @@ const manifestTexts = [
   { id: 'top-level-array-rejected', text: '[1,2,3]' }
 ];
 
+// pin-class: src-export — manifest.loadManifest
 write('manifest-parse', {
   description: 'loadManifest(path) — the shallow parser. A degraded load returns the empty manifest.',
   cases: manifestTexts.map(({ id, text }) => {
@@ -512,6 +528,7 @@ write('manifest-parse', {
 });
 
 // A missing file is its own case: degrades without an error.
+// pin-class: src-export — manifest.loadManifest
 write('manifest-missing', {
   description: 'loadManifest on a path that does not exist.',
   cases: [{ id: 'absent', loaded: JSON.stringify(manifest.loadManifest(join(scratch, 'nope.json'))) }]
@@ -538,6 +555,8 @@ const buildCases = [
 // stub pool supplied, and a vector that records only the output cannot be re-run against anything.
 const poolFor = (o) => ('error' in o ? poolFailing(o.error) : poolReturning(o.tools));
 
+// pin-class: src-export — manifest.buildManifest
+// The annotation opens above the loop, not above `write`: the expectation is computed here.
 const buildResults = [];
 for (const { id, servers, observation, force } of buildCases) {
   const input = { version: 1, servers: JSON.parse(JSON.stringify(servers)) };
@@ -581,6 +600,7 @@ const loadCases = [
   { id: 'skipped-follow-enumeration-order', text: '{"mcpServers":{"a":{},"10":{},"2":{}}}', opts: {} }
 ];
 
+// pin-class: src-export — config.loadConfig
 const loadResults = loadCases.map(({ id, text, opts }) => {
   const file = join(scratch2, `${id}.json`);
   writeTmp(file, text);
@@ -601,6 +621,7 @@ write('load-config', {
 });
 
 // The ISO-8601 timestamp every log line and every `builtAt` carries.
+// pin-class: platform-builtin — Date#toISOString
 write('iso8601', {
   description: 'new Date(ms).toISOString() — the exact shape a log line leads with.',
   cases: [0, 1, 999, 1000, FIXED_MS, 1e12, -1, -86400000, 253402300799999, 1755100000000]
@@ -625,6 +646,8 @@ const logEvents = [
   { id: 'server-index-failed', level: 'error', call: (l) => l.error('failed to index "alpha": spawn failed') }
 ];
 
+// pin-class: src-export — log.configureLogging, log.log
+// Opens above the capture block, which is where the bytes this vector records are produced.
 const logCases = [];
 let stdoutBytes = 0;
 {
@@ -675,6 +698,7 @@ const usageModule = require(join(distDir, 'usage.js'));
 // too narrow and a control call falls through to /mcp, too wide and an MCP path is answered by the
 // control API. The prefix-vs-equality distinction is the whole of it — `/serverside` is not ours,
 // `/servers/` is, and `/registry` alone is not because only `/registry/` is a prefix match.
+// pin-class: src-export — control.isControlPath
 write('is-control-path', {
   description: 'control.isControlPath — the exact set of paths the control API claims.',
   cases: [
@@ -702,6 +726,7 @@ const numberInputs = [
   'infinity', 'NaN', 'abc', '12abc', 'abc12', '1 2', '1,2', '0x1f', '0X1F', '0b101', '0o17',
   '0xg', '0b', '1_000', '١٢', 'null', 'undefined', 'true', ' 12 '
 ];
+// pin-class: platform-builtin — Number
 write('js-to-number', {
   description: 'Number(x) for every string the control API can receive as a query value (N4, N6).',
   cases: numberInputs.map((text, index) => {
@@ -737,6 +762,10 @@ const comparePairs = [
   ['z', 'Z'], ['é', 'e'], ['é', 'é'], ['10', '9'], ['1', '10'],
   ['2024-01-01T00:00:00+00:00', '2024-01-01T00:00:00Z']
 ];
+// pin-class: src-export — registry.compareUpdatedAt
+// pin-carry: P9 — `lhs.localeCompare(rhs)` is re-typed here. ICU collation is not the pinned thing:
+//           the registry has its own comparator, so there is a second copy. Measured: swapping
+//           the registry sort to code units left `make parity-regen` at exit 0.
 write('locale-compare', {
   description: 'String.prototype.localeCompare over the ISO domain and the letter cases (N8).',
   cases: comparePairs.map(([lhs, rhs], index) => ({
@@ -752,6 +781,7 @@ write('locale-compare', {
 //
 // `basename(cwd)`, which is POSIX basename and not "the text after the last slash": a trailing
 // slash is ignored, `/` is `/`, and an empty cwd is falsy so the whole expression is undefined.
+// pin-class: src-export — usage.projectOf
 write('project-of', {
   description: 'usage.projectOf — the project label the activity view groups by.',
   cases: [
@@ -774,6 +804,10 @@ write('project-of', {
 const usageScratch = mkdtempSync(join(tmpdir(), 'mcp-router-vectors-usage-'));
 const usageLog = join(usageScratch, 'usage.log');
 const usageStats = join(usageScratch, 'usage-stats.json');
+// pin-class: src-export — control.usageRecentLimit, usage.UsageStore
+// pin-carry: P9 — `Number(raw ?? 200)` is a transcription of src/control.ts under a comment that said
+//           so: "exactly the expression at src/control.ts's `/usage` branch". Measured: mutating
+//           that default from 200 to 3 left `make parity-regen` at exit 0.
 {
   const seeded = [];
   for (let i = 0; i < 12; i += 1) {
@@ -821,6 +855,9 @@ const usageStats = join(usageScratch, 'usage-stats.json');
 // `Math.min(Number(x ?? 30) || 30, 60)` then `slice(0, limit)`. Three coercions stacked: `||` is
 // ToBoolean so both `0` and `NaN` collapse to 30, `min` caps at 60, and a negative survives all of
 // it and reaches `slice`, where it counts back from the end and drops rows instead of taking them.
+// pin-class: src-export — control.registrySearchLimit
+// pin-carry: P9 — `Math.min(Number(x ?? 30) || 30, 60)` is re-typed here, and its transcription was
+//           the only expectation of that code anywhere in the corpus.
 {
   const rows = Array.from({ length: 70 }, (_, i) => `row-${i}`);
   const limitValues = [null, '', ' ', '0', '1', '30', '59', '60', '61', '500', 'abc', '-1', '-5', '-100', '2.9', '1e1', 'Infinity', '-Infinity'];

@@ -1,5 +1,9 @@
 import { writeFileSync } from 'node:fs';
 // PAGE copied VERBATIM from src/auth.ts — these vectors are reference-derived, not hand-typed.
+// pin-class: src-export — auth.PAGE
+// pin-carry: P9 — `PAGE` is re-typed below rather than imported from the built reference, under a
+//           comment claiming the opposite. Measured: changing a colour in the built reference
+//           left `make parity-regen` at exit 0.
 const PAGE = (title, detail) =>
   `<!doctype html><meta charset="utf-8"><title>${title}</title>` +
   `<style>body{font:15px/1.6 -apple-system,system-ui,sans-serif;background:#141220;color:#eae8f5;` +

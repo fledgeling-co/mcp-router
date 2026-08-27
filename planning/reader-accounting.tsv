@@ -1,6 +1,6 @@
 # planning/reader-accounting.tsv — what each raw-input reader drops, and why that is not its subject.
 #
-# rows: 18
+# rows: 20
 #
 # `reader-accounting.py` finds every reader in planning/ and scripts/ that decomposes raw input and
 # discards part of it without recording what it discarded. A reader appears here when the drop is
@@ -52,3 +52,5 @@ scripts/acceptance/mock_fidelity.py::layer_tokens	declared	Reads two named marke
 planning/null-run-gate.py::<module>	declared	The ACC-pin arm removes one declaration row from a scratch registry by filtering it out, which is the mutation the arm is named for. What it dropped is the poison; recording it would be recording the arm's own plant.
 planning/null-run-gate.py::accounting_tree	declared	The scratch registry keeps only the rows naming readers the scratch tree actually holds. Copying the whole registry would leave fifteen rows pointing at absent files, and every accounting arm would then be measuring the stale-row check instead of the one it is named for.
 planning/citation-gate.py::anchor_lines_line_anchored	declared	The deliberately naive comparator, used only by the hermetic control. Its whole subject is the lines a line-anchored reader CAN see, so the lines it drops are the ones the control exists to prove are invisible: the run fails when this returns a line for the wrapped fixture, because a wrap-tolerant reader that would have answered the same either way has demonstrated nothing. Recording the drop here would record the fixture's other four lines and nothing about the property.
+planning/pin-class-gate.py::judge	declared	A lookup, not a decomposition: `declared` names a computation row only where a declared builtin IS that row, and `BUILTIN_EXEMPTS` has exactly one member. Nothing arrives from outside the process here — the region's own declaration is the input, and every name in it is judged whether or not it appears in this set.
+planning/pin-class-gate.py::regions_in	declared	The two drops are the same set counted twice. A writer call inside an annotated region is skipped by the orphan loop BECAUSE it was already returned as a region, and an annotation with no writer after it is returned with `vector=None` and reported as a finding. Every writer this reader sees leaves in one of the two lists it returns, so there is no residue to record.

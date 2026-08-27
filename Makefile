@@ -92,6 +92,24 @@ SURFACE    ?= servers
 ## its presence control plants nine instances across every class on every invocation and exits 2
 ## without printing a verdict if any one of them is missed — so a zero here is a measurement.
 ##
+## `pin-class-gate.py` (`P11`) runs here for the reason P9 declined to put it here in a hurry:
+## "bolting an unproven gate into the lint chain at the end of a gap-fix round is how a gate ends
+## up reporting success without running." It is armed twice before it is trusted — five arms of its
+## own that fire on every invocation via `--control`, and seven arms in `null-run-gate.py` that run
+## it against a scratch corpus built to break it — and `lint` is then the right home because it is
+## hermetic, needs no node and no `dist/`, finishes in well under a second, and is where the other
+## seven Python gates already live. A lane of its own would be a lane somebody runs separately
+## from `all`.
+##
+## What it refuses: a parity vector that does not say what it pins. Five vectors have been found
+## carrying a hand-copy of the reference expression they exist to pin, each proved blind by
+## mutating the reference and watching `make parity-regen` stay at exit 0. Every one was found by a
+## sweep, and a sweep is a snapshot. This is the standing version: `src-export` must import the
+## named production export and carry no local implementation of it, `platform-builtin` may only
+## reach a builtin in a closed vocabulary, and an UNANNOTATED writer fails — so the default for a
+## sixth vector is refusal rather than silent admission. The five that exist today are carried by
+## name in the gate's own `CARRY` constant, printed on every run, and close with `P9`.
+
 ## `role-intersection-gate.py` (`G8`) is deliberately NOT in `lint` or in `all`, and the reason is
 ## its own subject. It exits **3** on this tree today: `planning/fidelity/popover.ledger.md` is an
 ## obituary — the fidelity gate exited 3 on `#statusPopover has no '.v-ideal' block` and wrote no
@@ -708,6 +726,7 @@ lint: tools
 	python3 planning/sweep-control-gate.py || fail=1; \
 	python3 planning/runnable-path-gate.py || fail=1; \
 	python3 planning/registry-drop-gate.py || fail=1; \
+	python3 planning/pin-class-gate.py || fail=1; \
 	zsh app/Scripts/pool-mutation-gate-selftest.sh || fail=1; \
 	exit $$fail
 

@@ -72,3 +72,28 @@ above should stop being reported.
 Deliver those five. The pass's sensitivity is proven and is not the problem — a fix that
 lowers the count by widening the reader vocabulary would hide the defect rather than fix
 it, so change what the pass *examines* and *matches*, not what suppresses it.
+
+## A sixth, added 2026-08-27 by G29 — the tie pass cannot read a route template
+
+`capture-lineage.py`'s `tie()` normalises scheme, host, port, query and fragment away and then
+asks for string equality or a suffix match. A surface whose route is parameterised —
+`app://mac/servers/{server}/document`, one address per server — therefore fails against every
+capture of it, because `mac/servers/g17-capability/document` is neither equal to nor a suffix of
+`mac/servers/{server}/document`. The gate reports UNTIED, *"the recorded target does not resolve
+to the subject's route"*, over a capture that was pointed at exactly the right thing.
+
+Measured on `mcp-router` against the vendored 0.9.2 and the machine's 0.15.0, whose `tie()` is
+byte-identical. `references/capture-lineage.md` already says resolution is *"deliberately loose on
+the parts a harness legitimately varies"*; a `{server}` segment is such a part, and it is the one
+the looseness does not reach.
+
+6. `tie()` treats a route segment of the form `{name}`, `:name` or `*` as matching exactly one
+   non-empty target segment. Literal segments, the source-file refusal and the normalisation are
+   unchanged, and the seeded swap must still go red — a segment wildcard must not make two
+   different boards tie. Checkable against `mcp-router`: SURF-028's frames stop being reported
+   untied and nothing else moves.
+
+Recorded as `DEF-061` in that campaign's `inventory.json`, with the reason the fix was not applied
+locally: `vendor/README.md` pins the tree by checksum so the gates re-run from a clone, and a
+`tie()` that behaves one way in one repository is not evidence anywhere. Referred out of family
+(gpt-5.6-sol, high effort) before deciding, and it reached the same conclusion independently.

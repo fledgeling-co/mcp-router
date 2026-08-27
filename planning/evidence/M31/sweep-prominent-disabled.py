@@ -161,38 +161,63 @@ def token_of(value):
 # ----------------------------------------------------------------------------- CSS
 
 
-def parse_rules(css):
+def parse_rules(css, source=""):
     """Ordered (selector, declarations, order) triples. Comments stripped first.
 
     Stripping comments is load-bearing rather than tidiness: without it the block preceding `.btn{`
     carries the section banner comment, the selector text never trims to `.btn`, and the store page
     — whose bare `.btn` *is* the accent-filled control — reports as having none. A zero meaning
     "wrong vocabulary" reads identically to a zero meaning "nothing here".
+
+    Every block and every declaration this reader cannot turn into a rule is NAMED on stderr rather
+    than dropped, grouped by reason. A sweep whose whole claim is "no surface reproduces the defect"
+    rests on having replayed the sheet; a block the splitter could not read is a rule that never
+    entered the cascade, and a cascade missing a rule resolves the wrong winner without saying so.
+    The reasoning that made this function strip comments — a zero meaning "wrong vocabulary" reads
+    identically to a zero meaning "nothing here" — applies one layer down to the blocks it skips.
     """
     css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
     css = re.sub(r"@media[^{]*\{", "", css)  # flatten; dark values arrive via resolve_tokens
     rules, order = [], 0
+    dropped = []
     for block in css.split("}"):
         brace = block.find("{")
         if brace < 0:
+            # The tail after the final `}`, or an at-rule body the `@media` flatten left behind.
+            dropped.append(("no `{` in the block", block.strip()[:60]))
             continue
         selectors = block[:brace]
         body = block[brace + 1:]
         if "{" in selectors or not selectors.strip():
+            dropped.append(("selector text is empty or still nested", selectors.strip()[:60]))
             continue
         decls = {}
         for decl in body.split(";"):
             if ":" not in decl:
+                dropped.append(("declaration carries no `:`", decl.strip()[:60]))
                 continue
             k, v = decl.split(":", 1)
             decls[k.strip().lower()] = v.strip()
         if not decls:
+            dropped.append(("no readable declaration in the block", selectors.strip()[:60]))
             continue
         for sel in selectors.split(","):
             sel = sel.strip()
             if sel:
                 rules.append({"selector": sel, "decls": decls, "order": order})
                 order += 1
+    # Grouped by reason rather than one line per item, which is `input_accounting.Tally`'s rule and
+    # the reason for it: this reader is handed a whole HTML document, so the fragments it discards
+    # are mostly `<script>` bodies and base64 data URIs, and 882 individual lines would bury the
+    # one number that matters — how much of the sheet never entered the cascade.
+    by_reason = {}
+    for reason, text in dropped:
+        by_reason.setdefault(reason, []).append(text)
+    where = f" of {source}" if source else ""
+    print("parse_rules%s: %d rule(s) built; %d fragment(s) discarded (%s)"
+          % (where, len(rules), len(dropped),
+             "; ".join(f"{r} {len(v)}" for r, v in sorted(by_reason.items())) or "none"),
+          file=sys.stderr)
     return rules
 
 
@@ -397,7 +422,7 @@ def sweep_html():
             results.append({"file": rel, "verdict": "ABSENT", "controls": []})
             continue
         html = path.read_text()
-        rules = parse_rules(html)
+        rules = parse_rules(html, rel)
         themes = resolve_tokens(re.sub(r"/\*.*?\*/", "", html, flags=re.S))
         control_classes, reachability = markup_index(html)
 
@@ -507,7 +532,8 @@ def swift_sites():
     call = re.compile(r"\.buttonStyle\((Phone)?ProminentButtonStyle\(")
     direct = re.compile(r"(Phone)?ProminentButtonStyle\([^)]*\)\.makeBody")
     out = []
-    for path in sorted((ROOT / "app/Sources").rglob("*.swift")):
+    files = sorted((ROOT / "app/Sources").rglob("*.swift"))
+    for path in files:
         lines = path.read_text().splitlines()
         for i, line in enumerate(lines):
             m = call.search(line) or direct.search(line)
@@ -521,6 +547,12 @@ def swift_sites():
                 "disableable": bool(re.search(r"\.disabled\(", window)),
                 "hand_invoked": bool(direct.search(line)),
             })
+    # This reader is a grep, so the lines it skips are its subject inverted and naming them would
+    # name the tree. What a grep CAN lose without saying so is its denominator — `sweep_swift`'s
+    # `examined=` counts files that carry a hit, not files walked, so a run over an empty or moved
+    # `app/Sources` reports `examined=0` exactly as a run over a tree with no prominent styles does.
+    print("swift_sites: walked %d .swift file(s) under app/Sources; %d carry a prominent-style "
+          "call site" % (len(files), len(out)), file=sys.stderr)
     return out
 
 

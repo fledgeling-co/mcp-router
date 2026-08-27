@@ -303,7 +303,13 @@ def derive() -> list[dict]:
 
 def verify(rows: list[dict]) -> list[str]:
     """A row whose recorded digest disagrees with the bytes is the RECONSTRUCTED finding, and
-    it is caught here rather than four commits later, because this is where the copy is made."""
+    it is caught here rather than four commits later, because this is where the copy is made.
+
+    The on-disk sweep below names what it walked past. It is the half of this function that decides
+    whether the manifest COVERS the tree, so its denominator is the point of it: a frame this walk
+    skipped is a frame no manifest has to mention, and "on disk and named by no lane manifest"
+    means nothing without the count of what never reached that test.
+    """
     bad = []
     for r in rows:
         p = CAMPAIGN / r["path"]
@@ -315,14 +321,29 @@ def verify(rows: list[dict]) -> list[str]:
                        f"lane rather than restamping the row.")
     # Every frame on disk must appear, or the assembly is not covering what the gate walks.
     seen = {r["path"] for r in rows}
+    walked = 0
+    skipped: list[tuple[str, str]] = []
     for p in sorted(SHOTS.rglob("*")):
+        walked += 1
         if p.suffix.lower() != ".png":
+            skipped.append(("not a .png", str(p.relative_to(SHOTS))))
             continue
         if MOCK_DIRS & {q.lower() for q in p.relative_to(SHOTS).parts[:-1]}:
+            skipped.append((f"under {'/ or '.join(sorted(MOCK_DIRS))}/ — a render of the DESIGN, "
+                            "not a photograph of the build", str(p.relative_to(SHOTS))))
             continue
         rel = str(p.relative_to(CAMPAIGN))
         if rel not in seen:
             bad.append(f"{rel}: on disk and named by no lane manifest")
+    # Grouped by reason rather than one line per path — `input_accounting.Tally`'s rule. The count
+    # is what the coverage claim rests on; the individual names are recoverable from `skipped`.
+    by_reason: dict[str, int] = {}
+    for reason, _name in skipped:
+        by_reason[reason] = by_reason.get(reason, 0) + 1
+    print(f"coverage sweep: walked {walked} path(s) under {SHOTS.relative_to(CAMPAIGN)}; "
+          f"{walked - len(skipped)} tested against the manifest; "
+          f"{len(skipped)} skipped ("
+          + "; ".join(f"{r} {n}" for r, n in sorted(by_reason.items())) + ")")
     return bad
 
 

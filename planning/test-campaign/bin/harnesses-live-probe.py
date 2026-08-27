@@ -77,14 +77,22 @@ def entries_in(path: str) -> int | None:
         # against it: an untraceable figure must fail the case, and a figure this reader
         # miscounts is not an untraceable figure.
         count = 0
+        sub_tables = []
         for line in raw.splitlines():
             head = line.strip()
             if not (head.startswith("[mcp_servers.") and head.endswith("]")):
                 continue
             name = head[len("[mcp_servers."):-1]
             if "." in name:  # a sub-table of a server, not a server
+                sub_tables.append(name)
                 continue
             count += 1
+        if sub_tables:
+            # Named rather than skipped, because the miscount above was invisible for exactly as
+            # long as this drop was. A run that disagrees with the router by K should be able to
+            # read the K sub-tables it declined to count without re-deriving them by hand.
+            print(f"    {path}: {count} server(s); {len(sub_tables)} sub-table(s) not counted as "
+                  f"servers — {', '.join(sub_tables)}", file=sys.stderr)
         return count
     return None
 

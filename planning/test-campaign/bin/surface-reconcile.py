@@ -297,7 +297,21 @@ def main() -> int:
     cases = json.loads((D / "cases.json").read_text())
     surfaces = inventory.get("surface", [])
     inventory_surface_ids = {s["id"] for s in surfaces}
-    covered_surface_ids = {c.get("surface") for c in cases if c.get("surface")}
+    # A case that names no surface cannot cover one, and it used to leave the reader silently. The
+    # count is the honest denominator behind `covered_surface_ids`: "N surfaces are covered" is a
+    # claim about the cases that named a surface, and the ones that named none are the population
+    # that claim says nothing about.
+    covered_surface_ids = set()
+    surfaceless_cases = []
+    for c in cases:
+        sid = c.get("surface")
+        if not sid:
+            surfaceless_cases.append(str(c.get("id") or "<case with no id>"))
+            continue
+        covered_surface_ids.add(sid)
+    print(f"cases read: {len(cases)}; {len(cases) - len(surfaceless_cases)} name a surface and "
+          f"reach {len(covered_surface_ids)} of them; {len(surfaceless_cases)} name none and "
+          f"cover nothing here")
     mac_surfaces = {s["id"]: s.get("name") or s.get("title") or ""
                     for s in surfaces if s.get("lane") == MAC_LANE}
 

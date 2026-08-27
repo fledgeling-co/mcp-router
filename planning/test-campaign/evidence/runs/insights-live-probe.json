@@ -1,0 +1,118 @@
+{
+ "url": "http://127.0.0.1:8976/insights",
+ "sha256": "d7f06fd9877aae49a0f9d7894bd3ac9ff6b0746a5b85c360fabbf5f4057e805e",
+ "generatedAt": "2026-08-27T04:23:50.796Z",
+ "identifiersDrawn": [
+  "<row.harness>",
+  "calls",
+  "children",
+  "duty-",
+  "duty-\\(server.server)",
+  "failures",
+  "other",
+  "resident"
+ ],
+ "unmapped": [],
+ "observed": [
+  "calls",
+  "children",
+  "other"
+ ],
+ "derived": [
+  "failures",
+  "duty-*"
+ ],
+ "untraceable": [],
+ "absentByDeclaration": [
+  "resident"
+ ],
+ "figureMap": {
+  "children": {
+   "draws": "Child processes running: <alive>, with 'of <declared> declared' beneath",
+   "member": "children.alive",
+   "second": "children.declared",
+   "class": "observed",
+   "observedBy": "ControlInsights.insightsResponse: deps.pool.status() counted where state == 'running' (the pool's live child table), and deps.config.upstreams.count (the server list on disk)"
+  },
+  "resident": {
+   "draws": "Resident, all children: '<megabytes> MB' or '\u2014' when absent",
+   "member": "resident.megabytes",
+   "class": "observed",
+   "observedBy": "ControlInsights.residentValue: sum over InsightsSource.resident(), which UpstreamPool.residentMb() takes from the process table via ps(1). An upstream with no local process is OMITTED rather than reported as zero, so the member is null and the board draws '\u2014'.",
+   "absentIsNotZero": true
+  },
+  "calls": {
+   "draws": "Tool calls, last 24 hours: <total>",
+   "member": "calls.total",
+   "class": "observed",
+   "observedBy": "ControlInsights: deps.usage.insights(...).totalCalls \u2014 records the router wrote to its own usage log as it served them"
+  },
+  "failures": {
+   "draws": "Failed calls: '<failed/total*100 to 2dp>%', with '<failed> of <total>' beneath",
+   "member": "calls.failed",
+   "second": "calls.total",
+   "class": "derived",
+   "derivation": "InsightsBoardCopy.failureRate = failed / total * 100, formatted %.2f%%; '\u2014' when total == 0. BOTH TERMS ARE DRAWN BESIDE IT by failureProvenance, so the percentage is readable as the ratio it is rather than as a reading of its own.",
+   "observedBy": "the same usage-log window as `calls`"
+  },
+  "other": {
+   "draws": "Other callers: <otherCalls>, drawn only when > 0",
+   "member": "otherCalls",
+   "class": "observed",
+   "observedBy": "ControlInsights.harnessCallMembers: calls whose peer process no harness claims. Present so the bars and the headline total reconcile rather than quietly disagreeing."
+  }
+ },
+ "barFamilies": {
+  "duty-": {
+   "draws": "Duty cycle, per server: one bar per server at round(aliveSeconds / uptimeSeconds * 100)",
+   "member": "dutyCycle.servers",
+   "second": "dutyCycle.uptimeSeconds",
+   "class": "derived",
+   "derivation": "InsightsBoardCopy.share = min(1, aliveSeconds / uptimeSeconds). The router reports BOTH numbers rather than a pre-divided share, precisely so a surface holding both can decline to draw it: a share computed against four seconds of uptime is arithmetically fine and means nothing.",
+   "observedBy": "InsightsSource.dutyCycle() \u2014 the pool's own per-child alive time and the router's uptime"
+  }
+ },
+ "checks": [
+  {
+   "label": "generatedAt is a reading taken now, not a recording replayed",
+   "pass": true,
+   "detail": "0s old"
+  },
+  {
+   "label": "every identifier InsightsBoard.swift draws a figure under is in this map",
+   "pass": true,
+   "detail": "8 identifier(s) read out of the board's own source; mapped"
+  },
+  {
+   "label": "every figure the board draws resolves to a member of the response",
+   "pass": true,
+   "detail": "all traced"
+  },
+  {
+   "label": "children.declared equals the server list this script counted itself",
+   "pass": true,
+   "detail": "router says 0, /tmp/g16-probe-home/servers.json holds 0"
+  },
+  {
+   "label": "with no child holding a process, `resident` is null rather than 0 (absent is not zero)",
+   "pass": true,
+   "detail": "children.alive=0, resident=null \u2014 the board draws '\u2014' and 'No child is running, so there is nothing to measure'"
+  },
+  {
+   "label": "the window states its own bounds and what it could not read",
+   "pass": true,
+   "detail": "windowHours=24, logHorizon=None, calls.unreadableLines=0 \u2014 a count of what parsed is not a count of what was there, and the route carries both"
+  },
+  {
+   "label": "the failure rate's two terms are both served, so the board need not invent one",
+   "pass": true,
+   "detail": "failed=0 of total=0"
+  },
+  {
+   "label": "the analyst member is present and null rather than absent",
+   "pass": true,
+   "detail": "the board draws its empty state from a fact the router STATED, not from a key it failed to find"
+  }
+ ],
+ "pass": true
+}

@@ -10,61 +10,62 @@
 3	AXMenuItem		Recent Items				1	0		0	_recentsRequested:	0.0	1117.0	0.0	0.0	0
 4	AXMenu						1	0				0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Applications				0	0		0		0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Activity Monitor				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “Activity Monitor” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		EgressMac				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “EgressMac” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Finder				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “Finder” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Google Chrome				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Show “Google Chrome” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Graft				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “Graft” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		MCPRouter				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Show “MCPRouter” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Orderly				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “Orderly” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		RelayKey				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “RelayKey” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		RelayPreview				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “RelayPreview” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		RelayShoot				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “RelayShoot” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		RelayShoot18				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “RelayShoot18” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		RelayTint				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “RelayTint” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Scrim				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “Scrim” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Splice				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “Splice” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		MCPRouter				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “MCPRouter” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		MCPRouter				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “MCPRouter” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Podcasts				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “Podcasts” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		System Settings				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “System Settings” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Documents				0	0		0		0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Accounting.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “Accounting.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Approval.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “Approval.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		audit.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “audit.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		evidence.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “evidence.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		anvil-site.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “anvil-site.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		anvil.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “anvil.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		evidence.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Show “evidence.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		index.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Show “index.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		index.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Show “index.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		mcp-router-store.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “mcp-router-store.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		privacy.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “privacy.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		wanted-invoices.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
-5	AXMenuItem		Show “wanted-invoices.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		index.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “index.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		index.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “index.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		index.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “index.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		index.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “index.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		orchestrator-hierarchy.html				1	0		8	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		Show “orchestrator-hierarchy.html” in Finder				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Servers				0	0		0		0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		lukerhodes				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Macintosh HD				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Macintosh HD				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Macintosh HD				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
+5	AXMenuItem		ScrimNAS				1	0		0	_recentItemRequested:	0.0	1117.0	0.0	0.0	0
 5	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
 5	AXMenuItem		Clear Menu				1	0		0	_clearRecentItemsRequested:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Force Quit…				1	0	⎋	2	_forceQuitPanelRequested:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Force Quit MCP Router				1	0	⎋	3	_forceQuitRequested:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Sleep				1	0		0	_sleepRequested:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Sleep				0	0		0	_sleepRequested:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Restart…				1	0		0	_restartRequested:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Restart				1	0		10	_restartNowRequested:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Shut Down…				1	0		0	_shutDownRequested:	0.0	1117.0	0.0	0.0	0
@@ -78,7 +79,7 @@
 2	AXMenu						1	0				0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		About MCP Router				1	0		8	menuAction:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Settings				1	0	,	0	menuAction:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Settings…				1	0	,	0	menuAction:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Services				1	0		0		0.0	1117.0	0.0	0.0	0
 4	AXMenu						1	0				0.0	1117.0	0.0	0.0	0
@@ -100,11 +101,9 @@
 3	AXMenuItem		Quit and Keep Windows				1	0	Q	2	NSAlternateQuitMenuItem	0.0	1117.0	0.0	0.0	0
 1	AXMenuBarItem		File				1	0		0		0.0	33.0	0.0	0.0	0
 2	AXMenu						1	0				0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Add server…				1	0	N	0	menuAction:	0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Add marketplace…				1	0	N	1	menuAction:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Add Server…				1	0	N	0	menuAction:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Add Marketplace…				1	0	N	1	menuAction:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Pair iPhone…				1	0		8	menuAction:	0.0	1117.0	0.0	0.0	0
-3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Export library…			This feature hasn't been built yet.	0	0		8		0.0	1117.0	0.0	0.0	0
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Close				0	0	W	0	performClose:	0.0	1117.0	0.0	0.0	0
@@ -121,8 +120,8 @@
 3	AXMenuItem		Select All				0	0	A	0	selectAll:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Find				1	0	F	0	menuAction:	0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Reset server				0	0	R	0		0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Remove server				0	0		0		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Reset Server			Select a server first.	0	0	R	0		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Remove Server			Select a server first.	0	0		0		0.0	1117.0	0.0	0.0	0
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Writing Tools				1	0		0	__NSTextViewContextSubmenuIdentifierWritingTools	0.0	1117.0	0.0	0.0	0
 4	AXMenu						1	0				0.0	1117.0	0.0	0.0	0
@@ -156,13 +155,35 @@
 3	AXMenuItem		Activity				1	0	1	0	menuAction:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Servers				1	0	2	0	menuAction:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Skills				1	0	3	0	menuAction:	0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Discover				1	0	4	0	menuAction:	0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Inbox				1	0	5	0	menuAction:	0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Checks				1	0	6	0	menuAction:	0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Cleanup				1	0	7	0	menuAction:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Harnesses				1	0	4	0	menuAction:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Discover				1	0	5	0	menuAction:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Inbox				1	0	6	0	menuAction:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Checks				1	0	7	0	menuAction:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Cleanup				1	0	8	0	menuAction:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Insights				1	0	9	0	menuAction:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Show sidebar				1	0	S	4	menuAction:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Show Sidebar				1	0	S	4	menuAction:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Enter Full Screen				0	0	F	24	toggleFullScreen:	0.0	1117.0	0.0	0.0	0
+1	AXMenuBarItem		Router				1	0		0		0.0	33.0	0.0	0.0	0
+2	AXMenu						1	0				0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Re-index Manifest			Re-indexing the whole manifest hasn't been built yet.	0	0		8		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Restart Router			Restarting the router from here hasn't been built yet.	0	0		8		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Wake Selected Server			Select a server first.	0	0	W	12		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Trip Selected Breaker			Tripping a breaker by hand hasn't been built yet.	0	0		8		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Reap Idle Children			Reaping idle children on demand hasn't been built yet.	0	0		8		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Review Held Changes…			Select a server first.	0	0		8		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Reveal Router Log in Finder				1	0		8	menuAction:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Stop Router			Stopping the router from here hasn't been built yet.	0	0		8		0.0	1117.0	0.0	0.0	0
+1	AXMenuBarItem		Library				1	0		0		0.0	33.0	0.0	0.0	0
+2	AXMenu						1	0				0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Update All Skills			Updating every skill at once hasn't been built yet.	0	0		8		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Run Doctor			The doctor hasn't been built yet.	0	0		8		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Run All Checks			Running every check at once hasn't been built yet.	0	0		8		0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Export Library…			Exporting your library hasn't been built yet.	0	0		8		0.0	1117.0	0.0	0.0	0
 1	AXMenuBarItem		Window				1	0		0		0.0	33.0	0.0	0.0	0
 2	AXMenu						1	0				0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Minimize				0	0	M	0	performMiniaturize:	0.0	1117.0	0.0	0.0	0
@@ -207,7 +228,7 @@
 3	AXMenuItem		Bring All to Front				1	0		8	arrangeInFront:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Arrange in Front				1	0		10	alternateArrangeInFront:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Cleanup				1	0		0	makeKeyAndOrderFront:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Insights				1	0		0	makeKeyAndOrderFront:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Show Previous Tab				0	0	 	13	selectPreviousTab:	0.0	1117.0	0.0	0.0	0
 3	AXMenuItem		Show Next Tab				0	0	 	12	selectNextTab:	0.0	1117.0	0.0	0.0	0
@@ -216,6 +237,6 @@
 3	AXMenuItem						0	0		0		0.0	1117.0	0.0	0.0	0
 1	AXMenuBarItem		Help				1	0		0		0.0	33.0	0.0	0.0	0
 2	AXMenu						1	0				0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		MCP Router help				1	0		8	menuAction:	0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		What the router actually does				1	0		8	menuAction:	0.0	1117.0	0.0	0.0	0
-3	AXMenuItem		Report an issue				1	0		8	menuAction:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		MCP Router Help				1	0		8	menuAction:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		What the Router Actually Does				1	0		8	menuAction:	0.0	1117.0	0.0	0.0	0
+3	AXMenuItem		Report an Issue				1	0		8	menuAction:	0.0	1117.0	0.0	0.0	0

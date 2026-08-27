@@ -23,6 +23,12 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 
 export function writeAuthVectors({ write, distDir, require }) {
+  // pin-class: src-export — auth.PAGE
+  //
+  // P11 annotated the region this replaces and carried it: `PAGE` was re-typed there, so the
+  // class was declared and unmet. The carry closes here rather than in the gate alone — the
+  // region now reaches `PAGE` through the require below, which is what `src-export` asserts.
+  //
   // The template comes from the built reference, not from a copy of it. The require is the
   // assertion: if `PAGE` stops being exported, this throws rather than silently regenerating a
   // stale expectation, and `parity-regen-selftest` arm 7 proves that throw fires.

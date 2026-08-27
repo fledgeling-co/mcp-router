@@ -1,60 +1,60 @@
-0	AXWindow	AXStandardWindow	Servers								SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1	180.0	184.0	980.0	620.0	0
-1	AXGroup	AXHostingView										180.0	184.0	980.0	620.0	0
-2	AXSplitGroup										SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1, SidebarNavigationSplitView	180.0	-533.5	980.0	2107.0	0
-3	AXGroup	AXHostingView										188.0	-525.5	256.0	2091.0	0
-4	AXScrollArea											188.0	-481.5	256.0	1964.0	0
-5	AXOutline				Sidebar		1				sidebar	188.0	-481.5	256.0	1964.0	0
-6	AXRow	AXOutlineRow						0				188.0	-481.5	256.0	19.0	
-7	AXCell						1	0				198.0	-481.5	236.0	19.0	1
-8	AXGroup	AXHostingView										202.0	-481.5	240.0	19.0	0
-9	AXHeading				Running		1					202.0	-479.0	45.0	14.0	
-6	AXRow	AXOutlineRow						0				188.0	-462.5	256.0	32.0	
-7	AXCell						1	0				198.0	-462.5	236.0	32.0	1
-8	AXButton				Activity		1					205.5	-454.5	71.0	16.0	
-6	AXRow	AXOutlineRow						1				188.0	-430.5	256.0	32.0	
-7	AXCell						1	1				198.0	-430.5	236.0	32.0	1
-8	AXButton				Servers		1	1				204.0	-422.5	72.5	16.0	
-6	AXRow	AXOutlineRow						0				188.0	-398.5	256.0	32.0	
-7	AXCell						1	0				198.0	-398.5	236.0	32.0	1
-8	AXButton				Skills		1					207.0	-390.5	55.0	16.0	
-6	AXRow	AXOutlineRow						0				188.0	-353.5	256.0	19.0	
-7	AXCell						1	0				198.0	-353.5	236.0	19.0	1
-8	AXGroup	AXHostingView										202.0	-353.5	240.0	19.0	0
-9	AXHeading				Library		1					202.0	-351.0	39.0	14.0	
-6	AXRow	AXOutlineRow						0				188.0	-334.5	256.0	32.0	
-7	AXCell						1	0				198.0	-334.5	236.0	32.0	1
-8	AXButton				Discover		1					206.0	-326.5	77.5	16.0	
-6	AXRow	AXOutlineRow						0				188.0	-302.5	256.0	32.0	
-7	AXCell						1	0				198.0	-302.5	236.0	32.0	1
-8	AXButton				Inbox		1					204.5	-294.5	58.5	16.0	
-6	AXRow	AXOutlineRow						0				188.0	-270.5	256.0	32.0	
-7	AXCell						1	0				198.0	-270.5	236.0	32.0	1
-8	AXButton				Checks		1	1				204.5	-262.5	70.5	16.0	
-6	AXRow	AXOutlineRow						0				188.0	-238.5	256.0	32.0	
-7	AXCell						1	0				198.0	-238.5	236.0	32.0	1
-8	AXButton				Cleanup		1					205.5	-230.5	74.5	16.0	
-6	AXRow	AXOutlineRow						0				188.0	-193.5	256.0	0.0	
-7	AXCell						1	0				198.0	-193.5	236.0	0.0	1
-8	AXGroup	AXHostingView										202.0	-193.5	240.0	0.0	0
-6	AXRow	AXOutlineRow						0				188.0	-193.5	256.0	32.0	
-7	AXCell						1	0				198.0	-193.5	236.0	32.0	1
-8	AXButton				Settings		1					205.0	-185.5	76.0	16.0	
-6	AXColumn							0			ListColumn	198.0	-481.5	236.0	1964.0	
-4	AXStaticText			The router isn't running, Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a moment and your servers stay exactly as you left them.			1				sidebar	196.0	1487.5	237.5	74.0	
-3	AXSplitter			264			0	0				444.0	1005.5	0.0	568.0	0
-3	AXGroup	AXHostingView										180.0	-533.5	980.0	2107.0	0
-4	AXStaticText			none	mcprouter-key-probe						content	1084.0	1545.5	72.0	24.0	1
-4	AXScrollArea										content	444.0	-481.5	716.0	2055.0	0
-5	AXImage				bolt		1				bolt	792.5	-188.5	19.0	31.0	
-5	AXStaticText			The router isn't running			1					717.8	-143.2	168.5	19.0	
-5	AXStaticText			Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a moment and your servers stay exactly as you left them.			1					658.8	-120.2	286.5	65.5	
-5	AXButton				Start the router	MCP Router can't start the daemon itself yet. Start it the way you normally do and this fills in on its own.	0					496.5	-22.5	114.0	24.0	
-5	AXStaticText			MCP Router can't start the daemon itself yet. Start it the way you normally do and this fills in on its own.		MCP Router can't start the daemon itself yet. Start it the way you normally do and this fills in on its own.	1					496.5	5.2	611.0	15.0	
-1	AXToolbar											180.0	184.0	980.0	52.0	0
-2	AXButton				Hide Sidebar		1	0				397.0	184.0	47.0	52.0	0
-1	AXButton	AXCloseButton					1					198.0	202.0	16.0	16.0	0
-1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					244.0	202.0	16.0	16.0	0
-2	AXGroup											245.0	203.0	14.0	14.0	0
-3	AXGroup											245.0	203.0	14.0	14.0	0
-1	AXButton	AXMinimizeButton					1					221.0	202.0	16.0	16.0	0
-1	AXStaticText			Servers			1					448.0	184.0	708.0	52.0	0
+0	AXWindow	AXStandardWindow	Servers								SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1	180.0	140.0	980.0	620.0	0
+1	AXGroup	AXHostingView										180.0	140.0	980.0	620.0	0
+2	AXSplitGroup										SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1, SidebarNavigationSplitView	180.0	-589.0	980.0	2130.0	0
+3	AXGroup	AXHostingView										188.0	-581.0	256.0	2114.0	0
+4	AXScrollArea											188.0	-537.0	256.0	1964.0	0
+5	AXOutline				Sidebar		1				sidebar	188.0	-537.0	256.0	1964.0	0
+6	AXRow	AXOutlineRow						0				188.0	-537.0	256.0	19.0	
+7	AXCell						1	0				198.0	-537.0	236.0	19.0	1
+8	AXGroup	AXHostingView										202.0	-537.0	240.0	19.0	0
+9	AXHeading				Running		1					202.0	-534.5	45.0	14.0	
+6	AXRow	AXOutlineRow						0				188.0	-518.0	256.0	32.0	
+7	AXCell						1	0				198.0	-518.0	236.0	32.0	1
+8	AXButton				Activity		1					205.5	-510.0	71.0	16.0	
+6	AXRow	AXOutlineRow						1				188.0	-486.0	256.0	32.0	
+7	AXCell						1	1				198.0	-486.0	236.0	32.0	1
+8	AXButton				Servers		1	1				204.0	-478.0	72.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-454.0	256.0	32.0	
+7	AXCell						1	0				198.0	-454.0	236.0	32.0	1
+8	AXButton				Skills		1					207.0	-446.0	55.0	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-422.0	256.0	32.0	
+7	AXCell						1	0				198.0	-422.0	236.0	32.0	1
+8	AXButton				Harnesses		1					205.0	-414.0	90.0	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-377.0	256.0	19.0	
+7	AXCell						1	0				198.0	-377.0	236.0	19.0	1
+8	AXGroup	AXHostingView										202.0	-377.0	240.0	19.0	0
+9	AXHeading				Library		1					202.0	-374.5	39.0	14.0	
+6	AXRow	AXOutlineRow						0				188.0	-358.0	256.0	32.0	
+7	AXCell						1	0				198.0	-358.0	236.0	32.0	1
+8	AXButton				Discover		1					206.0	-350.0	77.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-326.0	256.0	32.0	
+7	AXCell						1	0				198.0	-326.0	236.0	32.0	1
+8	AXButton				Inbox		1					204.5	-318.0	58.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-294.0	256.0	32.0	
+7	AXCell						1	0				198.0	-294.0	236.0	32.0	1
+8	AXButton				Checks		1	1				204.5	-286.0	70.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-262.0	256.0	32.0	
+7	AXCell						1	0				198.0	-262.0	236.0	32.0	1
+8	AXButton				Cleanup		1					205.5	-254.0	74.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-230.0	256.0	32.0	
+7	AXCell						1	0				198.0	-230.0	236.0	32.0	1
+8	AXButton				Insights		1					203.5	-222.0	75.0	16.0	
+6	AXColumn							0			ListColumn	198.0	-537.0	236.0	1964.0	
+4	AXStaticText			The router isn't running, Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a moment and your servers stay exactly as you left them.			1				sidebar	204.0	1443.0	214.5	74.0	
+3	AXSplitter			264			0	0				444.0	973.0	0.0	568.0	0
+3	AXGroup	AXHostingView										180.0	-589.0	980.0	2130.0	0
+4	AXStaticText			none	mcprouter-key-probe						content	1084.0	1513.0	72.0	24.0	1
+4	AXScrollArea										content	444.0	-537.0	716.0	2078.0	0
+5	AXImage				bolt		1				bolt	792.5	-244.0	19.0	31.0	
+5	AXStaticText			The router isn't running			1					717.8	-198.8	168.5	19.0	
+5	AXStaticText			Nothing is listening on the control port, so there is nothing to show yet. Starting it takes a moment and your servers stay exactly as you left them.			1					658.8	-175.8	286.5	65.5	
+5	AXButton				Start the router	MCP Router can't start the daemon itself yet. Start it the way you normally do and this fills in on its own.	0					496.5	-78.0	114.0	24.0	
+5	AXStaticText			MCP Router can't start the daemon itself yet. Start it the way you normally do and this fills in on its own.		MCP Router can't start the daemon itself yet. Start it the way you normally do and this fills in on its own.	1					496.5	-50.2	611.0	15.0	
+1	AXToolbar											180.0	140.0	980.0	52.0	0
+2	AXButton				Hide Sidebar		1	0				397.0	140.0	47.0	52.0	0
+1	AXButton	AXCloseButton					1					198.0	158.0	16.0	16.0	0
+1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					244.0	158.0	16.0	16.0	0
+2	AXGroup											245.0	159.0	14.0	14.0	0
+3	AXGroup											245.0	159.0	14.0	14.0	0
+1	AXButton	AXMinimizeButton					1					221.0	158.0	16.0	16.0	0
+1	AXStaticText			Servers			1					448.0	140.0	708.0	52.0	0

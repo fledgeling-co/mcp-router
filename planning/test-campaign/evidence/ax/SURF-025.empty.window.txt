@@ -1,0 +1,63 @@
+0	AXWindow	AXStandardWindow	Harnesses								SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1	180.0	140.0	980.0	620.0	0
+1	AXGroup	AXHostingView										180.0	140.0	980.0	620.0	0
+2	AXSplitGroup										SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1, SidebarNavigationSplitView	180.0	-212.5	980.0	1377.5	0
+3	AXGroup	AXHostingView										188.0	-204.5	256.0	1361.5	0
+4	AXScrollArea											188.0	-160.5	256.0	1192.5	0
+5	AXOutline				Sidebar		1				sidebar	188.0	-160.5	256.0	1192.5	0
+6	AXRow	AXOutlineRow						0				188.0	-160.5	256.0	19.0	
+7	AXCell						1	0				198.0	-160.5	236.0	19.0	1
+8	AXGroup	AXHostingView										202.0	-160.5	240.0	19.0	0
+9	AXHeading				Running		1					202.0	-158.0	45.0	14.0	
+6	AXRow	AXOutlineRow						0				188.0	-141.5	256.0	32.0	
+7	AXCell						1	0				198.0	-141.5	236.0	32.0	1
+8	AXButton				Activity		1					205.5	-133.5	71.0	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-109.5	256.0	32.0	
+7	AXCell						1	0				198.0	-109.5	236.0	32.0	1
+8	AXButton				Servers		1					204.0	-101.5	72.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-77.5	256.0	32.0	
+7	AXCell						1	0				198.0	-77.5	236.0	32.0	1
+8	AXButton				Skills		1					207.0	-69.5	55.0	16.0	
+6	AXRow	AXOutlineRow						1				188.0	-45.5	256.0	32.0	
+7	AXCell						1	1				198.0	-45.5	236.0	32.0	1
+8	AXButton				Harnesses		1	1				205.0	-37.5	90.0	16.0	
+6	AXRow	AXOutlineRow						0				188.0	-0.5	256.0	19.0	
+7	AXCell						1	0				198.0	-0.5	236.0	19.0	1
+8	AXGroup	AXHostingView										202.0	-0.5	240.0	19.0	0
+9	AXHeading				Library		1					202.0	2.0	39.0	14.0	
+6	AXRow	AXOutlineRow						0				188.0	18.5	256.0	32.0	
+7	AXCell						1	0				198.0	18.5	236.0	32.0	1
+8	AXButton				Discover		1					206.0	26.5	77.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	50.5	256.0	32.0	
+7	AXCell						1	0				198.0	50.5	236.0	32.0	1
+8	AXButton				Inbox		1					204.5	58.5	58.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	82.5	256.0	32.0	
+7	AXCell						1	0				198.0	82.5	236.0	32.0	1
+8	AXButton				Checks		1	1				204.5	90.5	70.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	114.5	256.0	32.0	
+7	AXCell						1	0				198.0	114.5	236.0	32.0	1
+8	AXButton				Cleanup		1					205.5	122.5	74.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	146.5	256.0	32.0	
+7	AXCell						1	0				198.0	146.5	236.0	32.0	1
+8	AXButton				Insights		1					203.5	154.5	75.0	16.0	
+6	AXColumn							0			ListColumn	198.0	-160.5	236.0	1192.5	
+4	AXStaticText			No servers declared yet, Point MCP Router at a config and the servers your agents already use appear here.			1				sidebar	204.0	1048.0	201.0	60.0	
+4	AXStaticText			Router endpoint, 127.0.0.1:8971			1				sidebar	204.0	1134.0	95.5	14.0	
+3	AXSplitter			264			0	0				444.0	597.0	0.0	568.0	0
+3	AXGroup	AXHostingView										180.0	-212.5	980.0	1377.5	0
+4	AXStaticText			none	mcprouter-key-probe						content	1084.0	1137.0	72.0	24.0	1
+4	AXScrollArea										content	444.0	-160.5	716.0	1325.5	0
+5	AXStaticText			Harnesses			1					460.0	-144.5	109.5	26.0	
+5	AXButton				Rescan		1					971.0	-144.5	62.0	24.0	0
+5	AXButton				Reconcile all…	The panel that shows the difference isn't built yet, so nothing here can be reconciled from this board. Your configuration is untouched either way.	0					1037.0	-144.5	107.0	24.0	
+5	AXStaticText			Which AI tools on this Mac actually route through here. Pointing a harness at the endpoint is the easy half; the half that saves anything is noticing it still spawns its own copies.			1					460.0	-116.5	485.0	49.0	
+5	AXImage				harness		1				point.3.connected.trianglepath.dotted	788.0	-25.0	28.5	23.5	
+5	AXStaticText			No AI harnesses found			1					721.2	13.0	161.5	19.0	
+5	AXStaticText			Nothing on this Mac looks like an agent CLI or editor that speaks MCP. If one is installed somewhere unusual, the router reads the standard configuration paths only.			1					657.5	36.0	289.0	65.5	
+1	AXToolbar											180.0	140.0	980.0	52.0	0
+2	AXButton				Hide Sidebar		1	0				397.0	140.0	47.0	52.0	0
+1	AXButton	AXCloseButton					1					198.0	158.0	16.0	16.0	0
+1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					244.0	158.0	16.0	16.0	0
+2	AXGroup											245.0	159.0	14.0	14.0	0
+3	AXGroup											245.0	159.0	14.0	14.0	0
+1	AXButton	AXMinimizeButton					1					221.0	158.0	16.0	16.0	0
+1	AXStaticText			Harnesses			1					448.0	140.0	708.0	52.0	0

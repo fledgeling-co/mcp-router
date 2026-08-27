@@ -70,6 +70,12 @@
         /// exists to avoid. It defaults to M19's fixture, so every existing invocation renders
         /// exactly what it rendered before.
         let readme: CapabilityDocumentSheet.Content
+        /// Which of the panel's three tabs the `.readme` arm opens on.
+        ///
+        /// Switching tabs is a press on `@State`, which a headless render cannot perform, so the
+        /// tab has to be chosen before the view is built. `.readMe` keeps every existing dump
+        /// byte-for-byte what it was.
+        var readmeTab: CapabilityDocument.Tab = .readMe
 
         var body: some View {
             Group {
@@ -80,7 +86,7 @@
                         board: ServersBoardModel(client: client, tracker: shell.tracker)
                     )
                 case .readme:
-                    CapabilityDocumentSheet(content: readme)
+                    CapabilityDocumentSheet(content: readme, initialTab: readmeTab)
                 case .popover:
                     MenuBarPopover(shell: shell)
                 case .harnesses:

@@ -119,6 +119,70 @@ AXKIT="$WORK/axkit"
 swiftc -O -o "$AXKIT" "$ROOT/scripts/acceptance/axkit.swift" 2>"$WORK/axkit.log" \
   || { cat "$WORK/axkit.log" >&2; blocked "could not build the accessibility toolkit"; }
 
+# ---------------------------------------------------------------- the destination oracle
+#
+# **The destination set is read from the app, once, here.** Three places below named it by hand and
+# a fourth counted it by parsing `case` lines, which is four copies of one fact and four chances to
+# be wrong about it — the shape `board-registry.sh` was written to kill for `installed`, one file
+# over. M22 shipped `harnesses` and `insights`; none of the four followed, and this lane then
+# contradicted itself inside a single run, passing *9 destination rows share one height* from the
+# parsed count and *all seven destinations are in the accessibility tree* from a hand-written list.
+#
+# Compiled against the shipped `Destination.swift` rather than parsed out of it, because `title` is
+# a `switch` that does not follow the case names: `.evals` reads `Checks`. A `case`-line scraper
+# would have printed `Evals` — the one label deliberately renamed away from its identifier, and the
+# one this lane asserts is gone.
+DEST_ORACLE="$WORK/dest-oracle"
+swiftc -O -o "$DEST_ORACLE" \
+  "$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift" \
+  "$ROOT/scripts/acceptance/destination-oracle.swift" 2>"$WORK/dest-oracle.log" \
+  || { cat "$WORK/dest-oracle.log" >&2; blocked "could not build the destination oracle"; }
+"$DEST_ORACLE" > "$WORK/destinations.tsv" \
+  || blocked "the destination oracle did not run"
+
+DEST_TITLES="$(cut -f2 "$WORK/destinations.tsv")"
+DEST_TOTAL="$(grep -c . "$WORK/destinations.tsv" | tr -d ' ')"
+# An empty list is a broken oracle, never an empty app. It matters more than it looks: every reader
+# below turns `$DEST_TITLES` into a `for`, and an empty one runs zero assertions and reports a pass.
+[ "$DEST_TOTAL" -gt 0 ] || blocked "the destination oracle named no destinations — the oracle is wrong, not the app"
+
+# The guard above is about the oracle; this one is about the app, and it is the only number in this
+# block that does not come from the oracle. That distinction is the whole point of it.
+#
+# A4 below asserts `$DEST_ROW_COUNT -ge $DEST_TOTAL` — the sidebar's rows against the app's own
+# count — and **both sides move together**. Delete a case from `Destination` and delete its row from
+# the sidebar and that comparison still holds, because the expectation followed the app. Every other
+# reader of `$DEST_TITLES` has the same shape: the needle loop, the title lookup, the pane walk and
+# the board census all iterate the set the app declares, so a set that shrank iterates fewer times
+# and passes. **A derived expectation cannot notice a deletion.** That is the price of deriving, and
+# deriving is still right; the price is paid here instead.
+#
+# `DEST_FLOOR` is a ratchet, not a copy of the list. It names no destination and carries no order,
+# so adding a destination never touches it — which is the edit that went stale four times and is the
+# reason the list was deleted. It is edited only by a change that deliberately removes one, and that
+# edit is the deliberation: a red here says *say so in this commit*.
+#
+# It is also stale in the safe direction. A floor left below the true count weakens this check and
+# can never redden a correct app, which is the opposite of the pinned `case`-count it replaces —
+# that one was an equality and went red on a correct app the moment M22 shipped.
+#
+# **What it does not catch**, stated rather than left for the next reader to discover: a removal
+# paired with an addition in the same build keeps the total at or above the floor and passes here,
+# and no check in this file names a destination, so nothing else notices either. Catching that needs
+# the hand-written list back, which is a worse trade. The floor catches net shrinkage; a swap is
+# uncovered.
+DEST_FLOOR=9
+[ "$DEST_TOTAL" -ge "$DEST_FLOOR" ] \
+  || fail "the app declares $DEST_TOTAL destinations against a floor of $DEST_FLOOR — one has been removed, and every derived check below moved with it. If the removal is deliberate, lower DEST_FLOOR in the same commit."
+
+# `$DEST_TITLES` is consumed by word-splitting, which is correct only while no title carries a
+# space. That holds for every title the app ships today, and it is a property of the app rather than
+# of this lane, so it is checked rather than assumed: a two-word destination would otherwise split
+# into two needles that match nothing and fail naming a row the app draws correctly.
+awk -F'\t' '$2 ~ /[[:space:]]/ { exit 1 }' "$WORK/destinations.tsv" \
+  || blocked "a destination title contains whitespace — the word-split readers below would split it in two"
+echo "  destination oracle: $DEST_TOTAL destinations — $(printf '%s' "$DEST_TITLES" | tr '\n' ' ')"
+
 # ---------------------------------------------------------------- preflight
 #
 # Each of these is its own outcome. Without the grant every AX query returns empty, which is
@@ -304,19 +368,15 @@ DEST_ROW="$(awk -F'\t' '$2 == "AXRow" && $16 > 0 { c[$16]++ } END { m = 0; for (
 [ -n "$DEST_ROW" ] || fail "no sidebar rows in the accessibility tree"
 DEST_ROW_COUNT="$(awk -F'\t' -v h="$DEST_ROW" '$2 == "AXRow" && $16 == h { n++ } END { print n + 0 }' "$WORK/window.tsv")"
 # **Derived rather than pinned, since M15.** The literal was 8, which was the destination count while
-# Settings was one of them; it is a window now and the sidebar draws seven. A pinned number here
+# Settings was one of them; it is a window now and the sidebar draws one fewer. A pinned number here
 # would have to be edited by every item that adds or removes a destination, and the one that forgot
-# would get a red gate for a correct app. `Destination.swift` is the same oracle `$DEST_TOTAL` reads
-# further down.
-DEST_EXPECTED="$(awk '
-    /^public enum Destination:/ { inside = 1; next }
-    inside && /^}/             { inside = 0 }
-    inside && /^ +case [a-z]/  { n++ }
-    END { print n + 0 }
-' "$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift")"
-[ "$DEST_EXPECTED" -gt 0 ] || blocked "counted zero destinations — the parse is wrong, not the code"
-[ "$DEST_ROW_COUNT" -ge "$DEST_EXPECTED" ] \
-  || fail "only $DEST_ROW_COUNT rows share the modal height, against $DEST_EXPECTED destinations — the sidebar is not one row size"
+# would get a red gate for a correct app.
+#
+# It read the count by parsing `case` lines out of `Destination.swift`, which was right about the
+# number and was the second of four readers of one fact. `$DEST_TOTAL` is the destination oracle's
+# count — the app's own `allCases`, compiled — and every reader below now shares it.
+[ "$DEST_ROW_COUNT" -ge "$DEST_TOTAL" ] \
+  || fail "only $DEST_ROW_COUNT rows share the modal height, against $DEST_TOTAL destinations — the sidebar is not one row size"
 
 IN_DOC=0
 for size in $DOC_ROWS; do
@@ -335,11 +395,22 @@ WINDOW_TEXT="$(cut -f4,5,6 "$WORK/window.tsv" | tr '\t' '\n' | grep -v '^$' || t
 # loose number. That is the point of the label, so the assertion has to allow for it.
 # Settings left this list at M15: it is a `Settings` scene now, not a destination, so a row for it
 # in the console's tree would be the removal having been partial.
-for needle in Activity Servers Skills Discover Inbox Checks Cleanup; do
-    printf '%s\n' "$WINDOW_TEXT" | grep -qE "^$needle(,|$)" \
+#
+# Matched **literally** rather than as a pattern. The needle is a destination title, which is now
+# the app's string rather than this file's, and an ERE built by interpolation reads `+`, `(`, `?`
+# and `.` in it as syntax: a title like `Insights (beta)` would compile to a pattern matching
+# `Insights beta` and fail against the row the app draws correctly. The whitespace guard at the
+# oracle catches the word-split hazard and not this one — it looks at spaces, and these characters
+# are not spaces. `index($0, n) == 1` anchors the prefix with no pattern language involved, and the
+# needle reaches awk through the environment rather than `-v`, which would process backslashes.
+for needle in $DEST_TITLES; do
+    printf '%s\n' "$WINDOW_TEXT" \
+      | needle="$needle" awk 'BEGIN { n = ENVIRON["needle"]; l = length(n) }
+                              index($0, n) == 1 && (length($0) == l || substr($0, l + 1, 1) == ",") { found = 1 }
+                              END { exit !found }' \
       || fail "the accessibility tree does not carry a row for '$needle'"
 done
-pass "all seven destinations are in the accessibility tree"
+pass "all $DEST_TOTAL destinations are in the accessibility tree"
 
 # The other direction, which is what makes the removal checkable rather than merely unbroken: the
 # console must not carry a Settings row at all.
@@ -389,13 +460,18 @@ pass "the readout announces its counts as a sentence"
 # ---------------------------------------------------------------- A9 · the title names the view
 
 TITLE="$("$AXKIT" title "$PID")"
-case "$TITLE" in
-    Activity|Servers|Skills|Discover|Inbox|Checks|Cleanup) ;;
-    # `Settings` is deliberately absent: the console's title is a destination's, and Settings is no
-    # longer one. The Settings *window* carries that title, and `m8-settings-menubar.sh` reads it
-    # there.
-    *) fail "the window title is '$TITLE', which is not a destination name (§3.7 forbids the app's name)" ;;
-esac
+# **Membership is asked of the app's own list, not of a pattern restating it.** The pattern named
+# seven while the app shipped nine, and the shape of the resulting red is worth recording: this
+# assertion reads the title of whichever board the app *restored into*, so it fired only on a run
+# that restored into Harnesses or Insights and passed on every other. A gate that goes red on stored
+# UI state rather than on the tree is the one nobody chases, and the next person to see it green
+# reads the stale list as current.
+#
+# `Settings` is still absent, and now it is absent because `Destination` does not list it rather
+# than because this line does not. The Settings *window* carries that title, and
+# `m8-settings-menubar.sh` reads it there.
+awk -F'\t' -v t="$TITLE" '$2 == t { found = 1 } END { exit !found }' "$WORK/destinations.tsv" \
+  || fail "the window title is '$TITLE', which is not a destination name (§3.7 forbids the app's name)"
 pass "window title is '$TITLE' — the view, not the app"
 check_invisible "the window assertions"
 
@@ -765,12 +841,18 @@ for command in MenuCommand.allCases {
     // The assertion gets STRONGER for the change: the lane now requires the specific sentence for
     // each of the nine unbuilt commands rather than one generic string shared between them, so a
     // command that starts returning `.featureUnbuilt` without naming its subject fails here.
+    // Column 6 is the command's **identity** — the case name, which is what `MenuCommand` calls this
+    // command rather than what a menu shows a user. It is here so a hand-written row below can name
+    // a command without naming its address: `exportLibrary` did not change at M20, while the menu it
+    // sits in and the label it draws both did, and the row that named those went red against an app
+    // that was right.
     print([
         command.menu.rawValue,
         command.title,
         command.isSystemProvided ? "system" : "app",
         token,
-        command.reason(in: context) ?? ""
+        command.reason(in: context) ?? "",
+        String(describing: command)
     ].joined(separator: "\t"))
 }
 SWIFT
@@ -844,7 +926,7 @@ echo "  availability oracle: $APP_ROWS app-declared commands, boards installed: 
 AVAIL_CHECKED=0
 DISABLED_CHECKED=0
 ENABLED_CHECKED=0
-while IFS=$'\t' read -r menu title kind availability reason; do
+while IFS=$'\t' read -r menu title kind availability reason _identity; do
     [ "$kind" = "app" ] || continue
     line="$(awk -F'\t' -v m="$menu" -v t="$title" '$1 == m && $2 == t { print; exit }' "$WORK/items.tsv")"
     [ -n "$line" ] || fail "$menu / $title is declared by the app and is not in the menu bar — §3.4 forbids hiding it"
@@ -1044,7 +1126,7 @@ check_invisible "the focus-ring assertion"
 
 # ------------------------------------------------- D1, D2, D3 · every board, top-aligned and single-scrolled
 #
-# One walk of all seven destinations inside the launch that is already open. Three claims, and each
+# One walk of every destination inside the launch that is already open. Three claims, and each
 # was a defect that had been patched locally instead of fixed at the shell.
 #
 # **D1 — the board starts at the top of the content zone.** `ContentZone.outerScroll` hands every
@@ -1059,7 +1141,7 @@ check_invisible "the focus-ring assertion"
 # surplus, so a board added later inherits it rather than rediscovering it.
 #
 # **The 40pt threshold, and what it does and does not cover.** The readings after the fix are 16pt
-# on the seven shell-scrolled boards (their top padding) and 0pt on Activity; the mutation that
+# on the shell-scrolled boards (their top padding) and 0pt on Activity; the mutation that
 # removes the alignment puts Servers at 208.5pt. So 40 clears the real geometry comfortably.
 #
 # It is bounded, and the bound is worth stating rather than leaving for someone to discover. Centring
@@ -1108,7 +1190,7 @@ echo "every board: top-aligned, single-scrolled"
 #   - **right**, by the outline's trailing edge, as before — Settings draws `127.0.0.1` in its own
 #     Endpoint row at x≈942, which is the content zone.
 #   - **below** the readout card, by y. Without it the foot could be moved ABOVE the destination
-#     list, keeping its x, and pass on all eight boards while `DESIGN.md` requires it last.
+#     list, keeping its x, and pass on every board while `DESIGN.md` requires it last.
 #
 # And the field is matched WHOLE rather than by substring, so `127.0.0.1:8971 whatever` fails
 # instead of being truncated to the prefix the assertion wanted. The optional `Router endpoint, `
@@ -1219,7 +1301,7 @@ capture_evidence() {
 }
 
 : > "$WORK/all-panes.tsv"
-for dest in Activity Servers Skills Discover Inbox Checks Cleanup; do
+for dest in $DEST_TITLES; do
     "$AXKIT" select "$PID" "$dest" >/dev/null || fail "could not select $dest"
     sleep 1.2
     dump_window
@@ -1292,7 +1374,7 @@ for dest in Activity Servers Skills Discover Inbox Checks Cleanup; do
 
     # Held BELOW the card it is the foot of, so "last in the sidebar" is measured rather than
     # assumed. Without a y bound the foot could be moved above the destination list, keep its x, and
-    # pass on all seven boards.
+    # pass on every board.
     FOOT="$(sidebar_address "$WORK/window.tsv" "$SIDE_L" "$SIDE_R" "$LABEL_Y")"
     [ -n "$FOOT" ] \
       || fail "$dest: the sidebar foot carries no loopback readout below the count card — it is in the shared wrapper, so it belongs on every board (M27)"
@@ -1329,12 +1411,12 @@ done
 # deep-link slug stay `evals` and are invisible here — they are identifiers, and §6 governs words a
 # user reads.
 if grep -qw "Evals" "$WORK/all-panes.tsv"; then
-    fail "'Evals' is still rendered somewhere: $(grep -ohw "Evals" "$WORK/all-panes.tsv" | wc -l | tr -d ' ') occurrence(s) across the seven panes"
+    fail "'Evals' is still rendered somewhere: $(grep -ohw "Evals" "$WORK/all-panes.tsv" | wc -l | tr -d ' ') occurrence(s) across the $DEST_TOTAL panes"
 fi
 if grep -qw "Evals" "$WORK/menu.tsv"; then
     fail "'Evals' is still in the menu bar — the View menu and the sidebar disagree"
 fi
-pass "'Evals' appears in neither the seven panes nor the menu bar; the sidebar, the title and the pane heading all read 'Checks'"
+pass "'Evals' appears in neither the $DEST_TOTAL panes nor the menu bar; the sidebar, the title and the pane heading all read 'Checks'"
 check_invisible "the board-alignment and rename assertions"
 
 # ---------------------------------------------------------------- A34 · the scroll edge, rendered
@@ -1354,7 +1436,7 @@ echo "the scroll edge"
 # version of this comment said the assertion would have to move onto a board's own list "when the
 # last board lands". That was wrong, and it cost M13 an investigation: `ContentZone` keeps
 # `boardsThatScrollThemselves = [.activity]`, so Activity is the one destination drawn *outside* the
-# shell's scroll view, and the other seven — Servers among them — are wrapped in `outerScroll`, whose
+# shell's scroll view, and the others — Servers among them — are wrapped in `outerScroll`, whose
 # geometry is what drives `ScrollEdgeState`. Servers is correct and does not need moving.
 #
 # "Wrapped in it" is not the same as "scrolls in it", and M13 recorded one board where they came
@@ -1367,7 +1449,7 @@ echo "the scroll edge"
 # immediately after the assertion that retired it is how the next reader re-opens a closed finding.
 #
 # **M15 takes Settings out of that claim entirely**, and the claim is narrower rather than weaker:
-# the walk covers seven panes now, and the Settings *window* does own a `ScrollView` of its own —
+# the walk covers the destinations only, and the Settings *window* does own a `ScrollView` of its own —
 # correctly, because there is no shell around it to nest inside. That inversion is asserted by
 # `SettingsWindowTests.theWindowOwnsOneScroll`, not here; this walk says nothing about it.
 "$AXKIT" select "$PID" Servers >/dev/null
@@ -1605,7 +1687,7 @@ for state in offline unauthorized; do
     # And the count card's label goes with its numbers. The failure form replaces the counts form
     # rather than emptying it, so a readout still headed `Child processes` under an error message
     # would be a card describing a metric it is no longer showing. Asked here because the presence
-    # side of this pair is asserted on all seven boards above, and a label is exactly the kind of
+    # side of this pair is asserted on every board above, and a label is exactly the kind of
     # chrome that survives a state change nobody checked.
     STATE_LABEL="$(awk -F'\t' -v l="$STATE_SIDE_L" -v r="$STATE_SIDE_R" '
         $13 >= l && $13 < r {
@@ -1656,15 +1738,9 @@ echo "a command is off for a destination that has no board, or for a feature tha
 #   * The needle must be a **type the file no longer declares**, never the file's name: the path
 #     `ScaffoldPane.swift` survives in metadata at 2 while both deleted types sit at 0.
 
-DEST_FILE="$APP_DIR/Sources/MCPRouterKit/Shell/Destination.swift"
-[ -f "$DEST_FILE" ] || blocked "could not find Destination.swift to count destinations"
-DEST_TOTAL="$(awk '
-    /^public enum Destination:/ { inside = 1; next }
-    inside && /^}/             { inside = 0 }
-    inside && /^ +case [a-z]/  { n++ }
-    END { print n + 0 }
-' "$DEST_FILE")"
-[ "$DEST_TOTAL" -gt 0 ] || blocked "counted zero destinations — the parse is wrong, not the code"
+# `$DEST_TOTAL` is the destination oracle's count, taken once at the top of this script. It was a
+# second `case`-line parse here, identical to the one A4 carried — the same fact read twice, in two
+# places, by two copies of one awk program.
 
 # The declaration is read from its `[` to its matching `]`, however many lines that spans — it wraps
 # at eight entries, and a one-line reader silently yielded an empty list and a passing gate.
@@ -1732,15 +1808,38 @@ fi
 # screen. This row can only be satisfied by the item actually being usable and silent.
 #
 # It rots only if pairing is deliberately withdrawn, which is a deliberate edit here.
-PAIR_LINE="$(awk -F'\t' '$1 == "File" && $2 == "Pair iPhone…" { print; exit }' "$WORK/items.tsv")"
-[ -n "$PAIR_LINE" ] || fail "File / Pair iPhone… is not in the menu bar at all"
+# **A command's address is derived; its expectation is hand-written.** The split is stated once here
+# because the two halves pull opposite ways, and both rows below depend on getting it right.
+#
+# Where a command lives and what it is called are facts `MenuCommand` states, and these rows used to
+# restate them. `exportLibrary` moved from File to Library at M20 and was retitled `Export Library…`;
+# `MenuCommand.swift` records the move as deliberate, the hand-written row could not notice, and this
+# lane reported a red naming the app for a change the app had documented. So the address is looked up
+# in the A22 oracle's output by **case name** — an identifier, which does not move when a label does.
+#
+# What must not derive is the expectation: that pairing is usable and silent, that export is dimmed
+# with a reason of its own. M11 recorded why as its finding M2 — a derived expectation moves with the
+# app under mutation, so re-classifying `exportLibrary` as `enabled` would leave A22, G1 and G3 all
+# green while the command stopped telling the truth. These two rows are the only thing that catches
+# it, and deriving them would delete the control while looking like modernisation.
+command_address() {
+    awk -F'\t' -v id="$1" '$6 == id { print $1 "\t" $2; exit }' "$WORK/expected.tsv"
+}
+
+PAIR_ADDR="$(command_address pairPhone)"
+[ -n "$PAIR_ADDR" ] \
+  || blocked "the availability oracle names no pairPhone command — the reader is wrong, or the command was withdrawn"
+PAIR_MENU="$(printf '%s' "$PAIR_ADDR" | cut -f1)"
+PAIR_TITLE="$(printf '%s' "$PAIR_ADDR" | cut -f2)"
+PAIR_LINE="$(awk -F'\t' -v m="$PAIR_MENU" -v t="$PAIR_TITLE" '$1 == m && $2 == t { print; exit }' "$WORK/items.tsv")"
+[ -n "$PAIR_LINE" ] || fail "$PAIR_MENU / $PAIR_TITLE is not in the menu bar at all"
 PAIR_ENABLED="$(printf '%s' "$PAIR_LINE" | cut -f3)"
 PAIR_HELP="$(printf '%s' "$PAIR_LINE" | cut -f4)"
 [ "$PAIR_ENABLED" = "1" ] \
-  || fail "File / Pair iPhone… is dimmed, but M6 shipped the pairing sheet it opens and the Inbox board's own Pairing… button is live"
+  || fail "$PAIR_MENU / $PAIR_TITLE is dimmed, but M6 shipped the pairing sheet it opens and the Inbox board's own Pairing… button is live"
 [ -z "$PAIR_HELP" ] \
-  || fail "File / Pair iPhone… is usable and still carries the reason '$PAIR_HELP'"
-pass "File / Pair iPhone… is enabled and carries no reason — the menu agrees with the board underneath it"
+  || fail "$PAIR_MENU / $PAIR_TITLE is usable and still carries the reason '$PAIR_HELP'"
+pass "$PAIR_MENU / $PAIR_TITLE is enabled and carries no reason — the menu agrees with the board underneath it"
 
 # ---------------------------------------------------------------- G2b · the other half of the pair
 #
@@ -1751,21 +1850,26 @@ pass "File / Pair iPhone… is enabled and carries no reason — the menu agrees
 #
 # **When export ships, this row is a deliberate edit**, exactly like G2 when pairing changes. That
 # is the cost of naming a command, and it is the only thing that makes the claim falsifiable.
-EXPORT_LINE="$(awk -F'\t' '$1 == "File" && $2 == "Export library…" { print; exit }' "$WORK/items.tsv")"
-[ -n "$EXPORT_LINE" ] || fail "File / Export library… is not in the menu bar at all — §3.4 forbids hiding a disabled command"
+EXPORT_ADDR="$(command_address exportLibrary)"
+[ -n "$EXPORT_ADDR" ] \
+  || blocked "the availability oracle names no exportLibrary command — the reader is wrong, or the command was withdrawn"
+EXPORT_MENU="$(printf '%s' "$EXPORT_ADDR" | cut -f1)"
+EXPORT_TITLE="$(printf '%s' "$EXPORT_ADDR" | cut -f2)"
+EXPORT_LINE="$(awk -F'\t' -v m="$EXPORT_MENU" -v t="$EXPORT_TITLE" '$1 == m && $2 == t { print; exit }' "$WORK/items.tsv")"
+[ -n "$EXPORT_LINE" ] || fail "$EXPORT_MENU / $EXPORT_TITLE is not in the menu bar at all — §3.4 forbids hiding a disabled command"
 EXPORT_ENABLED="$(printf '%s' "$EXPORT_LINE" | cut -f3)"
 EXPORT_HELP="$(printf '%s' "$EXPORT_LINE" | cut -f4)"
 [ "$EXPORT_ENABLED" = "0" ] \
-  || fail "File / Export library… is offered as usable, but no export feature exists in either target"
+  || fail "$EXPORT_MENU / $EXPORT_TITLE is offered as usable, but no export feature exists in either target"
 [ "$EXPORT_HELP" != "$SURFACE_ABSENT_REASON" ] \
-  || fail "File / Export library… explains itself with the missing-board sentence — its feature was never built, which is a different fact"
+  || fail "$EXPORT_MENU / $EXPORT_TITLE explains itself with the missing-board sentence — its feature was never built, which is a different fact"
 [ -n "$EXPORT_HELP" ] \
-  || fail "File / Export library… is dimmed and says nothing — §3.4 requires a discoverable reason"
-pass "File / Export library… is dimmed and gives a reason of its own: '$EXPORT_HELP'"
+  || fail "$EXPORT_MENU / $EXPORT_TITLE is dimmed and says nothing — §3.4 requires a discoverable reason"
+pass "$EXPORT_MENU / $EXPORT_TITLE is dimmed and gives a reason of its own: '$EXPORT_HELP'"
 
 # ---------------------------------------------------------------- D4 · a shortcut §8 never granted
 #
-# `Export library…` used to carry `⌘E`, and two separate things were wrong with it.
+# `Export Library…` used to carry `⌘E`, and two separate things were wrong with it.
 #
 # `DESIGN.md` §8's table is where this app's ⌘-combinations are granted, and it never granted `⌘E`.
 # And `⌘E` is already a **standard macOS combination** — Finder's *Eject*, and Cocoa's *Use Selection
@@ -1782,8 +1886,8 @@ pass "File / Export library… is dimmed and gives a reason of its own: '$EXPORT
 # command picked the same ungranted chord up.
 EXPORT_CHAR="$(printf '%s' "$EXPORT_LINE" | cut -f5 | tr -d '[:cntrl:]')"
 [ -z "$EXPORT_CHAR" ] \
-  || fail "File / Export library… binds '$EXPORT_CHAR', but §8's table grants it no shortcut and the command can never fire"
-pass "File / Export library… carries no shortcut — §8 granted it none"
+  || fail "$EXPORT_MENU / $EXPORT_TITLE binds '$EXPORT_CHAR', but §8's table grants it no shortcut and the command can never fire"
+pass "$EXPORT_MENU / $EXPORT_TITLE carries no shortcut — §8 granted it none"
 
 #
 # **Two things this has to get right, and the first draft got both wrong — measured, not reasoned.**

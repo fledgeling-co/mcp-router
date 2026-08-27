@@ -1,6 +1,29 @@
 {
- "checked": 224,
- "failures": [],
+ "checked": 406,
+ "failures": [
+  "CASE-0001: window carries: Settings",
+  "CASE-0001: shell chrome present in all 11 window dumps",
+  "CASE-0001: menu bar binds \u23184 to Discover",
+  "CASE-0001: menu bar binds \u23185 to Inbox",
+  "CASE-0001: menu bar binds \u23186 to Checks",
+  "CASE-0001: menu bar binds \u23187 to Cleanup",
+  "CASE-0001: menu bar binds \u2318, to Settings",
+  "CASE-0016: window title is Settings",
+  "CASE-0016: window carries: Read from the router, not set here",
+  "CASE-0016: window carries: no endpoint that rewrites the router's own configuration",
+  "CASE-0016: window carries: Forget the stored token",
+  "CASE-0101: window carries: Settings",
+  "CASE-0101: shell chrome present in all 11 window dumps",
+  "CASE-0101: menu bar binds \u23184 to Discover",
+  "CASE-0101: menu bar binds \u23185 to Inbox",
+  "CASE-0101: menu bar binds \u23186 to Checks",
+  "CASE-0101: menu bar binds \u23187 to Cleanup",
+  "CASE-0101: menu bar binds \u2318, to Settings",
+  "CASE-0111: window title is Settings",
+  "CASE-0111: window carries: Read from the router, not set here",
+  "CASE-0111: window carries: no endpoint that rewrites the router's own configuration",
+  "CASE-0111: window carries: Forget the stored token"
+ ],
  "cases": {
   "CASE-0001": {
    "checks": [
@@ -34,15 +57,15 @@
     },
     {
      "label": "window carries: Settings",
-     "pass": true
+     "pass": false
     },
     {
      "label": "dump is an AXWindow tree",
      "pass": true
     },
     {
-     "label": "shell chrome present in all 9 window dumps",
-     "pass": true
+     "label": "shell chrome present in all 11 window dumps",
+     "pass": false
     },
     {
      "label": "shell capture is not a board capture under a second id",
@@ -62,26 +85,26 @@
     },
     {
      "label": "menu bar binds \u23184 to Discover",
-     "pass": true
+     "pass": false
     },
     {
      "label": "menu bar binds \u23185 to Inbox",
-     "pass": true
+     "pass": false
     },
     {
      "label": "menu bar binds \u23186 to Checks",
-     "pass": true
+     "pass": false
     },
     {
      "label": "menu bar binds \u23187 to Cleanup",
-     "pass": true
+     "pass": false
     },
     {
      "label": "menu bar binds \u2318, to Settings",
-     "pass": true
+     "pass": false
     }
    ],
-   "pass": true
+   "pass": false
   },
   "CASE-0003": {
    "checks": [
@@ -250,22 +273,266 @@
    "checks": [
     {
      "label": "window title is Settings",
-     "pass": true
+     "pass": false
     },
     {
      "label": "window carries: Read from the router, not set here",
-     "pass": true
+     "pass": false
     },
     {
      "label": "window carries: no endpoint that rewrites the router's own configuration",
-     "pass": true
+     "pass": false
     },
     {
      "label": "window carries: Forget the stored token",
+     "pass": false
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    }
+   ],
+   "pass": false
+  },
+  "CASE-0160": {
+   "checks": [
+    {
+     "label": "window title is Harnesses",
+     "pass": true
+    },
+    {
+     "label": "window carries: Which AI tools on this Mac actually route through here",
+     "pass": true
+    },
+    {
+     "label": "window carries: Detected on this Mac",
+     "pass": true
+    },
+    {
+     "label": "window carries: one extra process per session",
+     "pass": true
+    },
+    {
+     "label": "window carries: Global configuration only",
+     "pass": true
+    },
+    {
+     "label": "window carries: runs \\d+ servers? of its own, \\d+ of which this router a",
      "pass": true
     },
     {
      "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "a control labelled Rescan is drawn",
+     "pass": true
+    },
+    {
+     "label": "the Rescan control is drawn enabled",
+     "pass": true
+    },
+    {
+     "label": "a control labelled Reconcile all is drawn",
+     "pass": true
+    },
+    {
+     "label": "the Reconcile all control is drawn disabled",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0167": {
+   "checks": [
+    {
+     "label": "window title is Harnesses",
+     "pass": true
+    },
+    {
+     "label": "window carries: Which AI tools on this Mac actually route through here",
+     "pass": true
+    },
+    {
+     "label": "window carries: Detected on this Mac",
+     "pass": true
+    },
+    {
+     "label": "window carries: one extra process per session",
+     "pass": true
+    },
+    {
+     "label": "window carries: Global configuration only",
+     "pass": true
+    },
+    {
+     "label": "window carries: runs \\d+ servers? of its own, \\d+ of which this router a",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "a control labelled Rescan is drawn",
+     "pass": true
+    },
+    {
+     "label": "the Rescan control is drawn enabled",
+     "pass": true
+    },
+    {
+     "label": "a control labelled Reconcile all is drawn",
+     "pass": true
+    },
+    {
+     "label": "the Reconcile all control is drawn disabled",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0170": {
+   "checks": [
+    {
+     "label": "window title is Insights",
+     "pass": true
+    },
+    {
+     "label": "window carries: Every number here is counted from calls this router serv",
+     "pass": true
+    },
+    {
+     "label": "window carries: Where the calls came from",
+     "pass": true
+    },
+    {
+     "label": "window carries: Duty cycle, per server",
+     "pass": true
+    },
+    {
+     "label": "window carries: measured, not modelled",
+     "pass": true
+    },
+    {
+     "label": "window carries: The share of wall-clock time each child was alive, since",
+     "pass": true
+    },
+    {
+     "label": "window carries: It sees the process on the other end of the connection, ",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: Savings",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: saved",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: vs unrouted",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: unrouted",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: would have been",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: 99.8",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: 99.7",
+     "pass": true
+    },
+    {
+     "label": "a control labelled Analyse now is drawn",
+     "pass": true
+    },
+    {
+     "label": "the Analyse now control is drawn disabled",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0176": {
+   "checks": [
+    {
+     "label": "window title is Insights",
+     "pass": true
+    },
+    {
+     "label": "window carries: Every number here is counted from calls this router serv",
+     "pass": true
+    },
+    {
+     "label": "window carries: Where the calls came from",
+     "pass": true
+    },
+    {
+     "label": "window carries: Duty cycle, per server",
+     "pass": true
+    },
+    {
+     "label": "window carries: measured, not modelled",
+     "pass": true
+    },
+    {
+     "label": "window carries: The share of wall-clock time each child was alive, since",
+     "pass": true
+    },
+    {
+     "label": "window carries: It sees the process on the other end of the connection, ",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: Savings",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: saved",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: vs unrouted",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: unrouted",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: would have been",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: 99.8",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: 99.7",
+     "pass": true
+    },
+    {
+     "label": "a control labelled Analyse now is drawn",
+     "pass": true
+    },
+    {
+     "label": "the Analyse now control is drawn disabled",
      "pass": true
     }
    ],
@@ -303,15 +570,15 @@
     },
     {
      "label": "window carries: Settings",
-     "pass": true
+     "pass": false
     },
     {
      "label": "dump is an AXWindow tree",
      "pass": true
     },
     {
-     "label": "shell chrome present in all 9 window dumps",
-     "pass": true
+     "label": "shell chrome present in all 11 window dumps",
+     "pass": false
     },
     {
      "label": "shell capture is not a board capture under a second id",
@@ -331,23 +598,23 @@
     },
     {
      "label": "menu bar binds \u23184 to Discover",
-     "pass": true
+     "pass": false
     },
     {
      "label": "menu bar binds \u23185 to Inbox",
-     "pass": true
+     "pass": false
     },
     {
      "label": "menu bar binds \u23186 to Checks",
-     "pass": true
+     "pass": false
     },
     {
      "label": "menu bar binds \u23187 to Cleanup",
-     "pass": true
+     "pass": false
     },
     {
      "label": "menu bar binds \u2318, to Settings",
-     "pass": true
+     "pass": false
     },
     {
      "label": "capture exists on disk",
@@ -370,7 +637,7 @@
      "pass": true
     }
    ],
-   "pass": true
+   "pass": false
   },
   "CASE-0102": {
    "checks": [
@@ -679,22 +946,184 @@
    "checks": [
     {
      "label": "window title is Settings",
-     "pass": true
+     "pass": false
     },
     {
      "label": "window carries: Read from the router, not set here",
-     "pass": true
+     "pass": false
     },
     {
      "label": "window carries: no endpoint that rewrites the router's own configuration",
-     "pass": true
+     "pass": false
     },
     {
      "label": "window carries: Forget the stored token",
+     "pass": false
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": false
+  },
+  "CASE-0161": {
+   "checks": [
+    {
+     "label": "window title is Harnesses",
+     "pass": true
+    },
+    {
+     "label": "window carries: Which AI tools on this Mac actually route through here",
+     "pass": true
+    },
+    {
+     "label": "window carries: Detected on this Mac",
+     "pass": true
+    },
+    {
+     "label": "window carries: one extra process per session",
+     "pass": true
+    },
+    {
+     "label": "window carries: Global configuration only",
+     "pass": true
+    },
+    {
+     "label": "window carries: runs \\d+ servers? of its own, \\d+ of which this router a",
      "pass": true
     },
     {
      "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "a control labelled Rescan is drawn",
+     "pass": true
+    },
+    {
+     "label": "the Rescan control is drawn enabled",
+     "pass": true
+    },
+    {
+     "label": "a control labelled Reconcile all is drawn",
+     "pass": true
+    },
+    {
+     "label": "the Reconcile all control is drawn disabled",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0171": {
+   "checks": [
+    {
+     "label": "window title is Insights",
+     "pass": true
+    },
+    {
+     "label": "window carries: Every number here is counted from calls this router serv",
+     "pass": true
+    },
+    {
+     "label": "window carries: Where the calls came from",
+     "pass": true
+    },
+    {
+     "label": "window carries: Duty cycle, per server",
+     "pass": true
+    },
+    {
+     "label": "window carries: measured, not modelled",
+     "pass": true
+    },
+    {
+     "label": "window carries: The share of wall-clock time each child was alive, since",
+     "pass": true
+    },
+    {
+     "label": "window carries: It sees the process on the other end of the connection, ",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: Savings",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: saved",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: vs unrouted",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: unrouted",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: would have been",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: 99.8",
+     "pass": true
+    },
+    {
+     "label": "window does NOT speak: 99.7",
+     "pass": true
+    },
+    {
+     "label": "a control labelled Analyse now is drawn",
+     "pass": true
+    },
+    {
+     "label": "the Analyse now control is drawn disabled",
      "pass": true
     },
     {
@@ -1017,86 +1446,494 @@
     }
    ],
    "pass": true
+  },
+  "CASE-0162": {
+   "checks": [
+    {
+     "label": "state's own window dump is titled Harnesses",
+     "pass": true
+    },
+    {
+     "label": "state window carries: No AI harnesses found",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Nothing on this Mac looks like an agent CLI",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "state copy is absent from SURF-025.window.txt",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Detected on this Mac",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: mcp-remote",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: one extra process per session",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0163": {
+   "checks": [
+    {
+     "label": "state's own window dump is titled Harnesses",
+     "pass": true
+    },
+    {
+     "label": "state window carries: No AI harnesses found",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Nothing on this Mac looks like an agent CLI",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "state copy is absent from SURF-025.window.txt",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Detected on this Mac",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: mcp-remote",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: one extra process per session",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0164": {
+   "checks": [
+    {
+     "label": "state's own window dump is titled Harnesses",
+     "pass": true
+    },
+    {
+     "label": "state window carries: The router isn't running",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Nothing is listening on the control port",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "state copy is absent from SURF-025.window.txt",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Detected on this Mac",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: mcp-remote",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: one extra process per session",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0165": {
+   "checks": [
+    {
+     "label": "state's own window dump is titled Harnesses",
+     "pass": true
+    },
+    {
+     "label": "state window carries: The router isn't running",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Nothing is listening on the control port",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "state copy is absent from SURF-025.window.txt",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Detected on this Mac",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: mcp-remote",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: one extra process per session",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0172": {
+   "checks": [
+    {
+     "label": "state's own window dump is titled Insights",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Not enough history yet",
+     "pass": true
+    },
+    {
+     "label": "state window carries: No calls have been served in the last 24 hours",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "state copy is absent from SURF-026.window.txt",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Where the calls came from",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Duty cycle, per server",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: measured, not modelled",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Calls per hour",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0173": {
+   "checks": [
+    {
+     "label": "state's own window dump is titled Insights",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Not enough history yet",
+     "pass": true
+    },
+    {
+     "label": "state window carries: No calls have been served in the last 24 hours",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "state copy is absent from SURF-026.window.txt",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Where the calls came from",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Duty cycle, per server",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: measured, not modelled",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Calls per hour",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0174": {
+   "checks": [
+    {
+     "label": "state's own window dump is titled Insights",
+     "pass": true
+    },
+    {
+     "label": "state window carries: The router isn't running",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Nothing is listening on the control port",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "state copy is absent from SURF-026.window.txt",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Where the calls came from",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Duty cycle, per server",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: measured, not modelled",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Calls per hour",
+     "pass": true
+    }
+   ],
+   "pass": true
+  },
+  "CASE-0175": {
+   "checks": [
+    {
+     "label": "state's own window dump is titled Insights",
+     "pass": true
+    },
+    {
+     "label": "state window carries: The router isn't running",
+     "pass": true
+    },
+    {
+     "label": "state window carries: Nothing is listening on the control port",
+     "pass": true
+    },
+    {
+     "label": "dump is an AXWindow tree",
+     "pass": true
+    },
+    {
+     "label": "state copy is absent from SURF-026.window.txt",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Where the calls came from",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Duty cycle, per server",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: measured, not modelled",
+     "pass": true
+    },
+    {
+     "label": "state window does NOT state: Calls per hour",
+     "pass": true
+    },
+    {
+     "label": "capture exists on disk",
+     "pass": true
+    },
+    {
+     "label": "capture is a real PNG",
+     "pass": true
+    },
+    {
+     "label": "capture is not a stub",
+     "pass": true
+    },
+    {
+     "label": "capture is unique to this case",
+     "pass": true
+    },
+    {
+     "label": "capture channel is window-scoped and recorded",
+     "pass": true
+    }
+   ],
+   "pass": true
   }
  },
  "shots": {
   "CASE-0101": {
    "path": "SURF-001.shell.png",
    "exists": true,
-   "bytes": 94067,
-   "sha": "c45c098af28d9fd0",
+   "bytes": 107363,
+   "sha": "5531328c00628d62",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0102": {
    "path": "SURF-002.build.png",
    "exists": true,
-   "bytes": 410665,
-   "sha": "f221cce575ed34a8",
+   "bytes": 482756,
+   "sha": "396f7a823d19d3df",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0103": {
    "path": "SURF-003.build.png",
    "exists": true,
-   "bytes": 454012,
-   "sha": "67ec5b003a42ff81",
+   "bytes": 510431,
+   "sha": "c1c7fb459167edfd",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0104": {
    "path": "SURF-004.build.png",
    "exists": true,
-   "bytes": 458432,
-   "sha": "5d9c92bd76dc87dd",
+   "bytes": 490780,
+   "sha": "d5e4d4fec406a9e3",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0105": {
    "path": "SURF-005.build.png",
    "exists": true,
-   "bytes": 428612,
-   "sha": "b12da3f0eb96c4e9",
+   "bytes": 469690,
+   "sha": "c730d766467f7373",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0106": {
    "path": "SURF-006.build.png",
    "exists": true,
-   "bytes": 492393,
-   "sha": "baaf6220b51c1052",
+   "bytes": 546945,
+   "sha": "5aa88f0cf5d03704",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0107": {
    "path": "SURF-007.build.png",
    "exists": true,
-   "bytes": 484387,
-   "sha": "89465dc1c0bf407d",
+   "bytes": 486763,
+   "sha": "94df3c584c6b0a5f",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0108": {
    "path": "SURF-008.build.png",
    "exists": true,
-   "bytes": 359081,
-   "sha": "ac60c33fec6697fd",
+   "bytes": 385186,
+   "sha": "39d97570c50a7fc5",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0111": {
    "path": "SURF-011.build.png",
    "exists": true,
-   "bytes": 475178,
-   "sha": "3b5a26ef6016a38c",
+   "bytes": 476895,
+   "sha": "195e10068dfd364b",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0161": {
+   "path": "SURF-025.build.png",
+   "exists": true,
+   "bytes": 515422,
+   "sha": "c9edbe374e7444d7",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0171": {
+   "path": "SURF-026.build.png",
+   "exists": true,
+   "bytes": 476716,
+   "sha": "8adecf368f3ad9e9",
    "isPNG": true,
    "sharedWith": null
   },
   "CASE-0139": {
    "path": "SURF-007.cleanup-skills.png",
    "exists": true,
-   "bytes": 519568,
-   "sha": "94dd9d06f87dc3d1",
+   "bytes": 530528,
+   "sha": "57f694c88ddd12a9",
    "isPNG": true,
    "sharedWith": null
   },
@@ -1111,12 +1948,44 @@
   "CASE-0143": {
    "path": "SURF-010.build.png",
    "exists": true,
-   "bytes": 415782,
-   "sha": "705e19b7c853443c",
+   "bytes": 440316,
+   "sha": "780a70277d35d286",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0163": {
+   "path": "SURF-025.empty.png",
+   "exists": true,
+   "bytes": 271204,
+   "sha": "50939d373cbf6912",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0165": {
+   "path": "SURF-025.failure.png",
+   "exists": true,
+   "bytes": 267477,
+   "sha": "7fabf84e7062ebe3",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0173": {
+   "path": "SURF-026.empty.png",
+   "exists": true,
+   "bytes": 272435,
+   "sha": "c60c0a62ec46e0c7",
+   "isPNG": true,
+   "sharedWith": null
+  },
+  "CASE-0175": {
+   "path": "SURF-026.failure.png",
+   "exists": true,
+   "bytes": 267564,
+   "sha": "ad1f088b9ac4941f",
    "isPNG": true,
    "sharedWith": null
   }
  },
  "decoy": null,
- "pass": true
+ "pass": false
 }

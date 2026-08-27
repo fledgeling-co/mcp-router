@@ -52,6 +52,7 @@ export function writeDocumentVectors({ write, distDir, require }) {
     { id: 'no-images', text: 'nothing here at all' },
     { id: 'shield-row', text: '![ci](https://img.shields.io/badge/ci-passing-green) ![v](docs/v.png)' }
   ];
+  // pin-class: src-export — document.imageReferences
   write('document-image-refs', {
     description: 'document.imageReferences — every reference a document names, in order (M30).',
     cases: documentSources.map(({ id, text }) => ({
@@ -128,6 +129,7 @@ export function writeDocumentVectors({ write, distDir, require }) {
     '.',
     '..'
   ];
+  // pin-class: src-export — document.resolveInPackage
   write('document-resolve', {
     description: 'document.resolveInPackage — the traversal boundary and its refusals (M30).',
     // The Swift consumer materialises this before it compares, so both sides ask of one package.
@@ -151,6 +153,7 @@ export function writeDocumentVectors({ write, distDir, require }) {
   // own bounds, and the order is the part a port gets wrong: an oversized image is refused on its own
   // terms and does NOT spend the shared budget, so one huge figure must not refuse every figure after
   // it for the wrong reason.
+  // pin-class: src-export — document.DOCUMENT_CAPS, document.documentOverCap, document.imageCapDecisions
   const CAPS = documentModule.DOCUMENT_CAPS;
   const documentSizes = [0, 1, CAPS.documentBytes - 1, CAPS.documentBytes, CAPS.documentBytes + 1, 1 << 24];
   const imageSizeRuns = [

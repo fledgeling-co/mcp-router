@@ -1,0 +1,8 @@
+before:      LISTEN on 8983 = 1 (owner pid 68285, serve pid 68285)   decoy 8990 = 0
+planning/test-campaign/bin/witness-document-socket.sh: line 66: 69075 Alarm clock: 14            perl -e '$|=1; alarm 4; while (sysread(STDIN, $b, 1)) { print $b }' 0<&3 > /tmp/g19-witness-body.txt 2> /dev/null
+during:      ESTABLISHED on 8983 = 4 (router-owned halves = 1)   decoy = 0
+first bytes: HTTP/1.1 200 OK
+sentinel in the bytes read back off the socket: 1
+after:       LISTEN on 8983 = 0
+
+examined=2 ports · effect-class=inbound-socket · witnessed=1 · decoy=0

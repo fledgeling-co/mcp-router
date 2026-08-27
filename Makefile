@@ -44,7 +44,7 @@ MAC_DEST   ?= platform=macOS
 ## M15-M22 add theirs by writing planning/fidelity/<surface>.layers.json beside this one.
 SURFACE    ?= servers
 
-.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default
+.PHONY: all tools generate build enum-layout-stamp build-mac build-mac-release build-ios test test-ios test-ios-glass parity parity-regen parity-selftest parity-lane-selftest parity-watch-mutations mutation mutation-selftest acceptance acceptance-lanes-selftest mock-fidelity mock-fidelity-selftest role-intersection lint format clean install-default surface-reconcile surface-reconcile-arm
 
 ## G4's two harness gates run inside `lint` rather than as a stage of their own. Both are
 ## hermetic and finish in under ten seconds, and `lint` is where the other four script gates
@@ -92,6 +92,24 @@ SURFACE    ?= servers
 ## its presence control plants nine instances across every class on every invocation and exits 2
 ## without printing a verdict if any one of them is missed — so a zero here is a measurement.
 ##
+## `pin-class-gate.py` (`P11`) runs here for the reason P9 declined to put it here in a hurry:
+## "bolting an unproven gate into the lint chain at the end of a gap-fix round is how a gate ends
+## up reporting success without running." It is armed twice before it is trusted — five arms of its
+## own that fire on every invocation via `--control`, and seven arms in `null-run-gate.py` that run
+## it against a scratch corpus built to break it — and `lint` is then the right home because it is
+## hermetic, needs no node and no `dist/`, finishes in well under a second, and is where the other
+## seven Python gates already live. A lane of its own would be a lane somebody runs separately
+## from `all`.
+##
+## What it refuses: a parity vector that does not say what it pins. Five vectors have been found
+## carrying a hand-copy of the reference expression they exist to pin, each proved blind by
+## mutating the reference and watching `make parity-regen` stay at exit 0. Every one was found by a
+## sweep, and a sweep is a snapshot. This is the standing version: `src-export` must import the
+## named production export and carry no local implementation of it, `platform-builtin` may only
+## reach a builtin in a closed vocabulary, and an UNANNOTATED writer fails — so the default for a
+## sixth vector is refusal rather than silent admission. The five that exist today are carried by
+## name in the gate's own `CARRY` constant, printed on every run, and close with `P9`.
+
 ## `role-intersection-gate.py` (`G8`) is deliberately NOT in `lint` or in `all`, and the reason is
 ## its own subject. It exits **3** on this tree today: `planning/fidelity/popover.ledger.md` is an
 ## obituary — the fidelity gate exited 3 on `#statusPopover has no '.v-ideal' block` and wrote no
@@ -110,7 +128,7 @@ SURFACE    ?= servers
 ## runs since. It costs roughly two minutes and adds no new requirement — `test-ios` already needs
 ## a booted simulator — and it is the only stage here that proves the app runs rather than that its
 ## views construct.
-all: tools lint build test test-ios test-ios-glass parity parity-selftest mock-fidelity-selftest acceptance-lanes-selftest install-default
+all: tools lint build test test-ios test-ios-glass parity parity-selftest mutation-selftest mock-fidelity-selftest acceptance-lanes-selftest install-default surface-reconcile
 
 ## Fail loudly and specifically when a required tool is missing, rather than skipping the gate.
 ## A silently-skipped lint step is worse than no lint step: it reports success.
@@ -491,6 +509,21 @@ parity-regen:
 mutation:
 	./scripts/parity/mutation-gate.sh
 
+## Can the mutation harness's FILTER go red? — G12.
+##
+## `mutation` is what other checks are measured against, so a filter typo silently converting it
+## into the weakest evidence available is worse than an ordinary false pass. Until G12, a filter
+## naming a mutation that does not exist selected nothing, ran nothing, and printed `0 — none` on
+## both oracles with exit 0 — the same success a run that killed all thirty-five produces. It was
+## read as evidence twice in one session before a third filter happened to match.
+##
+## In `all`, unlike `mutation` itself, and the reason is the whole point: the harness resolves its
+## filter before the dirty-tree guard and before the baseline, so these eleven cases cost
+## milliseconds and need no build. A selftest that needed a rebuild would be run before a merge —
+## which is exactly when nobody runs it.
+mutation-selftest:
+	./scripts/parity/mutation-gate-selftest.sh
+
 ## Can the parity harness itself go red? — P4.
 ##
 ## The gate reports a coverage fraction over the census in planning/parity/surface.tsv, so the two
@@ -632,6 +665,41 @@ mock-fidelity:
 mock-fidelity-selftest:
 	./scripts/acceptance/mock-fidelity-selftest.sh
 
+## G18 — the campaign's surface set against the product's own list of surfaces.
+##
+## The completeness gate this sits beside asks which ENUMERATED surface has no case, so a surface
+## nobody ever enumerated is invisible to it. It reported clean for two milestones while the app
+## shipped three surfaces the campaign had never heard of. This one derives the denominator from
+## the app instead: `planning/test-campaign/bin/surface-oracle.swift` is COMPILED against the
+## shipped `Destination.swift` and `RouterSheet.swift`, so a destination cannot be added without
+## appearing in the count.
+##
+## **It is red today, on purpose, and the three names it prints are the point.** `destination:harnesses`,
+## `destination:insights` and `sheet:readme` are shipped and unenumerated; G15, G16 and G17 are the
+## items that add their surfaces, and each of those turns one row green by writing a binding and a
+## case. Landing it green would have meant writing the bindings here and leaving the campaign with
+## no surface for any of them, which is the defect with a fresh coat on it.
+##
+## In `all` for `mock-fidelity-selftest`'s reason turned around: a gate wired into nothing is a
+## script. It needs `swiftc` and about eight seconds, and it builds no app target.
+surface-reconcile:
+	@/usr/bin/python3 planning/test-campaign/bin/surface-reconcile.py; status=$$?; \
+	if [ $$status = 2 ]; then \
+	  echo "make: surface-reconcile CONTROL FAILED (exit 2) — the gate could not see its own planted defects, so it printed no verdict."; \
+	elif [ $$status = 3 ]; then \
+	  echo "make: surface-reconcile BLOCKED (exit 3) — the oracle would not build or would not run. That is not a clean campaign."; \
+	fi; \
+	exit $$status
+
+## The arm for the gate above: adds a tenth destination to the product with no campaign surface,
+## requires the gate to name exactly that one and nothing else, restores the file from the bytes
+## read before the mutation and proves the restore with SHA-256.
+##
+## Out of `all` because it writes to a tracked source file while it runs. It restores it in a
+## `finally`, and the recorded hashes are how you check that rather than the promise.
+surface-reconcile-arm:
+	/usr/bin/python3 planning/test-campaign/bin/arm-surface-reconcile.py
+
 ## R6 — the PATH a spawned child inherits, measured at both routers under a scratch HOME.
 ##
 ## Its own target rather than a line in `acceptance`: it builds the release Swift CLI and indexes a
@@ -658,6 +726,9 @@ lint: tools
 	python3 planning/citation-gate.py || fail=1; \
 	python3 planning/sweep-control-gate.py || fail=1; \
 	python3 planning/runnable-path-gate.py || fail=1; \
+	python3 planning/registry-drop-gate.py || fail=1; \
+	python3 planning/pin-class-gate.py || fail=1; \
+	zsh app/Scripts/pool-mutation-gate-selftest.sh || fail=1; \
 	exit $$fail
 
 ## The cross-branch role-intersection check (`G8`). Not in `all` — see the note above `all` for

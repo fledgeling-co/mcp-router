@@ -1,0 +1,29 @@
+{
+ "source": "app/Sources/MCPRouterKit/Shell/Destination.swift",
+ "planted": "destination:probeboard",
+ "sha256Before": "c88847033c7a7c341e3873da0751f832c56302cd7d0ecf9346de11785ed5a6b1",
+ "baseline": {
+  "exit": 0,
+  "named": []
+ },
+ "mutated": {
+  "exit": 1,
+  "named": [
+   "destination:probeboard"
+  ]
+ },
+ "delta": {
+  "added": [
+   "destination:probeboard"
+  ],
+  "removed": []
+ },
+ "armed": true,
+ "sha256After": "c88847033c7a7c341e3873da0751f832c56302cd7d0ecf9346de11785ed5a6b1",
+ "restoredIdentical": true,
+ "restored": {
+  "exit": 0,
+  "named": []
+ },
+ "verdictRestored": true
+}

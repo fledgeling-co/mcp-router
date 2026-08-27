@@ -1,0 +1,110 @@
+0	AXWindow	AXStandardWindow	Harnesses								SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1	180.0	140.0	980.0	620.0	0
+1	AXGroup	AXHostingView										180.0	140.0	980.0	620.0	0
+2	AXSplitGroup										SwiftUI.ModifiedContent<MCPRouterUI.ShellWindow, SwiftUI._FlexFrameLayout>-1-AppWindow-1, SidebarNavigationSplitView	180.0	140.0	980.0	620.0	0
+3	AXGroup	AXHostingView										188.0	148.0	256.0	604.0	0
+4	AXScrollArea											188.0	192.0	256.0	419.0	0
+5	AXOutline				Sidebar		1				sidebar	188.0	192.0	256.0	419.0	0
+6	AXRow	AXOutlineRow						0				188.0	192.0	256.0	19.0	
+7	AXCell						1	0				198.0	192.0	236.0	19.0	1
+8	AXGroup	AXHostingView										202.0	192.0	240.0	19.0	0
+9	AXHeading				Running		1					202.0	194.5	45.0	14.0	
+6	AXRow	AXOutlineRow						0				188.0	211.0	256.0	32.0	
+7	AXCell						1	0				198.0	211.0	236.0	32.0	1
+8	AXButton				Activity		1					205.5	219.0	71.0	16.0	
+6	AXRow	AXOutlineRow						0				188.0	243.0	256.0	32.0	
+7	AXCell						1	0				198.0	243.0	236.0	32.0	1
+8	AXButton				Servers, 1 need attention		1					204.0	251.0	224.0	16.0	
+6	AXRow	AXOutlineRow						0				188.0	275.0	256.0	32.0	
+7	AXCell						1	0				198.0	275.0	236.0	32.0	1
+8	AXButton				Skills		1					207.0	283.0	55.0	16.0	
+6	AXRow	AXOutlineRow						1				188.0	307.0	256.0	32.0	
+7	AXCell						1	1				198.0	307.0	236.0	32.0	1
+8	AXButton				Harnesses		1	1				205.0	315.0	90.0	16.0	
+6	AXRow	AXOutlineRow						0				188.0	352.0	256.0	19.0	
+7	AXCell						1	0				198.0	352.0	236.0	19.0	1
+8	AXGroup	AXHostingView										202.0	352.0	240.0	19.0	0
+9	AXHeading				Library		1					202.0	354.5	39.0	14.0	
+6	AXRow	AXOutlineRow						0				188.0	371.0	256.0	32.0	
+7	AXCell						1	0				198.0	371.0	236.0	32.0	1
+8	AXButton				Discover		1					206.0	379.0	77.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	403.0	256.0	32.0	
+7	AXCell						1	0				198.0	403.0	236.0	32.0	1
+8	AXButton				Inbox		1					204.5	411.0	58.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	435.0	256.0	32.0	
+7	AXCell						1	0				198.0	435.0	236.0	32.0	1
+8	AXButton				Checks		1	1				204.5	443.0	70.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	467.0	256.0	32.0	
+7	AXCell						1	0				198.0	467.0	236.0	32.0	1
+8	AXButton				Cleanup, 3 never used		1					205.5	475.0	222.5	16.0	
+6	AXRow	AXOutlineRow						0				188.0	499.0	256.0	32.0	
+7	AXCell						1	0				198.0	499.0	236.0	32.0	1
+8	AXButton				Insights		1					203.5	507.0	75.0	16.0	
+6	AXColumn							0			ListColumn	198.0	192.0	236.0	419.0	
+4	AXStaticText			Child processes, 1 of 4 declared servers running			1				sidebar	204.0	631.0	224.0	16.0	
+4	AXStaticText			last 18s · peak 1			1				sidebar	204.0	684.5	105.5	13.0	
+4	AXStaticText			Router endpoint, 127.0.0.1:8971			1				sidebar	204.0	729.0	95.5	14.0	
+3	AXSplitter			264			0	0				444.0	192.0	0.0	568.0	0
+3	AXGroup	AXHostingView										180.0	140.0	980.0	620.0	0
+4	AXStaticText			none	mcprouter-key-probe						content	1084.0	732.0	72.0	24.0	1
+4	AXScrollArea										content	444.0	192.0	716.0	568.0	0
+5	AXStaticText			Harnesses			1					460.0	208.0	109.5	26.0	
+5	AXButton				Rescan		1					971.0	208.0	62.0	24.0	0
+5	AXButton				Reconcile all…	The panel that shows the difference isn't built yet, so nothing here can be reconciled from this board. Your configuration is untouched either way.	0					1037.0	208.0	107.0	24.0	
+5	AXStaticText			Which AI tools on this Mac actually route through here. Pointing a harness at the endpoint is the easy half; the half that saves anything is noticing it still spawns its own copies.			1					460.0	236.0	485.0	49.0	
+5	AXImage				warn		1				exclamationmark.triangle	473.5	314.0	13.5	12.5	
+5	AXStaticText			Gemini CLI runs 18 servers of its own, 10 of which this router already fronts			1					496.5	313.0	473.0	16.0	
+5	AXButton				Reconcile…	The panel that shows the difference isn't built yet, so nothing here can be reconciled from this board. Your configuration is untouched either way.	0					1043.0	313.0	89.0	24.0	
+5	AXStaticText			Detected on this Mac			1					460.0	365.0	116.0	14.0	
+5	AXStaticText			Claude Code			1					472.0	399.0	91.5	19.0	
+5	AXStaticText			Routed over HTTP			1					1025.0	402.0	99.0	14.0	
+5	AXStaticText			~/.claude.json			1					472.0	420.0	87.0	13.0	
+5	AXStaticText			Sessions reach every server this router fronts through one endpoint, and start no child processes of their own to do it.			1					472.0	441.0	632.5	32.5	
+5	AXButton				Reveal config in Finder		1					472.0	481.5	159.0	24.0	0
+5	AXStaticText			Cursor			1					472.0	537.5	48.5	19.0	
+5	AXStaticText			Routed over HTTP			1					1025.0	540.5	99.0	14.0	
+5	AXStaticText			~/.cursor/mcp.json			1					472.0	558.5	111.5	13.0	
+5	AXStaticText			Sessions reach every server this router fronts through one endpoint, and start no child processes of their own to do it.			1					472.0	579.5	632.5	32.5	
+5	AXButton				Reveal config in Finder		1					472.0	620.0	159.0	24.0	0
+5	AXStaticText			grok			1					472.0	676.0	32.5	19.0	
+5	AXStaticText			Routed through a stdio shim			1					970.0	679.0	154.0	14.0	
+5	AXStaticText			~/.grok/config.toml			1					472.0	697.0	117.5	13.0	
+5	AXStaticText			It reaches the router through mcp-remote, which is one extra process per session. That is a real cost, and it is named here rather than shown as a clean tick.			1					472.0	718.0	641.0	32.5	
+5	AXButton				Reveal config in Finder		1					472.0	758.5	159.0	24.0	0
+5	AXButton				Why a shim?		1					635.0	758.5	95.5	24.0	0
+5	AXStaticText			Codex CLI			1					472.0	814.5	73.0	19.0	
+5	AXStaticText			Routed, plus 7 direct servers			1					967.0	817.5	157.0	14.0	
+5	AXStaticText			~/.codex/config.toml			1					472.0	835.5	124.0	13.0	
+5	AXStaticText			4 of its 7 own servers duplicate upstreams this router already serves. Removing them changes nothing an agent can do and stops 4 processes starting at every session.			1					472.0	856.5	649.0	32.5	
+5	AXStaticText			dossier			1					472.0	897.0	43.5	13.0	
+5	AXStaticText			obscura			1					472.0	912.0	43.5	13.0	
+5	AXStaticText			Ref — the router calls it ref-tools-mcp			1					472.0	927.0	241.5	13.0	
+5	AXStaticText			google-search			1					472.0	942.0	80.5	13.0	
+5	AXButton				Reveal config in Finder		1					472.0	963.0	159.0	24.0	0
+5	AXButton				Reconcile…	The panel that shows the difference isn't built yet, so nothing here can be reconciled from this board. Your configuration is untouched either way.	0					635.0	963.0	89.0	24.0	
+5	AXStaticText			Gemini CLI			1					472.0	1019.0	77.5	19.0	
+5	AXStaticText			Not routed			1					1065.0	1022.0	59.0	14.0	
+5	AXStaticText			~/.gemini/config/mcp_config.json			1					472.0	1040.0	198.0	13.0	
+5	AXStaticText			It runs 18 servers of its own, 10 of which this router already fronts. Those 10 start at every session and serve what one endpoint already serves.			1					472.0	1061.0	648.0	32.5	
+5	AXButton				Reveal config in Finder		1					472.0	1101.5	159.0	24.0	0
+5	AXButton				Reconcile…	The panel that shows the difference isn't built yet, so nothing here can be reconciled from this board. Your configuration is untouched either way.	0					635.0	1101.5	89.0	24.0	
+5	AXStaticText			opencode			1					472.0	1157.5	71.0	19.0	
+5	AXStaticText			Not routed			1					1065.0	1160.5	59.0	14.0	
+5	AXStaticText			~/.config/opencode/opencode.json			1					472.0	1178.5	198.0	13.0	
+5	AXStaticText			Nothing in this harness points at the router, and it declares no servers of its own either. Wiring it is one entry and nothing to clean up.			1					472.0	1199.5	647.5	32.5	
+5	AXButton				Reveal config in Finder		1					472.0	1240.0	159.0	24.0	0
+5	AXStaticText			Read 4d ago			1					460.0	1292.0	63.0	13.0	
+5	AXStaticText			Global configuration only — a server declared inside one project is not read here.			1					460.0	1307.0	405.0	13.0	
+5	AXScrollBar			0			1					1142.0	191.0	19.0	552.5	0
+6	AXValueIndicator			0								1151.0	195.0	6.0	282.0	
+6	AXButton	AXIncrementArrow										1143.0	192.0	0.0	0.0	
+6	AXButton	AXDecrementArrow										1143.0	192.0	0.0	0.0	
+6	AXButton	AXIncrementPage										1151.0	477.5	6.0	262.0	
+6	AXButton	AXDecrementPage										1151.0	195.0	6.0	0.0	
+1	AXToolbar											180.0	140.0	980.0	52.0	0
+2	AXButton				Hide Sidebar		1	0				397.0	140.0	47.0	52.0	0
+1	AXButton	AXCloseButton					1					198.0	158.0	16.0	16.0	0
+1	AXButton	AXFullScreenButton				this button also has an action to zoom the window	1					244.0	158.0	16.0	16.0	0
+2	AXGroup											245.0	159.0	14.0	14.0	0
+3	AXGroup											245.0	159.0	14.0	14.0	0
+1	AXButton	AXMinimizeButton					1					221.0	158.0	16.0	16.0	0
+1	AXStaticText			Harnesses			1					448.0	140.0	708.0	52.0	0

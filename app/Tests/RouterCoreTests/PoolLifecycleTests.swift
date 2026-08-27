@@ -63,12 +63,23 @@ struct PoolLifecycleTests {
         let handleA = await pool.currentIdentities("a").handle
 
         transport.sessions[0].endOnItsOwn()
-        // Not the watcher task here: awaiting it would wait out the blocked log too, and acting
-        // *during* that log is the whole point. Eviction precedes the log and is what `isLive`
-        // reports, so waiting on the eviction lands inside the window instead of guessing at it.
-        try await waitUntil("the dead handle to be evicted") { await !pool.isLive("a") }
+        // Wait for the LOG, not for the eviction, and the difference is the whole test.
+        //
+        // Waiting on `!pool.isLive("a")` was what let this pass with the guard removed. Move the
+        // eviction to after the log and the eviction still happens — 0.3 seconds later, once the
+        // blocked sink returns — so a wait on the eviction simply outlasts the window the guard
+        // exists to close, and then measures a pool that has already tidied itself up. It reported
+        // OK against both orderings, which is to say it reported nothing.
+        //
+        // The marked line reaching the sink is the window OPENING. With the guard, eviction has
+        // already happened by then and the lease below gets a fresh session. Without it, the pool
+        // is parked at the log with the dead handle still installed, and the lease below is handed
+        // the session that just died — which is the failure the guard is written against, stated in
+        // its own comment: "lets a lease taken during the gap be handed the session we are about to
+        // close".
+        try await waitUntil("the close to reach the log") { sink.hasEntered }
 
-        // Taken while the close is still being logged.
+        // Taken while the close is still being logged, and therefore inside the window.
         let second = try await pool.lease("a")
         #expect(second.handle != handleA, "a lease must never be handed the session that just died")
         #expect(transport.sessions.count == 2, "the dead upstream is reopened, not reused")

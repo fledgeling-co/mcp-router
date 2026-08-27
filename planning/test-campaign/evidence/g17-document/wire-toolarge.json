@@ -1,0 +1,1 @@
+{"error":"README.md is 600012 bytes, over the 524288-byte transport cap for one document","reason":"documentTooLarge","cap":"documentBytes","limit":524288,"actual":600012,"file":"README.md","server":"g17-oversize"}

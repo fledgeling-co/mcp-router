@@ -219,12 +219,26 @@
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .accessibilityLabel(image.alternateText)
+                        // **Deliberately not measured.** A node here would say a drawn image and a
+                        // refusal placeholder are different views, which they are; it would not say
+                        // that any bytes arrived or that anything was painted, and it is the second
+                        // claim that had never been made. CASE-0153 reads the pixels inside this
+                        // card's own frame off the raster instead, which is the rung that can
+                        // actually answer it — and a `figure` node here would additionally be a
+                        // build affordance the mock has no peer for, adding a finding to
+                        // `mock-fidelity SURFACE=readme` in exchange for a weaker oracle.
                 } else {
-                    Text(refusals[image.reference]?.sentence ?? PackageImageResolver.Refusal
-                        .notInPackage.sentence)
+                    Text(refusalSentence(for: image))
                         .typeRole(.subheadline)
                         .foregroundStyle(ColorToken.t2.color)
                         .fixedSize(horizontal: false, vertical: true)
+                        // The refusal's own sentence, so *which* refusal landed is readable off
+                        // the dump. Three references refused for three different reasons drew
+                        // three different sentences and recorded one indistinguishable node.
+                        .measured(
+                            "\(nodeID)-refusal", role: "figure-refusal", kind: .text,
+                            type: .subheadline, text: refusalSentence(for: image)
+                        )
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -242,6 +256,14 @@
                 alignment: "leading", tokens: ["background": .panel, "border": .line],
                 text: image.alternateText
             )
+        }
+
+        /// What the placeholder says for a reference that did not draw.
+        ///
+        /// A reference the router said nothing about is `notInPackage` rather than silence: the
+        /// panel draws a sentence for every figure it could not show (`DESIGN.md` §6).
+        private func refusalSentence(for image: MarkdownImage) -> String {
+            refusals[image.reference]?.sentence ?? PackageImageResolver.Refusal.notInPackage.sentence
         }
 
         // MARK: - Shields

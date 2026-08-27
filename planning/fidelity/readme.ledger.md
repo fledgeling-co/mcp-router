@@ -10,7 +10,7 @@ finding disappear.
 | Layer | Result | Detail |
 |---|---|---|
 | `tokens` | clean | 70 matched, 19 pending, of 89 rows |
-| `literals` | clean | scanning 146 files |
+| `literals` | clean | scanning 147 files |
 | `structure` | clean | 42 nodes across 1 states · 7 declared axis/axes corroborated against child geometry |
 | `geometry` | clean | 42 frames |
 | `type-metrics` | clean | 9 per-role comparison(s) over 11 text nodes · 5 roles · Callout=15pt Body=16pt Title3=19pt Title2=20pt Title1=26pt · 2 multi-line node(s) excluded from the per-role check |

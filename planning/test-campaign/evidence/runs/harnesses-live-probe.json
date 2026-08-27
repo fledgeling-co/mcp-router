@@ -1,0 +1,39 @@
+{
+ "url": "http://127.0.0.1:8975/harnesses",
+ "sha256": "5dcf5a368cebefa2943c986093adf6fecaf71fc1947b31527be495130424c8e9",
+ "readAt": "2026-08-27T04:25:10.986Z",
+ "rows": 7,
+ "traced": [
+  "claudeCode=1",
+  "claudeDesktop=0",
+  "codexCLI=5",
+  "cursor=0",
+  "geminiCLI=20",
+  "grokCLI=3"
+ ],
+ "untraceable": [],
+ "mismatched": [],
+ "checks": [
+  {
+   "label": "the route answered with a harness list",
+   "pass": true,
+   "detail": "7 row(s)"
+  },
+  {
+   "label": "readAt is a reading taken now, not a recording replayed",
+   "pass": true,
+   "detail": "0s old"
+  },
+  {
+   "label": "every row's `exists` agrees with stat(2) on this machine",
+   "pass": true,
+   "detail": "7 path(s) checked, 0 disagreed"
+  },
+  {
+   "label": "every traceable row's `entries` is reproduced from the file it names",
+   "pass": true,
+   "detail": "traced 6: claudeCode=1, claudeDesktop=0, codexCLI=5, cursor=0, geminiCLI=20, grokCLI=3"
+  }
+ ],
+ "pass": true
+}

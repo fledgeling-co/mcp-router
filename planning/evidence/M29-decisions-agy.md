@@ -3,7 +3,7 @@
 Run 2026-08-25 from `/tmp` (neutral cwd), bounded at 600s, exit 0. The reply names this
 project's own subject — `unionTools`, `visibleTo`, the TypeScript reference and the Swift
 `RouterCore` port, the macOS servers table — so the lane answered about M29 rather than about
-another repo's item. Prompt: `/tmp/m29/prompt.txt`, option order as listed in the spec.
+another repo's item. Prompt: `/tmp/m29/prompt.txt` (not retained), option order as listed in the spec.
 
 Verdict: **(a) A1 · (b) B2 · (c) global boolean**.
 
